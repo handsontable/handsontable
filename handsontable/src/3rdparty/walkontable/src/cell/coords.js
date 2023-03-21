@@ -87,6 +87,20 @@ class CellCoords {
   }
 
   /**
+   * @returns {boolean}
+   */
+  isHeader() {
+    return !this.isCell();
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  isCell() {
+    return this.row >= 0 && this.col >= 0;
+  }
+
+  /**
    * Checks if another set of coordinates (`testedCoords`)
    * is south-east of the coordinates in your `CellCoords` instance.
    *

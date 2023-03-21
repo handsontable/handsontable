@@ -85,7 +85,7 @@ export class SelectionManager {
    * @returns {Selection|null}
    */
   getAreaSelection() {
-    return this.#selections !== null ? this.#selections.createOrGetAreaLayered() : null;
+    return this.#selections !== null ? this.#selections.createLayeredArea() : null;
   }
 
   /**

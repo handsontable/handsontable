@@ -256,7 +256,7 @@ class Selection {
     // indication that the new selection is performing.
     if (layerLevel < this.highlight.layerLevel) {
       arrayEach(this.highlight.getAreas(), highlight => void highlight.clear());
-      arrayEach(this.highlight.getAreasLayered(), highlight => void highlight.clear());
+      arrayEach(this.highlight.getLayeredAreas(), highlight => void highlight.clear());
       arrayEach(this.highlight.getRowHeaders(), highlight => void highlight.clear());
       arrayEach(this.highlight.getColumnHeaders(), highlight => void highlight.clear());
       arrayEach(this.highlight.getActiveRowHeaders(), highlight => void highlight.clear());
@@ -267,17 +267,17 @@ class Selection {
 
     this.highlight.useLayerLevel(layerLevel);
 
-    const areaHighlight = this.highlight.createOrGetArea();
-    const areaLayeredHighlight = this.highlight.createOrGetAreaLayered();
-    const rowHeaderHighlight = this.highlight.createOrGetRowHeader();
-    const columnHeaderHighlight = this.highlight.createOrGetColumnHeader();
-    const activeRowHeaderHighlight = this.highlight.createOrGetActiveRowHeader();
-    const activeColumnHeaderHighlight = this.highlight.createOrGetActiveColumnHeader();
-    const rowHighlight = this.highlight.createOrGetRowHighlight();
-    const columnHighlight = this.highlight.createOrGetColumnHighlight();
+    const areaHighlight = this.highlight.createArea();
+    const layeredAreaHighlight = this.highlight.createLayeredArea();
+    const rowHeaderHighlight = this.highlight.createRowHeader();
+    const columnHeaderHighlight = this.highlight.createColumnHeader();
+    const activeRowHeaderHighlight = this.highlight.createActiveRowHeader();
+    const activeColumnHeaderHighlight = this.highlight.createActiveColumnHeader();
+    const rowHighlight = this.highlight.createRowHighlight();
+    const columnHighlight = this.highlight.createColumnHighlight();
 
     areaHighlight.clear();
-    areaLayeredHighlight.clear();
+    layeredAreaHighlight.clear();
     rowHeaderHighlight.clear();
     columnHeaderHighlight.clear();
     activeRowHeaderHighlight.clear();
@@ -290,7 +290,7 @@ class Selection {
         .add(cellRange.from)
         .add(cellRange.to)
         .commit();
-      areaLayeredHighlight
+      layeredAreaHighlight
         .add(cellRange.from)
         .add(cellRange.to)
         .commit();
@@ -303,13 +303,13 @@ class Selection {
 
         this.highlight.useLayerLevel(layerLevel - 1);
         this.highlight
-          .createOrGetArea()
+          .createArea()
           .add(previousRange.from)
           .commit()
           // Range may start with hidden indexes. Commit would not found start point (as we add just the `from` coords).
           .syncWith(previousRange);
         this.highlight
-          .createOrGetAreaLayered()
+          .createLayeredArea()
           .add(previousRange.from)
           .commit()
           // Range may start with hidden indexes. Commit would not found start point (as we add just the `from` coords).
@@ -718,14 +718,14 @@ class Selection {
     for (let layerLevel = 0; layerLevel < this.selectedRange.size(); layerLevel += 1) {
       this.highlight.useLayerLevel(layerLevel);
 
-      const areaHighlight = this.highlight.createOrGetArea();
-      const areaLayeredHighlight = this.highlight.createOrGetAreaLayered();
-      const rowHeaderHighlight = this.highlight.createOrGetRowHeader();
-      const columnHeaderHighlight = this.highlight.createOrGetColumnHeader();
-      const activeRowHeaderHighlight = this.highlight.createOrGetActiveRowHeader();
-      const activeColumnHeaderHighlight = this.highlight.createOrGetActiveColumnHeader();
-      const rowHighlight = this.highlight.createOrGetRowHighlight();
-      const columnHighlight = this.highlight.createOrGetColumnHighlight();
+      const areaHighlight = this.highlight.createArea();
+      const areaLayeredHighlight = this.highlight.createLayeredArea();
+      const rowHeaderHighlight = this.highlight.createRowHeader();
+      const columnHeaderHighlight = this.highlight.createColumnHeader();
+      const activeRowHeaderHighlight = this.highlight.createActiveRowHeader();
+      const activeColumnHeaderHighlight = this.highlight.createActiveColumnHeader();
+      const rowHighlight = this.highlight.createRowHighlight();
+      const columnHighlight = this.highlight.createColumnHighlight();
 
       areaHighlight.commit();
       areaLayeredHighlight.commit();

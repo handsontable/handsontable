@@ -257,7 +257,7 @@ export function createSelectionController(options = {}) {
     getFill() {
       return fillCtrl;
     },
-    createOrGetAreaLayered() {
+    createLayeredArea() {
       return areaCtrl.at(-1) ?? { cellRange: null };
     },
     getArea(selectionOptions = {}) {

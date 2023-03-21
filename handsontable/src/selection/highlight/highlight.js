@@ -83,7 +83,7 @@ class Highlight {
    *
    * @type {Map.<number, Selection>}
    */
-  areasLayered = new Map();
+  layeredAreas = new Map();
   /**
    * Collection of the `highlight` highlights. That objects describes attributes for the borders and selection of
    * the multiple selected cells. It can occur multiple times on the table.
@@ -163,7 +163,11 @@ class Highlight {
       type = 'current'; // One from settings for `disableVisualSelection` up to Handsontable 0.36/Handsontable Pro 1.16.0.
     }
 
-    let disableHighlight = this.options.disabledCellSelection(coords.row, coords.col);
+    let disableHighlight = false;
+
+    if (coords.isCell()) {
+      disableHighlight = this.options.disabledCellSelection(coords.row, coords.col);
+    }
 
     if (typeof disableHighlight === 'string') {
       disableHighlight = [disableHighlight];
@@ -204,13 +208,13 @@ class Highlight {
   }
 
   /**
-   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling
+   * Creates (if not exist in the cache) Walkontable Selection instance created for controlling
    * `area` highlights.
    *
    * @returns {Selection}
    */
-  createOrGetAreaLayered() {
-    return this.#createOrGetHighlight(this.areasLayered, createAreaLayeredHighlight);
+  createLayeredArea() {
+    return this.#createHighlight(this.layeredAreas, createAreaLayeredHighlight);
   }
 
   /**
@@ -218,18 +222,18 @@ class Highlight {
    *
    * @returns {Selection[]}
    */
-  getAreasLayered() {
-    return [...this.areasLayered.values()];
+  getLayeredAreas() {
+    return [...this.layeredAreas.values()];
   }
 
   /**
-   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling
+   * Creates (if not exist in the cache) Walkontable Selection instance created for controlling
    * `highlight` highlights.
    *
    * @returns {Selection}
    */
-  createOrGetArea() {
-    return this.#createOrGetHighlight(this.areas, createAreaHighlight);
+  createArea() {
+    return this.#createHighlight(this.areas, createAreaHighlight);
   }
 
   /**
@@ -242,13 +246,13 @@ class Highlight {
   }
 
   /**
-   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling
+   * Creates (if not exist in the cache) Walkontable Selection instance created for controlling
    * header highlight for rows.
    *
    * @returns {Selection}
    */
-  createOrGetRowHeader() {
-    return this.#createOrGetHighlight(this.rowHeaders, createHeaderHighlight);
+  createRowHeader() {
+    return this.#createHighlight(this.rowHeaders, createHeaderHighlight);
   }
 
   /**
@@ -261,13 +265,13 @@ class Highlight {
   }
 
   /**
-   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling
+   * Creates (if not exist in the cache) Walkontable Selection instance created for controlling
    * header highlight for columns.
    *
    * @returns {Selection}
    */
-  createOrGetColumnHeader() {
-    return this.#createOrGetHighlight(this.columnHeaders, createHeaderHighlight);
+  createColumnHeader() {
+    return this.#createHighlight(this.columnHeaders, createHeaderHighlight);
   }
 
   /**
@@ -280,13 +284,13 @@ class Highlight {
   }
 
   /**
-   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling
+   * Creates (if not exist in the cache) Walkontable Selection instance created for controlling
    * highlight for active row headers.
    *
    * @returns {Selection}
    */
-  createOrGetActiveRowHeader() {
-    return this.#createOrGetHighlight(this.activeRowHeaders, createActiveHighlight);
+  createActiveRowHeader() {
+    return this.#createHighlight(this.activeRowHeaders, createActiveHighlight);
   }
 
   /**
@@ -299,13 +303,13 @@ class Highlight {
   }
 
   /**
-   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling
+   * Creates (if not exist in the cache) Walkontable Selection instance created for controlling
    * highlight for active column headers.
    *
    * @returns {Selection}
    */
-  createOrGetActiveColumnHeader() {
-    return this.#createOrGetHighlight(this.activeColumnHeaders, createActiveHighlight);
+  createActiveColumnHeader() {
+    return this.#createHighlight(this.activeColumnHeaders, createActiveHighlight);
   }
 
   /**
@@ -318,13 +322,13 @@ class Highlight {
   }
 
   /**
-   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling
+   * Creates (if not exist in the cache) Walkontable Selection instance created for controlling
    * highlight cells in a row.
    *
    * @returns {Selection}
    */
-  createOrGetRowHighlight() {
-    return this.#createOrGetHighlight(this.rowHighlights, createRowHighlight);
+  createRowHighlight() {
+    return this.#createHighlight(this.rowHighlights, createRowHighlight);
   }
 
   /**
@@ -337,13 +341,13 @@ class Highlight {
   }
 
   /**
-   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling
+   * Creates (if not exist in the cache) Walkontable Selection instance created for controlling
    * highlight cells in a column.
    *
    * @returns {Selection}
    */
-  createOrGetColumnHighlight() {
-    return this.#createOrGetHighlight(this.columnHighlights, createColumnHighlight);
+  createColumnHighlight() {
+    return this.#createHighlight(this.columnHighlights, createColumnHighlight);
   }
 
   /**
@@ -384,7 +388,7 @@ class Highlight {
     this.fill.clear();
 
     arrayEach(this.areas.values(), highlight => void highlight.clear());
-    arrayEach(this.areasLayered.values(), highlight => void highlight.clear());
+    arrayEach(this.layeredAreas.values(), highlight => void highlight.clear());
     arrayEach(this.rowHeaders.values(), highlight => void highlight.clear());
     arrayEach(this.columnHeaders.values(), highlight => void highlight.clear());
     arrayEach(this.activeRowHeaders.values(), highlight => void highlight.clear());
@@ -394,13 +398,13 @@ class Highlight {
   }
 
   /**
-   * Get or create (if not exist in the cache) Walkontable Selection instance.
+   * Creates (if not exist in the cache) Walkontable Selection instance.
    *
    * @param {Map} cacheMap The map where the instance will be cached.
    * @param {Function} highlightFactory The function factory.
    * @returns {VisualSelection}
    */
-  #createOrGetHighlight(cacheMap, highlightFactory) {
+  #createHighlight(cacheMap, highlightFactory) {
     const layerLevel = this.layerLevel;
 
     if (cacheMap.has(layerLevel)) {
@@ -424,7 +428,7 @@ class Highlight {
       this.focus,
       this.fill,
       ...this.areas.values(),
-      ...this.areasLayered.values(),
+      ...this.layeredAreas.values(),
       ...this.rowHeaders.values(),
       ...this.columnHeaders.values(),
       ...this.activeRowHeaders.values(),
