@@ -2917,11 +2917,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array} Array of cell values.
    */
   this.getDataAtCol = function(column) {
-    return [].concat(...datamap.getRange(
+    const columnData = [];
+    const dataByRows = datamap.getRange(
       instance._createCellCoords(0, column),
       instance._createCellCoords(tableMeta.data.length - 1, column),
       datamap.DESTINATION_RENDERER
-    ));
+    );
+
+    for (let i = 0; i < dataByRows.length; i += 1) {
+      for (let j = 0; j < dataByRows[i].length; j += 1) {
+        columnData.push(dataByRows[i][j]);
+      }
+    }
+
+    return columnData;
   };
 
   /**
@@ -2935,12 +2944,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   // TODO: Getting data from `datamap` should work on visual indexes.
   this.getDataAtProp = function(prop) {
-    const range = datamap.getRange(
+    const columnData = [];
+    const dataByRows = datamap.getRange(
       instance._createCellCoords(0, datamap.propToCol(prop)),
       instance._createCellCoords(tableMeta.data.length - 1, datamap.propToCol(prop)),
       datamap.DESTINATION_RENDERER);
 
-    return [].concat(...range);
+    for (let i = 0; i < dataByRows.length; i += 1) {
+      for (let j = 0; j < dataByRows[i].length; j += 1) {
+        columnData.push(dataByRows[i][j]);
+      }
+    }
+
+    return columnData;
   };
 
   /**

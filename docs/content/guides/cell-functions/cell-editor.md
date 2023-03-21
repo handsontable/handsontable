@@ -357,7 +357,7 @@ Common methods, are methods implemented by [`BaseEditor`](@/api/baseEditor.md) c
 **Example** - overriding common method
 
 ```js
-// CustomEditor is a class, inheriting form BaseEditor
+// CustomEditor is a class, inheriting from BaseEditor
 class CustomEditor extends BaseEditor {
   prepare(row, col, prop, td, originalValue, cellProperties) {
     // Invoke the original method...
@@ -527,7 +527,7 @@ class CalendarEditor extends TextEditor {
     return calendar.getDate();
   }
 
-  setValue() {
+  setValue(newValue) {
     // highlights given date on calendar
     calendar.highlightDate(newValue);
   }
@@ -621,7 +621,7 @@ All the undermentioned properties are available in editor instance through `this
 ### How to create a custom editor?
 :::
 
-Now you know the philosophy behind the Handsontable editors and you're ready to write your own editor. Basically, you can build a new editor from scratch, by creating a new editor class, which inherits form [`BaseEditor`](@/api/baseEditor.md), or if you just want to enhance an existing editor, you can extend its class and override only a few of its methods.
+Now you know the philosophy behind the Handsontable editors and you're ready to write your own editor. Basically, you can build a new editor from scratch, by creating a new editor class, which inherits from [`BaseEditor`](@/api/baseEditor.md), or if you just want to enhance an existing editor, you can extend its class and override only a few of its methods.
 
 In this tutorial we will examine both approaches. We will create a completely new `SelectEditor` which uses `<select>` list to alter the value of cell. We will also create a `PasswordEditor` which works exactly like regular `TextEditor` except that it displays a password input instead of textarea.
 
