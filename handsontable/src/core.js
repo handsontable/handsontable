@@ -3947,7 +3947,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @since 13.0.0
    * @memberof Core#
    * @function countRowHeaders
-   * @returns {number} Number of visible columns.
+   * @returns {number} Number of row headers.
    */
   this.countRowHeaders = function() {
     return this.view.getRowHeadersCount();
@@ -3959,7 +3959,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @since 13.0.0
    * @memberof Core#
    * @function countColHeaders
-   * @returns {number} Number of visible columns.
+   * @returns {number} Number of column headers.
    */
   this.countColHeaders = function() {
     return this.view.getColumnHeadersCount();
