@@ -838,10 +838,10 @@ export default () => {
      *
      * | Option                   | Possible settings                                                                                                                                |
      * | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-     * | `indicator`              | `true`: Display an arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header  |
+     * | `indicator`              | `true`: Display the arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header  |
      * | `headerAction`           | `true`: Enable clicking on the column header to sort the column<br>`false`: Disable clicking on the column header to sort the column             |
      * | `sortEmptyCells`         | `true`: Sort empty cells as well<br>`false`: Place empty cells at the end                                                                        |
-     * | `compareFunctionFactory` | A [custom compare function](@/guides/rows/row-sorting.md#custom-compare-functions)                                                                |
+     * | `compareFunctionFactory` | A [custom compare function](@/guides/rows/rows-sorting.md#add-a-custom-comparator)                                                                |
      *
      * If you set the `columnSorting` option to an object,
      * you can also sort individual columns at Handsontable's initialization.
@@ -854,8 +854,8 @@ export default () => {
      * | `sortOrder` | `'asc'` \| `'desc'` | The sorting order:<br>`'asc'`: ascending<br>`'desc'`: descending |
      *
      * Read more:
-     * - [Row sorting](@/guides/rows/row-sorting.md)
-     * - [Row sorting: Custom compare functions](@/guides/rows/row-sorting.md#custom-compare-functions)
+     * - [Rows sorting](@/guides/rows/rows-sorting.md)
+     * - [Rows sorting: Custom compare functions](@/guides/rows/rows-sorting.md#add-a-custom-comparator)
      * - [`multiColumnSorting`](#multiColumnSorting)
      *
      * @memberof Options#
@@ -872,7 +872,7 @@ export default () => {
      * columnSorting: {
      *   // sort empty cells as well
      *   sortEmptyCells: true,
-     *   // display an arrow icon in the column header
+     *   // display the arrow icon in the column header
      *   indicator: true,
      *   // disable clicking on the column header to sort the column
      *   headerAction: false,
@@ -2940,7 +2940,7 @@ export default () => {
      * The `maxRows` option sets a maximum number of rows.
      *
      * The `maxRows` option is used:
-     * - At initialization: if the `maxRows` value is lower than the initial number of columns,
+     * - At initialization: if the `maxRows` value is lower than the initial number of rows,
      * Handsontable trims rows from the bottom.
      * - At runtime: for example, when inserting rows.
      *
@@ -3123,10 +3123,10 @@ export default () => {
      *
      * | Option                   | Possible settings                                                                                                                                |
      * | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-     * | `indicator`              | `true`: Display an arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header  |
+     * | `indicator`              | `true`: Display the arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header |
      * | `headerAction`           | `true`: Enable clicking on the column header to sort the column<br>`false`: Disable clicking on the column header to sort the column             |
      * | `sortEmptyCells`         | `true`: Sort empty cells as well<br>`false`: Place empty cells at the end                                                                        |
-     * | `compareFunctionFactory` | A [custom compare function](@/guides/rows/row-sorting.md#custom-compare-functions)                                                                |
+     * | `compareFunctionFactory` | A [custom compare function](@/guides/rows/rows-sorting.md#add-a-custom-comparator)                                                               |
      *
      * If you set the `multiColumnSorting` option to an object,
      * you can also sort individual columns at Handsontable's initialization.
@@ -3139,7 +3139,7 @@ export default () => {
      * | `sortOrder` | `'asc'` \| `'desc'` | The sorting order:<br>`'asc'`: ascending<br>`'desc'`: descending |
      *
      * Read more:
-     * - [Row sorting](@/guides/rows/row-sorting.md)
+     * - [Rows sorting](@/guides/rows/rows-sorting.md)
      * - [`columnSorting`](#columnSorting)
      *
      * @memberof Options#
@@ -3156,7 +3156,7 @@ export default () => {
      * multiColumnSorting: {
      *   // sort empty cells as well
      *   sortEmptyCells: true,
-     *   // display an arrow icon in the column header
+     *   // display the arrow icon in the column header
      *   indicator: true,
      *   // disable clicking on the column header to sort the column
      *   headerAction: false,
