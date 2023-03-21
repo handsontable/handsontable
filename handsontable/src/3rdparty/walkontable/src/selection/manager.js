@@ -184,7 +184,7 @@ export class SelectionManager {
 
         this.#scanner.setActiveSelection(selection);
 
-        // TODO(future improvement): use heuristics from coords to detect what type of scan
+        // TODO(improvement): use heuristics from coords to detect what type of scan
         // the Selection needs instead of using `selectionType` property.
         if (selectionType === 'active-header') {
           elements.push(...this.#scanner.scanColumnsInHeadersRange().values());

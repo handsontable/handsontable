@@ -84,7 +84,7 @@ class Selection {
   /**
    * Returns the top left (or top right in RTL) and bottom right (or bottom left in RTL) selection coordinates.
    *
-   * @returns {Array} Returns array of coordinates for example `[1, 1, 5, 5]`.
+   * @returns {number[]} Returns array of coordinates for example `[1, 1, 5, 5]`.
    */
   getCorners() {
     const topStart = this.cellRange.getOuterTopStartCorner();
@@ -98,6 +98,9 @@ class Selection {
     ];
   }
 
+  /**
+   * Destroys the instance.
+   */
   destroy() {
     this.runLocalHooks('destroy');
   }

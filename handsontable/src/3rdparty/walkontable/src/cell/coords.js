@@ -87,6 +87,9 @@ class CellCoords {
   }
 
   /**
+   * Checks if the coordinates point to the headers range. If one of the axis (row or col) point to
+   * the header (negative value) then method returns `true`.
+   *
    * @returns {boolean}
    */
   isHeader() {
@@ -94,6 +97,9 @@ class CellCoords {
   }
 
   /**
+   * Checks if the coordinates point to the cells range. If all axis (row and col) point to
+   * the cell (positive value) then method returns `true`.
+   *
    * @returns {boolean}
    */
   isCell() {

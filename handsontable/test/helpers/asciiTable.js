@@ -9,6 +9,9 @@ const $$ = (selector, context = document) => context.querySelectorAll(selector);
  */
 function getSelectionSymbol(cell) {
   const hasCurrent = cell.classList.contains('current');
+  const hasRow = cell.classList.contains('row');
+  const hasColumn = cell.classList.contains('column');
+  const hasCustom = cell.classList.contains('custom');
   const hasArea = cell.classList.contains('area');
   const hasFill = cell.classList.contains('fill');
   const hasActiveHeader = cell.classList.contains('ht__active_highlight');
@@ -27,6 +30,15 @@ function getSelectionSymbol(cell) {
 
   } else if (hasHighlight) {
     symbol = ' - ';
+
+  } else if (hasRow) {
+    symbol = ' r ';
+
+  } else if (hasColumn) {
+    symbol = ' c ';
+
+  } else if (hasCustom) {
+    symbol = ' ? ';
 
   } else if (hasFill) {
     symbol = ' F ';

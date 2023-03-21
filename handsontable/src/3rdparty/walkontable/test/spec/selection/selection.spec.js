@@ -1175,7 +1175,7 @@ describe('Walkontable.Selection', () => {
         |===:===:===:===:===:===:===|
         |   :   ║   |   :   :   :   |
         |---:---:---:---:---:---:---|
-        |   :   ║ # | # : # : # : # |
+        |   :   ║ r | r : r : r : r |
         |   :   ║   |   :   :   :   |
         |   :   ║   |   :   :   :   |
         |---:---:---:---:---:---:---|
@@ -1214,8 +1214,8 @@ describe('Walkontable.Selection', () => {
         |===:===:===:===:===:===:===|
         |   :   ║   |   :   :   :   |
         |---:---:---:---:---:---:---|
-        | # : # ║ # | # : # : # : # |
-        | # : # ║ # | # : # : # : # |
+        | r : r ║ r | r : r : r : r |
+        | r : r ║ r | r : r : r : r |
         |   :   ║   |   :   :   :   |
         |---:---:---:---:---:---:---|
         |   :   ║   |   :   :   :   |
@@ -1256,11 +1256,11 @@ describe('Walkontable.Selection', () => {
         |===:===:===:===:===:===:===|
         |   :   ║   |   :   :   :   |
         |---:---:---:---:---:---:---|
-        | # : # ║ # | # : # : # : # |
+        | r : r ║ r | r : r : r : r |
         |   :   ║   |   :   :   :   |
         |   :   ║   |   :   :   :   |
         |---:---:---:---:---:---:---|
-        |   :   ║ # | # : # : # : # |
+        |   :   ║ r | r : r : r : r |
         `).toBeMatchToSelectionPattern();
     });
   });
@@ -1293,13 +1293,13 @@ describe('Walkontable.Selection', () => {
         |   :   ║   |   :   :   :   |
         |   :   ║   |   :   :   :   |
         |===:===:===:===:===:===:===|
-        |   :   ║   | # :   :   :   |
+        |   :   ║   | c :   :   :   |
         |---:---:---:---:---:---:---|
-        |   :   ║   | # :   :   :   |
-        |   :   ║   | # :   :   :   |
-        |   :   ║   | # :   :   :   |
+        |   :   ║   | c :   :   :   |
+        |   :   ║   | c :   :   :   |
+        |   :   ║   | c :   :   :   |
         |---:---:---:---:---:---:---|
-        |   :   ║   | # :   :   :   |
+        |   :   ║   | c :   :   :   |
         `).toBeMatchToSelectionPattern();
     });
 
@@ -1329,16 +1329,16 @@ describe('Walkontable.Selection', () => {
       wt.draw();
 
       expect(`
-        |   :   ║   | # : # :   :   |
-        |   :   ║   | # : # :   :   |
+        |   :   ║   | c : c :   :   |
+        |   :   ║   | c : c :   :   |
         |===:===:===:===:===:===:===|
-        |   :   ║   | # : # :   :   |
+        |   :   ║   | c : c :   :   |
         |---:---:---:---:---:---:---|
-        |   :   ║   | # : # :   :   |
-        |   :   ║   | # : # :   :   |
-        |   :   ║   | # : # :   :   |
+        |   :   ║   | c : c :   :   |
+        |   :   ║   | c : c :   :   |
+        |   :   ║   | c : c :   :   |
         |---:---:---:---:---:---:---|
-        |   :   ║   | # : # :   :   |
+        |   :   ║   | c : c :   :   |
         `).toBeMatchToSelectionPattern();
     });
 
@@ -1371,16 +1371,16 @@ describe('Walkontable.Selection', () => {
       wt.draw();
 
       expect(`
-        |   :   ║   | # :   :   :   |
-        |   :   ║   | # :   :   :   |
+        |   :   ║   | c :   :   :   |
+        |   :   ║   | c :   :   :   |
         |===:===:===:===:===:===:===|
-        |   :   ║   | # :   :   : # |
+        |   :   ║   | c :   :   : c |
         |---:---:---:---:---:---:---|
-        |   :   ║   | # :   :   : # |
-        |   :   ║   | # :   :   : # |
-        |   :   ║   | # :   :   : # |
+        |   :   ║   | c :   :   : c |
+        |   :   ║   | c :   :   : c |
+        |   :   ║   | c :   :   : c |
         |---:---:---:---:---:---:---|
-        |   :   ║   | # :   :   : # |
+        |   :   ║   | c :   :   : c |
         `).toBeMatchToSelectionPattern();
     });
   });
@@ -1424,6 +1424,68 @@ describe('Walkontable.Selection', () => {
         |   :   ║   |   :   :   :   |
         `).toBeMatchToSelectionPattern();
     });
+  });
+
+  it('should draw all selection types at once without disturbing', () => {
+    const selections = createSelectionController();
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      rowHeaders: [
+        (row, TH) => { TH.innerHTML = row + 1; },
+        (row, TH) => { TH.innerHTML = row + 1; },
+      ],
+      columnHeaders: [
+        (column, TH) => { TH.innerHTML = column + 1; },
+        (column, TH) => { TH.innerHTML = column + 1; },
+      ],
+      fixedRowsTop: 1,
+      fixedColumnsStart: 1,
+      fixedRowsBottom: 1,
+      selections,
+    });
+
+    selections.getFocus()
+      .add(new Walkontable.CellCoords(1, 1));
+    selections.getArea()
+      .add(new Walkontable.CellCoords(0, 0))
+      .add(new Walkontable.CellCoords(2, 2));
+    selections.getArea()
+      .add(new Walkontable.CellCoords(2, 2))
+      .add(new Walkontable.CellCoords(3, 4));
+    selections.getHeader()
+      .add(new Walkontable.CellCoords(-1, 0))
+      .add(new Walkontable.CellCoords(-1, 2));
+    selections.getHeader()
+      .add(new Walkontable.CellCoords(0, -1))
+      .add(new Walkontable.CellCoords(2, -1));
+    selections.getActiveHeader()
+      .add(new Walkontable.CellCoords(-2, 0))
+      .add(new Walkontable.CellCoords(-2, 2));
+    selections.getActiveHeader()
+      .add(new Walkontable.CellCoords(0, -2))
+      .add(new Walkontable.CellCoords(2, -2));
+    selections.getRowHighlight()
+      .add(new Walkontable.CellCoords(4, -1))
+      .add(new Walkontable.CellCoords(4, 4));
+    selections.getColumnHighlight()
+      .add(new Walkontable.CellCoords(-1, 3))
+      .add(new Walkontable.CellCoords(4, 3));
+    wt.draw();
+
+    expect(`
+      |   :   ║ * | * : * :   :   |
+      |   :   ║ - | - : - : c :   |
+      |===:===:===:===:===:===:===|
+      | * : - ║ 0 | 0 : 0 : c :   |
+      |---:---:---:---:---:---:---|
+      | * : - ║ 0 | A : 0 : c :   |
+      | * : - ║ 0 | 0 : 1 : c : 0 |
+      |   :   ║   |   : 0 : c : 0 |
+      |---:---:---:---:---:---:---|
+      |   : r ║ r | r : r : r : r |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should create the area selection that does not flicker when the table is scrolled back and forth near its left edge (#8317)', async function() {

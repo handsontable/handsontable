@@ -287,19 +287,19 @@ export function createSelectionController(options = {}) {
     getRowHighlight() {
       return addSelectionToCollection(rowHighlightCtrl, {
         selectionType: 'row',
-        className: 'current'
+        className: 'row'
       });
     },
     getColumnHighlight() {
       return addSelectionToCollection(columnHighlightCtrl, {
         selectionType: 'column',
-        className: 'current'
+        className: 'column'
       });
     },
     getCustomHighlight() {
       return addSelectionToCollection(customHighlightCtrl, {
         selectionType: 'custom',
-        className: 'current'
+        className: 'custom'
       });
     },
     [Symbol.iterator]() {
