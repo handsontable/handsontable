@@ -200,13 +200,7 @@ class EditorManager {
       return;
     }
 
-    const { highlight } = this.instance.getSelectedRangeLast();
-
-    if (highlight.isHeader()) {
-      return;
-    }
-
-    const { row, col } = highlight;
+    const { row, col } = this.instance.getSelectedRangeLast();
     const modifiedCellCoords = this.instance.runHooks('modifyGetCellCoords', row, col);
     let visualRowToCheck = row;
     let visualColumnToCheck = col;

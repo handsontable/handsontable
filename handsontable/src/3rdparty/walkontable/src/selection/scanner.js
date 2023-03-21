@@ -2,6 +2,9 @@
 import { addClass } from '../../../../helpers/dom/element';
 
 /**
+ * Selection scanner module scans the rendered cells and headers and if it finds an intersection with
+ * the coordinates of the Selection class (highlight) it returns the DOM elements.
+ *
  * @private
  */
 export class SelectionScanner {

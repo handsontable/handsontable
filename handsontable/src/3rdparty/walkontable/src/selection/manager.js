@@ -3,6 +3,10 @@ import { SelectionScanner } from './scanner';
 import Border from './border/border';
 
 /**
+ * Module responsible for rendering selections (CSS classes) and borders based on the
+ * collection of the Selection instances provided throughout the `selections` Walkontable
+ * setting.
+ *
  * @private
  */
 export class SelectionManager {

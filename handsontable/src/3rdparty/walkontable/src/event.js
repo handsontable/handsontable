@@ -21,7 +21,7 @@ class Event {
    * @param {Settings} wtSettings The walkontable settings.
    * @param {EventManager} eventManager The walkontable event manager.
    * @param {Table} wtTable The table.
-   * @param {Selections} selectionManager Selections.
+   * @param {SelectionManager} selectionManager Selections.
    * @param {Event} [parent=null] The main Event instance.
    */
   constructor(facadeGetter, domBindings, wtSettings, eventManager, wtTable, selectionManager, parent = null) {

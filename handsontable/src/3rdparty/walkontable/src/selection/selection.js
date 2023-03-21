@@ -2,6 +2,11 @@ import { mixin } from '../../../../helpers/object';
 import localHooks from '../../../../mixins/localHooks';
 
 /**
+ * The Selection class allows highlighting (by applying CSS class) the table's cells or headers
+ * and setting up the borders if defined in the settings.
+ *
+ * The Selection coordinates may point to the cells (positive numbers) or headers (negative numbers).
+ *
  * @class Selection
  */
 class Selection {
