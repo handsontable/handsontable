@@ -89,7 +89,7 @@
       } else if (key === 'hyperformula') {
         ns = 'HyperFormula';
 
-      } else if (key === 'react-dom') {
+      } else if (key === 'react-dom/client') {
         ns = 'ReactDOM';
 
       } else if (key === 'react-colorful') {

@@ -1,5 +1,5 @@
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import "pikaday/css/pikaday.css";
 import "./styles.css";
 import Handsontable from 'handsontable';
@@ -68,8 +68,10 @@ const App = () => {
   );
 };
 
-const rootElement = document.getElementById("root");
-ReactDOM.render(<App />, rootElement);
+const container = document.getElementById("container");
+const root = createRoot(container);
+
+root.render(<App />);
 
 console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate}) Wrapper: v${HotTable.version} React: v${React.version}`);
 
