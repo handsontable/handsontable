@@ -180,39 +180,9 @@ export class SelectionManager {
       }
 
       if (className) {
-        const elements = [];
-
-        this.#scanner.setActiveSelection(selection);
-
-        // TODO(improvement): use heuristics from coords to detect what type of scan
-        // the Selection needs instead of using `selectionType` property.
-        if (selectionType === 'active-header') {
-          elements.push(...this.#scanner.scanColumnsInHeadersRange().values());
-          elements.push(...this.#scanner.scanRowsInHeadersRange().values());
-
-        } else if (selectionType === 'area') {
-          elements.push(...this.#scanner.scanCellsRange().values());
-
-        } else if (selectionType === 'focus') {
-          elements.push(...this.#scanner.scanColumnsInHeadersRange().values());
-          elements.push(...this.#scanner.scanRowsInHeadersRange().values());
-          elements.push(...this.#scanner.scanCellsRange().values());
-
-        } else if (selectionType === 'fill') {
-          elements.push(...this.#scanner.scanCellsRange().values());
-
-        } else if (selectionType === 'header') {
-          elements.push(...this.#scanner.scanColumnsInHeadersRange().values());
-          elements.push(...this.#scanner.scanRowsInHeadersRange().values());
-
-        } else if (selectionType === 'row') {
-          elements.push(...this.#scanner.scanRowsInHeadersRange().values());
-          elements.push(...this.#scanner.scanRowsInCellsRange().values());
-
-        } else if (selectionType === 'column') {
-          elements.push(...this.#scanner.scanColumnsInHeadersRange().values());
-          elements.push(...this.#scanner.scanColumnsInCellsRange().values());
-        }
+        const elements = this.#scanner
+          .setActiveSelection(selection)
+          .scan();
 
         elements.forEach((element) => {
           if (classNamesMap.has(element)) {
@@ -256,7 +226,7 @@ export class SelectionManager {
   }
 
   /**
-   * Reset the elements to their initial state (remove the CSS classes that are added in the
+   * Resets the elements to their initial state (remove the CSS classes that are added in the
    * previous render cycle).
    */
   #resetCells() {

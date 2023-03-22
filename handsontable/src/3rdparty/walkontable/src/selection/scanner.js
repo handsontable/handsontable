@@ -25,32 +25,80 @@ export class SelectionScanner {
    * Sets the Walkontable instance that will be taking into account while scanning the table.
    *
    * @param {Walkontable} activeOverlaysWot The Walkontable instance.
+   * @returns {SelectionScanner}
    */
   setActiveOverlay(activeOverlaysWot) {
     this.#activeOverlaysWot = activeOverlaysWot;
+
+    return this;
   }
 
   /**
    * Sets the Selection instance to process.
    *
    * @param {Selection} selection The Selection instance.
+   * @returns {SelectionScanner}
    */
   setActiveSelection(selection) {
     this.#selection = selection;
+
+    return this;
+  }
+
+  /**
+   * Scans the rendered table with selection and returns elements that intersects
+   * with selection coordinates.
+   *
+   * @returns {HTMLTableElement[]}
+   */
+  scan() {
+    const selectionType = this.#selection.settings.selectionType;
+    const elements = new Set();
+
+    // TODO(improvement): use heuristics from coords to detect what type of scan
+    // the Selection needs instead of using `selectionType` property.
+    if (selectionType === 'active-header') {
+      this.scanColumnsInHeadersRange(element => elements.add(element));
+      this.scanRowsInHeadersRange(element => elements.add(element));
+
+    } else if (selectionType === 'area') {
+      this.scanCellsRange(element => elements.add(element));
+
+    } else if (selectionType === 'focus') {
+      this.scanColumnsInHeadersRange(element => elements.add(element));
+      this.scanRowsInHeadersRange(element => elements.add(element));
+      this.scanCellsRange(element => elements.add(element));
+
+    } else if (selectionType === 'fill') {
+      this.scanCellsRange(element => elements.add(element));
+
+    } else if (selectionType === 'header') {
+      this.scanColumnsInHeadersRange(element => elements.add(element));
+      this.scanRowsInHeadersRange(element => elements.add(element));
+
+    } else if (selectionType === 'row') {
+      this.scanRowsInHeadersRange(element => elements.add(element));
+      this.scanRowsInCellsRange(element => elements.add(element));
+
+    } else if (selectionType === 'column') {
+      this.scanColumnsInHeadersRange(element => elements.add(element));
+      this.scanColumnsInCellsRange(element => elements.add(element));
+    }
+
+    return elements;
   }
 
   /**
    * Scans the table (only rendered headers) and collect all column headers (TH) that match
    * the coordinates passed in the Selection instance.
    *
-   * @returns {Set<TH>}
+   * @param {function(HTMLTableElement): void} callback The callback function to trigger.
    */
-  scanColumnsInHeadersRange() {
+  scanColumnsInHeadersRange(callback) {
     const [topRow, topColumn, bottomRow, bottomColumn] = this.#selection.getCorners();
     const { wtTable } = this.#activeOverlaysWot;
     const renderedColumnsCount = wtTable.getRenderedColumnsCount();
     const columnHeadersCount = wtTable.getColumnHeadersCount();
-    const headers = new Set();
     let cursor = 0;
 
     for (let column = -wtTable.getRowHeadersCount(); column < renderedColumnsCount; column++) {
@@ -82,27 +130,24 @@ export class SelectionScanner {
           TH = wtTable.getColumnHeader(newSourceCol, positiveBasedHeaderLevel);
         }
 
-        headers.add(TH);
+        callback(TH);
       }
 
       cursor += 1;
     }
-
-    return headers;
   }
 
   /**
    * Scans the table (only rendered headers) and collect all row headers (TH) that match
    * the coordinates passed in the Selection instance.
    *
-   * @returns {Set<TH>}
+   * @param {function(HTMLTableElement): void} callback The callback function to trigger.
    */
-  scanRowsInHeadersRange() {
+  scanRowsInHeadersRange(callback) {
     const [topRow, topColumn, bottomRow, bottomColumn] = this.#selection.getCorners();
     const { wtTable } = this.#activeOverlaysWot;
     const renderedRowsCount = wtTable.getRenderedRowsCount();
     const rowHeadersCount = wtTable.getRowHeadersCount();
-    const headers = new Set();
     let cursor = 0;
 
     for (let row = -wtTable.getColumnHeadersCount(); row < renderedRowsCount; row++) {
@@ -134,25 +179,22 @@ export class SelectionScanner {
           TH = wtTable.getRowHeader(newSourceRow, positiveBasedHeaderLevel);
         }
 
-        headers.add(TH);
+        callback(TH);
       }
 
       cursor += 1;
     }
-
-    return headers;
   }
 
   /**
    * Scans the table (only rendered cells) and collect all cells (TR) that match
    * the coordinates passed in the Selection instance.
    *
-   * @returns {Set<TR>}
+   * @param {function(HTMLTableElement): void} callback The callback function to trigger.
    */
-  scanCellsRange() {
+  scanCellsRange(callback) {
     const [topRow, topColumn, bottomRow, bottomColumn] = this.#selection.getCorners();
     const { wtTable } = this.#activeOverlaysWot;
-    const cells = new Set();
 
     this.#scanCellsRange((sourceRow, sourceColumn) => {
       if (sourceRow >= topRow && sourceRow <= bottomRow && sourceColumn >= topColumn && sourceColumn <= bottomColumn) {
@@ -166,56 +208,48 @@ export class SelectionScanner {
           addClass(cell, additionalSelectionClass);
         }
 
-        cells.add(cell);
+        callback(cell);
       }
     });
-
-    return cells;
   }
 
   /**
    * Scans the table (only rendered cells) and collects all cells (TR) that match the coordinates
    * passed in the Selection instance but only for the X axis (rows).
    *
-   * @returns {Set<TR>}
+   * @param {function(HTMLTableElement): void} callback The callback function to trigger.
    */
-  scanRowsInCellsRange() {
+  scanRowsInCellsRange(callback) {
     // eslint-disable-next-line comma-spacing
     const [topRow,, bottomRow,] = this.#selection.getCorners();
     const { wtTable } = this.#activeOverlaysWot;
-    const cells = new Set();
 
     this.#scanCellsRange((sourceRow, sourceColumn) => {
       if (sourceRow >= topRow && sourceRow <= bottomRow) {
         const cell = wtTable.getCell(this.#activeOverlaysWot.createCellCoords(sourceRow, sourceColumn));
 
-        cells.add(cell);
+        callback(cell);
       }
     });
-
-    return cells;
   }
 
   /**
    * Scans the table (only rendered cells) and collects all cells (TR) that match the coordinates
    * passed in the Selection instance but only for the Y axis (columns).
    *
-   * @returns {Set<TR>}
+   * @param {function(HTMLTableElement): void} callback The callback function to trigger.
    */
-  scanColumnsInCellsRange() {
+  scanColumnsInCellsRange(callback) {
     const [, topColumn,, bottomColumn] = this.#selection.getCorners();
     const { wtTable } = this.#activeOverlaysWot;
-    const cells = new Set();
 
     this.#scanCellsRange((sourceRow, sourceColumn) => {
       if (sourceColumn >= topColumn && sourceColumn <= bottomColumn) {
         const cell = wtTable.getCell(this.#activeOverlaysWot.createCellCoords(sourceRow, sourceColumn));
 
-        cells.add(cell);
+        callback(cell);
       }
     });
-
-    return cells;
   }
 
   /**
