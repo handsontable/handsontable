@@ -20,18 +20,18 @@
   "dependencies": {
     "@handsontable/react": "latest",
     "handsontable": "latest",
-    "react": "17.0.2",
-    "react-dom": "17.0.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-scripts": "4.0.2"
   },
   "devDependencies": {
+    "@types/react": "^18.0.28",
+    "@types/react-dom": "^18.0.11",
     "cross-env": "7.0.3",
     "jasmine": "3.7.0",
     "jasmine-console-reporter": "3.1.0",
     "puppeteer": "14.3.0",
     "react-app-rewired": "2.1.8",
-    "@types/react": "^17.0.5",
-    "@types/react-dom": "^17.0.3",
     "typescript": "4.2.4"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
