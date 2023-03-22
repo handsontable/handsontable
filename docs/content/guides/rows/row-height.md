@@ -96,7 +96,10 @@ export const ExampleComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+const container = document.getElementById('example1');
+const root = ReactDOM.createRoot(container);
+
+root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
 :::
@@ -145,7 +148,7 @@ registerAllModules();
 
 export const ExampleComponent = () => {
   return (
-    <HotTable
+    <HotTableć
       data={[
         ['A1', 'B1', 'C1', 'D1', 'E1'],
         ['A2', 'B2', 'C2', 'D2', 'E2'],
@@ -164,7 +167,10 @@ export const ExampleComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+const container = document.getElementById('example2');
+const root = ReactDOM.createRoot(container);
+
+root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
 :::
@@ -234,7 +240,10 @@ export const ExampleComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+const container = document.getElementById('example3');
+const root = ReactDOM.createRoot(container);
+
+root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
 :::
@@ -303,7 +312,10 @@ export const ExampleComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+const container = document.getElementById('example4');
+const root = ReactDOM.createRoot(container);
+
+root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
 :::

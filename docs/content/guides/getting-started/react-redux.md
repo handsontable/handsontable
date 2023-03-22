@@ -160,7 +160,7 @@ const updatesReducer = (state = initialReduxStoreState, action) => {
 const reduxStore = createStore(updatesReducer);
 
 const container = document.getElementById("example1");
-const root = createRoot(container);
+const root = ReactDOM.createRoot(container);
 root.render(
   <Provider store={reduxStore}>
     <ExampleComponent />
@@ -445,6 +445,9 @@ export const ExampleComponent = () => {
   );
 };
 
-ReactDOM.render(<ExampleComponent />, document.getElementById('example6'));
+const container = document.getElementById('example6');
+const root = ReactDOM.createRoot(container);
+
+root.render(<ExampleComponent />);
 ```
 :::

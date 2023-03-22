@@ -2955,7 +2955,7 @@ const App = () => {
 };
 
 const container = document.getElementById("example2");
-const root = createRoot(container);
+const root = ReactDOM.createRoot(container);
 
 root.render(<App />);
 

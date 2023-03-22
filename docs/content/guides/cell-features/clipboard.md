@@ -107,7 +107,10 @@ export const ExampleComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+const container = document.getElementById('example1');
+const root = ReactDOM.createRoot(container);
+
+root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
 :::
@@ -260,7 +263,10 @@ export const ExampleComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+const container = document.getElementById('example3');
+const root = ReactDOM.createRoot(container);
+
+root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
 :::
@@ -365,7 +371,10 @@ export const ExampleComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+const container = document.getElementById('example2');
+const root = ReactDOM.createRoot(container);
+
+root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
 :::

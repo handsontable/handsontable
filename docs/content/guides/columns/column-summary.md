@@ -155,7 +155,10 @@ export const ExampleComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+const container = document.getElementById('example1');
+const root = ReactDOM.createRoot(container);
+
+root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
 :::
@@ -534,7 +537,10 @@ export const ExampleComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+const container = document.getElementById('example2');
+const root = ReactDOM.createRoot(container);
+
+root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
 :::
@@ -666,7 +672,10 @@ export const ExampleComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example7'));
+const container = document.getElementById('example7');
+const root = ReactDOM.createRoot(container);
+
+root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
 :::
@@ -832,7 +841,10 @@ export const ExampleComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example8'));
+const container = document.getElementById('example8');
+const root = ReactDOM.createRoot(container);
+
+root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
 :::
@@ -1067,7 +1079,10 @@ export const ExampleComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example9'));
+const container = document.getElementById('example9');
+const root = ReactDOM.createRoot(container);
+
+root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
 :::
@@ -1161,7 +1176,10 @@ export const ExampleComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example12'));
+const container = document.getElementById('example12');
+const root = ReactDOM.createRoot(container);
+
+root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
 :::
@@ -1272,7 +1290,10 @@ export const ExampleComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example10'));
+const container = document.getElementById('example10');
+const root = ReactDOM.createRoot(container);
+
+root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
 :::
@@ -1369,7 +1390,10 @@ export const ExampleComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example11'));
+const container = document.getElementById('example11');
+const root = ReactDOM.createRoot(container);
+
+root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
 :::

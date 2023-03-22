@@ -251,7 +251,10 @@ export const ExampleComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
+const container = document.getElementById('example');
+const root = ReactDOM.createRoot(container);
+
+root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
 :::
