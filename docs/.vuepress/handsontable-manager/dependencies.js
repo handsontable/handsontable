@@ -50,8 +50,10 @@ const buildDependencyGetter = (version) => {
 
   let reactLink = `https://cdn.jsdelivr.net/npm/@handsontable/react@${mappedVersion}/dist/react-handsontable.js`;
 
-  // hot fix after release 12.3.2
-  if (mappedVersion === '12.3.2' || mappedVersion === 'latest') {
+  console.log(mappedVersion);
+
+  // hotfix after release 12.3.2
+  if (mappedVersion === '12.3' || mappedVersion === 'latest') {
     reactLink = 'https://cdn.jsdelivr.net/npm/@handsontable/react@12.3.1/dist/react-handsontable.js';
   }
 
