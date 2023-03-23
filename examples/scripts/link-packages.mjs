@@ -95,7 +95,7 @@ exampleFrameworkSubdirs.forEach((packagesLocation) => {
     ) {
 
       // Currently linking the live dependencies only for the 'next' directory.
-      if (argv.examplesVersion === 'next') {
+      if (argv.examplesVersion.startsWith('next')) {
         packagesToLink.forEach((packageName) => {
           linkPackage(
             path.resolve('../node_modules'),

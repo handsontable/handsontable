@@ -50,6 +50,7 @@ env:
     ./wrappers/react/node_modules/
     ./wrappers/vue/node_modules/
     ./wrappers/vue3/node_modules/
+    ./visual-tests/node_modules/
 
 jobs:
   prepare-matrix:

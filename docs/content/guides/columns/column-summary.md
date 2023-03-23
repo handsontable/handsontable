@@ -52,7 +52,7 @@ const hot = new Handsontable(container, {
     [11, 12, 13, 14, 15],
     [null]
   ],
-  colHeaders: true,
+  colHeaders: ['sum', 'min', 'max', 'count', 'average'],
   rowHeaders: true,
   // enable and configure the `ColumnSummary` plugin
   columnSummary: [
@@ -114,7 +114,7 @@ export const ExampleComponent = () => {
         [11, 12, 13, 14, 15],
         [null]
       ]}
-      colHeaders={true}
+      colHeaders={['sum', 'min', 'max', 'count', 'average']}
       rowHeaders={true}
       columnSummary={[
         {

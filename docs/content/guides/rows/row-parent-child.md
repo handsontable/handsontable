@@ -25,7 +25,7 @@ Reflect the parent-child relationship of your data, using the [`NestedRows`](@/a
 [[toc]]
 
 ::: warning
-The [row sorting](@/guides/rows/row-sorting.md) and [column filter](@/guides/columns/column-filter.md) features don't work with the parent-child row structure.
+The [rows sorting](@/guides/rows/rows-sorting.md) and [column filter](@/guides/columns/column-filter.md) features don't work with the parent-child row structure.
 :::
 
 ## Quick setup
@@ -195,6 +195,7 @@ const hot = new Handsontable(container, {
   colHeaders: ['Category', 'Artist', 'Title', 'Album', 'Label'],
   nestedRows: true,
   contextMenu: true,
+  bindRowsWithHeaders: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -336,6 +337,7 @@ export const ExampleComponent = () => {
       colHeaders={['Category', 'Artist', 'Title', 'Album', 'Label']}
       nestedRows={true}
       contextMenu={true}
+      bindRowsWithHeaders={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
