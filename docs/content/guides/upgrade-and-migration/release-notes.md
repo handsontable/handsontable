@@ -23,6 +23,37 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
+## 12.3.2
+
+Released on March 23, 2023.
+
+For more information on this release, see:
+
+- [Blog post (12.3.2)](https://handsontable.com/blog/handsontable-12-3-2-better-support-for-react-18-and-large-data-sets)
+- [Documentation (12.3)](https://handsontable.com/docs/12.3)
+
+#### Added
+
+- Added a Chinese (zh-CN) translation of the "Copy with headers" feature.
+  [#10273](https://github.com/handsontable/handsontable/pull/10273)
+
+#### Fixed
+
+- Fixed an issue where column-filter checkboxes were resetting when the table was scrolled out of
+  view. We solved this by preventing the table from triggering a complete render each time it leaves
+  the viewport. [#10206](https://github.com/handsontable/handsontable/pull/10206)
+- Fixed an issue where clicking on a cell scrolled the table sideways in certain RTL configurations.
+  [#10206](https://github.com/handsontable/handsontable/pull/10206)
+- Fixed an issue where calling
+  [`getDataAtCol()`](https://handsontable.com/docs/javascript-data-grid/api/core/#getdataatcol) or
+  [`getDataAtProp()`](https://handsontable.com/docs/javascript-data-grid/api/core/#getdataatprop)
+  caused an error when the data set had more than 125 000 rows.
+  [#10226](https://github.com/handsontable/handsontable/pull/10226)
+- React: Fixed React 18 warnings about deprecated lifecycle methods. We removed
+  `componentWillMount()` and `componentWillUpdate()` from Handsontable's codebase and recreated
+  their functionality by using React's portals.
+  [#10263](https://github.com/handsontable/handsontable/pull/10263)
+
 ## 12.3.1
 
 Released on February 6, 2023.
