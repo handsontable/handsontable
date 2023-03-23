@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 12.3.2
- * Release date: 22/03/2023 (built at 15/03/2023 11:22:09)
+ * Release date: 23/03/2023 (built at 22/03/2023 14:42:56)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -2912,7 +2912,7 @@ function _injectProductInfo(key, element) {
   var schemaValidity = _checkKeySchema(key);
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      var releaseDate = (0, _moment.default)("22/03/2023", 'DD/MM/YYYY');
+      var releaseDate = (0, _moment.default)("23/03/2023", 'DD/MM/YYYY');
       var releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
       var keyValidityDays = _extractTime(key);
       keyValidityDate = (0, _moment.default)((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
@@ -28374,9 +28374,9 @@ var ViewportColumnsCalculator = /*#__PURE__*/function () {
       var inlineEndColumnOffset = calculationType === _constants.FULLY_VISIBLE_TYPE ? 0 : lastVisibleColumnWidth;
       var inlineStartColumnOffset = calculationType === _constants.FULLY_VISIBLE_TYPE ? firstVisibleColumnWidth : 0;
       if (
-      // The table is on the left of the viewport
+      // the table is to the left of the viewport
       mostRightScrollOffset < -1 * priv.inlineStartOffset || scrollOffset > startPositions.at(-1) + inlineEndColumnOffset ||
-      // The table is on the right of the viewport
+      // the table is to the right of the viewport
       -1 * priv.scrollOffset - priv.viewportWidth > -1 * inlineStartColumnOffset) {
         this.isVisibleInTrimmingContainer = false;
       } else {
@@ -41833,7 +41833,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "15/03/2023 11:22:09";
+Handsontable.buildDate = "22/03/2023 14:42:56";
 Handsontable.version = "12.3.2";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
