@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem with the checkboxes from the filtering dropdown resetting their state after scrolling the table out of the viewport by preventing the table from triggering a 'full' render every time it was outside the viewport + Fixed an issue where clicking on a cell in some specific configurations of the RTL mode would scroll the table sideways.",
-  "type": "fixed",
-  "issueOrPR": 10206,
-  "breaking": false,
-  "framework": "none"
-}
