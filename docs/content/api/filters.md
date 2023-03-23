@@ -53,7 +53,7 @@ const hot = new Handsontable(container, {
 
 ### filters
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/dataMap/metaManager/metaSchema.js#L2118
+::: source-code-link https://github.com/handsontable/handsontable/blob/d64355dc98a3b241bd5b1022ac2bb8278cf2b9e3/handsontable/src/dataMap/metaManager/metaSchema.js#L2118
 
 :::
 
@@ -84,7 +84,7 @@ filters: true,
 
 ### addCondition
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/filters/filters.js#L282
+::: source-code-link https://github.com/handsontable/handsontable/blob/d64355dc98a3b241bd5b1022ac2bb8278cf2b9e3/handsontable/src/plugins/filters/filters.js#L282
 
 :::
 
@@ -200,7 +200,7 @@ filtersPlugin.filter();
 
 ### clearConditions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/filters/filters.js#L414
+::: source-code-link https://github.com/handsontable/handsontable/blob/d64355dc98a3b241bd5b1022ac2bb8278cf2b9e3/handsontable/src/plugins/filters/filters.js#L414
 
 :::
 
@@ -218,7 +218,7 @@ was not passed, clear the conditions for all columns.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/filters/filters.js#L916
+::: source-code-link https://github.com/handsontable/handsontable/blob/d64355dc98a3b241bd5b1022ac2bb8278cf2b9e3/handsontable/src/plugins/filters/filters.js#L916
 
 :::
 
@@ -230,7 +230,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/filters/filters.js#L263
+::: source-code-link https://github.com/handsontable/handsontable/blob/d64355dc98a3b241bd5b1022ac2bb8278cf2b9e3/handsontable/src/plugins/filters/filters.js#L263
 
 :::
 
@@ -242,7 +242,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/filters/filters.js#L161
+::: source-code-link https://github.com/handsontable/handsontable/blob/d64355dc98a3b241bd5b1022ac2bb8278cf2b9e3/handsontable/src/plugins/filters/filters.js#L161
 
 :::
 
@@ -254,7 +254,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### filter
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/filters/filters.js#L431
+::: source-code-link https://github.com/handsontable/handsontable/blob/d64355dc98a3b241bd5b1022ac2bb8278cf2b9e3/handsontable/src/plugins/filters/filters.js#L431
 
 :::
 
@@ -267,7 +267,7 @@ Filters data based on added filter conditions.
 
 ### getDataMapAtColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/filters/filters.js#L515
+::: source-code-link https://github.com/handsontable/handsontable/blob/d64355dc98a3b241bd5b1022ac2bb8278cf2b9e3/handsontable/src/plugins/filters/filters.js#L515
 
 :::
 
@@ -285,7 +285,7 @@ Returns handsontable source data with cell meta based on current selection.
 
 ### getSelectedColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/filters/filters.js#L483
+::: source-code-link https://github.com/handsontable/handsontable/blob/d64355dc98a3b241bd5b1022ac2bb8278cf2b9e3/handsontable/src/plugins/filters/filters.js#L483
 
 :::
 
@@ -300,7 +300,7 @@ the index of the column.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/filters/filters.js#L153
+::: source-code-link https://github.com/handsontable/handsontable/blob/d64355dc98a3b241bd5b1022ac2bb8278cf2b9e3/handsontable/src/plugins/filters/filters.js#L153
 
 :::
 
@@ -313,7 +313,7 @@ hook and if it returns `true` then the [Filters#enablePlugin](@/api/filters.md#e
 
 ### removeConditions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/filters/filters.js#L402
+::: source-code-link https://github.com/handsontable/handsontable/blob/d64355dc98a3b241bd5b1022ac2bb8278cf2b9e3/handsontable/src/plugins/filters/filters.js#L402
 
 :::
 

@@ -32,7 +32,7 @@ square in the corner.
 
 ### autoInsertRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/autofill/autofill.js#L98
+::: source-code-link https://github.com/handsontable/handsontable/blob/d64355dc98a3b241bd5b1022ac2bb8278cf2b9e3/handsontable/src/plugins/autofill/autofill.js#L98
 
 :::
 
@@ -45,7 +45,7 @@ Specifies if can insert new rows if needed.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/autofill/autofill.js#L668
+::: source-code-link https://github.com/handsontable/handsontable/blob/d64355dc98a3b241bd5b1022ac2bb8278cf2b9e3/handsontable/src/plugins/autofill/autofill.js#L668
 
 :::
 
@@ -57,7 +57,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/autofill/autofill.js#L144
+::: source-code-link https://github.com/handsontable/handsontable/blob/d64355dc98a3b241bd5b1022ac2bb8278cf2b9e3/handsontable/src/plugins/autofill/autofill.js#L144
 
 :::
 
@@ -69,7 +69,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/autofill/autofill.js#L113
+::: source-code-link https://github.com/handsontable/handsontable/blob/d64355dc98a3b241bd5b1022ac2bb8278cf2b9e3/handsontable/src/plugins/autofill/autofill.js#L113
 
 :::
 
@@ -81,7 +81,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/autofill/autofill.js#L106
+::: source-code-link https://github.com/handsontable/handsontable/blob/d64355dc98a3b241bd5b1022ac2bb8278cf2b9e3/handsontable/src/plugins/autofill/autofill.js#L106
 
 :::
 
@@ -93,7 +93,7 @@ Checks if the plugin is enabled in the Handsontable settings.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/autofill/autofill.js#L135
+::: source-code-link https://github.com/handsontable/handsontable/blob/d64355dc98a3b241bd5b1022ac2bb8278cf2b9e3/handsontable/src/plugins/autofill/autofill.js#L135
 
 :::
 
