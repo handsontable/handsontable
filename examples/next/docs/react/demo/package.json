@@ -52,9 +52,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "resolutions": {
-    "@types/react": "^18.0.28",
-    "@types/react-dom": "^18.0.11"
   }
 }
