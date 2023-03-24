@@ -47,10 +47,10 @@ patterns and trends.
 
 You can sort data in different ways:
 
-- Alphabetically, numerically, or based on a [custom sorting logic](#sort-different-types-of-data)
-- In ascending, descending, or a [custom order](#add-a-custom-comparator)
-- By a single column, or by [multiple columns](#sort-by-multiple-columns)
-- Using Handsontable's [UI](#demo) or [API](#control-sorting-programmatically)
+- Alphabetically, numerically, or based on a custom sorting logic
+- In ascending, descending, or a custom order
+- By a single column, or by multiple columns
+- Using Handsontable's UI or API
 
 Handsontable sorts data only visually, so your source data remains in the original order. To save
 your sorting changes in the data source, see this guide:
