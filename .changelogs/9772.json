@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Using `getDataAtCol` and `getDataAtProp` for dataset with large number of rows won't break the table",
-  "type": "fixed",
-  "issueOrPR": 9772,
-  "breaking": false,
-  "framework": "none"
-}
