@@ -3831,11 +3831,11 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example11'))
 You can run your code before or after sorting, using the following
 [Handsontable hooks](@/guides/getting-started/events-and-hooks.md):
 
-- [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort)
-- [`afterColumnSort`](@/api/hooks.md#aftercolumnsort)
+- [`beforeColumnSort()`](@/api/hooks.md#beforecolumnsort)
+- [`afterColumnSort()`](@/api/hooks.md#aftercolumnsort)
 
-For example, you can use [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) for server-side
-sorting, or use [`afterColumnSort`](@/api/hooks.md#aftercolumnsort) to
+For example, you can use [`beforeColumnSort()`](@/api/hooks.md#beforecolumnsort) for server-side
+sorting, or use [`afterColumnSort()`](@/api/hooks.md#aftercolumnsort) to
 [exclude rows from sorting](#exclude-rows-from-sorting).
 
 ::: only-for javascript
