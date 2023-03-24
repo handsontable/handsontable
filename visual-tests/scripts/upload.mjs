@@ -1,5 +1,5 @@
 /**
- * This script is responsible for uploading package of screenshots to external comparing services.
+ * This script uploads the screenshots package to an external service (Argos).
  */
 import execa from 'execa';
 import { isReferenceBranch } from './utils/utils.mjs';
