@@ -176,7 +176,7 @@ const handsontableInstance = new Handsontable(container, {
 ::: example #example1 :react
 
 ```jsx
-// to import just individual modules, see the 'Import the sorting module' section of this page
+// to import sorting as an individual module, see the 'Import the sorting module' section of this page
 
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
