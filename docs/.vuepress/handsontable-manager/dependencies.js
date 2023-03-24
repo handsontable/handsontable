@@ -48,6 +48,13 @@ const buildDependencyGetter = (version) => {
   const fixer = getCommonScript('fixer', version);
   const helpers = getCommonScript('helpers', version);
 
+  let reactLink = `https://cdn.jsdelivr.net/npm/@handsontable/react@${mappedVersion}/dist/react-handsontable.js`;
+
+  // hotfix after release 12.3.2
+  if (mappedVersion === '12.3' || mappedVersion === 'latest') {
+    reactLink = 'https://cdn.jsdelivr.net/npm/@handsontable/react@12.3.1/dist/react-handsontable.js';
+  }
+
   return (dependency) => {
     /* eslint-disable max-len */
     const dependencies = {
@@ -56,7 +63,7 @@ const buildDependencyGetter = (version) => {
       hot: [handsontableJs, ['Handsontable'], handsontableCss],
       react: ['https://cdn.jsdelivr.net/npm/react@17/umd/react.production.min.js', ['React']],
       'react-dom': ['https://cdn.jsdelivr.net/npm/react-dom@17/umd/react-dom.production.min.js', ['ReactDOM']],
-      'hot-react': [`https://cdn.jsdelivr.net/npm/@handsontable/react@${mappedVersion}/dist/react-handsontable.js`, ['Handsontable.react']],
+      'hot-react': [reactLink, ['Handsontable.react']],
       'react-redux': ['https://cdnjs.cloudflare.com/ajax/libs/react-redux/7.2.4/react-redux.min.js'],
       'react-colorful': ['https://cdn.jsdelivr.net/npm/react-colorful@5.5.1/dist/index.min.js'],
       'react-star-rating-component': ['https://cdn.jsdelivr.net/npm/react-star-rating-component@1.4.1/dist/react-star-rating-component.min.js'],
