@@ -187,7 +187,6 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * Clear both the editor and the renderer cache.
    */
   clearCache(): void {
-    this.getEditorCache().clear();
     this.getRenderedCellCache().clear();
     this.componentRendererColumns.clear();
   }
@@ -405,13 +404,10 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * Handsontable's `afterViewRender` hook callback.
    */
   handsontableAfterViewRender(): void {
-    this.renderersPortalManager.setState(() => {
-      return Object.assign({}, {
-        portals: this.portalCacheArray
-      });
-
+    this.renderersPortalManager.setState({
+      portals: [...this.portalCacheArray]
     }, () => {
-      this.portalCacheArray.length = 0;
+      this.portalCacheArray = [];
     });
   }
 
@@ -462,6 +458,8 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * Logic performed after the component update.
    */
   componentDidUpdate(): void {
+    this.clearCache();
+
     const newGlobalSettings = this.createNewGlobalSettings();
 
     this.updateHot(newGlobalSettings);
