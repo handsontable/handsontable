@@ -13,7 +13,6 @@ import {
 import {
   HOT_DESTROYED_WARNING,
   AUTOSIZE_WARNING,
-  DEFAULT_CLASSNAME,
   GLOBAL_EDITOR_SCOPE,
   createEditorPortal,
   createPortal,
@@ -188,6 +187,7 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * Clear both the editor and the renderer cache.
    */
   clearCache(): void {
+    this.getEditorCache().clear();
     this.getRenderedCellCache().clear();
     this.componentRendererColumns.clear();
   }
@@ -472,6 +472,8 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * Destroy the Handsontable instance when the parent component unmounts.
    */
   componentWillUnmount(): void {
+    this.clearCache();
+
     if (this.hotInstance) {
       this.hotInstance.destroy();
     }
@@ -502,35 +504,7 @@ class HotTable extends React.Component<HotTableProps, {}> {
         } as object);
       });
 
-    // clone the hot-editor nodes and extend them with the callbacks
-    const hotEditorsClones = children
-      .filter((childNode: any) => childNode.props['hot-editor'] === true)
-      .map((childNode: React.ReactElement) => {
-        const containerProps = getContainerAttributesProps(childNode.props, false);
-
-        containerProps.className = `${DEFAULT_CLASSNAME} ${containerProps.className}`;
-
-        const clone = React.cloneElement(childNode, {
-          emitEditorInstance: (editorInstance) => {
-            const editorClass = getOriginalEditorClass(childNode);
-
-            if (!this.getEditorCache().get(editorClass)) {
-              this.getEditorCache().set(editorClass, new Map());
-            }
-
-            const cacheEntry = this.getEditorCache().get(editorClass);
-
-            cacheEntry.set(GLOBAL_EDITOR_SCOPE, editorInstance);
-          },
-          isEditor: true
-        } as object);
-
-        return (
-          <div key="global" {...containerProps}>
-            {clone}
-          </div>
-        )
-      });
+    const editorPortal = createEditorPortal(this.getOwnerDocument(), this.getGlobalEditorElement());
 
     return (
       <React.Fragment>
@@ -538,7 +512,7 @@ class HotTable extends React.Component<HotTableProps, {}> {
           {hotColumnClones}
         </div>
         <RenderersPortalManager ref={this.setRenderersPortalManagerRef.bind(this)} />
-        {hotEditorsClones}
+        {editorPortal}
       </React.Fragment>
     )
   }

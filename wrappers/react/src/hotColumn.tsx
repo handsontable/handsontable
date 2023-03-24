@@ -1,9 +1,7 @@
 import React from 'react';
 import { HotTableProps, HotColumnProps } from './types';
 import {
-  DEFAULT_CLASSNAME,
-  getContainerAttributesProps,
-  getOriginalEditorClass,
+  createEditorPortal,
   getExtendedEditorElement,
 } from './helpers';
 import { SettingsMapper } from './settingsMapper';
@@ -96,41 +94,12 @@ class HotColumn extends React.Component<HotColumnProps, {}> {
    * @returns {React.ReactElement}
    */
   render(): React.ReactElement {
-    const children = React.Children.toArray(this.props.children);
-
-    // clone the hot-editor nodes and extend them with the callbacks
-    const hotEditorsClones = children
-      .filter((childNode: any) => childNode.props['hot-editor'] === true)
-      .map((childNode: React.ReactElement) => {
-        const containerProps = getContainerAttributesProps(childNode.props, false);
-
-        containerProps.className = `${DEFAULT_CLASSNAME} ${containerProps.className}`;
-
-        const clone = React.cloneElement(childNode, {
-          emitEditorInstance: (editorInstance) => {
-            const editorClass = getOriginalEditorClass(childNode);
-
-            if (!this.props._getEditorCache().get(editorClass)) {
-              this.props._getEditorCache().set(editorClass, new Map());
-            }
-
-            const cacheEntry = this.props._getEditorCache().get(editorClass);
-
-            cacheEntry.set(this.props._columnIndex, editorInstance);
-          },
-          isEditor: true
-        } as object);
-
-        return (
-          <div key={this.props._columnIndex.toString()} {...containerProps}>
-            {clone}
-          </div>
-        )
-      });
+    const ownerDocument = this.props._getOwnerDocument();
+    const editorPortal = createEditorPortal(ownerDocument, this.getLocalEditorElement());
 
     return (
       <React.Fragment>
-        {hotEditorsClones}
+        {editorPortal}
       </React.Fragment>
     )
   }
