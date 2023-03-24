@@ -27,10 +27,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   [`getDataAtCol()`](https://handsontable.com/docs/javascript-data-grid/api/core/#getdataatcol) or
   [`getDataAtProp()`](https://handsontable.com/docs/javascript-data-grid/api/core/#getdataatprop) caused an error when the data set had more than 125 000 rows.
   [#10226](https://github.com/handsontable/handsontable/pull/10226)
-- React: Fixed React 18 warnings about deprecated lifecycle methods. We removed
-  `componentWillMount()` and `componentWillUpdate()` from Handsontable's codebase and recreated
-  their functionality by using React's portals.
-  [#10263](https://github.com/handsontable/handsontable/pull/10263)
 
 ## [12.3.1] - 2023-02-06
 
