@@ -1,32 +1,17 @@
-import React, { ReactPortal } from 'react';
+import React from 'react';
 import { HotTableProps, HotColumnProps } from './types';
 import {
-  createEditorPortal,
+  DEFAULT_CLASSNAME,
+  getContainerAttributesProps,
+  getOriginalEditorClass,
   getExtendedEditorElement,
 } from './helpers';
 import { SettingsMapper } from './settingsMapper';
-import { EditorsPortalManager } from './editorsPortalManager';
 import Handsontable from 'handsontable/base';
 
 class HotColumn extends React.Component<HotColumnProps, {}> {
   internalProps: string[];
   columnSettings: Handsontable.ColumnSettings;
-
-  /**
-   * Component used to manage the editor portals.
-   *
-   * @type {React.Component}
-   */
-  private editorsPortalManager: EditorsPortalManager = null;
-
-  /**
-   * Set the editors portal manager ref.
-   *
-   * @param {React.ReactComponent} pmComponent The PortalManager component.
-   */
-  private setEditorsPortalManagerRef(pmComponent: EditorsPortalManager): void {
-    this.editorsPortalManager = pmComponent;
-  }
 
   /**
    * Filter out all the internal properties and return an object with just the Handsontable-related props.
@@ -77,21 +62,6 @@ class HotColumn extends React.Component<HotColumnProps, {}> {
   }
 
   /**
-   * Creates the local editor portal and renders it within the editors portal manager component.
-   *
-   * @param {Function} callback Callback to call which is triggered after the editors portal is rendered.
-   */
-  renderLocalEditorPortal(callback: () => void): void {
-    const editorCache = this.props._getEditorCache();
-    const localEditorElement = getExtendedEditorElement(this.props.children, editorCache, this.props._columnIndex);
-    const editorPortal = createEditorPortal(this.props._getOwnerDocument(), localEditorElement);
-
-    this.editorsPortalManager.setState({
-      portals: [editorPortal]
-    }, callback);
-  }
-
-  /**
    * Emit the column settings to the parent using a prop passed from the parent.
    */
   emitColumnSettings(): void {
@@ -108,20 +78,16 @@ class HotColumn extends React.Component<HotColumnProps, {}> {
    * Logic performed after the mounting of the HotColumn component.
    */
   componentDidMount(): void {
-    this.renderLocalEditorPortal(() => {
-      this.createColumnSettings();
-      this.emitColumnSettings();
-    });
+    this.createColumnSettings();
+    this.emitColumnSettings();
   }
 
   /**
    * Logic performed after the updating of the HotColumn component.
    */
   componentDidUpdate(): void {
-    this.renderLocalEditorPortal(() => {
-      this.createColumnSettings();
-      this.emitColumnSettings();
-    });
+    this.createColumnSettings();
+    this.emitColumnSettings();
   }
 
   /**
@@ -130,9 +96,41 @@ class HotColumn extends React.Component<HotColumnProps, {}> {
    * @returns {React.ReactElement}
    */
   render(): React.ReactElement {
+    const children = React.Children.toArray(this.props.children);
+
+    // clone the hot-editor nodes and extend them with the callbacks
+    const hotEditorsClones = children
+      .filter((childNode: any) => childNode.props['hot-editor'] === true)
+      .map((childNode: React.ReactElement) => {
+        const containerProps = getContainerAttributesProps(childNode.props, false);
+
+        containerProps.className = `${DEFAULT_CLASSNAME} ${containerProps.className}`;
+
+        const clone = React.cloneElement(childNode, {
+          emitEditorInstance: (editorInstance) => {
+            const editorClass = getOriginalEditorClass(childNode);
+
+            if (!this.props._getEditorCache().get(editorClass)) {
+              this.props._getEditorCache().set(editorClass, new Map());
+            }
+
+            const cacheEntry = this.props._getEditorCache().get(editorClass);
+
+            cacheEntry.set(this.props._columnIndex, editorInstance);
+          },
+          isEditor: true
+        } as object);
+
+        return (
+          <div key={this.props._columnIndex.toString()} {...containerProps}>
+            {clone}
+          </div>
+        )
+      });
+
     return (
       <React.Fragment>
-        <EditorsPortalManager ref={this.setEditorsPortalManagerRef.bind(this)} />
+        {hotEditorsClones}
       </React.Fragment>
     )
   }
