@@ -183,6 +183,11 @@ export class AutocompleteEditor extends HandsontableEditor {
       this.rawChoices = source;
       this.updateChoicesList(this.stripValuesIfNeeded(source));
 
+    } else if (this.cellProperties.sourceRange) {
+      const choices = this.getChoicesFromSourceRange(this.cellProperties.sourceRange)
+      this.rawChoices = choices;
+      this.updateChoicesList(this.stripValuesIfNeeded(choices));
+
     } else {
       this.updateChoicesList([]);
     }
@@ -262,7 +267,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     const preventOverflow = this.cellProperties.preventOverflow;
 
     if (isWindowAsScrollableElement ||
-        !isWindowAsScrollableElement && (preventOverflow || preventOverflow === 'horizontal')) {
+      !isWindowAsScrollableElement && (preventOverflow || preventOverflow === 'horizontal')) {
       return false;
     }
 
@@ -427,6 +432,45 @@ export class AutocompleteEditor extends HandsontableEditor {
     const strippedValues = arrayMap(stringifiedValues, value => (allowHtml ? value : stripTags(value)));
 
     return strippedValues;
+  }
+
+  getChoicesFromSourceRange(sourceRangeObject) {
+    let row = 0
+    let column = 0
+    let row2 = sourceRangeObject.row
+    let column2 = sourceRangeObject.column
+    if ((undefined !== sourceRangeObject.row2) && (undefined !== sourceRangeObject.column2)) {
+      row = sourceRangeObject.row
+      column = sourceRangeObject.column
+      row2 = sourceRangeObject.row2
+      column2 = sourceRangeObject.column2
+    }
+
+    const rangeData = this.hot.getData(row, column, row2, column2)
+    
+    let choices = []
+    rangeData.forEach((row) => {
+      row.forEach((colItem) => {
+        choices.push(colItem)
+      })
+    })
+    return choices
+
+    // in google sheets when you define a src range - it auto adapts if you add more data inside the 
+    // range - so this meens this would need to be part of transforms - dependency vertcies?
+    // can we make use of the parser logic in addNamedExpression?
+    // A1
+    // A1:A5
+    // A1:E1
+    // A1:E5
+    // A:A
+    // 2:2
+    // Sheet1!A1
+    // Sheet1!A1:A5
+    // Sheet1!A1:E1
+    // Sheet1!A1:E5
+    // Sheet1!A:A
+    // Sheet1!2:2
   }
 
   /**
