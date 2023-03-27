@@ -14,7 +14,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - Added a Chinese (zh-CN) translation of the "Copy with headers" feature. [#10273](https://github.com/handsontable/handsontable/pull/10273)
-- Added a new "Rows sorting" guide. [#10183](https://github.com/handsontable/handsontable/pull/10183)
+- Added a new guide: Rows sorting. [#10183](https://github.com/handsontable/handsontable/pull/10183)
 
 ### Fixed
 
@@ -25,11 +25,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 For more information on Handsontable 12.3.3, see:
 
-- [Blog post (12.3.3)](https://handsontable.com/blog/handsontable-12-3-2-better-support-for-react-18-and-large-data-sets)
+- [Blog post (12.3.3)](https://handsontable.com/blog/handsontable-12-3-3-better-support-for-react-18-and-large-data-sets)
 - [Documentation (12.3)](https://handsontable.com/docs/12.3)
 - [Release notes (12.3.3)](https://handsontable.com/docs/release-notes/#_12-3-3)
-
-## [12.3.2] - 2023-03-23
 
 ## [12.3.1] - 2023-02-06
 
