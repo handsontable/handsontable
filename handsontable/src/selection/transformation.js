@@ -52,6 +52,8 @@ class Transformation {
       const fixedRowsBottom = this.options.fixedRowsBottom();
       const minSpareRows = this.options.minSpareRows();
       const minSpareCols = this.options.minSpareCols();
+      const countRowHeaders = this.options.countRowHeaders();
+      const countColHeaders = this.options.countColHeaders();
       const autoWrapRow = this.options.autoWrapRow();
       const autoWrapCol = this.options.autoWrapCol();
 
@@ -61,12 +63,13 @@ class Transformation {
           totalRows = this.options.countRows();
 
         } else if (autoWrapCol) {
-          delta.row = 1 - totalRows;
-          delta.col = renderableColumn + delta.col === totalCols - 1 ? 1 - totalCols : 1;
+          delta.row = 1 - totalRows - countRowHeaders;
+          delta.col = renderableColumn + delta.col === totalCols - 1 ? 1 - totalCols - countRowHeaders : 1;
         }
-      } else if (autoWrapCol && renderableRow + delta.row < 0 && renderableColumn + delta.col >= 0) {
-        delta.row = totalRows - 1;
-        delta.col = renderableColumn + delta.col === 0 ? totalCols - 1 : -1;
+      } else if (autoWrapCol && renderableRow + delta.row < -countRowHeaders &&
+          renderableColumn + delta.col >= -countColHeaders) {
+        delta.row = countRowHeaders + totalRows - 1;
+        delta.col = renderableColumn + delta.col === -countColHeaders ? countColHeaders + totalCols - 1 : -1;
       }
 
       if (renderableColumn + delta.col > totalCols - 1) {
@@ -75,12 +78,13 @@ class Transformation {
           totalCols = this.options.countCols();
 
         } else if (autoWrapRow) {
-          delta.row = renderableRow + delta.row === totalRows - 1 ? 1 - totalRows : 1;
-          delta.col = 1 - totalCols;
+          delta.row = renderableRow + delta.row === totalRows - 1 ? 1 - totalRows - countColHeaders : 1;
+          delta.col = 1 - totalCols - countColHeaders;
         }
-      } else if (autoWrapRow && renderableColumn + delta.col < 0 && renderableRow + delta.row >= 0) {
-        delta.row = renderableRow + delta.row === 0 ? totalRows - 1 : -1;
-        delta.col = totalCols - 1;
+      } else if (autoWrapRow && renderableColumn + delta.col < -countColHeaders &&
+          renderableRow + delta.row >= -countRowHeaders) {
+        delta.row = renderableRow + delta.row === -countRowHeaders ? countRowHeaders + totalRows - 1 : -1;
+        delta.col = countColHeaders + totalCols - 1;
       }
 
       const coords = this.options.createCellCoords(renderableRow + delta.row, renderableColumn + delta.col);
@@ -88,23 +92,23 @@ class Transformation {
       rowTransformDir = 0;
       colTransformDir = 0;
 
-      // if (coords.row < 0) {
-      //   rowTransformDir = -1;
-      //   coords.row = 0;
+      if (coords.row < -countRowHeaders) {
+        rowTransformDir = -1;
+        coords.row = -countRowHeaders;
 
-      // } else if (coords.row > 0 && coords.row >= totalRows) {
-      //   rowTransformDir = 1;
-      //   coords.row = totalRows - 1;
-      // }
+      } else if (coords.row > 0 && coords.row >= totalRows) {
+        rowTransformDir = 1;
+        coords.row = totalRows - 1;
+      }
 
-      // if (coords.col < 0) {
-      //   colTransformDir = -1;
-      //   coords.col = 0;
+      if (coords.col < -countColHeaders) {
+        colTransformDir = -1;
+        coords.col = -countColHeaders;
 
-      // } else if (coords.col > 0 && coords.col >= totalCols) {
-      //   colTransformDir = 1;
-      //   coords.col = totalCols - 1;
-      // }
+      } else if (coords.col > 0 && coords.col >= totalCols) {
+        colTransformDir = 1;
+        coords.col = totalCols - 1;
+      }
 
       visualCoords = this.options.renderableToVisualCoords(coords);
     }

@@ -240,11 +240,12 @@ class Selection {
       cellRange.setTo(this.tableProps.createCellCoords(coordsClone.row, coordsClone.col));
     }
 
-    // Set up current selection.
-    this.highlight.getFocus().clear();
+    const focusHighlight = this.highlight.getFocus();
+
+    focusHighlight.clear();
 
     if (this.highlight.isEnabledFor(FOCUS_TYPE, cellRange.highlight)) {
-      this.highlight.getFocus()
+      focusHighlight
         .add(this.selectedRange.current().highlight)
         .commit()
         .syncWith(cellRange);

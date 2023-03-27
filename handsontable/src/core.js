@@ -37,8 +37,8 @@ import { Selection } from './selection';
 import { MetaManager, DynamicCellMetaMod, ExtendMetaPropertiesMod, replaceData } from './dataMap';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
+import { registerAllShortcutContexts } from './shortcutContexts';
 
-const SHORTCUTS_GROUP = 'gridDefault';
 let activeGuid = null;
 const deprecationWarns = new Set();
 
@@ -297,22 +297,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.rowIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
 
   this.selection.addLocalHook('beforeSetRangeStart', (cellCoords) => {
+    this.getShortcutManager().setActiveContextName(cellCoords.isCell() ? 'grid' : 'headers');
     this.runHooks('beforeSetRangeStart', cellCoords);
   });
 
   this.selection.addLocalHook('beforeSetRangeStartOnly', (cellCoords) => {
+    this.getShortcutManager().setActiveContextName(cellCoords.isCell() ? 'grid' : 'headers');
     this.runHooks('beforeSetRangeStartOnly', cellCoords);
   });
 
   this.selection.addLocalHook('beforeSetRangeEnd', (cellCoords) => {
     this.runHooks('beforeSetRangeEnd', cellCoords);
-
-    // if (cellCoords.row < 0) {
-    //   cellCoords.row = this.view._wt.wtTable.getFirstVisibleRow();
-    // }
-    // if (cellCoords.col < 0) {
-    //   cellCoords.col = this.view._wt.wtTable.getFirstVisibleColumn();
-    // }
   });
 
   this.selection.addLocalHook('afterSetRangeEnd', (cellCoords) => {
@@ -4774,328 +4769,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return shortcutManager;
   };
 
-  const gridContext = shortcutManager.addContext('grid');
-  const gridConfig = {
-    runOnlyIf: () => {
-      return isDefined(instance.getSelected()) &&
-        instance.countRenderedRows() > 0 &&
-        instance.countRenderedCols() > 0;
-    },
-    group: SHORTCUTS_GROUP,
-  };
-
-  shortcutManager.setActiveContextName('grid');
-
-  gridContext.addShortcuts([{
-    keys: [['Control/Meta', 'A'], ['Control/Meta', 'Shift', 'Space']],
-    callback: () => {
-      instance.selectAll();
-    },
-  }, {
-    keys: [['Control/Meta', 'Enter']],
-    callback: () => {
-      const selectedRange = instance.getSelectedRange();
-      const {
-        row: highlightRow,
-        col: highlightColumn,
-      } = selectedRange[selectedRange.length - 1].highlight;
-      const valueToPopulate = instance.getDataAtCell(highlightRow, highlightColumn);
-      const cellValues = new Map();
-
-      for (let i = 0; i < selectedRange.length; i++) {
-        selectedRange[i].forAll((row, column) => {
-          if (row >= 0 && column >= 0 && (row !== highlightRow || column !== highlightColumn)) {
-            const { readOnly } = instance.getCellMeta(row, column);
-
-            if (!readOnly) {
-              cellValues.set(`${row}x${column}`, [row, column, valueToPopulate]);
-            }
-          }
-        });
-      }
-
-      instance.setDataAtCell(Array.from(cellValues.values()));
-    },
-    runOnlyIf: () => instance.getSelectedRangeLast().getCellsCount() > 1,
-  }, {
-    keys: [['ArrowUp']],
-    callback: () => {
-      selection.transformStart(-1, 0);
-    },
-  }, {
-    keys: [['ArrowUp', 'Control/Meta']],
-    captureCtrl: true,
-    callback: () => {
-      selection.setRangeStart(instance._createCellCoords(
-        instance.rowIndexMapper.getNearestNotHiddenIndex(0, 1),
-        instance.getSelectedRangeLast().highlight.col,
-      ));
-    },
-  }, {
-    keys: [
-      ['ArrowUp', 'Shift'],
-    ],
-    callback: () => {
-      selection.transformEnd(-1, 0);
-    },
-  }, {
-    keys: [
-      ['ArrowUp', 'Shift', 'Control/Meta'],
-    ],
-    captureCtrl: true,
-    callback: () => {
-      const { from, to } = instance.getSelectedRangeLast();
-      const row = instance.rowIndexMapper.getNearestNotHiddenIndex(0, 1);
-
-      selection.setRangeStart(from.clone());
-      selection.setRangeEnd(instance._createCellCoords(row, to.col));
-    },
-    runOnlyIf: () => !(instance.selection.isSelectedByCorner() || instance.selection.isSelectedByColumnHeader()),
-  }, {
-    keys: [['ArrowDown']],
-    callback: () => {
-      selection.transformStart(1, 0);
-    },
-  }, {
-    keys: [['ArrowDown', 'Control/Meta']],
-    captureCtrl: true,
-    callback: () => {
-      selection.setRangeStart(instance._createCellCoords(
-        instance.rowIndexMapper.getNearestNotHiddenIndex(instance.countRows() - 1, -1),
-        instance.getSelectedRangeLast().highlight.col,
-      ));
-    },
-  }, {
-    keys: [
-      ['ArrowDown', 'Shift'],
-    ],
-    callback: () => {
-      selection.transformEnd(1, 0);
-    },
-  }, {
-    keys: [
-      ['ArrowDown', 'Shift', 'Control/Meta'],
-    ],
-    captureCtrl: true,
-    callback: () => {
-      const { from, to } = instance.getSelectedRangeLast();
-      const row = instance.rowIndexMapper.getNearestNotHiddenIndex(instance.countRows() - 1, -1);
-
-      selection.setRangeStart(from.clone());
-      selection.setRangeEnd(instance._createCellCoords(row, to.col));
-    },
-    runOnlyIf: () => !(instance.selection.isSelectedByCorner() || instance.selection.isSelectedByColumnHeader()),
-  }, {
-    keys: [['ArrowLeft']],
-    callback: () => {
-      selection.transformStart(0, -1 * instance.getDirectionFactor());
-    },
-  }, {
-    keys: [['ArrowLeft', 'Control/Meta']],
-    captureCtrl: true,
-    callback: () => {
-      const row = instance.getSelectedRangeLast().highlight.row;
-      const column = instance.columnIndexMapper.getNearestNotHiddenIndex(
-        ...(instance.isRtl() ? [instance.countCols() - 1, -1] : [0, 1])
-      );
-
-      selection.setRangeStart(instance._createCellCoords(row, column));
-    },
-  }, {
-    keys: [
-      ['ArrowLeft', 'Shift'],
-    ],
-    callback: () => {
-      selection.transformEnd(0, -1 * instance.getDirectionFactor());
-    },
-  }, {
-    keys: [
-      ['ArrowLeft', 'Shift', 'Control/Meta'],
-    ],
-    captureCtrl: true,
-    callback: () => {
-      const { from, to } = instance.getSelectedRangeLast();
-      const column = instance.columnIndexMapper.getNearestNotHiddenIndex(
-        ...(instance.isRtl() ? [instance.countCols() - 1, -1] : [0, 1])
-      );
-
-      selection.setRangeStart(from.clone());
-      selection.setRangeEnd(instance._createCellCoords(to.row, column));
-    },
-    runOnlyIf: () => !(instance.selection.isSelectedByCorner() || instance.selection.isSelectedByRowHeader()),
-  }, {
-    keys: [['ArrowRight']],
-    callback: () => {
-      selection.transformStart(0, instance.getDirectionFactor());
-    },
-  }, {
-    keys: [['ArrowRight', 'Control/Meta']],
-    captureCtrl: true,
-    callback: () => {
-      const row = instance.getSelectedRangeLast().highlight.row;
-      const column = instance.columnIndexMapper.getNearestNotHiddenIndex(
-        ...(instance.isRtl() ? [0, 1] : [instance.countCols() - 1, -1])
-      );
-
-      selection.setRangeStart(instance._createCellCoords(row, column));
-    },
-  }, {
-    keys: [
-      ['ArrowRight', 'Shift'],
-    ],
-    callback: () => {
-      selection.transformEnd(0, instance.getDirectionFactor());
-    },
-  }, {
-    keys: [
-      ['ArrowRight', 'Shift', 'Control/Meta'],
-    ],
-    captureCtrl: true,
-    callback: () => {
-      const { from, to } = instance.getSelectedRangeLast();
-      const column = instance.columnIndexMapper.getNearestNotHiddenIndex(
-        ...(instance.isRtl() ? [0, 1] : [instance.countCols() - 1, -1])
-      );
-
-      selection.setRangeStart(from.clone());
-      selection.setRangeEnd(instance._createCellCoords(to.row, column));
-    },
-    runOnlyIf: () => !(instance.selection.isSelectedByCorner() || instance.selection.isSelectedByRowHeader()),
-  }, {
-    keys: [['Home']],
-    captureCtrl: true,
-    callback: () => {
-      const fixedColumns = parseInt(instance.getSettings().fixedColumnsStart, 10);
-      const row = instance.getSelectedRangeLast().highlight.row;
-      const column = instance.columnIndexMapper.getNearestNotHiddenIndex(fixedColumns, 1);
-
-      selection.setRangeStart(instance._createCellCoords(row, column));
-    },
-    runOnlyIf: () => instance.view.isMainTableNotFullyCoveredByOverlays(),
-  }, {
-    keys: [['Home', 'Shift']],
-    callback: () => {
-      selection.setRangeEnd(instance._createCellCoords(
-        selection.selectedRange.current().from.row,
-        instance.columnIndexMapper.getNearestNotHiddenIndex(0, 1),
-      ));
-    },
-  }, {
-    keys: [['Home', 'Control/Meta']],
-    captureCtrl: true,
-    callback: () => {
-      const fixedRows = parseInt(instance.getSettings().fixedRowsTop, 10);
-      const fixedColumns = parseInt(instance.getSettings().fixedColumnsStart, 10);
-      const row = instance.rowIndexMapper.getNearestNotHiddenIndex(fixedRows, 1);
-      const column = instance.columnIndexMapper.getNearestNotHiddenIndex(fixedColumns, 1);
-
-      selection.setRangeStart(instance._createCellCoords(row, column));
-    },
-    runOnlyIf: () => instance.view.isMainTableNotFullyCoveredByOverlays(),
-  }, {
-    keys: [['End']],
-    captureCtrl: true,
-    callback: () => {
-      selection.setRangeStart(instance._createCellCoords(
-        instance.getSelectedRangeLast().highlight.row,
-        instance.columnIndexMapper.getNearestNotHiddenIndex(instance.countCols() - 1, -1),
-      ));
-    },
-    runOnlyIf: () => instance.view.isMainTableNotFullyCoveredByOverlays(),
-  }, {
-    keys: [['End', 'Shift']],
-    callback: () => {
-      selection.setRangeEnd(instance._createCellCoords(
-        selection.selectedRange.current().from.row,
-        instance.columnIndexMapper.getNearestNotHiddenIndex(instance.countCols() - 1, -1),
-      ));
-    },
-  }, {
-    keys: [['End', 'Control/Meta']],
-    captureCtrl: true,
-    callback: () => {
-      const fixedRows = parseInt(instance.getSettings().fixedRowsBottom, 10);
-      const row = instance.rowIndexMapper.getNearestNotHiddenIndex(instance.countRows() - fixedRows - 1, -1);
-      const column = instance.columnIndexMapper.getNearestNotHiddenIndex(instance.countCols() - 1, -1);
-
-      selection.setRangeStart(instance._createCellCoords(row, column));
-    },
-    runOnlyIf: () => instance.view.isMainTableNotFullyCoveredByOverlays(),
-  }, {
-    keys: [
-      ['PageUp'],
-    ],
-    callback: () => {
-      selection.transformStart(-instance.countVisibleRows(), 0);
-    },
-  }, {
-    keys: [
-      ['PageUp', 'Shift']
-    ],
-    callback: () => {
-      const { to } = instance.getSelectedRangeLast();
-      const nextRowIndexToSelect = Math.max(to.row - instance.countVisibleRows(), 0);
-      const row = instance.rowIndexMapper.getNearestNotHiddenIndex(nextRowIndexToSelect, 1);
-
-      if (row !== null) {
-        const coords = instance._createCellCoords(row, to.col);
-        const scrollPadding = to.row - instance.view.getFirstFullyVisibleRow();
-        const nextVerticalScroll = Math.max(coords.row - scrollPadding, 0);
-
-        selection.setRangeEnd(coords);
-        instance.scrollViewportTo(nextVerticalScroll);
-      }
-    },
-  }, {
-    keys: [
-      ['PageDown'],
-    ],
-    callback: () => {
-      selection.transformStart(instance.countVisibleRows(), 0);
-    },
-  }, {
-    keys: [
-      ['PageDown', 'Shift']
-    ],
-    callback: () => {
-      const { to } = instance.getSelectedRangeLast();
-      const nextRowIndexToSelect = Math.min(to.row + instance.countVisibleRows(), instance.countRows() - 1);
-      const row = instance.rowIndexMapper.getNearestNotHiddenIndex(nextRowIndexToSelect, -1);
-
-      if (row !== null) {
-        const coords = instance._createCellCoords(row, to.col);
-        const scrollPadding = to.row - instance.view.getFirstFullyVisibleRow();
-        const nextVerticalScroll = Math.min(coords.row - scrollPadding, instance.countRows() - 1);
-
-        selection.setRangeEnd(coords);
-        instance.scrollViewportTo(nextVerticalScroll);
-      }
-    },
-  }, {
-    keys: [['Tab']],
-    callback: (event) => {
-      const tabMoves = typeof tableMeta.tabMoves === 'function'
-        ? tableMeta.tabMoves(event)
-        : tableMeta.tabMoves;
-
-      selection.transformStart(tabMoves.row, tabMoves.col, true);
-    },
-  }, {
-    keys: [['Shift', 'Tab']],
-    callback: (event) => {
-      const tabMoves = typeof tableMeta.tabMoves === 'function'
-        ? tableMeta.tabMoves(event)
-        : tableMeta.tabMoves;
-
-      selection.transformStart(-tabMoves.row, -tabMoves.col);
-    },
-  }], gridConfig);
-
   getPluginsNames().forEach((pluginName) => {
     const PluginClass = getPlugin(pluginName);
 
     pluginsRegistry.addItem(pluginName, new PluginClass(this));
   });
+
+  registerAllShortcutContexts(instance);
+
+  shortcutManager.setActiveContextName('grid');
 
   Hooks.getSingleton().run(instance, 'construct');
 }

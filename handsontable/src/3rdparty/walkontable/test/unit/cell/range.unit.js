@@ -28,8 +28,8 @@ describe('CellRange', () => {
       const to = new CellCoords(5, 6);
       const range = new CellRange(highlight, from, to);
 
-      expect(range.highlight.row).toBe(0);
-      expect(range.highlight.col).toBe(0);
+      expect(range.highlight.row).toBe(-1);
+      expect(range.highlight.col).toBe(-2);
       expect(range.highlight).not.toBe(highlight);
       expect(range.from.row).toBe(from.row);
       expect(range.from.col).toBe(from.col);
@@ -47,7 +47,7 @@ describe('CellRange', () => {
 
       range.setHighlight(highlight);
 
-      expect(range.highlight.row).toBe(0);
+      expect(range.highlight.row).toBe(-1);
       expect(range.highlight.col).toBe(6);
       expect(range.highlight).not.toBe(highlight);
     });
