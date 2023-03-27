@@ -47,10 +47,10 @@ patterns and trends.
 
 You can sort data in different ways:
 
-- Alphabetically, numerically, or based on a [custom sorting logic](#sort-different-types-of-data)
-- In ascending, descending, or a [custom order](#add-a-custom-comparator)
-- By a single column, or by [multiple columns](#sort-by-multiple-columns)
-- Using Handsontable's [UI](#demo) or [API](#control-sorting-programmatically)
+- Alphabetically, numerically, or based on a custom sorting logic
+- In ascending, descending, or a custom order
+- By a single column, or by multiple columns
+- Using Handsontable's UI or API
 
 Handsontable sorts data only visually, so your source data remains in the original order. To save
 your sorting changes in the data source, see this guide:
@@ -176,7 +176,7 @@ const handsontableInstance = new Handsontable(container, {
 ::: example #example1 :react
 
 ```jsx
-// to import just individual modules, see the 'Import the sorting module' section of this page
+// to import sorting as an individual module, see the 'Import the sorting module' section of this page
 
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -3864,11 +3864,11 @@ root.render(<HandsontableComponent />);
 You can run your code before or after sorting, using the following
 [Handsontable hooks](@/guides/getting-started/events-and-hooks.md):
 
-- [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort)
-- [`afterColumnSort`](@/api/hooks.md#aftercolumnsort)
+- [`beforeColumnSort()`](@/api/hooks.md#beforecolumnsort)
+- [`afterColumnSort()`](@/api/hooks.md#aftercolumnsort)
 
-For example, you can use [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) for server-side
-sorting, or use [`afterColumnSort`](@/api/hooks.md#aftercolumnsort) to
+For example, you can use [`beforeColumnSort()`](@/api/hooks.md#beforecolumnsort) for server-side
+sorting, or use [`afterColumnSort()`](@/api/hooks.md#aftercolumnsort) to
 [exclude rows from sorting](#exclude-rows-from-sorting).
 
 ::: only-for javascript
