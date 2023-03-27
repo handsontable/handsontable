@@ -881,8 +881,8 @@ module.exports = TO_STRING_TAG_SUPPORT ? classofRaw : function (it) {
 
 "use strict";
 
-var defineProperty = __webpack_require__(/*! ../internals/object-define-property */ "../../../../../node_modules/core-js/internals/object-define-property.js").f;
 var create = __webpack_require__(/*! ../internals/object-create */ "../../../../../node_modules/core-js/internals/object-create.js");
+var defineBuiltInAccessor = __webpack_require__(/*! ../internals/define-built-in-accessor */ "../../../../../node_modules/core-js/internals/define-built-in-accessor.js");
 var defineBuiltIns = __webpack_require__(/*! ../internals/define-built-ins */ "../../../../../node_modules/core-js/internals/define-built-ins.js");
 var bind = __webpack_require__(/*! ../internals/function-bind-context */ "../../../../../node_modules/core-js/internals/function-bind-context.js");
 var anInstance = __webpack_require__(/*! ../internals/an-instance */ "../../../../../node_modules/core-js/internals/an-instance.js");
@@ -1034,7 +1034,8 @@ module.exports = {
         return define(this, value = value === 0 ? 0 : value, value);
       }
     });
-    if (DESCRIPTORS) defineProperty(Prototype, 'size', {
+    if (DESCRIPTORS) defineBuiltInAccessor(Prototype, 'size', {
+      configurable: true,
       get: function () {
         return getInternalState(this).size;
       }
@@ -1553,6 +1554,25 @@ module.exports = function (hint) {
 
 /***/ }),
 
+/***/ "../../../../../node_modules/core-js/internals/define-built-in-accessor.js":
+/*!**************************************************************************************************************!*\
+  !*** /home/runner/work/handsontable/handsontable/node_modules/core-js/internals/define-built-in-accessor.js ***!
+  \**************************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var makeBuiltIn = __webpack_require__(/*! ../internals/make-built-in */ "../../../../../node_modules/core-js/internals/make-built-in.js");
+var defineProperty = __webpack_require__(/*! ../internals/object-define-property */ "../../../../../node_modules/core-js/internals/object-define-property.js");
+
+module.exports = function (target, name, descriptor) {
+  if (descriptor.get) makeBuiltIn(descriptor.get, name, { getter: true });
+  if (descriptor.set) makeBuiltIn(descriptor.set, name, { setter: true });
+  return defineProperty.f(target, name, descriptor);
+};
+
+
+/***/ }),
+
 /***/ "../../../../../node_modules/core-js/internals/define-built-in.js":
 /*!*****************************************************************************************************!*\
   !*** /home/runner/work/handsontable/handsontable/node_modules/core-js/internals/define-built-in.js ***!
@@ -1845,6 +1865,7 @@ module.exports = /MSIE|Trident/.test(UA);
 
 var userAgent = __webpack_require__(/*! ../internals/engine-user-agent */ "../../../../../node_modules/core-js/internals/engine-user-agent.js");
 
+// eslint-disable-next-line redos/no-vulnerable -- safe
 module.exports = /(?:ipad|iphone|ipod).*applewebkit/i.test(userAgent);
 
 
@@ -2231,6 +2252,7 @@ var construct = function (C, argsLength, args) {
 
 // `Function.prototype.bind` method implementation
 // https://tc39.es/ecma262/#sec-function.prototype.bind
+// eslint-disable-next-line es/no-function-prototype-bind -- detection
 module.exports = NATIVE_BIND ? $Function.bind : function bind(that /* , ...args */) {
   var F = aCallable(this);
   var Prototype = F.prototype;
@@ -2287,6 +2309,26 @@ module.exports = {
   EXISTS: EXISTS,
   PROPER: PROPER,
   CONFIGURABLE: CONFIGURABLE
+};
+
+
+/***/ }),
+
+/***/ "../../../../../node_modules/core-js/internals/function-uncurry-this-accessor.js":
+/*!********************************************************************************************************************!*\
+  !*** /home/runner/work/handsontable/handsontable/node_modules/core-js/internals/function-uncurry-this-accessor.js ***!
+  \********************************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this */ "../../../../../node_modules/core-js/internals/function-uncurry-this.js");
+var aCallable = __webpack_require__(/*! ../internals/a-callable */ "../../../../../node_modules/core-js/internals/a-callable.js");
+
+module.exports = function (object, key, method) {
+  try {
+    // eslint-disable-next-line es/no-object-getownpropertydescriptor -- safe
+    return uncurryThis(aCallable(Object.getOwnPropertyDescriptor(object, key)[method]));
+  } catch (error) { /* empty */ }
 };
 
 
@@ -2403,6 +2445,46 @@ module.exports = function (argument, usingIterator) {
 
 /***/ }),
 
+/***/ "../../../../../node_modules/core-js/internals/get-json-replacer-function.js":
+/*!****************************************************************************************************************!*\
+  !*** /home/runner/work/handsontable/handsontable/node_modules/core-js/internals/get-json-replacer-function.js ***!
+  \****************************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this */ "../../../../../node_modules/core-js/internals/function-uncurry-this.js");
+var isArray = __webpack_require__(/*! ../internals/is-array */ "../../../../../node_modules/core-js/internals/is-array.js");
+var isCallable = __webpack_require__(/*! ../internals/is-callable */ "../../../../../node_modules/core-js/internals/is-callable.js");
+var classof = __webpack_require__(/*! ../internals/classof-raw */ "../../../../../node_modules/core-js/internals/classof-raw.js");
+var toString = __webpack_require__(/*! ../internals/to-string */ "../../../../../node_modules/core-js/internals/to-string.js");
+
+var push = uncurryThis([].push);
+
+module.exports = function (replacer) {
+  if (isCallable(replacer)) return replacer;
+  if (!isArray(replacer)) return;
+  var rawLength = replacer.length;
+  var keys = [];
+  for (var i = 0; i < rawLength; i++) {
+    var element = replacer[i];
+    if (typeof element == 'string') push(keys, element);
+    else if (typeof element == 'number' || classof(element) == 'Number' || classof(element) == 'String') push(keys, toString(element));
+  }
+  var keysLength = keys.length;
+  var root = true;
+  return function (key, value) {
+    if (root) {
+      root = false;
+      return value;
+    }
+    if (isArray(this)) return value;
+    for (var j = 0; j < keysLength; j++) if (keys[j] === key) return value;
+  };
+};
+
+
+/***/ }),
+
 /***/ "../../../../../node_modules/core-js/internals/get-method.js":
 /*!************************************************************************************************!*\
   !*** /home/runner/work/handsontable/handsontable/node_modules/core-js/internals/get-method.js ***!
@@ -2437,6 +2519,7 @@ var floor = Math.floor;
 var charAt = uncurryThis(''.charAt);
 var replace = uncurryThis(''.replace);
 var stringSlice = uncurryThis(''.slice);
+// eslint-disable-next-line redos/no-vulnerable -- safe
 var SUBSTITUTION_SYMBOLS = /\$([$&'`]|\d{1,2}|<[^>]*>)/g;
 var SUBSTITUTION_SYMBOLS_NO_NAMED = /\$([$&'`]|\d{1,2})/g;
 
@@ -4082,7 +4165,7 @@ exports.f = NASHORN_BUG ? function propertyIsEnumerable(V) {
 /***/ (function(module, exports, __webpack_require__) {
 
 /* eslint-disable no-proto -- safe */
-var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this */ "../../../../../node_modules/core-js/internals/function-uncurry-this.js");
+var uncurryThisAccessor = __webpack_require__(/*! ../internals/function-uncurry-this-accessor */ "../../../../../node_modules/core-js/internals/function-uncurry-this-accessor.js");
 var anObject = __webpack_require__(/*! ../internals/an-object */ "../../../../../node_modules/core-js/internals/an-object.js");
 var aPossiblePrototype = __webpack_require__(/*! ../internals/a-possible-prototype */ "../../../../../node_modules/core-js/internals/a-possible-prototype.js");
 
@@ -4095,8 +4178,7 @@ module.exports = Object.setPrototypeOf || ('__proto__' in {} ? function () {
   var test = {};
   var setter;
   try {
-    // eslint-disable-next-line es/no-object-getownpropertydescriptor -- safe
-    setter = uncurryThis(Object.getOwnPropertyDescriptor(Object.prototype, '__proto__').set);
+    setter = uncurryThisAccessor(Object.prototype, '__proto__', 'set');
     setter(test, []);
     CORRECT_SETTER = test instanceof Array;
   } catch (error) { /* empty */ }
@@ -4654,7 +4736,7 @@ module.exports = function (scheduler, hasTimeArg) {
 "use strict";
 
 var getBuiltIn = __webpack_require__(/*! ../internals/get-built-in */ "../../../../../node_modules/core-js/internals/get-built-in.js");
-var definePropertyModule = __webpack_require__(/*! ../internals/object-define-property */ "../../../../../node_modules/core-js/internals/object-define-property.js");
+var defineBuiltInAccessor = __webpack_require__(/*! ../internals/define-built-in-accessor */ "../../../../../node_modules/core-js/internals/define-built-in-accessor.js");
 var wellKnownSymbol = __webpack_require__(/*! ../internals/well-known-symbol */ "../../../../../node_modules/core-js/internals/well-known-symbol.js");
 var DESCRIPTORS = __webpack_require__(/*! ../internals/descriptors */ "../../../../../node_modules/core-js/internals/descriptors.js");
 
@@ -4662,10 +4744,9 @@ var SPECIES = wellKnownSymbol('species');
 
 module.exports = function (CONSTRUCTOR_NAME) {
   var Constructor = getBuiltIn(CONSTRUCTOR_NAME);
-  var defineProperty = definePropertyModule.f;
 
   if (DESCRIPTORS && Constructor && !Constructor[SPECIES]) {
-    defineProperty(Constructor, SPECIES, {
+    defineBuiltInAccessor(Constructor, SPECIES, {
       configurable: true,
       get: function () { return this; }
     });
@@ -4748,10 +4829,10 @@ var store = __webpack_require__(/*! ../internals/shared-store */ "../../../../..
 (module.exports = function (key, value) {
   return store[key] || (store[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.27.2',
+  version: '3.28.0',
   mode: IS_PURE ? 'pure' : 'global',
   copyright: '© 2014-2023 Denis Pushkarev (zloirock.ru)',
-  license: 'https://github.com/zloirock/core-js/blob/v3.27.2/LICENSE',
+  license: 'https://github.com/zloirock/core-js/blob/v3.28.0/LICENSE',
   source: 'https://github.com/zloirock/core-js'
 });
 
@@ -4980,16 +5061,15 @@ var toString = __webpack_require__(/*! ../internals/to-string */ "../../../../..
 var whitespaces = __webpack_require__(/*! ../internals/whitespaces */ "../../../../../node_modules/core-js/internals/whitespaces.js");
 
 var replace = uncurryThis(''.replace);
-var whitespace = '[' + whitespaces + ']';
-var ltrim = RegExp('^' + whitespace + whitespace + '*');
-var rtrim = RegExp(whitespace + whitespace + '*$');
+var ltrim = RegExp('^[' + whitespaces + ']+');
+var rtrim = RegExp('(^|[^' + whitespaces + '])[' + whitespaces + ']+$');
 
 // `String.prototype.{ trim, trimStart, trimEnd, trimLeft, trimRight }` methods implementation
 var createMethod = function (TYPE) {
   return function ($this) {
     var string = toString(requireObjectCoercible($this));
     if (TYPE & 1) string = replace(string, ltrim, '');
-    if (TYPE & 2) string = replace(string, rtrim, '');
+    if (TYPE & 2) string = replace(string, rtrim, '$1');
     return string;
   };
 };
@@ -5837,6 +5917,7 @@ var addToUnscopables = __webpack_require__(/*! ../internals/add-to-unscopables *
 
 // FF99+ bug
 var BROKEN_ON_SPARSE = fails(function () {
+  // eslint-disable-next-line es/no-array-prototype-includes -- detection
   return !Array(1).includes();
 });
 
@@ -6396,7 +6477,7 @@ if (!hasOwn(DatePrototype, TO_PRIMITIVE)) {
 var DESCRIPTORS = __webpack_require__(/*! ../internals/descriptors */ "../../../../../node_modules/core-js/internals/descriptors.js");
 var FUNCTION_NAME_EXISTS = __webpack_require__(/*! ../internals/function-name */ "../../../../../node_modules/core-js/internals/function-name.js").EXISTS;
 var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this */ "../../../../../node_modules/core-js/internals/function-uncurry-this.js");
-var defineProperty = __webpack_require__(/*! ../internals/object-define-property */ "../../../../../node_modules/core-js/internals/object-define-property.js").f;
+var defineBuiltInAccessor = __webpack_require__(/*! ../internals/define-built-in-accessor */ "../../../../../node_modules/core-js/internals/define-built-in-accessor.js");
 
 var FunctionPrototype = Function.prototype;
 var functionToString = uncurryThis(FunctionPrototype.toString);
@@ -6407,7 +6488,7 @@ var NAME = 'name';
 // Function instances `.name` property
 // https://tc39.es/ecma262/#sec-function-instances-name
 if (DESCRIPTORS && !FUNCTION_NAME_EXISTS) {
-  defineProperty(FunctionPrototype, NAME, {
+  defineBuiltInAccessor(FunctionPrototype, NAME, {
     configurable: true,
     get: function () {
       try {
@@ -6435,13 +6516,13 @@ var apply = __webpack_require__(/*! ../internals/function-apply */ "../../../../
 var call = __webpack_require__(/*! ../internals/function-call */ "../../../../../node_modules/core-js/internals/function-call.js");
 var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this */ "../../../../../node_modules/core-js/internals/function-uncurry-this.js");
 var fails = __webpack_require__(/*! ../internals/fails */ "../../../../../node_modules/core-js/internals/fails.js");
-var isArray = __webpack_require__(/*! ../internals/is-array */ "../../../../../node_modules/core-js/internals/is-array.js");
 var isCallable = __webpack_require__(/*! ../internals/is-callable */ "../../../../../node_modules/core-js/internals/is-callable.js");
-var isObject = __webpack_require__(/*! ../internals/is-object */ "../../../../../node_modules/core-js/internals/is-object.js");
 var isSymbol = __webpack_require__(/*! ../internals/is-symbol */ "../../../../../node_modules/core-js/internals/is-symbol.js");
 var arraySlice = __webpack_require__(/*! ../internals/array-slice */ "../../../../../node_modules/core-js/internals/array-slice.js");
+var getReplacerFunction = __webpack_require__(/*! ../internals/get-json-replacer-function */ "../../../../../node_modules/core-js/internals/get-json-replacer-function.js");
 var NATIVE_SYMBOL = __webpack_require__(/*! ../internals/symbol-constructor-detection */ "../../../../../node_modules/core-js/internals/symbol-constructor-detection.js");
 
+var $String = String;
 var $stringify = getBuiltIn('JSON', 'stringify');
 var exec = uncurryThis(/./.exec);
 var charAt = uncurryThis(''.charAt);
@@ -6471,13 +6552,13 @@ var ILL_FORMED_UNICODE = fails(function () {
 
 var stringifyWithSymbolsFix = function (it, replacer) {
   var args = arraySlice(arguments);
-  var $replacer = replacer;
-  if (!isObject(replacer) && it === undefined || isSymbol(it)) return; // IE8 returns string on undefined
-  if (!isArray(replacer)) replacer = function (key, value) {
-    if (isCallable($replacer)) value = call($replacer, this, key, value);
+  var $replacer = getReplacerFunction(replacer);
+  if (!isCallable($replacer) && (it === undefined || isSymbol(it))) return; // IE8 returns string on undefined
+  args[1] = function (key, value) {
+    // some old implementations (like WebKit) could pass numbers as keys
+    if (isCallable($replacer)) value = call($replacer, this, $String(key), value);
     if (!isSymbol(value)) return value;
   };
-  args[1] = replacer;
   return apply($stringify, null, args);
 };
 
@@ -8217,6 +8298,7 @@ var definePropertyModule = __webpack_require__(/*! ../internals/object-define-pr
 var definePropertiesModule = __webpack_require__(/*! ../internals/object-define-properties */ "../../../../../node_modules/core-js/internals/object-define-properties.js");
 var propertyIsEnumerableModule = __webpack_require__(/*! ../internals/object-property-is-enumerable */ "../../../../../node_modules/core-js/internals/object-property-is-enumerable.js");
 var defineBuiltIn = __webpack_require__(/*! ../internals/define-built-in */ "../../../../../node_modules/core-js/internals/define-built-in.js");
+var defineBuiltInAccessor = __webpack_require__(/*! ../internals/define-built-in-accessor */ "../../../../../node_modules/core-js/internals/define-built-in-accessor.js");
 var shared = __webpack_require__(/*! ../internals/shared */ "../../../../../node_modules/core-js/internals/shared.js");
 var sharedKey = __webpack_require__(/*! ../internals/shared-key */ "../../../../../node_modules/core-js/internals/shared-key.js");
 var hiddenKeys = __webpack_require__(/*! ../internals/hidden-keys */ "../../../../../node_modules/core-js/internals/hidden-keys.js");
@@ -8388,7 +8470,7 @@ if (!NATIVE_SYMBOL) {
 
   if (DESCRIPTORS) {
     // https://github.com/tc39/proposal-Symbol-description
-    nativeDefineProperty(SymbolPrototype, 'description', {
+    defineBuiltInAccessor(SymbolPrototype, 'description', {
       configurable: true,
       get: function description() {
         return getInternalState(this).description;
@@ -8466,7 +8548,7 @@ var hasOwn = __webpack_require__(/*! ../internals/has-own-property */ "../../../
 var isCallable = __webpack_require__(/*! ../internals/is-callable */ "../../../../../node_modules/core-js/internals/is-callable.js");
 var isPrototypeOf = __webpack_require__(/*! ../internals/object-is-prototype-of */ "../../../../../node_modules/core-js/internals/object-is-prototype-of.js");
 var toString = __webpack_require__(/*! ../internals/to-string */ "../../../../../node_modules/core-js/internals/to-string.js");
-var defineProperty = __webpack_require__(/*! ../internals/object-define-property */ "../../../../../node_modules/core-js/internals/object-define-property.js").f;
+var defineBuiltInAccessor = __webpack_require__(/*! ../internals/define-built-in-accessor */ "../../../../../node_modules/core-js/internals/define-built-in-accessor.js");
 var copyConstructorProperties = __webpack_require__(/*! ../internals/copy-constructor-properties */ "../../../../../node_modules/core-js/internals/copy-constructor-properties.js");
 
 var NativeSymbol = global.Symbol;
@@ -8499,7 +8581,7 @@ if (DESCRIPTORS && isCallable(NativeSymbol) && (!('description' in SymbolPrototy
   var replace = uncurryThis(''.replace);
   var stringSlice = uncurryThis(''.slice);
 
-  defineProperty(SymbolPrototype, 'description', {
+  defineBuiltInAccessor(SymbolPrototype, 'description', {
     configurable: true,
     get: function description() {
       var symbol = thisSymbolValue(this);
@@ -9006,7 +9088,7 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-/*! @license DOMPurify 2.4.3 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.4.3/LICENSE */
+/*! @license DOMPurify 2.4.4 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.4.4/LICENSE */
 
 (function (global, factory) {
    true ? module.exports = factory() :
@@ -9335,7 +9417,7 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
      */
 
 
-    DOMPurify.version = '2.4.3';
+    DOMPurify.version = '2.4.4';
     /**
      * Array of elements that DOMPurify removed during sanitation.
      * Empty if nothing was removed.
@@ -9465,6 +9547,10 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
     /* Decide if unknown protocols are okay */
 
     var ALLOW_UNKNOWN_PROTOCOLS = false;
+    /* Decide if self-closing tags in attributes are allowed.
+     * Usually removed due to a mXSS issue in jQuery 3.0 */
+
+    var ALLOW_SELF_CLOSE_IN_ATTR = true;
     /* Output should be safe for common template engines.
      * This means, DOMPurify removes data attributes, mustaches and ERB
      */
@@ -9616,6 +9702,8 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
       ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false; // Default true
 
       ALLOW_UNKNOWN_PROTOCOLS = cfg.ALLOW_UNKNOWN_PROTOCOLS || false; // Default false
+
+      ALLOW_SELF_CLOSE_IN_ATTR = cfg.ALLOW_SELF_CLOSE_IN_ATTR !== false; // Default true
 
       SAFE_FOR_TEMPLATES = cfg.SAFE_FOR_TEMPLATES || false; // Default false
 
@@ -10280,7 +10368,7 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
         /* Work around a security issue in jQuery 3.0 */
 
 
-        if (regExpTest(/\/>/i, value)) {
+        if (!ALLOW_SELF_CLOSE_IN_ATTR && regExpTest(/\/>/i, value)) {
           _removeAttribute(name, currentNode);
 
           continue;
@@ -10561,7 +10649,7 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
           returnNode = body;
         }
 
-        if (ALLOWED_ATTR.shadowroot) {
+        if (ALLOWED_ATTR.shadowroot || ALLOWED_ATTR.shadowrootmod) {
           /*
             AdoptNode() is not used because internal state is not reset
             (e.g. the past names map of a HTMLFormElement), this is safe
