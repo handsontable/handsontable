@@ -29,6 +29,10 @@ For more information on Handsontable 12.3.3, see:
 - [Documentation (12.3)](https://handsontable.com/docs/12.3)
 - [Release notes (12.3.3)](https://handsontable.com/docs/release-notes/#_12-3-3)
 
+## [12.3.2] - 2023-03-23
+
+Handsontable 12.3.2 may not work properly with React's functional components. If you're using React, you should upgrade to [12.3.3](#_12-3-3).
+
 ## [12.3.1] - 2023-02-06
 
 ### Added
