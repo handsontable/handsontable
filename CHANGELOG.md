@@ -12,9 +12,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [12.3.2] - 2023-03-23
 
 ### Added
-
 - Added a Chinese (zh-CN) translation of the "Copy with headers" feature.
   [#10273](https://github.com/handsontable/handsontable/pull/10273)
+- Added a new "Rows sorting" guide. [#10183](https://github.com/handsontable/handsontable/pull/10183)
 
 ### Fixed
 
@@ -27,6 +27,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   [`getDataAtCol()`](https://handsontable.com/docs/javascript-data-grid/api/core/#getdataatcol) or
   [`getDataAtProp()`](https://handsontable.com/docs/javascript-data-grid/api/core/#getdataatprop) caused an error when the data set had more than 125 000 rows.
   [#10226](https://github.com/handsontable/handsontable/pull/10226)
+- 
 
 ## [12.3.1] - 2023-02-06
 

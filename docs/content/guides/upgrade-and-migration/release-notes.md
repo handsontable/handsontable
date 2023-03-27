@@ -37,6 +37,8 @@ For more information on this release, see:
 
 - Added a Chinese (zh-CN) translation of the "Copy with headers" feature.
   [#10273](https://github.com/handsontable/handsontable/pull/10273)
+- Added a new "[Rows sorting](https://handsontable.com/docs/rows-sorting)" guide.
+  [#10183](https://github.com/handsontable/handsontable/pull/10183)
 
 #### Fixed
 
