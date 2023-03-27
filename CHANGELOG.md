@@ -9,6 +9,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [12.3.3] - 2023-03-28
+
+### Fixed
+
+- React: Fixed React 18 warnings about deprecated lifecycle methods. We removed
+  `componentWillMount()` and `componentWillUpdate()` from Handsontable's codebase and recreated
+  their functionality by using React's portals.
+  [#10263](https://github.com/handsontable/handsontable/pull/10263)
+
 ## [12.3.2] - 2023-03-23
 
 ### Added
