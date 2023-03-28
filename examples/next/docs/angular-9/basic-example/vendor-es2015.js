@@ -4829,10 +4829,10 @@ var store = __webpack_require__(/*! ../internals/shared-store */ "../../../../..
 (module.exports = function (key, value) {
   return store[key] || (store[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.28.0',
+  version: '3.29.1',
   mode: IS_PURE ? 'pure' : 'global',
   copyright: '© 2014-2023 Denis Pushkarev (zloirock.ru)',
-  license: 'https://github.com/zloirock/core-js/blob/v3.28.0/LICENSE',
+  license: 'https://github.com/zloirock/core-js/blob/v3.29.1/LICENSE',
   source: 'https://github.com/zloirock/core-js'
 });
 
@@ -9088,7 +9088,7 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-/*! @license DOMPurify 2.4.4 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.4.4/LICENSE */
+/*! @license DOMPurify 2.4.5 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.4.5/LICENSE */
 
 (function (global, factory) {
    true ? module.exports = factory() :
@@ -9417,7 +9417,7 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
      */
 
 
-    DOMPurify.version = '2.4.4';
+    DOMPurify.version = '2.4.5';
     /**
      * Array of elements that DOMPurify removed during sanitation.
      * Empty if nothing was removed.
@@ -9727,6 +9727,7 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
 
       IS_ALLOWED_URI$1 = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI$1;
       NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
+      CUSTOM_ELEMENT_HANDLING = cfg.CUSTOM_ELEMENT_HANDLING || {};
 
       if (cfg.CUSTOM_ELEMENT_HANDLING && isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck)) {
         CUSTOM_ELEMENT_HANDLING.tagNameCheck = cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck;
