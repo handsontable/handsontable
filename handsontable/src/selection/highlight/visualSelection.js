@@ -152,7 +152,7 @@ class VisualSelection extends Selection {
     const rowDirection = broaderCellRange.getVerticalDirection() === 'N-S' ? 1 : -1;
     const columnDirection = broaderCellRange.getHorizontalDirection() === 'W-E' ? 1 : -1;
     const singleCellRangeVisual = this.getNearestNotHiddenCoords(
-      broaderCellRange.from.clone().normalize(),
+      broaderCellRange.from.clone(),
       rowDirection,
       columnDirection
     );

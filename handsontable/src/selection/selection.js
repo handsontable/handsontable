@@ -321,34 +321,36 @@ class Selection {
     }
 
     if (this.highlight.isEnabledFor(HEADER_TYPE, cellRange.highlight)) {
-      const rowCoordsFrom = this.tableProps.createCellCoords(Math.max(cellRange.from.row, 0), -1);
-      const rowCoordsTo = this.tableProps.createCellCoords(cellRange.to.row, -1);
-      const columnCoordsFrom = this.tableProps.createCellCoords(-1, Math.max(cellRange.from.col, 0));
-      const columnCoordsTo = this.tableProps.createCellCoords(-1, cellRange.to.col);
+      if (cellRange.highlight.isCell()) {
+        const rowCoordsFrom = this.tableProps.createCellCoords(Math.max(cellRange.from.row, 0), -1);
+        const rowCoordsTo = this.tableProps.createCellCoords(cellRange.to.row, -1);
+        const columnCoordsFrom = this.tableProps.createCellCoords(-1, Math.max(cellRange.from.col, 0));
+        const columnCoordsTo = this.tableProps.createCellCoords(-1, cellRange.to.col);
 
-      if (this.settings.selectionMode === 'single') {
-        rowHeaderHighlight.add(rowCoordsFrom).commit();
-        columnHeaderHighlight.add(columnCoordsFrom).commit();
-        rowHighlight.add(rowCoordsFrom).commit();
-        columnHighlight.add(columnCoordsFrom).commit();
+        if (this.settings.selectionMode === 'single') {
+          rowHeaderHighlight.add(rowCoordsFrom).commit();
+          columnHeaderHighlight.add(columnCoordsFrom).commit();
+          rowHighlight.add(rowCoordsFrom).commit();
+          columnHighlight.add(columnCoordsFrom).commit();
 
-      } else {
-        rowHeaderHighlight
-          .add(rowCoordsFrom)
-          .add(rowCoordsTo)
-          .commit();
-        columnHeaderHighlight
-          .add(columnCoordsFrom)
-          .add(columnCoordsTo)
-          .commit();
-        rowHighlight
-          .add(rowCoordsFrom)
-          .add(rowCoordsTo)
-          .commit();
-        columnHighlight
-          .add(columnCoordsFrom)
-          .add(columnCoordsTo)
-          .commit();
+        } else {
+          rowHeaderHighlight
+            .add(rowCoordsFrom)
+            .add(rowCoordsTo)
+            .commit();
+          columnHeaderHighlight
+            .add(columnCoordsFrom)
+            .add(columnCoordsTo)
+            .commit();
+          rowHighlight
+            .add(rowCoordsFrom)
+            .add(rowCoordsTo)
+            .commit();
+          columnHighlight
+            .add(columnCoordsFrom)
+            .add(columnCoordsTo)
+            .commit();
+        }
       }
 
       if (this.isEntireRowSelected()) {
