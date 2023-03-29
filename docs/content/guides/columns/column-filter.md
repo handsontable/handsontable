@@ -582,6 +582,8 @@ https://handsontable.com/docs/react-data-grid/searching-values/#simplest-use-cas
 podobnie, ale zamiast kolorowania wynikow, odfiltrowuje je szukajacych wartosci we wszystkich
 kolumnach
 
+Dodatkowe demo: https://jsfiddle.net/aszymanski/q715uyg4/
+
 ## Add a custom filter icon
 
 https://forum.handsontable.com/t/custom-filter-icon-and-context-menu/4073
@@ -596,6 +598,9 @@ http://jsfiddle.net/handsoncode/zxguhohs/
 ## Exclude rows from filtering
 
 ## Use filtering hooks
+
+beforeFilter:
+http://jsfiddle.net/handsoncode/c8phv3dy/
 
 ## Filter passwords
 
@@ -619,7 +624,17 @@ https://mui.com/x/react-data-grid/filtering/#customize-the-operators
 
 https://handsontable.com/docs/react-data-grid/column-filter/#filter-from-the-outside-the-table
 
+Through external buttons:
+
+http://jsfiddle.net/8tvh9L1k/1/
+
+Through checkboxes:
+
+https://jsfiddle.net/kox9hLzu/1/
+
 ### Clear filter criteria for all columns at once
+
+http://jsfiddle.net/wo1sqzz8/
 
 https://jsfiddle.net/handsoncode/a5jgrxy4
 
@@ -628,6 +643,10 @@ https://jsfiddle.net/handsoncode/a5jgrxy4
 https://forum.handsontable.com/t/filter-on-hidden-columns/4401
 
 ### Save filter settings
+
+POPULAR
+
+http://jsfiddle.net/AMBudnik/1ebkcdan/
 
 https://forum.handsontable.com/t/save-filter-settings/669
 
@@ -640,6 +659,14 @@ https://forum.handsontable.com/t/discard-reset-filter-by-clicking-reset-button/6
 ### Get filtered rows
 
 https://forum.handsontable.com/t/how-to-get-filterred-rows-in-afterfilter-hook/4753
+
+### Uncheck "Filter by value" checkboxes by default
+
+http://jsfiddle.net/s2tgjkvx/
+
+### Get the "Filter by value" values as you type
+
+https://jsfiddle.net/gqz3yLjc/
 
 ## Import the filtering module
 
