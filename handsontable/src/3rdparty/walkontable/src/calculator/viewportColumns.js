@@ -157,12 +157,12 @@ class ViewportColumnsCalculator {
     const inlineStartColumnOffset = calculationType === FULLY_VISIBLE_TYPE ? firstVisibleColumnWidth : 0;
 
     if (
-      // The table is on the left of the viewport
+      // the table is to the left of the viewport
       (
         mostRightScrollOffset < (-1) * priv.inlineStartOffset ||
         scrollOffset > startPositions.at(-1) + inlineEndColumnOffset
       ) ||
-      // The table is on the right of the viewport
+      // the table is to the right of the viewport
       (((-1) * priv.scrollOffset) - priv.viewportWidth > (-1) * inlineStartColumnOffset)
     ) {
       this.isVisibleInTrimmingContainer = false;
