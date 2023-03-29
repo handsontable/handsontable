@@ -317,6 +317,7 @@ https://jsfiddle.net/handsoncode/fwma1t7L
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
+
 const container = document.querySelector('#example2');
 const handsontableInstance = new Handsontable(container, {
   data: [
@@ -361,25 +362,23 @@ const handsontableInstance = new Handsontable(container, {
       inStock: true,
     },
   ],
-  // enable sorting for all columns
-  columnSorting: true,
+  // enable the column menu for all columns
+  dropdownMenu: true,
+  // enable filtering for all columns
+  filters: true,
   columns: [
     {
-      title: 'Brand<br>(non-sortable)',
+      title: 'Brand<br>(non-filterable)',
       type: 'text',
       data: 'brand',
-      // disable sorting for the 'Brand' column
-      columnSorting: {
-        headerAction: false,
-      },
     },
     {
-      title: 'Model<br>(sortable)',
+      title: 'Model<br>(filterable)',
       type: 'text',
       data: 'model',
     },
     {
-      title: 'Price<br>(non-sortable)',
+      title: 'Price<br>(non-filterable)',
       type: 'numeric',
       data: 'price',
       numericFormat: {
@@ -387,36 +386,29 @@ const handsontableInstance = new Handsontable(container, {
         culture: 'en-US',
       },
       className: 'htLeft',
-      // disable sorting for the 'Price' column
-      columnSorting: {
-        headerAction: false,
-      },
     },
     {
-      title: 'Date<br>(sortable)',
+      title: 'Date<br>(filterable)',
       type: 'date',
       data: 'sellDate',
       className: 'htRight',
     },
     {
-      title: 'Time<br>(non-sortable)',
+      title: 'Time<br>(non-filterable)',
       type: 'time',
       data: 'sellTime',
       correctFormat: true,
       className: 'htRight',
-      // disable sorting for the 'Time' column
-      columnSorting: {
-        headerAction: false,
-      },
     },
     {
-      title: 'In stock<br>(sortable)',
+      title: 'In stock<br>(filterable)',
       type: 'checkbox',
       data: 'inStock',
       className: 'htCenter',
     },
   ],
   height: 'auto',
+  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -536,6 +528,7 @@ export const HandsontableComponent = () => {
         },
       ]}
       height="auto"
+      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
