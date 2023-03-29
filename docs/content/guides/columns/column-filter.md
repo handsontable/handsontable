@@ -2,7 +2,7 @@
 id: 3xxlonuv
 title: Column filter
 metaTitle: Column filter - JavaScript Data Grid | Handsontable
-description: Filter your data by values or by sets of criteria.
+description: Filter your data by values or based on multiple criteria.
 permalink: /column-filter
 canonicalUrl: /column-filter
 tags:
@@ -17,13 +17,13 @@ searchCategory: Guides
 
 # Column filter
 
-Filter your data by values or by sets of criteria.
+Filter your data by values or based on multiple criteria.
 
 [[toc]]
 
 ## Overview
 
-**The filter menu is part of the dropdown menu.**
+**The filter menu is part of the column menu.**
 
 - Filter lives in the [column menu], so you need to enable it first
 - After filtering the data is trimming.
@@ -269,23 +269,16 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example1'));
 
 ## Enable filtering
 
-To enable filtering for all columns, set the following options to `true`:
-
-- [`colHeaders`](@/api/options.md#colheaders), to enable
-  [column headers](@/guides/columns/column-header.md)
-- [`dropdownMenu`](@/api/options.md#dropdownmenu), to enable the
-  [column menu](@/guides/columns/column-menu.md)
-- [`filters`](@/api/options.md#filters), to enable the filter menu
+To enable filtering for all columns, set [`dropdownMenu`](@/api/options.md#dropdownmenu) and
+[`filters`](@/api/options.md#filters) to `true`.
 
 ::: only-for javascript
 
 ```js
 const configurationOptions = {
-  // enable column headers
-  colHeaders: true,
   // enable the column menu
   dropdownMenu: true,
-  // enable filtering
+  // enable the filter menu
   filters: true,
 };
 ```
@@ -296,8 +289,6 @@ const configurationOptions = {
 
 ```jsx
 <HotTable
-  // enable column headers
-  colHeaders={true}
   // enable the column menu
   dropdownMenu={true}
   // enable filtering
@@ -307,7 +298,9 @@ const configurationOptions = {
 
 :::
 
-To enable filtering only for specific columns, you can disable the column menu for those columns by using the [`afterGetColHeader()`](@/api/hooks.md#aftergetcolheader) Handsontable hook.
+To enable filtering only for specific columns, disable the column menu for those columns that you
+don't want to filter. You can do that by using the
+[`afterGetColHeader()`](@/api/hooks.md#aftergetcolheader) Handsontable hook.
 
 https://jsfiddle.net/handsoncode/fwma1t7L
 
@@ -557,7 +550,9 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example2'));
 You can also enable the column menu for all columns, but disable filtering for some of them:
 https://jsfiddle.net/handsoncode/ahg0dofj
 
-You can also enable filtering but get rid of the remaining column menu options: ???
+You can also enable filtering but get rid of the remaining column menu options:
+
+https://handsontable.com/docs/react-data-grid/column-filter/#custom-filter-menu
 
 ## Configure filtering
 
@@ -572,13 +567,49 @@ https://forum.handsontable.com/t/how-to-apply-a-filter-to-a-date-column/3838
 
 Checkbox has the same as text: https://forum.handsontable.com/t/gh-5632-filter-for-boolean/4655
 
+## Filter on initialization
+
+Filtrowanie na inicjalizacji
+
+## Filter as you type
+
+https://handsontable.com/docs/react-data-grid/column-filter/#filter-as-you-type Krzysiek: Z dema
+filter as you type (https://handsontable.com/docs/react-data-grid/column-filter/#filter-as-you-type)
+wyrzucic delay (200ms) - ale wczesniej upewnic sie u autora (Wojtek Szymanski) ze to bezpieczne
+
+Demo z inputem nad tabelka filtrujacym content (jak w search) - jak tutaj
+https://handsontable.com/docs/react-data-grid/searching-values/#simplest-use-case dzialajace bardzo
+podobnie, ale zamiast kolorowania wynikow, odfiltrowuje je szukajacych wartosci we wszystkich
+kolumnach
+
 ## Add a custom filter icon
 
 https://forum.handsontable.com/t/custom-filter-icon-and-context-menu/4073
 
+Demo: Przycisk do sortowania widoczny tylko po najechaniu na header (on:hover) jako alternatywa do
+domyslnego zachowania
+
 ## Change the width of the filter menu
 
 http://jsfiddle.net/handsoncode/zxguhohs/
+
+## Exclude rows from filtering
+
+## Use filtering hooks
+
+## Filter passwords
+
+Jesli w filter menu na liscie wynikow chcialbym widziec wizualne dane, a nie zrodlowe (co
+szczegolnie bolesne jest w przypadku cell type: password), to czy mozemy to pokazac w postaci
+customowego example?
+
+## Server-side filtering
+
+Block filtering on the front-end (to perform server-side filtering)
+
+## Custom filter operators
+
+https://mui.com/x/react-data-grid/filtering/#customize-the-operators
 
 ## Control filtering programmatically
 
@@ -586,23 +617,17 @@ http://jsfiddle.net/handsoncode/zxguhohs/
 
 ### Filter data programmatically
 
-### Exclude rows from filtering
-
-### Use filtering hooks
+https://handsontable.com/docs/react-data-grid/column-filter/#filter-from-the-outside-the-table
 
 ### Clear filter criteria for all columns at once
 
 https://jsfiddle.net/handsoncode/a5jgrxy4
 
-### Filter a hidden column programmatically
+### Filter a hidden column
 
 https://forum.handsontable.com/t/filter-on-hidden-columns/4401
 
 ### Save filter settings
-
-https://forum.handsontable.com/t/save-filter-settings/669
-
-### Block filtering on the front-end (to perform server-side filtering)
 
 https://forum.handsontable.com/t/save-filter-settings/669
 
