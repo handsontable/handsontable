@@ -3051,18 +3051,22 @@ export const HandsontableComponent = () => {
       // `afterColumnSort` is a Handsontable hook: it's fired after each sorting
       afterColumnSort={exclude}
       cells={(row, col, prop) => {
-        if (row === 0) {
-          return {
-            type: 'text',
-            className: 'htCenter',
-            readOnly: true,
-          };
-        }
-        if (row === 15) {
-          return {
-            type: 'numeric',
-            className: 'htCenter',
-          };
+        if (hotTableComponentRef.current != null) {
+          const lastRowIndex = hotTableComponentRef.current.hotInstance.countRows() - 1;
+
+          if (row === 0) {
+            return {
+              type: 'text',
+              className: 'htCenter',
+              readOnly: true,
+            };
+          }
+          if (row === lastRowIndex) {
+            return {
+              type: 'numeric',
+              className: 'htCenter',
+            };
+          }
         }
       }}
       columnSummary={[
