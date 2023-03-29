@@ -76,7 +76,7 @@ class Transformation {
       }
 
       if (x + colDelta >= width) {
-        if (createMissingRecords && minSpareCols > 0 && fixedRowsBottom === 0) {
+        if (createMissingRecords && minSpareCols > 0) {
           this.runLocalHooks('insertColRequire', this.options.countCols());
 
         } else if (autoWrapRow) {

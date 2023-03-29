@@ -6,6 +6,7 @@ import Highlight, {
 import SelectionRange from './range';
 import { createObjectPropListener, mixin } from './../helpers/object';
 import { isUndefined } from './../helpers/mixed';
+import { clamp } from './../helpers/number';
 import { arrayEach } from './../helpers/array';
 import localHooks from './../mixins/localHooks';
 import Transformation from './transformation';
@@ -565,22 +566,35 @@ class Selection {
   /**
    * Select all cells.
    *
-   * @param {boolean} [includeRowHeaders=false] `true` If the selection should include the row headers, `false`
-   * otherwise.
-   * @param {boolean} [includeColumnHeaders=false] `true` If the selection should include the column headers, `false`
-   * otherwise.
+   * @param {number|boolean} [rowHeaderLevel=false] If passed as number (from -1 to -N) it defines how many row header
+   * layers will be selected. Or if passed as boolean, `true` selects all row headers and `false` none of them.
+   * @param {number|boolean} [columnHeaderLevel=false] If passed as number (from -1 to -N) it defines how many column
+   * header layers will be selected. Or if passed as boolean, `true` selects all column headers and `false` none
+   * of them.
    */
-  selectAll(includeRowHeaders = false, includeColumnHeaders = false) {
+  selectAll(rowHeaderLevel = false, columnHeaderLevel = false) {
     const nrOfRows = this.tableProps.countRows();
     const nrOfColumns = this.tableProps.countCols();
+    const countRowHeaders = this.tableProps.countRowHeaders();
+    const countColHeaders = this.tableProps.countColHeaders();
+
+    let rowFrom = rowHeaderLevel ? -countRowHeaders : 0;
+
+    if (Number.isInteger(rowHeaderLevel)) {
+      rowFrom = clamp(rowHeaderLevel, -countRowHeaders, -1);
+    }
+
+    let columnFrom = columnHeaderLevel ? -countColHeaders : 0;
+
+    if (Number.isInteger(columnHeaderLevel)) {
+      columnFrom = clamp(columnHeaderLevel, -countColHeaders, -1);
+    }
 
     // We can't select cells when there is no data.
-    if (!includeRowHeaders && !includeColumnHeaders && (nrOfRows === 0 || nrOfColumns === 0)) {
+    if (rowFrom === 0 && columnFrom === 0 && (nrOfRows === 0 || nrOfColumns === 0)) {
       return;
     }
 
-    const rowFrom = includeColumnHeaders ? -this.tableProps.countColHeaders() : 0;
-    const columnFrom = includeRowHeaders ? -this.tableProps.countRowHeaders() : 0;
     const startCoords = this.tableProps.createCellCoords(rowFrom, columnFrom);
     const endCoords = this.tableProps.createCellCoords(nrOfRows - 1, nrOfColumns - 1);
 
