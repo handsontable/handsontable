@@ -1,3 +1,4 @@
+import moment from 'moment';
 import { BasePlugin } from '../base';
 import staticRegister from '../../utils/staticRegister';
 import { error, warn } from '../../helpers/console';
@@ -23,6 +24,7 @@ import Hooks from '../../pluginHooks';
 
 export const PLUGIN_KEY = 'formulas';
 export const PLUGIN_PRIORITY = 260;
+const DATE_FORMAT_HYPERFORMULA = 'DD/MM/YYYY';
 const ROW_MOVE_UNDO_REDO_NAME = 'row_move';
 
 Hooks.getSingleton().register('afterNamedExpressionAdded');
@@ -553,6 +555,12 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    const cellMeta = this.hot.getCellMeta(row, column);
+
+    if (cellMeta.type === 'date' && moment(newValue).isValid()) {
+      newValue = moment(newValue, cellMeta.dateFormat).format(DATE_FORMAT_HYPERFORMULA);
+    }
+
     return this.engine.setCellContents(address, newValue);
   }
 
@@ -576,7 +584,12 @@ export class Formulas extends BasePlugin {
         sheet: this.sheetId,
       };
 
-      const cellValue = this.engine.getCellValue(address);
+      const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
+      let cellValue = this.engine.getCellValue(address);
+
+      if (cellMeta.type === 'date' && moment(cellValue).isValid()) {
+        cellValue = moment(cellValue).format(cellMeta.dateFormat);
+      }
 
       // If `cellValue` is an object it is expected to be an error
       return (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
@@ -648,6 +661,15 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    // Workaround as cell meta needed for checking whether we handle cell with a date isn't properly created.
+    if (initialLoad === true) {
+      this.hot.addHookOnce('afterChange', () => {
+        this.onAfterLoadData(sourceData, false, source);
+      });
+
+      return;
+    }
+
     this.sheetName = setupSheet(this.engine, this.hot.getSettings()[PLUGIN_KEY].sheetName);
 
     if (!this.#hotWasInitializedWithEmptyData) {
@@ -656,7 +678,17 @@ export class Formulas extends BasePlugin {
       if (this.engine.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
         this.#internalOperationPending = true;
 
-        const dependentCells = this.engine.setSheetContent(this.sheetId, this.hot.getSourceDataArray());
+        sourceDataArray.forEach((rowData, rowIndex) => {
+          rowData.forEach((cellValue, columnIndex) => {
+            const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex);
+
+            if (cellMeta.type === 'date' && moment(cellValue).isValid()) {
+              sourceDataArray[rowIndex][columnIndex] = moment(cellValue, 'MM/DD/YYYY').format(DATE_FORMAT_HYPERFORMULA);
+            }
+          });
+        });
+
+        const dependentCells = this.engine.setSheetContent(this.sheetId, sourceDataArray);
 
         this.renderDependentSheets(dependentCells);
 
@@ -711,7 +743,15 @@ export class Formulas extends BasePlugin {
       col: this.toPhysicalColumnPosition(column),
       sheet: this.sheetId
     };
-    const cellValue = this.engine.getCellValue(address);
+    let cellValue = this.engine.getCellValue(address);
+    const cellMeta = this.hot.getCellMeta(row, column);
+
+    if (cellMeta.type === 'date') {
+      // Converting from Excel like date (numbers of days from January 1, 1900) to Date object.
+      const dataFromExcelDate = new Date(Date.UTC(0, 0, cellValue - 1));
+
+      cellValue = moment(dataFromExcelDate).format(cellMeta.dateFormat);
+    }
 
     // If `cellValue` is an object it is expected to be an error
     const value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
