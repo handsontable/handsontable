@@ -140,6 +140,7 @@ const handsontableInstance = new Handsontable(container, {
   // enable filtering
   filters: true,
   height: 'auto',
+  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -254,6 +255,7 @@ export const HandsontableComponent = () => {
       // enable filtering
       filters={true}
       height="auto"
+      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -591,16 +593,19 @@ https://forum.handsontable.com/t/custom-filter-icon-and-context-menu/4073
 Demo: Przycisk do sortowania widoczny tylko po najechaniu na header (on:hover) jako alternatywa do
 domyslnego zachowania
 
-## Change the width of the filter menu
+## Change the size of the filter menu
 
-http://jsfiddle.net/handsoncode/zxguhohs/
+Width: http://jsfiddle.net/handsoncode/zxguhohs/
+
+Height:
+
+- zrobic demo
 
 ## Exclude rows from filtering
 
 ## Use filtering hooks
 
-beforeFilter:
-http://jsfiddle.net/handsoncode/c8phv3dy/
+beforeFilter: http://jsfiddle.net/handsoncode/c8phv3dy/
 
 ## Filter passwords
 
@@ -667,6 +672,11 @@ http://jsfiddle.net/s2tgjkvx/
 ### Get the "Filter by value" values as you type
 
 https://jsfiddle.net/gqz3yLjc/
+
+### Control the "Filter by value" list
+
+Plus, najważniejsze i coś co pojawia się over and over... custom renderer vs. dane w filtrach + info
+o tym, że nie ma API na kontrolowanie listy filter by value.
 
 ## Import the filtering module
 
