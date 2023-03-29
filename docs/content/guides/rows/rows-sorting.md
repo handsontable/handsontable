@@ -163,6 +163,7 @@ const handsontableInstance = new Handsontable(container, {
   // enable sorting for all columns
   columnSorting: true,
   height: 'auto',
+  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -274,6 +275,7 @@ export const HandsontableComponent = () => {
       // enable sorting for all columns
       columnSorting={true}
       height="auto"
+      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -429,6 +431,7 @@ const handsontableInstance = new Handsontable(container, {
     },
   ],
   height: 'auto',
+  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -550,6 +553,7 @@ export const HandsontableComponent = () => {
         },
       ]}
       height="auto"
+      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -787,6 +791,7 @@ const handsontableInstance = new Handsontable(container, {
   ],
   columnSorting: true,
   height: 168,
+  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -926,6 +931,7 @@ export const HandsontableComponent = () => {
       ]}
       columnSorting={true}
       height={168}
+      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -1055,6 +1061,7 @@ const handsontableInstance = new Handsontable(container, {
   // enable sorting by multiple columns, for all columns
   multiColumnSorting: true,
   height: 'auto',
+  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -1163,6 +1170,7 @@ export const HandsontableComponent = () => {
       // enable sorting by multiple columns, for all columns
       multiColumnSorting={true}
       height="auto"
+      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -1367,6 +1375,7 @@ const handsontableInstance = new Handsontable(container, {
     ],
   },
   height: 'auto',
+  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -1487,6 +1496,7 @@ export const HandsontableComponent = () => {
         ],
       }}
       height="auto"
+      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -1696,6 +1706,7 @@ const handsontableInstance = new Handsontable(container, {
     },
   },
   height: 'auto',
+  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -1828,6 +1839,7 @@ export const HandsontableComponent = () => {
       }}
       className="custom-sort-icon-example-1"
       height="auto"
+      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -1967,6 +1979,7 @@ const handsontableInstance = new Handsontable(container, {
     },
   },
   height: 'auto',
+  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -2094,6 +2107,7 @@ export const HandsontableComponent = () => {
       }}
       className="custom-sort-icon-example-2"
       height="auto"
+      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -2266,6 +2280,7 @@ const handsontableInstance = new Handsontable(container, {
     ],
   },
   height: 'auto',
+  stretchH: 'all',
   colWidths: 100,
   licenseKey: 'non-commercial-and-evaluation',
 });
@@ -2452,6 +2467,7 @@ export const HandsontableComponent = () => {
       }}
       className="custom-sort-icon-example-3"
       height="auto"
+      stretchH="all"
       colWidths={100}
       licenseKey="non-commercial-and-evaluation"
     />
@@ -2843,6 +2859,7 @@ const handsontableInstance = new Handsontable(container, {
   ],
   columnSorting: true,
   height: 'auto',
+  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 
@@ -2984,6 +3001,7 @@ export const HandsontableComponent = () => {
         ]}
         columnSorting={true}
         height="auto"
+        stretchH="all"
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
@@ -3177,6 +3195,7 @@ const handsontableInstance = new Handsontable(container, {
   ],
   multiColumnSorting: true,
   height: 'auto',
+  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 
@@ -3320,6 +3339,7 @@ export const HandsontableComponent = () => {
         ]}
         multiColumnSorting={true}
         height="auto"
+        stretchH="all"
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
@@ -3520,6 +3540,7 @@ const handsontableInstance = new Handsontable(container, {
     },
   ],
   height: 200,
+  stretchH: 'all',
   fixedRowsTop: 1,
   fixedRowsBottom: 1,
   colHeaders: true,
@@ -3772,6 +3793,7 @@ export const HandsontableComponent = () => {
         },
       ]}
       height={200}
+      stretchH="all"
       fixedRowsTop={1}
       fixedRowsBottom={1}
       colHeaders={true}
