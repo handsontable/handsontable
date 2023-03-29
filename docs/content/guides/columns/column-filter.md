@@ -25,6 +25,7 @@ Filter your data by values or based on multiple criteria.
 
 **The filter menu is part of the column menu.**
 
+- Made of two parts: "filter by condition" and "filter by value"
 - Filter lives in the [column menu], so you need to enable it first
 - After filtering the data is trimming.
 - Filtering and sorting don’t work with nested rows. We are mentioning this in our documentation:
@@ -133,8 +134,6 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htCenter',
     },
   ],
-  // enable column headers
-  colHeaders: true,
   // enable the column menu
   dropdownMenu: true,
   // enable filtering
@@ -248,8 +247,6 @@ export const HandsontableComponent = () => {
           className: 'htCenter',
         },
       ]}
-      // enable column headers
-      colHeaders={true}
       // enable the column menu
       dropdownMenu={true}
       // enable filtering
@@ -260,6 +257,7 @@ export const HandsontableComponent = () => {
     />
   );
 };
+
 /* start:skip-in-preview */
 ReactDOM.render(<HandsontableComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
@@ -271,8 +269,10 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example1'));
 
 ## Enable filtering
 
-To enable filtering for all columns, set [`dropdownMenu`](@/api/options.md#dropdownmenu) and
-[`filters`](@/api/options.md#filters) to `true`.
+To enable filtering for all columns:
+
+1. Enable the column menu by settting [`dropdownMenu`](@/api/options.md#dropdownmenu) to `true`.
+2. Enable the filter menu by settting [`filters`](@/api/options.md#filters) to `true`.
 
 ::: only-for javascript
 
@@ -300,11 +300,8 @@ const configurationOptions = {
 
 :::
 
-To enable filtering only for specific columns, disable the column menu for those columns that you
-don't want to filter. You can do that by using the
-[`afterGetColHeader()`](@/api/hooks.md#aftergetcolheader) Handsontable hook.
-
-https://jsfiddle.net/handsoncode/fwma1t7L
+To enable filtering without the other column menu items, configure the column menu to show the
+filter items only.
 
 ::: only-for javascript
 
@@ -362,23 +359,19 @@ const handsontableInstance = new Handsontable(container, {
       inStock: true,
     },
   ],
-  // enable the column menu for all columns
-  dropdownMenu: true,
-  // enable filtering for all columns
-  filters: true,
   columns: [
     {
-      title: 'Brand<br>(non-filterable)',
+      title: 'Brand',
       type: 'text',
       data: 'brand',
     },
     {
-      title: 'Model<br>(filterable)',
+      title: 'Model',
       type: 'text',
       data: 'model',
     },
     {
-      title: 'Price<br>(non-filterable)',
+      title: 'Price',
       type: 'numeric',
       data: 'price',
       numericFormat: {
@@ -388,25 +381,30 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htLeft',
     },
     {
-      title: 'Date<br>(filterable)',
+      title: 'Date',
       type: 'date',
       data: 'sellDate',
       className: 'htRight',
     },
     {
-      title: 'Time<br>(non-filterable)',
+      title: 'Time',
       type: 'time',
       data: 'sellTime',
       correctFormat: true,
       className: 'htRight',
     },
     {
-      title: 'In stock<br>(filterable)',
+      title: 'In stock',
       type: 'checkbox',
       data: 'inStock',
       className: 'htCenter',
     },
   ],
+  // enable the column menu
+  // and configure it to show only the filter menu items
+  dropdownMenu: ['filter_by_condition', 'filter_by_value', 'filter_action_bar'],
+  // enable filtering for all columns
+  filters: true,
   height: 'auto',
   stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
@@ -425,8 +423,270 @@ const handsontableInstance = new Handsontable(container, {
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
+
 // register Handsontable's modules
 registerAllModules();
+
+export const HandsontableComponent = () => {
+  // remove the column menu button from the 'Brand', 'Price', and 'Date' columns
+  const removeColumnMenuButton = (col, TH) => {
+    if (col == 0 || col == 2 || col == 4) {
+      const button = TH.querySelector('.changeType');
+
+      if (!button) {
+        return;
+      }
+
+      button.parentElement.removeChild(button);
+    }
+  };
+
+  return (
+    <HotTable
+      data={[
+        {
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
+          price: 30,
+          sellDate: '11/10/2023',
+          sellTime: '01:23',
+          inStock: false,
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          price: 1890.9,
+          sellDate: '03/05/2023',
+          sellTime: '11:27',
+          inStock: false,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.1,
+          sellDate: '27/03/2023',
+          sellTime: '03:17',
+          inStock: true,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: '28/08/2023',
+          sellTime: '08:01',
+          inStock: true,
+        },
+        {
+          brand: 'Eidel',
+          model: 'HL Road Tire',
+          price: 279.99,
+          sellDate: '02/10/2023',
+          sellTime: '13:23',
+          inStock: true,
+        },
+      ]}
+      columns={[
+        {
+          title: 'Brand',
+          type: 'text',
+          data: 'brand',
+        },
+        {
+          title: 'Model',
+          type: 'text',
+          data: 'model',
+        },
+        {
+          title: 'Price',
+          type: 'numeric',
+          data: 'price',
+          numericFormat: {
+            pattern: '$ 0,0.00',
+            culture: 'en-US',
+          },
+          className: 'htLeft',
+        },
+        {
+          title: 'Date',
+          type: 'date',
+          data: 'sellDate',
+          className: 'htRight',
+        },
+        {
+          title: 'Time',
+          type: 'time',
+          data: 'sellTime',
+          correctFormat: true,
+          className: 'htRight',
+        },
+        {
+          title: 'In stock',
+          type: 'checkbox',
+          data: 'inStock',
+          className: 'htCenter',
+        },
+      ]}
+      // enable the column menu
+      // and configure it to show only the filter menu items
+      dropdownMenu={['filter_by_condition', 'filter_by_value', 'filter_action_bar']}
+      // enable filtering for all columns
+      filters={true}
+      height="auto"
+      stretchH="all"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<HandsontableComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
+```
+
+:::
+
+:::
+
+To enable filtering only for specific columns, hide the filter menu from those columns that you
+don't want to filter. For example, in the following demo, you can filter only the **Brand** column.
+
+::: only-for javascript
+
+::: example #example3 --html 1 --js 2
+
+```html
+<div id="example3"></div>
+```
+
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const container = document.querySelector('#example3');
+const handsontableInstance = new Handsontable(container, {
+  data: [
+    {
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: '11/10/2023',
+      sellTime: '01:23',
+      inStock: false,
+    },
+    {
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.9,
+      sellDate: '03/05/2023',
+      sellTime: '11:27',
+      inStock: false,
+    },
+    {
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.1,
+      sellDate: '27/03/2023',
+      sellTime: '03:17',
+      inStock: true,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: '28/08/2023',
+      sellTime: '08:01',
+      inStock: true,
+    },
+    {
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: '02/10/2023',
+      sellTime: '13:23',
+      inStock: true,
+    },
+  ],
+  columns: [
+    {
+      title: 'Brand',
+      type: 'text',
+      data: 'brand',
+    },
+    {
+      title: 'Model',
+      type: 'text',
+      data: 'model',
+    },
+    {
+      title: 'Price',
+      type: 'numeric',
+      data: 'price',
+      numericFormat: {
+        pattern: '$ 0,0.00',
+        culture: 'en-US',
+      },
+      className: 'htLeft',
+    },
+    {
+      title: 'Date',
+      type: 'date',
+      data: 'sellDate',
+      className: 'htRight',
+    },
+    {
+      title: 'Time',
+      type: 'time',
+      data: 'sellTime',
+      correctFormat: true,
+      className: 'htRight',
+    },
+    {
+      title: 'In stock',
+      type: 'checkbox',
+      data: 'inStock',
+      className: 'htCenter',
+    },
+  ],
+  // enable filtering for all columns
+  filters: true,
+  // enable the column menu for all columns
+  // but hide the filter menu from all columns but the first one
+  dropdownMenu: {
+    items: {
+      filter_by_value: {
+        hidden() {
+          return this.getSelectedRangeLast().to.col > 0;
+        },
+      },
+      filter_action_bar: {
+        hidden() {
+          return this.getSelectedRangeLast().to.col > 0;
+        },
+      },
+    },
+  },
+  height: 'auto',
+  stretchH: 'all',
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example3 :react
+
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
 export const HandsontableComponent = () => {
   return (
     <HotTable
@@ -472,25 +732,19 @@ export const HandsontableComponent = () => {
           inStock: true,
         },
       ]}
-      // enable sorting for all columns
-      columnSorting={true}
       columns={[
         {
-          title: 'Brand<br>(non-sortable)',
+          title: 'Brand',
           type: 'text',
           data: 'brand',
-          // disable sorting for the 'Brand' column
-          columnSorting: {
-            headerAction: false,
-          },
         },
         {
-          title: 'Model<br>(sortable)',
+          title: 'Model',
           type: 'text',
           data: 'model',
         },
         {
-          title: 'Price<br>(non-sortable)',
+          title: 'Price',
           type: 'numeric',
           data: 'price',
           numericFormat: {
@@ -498,43 +752,54 @@ export const HandsontableComponent = () => {
             culture: 'en-US',
           },
           className: 'htLeft',
-          // disable sorting for the 'Price' column
-          columnSorting: {
-            headerAction: false,
-          },
         },
         {
-          title: 'Date<br>(sortable)',
+          title: 'Date',
           type: 'date',
           data: 'sellDate',
           className: 'htRight',
         },
         {
-          title: 'Time<br>(non-sortable)',
+          title: 'Time',
           type: 'time',
           data: 'sellTime',
           correctFormat: true,
           className: 'htRight',
-          // disable sorting for the 'Time' column
-          columnSorting: {
-            headerAction: false,
-          },
         },
         {
-          title: 'In stock<br>(sortable)',
+          title: 'In stock',
           type: 'checkbox',
           data: 'inStock',
           className: 'htCenter',
         },
       ]}
+      // enable filtering for all columns
+      filters={true}
+      // enable the column menu for all columns
+      // but hide the filter menu from all columns but the first one
+      dropdownMenu={{
+        items: {
+          filter_by_value: {
+            hidden() {
+              return this.getSelectedRangeLast().to.col > 0;
+            },
+          },
+          filter_action_bar: {
+            hidden() {
+              return this.getSelectedRangeLast().to.col > 0;
+            },
+          },
+        },
+      }}
       height="auto"
       stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
 };
+
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example2'));
+ReactDOM.render(<HandsontableComponent />, document.getElementById('example3'));
 /* end:skip-in-preview */
 ```
 
@@ -542,16 +807,288 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example2'));
 
 :::
 
-You can also enable the column menu for all columns, but disable filtering for some of them:
-https://jsfiddle.net/handsoncode/ahg0dofj
+You can also remove the column menu button (▼) from the columns that you don't want to filter. For
+that, use the [`afterGetColHeader()`](@/api/hooks.md#aftergetcolheader) Handsontable hook.
 
-You can also enable filtering but get rid of the remaining column menu options:
+::: only-for javascript
 
-https://handsontable.com/docs/react-data-grid/column-filter/#custom-filter-menu
+::: example #example4 --html 1 --js 2
+
+```html
+<div id="example4"></div>
+```
+
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const container = document.querySelector('#example4');
+const handsontableInstance = new Handsontable(container, {
+  data: [
+    {
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: '11/10/2023',
+      sellTime: '01:23',
+      inStock: false,
+    },
+    {
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.9,
+      sellDate: '03/05/2023',
+      sellTime: '11:27',
+      inStock: false,
+    },
+    {
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.1,
+      sellDate: '27/03/2023',
+      sellTime: '03:17',
+      inStock: true,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: '28/08/2023',
+      sellTime: '08:01',
+      inStock: true,
+    },
+    {
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: '02/10/2023',
+      sellTime: '13:23',
+      inStock: true,
+    },
+  ],
+  columns: [
+    {
+      title: 'Brand',
+      type: 'text',
+      data: 'brand',
+    },
+    {
+      title: 'Model',
+      type: 'text',
+      data: 'model',
+    },
+    {
+      title: 'Price',
+      type: 'numeric',
+      data: 'price',
+      numericFormat: {
+        pattern: '$ 0,0.00',
+        culture: 'en-US',
+      },
+      className: 'htLeft',
+    },
+    {
+      title: 'Date',
+      type: 'date',
+      data: 'sellDate',
+      className: 'htRight',
+    },
+    {
+      title: 'Time',
+      type: 'time',
+      data: 'sellTime',
+      correctFormat: true,
+      className: 'htRight',
+    },
+    {
+      title: 'In stock',
+      type: 'checkbox',
+      data: 'inStock',
+      className: 'htCenter',
+    },
+  ],
+  // enable the column menu for all columns
+  dropdownMenu: true,
+  // enable filtering for all columns
+  filters: true,
+  // `afterGetColHeader()` is a Handsontable hook
+  // it's fired after Handsontable retrieves information about a column header
+  // and appends it to the table header
+  afterGetColHeader(col, TH) {
+    // remove the column menu button from the 'Brand', 'Price', and 'Date' columns
+    if (col == 0 || col == 2 || col == 4) {
+      const button = TH.querySelector('.changeType');
+
+      if (!button) {
+        return;
+      }
+
+      button.parentElement.removeChild(button);
+    }
+  },
+  height: 'auto',
+  stretchH: 'all',
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example4 :react
+
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const HandsontableComponent = () => {
+  // remove the column menu button from the 'Brand', 'Price', and 'Date' columns
+  const removeColumnMenuButton = (col, TH) => {
+    if (col == 0 || col == 2 || col == 4) {
+      const button = TH.querySelector('.changeType');
+
+      if (!button) {
+        return;
+      }
+
+      button.parentElement.removeChild(button);
+    }
+  };
+
+  return (
+    <HotTable
+      data={[
+        {
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
+          price: 30,
+          sellDate: '11/10/2023',
+          sellTime: '01:23',
+          inStock: false,
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          price: 1890.9,
+          sellDate: '03/05/2023',
+          sellTime: '11:27',
+          inStock: false,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.1,
+          sellDate: '27/03/2023',
+          sellTime: '03:17',
+          inStock: true,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: '28/08/2023',
+          sellTime: '08:01',
+          inStock: true,
+        },
+        {
+          brand: 'Eidel',
+          model: 'HL Road Tire',
+          price: 279.99,
+          sellDate: '02/10/2023',
+          sellTime: '13:23',
+          inStock: true,
+        },
+      ]}
+      columns={[
+        {
+          title: 'Brand',
+          type: 'text',
+          data: 'brand',
+        },
+        {
+          title: 'Model',
+          type: 'text',
+          data: 'model',
+        },
+        {
+          title: 'Price',
+          type: 'numeric',
+          data: 'price',
+          numericFormat: {
+            pattern: '$ 0,0.00',
+            culture: 'en-US',
+          },
+          className: 'htLeft',
+        },
+        {
+          title: 'Date',
+          type: 'date',
+          data: 'sellDate',
+          className: 'htRight',
+        },
+        {
+          title: 'Time',
+          type: 'time',
+          data: 'sellTime',
+          correctFormat: true,
+          className: 'htRight',
+        },
+        {
+          title: 'In stock',
+          type: 'checkbox',
+          data: 'inStock',
+          className: 'htCenter',
+        },
+      ]}
+      // enable the column menu for all columns
+      dropdownMenu={true}
+      // enable filtering for all columns
+      filters={true}
+      // `afterGetColHeader()` is a Handsontable hook
+      // it's fired after Handsontable retrieves information about a column header
+      // and appends it to the table header
+      afterGetColHeader={removeColumnMenuButton}
+      height="auto"
+      stretchH="all"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<HandsontableComponent />, document.getElementById('example4'));
+/* end:skip-in-preview */
+```
+
+:::
+
+:::
 
 ## Configure filtering
 
+You can configure the filter menu by configuring the [column menu](@/guides/columns/column-menu.md).
+
 ## Filter different types of data
+
+Table showing which types get which options.
+
+| Type           | "Filter by condition" options |
+| -------------- | ----------------------------- |
+| `text`         |                               |
+| `numeric`      |                               |
+| `date`         |                               |
+| `time`         | Same as `text`                |
+| `checkbox`     | Same as `text`                |
+| `dropdown`     | Same as `text`                |
+| `autocomplete` | Same as `text`                |
+| `password`     | Same as `text`                |
 
 There are different filter conditions for text, numeric and date types:
 https://forum.handsontable.com/t/is-there-a-way-to-add-additional-filter-options/5721/3
@@ -561,6 +1098,275 @@ https://forum.handsontable.com/t/filter-for-type-time/1353/3
 https://forum.handsontable.com/t/how-to-apply-a-filter-to-a-date-column/3838
 
 Checkbox has the same as text: https://forum.handsontable.com/t/gh-5632-filter-for-boolean/4655
+
+::: only-for javascript
+
+::: example #example5 --html 1 --js 2
+
+```html
+<div id="example5"></div>
+```
+
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const container = document.querySelector('#example5');
+const handsontableInstance = new Handsontable(container, {
+  data: [
+    {
+      model: 'Racing Socks',
+      size: 'S',
+      price: 30,
+      sellDate: '11/10/2023',
+      sellTime: '01:23',
+      inStock: false,
+      color: 'Black',
+    },
+    {
+      model: 'HL Mountain Shirt',
+      size: 'XS',
+      price: 1890.9,
+      sellDate: '03/05/2023',
+      sellTime: '11:27',
+      inStock: false,
+      color: 'White',
+    },
+    {
+      model: 'Cycling Cap',
+      size: 'L',
+      price: 130.1,
+      sellDate: '27/03/2023',
+      sellTime: '03:17',
+      inStock: true,
+      color: 'Green',
+    },
+    {
+      model: 'Ski Jacket',
+      size: 'M',
+      price: 59,
+      sellDate: '28/08/2023',
+      sellTime: '08:01',
+      inStock: true,
+      color: 'Blue',
+    },
+    {
+      model: 'HL Goggles',
+      size: 'XL',
+      price: 279.99,
+      sellDate: '02/10/2023',
+      sellTime: '13:23',
+      inStock: true,
+      color: 'Black',
+    },
+  ],
+  columns: [
+    {
+      title: 'Model<br>(text)',
+      // set the type of the 'Model' column
+      type: 'text', // 'text' is the default type, so you can omit this line
+      data: 'model',
+    },
+    {
+      title: 'Price<br>(numeric)',
+      // set the type of the 'Price' column
+      type: 'numeric',
+      data: 'price',
+      numericFormat: {
+        pattern: '$ 0,0.00',
+        culture: 'en-US',
+      },
+      className: 'htLeft',
+    },
+    {
+      title: 'Sold on<br>(date)',
+      // set the type of the 'Date' column
+      type: 'date',
+      data: 'sellDate',
+      className: 'htRight',
+    },
+    {
+      title: 'Time<br>(time)',
+      // set the type of the 'Time' column
+      type: 'time',
+      data: 'sellTime',
+      className: 'htRight',
+    },
+    {
+      title: 'In stock<br>(checkbox)',
+      // set the type of the 'In stock' column
+      type: 'checkbox',
+      data: 'inStock',
+      className: 'htCenter',
+    },
+    {
+      title: 'Size<br>(dropdown)',
+      // set the type of the 'Size' column
+      type: 'dropdown',
+      data: 'size',
+      source: ['XS', 'S', 'M', 'L', 'XL'],
+      className: 'htCenter',
+    },
+    {
+      title: 'Color<br>(autocomplete)',
+      // set the type of the 'Size' column
+      type: 'autocomplete',
+      data: 'color',
+      source: ['White', 'Black', 'Yellow', 'Blue', 'Green'],
+      className: 'htCenter',
+    },
+  ],
+  // enable the column menu
+  dropdownMenu: true,
+  // enable filtering
+  filters: true,
+  height: 'auto',
+  stretchH: 'all',
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example5 :react
+
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const HandsontableComponent = () => {
+  return (
+    <HotTable
+      data={[
+        {
+          model: 'Racing Socks',
+          size: 'S',
+          price: 30,
+          sellDate: '11/10/2023',
+          sellTime: '01:23',
+          inStock: false,
+          color: 'Black',
+        },
+        {
+          model: 'HL Mountain Shirt',
+          size: 'XS',
+          price: 1890.9,
+          sellDate: '03/05/2023',
+          sellTime: '11:27',
+          inStock: false,
+          color: 'White',
+        },
+        {
+          model: 'Cycling Cap',
+          size: 'L',
+          price: 130.1,
+          sellDate: '27/03/2023',
+          sellTime: '03:17',
+          inStock: true,
+          color: 'Green',
+        },
+        {
+          model: 'Ski Jacket',
+          size: 'M',
+          price: 59,
+          sellDate: '28/08/2023',
+          sellTime: '08:01',
+          inStock: true,
+          color: 'Blue',
+        },
+        {
+          model: 'HL Goggles',
+          size: 'XL',
+          price: 279.99,
+          sellDate: '02/10/2023',
+          sellTime: '13:23',
+          inStock: true,
+          color: 'Black',
+        },
+      ]}
+      columns={[
+        {
+          title: 'Model<br>(text)',
+          // set the type of the 'Model' column
+          type: 'text', // 'text' is the default type, so you can omit this line
+          data: 'model',
+        },
+        {
+          title: 'Price<br>(numeric)',
+          // set the type of the 'Price' column
+          type: 'numeric',
+          data: 'price',
+          numericFormat: {
+            pattern: '$ 0,0.00',
+            culture: 'en-US',
+          },
+          className: 'htLeft',
+        },
+        {
+          title: 'Sold on<br>(date)',
+          // set the type of the 'Date' column
+          type: 'date',
+          data: 'sellDate',
+          className: 'htRight',
+        },
+        {
+          title: 'Time<br>(time)',
+          // set the type of the 'Time' column
+          type: 'time',
+          data: 'sellTime',
+          className: 'htRight',
+        },
+        {
+          title: 'In stock<br>(checkbox)',
+          // set the type of the 'In stock' column
+          type: 'checkbox',
+          data: 'inStock',
+          className: 'htCenter',
+        },
+        {
+          title: 'Size<br>(dropdown)',
+          // set the type of the 'Size' column
+          type: 'dropdown',
+          data: 'size',
+          source: ['XS', 'S', 'M', 'L', 'XL'],
+          className: 'htCenter',
+        },
+        {
+          title: 'Color<br>(autocomplete)',
+          // set the type of the 'Size' column
+          type: 'autocomplete',
+          data: 'color',
+          source: ['White', 'Black', 'Yellow', 'Blue', 'Green'],
+          className: 'htCenter',
+        },
+      ]}
+      // enable the column menu
+      dropdownMenu={true}
+      // enable filtering
+      filters={true}
+      height="auto"
+      stretchH="all"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<HandsontableComponent />, document.getElementById('example5'));
+/* end:skip-in-preview */
+```
+
+:::
+
+:::
 
 ## Filter on initialization
 
