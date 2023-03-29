@@ -71,7 +71,6 @@ go back to the original order.
 
 ```js
 // to import sorting as an individual module, see the 'Import the sorting module' section of this page
-
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -177,7 +176,6 @@ const handsontableInstance = new Handsontable(container, {
 
 ```jsx
 // to import sorting as an individual module, see the 'Import the sorting module' section of this page
-
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -940,7 +938,8 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example3'));
 
 :::
 
-You can also create a custom type. For details, see this guide: [Cell type](@/guides/cell-types/cell-type.md).
+You can also create a custom type. For details, see this guide:
+[Cell type](@/guides/cell-types/cell-type.md).
 
 ## Sort by multiple columns
 
@@ -2566,6 +2565,540 @@ const configurationOptions = {
 
 :::
 
+## Use sorting hooks
+
+You can run your code before or after sorting, using the following
+[Handsontable hooks](@/guides/getting-started/events-and-hooks.md):
+
+- [`beforeColumnSort()`](@/api/hooks.md#beforecolumnsort)
+- [`afterColumnSort()`](@/api/hooks.md#aftercolumnsort)
+
+For example, you can use [`beforeColumnSort()`](@/api/hooks.md#beforecolumnsort) for server-side
+sorting, or use [`afterColumnSort()`](@/api/hooks.md#aftercolumnsort) to
+[exclude rows from sorting](#exclude-rows-from-sorting).
+
+::: only-for javascript
+
+```js
+const configurationOptions = {
+  beforeColumnSort() {
+    // add your code here
+  },
+  afterColumnSort() {
+    // add your code here
+  },
+};
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  beforeColumnSort={
+    // add your code here
+  }
+  afterColumnSort={
+    // add your code here
+  }
+/>
+```
+
+:::
+
+## Exclude rows from sorting
+
+You can exclude any number of top or bottom rows from sorting.
+
+For example, if you [freeze](@/guides/rows/row-freezing.md) a row at the top (to display column
+names), and freeze a row at the bottom (to display
+[column summaries](@/guides/columns/column-summary.md)), you can prevent those frozen rows from
+sorting, so they always stay in place.
+
+::: only-for javascript
+
+::: example #example11 --html 1 --js 2
+
+```html
+<div id="example11"></div>
+```
+
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const container = document.querySelector('#example11');
+const handsontableInstance = new Handsontable(container, {
+  data: [
+    {
+      brand: 'Brand',
+      model: 'Model',
+      price: 'Price',
+      sellDate: 'Date',
+      sellTime: 'Time',
+      inStock: 'In stock',
+    },
+    {
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.9,
+      sellDate: '03/05/2023',
+      sellTime: '11:27',
+      inStock: 11,
+    },
+    {
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.1,
+      sellDate: '27/03/2023',
+      sellTime: '03:17',
+      inStock: 0,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: '28/08/2023',
+      sellTime: '08:01',
+      inStock: 1,
+    },
+    {
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: '02/10/2023',
+      sellTime: '13:23',
+      inStock: 3,
+    },
+    {
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: '11/10/2023',
+      sellTime: '01:23',
+      inStock: 5,
+    },
+    {
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.9,
+      sellDate: '03/05/2023',
+      sellTime: '11:27',
+      inStock: 22,
+    },
+    {
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.1,
+      sellDate: '27/03/2023',
+      sellTime: '03:17',
+      inStock: 13,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: '28/08/2023',
+      sellTime: '08:01',
+      inStock: 0,
+    },
+    {
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: '02/10/2023',
+      sellTime: '13:23',
+      inStock: 14,
+    },
+    {
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: '11/10/2023',
+      sellTime: '01:23',
+      inStock: 16,
+    },
+    {
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.9,
+      sellDate: '03/05/2023',
+      sellTime: '11:27',
+      inStock: 18,
+    },
+    {
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.1,
+      sellDate: '27/03/2023',
+      sellTime: '03:17',
+      inStock: 3,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: '28/08/2023',
+      sellTime: '08:01',
+      inStock: 0,
+    },
+    {
+      brand: 'Vinte',
+      model: 'ML Road Frame-W',
+      price: 30,
+      sellDate: '11/10/2023',
+      sellTime: '01:23',
+      inStock: 2,
+    },
+    {},
+  ],
+  columns: [
+    {
+      type: 'text',
+      data: 'brand',
+    },
+    {
+      type: 'text',
+      data: 'model',
+    },
+    {
+      type: 'numeric',
+      data: 'price',
+      numericFormat: {
+        pattern: '$ 0,0.00',
+        culture: 'en-US',
+      },
+      className: 'htLeft',
+    },
+    {
+      type: 'date',
+      data: 'sellDate',
+      className: 'htRight',
+    },
+    {
+      type: 'time',
+      data: 'sellTime',
+      correctFormat: true,
+      className: 'htRight',
+    },
+    {
+      type: 'numeric',
+      data: 'inStock',
+      className: 'htCenter',
+    },
+  ],
+  height: 200,
+  stretchH: 'all',
+  fixedRowsTop: 1,
+  fixedRowsBottom: 1,
+  colHeaders: true,
+  columnSorting: true,
+  // `afterColumnSort` is a Handsontable hook: it's fired after each sorting
+  afterColumnSort() {
+    const lastRowIndex = handsontableInstance.countRows() - 1;
+
+    // after each sorting, take row 1 and change its index to 0
+    handsontableInstance.rowIndexMapper.moveIndexes(handsontableInstance.toVisualRow(0), 0);
+
+    // after each sorting, take row 16 and change its index to 15
+    handsontableInstance.rowIndexMapper.moveIndexes(
+      handsontableInstance.toVisualRow(lastRowIndex),
+      lastRowIndex
+    );
+  },
+  cells(row, col, prop) {
+    const lastRowIndex = this.instance.countRows() - 1;
+
+    if (row === 0) {
+      return {
+        type: 'text',
+        className: 'htCenter',
+        readOnly: true,
+      };
+    }
+    if (row === lastRowIndex) {
+      return {
+        type: 'numeric',
+        className: 'htCenter',
+      };
+    }
+  },
+  columnSummary: [
+    {
+      sourceColumn: 2,
+      type: 'sum',
+      reversedRowCoords: true,
+      destinationRow: 0,
+      destinationColumn: 2,
+      forceNumeric: true,
+      suppressDataTypeErrors: true,
+    },
+    {
+      sourceColumn: 5,
+      type: 'sum',
+      reversedRowCoords: true,
+      destinationRow: 0,
+      destinationColumn: 5,
+      forceNumeric: true,
+      suppressDataTypeErrors: true,
+    },
+  ],
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example11 :react
+
+```jsx
+// you need `useRef` to call Handsontable's instance methods
+import { useRef } from 'react';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const HandsontableComponent = () => {
+  const hotTableComponentRef = useRef(null);
+  const exclude = () => {
+    const handsontableInstance = hotTableComponentRef.current.hotInstance;
+    const lastRowIndex = handsontableInstance.countRows() - 1;
+
+    // after each sorting, take row 1 and change its index to 0
+    handsontableInstance.rowIndexMapper.moveIndexes(handsontableInstance.toVisualRow(0), 0);
+    // after each sorting, take row 16 and change its index to 15
+    handsontableInstance.rowIndexMapper.moveIndexes(
+      handsontableInstance.toVisualRow(lastRowIndex),
+      lastRowIndex
+    );
+  };
+
+  return (
+    <HotTable
+      ref={hotTableComponentRef}
+      data={[
+        {
+          brand: 'Brand',
+          model: 'Model',
+          price: 'Price',
+          sellDate: 'Date',
+          sellTime: 'Time',
+          inStock: 'In stock',
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          price: 1890.9,
+          sellDate: '03/05/2023',
+          sellTime: '11:27',
+          inStock: 11,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.1,
+          sellDate: '27/03/2023',
+          sellTime: '03:17',
+          inStock: 0,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: '28/08/2023',
+          sellTime: '08:01',
+          inStock: 1,
+        },
+        {
+          brand: 'Eidel',
+          model: 'HL Road Tire',
+          price: 279.99,
+          sellDate: '02/10/2023',
+          sellTime: '13:23',
+          inStock: 3,
+        },
+        {
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
+          price: 30,
+          sellDate: '11/10/2023',
+          sellTime: '01:23',
+          inStock: 5,
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          price: 1890.9,
+          sellDate: '03/05/2023',
+          sellTime: '11:27',
+          inStock: 22,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.1,
+          sellDate: '27/03/2023',
+          sellTime: '03:17',
+          inStock: 13,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: '28/08/2023',
+          sellTime: '08:01',
+          inStock: 0,
+        },
+        {
+          brand: 'Eidel',
+          model: 'HL Road Tire',
+          price: 279.99,
+          sellDate: '02/10/2023',
+          sellTime: '13:23',
+          inStock: 14,
+        },
+        {
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
+          price: 30,
+          sellDate: '11/10/2023',
+          sellTime: '01:23',
+          inStock: 16,
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          price: 1890.9,
+          sellDate: '03/05/2023',
+          sellTime: '11:27',
+          inStock: 18,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.1,
+          sellDate: '27/03/2023',
+          sellTime: '03:17',
+          inStock: 3,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: '28/08/2023',
+          sellTime: '08:01',
+          inStock: 0,
+        },
+        {
+          brand: 'Vinte',
+          model: 'ML Road Frame-W',
+          price: 30,
+          sellDate: '11/10/2023',
+          sellTime: '01:23',
+          inStock: 2,
+        },
+        {},
+      ]}
+      columns={[
+        {
+          type: 'text',
+          data: 'brand',
+        },
+        {
+          type: 'text',
+          data: 'model',
+        },
+        {
+          type: 'numeric',
+          data: 'price',
+          numericFormat: {
+            pattern: '$ 0,0.00',
+            culture: 'en-US',
+          },
+          className: 'htLeft',
+        },
+        {
+          type: 'date',
+          data: 'sellDate',
+          className: 'htRight',
+        },
+        {
+          type: 'time',
+          data: 'sellTime',
+          correctFormat: true,
+          className: 'htRight',
+        },
+        {
+          type: 'numeric',
+          data: 'inStock',
+          className: 'htCenter',
+        },
+      ]}
+      height={200}
+      stretchH="all"
+      fixedRowsTop={1}
+      fixedRowsBottom={1}
+      colHeaders={true}
+      columnSorting={true}
+      // `afterColumnSort` is a Handsontable hook: it's fired after each sorting
+      afterColumnSort={exclude}
+      cells={(row, col, prop) => {
+        if (row === 0) {
+          return {
+            type: 'text',
+            className: 'htCenter',
+            readOnly: true,
+          };
+        }
+        if (row === 15) {
+          return {
+            type: 'numeric',
+            className: 'htCenter',
+          };
+        }
+      }}
+      columnSummary={[
+        {
+          sourceColumn: 2,
+          type: 'sum',
+          reversedRowCoords: true,
+          destinationRow: 0,
+          destinationColumn: 2,
+          forceNumeric: true,
+          suppressDataTypeErrors: true,
+        },
+        {
+          sourceColumn: 5,
+          type: 'sum',
+          reversedRowCoords: true,
+          destinationRow: 0,
+          destinationColumn: 5,
+          forceNumeric: true,
+          suppressDataTypeErrors: true,
+        },
+      ]}
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<HandsontableComponent />, document.getElementById('example11'));
+/* end:skip-in-preview */
+```
+
+:::
+
+:::
+
 ## Control sorting programmatically
 
 You can control sorting at the grid's runtime by using Handsontable's
@@ -3338,536 +3871,6 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example10'))
 
 :::
 
-### Exclude rows from sorting
-
-You can exclude any number of top or bottom rows from sorting.
-
-For example, if you [freeze](@/guides/rows/row-freezing.md) a row at the top (to display column
-names), and freeze a row at the bottom (to display
-[column summaries](@/guides/columns/column-summary.md)), you can prevent those frozen rows from
-sorting, so they always stay in place.
-
-::: only-for javascript
-
-::: example #example11 --html 1 --js 2
-
-```html
-<div id="example11"></div>
-```
-
-```js
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
-
-const container = document.querySelector('#example11');
-const handsontableInstance = new Handsontable(container, {
-  data: [
-    {
-      brand: 'Brand',
-      model: 'Model',
-      price: 'Price',
-      sellDate: 'Date',
-      sellTime: 'Time',
-      inStock: 'In stock',
-    },
-    {
-      brand: 'Gigabox',
-      model: 'HL Mountain Frame',
-      price: 1890.9,
-      sellDate: '03/05/2023',
-      sellTime: '11:27',
-      inStock: 11,
-    },
-    {
-      brand: 'Camido',
-      model: 'Cycling Cap',
-      price: 130.1,
-      sellDate: '27/03/2023',
-      sellTime: '03:17',
-      inStock: 0,
-    },
-    {
-      brand: 'Chatterpoint',
-      model: 'Road Tire Tube',
-      price: 59,
-      sellDate: '28/08/2023',
-      sellTime: '08:01',
-      inStock: 1,
-    },
-    {
-      brand: 'Eidel',
-      model: 'HL Road Tire',
-      price: 279.99,
-      sellDate: '02/10/2023',
-      sellTime: '13:23',
-      inStock: 3,
-    },
-    {
-      brand: 'Jetpulse',
-      model: 'Racing Socks',
-      price: 30,
-      sellDate: '11/10/2023',
-      sellTime: '01:23',
-      inStock: 5,
-    },
-    {
-      brand: 'Gigabox',
-      model: 'HL Mountain Frame',
-      price: 1890.9,
-      sellDate: '03/05/2023',
-      sellTime: '11:27',
-      inStock: 22,
-    },
-    {
-      brand: 'Camido',
-      model: 'Cycling Cap',
-      price: 130.1,
-      sellDate: '27/03/2023',
-      sellTime: '03:17',
-      inStock: 13,
-    },
-    {
-      brand: 'Chatterpoint',
-      model: 'Road Tire Tube',
-      price: 59,
-      sellDate: '28/08/2023',
-      sellTime: '08:01',
-      inStock: 0,
-    },
-    {
-      brand: 'Eidel',
-      model: 'HL Road Tire',
-      price: 279.99,
-      sellDate: '02/10/2023',
-      sellTime: '13:23',
-      inStock: 14,
-    },
-    {
-      brand: 'Jetpulse',
-      model: 'Racing Socks',
-      price: 30,
-      sellDate: '11/10/2023',
-      sellTime: '01:23',
-      inStock: 16,
-    },
-    {
-      brand: 'Gigabox',
-      model: 'HL Mountain Frame',
-      price: 1890.9,
-      sellDate: '03/05/2023',
-      sellTime: '11:27',
-      inStock: 18,
-    },
-    {
-      brand: 'Camido',
-      model: 'Cycling Cap',
-      price: 130.1,
-      sellDate: '27/03/2023',
-      sellTime: '03:17',
-      inStock: 3,
-    },
-    {
-      brand: 'Chatterpoint',
-      model: 'Road Tire Tube',
-      price: 59,
-      sellDate: '28/08/2023',
-      sellTime: '08:01',
-      inStock: 0,
-    },
-    {
-      brand: 'Vinte',
-      model: 'ML Road Frame-W',
-      price: 30,
-      sellDate: '11/10/2023',
-      sellTime: '01:23',
-      inStock: 2,
-    },
-    {},
-  ],
-  columns: [
-    {
-      type: 'text',
-      data: 'brand',
-    },
-    {
-      type: 'text',
-      data: 'model',
-    },
-    {
-      type: 'numeric',
-      data: 'price',
-      numericFormat: {
-        pattern: '$ 0,0.00',
-        culture: 'en-US',
-      },
-      className: 'htLeft',
-    },
-    {
-      type: 'date',
-      data: 'sellDate',
-      className: 'htRight',
-    },
-    {
-      type: 'time',
-      data: 'sellTime',
-      correctFormat: true,
-      className: 'htRight',
-    },
-    {
-      type: 'numeric',
-      data: 'inStock',
-      className: 'htCenter',
-    },
-  ],
-  height: 200,
-  fixedRowsTop: 1,
-  fixedRowsBottom: 1,
-  colHeaders: true,
-  columnSorting: true,
-  // `afterColumnSort` is a Handsontable hook: it's fired after each sorting
-  afterColumnSort() {
-    const lastRowIndex = handsontableInstance.countRows() - 1;
-
-    // after each sorting, take row 1 and change its index to 0
-    handsontableInstance.rowIndexMapper.moveIndexes(handsontableInstance.toVisualRow(0), 0);
-
-    // after each sorting, take row 16 and change its index to 15
-    handsontableInstance.rowIndexMapper.moveIndexes(
-      handsontableInstance.toVisualRow(lastRowIndex),
-      lastRowIndex
-    );
-  },
-  cells(row, col, prop) {
-    const lastRowIndex = this.instance.countRows() - 1;
-
-    if (row === 0) {
-      return {
-        type: 'text',
-        className: 'htCenter',
-      };
-    }
-    if (row === lastRowIndex) {
-      return {
-        type: 'numeric',
-        className: 'htCenter',
-      };
-    }
-  },
-  columnSummary: [
-    {
-      sourceColumn: 2,
-      type: 'sum',
-      reversedRowCoords: true,
-      destinationRow: 0,
-      destinationColumn: 2,
-      forceNumeric: true,
-      suppressDataTypeErrors: true,
-    },
-    {
-      sourceColumn: 5,
-      type: 'sum',
-      reversedRowCoords: true,
-      destinationRow: 0,
-      destinationColumn: 5,
-      forceNumeric: true,
-      suppressDataTypeErrors: true,
-    },
-  ],
-  licenseKey: 'non-commercial-and-evaluation',
-});
-```
-
-:::
-
-:::
-
-::: only-for react
-
-::: example #example11 :react
-
-```jsx
-// you need `useRef` to call Handsontable's instance methods
-import { useRef } from 'react';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
-
-export const HandsontableComponent = () => {
-  const hotTableComponentRef = useRef(null);
-  const exclude = () => {
-    const handsontableInstance = hotTableComponentRef.current.hotInstance;
-    const lastRowIndex = handsontableInstance.countRows() - 1;
-
-    // after each sorting, take row 1 and change its index to 0
-    handsontableInstance.rowIndexMapper.moveIndexes(handsontableInstance.toVisualRow(0), 0);
-    // after each sorting, take row 16 and change its index to 15
-    handsontableInstance.rowIndexMapper.moveIndexes(
-      handsontableInstance.toVisualRow(lastRowIndex),
-      lastRowIndex
-    );
-  };
-
-  return (
-    <HotTable
-      ref={hotTableComponentRef}
-      data={[
-        {
-          brand: 'Brand',
-          model: 'Model',
-          price: 'Price',
-          sellDate: 'Date',
-          sellTime: 'Time',
-          inStock: 'In stock',
-        },
-        {
-          brand: 'Gigabox',
-          model: 'HL Mountain Frame',
-          price: 1890.9,
-          sellDate: '03/05/2023',
-          sellTime: '11:27',
-          inStock: 11,
-        },
-        {
-          brand: 'Camido',
-          model: 'Cycling Cap',
-          price: 130.1,
-          sellDate: '27/03/2023',
-          sellTime: '03:17',
-          inStock: 0,
-        },
-        {
-          brand: 'Chatterpoint',
-          model: 'Road Tire Tube',
-          price: 59,
-          sellDate: '28/08/2023',
-          sellTime: '08:01',
-          inStock: 1,
-        },
-        {
-          brand: 'Eidel',
-          model: 'HL Road Tire',
-          price: 279.99,
-          sellDate: '02/10/2023',
-          sellTime: '13:23',
-          inStock: 3,
-        },
-        {
-          brand: 'Jetpulse',
-          model: 'Racing Socks',
-          price: 30,
-          sellDate: '11/10/2023',
-          sellTime: '01:23',
-          inStock: 5,
-        },
-        {
-          brand: 'Gigabox',
-          model: 'HL Mountain Frame',
-          price: 1890.9,
-          sellDate: '03/05/2023',
-          sellTime: '11:27',
-          inStock: 22,
-        },
-        {
-          brand: 'Camido',
-          model: 'Cycling Cap',
-          price: 130.1,
-          sellDate: '27/03/2023',
-          sellTime: '03:17',
-          inStock: 13,
-        },
-        {
-          brand: 'Chatterpoint',
-          model: 'Road Tire Tube',
-          price: 59,
-          sellDate: '28/08/2023',
-          sellTime: '08:01',
-          inStock: 0,
-        },
-        {
-          brand: 'Eidel',
-          model: 'HL Road Tire',
-          price: 279.99,
-          sellDate: '02/10/2023',
-          sellTime: '13:23',
-          inStock: 14,
-        },
-        {
-          brand: 'Jetpulse',
-          model: 'Racing Socks',
-          price: 30,
-          sellDate: '11/10/2023',
-          sellTime: '01:23',
-          inStock: 16,
-        },
-        {
-          brand: 'Gigabox',
-          model: 'HL Mountain Frame',
-          price: 1890.9,
-          sellDate: '03/05/2023',
-          sellTime: '11:27',
-          inStock: 18,
-        },
-        {
-          brand: 'Camido',
-          model: 'Cycling Cap',
-          price: 130.1,
-          sellDate: '27/03/2023',
-          sellTime: '03:17',
-          inStock: 3,
-        },
-        {
-          brand: 'Chatterpoint',
-          model: 'Road Tire Tube',
-          price: 59,
-          sellDate: '28/08/2023',
-          sellTime: '08:01',
-          inStock: 0,
-        },
-        {
-          brand: 'Vinte',
-          model: 'ML Road Frame-W',
-          price: 30,
-          sellDate: '11/10/2023',
-          sellTime: '01:23',
-          inStock: 2,
-        },
-        {},
-      ]}
-      columns={[
-        {
-          type: 'text',
-          data: 'brand',
-        },
-        {
-          type: 'text',
-          data: 'model',
-        },
-        {
-          type: 'numeric',
-          data: 'price',
-          numericFormat: {
-            pattern: '$ 0,0.00',
-            culture: 'en-US',
-          },
-          className: 'htLeft',
-        },
-        {
-          type: 'date',
-          data: 'sellDate',
-          className: 'htRight',
-        },
-        {
-          type: 'time',
-          data: 'sellTime',
-          correctFormat: true,
-          className: 'htRight',
-        },
-        {
-          type: 'numeric',
-          data: 'inStock',
-          className: 'htCenter',
-        },
-      ]}
-      height={200}
-      fixedRowsTop={1}
-      fixedRowsBottom={1}
-      colHeaders={true}
-      columnSorting={true}
-      // `afterColumnSort` is a Handsontable hook: it's fired after each sorting
-      afterColumnSort={exclude}
-      cells={(row, col, prop) => {
-        if (row === 0) {
-          return {
-            type: 'text',
-            className: 'htCenter',
-          };
-        }
-        if (row === 15) {
-          return {
-            type: 'numeric',
-            className: 'htCenter',
-          };
-        }
-      }}
-      columnSummary={[
-        {
-          sourceColumn: 2,
-          type: 'sum',
-          reversedRowCoords: true,
-          destinationRow: 0,
-          destinationColumn: 2,
-          forceNumeric: true,
-          suppressDataTypeErrors: true,
-        },
-        {
-          sourceColumn: 5,
-          type: 'sum',
-          reversedRowCoords: true,
-          destinationRow: 0,
-          destinationColumn: 5,
-          forceNumeric: true,
-          suppressDataTypeErrors: true,
-        },
-      ]}
-      licenseKey="non-commercial-and-evaluation"
-    />
-  );
-};
-
-/* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example11'));
-/* end:skip-in-preview */
-```
-
-:::
-
-:::
-
-### Use sorting hooks
-
-You can run your code before or after sorting, using the following
-[Handsontable hooks](@/guides/getting-started/events-and-hooks.md):
-
-- [`beforeColumnSort()`](@/api/hooks.md#beforecolumnsort)
-- [`afterColumnSort()`](@/api/hooks.md#aftercolumnsort)
-
-For example, you can use [`beforeColumnSort()`](@/api/hooks.md#beforecolumnsort) for server-side
-sorting, or use [`afterColumnSort()`](@/api/hooks.md#aftercolumnsort) to
-[exclude rows from sorting](#exclude-rows-from-sorting).
-
-::: only-for javascript
-
-```js
-const configurationOptions = {
-  beforeColumnSort() {
-    // add your code here
-  },
-  afterColumnSort() {
-    // add your code here
-  },
-};
-```
-
-:::
-
-::: only-for react
-
-```jsx
-<HotTable
-  beforeColumnSort={
-    // add your code here
-  }
-  afterColumnSort={
-    // add your code here
-  }
-/>
-```
-
-:::
-
 ## Import the sorting module
 
 You can reduce the size of your bundle by importing and registering only the
@@ -3886,12 +3889,11 @@ import Handsontable from 'handsontable/base';
 // import Handsontable's CSS
 import 'handsontable/dist/handsontable.full.min.css';
 
-// import the sorting plugins
-import { registerPlugin, ColumnSorting, MultiColumnSorting } from 'handsontable/plugins';
+// import the ColumnSorting plugin (or the MultiColumnSorting plugin)
+import { registerPlugin, ColumnSorting } from 'handsontable/plugins';
 
-// register the sorting plugins
+// register the ColumnSorting (or MultiColumnSorting plugin)
 registerPlugin(ColumnSorting);
-registerPlugin(MultiColumnSorting);
 ```
 
 ## API reference
