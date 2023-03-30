@@ -41,6 +41,14 @@ function createTransformation(options) {
 
 describe('Transformation class', () => {
   describe('transformStart()', () => {
+    it('should calculate new coords based on "highlight" CellRange property', () => {
+      const transform = createTransformation({
+        range: createSelectionRange(null, null, 0, 0, 0, 0)
+      });
+
+      expect(transform.transformStart(0, 0)).toEqual({ row: null, col: null });
+    });
+
     it('should return coords with row moved by row delta (positive value)', () => {
       const transform = createTransformation({
         range: createSelectionRange(1, 1)
@@ -780,6 +788,298 @@ describe('Transformation class', () => {
           transform.transformStart(0, -999);
 
           expect(hookListener.afterTransformStart).toHaveBeenCalledWith({ row: 1, col: 0 }, 0, -1);
+        }
+      });
+    });
+  });
+
+  describe('transformEnd()', () => {
+    it('should calculate new coords based on "to" CellRange property', () => {
+      const transform = createTransformation({
+        range: createSelectionRange(null, null, 0, 0, 3, 4)
+      });
+
+      expect(transform.transformEnd(0, 0)).toEqual({ row: 3, col: 4 });
+    });
+
+    it('should return coords with row moved by row delta (positive value)', () => {
+      const transform = createTransformation({
+        range: createSelectionRange(0, 0, 0, 0, 1, 1)
+      });
+
+      expect(transform.transformEnd(0, 0)).toEqual({ row: 1, col: 1 });
+      expect(transform.transformEnd(4, 0)).toEqual({ row: 5, col: 1 });
+    });
+
+    it('should return coords with column moved by column delta (positive value)', () => {
+      const transform = createTransformation({
+        range: createSelectionRange(0, 0, 0, 0, 1, 1)
+      });
+
+      expect(transform.transformEnd(0, 0)).toEqual({ row: 1, col: 1 });
+      expect(transform.transformEnd(0, 4)).toEqual({ row: 1, col: 5 });
+    });
+
+    it('should return coords with row moved by row delta (negative value)', () => {
+      const transform = createTransformation({
+        range: createSelectionRange(0, 0, 0, 0, 8, 8)
+      });
+
+      expect(transform.transformEnd(-4, 0)).toEqual({ row: 4, col: 8 });
+    });
+
+    it('should return coords with column moved by column delta (negative value)', () => {
+      const transform = createTransformation({
+        range: createSelectionRange(0, 0, 0, 0, 8, 8)
+      });
+
+      expect(transform.transformEnd(0, -4)).toEqual({ row: 8, col: 4 });
+    });
+
+    it('should not return coords that point out of the table when row delta is bigger than total number of rows (positive value)', () => {
+      const transform = createTransformation({
+        range: createSelectionRange(0, 0, 0, 0, 1, 1)
+      });
+
+      expect(transform.transformEnd(8, 0)).toEqual({ row: 9, col: 1 });
+      expect(transform.transformEnd(9, 0)).toEqual({ row: 9, col: 1 });
+      expect(transform.transformEnd(999, 0)).toEqual({ row: 9, col: 1 });
+    });
+
+    it('should not return coords that point out of the table when column delta is bigger than total number of columns (positive value)', () => {
+      const transform = createTransformation({
+        range: createSelectionRange(0, 0, 0, 0, 1, 1)
+      });
+
+      expect(transform.transformEnd(0, 8)).toEqual({ row: 1, col: 9 });
+      expect(transform.transformEnd(0, 9)).toEqual({ row: 1, col: 9 });
+      expect(transform.transformEnd(0, 999)).toEqual({ row: 1, col: 9 });
+    });
+
+    it('should not return coords that point out of the table when row delta is bigger than total number of rows (negative value)', () => {
+      const transform = createTransformation({
+        range: createSelectionRange(0, 0, 0, 0, 9, 9)
+      });
+
+      expect(transform.transformEnd(-8, 0)).toEqual({ row: 1, col: 9 });
+      expect(transform.transformEnd(-9, 0)).toEqual({ row: 0, col: 9 });
+      expect(transform.transformEnd(-999, 0)).toEqual({ row: 0, col: 9 });
+    });
+
+    it('should not return coords that point out of the table when column delta is bigger than total number of columns (negative value)', () => {
+      const transform = createTransformation({
+        range: createSelectionRange(0, 0, 0, 0, 9, 9)
+      });
+
+      expect(transform.transformEnd(0, -8)).toEqual({ row: 9, col: 1 });
+      expect(transform.transformEnd(0, -9)).toEqual({ row: 9, col: 0 });
+      expect(transform.transformEnd(0, -999)).toEqual({ row: 9, col: 0 });
+    });
+
+    it('should return coords that points to the first column when the `navigableHeaders` option is disabled', () => {
+      const transform = createTransformation({
+        range: createSelectionRange(0, 0, 0, 0, 5, 2),
+        navigableHeaders: false,
+        countRowHeaders: 3,
+        countColHeaders: 3,
+      });
+
+      expect(transform.transformEnd(0, -3)).toEqual({ row: 5, col: 0 });
+      expect(transform.transformEnd(0, -4)).toEqual({ row: 5, col: 0 });
+      expect(transform.transformEnd(0, -5)).toEqual({ row: 5, col: 0 });
+      expect(transform.transformEnd(0, -6)).toEqual({ row: 5, col: 0 });
+      expect(transform.transformEnd(0, -999)).toEqual({ row: 5, col: 0 });
+    });
+
+    it('should return coords that points to the first row when the `navigableHeaders` option is disabled', () => {
+      const transform = createTransformation({
+        range: createSelectionRange(0, 0, 0, 0, 2, 5),
+        navigableHeaders: false,
+        countRowHeaders: 3,
+        countColHeaders: 3,
+      });
+
+      expect(transform.transformEnd(-3, 0)).toEqual({ row: 0, col: 5 });
+      expect(transform.transformEnd(-4, 0)).toEqual({ row: 0, col: 5 });
+      expect(transform.transformEnd(-5, 0)).toEqual({ row: 0, col: 5 });
+      expect(transform.transformEnd(-6, 0)).toEqual({ row: 0, col: 5 });
+      expect(transform.transformEnd(-999, 0)).toEqual({ row: 0, col: 5 });
+    });
+
+    it('should return coords that points to the row header when the `navigableHeaders` option is enabled', () => {
+      const transform = createTransformation({
+        range: createSelectionRange(0, 0, 0, 0, 5, 2),
+        navigableHeaders: true,
+        countRowHeaders: 3,
+        countColHeaders: 3,
+      });
+
+      expect(transform.transformEnd(0, -3)).toEqual({ row: 5, col: -1 });
+      expect(transform.transformEnd(0, -4)).toEqual({ row: 5, col: -2 });
+      expect(transform.transformEnd(0, -5)).toEqual({ row: 5, col: -3 });
+      expect(transform.transformEnd(0, -6)).toEqual({ row: 5, col: -3 });
+      expect(transform.transformEnd(0, -999)).toEqual({ row: 5, col: -3 });
+    });
+
+    it('should return coords that points to the column header when the `navigableHeaders` option is enabled', () => {
+      const transform = createTransformation({
+        range: createSelectionRange(0, 0, 0, 0, 2, 5),
+        navigableHeaders: true,
+        countRowHeaders: 3,
+        countColHeaders: 3,
+      });
+
+      expect(transform.transformEnd(-3, 0)).toEqual({ row: -1, col: 5 });
+      expect(transform.transformEnd(-4, 0)).toEqual({ row: -2, col: 5 });
+      expect(transform.transformEnd(-5, 0)).toEqual({ row: -3, col: 5 });
+      expect(transform.transformEnd(-6, 0)).toEqual({ row: -3, col: 5 });
+      expect(transform.transformEnd(-999, 0)).toEqual({ row: -3, col: 5 });
+    });
+
+    describe('`beforeTransformEnd` hook', () => {
+      it('should be fired after `transformEnd` method call', () => {
+        const hookListener = { beforeTransformEnd() {} };
+
+        spyOn(hookListener, 'beforeTransformEnd');
+
+        const transform = createTransformation({
+          range: createSelectionRange(0, 0, 0, 0, 1, 1)
+        });
+
+        transform.addLocalHook('beforeTransformEnd', hookListener.beforeTransformEnd);
+        transform.transformEnd(4, 2);
+
+        expect(hookListener.beforeTransformEnd).toHaveBeenCalledWith({ row: 4, col: 2 });
+      });
+    });
+
+    describe('`afterTransformEnd` hook', () => {
+      it('should be fired after `transformEnd` method call', () => {
+        const hookListener = { afterTransformEnd() {} };
+
+        spyOn(hookListener, 'afterTransformEnd');
+
+        const transform = createTransformation({
+          range: createSelectionRange(0, 0, 0, 0, 1, 1)
+        });
+
+        transform.addLocalHook('afterTransformEnd', hookListener.afterTransformEnd);
+        transform.transformEnd(4, 2);
+
+        expect(hookListener.afterTransformEnd).toHaveBeenCalledWith({ row: 5, col: 3 }, 0, 0);
+      });
+
+      it('should be fired with arguments that indicates the row index exceeded the limit of the table range ' +
+         '(upper limit)', () => {
+        const hookListener = { afterTransformEnd() {} };
+
+        spyOn(hookListener, 'afterTransformEnd');
+
+        const transform = createTransformation({
+          range: createSelectionRange(0, 0, 0, 0, 1, 1),
+          navigableHeaders: true,
+          countRowHeaders: 3,
+          countColHeaders: 3,
+        });
+
+        transform.addLocalHook('afterTransformEnd', hookListener.afterTransformEnd);
+        transform.transformEnd(999, 0);
+
+        expect(hookListener.afterTransformEnd).toHaveBeenCalledWith({ row: 9, col: 1 }, 1, 0);
+      });
+
+      it('should be fired with arguments that indicates the row index exceeded the limit of the table range ' +
+         '(lower limit)', () => {
+        {
+          const hookListener = { afterTransformEnd() {} };
+
+          spyOn(hookListener, 'afterTransformEnd');
+
+          const transform = createTransformation({
+            range: createSelectionRange(0, 0, 0, 0, 1, 1),
+            navigableHeaders: true,
+            countRowHeaders: 3,
+            countColHeaders: 3,
+          });
+
+          transform.addLocalHook('afterTransformEnd', hookListener.afterTransformEnd);
+          transform.transformEnd(-999, 0);
+
+          expect(hookListener.afterTransformEnd).toHaveBeenCalledWith({ row: -3, col: 1 }, -1, 0);
+        }
+        {
+          const hookListener = { afterTransformEnd() {} };
+
+          spyOn(hookListener, 'afterTransformEnd');
+
+          const transform = createTransformation({
+            range: createSelectionRange(0, 0, 0, 0, 1, 1),
+            navigableHeaders: false,
+            countRowHeaders: 3,
+            countColHeaders: 3,
+          });
+
+          transform.addLocalHook('afterTransformEnd', hookListener.afterTransformEnd);
+          transform.transformEnd(-999, 0);
+
+          expect(hookListener.afterTransformEnd).toHaveBeenCalledWith({ row: 0, col: 1 }, -1, 0);
+        }
+      });
+
+      it('should be fired with arguments that indicates the column index exceeded the limit of the table range ' +
+         '(upper limit)', () => {
+        const hookListener = { afterTransformEnd() {} };
+
+        spyOn(hookListener, 'afterTransformEnd');
+
+        const transform = createTransformation({
+          range: createSelectionRange(0, 0, 0, 0, 1, 1),
+          navigableHeaders: true,
+          countRowHeaders: 3,
+          countColHeaders: 3,
+        });
+
+        transform.addLocalHook('afterTransformEnd', hookListener.afterTransformEnd);
+        transform.transformEnd(0, 999);
+
+        expect(hookListener.afterTransformEnd).toHaveBeenCalledWith({ row: 1, col: 9 }, 0, 1);
+      });
+
+      it('should be fired with arguments that indicates the column index exceeded the limit of the table range ' +
+         '(lower limit)', () => {
+        {
+          const hookListener = { afterTransformEnd() {} };
+
+          spyOn(hookListener, 'afterTransformEnd');
+
+          const transform = createTransformation({
+            range: createSelectionRange(0, 0, 0, 0, 1, 1),
+            navigableHeaders: true,
+            countRowHeaders: 3,
+            countColHeaders: 3,
+          });
+
+          transform.addLocalHook('afterTransformEnd', hookListener.afterTransformEnd);
+          transform.transformEnd(0, -999);
+
+          expect(hookListener.afterTransformEnd).toHaveBeenCalledWith({ row: 1, col: -3 }, 0, -1);
+        }
+        {
+          const hookListener = { afterTransformEnd() {} };
+
+          spyOn(hookListener, 'afterTransformEnd');
+
+          const transform = createTransformation({
+            range: createSelectionRange(0, 0, 0, 0, 1, 1),
+            navigableHeaders: false,
+            countRowHeaders: 3,
+            countColHeaders: 3,
+          });
+
+          transform.addLocalHook('afterTransformEnd', hookListener.afterTransformEnd);
+          transform.transformEnd(0, -999);
+
+          expect(hookListener.afterTransformEnd).toHaveBeenCalledWith({ row: 1, col: 0 }, 0, -1);
         }
       });
     });

@@ -118,42 +118,24 @@ class Transformation {
     const delta = this.options.createCellCoords(rowDelta, colDelta);
     const cellRange = this.range.current();
     let visualCoords = cellRange.to;
+    const zeroBasedPosition = this.#getVisualCoordsZeroBasedPosition(cellRange.highlight);
     let rowTransformDir = 0;
     let colTransformDir = 0;
 
     this.runLocalHooks('beforeTransformEnd', delta);
 
-    const { row: rowHighlight, col: colHighlight } = this.options.visualToRenderableCoords(cellRange.highlight);
+    if (zeroBasedPosition !== null) {
+      const { x, y } = this.#getVisualCoordsZeroBasedPosition(cellRange.to);
+      const rawCoords = {
+        row: y + rowDelta,
+        col: x + colDelta,
+      };
+      const coords = this.options.createCellCoords(rawCoords.row, rawCoords.col);
+      const { rowDir, colDir } = this.#clampCoords(coords);
 
-    // We have highlight (start point for the selection).
-    if (rowHighlight !== null && colHighlight !== null) {
-      const totalRows = this.options.countRows();
-      const totalCols = this.options.countCols();
-      const { row: rowTo, col: colTo } = this.options.visualToRenderableCoords(cellRange.to);
-      const coords = this.options.createCellCoords(rowTo + delta.row, colTo + delta.col);
-
-      rowTransformDir = 0;
-      colTransformDir = 0;
-
-      if (coords.row < 0) {
-        rowTransformDir = -1;
-        coords.row = 0;
-
-      } else if (coords.row > 0 && coords.row >= totalRows) {
-        rowTransformDir = 1;
-        coords.row = totalRows - 1;
-      }
-
-      if (coords.col < 0) {
-        colTransformDir = -1;
-        coords.col = 0;
-
-      } else if (coords.col > 0 && coords.col >= totalCols) {
-        colTransformDir = 1;
-        coords.col = totalCols - 1;
-      }
-
-      visualCoords = this.options.renderableToVisualCoords(coords);
+      rowTransformDir = rowDir;
+      colTransformDir = colDir;
+      visualCoords = this.#zeroBasedToVisualCoords(coords);
     }
 
     this.runLocalHooks('afterTransformEnd', visualCoords, rowTransformDir, colTransformDir);
