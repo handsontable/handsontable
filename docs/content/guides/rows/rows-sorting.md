@@ -2630,7 +2630,7 @@ You can exclude any number of top or bottom rows from sorting.
 For example, if you [freeze](@/guides/rows/row-freezing.md) a row at the top (to display column
 names), and freeze a row at the bottom (to display
 [column summaries](@/guides/columns/column-summary.md)), you can prevent those frozen rows from
-sorting, so they always stay in place.
+getting sorted, so they always stay in place.
 
 ::: only-for javascript
 
