@@ -185,6 +185,8 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
+    this.addHook('afterCellMetaReset', (...args) => this.onAfterCellMetaReset(...args));
+
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeUndo', (action) => {
       // TODO: Move action isn't handled by HyperFormula.
@@ -557,8 +559,8 @@ export class Formulas extends BasePlugin {
 
     const cellMeta = this.hot.getCellMeta(row, column);
 
-    if (cellMeta.type === 'date' && moment(newValue).isValid()) {
-      newValue = moment(newValue, cellMeta.dateFormat).format(DATE_FORMAT_HYPERFORMULA);
+    if (cellMeta.type === 'date' && moment(newValue, cellMeta.dateFormat, true).isValid()) {
+      newValue = moment(newValue, cellMeta.dateFormat, true).format(DATE_FORMAT_HYPERFORMULA);
     }
 
     return this.engine.setCellContents(address, newValue);
@@ -587,8 +589,11 @@ export class Formulas extends BasePlugin {
       const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
       let cellValue = this.engine.getCellValue(address);
 
-      if (cellMeta.type === 'date' && moment(cellValue).isValid()) {
-        cellValue = moment(cellValue).format(cellMeta.dateFormat);
+      if (cellMeta.type === 'date' && isNumeric(cellValue)) {
+        // Converting from Excel like date (numbers of days from January 1, 1900) to Date object.
+        const dataFromExcelDate = new Date(Date.UTC(0, 0, cellValue - 1));
+
+        cellValue = moment(dataFromExcelDate).format(cellMeta.dateFormat);
       }
 
       // If `cellValue` is an object it is expected to be an error
@@ -649,6 +654,37 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
+   *
+   * @private
+   */
+  onAfterCellMetaReset() {
+    const sourceDataArray = this.hot.getSourceDataArray();
+    let valueChanged = false;
+
+    sourceDataArray.forEach((rowData, rowIndex) => {
+      rowData.forEach((cellValue, columnIndex) => {
+        const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex);
+
+        if (cellMeta.type === 'date' && moment(cellValue, cellMeta.dateFormat, true).isValid()) {
+          valueChanged = true;
+
+          sourceDataArray[rowIndex][columnIndex] = moment(cellValue, cellMeta.dateFormat, true)
+            .format(DATE_FORMAT_HYPERFORMULA);
+        }
+      });
+    });
+
+    if (valueChanged === true) {
+      this.#internalOperationPending = true;
+
+      this.engine.setSheetContent(this.sheetId, sourceDataArray);
+
+      this.#internalOperationPending = false;
+    }
+  }
+
+  /**
    * `afterLoadData` hook callback.
    *
    * @param {Array} sourceData Array of arrays or array of objects containing data.
@@ -661,15 +697,6 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    // Workaround as cell meta needed for checking whether we handle cell with a date isn't properly created.
-    if (initialLoad === true) {
-      this.hot.addHookOnce('afterChange', () => {
-        this.onAfterLoadData(sourceData, false, source);
-      });
-
-      return;
-    }
-
     this.sheetName = setupSheet(this.engine, this.hot.getSettings()[PLUGIN_KEY].sheetName);
 
     if (!this.#hotWasInitializedWithEmptyData) {
@@ -677,16 +704,6 @@ export class Formulas extends BasePlugin {
 
       if (this.engine.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
         this.#internalOperationPending = true;
-
-        sourceDataArray.forEach((rowData, rowIndex) => {
-          rowData.forEach((cellValue, columnIndex) => {
-            const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex);
-
-            if (cellMeta.type === 'date' && moment(cellValue).isValid()) {
-              sourceDataArray[rowIndex][columnIndex] = moment(cellValue, 'MM/DD/YYYY').format(DATE_FORMAT_HYPERFORMULA);
-            }
-          });
-        });
 
         const dependentCells = this.engine.setSheetContent(this.sheetId, sourceDataArray);
 

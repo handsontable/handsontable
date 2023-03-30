@@ -2205,6 +2205,8 @@ describe('Formulas general', () => {
             hyperformula: HyperFormula
           }
         },
+        // TODO: Temporarily overwrite the default value due to https://github.com/handsontable/handsontable/issues/7840
+        maxRows: 10000
       });
 
       hot.alter('insert_row_above', 0, 20000);
@@ -2218,6 +2220,8 @@ describe('Formulas general', () => {
         formulas: {
           engine: HyperFormula
         },
+        // TODO: Temporarily overwrite the default value due to https://github.com/handsontable/handsontable/issues/7840
+        maxCols: 10000
       });
 
       hot.alter('insert_col_start', 0, 20000);
