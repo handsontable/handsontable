@@ -1361,11 +1361,12 @@ following table.
 
 ## Filter data on initialization
 
-You can filter your data on Handsontable's initialization. For that, use Handsontable's
-[`afterInit()`](@/api/hooks.md#afterinit) hook, and the [`Filters`](@/api/filters.md) plugin's API.
+You can filter your data on Handsontable's initialization. This lets you apply default filters every
+time you launch your grid.
 
-For example, the following demo starts off with a filter that's already applied, so it only displays
-items whose price is less than $200.
+To configure this, use Handsontable's [`afterInit()`](@/api/hooks.md#afterinit) hook and the
+[`Filters`](@/api/filters.md) plugin's API. For example, the following demo starts off with a filter
+that's already applied, so it only displays items whose price is less than $200.
 
 ::: only-for javascript
 
@@ -1504,7 +1505,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const hotTableComponentRef = useRef(null);
-const filterByPrice = () =>  {
+const filterByPrice = () => {
   const handsontableInstance = hotTableComponentRef.current.hotInstance;
   // get the `Filters` plugin, so you can use its API
   const filters = handsontableInstance.getPlugin('Filters');
@@ -1629,31 +1630,728 @@ ReactDOM.render(
 
 ## Filter data as you type
 
-https://handsontable.com/docs/react-data-grid/column-filter/#filter-as-you-type Krzysiek: Z dema
-filter as you type (https://handsontable.com/docs/react-data-grid/column-filter/#filter-as-you-type)
-wyrzucic delay (200ms) - ale wczesniej upewnic sie u autora (Wojtek Szymanski) ze to bezpieczne
+::: only-for javascript
 
-Demo z inputem nad tabelka filtrujacym content (jak w search) - jak tutaj
-https://handsontable.com/docs/react-data-grid/searching-values/#simplest-use-case dzialajace bardzo
-podobnie, ale zamiast kolorowania wynikow, odfiltrowuje je szukajacych wartosci we wszystkich
-kolumnach
+::: example #exampleFilterAsYouType1 --html 1 --js 2
 
-Dodatkowe demo: https://jsfiddle.net/aszymanski/q715uyg4/
+```html
+<div class="controls">
+  <input id="filter_field" type="search" placeholder="Filter" />
+</div>
+<div id="exampleFilterAsYouType1"></div>
+```
 
-## Add a custom filter icon
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
-https://forum.handsontable.com/t/custom-filter-icon-and-context-menu/4073
+const container = document.querySelector('#exampleFilterAsYouType1');
+const filterField = document.querySelector('#filter_field');
+const handsontableInstance = new Handsontable(container, {
+  data: [
+    {
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: '11/10/2023',
+      sellTime: '01:23',
+      inStock: false,
+    },
+    {
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.9,
+      sellDate: '03/05/2023',
+      sellTime: '11:27',
+      inStock: false,
+    },
+    {
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.1,
+      sellDate: '27/03/2023',
+      sellTime: '03:17',
+      inStock: true,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: '28/08/2023',
+      sellTime: '08:01',
+      inStock: true,
+    },
+    {
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: '02/10/2023',
+      sellTime: '13:23',
+      inStock: true,
+    },
+  ],
+  columns: [
+    {
+      title: 'Brand',
+      type: 'text',
+      data: 'brand',
+    },
+    {
+      title: 'Model',
+      type: 'text',
+      data: 'model',
+    },
+    {
+      title: 'Price',
+      type: 'numeric',
+      data: 'price',
+      numericFormat: {
+        pattern: '$ 0,0.00',
+        culture: 'en-US',
+      },
+      className: 'htLeft',
+    },
+    {
+      title: 'Date',
+      type: 'date',
+      data: 'sellDate',
+      className: 'htRight',
+    },
+    {
+      title: 'Time',
+      type: 'time',
+      data: 'sellTime',
+      correctFormat: true,
+      className: 'htRight',
+    },
+    {
+      title: 'In stock',
+      type: 'checkbox',
+      data: 'inStock',
+      className: 'htCenter',
+    },
+  ],
+  // enable the column menu
+  dropdownMenu: true,
+  // enable filtering
+  filters: true,
+  height: 'auto',
+  stretchH: 'all',
+  licenseKey: 'non-commercial-and-evaluation',
+});
 
-Demo: Przycisk do sortowania widoczny tylko po najechaniu na header (on:hover) jako alternatywa do
-domyslnego zachowania
+// add a filter input listener
+filterField.addEventListener('keyup', function (colIndex, event) {
+  // get the `Filters` plugin, so you can use its API
+  const filters = handsontableInstance.getPlugin('filters');
+  filters.removeConditions(colIndex);
+  filters.addCondition(colIndex, 'contains', [event.target.value]);
+  filters.filter();
+
+  console.log(filterResult);
+
+  handsontableInstance.render();
+});
+```
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleFilterAsYouType1 :react
+
+```jsx
+import { useRef, useEffect } from 'react';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const ExampleComponent = () => {
+  const hotRef = useRef(null);
+
+  const data = [
+    ['Tesla', 2017, 'black', 'black'],
+    ['Nissan', 2018, 'blue', 'blue'],
+    ['Chrysler', 2019, 'yellow', 'black'],
+    ['Volvo', 2020, 'yellow', 'gray'],
+  ];
+  let filterFieldKeyupCallback;
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    //  add a filter input listener
+    filterFieldKeyupCallback = function (event) {
+      // get the `Filters` plugin, so you can use its API
+      const filters = hot.getPlugin('filters');
+      const queryResult = search.query(event.target.value);
+
+      console.log(queryResult);
+
+      hot.render();
+    };
+  });
+
+  return (
+    <>
+      <div className="controls">
+        <input
+          id="filter_field"
+          type="search"
+          placeholder="Filter"
+          onKeyUp={(...args) => filterFieldKeyupCallback(...args)}
+        />
+      </div>
+      <HotTable
+        ref={hotRef}
+        data={data}
+        colHeaders={true}
+        search={true}
+        height="auto"
+        licenseKey="non-commercial-and-evaluation"
+      />
+    </>
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<ExampleComponent />, document.getElementById('exampleFilterAsYouType1'));
+/* end:skip-in-preview */
+```
+
+:::
+
+:::
+
+## Customize the filter button
+
+The filter menu is part of the [column menu](@/guides/columns/column-menu.md), so they both use the
+same icon (▼). To modify or replace it, override Handsontable's CSS by editing a class called
+`changeType`.
+
+::: only-for javascript
+
+::: example #exampleCustomFilterIcon --html 1 --js 2 --css 3
+
+```html
+<div id="exampleCustomFilterIcon"></div>
+```
+
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const container = document.querySelector('#exampleCustomFilterIcon');
+const handsontableInstance = new Handsontable(container, {
+  data: [
+    {
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: '11/10/2023',
+      sellTime: '01:23',
+      inStock: false,
+    },
+    {
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.9,
+      sellDate: '03/05/2023',
+      sellTime: '11:27',
+      inStock: false,
+    },
+    {
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.1,
+      sellDate: '27/03/2023',
+      sellTime: '03:17',
+      inStock: true,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: '28/08/2023',
+      sellTime: '08:01',
+      inStock: true,
+    },
+    {
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: '02/10/2023',
+      sellTime: '13:23',
+      inStock: true,
+    },
+  ],
+  columns: [
+    {
+      title: 'Brand',
+      type: 'text',
+      data: 'brand',
+    },
+    {
+      title: 'Model',
+      type: 'text',
+      data: 'model',
+    },
+    {
+      title: 'Price',
+      type: 'numeric',
+      data: 'price',
+      numericFormat: {
+        pattern: '$ 0,0.00',
+        culture: 'en-US',
+      },
+      className: 'htLeft',
+    },
+    {
+      title: 'Date',
+      type: 'date',
+      data: 'sellDate',
+      className: 'htRight',
+    },
+    {
+      title: 'Time',
+      type: 'time',
+      data: 'sellTime',
+      correctFormat: true,
+      className: 'htRight',
+    },
+    {
+      title: 'In stock',
+      type: 'checkbox',
+      data: 'inStock',
+      className: 'htCenter',
+    },
+  ],
+  // enable the column menu
+  dropdownMenu: true,
+  // enable filtering
+  filters: true,
+  // to differentiate this example's CSS from other examples on this page
+  className: 'custom-filter-icon-example-1',
+  height: 'auto',
+  stretchH: 'all',
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```css
+.custom-filter-icon-example-1 .changeType {
+  border: 1px solid blue;
+  background: white;
+  border-radius: 50%;
+  width: 20px;
+  color: red;
+}
+```
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleCustomFilterIcon :react --js 1 --css 2
+
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const HandsontableComponent = () => {
+  return (
+    <HotTable
+      data={[
+        {
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
+          price: 30,
+          sellDate: '11/10/2023',
+          sellTime: '01:23',
+          inStock: false,
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          price: 1890.9,
+          sellDate: '03/05/2023',
+          sellTime: '11:27',
+          inStock: false,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.1,
+          sellDate: '27/03/2023',
+          sellTime: '03:17',
+          inStock: true,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: '28/08/2023',
+          sellTime: '08:01',
+          inStock: true,
+        },
+        {
+          brand: 'Eidel',
+          model: 'HL Road Tire',
+          price: 279.99,
+          sellDate: '02/10/2023',
+          sellTime: '13:23',
+          inStock: true,
+        },
+      ]}
+      columns={[
+        {
+          title: 'Brand',
+          type: 'text',
+          data: 'brand',
+        },
+        {
+          title: 'Model',
+          type: 'text',
+          data: 'model',
+        },
+        {
+          title: 'Price',
+          type: 'numeric',
+          data: 'price',
+          numericFormat: {
+            pattern: '$ 0,0.00',
+            culture: 'en-US',
+          },
+          className: 'htLeft',
+        },
+        {
+          title: 'Date',
+          type: 'date',
+          data: 'sellDate',
+          className: 'htRight',
+        },
+        {
+          title: 'Time',
+          type: 'time',
+          data: 'sellTime',
+          correctFormat: true,
+          className: 'htRight',
+        },
+        {
+          title: 'In stock',
+          type: 'checkbox',
+          data: 'inStock',
+          className: 'htCenter',
+        },
+      ]}
+      // enable the column menu
+      dropdownMenu={true}
+      // enable filtering
+      filters={true}
+      // to differentiate this example's CSS from other examples on this page
+      className="custom-filter-icon-example-1"
+      height="auto"
+      stretchH="all"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<HandsontableComponent />, document.getElementById('exampleCustomFilterIcon'));
+/* end:skip-in-preview */
+```
+
+```css
+.custom-filter-icon-example-1 .changeType {
+  border: 1px solid blue;
+  background: white;
+  border-radius: 50%;
+  width: 20px;
+  color: red;
+}
+
+.custom-filter-icon-example-1 .changeType:hover {
+  background-color: yellow;
+}
+```
+
+:::
+
+:::
+
+To make the column menu button visible only on hover, override Handsontable's CSS by editing a class
+called `relative`.
+
+::: only-for javascript
+
+::: example #exampleCustomFilterIcon2 --html 1 --js 2 --css 3
+
+```html
+<div id="exampleCustomFilterIcon2"></div>
+```
+
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const container = document.querySelector('#exampleCustomFilterIcon2');
+const handsontableInstance = new Handsontable(container, {
+  data: [
+    {
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: '11/10/2023',
+      sellTime: '01:23',
+      inStock: false,
+    },
+    {
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.9,
+      sellDate: '03/05/2023',
+      sellTime: '11:27',
+      inStock: false,
+    },
+    {
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.1,
+      sellDate: '27/03/2023',
+      sellTime: '03:17',
+      inStock: true,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: '28/08/2023',
+      sellTime: '08:01',
+      inStock: true,
+    },
+    {
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: '02/10/2023',
+      sellTime: '13:23',
+      inStock: true,
+    },
+  ],
+  columns: [
+    {
+      title: 'Brand',
+      type: 'text',
+      data: 'brand',
+    },
+    {
+      title: 'Model',
+      type: 'text',
+      data: 'model',
+    },
+    {
+      title: 'Price',
+      type: 'numeric',
+      data: 'price',
+      numericFormat: {
+        pattern: '$ 0,0.00',
+        culture: 'en-US',
+      },
+      className: 'htLeft',
+    },
+    {
+      title: 'Date',
+      type: 'date',
+      data: 'sellDate',
+      className: 'htRight',
+    },
+    {
+      title: 'Time',
+      type: 'time',
+      data: 'sellTime',
+      correctFormat: true,
+      className: 'htRight',
+    },
+    {
+      title: 'In stock',
+      type: 'checkbox',
+      data: 'inStock',
+      className: 'htCenter',
+    },
+  ],
+  // enable the column menu
+  dropdownMenu: true,
+  // enable filtering
+  filters: true,
+  // to differentiate this example's CSS from other examples on this page
+  className: 'custom-filter-icon-example-2',
+  height: 'auto',
+  stretchH: 'all',
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```css
+.custom-filter-icon-example-2 .changeType {
+  visibility: hidden;
+}
+
+.custom-filter-icon-example-2 .relative:hover .changeType {
+  visibility: visible;
+}
+```
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleCustomFilterIcon2 :react --js 1 --css 2
+
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const HandsontableComponent = () => {
+  return (
+    <HotTable
+      data={[
+        {
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
+          price: 30,
+          sellDate: '11/10/2023',
+          sellTime: '01:23',
+          inStock: false,
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          price: 1890.9,
+          sellDate: '03/05/2023',
+          sellTime: '11:27',
+          inStock: false,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.1,
+          sellDate: '27/03/2023',
+          sellTime: '03:17',
+          inStock: true,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: '28/08/2023',
+          sellTime: '08:01',
+          inStock: true,
+        },
+        {
+          brand: 'Eidel',
+          model: 'HL Road Tire',
+          price: 279.99,
+          sellDate: '02/10/2023',
+          sellTime: '13:23',
+          inStock: true,
+        },
+      ]}
+      columns={[
+        {
+          title: 'Brand',
+          type: 'text',
+          data: 'brand',
+        },
+        {
+          title: 'Model',
+          type: 'text',
+          data: 'model',
+        },
+        {
+          title: 'Price',
+          type: 'numeric',
+          data: 'price',
+          numericFormat: {
+            pattern: '$ 0,0.00',
+            culture: 'en-US',
+          },
+          className: 'htLeft',
+        },
+        {
+          title: 'Date',
+          type: 'date',
+          data: 'sellDate',
+          className: 'htRight',
+        },
+        {
+          title: 'Time',
+          type: 'time',
+          data: 'sellTime',
+          correctFormat: true,
+          className: 'htRight',
+        },
+        {
+          title: 'In stock',
+          type: 'checkbox',
+          data: 'inStock',
+          className: 'htCenter',
+        },
+      ]}
+      // enable the column menu
+      dropdownMenu={true}
+      // enable filtering
+      filters={true}
+      // to differentiate this example's CSS from other examples on this page
+      className="custom-filter-icon-example-2"
+      height="auto"
+      stretchH="all"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<HandsontableComponent />, document.getElementById('exampleCustomFilterIcon2'));
+/* end:skip-in-preview */
+```
+
+```css
+.custom-filter-icon-example-2 .changeType {
+  visibility: hidden;
+}
+
+.custom-filter-icon-example-2 .relative:hover .changeType {
+  visibility: visible;
+}
+```
+
+:::
+
+:::
 
 ## Change the size of the filter menu
 
 Width: http://jsfiddle.net/handsoncode/zxguhohs/
 
 Height:
-
-- zrobic demo
 
 ## Exclude rows from filtering
 
@@ -2145,21 +2843,86 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('exampleExclu
 
 ## Use filtering hooks
 
-beforeFilter: http://jsfiddle.net/handsoncode/c8phv3dy/
+You can run your code before or after filtering, using the following
+[Handsontable hooks](@/guides/getting-started/events-and-hooks.md):
+
+- [`beforeFilter()`](@/api/hooks.md#beforefilter)
+- [`afterFilter()`](@/api/hooks.md#afterfilter)
+
+For example, you can use [`beforeFilter()`](@/api/hooks.md#beforefilter) for
+[server-side filtering](#server-side-filtering), or use
+[`afterFilter()`](@/api/hooks.md#afterfilter) to
+[exclude rows from filtering](#exclude-rows-from-filtering).
+
+::: only-for javascript
+
+```js
+const configurationOptions = {
+  beforeFilter() {
+    // add your code here
+  },
+  afterFilter() {
+    // add your code here
+  },
+};
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  beforeFilter={
+    // add your code here
+  }
+  afterFilter={
+    // add your code here
+  }
+/>
+```
+
+:::
+
+## Server-side filtering
+
+If you filter data on the server side, you can block filtering in Handsontable. For that, set
+Handsontable's [`beforeFilter()`](@/api/hooks.md#beforefilter) hook to return `false`.
+
+::: only-for javascript
+
+```js
+const configurationOptions = {
+  beforeFilter(conditionsStack) {
+    return false;
+  },
+};
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  beforeFilter={(conditionsStack) => {
+      return false;
+    },
+  }
+/>
+```
+
+:::
+
+## Custom filter operators
+
+https://mui.com/x/react-data-grid/filtering/#customize-the-operators
 
 ## Filter passwords
 
 Jesli w filter menu na liscie wynikow chcialbym widziec wizualne dane, a nie zrodlowe (co
 szczegolnie bolesne jest w przypadku cell type: password), to czy mozemy to pokazac w postaci
 customowego example?
-
-## Server-side filtering
-
-Block filtering on the front-end (to perform server-side filtering)
-
-## Custom filter operators
-
-https://mui.com/x/react-data-grid/filtering/#customize-the-operators
 
 ## Control filtering programmatically
 
