@@ -16,6 +16,9 @@ import {
 import {
   isEscapedFormulaExpression,
   unescapeFormulaExpression,
+  isValidDate,
+  getDateInHfFormat,
+  getDateFromExcelDate,
 } from './utils';
 import { getEngineSettingsWithOverrides } from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
@@ -24,7 +27,6 @@ import Hooks from '../../pluginHooks';
 
 export const PLUGIN_KEY = 'formulas';
 export const PLUGIN_PRIORITY = 260;
-const DATE_FORMAT_HYPERFORMULA = 'DD/MM/YYYY';
 const ROW_MOVE_UNDO_REDO_NAME = 'row_move';
 
 Hooks.getSingleton().register('afterNamedExpressionAdded');
@@ -559,8 +561,8 @@ export class Formulas extends BasePlugin {
 
     const cellMeta = this.hot.getCellMeta(row, column);
 
-    if (cellMeta.type === 'date' && moment(newValue, cellMeta.dateFormat, true).isValid()) {
-      newValue = moment(newValue, cellMeta.dateFormat, true).format(DATE_FORMAT_HYPERFORMULA);
+    if (isValidDate(newValue, cellMeta)) {
+      newValue = getDateInHfFormat(newValue, cellMeta.dateFormat);
     }
 
     return this.engine.setCellContents(address, newValue);
@@ -590,8 +592,8 @@ export class Formulas extends BasePlugin {
       let cellValue = this.engine.getCellValue(address);
 
       if (cellMeta.type === 'date' && isNumeric(cellValue)) {
-        // Converting from Excel like date (numbers of days from January 1, 1900) to Date object.
-        const dataFromExcelDate = new Date(Date.UTC(0, 0, cellValue - 1));
+        // Converting numeric value being Excel like date to JS Date object.
+        const dataFromExcelDate = getDateFromExcelDate(cellValue);
 
         cellValue = moment(dataFromExcelDate).format(cellMeta.dateFormat);
       }
@@ -669,8 +671,7 @@ export class Formulas extends BasePlugin {
         if (cellMeta.type === 'date' && moment(cellValue, cellMeta.dateFormat, true).isValid()) {
           valueChanged = true;
 
-          sourceDataArray[rowIndex][columnIndex] = moment(cellValue, cellMeta.dateFormat, true)
-            .format(DATE_FORMAT_HYPERFORMULA);
+          sourceDataArray[rowIndex][columnIndex] = getDateInHfFormat(cellValue, cellMeta.dateFormat);
         }
       });
     });
@@ -764,8 +765,8 @@ export class Formulas extends BasePlugin {
     const cellMeta = this.hot.getCellMeta(row, column);
 
     if (cellMeta.type === 'date') {
-      // Converting from Excel like date (numbers of days from January 1, 1900) to Date object.
-      const dataFromExcelDate = new Date(Date.UTC(0, 0, cellValue - 1));
+      // Converting numeric value being Excel like date to JS Date object.
+      const dataFromExcelDate = getDateFromExcelDate(cellValue);
 
       cellValue = moment(dataFromExcelDate).format(cellMeta.dateFormat);
     }
