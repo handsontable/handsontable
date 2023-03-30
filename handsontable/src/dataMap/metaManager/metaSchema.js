@@ -3186,6 +3186,22 @@ export default () => {
     multiColumnSorting: void 0,
 
     /**
+     * The `navigableHeaders` option enables or disables the ability to navigate in headers.
+     *
+     * @since 13.0.0
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @category Core
+     *
+     * @example
+     * ```js
+     * navigableHeaders: true,
+     * ```
+     */
+    navigableHeaders: false,
+
+    /**
      * @description
      * The `nestedHeaders` option configures the [`NestedHeaders`](@/api/nestedHeaders.md) plugin.
      *

@@ -1,4 +1,5 @@
 import { isDefined } from '../helpers/mixed';
+import { createShortcutsCommand } from './commands';
 
 const SHORTCUTS_GROUP = 'headersDefault';
 
@@ -8,9 +9,8 @@ const SHORTCUTS_GROUP = 'headersDefault';
  * @param {Handsontable} hot The Handsontable instance.
  */
 export function shortcutsHeadersContext(hot) {
-  const { selection } = hot;
-  const hotSettings = hot.getSettings();
   const context = hot.getShortcutManager().addContext('headers');
+  const commandsPool = createShortcutsCommand(hot);
   const config = {
     runOnlyIf: () => {
       return isDefined(hot.getSelected()) &&
@@ -21,47 +21,98 @@ export function shortcutsHeadersContext(hot) {
   };
 
   context.addShortcuts([{
-    keys: [['Control/Meta', 'A'], ['Control/Meta', 'Shift', 'Space']],
-    callback: () => {
-      hot.selectAll();
-    },
+    keys: [['Control/Meta', 'A']],
+    callback: () => commandsPool.selectAll(),
   }, {
     keys: [['ArrowUp']],
-    callback: () => {
-      selection.transformStart(-1, 0);
-    },
+    callback: () => commandsPool.moveCellSelectionUp(),
+  }, {
+    keys: [['ArrowUp', 'Control/Meta']],
+    captureCtrl: true,
+    callback: () => commandsPool.moveCellSelectionToMostTop(),
+  }, {
+    keys: [['ArrowUp', 'Shift']],
+    callback: () => commandsPool.extendCellsSelectionUp(),
+  }, {
+    keys: [['ArrowUp', 'Shift', 'Control/Meta']],
+    captureCtrl: true,
+    callback: () => commandsPool.extendCellsSelectionToMostTop(),
+    runOnlyIf: () => !(hot.selection.isSelectedByCorner() || hot.selection.isSelectedByColumnHeader()),
   }, {
     keys: [['ArrowDown']],
-    callback: () => {
-      selection.transformStart(1, 0);
-    },
+    callback: () => commandsPool.moveCellSelectionDown(),
+  }, {
+    keys: [['ArrowDown', 'Control/Meta']],
+    captureCtrl: true,
+    callback: () => commandsPool.moveCellSelectionToMostBottom(),
+  }, {
+    keys: [['ArrowDown', 'Shift']],
+    callback: () => commandsPool.extendCellsSelectionDown(),
+  }, {
+    keys: [['ArrowDown', 'Shift', 'Control/Meta']],
+    captureCtrl: true,
+    callback: () => commandsPool.extendCellsSelectionToMostBottom(),
+    runOnlyIf: () => !(hot.selection.isSelectedByCorner() || hot.selection.isSelectedByColumnHeader()),
   }, {
     keys: [['ArrowLeft']],
-    callback: () => {
-      selection.transformStart(0, -1 * hot.getDirectionFactor());
-    },
+    callback: () => commandsPool.moveCellSelectionLeft(),
+  }, {
+    keys: [['ArrowLeft', 'Control/Meta']],
+    captureCtrl: true,
+    callback: () => commandsPool.moveCellSelectionToMostLeft(),
+  }, {
+    keys: [['ArrowLeft', 'Shift']],
+    callback: () => commandsPool.extendCellsSelectionLeft(),
+  }, {
+    keys: [['ArrowLeft', 'Shift', 'Control/Meta']],
+    captureCtrl: true,
+    callback: () => commandsPool.extendCellsSelectionToMostLeft(),
+    runOnlyIf: () => !(hot.selection.isSelectedByCorner() || hot.selection.isSelectedByRowHeader()),
   }, {
     keys: [['ArrowRight']],
-    callback: () => {
-      selection.transformStart(0, hot.getDirectionFactor());
-    },
+    callback: () => commandsPool.moveCellSelectionRight(),
+  }, {
+    keys: [['ArrowRight', 'Control/Meta']],
+    captureCtrl: true,
+    callback: () => commandsPool.moveCellSelectionToMostRight(),
+  }, {
+    keys: [['ArrowRight', 'Shift']],
+    callback: () => commandsPool.extendCellsSelectionRight(),
+  }, {
+    keys: [['ArrowRight', 'Shift', 'Control/Meta']],
+    captureCtrl: true,
+    callback: () => commandsPool.extendCellsSelectionToMostRight(),
+    runOnlyIf: () => !(hot.selection.isSelectedByCorner() || hot.selection.isSelectedByRowHeader()),
+  }, {
+    keys: [['Home']],
+    captureCtrl: true,
+    callback: () => commandsPool.moveCellSelectionToMostInlineStart(),
+    runOnlyIf: () => hot.view.isMainTableNotFullyCoveredByOverlays(),
+  }, {
+    keys: [['Home', 'Control/Meta']],
+    captureCtrl: true,
+    callback: () => commandsPool.moveCellSelectionToMostTopInlineStart(),
+    runOnlyIf: () => hot.view.isMainTableNotFullyCoveredByOverlays(),
+  }, {
+    keys: [['End']],
+    captureCtrl: true,
+    callback: () => commandsPool.moveCellSelectionToMostInlineEnd(),
+  }, {
+    keys: [['End', 'Control/Meta']],
+    captureCtrl: true,
+    callback: () => commandsPool.moveCellSelectionToMostBottomInlineEnd(),
+    runOnlyIf: () => hot.view.isMainTableNotFullyCoveredByOverlays(),
+  }, {
+    keys: [['PageUp']],
+    callback: () => commandsPool.moveCellSelectionUpByViewportHight(),
+  }, {
+    keys: [['PageDown']],
+    callback: () => commandsPool.moveCellSelectionDownByViewportHeight(),
   }, {
     keys: [['Tab']],
-    callback: (event) => {
-      const tabMoves = typeof hotSettings.tabMoves === 'function'
-        ? hotSettings.tabMoves(event)
-        : hotSettings.tabMoves;
-
-      selection.transformStart(tabMoves.row, tabMoves.col, true);
-    },
+    callback: () => commandsPool.moveCellSelectionInlineStart(),
   }, {
     keys: [['Shift', 'Tab']],
-    callback: (event) => {
-      const tabMoves = typeof hotSettings.tabMoves === 'function'
-        ? hotSettings.tabMoves(event)
-        : hotSettings.tabMoves;
-
-      selection.transformStart(-tabMoves.row, -tabMoves.col);
-    },
+    callback: () => commandsPool.moveCellSelectionInlineEnd(),
   }], config);
 }

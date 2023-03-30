@@ -11,19 +11,22 @@ import localHooks from './../mixins/localHooks';
  * @util
  */
 class Transformation {
+  /**
+   * Instance of the SelectionRange, holder for visual coordinates applied to the table.
+   *
+   * @type {SelectionRange}
+   */
+  range;
+  /**
+   * Additional options which define the state of the settings which can infer transformation and
+   * give the possibility to translate indexes.
+   *
+   * @type {object}
+   */
+  options;
+
   constructor(range, options) {
-    /**
-     * Instance of the SelectionRange, holder for visual coordinates applied to the table.
-     *
-     * @type {SelectionRange}
-     */
     this.range = range;
-    /**
-     * Additional options which define the state of the settings which can infer transformation and
-     * give the possibility to translate indexes.
-     *
-     * @type {object}
-     */
     this.options = options;
   }
 
@@ -197,9 +200,24 @@ class Transformation {
    * @returns {{width: number, height: number}}
    */
   #getTableCanvasSize() {
+    const { x, y } = this.#getTableCanvasOffset();
+
     return {
-      width: this.options.countCols() + this.options.countRowHeaders(),
-      height: this.options.countRows() + this.options.countColHeaders(),
+      width: x + this.options.countCols(),
+      height: y + this.options.countRows(),
+    };
+  }
+
+  /**
+   * Returns the additional offset in table size that may occur when the `navigableHeaders` option
+   * is enabled.
+   *
+   * @returns {{x: number, y: number}}
+   */
+  #getTableCanvasOffset() {
+    return {
+      x: this.options.navigableHeaders() ? this.options.countRowHeaders() : 0,
+      y: this.options.navigableHeaders() ? this.options.countColHeaders() : 0,
     };
   }
 
@@ -216,9 +234,11 @@ class Transformation {
       return null;
     }
 
+    const { x, y } = this.#getTableCanvasOffset();
+
     return {
-      x: col + this.options.countRowHeaders(),
-      y: row + this.options.countColHeaders(),
+      x: x + col,
+      y: y + row,
     };
   }
 
@@ -229,8 +249,10 @@ class Transformation {
    * @returns {CellCoords}
    */
   #zeroBasedToVisualCoords(coords) {
-    coords.row = coords.row - this.options.countColHeaders();
-    coords.col = coords.col - this.options.countRowHeaders();
+    const { x, y } = this.#getTableCanvasOffset();
+
+    coords.col = coords.col - x;
+    coords.row = coords.row - y;
 
     return this.options.renderableToVisualCoords(coords);
   }

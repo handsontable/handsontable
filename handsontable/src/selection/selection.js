@@ -104,6 +104,7 @@ class Selection {
       visualToRenderableCoords: coords => this.tableProps.visualToRenderableCoords(coords),
       renderableToVisualCoords: coords => this.tableProps.renderableToVisualCoords(coords),
       createCellCoords: (row, column) => this.tableProps.createCellCoords(row, column),
+      navigableHeaders: () => settings.navigableHeaders,
       fixedRowsBottom: () => settings.fixedRowsBottom,
       minSpareRows: () => settings.minSpareRows,
       minSpareCols: () => settings.minSpareCols,
@@ -177,7 +178,7 @@ class Selection {
     const selectedByCorner = isRowNegative && isColumnNegative;
     // We are creating copy. We would like to modify just the start of the selection by below hook. Then original coords
     // should be handled by next methods.
-    const coordsClone = coords.clone();
+    const coordsClone = this.settings.navigableHeaders ? coords.clone() : coords.clone().normalize();
 
     this.selectedByCorner = selectedByCorner;
 
@@ -263,6 +264,7 @@ class Selection {
       arrayEach(this.highlight.getColumnHeaders(), highlight => void highlight.clear());
       arrayEach(this.highlight.getActiveRowHeaders(), highlight => void highlight.clear());
       arrayEach(this.highlight.getActiveColumnHeaders(), highlight => void highlight.clear());
+      arrayEach(this.highlight.getActiveCornerHeaders(), highlight => void highlight.clear());
       arrayEach(this.highlight.getRowHighlights(), highlight => void highlight.clear());
       arrayEach(this.highlight.getColumnHighlights(), highlight => void highlight.clear());
     }
@@ -275,6 +277,7 @@ class Selection {
     const columnHeaderHighlight = this.highlight.createColumnHeader();
     const activeRowHeaderHighlight = this.highlight.createActiveRowHeader();
     const activeColumnHeaderHighlight = this.highlight.createActiveColumnHeader();
+    const activeCornerHeaderHighlight = this.highlight.createActiveCornerHeader();
     const rowHighlight = this.highlight.createRowHighlight();
     const columnHighlight = this.highlight.createColumnHighlight();
 
@@ -284,6 +287,7 @@ class Selection {
     columnHeaderHighlight.clear();
     activeRowHeaderHighlight.clear();
     activeColumnHeaderHighlight.clear();
+    activeCornerHeaderHighlight.clear();
     rowHighlight.clear();
     columnHighlight.clear();
 
@@ -324,9 +328,9 @@ class Selection {
     if (this.highlight.isEnabledFor(HEADER_TYPE, cellRange.highlight)) {
       if (cellRange.highlight.isCell()) {
         const rowCoordsFrom = this.tableProps.createCellCoords(Math.max(cellRange.from.row, 0), -1);
-        const rowCoordsTo = this.tableProps.createCellCoords(cellRange.to.row, -1);
+        const rowCoordsTo = this.tableProps.createCellCoords(Math.max(cellRange.to.row, 0), -1);
         const columnCoordsFrom = this.tableProps.createCellCoords(-1, Math.max(cellRange.from.col, 0));
-        const columnCoordsTo = this.tableProps.createCellCoords(-1, cellRange.to.col);
+        const columnCoordsTo = this.tableProps.createCellCoords(-1, Math.max(cellRange.to.col, 0));
 
         if (this.settings.selectionMode === 'single') {
           rowHeaderHighlight.add(rowCoordsFrom).commit();
@@ -354,32 +358,38 @@ class Selection {
         }
       }
 
-      if (this.isEntireRowSelected()) {
-        const isRowSelected = this.tableProps.countCols() === cellRange.getWidth();
+      const isRowSelected = this.isEntireRowSelected()
+        ? this.tableProps.countCols() === cellRange.getWidth() : false;
+      const isColumnSelected = this.isEntireColumnSelected()
+        ? this.tableProps.countRows() === cellRange.getHeight() : false;
 
-        // Make sure that the whole row is selected (in case where selectionMode is set to 'single')
-        if (isRowSelected) {
-          activeRowHeaderHighlight
-            .add(this.tableProps
-              .createCellCoords(cellRange.from.row, Math.min(-this.tableProps.countRowHeaders(), -1)))
-            .add(this.tableProps
-              .createCellCoords(cellRange.to.row, -1))
-            .commit();
-        }
+      // Make sure that the whole row is selected (in case where selectionMode is set to 'single')
+      if (isRowSelected) {
+        activeRowHeaderHighlight
+          .add(this.tableProps
+            .createCellCoords(Math.max(cellRange.from.row, 0), Math.min(-this.tableProps.countRowHeaders(), -1)))
+          .add(this.tableProps
+            .createCellCoords(Math.max(cellRange.to.row, 0), -1))
+          .commit();
       }
 
-      if (this.isEntireColumnSelected()) {
-        const isColumnSelected = this.tableProps.countRows() === cellRange.getHeight();
+      // Make sure that the whole column is selected (in case where selectionMode is set to 'single')
+      if (isColumnSelected) {
+        activeColumnHeaderHighlight
+          .add(this.tableProps
+            .createCellCoords(Math.min(-this.tableProps.countColHeaders(), -1), Math.max(cellRange.from.col, 0)))
+          .add(this.tableProps
+            .createCellCoords(-1, Math.max(cellRange.to.col, 0)))
+          .commit();
+      }
 
-        // Make sure that the whole column is selected (in case where selectionMode is set to 'single')
-        if (isColumnSelected) {
-          activeColumnHeaderHighlight
-            .add(this.tableProps
-              .createCellCoords(Math.min(-this.tableProps.countColHeaders(), -1), cellRange.from.col))
-            .add(this.tableProps
-              .createCellCoords(-1, cellRange.to.col))
-            .commit();
-        }
+      if (isRowSelected && isColumnSelected) {
+        activeCornerHeaderHighlight
+          .add(this.tableProps
+            .createCellCoords(-this.tableProps.countColHeaders(), -this.tableProps.countRowHeaders()))
+          .add(this.tableProps
+            .createCellCoords(-1, -1))
+          .commit();
       }
     }
 
@@ -741,6 +751,7 @@ class Selection {
       const columnHeaderHighlight = this.highlight.createColumnHeader();
       const activeRowHeaderHighlight = this.highlight.createActiveRowHeader();
       const activeColumnHeaderHighlight = this.highlight.createActiveColumnHeader();
+      const activeCornerHeaderHighlight = this.highlight.createActiveCornerHeader();
       const rowHighlight = this.highlight.createRowHighlight();
       const columnHighlight = this.highlight.createColumnHighlight();
 
@@ -750,6 +761,7 @@ class Selection {
       columnHeaderHighlight.commit();
       activeRowHeaderHighlight.commit();
       activeColumnHeaderHighlight.commit();
+      activeCornerHeaderHighlight.commit();
       rowHighlight.commit();
       columnHighlight.commit();
     }
