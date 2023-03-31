@@ -2792,4 +2792,244 @@ describe('Formulas general', () => {
 
     expect(getDataAtCell(1, 4)).toEqual(3);
   });
+
+  describe('handling dates', () => {
+    xit('should handle improper on start dates properly (mismatching date formatting)', async() => {
+      handsontable({
+        data: [
+          ['13/12/2022'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'MM/DD/YYYY'
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['13/12/2022'], // Not converted - improper date (we treat it as a string)
+        ['13/12/2022'],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['13/12/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['13/12/2022'],
+        ['13/12/2022'],
+      ]);
+
+      validateCells();
+
+      await sleep(10);
+
+      expect(getCellMeta(0, 0).valid).toBe(false);
+      expect(getCellMeta(1, 0).valid).toBe(false);
+    });
+
+    it('should handle correct on start dates properly (mismatching date formatting)', async() => {
+      handsontable({
+        data: [
+          ['12/11/2022'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'MM/DD/YYYY'
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        [44906], // 11 Dec 2022
+        [44906], // 11 Dec 2022
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['11/12/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['12/11/2022'],
+        ['12/11/2022'],
+      ]);
+
+      validateCells();
+
+      await sleep(10);
+
+      expect(getCellMeta(0, 0).valid).toBe(true);
+      expect(getCellMeta(1, 0).valid).toBe(true);
+    });
+
+    xit('should handle dates after change properly (mismatching date formatting)', async() => {
+      handsontable({
+        data: [
+          ['12/11/2022'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'MM/DD/YYYY'
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      setDataAtCell(0, 0, '13/12/2022');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['13/12/2022'], // Not converted - improper date (we treat it as a string)
+        ['13/12/2022'],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['13/12/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['13/12/2022'],
+        ['13/12/2022'],
+      ]);
+
+      validateCells();
+
+      await sleep(10);
+
+      expect(getCellMeta(0, 0).valid).toBe(false);
+      expect(getCellMeta(1, 0).valid).toBe(false);
+
+      setDataAtCell(0, 0, '12/11/2022');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        [44906], // 11 Dec 2022
+        [44906], // 11 Dec 2022
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['11/12/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['12/11/2022'],
+        ['12/11/2022'],
+      ]);
+
+      validateCells();
+
+      await sleep(10);
+
+      expect(getCellMeta(0, 0).valid).toBe(true);
+      expect(getCellMeta(1, 0).valid).toBe(true);
+    });
+
+    it('should handle dates properly (matching date formatting)', async() => {
+      handsontable({
+        data: [
+          ['12/11/2022'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        [44877], // 12 Nov 2022
+        [44877], // 12 Nov 2022
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['12/11/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['12/11/2022'],
+        ['12/11/2022'],
+      ]);
+
+      validateCells();
+
+      await sleep(10);
+
+      expect(getCellMeta(0, 0).valid).toBe(true);
+      expect(getCellMeta(1, 0).valid).toBe(true);
+
+      setDataAtCell(0, 0, '12/13/2022');
+
+      await sleep(10);
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['12/13/2022'], // Not converted - improper date (we treat it as a string)
+        ['12/13/2022'],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['12/13/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['12/13/2022'],
+        ['12/13/2022'],
+      ]);
+
+      validateCells();
+
+      await sleep(10);
+
+      expect(getCellMeta(0, 0).valid).toBe(false);
+      expect(getCellMeta(1, 0).valid).toBe(false);
+
+      setDataAtCell(0, 0, '13/11/2022');
+
+      await sleep(10);
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        [44878], // 13 Nov 2022
+        [44878], // 13 Nov 2022
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['13/11/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['13/11/2022'],
+        ['13/11/2022'],
+      ]);
+
+      validateCells();
+
+      await sleep(0);
+
+      expect(getCellMeta(0, 0).valid).toBe(true);
+      expect(getCellMeta(1, 0).valid).toBe(true);
+    });
+  });
 });
