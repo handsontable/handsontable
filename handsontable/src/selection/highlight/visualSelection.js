@@ -152,7 +152,7 @@ class VisualSelection extends Selection {
     const rowDirection = broaderCellRange.getVerticalDirection() === 'N-S' ? 1 : -1;
     const columnDirection = broaderCellRange.getHorizontalDirection() === 'W-E' ? 1 : -1;
     const singleCellRangeVisual = this.getNearestNotHiddenCoords(
-      broaderCellRange.from.clone(),
+      broaderCellRange.from.clone().normalize(),
       rowDirection,
       columnDirection
     );
@@ -173,7 +173,7 @@ class VisualSelection extends Selection {
     }
 
     // Fallback to the start of the range. It resets the previous highlight (for example, when all columns have been hidden).
-    broaderCellRange.setHighlight(broaderCellRange.from);
+    // broaderCellRange.setHighlight(broaderCellRange.from);
 
     return this;
   }

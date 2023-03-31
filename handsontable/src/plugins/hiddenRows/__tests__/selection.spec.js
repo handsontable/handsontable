@@ -297,7 +297,7 @@ describe('HiddenRows', () => {
       const $topBorderArea = $wtBorderAreas.eq(0);
       const $leftBorderArea = $wtBorderAreas.eq(1);
 
-      expect(getSelected()).toEqual([[1, 0, 0, 0]]);
+      expect(getSelected()).toEqual([[1, 0, -1, 0]]);
       expect(`
       | - |
       |===|
@@ -1428,7 +1428,7 @@ describe('HiddenRows', () => {
         render();
 
         expect(getSelected()).toEqual([[1, -1, 2, 4]]);
-        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.row).toBe(2);
         expect(getSelectedRangeLast().highlight.col).toBe(0);
         expect(getSelectedRangeLast().from.row).toBe(1);
         expect(getSelectedRangeLast().from.col).toBe(-1);

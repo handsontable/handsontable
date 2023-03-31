@@ -297,12 +297,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.rowIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
 
   this.selection.addLocalHook('beforeSetRangeStart', (cellCoords) => {
-    this.getShortcutManager().setActiveContextName(cellCoords.isCell() ? 'grid' : 'headers');
     this.runHooks('beforeSetRangeStart', cellCoords);
   });
 
   this.selection.addLocalHook('beforeSetRangeStartOnly', (cellCoords) => {
-    this.getShortcutManager().setActiveContextName(cellCoords.isCell() ? 'grid' : 'headers');
     this.runHooks('beforeSetRangeStartOnly', cellCoords);
   });
 
@@ -310,11 +308,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.runHooks('beforeSetRangeEnd', cellCoords);
   });
 
+  let previousActiveContext = 'grid';
+
   this.selection.addLocalHook('afterSetRangeEnd', (cellCoords) => {
     const preventScrolling = createObjectPropListener(false);
     const selectionRange = this.selection.getSelectedRange();
-    const { from, to } = selectionRange.current();
+    const { from, to, highlight } = selectionRange.current();
     const selectionLayerLevel = selectionRange.size() - 1;
+
+    if (highlight.isCell()) {
+      this.getShortcutManager().setActiveContextName(previousActiveContext);
+    } else {
+      previousActiveContext = this.getShortcutManager().getActiveContextName();
+      this.getShortcutManager().setActiveContextName('headers');
+    }
 
     this.runHooks('afterSelection',
       from.row, from.col, to.row, to.col, preventScrolling, selectionLayerLevel);
@@ -4691,6 +4698,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (prepareEditorIfNeeded && selection.isSelected()) {
       editorManager.prepareEditor();
     }
+  };
+
+  /**
+   * Gets the instance of the EditorManager.
+   *
+   * @private
+   * @returns {EditorManager}
+   */
+  this._getEditorManager = function() {
+    return editorManager;
   };
 
   /**

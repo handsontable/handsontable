@@ -21,7 +21,20 @@ export function shortcutsGridContext(hot) {
   };
 
   context.addShortcuts([{
-    keys: [['Control/Meta', 'A']],
+    keys: [['F2']],
+    callback: event => commandsPool.editorFastOpen(event),
+  }, {
+    keys: [['Enter'], ['Enter', 'Shift']],
+    callback: (event, keys) => commandsPool.editorOpen(event, keys),
+  }, {
+    keys: [['Backspace'], ['Delete']],
+    callback: () => commandsPool.emptySelectedCells(),
+  }], {
+    group: SHORTCUTS_GROUP,
+  });
+
+  context.addShortcuts([{
+    keys: [['Control/Meta', 'A'], ['Control/Meta', 'Shift', 'Space']],
     callback: () => commandsPool.selectAll(),
   }, {
     keys: [['Control/Meta', 'Enter']],
@@ -104,6 +117,7 @@ export function shortcutsGridContext(hot) {
     keys: [['End']],
     captureCtrl: true,
     callback: () => commandsPool.moveCellSelectionToMostInlineEnd(),
+    runOnlyIf: () => hot.view.isMainTableNotFullyCoveredByOverlays(),
   }, {
     keys: [['End', 'Shift']],
     callback: () => commandsPool.extendCellsSelectionToMostInlineEnd(),

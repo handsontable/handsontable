@@ -21,7 +21,7 @@ export function shortcutsHeadersContext(hot) {
   };
 
   context.addShortcuts([{
-    keys: [['Control/Meta', 'A']],
+    keys: [['Control/Meta', 'A'], ['Control/Meta', 'Shift', 'Space']],
     callback: () => commandsPool.selectAll(),
   }, {
     keys: [['ArrowUp']],

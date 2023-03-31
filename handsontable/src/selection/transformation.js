@@ -58,11 +58,11 @@ class Transformation {
       const autoWrapCol = this.options.autoWrapCol();
 
       const rawCoords = {
-        row: y + rowDelta,
-        col: x + colDelta,
+        row: y + delta.row,
+        col: x + delta.col,
       };
 
-      if (y + rowDelta >= height) {
+      if (y + delta.row >= height) {
         if (createMissingRecords && minSpareRows > 0 && fixedRowsBottom === 0) {
           this.runLocalHooks('insertRowRequire', this.options.countRows());
 
@@ -71,14 +71,14 @@ class Transformation {
           rawCoords.col = x + 1 >= width ? 0 : x + 1;
         }
 
-      } else if (y + rowDelta < 0) {
+      } else if (y + delta.row < 0) {
         if (autoWrapCol) {
           rawCoords.row = height - 1;
           rawCoords.col = x - 1 < 0 ? width - 1 : x - 1;
         }
       }
 
-      if (x + colDelta >= width) {
+      if (x + delta.col >= width) {
         if (createMissingRecords && minSpareCols > 0) {
           this.runLocalHooks('insertColRequire', this.options.countCols());
 
@@ -127,8 +127,8 @@ class Transformation {
     if (zeroBasedPosition !== null) {
       const { x, y } = this.#getVisualCoordsZeroBasedPosition(cellRange.to);
       const rawCoords = {
-        row: y + rowDelta,
-        col: x + colDelta,
+        row: y + delta.row,
+        col: x + delta.col,
       };
       const coords = this.options.createCellCoords(rawCoords.row, rawCoords.col);
       const { rowDir, colDir } = this.#clampCoords(coords);

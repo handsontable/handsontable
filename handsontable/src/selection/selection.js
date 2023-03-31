@@ -178,7 +178,7 @@ class Selection {
     const selectedByCorner = isRowNegative && isColumnNegative;
     // We are creating copy. We would like to modify just the start of the selection by below hook. Then original coords
     // should be handled by next methods.
-    const coordsClone = this.settings.navigableHeaders ? coords.clone() : coords.clone().normalize();
+    const coordsClone = coords.clone();
 
     this.selectedByCorner = selectedByCorner;
 
@@ -237,6 +237,11 @@ class Selection {
     this.begin();
 
     const cellRange = this.selectedRange.current();
+
+    if (!this.settings.navigableHeaders) {
+      cellRange.highlight.normalize();
+      // coordsClone.normalize();
+    }
 
     if (this.settings.selectionMode !== 'single') {
       cellRange.setTo(this.tableProps.createCellCoords(coordsClone.row, coordsClone.col));
@@ -326,36 +331,34 @@ class Selection {
     }
 
     if (this.highlight.isEnabledFor(HEADER_TYPE, cellRange.highlight)) {
-      if (cellRange.highlight.isCell()) {
-        const rowCoordsFrom = this.tableProps.createCellCoords(Math.max(cellRange.from.row, 0), -1);
-        const rowCoordsTo = this.tableProps.createCellCoords(Math.max(cellRange.to.row, 0), -1);
-        const columnCoordsFrom = this.tableProps.createCellCoords(-1, Math.max(cellRange.from.col, 0));
-        const columnCoordsTo = this.tableProps.createCellCoords(-1, Math.max(cellRange.to.col, 0));
+      const rowCoordsFrom = this.tableProps.createCellCoords(Math.max(cellRange.from.row, 0), -1);
+      const rowCoordsTo = this.tableProps.createCellCoords(cellRange.to.row, -1);
+      const columnCoordsFrom = this.tableProps.createCellCoords(-1, Math.max(cellRange.from.col, 0));
+      const columnCoordsTo = this.tableProps.createCellCoords(-1, cellRange.to.col);
 
-        if (this.settings.selectionMode === 'single') {
-          rowHeaderHighlight.add(rowCoordsFrom).commit();
-          columnHeaderHighlight.add(columnCoordsFrom).commit();
-          rowHighlight.add(rowCoordsFrom).commit();
-          columnHighlight.add(columnCoordsFrom).commit();
+      if (this.settings.selectionMode === 'single') {
+        rowHeaderHighlight.add(rowCoordsFrom).commit();
+        columnHeaderHighlight.add(columnCoordsFrom).commit();
+        rowHighlight.add(rowCoordsFrom).commit();
+        columnHighlight.add(columnCoordsFrom).commit();
 
-        } else {
-          rowHeaderHighlight
-            .add(rowCoordsFrom)
-            .add(rowCoordsTo)
-            .commit();
-          columnHeaderHighlight
-            .add(columnCoordsFrom)
-            .add(columnCoordsTo)
-            .commit();
-          rowHighlight
-            .add(rowCoordsFrom)
-            .add(rowCoordsTo)
-            .commit();
-          columnHighlight
-            .add(columnCoordsFrom)
-            .add(columnCoordsTo)
-            .commit();
-        }
+      } else {
+        rowHeaderHighlight
+          .add(rowCoordsFrom)
+          .add(rowCoordsTo)
+          .commit();
+        columnHeaderHighlight
+          .add(columnCoordsFrom)
+          .add(columnCoordsTo)
+          .commit();
+        rowHighlight
+          .add(rowCoordsFrom)
+          .add(rowCoordsTo)
+          .commit();
+        columnHighlight
+          .add(columnCoordsFrom)
+          .add(columnCoordsTo)
+          .commit();
       }
 
       const isRowSelected = this.isEntireRowSelected()

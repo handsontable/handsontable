@@ -1539,7 +1539,7 @@ describe('HiddenColumns', () => {
 
         expect(getSelected()).toEqual([[-1, 1, 4, 2]]);
         expect(getSelectedRangeLast().highlight.row).toBe(0);
-        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(2);
         expect(getSelectedRangeLast().from.row).toBe(-1);
         expect(getSelectedRangeLast().from.col).toBe(1);
         expect(getSelectedRangeLast().to.row).toBe(4);

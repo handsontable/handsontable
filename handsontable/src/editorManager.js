@@ -1,5 +1,4 @@
 import { isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
-import { stopImmediatePropagation } from './helpers/dom/event';
 import { isOutsideInput } from './helpers/dom/element';
 import { getEditorInstance } from './editors/registry';
 import EventManager from './eventManager';
@@ -96,7 +95,6 @@ class EditorManager {
    */
   registerShortcuts() {
     const shortcutManager = this.instance.getShortcutManager();
-    const gridContext = shortcutManager.getContext('grid');
     const editorContext = shortcutManager.getContext('editor');
     const config = { group: SHORTCUTS_GROUP_EDITOR };
 
@@ -111,36 +109,6 @@ class EditorManager {
       callback: () => {
         this.closeEditorAndRestoreOriginalValue(shortcutManager.isCtrlPressed());
         this.activeEditor.focus();
-      },
-    }], config);
-
-    gridContext.addShortcuts([{
-      keys: [['F2']],
-      callback: (event) => {
-        this.openEditor(null, event, true);
-      },
-    }, {
-      keys: [['Backspace'], ['Delete']],
-      callback: () => {
-        this.instance.emptySelectedCells();
-        this.prepareEditor();
-      },
-    }, {
-      keys: [['Enter'], ['Enter', 'Shift']],
-      callback: (event, keys) => {
-        if (this.instance.getSettings().enterBeginsEditing) {
-          if (this.cellProperties.readOnly) {
-            this.moveSelectionAfterEnter();
-
-          } else {
-            this.openEditor(null, event, true);
-          }
-
-        } else {
-          this.moveSelectionAfterEnter(keys.includes('shift'));
-        }
-
-        stopImmediatePropagation(event); // required by HandsontableEditor
       },
     }], config);
   }
