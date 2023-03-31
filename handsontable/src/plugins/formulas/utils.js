@@ -52,5 +52,15 @@ export function getDateInHfFormat(date, format) {
  * @returns {Date}
  */
 export function getDateFromExcelDate(numericDate) {
-  return new Date(Date.UTC(0, 0, numericDate - 1));
+  let dateOffset = 0;
+
+  // Excel incorrectly assumes that the year 1900 is a leap year.
+  // Read more: https://learn.microsoft.com/en-us/office/troubleshoot/excel/wrongly-assumes-1900-is-leap-year.
+  if (numericDate >= 60) {
+    // We need to add some offset for dates after February 28, 1900.
+    dateOffset = -1;
+  }
+
+  // Based on solution from: https://stackoverflow.com/a/67130235.
+  return new Date(Date.UTC(0, 0, numericDate + dateOffset));
 }
