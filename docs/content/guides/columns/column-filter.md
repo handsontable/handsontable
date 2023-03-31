@@ -38,10 +38,10 @@ Filter your data by values or based on multiple criteria.
 
 ::: only-for javascript
 
-::: example #example1 --html 1 --js 2
+::: example #exampleFilterBasicDemo --html 1 --js 2
 
 ```html
-<div id="example1"></div>
+<div id="exampleFilterBasicDemo"></div>
 ```
 
 ```js
@@ -49,7 +49,7 @@ Filter your data by values or based on multiple criteria.
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example1');
+const container = document.querySelector('#exampleFilterBasicDemo');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -150,7 +150,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #exampleFilterBasicDemo :react
 
 ```jsx
 // to import filtering as an individual module, see the 'Import the filtering module' section of this page
@@ -259,7 +259,7 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('example1'));
+ReactDOM.render(<App />, document.getElementById('exampleFilterBasicDemo'));
 /* end:skip-in-preview */
 ```
 
@@ -305,17 +305,17 @@ filter items only.
 
 ::: only-for javascript
 
-::: example #example2 --html 1 --js 2
+::: example #exampleShowFilterItemsOnly --html 1 --js 2
 
 ```html
-<div id="example2"></div>
+<div id="exampleShowFilterItemsOnly"></div>
 ```
 
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example2');
+const container = document.querySelector('#exampleShowFilterItemsOnly');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -417,7 +417,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #exampleShowFilterItemsOnly :react
 
 ```jsx
 import { HotTable } from '@handsontable/react';
@@ -539,7 +539,7 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('example2'));
+ReactDOM.render(<App />, document.getElementById('exampleShowFilterItemsOnly'));
 /* end:skip-in-preview */
 ```
 
@@ -552,17 +552,17 @@ don't want to filter. For example, in the following demo, you can filter only th
 
 ::: only-for javascript
 
-::: example #example3 --html 1 --js 2
+::: example #exampleEnableFilterInColumns --html 1 --js 2
 
 ```html
-<div id="example3"></div>
+<div id="exampleEnableFilterInColumns"></div>
 ```
 
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example3');
+const container = document.querySelector('#exampleEnableFilterInColumns');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -677,7 +677,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #exampleEnableFilterInColumns :react
 
 ```jsx
 import { HotTable } from '@handsontable/react';
@@ -799,7 +799,7 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('example3'));
+ReactDOM.render(<App />, document.getElementById('exampleEnableFilterInColumns'));
 /* end:skip-in-preview */
 ```
 
@@ -812,17 +812,17 @@ that, use Handsontable's [`afterGetColHeader()`](@/api/hooks.md#aftergetcolheade
 
 ::: only-for javascript
 
-::: example #example4 --html 1 --js 2
+::: example #exampleRemoveColumnMenuButton --html 1 --js 2
 
 ```html
-<div id="example4"></div>
+<div id="exampleRemoveColumnMenuButton"></div>
 ```
 
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example4');
+const container = document.querySelector('#exampleRemoveColumnMenuButton');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -938,7 +938,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example4 :react
+::: example #exampleRemoveColumnMenuButton :react
 
 ```jsx
 import { HotTable } from '@handsontable/react';
@@ -1063,7 +1063,7 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('example4'));
+ReactDOM.render(<App />, document.getElementById('exampleRemoveColumnMenuButton'));
 /* end:skip-in-preview */
 ```
 
@@ -1082,17 +1082,17 @@ for each column.
 
 ::: only-for javascript
 
-::: example #example5 --html 1 --js 2
+::: example #exampleFilterDifferentTypes --html 1 --js 2
 
 ```html
-<div id="example5"></div>
+<div id="exampleFilterDifferentTypes"></div>
 ```
 
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example5');
+const container = document.querySelector('#exampleFilterDifferentTypes');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -1213,7 +1213,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example5 :react
+::: example #exampleFilterDifferentTypes :react
 
 ```jsx
 import { HotTable } from '@handsontable/react';
@@ -1341,7 +1341,7 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('example5'));
+ReactDOM.render(<App />, document.getElementById('exampleFilterDifferentTypes'));
 /* end:skip-in-preview */
 ```
 
@@ -1505,7 +1505,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const hotTableComponentRef = useRef(null);
-const filterByPrice = () => {
+const filterBelow200 = () => {
   const handsontableInstance = hotTableComponentRef.current.hotInstance;
   // get the `Filters` plugin, so you can use its API
   const filters = handsontableInstance.getPlugin('Filters');
@@ -1608,7 +1608,7 @@ export const App = () => {
       // enable filtering
       filters={true}
       // `afterInit()` is a Handsontable hook: it's fired after the Handsontable instance is initiated
-      afterInit={filterByPrice}
+      afterInit={filterBelow200}
       height="auto"
       stretchH="all"
       licenseKey="non-commercial-and-evaluation"
@@ -1617,10 +1617,7 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(
-  <App />,
-  document.getElementById('exampleFilterOnInitialization')
-);
+ReactDOM.render(<App />, document.getElementById('exampleFilterOnInitialization'));
 /* end:skip-in-preview */
 ```
 
@@ -2538,7 +2535,7 @@ const handsontableInstance = new Handsontable(container, {
   fixedRowsTop: 1,
   fixedRowsBottom: 1,
   colHeaders: true,
-  columnSorting: true,
+  filters: true,
   // `afterColumnSort` is a Handsontable hook: it's fired after each filtering
   afterColumnSort() {
     const lastRowIndex = handsontableInstance.countRows() - 1;
@@ -2790,7 +2787,7 @@ export const App = () => {
       fixedRowsTop={1}
       fixedRowsBottom={1}
       colHeaders={true}
-      columnSorting={true}
+      filters={true}
       // `afterColumnSort` is a Handsontable hook: it's fired after each filtering
       afterColumnSort={exclude}
       cells={(row, col, prop) => {
@@ -2927,8 +2924,7 @@ customowego example?
 ## Control filtering programmatically
 
 You can control filtering at the grid's runtime by using Handsontable's
-[hooks](@/guides/getting-started/events-and-hooks.md) and
-[API methods](@/api/columnSorting.md#methods).
+[hooks](@/guides/getting-started/events-and-hooks.md) and [API methods](@/api/filters.md#methods).
 
 This allows you to:
 
@@ -3006,33 +3002,27 @@ handsontableInstance.updateSettings({
     },
   },
 });
-
 ```
 
 :::
 
 ### Filter data programmatically
 
-https://handsontable.com/docs/react-data-grid/column-filter/#filter-from-the-outside-the-table
-
-Through external buttons:
-
-http://jsfiddle.net/8tvh9L1k/1/
-
-Through checkboxes:
-
-https://jsfiddle.net/kox9hLzu/1/
+What the demo shows:
+- how to filter from outside of the table
+- how to reset filter settings ("Clear all filters")
 
 ::: only-for javascript
 
 ::: example #exampleFilterThroughAPI1 --html 1 --js 2
 
 ```html
-<div id="exampleFilterThroughAPI1" class="hot1 hot handsontable"></div>
+<div id="exampleFilterThroughAPI1"></div>
 
 <div class="controls">
-  <button class="filterByPrice">Show items below $200</button>
-  <button class="allItems">Show all items</button>
+  <button class="filterBelow200">Filter for items below $200</button>
+  <button class="filterAbove200">Filter for items above $200</button>
+  <button class="clearAllFilters">Clear all filters</button>
 </div>
 ```
 
@@ -3137,19 +3127,26 @@ const handsontableInstance = new Handsontable(container, {
 // get the `Filters` plugin, so you can use its API
 const filters = handsontableInstance.getPlugin('Filters');
 
-document.querySelector('.filterByPrice').addEventListener('click', function() {
+document.querySelector('.filterBelow200').addEventListener('click', function () {
+  // clear any existing filters
+  filters.clearConditions();
   // filter data by the 'Price' column (column at index 2)
   // to display only items that are less than ('lt') $200
   filters.addCondition(2, 'lt', [200]);
   filters.filter();
+});
 
-document.querySelector('.allItems').addEventListener('click', function() {
-  // clear all filters
+document.querySelector('.filterAbove200').addEventListener('click', function () {
+  filters.clearConditions();
+  // display only items that are more than ('gt') $200
+  filters.addCondition(2, 'gt', [200]);
+  filters.filter();
+});
+
+document.querySelector('.clearAllFilters').addEventListener('click', function () {
   filters.clearConditions();
   filters.filter();
 });
-});
-
 ```
 
 :::
@@ -3171,116 +3168,142 @@ registerAllModules();
 
 export const App = () => {
   const hotTableComponentRef = useRef(null);
-  const sortAsc = () => {
-    // get the `ColumnSorting` plugin
-    const columnSorting = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
+  const filterBelow200 = () => {
+    // get the `Filters` plugin, so you can use its API
+    const filters = hotTableComponentRef.current.hotInstance.getPlugin('filters');
 
-    columnSorting.sort({
-      column: 0,
-      sortOrder: 'asc',
-    });
+    // clear any existing filters
+    filters.clearConditions();
+    // filter data by the 'Price' column (column at index 2)
+    // to display only items that are less than ('lt') $200
+    filters.addCondition(2, 'lt', [200]);
+    filters.filter();
   };
 
-  const unsort = () => {
-    // get the `ColumnSorting` plugin
-    const columnSorting = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
+  const filterAbove200 = () => {
+    // get the `Filters` plugin, so you can use its API
+    const filters = hotTableComponentRef.current.hotInstance.getPlugin('filters');
 
-    columnSorting.clearSort();
+    filters.clearConditions();
+    // display only items that are more than ('gt') $200
+    filters.addCondition(2, 'gt', [200]);
+    filters.filter();
+  };
+
+  const clearAllFilters = () => {
+    // get the `Filters` plugin, so you can use its API
+    const filters = hotTableComponentRef.current.hotInstance.getPlugin('filters');
+
+    // clear all filters
+    filters.clearConditions();
+    filters.filter();
   };
 
   return (
-    <HotTable
-      data={[
-        {
-          brand: 'Jetpulse',
-          model: 'Racing Socks',
-          price: 30,
-          sellDate: '11/10/2023',
-          sellTime: '01:23',
-          inStock: false,
-        },
-        {
-          brand: 'Gigabox',
-          model: 'HL Mountain Frame',
-          price: 1890.9,
-          sellDate: '03/05/2023',
-          sellTime: '11:27',
-          inStock: false,
-        },
-        {
-          brand: 'Camido',
-          model: 'Cycling Cap',
-          price: 130.1,
-          sellDate: '27/03/2023',
-          sellTime: '03:17',
-          inStock: true,
-        },
-        {
-          brand: 'Chatterpoint',
-          model: 'Road Tire Tube',
-          price: 59,
-          sellDate: '28/08/2023',
-          sellTime: '08:01',
-          inStock: true,
-        },
-        {
-          brand: 'Eidel',
-          model: 'HL Road Tire',
-          price: 279.99,
-          sellDate: '02/10/2023',
-          sellTime: '13:23',
-          inStock: true,
-        },
-      ]}
-      columns={[
-        {
-          title: 'Brand',
-          type: 'text',
-          data: 'brand',
-        },
-        {
-          title: 'Model',
-          type: 'text',
-          data: 'model',
-        },
-        {
-          title: 'Price',
-          type: 'numeric',
-          data: 'price',
-          numericFormat: {
-            pattern: '$ 0,0.00',
-            culture: 'en-US',
+    <>
+      <HotTable
+        ref={hotTableComponentRef}
+        data={[
+          {
+            brand: 'Jetpulse',
+            model: 'Racing Socks',
+            price: 30,
+            sellDate: '11/10/2023',
+            sellTime: '01:23',
+            inStock: false,
           },
-          className: 'htLeft',
-        },
-        {
-          title: 'Date',
-          type: 'date',
-          data: 'sellDate',
-          className: 'htRight',
-        },
-        {
-          title: 'Time',
-          type: 'time',
-          data: 'sellTime',
-          correctFormat: true,
-          className: 'htRight',
-        },
-        {
-          title: 'In stock',
-          type: 'checkbox',
-          data: 'inStock',
-          className: 'htCenter',
-        },
-      ]}
-      // enable the column menu
-      dropdownMenu={true}
-      // enable filtering
-      filters={true}
-      height="auto"
-      stretchH="all"
-      licenseKey="non-commercial-and-evaluation"
-    />
+          {
+            brand: 'Gigabox',
+            model: 'HL Mountain Frame',
+            price: 1890.9,
+            sellDate: '03/05/2023',
+            sellTime: '11:27',
+            inStock: false,
+          },
+          {
+            brand: 'Camido',
+            model: 'Cycling Cap',
+            price: 130.1,
+            sellDate: '27/03/2023',
+            sellTime: '03:17',
+            inStock: true,
+          },
+          {
+            brand: 'Chatterpoint',
+            model: 'Road Tire Tube',
+            price: 59,
+            sellDate: '28/08/2023',
+            sellTime: '08:01',
+            inStock: true,
+          },
+          {
+            brand: 'Eidel',
+            model: 'HL Road Tire',
+            price: 279.99,
+            sellDate: '02/10/2023',
+            sellTime: '13:23',
+            inStock: true,
+          },
+        ]}
+        columns={[
+          {
+            title: 'Brand',
+            type: 'text',
+            data: 'brand',
+          },
+          {
+            title: 'Model',
+            type: 'text',
+            data: 'model',
+          },
+          {
+            title: 'Price',
+            type: 'numeric',
+            data: 'price',
+            numericFormat: {
+              pattern: '$ 0,0.00',
+              culture: 'en-US',
+            },
+            className: 'htLeft',
+          },
+          {
+            title: 'Date',
+            type: 'date',
+            data: 'sellDate',
+            className: 'htRight',
+          },
+          {
+            title: 'Time',
+            type: 'time',
+            data: 'sellTime',
+            correctFormat: true,
+            className: 'htRight',
+          },
+          {
+            title: 'In stock',
+            type: 'checkbox',
+            data: 'inStock',
+            className: 'htCenter',
+          },
+        ]}
+        // enable the column menu
+        dropdownMenu={true}
+        // enable filtering
+        filters={true}
+        height="auto"
+        stretchH="all"
+        licenseKey="non-commercial-and-evaluation"
+      />
+      <div className="controls">
+        <button onClick={filterBelow200}>Filter for items below $200</button>
+        <br />
+        <br />
+        <button onClick={filterAbove200}>Filter for items above $200</button>
+        <br />
+        <br />
+        <button onClick={clearAllFilters}>Clear all filters</button>
+      </div>
+    </>
   );
 };
 
@@ -3293,16 +3316,6 @@ ReactDOM.render(<App />, document.getElementById('exampleFilterThroughAPI1'));
 
 :::
 
-### Clear filter criteria for all columns at once
-
-http://jsfiddle.net/wo1sqzz8/
-
-https://jsfiddle.net/handsoncode/a5jgrxy4
-
-### Filter a hidden column
-
-https://forum.handsontable.com/t/filter-on-hidden-columns/4401
-
 ### Save filter settings
 
 POPULAR
@@ -3311,13 +3324,13 @@ http://jsfiddle.net/AMBudnik/1ebkcdan/
 
 https://forum.handsontable.com/t/save-filter-settings/669
 
-### Reset filter settings
-
-https://forum.handsontable.com/t/discard-reset-filter-by-clicking-reset-button/6124
-
 ### Clear filter settings automatically
 
-### Get filtered rows
+### Get filtered data
+
+You can get the data that was filtered, along with additional information about the filters applied:
+- The number of filters applied
+- The last changed column
 
 https://forum.handsontable.com/t/how-to-get-filterred-rows-in-afterfilter-hook/4753
 
@@ -3348,10 +3361,13 @@ To use filtering, you need only the following modules:
 ```js
 // import the base module
 import Handsontable from 'handsontable/base';
+
 // import Handsontable's CSS
 import 'handsontable/dist/handsontable.full.min.css';
+
 // import the filtering plugins
 import { registerPlugin, DropdownMenu, Filters } from 'handsontable/plugins';
+
 // register the filtering plugins
 registerPlugin(DropdownMenu);
 registerPlugin(Filters);
