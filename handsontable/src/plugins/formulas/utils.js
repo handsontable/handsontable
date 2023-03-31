@@ -38,20 +38,21 @@ export function isValidDate(value, cellProperties) {
  * Returns date formatted in HF's default format.
  *
  * @param {string} date Date formatted according to Handsontable cell date format.
- * @param {string} format The format used for the date passed.
+ * @param {string} dateFormat The format used for the date passed.
  * @returns {string}
  */
-export function getDateInHfFormat(date, format) {
-  return moment(date, format, true).format(DEFAULT_DATE_FORMAT_HYPERFORMULA);
+export function getDateInHfFormat(date, dateFormat) {
+  return moment(date, dateFormat, true).format(DEFAULT_DATE_FORMAT_HYPERFORMULA);
 }
 
 /**
  * Converting from Excel like date to Date object.
  *
  * @param {number} numericDate Date being numbers of days from January 1, 1900.
- * @returns {Date}
+ * @param {string} dateFormat The format used for parsing an output.
+ * @returns {string}
  */
-export function getDateFromExcelDate(numericDate) {
+export function getDateFromExcelDate(numericDate, dateFormat) {
   let dateOffset = 0;
 
   // Excel incorrectly assumes that the year 1900 is a leap year.
@@ -62,5 +63,7 @@ export function getDateFromExcelDate(numericDate) {
   }
 
   // Based on solution from: https://stackoverflow.com/a/67130235.
-  return new Date(Date.UTC(0, 0, numericDate + dateOffset));
+  const dateForFormatting = new Date(Date.UTC(0, 0, numericDate + dateOffset));
+
+  return moment(dateForFormatting).format(dateFormat);
 }

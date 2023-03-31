@@ -1,4 +1,3 @@
-import moment from 'moment';
 import { BasePlugin } from '../base';
 import staticRegister from '../../utils/staticRegister';
 import { error, warn } from '../../helpers/console';
@@ -596,9 +595,7 @@ export class Formulas extends BasePlugin {
 
       if (cellMeta.type === 'date' && isNumeric(cellValue)) {
         // Converting numeric value being Excel like date to JS Date object.
-        const dataFromExcelDate = getDateFromExcelDate(cellValue);
-
-        cellValue = moment(dataFromExcelDate).format(cellMeta.dateFormat);
+        cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat);
       }
 
       // If `cellValue` is an object it is expected to be an error
@@ -770,9 +767,7 @@ export class Formulas extends BasePlugin {
 
     if (cellMeta.type === 'date' && isNumeric(cellValue)) {
       // Converting numeric value being Excel like date to JS Date object.
-      const dataFromExcelDate = getDateFromExcelDate(cellValue);
-
-      cellValue = moment(dataFromExcelDate).format(cellMeta.dateFormat);
+      cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat);
     }
 
     // If `cellValue` is an object it is expected to be an error
