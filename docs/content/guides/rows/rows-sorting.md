@@ -2599,6 +2599,7 @@ sorting, or use [`afterColumnSort()`](@/api/hooks.md#aftercolumnsort) to
 const configurationOptions = {
   beforeColumnSort() {
     // add your code here
+    return false; // to block front-end sorting
   },
   afterColumnSort() {
     // add your code here
@@ -2614,6 +2615,7 @@ const configurationOptions = {
 <HotTable
   beforeColumnSort={
     // add your code here
+    return false; // to block front-end sorting
   }
   afterColumnSort={
     // add your code here
@@ -3593,6 +3595,9 @@ multiColumnSorting.sort([
     sortOrder: 'desc',
   },
 ]);
+
+// go back to the original order
+multiColumnSorting.clearSort();
 ```
 
 :::
@@ -3623,6 +3628,9 @@ multiColumnSorting.sort([
     sortOrder: 'desc',
   },
 ]);
+
+// go back to the original order
+multiColumnSorting.clearSort();
 ```
 
 :::
