@@ -23,7 +23,7 @@ export function unescapeFormulaExpression(expression) {
 }
 
 /**
- * Check ifs provided value is valid date according to cell date format.
+ * Checks if provided value is valid date according to cell date format.
  *
  * @param {*} value Checked value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).

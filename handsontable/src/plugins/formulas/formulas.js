@@ -589,7 +589,7 @@ export class Formulas extends BasePlugin {
       };
 
       const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
-      let cellValue = this.engine.getCellValue(address);
+      let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel like date).
 
       if (cellMeta.type === 'date' && isNumeric(cellValue)) {
         // Converting numeric value being Excel like date to JS Date object.
@@ -668,9 +668,10 @@ export class Formulas extends BasePlugin {
       rowData.forEach((cellValue, columnIndex) => {
         const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex);
 
-        if (cellMeta.type === 'date' && moment(cellValue, cellMeta.dateFormat, true).isValid()) {
+        if (isValidDate(cellValue, cellMeta)) {
           valueChanged = true;
 
+          // Rewriting date in HOT format to HF format.
           sourceDataArray[rowIndex][columnIndex] = getDateInHfFormat(cellValue, cellMeta.dateFormat);
         }
       });
@@ -761,7 +762,7 @@ export class Formulas extends BasePlugin {
       col: this.toPhysicalColumnPosition(column),
       sheet: this.sheetId
     };
-    let cellValue = this.engine.getCellValue(address);
+    let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel like date).
     const cellMeta = this.hot.getCellMeta(row, column);
 
     if (cellMeta.type === 'date') {
