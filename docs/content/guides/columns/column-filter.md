@@ -161,7 +161,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       data={[
@@ -259,7 +259,7 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example1'));
+ReactDOM.render(<App />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
 
@@ -427,7 +427,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   // remove the column menu button from the 'Brand', 'Price', and 'Date' columns
   const removeColumnMenuButton = (col, TH) => {
     if (col == 0 || col == 2 || col == 4) {
@@ -539,7 +539,7 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example2'));
+ReactDOM.render(<App />, document.getElementById('example2'));
 /* end:skip-in-preview */
 ```
 
@@ -687,7 +687,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       data={[
@@ -799,7 +799,7 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example3'));
+ReactDOM.render(<App />, document.getElementById('example3'));
 /* end:skip-in-preview */
 ```
 
@@ -948,7 +948,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   // remove the column menu button from the 'Brand', 'Price', and 'Date' columns
   const removeColumnMenuButton = (col, TH) => {
     if (col == 0 || col == 2 || col == 4) {
@@ -1063,7 +1063,7 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example4'));
+ReactDOM.render(<App />, document.getElementById('example4'));
 /* end:skip-in-preview */
 ```
 
@@ -1223,7 +1223,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       data={[
@@ -1341,7 +1341,7 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example5'));
+ReactDOM.render(<App />, document.getElementById('example5'));
 /* end:skip-in-preview */
 ```
 
@@ -1516,7 +1516,7 @@ const filterByPrice = () => {
   filters.filter();
 };
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       ref={hotTableComponentRef}
@@ -1618,7 +1618,7 @@ export const HandsontableComponent = () => {
 
 /* start:skip-in-preview */
 ReactDOM.render(
-  <HandsontableComponent />,
+  <App />,
   document.getElementById('exampleFilterOnInitialization')
 );
 /* end:skip-in-preview */
@@ -1969,7 +1969,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       data={[
@@ -2069,7 +2069,7 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('exampleCustomFilterIcon'));
+ReactDOM.render(<App />, document.getElementById('exampleCustomFilterIcon'));
 /* end:skip-in-preview */
 ```
 
@@ -2229,7 +2229,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       data={[
@@ -2329,7 +2329,7 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('exampleCustomFilterIcon2'));
+ReactDOM.render(<App />, document.getElementById('exampleCustomFilterIcon2'));
 /* end:skip-in-preview */
 ```
 
@@ -2610,7 +2610,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   const hotTableComponentRef = useRef(null);
   const exclude = () => {
     const handsontableInstance = hotTableComponentRef.current.hotInstance;
@@ -2833,7 +2833,7 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('exampleExcludeRows'));
+ReactDOM.render(<App />, document.getElementById('exampleExcludeRows'));
 /* end:skip-in-preview */
 ```
 
@@ -2926,6 +2926,17 @@ customowego example?
 
 ## Control filtering programmatically
 
+You can control filtering at the grid's runtime by using Handsontable's
+[hooks](@/guides/getting-started/events-and-hooks.md) and
+[API methods](@/api/columnSorting.md#methods).
+
+This allows you to:
+
+- Enable or disable filtering based on specified conditions. For example, you can disable filtering
+  for very large data sets.
+- Trigger filtering based on the state of another component in your application. For example, you
+  can let the end user filter data by clicking on buttons outside of the grid.
+
 ### Enable or disable filtering programmatically
 
 To enable or disable filtering programmatically, use the
@@ -2934,11 +2945,11 @@ To enable or disable filtering programmatically, use the
 ::: only-for javascript
 
 ```js
+// enable filtering for all columns
 handsontableInstance.updateSettings({
+  filters: true,
   // enable the column menu
   dropdownMenu: true,
-  // enable the filter menu
-  filters: true,
 });
 
 // disable filtering for all columns
@@ -2956,10 +2967,9 @@ const hotTableComponentRef = useRef(null);
 
 // enable filtering for all columns
 hotTableComponentRef.current.hotInstance.updateSettings({
+  filters: true,
   // enable the column menu
   dropdownMenu: true,
-  // enable the filter menu
-  filters: true,
 });
 
 // disable filtering for all columns
@@ -2970,7 +2980,36 @@ hotTableComponentRef.current.hotInstance.updateSettings({
 
 :::
 
-You can also enable or disable filtering for specific columns. For example:
+You can also enable or disable filtering for specific columns. For example, to enable filtering only
+for the first column:
+
+::: only-for javascript
+
+```js
+handsontableInstance.updateSettings({
+  // enable filtering for all columns
+  filters: true,
+  // enable the column menu for all columns
+  // but hide the filter menu from all columns but the first one
+  dropdownMenu: {
+    items: {
+      filter_by_value: {
+        hidden() {
+          return this.getSelectedRangeLast().to.col > 0;
+        },
+      },
+      filter_action_bar: {
+        hidden() {
+          return this.getSelectedRangeLast().to.col > 0;
+        },
+      },
+    },
+  },
+});
+
+```
+
+:::
 
 ### Filter data programmatically
 
@@ -2983,6 +3022,276 @@ http://jsfiddle.net/8tvh9L1k/1/
 Through checkboxes:
 
 https://jsfiddle.net/kox9hLzu/1/
+
+::: only-for javascript
+
+::: example #exampleFilterThroughAPI1 --html 1 --js 2
+
+```html
+<div id="exampleFilterThroughAPI1" class="hot1 hot handsontable"></div>
+
+<div class="controls">
+  <button class="filterByPrice">Show items below $200</button>
+  <button class="allItems">Show all items</button>
+</div>
+```
+
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const container = document.querySelector('#exampleFilterThroughAPI1');
+const handsontableInstance = new Handsontable(container, {
+  data: [
+    {
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: '11/10/2023',
+      sellTime: '01:23',
+      inStock: false,
+    },
+    {
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.9,
+      sellDate: '03/05/2023',
+      sellTime: '11:27',
+      inStock: false,
+    },
+    {
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.1,
+      sellDate: '27/03/2023',
+      sellTime: '03:17',
+      inStock: true,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: '28/08/2023',
+      sellTime: '08:01',
+      inStock: true,
+    },
+    {
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: '02/10/2023',
+      sellTime: '13:23',
+      inStock: true,
+    },
+  ],
+  columns: [
+    {
+      title: 'Brand',
+      type: 'text',
+      data: 'brand',
+    },
+    {
+      title: 'Model',
+      type: 'text',
+      data: 'model',
+    },
+    {
+      title: 'Price',
+      type: 'numeric',
+      data: 'price',
+      numericFormat: {
+        pattern: '$ 0,0.00',
+        culture: 'en-US',
+      },
+      className: 'htLeft',
+    },
+    {
+      title: 'Date',
+      type: 'date',
+      data: 'sellDate',
+      className: 'htRight',
+    },
+    {
+      title: 'Time',
+      type: 'time',
+      data: 'sellTime',
+      correctFormat: true,
+      className: 'htRight',
+    },
+    {
+      title: 'In stock',
+      type: 'checkbox',
+      data: 'inStock',
+      className: 'htCenter',
+    },
+  ],
+  // enable the column menu
+  dropdownMenu: true,
+  // enable filtering
+  filters: true,
+  height: 'auto',
+  stretchH: 'all',
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+// get the `Filters` plugin, so you can use its API
+const filters = handsontableInstance.getPlugin('Filters');
+
+document.querySelector('.filterByPrice').addEventListener('click', function() {
+  // filter data by the 'Price' column (column at index 2)
+  // to display only items that are less than ('lt') $200
+  filters.addCondition(2, 'lt', [200]);
+  filters.filter();
+
+document.querySelector('.allItems').addEventListener('click', function() {
+  // clear all filters
+  filters.clearConditions();
+  filters.filter();
+});
+});
+
+```
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleFilterThroughAPI1 :react
+
+```jsx
+import { useRef } from 'react';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const App = () => {
+  const hotTableComponentRef = useRef(null);
+  const sortAsc = () => {
+    // get the `ColumnSorting` plugin
+    const columnSorting = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
+
+    columnSorting.sort({
+      column: 0,
+      sortOrder: 'asc',
+    });
+  };
+
+  const unsort = () => {
+    // get the `ColumnSorting` plugin
+    const columnSorting = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
+
+    columnSorting.clearSort();
+  };
+
+  return (
+    <HotTable
+      data={[
+        {
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
+          price: 30,
+          sellDate: '11/10/2023',
+          sellTime: '01:23',
+          inStock: false,
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          price: 1890.9,
+          sellDate: '03/05/2023',
+          sellTime: '11:27',
+          inStock: false,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.1,
+          sellDate: '27/03/2023',
+          sellTime: '03:17',
+          inStock: true,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: '28/08/2023',
+          sellTime: '08:01',
+          inStock: true,
+        },
+        {
+          brand: 'Eidel',
+          model: 'HL Road Tire',
+          price: 279.99,
+          sellDate: '02/10/2023',
+          sellTime: '13:23',
+          inStock: true,
+        },
+      ]}
+      columns={[
+        {
+          title: 'Brand',
+          type: 'text',
+          data: 'brand',
+        },
+        {
+          title: 'Model',
+          type: 'text',
+          data: 'model',
+        },
+        {
+          title: 'Price',
+          type: 'numeric',
+          data: 'price',
+          numericFormat: {
+            pattern: '$ 0,0.00',
+            culture: 'en-US',
+          },
+          className: 'htLeft',
+        },
+        {
+          title: 'Date',
+          type: 'date',
+          data: 'sellDate',
+          className: 'htRight',
+        },
+        {
+          title: 'Time',
+          type: 'time',
+          data: 'sellTime',
+          correctFormat: true,
+          className: 'htRight',
+        },
+        {
+          title: 'In stock',
+          type: 'checkbox',
+          data: 'inStock',
+          className: 'htCenter',
+        },
+      ]}
+      // enable the column menu
+      dropdownMenu={true}
+      // enable filtering
+      filters={true}
+      height="auto"
+      stretchH="all"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<App />, document.getElementById('exampleFilterThroughAPI1'));
+/* end:skip-in-preview */
+```
+
+:::
+
+:::
 
 ### Clear filter criteria for all columns at once
 
