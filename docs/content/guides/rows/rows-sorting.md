@@ -184,7 +184,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       data={[
@@ -280,7 +280,7 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example1'));
+ReactDOM.render(<App />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
 
@@ -450,7 +450,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       data={[
@@ -558,7 +558,7 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example2'));
+ReactDOM.render(<App />, document.getElementById('example2'));
 /* end:skip-in-preview */
 ```
 
@@ -810,7 +810,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       data={[
@@ -936,7 +936,7 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example3'));
+ReactDOM.render(<App />, document.getElementById('example3'));
 /* end:skip-in-preview */
 ```
 
@@ -1081,7 +1081,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       data={[
@@ -1176,7 +1176,7 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example4'));
+ReactDOM.render(<App />, document.getElementById('example4'));
 /* end:skip-in-preview */
 ```
 
@@ -1395,7 +1395,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       data={[
@@ -1502,7 +1502,7 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example5'));
+ReactDOM.render(<App />, document.getElementById('example5'));
 /* end:skip-in-preview */
 ```
 
@@ -1745,7 +1745,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       data={[
@@ -1845,7 +1845,7 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example6'));
+ReactDOM.render(<App />, document.getElementById('example6'));
 /* end:skip-in-preview */
 ```
 
@@ -2013,7 +2013,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       data={[
@@ -2113,7 +2113,7 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example7'));
+ReactDOM.render(<App />, document.getElementById('example7'));
 /* end:skip-in-preview */
 ```
 
@@ -2337,7 +2337,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       data={[
@@ -2474,7 +2474,7 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example8'));
+ReactDOM.render(<App />, document.getElementById('example8'));
 /* end:skip-in-preview */
 ```
 
@@ -2882,7 +2882,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   const hotTableComponentRef = useRef(null);
   const exclude = () => {
     const handsontableInstance = hotTableComponentRef.current.hotInstance;
@@ -3111,7 +3111,7 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example11'));
+ReactDOM.render(<App />, document.getElementById('example11'));
 /* end:skip-in-preview */
 ```
 
@@ -3431,7 +3431,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   const hotTableComponentRef = useRef(null);
   const sortAsc = () => {
     // get the `ColumnSorting` plugin
@@ -3552,7 +3552,7 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example9'));
+ReactDOM.render(<App />, document.getElementById('example9'));
 /* end:skip-in-preview */
 ```
 
@@ -3769,7 +3769,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   const hotTableComponentRef = useRef(null);
   const sort = () => {
     // get the `MultiColumnSorting` plugin
@@ -3887,7 +3887,7 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example10'));
+ReactDOM.render(<App />, document.getElementById('example10'));
 /* end:skip-in-preview */
 ```
 
