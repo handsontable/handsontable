@@ -187,6 +187,9 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
+    // TODO: Actions related to overwriting dates from HOT format to HF default format are done as callback to this
+    // hook, because some hooks, such as `afterLoadData` doesn't have information about composed cell properties.
+    // Another hooks are triggered to late for setting HF's engine data needed for some actions.
     this.addHook('afterCellMetaReset', (...args) => this.onAfterCellMetaReset(...args));
 
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
@@ -765,7 +768,7 @@ export class Formulas extends BasePlugin {
     let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel like date).
     const cellMeta = this.hot.getCellMeta(row, column);
 
-    if (cellMeta.type === 'date') {
+    if (cellMeta.type === 'date' && isNumeric(cellValue)) {
       // Converting numeric value being Excel like date to JS Date object.
       const dataFromExcelDate = getDateFromExcelDate(cellValue);
 

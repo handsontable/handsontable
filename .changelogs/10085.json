@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed problems related to wrong synchronization of dates between Handsontable and HyperFormula",
+  "type": "fixed",
+  "issueOrPR": 10085,
+  "breaking": false,
+  "framework": "none"
+}

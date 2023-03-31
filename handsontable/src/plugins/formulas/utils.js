@@ -37,7 +37,7 @@ export function isValidDate(value, cellProperties) {
 /**
  * Returns date formatted in HF's default format.
  *
- * @param {*} date Date formatted according to Handsontable cell date format.
+ * @param {string} date Date formatted according to Handsontable cell date format.
  * @param {string} format The format used for the date passed.
  * @returns {string}
  */
