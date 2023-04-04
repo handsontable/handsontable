@@ -42,7 +42,7 @@ multiple columns.
 ## Overview
 
 With sorting, you can easily rearrange rows of data, based on the values in specific columns. This
-is particularly useful for analyzing and organizing large datasets, which helps you identify
+is particularly useful for analyzing and organizing large data sets, which helps you identify
 patterns and trends.
 
 You can sort data in different ways:
