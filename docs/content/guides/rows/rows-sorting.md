@@ -438,7 +438,7 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htCenter',
     },
   ],
-  height: 'auto',
+  height: 168,
   stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
@@ -563,7 +563,7 @@ export const App = () => {
           className: 'htCenter',
         },
       ]}
-      height="auto"
+      height={168}
       stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
