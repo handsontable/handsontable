@@ -1,7 +1,7 @@
 import {
   isEscapedFormulaExpression,
   unescapeFormulaExpression,
-  isValidDate,
+  isDateValid,
   getDateInHfFormat,
   getDateFromExcelDate,
 } from '../utils';
@@ -29,20 +29,17 @@ describe('Formulas utils', () => {
     });
   });
 
-  describe('isValidDate', () => {
+  describe('isDateValid', () => {
     it('should correctly detect proper date according to handled date format from cell properties', () => {
-      expect(isValidDate('13/11/2022', { type: 'date', dateFormat: 'DD/MM/YYYY' })).toBe(true);
-      expect(isValidDate('11/13/2022', { type: 'date', dateFormat: 'DD/MM/YYYY' })).toBe(false);
-      expect(isValidDate('11/13/2022', { type: 'date', dateFormat: 'MM/DD/YYYY' })).toBe(true);
-      expect(isValidDate('13/11/2022', { type: 'date', dateFormat: 'MM/DD/YYYY' })).toBe(false);
+      expect(isDateValid('13/11/2022', { type: 'date', dateFormat: 'DD/MM/YYYY' })).toBe(true);
+      expect(isDateValid('11/13/2022', { type: 'date', dateFormat: 'DD/MM/YYYY' })).toBe(false);
+      expect(isDateValid('11/13/2022', { type: 'date', dateFormat: 'MM/DD/YYYY' })).toBe(true);
+      expect(isDateValid('13/11/2022', { type: 'date', dateFormat: 'MM/DD/YYYY' })).toBe(false);
 
-      expect(isValidDate('13/11/2022', { type: 'text', dateFormat: 'DD/MM/YYYY' })).toBe(false);
-      expect(isValidDate('11/13/2022', { type: 'text', dateFormat: 'MM/DD/YYYY' })).toBe(false);
-
-      expect(isValidDate({}, { type: 'date', dateFormat: 'DD/MM/YYYY' })).toBe(false);
-      expect(isValidDate(null, { type: 'date', dateFormat: 'DD/MM/YYYY' })).toBe(false);
-      expect(isValidDate(void 0, { type: 'date', dateFormat: 'DD/MM/YYYY' })).toBe(false);
-      expect(isValidDate('', { type: 'date', dateFormat: 'DD/MM/YYYY' })).toBe(false);
+      expect(isDateValid({}, { type: 'date', dateFormat: 'DD/MM/YYYY' })).toBe(false);
+      expect(isDateValid(null, { type: 'date', dateFormat: 'DD/MM/YYYY' })).toBe(false);
+      expect(isDateValid(void 0, { type: 'date', dateFormat: 'DD/MM/YYYY' })).toBe(false);
+      expect(isDateValid('', { type: 'date', dateFormat: 'DD/MM/YYYY' })).toBe(false);
     });
   });
 
