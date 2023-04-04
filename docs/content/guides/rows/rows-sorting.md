@@ -63,10 +63,10 @@ go back to the original order.
 
 ::: only-for javascript
 
-::: example #example1 --html 1 --js 2
+::: example #exampleSortingDemo --html 1 --js 2
 
 ```html
-<div id="example1"></div>
+<div id="exampleSortingDemo"></div>
 ```
 
 ```js
@@ -74,7 +74,7 @@ go back to the original order.
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example1');
+const container = document.querySelector('#exampleSortingDemo');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -176,7 +176,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #exampleSortingDemo :react
 
 ```jsx
 // to import sorting as an individual module, see the 'Import the sorting module' section of this page
@@ -287,7 +287,7 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('example1'));
+ReactDOM.render(<App />, document.getElementById('exampleSortingDemo'));
 /* end:skip-in-preview */
 ```
 
@@ -326,17 +326,17 @@ To enable sorting only for specific columns, set [`headerAction`](@/api/options.
 
 ::: only-for javascript
 
-::: example #example2 --html 1 --js 2
+::: example #exampleEnableSortingForColumns --html 1 --js 2
 
 ```html
-<div id="example2"></div>
+<div id="exampleEnableSortingForColumns"></div>
 ```
 
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example2');
+const container = document.querySelector('#exampleEnableSortingForColumns');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -450,7 +450,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #exampleEnableSortingForColumns :react
 
 ```jsx
 import { HotTable } from '@handsontable/react';
@@ -571,7 +571,7 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('example2'));
+ReactDOM.render(<App />, document.getElementById('exampleEnableSortingForColumns'));
 /* end:skip-in-preview */
 ```
 
@@ -674,17 +674,17 @@ You can configure the following types:
 
 ::: only-for javascript
 
-::: example #example3 --html 1 --js 2
+::: example #exampleSortDifferentTypes --html 1 --js 2
 
 ```html
-<div id="example3"></div>
+<div id="exampleSortDifferentTypes"></div>
 ```
 
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example3');
+const container = document.querySelector('#exampleSortDifferentTypes');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -817,7 +817,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #exampleSortDifferentTypes :react
 
 ```jsx
 import { HotTable } from '@handsontable/react';
@@ -957,7 +957,7 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('example3'));
+ReactDOM.render(<App />, document.getElementById('exampleSortDifferentTypes'));
 /* end:skip-in-preview */
 ```
 
@@ -983,17 +983,17 @@ To try out sorting by multiple columns, see the following demo:
 
 ::: only-for javascript
 
-::: example #example4 --html 1 --js 2
+::: example #exampleSortByMultipleColumns --html 1 --js 2
 
 ```html
-<div id="example4"></div>
+<div id="exampleSortByMultipleColumns"></div>
 ```
 
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example4');
+const container = document.querySelector('#exampleSortByMultipleColumns');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -1096,7 +1096,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example4 :react
+::: example #exampleSortByMultipleColumns :react
 
 ```jsx
 import { HotTable } from '@handsontable/react';
@@ -1205,7 +1205,7 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('example4'));
+ReactDOM.render(<App />, document.getElementById('exampleSortByMultipleColumns'));
 /* end:skip-in-preview */
 ```
 
@@ -1294,17 +1294,17 @@ In the following demo, the data is initially sorted:
 
 ::: only-for javascript
 
-::: example #example5 --html 1 --js 2
+::: example #exampleInitialSortOrder --html 1 --js 2
 
 ```html
-<div id="example5"></div>
+<div id="exampleInitialSortOrder"></div>
 ```
 
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example5');
+const container = document.querySelector('#exampleInitialSortOrder');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -1418,7 +1418,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example5 :react
+::: example #exampleInitialSortOrder :react
 
 ```jsx
 import { HotTable } from '@handsontable/react';
@@ -1539,7 +1539,7 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('example5'));
+ReactDOM.render(<App />, document.getElementById('exampleInitialSortOrder'));
 /* end:skip-in-preview */
 ```
 
@@ -1640,17 +1640,17 @@ The default sort icons (↑↓) are encoded in Base64. You can replace them by c
 
 ::: only-for javascript
 
-::: example #example6 --html 1 --js 2 --css 3
+::: example #exampleCustomSortIcons --html 1 --js 2 --css 3
 
 ```html
-<div id="example6"></div>
+<div id="exampleCustomSortIcons"></div>
 ```
 
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example6');
+const container = document.querySelector('#exampleCustomSortIcons');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -1776,7 +1776,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example6 :react --js 1 --css 2
+::: example #exampleCustomSortIcons :react --js 1 --css 2
 
 ```jsx
 import { HotTable } from '@handsontable/react';
@@ -1890,7 +1890,7 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('example6'));
+ReactDOM.render(<App />, document.getElementById('exampleCustomSortIcons'));
 /* end:skip-in-preview */
 ```
 
@@ -1921,17 +1921,17 @@ You can also replace the sort icons by changing `content` for the same pseudo-el
 
 ::: only-for javascript
 
-::: example #example7 --html 1 --js 2 --css 3
+::: example #exampleCustomSortIcons2 --html 1 --js 2 --css 3
 
 ```html
-<div id="example7"></div>
+<div id="exampleCustomSortIcons2"></div>
 ```
 
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example7');
+const container = document.querySelector('#exampleCustomSortIcons2');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -2052,7 +2052,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example7 :react --js 1 --css 2
+::: example #exampleCustomSortIcons2 :react --js 1 --css 2
 
 ```jsx
 import { HotTable } from '@handsontable/react';
@@ -2166,7 +2166,7 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('example7'));
+ReactDOM.render(<App />, document.getElementById('exampleCustomSortIcons2'));
 /* end:skip-in-preview */
 ```
 
@@ -2194,17 +2194,17 @@ subsequent pseudo-elements:
 
 ::: only-for javascript
 
-::: example #example8 --html 1 --js 2 --css 3
+::: example #exampleCustomSortIcons3 --html 1 --js 2 --css 3
 
 ```html
-<div id="example8"></div>
+<div id="exampleCustomSortIcons3"></div>
 ```
 
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example8');
+const container = document.querySelector('#exampleCustomSortIcons3');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -2384,7 +2384,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example8 :react --js 1 --css 2
+::: example #exampleCustomSortIcons3 :react --js 1 --css 2
 
 ```jsx
 import { HotTable } from '@handsontable/react';
@@ -2534,7 +2534,7 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('example8'));
+ReactDOM.render(<App />, document.getElementById('exampleCustomSortIcons3'));
 /* end:skip-in-preview */
 ```
 
@@ -2696,17 +2696,17 @@ getting sorted, so they always stay in place.
 
 ::: only-for javascript
 
-::: example #example11 --html 1 --js 2
+::: example #exampleExcludeRowsFromSorting --html 1 --js 2
 
 ```html
-<div id="example11"></div>
+<div id="exampleExcludeRowsFromSorting"></div>
 ```
 
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example11');
+const container = document.querySelector('#exampleExcludeRowsFromSorting');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -2935,7 +2935,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example11 :react
+::: example #exampleExcludeRowsFromSorting :react
 
 ```jsx
 // you need `useRef` to call Handsontable's instance methods
@@ -3179,7 +3179,7 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('example11'));
+ReactDOM.render(<App />, document.getElementById('exampleExcludeRowsFromSorting'));
 /* end:skip-in-preview */
 ```
 
@@ -3359,10 +3359,10 @@ To see how it works, try out the following demo:
 
 ::: only-for javascript
 
-::: example #example9 --html 1 --js 2
+::: example #exampleSortByAPI --html 1 --js 2
 
 ```html
-<div id="example9"></div>
+<div id="exampleSortByAPI"></div>
 
 <div class="controls">
   <button id="sort_asc" class="button">Sort by the "Brand" column, in ascending order</button>
@@ -3376,7 +3376,7 @@ To see how it works, try out the following demo:
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example9');
+const container = document.querySelector('#exampleSortByAPI');
 const buttonSortAscending = document.querySelector('#sort_asc');
 const buttonUnsort = document.querySelector('#unsort');
 const handsontableInstance = new Handsontable(container, {
@@ -3492,7 +3492,7 @@ buttonUnsort.addEventListener('click', () => {
 
 ::: only-for react
 
-::: example #example9 :react
+::: example #exampleSortByAPI :react
 
 ```jsx
 import { useRef } from 'react';
@@ -3628,7 +3628,7 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('example9'));
+ReactDOM.render(<App />, document.getElementById('exampleSortByAPI'));
 /* end:skip-in-preview */
 ```
 
@@ -3713,10 +3713,10 @@ To see how it works, try out the following demo:
 
 ::: only-for javascript
 
-::: example #example10 --html 1 --js 2
+::: example #exampleSortByAPIMultipleColumns --html 1 --js 2
 
 ```html
-<div id="example10"></div>
+<div id="exampleSortByAPIMultipleColumns"></div>
 
 <div class="controls">
   <button id="sort" class="button">Sort</button>
@@ -3727,7 +3727,7 @@ To see how it works, try out the following demo:
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example10');
+const container = document.querySelector('#exampleSortByAPIMultipleColumns');
 const buttonSort = document.querySelector('#sort');
 const handsontableInstance = new Handsontable(container, {
   data: [
@@ -3844,7 +3844,7 @@ buttonSort.addEventListener('click', () => {
 
 ::: only-for react
 
-::: example #example10 :react
+::: example #exampleSortByAPIMultipleColumns :react
 
 ```jsx
 import { useRef } from 'react';
@@ -3977,7 +3977,7 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('example10'));
+ReactDOM.render(<App />, document.getElementById('exampleSortByAPIMultipleColumns'));
 /* end:skip-in-preview */
 ```
 
