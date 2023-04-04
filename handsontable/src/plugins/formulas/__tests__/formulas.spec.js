@@ -2826,6 +2826,11 @@ describe('Formulas general', () => {
         ['13/12/2022'],
       ]);
 
+      expect(getSourceData()).toEqual([
+        ['13/12/2022'],
+        ['=A1'],
+      ]);
+
       validateCells();
 
       await sleep(10);
@@ -2866,6 +2871,11 @@ describe('Formulas general', () => {
         ['13/12/2022'],
       ]);
 
+      expect(getSourceData()).toEqual([
+        ['13/12/2022'],
+        ['=A1'],
+      ]);
+
       validateCells();
 
       await sleep(10);
@@ -2904,6 +2914,11 @@ describe('Formulas general', () => {
       expect(getData()).toEqual([
         ['12/11/2022'],
         ['12/11/2022'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['12/11/2022'],
+        ['=A1'],
       ]);
 
       validateCells();
@@ -2950,6 +2965,11 @@ describe('Formulas general', () => {
         ['13/12/2022'],
       ]);
 
+      expect(getSourceData()).toEqual([
+        ['13/12/2022'],
+        ['=A1'],
+      ]);
+
       validateCells();
 
       await sleep(10);
@@ -2974,6 +2994,11 @@ describe('Formulas general', () => {
       expect(getData()).toEqual([
         ['12/11/2022'],
         ['12/11/2022'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['12/11/2022'],
+        ['=A1'],
       ]);
 
       validateCells();
@@ -3016,6 +3041,11 @@ describe('Formulas general', () => {
         ['12/11/2022'],
       ]);
 
+      expect(getSourceData()).toEqual([
+        ['12/11/2022'],
+        ['=A1'],
+      ]);
+
       validateCells();
 
       await sleep(10);
@@ -3042,6 +3072,11 @@ describe('Formulas general', () => {
         ['12/13/2022'],
       ]);
 
+      expect(getSourceData()).toEqual([
+        ['12/13/2022'],
+        ['=A1'],
+      ]);
+
       validateCells();
 
       await sleep(10);
@@ -3066,6 +3101,11 @@ describe('Formulas general', () => {
       expect(getData()).toEqual([
         ['13/11/2022'],
         ['13/11/2022'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['13/11/2022'],
+        ['=A1'],
       ]);
 
       validateCells();
