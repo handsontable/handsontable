@@ -2,7 +2,7 @@
 id: 3xxlonuv
 title: Column filter
 metaTitle: Column filter - JavaScript Data Grid | Handsontable
-description: Filter your data by values or based on a set of criteria.
+description: Filter your data by values or by a set of conditions.
 permalink: /column-filter
 canonicalUrl: /column-filter
 tags:
@@ -17,24 +17,31 @@ searchCategory: Guides
 
 # Column filter
 
-Filter your data by values or based on a set of criteria.
+Filter your data by values or by a set of conditions.
 
 [[toc]]
 
 ## Overview
 
-**The filter menu is part of the column menu.**
+With filtering, you can show the rows that you want to see and temporarily hide the rest. This lets
+you quickly extract relevant data points, which is useful for analyzing large data sets.
 
-- Made of two parts: "filter by condition" and "filter by value"
-- Filter lives in the [column menu], so you need to enable it first
-- After filtering the data is trimming.
-- Filtering and filtering don’t work with nested rows. We are mentioning this in our documentation:
-  https://handsontable.com/docs/row-parent-child/#row-parent-child
+You can filter data in different ways at the same time: by applying up to two filter conditions, and
+by selecting as many values as you want. Handsontable displays the rows that match your criteria,
+and [trims](@/guides/rows/row-trimming.md) the rest.
+
+You can't use filtering with [nested data structures](@/guides/rows/row-parent-child.md)
+([`NestedRows`](@/api/nestedRows.md)).
 
 ## Filtering demo
 
-- how to use
-- describe UI: the icon turns green
+To try out filtering, see the following demo:
+
+1. In the **Price** column, click on the column menu button (▼).
+2. In **Filter by condition**, select **Greater than**, and type **100**.
+3. As a second condition, select **Less than**, and type **1000**.
+4. Press <kbd>**Enter**</kbd> to apply your filter. The menu button of the **Price** column turns
+   green.
 
 ::: only-for javascript
 
@@ -273,12 +280,16 @@ ReactDOM.render(<App />, document.getElementById('exampleFilterBasicDemo'));
 
 :::
 
+To clear the filter:
+1. In the **Price** column, click on the column menu button (▼).
+2. In **Filter by condition**, select **None**.
+4. Press <kbd>**Enter**</kbd> to display all the rows again.
+
 ## Enable filtering
 
-To enable filtering for all columns:
-
-1. Enable the column menu by settting [`dropdownMenu`](@/api/options.md#dropdownmenu) to `true`.
-2. Enable the filter menu by settting [`filters`](@/api/options.md#filters) to `true`.
+The filter menu is part of the [column menu](@/guides/columns/column-menu.md), so you need two
+options to enable filtering: [`dropdownMenu`](@/api/options.md#dropdownmenu) and
+[`filters`](@/api/options.md#filters).
 
 ::: only-for javascript
 
@@ -1381,15 +1392,16 @@ ReactDOM.render(<App />, document.getElementById('exampleFilterDifferentTypes'))
 
 :::
 
-Different types offer different filter criteria. By default, you can apply criteria listed in the
-following table.
+Different types offer different comparison operators. For details, see the following table.
 
-| Type                                                                                                                                                                                                                                                                                                | Available filter criteria                                                                                                                                                            |
+| Type                                                                                                                                                                                                                                                                                                | Available comparison operators                                                                                                                                                       |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [`text`](@/guides/cell-types/cell-type.md)                                                                                                                                                                                                                                                          | None<br>Is empty<br>Is not empty<br>Is equal to<br>Is not equal to<br>Begins with<br>Ends with<br>Contains<br>Does not contain                                                       |
 | [`numeric`](@/guides/cell-types/numeric-cell-type.md)                                                                                                                                                                                                                                               | None<br>Is empty<br>Is not empty<br>Is equal to<br>Is not equal to<br>Greater than<br>Greater than or equal to<br>Less than<br>Less than or equal to<br>Is between<br>Is not between |
 | [`date`](@/guides/cell-types/date-cell-type.md)                                                                                                                                                                                                                                                     | None<br>Is empty<br>Is not empty<br>Is equal to<br>Is not equal to<br>Before<br>After<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
 | [`time`](@/guides/cell-types/time-cell-type.md)<br>[`checkbox`](@/guides/cell-types/checkbox-cell-type.md)<br>[`dropdown`](@/guides/cell-types/dropdown-cell-type.md)<br>[`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)<br>[`password`](@/guides/cell-types/password-cell-type.md) | Same as [`text`](@/guides/cell-types/cell-type.md)                                                                                                                                   |
+
+[about filtering passwords]
 
 ## Filter data on initialization
 
@@ -2905,9 +2917,8 @@ You can run your code before or after filtering, using the following
 - [`beforeFilter()`](@/api/hooks.md#beforefilter)
 - [`afterFilter()`](@/api/hooks.md#afterfilter)
 
-For example, you can use [`beforeFilter()`](@/api/hooks.md#beforefilter) for
-[server-side filtering](#server-side-filtering), or use
-[`afterFilter()`](@/api/hooks.md#afterfilter) to
+For example, you can use [`beforeFilter()`](@/api/hooks.md#beforefilter) for server-side filtering,
+or use [`afterFilter()`](@/api/hooks.md#afterfilter) to
 [exclude rows from filtering](#exclude-rows-from-filtering).
 
 ::: only-for javascript
@@ -2916,6 +2927,7 @@ For example, you can use [`beforeFilter()`](@/api/hooks.md#beforefilter) for
 const configurationOptions = {
   beforeFilter() {
     // add your code here
+    return false; // to block front-end sorting
   },
   afterFilter() {
     // add your code here
@@ -2931,6 +2943,7 @@ const configurationOptions = {
 <HotTable
   beforeFilter={
     // add your code here
+    return false; // to block front-end sorting
   }
   afterFilter={
     // add your code here
@@ -2940,45 +2953,9 @@ const configurationOptions = {
 
 :::
 
-## Server-side filtering
-
-If you filter data on the server side, you can block filtering in Handsontable. For that, set
-Handsontable's [`beforeFilter()`](@/api/hooks.md#beforefilter) hook to return `false`.
-
-::: only-for javascript
-
-```js
-const configurationOptions = {
-  beforeFilter(conditionsStack) {
-    return false;
-  },
-};
-```
-
-:::
-
-::: only-for react
-
-```jsx
-<HotTable
-  beforeFilter={(conditionsStack) => {
-      return false;
-    },
-  }
-/>
-```
-
-:::
-
 ## Custom filter operators
 
 https://mui.com/x/react-data-grid/filtering/#customize-the-operators
-
-## Filter passwords
-
-Jesli w filter menu na liscie wynikow chcialbym widziec wizualne dane, a nie zrodlowe (co
-szczegolnie bolesne jest w przypadku cell type: password), to czy mozemy to pokazac w postaci
-customowego example?
 
 ## Control filtering programmatically
 
@@ -3381,33 +3358,6 @@ ReactDOM.render(<App />, document.getElementById('exampleFilterThroughAPI1'));
 :::
 
 :::
-
-### Save filter settings
-
-POPULAR
-
-http://jsfiddle.net/AMBudnik/1ebkcdan/
-
-https://forum.handsontable.com/t/save-filter-settings/669
-
-### Clear filter settings automatically
-
-### Get filtered data
-
-You can get the data that was filtered, along with additional information about the filters applied:
-
-- The number of filters applied
-- The last changed column
-
-https://forum.handsontable.com/t/how-to-get-filterred-rows-in-afterfilter-hook/4753
-
-### Uncheck "Filter by value" checkboxes by default
-
-http://jsfiddle.net/s2tgjkvx/
-
-### Get the "Filter by value" values as you type
-
-https://jsfiddle.net/gqz3yLjc/
 
 ### Control the "Filter by value" list
 
