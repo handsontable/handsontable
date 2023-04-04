@@ -282,7 +282,7 @@ ReactDOM.render(<App />, document.getElementById('exampleFilterBasicDemo'));
 
 To clear the filter:
 
-1. In the **Price** column, click on the column menu button (▼).
+1. Click on the green column menu button (▼).
 2. In **Filter by condition**, select **None**.
 3. Press <kbd>**Enter**</kbd> to display all the rows again.
 
