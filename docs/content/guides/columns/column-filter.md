@@ -281,14 +281,15 @@ ReactDOM.render(<App />, document.getElementById('exampleFilterBasicDemo'));
 :::
 
 To clear the filter:
+
 1. In the **Price** column, click on the column menu button (▼).
 2. In **Filter by condition**, select **None**.
-4. Press <kbd>**Enter**</kbd> to display all the rows again.
+3. Press <kbd>**Enter**</kbd> to display all the rows again.
 
 ## Enable filtering
 
-The filter menu is part of the [column menu](@/guides/columns/column-menu.md), so you need two
-options to enable filtering: [`dropdownMenu`](@/api/options.md#dropdownmenu) and
+The filter menu is part of the [column menu](@/guides/columns/column-menu.md), so you need to enable
+two options: [`dropdownMenu`](@/api/options.md#dropdownmenu) and
 [`filters`](@/api/options.md#filters).
 
 ::: only-for javascript
@@ -317,8 +318,8 @@ const configurationOptions = {
 
 :::
 
-To enable filtering without the other column menu items, configure the column menu to show the
-filter items only.
+To enable filtering without the default column menu items (**Insert column left** etc.), configure
+the column menu to show the filter items only.
 
 ::: only-for javascript
 
@@ -570,8 +571,8 @@ ReactDOM.render(<App />, document.getElementById('exampleShowFilterItemsOnly'));
 
 :::
 
-To enable filtering only for specific columns, hide the filter menu from those columns that you
-don't want to filter. For example, in the following demo, you can filter only the **Brand** column.
+To enable filtering only for specific columns, hide the filter menu from the columns that you don't
+want to filter. For example, in the following demo, you can filter only the **Brand** column.
 
 ::: only-for javascript
 
