@@ -16,18 +16,25 @@ class Transformation {
    *
    * @type {SelectionRange}
    */
-  range;
+  #range;
   /**
    * Additional options which define the state of the settings which can infer transformation and
    * give the possibility to translate indexes.
    *
    * @type {object}
    */
-  options;
+  #options;
+  /**
+   * Increases the table size by applying the offsets. The option is used by the `navigableHeaders`
+   * option.
+   *
+   * @type {{ x: number, y: number }}
+   */
+  #offset = { x: 0, y: 0 };
 
   constructor(range, options) {
-    this.range = range;
-    this.options = options;
+    this.#range = range;
+    this.#options = options;
   }
 
   /**
@@ -40,8 +47,13 @@ class Transformation {
    * @returns {CellCoords} Visual coordinates after transformation.
    */
   transformStart(rowDelta, colDelta, createMissingRecords = false) {
-    const delta = this.options.createCellCoords(rowDelta, colDelta);
-    let visualCoords = this.range.current().highlight;
+    this.#setOffsetSize({
+      x: this.#options.navigableHeaders() ? this.#options.countRowHeaders() : 0,
+      y: this.#options.navigableHeaders() ? this.#options.countColHeaders() : 0,
+    });
+
+    const delta = this.#options.createCellCoords(rowDelta, colDelta);
+    let visualCoords = this.#range.current().highlight;
     const zeroBasedPosition = this.#getVisualCoordsZeroBasedPosition(visualCoords);
     let rowTransformDir = 0;
     let colTransformDir = 0;
@@ -49,22 +61,24 @@ class Transformation {
     this.runLocalHooks('beforeTransformStart', delta);
 
     if (zeroBasedPosition !== null) {
-      const { width, height } = this.#getTableCanvasSize();
+      const { width, height } = this.#getTableSize();
       const { x, y } = zeroBasedPosition;
-      const fixedRowsBottom = this.options.fixedRowsBottom();
-      const minSpareRows = this.options.minSpareRows();
-      const minSpareCols = this.options.minSpareCols();
-      const autoWrapRow = this.options.autoWrapRow();
-      const autoWrapCol = this.options.autoWrapCol();
+      const fixedRowsBottom = this.#options.fixedRowsBottom();
+      const minSpareRows = this.#options.minSpareRows();
+      const minSpareCols = this.#options.minSpareCols();
+      const autoWrapRow = this.#options.autoWrapRow();
+      const autoWrapCol = this.#options.autoWrapCol();
 
       const rawCoords = {
         row: y + delta.row,
         col: x + delta.col,
       };
 
+      // console.log('transformStart: delta', delta.row, delta.col);
+
       if (y + delta.row >= height) {
         if (createMissingRecords && minSpareRows > 0 && fixedRowsBottom === 0) {
-          this.runLocalHooks('insertRowRequire', this.options.countRows());
+          this.runLocalHooks('insertRowRequire', this.#options.countRows());
 
         } else if (autoWrapCol) {
           rawCoords.row = 0;
@@ -80,7 +94,7 @@ class Transformation {
 
       if (x + delta.col >= width) {
         if (createMissingRecords && minSpareCols > 0) {
-          this.runLocalHooks('insertColRequire', this.options.countCols());
+          this.runLocalHooks('insertColRequire', this.#options.countCols());
 
         } else if (autoWrapRow) {
           rawCoords.row = y + 1 >= height ? 0 : y + 1;
@@ -94,7 +108,9 @@ class Transformation {
         }
       }
 
-      const coords = this.options.createCellCoords(rawCoords.row, rawCoords.col);
+      // console.log('transformStart: rawCoords', rawCoords.row, rawCoords.col);
+
+      const coords = this.#options.createCellCoords(rawCoords.row, rawCoords.col);
       const { rowDir, colDir } = this.#clampCoords(coords);
 
       rowTransformDir = rowDir;
@@ -115,8 +131,13 @@ class Transformation {
    * @returns {CellCoords} Visual coordinates after transformation.
    */
   transformEnd(rowDelta, colDelta) {
-    const delta = this.options.createCellCoords(rowDelta, colDelta);
-    const cellRange = this.range.current();
+    this.#setOffsetSize({
+      x: 0,
+      y: 0,
+    });
+
+    const delta = this.#options.createCellCoords(rowDelta, colDelta);
+    const cellRange = this.#range.current();
     let visualCoords = cellRange.to;
     const zeroBasedPosition = this.#getVisualCoordsZeroBasedPosition(cellRange.highlight);
     let rowTransformDir = 0;
@@ -130,7 +151,7 @@ class Transformation {
         row: y + delta.row,
         col: x + delta.col,
       };
-      const coords = this.options.createCellCoords(rawCoords.row, rawCoords.col);
+      const coords = this.#options.createCellCoords(rawCoords.row, rawCoords.col);
       const { rowDir, colDir } = this.#clampCoords(coords);
 
       rowTransformDir = rowDir;
@@ -144,13 +165,23 @@ class Transformation {
   }
 
   /**
+   * Sets the additional offset in table size that may occur when the `navigableHeaders` option
+   * is enabled.
+   *
+   * @param {{x: number, y: number}} offset Offset as x and y properties.
+   */
+  #setOffsetSize({ x, y }) {
+    this.#offset = { x, y };
+  }
+
+  /**
    * Clamps the coords to make sure they points to the cell (or header) in the table range.
    *
    * @param {CellCoords} zeroBasedCoords The coords object to clamp.
    * @returns {{rowDir: 1|0|-1, colDir: 1|0|-1}}
    */
   #clampCoords(zeroBasedCoords) {
-    const { width, height } = this.#getTableCanvasSize();
+    const { width, height } = this.#getTableSize();
     let rowDir = 0;
     let colDir = 0;
 
@@ -181,25 +212,10 @@ class Transformation {
    *
    * @returns {{width: number, height: number}}
    */
-  #getTableCanvasSize() {
-    const { x, y } = this.#getTableCanvasOffset();
-
+  #getTableSize() {
     return {
-      width: x + this.options.countCols(),
-      height: y + this.options.countRows(),
-    };
-  }
-
-  /**
-   * Returns the additional offset in table size that may occur when the `navigableHeaders` option
-   * is enabled.
-   *
-   * @returns {{x: number, y: number}}
-   */
-  #getTableCanvasOffset() {
-    return {
-      x: this.options.navigableHeaders() ? this.options.countRowHeaders() : 0,
-      y: this.options.navigableHeaders() ? this.options.countColHeaders() : 0,
+      width: this.#offset.x + this.#options.countCols(),
+      height: this.#offset.y + this.#options.countRows(),
     };
   }
 
@@ -210,17 +226,15 @@ class Transformation {
    * @returns {{x: number, y: number}}
    */
   #getVisualCoordsZeroBasedPosition(visualCoords) {
-    const { row, col } = this.options.visualToRenderableCoords(visualCoords);
+    const { row, col } = this.#options.visualToRenderableCoords(visualCoords);
 
     if (row === null || col === null) {
       return null;
     }
 
-    const { x, y } = this.#getTableCanvasOffset();
-
     return {
-      x: x + col,
-      y: y + row,
+      x: this.#offset.x + col,
+      y: this.#offset.y + row,
     };
   }
 
@@ -231,12 +245,10 @@ class Transformation {
    * @returns {CellCoords}
    */
   #zeroBasedToVisualCoords(coords) {
-    const { x, y } = this.#getTableCanvasOffset();
+    coords.col = coords.col - this.#offset.x;
+    coords.row = coords.row - this.#offset.y;
 
-    coords.col = coords.col - x;
-    coords.row = coords.row - y;
-
-    return this.options.renderableToVisualCoords(coords);
+    return this.#options.renderableToVisualCoords(coords);
   }
 }
 

@@ -308,20 +308,26 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.runHooks('beforeSetRangeEnd', cellCoords);
   });
 
-  let previousActiveContext = 'grid';
+  // let previousActiveContext = 'grid';
 
   this.selection.addLocalHook('afterSetRangeEnd', (cellCoords) => {
     const preventScrolling = createObjectPropListener(false);
     const selectionRange = this.selection.getSelectedRange();
-    const { from, to, highlight } = selectionRange.current();
+    const { from, to } = selectionRange.current();
+    // const { from, to, highlight } = selectionRange.current();
     const selectionLayerLevel = selectionRange.size() - 1;
+    // const shortcutContextName = this.getShortcutManager().getActiveContextName()
 
-    if (highlight.isCell()) {
-      this.getShortcutManager().setActiveContextName(previousActiveContext);
-    } else {
-      previousActiveContext = this.getShortcutManager().getActiveContextName();
-      this.getShortcutManager().setActiveContextName('headers');
-    }
+    // if (highlight.isHeader()) {
+    //   if (shortcutContextName !== 'headers') {
+    //     previousActiveContext = shortcutContextName;
+    //   }
+
+    //   this.getShortcutManager().setActiveContextName('headers');
+
+    // } else {
+    //   this.getShortcutManager().setActiveContextName(previousActiveContext);
+    // }
 
     this.runHooks('afterSelection',
       from.row, from.col, to.row, to.col, preventScrolling, selectionLayerLevel);

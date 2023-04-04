@@ -149,31 +149,33 @@ class VisualSelection extends Selection {
    * @returns {VisualSelection}
    */
   syncWith(broaderCellRange) {
+    const coordsFrom = broaderCellRange.from.clone();
+
+    if (broaderCellRange.highlight.isCell()) {
+      coordsFrom.normalize();
+    }
+
     const rowDirection = broaderCellRange.getVerticalDirection() === 'N-S' ? 1 : -1;
     const columnDirection = broaderCellRange.getHorizontalDirection() === 'W-E' ? 1 : -1;
-    const singleCellRangeVisual = this.getNearestNotHiddenCoords(
-      broaderCellRange.from.clone().normalize(),
-      rowDirection,
-      columnDirection
-    );
+    const cellCoordsVisual = this.getNearestNotHiddenCoords(coordsFrom, rowDirection, columnDirection);
 
-    if (singleCellRangeVisual !== null && broaderCellRange.overlaps(singleCellRangeVisual)) {
+    if (cellCoordsVisual !== null && broaderCellRange.overlaps(cellCoordsVisual)) {
       // We can't show selection visually now, but we found fist visible range in the broader cell range.
       if (this.cellRange === null) {
-        const singleCellRangeRenderable = this.settings.visualToRenderableCoords(singleCellRangeVisual);
+        const cellCoordsRenderable = this.settings.visualToRenderableCoords(cellCoordsVisual);
 
-        this.cellRange = this.settings.createCellRange(singleCellRangeRenderable);
+        this.cellRange = this.settings.createCellRange(cellCoordsRenderable);
       }
 
       // We set new highlight as it might change (for example, when showing/hiding some cells from the broader selection range)
       // TODO: It is also handled by the `MergeCells` plugin while adjusting already modified coordinates. Should it?
-      broaderCellRange.setHighlight(singleCellRangeVisual);
+      broaderCellRange.setHighlight(cellCoordsVisual);
 
       return this;
     }
 
     // Fallback to the start of the range. It resets the previous highlight (for example, when all columns have been hidden).
-    // broaderCellRange.setHighlight(broaderCellRange.from);
+    // broaderCellRange.setHighlight(broaderCellRange.from.clone().normalize());
 
     return this;
   }

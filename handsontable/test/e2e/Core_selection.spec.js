@@ -991,9 +991,9 @@ describe('Core_selection', () => {
 
     await sleep(30);
 
-    expect(getSelected()).toEqual([[12, 11, -1, 11]]);
+    expect(getSelected()).toEqual([[12, 11, 0, 11]]);
     expect(`
-    | - ║   :   :   :   :   : - :   :   :   :   :   |
+    |   ║   :   :   :   :   : - :   :   :   :   :   |
     |===:===:===:===:===:===:===:===:===:===:===:===|
     | - ║   :   :   :   :   : 0 :   :   :   :   :   |
     | - ║   :   :   :   :   : 0 :   :   :   :   :   |
@@ -1058,7 +1058,7 @@ describe('Core_selection', () => {
 
     await sleep(30);
 
-    expect(getSelected()).toEqual([[12, 11, 12, -1]]);
+    expect(getSelected()).toEqual([[12, 11, 12, 0]]);
     expect(`
     | - ║ - : - : - : - : - : - :   :   :   :   :   |
     |===:===:===:===:===:===:===:===:===:===:===:===|

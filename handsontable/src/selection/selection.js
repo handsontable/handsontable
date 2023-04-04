@@ -229,9 +229,20 @@ class Selection {
       return;
     }
 
-    // We are creating copy. We would like to modify just the end of the selection by below hook. Then original coords
-    // should be handled by next methods.
     const coordsClone = coords.clone();
+    const countRows = this.tableProps.countRows();
+    const countCols = this.tableProps.countCols();
+
+    // Ignore processing the end range when the header selection starts overlapping the corner.
+    if ((countRows > 0 || countCols > 0) &&
+       (countRows === 0 && coordsClone.col < 0 || countCols === 0 && coordsClone.row < 0)) {
+      return;
+    }
+
+    // Prevent creating "area" selection that overlaps headers.
+    if (countRows > 0 && countCols > 0) {
+      coordsClone.normalize();
+    }
 
     this.runLocalHooks('beforeSetRangeEnd', coordsClone);
     this.begin();
@@ -240,7 +251,6 @@ class Selection {
 
     if (!this.settings.navigableHeaders) {
       cellRange.highlight.normalize();
-      // coordsClone.normalize();
     }
 
     if (this.settings.selectionMode !== 'single') {

@@ -1,7 +1,6 @@
 import { isDefined } from '../helpers/mixed';
+import { GRID_GROUP, EDITOR_EDIT_GROUP } from './constants';
 import { createShortcutsCommand } from './commands';
-
-const SHORTCUTS_GROUP = 'gridDefault';
 
 /**
  * The context that defines shortcut list available for selected cell or cells.
@@ -17,7 +16,7 @@ export function shortcutsGridContext(hot) {
         hot.countRenderedRows() > 0 &&
         hot.countRenderedCols() > 0;
     },
-    group: SHORTCUTS_GROUP,
+    group: GRID_GROUP,
   };
 
   context.addShortcuts([{
@@ -30,7 +29,7 @@ export function shortcutsGridContext(hot) {
     keys: [['Backspace'], ['Delete']],
     callback: () => commandsPool.emptySelectedCells(),
   }], {
-    group: SHORTCUTS_GROUP,
+    group: EDITOR_EDIT_GROUP,
   });
 
   context.addShortcuts([{

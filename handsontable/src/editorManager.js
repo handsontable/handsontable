@@ -5,7 +5,6 @@ import EventManager from './eventManager';
 import { isDefined } from './helpers/mixed';
 
 export const SHORTCUTS_GROUP_NAVIGATION = 'editorManager.navigation';
-export const SHORTCUTS_GROUP_EDITOR = 'editorManager.handlingEditor';
 
 class EditorManager {
   /**
@@ -70,12 +69,6 @@ class EditorManager {
      */
     this.cellProperties = void 0;
 
-    const shortcutManager = this.instance.getShortcutManager();
-
-    shortcutManager.addContext('editor');
-
-    this.registerShortcuts();
-
     this.instance.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
 
     // Open editor when text composition is started (IME editor)
@@ -86,31 +79,6 @@ class EditorManager {
     });
 
     this.instance.view._wt.update('onCellDblClick', (event, coords, elem) => this.onCellDblClick(event, coords, elem));
-  }
-
-  /**
-   * Register shortcuts responsible for handling some actions related to an editor.
-   *
-   * @private
-   */
-  registerShortcuts() {
-    const shortcutManager = this.instance.getShortcutManager();
-    const editorContext = shortcutManager.getContext('editor');
-    const config = { group: SHORTCUTS_GROUP_EDITOR };
-
-    editorContext.addShortcuts([{
-      keys: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control/Meta'], ['Enter', 'Control/Meta', 'Shift']],
-      callback: (event, keys) => {
-        this.closeEditorAndSaveChanges(shortcutManager.isCtrlPressed());
-        this.moveSelectionAfterEnter(keys.includes('shift'));
-      }
-    }, {
-      keys: [['Escape'], ['Escape', 'Control/Meta']],
-      callback: () => {
-        this.closeEditorAndRestoreOriginalValue(shortcutManager.isCtrlPressed());
-        this.activeEditor.focus();
-      },
-    }], config);
   }
 
   /**

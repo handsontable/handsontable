@@ -297,7 +297,7 @@ describe('HiddenRows', () => {
       const $topBorderArea = $wtBorderAreas.eq(0);
       const $leftBorderArea = $wtBorderAreas.eq(1);
 
-      expect(getSelected()).toEqual([[1, 0, -1, 0]]);
+      expect(getSelected()).toEqual([[1, 0, 0, 0]]);
       expect(`
       | - |
       |===|

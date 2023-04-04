@@ -1,7 +1,6 @@
 import { isDefined } from '../helpers/mixed';
+import { HEADERS_GROUP } from './constants';
 import { createShortcutsCommand } from './commands';
-
-const SHORTCUTS_GROUP = 'headersDefault';
 
 /**
  * The context that defines shortcut list available for selected headers.
@@ -17,7 +16,7 @@ export function shortcutsHeadersContext(hot) {
         hot.countRowHeaders() > 0 &&
         hot.countColHeaders() > 0;
     },
-    group: SHORTCUTS_GROUP,
+    group: HEADERS_GROUP,
   };
 
   context.addShortcuts([{

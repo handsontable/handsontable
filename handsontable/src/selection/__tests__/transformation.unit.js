@@ -906,7 +906,7 @@ describe('Transformation class', () => {
       expect(transform.transformEnd(-999, 0)).toEqual({ row: 0, col: 5 });
     });
 
-    it('should return coords that points to the row header when the `navigableHeaders` option is enabled', () => {
+    it('should not return coords that points to the row header when the `navigableHeaders` option is enabled', () => {
       const transform = createTransformation({
         range: createSelectionRange(0, 0, 0, 0, 5, 2),
         navigableHeaders: true,
@@ -914,14 +914,14 @@ describe('Transformation class', () => {
         countColHeaders: 3,
       });
 
-      expect(transform.transformEnd(0, -3)).toEqual({ row: 5, col: -1 });
-      expect(transform.transformEnd(0, -4)).toEqual({ row: 5, col: -2 });
-      expect(transform.transformEnd(0, -5)).toEqual({ row: 5, col: -3 });
-      expect(transform.transformEnd(0, -6)).toEqual({ row: 5, col: -3 });
-      expect(transform.transformEnd(0, -999)).toEqual({ row: 5, col: -3 });
+      expect(transform.transformEnd(0, -3)).toEqual({ row: 5, col: 0 });
+      expect(transform.transformEnd(0, -4)).toEqual({ row: 5, col: 0 });
+      expect(transform.transformEnd(0, -5)).toEqual({ row: 5, col: 0 });
+      expect(transform.transformEnd(0, -6)).toEqual({ row: 5, col: 0 });
+      expect(transform.transformEnd(0, -999)).toEqual({ row: 5, col: 0 });
     });
 
-    it('should return coords that points to the column header when the `navigableHeaders` option is enabled', () => {
+    it('should not return coords that points to the column header when the `navigableHeaders` option is enabled', () => {
       const transform = createTransformation({
         range: createSelectionRange(0, 0, 0, 0, 2, 5),
         navigableHeaders: true,
@@ -929,11 +929,11 @@ describe('Transformation class', () => {
         countColHeaders: 3,
       });
 
-      expect(transform.transformEnd(-3, 0)).toEqual({ row: -1, col: 5 });
-      expect(transform.transformEnd(-4, 0)).toEqual({ row: -2, col: 5 });
-      expect(transform.transformEnd(-5, 0)).toEqual({ row: -3, col: 5 });
-      expect(transform.transformEnd(-6, 0)).toEqual({ row: -3, col: 5 });
-      expect(transform.transformEnd(-999, 0)).toEqual({ row: -3, col: 5 });
+      expect(transform.transformEnd(-3, 0)).toEqual({ row: 0, col: 5 });
+      expect(transform.transformEnd(-4, 0)).toEqual({ row: 0, col: 5 });
+      expect(transform.transformEnd(-5, 0)).toEqual({ row: 0, col: 5 });
+      expect(transform.transformEnd(-6, 0)).toEqual({ row: 0, col: 5 });
+      expect(transform.transformEnd(-999, 0)).toEqual({ row: 0, col: 5 });
     });
 
     describe('`beforeTransformEnd` hook', () => {
@@ -1005,7 +1005,7 @@ describe('Transformation class', () => {
           transform.addLocalHook('afterTransformEnd', hookListener.afterTransformEnd);
           transform.transformEnd(-999, 0);
 
-          expect(hookListener.afterTransformEnd).toHaveBeenCalledWith({ row: -3, col: 1 }, -1, 0);
+          expect(hookListener.afterTransformEnd).toHaveBeenCalledWith({ row: 0, col: 1 }, -1, 0);
         }
         {
           const hookListener = { afterTransformEnd() {} };
@@ -1062,7 +1062,7 @@ describe('Transformation class', () => {
           transform.addLocalHook('afterTransformEnd', hookListener.afterTransformEnd);
           transform.transformEnd(0, -999);
 
-          expect(hookListener.afterTransformEnd).toHaveBeenCalledWith({ row: 1, col: -3 }, 0, -1);
+          expect(hookListener.afterTransformEnd).toHaveBeenCalledWith({ row: 1, col: 0 }, 0, -1);
         }
         {
           const hookListener = { afterTransformEnd() {} };
