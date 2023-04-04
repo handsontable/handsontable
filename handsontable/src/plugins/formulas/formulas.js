@@ -603,7 +603,7 @@ export class Formulas extends BasePlugin {
 
       if (cellMeta.type === 'date' && isNumeric(cellValue)) {
         // Converting numeric value being Excel like date to JS Date object.
-        cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat);
+        cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat, this.engine.getConfig().leapYear1900);
       }
 
       // If `cellValue` is an object it is expected to be an error
@@ -781,7 +781,7 @@ export class Formulas extends BasePlugin {
 
     if (cellMeta.type === 'date' && isNumeric(cellValue)) {
       // Converting numeric value being Excel like date to JS Date object.
-      cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat);
+      cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat, this.engine.getConfig().leapYear1900);
     }
 
     // If `cellValue` is an object it is expected to be an error

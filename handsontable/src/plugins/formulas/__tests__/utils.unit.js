@@ -56,9 +56,9 @@ describe('Formulas utils', () => {
       expect(isNaN(getDateFromExcelDate('13/11/2022', 'DD/MM/YYYY'))).toBe(true);
 
       // Taking HyperFormula implementation. Excel shows "00.01.1900" while Google Sheets: "12/30/1899"
-      expect(getDateFromExcelDate(0, 'DD/MM/YYYY')).toEqual('31/12/1899');
+      expect(getDateFromExcelDate(0, 'DD/MM/YYYY')).toEqual('30/12/1899');
       // Taking HyperFormula implementation. Excel shows "01.01.1900" while Google Sheets: "12/31/1899"
-      expect(getDateFromExcelDate(1, 'DD/MM/YYYY')).toEqual('01/01/1900');
+      expect(getDateFromExcelDate(1, 'DD/MM/YYYY')).toEqual('31/12/1899');
       // Taking HyperFormula implementation. Excel shows "29.02.1900" while Google Sheets: "2/28/1900"
       expect(getDateFromExcelDate(60, 'DD/MM/YYYY')).toEqual('28/02/1900');
       // Values are the same for GS, Excel and HF.
