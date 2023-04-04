@@ -15,7 +15,8 @@ import {
 import {
   isEscapedFormulaExpression,
   unescapeFormulaExpression,
-  isValidDate,
+  isDate,
+  isDateValid,
   getDateInHfFormat,
   getDateFromExcelDate,
 } from './utils';
@@ -563,8 +564,15 @@ export class Formulas extends BasePlugin {
 
     const cellMeta = this.hot.getCellMeta(row, column);
 
-    if (isValidDate(newValue, cellMeta)) {
-      newValue = getDateInHfFormat(newValue, cellMeta.dateFormat);
+    if (isDate(newValue, cellMeta)) {
+      if (isDateValid(newValue, cellMeta)) {
+        // Rewriting date in HOT format to HF format.
+        newValue = getDateInHfFormat(newValue, cellMeta.dateFormat);
+
+      } else if (this.isFormulaCellType(row, column) === false) {
+        // Escaping value from date parsing using "'" sign (HF feature).
+        newValue = `'${newValue}`;
+      }
     }
 
     return this.engine.setCellContents(address, newValue);
@@ -668,11 +676,17 @@ export class Formulas extends BasePlugin {
       rowData.forEach((cellValue, columnIndex) => {
         const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex);
 
-        if (isValidDate(cellValue, cellMeta)) {
+        if (isDate(cellValue, cellMeta)) {
           valueChanged = true;
 
-          // Rewriting date in HOT format to HF format.
-          sourceDataArray[rowIndex][columnIndex] = getDateInHfFormat(cellValue, cellMeta.dateFormat);
+          if (isDateValid(cellValue, cellMeta)) {
+            // Rewriting date in HOT format to HF format.
+            sourceDataArray[rowIndex][columnIndex] = getDateInHfFormat(cellValue, cellMeta.dateFormat);
+
+          } else if (this.isFormulaCellType(rowIndex, columnIndex) === false) {
+            // Escaping value from date parsing using "'" sign (HF feature).
+            sourceDataArray[rowIndex][columnIndex] = `'${cellValue}`;
+          }
         }
       });
     });

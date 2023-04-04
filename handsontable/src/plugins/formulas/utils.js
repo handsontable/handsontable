@@ -23,15 +23,25 @@ export function unescapeFormulaExpression(expression) {
 }
 
 /**
- * Checks if provided value is valid date according to cell date format.
+ * Checks if provided value is a date according to cell meta.
  *
  * @param {*} value Checked value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  * @returns {boolean}
  */
-export function isValidDate(value, cellProperties) {
-  return typeof value === 'string' && cellProperties.type === 'date' &&
-    moment(value, cellProperties.dateFormat, true).isValid();
+export function isDate(value, cellProperties) {
+  return typeof value === 'string' && cellProperties.type === 'date';
+}
+
+/**
+ * Checks if provided date is a valid date according to cell date format.
+ *
+ * @param {*} date Checked date.
+ * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
+ * @returns {boolean}
+ */
+export function isDateValid(date, cellProperties) {
+  return moment(date, cellProperties.dateFormat, true).isValid();
 }
 
 /**

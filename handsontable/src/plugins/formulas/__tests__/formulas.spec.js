@@ -2794,7 +2794,7 @@ describe('Formulas general', () => {
   });
 
   describe('handling dates', () => {
-    xit('should handle improper on start dates properly (mismatching date formatting)', async() => {
+    it('should handle improper on start dates properly (mismatching date formatting) #1', async() => {
       handsontable({
         data: [
           ['13/12/2022'],
@@ -2817,7 +2817,47 @@ describe('Formulas general', () => {
       ]);
 
       expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['\'13/12/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
         ['13/12/2022'],
+        ['13/12/2022'],
+      ]);
+
+      validateCells();
+
+      await sleep(10);
+
+      expect(getCellMeta(0, 0).valid).toBe(false);
+      expect(getCellMeta(1, 0).valid).toBe(false);
+    });
+
+    it('should handle improper on start dates properly (mismatching date formatting) #2', async() => {
+      handsontable({
+        data: [
+          ['13/12/2022'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD-MM-YYYY'
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['13/12/2022'], // Not converted - improper date (we treat it as a string)
+        ['13/12/2022'],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['\'13/12/2022'],
         ['=A1'],
       ]);
 
@@ -2874,7 +2914,7 @@ describe('Formulas general', () => {
       expect(getCellMeta(1, 0).valid).toBe(true);
     });
 
-    xit('should handle dates after change properly (mismatching date formatting)', async() => {
+    it('should handle dates after change properly (mismatching date formatting)', async() => {
       handsontable({
         data: [
           ['12/11/2022'],
@@ -2893,13 +2933,15 @@ describe('Formulas general', () => {
 
       setDataAtCell(0, 0, '13/12/2022');
 
+      await sleep(10);
+
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         ['13/12/2022'], // Not converted - improper date (we treat it as a string)
         ['13/12/2022'],
       ]);
 
       expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
-        ['13/12/2022'],
+        ['\'13/12/2022'],
         ['=A1'],
       ]);
 
@@ -2916,6 +2958,8 @@ describe('Formulas general', () => {
       expect(getCellMeta(1, 0).valid).toBe(false);
 
       setDataAtCell(0, 0, '12/11/2022');
+
+      await sleep(100);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         [44906], // 11 Dec 2022
@@ -2989,7 +3033,7 @@ describe('Formulas general', () => {
       ]);
 
       expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
-        ['12/13/2022'],
+        ['\'12/13/2022'],
         ['=A1'],
       ]);
 
