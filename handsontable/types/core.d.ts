@@ -45,6 +45,8 @@ export default class Core {
   countSourceRows(): number;
   countVisibleCols(): number;
   countVisibleRows(): number;
+  countRowHeaders(): number;
+  countColHeaders(): number;
   deselectCell(): void;
   destroy(): void;
   destroyEditor(revertOriginal?: boolean, prepareEditorIfNeeded?: boolean): void;

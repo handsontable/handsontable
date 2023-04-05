@@ -846,21 +846,39 @@ class TableView {
       onBeforeRemoveCellClassNames: () => this.instance.runHooks('beforeRemoveCellClassNames'),
       onBeforeHighlightingRowHeader: (renderableRow, headerLevel, highlightMeta) => {
         const rowMapper = this.instance.rowIndexMapper;
-        const visualRow = rowMapper.getVisualFromRenderableIndex(renderableRow);
+        const areColumnHeadersSelected = renderableRow < 0;
+        let visualRow = renderableRow;
+
+        if (!areColumnHeadersSelected) {
+          visualRow = rowMapper.getVisualFromRenderableIndex(renderableRow);
+        }
 
         const newVisualRow = this.instance
           .runHooks('beforeHighlightingRowHeader', visualRow, headerLevel, highlightMeta);
 
-        return rowMapper.getRenderableFromVisualIndex(rowMapper.getNearestNotHiddenIndex(newVisualRow, 1));
+        if (!areColumnHeadersSelected) {
+          return rowMapper.getRenderableFromVisualIndex(rowMapper.getNearestNotHiddenIndex(newVisualRow, 1));
+        }
+
+        return newVisualRow;
       },
       onBeforeHighlightingColumnHeader: (renderableColumn, headerLevel, highlightMeta) => {
         const columnMapper = this.instance.columnIndexMapper;
-        const visualColumn = columnMapper.getVisualFromRenderableIndex(renderableColumn);
+        const areRowHeadersSelected = renderableColumn < 0;
+        let visualColumn = renderableColumn;
+
+        if (!areRowHeadersSelected) {
+          visualColumn = columnMapper.getVisualFromRenderableIndex(renderableColumn);
+        }
 
         const newVisualColumn = this.instance
           .runHooks('beforeHighlightingColumnHeader', visualColumn, headerLevel, highlightMeta);
 
-        return columnMapper.getRenderableFromVisualIndex(columnMapper.getNearestNotHiddenIndex(newVisualColumn, 1));
+        if (!areRowHeadersSelected) {
+          return columnMapper.getRenderableFromVisualIndex(columnMapper.getNearestNotHiddenIndex(newVisualColumn, 1));
+        }
+
+        return newVisualColumn;
       },
       onAfterDrawSelection: (currentRow, currentColumn, layerLevel) => {
         let cornersOfSelection;

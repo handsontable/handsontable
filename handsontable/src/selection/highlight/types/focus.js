@@ -1,4 +1,4 @@
-import { CELL_TYPE } from '../constants';
+import { HIGHLIGHT_FOCUS_TYPE } from '../../../3rdparty/walkontable/src';
 import VisualSelection from '../visualSelection';
 
 /**
@@ -9,8 +9,8 @@ import VisualSelection from '../visualSelection';
  * @param {Function} highlightParams.cellCornerVisible Function to determine if cell's corner should be visible.
  * @returns {Selection}
  */
-function createHighlight({ cellCornerVisible, ...restOptions }) {
-  const s = new VisualSelection({
+export function createHighlight({ cellCornerVisible, ...restOptions }) {
+  return new VisualSelection({
     className: 'current',
     border: {
       width: 2,
@@ -18,10 +18,6 @@ function createHighlight({ cellCornerVisible, ...restOptions }) {
       cornerVisible: cellCornerVisible,
     },
     ...restOptions,
-    selectionType: CELL_TYPE,
+    selectionType: HIGHLIGHT_FOCUS_TYPE,
   });
-
-  return s;
 }
-
-export default createHighlight;

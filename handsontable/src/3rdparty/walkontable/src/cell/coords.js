@@ -87,6 +87,26 @@ class CellCoords {
   }
 
   /**
+   * Checks if the coordinates point to the headers range. If one of the axis (row or col) point to
+   * the header (negative value) then method returns `true`.
+   *
+   * @returns {boolean}
+   */
+  isHeader() {
+    return !this.isCell();
+  }
+
+  /**
+   * Checks if the coordinates point to the cells range. If all axis (row and col) point to
+   * the cell (positive value) then method returns `true`.
+   *
+   * @returns {boolean}
+   */
+  isCell() {
+    return this.row >= 0 && this.col >= 0;
+  }
+
+  /**
    * Checks if another set of coordinates (`testedCoords`)
    * is south-east of the coordinates in your `CellCoords` instance.
    *

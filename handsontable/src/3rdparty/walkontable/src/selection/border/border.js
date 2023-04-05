@@ -9,10 +9,11 @@ import {
   offset,
   outerHeight,
   outerWidth,
-} from '../../../helpers/dom/element';
-import { stopImmediatePropagation } from '../../../helpers/dom/event';
-import { objectEach } from '../../../helpers/object';
-import { isMobileBrowser } from '../../../helpers/browser';
+} from '../../../../../helpers/dom/element';
+import { stopImmediatePropagation } from '../../../../../helpers/dom/event';
+import { objectEach } from '../../../../../helpers/object';
+import { isMobileBrowser } from '../../../../../helpers/browser';
+import { CORNER_DEFAULT_STYLE } from './constants';
 
 /**
  *
@@ -46,13 +47,7 @@ class Border {
     this.startStyle = null;
     this.endStyle = null;
 
-    this.cornerDefaultStyle = {
-      width: '6px',
-      height: '6px',
-      borderWidth: '1px',
-      borderStyle: 'solid',
-      borderColor: '#FFF'
-    };
+    this.cornerDefaultStyle = CORNER_DEFAULT_STYLE;
     // Offset to moving the corner to be centered relative to the grid.
     this.cornerCenterPointOffset = -(parseInt(this.cornerDefaultStyle.width, 10) / 2);
     this.corner = null;
@@ -289,7 +284,7 @@ class Border {
    * @returns {boolean}
    */
   isPartRange(row, col) {
-    const areaSelection = this.wot.selections.createOrGetArea();
+    const areaSelection = this.wot.selectionManager.getAreaSelection();
 
     if (areaSelection.cellRange) {
       if (row !== areaSelection.cellRange.to.row || col !== areaSelection.cellRange.to.col) {

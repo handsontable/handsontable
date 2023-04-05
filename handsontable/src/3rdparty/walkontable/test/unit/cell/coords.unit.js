@@ -32,6 +32,42 @@ describe('CellCoords', () => {
     });
   });
 
+  describe('isCell()', () => {
+    it('should return `false` when one of the axis point to the header (negative value)', () => {
+      expect(new CellCoords(-1, 9).isCell()).toBe(false);
+      expect(new CellCoords(9, -1).isCell()).toBe(false);
+      expect(new CellCoords(-1, -1).isCell()).toBe(false);
+      expect(new CellCoords(0, -1).isCell()).toBe(false);
+      expect(new CellCoords(-1, 0).isCell()).toBe(false);
+    });
+
+    it('should return `true` when all axis point to the cells range', () => {
+      expect(new CellCoords(0, 0).isCell()).toBe(true);
+      expect(new CellCoords(1, 0).isCell()).toBe(true);
+      expect(new CellCoords(0, 1).isCell()).toBe(true);
+      expect(new CellCoords(1, 1).isCell()).toBe(true);
+      expect(new CellCoords(100, 100).isCell()).toBe(true);
+    });
+  });
+
+  describe('isHeader()', () => {
+    it('should return `false` when all axis point to the cells (positive value)', () => {
+      expect(new CellCoords(0, 0).isHeader()).toBe(false);
+      expect(new CellCoords(1, 0).isHeader()).toBe(false);
+      expect(new CellCoords(0, 1).isHeader()).toBe(false);
+      expect(new CellCoords(1, 1).isHeader()).toBe(false);
+      expect(new CellCoords(100, 100).isHeader()).toBe(false);
+    });
+
+    it('should return `true` when one of the axis point to the headers range', () => {
+      expect(new CellCoords(-1, 9).isHeader()).toBe(true);
+      expect(new CellCoords(9, -1).isHeader()).toBe(true);
+      expect(new CellCoords(-1, -1).isHeader()).toBe(true);
+      expect(new CellCoords(0, -1).isHeader()).toBe(true);
+      expect(new CellCoords(-1, 0).isHeader()).toBe(true);
+    });
+  });
+
   describe('isSouthEastOf()', () => {
     it('should correctly check the position of the CellCoords instance based on the passed coords', () => {
       const coords = new CellCoords(5, 5);

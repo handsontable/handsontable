@@ -506,8 +506,7 @@ describe('HiddenRows', () => {
       expect(getSelectedRangeLast().to.col).toBe(0);
       expect($mergeArea.hasClass('area')).toBeTrue();
       expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
-      // TODO: Probably it should return `false`.
-      expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeTrue();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       // Probably it should return `true`, changed since 8.0.0.
       expect($mergeArea.hasClass('fullySelectedMergedCell-0')).toBeTrue();
       expect($mergeArea.hasClass('fullySelectedMergedCell-1')).toBeFalse();

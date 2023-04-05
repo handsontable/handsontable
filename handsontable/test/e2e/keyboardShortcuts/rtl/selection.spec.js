@@ -115,7 +115,7 @@ describe('Core selection (RTL mode) keyboard shortcut', () => {
       keyDownUp(['control/meta', 'shift', 'arrowright']);
 
       expect(`
-        | * : * : * : * : * ║   |
+        | * : * : * : * : * ║ * |
         |===:===:===:===:===:===|
         | 0 : 0 : 0 : 0 : A ║ * |
         | 0 : 0 : 0 : 0 : 0 ║ * |
@@ -227,7 +227,7 @@ describe('Core selection (RTL mode) keyboard shortcut', () => {
       keyDownUp(['control/meta', 'shift', 'arrowleft']);
 
       expect(`
-        | * : * : * : * : * ║   |
+        | * : * : * : * : * ║ * |
         |===:===:===:===:===:===|
         | 0 : 0 : 0 : 0 : A ║ * |
         | 0 : 0 : 0 : 0 : 0 ║ * |
@@ -339,7 +339,7 @@ describe('Core selection (RTL mode) keyboard shortcut', () => {
       keyDownUp(['control/meta', 'shift', 'arrowup']);
 
       expect(`
-        | * : * : * : * : * ║   |
+        | * : * : * : * : * ║ * |
         |===:===:===:===:===:===|
         | 0 : 0 : 0 : 0 : A ║ * |
         | 0 : 0 : 0 : 0 : 0 ║ * |
@@ -451,7 +451,7 @@ describe('Core selection (RTL mode) keyboard shortcut', () => {
       keyDownUp(['control/meta', 'shift', 'arrowdown']);
 
       expect(`
-        | * : * : * : * : * ║   |
+        | * : * : * : * : * ║ * |
         |===:===:===:===:===:===|
         | 0 : 0 : 0 : 0 : A ║ * |
         | 0 : 0 : 0 : 0 : 0 ║ * |

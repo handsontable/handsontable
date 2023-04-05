@@ -136,7 +136,7 @@ describe('Core selection keyboard shortcut', () => {
       keyDownUp(['control/meta', 'shift', 'arrowright']);
 
       expect(`
-        |   ║ * : * : * : * : * |
+        | * ║ * : * : * : * : * |
         |===:===:===:===:===:===|
         | * ║ A : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 |
@@ -272,7 +272,7 @@ describe('Core selection keyboard shortcut', () => {
       keyDownUp(['control/meta', 'shift', 'arrowleft']);
 
       expect(`
-      |   ║ * : * : * : * : * |
+      | * ║ * : * : * : * : * |
       |===:===:===:===:===:===|
       | * ║ A : 0 : 0 : 0 : 0 |
       | * ║ 0 : 0 : 0 : 0 : 0 |
@@ -408,7 +408,7 @@ describe('Core selection keyboard shortcut', () => {
       keyDownUp(['control/meta', 'shift', 'arrowup']);
 
       expect(`
-      |   ║ * : * : * : * : * |
+      | * ║ * : * : * : * : * |
       |===:===:===:===:===:===|
       | * ║ A : 0 : 0 : 0 : 0 |
       | * ║ 0 : 0 : 0 : 0 : 0 |
@@ -544,7 +544,7 @@ describe('Core selection keyboard shortcut', () => {
       keyDownUp(['control/meta', 'shift', 'arrowdown']);
 
       expect(`
-      |   ║ * : * : * : * : * |
+      | * ║ * : * : * : * : * |
       |===:===:===:===:===:===|
       | * ║ A : 0 : 0 : 0 : 0 |
       | * ║ 0 : 0 : 0 : 0 : 0 |
@@ -1094,7 +1094,7 @@ describe('Core selection keyboard shortcut', () => {
       keyDownUp(['control/meta', 'a']);
 
       expect(`
-        |   ║ * : * : * : * : * |
+        | * ║ * : * : * : * : * |
         |===:===:===:===:===:===|
         | * ║ A : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 |
@@ -1119,7 +1119,7 @@ describe('Core selection keyboard shortcut', () => {
       keyDownUp(['control/meta', 'shift', 'space']);
 
       expect(`
-        |   ║ * : * : * : * : * |
+        | * ║ * : * : * : * : * |
         |===:===:===:===:===:===|
         | * ║ A : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 |

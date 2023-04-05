@@ -114,7 +114,7 @@ describe('ContextMenu', () => {
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual([null, 'A1', 'B1', 'C1', 'D1', 'E1']);
       expect(`
-        |   ║ * : * : * : * : * : * |
+        | * ║ * : * : * : * : * : * |
         |===:===:===:===:===:===:===|
         | * ║ A : 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
@@ -144,7 +144,7 @@ describe('ContextMenu', () => {
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
       expect(`
-        |   ║ * : * : * : * : * |
+        | * ║ * : * : * : * : * |
         |===:===:===:===:===:===|
         | * ║ A : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 |
@@ -175,7 +175,7 @@ describe('ContextMenu', () => {
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getColHeader()).toEqual(['A', 1, 2, 3, 4, 5]);
       expect(`
-        |   ║ * : * : * : * : * : * |
+        | * ║ * : * : * : * : * : * |
         |===:===:===:===:===:===:===|
         `).toBeMatchToSelectionPattern();
     });
@@ -200,7 +200,7 @@ describe('ContextMenu', () => {
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
-        |   |
+        | * |
         |===|
         | * |
         | * |
@@ -230,7 +230,7 @@ describe('ContextMenu', () => {
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
-        |   |
+        | * |
         |===|
         `).toBeMatchToSelectionPattern();
     });

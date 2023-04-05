@@ -834,7 +834,7 @@ describe('HiddenRows', () => {
           expect(getSelectedRangeLast().to.row).toBe(4);
           expect(getSelectedRangeLast().to.col).toBe(1);
           expect(`
-            |   ║ * : * |
+            | * ║ * : * |
             |===:===:===|
             | * ║ A : 0 |
             | * ║ 0 : 0 |

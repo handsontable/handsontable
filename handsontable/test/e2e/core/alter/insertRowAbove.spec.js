@@ -505,7 +505,7 @@ describe('Core.alter', () => {
       selectAll();
 
       expect(`
-        |   ║ * : * : * : * : * |
+        | * ║ * : * : * : * : * |
         |===:===:===:===:===:===|
         | * ║ A : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 |
@@ -515,7 +515,7 @@ describe('Core.alter', () => {
       alter('insert_row_above', 0); // add to the beginning of the table
 
       expect(`
-        |   ║ * : * : * : * : * |
+        | * ║ * : * : * : * : * |
         |===:===:===:===:===:===|
         | * ║ A : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 |
@@ -526,7 +526,7 @@ describe('Core.alter', () => {
       alter('insert_row_above', 100); // add to the end of the table
 
       expect(`
-        |   ║ * : * : * : * : * |
+        | * ║ * : * : * : * : * |
         |===:===:===:===:===:===|
         | * ║ A : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 |
