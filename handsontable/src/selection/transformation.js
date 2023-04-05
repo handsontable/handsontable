@@ -74,41 +74,45 @@ class Transformation {
         col: x + delta.col,
       };
 
-      // console.log('transformStart: delta', delta.row, delta.col);
-
-      if (y + delta.row >= height) {
+      if (rawCoords.row >= height) {
         if (createMissingRecords && minSpareRows > 0 && fixedRowsBottom === 0) {
           this.runLocalHooks('insertRowRequire', this.#options.countRows());
 
         } else if (autoWrapCol) {
-          rawCoords.row = 0;
-          rawCoords.col = x + 1 >= width ? 0 : x + 1;
+          const nextColumn = rawCoords.col + 1;
+
+          rawCoords.row = rawCoords.row - height;
+          rawCoords.col = nextColumn >= width ? nextColumn - width : nextColumn;
         }
 
-      } else if (y + delta.row < 0) {
+      } else if (rawCoords.row < 0) {
         if (autoWrapCol) {
-          rawCoords.row = height - 1;
-          rawCoords.col = x - 1 < 0 ? width - 1 : x - 1;
+          const previousColumn = rawCoords.col - 1;
+
+          rawCoords.row = height + rawCoords.row;
+          rawCoords.col = previousColumn < 0 ? width + previousColumn : previousColumn;
         }
       }
 
-      if (x + delta.col >= width) {
+      if (rawCoords.col >= width) {
         if (createMissingRecords && minSpareCols > 0) {
           this.runLocalHooks('insertColRequire', this.#options.countCols());
 
         } else if (autoWrapRow) {
-          rawCoords.row = y + 1 >= height ? 0 : y + 1;
-          rawCoords.col = 0;
+          const nextRow = rawCoords.row + 1;
+
+          rawCoords.row = nextRow >= height ? nextRow - height : nextRow;
+          rawCoords.col = rawCoords.col - width;
         }
 
-      } else if (x + colDelta < 0) {
+      } else if (rawCoords.col < 0) {
         if (autoWrapRow) {
-          rawCoords.row = y - 1 < 0 ? height - 1 : y - 1;
-          rawCoords.col = width - 1;
+          const previousRow = rawCoords.row - 1;
+
+          rawCoords.row = previousRow < 0 ? height + previousRow : previousRow;
+          rawCoords.col = width + rawCoords.col;
         }
       }
-
-      // console.log('transformStart: rawCoords', rawCoords.row, rawCoords.col);
 
       const coords = this.#options.createCellCoords(rawCoords.row, rawCoords.col);
       const { rowDir, colDir } = this.#clampCoords(coords);

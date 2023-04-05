@@ -706,8 +706,6 @@ export class MergeCells extends BasePlugin {
     if (newDelta.col !== 0) {
       delta.col = newDelta.col;
     }
-
-    // console.log('MergeCells: delta', delta.row, delta.col);
   }
 
   /**

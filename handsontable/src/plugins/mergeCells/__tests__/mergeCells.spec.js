@@ -443,12 +443,12 @@ describe('MergeCells', () => {
       keyDownUp('enter');
       keyDownUp('enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       keyDownUp('enter');
       keyDownUp('enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A2');
     });
 
     it('should select the cell in the top-left corner of the merged cell, when navigating down using the TAB key on the' +

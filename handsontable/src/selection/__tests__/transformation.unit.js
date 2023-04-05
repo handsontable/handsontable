@@ -165,8 +165,19 @@ describe('Transformation class', () => {
         });
 
         expect(transform.transformStart(5, 0)).toEqual({ row: 0, col: 1 });
-        expect(transform.transformStart(5, 1)).toEqual({ row: 0, col: 1 });
-        expect(transform.transformStart(5, 999)).toEqual({ row: 0, col: 1 });
+        expect(transform.transformStart(7, 0)).toEqual({ row: 2, col: 1 });
+        expect(transform.transformStart(10, 0)).toEqual({ row: 5, col: 1 });
+        expect(transform.transformStart(13, 0)).toEqual({ row: 8, col: 1 });
+        expect(transform.transformStart(999, 0)).toEqual({ row: 9, col: 1 });
+        expect(transform.transformStart(5, -1)).toEqual({ row: 0, col: 0 });
+        expect(transform.transformStart(5, -2)).toEqual({ row: 0, col: 0 });
+        expect(transform.transformStart(5, -999)).toEqual({ row: 0, col: 0 });
+        expect(transform.transformStart(5, 1)).toEqual({ row: 0, col: 2 });
+        expect(transform.transformStart(5, 2)).toEqual({ row: 0, col: 3 });
+        expect(transform.transformStart(5, 7)).toEqual({ row: 0, col: 8 });
+        expect(transform.transformStart(5, 8)).toEqual({ row: 0, col: 9 });
+        expect(transform.transformStart(5, 9)).toEqual({ row: 0, col: 0 });
+        expect(transform.transformStart(5, 999)).toEqual({ row: 0, col: 9 });
       }
       {
         const transform = createTransformation({
@@ -178,8 +189,17 @@ describe('Transformation class', () => {
         });
 
         expect(transform.transformStart(5, 0)).toEqual({ row: 0, col: 6 });
-        expect(transform.transformStart(5, 1)).toEqual({ row: 0, col: 6 });
-        expect(transform.transformStart(5, 999)).toEqual({ row: 0, col: 6 });
+        expect(transform.transformStart(7, 0)).toEqual({ row: 2, col: 6 });
+        expect(transform.transformStart(10, 0)).toEqual({ row: 5, col: 6 });
+        expect(transform.transformStart(999, 0)).toEqual({ row: 9, col: 6 });
+        expect(transform.transformStart(5, -1)).toEqual({ row: 0, col: 5 });
+        expect(transform.transformStart(5, -2)).toEqual({ row: 0, col: 4 });
+        expect(transform.transformStart(5, -999)).toEqual({ row: 0, col: 0 });
+        expect(transform.transformStart(5, 1)).toEqual({ row: 0, col: 7 });
+        expect(transform.transformStart(5, 2)).toEqual({ row: 0, col: 8 });
+        expect(transform.transformStart(5, 3)).toEqual({ row: 0, col: 9 });
+        expect(transform.transformStart(5, 4)).toEqual({ row: 0, col: 0 });
+        expect(transform.transformStart(5, 999)).toEqual({ row: 0, col: 9 });
       }
       {
         const transform = createTransformation({
@@ -191,8 +211,14 @@ describe('Transformation class', () => {
         });
 
         expect(transform.transformStart(5, 0)).toEqual({ row: 0, col: 0 });
-        expect(transform.transformStart(5, 1)).toEqual({ row: 0, col: 0 });
-        expect(transform.transformStart(5, 999)).toEqual({ row: 0, col: 0 });
+        expect(transform.transformStart(7, 0)).toEqual({ row: 2, col: 0 });
+        expect(transform.transformStart(10, 0)).toEqual({ row: 5, col: 0 });
+        expect(transform.transformStart(999, 0)).toEqual({ row: 9, col: 0 });
+        expect(transform.transformStart(5, 1)).toEqual({ row: 0, col: 1 });
+        expect(transform.transformStart(5, 2)).toEqual({ row: 0, col: 2 });
+        expect(transform.transformStart(5, 8)).toEqual({ row: 0, col: 8 });
+        expect(transform.transformStart(5, 9)).toEqual({ row: 0, col: 9 });
+        expect(transform.transformStart(5, 999)).toEqual({ row: 0, col: 9 });
       }
     });
 
@@ -207,9 +233,20 @@ describe('Transformation class', () => {
           countColHeaders: 3,
         });
 
-        expect(transform.transformStart(-9, 0)).toEqual({ row: 9, col: 9 });
-        expect(transform.transformStart(-9, 1)).toEqual({ row: 9, col: 9 });
-        expect(transform.transformStart(-9, 999)).toEqual({ row: 9, col: 9 });
+        expect(transform.transformStart(-6, 0)).toEqual({ row: 9, col: 9 });
+        expect(transform.transformStart(-12, 0)).toEqual({ row: 3, col: 9 });
+        expect(transform.transformStart(-15, 0)).toEqual({ row: 0, col: 9 });
+        expect(transform.transformStart(-16, 0)).toEqual({ row: 0, col: 9 });
+        expect(transform.transformStart(-999, 0)).toEqual({ row: 0, col: 9 });
+        expect(transform.transformStart(-6, -1)).toEqual({ row: 9, col: 8 });
+        expect(transform.transformStart(-6, -2)).toEqual({ row: 9, col: 7 });
+        expect(transform.transformStart(-6, -3)).toEqual({ row: 9, col: 6 });
+        expect(transform.transformStart(-6, -9)).toEqual({ row: 9, col: 0 });
+        expect(transform.transformStart(-6, -10)).toEqual({ row: 9, col: 0 });
+        expect(transform.transformStart(-6, -999)).toEqual({ row: 9, col: 0 });
+        expect(transform.transformStart(-6, 1)).toEqual({ row: 9, col: 0 });
+        expect(transform.transformStart(-6, 2)).toEqual({ row: 9, col: 1 });
+        expect(transform.transformStart(-6, 999)).toEqual({ row: 9, col: 9 });
       }
       {
         const transform = createTransformation({
@@ -220,9 +257,20 @@ describe('Transformation class', () => {
           countColHeaders: 3,
         });
 
-        expect(transform.transformStart(-9, 0)).toEqual({ row: 9, col: 4 });
-        expect(transform.transformStart(-9, 1)).toEqual({ row: 9, col: 4 });
-        expect(transform.transformStart(-9, 999)).toEqual({ row: 9, col: 4 });
+        expect(transform.transformStart(-6, 0)).toEqual({ row: 9, col: 4 });
+        expect(transform.transformStart(-12, 0)).toEqual({ row: 3, col: 4 });
+        expect(transform.transformStart(-15, 0)).toEqual({ row: 0, col: 4 });
+        expect(transform.transformStart(-16, 0)).toEqual({ row: 0, col: 4 });
+        expect(transform.transformStart(-999, 0)).toEqual({ row: 0, col: 4 });
+        expect(transform.transformStart(-6, -1)).toEqual({ row: 9, col: 3 });
+        expect(transform.transformStart(-6, -2)).toEqual({ row: 9, col: 2 });
+        expect(transform.transformStart(-6, -3)).toEqual({ row: 9, col: 1 });
+        expect(transform.transformStart(-6, -4)).toEqual({ row: 9, col: 0 });
+        expect(transform.transformStart(-6, -5)).toEqual({ row: 9, col: 9 });
+        expect(transform.transformStart(-6, -999)).toEqual({ row: 9, col: 0 });
+        expect(transform.transformStart(-6, 1)).toEqual({ row: 9, col: 5 });
+        expect(transform.transformStart(-6, 2)).toEqual({ row: 9, col: 6 });
+        expect(transform.transformStart(-6, 999)).toEqual({ row: 9, col: 9 });
       }
       {
         const transform = createTransformation({
@@ -233,9 +281,20 @@ describe('Transformation class', () => {
           countColHeaders: 3,
         });
 
-        expect(transform.transformStart(-9, 0)).toEqual({ row: 9, col: 8 });
-        expect(transform.transformStart(-9, 1)).toEqual({ row: 9, col: 8 });
-        expect(transform.transformStart(-9, 999)).toEqual({ row: 9, col: 8 });
+        expect(transform.transformStart(-6, 0)).toEqual({ row: 9, col: 8 });
+        expect(transform.transformStart(-12, 0)).toEqual({ row: 3, col: 8 });
+        expect(transform.transformStart(-15, 0)).toEqual({ row: 0, col: 8 });
+        expect(transform.transformStart(-16, 0)).toEqual({ row: 0, col: 8 });
+        expect(transform.transformStart(-999, 0)).toEqual({ row: 0, col: 8 });
+        expect(transform.transformStart(-6, -1)).toEqual({ row: 9, col: 7 });
+        expect(transform.transformStart(-6, -2)).toEqual({ row: 9, col: 6 });
+        expect(transform.transformStart(-6, -3)).toEqual({ row: 9, col: 5 });
+        expect(transform.transformStart(-6, -4)).toEqual({ row: 9, col: 4 });
+        expect(transform.transformStart(-6, -5)).toEqual({ row: 9, col: 3 });
+        expect(transform.transformStart(-6, -999)).toEqual({ row: 9, col: 0 });
+        expect(transform.transformStart(-6, 1)).toEqual({ row: 9, col: 9 });
+        expect(transform.transformStart(-6, 2)).toEqual({ row: 9, col: 9 });
+        expect(transform.transformStart(-6, 999)).toEqual({ row: 9, col: 9 });
       }
     });
 
@@ -251,8 +310,19 @@ describe('Transformation class', () => {
         });
 
         expect(transform.transformStart(0, 5)).toEqual({ row: 1, col: 0 });
-        expect(transform.transformStart(1, 5)).toEqual({ row: 1, col: 0 });
-        expect(transform.transformStart(999, 5)).toEqual({ row: 1, col: 0 });
+        expect(transform.transformStart(0, 7)).toEqual({ row: 1, col: 2 });
+        expect(transform.transformStart(0, 10)).toEqual({ row: 1, col: 5 });
+        expect(transform.transformStart(0, 13)).toEqual({ row: 1, col: 8 });
+        expect(transform.transformStart(0, 999)).toEqual({ row: 1, col: 9 });
+        expect(transform.transformStart(-1, 5)).toEqual({ row: 0, col: 0 });
+        expect(transform.transformStart(-2, 5)).toEqual({ row: 0, col: 0 });
+        expect(transform.transformStart(-999, 5)).toEqual({ row: 0, col: 0 });
+        expect(transform.transformStart(1, 5)).toEqual({ row: 2, col: 0 });
+        expect(transform.transformStart(2, 5)).toEqual({ row: 3, col: 0 });
+        expect(transform.transformStart(7, 5)).toEqual({ row: 8, col: 0 });
+        expect(transform.transformStart(8, 5)).toEqual({ row: 9, col: 0 });
+        expect(transform.transformStart(9, 5)).toEqual({ row: 0, col: 0 });
+        expect(transform.transformStart(999, 5)).toEqual({ row: 9, col: 0 });
       }
       {
         const transform = createTransformation({
@@ -264,8 +334,17 @@ describe('Transformation class', () => {
         });
 
         expect(transform.transformStart(0, 5)).toEqual({ row: 6, col: 0 });
-        expect(transform.transformStart(1, 5)).toEqual({ row: 6, col: 0 });
-        expect(transform.transformStart(999, 5)).toEqual({ row: 6, col: 0 });
+        expect(transform.transformStart(0, 7)).toEqual({ row: 6, col: 2 });
+        expect(transform.transformStart(0, 10)).toEqual({ row: 6, col: 5 });
+        expect(transform.transformStart(0, 999)).toEqual({ row: 6, col: 9 });
+        expect(transform.transformStart(-1, 5)).toEqual({ row: 5, col: 0 });
+        expect(transform.transformStart(-2, 5)).toEqual({ row: 4, col: 0 });
+        expect(transform.transformStart(-999, 5)).toEqual({ row: 0, col: 0 });
+        expect(transform.transformStart(1, 5)).toEqual({ row: 7, col: 0 });
+        expect(transform.transformStart(2, 5)).toEqual({ row: 8, col: 0 });
+        expect(transform.transformStart(3, 5)).toEqual({ row: 9, col: 0 });
+        expect(transform.transformStart(4, 5)).toEqual({ row: 0, col: 0 });
+        expect(transform.transformStart(999, 5)).toEqual({ row: 9, col: 0 });
       }
       {
         const transform = createTransformation({
@@ -277,8 +356,14 @@ describe('Transformation class', () => {
         });
 
         expect(transform.transformStart(0, 5)).toEqual({ row: 0, col: 0 });
-        expect(transform.transformStart(1, 5)).toEqual({ row: 0, col: 0 });
-        expect(transform.transformStart(999, 5)).toEqual({ row: 0, col: 0 });
+        expect(transform.transformStart(0, 7)).toEqual({ row: 0, col: 2 });
+        expect(transform.transformStart(0, 10)).toEqual({ row: 0, col: 5 });
+        expect(transform.transformStart(0, 999)).toEqual({ row: 0, col: 9 });
+        expect(transform.transformStart(1, 5)).toEqual({ row: 1, col: 0 });
+        expect(transform.transformStart(2, 5)).toEqual({ row: 2, col: 0 });
+        expect(transform.transformStart(8, 5)).toEqual({ row: 8, col: 0 });
+        expect(transform.transformStart(9, 5)).toEqual({ row: 9, col: 0 });
+        expect(transform.transformStart(999, 5)).toEqual({ row: 9, col: 0 });
       }
     });
 
@@ -286,16 +371,27 @@ describe('Transformation class', () => {
        'and `autoWrapRow` is enabled', () => {
       {
         const transform = createTransformation({
-          range: createSelectionRange(-3, 5),
+          range: createSelectionRange(0, 5),
           navigableHeaders: false,
           autoWrapRow: true,
           countRowHeaders: 3,
           countColHeaders: 3,
         });
 
-        expect(transform.transformStart(0, -9)).toEqual({ row: 9, col: 9 });
-        expect(transform.transformStart(1, -9)).toEqual({ row: 9, col: 9 });
-        expect(transform.transformStart(999, -9)).toEqual({ row: 9, col: 9 });
+        expect(transform.transformStart(0, -6)).toEqual({ row: 9, col: 9 });
+        expect(transform.transformStart(0, -12)).toEqual({ row: 9, col: 3 });
+        expect(transform.transformStart(0, -15)).toEqual({ row: 9, col: 0 });
+        expect(transform.transformStart(0, -16)).toEqual({ row: 9, col: 0 });
+        expect(transform.transformStart(0, -999)).toEqual({ row: 9, col: 0 });
+        expect(transform.transformStart(-1, -6)).toEqual({ row: 8, col: 9 });
+        expect(transform.transformStart(-2, -6)).toEqual({ row: 7, col: 9 });
+        expect(transform.transformStart(-3, -6)).toEqual({ row: 6, col: 9 });
+        expect(transform.transformStart(-9, -6)).toEqual({ row: 0, col: 9 });
+        expect(transform.transformStart(-10, -6)).toEqual({ row: 0, col: 9 });
+        expect(transform.transformStart(-999, -6)).toEqual({ row: 0, col: 9 });
+        expect(transform.transformStart(1, -6)).toEqual({ row: 0, col: 9 });
+        expect(transform.transformStart(2, -6)).toEqual({ row: 1, col: 9 });
+        expect(transform.transformStart(999, -6)).toEqual({ row: 9, col: 9 });
       }
       {
         const transform = createTransformation({
@@ -306,9 +402,20 @@ describe('Transformation class', () => {
           countColHeaders: 3,
         });
 
-        expect(transform.transformStart(0, -9)).toEqual({ row: 4, col: 9 });
-        expect(transform.transformStart(1, -9)).toEqual({ row: 4, col: 9 });
-        expect(transform.transformStart(999, -9)).toEqual({ row: 4, col: 9 });
+        expect(transform.transformStart(0, -6)).toEqual({ row: 4, col: 9 });
+        expect(transform.transformStart(0, -12)).toEqual({ row: 4, col: 3 });
+        expect(transform.transformStart(0, -15)).toEqual({ row: 4, col: 0 });
+        expect(transform.transformStart(0, -16)).toEqual({ row: 4, col: 0 });
+        expect(transform.transformStart(0, -999)).toEqual({ row: 4, col: 0 });
+        expect(transform.transformStart(-1, -6)).toEqual({ row: 3, col: 9 });
+        expect(transform.transformStart(-2, -6)).toEqual({ row: 2, col: 9 });
+        expect(transform.transformStart(-3, -6)).toEqual({ row: 1, col: 9 });
+        expect(transform.transformStart(-4, -6)).toEqual({ row: 0, col: 9 });
+        expect(transform.transformStart(-5, -6)).toEqual({ row: 9, col: 9 });
+        expect(transform.transformStart(-999, -6)).toEqual({ row: 0, col: 9 });
+        expect(transform.transformStart(1, -6)).toEqual({ row: 5, col: 9 });
+        expect(transform.transformStart(2, -6)).toEqual({ row: 6, col: 9 });
+        expect(transform.transformStart(999, -6)).toEqual({ row: 9, col: 9 });
       }
       {
         const transform = createTransformation({
@@ -319,9 +426,20 @@ describe('Transformation class', () => {
           countColHeaders: 3,
         });
 
-        expect(transform.transformStart(0, -9)).toEqual({ row: 8, col: 9 });
-        expect(transform.transformStart(1, -9)).toEqual({ row: 8, col: 9 });
-        expect(transform.transformStart(999, -9)).toEqual({ row: 8, col: 9 });
+        expect(transform.transformStart(0, -6)).toEqual({ row: 8, col: 9 });
+        expect(transform.transformStart(0, -12)).toEqual({ row: 8, col: 3 });
+        expect(transform.transformStart(0, -15)).toEqual({ row: 8, col: 0 });
+        expect(transform.transformStart(0, -16)).toEqual({ row: 8, col: 0 });
+        expect(transform.transformStart(0, -999)).toEqual({ row: 8, col: 0 });
+        expect(transform.transformStart(-1, -6)).toEqual({ row: 7, col: 9 });
+        expect(transform.transformStart(-2, -6)).toEqual({ row: 6, col: 9 });
+        expect(transform.transformStart(-3, -6)).toEqual({ row: 5, col: 9 });
+        expect(transform.transformStart(-4, -6)).toEqual({ row: 4, col: 9 });
+        expect(transform.transformStart(-5, -6)).toEqual({ row: 3, col: 9 });
+        expect(transform.transformStart(-999, -6)).toEqual({ row: 0, col: 9 });
+        expect(transform.transformStart(1, -6)).toEqual({ row: 9, col: 9 });
+        expect(transform.transformStart(2, -6)).toEqual({ row: 9, col: 9 });
+        expect(transform.transformStart(999, -6)).toEqual({ row: 9, col: 9 });
       }
     });
 
@@ -367,8 +485,19 @@ describe('Transformation class', () => {
         });
 
         expect(transform.transformStart(5, 0)).toEqual({ row: -3, col: -2 });
-        expect(transform.transformStart(5, 1)).toEqual({ row: -3, col: -2 });
-        expect(transform.transformStart(5, 999)).toEqual({ row: -3, col: -2 });
+        expect(transform.transformStart(7, 0)).toEqual({ row: -1, col: -2 });
+        expect(transform.transformStart(10, 0)).toEqual({ row: 2, col: -2 });
+        expect(transform.transformStart(13, 0)).toEqual({ row: 5, col: -2 });
+        expect(transform.transformStart(999, 0)).toEqual({ row: 9, col: -2 });
+        expect(transform.transformStart(5, -1)).toEqual({ row: -3, col: -3 });
+        expect(transform.transformStart(5, -2)).toEqual({ row: -3, col: -3 });
+        expect(transform.transformStart(5, -999)).toEqual({ row: -3, col: -3 });
+        expect(transform.transformStart(5, 1)).toEqual({ row: -3, col: -1 });
+        expect(transform.transformStart(5, 2)).toEqual({ row: -3, col: 0 });
+        expect(transform.transformStart(5, 7)).toEqual({ row: -3, col: 5 });
+        expect(transform.transformStart(5, 8)).toEqual({ row: -3, col: 6 });
+        expect(transform.transformStart(5, 9)).toEqual({ row: -3, col: 7 });
+        expect(transform.transformStart(5, 999)).toEqual({ row: -3, col: 9 });
       }
       {
         const transform = createTransformation({
@@ -380,8 +509,18 @@ describe('Transformation class', () => {
         });
 
         expect(transform.transformStart(5, 0)).toEqual({ row: -3, col: 6 });
-        expect(transform.transformStart(5, 1)).toEqual({ row: -3, col: 6 });
-        expect(transform.transformStart(5, 999)).toEqual({ row: -3, col: 6 });
+        expect(transform.transformStart(7, 0)).toEqual({ row: -1, col: 6 });
+        expect(transform.transformStart(10, 0)).toEqual({ row: 2, col: 6 });
+        expect(transform.transformStart(13, 0)).toEqual({ row: 5, col: 6 });
+        expect(transform.transformStart(999, 0)).toEqual({ row: 9, col: 6 });
+        expect(transform.transformStart(5, -1)).toEqual({ row: -3, col: 5 });
+        expect(transform.transformStart(5, -2)).toEqual({ row: -3, col: 4 });
+        expect(transform.transformStart(5, -999)).toEqual({ row: -3, col: -3 });
+        expect(transform.transformStart(5, 1)).toEqual({ row: -3, col: 7 });
+        expect(transform.transformStart(5, 2)).toEqual({ row: -3, col: 8 });
+        expect(transform.transformStart(5, 7)).toEqual({ row: -3, col: 0 });
+        expect(transform.transformStart(5, 9)).toEqual({ row: -3, col: 2 });
+        expect(transform.transformStart(5, 999)).toEqual({ row: -3, col: 9 });
       }
       {
         const transform = createTransformation({
@@ -393,8 +532,18 @@ describe('Transformation class', () => {
         });
 
         expect(transform.transformStart(5, 0)).toEqual({ row: -3, col: -3 });
-        expect(transform.transformStart(5, 1)).toEqual({ row: -3, col: -3 });
-        expect(transform.transformStart(5, 999)).toEqual({ row: -3, col: -3 });
+        expect(transform.transformStart(7, 0)).toEqual({ row: -1, col: -3 });
+        expect(transform.transformStart(10, 0)).toEqual({ row: 2, col: -3 });
+        expect(transform.transformStart(13, 0)).toEqual({ row: 5, col: -3 });
+        expect(transform.transformStart(999, 0)).toEqual({ row: 9, col: -3 });
+        expect(transform.transformStart(5, -1)).toEqual({ row: -3, col: 9 });
+        expect(transform.transformStart(5, -2)).toEqual({ row: -3, col: 8 });
+        expect(transform.transformStart(5, -999)).toEqual({ row: -3, col: -3 });
+        expect(transform.transformStart(5, 1)).toEqual({ row: -3, col: -2 });
+        expect(transform.transformStart(5, 2)).toEqual({ row: -3, col: -1 });
+        expect(transform.transformStart(5, 7)).toEqual({ row: -3, col: 4 });
+        expect(transform.transformStart(5, 9)).toEqual({ row: -3, col: 6 });
+        expect(transform.transformStart(5, 999)).toEqual({ row: -3, col: 9 });
       }
     });
 
@@ -410,7 +559,18 @@ describe('Transformation class', () => {
         });
 
         expect(transform.transformStart(-9, 0)).toEqual({ row: 9, col: 9 });
-        expect(transform.transformStart(-9, 1)).toEqual({ row: 9, col: 9 });
+        expect(transform.transformStart(-15, 0)).toEqual({ row: 3, col: 9 });
+        expect(transform.transformStart(-18, 0)).toEqual({ row: 0, col: 9 });
+        expect(transform.transformStart(-21, 0)).toEqual({ row: -3, col: 9 });
+        expect(transform.transformStart(-999, 0)).toEqual({ row: -3, col: 9 });
+        expect(transform.transformStart(-9, -1)).toEqual({ row: 9, col: 8 });
+        expect(transform.transformStart(-9, -2)).toEqual({ row: 9, col: 7 });
+        expect(transform.transformStart(-9, -3)).toEqual({ row: 9, col: 6 });
+        expect(transform.transformStart(-9, -9)).toEqual({ row: 9, col: 0 });
+        expect(transform.transformStart(-9, -10)).toEqual({ row: 9, col: -1 });
+        expect(transform.transformStart(-9, -999)).toEqual({ row: 9, col: -3 });
+        expect(transform.transformStart(-9, 1)).toEqual({ row: 9, col: -3 });
+        expect(transform.transformStart(-9, 2)).toEqual({ row: 9, col: -2 });
         expect(transform.transformStart(-9, 999)).toEqual({ row: 9, col: 9 });
       }
       {
@@ -423,8 +583,19 @@ describe('Transformation class', () => {
         });
 
         expect(transform.transformStart(-9, 0)).toEqual({ row: 9, col: 4 });
-        expect(transform.transformStart(-9, 1)).toEqual({ row: 9, col: 4 });
-        expect(transform.transformStart(-9, 999)).toEqual({ row: 9, col: 4 });
+        expect(transform.transformStart(-15, 0)).toEqual({ row: 3, col: 4 });
+        expect(transform.transformStart(-18, 0)).toEqual({ row: 0, col: 4 });
+        expect(transform.transformStart(-21, 0)).toEqual({ row: -3, col: 4 });
+        expect(transform.transformStart(-999, 0)).toEqual({ row: -3, col: 4 });
+        expect(transform.transformStart(-9, -1)).toEqual({ row: 9, col: 3 });
+        expect(transform.transformStart(-9, -2)).toEqual({ row: 9, col: 2 });
+        expect(transform.transformStart(-9, -3)).toEqual({ row: 9, col: 1 });
+        expect(transform.transformStart(-9, -9)).toEqual({ row: 9, col: 8 });
+        expect(transform.transformStart(-9, -10)).toEqual({ row: 9, col: 7 });
+        expect(transform.transformStart(-9, -999)).toEqual({ row: 9, col: -3 });
+        expect(transform.transformStart(-9, 1)).toEqual({ row: 9, col: 5 });
+        expect(transform.transformStart(-9, 2)).toEqual({ row: 9, col: 6 });
+        expect(transform.transformStart(-9, 999)).toEqual({ row: 9, col: 9 });
       }
       {
         const transform = createTransformation({
@@ -436,8 +607,19 @@ describe('Transformation class', () => {
         });
 
         expect(transform.transformStart(-9, 0)).toEqual({ row: 9, col: 8 });
-        expect(transform.transformStart(-9, 1)).toEqual({ row: 9, col: 8 });
-        expect(transform.transformStart(-9, 999)).toEqual({ row: 9, col: 8 });
+        expect(transform.transformStart(-15, 0)).toEqual({ row: 3, col: 8 });
+        expect(transform.transformStart(-18, 0)).toEqual({ row: 0, col: 8 });
+        expect(transform.transformStart(-21, 0)).toEqual({ row: -3, col: 8 });
+        expect(transform.transformStart(-999, 0)).toEqual({ row: -3, col: 8 });
+        expect(transform.transformStart(-9, -1)).toEqual({ row: 9, col: 7 });
+        expect(transform.transformStart(-9, -2)).toEqual({ row: 9, col: 6 });
+        expect(transform.transformStart(-9, -3)).toEqual({ row: 9, col: 5 });
+        expect(transform.transformStart(-9, -9)).toEqual({ row: 9, col: -1 });
+        expect(transform.transformStart(-9, -10)).toEqual({ row: 9, col: -2 });
+        expect(transform.transformStart(-9, -999)).toEqual({ row: 9, col: -3 });
+        expect(transform.transformStart(-9, 1)).toEqual({ row: 9, col: 9 });
+        expect(transform.transformStart(-9, 2)).toEqual({ row: 9, col: 9 });
+        expect(transform.transformStart(-9, 999)).toEqual({ row: 9, col: 9 });
       }
     });
 
@@ -453,8 +635,19 @@ describe('Transformation class', () => {
         });
 
         expect(transform.transformStart(0, 5)).toEqual({ row: -2, col: -3 });
-        expect(transform.transformStart(1, 5)).toEqual({ row: -2, col: -3 });
-        expect(transform.transformStart(999, 5)).toEqual({ row: -2, col: -3 });
+        expect(transform.transformStart(0, 7)).toEqual({ row: -2, col: -1 });
+        expect(transform.transformStart(0, 10)).toEqual({ row: -2, col: 2 });
+        expect(transform.transformStart(0, 13)).toEqual({ row: -2, col: 5 });
+        expect(transform.transformStart(0, 999)).toEqual({ row: -2, col: 9 });
+        expect(transform.transformStart(-1, 5)).toEqual({ row: -3, col: -3 });
+        expect(transform.transformStart(-2, 5)).toEqual({ row: -3, col: -3 });
+        expect(transform.transformStart(-999, 5)).toEqual({ row: -3, col: -3 });
+        expect(transform.transformStart(1, 5)).toEqual({ row: -1, col: -3 });
+        expect(transform.transformStart(2, 5)).toEqual({ row: 0, col: -3 });
+        expect(transform.transformStart(7, 5)).toEqual({ row: 5, col: -3 });
+        expect(transform.transformStart(8, 5)).toEqual({ row: 6, col: -3 });
+        expect(transform.transformStart(9, 5)).toEqual({ row: 7, col: -3 });
+        expect(transform.transformStart(999, 5)).toEqual({ row: 9, col: -3 });
       }
       {
         const transform = createTransformation({
@@ -466,8 +659,18 @@ describe('Transformation class', () => {
         });
 
         expect(transform.transformStart(0, 5)).toEqual({ row: 6, col: -3 });
-        expect(transform.transformStart(1, 5)).toEqual({ row: 6, col: -3 });
-        expect(transform.transformStart(999, 5)).toEqual({ row: 6, col: -3 });
+        expect(transform.transformStart(0, 7)).toEqual({ row: 6, col: -1 });
+        expect(transform.transformStart(0, 10)).toEqual({ row: 6, col: 2 });
+        expect(transform.transformStart(0, 13)).toEqual({ row: 6, col: 5 });
+        expect(transform.transformStart(0, 999)).toEqual({ row: 6, col: 9 });
+        expect(transform.transformStart(-1, 5)).toEqual({ row: 5, col: -3 });
+        expect(transform.transformStart(-2, 5)).toEqual({ row: 4, col: -3 });
+        expect(transform.transformStart(-999, 5)).toEqual({ row: -3, col: -3 });
+        expect(transform.transformStart(1, 5)).toEqual({ row: 7, col: -3 });
+        expect(transform.transformStart(2, 5)).toEqual({ row: 8, col: -3 });
+        expect(transform.transformStart(7, 5)).toEqual({ row: 0, col: -3 });
+        expect(transform.transformStart(9, 5)).toEqual({ row: 2, col: -3 });
+        expect(transform.transformStart(999, 5)).toEqual({ row: 9, col: -3 });
       }
       {
         const transform = createTransformation({
@@ -479,8 +682,18 @@ describe('Transformation class', () => {
         });
 
         expect(transform.transformStart(0, 5)).toEqual({ row: -3, col: -3 });
-        expect(transform.transformStart(1, 5)).toEqual({ row: -3, col: -3 });
-        expect(transform.transformStart(999, 5)).toEqual({ row: -3, col: -3 });
+        expect(transform.transformStart(0, 7)).toEqual({ row: -3, col: -1 });
+        expect(transform.transformStart(0, 10)).toEqual({ row: -3, col: 2 });
+        expect(transform.transformStart(0, 13)).toEqual({ row: -3, col: 5 });
+        expect(transform.transformStart(0, 999)).toEqual({ row: -3, col: 9 });
+        expect(transform.transformStart(-1, 5)).toEqual({ row: 9, col: -3 });
+        expect(transform.transformStart(-2, 5)).toEqual({ row: 8, col: -3 });
+        expect(transform.transformStart(-999, 5)).toEqual({ row: -3, col: -3 });
+        expect(transform.transformStart(1, 5)).toEqual({ row: -2, col: -3 });
+        expect(transform.transformStart(2, 5)).toEqual({ row: -1, col: -3 });
+        expect(transform.transformStart(7, 5)).toEqual({ row: 4, col: -3 });
+        expect(transform.transformStart(9, 5)).toEqual({ row: 6, col: -3 });
+        expect(transform.transformStart(999, 5)).toEqual({ row: 9, col: -3 });
       }
     });
 
@@ -496,7 +709,18 @@ describe('Transformation class', () => {
         });
 
         expect(transform.transformStart(0, -9)).toEqual({ row: 9, col: 9 });
-        expect(transform.transformStart(1, -9)).toEqual({ row: 9, col: 9 });
+        expect(transform.transformStart(0, -15)).toEqual({ row: 9, col: 3 });
+        expect(transform.transformStart(0, -18)).toEqual({ row: 9, col: 0 });
+        expect(transform.transformStart(0, -21)).toEqual({ row: 9, col: -3 });
+        expect(transform.transformStart(0, -999)).toEqual({ row: 9, col: -3 });
+        expect(transform.transformStart(-1, -9)).toEqual({ row: 8, col: 9 });
+        expect(transform.transformStart(-2, -9)).toEqual({ row: 7, col: 9 });
+        expect(transform.transformStart(-3, -9)).toEqual({ row: 6, col: 9 });
+        expect(transform.transformStart(-9, -9)).toEqual({ row: 0, col: 9 });
+        expect(transform.transformStart(-10, -9)).toEqual({ row: -1, col: 9 });
+        expect(transform.transformStart(-999, -9)).toEqual({ row: -3, col: 9 });
+        expect(transform.transformStart(1, -9)).toEqual({ row: -3, col: 9 });
+        expect(transform.transformStart(2, -9)).toEqual({ row: -2, col: 9 });
         expect(transform.transformStart(999, -9)).toEqual({ row: 9, col: 9 });
       }
       {
@@ -509,8 +733,19 @@ describe('Transformation class', () => {
         });
 
         expect(transform.transformStart(0, -9)).toEqual({ row: 4, col: 9 });
-        expect(transform.transformStart(1, -9)).toEqual({ row: 4, col: 9 });
-        expect(transform.transformStart(999, -9)).toEqual({ row: 4, col: 9 });
+        expect(transform.transformStart(0, -15)).toEqual({ row: 4, col: 3 });
+        expect(transform.transformStart(0, -18)).toEqual({ row: 4, col: 0 });
+        expect(transform.transformStart(0, -21)).toEqual({ row: 4, col: -3 });
+        expect(transform.transformStart(0, -999)).toEqual({ row: 4, col: -3 });
+        expect(transform.transformStart(-1, -9)).toEqual({ row: 3, col: 9 });
+        expect(transform.transformStart(-2, -9)).toEqual({ row: 2, col: 9 });
+        expect(transform.transformStart(-3, -9)).toEqual({ row: 1, col: 9 });
+        expect(transform.transformStart(-9, -9)).toEqual({ row: 8, col: 9 });
+        expect(transform.transformStart(-10, -9)).toEqual({ row: 7, col: 9 });
+        expect(transform.transformStart(-999, -9)).toEqual({ row: -3, col: 9 });
+        expect(transform.transformStart(1, -9)).toEqual({ row: 5, col: 9 });
+        expect(transform.transformStart(2, -9)).toEqual({ row: 6, col: 9 });
+        expect(transform.transformStart(999, -9)).toEqual({ row: 9, col: 9 });
       }
       {
         const transform = createTransformation({
@@ -522,8 +757,19 @@ describe('Transformation class', () => {
         });
 
         expect(transform.transformStart(0, -9)).toEqual({ row: 8, col: 9 });
-        expect(transform.transformStart(1, -9)).toEqual({ row: 8, col: 9 });
-        expect(transform.transformStart(999, -9)).toEqual({ row: 8, col: 9 });
+        expect(transform.transformStart(0, -15)).toEqual({ row: 8, col: 3 });
+        expect(transform.transformStart(0, -18)).toEqual({ row: 8, col: 0 });
+        expect(transform.transformStart(0, -21)).toEqual({ row: 8, col: -3 });
+        expect(transform.transformStart(0, -999)).toEqual({ row: 8, col: -3 });
+        expect(transform.transformStart(-1, -9)).toEqual({ row: 7, col: 9 });
+        expect(transform.transformStart(-2, -9)).toEqual({ row: 6, col: 9 });
+        expect(transform.transformStart(-3, -9)).toEqual({ row: 5, col: 9 });
+        expect(transform.transformStart(-9, -9)).toEqual({ row: -1, col: 9 });
+        expect(transform.transformStart(-10, -9)).toEqual({ row: -2, col: 9 });
+        expect(transform.transformStart(-999, -9)).toEqual({ row: -3, col: 9 });
+        expect(transform.transformStart(1, -9)).toEqual({ row: 9, col: 9 });
+        expect(transform.transformStart(2, -9)).toEqual({ row: 9, col: 9 });
+        expect(transform.transformStart(999, -9)).toEqual({ row: 9, col: 9 });
       }
     });
 
