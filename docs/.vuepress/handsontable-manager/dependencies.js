@@ -1,6 +1,8 @@
 // eslint-disable-next-line no-restricted-globals
 const isBrowser = (typeof window !== 'undefined');
 
+// TODO: remove this line.
+
 const formatVersion = version => (/^\d+\.\d+$/.test(version) ? version : 'latest');
 
 /**
