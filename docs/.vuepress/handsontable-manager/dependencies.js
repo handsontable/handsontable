@@ -72,7 +72,6 @@ const getCommonScript = (scriptName, version) => {
  *                     `{function(dependency: string): [string,string[],string]} [jsUrl, dependentVars[]?, cssUrl?]`.
  */
 const buildDependencyGetter = (version) => {
-  const mappedVersion = formatVersion(version);
   const fixer = getCommonScript('fixer', version);
   const helpers = getCommonScript('helpers', version);
 
