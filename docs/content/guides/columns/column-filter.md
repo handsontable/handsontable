@@ -23,15 +23,17 @@ Filter your data by values or by a set of conditions.
 
 ## Overview
 
-With filtering, you can show the rows that you want to see and temporarily hide the rest. This lets
-you quickly extract relevant data points, which is useful for analyzing large data sets.
+With filtering, you can display the data that you want to see and temporarily hide the rest. This
+lets you quickly identify relevant data points from among thousands of records.
 
-You can filter data in different ways at the same time: by applying up to two filter conditions, and
-by selecting as many values as you want. Handsontable displays the rows that match your criteria,
-and [trims](@/guides/rows/row-trimming.md) the rest.
+You can filter data in two ways at once:
 
-You can't use filtering with [nested data structures](@/guides/rows/row-parent-child.md)
-([`NestedRows`](@/api/nestedRows.md)).
+- By applying up to two filter conditions (also known as filter criteria or filter operators) such
+  as "Greater than" or "Begins with".
+- By selecting specific values that you want to display. You can select as many values as you want.
+
+Once you apply your filter, Handsontable displays the rows that match your criteria and
+[trims](@/guides/rows/row-trimming.md) the rest.
 
 ## Filtering demo
 
@@ -40,8 +42,8 @@ To try out filtering, see the following demo:
 1. In the **Price** column, click on the column menu button (▼).
 2. In **Filter by condition**, select **Greater than**, and type **100**.
 3. As a second condition, select **Less than**, and type **1000**.
-4. Press <kbd>**Enter**</kbd> to apply your filter. The menu button of the **Price** column turns
-   green.
+4. Press <kbd>**Enter**</kbd> to apply your filter. Now, you can only see two rows, and the menu
+   button of the **Price** column turns green.
 
 ::: only-for javascript
 
@@ -298,7 +300,7 @@ two options: [`dropdownMenu`](@/api/options.md#dropdownmenu) and
 const configurationOptions = {
   // enable the column menu
   dropdownMenu: true,
-  // enable the filter menu
+  // enable filtering
   filters: true,
 };
 ```
@@ -318,8 +320,9 @@ const configurationOptions = {
 
 :::
 
-To enable filtering without the default column menu items (**Insert column left** etc.), configure
-the column menu to show the filter items only.
+To enable filtering without the default column menu items (**Insert column left**, **Clear column**
+etc.), set [`dropdownMenu`](@/api/options.md#dropdownmenu) to an array of strings. For example, in
+the following demo, click on any column menu button (▼): it displays only the filtering options.
 
 ::: only-for javascript
 
@@ -421,10 +424,9 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htCenter',
     },
   ],
-  // enable the column menu
-  // and configure it to show only the filter menu items
+  // enable the column menu, but only with the filter menu items
   dropdownMenu: ['filter_by_condition', 'filter_by_value', 'filter_action_bar'],
-  // enable filtering for all columns
+  // enable filtering
   filters: true,
   height: 'auto',
   stretchH: 'all',
@@ -550,10 +552,9 @@ export const App = () => {
           className: 'htCenter',
         },
       ]}
-      // enable the column menu
-      // and configure it to show only the filter menu items
+      // enable the column menu, but only with the filter menu items
       dropdownMenu={['filter_by_condition', 'filter_by_value', 'filter_action_bar']}
-      // enable filtering for all columns
+      // enable filtering
       filters={true}
       height="auto"
       stretchH="all"
@@ -1241,7 +1242,7 @@ const handsontableInstance = new Handsontable(container, {
   dropdownMenu: true,
   // enable filtering
   filters: true,
-  height: 'auto',
+  height: 168,
   stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
@@ -1377,7 +1378,7 @@ export const App = () => {
       dropdownMenu={true}
       // enable filtering
       filters={true}
-      height="auto"
+      height={168}
       stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
@@ -1406,8 +1407,8 @@ Different types offer different comparison operators. For details, see the follo
 
 ## Filter data on initialization
 
-You can filter your data on Handsontable's initialization. This lets you apply default filters every
-time you launch your grid.
+You can filter data on Handsontable's initialization. This lets you apply default filters every time
+you launch your grid.
 
 To configure this, use Handsontable's [`afterInit()`](@/api/hooks.md#afterinit) hook and the
 [`Filters`](@/api/filters.md) plugin's API. For example, the following demo starts off with a filter
@@ -2954,10 +2955,6 @@ const configurationOptions = {
 
 :::
 
-## Custom filter operators
-
-https://mui.com/x/react-data-grid/filtering/#customize-the-operators
-
 ## Control filtering programmatically
 
 You can control filtering at the grid's runtime by using Handsontable's
@@ -3390,6 +3387,16 @@ import { registerPlugin, DropdownMenu, Filters } from 'handsontable/plugins';
 registerPlugin(DropdownMenu);
 registerPlugin(Filters);
 ```
+
+## Known limitations
+
+At the moment, filtring comes with the following limitations:
+
+- You can't use filtering with [nested data structures](@/guides/rows/row-parent-child.md)
+  ([`NestedRows`](@/api/nestedRows.md)).
+- You can't add custom filter conditions.
+- You can't control the **Filter by value** list. The list of values is generated automatically and
+  there's no supported way of modifying it.
 
 ## API reference
 
