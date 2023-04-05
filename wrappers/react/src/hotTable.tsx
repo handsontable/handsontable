@@ -136,16 +136,17 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * Getter for the property storing the Handsontable instance.
    */
   get hotInstance(): Handsontable | null {
-    if (!this.__hotInstance || (this.__hotInstance && !this.__hotInstance.isDestroyed)) {
-
-      // Will return the Handsontable instance or `null` if it's not yet been created.
-      return this.__hotInstance;
-
-    } else {
-      console.warn(HOT_DESTROYED_WARNING);
-
+    // TODO: COMMENTED OUT TEMPORARILY
+    // if (!this.__hotInstance || (this.__hotInstance && !this.__hotInstance.isDestroyed)) {
+    //
+    //   // Will return the Handsontable instance or `null` if it's not yet been created.
+    //   return this.__hotInstance;
+    //
+    // } else {
+    //   console.warn(HOT_DESTROYED_WARNING);
+    //
       return null;
-    }
+    // }
   }
 
   /**
