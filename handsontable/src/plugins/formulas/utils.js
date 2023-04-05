@@ -58,20 +58,13 @@ export function getDateInHfFormat(date, dateFormat) {
 /**
  * Converting from Excel like date to Date object.
  *
- * @param {number} numericDate Date being numbers of days from January 1, 1900.
+ * @param {number} numericDate An integer representing numbers of days from January 1, 1900.
  * @param {string} dateFormat The format used for parsing an output.
- * @param {boolean} leapYear1900 Sets year 1900 as a leap year.
  * @returns {string}
  */
-export function getDateFromExcelDate(numericDate, dateFormat, leapYear1900 ) {
-  let dateOffset = -1; // To replicate the behavior from the HyperFormula.
-
-  // Excel incorrectly assumes that the year 1900 is a leap year.
-  // Read more: https://learn.microsoft.com/en-us/office/troubleshoot/excel/wrongly-assumes-1900-is-leap-year.
-  if (leapYear1900 === true && numericDate > 60) {
-    // We need to add some offset for dates after February 28, 1900.
-    dateOffset -= 1;
-  }
+export function getDateFromExcelDate(numericDate, dateFormat) {
+  // To replicate the behavior from the HyperFormula. UTC starts from 31/12/1899, while HF from 30/12/1899.
+  const dateOffset = -1;
 
   // Based on solution from: https://stackoverflow.com/a/67130235.
   const dateForFormatting = new Date(Date.UTC(0, 0, numericDate + dateOffset));

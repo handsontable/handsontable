@@ -12,11 +12,11 @@ const DEFAULT_SETTINGS = {
   precisionEpsilon: 1e-13,
   precisionRounding: 14,
   smartRounding: true,
-  leapYear1900: true,
+  leapYear1900: false,
   nullDate: {
     year: 1899,
     month: 12,
-    day: 31
+    day: 30
   },
   nullYear: 30,
   dateFormats: ['DD/MM/YYYY', 'DD/MM/YY'],

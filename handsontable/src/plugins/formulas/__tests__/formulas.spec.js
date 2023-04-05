@@ -3115,5 +3115,47 @@ describe('Formulas general', () => {
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);
     });
+
+    it('should handle HF configuration property (HF instance should not overwrite `leapYear1900` and `nullDate` properties)', () => {
+      // Create an external HyperFormula instance
+      const hfInstance = HyperFormula.buildEmpty({});
+
+      handsontable({
+        data: [
+          ['01/03/1900'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: hfInstance,
+          sheetName: 'Sheet1'
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['01/03/1900'],
+        ['01/03/1900'],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['01/03/1900'],
+        ['01/03/1900'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['01/03/1900'],
+        ['01/03/1900'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['01/03/1900'],
+        ['01/03/1900'],
+      ]);
+    });
   });
 });
