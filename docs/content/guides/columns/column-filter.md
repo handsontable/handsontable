@@ -26,13 +26,13 @@ Filter your data by values or by a set of conditions.
 With filtering, you can display the data that you want to see and temporarily hide the rest. This
 lets you quickly identify relevant data points from among thousands of records.
 
-You can filter data in two ways at once:
+You can filter data based on the values in one or many columns. In each column, you can:
 
-- By applying up to two filter conditions (also known as filter criteria or filter operators) such
-  as "Greater than" or "Begins with".
-- By selecting specific values that you want to display. You can select as many values as you want.
+- Apply up to two filter conditions (also known as filter criteria or filter operators) such as
+  "Greater than" or "Begins with".
+- Select specific values that you want to display. You can select as many values as you want.
 
-Once you apply your filter, Handsontable displays the rows that match your criteria and
+Once you apply your filters, Handsontable displays the rows that match your criteria and
 [trims](@/guides/rows/row-trimming.md) the rest.
 
 ## Filtering demo
@@ -42,8 +42,8 @@ To try out filtering, see the following demo:
 1. In the **Price** column, click on the column menu button (▼).
 2. In **Filter by condition**, select **Greater than**, and type **100**.
 3. As a second condition, select **Less than**, and type **1000**.
-4. Press <kbd>**Enter**</kbd> to apply your filter. Now, you can only see two rows, and the menu
-   button of the **Price** column turns green.
+4. Press <kbd>**Enter**</kbd> to apply your filter. The menu button of the **Price** column turns
+   green, and you can only see two rows now.
 
 ::: only-for javascript
 
@@ -1108,10 +1108,6 @@ ReactDOM.render(<App />, document.getElementById('exampleRemoveColumnMenuButton'
 
 :::
 
-## Configure filtering
-
-You can configure the filter menu by configuring the [column menu](@/guides/columns/column-menu.md).
-
 ## Filter different types of data
 
 You can filter different types of data, based on which [`type`](@/api/options.md#type) you configure
@@ -1394,7 +1390,7 @@ ReactDOM.render(<App />, document.getElementById('exampleFilterDifferentTypes'))
 
 :::
 
-Different types offer different comparison operators. For details, see the following table.
+Different types offer different filter conditions. For details, see the following table.
 
 | Type                                                                                                                                                                                                                                                                                                | Available comparison operators                                                                                                                                                       |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -1403,18 +1399,16 @@ Different types offer different comparison operators. For details, see the follo
 | [`date`](@/guides/cell-types/date-cell-type.md)                                                                                                                                                                                                                                                     | None<br>Is empty<br>Is not empty<br>Is equal to<br>Is not equal to<br>Before<br>After<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
 | [`time`](@/guides/cell-types/time-cell-type.md)<br>[`checkbox`](@/guides/cell-types/checkbox-cell-type.md)<br>[`dropdown`](@/guides/cell-types/dropdown-cell-type.md)<br>[`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)<br>[`password`](@/guides/cell-types/password-cell-type.md) | Same as [`text`](@/guides/cell-types/cell-type.md)                                                                                                                                   |
 
-[about filtering passwords]
-
 ## Filter data on initialization
 
 You can filter data on Handsontable's initialization. This lets you apply default filters every time
 you launch your grid.
 
-To configure this, use Handsontable's [`afterInit()`](@/api/hooks.md#afterinit) hook and the
+::: only-for javascript
+
+For that, use Handsontable's [`afterInit()`](@/api/hooks.md#afterinit) hook and the
 [`Filters`](@/api/filters.md) plugin's API. For example, the following demo starts off with a filter
 that's already applied, so it only displays items whose price is less than $200.
-
-::: only-for javascript
 
 ::: example #exampleFilterOnInitialization --html 1 --js 2
 
@@ -1541,11 +1535,14 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
+Use the [`Filters`](@/api/filters.md) plugin's API for that. For example, the following demo starts
+off with a filter that's already applied, so it only displays items whose price is less than $200.
+
 ::: example #exampleFilterOnInitialization :react
 
 ```jsx
 // you need `useRef` to call Handsontable's instance methods
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -1553,19 +1550,20 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const hotTableComponentRef = useRef(null);
-const filterBelow200 = () => {
-  const handsontableInstance = hotTableComponentRef.current.hotInstance;
-  // get the `Filters` plugin, so you can use its API
-  const filters = handsontableInstance.getPlugin('Filters');
-
-  // filter data by the 'Price' column (column at index 2)
-  // to display only items that are less than ('lt') $200
-  filters.addCondition(2, 'lt', [200]);
-  filters.filter();
-};
-
 export const App = () => {
+  const hotTableComponentRef = useRef(null);
+
+  useEffect(() => {
+    const handsontableInstance = hotTableComponentRef.current.hotInstance;
+    // get the `Filters` plugin, so you can use its API
+    const filters = handsontableInstance.getPlugin('Filters');
+
+    // filter data by the 'Price' column (column at index 2)
+    // to display only items that are less than ('lt') $200
+    filters.addCondition(2, 'lt', [200]);
+    filters.filter();
+  }, []);
+
   return (
     <HotTable
       ref={hotTableComponentRef}
@@ -1659,8 +1657,6 @@ export const App = () => {
       dropdownMenu={true}
       // enable filtering
       filters={true}
-      // `afterInit()` is a Handsontable hook: it's fired after the Handsontable instance is initiated
-      afterInit={filterBelow200}
       height="auto"
       stretchH="all"
       licenseKey="non-commercial-and-evaluation"
@@ -1883,7 +1879,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('exampleFilterAsYo
 ## Customize the filter button
 
 The filter menu is part of the [column menu](@/guides/columns/column-menu.md), so they both use the
-same icon (▼). To modify or replace it, override Handsontable's CSS by editing a class called
+same icon (▼). To modify or replace this icon, override Handsontable's CSS by editing a class called
 `changeType`.
 
 ::: only-for javascript
@@ -2411,20 +2407,269 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomFilterIcon2'));
 
 :::
 
-## Change the size of the filter menu
+## Change the width of the filter menu
 
-Width: http://jsfiddle.net/handsoncode/zxguhohs/
+You can change the width of the filter menu by changing the width of the entire
+[column menu](@/guides/columns/column-menu.md). For that, override `width` for the following
+selector of Handsontable's CSS: `.htDropdownMenu table.htCore`.
 
-Height:
+::: only-for javascript
+
+::: example #exampleFilterMenuWidth --html 1 --js 2 --css 3
+
+```html
+<div id="exampleFilterMenuWidth"></div>
+```
+
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const container = document.querySelector('#exampleFilterMenuWidth');
+const handsontableInstance = new Handsontable(container, {
+  data: [
+    {
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: 'Oct 11, 2023',
+      sellTime: '01:23 AM',
+      inStock: false,
+    },
+    {
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.9,
+      sellDate: 'May 3, 2023',
+      sellTime: '11:27 AM',
+      inStock: false,
+    },
+    {
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.1,
+      sellDate: 'Mar 27, 2023',
+      sellTime: '03:17 AM',
+      inStock: true,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: 'Aug 28, 2023',
+      sellTime: '08:01 AM',
+      inStock: true,
+    },
+    {
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: 'Oct 2, 2023',
+      sellTime: '01:23 AM',
+      inStock: true,
+    },
+  ],
+  columns: [
+    {
+      title: 'Brand',
+      type: 'text',
+      data: 'brand',
+    },
+    {
+      title: 'Model',
+      type: 'text',
+      data: 'model',
+    },
+    {
+      title: 'Price',
+      type: 'numeric',
+      data: 'price',
+      numericFormat: {
+        pattern: '$ 0,0.00',
+        culture: 'en-US',
+      },
+      className: 'htLeft',
+    },
+    {
+      title: 'Date',
+      type: 'date',
+      data: 'sellDate',
+      dateFormat: 'MMM D, YYYY',
+      correctFormat: true,
+      className: 'htRight',
+    },
+    {
+      title: 'Time',
+      type: 'time',
+      data: 'sellTime',
+      timeFormat: 'hh:mm A',
+      correctFormat: true,
+      className: 'htRight',
+    },
+    {
+      title: 'In stock',
+      type: 'checkbox',
+      data: 'inStock',
+      className: 'htCenter',
+    },
+  ],
+  // enable the column menu
+  dropdownMenu: true,
+  // enable filtering
+  filters: true,
+  // to differentiate this example's CSS from other examples on this page
+  className: 'handsontable1',
+  height: 'auto',
+  stretchH: 'all',
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```css
+.handsontable1 .htDropdownMenu table.htCore {
+  width: 300px !important;
+}
+```
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleFilterMenuWidth :react --js 1 --css 2
+
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const App = () => {
+  return (
+    <HotTable
+      data={[
+        {
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
+          price: 30,
+          sellDate: 'Oct 11, 2023',
+          sellTime: '01:23 AM',
+          inStock: false,
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          price: 1890.9,
+          sellDate: 'May 3, 2023',
+          sellTime: '11:27 AM',
+          inStock: false,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.1,
+          sellDate: 'Mar 27, 2023',
+          sellTime: '03:17 AM',
+          inStock: true,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: 'Aug 28, 2023',
+          sellTime: '08:01 AM',
+          inStock: true,
+        },
+        {
+          brand: 'Eidel',
+          model: 'HL Road Tire',
+          price: 279.99,
+          sellDate: 'Oct 2, 2023',
+          sellTime: '01:23 AM',
+          inStock: true,
+        },
+      ]}
+      columns={[
+        {
+          title: 'Brand',
+          type: 'text',
+          data: 'brand',
+        },
+        {
+          title: 'Model',
+          type: 'text',
+          data: 'model',
+        },
+        {
+          title: 'Price',
+          type: 'numeric',
+          data: 'price',
+          numericFormat: {
+            pattern: '$ 0,0.00',
+            culture: 'en-US',
+          },
+          className: 'htLeft',
+        },
+        {
+          title: 'Date',
+          type: 'date',
+          data: 'sellDate',
+          dateFormat: 'MMM D, YYYY',
+          correctFormat: true,
+          className: 'htRight',
+        },
+        {
+          title: 'Time',
+          type: 'time',
+          data: 'sellTime',
+          timeFormat: 'hh:mm A',
+          correctFormat: true,
+          className: 'htRight',
+        },
+        {
+          title: 'In stock',
+          type: 'checkbox',
+          data: 'inStock',
+          className: 'htCenter',
+        },
+      ]}
+      // enable the column menu
+      dropdownMenu={true}
+      // enable filtering
+      filters={true}
+      // to differentiate this example's CSS from other examples on this page
+      className="example-filter-menu-width"
+      height="auto"
+      stretchH="all"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<App />, document.getElementById('exampleFilterMenuWidth'));
+/* end:skip-in-preview */
+```
+
+```css
+.example-filter-menu-width .htDropdownMenu table.htCore {
+  width: 300px !important;
+}
+```
+
+:::
+
+:::
 
 ## Exclude rows from filtering
 
-You can exclude any number of top or bottom rows from filtering.
+You can exclude individual rows from filtering. This lets you keep selected data visible at all
+times, regardless of any filters you apply.
 
-For example, if you [freeze](@/guides/rows/row-freezing.md) a row at the top (to display column
-names), and freeze a row at the bottom (to display
-[column summaries](@/guides/columns/column-summary.md)), you can prevent those frozen rows from
-getting filtered, so they are always visible.
+For example, in the following demo, the first row and the last row are not affected by filtering.
 
 ::: only-for javascript
 
@@ -2442,52 +2687,12 @@ const container = document.querySelector('#exampleExcludeRows');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
-      brand: 'Brand',
-      model: 'Model',
-      price: 'Price',
-      sellDate: 'Date',
-      sellTime: 'Time',
-      inStock: 'In stock',
-    },
-    {
-      brand: 'Gigabox',
-      model: 'HL Mountain Frame',
-      price: 1890.9,
-      sellDate: 'May 3, 2023',
-      sellTime: '11:27 AM',
-      inStock: 11,
-    },
-    {
-      brand: 'Camido',
-      model: 'Cycling Cap',
-      price: 130.1,
-      sellDate: 'Mar 27, 2023',
-      sellTime: '03:17 AM',
-      inStock: 0,
-    },
-    {
-      brand: 'Chatterpoint',
-      model: 'Road Tire Tube',
-      price: 59,
-      sellDate: 'Aug 28, 2023',
-      sellTime: '08:01 AM',
-      inStock: 1,
-    },
-    {
-      brand: 'Eidel',
-      model: 'HL Road Tire',
-      price: 279.99,
-      sellDate: 'Oct 2, 2023',
-      sellTime: '01:23 AM',
-      inStock: 3,
-    },
-    {
       brand: 'Jetpulse',
       model: 'Racing Socks',
       price: 30,
       sellDate: 'Oct 11, 2023',
       sellTime: '01:23 AM',
-      inStock: 5,
+      inStock: false,
     },
     {
       brand: 'Gigabox',
@@ -2495,7 +2700,7 @@ const handsontableInstance = new Handsontable(container, {
       price: 1890.9,
       sellDate: 'May 3, 2023',
       sellTime: '11:27 AM',
-      inStock: 22,
+      inStock: false,
     },
     {
       brand: 'Camido',
@@ -2503,76 +2708,38 @@ const handsontableInstance = new Handsontable(container, {
       price: 130.1,
       sellDate: 'Mar 27, 2023',
       sellTime: '03:17 AM',
-      inStock: 13,
+      inStock: true,
     },
     {
       brand: 'Chatterpoint',
-      model: 'Road Tire Tube',
+      model: 'Road Tire Tube',
       price: 59,
       sellDate: 'Aug 28, 2023',
       sellTime: '08:01 AM',
-      inStock: 0,
+      inStock: true,
     },
     {
       brand: 'Eidel',
-      model: 'HL Road Tire',
+      model: 'HL Road Tire',
       price: 279.99,
       sellDate: 'Oct 2, 2023',
       sellTime: '01:23 AM',
-      inStock: 14,
+      inStock: true,
     },
-    {
-      brand: 'Jetpulse',
-      model: 'Racing Socks',
-      price: 30,
-      sellDate: 'Oct 11, 2023',
-      sellTime: '01:23 AM',
-      inStock: 16,
-    },
-    {
-      brand: 'Gigabox',
-      model: 'HL Mountain Frame',
-      price: 1890.9,
-      sellDate: 'May 3, 2023',
-      sellTime: '11:27 AM',
-      inStock: 18,
-    },
-    {
-      brand: 'Camido',
-      model: 'Cycling Cap',
-      price: 130.1,
-      sellDate: 'Mar 27, 2023',
-      sellTime: '03:17 AM',
-      inStock: 3,
-    },
-    {
-      brand: 'Chatterpoint',
-      model: 'Road Tire Tube',
-      price: 59,
-      sellDate: 'Aug 28, 2023',
-      sellTime: '08:01 AM',
-      inStock: 0,
-    },
-    {
-      brand: 'Vinte',
-      model: 'ML Road Frame-W',
-      price: 30,
-      sellDate: 'Oct 11, 2023',
-      sellTime: '01:23 AM',
-      inStock: 2,
-    },
-    {},
   ],
   columns: [
     {
+      title: 'Brand',
       type: 'text',
       data: 'brand',
     },
     {
+      title: 'Model',
       type: 'text',
       data: 'model',
     },
     {
+      title: 'Price',
       type: 'numeric',
       data: 'price',
       numericFormat: {
@@ -2582,6 +2749,7 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htLeft',
     },
     {
+      title: 'Date',
       type: 'date',
       data: 'sellDate',
       dateFormat: 'MMM D, YYYY',
@@ -2589,6 +2757,7 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htRight',
     },
     {
+      title: 'Time',
       type: 'time',
       data: 'sellTime',
       timeFormat: 'hh:mm A',
@@ -2596,65 +2765,28 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htRight',
     },
     {
-      type: 'numeric',
+      title: 'In stock',
+      type: 'checkbox',
       data: 'inStock',
       className: 'htCenter',
     },
   ],
-  height: 200,
-  fixedRowsTop: 1,
-  fixedRowsBottom: 1,
-  colHeaders: true,
+  // enable the column menu
+  dropdownMenu: true,
+  // enable filtering
   filters: true,
-  // `afterColumnSort` is a Handsontable hook: it's fired after each filtering
-  afterColumnSort() {
-    const lastRowIndex = handsontableInstance.countRows() - 1;
-
-    // after each filtering, take row 1 and change its index to 0
-    handsontableInstance.rowIndexMapper.moveIndexes(handsontableInstance.toVisualRow(0), 0);
-
-    // after each filtering, take row 16 and change its index to 15
-    handsontableInstance.rowIndexMapper.moveIndexes(
-      handsontableInstance.toVisualRow(lastRowIndex),
-      lastRowIndex
-    );
+  // `afterFilter()` is a Handsontable hook: it's fired after each filtering
+  afterFilter() {
+    this.batch(() => {
+      // get the `Filters` plugin, so you can use its API
+      let filtersRowsMap = this.getPlugin('filters').filtersRowsMap;
+      // change the indexes of the first and last row
+      filtersRowsMap.setValueAtIndex(0, false);
+      filtersRowsMap.setValueAtIndex(filtersRowsMap.indexedValues.length - 1, false);
+    });
   },
-  cells(row, col, prop) {
-    const lastRowIndex = this.instance.countRows() - 1;
-
-    if (row === 0) {
-      return {
-        type: 'text',
-        className: 'htCenter',
-      };
-    }
-    if (row === lastRowIndex) {
-      return {
-        type: 'numeric',
-        className: 'htCenter',
-      };
-    }
-  },
-  columnSummary: [
-    {
-      sourceColumn: 2,
-      type: 'sum',
-      reversedRowCoords: true,
-      destinationRow: 0,
-      destinationColumn: 2,
-      forceNumeric: true,
-      suppressDataTypeErrors: true,
-    },
-    {
-      sourceColumn: 5,
-      type: 'sum',
-      reversedRowCoords: true,
-      destinationRow: 0,
-      destinationColumn: 5,
-      forceNumeric: true,
-      suppressDataTypeErrors: true,
-    },
-  ],
+  height: 'auto',
+  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -2668,7 +2800,6 @@ const handsontableInstance = new Handsontable(container, {
 ::: example #exampleExcludeRows :react
 
 ```jsx
-// you need `useRef` to call Handsontable's instance methods
 import { useRef } from 'react';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -2680,69 +2811,27 @@ registerAllModules();
 export const App = () => {
   const hotTableComponentRef = useRef(null);
   const exclude = () => {
-    const handsontableInstance = hotTableComponentRef.current.hotInstance;
-    const lastRowIndex = handsontableInstance.countRows() - 1;
-
-    // after each filtering, take row 1 and change its index to 0
-    handsontableInstance.rowIndexMapper.moveIndexes(handsontableInstance.toVisualRow(0), 0);
-    // after each filtering, take row 16 and change its index to 15
-    handsontableInstance.rowIndexMapper.moveIndexes(
-      handsontableInstance.toVisualRow(lastRowIndex),
-      lastRowIndex
-    );
-  };
+    const hotInstance = hotTableComponentRef.current.hotInstance;
+    // get the `Filters` plugin, so you can use its API
+    const filtersRowsMap = hotInstance.getPlugin('filters').filtersRowsMap;
+    // change the indexes of the first and last row
+    hotInstance.batch(() => {
+      filtersRowsMap.setValueAtIndex(0, false);
+      filtersRowsMap.setValueAtIndex(filtersRowsMap.indexedValues.length - 1, false);
+    })
+  }
 
   return (
     <HotTable
       ref={hotTableComponentRef}
       data={[
         {
-          brand: 'Brand',
-          model: 'Model',
-          price: 'Price',
-          sellDate: 'Date',
-          sellTime: 'Time',
-          inStock: 'In stock',
-        },
-        {
-          brand: 'Gigabox',
-          model: 'HL Mountain Frame',
-          price: 1890.9,
-          sellDate: 'May 3, 2023',
-          sellTime: '11:27 AM',
-          inStock: 11,
-        },
-        {
-          brand: 'Camido',
-          model: 'Cycling Cap',
-          price: 130.1,
-          sellDate: 'Mar 27, 2023',
-          sellTime: '03:17 AM',
-          inStock: 0,
-        },
-        {
-          brand: 'Chatterpoint',
-          model: 'Road Tire Tube',
-          price: 59,
-          sellDate: 'Aug 28, 2023',
-          sellTime: '08:01 AM',
-          inStock: 1,
-        },
-        {
-          brand: 'Eidel',
-          model: 'HL Road Tire',
-          price: 279.99,
-          sellDate: 'Oct 2, 2023',
-          sellTime: '01:23 AM',
-          inStock: 3,
-        },
-        {
           brand: 'Jetpulse',
           model: 'Racing Socks',
           price: 30,
           sellDate: 'Oct 11, 2023',
           sellTime: '01:23 AM',
-          inStock: 5,
+          inStock: false,
         },
         {
           brand: 'Gigabox',
@@ -2750,7 +2839,7 @@ export const App = () => {
           price: 1890.9,
           sellDate: 'May 3, 2023',
           sellTime: '11:27 AM',
-          inStock: 22,
+          inStock: false,
         },
         {
           brand: 'Camido',
@@ -2758,76 +2847,38 @@ export const App = () => {
           price: 130.1,
           sellDate: 'Mar 27, 2023',
           sellTime: '03:17 AM',
-          inStock: 13,
+          inStock: true,
         },
         {
           brand: 'Chatterpoint',
-          model: 'Road Tire Tube',
+          model: 'Road Tire Tube',
           price: 59,
           sellDate: 'Aug 28, 2023',
           sellTime: '08:01 AM',
-          inStock: 0,
+          inStock: true,
         },
         {
           brand: 'Eidel',
-          model: 'HL Road Tire',
+          model: 'HL Road Tire',
           price: 279.99,
-          sellDate: 'Oct 2, 2023',
+          sellDate: 'Dec 2, 2023',
           sellTime: '01:23 AM',
-          inStock: 14,
+          inStock: true,
         },
-        {
-          brand: 'Jetpulse',
-          model: 'Racing Socks',
-          price: 30,
-          sellDate: 'Oct 11, 2023',
-          sellTime: '01:23 AM',
-          inStock: 16,
-        },
-        {
-          brand: 'Gigabox',
-          model: 'HL Mountain Frame',
-          price: 1890.9,
-          sellDate: 'May 3, 2023',
-          sellTime: '11:27 AM',
-          inStock: 18,
-        },
-        {
-          brand: 'Camido',
-          model: 'Cycling Cap',
-          price: 130.1,
-          sellDate: 'Mar 27, 2023',
-          sellTime: '03:17 AM',
-          inStock: 3,
-        },
-        {
-          brand: 'Chatterpoint',
-          model: 'Road Tire Tube',
-          price: 59,
-          sellDate: 'Aug 28, 2023',
-          sellTime: '08:01 AM',
-          inStock: 0,
-        },
-        {
-          brand: 'Vinte',
-          model: 'ML Road Frame-W',
-          price: 30,
-          sellDate: 'Oct 11, 2023',
-          sellTime: '01:23 AM',
-          inStock: 2,
-        },
-        {},
       ]}
       columns={[
         {
+          title: 'Brand',
           type: 'text',
           data: 'brand',
         },
         {
+          title: 'Model',
           type: 'text',
           data: 'model',
         },
         {
+          title: 'Price',
           type: 'numeric',
           data: 'price',
           numericFormat: {
@@ -2837,6 +2888,7 @@ export const App = () => {
           className: 'htLeft',
         },
         {
+          title: 'Date',
           type: 'date',
           data: 'sellDate',
           dateFormat: 'MMM D, YYYY',
@@ -2844,6 +2896,7 @@ export const App = () => {
           className: 'htRight',
         },
         {
+          title: 'Time',
           type: 'time',
           data: 'sellTime',
           timeFormat: 'hh:mm A',
@@ -2851,52 +2904,20 @@ export const App = () => {
           className: 'htRight',
         },
         {
-          type: 'numeric',
+          title: 'In stock',
+          type: 'checkbox',
           data: 'inStock',
           className: 'htCenter',
         },
       ]}
-      height={200}
-      fixedRowsTop={1}
-      fixedRowsBottom={1}
-      colHeaders={true}
+      // enable the column menu
+      dropdownMenu={true}
+      // enable filtering
       filters={true}
-      // `afterColumnSort` is a Handsontable hook: it's fired after each filtering
-      afterColumnSort={exclude}
-      cells={(row, col, prop) => {
-        if (row === 0) {
-          return {
-            type: 'text',
-            className: 'htCenter',
-          };
-        }
-        if (row === 15) {
-          return {
-            type: 'numeric',
-            className: 'htCenter',
-          };
-        }
-      }}
-      columnSummary={[
-        {
-          sourceColumn: 2,
-          type: 'sum',
-          reversedRowCoords: true,
-          destinationRow: 0,
-          destinationColumn: 2,
-          forceNumeric: true,
-          suppressDataTypeErrors: true,
-        },
-        {
-          sourceColumn: 5,
-          type: 'sum',
-          reversedRowCoords: true,
-          destinationRow: 0,
-          destinationColumn: 5,
-          forceNumeric: true,
-          suppressDataTypeErrors: true,
-        },
-      ]}
+      // `afterFilter()` is a Handsontable hook: it's fired after each filtering
+      afterFilter={exclude}
+      height="auto"
+      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -2929,7 +2950,7 @@ or use [`afterFilter()`](@/api/hooks.md#afterfilter) to
 const configurationOptions = {
   beforeFilter() {
     // add your code here
-    return false; // to block front-end sorting
+    return false; // to block front-end filtering
   },
   afterFilter() {
     // add your code here
@@ -2945,7 +2966,7 @@ const configurationOptions = {
 <HotTable
   beforeFilter={
     // add your code here
-    return false; // to block front-end sorting
+    return false; // to block front-end filtering
   }
   afterFilter={
     // add your code here
@@ -2959,7 +2980,6 @@ const configurationOptions = {
 
 You can control filtering at the grid's runtime by using Handsontable's
 [hooks](@/guides/getting-started/events-and-hooks.md) and [API methods](@/api/filters.md#methods).
-
 This allows you to:
 
 - Enable or disable filtering based on specified conditions. For example, you can disable filtering
@@ -3017,18 +3037,51 @@ for the first column:
 
 ```js
 handsontableInstance.updateSettings({
-  // enable filtering for all columns
+  // enable filtering, for all columns
   filters: true,
-  // enable the column menu for all columns
-  // but hide the filter menu from all columns but the first one
+  // enable the column menu, for all columns
+  // but only with the 'Filter by value' list and the 'OK' and 'Cancel' buttons
   dropdownMenu: {
     items: {
       filter_by_value: {
+        // hide the 'Filter by value' list from all columns but the first one
         hidden() {
           return this.getSelectedRangeLast().to.col > 0;
         },
       },
       filter_action_bar: {
+        // hide the 'OK' and 'Cancel' buttons from all columns but the first one
+        hidden() {
+          return this.getSelectedRangeLast().to.col > 0;
+        },
+      },
+    },
+  },
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+const hotTableComponentRef = useRef(null);
+
+hotTableComponentRef.current.hotInstance.updateSettings({
+  // enable filtering for all columns
+  filters: true,
+  // enable the column menu for all columns
+  // but only with the 'Filter by value' list and the 'OK' and 'Cancel' buttons
+  dropdownMenu: {
+    items: {
+      filter_by_value: {
+        // hide the 'Filter by value' list from all columns but the first one
+        hidden() {
+          return this.getSelectedRangeLast().to.col > 0;
+        },
+      },
+      filter_action_bar: {
+        // hide the 'OK' and 'Cancel' buttons from all columns but the first one
         hidden() {
           return this.getSelectedRangeLast().to.col > 0;
         },
@@ -3357,11 +3410,6 @@ ReactDOM.render(<App />, document.getElementById('exampleFilterThroughAPI1'));
 
 :::
 
-### Control the "Filter by value" list
-
-Plus, najważniejsze i coś co pojawia się over and over... custom renderer vs. dane w filtrach + info
-o tym, że nie ma API na kontrolowanie listy filter by value.
-
 ## Import the filtering module
 
 You can reduce the size of your bundle by importing and registering only the
@@ -3390,13 +3438,14 @@ registerPlugin(Filters);
 
 ## Known limitations
 
-At the moment, filtring comes with the following limitations:
+At the moment, filtering comes with the following limitations:
 
 - You can't use filtering with [nested data structures](@/guides/rows/row-parent-child.md)
   ([`NestedRows`](@/api/nestedRows.md)).
 - You can't add custom filter conditions.
 - You can't control the **Filter by value** list. The list of values is generated automatically and
   there's no supported way of modifying it.
+- There's no built-in protection against filtering passwords.
 
 ## API reference
 
