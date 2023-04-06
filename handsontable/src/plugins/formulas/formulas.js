@@ -642,7 +642,30 @@ export class Formulas extends BasePlugin {
       return false;
     }
 
-    return this.engine.getFillRangeData(engineSourceRange, engineTargetRange);
+    const fillRangeData = this.engine.getFillRangeData(engineSourceRange, engineTargetRange);
+    const sourceStartRow = engineSourceRange.start.row;
+    const sourceStartColumn = engineSourceRange.start.col;
+    const sourceEndRow = engineSourceRange.end.row;
+    const sourceEndColumn = engineSourceRange.end.col;
+    const populationRowLength = sourceEndRow - sourceStartRow + 1;
+    const populationColumnLength = sourceEndColumn - sourceStartColumn + 1;
+
+    for (let populatedRowIndex = 0; populatedRowIndex < fillRangeData.length; populatedRowIndex += 1) {
+      for (let populatedColumnIndex = 0; populatedColumnIndex < fillRangeData[populatedRowIndex].length;
+        populatedColumnIndex += 1) {
+        const populatedValue = fillRangeData[populatedRowIndex][populatedColumnIndex];
+        const sourceRow = populatedRowIndex % populationRowLength;
+        const sourceColumn = populatedColumnIndex % populationColumnLength;
+        const sourceCellMeta = this.hot.getCellMeta(sourceRow, sourceColumn);
+        const isPopulatedValueDate = sourceCellMeta.type === 'date';
+
+        if (typeof populatedValue === 'string' && isPopulatedValueDate && populatedValue.startsWith('\'')) {
+          fillRangeData[populatedRowIndex][populatedColumnIndex] = populatedValue.slice(1);
+        }
+      }
+    }
+
+    return fillRangeData;
   }
 
   /**
