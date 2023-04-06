@@ -42,7 +42,7 @@ multiple columns.
 ## Overview
 
 With sorting, you can easily rearrange rows of data, based on the values in specific columns. This
-is particularly useful for analyzing and organizing large datasets, which helps you identify
+is particularly useful for analyzing and organizing large data sets, which helps you identify
 patterns and trends.
 
 You can sort data in different ways:
@@ -56,6 +56,9 @@ Handsontable sorts data only visually, so your source data remains in the origin
 your sorting changes in the data source, see this guide:
 [Saving data](@/guides/getting-started/saving-data.md).
 
+You can't use sorting with [nested data structures](@/guides/rows/row-parent-child.md)
+([`NestedRows`](@/api/nestedRows.md)).
+
 ## Sorting demo
 
 Click on one of the column names to sort the values in ascending (↑) or descending (↓) order, or to
@@ -63,59 +66,58 @@ go back to the original order.
 
 ::: only-for javascript
 
-::: example #example1 --html 1 --js 2
+::: example #exampleSortingDemo --html 1 --js 2
 
 ```html
-<div id="example1"></div>
+<div id="exampleSortingDemo"></div>
 ```
 
 ```js
 // to import sorting as an individual module, see the 'Import the sorting module' section of this page
-
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example1');
+const container = document.querySelector('#exampleSortingDemo');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
       model: 'Racing Socks',
       price: 30,
-      sellDate: '11/10/2023',
-      sellTime: '01:23',
+      sellDate: 'Oct 11, 2023',
+      sellTime: '01:23 AM',
       inStock: false,
     },
     {
       brand: 'Gigabox',
       model: 'HL Mountain Frame',
       price: 1890.9,
-      sellDate: '03/05/2023',
-      sellTime: '11:27',
+      sellDate: 'May 3, 2023',
+      sellTime: '11:27 AM',
       inStock: false,
     },
     {
       brand: 'Camido',
       model: 'Cycling Cap',
       price: 130.1,
-      sellDate: '27/03/2023',
-      sellTime: '03:17',
+      sellDate: 'Mar 27, 2023',
+      sellTime: '03:17 AM',
       inStock: true,
     },
     {
       brand: 'Chatterpoint',
       model: 'Road Tire Tube',
       price: 59,
-      sellDate: '28/08/2023',
-      sellTime: '08:01',
+      sellDate: 'Aug 28, 2023',
+      sellTime: '08:01 AM',
       inStock: true,
     },
     {
       brand: 'Eidel',
       model: 'HL Road Tire',
       price: 279.99,
-      sellDate: '02/10/2023',
-      sellTime: '13:23',
+      sellDate: 'Oct 2, 2023',
+      sellTime: '13:23 AM',
       inStock: true,
     },
   ],
@@ -144,12 +146,15 @@ const handsontableInstance = new Handsontable(container, {
       title: 'Date',
       type: 'date',
       data: 'sellDate',
+      dateFormat: 'MMM D, YYYY',
+      correctFormat: true,
       className: 'htRight',
     },
     {
       title: 'Time',
       type: 'time',
       data: 'sellTime',
+      timeFormat: 'hh:mm A',
       correctFormat: true,
       className: 'htRight',
     },
@@ -163,6 +168,7 @@ const handsontableInstance = new Handsontable(container, {
   // enable sorting for all columns
   columnSorting: true,
   height: 'auto',
+  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -173,11 +179,10 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #exampleSortingDemo :react
 
 ```jsx
 // to import sorting as an individual module, see the 'Import the sorting module' section of this page
-
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -185,7 +190,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       data={[
@@ -193,40 +198,40 @@ export const HandsontableComponent = () => {
           brand: 'Jetpulse',
           model: 'Racing Socks',
           price: 30,
-          sellDate: '11/10/2023',
-          sellTime: '01:23',
+          sellDate: 'Oct 11, 2023',
+          sellTime: '01:23 AM',
           inStock: false,
         },
         {
           brand: 'Gigabox',
           model: 'HL Mountain Frame',
           price: 1890.9,
-          sellDate: '03/05/2023',
-          sellTime: '11:27',
+          sellDate: 'May 3, 2023',
+          sellTime: '11:27 AM',
           inStock: false,
         },
         {
           brand: 'Camido',
           model: 'Cycling Cap',
           price: 130.1,
-          sellDate: '27/03/2023',
-          sellTime: '03:17',
+          sellDate: 'Mar 27, 2023',
+          sellTime: '03:17 AM',
           inStock: true,
         },
         {
           brand: 'Chatterpoint',
           model: 'Road Tire Tube',
           price: 59,
-          sellDate: '28/08/2023',
-          sellTime: '08:01',
+          sellDate: 'Aug 28, 2023',
+          sellTime: '08:01 AM',
           inStock: true,
         },
         {
           brand: 'Eidel',
           model: 'HL Road Tire',
           price: 279.99,
-          sellDate: '02/10/2023',
-          sellTime: '13:23',
+          sellDate: 'Oct 2, 2023',
+          sellTime: '13:23 AM',
           inStock: true,
         },
       ]}
@@ -255,12 +260,16 @@ export const HandsontableComponent = () => {
           title: 'Date',
           type: 'date',
           data: 'sellDate',
+          dateFormat: 'MMM D, YYYY',
+          correctFormat: true,
           className: 'htRight',
         },
         {
           title: 'Time',
           type: 'time',
           data: 'sellTime',
+          timeFormat: 'hh:mm A',
+          correctFormat: true,
           correctFormat: true,
           className: 'htRight',
         },
@@ -274,13 +283,14 @@ export const HandsontableComponent = () => {
       // enable sorting for all columns
       columnSorting={true}
       height="auto"
+      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example1'));
+ReactDOM.render(<App />, document.getElementById('exampleSortingDemo'));
 /* end:skip-in-preview */
 ```
 
@@ -319,57 +329,57 @@ To enable sorting only for specific columns, set [`headerAction`](@/api/options.
 
 ::: only-for javascript
 
-::: example #example2 --html 1 --js 2
+::: example #exampleEnableSortingForColumns --html 1 --js 2
 
 ```html
-<div id="example2"></div>
+<div id="exampleEnableSortingForColumns"></div>
 ```
 
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example2');
+const container = document.querySelector('#exampleEnableSortingForColumns');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
       model: 'Racing Socks',
       price: 30,
-      sellDate: '11/10/2023',
-      sellTime: '01:23',
+      sellDate: 'Oct 11, 2023',
+      sellTime: '01:23 AM',
       inStock: false,
     },
     {
       brand: 'Gigabox',
       model: 'HL Mountain Frame',
       price: 1890.9,
-      sellDate: '03/05/2023',
-      sellTime: '11:27',
+      sellDate: 'May 3, 2023',
+      sellTime: '11:27 AM',
       inStock: false,
     },
     {
       brand: 'Camido',
       model: 'Cycling Cap',
       price: 130.1,
-      sellDate: '27/03/2023',
-      sellTime: '03:17',
+      sellDate: 'Mar 27, 2023',
+      sellTime: '03:17 AM',
       inStock: true,
     },
     {
       brand: 'Chatterpoint',
       model: 'Road Tire Tube',
       price: 59,
-      sellDate: '28/08/2023',
-      sellTime: '08:01',
+      sellDate: 'Aug 28, 2023',
+      sellTime: '08:01 AM',
       inStock: true,
     },
     {
       brand: 'Eidel',
       model: 'HL Road Tire',
       price: 279.99,
-      sellDate: '02/10/2023',
-      sellTime: '13:23',
+      sellDate: 'Oct 2, 2023',
+      sellTime: '13:23 AM',
       inStock: true,
     },
   ],
@@ -408,12 +418,15 @@ const handsontableInstance = new Handsontable(container, {
       title: 'Date<br>(sortable)',
       type: 'date',
       data: 'sellDate',
+      dateFormat: 'MMM D, YYYY',
+      correctFormat: true,
       className: 'htRight',
     },
     {
       title: 'Time<br>(non-sortable)',
       type: 'time',
       data: 'sellTime',
+      timeFormat: 'hh:mm A',
       correctFormat: true,
       className: 'htRight',
       // disable sorting for the 'Time' column
@@ -428,7 +441,8 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htCenter',
     },
   ],
-  height: 'auto',
+  height: 168,
+  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -439,7 +453,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #exampleEnableSortingForColumns :react
 
 ```jsx
 import { HotTable } from '@handsontable/react';
@@ -449,7 +463,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       data={[
@@ -457,40 +471,40 @@ export const HandsontableComponent = () => {
           brand: 'Jetpulse',
           model: 'Racing Socks',
           price: 30,
-          sellDate: '11/10/2023',
-          sellTime: '01:23',
+          sellDate: 'Oct 11, 2023',
+          sellTime: '01:23 AM',
           inStock: false,
         },
         {
           brand: 'Gigabox',
           model: 'HL Mountain Frame',
           price: 1890.9,
-          sellDate: '03/05/2023',
-          sellTime: '11:27',
+          sellDate: 'May 3, 2023',
+          sellTime: '11:27 AM',
           inStock: false,
         },
         {
           brand: 'Camido',
           model: 'Cycling Cap',
           price: 130.1,
-          sellDate: '27/03/2023',
-          sellTime: '03:17',
+          sellDate: 'Mar 27, 2023',
+          sellTime: '03:17 AM',
           inStock: true,
         },
         {
           brand: 'Chatterpoint',
           model: 'Road Tire Tube',
           price: 59,
-          sellDate: '28/08/2023',
-          sellTime: '08:01',
+          sellDate: 'Aug 28, 2023',
+          sellTime: '08:01 AM',
           inStock: true,
         },
         {
           brand: 'Eidel',
           model: 'HL Road Tire',
           price: 279.99,
-          sellDate: '02/10/2023',
-          sellTime: '13:23',
+          sellDate: 'Oct 2, 2023',
+          sellTime: '13:23 AM',
           inStock: true,
         },
       ]}
@@ -529,12 +543,15 @@ export const HandsontableComponent = () => {
           title: 'Date<br>(sortable)',
           type: 'date',
           data: 'sellDate',
+          dateFormat: 'MMM D, YYYY',
+          correctFormat: true,
           className: 'htRight',
         },
         {
           title: 'Time<br>(non-sortable)',
           type: 'time',
           data: 'sellTime',
+          timeFormat: 'hh:mm A',
           correctFormat: true,
           className: 'htRight',
           // disable sorting for the 'Time' column
@@ -549,14 +566,15 @@ export const HandsontableComponent = () => {
           className: 'htCenter',
         },
       ]}
-      height="auto"
+      height={168}
+      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example2'));
+ReactDOM.render(<App />, document.getElementById('exampleEnableSortingForColumns'));
 /* end:skip-in-preview */
 ```
 
@@ -659,25 +677,25 @@ You can configure the following types:
 
 ::: only-for javascript
 
-::: example #example3 --html 1 --js 2
+::: example #exampleSortDifferentTypes --html 1 --js 2
 
 ```html
-<div id="example3"></div>
+<div id="exampleSortDifferentTypes"></div>
 ```
 
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example3');
+const container = document.querySelector('#exampleSortDifferentTypes');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
       model: 'Racing Socks',
       size: 'S',
       price: 30,
-      sellDate: '11/10/2023',
-      sellTime: '01:23',
+      sellDate: 'Oct 11, 2023',
+      sellTime: '01:23 AM',
       inStock: false,
       color: 'Black',
       email: '8576@all.xyz',
@@ -686,8 +704,8 @@ const handsontableInstance = new Handsontable(container, {
       model: 'HL Mountain Shirt',
       size: 'XS',
       price: 1890.9,
-      sellDate: '03/05/2023',
-      sellTime: '11:27',
+      sellDate: 'May 3, 2023',
+      sellTime: '11:27 AM',
       inStock: false,
       color: 'White',
       email: 'tayn@all.xyz',
@@ -696,8 +714,8 @@ const handsontableInstance = new Handsontable(container, {
       model: 'Cycling Cap',
       size: 'L',
       price: 130.1,
-      sellDate: '27/03/2023',
-      sellTime: '03:17',
+      sellDate: 'Mar 27, 2023',
+      sellTime: '03:17 AM',
       inStock: true,
       color: 'Green',
       email: '6lights@far.com',
@@ -706,8 +724,8 @@ const handsontableInstance = new Handsontable(container, {
       model: 'Ski Jacket',
       size: 'M',
       price: 59,
-      sellDate: '28/08/2023',
-      sellTime: '08:01',
+      sellDate: 'Aug 28, 2023',
+      sellTime: '08:01 AM',
       inStock: true,
       color: 'Blue',
       email: 'raj@fq1my2c.com',
@@ -716,8 +734,8 @@ const handsontableInstance = new Handsontable(container, {
       model: 'HL Goggles',
       size: 'XL',
       price: 279.99,
-      sellDate: '02/10/2023',
-      sellTime: '13:23',
+      sellDate: 'Oct 2, 2023',
+      sellTime: '13:23 AM',
       inStock: true,
       color: 'Black',
       email: 'da@pdc.ga',
@@ -746,6 +764,8 @@ const handsontableInstance = new Handsontable(container, {
       // set the type of the 'Date' column
       type: 'date',
       data: 'sellDate',
+      dateFormat: 'MMM D, YYYY',
+      correctFormat: true,
       className: 'htRight',
     },
     {
@@ -753,6 +773,8 @@ const handsontableInstance = new Handsontable(container, {
       // set the type of the 'Time' column
       type: 'time',
       data: 'sellTime',
+      timeFormat: 'hh:mm A',
+      correctFormat: true,
       className: 'htRight',
     },
     {
@@ -787,6 +809,7 @@ const handsontableInstance = new Handsontable(container, {
   ],
   columnSorting: true,
   height: 168,
+  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -797,7 +820,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #exampleSortDifferentTypes :react
 
 ```jsx
 import { HotTable } from '@handsontable/react';
@@ -807,7 +830,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       data={[
@@ -815,8 +838,8 @@ export const HandsontableComponent = () => {
           model: 'Racing Socks',
           size: 'S',
           price: 30,
-          sellDate: '11/10/2023',
-          sellTime: '01:23',
+          sellDate: 'Oct 11, 2023',
+          sellTime: '01:23 AM',
           inStock: false,
           color: 'Black',
           email: '8576@all.xyz',
@@ -825,8 +848,8 @@ export const HandsontableComponent = () => {
           model: 'HL Mountain Shirt',
           size: 'XS',
           price: 1890.9,
-          sellDate: '03/05/2023',
-          sellTime: '11:27',
+          sellDate: 'May 3, 2023',
+          sellTime: '11:27 AM',
           inStock: false,
           color: 'White',
           email: 'tayn@all.xyz',
@@ -835,8 +858,8 @@ export const HandsontableComponent = () => {
           model: 'Cycling Cap',
           size: 'L',
           price: 130.1,
-          sellDate: '27/03/2023',
-          sellTime: '03:17',
+          sellDate: 'Mar 27, 2023',
+          sellTime: '03:17 AM',
           inStock: true,
           color: 'Green',
           email: '6lights@far.com',
@@ -845,8 +868,8 @@ export const HandsontableComponent = () => {
           model: 'Ski Jacket',
           size: 'M',
           price: 59,
-          sellDate: '28/08/2023',
-          sellTime: '08:01',
+          sellDate: 'Aug 28, 2023',
+          sellTime: '08:01 AM',
           inStock: true,
           color: 'Blue',
           email: 'raj@fq1my2c.com',
@@ -855,8 +878,8 @@ export const HandsontableComponent = () => {
           model: 'HL Goggles',
           size: 'XL',
           price: 279.99,
-          sellDate: '02/10/2023',
-          sellTime: '13:23',
+          sellDate: 'Oct 2, 2023',
+          sellTime: '13:23 AM',
           inStock: true,
           color: 'Black',
           email: 'da@pdc.ga',
@@ -885,6 +908,8 @@ export const HandsontableComponent = () => {
           // set the type of the 'Date' column
           type: 'date',
           data: 'sellDate',
+          dateFormat: 'MMM D, YYYY',
+          correctFormat: true,
           className: 'htRight',
         },
         {
@@ -892,6 +917,8 @@ export const HandsontableComponent = () => {
           // set the type of the 'Time' column
           type: 'time',
           data: 'sellTime',
+          timeFormat: 'hh:mm A',
+          correctFormat: true,
           className: 'htRight',
         },
         {
@@ -926,13 +953,14 @@ export const HandsontableComponent = () => {
       ]}
       columnSorting={true}
       height={168}
+      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example3'));
+ReactDOM.render(<App />, document.getElementById('exampleSortDifferentTypes'));
 /* end:skip-in-preview */
 ```
 
@@ -940,7 +968,8 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example3'));
 
 :::
 
-You can also create a custom type. For details, see this guide: [Cell type](@/guides/cell-types/cell-type.md).
+You can also create a custom type. For details, see this guide:
+[Cell type](@/guides/cell-types/cell-type.md).
 
 ## Sort by multiple columns
 
@@ -957,57 +986,57 @@ To try out sorting by multiple columns, see the following demo:
 
 ::: only-for javascript
 
-::: example #example4 --html 1 --js 2
+::: example #exampleSortByMultipleColumns --html 1 --js 2
 
 ```html
-<div id="example4"></div>
+<div id="exampleSortByMultipleColumns"></div>
 ```
 
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example4');
+const container = document.querySelector('#exampleSortByMultipleColumns');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
       model: 'HL Mountain Frame',
       price: 1890.9,
-      sellDate: '11/10/2023',
-      sellTime: '01:23',
+      sellDate: 'Oct 11, 2023',
+      sellTime: '01:23 AM',
       inStock: false,
     },
     {
       brand: 'Jetpulse',
       model: 'HL Mountain Frame',
       price: 30,
-      sellDate: '03/05/2023',
-      sellTime: '11:27',
+      sellDate: 'May 3, 2023',
+      sellTime: '11:27 AM',
       inStock: false,
     },
     {
       brand: 'Jetpulse',
       model: 'Cycling Cap',
       price: 130.1,
-      sellDate: '27/03/2023',
-      sellTime: '03:17',
+      sellDate: 'Mar 27, 2023',
+      sellTime: '03:17 AM',
       inStock: true,
     },
     {
       brand: 'Chatterpoint',
       model: 'Road Tire Tube',
       price: 279.99,
-      sellDate: '28/08/2023',
-      sellTime: '08:01',
+      sellDate: 'Aug 28, 2023',
+      sellTime: '08:01 AM',
       inStock: true,
     },
     {
       brand: 'Chatterpoint',
       model: 'HL Road Tire',
       price: 59,
-      sellDate: '02/10/2023',
-      sellTime: '13:23',
+      sellDate: 'Oct 2, 2023',
+      sellTime: '13:23 AM',
       inStock: true,
     },
   ],
@@ -1036,12 +1065,16 @@ const handsontableInstance = new Handsontable(container, {
       title: 'Date',
       type: 'date',
       data: 'sellDate',
+      dateFormat: 'MMM D, YYYY',
+      correctFormat: true,
       className: 'htRight',
     },
     {
       title: 'Time',
       type: 'time',
       data: 'sellTime',
+      timeFormat: 'hh:mm A',
+      correctFormat: true,
       className: 'htRight',
     },
     {
@@ -1055,6 +1088,7 @@ const handsontableInstance = new Handsontable(container, {
   // enable sorting by multiple columns, for all columns
   multiColumnSorting: true,
   height: 'auto',
+  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -1065,7 +1099,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example4 :react
+::: example #exampleSortByMultipleColumns :react
 
 ```jsx
 import { HotTable } from '@handsontable/react';
@@ -1075,7 +1109,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       data={[
@@ -1083,40 +1117,40 @@ export const HandsontableComponent = () => {
           brand: 'Jetpulse',
           model: 'HL Mountain Frame',
           price: 1890.9,
-          sellDate: '11/10/2023',
-          sellTime: '01:23',
+          sellDate: 'Oct 11, 2023',
+          sellTime: '01:23 AM',
           inStock: false,
         },
         {
           brand: 'Jetpulse',
           model: 'HL Mountain Frame',
           price: 30,
-          sellDate: '03/05/2023',
-          sellTime: '11:27',
+          sellDate: 'May 3, 2023',
+          sellTime: '11:27 AM',
           inStock: false,
         },
         {
           brand: 'Jetpulse',
           model: 'Cycling Cap',
           price: 130.1,
-          sellDate: '27/03/2023',
-          sellTime: '03:17',
+          sellDate: 'Mar 27, 2023',
+          sellTime: '03:17 AM',
           inStock: true,
         },
         {
           brand: 'Chatterpoint',
           model: 'Road Tire Tube',
           price: 279.99,
-          sellDate: '28/08/2023',
-          sellTime: '08:01',
+          sellDate: 'Aug 28, 2023',
+          sellTime: '08:01 AM',
           inStock: true,
         },
         {
           brand: 'Chatterpoint',
           model: 'HL Road Tire',
           price: 59,
-          sellDate: '02/10/2023',
-          sellTime: '13:23',
+          sellDate: 'Oct 2, 2023',
+          sellTime: '13:23 AM',
           inStock: true,
         },
       ]}
@@ -1145,12 +1179,16 @@ export const HandsontableComponent = () => {
           title: 'Date',
           type: 'date',
           data: 'sellDate',
+          dateFormat: 'MMM D, YYYY',
+          correctFormat: true,
           className: 'htRight',
         },
         {
           title: 'Time',
           type: 'time',
           data: 'sellTime',
+          timeFormat: 'hh:mm A',
+          correctFormat: true,
           className: 'htRight',
         },
         {
@@ -1163,13 +1201,14 @@ export const HandsontableComponent = () => {
       // enable sorting by multiple columns, for all columns
       multiColumnSorting={true}
       height="auto"
+      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example4'));
+ReactDOM.render(<App />, document.getElementById('exampleSortByMultipleColumns'));
 /* end:skip-in-preview */
 ```
 
@@ -1258,57 +1297,57 @@ In the following demo, the data is initially sorted:
 
 ::: only-for javascript
 
-::: example #example5 --html 1 --js 2
+::: example #exampleInitialSortOrder --html 1 --js 2
 
 ```html
-<div id="example5"></div>
+<div id="exampleInitialSortOrder"></div>
 ```
 
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example5');
+const container = document.querySelector('#exampleInitialSortOrder');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
       model: 'HL Mountain Frame',
       price: 30,
-      sellDate: '11/10/2023',
-      sellTime: '01:23',
+      sellDate: 'Oct 11, 2023',
+      sellTime: '01:23 AM',
       inStock: false,
     },
     {
       brand: 'Jetpulse',
       model: 'HL Mountain Frame',
       price: 1890.9,
-      sellDate: '03/05/2023',
-      sellTime: '11:27',
+      sellDate: 'May 3, 2023',
+      sellTime: '11:27 AM',
       inStock: false,
     },
     {
       brand: 'Jetpulse',
       model: 'Cycling Cap',
       price: 130.1,
-      sellDate: '27/03/2023',
-      sellTime: '03:17',
+      sellDate: 'Mar 27, 2023',
+      sellTime: '03:17 AM',
       inStock: true,
     },
     {
       brand: 'Chatterpoint',
       model: 'Road Tire Tube',
       price: 59,
-      sellDate: '28/08/2023',
-      sellTime: '08:01',
+      sellDate: 'Aug 28, 2023',
+      sellTime: '08:01 AM',
       inStock: true,
     },
     {
       brand: 'Chatterpoint',
       model: 'HL Road Tire',
       price: 279.99,
-      sellDate: '02/10/2023',
-      sellTime: '13:23',
+      sellDate: 'Oct 2, 2023',
+      sellTime: '13:23 AM',
       inStock: true,
     },
   ],
@@ -1337,12 +1376,16 @@ const handsontableInstance = new Handsontable(container, {
       title: 'Date',
       type: 'date',
       data: 'sellDate',
+      dateFormat: 'MMM D, YYYY',
+      correctFormat: true,
       className: 'htRight',
     },
     {
       title: 'Time',
       type: 'time',
       data: 'sellTime',
+      timeFormat: 'hh:mm A',
+      correctFormat: true,
       className: 'htRight',
     },
     {
@@ -1367,6 +1410,7 @@ const handsontableInstance = new Handsontable(container, {
     ],
   },
   height: 'auto',
+  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -1377,7 +1421,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example5 :react
+::: example #exampleInitialSortOrder :react
 
 ```jsx
 import { HotTable } from '@handsontable/react';
@@ -1387,7 +1431,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       data={[
@@ -1395,40 +1439,40 @@ export const HandsontableComponent = () => {
           brand: 'Jetpulse',
           model: 'HL Mountain Frame',
           price: 30,
-          sellDate: '11/10/2023',
-          sellTime: '01:23',
+          sellDate: 'Oct 11, 2023',
+          sellTime: '01:23 AM',
           inStock: false,
         },
         {
           brand: 'Jetpulse',
           model: 'HL Mountain Frame',
           price: 1890.9,
-          sellDate: '03/05/2023',
-          sellTime: '11:27',
+          sellDate: 'May 3, 2023',
+          sellTime: '11:27 AM',
           inStock: false,
         },
         {
           brand: 'Jetpulse',
           model: 'Cycling Cap',
           price: 130.1,
-          sellDate: '27/03/2023',
-          sellTime: '03:17',
+          sellDate: 'Mar 27, 2023',
+          sellTime: '03:17 AM',
           inStock: true,
         },
         {
           brand: 'Chatterpoint',
           model: 'Road Tire Tube',
           price: 59,
-          sellDate: '28/08/2023',
-          sellTime: '08:01',
+          sellDate: 'Aug 28, 2023',
+          sellTime: '08:01 AM',
           inStock: true,
         },
         {
           brand: 'Chatterpoint',
           model: 'HL Road Tire',
           price: 279.99,
-          sellDate: '02/10/2023',
-          sellTime: '13:23',
+          sellDate: 'Oct 2, 2023',
+          sellTime: '13:23 AM',
           inStock: true,
         },
       ]}
@@ -1457,12 +1501,16 @@ export const HandsontableComponent = () => {
           title: 'Date',
           type: 'date',
           data: 'sellDate',
+          dateFormat: 'MMM D, YYYY',
+          correctFormat: true,
           className: 'htRight',
         },
         {
           title: 'Time',
           type: 'time',
           data: 'sellTime',
+          timeFormat: 'hh:mm A',
+          correctFormat: true,
           className: 'htRight',
         },
         {
@@ -1487,13 +1535,14 @@ export const HandsontableComponent = () => {
         ],
       }}
       height="auto"
+      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example5'));
+ReactDOM.render(<App />, document.getElementById('exampleInitialSortOrder'));
 /* end:skip-in-preview */
 ```
 
@@ -1594,57 +1643,57 @@ The default sort icons (↑↓) are encoded in Base64. You can replace them by c
 
 ::: only-for javascript
 
-::: example #example6 --html 1 --js 2 --css 3
+::: example #exampleCustomSortIcons --html 1 --js 2 --css 3
 
 ```html
-<div id="example6"></div>
+<div id="exampleCustomSortIcons"></div>
 ```
 
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example6');
+const container = document.querySelector('#exampleCustomSortIcons');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
       model: 'Racing Socks',
       price: 30,
-      sellDate: '11/10/2023',
-      sellTime: '01:23',
+      sellDate: 'Oct 11, 2023',
+      sellTime: '01:23 AM',
       inStock: false,
     },
     {
       brand: 'Gigabox',
       model: 'HL Mountain Frame',
       price: 1890.9,
-      sellDate: '03/05/2023',
-      sellTime: '11:27',
+      sellDate: 'May 3, 2023',
+      sellTime: '11:27 AM',
       inStock: false,
     },
     {
       brand: 'Camido',
       model: 'Cycling Cap',
       price: 130.1,
-      sellDate: '27/03/2023',
-      sellTime: '03:17',
+      sellDate: 'Mar 27, 2023',
+      sellTime: '03:17 AM',
       inStock: true,
     },
     {
       brand: 'Chatterpoint',
       model: 'Road Tire Tube',
       price: 59,
-      sellDate: '28/08/2023',
-      sellTime: '08:01',
+      sellDate: 'Aug 28, 2023',
+      sellTime: '08:01 AM',
       inStock: true,
     },
     {
       brand: 'Eidel',
       model: 'HL Road Tire',
       price: 279.99,
-      sellDate: '02/10/2023',
-      sellTime: '13:23',
+      sellDate: 'Oct 2, 2023',
+      sellTime: '13:23 AM',
       inStock: true,
     },
   ],
@@ -1673,12 +1722,16 @@ const handsontableInstance = new Handsontable(container, {
       title: 'Date',
       type: 'date',
       data: 'sellDate',
+      dateFormat: 'MMM D, YYYY',
+      correctFormat: true,
       className: 'htRight',
     },
     {
       title: 'Time',
       type: 'time',
       data: 'sellTime',
+      timeFormat: 'hh:mm A',
+      correctFormat: true,
       className: 'htRight',
     },
     {
@@ -1696,6 +1749,7 @@ const handsontableInstance = new Handsontable(container, {
     },
   },
   height: 'auto',
+  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -1725,7 +1779,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example6 :react --js 1 --css 2
+::: example #exampleCustomSortIcons :react --js 1 --css 2
 
 ```jsx
 import { HotTable } from '@handsontable/react';
@@ -1735,7 +1789,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       data={[
@@ -1743,40 +1797,40 @@ export const HandsontableComponent = () => {
           brand: 'Jetpulse',
           model: 'Racing Socks',
           price: 30,
-          sellDate: '11/10/2023',
-          sellTime: '01:23',
+          sellDate: 'Oct 11, 2023',
+          sellTime: '01:23 AM',
           inStock: false,
         },
         {
           brand: 'Gigabox',
           model: 'HL Mountain Frame',
           price: 1890.9,
-          sellDate: '03/05/2023',
-          sellTime: '11:27',
+          sellDate: 'May 3, 2023',
+          sellTime: '11:27 AM',
           inStock: false,
         },
         {
           brand: 'Camido',
           model: 'Cycling Cap',
           price: 130.1,
-          sellDate: '27/03/2023',
-          sellTime: '03:17',
+          sellDate: 'Mar 27, 2023',
+          sellTime: '03:17 AM',
           inStock: true,
         },
         {
           brand: 'Chatterpoint',
           model: 'Road Tire Tube',
           price: 59,
-          sellDate: '28/08/2023',
-          sellTime: '08:01',
+          sellDate: 'Aug 28, 2023',
+          sellTime: '08:01 AM',
           inStock: true,
         },
         {
           brand: 'Eidel',
           model: 'HL Road Tire',
           price: 279.99,
-          sellDate: '02/10/2023',
-          sellTime: '13:23',
+          sellDate: 'Oct 2, 2023',
+          sellTime: '13:23 AM',
           inStock: true,
         },
       ]}
@@ -1805,12 +1859,16 @@ export const HandsontableComponent = () => {
           title: 'Date',
           type: 'date',
           data: 'sellDate',
+          dateFormat: 'MMM D, YYYY',
+          correctFormat: true,
           className: 'htRight',
         },
         {
           title: 'Time',
           type: 'time',
           data: 'sellTime',
+          timeFormat: 'hh:mm A',
+          correctFormat: true,
           className: 'htRight',
         },
         {
@@ -1828,13 +1886,14 @@ export const HandsontableComponent = () => {
       }}
       className="custom-sort-icon-example-1"
       height="auto"
+      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example6'));
+ReactDOM.render(<App />, document.getElementById('exampleCustomSortIcons'));
 /* end:skip-in-preview */
 ```
 
@@ -1865,57 +1924,57 @@ You can also replace the sort icons by changing `content` for the same pseudo-el
 
 ::: only-for javascript
 
-::: example #example7 --html 1 --js 2 --css 3
+::: example #exampleCustomSortIcons2 --html 1 --js 2 --css 3
 
 ```html
-<div id="example7"></div>
+<div id="exampleCustomSortIcons2"></div>
 ```
 
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example7');
+const container = document.querySelector('#exampleCustomSortIcons2');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
       model: 'Racing Socks',
       price: 30,
-      sellDate: '11/10/2023',
-      sellTime: '01:23',
+      sellDate: 'Oct 11, 2023',
+      sellTime: '01:23 AM',
       inStock: false,
     },
     {
       brand: 'Gigabox',
       model: 'HL Mountain Frame',
       price: 1890.9,
-      sellDate: '03/05/2023',
-      sellTime: '11:27',
+      sellDate: 'May 3, 2023',
+      sellTime: '11:27 AM',
       inStock: false,
     },
     {
       brand: 'Camido',
       model: 'Cycling Cap',
       price: 130.1,
-      sellDate: '27/03/2023',
-      sellTime: '03:17',
+      sellDate: 'Mar 27, 2023',
+      sellTime: '03:17 AM',
       inStock: true,
     },
     {
       brand: 'Chatterpoint',
       model: 'Road Tire Tube',
       price: 59,
-      sellDate: '28/08/2023',
-      sellTime: '08:01',
+      sellDate: 'Aug 28, 2023',
+      sellTime: '08:01 AM',
       inStock: true,
     },
     {
       brand: 'Eidel',
       model: 'HL Road Tire',
       price: 279.99,
-      sellDate: '02/10/2023',
-      sellTime: '13:23',
+      sellDate: 'Oct 2, 2023',
+      sellTime: '13:23 AM',
       inStock: true,
     },
   ],
@@ -1944,12 +2003,16 @@ const handsontableInstance = new Handsontable(container, {
       title: 'Date',
       type: 'date',
       data: 'sellDate',
+      dateFormat: 'MMM D, YYYY',
+      correctFormat: true,
       className: 'htRight',
     },
     {
       title: 'Time',
       type: 'time',
       data: 'sellTime',
+      timeFormat: 'hh:mm A',
+      correctFormat: true,
       className: 'htRight',
     },
     {
@@ -1967,6 +2030,7 @@ const handsontableInstance = new Handsontable(container, {
     },
   },
   height: 'auto',
+  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -1991,7 +2055,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example7 :react --js 1 --css 2
+::: example #exampleCustomSortIcons2 :react --js 1 --css 2
 
 ```jsx
 import { HotTable } from '@handsontable/react';
@@ -2001,7 +2065,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       data={[
@@ -2009,40 +2073,40 @@ export const HandsontableComponent = () => {
           brand: 'Jetpulse',
           model: 'Racing Socks',
           price: 30,
-          sellDate: '11/10/2023',
-          sellTime: '01:23',
+          sellDate: 'Oct 11, 2023',
+          sellTime: '01:23 AM',
           inStock: false,
         },
         {
           brand: 'Gigabox',
           model: 'HL Mountain Frame',
           price: 1890.9,
-          sellDate: '03/05/2023',
-          sellTime: '11:27',
+          sellDate: 'May 3, 2023',
+          sellTime: '11:27 AM',
           inStock: false,
         },
         {
           brand: 'Camido',
           model: 'Cycling Cap',
           price: 130.1,
-          sellDate: '27/03/2023',
-          sellTime: '03:17',
+          sellDate: 'Mar 27, 2023',
+          sellTime: '03:17 AM',
           inStock: true,
         },
         {
           brand: 'Chatterpoint',
           model: 'Road Tire Tube',
           price: 59,
-          sellDate: '28/08/2023',
-          sellTime: '08:01',
+          sellDate: 'Aug 28, 2023',
+          sellTime: '08:01 AM',
           inStock: true,
         },
         {
           brand: 'Eidel',
           model: 'HL Road Tire',
           price: 279.99,
-          sellDate: '02/10/2023',
-          sellTime: '13:23',
+          sellDate: 'Oct 2, 2023',
+          sellTime: '13:23 AM',
           inStock: true,
         },
       ]}
@@ -2071,12 +2135,16 @@ export const HandsontableComponent = () => {
           title: 'Date',
           type: 'date',
           data: 'sellDate',
+          dateFormat: 'MMM D, YYYY',
+          correctFormat: true,
           className: 'htRight',
         },
         {
           title: 'Time',
           type: 'time',
           data: 'sellTime',
+          timeFormat: 'hh:mm A',
+          correctFormat: true,
           className: 'htRight',
         },
         {
@@ -2094,13 +2162,14 @@ export const HandsontableComponent = () => {
       }}
       className="custom-sort-icon-example-2"
       height="auto"
+      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example7'));
+ReactDOM.render(<App />, document.getElementById('exampleCustomSortIcons2'));
 /* end:skip-in-preview */
 ```
 
@@ -2128,17 +2197,17 @@ subsequent pseudo-elements:
 
 ::: only-for javascript
 
-::: example #example8 --html 1 --js 2 --css 3
+::: example #exampleCustomSortIcons3 --html 1 --js 2 --css 3
 
 ```html
-<div id="example8"></div>
+<div id="exampleCustomSortIcons3"></div>
 ```
 
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example8');
+const container = document.querySelector('#exampleCustomSortIcons3');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -2146,8 +2215,8 @@ const handsontableInstance = new Handsontable(container, {
       model: 'Racing Socks',
       color: 'White',
       price: 30,
-      sellDate: '11/10/2023',
-      sellTime: '01:23',
+      sellDate: 'Oct 11, 2023',
+      sellTime: '01:23 AM',
       inStock: false,
     },
     {
@@ -2155,8 +2224,8 @@ const handsontableInstance = new Handsontable(container, {
       model: 'HL Frame',
       color: 'Black',
       price: 1890.9,
-      sellDate: '03/05/2023',
-      sellTime: '11:27',
+      sellDate: 'May 3, 2023',
+      sellTime: '11:27 AM',
       inStock: false,
     },
     {
@@ -2164,8 +2233,8 @@ const handsontableInstance = new Handsontable(container, {
       model: 'Cycling Cap',
       color: 'Red',
       price: 130.1,
-      sellDate: '27/03/2023',
-      sellTime: '03:17',
+      sellDate: 'Mar 27, 2023',
+      sellTime: '03:17 AM',
       inStock: true,
     },
     {
@@ -2173,8 +2242,8 @@ const handsontableInstance = new Handsontable(container, {
       model: 'Road Tire Tube',
       color: 'Green',
       price: 59,
-      sellDate: '28/08/2023',
-      sellTime: '08:01',
+      sellDate: 'Aug 28, 2023',
+      sellTime: '08:01 AM',
       inStock: true,
     },
     {
@@ -2182,8 +2251,8 @@ const handsontableInstance = new Handsontable(container, {
       model: 'HL Road Tire',
       color: 'Blue',
       price: 279.99,
-      sellDate: '02/10/2023',
-      sellTime: '13:23',
+      sellDate: 'Oct 2, 2023',
+      sellTime: '13:23 AM',
       inStock: true,
     },
   ],
@@ -2217,12 +2286,16 @@ const handsontableInstance = new Handsontable(container, {
       title: 'Date',
       type: 'date',
       data: 'sellDate',
+      dateFormat: 'MMM D, YYYY',
+      correctFormat: true,
       className: 'htRight',
     },
     {
       title: 'Time',
       type: 'time',
       data: 'sellTime',
+      timeFormat: 'hh:mm A',
+      correctFormat: true,
       className: 'htRight',
     },
     {
@@ -2266,7 +2339,8 @@ const handsontableInstance = new Handsontable(container, {
     ],
   },
   height: 'auto',
-  colWidths: 100,
+  stretchH: 'all',
+
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -2313,7 +2387,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example8 :react --js 1 --css 2
+::: example #exampleCustomSortIcons3 :react --js 1 --css 2
 
 ```jsx
 import { HotTable } from '@handsontable/react';
@@ -2323,7 +2397,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   return (
     <HotTable
       data={[
@@ -2332,8 +2406,8 @@ export const HandsontableComponent = () => {
           model: 'Racing Socks',
           color: 'White',
           price: 30,
-          sellDate: '11/10/2023',
-          sellTime: '01:23',
+          sellDate: 'Oct 11, 2023',
+          sellTime: '01:23 AM',
           inStock: false,
         },
         {
@@ -2341,8 +2415,8 @@ export const HandsontableComponent = () => {
           model: 'HL Frame',
           color: 'Black',
           price: 1890.9,
-          sellDate: '03/05/2023',
-          sellTime: '11:27',
+          sellDate: 'May 3, 2023',
+          sellTime: '11:27 AM',
           inStock: false,
         },
         {
@@ -2350,8 +2424,8 @@ export const HandsontableComponent = () => {
           model: 'Cycling Cap',
           color: 'Red',
           price: 130.1,
-          sellDate: '27/03/2023',
-          sellTime: '03:17',
+          sellDate: 'Mar 27, 2023',
+          sellTime: '03:17 AM',
           inStock: true,
         },
         {
@@ -2359,8 +2433,8 @@ export const HandsontableComponent = () => {
           model: 'Road Tire Tube',
           color: 'Green',
           price: 59,
-          sellDate: '28/08/2023',
-          sellTime: '08:01',
+          sellDate: 'Aug 28, 2023',
+          sellTime: '08:01 AM',
           inStock: true,
         },
         {
@@ -2368,8 +2442,8 @@ export const HandsontableComponent = () => {
           model: 'HL Road Tire',
           color: 'Blue',
           price: 279.99,
-          sellDate: '02/10/2023',
-          sellTime: '13:23',
+          sellDate: 'Oct 2, 2023',
+          sellTime: '13:23 AM',
           inStock: true,
         },
       ]}
@@ -2403,12 +2477,16 @@ export const HandsontableComponent = () => {
           title: 'Date',
           type: 'date',
           data: 'sellDate',
+          dateFormat: 'MMM D, YYYY',
+          correctFormat: true,
           className: 'htRight',
         },
         {
           title: 'Time',
           type: 'time',
           data: 'sellTime',
+          timeFormat: 'hh:mm A',
+          correctFormat: true,
           className: 'htRight',
         },
         {
@@ -2452,14 +2530,14 @@ export const HandsontableComponent = () => {
       }}
       className="custom-sort-icon-example-3"
       height="auto"
-      colWidths={100}
+      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example8'));
+ReactDOM.render(<App />, document.getElementById('exampleCustomSortIcons3'));
 /* end:skip-in-preview */
 ```
 
@@ -2563,6 +2641,552 @@ const configurationOptions = {
   }}
 />
 ```
+
+:::
+
+## Use sorting hooks
+
+You can run your code before or after sorting, using the following
+[Handsontable hooks](@/guides/getting-started/events-and-hooks.md):
+
+- [`beforeColumnSort()`](@/api/hooks.md#beforecolumnsort)
+- [`afterColumnSort()`](@/api/hooks.md#aftercolumnsort)
+
+For example, you can use [`beforeColumnSort()`](@/api/hooks.md#beforecolumnsort) for server-side
+sorting, or use [`afterColumnSort()`](@/api/hooks.md#aftercolumnsort) to
+[exclude rows from sorting](#exclude-rows-from-sorting).
+
+::: only-for javascript
+
+```js
+const configurationOptions = {
+  beforeColumnSort() {
+    // add your code here
+    return false; // to block front-end sorting
+  },
+  afterColumnSort() {
+    // add your code here
+  },
+};
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  beforeColumnSort={
+    // add your code here
+    return false; // to block front-end sorting
+  }
+  afterColumnSort={
+    // add your code here
+  }
+/>
+```
+
+:::
+
+## Exclude rows from sorting
+
+You can exclude any number of top or bottom rows from sorting.
+
+For example, if you [freeze](@/guides/rows/row-freezing.md) a row at the top (to display column
+names), and freeze a row at the bottom (to display
+[column summaries](@/guides/columns/column-summary.md)), you can prevent those frozen rows from
+getting sorted, so they always stay in place.
+
+::: only-for javascript
+
+::: example #exampleExcludeRowsFromSorting --html 1 --js 2
+
+```html
+<div id="exampleExcludeRowsFromSorting"></div>
+```
+
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const container = document.querySelector('#exampleExcludeRowsFromSorting');
+const handsontableInstance = new Handsontable(container, {
+  data: [
+    {
+      brand: 'Brand',
+      model: 'Model',
+      price: 'Price',
+      sellDate: 'Date',
+      sellTime: 'Time',
+      inStock: 'In stock',
+    },
+    {
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.9,
+      sellDate: 'May 3, 2023',
+      sellTime: '11:27 AM',
+      inStock: 11,
+    },
+    {
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.1,
+      sellDate: 'Mar 27, 2023',
+      sellTime: '03:17 AM',
+      inStock: 0,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: 'Aug 28, 2023',
+      sellTime: '08:01 AM',
+      inStock: 1,
+    },
+    {
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: 'Oct 2, 2023',
+      sellTime: '13:23 AM',
+      inStock: 3,
+    },
+    {
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: 'Oct 11, 2023',
+      sellTime: '01:23 AM',
+      inStock: 5,
+    },
+    {
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.9,
+      sellDate: 'May 3, 2023',
+      sellTime: '11:27 AM',
+      inStock: 22,
+    },
+    {
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.1,
+      sellDate: 'Mar 27, 2023',
+      sellTime: '03:17 AM',
+      inStock: 13,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: 'Aug 28, 2023',
+      sellTime: '08:01 AM',
+      inStock: 0,
+    },
+    {
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: 'Oct 2, 2023',
+      sellTime: '13:23 AM',
+      inStock: 14,
+    },
+    {
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: 'Oct 11, 2023',
+      sellTime: '01:23 AM',
+      inStock: 16,
+    },
+    {
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.9,
+      sellDate: 'May 3, 2023',
+      sellTime: '11:27 AM',
+      inStock: 18,
+    },
+    {
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.1,
+      sellDate: 'Mar 27, 2023',
+      sellTime: '03:17 AM',
+      inStock: 3,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: 'Aug 28, 2023',
+      sellTime: '08:01 AM',
+      inStock: 0,
+    },
+    {
+      brand: 'Vinte',
+      model: 'ML Road Frame-W',
+      price: 30,
+      sellDate: 'Oct 11, 2023',
+      sellTime: '01:23 AM',
+      inStock: 2,
+    },
+    {},
+  ],
+  columns: [
+    {
+      type: 'text',
+      data: 'brand',
+    },
+    {
+      type: 'text',
+      data: 'model',
+    },
+    {
+      type: 'numeric',
+      data: 'price',
+      numericFormat: {
+        pattern: '$ 0,0.00',
+        culture: 'en-US',
+      },
+      className: 'htLeft',
+    },
+    {
+      type: 'date',
+      data: 'sellDate',
+      dateFormat: 'MMM D, YYYY',
+      correctFormat: true,
+      className: 'htRight',
+    },
+    {
+      type: 'time',
+      data: 'sellTime',
+      timeFormat: 'hh:mm A',
+      correctFormat: true,
+      className: 'htRight',
+    },
+    {
+      type: 'numeric',
+      data: 'inStock',
+      className: 'htCenter',
+    },
+  ],
+  height: 200,
+  stretchH: 'all',
+  fixedRowsTop: 1,
+  fixedRowsBottom: 1,
+  colHeaders: true,
+  columnSorting: true,
+  // `afterColumnSort()` is a Handsontable hook: it's fired after each sorting
+  afterColumnSort() {
+    const lastRowIndex = handsontableInstance.countRows() - 1;
+
+    // after each sorting, take row 1 and change its index to 0
+    handsontableInstance.rowIndexMapper.moveIndexes(handsontableInstance.toVisualRow(0), 0);
+
+    // after each sorting, take row 16 and change its index to 15
+    handsontableInstance.rowIndexMapper.moveIndexes(
+      handsontableInstance.toVisualRow(lastRowIndex),
+      lastRowIndex
+    );
+  },
+  cells(row, col, prop) {
+    const lastRowIndex = this.instance.countRows() - 1;
+
+    if (row === 0) {
+      return {
+        type: 'text',
+        className: 'htCenter',
+        readOnly: true,
+      };
+    }
+    if (row === lastRowIndex) {
+      return {
+        type: 'numeric',
+        className: 'htCenter',
+      };
+    }
+  },
+  columnSummary: [
+    {
+      sourceColumn: 2,
+      type: 'sum',
+      reversedRowCoords: true,
+      destinationRow: 0,
+      destinationColumn: 2,
+      forceNumeric: true,
+      suppressDataTypeErrors: true,
+    },
+    {
+      sourceColumn: 5,
+      type: 'sum',
+      reversedRowCoords: true,
+      destinationRow: 0,
+      destinationColumn: 5,
+      forceNumeric: true,
+      suppressDataTypeErrors: true,
+    },
+  ],
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleExcludeRowsFromSorting :react
+
+```jsx
+// you need `useRef` to call Handsontable's instance methods
+import { useRef } from 'react';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const App = () => {
+  const hotTableComponentRef = useRef(null);
+  const exclude = () => {
+    const handsontableInstance = hotTableComponentRef.current.hotInstance;
+    const lastRowIndex = handsontableInstance.countRows() - 1;
+
+    // after each sorting, take row 1 and change its index to 0
+    handsontableInstance.rowIndexMapper.moveIndexes(handsontableInstance.toVisualRow(0), 0);
+    // after each sorting, take row 16 and change its index to 15
+    handsontableInstance.rowIndexMapper.moveIndexes(
+      handsontableInstance.toVisualRow(lastRowIndex),
+      lastRowIndex
+    );
+  };
+
+  return (
+    <HotTable
+      ref={hotTableComponentRef}
+      data={[
+        {
+          brand: 'Brand',
+          model: 'Model',
+          price: 'Price',
+          sellDate: 'Date',
+          sellTime: 'Time',
+          inStock: 'In stock',
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          price: 1890.9,
+          sellDate: 'May 3, 2023',
+          sellTime: '11:27 AM',
+          inStock: 11,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.1,
+          sellDate: 'Mar 27, 2023',
+          sellTime: '03:17 AM',
+          inStock: 0,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: 'Aug 28, 2023',
+          sellTime: '08:01 AM',
+          inStock: 1,
+        },
+        {
+          brand: 'Eidel',
+          model: 'HL Road Tire',
+          price: 279.99,
+          sellDate: 'Oct 2, 2023',
+          sellTime: '13:23 AM',
+          inStock: 3,
+        },
+        {
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
+          price: 30,
+          sellDate: 'Oct 11, 2023',
+          sellTime: '01:23 AM',
+          inStock: 5,
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          price: 1890.9,
+          sellDate: 'May 3, 2023',
+          sellTime: '11:27 AM',
+          inStock: 22,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.1,
+          sellDate: 'Mar 27, 2023',
+          sellTime: '03:17 AM',
+          inStock: 13,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: 'Aug 28, 2023',
+          sellTime: '08:01 AM',
+          inStock: 0,
+        },
+        {
+          brand: 'Eidel',
+          model: 'HL Road Tire',
+          price: 279.99,
+          sellDate: 'Oct 2, 2023',
+          sellTime: '13:23 AM',
+          inStock: 14,
+        },
+        {
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
+          price: 30,
+          sellDate: 'Oct 11, 2023',
+          sellTime: '01:23 AM',
+          inStock: 16,
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          price: 1890.9,
+          sellDate: 'May 3, 2023',
+          sellTime: '11:27 AM',
+          inStock: 18,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.1,
+          sellDate: 'Mar 27, 2023',
+          sellTime: '03:17 AM',
+          inStock: 3,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: 'Aug 28, 2023',
+          sellTime: '08:01 AM',
+          inStock: 0,
+        },
+        {
+          brand: 'Vinte',
+          model: 'ML Road Frame-W',
+          price: 30,
+          sellDate: 'Oct 11, 2023',
+          sellTime: '01:23 AM',
+          inStock: 2,
+        },
+        {},
+      ]}
+      columns={[
+        {
+          type: 'text',
+          data: 'brand',
+        },
+        {
+          type: 'text',
+          data: 'model',
+        },
+        {
+          type: 'numeric',
+          data: 'price',
+          numericFormat: {
+            pattern: '$ 0,0.00',
+            culture: 'en-US',
+          },
+          className: 'htLeft',
+        },
+        {
+          type: 'date',
+          data: 'sellDate',
+          dateFormat: 'MMM D, YYYY',
+          correctFormat: true,
+          className: 'htRight',
+        },
+        {
+          type: 'time',
+          data: 'sellTime',
+          timeFormat: 'hh:mm A',
+          correctFormat: true,
+          className: 'htRight',
+        },
+        {
+          type: 'numeric',
+          data: 'inStock',
+          className: 'htCenter',
+        },
+      ]}
+      height={200}
+      stretchH="all"
+      fixedRowsTop={1}
+      fixedRowsBottom={1}
+      colHeaders={true}
+      columnSorting={true}
+      // `afterColumnSort()` is a Handsontable hook: it's fired after each sorting
+      afterColumnSort={exclude}
+      cells={(row, col, prop) => {
+        if (hotTableComponentRef.current != null) {
+          const lastRowIndex = hotTableComponentRef.current.hotInstance.countRows() - 1;
+
+          if (row === 0) {
+            return {
+              type: 'text',
+              className: 'htCenter',
+              readOnly: true,
+            };
+          }
+          if (row === lastRowIndex) {
+            return {
+              type: 'numeric',
+              className: 'htCenter',
+            };
+          }
+        }
+      }}
+      columnSummary={[
+        {
+          sourceColumn: 2,
+          type: 'sum',
+          reversedRowCoords: true,
+          destinationRow: 0,
+          destinationColumn: 2,
+          forceNumeric: true,
+          suppressDataTypeErrors: true,
+        },
+        {
+          sourceColumn: 5,
+          type: 'sum',
+          reversedRowCoords: true,
+          destinationRow: 0,
+          destinationColumn: 5,
+          forceNumeric: true,
+          suppressDataTypeErrors: true,
+        },
+      ]}
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<App />, document.getElementById('exampleExcludeRowsFromSorting'));
+/* end:skip-in-preview */
+```
+
+:::
 
 :::
 
@@ -2738,10 +3362,10 @@ To see how it works, try out the following demo:
 
 ::: only-for javascript
 
-::: example #example9 --html 1 --js 2
+::: example #exampleSortByAPI --html 1 --js 2
 
 ```html
-<div id="example9"></div>
+<div id="exampleSortByAPI"></div>
 
 <div class="controls">
   <button id="sort_asc" class="button">Sort by the "Brand" column, in ascending order</button>
@@ -2755,7 +3379,7 @@ To see how it works, try out the following demo:
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example9');
+const container = document.querySelector('#exampleSortByAPI');
 const buttonSortAscending = document.querySelector('#sort_asc');
 const buttonUnsort = document.querySelector('#unsort');
 const handsontableInstance = new Handsontable(container, {
@@ -2764,40 +3388,40 @@ const handsontableInstance = new Handsontable(container, {
       brand: 'Jetpulse',
       model: 'Racing Socks',
       price: 30,
-      sellDate: '11/10/2023',
-      sellTime: '01:23',
+      sellDate: 'Oct 11, 2023',
+      sellTime: '01:23 AM',
       inStock: false,
     },
     {
       brand: 'Gigabox',
       model: 'HL Mountain Frame',
       price: 1890.9,
-      sellDate: '03/05/2023',
-      sellTime: '11:27',
+      sellDate: 'May 3, 2023',
+      sellTime: '11:27 AM',
       inStock: false,
     },
     {
       brand: 'Camido',
       model: 'Cycling Cap',
       price: 130.1,
-      sellDate: '27/03/2023',
-      sellTime: '03:17',
+      sellDate: 'Mar 27, 2023',
+      sellTime: '03:17 AM',
       inStock: true,
     },
     {
       brand: 'Chatterpoint',
       model: 'Road Tire Tube',
       price: 59,
-      sellDate: '28/08/2023',
-      sellTime: '08:01',
+      sellDate: 'Aug 28, 2023',
+      sellTime: '08:01 AM',
       inStock: true,
     },
     {
       brand: 'Eidel',
       model: 'HL Road Tire',
       price: 279.99,
-      sellDate: '02/10/2023',
-      sellTime: '13:23',
+      sellDate: 'Oct 2, 2023',
+      sellTime: '13:23 AM',
       inStock: true,
     },
   ],
@@ -2826,12 +3450,16 @@ const handsontableInstance = new Handsontable(container, {
       title: 'Date',
       type: 'date',
       data: 'sellDate',
+      dateFormat: 'MMM D, YYYY',
+      correctFormat: true,
       className: 'htRight',
     },
     {
       title: 'Time',
       type: 'time',
       data: 'sellTime',
+      timeFormat: 'hh:mm A',
+      correctFormat: true,
       className: 'htRight',
     },
     {
@@ -2843,6 +3471,7 @@ const handsontableInstance = new Handsontable(container, {
   ],
   columnSorting: true,
   height: 'auto',
+  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 
@@ -2866,7 +3495,7 @@ buttonUnsort.addEventListener('click', () => {
 
 ::: only-for react
 
-::: example #example9 :react
+::: example #exampleSortByAPI :react
 
 ```jsx
 import { useRef } from 'react';
@@ -2877,7 +3506,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   const hotTableComponentRef = useRef(null);
   const sortAsc = () => {
     // get the `ColumnSorting` plugin
@@ -2905,40 +3534,40 @@ export const HandsontableComponent = () => {
             brand: 'Jetpulse',
             model: 'Racing Socks',
             price: 30,
-            sellDate: '11/10/2023',
-            sellTime: '01:23',
+            sellDate: 'Oct 11, 2023',
+            sellTime: '01:23 AM',
             inStock: false,
           },
           {
             brand: 'Gigabox',
             model: 'HL Mountain Frame',
             price: 1890.9,
-            sellDate: '03/05/2023',
-            sellTime: '11:27',
+            sellDate: 'May 3, 2023',
+            sellTime: '11:27 AM',
             inStock: false,
           },
           {
             brand: 'Camido',
             model: 'Cycling Cap',
             price: 130.1,
-            sellDate: '27/03/2023',
-            sellTime: '03:17',
+            sellDate: 'Mar 27, 2023',
+            sellTime: '03:17 AM',
             inStock: true,
           },
           {
             brand: 'Chatterpoint',
             model: 'Road Tire Tube',
             price: 59,
-            sellDate: '28/08/2023',
-            sellTime: '08:01',
+            sellDate: 'Aug 28, 2023',
+            sellTime: '08:01 AM',
             inStock: true,
           },
           {
             brand: 'Eidel',
             model: 'HL Road Tire',
             price: 279.99,
-            sellDate: '02/10/2023',
-            sellTime: '13:23',
+            sellDate: 'Oct 2, 2023',
+            sellTime: '13:23 AM',
             inStock: true,
           },
         ]}
@@ -2967,12 +3596,16 @@ export const HandsontableComponent = () => {
             title: 'Date',
             type: 'date',
             data: 'sellDate',
+            dateFormat: 'MMM D, YYYY',
+            correctFormat: true,
             className: 'htRight',
           },
           {
             title: 'Time',
             type: 'time',
             data: 'sellTime',
+            timeFormat: 'hh:mm A',
+            correctFormat: true,
             className: 'htRight',
           },
           {
@@ -2984,6 +3617,7 @@ export const HandsontableComponent = () => {
         ]}
         columnSorting={true}
         height="auto"
+        stretchH="all"
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
@@ -2997,7 +3631,7 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example9'));
+ReactDOM.render(<App />, document.getElementById('exampleSortByAPI'));
 /* end:skip-in-preview */
 ```
 
@@ -3038,6 +3672,9 @@ multiColumnSorting.sort([
     sortOrder: 'desc',
   },
 ]);
+
+// go back to the original order
+multiColumnSorting.clearSort();
 ```
 
 :::
@@ -3068,6 +3705,9 @@ multiColumnSorting.sort([
     sortOrder: 'desc',
   },
 ]);
+
+// go back to the original order
+multiColumnSorting.clearSort();
 ```
 
 :::
@@ -3076,10 +3716,10 @@ To see how it works, try out the following demo:
 
 ::: only-for javascript
 
-::: example #example10 --html 1 --js 2
+::: example #exampleSortByAPIMultipleColumns --html 1 --js 2
 
 ```html
-<div id="example10"></div>
+<div id="exampleSortByAPIMultipleColumns"></div>
 
 <div class="controls">
   <button id="sort" class="button">Sort</button>
@@ -3090,7 +3730,7 @@ To see how it works, try out the following demo:
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example10');
+const container = document.querySelector('#exampleSortByAPIMultipleColumns');
 const buttonSort = document.querySelector('#sort');
 const handsontableInstance = new Handsontable(container, {
   data: [
@@ -3098,40 +3738,40 @@ const handsontableInstance = new Handsontable(container, {
       brand: 'Jetpulse',
       model: 'Racing Socks',
       price: 30,
-      sellDate: '11/10/2023',
-      sellTime: '01:23',
+      sellDate: 'Oct 11, 2023',
+      sellTime: '01:23 AM',
       inStock: false,
     },
     {
       brand: 'Jetpulse',
       model: 'HL Mountain Frame',
       price: 1890.9,
-      sellDate: '03/05/2023',
-      sellTime: '11:27',
+      sellDate: 'May 3, 2023',
+      sellTime: '11:27 AM',
       inStock: false,
     },
     {
       brand: 'Jetpulse',
       model: 'Cycling Cap',
       price: 130.1,
-      sellDate: '27/03/2023',
-      sellTime: '03:17',
+      sellDate: 'Mar 27, 2023',
+      sellTime: '03:17 AM',
       inStock: true,
     },
     {
       brand: 'Chatterpoint',
       model: 'Road Tire Tube',
       price: 59,
-      sellDate: '28/08/2023',
-      sellTime: '08:01',
+      sellDate: 'Aug 28, 2023',
+      sellTime: '08:01 AM',
       inStock: true,
     },
     {
       brand: 'Chatterpoint',
       model: 'HL Road Tire',
       price: 279.99,
-      sellDate: '02/10/2023',
-      sellTime: '13:23',
+      sellDate: 'Oct 2, 2023',
+      sellTime: '13:23 AM',
       inStock: true,
     },
   ],
@@ -3160,12 +3800,16 @@ const handsontableInstance = new Handsontable(container, {
       title: 'Date',
       type: 'date',
       data: 'sellDate',
+      dateFormat: 'MMM D, YYYY',
+      correctFormat: true,
       className: 'htRight',
     },
     {
       title: 'Time',
       type: 'time',
       data: 'sellTime',
+      timeFormat: 'hh:mm A',
+      correctFormat: true,
       className: 'htRight',
     },
     {
@@ -3177,6 +3821,7 @@ const handsontableInstance = new Handsontable(container, {
   ],
   multiColumnSorting: true,
   height: 'auto',
+  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 
@@ -3202,7 +3847,7 @@ buttonSort.addEventListener('click', () => {
 
 ::: only-for react
 
-::: example #example10 :react
+::: example #exampleSortByAPIMultipleColumns :react
 
 ```jsx
 import { useRef } from 'react';
@@ -3213,7 +3858,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const HandsontableComponent = () => {
+export const App = () => {
   const hotTableComponentRef = useRef(null);
   const sort = () => {
     // get the `MultiColumnSorting` plugin
@@ -3241,40 +3886,40 @@ export const HandsontableComponent = () => {
             brand: 'Jetpulse',
             model: 'Racing Socks',
             price: 30,
-            sellDate: '11/10/2023',
-            sellTime: '01:23',
+            sellDate: 'Oct 11, 2023',
+            sellTime: '01:23 AM',
             inStock: false,
           },
           {
             brand: 'Jetpulse',
             model: 'HL Mountain Frame',
             price: 1890.9,
-            sellDate: '03/05/2023',
-            sellTime: '11:27',
+            sellDate: 'May 3, 2023',
+            sellTime: '11:27 AM',
             inStock: false,
           },
           {
             brand: 'Jetpulse',
             model: 'Cycling Cap',
             price: 130.1,
-            sellDate: '27/03/2023',
-            sellTime: '03:17',
+            sellDate: 'Mar 27, 2023',
+            sellTime: '03:17 AM',
             inStock: true,
           },
           {
             brand: 'Chatterpoint',
             model: 'Road Tire Tube',
             price: 59,
-            sellDate: '28/08/2023',
-            sellTime: '08:01',
+            sellDate: 'Aug 28, 2023',
+            sellTime: '08:01 AM',
             inStock: true,
           },
           {
             brand: 'Chatterpoint',
             model: 'HL Road Tire',
             price: 279.99,
-            sellDate: '02/10/2023',
-            sellTime: '13:23',
+            sellDate: 'Oct 2, 2023',
+            sellTime: '13:23 AM',
             inStock: true,
           },
         ]}
@@ -3303,12 +3948,16 @@ export const HandsontableComponent = () => {
             title: 'Date',
             type: 'date',
             data: 'sellDate',
+            dateFormat: 'MMM D, YYYY',
+            correctFormat: true,
             className: 'htRight',
           },
           {
             title: 'Time',
             type: 'time',
             data: 'sellTime',
+            timeFormat: 'hh:mm A',
+            correctFormat: true,
             className: 'htRight',
           },
           {
@@ -3320,6 +3969,7 @@ export const HandsontableComponent = () => {
         ]}
         multiColumnSorting={true}
         height="auto"
+        stretchH="all"
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
@@ -3330,541 +3980,11 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example10'));
+ReactDOM.render(<App />, document.getElementById('exampleSortByAPIMultipleColumns'));
 /* end:skip-in-preview */
 ```
 
 :::
-
-:::
-
-### Exclude rows from sorting
-
-You can exclude any number of top or bottom rows from sorting.
-
-For example, if you [freeze](@/guides/rows/row-freezing.md) a row at the top (to display column
-names), and freeze a row at the bottom (to display
-[column summaries](@/guides/columns/column-summary.md)), you can prevent those frozen rows from
-sorting, so they always stay in place.
-
-::: only-for javascript
-
-::: example #example11 --html 1 --js 2
-
-```html
-<div id="example11"></div>
-```
-
-```js
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
-
-const container = document.querySelector('#example11');
-const handsontableInstance = new Handsontable(container, {
-  data: [
-    {
-      brand: 'Brand',
-      model: 'Model',
-      price: 'Price',
-      sellDate: 'Date',
-      sellTime: 'Time',
-      inStock: 'In stock',
-    },
-    {
-      brand: 'Gigabox',
-      model: 'HL Mountain Frame',
-      price: 1890.9,
-      sellDate: '03/05/2023',
-      sellTime: '11:27',
-      inStock: 11,
-    },
-    {
-      brand: 'Camido',
-      model: 'Cycling Cap',
-      price: 130.1,
-      sellDate: '27/03/2023',
-      sellTime: '03:17',
-      inStock: 0,
-    },
-    {
-      brand: 'Chatterpoint',
-      model: 'Road Tire Tube',
-      price: 59,
-      sellDate: '28/08/2023',
-      sellTime: '08:01',
-      inStock: 1,
-    },
-    {
-      brand: 'Eidel',
-      model: 'HL Road Tire',
-      price: 279.99,
-      sellDate: '02/10/2023',
-      sellTime: '13:23',
-      inStock: 3,
-    },
-    {
-      brand: 'Jetpulse',
-      model: 'Racing Socks',
-      price: 30,
-      sellDate: '11/10/2023',
-      sellTime: '01:23',
-      inStock: 5,
-    },
-    {
-      brand: 'Gigabox',
-      model: 'HL Mountain Frame',
-      price: 1890.9,
-      sellDate: '03/05/2023',
-      sellTime: '11:27',
-      inStock: 22,
-    },
-    {
-      brand: 'Camido',
-      model: 'Cycling Cap',
-      price: 130.1,
-      sellDate: '27/03/2023',
-      sellTime: '03:17',
-      inStock: 13,
-    },
-    {
-      brand: 'Chatterpoint',
-      model: 'Road Tire Tube',
-      price: 59,
-      sellDate: '28/08/2023',
-      sellTime: '08:01',
-      inStock: 0,
-    },
-    {
-      brand: 'Eidel',
-      model: 'HL Road Tire',
-      price: 279.99,
-      sellDate: '02/10/2023',
-      sellTime: '13:23',
-      inStock: 14,
-    },
-    {
-      brand: 'Jetpulse',
-      model: 'Racing Socks',
-      price: 30,
-      sellDate: '11/10/2023',
-      sellTime: '01:23',
-      inStock: 16,
-    },
-    {
-      brand: 'Gigabox',
-      model: 'HL Mountain Frame',
-      price: 1890.9,
-      sellDate: '03/05/2023',
-      sellTime: '11:27',
-      inStock: 18,
-    },
-    {
-      brand: 'Camido',
-      model: 'Cycling Cap',
-      price: 130.1,
-      sellDate: '27/03/2023',
-      sellTime: '03:17',
-      inStock: 3,
-    },
-    {
-      brand: 'Chatterpoint',
-      model: 'Road Tire Tube',
-      price: 59,
-      sellDate: '28/08/2023',
-      sellTime: '08:01',
-      inStock: 0,
-    },
-    {
-      brand: 'Vinte',
-      model: 'ML Road Frame-W',
-      price: 30,
-      sellDate: '11/10/2023',
-      sellTime: '01:23',
-      inStock: 2,
-    },
-    {},
-  ],
-  columns: [
-    {
-      type: 'text',
-      data: 'brand',
-    },
-    {
-      type: 'text',
-      data: 'model',
-    },
-    {
-      type: 'numeric',
-      data: 'price',
-      numericFormat: {
-        pattern: '$ 0,0.00',
-        culture: 'en-US',
-      },
-      className: 'htLeft',
-    },
-    {
-      type: 'date',
-      data: 'sellDate',
-      className: 'htRight',
-    },
-    {
-      type: 'time',
-      data: 'sellTime',
-      correctFormat: true,
-      className: 'htRight',
-    },
-    {
-      type: 'numeric',
-      data: 'inStock',
-      className: 'htCenter',
-    },
-  ],
-  height: 200,
-  fixedRowsTop: 1,
-  fixedRowsBottom: 1,
-  colHeaders: true,
-  columnSorting: true,
-  // `afterColumnSort` is a Handsontable hook: it's fired after each sorting
-  afterColumnSort() {
-    const lastRowIndex = handsontableInstance.countRows() - 1;
-
-    // after each sorting, take row 1 and change its index to 0
-    handsontableInstance.rowIndexMapper.moveIndexes(handsontableInstance.toVisualRow(0), 0);
-
-    // after each sorting, take row 16 and change its index to 15
-    handsontableInstance.rowIndexMapper.moveIndexes(
-      handsontableInstance.toVisualRow(lastRowIndex),
-      lastRowIndex
-    );
-  },
-  cells(row, col, prop) {
-    const lastRowIndex = this.instance.countRows() - 1;
-
-    if (row === 0) {
-      return {
-        type: 'text',
-        className: 'htCenter',
-      };
-    }
-    if (row === lastRowIndex) {
-      return {
-        type: 'numeric',
-        className: 'htCenter',
-      };
-    }
-  },
-  columnSummary: [
-    {
-      sourceColumn: 2,
-      type: 'sum',
-      reversedRowCoords: true,
-      destinationRow: 0,
-      destinationColumn: 2,
-      forceNumeric: true,
-      suppressDataTypeErrors: true,
-    },
-    {
-      sourceColumn: 5,
-      type: 'sum',
-      reversedRowCoords: true,
-      destinationRow: 0,
-      destinationColumn: 5,
-      forceNumeric: true,
-      suppressDataTypeErrors: true,
-    },
-  ],
-  licenseKey: 'non-commercial-and-evaluation',
-});
-```
-
-:::
-
-:::
-
-::: only-for react
-
-::: example #example11 :react
-
-```jsx
-// you need `useRef` to call Handsontable's instance methods
-import { useRef } from 'react';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
-
-export const HandsontableComponent = () => {
-  const hotTableComponentRef = useRef(null);
-  const exclude = () => {
-    const handsontableInstance = hotTableComponentRef.current.hotInstance;
-    const lastRowIndex = handsontableInstance.countRows() - 1;
-
-    // after each sorting, take row 1 and change its index to 0
-    handsontableInstance.rowIndexMapper.moveIndexes(handsontableInstance.toVisualRow(0), 0);
-    // after each sorting, take row 16 and change its index to 15
-    handsontableInstance.rowIndexMapper.moveIndexes(
-      handsontableInstance.toVisualRow(lastRowIndex),
-      lastRowIndex
-    );
-  };
-
-  return (
-    <HotTable
-      ref={hotTableComponentRef}
-      data={[
-        {
-          brand: 'Brand',
-          model: 'Model',
-          price: 'Price',
-          sellDate: 'Date',
-          sellTime: 'Time',
-          inStock: 'In stock',
-        },
-        {
-          brand: 'Gigabox',
-          model: 'HL Mountain Frame',
-          price: 1890.9,
-          sellDate: '03/05/2023',
-          sellTime: '11:27',
-          inStock: 11,
-        },
-        {
-          brand: 'Camido',
-          model: 'Cycling Cap',
-          price: 130.1,
-          sellDate: '27/03/2023',
-          sellTime: '03:17',
-          inStock: 0,
-        },
-        {
-          brand: 'Chatterpoint',
-          model: 'Road Tire Tube',
-          price: 59,
-          sellDate: '28/08/2023',
-          sellTime: '08:01',
-          inStock: 1,
-        },
-        {
-          brand: 'Eidel',
-          model: 'HL Road Tire',
-          price: 279.99,
-          sellDate: '02/10/2023',
-          sellTime: '13:23',
-          inStock: 3,
-        },
-        {
-          brand: 'Jetpulse',
-          model: 'Racing Socks',
-          price: 30,
-          sellDate: '11/10/2023',
-          sellTime: '01:23',
-          inStock: 5,
-        },
-        {
-          brand: 'Gigabox',
-          model: 'HL Mountain Frame',
-          price: 1890.9,
-          sellDate: '03/05/2023',
-          sellTime: '11:27',
-          inStock: 22,
-        },
-        {
-          brand: 'Camido',
-          model: 'Cycling Cap',
-          price: 130.1,
-          sellDate: '27/03/2023',
-          sellTime: '03:17',
-          inStock: 13,
-        },
-        {
-          brand: 'Chatterpoint',
-          model: 'Road Tire Tube',
-          price: 59,
-          sellDate: '28/08/2023',
-          sellTime: '08:01',
-          inStock: 0,
-        },
-        {
-          brand: 'Eidel',
-          model: 'HL Road Tire',
-          price: 279.99,
-          sellDate: '02/10/2023',
-          sellTime: '13:23',
-          inStock: 14,
-        },
-        {
-          brand: 'Jetpulse',
-          model: 'Racing Socks',
-          price: 30,
-          sellDate: '11/10/2023',
-          sellTime: '01:23',
-          inStock: 16,
-        },
-        {
-          brand: 'Gigabox',
-          model: 'HL Mountain Frame',
-          price: 1890.9,
-          sellDate: '03/05/2023',
-          sellTime: '11:27',
-          inStock: 18,
-        },
-        {
-          brand: 'Camido',
-          model: 'Cycling Cap',
-          price: 130.1,
-          sellDate: '27/03/2023',
-          sellTime: '03:17',
-          inStock: 3,
-        },
-        {
-          brand: 'Chatterpoint',
-          model: 'Road Tire Tube',
-          price: 59,
-          sellDate: '28/08/2023',
-          sellTime: '08:01',
-          inStock: 0,
-        },
-        {
-          brand: 'Vinte',
-          model: 'ML Road Frame-W',
-          price: 30,
-          sellDate: '11/10/2023',
-          sellTime: '01:23',
-          inStock: 2,
-        },
-        {},
-      ]}
-      columns={[
-        {
-          type: 'text',
-          data: 'brand',
-        },
-        {
-          type: 'text',
-          data: 'model',
-        },
-        {
-          type: 'numeric',
-          data: 'price',
-          numericFormat: {
-            pattern: '$ 0,0.00',
-            culture: 'en-US',
-          },
-          className: 'htLeft',
-        },
-        {
-          type: 'date',
-          data: 'sellDate',
-          className: 'htRight',
-        },
-        {
-          type: 'time',
-          data: 'sellTime',
-          correctFormat: true,
-          className: 'htRight',
-        },
-        {
-          type: 'numeric',
-          data: 'inStock',
-          className: 'htCenter',
-        },
-      ]}
-      height={200}
-      fixedRowsTop={1}
-      fixedRowsBottom={1}
-      colHeaders={true}
-      columnSorting={true}
-      // `afterColumnSort` is a Handsontable hook: it's fired after each sorting
-      afterColumnSort={exclude}
-      cells={(row, col, prop) => {
-        if (row === 0) {
-          return {
-            type: 'text',
-            className: 'htCenter',
-          };
-        }
-        if (row === 15) {
-          return {
-            type: 'numeric',
-            className: 'htCenter',
-          };
-        }
-      }}
-      columnSummary={[
-        {
-          sourceColumn: 2,
-          type: 'sum',
-          reversedRowCoords: true,
-          destinationRow: 0,
-          destinationColumn: 2,
-          forceNumeric: true,
-          suppressDataTypeErrors: true,
-        },
-        {
-          sourceColumn: 5,
-          type: 'sum',
-          reversedRowCoords: true,
-          destinationRow: 0,
-          destinationColumn: 5,
-          forceNumeric: true,
-          suppressDataTypeErrors: true,
-        },
-      ]}
-      licenseKey="non-commercial-and-evaluation"
-    />
-  );
-};
-
-/* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example11'));
-/* end:skip-in-preview */
-```
-
-:::
-
-:::
-
-### Use sorting hooks
-
-You can run your code before or after sorting, using the following
-[Handsontable hooks](@/guides/getting-started/events-and-hooks.md):
-
-- [`beforeColumnSort()`](@/api/hooks.md#beforecolumnsort)
-- [`afterColumnSort()`](@/api/hooks.md#aftercolumnsort)
-
-For example, you can use [`beforeColumnSort()`](@/api/hooks.md#beforecolumnsort) for server-side
-sorting, or use [`afterColumnSort()`](@/api/hooks.md#aftercolumnsort) to
-[exclude rows from sorting](#exclude-rows-from-sorting).
-
-::: only-for javascript
-
-```js
-const configurationOptions = {
-  beforeColumnSort() {
-    // add your code here
-  },
-  afterColumnSort() {
-    // add your code here
-  },
-};
-```
-
-:::
-
-::: only-for react
-
-```jsx
-<HotTable
-  beforeColumnSort={
-    // add your code here
-  }
-  afterColumnSort={
-    // add your code here
-  }
-/>
-```
 
 :::
 
@@ -3886,12 +4006,11 @@ import Handsontable from 'handsontable/base';
 // import Handsontable's CSS
 import 'handsontable/dist/handsontable.full.min.css';
 
-// import the sorting plugins
-import { registerPlugin, ColumnSorting, MultiColumnSorting } from 'handsontable/plugins';
+// import the ColumnSorting plugin (or the MultiColumnSorting plugin)
+import { registerPlugin, ColumnSorting } from 'handsontable/plugins';
 
-// register the sorting plugins
+// register the ColumnSorting (or MultiColumnSorting plugin)
 registerPlugin(ColumnSorting);
-registerPlugin(MultiColumnSorting);
 ```
 
 ## API reference
