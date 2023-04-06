@@ -2975,15 +2975,15 @@ To enable or disable filtering programmatically, use the
 ::: only-for javascript
 
 ```js
-// enable filtering for all columns
 handsontableInstance.updateSettings({
-  filters: true,
   // enable the column menu
   dropdownMenu: true,
+  // enable filtering
+  filters: true,
 });
 
-// disable filtering for all columns
 handsontableInstance.updateSettings({
+  // disable filtering
   filters: false,
 });
 ```
@@ -2995,15 +2995,15 @@ handsontableInstance.updateSettings({
 ```jsx
 const hotTableComponentRef = useRef(null);
 
-// enable filtering for all columns
 hotTableComponentRef.current.hotInstance.updateSettings({
-  filters: true,
   // enable the column menu
   dropdownMenu: true,
+  // enable filtering
+  filters: true,
 });
 
-// disable filtering for all columns
 hotTableComponentRef.current.hotInstance.updateSettings({
+  // disable filtering
   filters: false,
 });
 ```
