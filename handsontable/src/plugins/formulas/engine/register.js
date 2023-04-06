@@ -1,8 +1,10 @@
 import staticRegister from '../../../utils/staticRegister';
 import { isUndefined } from '../../../helpers/mixed';
+import { toSingleLine } from '../../../helpers/templateLiteralTag';
 import { warn } from '../../../helpers/console';
+import { isObjectEqual } from '../../../helpers/object';
 import { PLUGIN_KEY } from '../formulas';
-import { DEFAULT_LICENSE_KEY, getEngineSettingsWithDefaultsAndOverrides } from './settings';
+import { DEFAULT_LICENSE_KEY, DEFAULT_SETTINGS, getEngineSettingsWithDefaultsAndOverrides } from './settings';
 
 /**
  * Prepares and returns the collection for the engine relationship with the HoT instances.
@@ -82,6 +84,13 @@ export function setupEngine(hotInstance) {
       engineConfigItem.updateConfig({
         licenseKey: DEFAULT_LICENSE_KEY
       });
+    }
+
+    if (engineConfigItem.getConfig().leapYear1900 !== DEFAULT_SETTINGS.leapYear1900
+      || isObjectEqual(engineConfigItem.getConfig().nullDate, DEFAULT_SETTINGS.nullDate) === false) {
+      warn(toSingleLine`Dates stored in HyperFormula engine may don't cooperate properly with Handsontable when HF's 
+        configuration options such as \`leapYear1900\` and \`nullDate\` have been changed. Please consider using 
+        default configuration values for those keys.`);
     }
 
     return engineConfigItem;

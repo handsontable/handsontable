@@ -2,7 +2,7 @@ import { PLUGIN_KEY } from '../formulas';
 
 export const DEFAULT_LICENSE_KEY = 'internal-use-in-handsontable';
 
-const DEFAULT_SETTINGS = {
+export const DEFAULT_SETTINGS = {
   licenseKey: DEFAULT_LICENSE_KEY,
 
   useArrayArithmetic: true,

@@ -3138,13 +3138,13 @@ describe('Formulas general', () => {
       const formulasPlugin = getPlugin('formulas');
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
-        ['01/03/1900'],
-        ['01/03/1900'],
+        [61],
+        [61],
       ]);
 
       expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
         ['01/03/1900'],
-        ['01/03/1900'],
+        ['=A1'],
       ]);
 
       expect(getData()).toEqual([
@@ -3154,8 +3154,105 @@ describe('Formulas general', () => {
 
       expect(getSourceData()).toEqual([
         ['01/03/1900'],
-        ['01/03/1900'],
+        ['=A1'],
       ]);
+    });
+
+    it('should not show warn for default HyperFormula configuration', () => {
+      const warnSpy = spyOn(console, 'warn');
+
+      handsontable({
+        data: [
+          ['01/03/1900'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not show warn for not overwritten HF\'s configuration options such as `leapYear1900` and `nullDate`', () => {
+      // Create an external HyperFormula instance
+      const hfInstance = HyperFormula.buildEmpty({});
+      const warnSpy = spyOn(console, 'warn');
+
+      handsontable({
+        data: [
+          ['01/03/1900'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: hfInstance,
+          sheetName: 'Sheet1'
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should show warn for overwritten HF\'s configuration option such as `leapYear1900`', () => {
+      // Create an external HyperFormula instance
+      const hfInstance = HyperFormula.buildEmpty({
+        leapYear1900: true,
+      });
+      const warnSpy = spyOn(console, 'warn');
+
+      handsontable({
+        data: [
+          ['01/03/1900'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: hfInstance,
+          sheetName: 'Sheet1'
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      expect(warnSpy).toHaveBeenCalled();
+    });
+
+    it('should show warn for overwritten HF\'s configuration option such as `nullDate`', () => {
+      // Create an external HyperFormula instance
+      const hfInstance = HyperFormula.buildEmpty({
+        nullDate: {
+          year: 1970,
+          month: 0,
+          day: 0,
+        },
+      });
+      const warnSpy = spyOn(console, 'warn');
+
+      handsontable({
+        data: [
+          ['01/03/1900'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: hfInstance,
+          sheetName: 'Sheet1'
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      expect(warnSpy).toHaveBeenCalled();
     });
   });
 });
