@@ -154,7 +154,6 @@ const handsontableInstance = new Handsontable(container, {
   // enable filtering
   filters: true,
   height: 'auto',
-  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -270,7 +269,6 @@ export const App = () => {
       // enable filtering
       filters={true}
       height="auto"
-      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -432,7 +430,6 @@ const handsontableInstance = new Handsontable(container, {
   // enable filtering
   filters: true,
   height: 'auto',
-  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -560,7 +557,6 @@ export const App = () => {
       // enable filtering
       filters={true}
       height="auto"
-      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -699,7 +695,6 @@ const handsontableInstance = new Handsontable(container, {
     },
   },
   height: 'auto',
-  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -830,7 +825,6 @@ export const App = () => {
         },
       }}
       height="auto"
-      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -967,7 +961,6 @@ const handsontableInstance = new Handsontable(container, {
     }
   },
   height: 'auto',
-  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -1098,7 +1091,6 @@ export const App = () => {
       // it's fired after Handsontable appends information about a column header to the table header
       afterGetColHeader={removeColumnMenuButton}
       height="auto"
-      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -1244,7 +1236,6 @@ const handsontableInstance = new Handsontable(container, {
   // enable filtering
   filters: true,
   height: 168,
-  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -1380,7 +1371,6 @@ export const App = () => {
       // enable filtering
       filters={true}
       height={168}
-      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -1529,7 +1519,6 @@ const handsontableInstance = new Handsontable(container, {
     filters.filter();
   },
   height: 'auto',
-  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -1663,7 +1652,6 @@ export const App = () => {
       // enable filtering
       filters={true}
       height="auto"
-      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -1964,7 +1952,6 @@ export const App = () => {
         ]}
         filters={true}
         height="auto"
-        stretchH="all"
         licenseKey="non-commercial-and-evaluation"
       />
     </>
@@ -2091,7 +2078,6 @@ const handsontableInstance = new Handsontable(container, {
   // to differentiate this example's CSS from other examples on this page
   className: 'custom-filter-button-example-1',
   height: 'auto',
-  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -2219,7 +2205,6 @@ export const App = () => {
       // to differentiate this example's CSS from other examples on this page
       className="custom-filter-button-example-1"
       height="auto"
-      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -2355,7 +2340,6 @@ const handsontableInstance = new Handsontable(container, {
   // to differentiate this example's CSS from other examples on this page
   className: 'custom-filter-button-example-2',
   height: 'auto',
-  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -2484,7 +2468,6 @@ export const App = () => {
       // to differentiate this example's CSS from other examples on this page
       className="custom-filter-button-example-2"
       height="auto"
-      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -2646,7 +2629,6 @@ const handsontableInstance = new Handsontable(container, {
     });
   },
   height: 'auto',
-  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -2777,7 +2759,6 @@ export const App = () => {
       // `afterFilter()` is a Handsontable hook: it's fired after each filtering
       afterFilter={exclude}
       height="auto"
-      stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -3072,7 +3053,6 @@ const handsontableInstance = new Handsontable(container, {
   // enable filtering
   filters: true,
   height: 'auto',
-  stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
 
@@ -3246,7 +3226,6 @@ export const App = () => {
         // enable filtering
         filters={true}
         height="auto"
-        stretchH="all"
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
