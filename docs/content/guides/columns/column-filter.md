@@ -555,7 +555,7 @@ export const App = () => {
           className: 'htCenter',
         },
       ]}
-      // enable the column menu, but display the filter menu items
+      // enable the column menu, but display only the filter menu items
       dropdownMenu={['filter_by_condition', 'filter_by_value', 'filter_action_bar']}
       // enable filtering
       filters={true}
@@ -681,15 +681,17 @@ const handsontableInstance = new Handsontable(container, {
   // enable filtering for all columns
   filters: true,
   // enable the column menu for all columns
-  // but hide the filter menu from all columns but the first one
+  // but display only the 'Filter by value' list and the 'OK' and 'Cancel' buttons
   dropdownMenu: {
     items: {
       filter_by_value: {
+        // hide the 'Filter by value' list from all columns but the first one
         hidden() {
           return this.getSelectedRangeLast().to.col > 0;
         },
       },
       filter_action_bar: {
+        // hide the 'OK' and 'Cancel' buttons from all columns but the first one
         hidden() {
           return this.getSelectedRangeLast().to.col > 0;
         },
@@ -810,15 +812,17 @@ export const App = () => {
       // enable filtering for all columns
       filters={true}
       // enable the column menu for all columns
-      // but hide the filter menu from all columns but the first one
+      // but display only the 'Filter by value' list and the 'OK' and 'Cancel' buttons
       dropdownMenu={{
         items: {
           filter_by_value: {
+            // hide the 'Filter by value' list from all columns but the first one
             hidden() {
               return this.getSelectedRangeLast().to.col > 0;
             },
           },
           filter_action_bar: {
+            // hide the 'OK' and 'Cancel' buttons from all columns but the first one
             hidden() {
               return this.getSelectedRangeLast().to.col > 0;
             },
@@ -949,8 +953,7 @@ const handsontableInstance = new Handsontable(container, {
   // enable filtering for all columns
   filters: true,
   // `afterGetColHeader()` is a Handsontable hook
-  // it's fired after Handsontable retrieves information about a column header
-  // and appends it to the table header
+  // it's fired after Handsontable appends information about a column header to the table header
   afterGetColHeader(col, TH) {
     // remove the column menu button from the 'Brand', 'Price', and 'Date' columns
     if (col == 0 || col == 2 || col == 4) {
@@ -1092,8 +1095,7 @@ export const App = () => {
       // enable filtering for all columns
       filters={true}
       // `afterGetColHeader()` is a Handsontable hook
-      // it's fired after Handsontable retrieves information about a column header
-      // and appends it to the table header
+      // it's fired after Handsontable appends information about a column header to the table header
       afterGetColHeader={removeColumnMenuButton}
       height="auto"
       stretchH="all"
@@ -2494,10 +2496,12 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomFilterButton2'));
 ```
 
 ```css
+/* hide the column menu button by default */
 .custom-filter-button-example-2 .changeType {
   visibility: hidden;
 }
 
+/* show the column menu button on hover */
 .custom-filter-button-example-2 .relative:hover .changeType {
   visibility: visible;
 }
@@ -2522,8 +2526,8 @@ selector: `.htDropdownMenu table.htCore`.
 
 ## Exclude rows from filtering
 
-You can disable filtering for specific rows by manipulating their indexes. This lets you keep
-portions of data visible at all times, regardless of any filters you apply.
+You can disable filtering for specific rows by changing their indexes. This lets you keep portions
+of data visible at all times, regardless of any filters you apply.
 
 For example, in the following demo, filtering doesn't affect the first and the last row.
 
