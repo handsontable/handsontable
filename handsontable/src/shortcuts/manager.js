@@ -33,7 +33,10 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    *
    * @type {string}
    */
-  let activeContextName = 'grid';
+  const activeContextName = {
+    current: 'grid',
+    last: 'grid',
+  };
 
   /**
    * Create a new [`ShortcutContext`](@/api/shortcutContext.md) object.
@@ -57,7 +60,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    * @returns {string}
    */
   const getActiveContextName = () => {
-    return activeContextName;
+    return activeContextName.current;
   };
 
   /**
@@ -78,7 +81,29 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    * @param {string} contextName The name of the shortcut context
    */
   const setActiveContextName = (contextName) => {
-    activeContextName = contextName;
+    activeContextName.last = activeContextName.current;
+    activeContextName.current = contextName;
+  };
+
+  /**
+   * Start listening to keyboard shortcuts within a given [`ShortcutContext`](@/api/shortcutContext.md) and
+   * do not stack the context name so it won't be activated when the [`setUntrackedActiveContextName`](@/api/shortcutContext.md#setUntrackedActiveContextName)
+   * method will be used.
+   *
+   * @memberof ShortcutManager#
+   * @param {string} contextName The name of the shortcut context
+   */
+  const setUntrackedActiveContextName = (contextName) => {
+    activeContextName.current = contextName;
+  };
+
+  /**
+   * Start listening to keyboard shortcuts defined by the previously activated context name.
+   *
+   * @memberof ShortcutManager#
+   */
+  const activatePreviouslyUsedContextName = () => {
+    activeContextName.current = activeContextName.last;
   };
 
   /**
@@ -138,6 +163,8 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
     getActiveContextName,
     getContext,
     setActiveContextName,
+    setUntrackedActiveContextName,
+    activatePreviouslyUsedContextName,
     /**
      * Returns whether `control` or `meta` keys are pressed.
      *
