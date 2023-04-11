@@ -19,7 +19,7 @@ const getPackageUrls = (packageName, version, fileSelection) => {
       css: 'handsontable.full.min.css'
     },
     '@handsontable/react': {
-      js: 'react-handsontable.js'
+      js: 'react-handsontable.min.js'
     },
     '@handsontable/angular': {
       js: 'handsontable-angular.umd.min.js',
