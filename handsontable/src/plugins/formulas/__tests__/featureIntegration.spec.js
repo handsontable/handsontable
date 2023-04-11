@@ -221,6 +221,22 @@ describe('Formulas: Integration with other features', () => {
         ['\'28/02/1900', '28/02/1900', '\'28/02/1900'],
         ['=A5', '=B5', '=C5'],
       ]);
+
+      expect(getCellMeta(2, 0).valid).toBe(false);
+      expect(getCellMeta(2, 1).valid).toBe(true);
+      expect(getCellMeta(2, 2).valid).toBe(false);
+
+      expect(getCellMeta(3, 0).valid).toBe(false);
+      expect(getCellMeta(3, 1).valid).toBe(true);
+      expect(getCellMeta(3, 2).valid).toBe(false);
+
+      expect(getCellMeta(4, 0).valid).toBe(false);
+      expect(getCellMeta(4, 1).valid).toBe(true);
+      expect(getCellMeta(4, 2).valid).toBe(false);
+
+      expect(getCellMeta(5, 0).valid).toBe(false);
+      expect(getCellMeta(5, 1).valid).toBe(true);
+      expect(getCellMeta(5, 2).valid).toBe(false);
     });
   });
 
