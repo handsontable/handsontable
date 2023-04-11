@@ -23,25 +23,35 @@ export function unescapeFormulaExpression(expression) {
 }
 
 /**
+ * Checks whether string looks like formula or not. Corresponds to {@link https://hyperformula.handsontable.com/api/globals.html#isformula|HyperFormula's implementation}.
+ *
+ * @param {string} value Checked value.
+ * @returns {boolean}
+ */
+export function isFormula(value) {
+  return typeof value === 'string' && value.startsWith('=');
+}
+
+/**
  * Checks if provided value is a date according to cell meta.
  *
  * @param {*} value Checked value.
- * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
+ * @param {string} cellType Type of a cell.
  * @returns {boolean}
  */
-export function isDate(value, cellProperties) {
-  return typeof value === 'string' && cellProperties.type === 'date';
+export function isDate(value, cellType) {
+  return typeof value === 'string' && cellType === 'date';
 }
 
 /**
  * Checks if provided date is a valid date according to cell date format.
  *
  * @param {*} date Checked date.
- * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
+ * @param {object} dateFormat Handled format for a date.
  * @returns {boolean}
  */
-export function isDateValid(date, cellProperties) {
-  return moment(date, cellProperties.dateFormat, true).isValid();
+export function isDateValid(date, dateFormat) {
+  return moment(date, dateFormat, true).isValid();
 }
 
 /**
@@ -53,6 +63,17 @@ export function isDateValid(date, cellProperties) {
  */
 export function getDateInHfFormat(date, dateFormat) {
   return moment(date, dateFormat, true).format(DEFAULT_DATE_FORMAT_HYPERFORMULA);
+}
+
+/**
+ * Returns date formatted in HF's default format.
+ *
+ * @param {string} date Date formatted according to Handsontable cell date format.
+ * @param {string} dateFormat The format used for the date passed.
+ * @returns {string}
+ */
+export function getDateInHotFormat(date, dateFormat) {
+  return moment(date, DEFAULT_DATE_FORMAT_HYPERFORMULA, true).format(dateFormat);
 }
 
 /**

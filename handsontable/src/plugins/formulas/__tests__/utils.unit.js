@@ -31,15 +31,15 @@ describe('Formulas utils', () => {
 
   describe('isDateValid', () => {
     it('should correctly detect proper date according to handled date format from cell properties', () => {
-      expect(isDateValid('13/11/2022', { type: 'date', dateFormat: 'DD/MM/YYYY' })).toBe(true);
-      expect(isDateValid('11/13/2022', { type: 'date', dateFormat: 'DD/MM/YYYY' })).toBe(false);
-      expect(isDateValid('11/13/2022', { type: 'date', dateFormat: 'MM/DD/YYYY' })).toBe(true);
-      expect(isDateValid('13/11/2022', { type: 'date', dateFormat: 'MM/DD/YYYY' })).toBe(false);
+      expect(isDateValid('13/11/2022', 'DD/MM/YYYY')).toBe(true);
+      expect(isDateValid('11/13/2022', 'DD/MM/YYYY')).toBe(false);
+      expect(isDateValid('11/13/2022', 'MM/DD/YYYY')).toBe(true);
+      expect(isDateValid('13/11/2022', 'MM/DD/YYYY')).toBe(false);
 
-      expect(isDateValid({}, { type: 'date', dateFormat: 'DD/MM/YYYY' })).toBe(false);
-      expect(isDateValid(null, { type: 'date', dateFormat: 'DD/MM/YYYY' })).toBe(false);
-      expect(isDateValid(void 0, { type: 'date', dateFormat: 'DD/MM/YYYY' })).toBe(false);
-      expect(isDateValid('', { type: 'date', dateFormat: 'DD/MM/YYYY' })).toBe(false);
+      expect(isDateValid({}, 'DD/MM/YYYY')).toBe(false);
+      expect(isDateValid(null, 'DD/MM/YYYY')).toBe(false);
+      expect(isDateValid(void 0, 'DD/MM/YYYY')).toBe(false);
+      expect(isDateValid('', 'DD/MM/YYYY')).toBe(false);
     });
   });
 

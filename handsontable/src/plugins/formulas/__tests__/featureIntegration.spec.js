@@ -146,6 +146,82 @@ describe('Formulas: Integration with other features', () => {
         [null, null, null, null, null, null]
       ]);
     });
+
+    it('should populate dates and formulas referencing to them properly', async() => {
+      handsontable({
+        data: [
+          ['28/02/1900', '28/02/1900', '28/02/1900'],
+          ['=A1', '=B1', '=C1'],
+          [null, null, null],
+          [null, null, null],
+          [null, null, null],
+          [null, null, null],
+        ],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'MM/DD/YYYY'
+        }, {
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }, {
+          type: 'date',
+          dateFormat: 'MM/DD/YYYY'
+        }],
+        fillHandle: true,
+      });
+
+      selectRows(0, 1);
+
+      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+      spec().$container.find('tr:last-child td:eq(0)').simulate('mouseover');
+      spec().$container.find('tr:last-child td:eq(2)').simulate('mouseup');
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await sleep(300);
+
+      expect(getData()).toEqual([
+        ['28/02/1900', '28/02/1900', '28/02/1900'],
+        ['28/02/1900', '28/02/1900', '28/02/1900'],
+        ['28/02/1900', '28/02/1900', '28/02/1900'],
+        ['28/02/1900', '28/02/1900', '28/02/1900'],
+        ['28/02/1900', '28/02/1900', '28/02/1900'],
+        ['28/02/1900', '28/02/1900', '28/02/1900'],
+        [null, null, null]
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['28/02/1900', '28/02/1900', '28/02/1900'],
+        ['=A1', '=B1', '=C1'],
+        ['28/02/1900', '28/02/1900', '28/02/1900'],
+        ['=A3', '=B3', '=C3'],
+        ['28/02/1900', '28/02/1900', '28/02/1900'],
+        ['=A5', '=B5', '=C5'],
+        [null, null, null]
+      ]);
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['28/02/1900', 60, '28/02/1900'],
+        ['28/02/1900', 60, '28/02/1900'],
+        ['28/02/1900', 60, '28/02/1900'],
+        ['28/02/1900', 60, '28/02/1900'],
+        ['28/02/1900', 60, '28/02/1900'],
+        ['28/02/1900', 60, '28/02/1900'],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['\'28/02/1900', '28/02/1900', '\'28/02/1900'],
+        ['=A1', '=B1', '=C1'],
+        ['\'28/02/1900', '28/02/1900', '\'28/02/1900'],
+        ['=A3', '=B3', '=C3'],
+        ['\'28/02/1900', '28/02/1900', '\'28/02/1900'],
+        ['=A5', '=B5', '=C5'],
+      ]);
+    });
   });
 
   describe('Integration with Nested Rows', () => {

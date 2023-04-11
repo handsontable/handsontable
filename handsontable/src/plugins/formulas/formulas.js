@@ -19,6 +19,8 @@ import {
   isDateValid,
   getDateInHfFormat,
   getDateFromExcelDate,
+  getDateInHotFormat,
+  isFormula,
 } from './utils';
 import { getEngineSettingsWithOverrides } from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
@@ -564,12 +566,12 @@ export class Formulas extends BasePlugin {
 
     const cellMeta = this.hot.getCellMeta(row, column);
 
-    if (isDate(newValue, cellMeta)) {
-      if (isDateValid(newValue, cellMeta)) {
+    if (isDate(newValue, cellMeta.type)) {
+      if (isDateValid(newValue, cellMeta.dateFormat)) {
         // Rewriting date in HOT format to HF format.
         newValue = getDateInHfFormat(newValue, cellMeta.dateFormat);
 
-      } else if (this.isFormulaCellType(row, column) === false) {
+      } else if (isFormula(newValue) === false) {
         // Escaping value from date parsing using "'" sign (HF feature).
         newValue = `'${newValue}`;
       }
@@ -657,10 +659,15 @@ export class Formulas extends BasePlugin {
         const sourceRow = populatedRowIndex % populationRowLength;
         const sourceColumn = populatedColumnIndex % populationColumnLength;
         const sourceCellMeta = this.hot.getCellMeta(sourceRow, sourceColumn);
-        const isPopulatedValueDate = sourceCellMeta.type === 'date';
 
-        if (typeof populatedValue === 'string' && isPopulatedValueDate && populatedValue.startsWith('\'')) {
-          fillRangeData[populatedRowIndex][populatedColumnIndex] = populatedValue.slice(1);
+        if (isDate(populatedValue, sourceCellMeta.type)) {
+          if (populatedValue.startsWith('\'')) {
+            fillRangeData[populatedRowIndex][populatedColumnIndex] = populatedValue.slice(1);
+
+          } else if (this.isFormulaCellType(sourceRow, sourceColumn, this.sheetId) === false) {
+            fillRangeData[populatedRowIndex][populatedColumnIndex] =
+              getDateInHotFormat(populatedValue, sourceCellMeta.dateFormat);
+          }
         }
       }
     }
@@ -698,13 +705,14 @@ export class Formulas extends BasePlugin {
     sourceDataArray.forEach((rowData, rowIndex) => {
       rowData.forEach((cellValue, columnIndex) => {
         const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex);
+        const dateFormat = cellMeta.dateFormat;
 
-        if (isDate(cellValue, cellMeta)) {
+        if (isDate(cellValue, cellMeta.type)) {
           valueChanged = true;
 
-          if (isDateValid(cellValue, cellMeta)) {
+          if (isDateValid(cellValue, dateFormat)) {
             // Rewriting date in HOT format to HF format.
-            sourceDataArray[rowIndex][columnIndex] = getDateInHfFormat(cellValue, cellMeta.dateFormat);
+            sourceDataArray[rowIndex][columnIndex] = getDateInHfFormat(cellValue, dateFormat);
 
           } else if (this.isFormulaCellType(rowIndex, columnIndex) === false) {
             // Escaping value from date parsing using "'" sign (HF feature).
