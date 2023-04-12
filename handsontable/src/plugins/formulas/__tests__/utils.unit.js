@@ -2,6 +2,9 @@ import {
   isEscapedFormulaExpression,
   unescapeFormulaExpression,
   isDateValid,
+  isFormula,
+  isDate,
+  getDateInHotFormat,
   getDateInHfFormat,
   getDateFromExcelDate,
 } from '../utils';
@@ -43,11 +46,35 @@ describe('Formulas utils', () => {
     });
   });
 
+  describe('isFormula', () => {
+    it('should correctly return whether we handle formula', () => {
+      expect(isFormula('=A1')).toBe(true);
+      expect(isFormula('\'=A1')).toBe(false);
+      expect(isFormula('A1')).toBe(false);
+    });
+  });
+
+  describe('isDate', () => {
+    it('should correctly return whether we handle formula', () => {
+      expect(isDate('13/11/2022', 'date')).toBe(true);
+      expect(isDate(new Date(), 'date')).toBe(false);
+      expect(isDate('13/11/2022', 'text')).toBe(false);
+    });
+  });
+
+  describe('getDateInHotFormat', () => {
+    it('should correctly convert from HF to HOT date', () => {
+      expect(getDateInHotFormat('13/11/2022', 'DD/MM/YYYY')).toBe('13/11/2022');
+      expect(getDateInHotFormat('13/11/2022', 'MM/DD/YYYY')).toBe('11/13/2022');
+      expect(getDateInHotFormat('11/13/2022', 'MM/DD/YYYY')).toBe('Invalid date');
+    });
+  });
+
   describe('getDateInHfFormat', () => {
     it('should correctly convert from HOT to HF date', () => {
       expect(getDateInHfFormat('13/11/2022', 'DD/MM/YYYY')).toBe('13/11/2022');
       expect(getDateInHfFormat('11/13/2022', 'MM/DD/YYYY')).toBe('13/11/2022');
-      expect(isNaN(getDateInHfFormat('13/11/2022', 'MM/DD/YYYY'))).toBe(true);
+      expect(getDateInHfFormat('13/11/2022', 'MM/DD/YYYY')).toBe('Invalid date');
     });
   });
 
