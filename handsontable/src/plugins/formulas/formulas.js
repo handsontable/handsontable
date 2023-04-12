@@ -817,7 +817,7 @@ export class Formulas extends BasePlugin {
     const cellMeta = this.hot.getCellMeta(row, column);
 
     if (cellMeta.type === 'date' && isNumeric(cellValue)) {
-      // Converting numeric value being Excel like date to JS Date object.
+      // Converting numeric values that are Excel-like dates to JS Date objects.
       cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat, this.engine.getConfig().leapYear1900);
     }
 
