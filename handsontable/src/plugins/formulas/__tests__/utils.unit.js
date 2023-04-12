@@ -79,7 +79,7 @@ describe('Formulas utils', () => {
   });
 
   describe('getDateFromExcelDate', () => {
-    it('should correctly convert dates from Excel like date to Date object', () => {
+    it('should correctly convert dates from Excel-like dates to Date objects', () => {
       expect(isNaN(getDateFromExcelDate('13/11/2022', 'DD/MM/YYYY'))).toBe(true);
 
       // Taking HyperFormula implementation. Excel shows "00.01.1900" while Google Sheets: "12/30/1899"
