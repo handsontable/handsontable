@@ -601,7 +601,7 @@ export class Formulas extends BasePlugin {
       };
 
       const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
-      let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel like date).
+      let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel-like date).
 
       if (cellMeta.type === 'date' && isNumeric(cellValue)) {
         // Converting numeric value being Excel like date to JS Date object.
