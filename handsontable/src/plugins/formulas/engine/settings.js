@@ -110,3 +110,17 @@ export function getEngineSettingsWithOverrides(hotSettings) {
     ...overrides
   };
 }
+
+/**
+ * Check if the new settings are defined and are different from the ones currently used by the engine.
+ *
+ * @param {object} currentEngineSettings Currently used engine settings.
+ * @param {object} newEngineSettings New engine settings.
+ * @returns {boolean}
+ */
+export function haveEngineSettingsChanged(currentEngineSettings, newEngineSettings) {
+  return Object.keys(newEngineSettings).some((settingOption) => {
+    return newEngineSettings[settingOption] !== void 0 &&
+      newEngineSettings[settingOption] !== currentEngineSettings[settingOption];
+  });
+}
