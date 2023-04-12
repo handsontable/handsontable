@@ -322,9 +322,9 @@ describe('NestedHeaders', () => {
         keyUp('control/meta');
 
         expect(getSelected()).toEqual([
-          [-1, 1, 9, 2], // B4 column
-          [-2, 5, 9, 8], // F3 column
-          [-3, 10, 9, 12], // K2 column
+          [-4, 1, 9, 2], // B4 column
+          [-4, 5, 9, 8], // F3 column
+          [-4, 10, 9, 12], // K2 column
         ]);
         expect(extractDOMStructure(getTopClone())).toMatchHTML(`
           <thead>
@@ -381,9 +381,9 @@ describe('NestedHeaders', () => {
         hot.render();
 
         expect(getSelected()).toEqual([
-          [-1, 1, 9, 2], // B4 column
-          [-2, 5, 9, 8], // F3 column
-          [-3, 10, 9, 12], // K2 column
+          [-4, 1, 9, 2], // B4 column
+          [-4, 5, 9, 8], // F3 column
+          [-4, 10, 9, 12], // K2 column
         ]);
         expect(extractDOMStructure(getTopClone())).toMatchHTML(`
           <thead>
@@ -426,9 +426,9 @@ describe('NestedHeaders', () => {
         hot.render();
 
         expect(getSelected()).toEqual([
-          [-1, 1, 9, 2], // B4 column
-          [-2, 5, 9, 8], // F3 column
-          [-3, 10, 9, 12], // K2 column
+          [-4, 1, 9, 2], // B4 column
+          [-4, 5, 9, 8], // F3 column
+          [-4, 10, 9, 12], // K2 column
         ]);
         expect(extractDOMStructure(getTopClone())).toMatchHTML(`
           <thead>
@@ -1248,7 +1248,7 @@ describe('NestedHeaders', () => {
           shiftKey: true
         }); // select column L4
 
-        expect(getSelected()).toEqual([[-1, 5, 9, 12]]);
+        expect(getSelected()).toEqual([[-4, 5, 9, 12]]);
 
         simulateClick(getTopClone().find('thead tr:eq(3) th:eq(3)'), 'LMB', {
           shiftKey: true
@@ -1302,7 +1302,7 @@ describe('NestedHeaders', () => {
             </tr>
           </thead>
           `);
-        expect(getSelected()).toEqual([[-1, 5, 9, 6]]);
+        expect(getSelected()).toEqual([[-4, 5, 9, 6]]);
       });
 
       it('should select every column header under the nested headers, when changing the selection using the SHIFT key ' +
@@ -1332,7 +1332,7 @@ describe('NestedHeaders', () => {
           shiftKey: true
         }); // select column D4
 
-        expect(getSelected()).toEqual([[-1, 1, 9, 4]]);
+        expect(getSelected()).toEqual([[-4, 1, 9, 4]]);
         expect(extractDOMStructure(getTopClone())).toMatchHTML(`
           <thead>
             <tr>
@@ -1386,7 +1386,7 @@ describe('NestedHeaders', () => {
           shiftKey: true
         }); // select column F4
 
-        expect(getSelected()).toEqual([[-1, 1, 9, 6]]);
+        expect(getSelected()).toEqual([[-4, 1, 9, 6]]);
         expect(extractDOMStructure(getTopClone())).toMatchHTML(`
           <thead>
             <tr>
@@ -1440,7 +1440,7 @@ describe('NestedHeaders', () => {
           shiftKey: true
         }); // select column H4
 
-        expect(getSelected()).toEqual([[-1, 1, 9, 8]]);
+        expect(getSelected()).toEqual([[-4, 1, 9, 8]]);
         expect(extractDOMStructure(getTopClone())).toMatchHTML(`
           <thead>
             <tr>
@@ -1518,7 +1518,7 @@ describe('NestedHeaders', () => {
           shiftKey: true
         }); // select column J4
 
-        expect(getSelected()).toEqual([[-1, 12, 9, 9]]);
+        expect(getSelected()).toEqual([[-4, 12, 9, 9]]);
         expect(extractDOMStructure(getTopClone())).toMatchHTML(`
           <thead>
             <tr>
@@ -1572,7 +1572,7 @@ describe('NestedHeaders', () => {
           shiftKey: true
         }); // select column H4
 
-        expect(getSelected()).toEqual([[-1, 12, 9, 7]]);
+        expect(getSelected()).toEqual([[-4, 12, 9, 7]]);
         expect(extractDOMStructure(getTopClone())).toMatchHTML(`
           <thead>
             <tr>
@@ -1626,7 +1626,7 @@ describe('NestedHeaders', () => {
           shiftKey: true
         }); // select column F4
 
-        expect(getSelected()).toEqual([[-1, 12, 9, 5]]);
+        expect(getSelected()).toEqual([[-4, 12, 9, 5]]);
         expect(extractDOMStructure(getTopClone())).toMatchHTML(`
           <thead>
             <tr>
@@ -1680,7 +1680,7 @@ describe('NestedHeaders', () => {
           shiftKey: true
         }); // select column D4
 
-        expect(getSelected()).toEqual([[-1, 12, 9, 3]]);
+        expect(getSelected()).toEqual([[-4, 12, 9, 3]]);
         expect(extractDOMStructure(getTopClone())).toMatchHTML(`
           <thead>
             <tr>
@@ -1734,7 +1734,7 @@ describe('NestedHeaders', () => {
           shiftKey: true
         }); // select column B4
 
-        expect(getSelected()).toEqual([[-1, 12, 9, 1]]);
+        expect(getSelected()).toEqual([[-4, 12, 9, 1]]);
         expect(extractDOMStructure(getTopClone())).toMatchHTML(`
           <thead>
             <tr>

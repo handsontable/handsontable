@@ -24,58 +24,62 @@ import { toSingleLine } from './../helpers/templateLiteralTag';
  * @util
  */
 class Selection {
+  /**
+   * Handsontable settings instance.
+   *
+   * @type {GridSettings}
+   */
+  settings;
+  /**
+   * An additional object with dynamically defined properties which describes table state.
+   *
+   * @type {object}
+   */
+  tableProps;
+  /**
+   * The flag which determines if the selection is in progress.
+   *
+   * @type {boolean}
+   */
+  inProgress = false;
+  /**
+   * Selection data layer (handle visual coordinates).
+   *
+   * @type {SelectionRange}
+   */
+  selectedRange = new SelectionRange((highlight, from, to) => {
+    return this.tableProps.createCellRange(highlight, from, to);
+  });
+  /**
+   * Visualization layer.
+   *
+   * @type {Highlight}
+   */
+  highlight;
+  /**
+   * The module for modifying coordinates.
+   *
+   * @type {Transformation}
+   */
+  transformation;
+  /**
+   * The collection of the selection layer levels where the whole row was selected using the row header or
+   * the corner header.
+   *
+   * @type {Set<number>}
+   */
+  selectedByRowHeader = new Set();
+  /**
+   * The collection of the selection layer levels where the whole column was selected using the column header or
+   * the corner header.
+   *
+   * @type {Set<number>}
+   */
+  selectedByColumnHeader = new Set();
+
   constructor(settings, tableProps) {
-    /**
-     * Handsontable settings instance.
-     *
-     * @type {GridSettings}
-     */
     this.settings = settings;
-    /**
-     * An additional object with dynamically defined properties which describes table state.
-     *
-     * @type {object}
-     */
     this.tableProps = tableProps;
-    /**
-     * The flag which determines if the selection is in progress.
-     *
-     * @type {boolean}
-     */
-    this.inProgress = false;
-    /**
-     * The flag indicates that selection was performed by clicking the corner overlay.
-     *
-     * @type {boolean}
-     */
-    this.selectedByCorner = false;
-    /**
-     * The collection of the selection layer levels where the whole row was selected using the row header or
-     * the corner header.
-     *
-     * @type {Set.<number>}
-     */
-    this.selectedByRowHeader = new Set();
-    /**
-     * The collection of the selection layer levels where the whole column was selected using the column header or
-     * the corner header.
-     *
-     * @type {Set.<number>}
-     */
-    this.selectedByColumnHeader = new Set();
-    /**
-     * Selection data layer (handle visual coordinates).
-     *
-     * @type {SelectionRange}
-     */
-    this.selectedRange = new SelectionRange((highlight, from, to) => {
-      return this.tableProps.createCellRange(highlight, from, to);
-    });
-    /**
-     * Visualization layer.
-     *
-     * @type {Highlight}
-     */
     this.highlight = new Highlight({
       headerClassName: settings.currentHeaderClassName,
       activeHeaderClassName: settings.activeHeaderClassName,
@@ -91,11 +95,6 @@ class Selection {
       rowIndexMapper: () => this.tableProps.rowIndexMapper(),
       columnIndexMapper: () => this.tableProps.columnIndexMapper(),
     });
-    /**
-     * The module for modifying coordinates.
-     *
-     * @type {Transformation}
-     */
     this.transformation = new Transformation(this.selectedRange, {
       countRows: () => this.tableProps.countRowsTranslated(),
       countCols: () => this.tableProps.countColsTranslated(),
@@ -168,19 +167,15 @@ class Selection {
    *                                      the default trigger will be used.
    * @param {boolean} [fragment=false] If `true`, the selection will be treated as a partial selection where the
    *                                   `setRangeEnd` method won't be called on every `setRangeStart` call.
+   * @param {CellCoords} [highlightCoords] If set, allows changing the coordinates of the highlight/focus cell.
    */
-  setRangeStart(coords, multipleSelection, fragment = false) {
+  setRangeStart(coords, multipleSelection, fragment = false, highlightCoords = coords) {
     const isMultipleMode = this.settings.selectionMode === 'multiple';
     const isMultipleSelection = isUndefined(multipleSelection) ?
       this.tableProps.getShortcutManager().isCtrlPressed() : multipleSelection;
-    const isRowNegative = coords.row < 0;
-    const isColumnNegative = coords.col < 0;
-    const selectedByCorner = isRowNegative && isColumnNegative;
     // We are creating copy. We would like to modify just the start of the selection by below hook. Then original coords
     // should be handled by next methods.
     const coordsClone = coords.clone();
-
-    this.selectedByCorner = selectedByCorner;
 
     this.runLocalHooks(`beforeSetRangeStart${fragment ? 'Only' : ''}`, coordsClone);
 
@@ -188,18 +183,14 @@ class Selection {
       this.selectedRange.clear();
     }
 
-    this.selectedRange.add(coordsClone);
+    this.selectedRange
+      .add(coordsClone)
+      .current()
+      .setHighlight(highlightCoords.clone());
 
     if (this.getLayerLevel() === 0) {
       this.selectedByRowHeader.clear();
       this.selectedByColumnHeader.clear();
-    }
-
-    if (!selectedByCorner && isColumnNegative) {
-      this.selectedByRowHeader.add(this.getLayerLevel());
-    }
-    if (!selectedByCorner && isRowNegative) {
-      this.selectedByColumnHeader.add(this.getLayerLevel());
     }
 
     if (!fragment) {
@@ -214,9 +205,10 @@ class Selection {
    * @param {boolean} [multipleSelection] If `true`, selection will be worked in 'multiple' mode. This option works
    *                                      only when 'selectionMode' is set as 'multiple'. If the argument is not defined
    *                                      the default trigger will be used.
+   * @param {CellCoords} [highlightCoords] If set, allows changing the coordinates of the highlight/focus cell.
    */
-  setRangeStartOnly(coords, multipleSelection) {
-    this.setRangeStart(coords, multipleSelection, true);
+  setRangeStartOnly(coords, multipleSelection, highlightCoords = coords) {
+    this.setRangeStart(coords, multipleSelection, true, highlightCoords);
   }
 
   /**
@@ -240,7 +232,8 @@ class Selection {
     }
 
     // Prevent creating "area" selection that overlaps headers.
-    if (countRows > 0 && countCols > 0) {
+    if (!this.settings.navigableHeaders && countRows > 0 && countCols > 0) {
+    // if (countRows > 0 && countCols > 0) {
       coordsClone.normalize();
     }
 
@@ -371,13 +364,10 @@ class Selection {
           .commit();
       }
 
-      const isRowSelected = this.isEntireRowSelected()
-        ? this.tableProps.countCols() === cellRange.getWidth() : false;
-      const isColumnSelected = this.isEntireColumnSelected()
-        ? this.tableProps.countRows() === cellRange.getHeight() : false;
+      const highlightRowHeaders = this.tableProps.countRowHeaders() > 0 && this.isEntireRowSelected();
+      const highlightColumnHeaders = this.tableProps.countColHeaders() > 0 && this.isEntireColumnSelected();
 
-      // Make sure that the whole row is selected (in case where selectionMode is set to 'single')
-      if (isRowSelected) {
+      if (highlightRowHeaders) {
         activeRowHeaderHighlight
           .add(this.tableProps
             .createCellCoords(Math.max(cellRange.from.row, 0), Math.min(-this.tableProps.countRowHeaders(), -1)))
@@ -386,8 +376,7 @@ class Selection {
           .commit();
       }
 
-      // Make sure that the whole column is selected (in case where selectionMode is set to 'single')
-      if (isColumnSelected) {
+      if (highlightColumnHeaders) {
         activeColumnHeaderHighlight
           .add(this.tableProps
             .createCellCoords(Math.min(-this.tableProps.countColHeaders(), -1), Math.max(cellRange.from.col, 0)))
@@ -396,7 +385,7 @@ class Selection {
           .commit();
       }
 
-      if (isRowSelected && isColumnSelected) {
+      if (highlightRowHeaders && highlightColumnHeaders) {
         activeCornerHeaderHighlight
           .add(this.tableProps
             .createCellCoords(-this.tableProps.countColHeaders(), -this.tableProps.countRowHeaders()))
@@ -428,11 +417,11 @@ class Selection {
    *
    * @param {number} rowDelta Rows number to move, value can be passed as negative number.
    * @param {number} colDelta Columns number to move, value can be passed as negative number.
-   * @param {boolean} [force=false] If `true` the new rows/columns will be created if necessary. Otherwise, row/column will
-   *                        be created according to `minSpareRows/minSpareCols` settings of Handsontable.
+   * @param {boolean} [createMissingRecords=false] If `true` the new rows/columns will be created if necessary.
+   * Otherwise, row/column will be created according to `minSpareRows/minSpareCols` settings of Handsontable.
    */
-  transformStart(rowDelta, colDelta, force = false) {
-    this.setRangeStart(this.transformation.transformStart(rowDelta, colDelta, force));
+  transformStart(rowDelta, colDelta, createMissingRecords = false) {
+    this.setRangeStart(this.transformation.transformStart(rowDelta, colDelta, createMissingRecords));
   }
 
   /**
@@ -472,7 +461,8 @@ class Selection {
    * @returns {boolean}
    */
   isSelectedByRowHeader(layerLevel = this.getLayerLevel()) {
-    return !this.isSelectedByCorner(layerLevel) && this.isEntireRowSelected(layerLevel);
+    return !this.isSelectedByCorner(layerLevel) && (layerLevel === -1 ?
+      this.selectedByRowHeader.size > 0 : this.selectedByRowHeader.has(layerLevel));
   }
 
   /**
@@ -483,7 +473,17 @@ class Selection {
    * @returns {boolean}
    */
   isEntireRowSelected(layerLevel = this.getLayerLevel()) {
-    return layerLevel === -1 ? this.selectedByRowHeader.size > 0 : this.selectedByRowHeader.has(layerLevel);
+    const tester = (range) => {
+      return range.getOuterWidth() === this.tableProps.countCols() + this.tableProps.countRowHeaders();
+    };
+
+    if (layerLevel === -1) {
+      return Array.from(this.selectedRange).some(range => tester(range));
+    }
+
+    const range = this.selectedRange.peekByIndex(layerLevel);
+
+    return range ? tester(range) : false;
   }
 
   /**
@@ -495,7 +495,8 @@ class Selection {
    * @returns {boolean}
    */
   isSelectedByColumnHeader(layerLevel = this.getLayerLevel()) {
-    return !this.isSelectedByCorner() && this.isEntireColumnSelected(layerLevel);
+    return !this.isSelectedByCorner() && (layerLevel === -1 ?
+      this.selectedByColumnHeader.size > 0 : this.selectedByColumnHeader.has(layerLevel));
   }
 
   /**
@@ -506,7 +507,17 @@ class Selection {
    * @returns {boolean}
    */
   isEntireColumnSelected(layerLevel = this.getLayerLevel()) {
-    return layerLevel === -1 ? this.selectedByColumnHeader.size > 0 : this.selectedByColumnHeader.has(layerLevel);
+    const tester = (range) => {
+      return range.getOuterHeight() === this.tableProps.countRows() + this.tableProps.countColHeaders();
+    };
+
+    if (layerLevel === -1) {
+      return Array.from(this.selectedRange).some(range => tester(range));
+    }
+
+    const range = this.selectedRange.peekByIndex(layerLevel);
+
+    return range ? tester(range) : false;
   }
 
   /**
@@ -526,7 +537,13 @@ class Selection {
    * @returns {boolean}
    */
   isSelectedByCorner() {
-    return this.selectedByCorner;
+    const range = this.selectedRange.current();
+
+    if (!range) {
+      return false;
+    }
+
+    return range.from.row < 0 && range.from.col < 0;
   }
 
   /**
@@ -618,11 +635,12 @@ class Selection {
       return;
     }
 
-    const startCoords = this.tableProps.createCellCoords(rowFrom, columnFrom);
+    const startCoords = this.tableProps.createCellCoords(-countColHeaders, -countRowHeaders);
+    const highlight = this.tableProps.createCellCoords(rowFrom, columnFrom);
     const endCoords = this.tableProps.createCellCoords(nrOfRows - 1, nrOfColumns - 1);
 
     this.clear();
-    this.setRangeStartOnly(startCoords);
+    this.setRangeStartOnly(startCoords, void 0, highlight);
     this.selectedByRowHeader.add(this.getLayerLevel());
     this.selectedByColumnHeader.add(this.getLayerLevel());
     this.setRangeEnd(endCoords);
@@ -703,7 +721,12 @@ class Selection {
     const isValid = isValidCoord(start, nrOfColumns) && isValidCoord(end, nrOfColumns);
 
     if (isValid) {
-      this.setRangeStartOnly(this.tableProps.createCellCoords(headerLevel, start));
+      const countColHeaders = this.tableProps.countColHeaders();
+      const from = this.tableProps.createCellCoords(countColHeaders > 0 ? -countColHeaders : countColHeaders, start);
+      const highlight = this.tableProps.createCellCoords(headerLevel, start);
+
+      this.setRangeStartOnly(from, void 0, highlight);
+      this.selectedByColumnHeader.add(this.getLayerLevel());
       this.setRangeEnd(this.tableProps.createCellCoords(nrOfRows - 1, end));
       this.finish();
     }
@@ -727,7 +750,12 @@ class Selection {
     const isValid = isValidCoord(startRow, nrOfRows) && isValidCoord(endRow, nrOfRows);
 
     if (isValid) {
-      this.setRangeStartOnly(this.tableProps.createCellCoords(startRow, headerLevel));
+      const countRowHeaders = this.tableProps.countRowHeaders();
+      const from = this.tableProps.createCellCoords(startRow, countRowHeaders > 0 ? -countRowHeaders : countRowHeaders);
+      const highlight = this.tableProps.createCellCoords(startRow, headerLevel);
+
+      this.setRangeStartOnly(from, void 0, highlight);
+      this.selectedByRowHeader.add(this.getLayerLevel());
       this.setRangeEnd(this.tableProps.createCellCoords(endRow, nrOfColumns - 1));
       this.finish();
     }

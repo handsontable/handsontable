@@ -149,12 +149,11 @@ class VisualSelection extends Selection {
    * @returns {VisualSelection}
    */
   syncWith(broaderCellRange) {
-    const coordsFrom = broaderCellRange.from.clone();
-
-    if (broaderCellRange.highlight.isCell()) {
-      coordsFrom.normalize();
+    if (broaderCellRange.highlight.isHeader()) {
+      return this;
     }
 
+    const coordsFrom = broaderCellRange.from.clone().normalize();
     const rowDirection = broaderCellRange.getVerticalDirection() === 'N-S' ? 1 : -1;
     const columnDirection = broaderCellRange.getHorizontalDirection() === 'W-E' ? 1 : -1;
     const cellCoordsVisual = this.getNearestNotHiddenCoords(coordsFrom, rowDirection, columnDirection);

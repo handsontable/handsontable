@@ -223,9 +223,9 @@ describe('NestedHeaders', () => {
         keyUp('control/meta');
 
         expect(getSelected()).toEqual([
-          [-2, 5, 9, 8], // F3 column
-          [-3, 10, 9, 12], // K2 column
-          [-1, 1, 9, 2], // B4 column
+          [-4, 5, 9, 8], // F3 column
+          [-4, 10, 9, 12], // K2 column
+          [-4, 1, 9, 2], // B4 column
         ]);
         expect(extractDOMStructure(getTopClone())).toMatchHTML(`
           <thead>
@@ -262,9 +262,9 @@ describe('NestedHeaders', () => {
         hot.render();
 
         expect(getSelected()).toEqual([
-          [-2, 5, 9, 8], // F3 column
-          [-3, 10, 9, 12], // K2 column
-          [-1, 1, 9, 2], // B4 column
+          [-4, 5, 9, 8], // F3 column
+          [-4, 10, 9, 12], // K2 column
+          [-4, 1, 9, 2], // B4 column
         ]);
         expect(extractDOMStructure(getTopClone())).toMatchHTML(`
           <thead>
@@ -314,9 +314,9 @@ describe('NestedHeaders', () => {
         hot.render();
 
         expect(getSelected()).toEqual([
-          [-2, 5, 9, 8], // F3 column
-          [-3, 10, 9, 12], // K2 column
-          [-1, 1, 9, 2], // B4 column
+          [-4, 5, 9, 8], // F3 column
+          [-4, 10, 9, 12], // K2 column
+          [-4, 1, 9, 2], // B4 column
         ]);
         expect(extractDOMStructure(getTopClone())).toMatchHTML(`
           <thead>
@@ -381,9 +381,9 @@ describe('NestedHeaders', () => {
         hot.render();
 
         expect(getSelected()).toEqual([
-          [-2, 5, 9, 8], // F3 column
-          [-3, 10, 9, 12], // K2 column
-          [-1, 1, 9, 2], // B4 column
+          [-4, 5, 9, 8], // F3 column
+          [-4, 10, 9, 12], // K2 column
+          [-4, 1, 9, 2], // B4 column
         ]);
         expect(extractDOMStructure(getTopClone())).toMatchHTML(`
           <thead>

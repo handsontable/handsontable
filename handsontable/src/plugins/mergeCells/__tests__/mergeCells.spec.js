@@ -1531,7 +1531,7 @@ describe('MergeCells', () => {
 
       hot.selectColumns(5);
 
-      expect(hot.getSelectedLast()).toEqual([-1, 5, 9, 5]);
+      expect(hot.getSelectedLast()).toEqual([0, 5, 9, 5]);
 
       // it should work only for selecting the entire column
       hot.selectCell(4, 5, 7, 5);
@@ -1549,7 +1549,7 @@ describe('MergeCells', () => {
 
       hot.selectRows(5);
 
-      expect(hot.getSelectedLast()).toEqual([5, -1, 5, 9]);
+      expect(hot.getSelectedLast()).toEqual([5, 0, 5, 9]);
 
       // it should work only for selecting the entire row
       hot.selectCell(6, 3, 6, 7);
