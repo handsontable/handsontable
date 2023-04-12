@@ -60,7 +60,7 @@ describe('The afterOnCellMouseOver hook', () => {
     expect(spy).toHaveBeenCalledTimes(4);
   });
 
-  it('should NOT be triggered if the preceding `beforeOnCellMouseOver` hook\'s event stopped i\'s propagation', async() => {
+  it('should NOT be triggered if the preceding `beforeOnCellMouseOver` hook\'s event stopped its propagation', async() => {
     const spy = jasmine.createSpy('afterOnCellMouseOver');
 
     handsontable({
