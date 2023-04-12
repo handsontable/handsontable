@@ -88,7 +88,8 @@ export function setupEngine(hotInstance) {
 
     if (engineConfigItem.getConfig().leapYear1900 !== DEFAULT_SETTINGS.leapYear1900
       || isObjectEqual(engineConfigItem.getConfig().nullDate, DEFAULT_SETTINGS.nullDate) === false) {
-      warn(toSingleLine`If you use HyperFormula with Handsontable, keep the default \`leapYear1900\` and \`nullDate\` settings. Otherwise, HyperFormula's dates may not sync correctly with Handsontable's dates.`);
+      warn(toSingleLine`If you use HyperFormula with Handsontable, keep the default \`leapYear1900\` and \`nullDate\` 
+      settings. Otherwise, HyperFormula's dates may not sync correctly with Handsontable's dates.`);
     }
 
     return engineConfigItem;
