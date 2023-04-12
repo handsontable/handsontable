@@ -645,10 +645,16 @@ export class Formulas extends BasePlugin {
     }
 
     const fillRangeData = this.engine.getFillRangeData(engineSourceRange, engineTargetRange);
-    const [sourceStartRow, sourceStartColumn] = [engineSourceRange.start.row, engineSourceRange.start.col];
-    const [sourceEndRow, sourceEndColumn] = [engineSourceRange.end.row, engineSourceRange.end.col];
-    const [populationRowLength, populationColumnLength] = [sourceEndRow - sourceStartRow + 1,
-      sourceEndColumn - sourceStartColumn + 1];
+    const {
+      row: sourceStartRow,
+      col: sourceStartColumn,
+    } = engineSourceRange.start;
+    const {
+      row: sourceEndRow,
+      col: sourceEndColumn,
+    } = engineSourceRange.end;
+    const populationRowLength = sourceEndRow - sourceStartRow + 1;
+    const populationColumnLength = sourceEndColumn - sourceStartColumn + 1;
 
     for (let populatedRowIndex = 0; populatedRowIndex < fillRangeData.length; populatedRowIndex += 1) {
       for (let populatedColumnIndex = 0; populatedColumnIndex < fillRangeData[populatedRowIndex].length;
