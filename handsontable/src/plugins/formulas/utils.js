@@ -77,7 +77,7 @@ export function getDateInHotFormat(date, dateFormat) {
 }
 
 /**
- * Converting from Excel like date to Date object.
+ * Converting Excel-like dates to Date objects.
  *
  * @param {number} numericDate An integer representing numbers of days from January 1, 1900.
  * @param {string} dateFormat The format used for parsing an output.
