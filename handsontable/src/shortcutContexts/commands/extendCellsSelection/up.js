@@ -3,8 +3,7 @@ export const command = {
   callback(hot) {
     const { highlight } = hot.getSelectedRangeLast();
 
-    // if (highlight.isCell() || highlight.isHeader() && hot.selection.isSelectedByRowHeader()) {
-    if (highlight.isCell()) {
+    if (highlight.isCell() || highlight.isHeader() && hot.selection.isSelectedByRowHeader()) {
       hot.selection.transformEnd(-1, 0);
     }
   },

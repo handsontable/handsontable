@@ -1,6 +1,6 @@
 import { isDefined } from '../helpers/mixed';
 import { GRID_GROUP, EDITOR_EDIT_GROUP } from './constants';
-import { createShortcutsCommand } from './commands';
+import { createKeyboardShortcutCommandsPool } from './commands';
 
 /**
  * The context that defines shortcut list available for selected cell or cells.
@@ -9,7 +9,7 @@ import { createShortcutsCommand } from './commands';
  */
 export function shortcutsGridContext(hot) {
   const context = hot.getShortcutManager().addContext('grid');
-  const commandsPool = createShortcutsCommand(hot);
+  const commandsPool = createKeyboardShortcutCommandsPool(hot);
   const config = {
     runOnlyIf: () => {
       return isDefined(hot.getSelected()) &&

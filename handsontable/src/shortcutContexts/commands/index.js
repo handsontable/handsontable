@@ -20,7 +20,7 @@ const allCommands = [
  * @param {Handsontable} hot The Handsontable instance.
  * @returns {object}
  */
-export function createShortcutsCommand(hot) {
+export function createKeyboardShortcutCommandsPool(hot) {
   const commands = {};
 
   allCommands.forEach(({ name, callback }) => {

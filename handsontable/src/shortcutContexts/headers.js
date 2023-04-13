@@ -1,6 +1,6 @@
 import { isDefined } from '../helpers/mixed';
 import { HEADERS_GROUP } from './constants';
-import { createShortcutsCommand } from './commands';
+import { createKeyboardShortcutCommandsPool } from './commands';
 
 /**
  * The context that defines shortcut list available for selected headers.
@@ -9,7 +9,7 @@ import { createShortcutsCommand } from './commands';
  */
 export function shortcutsHeadersContext(hot) {
   const context = hot.getShortcutManager().addContext('headers');
-  const commandsPool = createShortcutsCommand(hot);
+  const commandsPool = createKeyboardShortcutCommandsPool(hot);
   const config = {
     runOnlyIf: () => {
       return isDefined(hot.getSelected()) &&
