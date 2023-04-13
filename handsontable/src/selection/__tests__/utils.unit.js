@@ -1,3 +1,4 @@
+import { CellRange, CellCoords } from 'walkontable';
 import {
   detectSelectionType,
   isValidCoord,
@@ -9,7 +10,6 @@ import {
   SELECTION_TYPE_OBJECT,
   SELECTION_TYPE_UNRECOGNIZED,
 } from '../utils';
-import { CellRange, CellCoords } from 'walkontable';
 
 describe('selection utils', () => {
   const coords = (row, column) => new CellCoords(row, column);

@@ -1,5 +1,5 @@
-import SelectionRange from '../range';
 import { CellCoords, CellRange } from 'walkontable';
+import SelectionRange from '../range';
 
 describe('SelectionRange', () => {
   let selectionRange;

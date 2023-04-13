@@ -241,15 +241,15 @@ class Selection {
     }
 
     if (this.settings.selectionMode === 'single') {
-      cellRange.setFrom(cellRange.highlight.clone());
-      cellRange.setTo(cellRange.highlight.clone());
+      cellRange.setFrom(cellRange.highlight);
+      cellRange.setTo(cellRange.highlight);
     } else {
-      cellRange.setTo(coordsClone.clone());
+      cellRange.setTo(coordsClone);
     }
 
     // Prevent creating "area" selection that overlaps headers.
     if (countRows > 0 && countCols > 0) {
-      if (!this.settings.navigableHeaders || (this.settings.navigableHeaders && !cellRange.isSingle())) {
+      if (!this.settings.navigableHeaders || (this.settings.navigableHeaders && !cellRange.isSingleHeader())) {
         cellRange.to.normalize();
       }
     }
@@ -338,34 +338,36 @@ class Selection {
     }
 
     if (this.highlight.isEnabledFor(HEADER_TYPE, cellRange.highlight)) {
-      const rowCoordsFrom = this.tableProps.createCellCoords(Math.max(cellRange.from.row, 0), -1);
-      const rowCoordsTo = this.tableProps.createCellCoords(cellRange.to.row, -1);
-      const columnCoordsFrom = this.tableProps.createCellCoords(-1, Math.max(cellRange.from.col, 0));
-      const columnCoordsTo = this.tableProps.createCellCoords(-1, cellRange.to.col);
+      if (!cellRange.isSingleHeader()) {
+        const rowCoordsFrom = this.tableProps.createCellCoords(Math.max(cellRange.from.row, 0), -1);
+        const rowCoordsTo = this.tableProps.createCellCoords(cellRange.to.row, -1);
+        const columnCoordsFrom = this.tableProps.createCellCoords(-1, Math.max(cellRange.from.col, 0));
+        const columnCoordsTo = this.tableProps.createCellCoords(-1, cellRange.to.col);
 
-      if (this.settings.selectionMode === 'single') {
-        rowHeaderHighlight.add(rowCoordsFrom).commit();
-        columnHeaderHighlight.add(columnCoordsFrom).commit();
-        rowHighlight.add(rowCoordsFrom).commit();
-        columnHighlight.add(columnCoordsFrom).commit();
+        if (this.settings.selectionMode === 'single') {
+          rowHeaderHighlight.add(rowCoordsFrom).commit();
+          columnHeaderHighlight.add(columnCoordsFrom).commit();
+          rowHighlight.add(rowCoordsFrom).commit();
+          columnHighlight.add(columnCoordsFrom).commit();
 
-      } else {
-        rowHeaderHighlight
-          .add(rowCoordsFrom)
-          .add(rowCoordsTo)
-          .commit();
-        columnHeaderHighlight
-          .add(columnCoordsFrom)
-          .add(columnCoordsTo)
-          .commit();
-        rowHighlight
-          .add(rowCoordsFrom)
-          .add(rowCoordsTo)
-          .commit();
-        columnHighlight
-          .add(columnCoordsFrom)
-          .add(columnCoordsTo)
-          .commit();
+        } else {
+          rowHeaderHighlight
+            .add(rowCoordsFrom)
+            .add(rowCoordsTo)
+            .commit();
+          columnHeaderHighlight
+            .add(columnCoordsFrom)
+            .add(columnCoordsTo)
+            .commit();
+          rowHighlight
+            .add(rowCoordsFrom)
+            .add(rowCoordsTo)
+            .commit();
+          columnHighlight
+            .add(columnCoordsFrom)
+            .add(columnCoordsTo)
+            .commit();
+        }
       }
 
       const highlightRowHeaders = this.tableProps.countRowHeaders() > 0 && this.isEntireRowSelected();
@@ -409,7 +411,7 @@ class Selection {
    * @returns {boolean}
    */
   isMultiple() {
-    const isMultipleListener = createObjectPropListener(!this.selectedRange.current().isSingle());
+    const isMultipleListener = createObjectPropListener(!this.selectedRange.current().isSingleCell());
 
     this.runLocalHooks('afterIsMultipleSelection', isMultipleListener);
 

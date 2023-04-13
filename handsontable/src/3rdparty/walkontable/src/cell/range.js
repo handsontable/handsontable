@@ -106,12 +106,23 @@ class CellRange {
   }
 
   /**
-   * Checks if your range is just a single cell or a single header.
+   * Checks if your range is just a single cell.
    *
    * @returns {boolean}
    */
-  isSingle() {
-    return this.from.row === this.to.row && this.from.col === this.to.col;
+  isSingleCell() {
+    return this.from.row >= 0 && this.from.row === this.to.row &&
+           this.from.col >= 0 && this.from.col === this.to.col;
+  }
+
+  /**
+   * Checks if your range is just a single header.
+   *
+   * @returns {boolean}
+   */
+  isSingleHeader() {
+    return (this.from.row < 0 || this.from.col < 0) && this.from.row === this.to.row &&
+           this.from.col === this.to.col;
   }
 
   /**
