@@ -838,7 +838,7 @@ describe('Formulas general', () => {
       expect(hfConfig.precisionEpsilon).toEqual(1e-13);
       expect(hfConfig.precisionRounding).toEqual(14);
       expect(hfConfig.smartRounding).toEqual(true);
-      expect(hfConfig.leapYear1900).toEqual(true);
+      expect(hfConfig.leapYear1900).toEqual(false);
     });
 
     it('should NOT update the HyperFormula config with the default set of settings', () => {
