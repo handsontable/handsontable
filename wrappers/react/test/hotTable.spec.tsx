@@ -164,6 +164,27 @@ describe('Renderer configuration using React components', () => {
 });
 
 describe('Editor configuration using React components', () => {
+  it('should use the editor component as Handsontable editor and mount it in the root tree of the document', async () => {
+    mountComponent((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 3)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }}>
+        <EditorComponent hot-editor></EditorComponent>
+      </HotTable>
+    )).hotInstance;
+
+    const editorElement = document.querySelector('#editorComponentContainer');
+
+    expect(editorElement.parentElement.parentElement).toBe(document.body);
+  });
+
   it('should use the editor component as Handsontable editor, when it\'s nested under HotTable and assigned the \'hot-editor\' attribute', async () => {
     const hotInstance = mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
@@ -196,5 +217,78 @@ describe('Editor configuration using React components', () => {
     hotInstance.getActiveEditor().close();
 
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
+  });
+
+  it('should use the correct editor inside HotTable component depends on its mount state', async () => {
+    let hotTableInstanceRef = React.createRef();
+
+    class WrapperComponent extends React.Component<any, any> {
+      state = {
+        editor: false,
+      }
+
+      render() {
+        return (
+          <HotTable licenseKey="non-commercial-and-evaluation"
+                    id="test-hot"
+                    data={createSpreadsheetData(3, 3)}
+                    width={300}
+                    height={300}
+                    rowHeights={23}
+                    colWidths={50}
+                    init={function () {
+                      mockElementDimensions(this.rootElement, 300, 300);
+                    }}
+                    ref={hotTableInstanceRef}>
+            {this.state.editor ? <EditorComponent hot-editor></EditorComponent> : null}
+          </HotTable>
+        );
+      };
+    }
+
+    const wrapperComponentInstance = mountComponent((
+      <WrapperComponent/>
+    ));
+
+    let hotInstance = (hotTableInstanceRef.current as any).hotInstance;
+
+    hotInstance.selectCell(0, 0);
+
+    {
+      const activeEditor = hotInstance.getActiveEditor();
+
+      expect(activeEditor.constructor.name).toBe('TextEditor');
+
+      activeEditor.close();
+    }
+
+    wrapperComponentInstance.setState({ editor: true });
+
+    await sleep(100);
+
+    hotInstance.selectCell(0, 0);
+
+    {
+      const activeEditor = hotInstance.getActiveEditor();
+
+      expect(activeEditor.constructor.name).toBe('CustomEditor');
+      expect(activeEditor.editorComponent.__proto__.constructor.name).toBe('EditorComponent');
+
+      activeEditor.close();
+    }
+
+    wrapperComponentInstance.setState({ editor: false });
+
+    await sleep(100);
+
+    hotInstance.selectCell(0, 0);
+
+    {
+      const activeEditor = hotInstance.getActiveEditor();
+
+      expect(activeEditor.constructor.name).toBe('TextEditor');
+
+      activeEditor.close();
+    }
   });
 });

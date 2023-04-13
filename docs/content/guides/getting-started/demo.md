@@ -2964,11 +2964,11 @@ console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate}) 
 
 ## Find the code on GitHub
 
-- [JavaScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.3.1/docs/js/demo/)
-- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.3.1/docs/ts/demo/)
-- [Angular demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.3.1/docs/angular/demo/)
-- [React demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.3.1/docs/react/demo/)
-- [Vue demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.3.1/docs/vue/demo/)
+- [JavaScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.3.3/docs/js/demo/)
+- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.3.3/docs/ts/demo/)
+- [Angular demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.3.3/docs/angular/demo/)
+- [React demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.3.3/docs/react/demo/)
+- [Vue demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.3.3/docs/vue/demo/)
 
 ## Try out the demo's features
 
@@ -2980,7 +2980,7 @@ Explore the demo and discover Handsontable's most popular features:
 - [Column menu](@/guides/columns/column-menu.md)
 - [Column filter](@/guides/columns/column-filter.md)
 - [Column hiding](@/guides/columns/column-hiding.md)
-- [Row sorting](@/guides/rows/row-sorting.md)
+- [Rows sorting](@/guides/rows/rows-sorting.md)
 - And more!
 
 ## Edit the demo's source code
