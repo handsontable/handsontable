@@ -1081,7 +1081,13 @@ class TableView {
    * @returns {boolean}
    */
   isSelectedOnlyCell() {
-    return this.instance.getSelectedRangeLast()?.isSingle() ?? false;
+    const range = this.instance.getSelectedRangeLast();
+
+    if (!range) {
+      return false;
+    }
+
+    return range.from.row >= 0 && range.from.col >= 0 && range.isSingle();
   }
 
   /**

@@ -822,7 +822,7 @@ describe('CellRange', () => {
   });
 
   describe('isSingle()', () => {
-    it('should return `true` when `from` and `to` are equals and there is no header selected', () => {
+    it('should return `true` when `from` and `to` are equals and there are no headers selected', () => {
       {
         const range = createRange(0, 0, 4, 5, 4, 5);
 
@@ -835,21 +835,16 @@ describe('CellRange', () => {
       }
     });
 
-    it('should return `false` when `from` and `to` are equals and there is header selected', () => {
+    it('should return `true` when `from` and `to` are equals and there are headers selected', () => {
       {
         const range = createRange(0, 0, -1, 0, -1, 0);
 
-        expect(range.isSingle()).toBe(false);
+        expect(range.isSingle()).toBe(true);
       }
       {
         const range = createRange(0, 0, 0, -1, 0, -1);
 
-        expect(range.isSingle()).toBe(false);
-      }
-      {
-        const range = createRange(0, 0, 0, -1, -1, 0);
-
-        expect(range.isSingle()).toBe(false);
+        expect(range.isSingle()).toBe(true);
       }
     });
 

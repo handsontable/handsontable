@@ -231,12 +231,6 @@ class Selection {
       return;
     }
 
-    // Prevent creating "area" selection that overlaps headers.
-    if (!this.settings.navigableHeaders && countRows > 0 && countCols > 0) {
-    // if (countRows > 0 && countCols > 0) {
-      coordsClone.normalize();
-    }
-
     this.runLocalHooks('beforeSetRangeEnd', coordsClone);
     this.begin();
 
@@ -246,8 +240,18 @@ class Selection {
       cellRange.highlight.normalize();
     }
 
-    if (this.settings.selectionMode !== 'single') {
-      cellRange.setTo(this.tableProps.createCellCoords(coordsClone.row, coordsClone.col));
+    if (this.settings.selectionMode === 'single') {
+      cellRange.setFrom(cellRange.highlight.clone());
+      cellRange.setTo(cellRange.highlight.clone());
+    } else {
+      cellRange.setTo(coordsClone.clone());
+    }
+
+    // Prevent creating "area" selection that overlaps headers.
+    if (countRows > 0 && countCols > 0) {
+      if (!this.settings.navigableHeaders || (this.settings.navigableHeaders && !cellRange.isSingle())) {
+        cellRange.to.normalize();
+      }
     }
 
     const focusHighlight = this.highlight.getFocus();

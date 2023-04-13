@@ -8,7 +8,7 @@ import {
   SELECTION_TYPE_EMPTY,
   SELECTION_TYPE_OBJECT,
   SELECTION_TYPE_UNRECOGNIZED,
-} from 'handsontable/selection/utils';
+} from '../utils';
 import { CellRange, CellCoords } from 'walkontable';
 
 describe('selection utils', () => {

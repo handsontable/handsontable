@@ -1,4 +1,4 @@
-import SelectionRange from 'handsontable/selection/range';
+import SelectionRange from '../range';
 import { CellCoords, CellRange } from 'walkontable';
 
 describe('SelectionRange', () => {
@@ -198,27 +198,33 @@ describe('SelectionRange', () => {
   });
 
   describe('.peekByIndex', () => {
-    it('should return the CellRange object from the end based on the offset argument passed to the method', () => {
+    it('should return the CellRange object from the beginning based on the index argument passed to the method', () => {
       selectionRange.ranges.push(
         new CellRange(new CellCoords(4, 4)),
         new CellRange(new CellCoords(0, 0)),
         new CellRange(new CellCoords(1, 2))
       );
 
+      expect(selectionRange.peekByIndex(-2)).not.toBeDefined();
+      expect(selectionRange.peekByIndex(-1)).not.toBeDefined();
       expect(selectionRange.peekByIndex().toObject()).toEqual({
-        from: { col: 2, row: 1 },
-        to: { col: 2, row: 1 },
-      });
-      expect(selectionRange.peekByIndex(-1).toObject()).toEqual({
-        from: { col: 0, row: 0 },
-        to: { col: 0, row: 0 },
-      });
-      expect(selectionRange.peekByIndex(-2).toObject()).toEqual({
         from: { col: 4, row: 4 },
         to: { col: 4, row: 4 },
       });
-      expect(selectionRange.peekByIndex(-4)).not.toBeDefined();
-      expect(selectionRange.peekByIndex(-5)).not.toBeDefined();
+      expect(selectionRange.peekByIndex(0).toObject()).toEqual({
+        from: { col: 4, row: 4 },
+        to: { col: 4, row: 4 },
+      });
+      expect(selectionRange.peekByIndex(1).toObject()).toEqual({
+        from: { col: 0, row: 0 },
+        to: { col: 0, row: 0 },
+      });
+      expect(selectionRange.peekByIndex(2).toObject()).toEqual({
+        from: { col: 2, row: 1 },
+        to: { col: 2, row: 1 },
+      });
+      expect(selectionRange.peekByIndex(3)).not.toBeDefined();
+      expect(selectionRange.peekByIndex(4)).not.toBeDefined();
     });
   });
 
