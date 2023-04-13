@@ -56,9 +56,6 @@ Handsontable sorts data only visually, so your source data remains in the origin
 your sorting changes in the data source, see this guide:
 [Saving data](@/guides/getting-started/saving-data.md).
 
-You can't use sorting with [nested data structures](@/guides/rows/row-parent-child.md)
-([`NestedRows`](@/api/nestedRows.md)).
-
 ## Sorting demo
 
 Click on one of the column names to sort the values in ascending (↑) or descending (↓) order, or to
