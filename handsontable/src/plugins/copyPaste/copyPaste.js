@@ -395,6 +395,12 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
+    if (selectionRange.isSingleHeader()) {
+      this.copyableRanges = [];
+
+      return;
+    }
+
     this.#copyableRangesFactory.setSelectedRange(selectionRange);
 
     const groupedRanges = new Map([
@@ -667,7 +673,7 @@ export class CopyPaste extends BasePlugin {
       pastedData = parse(pastedData);
     }
 
-    if (pastedData && pastedData.length === 0) {
+    if (pastedData === void 0 || pastedData && pastedData.length === 0) {
       return;
     }
 

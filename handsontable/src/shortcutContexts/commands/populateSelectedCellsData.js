@@ -5,7 +5,7 @@ export const command = {
     const {
       row: highlightRow,
       col: highlightColumn,
-    } = selectedRange[selectedRange.length - 1].highlight;
+    } = selectedRange[selectedRange.length - 1].highlight.normalize();
     const valueToPopulate = hot.getDataAtCell(highlightRow, highlightColumn);
     const cellValues = new Map();
 
