@@ -65,6 +65,57 @@ beforeEach(function() {
         }
       };
     },
+    /**
+     * The matcher allows test the CellRange instances in more compact way. For comparison, instead of doing that:
+     * ```
+     * expect(hot.getSelectedRange()).toEqual([
+     *   {
+     *     highlight: { row: 2, col: 3 },
+     *     from: { row: 1, col: 2 },
+     *     to: { row: 4, col: 4 },
+     *   },
+     *   {
+     *     highlight: { row: 3, col: 2 },
+     *     from: { row: 3, col: 2 },
+     *     to: { row: 5, col: 5 },
+     *   },
+     * ])
+     * ```
+     * you can write something like that:
+     * ```
+     * expect(hot.getSelectedRange()).toEqualCellRange([
+     *   'highlight: 2,3 from: 1,2 to: 4,4',
+     *   'highlight: 3,2 from: 3,2 to: 5,5',
+     * ]);
+     * ```
+     * or
+     * ```
+     * expect(hot.getSelectedRangeLast()).toEqualCellRange('highlight: 3,2 from: 3,2 to: 5,5');
+     * ```
+     */
+    toEqualCellRange() {
+      return {
+        compare(actual, expected) {
+          const rangeToString = (range) => {
+            if (range?.constructor?.name !== 'CellRange') {
+              return;
+            }
+
+            const { highlight: h, from, to } = range;
+
+            return `highlight: ${h.row},${h.col} from: ${from.row},${from.col} to: ${to.row},${to.col}`;
+          };
+
+          const actualPattern = Array.isArray(actual) ?
+            actual.map(range => rangeToString(range)) : rangeToString(actual);
+
+          return {
+            pass: jasmine.matchersUtil.equals(actualPattern, expected),
+            message: `Expected "${actualPattern}" does not match to the "${expected}" cell range pattern.`,
+          };
+        }
+      };
+    },
     toBeAroundValue() {
       return {
         compare(actual, expected, diff) {

@@ -713,31 +713,33 @@ class Selection {
    *
    * @param {number|string} startColumn Visual column index or column property from which the selection starts.
    * @param {number|string} [endColumn] Visual column index or column property from to the selection finishes.
-   * @param {number} [headerLevel=-1] A row header index that triggers the column selection. The value can
-   *                                  take -1 to -N, where -1 means the header closest to the cells.
+   * @param {number} [headerLevel=0] A row header index that triggers the column selection. The value can
+   *                                  take 0 to -N, where -1 means the header closest to the cells.
    *
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
-  selectColumns(startColumn, endColumn = startColumn, headerLevel = -1) {
+  selectColumns(startColumn, endColumn = startColumn, headerLevel = 0) {
     const start = typeof startColumn === 'string' ? this.tableProps.propToCol(startColumn) : startColumn;
     const end = typeof endColumn === 'string' ? this.tableProps.propToCol(endColumn) : endColumn;
     const countRows = this.tableProps.countRows();
     const countCols = this.tableProps.countCols();
-    const countRowHeaders = this.tableProps.countRowHeaders();
     const countColHeaders = this.tableProps.countColHeaders();
+    const maxHeaderLevel = this.settings.navigableHeaders ? -countColHeaders : 0;
 
     const fromCoords = new CellCoords(-countColHeaders, start);
     const toCoords = new CellCoords(countRows - 1, end);
     const isValid = new CellRange(fromCoords, fromCoords, toCoords).isValid({
       countRows,
       countCols,
-      countRowHeaders,
+      countRowHeaders: 0,
       countColHeaders,
-    });
+    }) && headerLevel <= 0 && headerLevel >= maxHeaderLevel;
 
     if (isValid) {
-      const from = this.tableProps.createCellCoords(countColHeaders > 0 ? -countColHeaders : 0, start);
-      const highlight = this.tableProps.createCellCoords(headerLevel, start);
+      const from = this.tableProps
+        .createCellCoords(countColHeaders > 0 ? -countColHeaders : 0, start);
+      const highlight = this.tableProps
+        .createCellCoords(clamp(headerLevel, -countColHeaders, 0), start);
 
       this.setRangeStartOnly(from, void 0, highlight);
       this.selectedByColumnHeader.add(this.getLayerLevel());
@@ -753,16 +755,15 @@ class Selection {
    *
    * @param {number} startRow Visual row index from which the selection starts.
    * @param {number} [endRow] Visual row index from to the selection finishes.
-   * @param {number} [headerLevel=-1] A column header index that triggers the row selection.
-   *                                  The value can take -1 to -N, where -1 means the header
+   * @param {number} [headerLevel=0] A column header index that triggers the row selection.
+   *                                  The value can take 0 to -N, where -1 means the header
    *                                  closest to the cells.
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
-  selectRows(startRow, endRow = startRow, headerLevel = -1) {
+  selectRows(startRow, endRow = startRow, headerLevel = 0) {
     const countRows = this.tableProps.countRows();
     const countCols = this.tableProps.countCols();
     const countRowHeaders = this.tableProps.countRowHeaders();
-    const countColHeaders = this.tableProps.countColHeaders();
 
     const fromCoords = new CellCoords(startRow, -countRowHeaders);
     const toCoords = new CellCoords(endRow, countCols - 1);
@@ -770,12 +771,14 @@ class Selection {
       countRows,
       countCols,
       countRowHeaders,
-      countColHeaders,
+      countColHeaders: 0,
     });
 
     if (isValid) {
-      const from = this.tableProps.createCellCoords(startRow, countRowHeaders > 0 ? -countRowHeaders : 0);
-      const highlight = this.tableProps.createCellCoords(startRow, headerLevel);
+      const from = this.tableProps
+        .createCellCoords(startRow, countRowHeaders > 0 ? -countRowHeaders : 0);
+      const highlight = this.tableProps
+        .createCellCoords(startRow, clamp(headerLevel, -countRowHeaders, 0));
 
       this.setRangeStartOnly(from, void 0, highlight);
       this.selectedByRowHeader.add(this.getLayerLevel());

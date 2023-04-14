@@ -25,7 +25,22 @@ function getSelectionSymbol(cell) {
 
   let symbol = '   ';
 
-  if (hasActiveHeader) {
+  if (hasCurrent && hasArea && areaLevel) {
+    symbol = ` ${String.fromCharCode(65 + areaLevel)} `;
+
+  } else if (hasCurrent && hasArea && areaLevel === void 0) {
+    symbol = ' A ';
+
+  } else if (hasCurrent && !hasArea && areaLevel === void 0) {
+    symbol = ' # ';
+
+  } else if (!hasCurrent && hasArea && areaLevel === void 0) {
+    symbol = ' 0 ';
+
+  } else if (!hasCurrent && hasArea && areaLevel) {
+    symbol = ` ${areaLevel} `;
+
+  } else if (hasActiveHeader) {
     symbol = ' * ';
 
   } else if (hasHighlight) {
@@ -42,21 +57,6 @@ function getSelectionSymbol(cell) {
 
   } else if (hasFill) {
     symbol = ' F ';
-
-  } else if (hasCurrent && hasArea && areaLevel) {
-    symbol = ` ${String.fromCharCode(65 + areaLevel)} `;
-
-  } else if (hasCurrent && hasArea && areaLevel === void 0) {
-    symbol = ' A ';
-
-  } else if (hasCurrent && !hasArea && areaLevel === void 0) {
-    symbol = ' # ';
-
-  } else if (!hasCurrent && hasArea && areaLevel === void 0) {
-    symbol = ' 0 ';
-
-  } else if (!hasCurrent && hasArea && areaLevel) {
-    symbol = ` ${areaLevel} `;
   }
 
   return symbol;
