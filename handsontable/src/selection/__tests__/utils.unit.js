@@ -1,7 +1,6 @@
 import { CellRange, CellCoords } from 'walkontable';
 import {
   detectSelectionType,
-  isValidCoord,
   normalizeSelectionFactory,
   transformSelectionToColumnDistance,
   transformSelectionToRowDistance,
@@ -116,34 +115,86 @@ describe('selection utils', () => {
     it('should create ARRAY normalizer function with default options (it modifies coordinates direction)', () => {
       const normalizer = normalizeSelectionFactory(SELECTION_TYPE_ARRAY);
 
-      expect(normalizer([1, 1])).toEqual([1, 1, 1, 1]);
-      expect(normalizer([1, 1, 2])).toEqual([1, 1, 2, 1]);
-      expect(normalizer([1, 1, 2, 2])).toEqual([1, 1, 2, 2]);
-      expect(normalizer([2, 2, 1, 1])).toEqual([1, 1, 2, 2]);
-      expect(normalizer([2, 'prop2', 1, 'prop1'])).toEqual([1, NaN, 2, NaN]);
+      expect(normalizer([1, 1])).toEqual({
+        highlight: { row: 1, col: 1 },
+        from: { row: 1, col: 1 },
+        to: { row: 1, col: 1 },
+      });
+      expect(normalizer([1, 1, 2])).toEqual({
+        highlight: { row: 1, col: 1 },
+        from: { row: 1, col: 1 },
+        to: { row: 2, col: 1 },
+      });
+      expect(normalizer([1, 1, 2, 2])).toEqual({
+        highlight: { row: 1, col: 1 },
+        from: { row: 1, col: 1 },
+        to: { row: 2, col: 2 },
+      });
+      expect(normalizer([2, 2, 1, 1])).toEqual({
+        highlight: { row: 1, col: 1 },
+        from: { row: 1, col: 1 },
+        to: { row: 2, col: 2 },
+      });
+      expect(normalizer([2, 'prop2', 1, 'prop1'])).toEqual({
+        highlight: { row: 1, col: NaN },
+        from: { row: 1, col: NaN },
+        to: { row: 2, col: NaN },
+      });
     });
 
     it('should create OBJECT normalizer function with default options (it modifies coordinates direction)', () => {
       const normalizer = normalizeSelectionFactory(SELECTION_TYPE_OBJECT);
 
-      expect(normalizer(range(1, 1))).toEqual([1, 1, 1, 1]);
-      expect(normalizer(range(1, 1, 2, 2))).toEqual([1, 1, 2, 2]);
-      expect(normalizer(range(2, 2, 1, 1))).toEqual([1, 1, 2, 2]);
+      expect(normalizer(range(1, 1))).toEqual({
+        highlight: { row: 1, col: 1 },
+        from: { row: 1, col: 1 },
+        to: { row: 1, col: 1 },
+      });
+      expect(normalizer(range(1, 1, 2, 2))).toEqual({
+        highlight: { row: 1, col: 1 },
+        from: { row: 1, col: 1 },
+        to: { row: 2, col: 2 },
+      });
+      expect(normalizer(range(2, 2, 1, 1))).toEqual({
+        highlight: { row: 1, col: 1 },
+        from: { row: 1, col: 1 },
+        to: { row: 2, col: 2 },
+      });
     });
 
     it('should create ARRAY normalizer function which keep origin coordinates direction', () => {
       const normalizer = normalizeSelectionFactory(SELECTION_TYPE_ARRAY, { keepDirection: true });
 
-      expect(normalizer([1, 1, 2, 2])).toEqual([1, 1, 2, 2]);
-      expect(normalizer([2, 2, 1, 1])).toEqual([2, 2, 1, 1]);
+      expect(normalizer([1, 1, 2, 2])).toEqual({
+        highlight: { row: 1, col: 1 },
+        from: { row: 1, col: 1 },
+        to: { row: 2, col: 2 },
+      });
+      expect(normalizer([2, 2, 1, 1])).toEqual({
+        highlight: { row: 2, col: 2 },
+        from: { row: 2, col: 2 },
+        to: { row: 1, col: 1 },
+      });
     });
 
     it('should create OBJECT normalizer function which keep origin coordinates direction', () => {
       const normalizer = normalizeSelectionFactory(SELECTION_TYPE_OBJECT, { keepDirection: true });
 
-      expect(normalizer(range(1, 1))).toEqual([1, 1, 1, 1]);
-      expect(normalizer(range(1, 1, 2, 2))).toEqual([2, 2, 1, 1]);
-      expect(normalizer(range(2, 2, 1, 1))).toEqual([1, 1, 2, 2]);
+      expect(normalizer(range(1, 1))).toEqual({
+        highlight: { row: 1, col: 1 },
+        from: { row: 1, col: 1 },
+        to: { row: 1, col: 1 },
+      });
+      expect(normalizer(range(1, 1, 2, 2))).toEqual({
+        highlight: { row: 2, col: 2 },
+        from: { row: 2, col: 2 },
+        to: { row: 1, col: 1 },
+      });
+      expect(normalizer(range(2, 2, 1, 1))).toEqual({
+        highlight: { row: 1, col: 1 },
+        from: { row: 1, col: 1 },
+        to: { row: 2, col: 2 },
+      });
     });
 
     it('should create ARRAY normalizer function which translates column string coordinates to visual indexes', () => {
@@ -151,14 +202,26 @@ describe('selection utils', () => {
       const propToCol = prop => propToColMap.get(prop);
       const normalizer = normalizeSelectionFactory(SELECTION_TYPE_ARRAY, { propToCol });
 
-      expect(normalizer([1, 1, 2, 2])).toEqual([1, 1, 2, 2]);
-      expect(normalizer([1, 'prop1', 2, 3])).toEqual([1, 3, 2, 8]);
-      expect(normalizer([1, 'prop1', 2, 'prop2'])).toEqual([1, 7, 2, 8]);
+      expect(normalizer([1, 1, 2, 2])).toEqual({
+        highlight: { row: 1, col: 1 },
+        from: { row: 1, col: 1 },
+        to: { row: 2, col: 2 },
+      });
+      expect(normalizer([1, 'prop1', 2, 3])).toEqual({
+        highlight: { row: 1, col: 3 },
+        from: { row: 1, col: 3 },
+        to: { row: 2, col: 8 },
+      });
+      expect(normalizer([1, 'prop1', 2, 'prop2'])).toEqual({
+        highlight: { row: 1, col: 7 },
+        from: { row: 1, col: 7 },
+        to: { row: 2, col: 8 },
+      });
     });
   });
 
   describe('transformSelectionToColumnDistance', () => {
-    it('should return an empty array when selection schema is unrecoginized', () => {
+    it('should return an empty array when selection schema is unrecognized', () => {
       expect(transformSelectionToColumnDistance()).toEqual([]);
       expect(transformSelectionToColumnDistance(0)).toEqual([]);
       expect(transformSelectionToColumnDistance(true)).toEqual([]);
@@ -185,7 +248,7 @@ describe('selection utils', () => {
   });
 
   describe('transformSelectionToRowDistance', () => {
-    it('should return an empty array when selection schema is unrecoginized', () => {
+    it('should return an empty array when selection schema is unrecognized', () => {
       expect(transformSelectionToRowDistance()).toEqual([]);
       expect(transformSelectionToRowDistance(0)).toEqual([]);
       expect(transformSelectionToRowDistance(true)).toEqual([]);
@@ -208,43 +271,6 @@ describe('selection utils', () => {
       expect(transformSelectionToRowDistance([range(0, 0, 1, 1, -2, -2)])).toEqual([[0, 2]]);
       expect(transformSelectionToRowDistance([range(1, 1, 1, 1, 2, 2), range(3, 3, 3, 3, 5, 3)]))
         .toEqual([[1, 5]]);
-    });
-  });
-
-  describe('isValidCoord', () => {
-    it('should return `false` on invalid coordinates', () => {
-      expect(isValidCoord()).toBe(false);
-      expect(isValidCoord(-1)).toBe(false);
-      expect(isValidCoord(null)).toBe(false);
-      expect(isValidCoord(void 0)).toBe(false);
-      expect(isValidCoord('0')).toBe(false);
-      expect(isValidCoord('a')).toBe(false);
-      expect(isValidCoord([1])).toBe(false);
-      expect(isValidCoord({ foo: 1 })).toBe(false);
-    });
-
-    it('should return `true` on valid coordinates', () => {
-      expect(isValidCoord(0)).toBe(true);
-      expect(isValidCoord(1)).toBe(true);
-      expect(isValidCoord(100)).toBe(true);
-      expect(isValidCoord(10000000)).toBe(true);
-    });
-
-    it('should return `true` when coordinates are included in the range 0 to `maxItems`', () => {
-      const maxItems = 100;
-
-      expect(isValidCoord(0, maxItems)).toBe(true);
-      expect(isValidCoord(1, maxItems)).toBe(true);
-      expect(isValidCoord(99, maxItems)).toBe(true);
-      expect(isValidCoord(99.999, maxItems)).toBe(true);
-    });
-
-    it('should return `false` when coordinates are not included in the range 0 to `maxItems`', () => {
-      const maxItems = 100;
-
-      expect(isValidCoord(100.000001, maxItems)).toBe(false);
-      expect(isValidCoord(101, maxItems)).toBe(false);
-      expect(isValidCoord(9999, maxItems)).toBe(false);
     });
   });
 });

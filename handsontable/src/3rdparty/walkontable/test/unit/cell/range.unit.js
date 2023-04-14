@@ -40,6 +40,49 @@ describe('CellRange', () => {
     });
   });
 
+  describe('isValid()', () => {
+    it('should return values returned by the `isValid` method of the CellCoords object', () => {
+      const highlight = new CellCoords(-1, -2);
+      const from = new CellCoords(3, 4);
+      const to = new CellCoords(5, 6);
+      const range = new CellRange(highlight, from, to);
+      const tableParamsMock = {};
+
+      spyOn(range.from, 'isValid').and.returnValue(true);
+      spyOn(range.to, 'isValid').and.returnValue(true);
+
+      expect(range.isValid(tableParamsMock)).toBe(true);
+      expect(range.from.isValid).toHaveBeenCalledWith(tableParamsMock);
+      expect(range.from.isValid).toHaveBeenCalledTimes(1);
+      expect(range.to.isValid).toHaveBeenCalledWith(tableParamsMock);
+      expect(range.to.isValid).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return `false` when one of the CellCoords `isValid` method returns `false`', () => {
+      const highlight = new CellCoords(-1, -2);
+      const from = new CellCoords(3, 4);
+      const to = new CellCoords(5, 6);
+      const range = new CellRange(highlight, from, to);
+
+      spyOn(range.from, 'isValid').and.returnValue(false);
+      spyOn(range.to, 'isValid').and.returnValue(true);
+
+      expect(range.isValid()).toBe(false);
+    });
+
+    it('should return `false` when all of the CellCoords `isValid` method returns `false`', () => {
+      const highlight = new CellCoords(-1, -2);
+      const from = new CellCoords(3, 4);
+      const to = new CellCoords(5, 6);
+      const range = new CellRange(highlight, from, to);
+
+      spyOn(range.from, 'isValid').and.returnValue(false);
+      spyOn(range.to, 'isValid').and.returnValue(false);
+
+      expect(range.isValid()).toBe(false);
+    });
+  });
+
   describe('setHighlight()', () => {
     it('should clone the coordinates object while assigning', () => {
       const highlight = new CellCoords(-1, 6);

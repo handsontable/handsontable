@@ -4250,11 +4250,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * `false`: don't include any headers.
    */
   this.selectAll = function(includeHeaders = true) {
-    const includeRowHeaders = includeHeaders && this.hasRowHeaders();
-    const includeColumnHeaders = includeHeaders && this.hasColHeaders();
-
     preventScrollingToCell = true;
-    selection.selectAll(includeRowHeaders, includeColumnHeaders);
+    selection.selectAll(includeHeaders, includeHeaders);
     preventScrollingToCell = false;
   };
 

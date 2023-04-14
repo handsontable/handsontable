@@ -584,7 +584,7 @@ export class MergeCells extends BasePlugin {
         const range = this.hot.getSelectedRangeLast();
 
         if (range && !range.isSingleHeader()) {
-          this.toggleMerge(this.hot.getSelectedRangeLast());
+          this.toggleMerge(range);
           this.hot.render();
         }
       },

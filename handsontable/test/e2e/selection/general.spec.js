@@ -1,4 +1,4 @@
-describe('Core_selection', () => {
+describe('Selection', () => {
   const id = 'testContainer';
 
   beforeEach(function() {

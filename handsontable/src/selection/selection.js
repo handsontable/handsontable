@@ -1,3 +1,4 @@
+import { CellCoords, CellRange } from './../3rdparty/walkontable/src';
 import Highlight, {
   AREA_TYPE,
   HEADER_TYPE,
@@ -12,7 +13,6 @@ import localHooks from './../mixins/localHooks';
 import Transformation from './transformation';
 import {
   detectSelectionType,
-  isValidCoord,
   normalizeSelectionFactory,
   SELECTION_TYPE_EMPTY,
   SELECTION_TYPE_UNRECOGNIZED,
@@ -610,13 +610,14 @@ class Selection {
   }
 
   /**
-   * Select all cells.
+   * Selects all cells and headers.
    *
-   * @param {number|boolean} [rowHeaderLevel=false] If passed as number (from -1 to -N) it defines how many row header
-   * layers will be selected. Or if passed as boolean, `true` selects all row headers and `false` none of them.
-   * @param {number|boolean} [columnHeaderLevel=false] If passed as number (from -1 to -N) it defines how many column
-   * header layers will be selected. Or if passed as boolean, `true` selects all column headers and `false` none
-   * of them.
+   * @param {number|boolean} [rowHeaderLevel=false] If passed as `true`, it selects all row headers.
+   * If a value is passed as a number (from -1 to -N), then it additionally allows moving the cell
+   * focus (highlight) to the header (available when the `navigableHeaders` is enabled).
+   * @param {number|boolean} [columnHeaderLevel=false] If passed as `true`, it selects all column headers.
+   * If a value is passed as a number (from -1 to -N), then it additionally allows moving the cell
+   * focus (highlight) to the header (available when the `navigableHeaders` is enabled).
    */
   selectAll(rowHeaderLevel = false, columnHeaderLevel = false) {
     const nrOfRows = this.tableProps.countRows();
@@ -641,7 +642,8 @@ class Selection {
       return;
     }
 
-    const startCoords = this.tableProps.createCellCoords(-countColHeaders, -countRowHeaders);
+    const startCoords = this.tableProps
+      .createCellCoords(rowFrom < 0 ? -countColHeaders : 0, columnFrom < 0 ? -countRowHeaders : 0);
     const highlight = this.tableProps.createCellCoords(rowFrom, columnFrom);
     const endCoords = this.tableProps.createCellCoords(nrOfRows - 1, nrOfColumns - 1);
 
@@ -678,28 +680,26 @@ class Selection {
       propToCol: prop => this.tableProps.propToCol(prop),
       keepDirection: true,
     });
-    const nrOfRows = this.tableProps.countRows();
-    const nrOfColumns = this.tableProps.countCols();
+    const tableParams = {
+      countRows: this.tableProps.countRows(),
+      countCols: this.tableProps.countCols(),
+      countRowHeaders: this.settings.navigableHeaders ? this.tableProps.countRowHeaders() : 0,
+      countColHeaders: this.settings.navigableHeaders ? this.tableProps.countColHeaders() : 0,
+    };
 
     // Check if every layer of the coordinates are valid.
     const isValid = !selectionRanges.some((selection) => {
-      const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
-      const _isValid = isValidCoord(rowStart, nrOfRows) &&
-        isValidCoord(columnStart, nrOfColumns) &&
-        isValidCoord(rowEnd, nrOfRows) &&
-        isValidCoord(columnEnd, nrOfColumns);
-
-      return !_isValid;
+      return !selectionSchemaNormalizer(selection).isValid(tableParams);
     });
 
     if (isValid) {
       this.clear();
 
       arrayEach(selectionRanges, (selection) => {
-        const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
+        const { from, to } = selectionSchemaNormalizer(selection);
 
-        this.setRangeStartOnly(this.tableProps.createCellCoords(rowStart, columnStart), false);
-        this.setRangeEnd(this.tableProps.createCellCoords(rowEnd, columnEnd));
+        this.setRangeStartOnly(from.clone(), false);
+        this.setRangeEnd(to.clone());
         this.finish();
       });
     }
@@ -721,19 +721,27 @@ class Selection {
   selectColumns(startColumn, endColumn = startColumn, headerLevel = -1) {
     const start = typeof startColumn === 'string' ? this.tableProps.propToCol(startColumn) : startColumn;
     const end = typeof endColumn === 'string' ? this.tableProps.propToCol(endColumn) : endColumn;
+    const countRows = this.tableProps.countRows();
+    const countCols = this.tableProps.countCols();
+    const countRowHeaders = this.tableProps.countRowHeaders();
+    const countColHeaders = this.tableProps.countColHeaders();
 
-    const nrOfColumns = this.tableProps.countCols();
-    const nrOfRows = this.tableProps.countRows();
-    const isValid = isValidCoord(start, nrOfColumns) && isValidCoord(end, nrOfColumns);
+    const fromCoords = new CellCoords(-countColHeaders, start);
+    const toCoords = new CellCoords(countRows - 1, end);
+    const isValid = new CellRange(fromCoords, fromCoords, toCoords).isValid({
+      countRows,
+      countCols,
+      countRowHeaders,
+      countColHeaders,
+    });
 
     if (isValid) {
-      const countColHeaders = this.tableProps.countColHeaders();
-      const from = this.tableProps.createCellCoords(countColHeaders > 0 ? -countColHeaders : countColHeaders, start);
+      const from = this.tableProps.createCellCoords(countColHeaders > 0 ? -countColHeaders : 0, start);
       const highlight = this.tableProps.createCellCoords(headerLevel, start);
 
       this.setRangeStartOnly(from, void 0, highlight);
       this.selectedByColumnHeader.add(this.getLayerLevel());
-      this.setRangeEnd(this.tableProps.createCellCoords(nrOfRows - 1, end));
+      this.setRangeEnd(this.tableProps.createCellCoords(countRows - 1, end));
       this.finish();
     }
 
@@ -751,18 +759,27 @@ class Selection {
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
   selectRows(startRow, endRow = startRow, headerLevel = -1) {
-    const nrOfRows = this.tableProps.countRows();
-    const nrOfColumns = this.tableProps.countCols();
-    const isValid = isValidCoord(startRow, nrOfRows) && isValidCoord(endRow, nrOfRows);
+    const countRows = this.tableProps.countRows();
+    const countCols = this.tableProps.countCols();
+    const countRowHeaders = this.tableProps.countRowHeaders();
+    const countColHeaders = this.tableProps.countColHeaders();
+
+    const fromCoords = new CellCoords(startRow, -countRowHeaders);
+    const toCoords = new CellCoords(endRow, countCols - 1);
+    const isValid = new CellRange(fromCoords, fromCoords, toCoords).isValid({
+      countRows,
+      countCols,
+      countRowHeaders,
+      countColHeaders,
+    });
 
     if (isValid) {
-      const countRowHeaders = this.tableProps.countRowHeaders();
-      const from = this.tableProps.createCellCoords(startRow, countRowHeaders > 0 ? -countRowHeaders : countRowHeaders);
+      const from = this.tableProps.createCellCoords(startRow, countRowHeaders > 0 ? -countRowHeaders : 0);
       const highlight = this.tableProps.createCellCoords(startRow, headerLevel);
 
       this.setRangeStartOnly(from, void 0, highlight);
       this.selectedByRowHeader.add(this.getLayerLevel());
-      this.setRangeEnd(this.tableProps.createCellCoords(endRow, nrOfColumns - 1));
+      this.setRangeEnd(this.tableProps.createCellCoords(endRow, countCols - 1));
       this.finish();
     }
 

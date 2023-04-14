@@ -94,15 +94,19 @@ class CellRange {
 
   /**
    * Checks if the coordinates in your `CellRange` instance are valid
-   * in the context of a given Walkontable instance.
+   * in the context of a given table parameters.
    *
    * See the [`isValid()`](@/api/cellCoords.md#isvalid) method of the [`CellCoords`](@/api/cellCoords.md) class.
    *
-   * @param {Walkontable} wot A Walkontable instance.
+   * @param {object} tableParams An object with defined table size.
+   * @param {number} tableParams.countRows Total number of rows.
+   * @param {number} tableParams.countCols Total number of columns.
+   * @param {number} tableParams.countRowHeaders A number of row headers
+   * @param {number} tableParams.countColHeaders A number of column headers
    * @returns {boolean}
    */
-  isValid(wot) {
-    return this.from.isValid(wot) && this.to.isValid(wot);
+  isValid(tableParams) {
+    return this.from.isValid(tableParams) && this.to.isValid(tableParams);
   }
 
   /**

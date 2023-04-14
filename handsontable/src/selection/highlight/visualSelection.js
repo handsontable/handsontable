@@ -169,12 +169,7 @@ class VisualSelection extends Selection {
       // We set new highlight as it might change (for example, when showing/hiding some cells from the broader selection range)
       // TODO: It is also handled by the `MergeCells` plugin while adjusting already modified coordinates. Should it?
       broaderCellRange.setHighlight(cellCoordsVisual);
-
-      return this;
     }
-
-    // Fallback to the start of the range. It resets the previous highlight (for example, when all columns have been hidden).
-    // broaderCellRange.setHighlight(broaderCellRange.from.clone().normalize());
 
     return this;
   }
