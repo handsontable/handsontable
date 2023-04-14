@@ -941,7 +941,9 @@ describe('Formulas general', () => {
       spyOn(hot.getPlugin('formulas').engine, 'updateConfig');
 
       hot.updateSettings({
-        formulas: true
+        formulas: {
+          engine: HyperFormula
+        }
       });
 
       expect(hot.getPlugin('formulas').engine.updateConfig).not.toHaveBeenCalled();
