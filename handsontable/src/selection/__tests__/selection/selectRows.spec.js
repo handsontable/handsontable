@@ -462,32 +462,32 @@ describe('Selection', () => {
         navigableHeaders: true,
       });
 
-      expect(hot().selection.selectRows(2, 3, -1)).toBe(false);
+      expect(hot().selection.selectRows(2, 3, -1)).toBe(true);
       expect(`
         |   :   :   :   :   :   |
         |   :   :   :   :   :   |
-        |   :   :   :   :   :   |
-        |   :   :   :   :   :   |
+        | A : 0 : 0 : 0 : 0 : 0 |
+        | 0 : 0 : 0 : 0 : 0 : 0 |
         `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toBeUndefined();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,0 to: 3,5']);
 
-      expect(hot().selection.selectRows(2, 3, -3)).toBe(false);
+      expect(hot().selection.selectRows(2, 3, -3)).toBe(true);
       expect(`
         |   :   :   :   :   :   |
         |   :   :   :   :   :   |
-        |   :   :   :   :   :   |
-        |   :   :   :   :   :   |
+        | A : 0 : 0 : 0 : 0 : 0 |
+        | 0 : 0 : 0 : 0 : 0 : 0 |
         `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toBeUndefined();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,0 to: 3,5']);
 
-      expect(hot().selection.selectRows(2, 3, 1)).toBe(false);
+      expect(hot().selection.selectRows(2, 3, 2)).toBe(true);
       expect(`
         |   :   :   :   :   :   |
         |   :   :   :   :   :   |
-        |   :   :   :   :   :   |
-        |   :   :   :   :   :   |
+        | A : 0 : 0 : 0 : 0 : 0 |
+        | 0 : 0 : 0 : 0 : 0 : 0 |
         `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toBeUndefined();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,0 to: 3,5']);
     });
 
     it('should highlight only single cell when selectionMode is set as `single`', () => {

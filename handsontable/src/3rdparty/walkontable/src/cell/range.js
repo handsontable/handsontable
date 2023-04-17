@@ -130,6 +130,15 @@ class CellRange {
   }
 
   /**
+   * Checks if your range overlaps headers range (negative coordinates).
+   *
+   * @returns {boolean}
+   */
+  isOverlapHeaders() {
+    return this.from.isHeader() || this.to.isHeader();
+  }
+
+  /**
    * Returns the height of your range (as a number of rows, including row headers).
    *
    * @returns {number}

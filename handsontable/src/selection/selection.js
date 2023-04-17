@@ -680,16 +680,21 @@ class Selection {
       propToCol: prop => this.tableProps.propToCol(prop),
       keepDirection: true,
     });
+    const navigableHeaders = this.settings.navigableHeaders;
     const tableParams = {
       countRows: this.tableProps.countRows(),
       countCols: this.tableProps.countCols(),
-      countRowHeaders: this.settings.navigableHeaders ? this.tableProps.countRowHeaders() : 0,
-      countColHeaders: this.settings.navigableHeaders ? this.tableProps.countColHeaders() : 0,
+      countRowHeaders: navigableHeaders ? this.tableProps.countRowHeaders() : 0,
+      countColHeaders: navigableHeaders ? this.tableProps.countColHeaders() : 0,
     };
 
     // Check if every layer of the coordinates are valid.
     const isValid = !selectionRanges.some((selection) => {
-      return !selectionSchemaNormalizer(selection).isValid(tableParams);
+      const cellRange = selectionSchemaNormalizer(selection);
+      const rangeValidity = cellRange.isValid(tableParams);
+
+      return !(rangeValidity && !cellRange.isOverlapHeaders() ||
+               rangeValidity && cellRange.isOverlapHeaders() && cellRange.isSingleHeader());
     });
 
     if (isValid) {
@@ -724,7 +729,6 @@ class Selection {
     const countRows = this.tableProps.countRows();
     const countCols = this.tableProps.countCols();
     const countColHeaders = this.tableProps.countColHeaders();
-    const maxHeaderLevel = this.settings.navigableHeaders ? -countColHeaders : 0;
 
     const fromCoords = new CellCoords(-countColHeaders, start);
     const toCoords = new CellCoords(countRows - 1, end);
@@ -733,7 +737,7 @@ class Selection {
       countCols,
       countRowHeaders: 0,
       countColHeaders,
-    }) && headerLevel <= 0 && headerLevel >= maxHeaderLevel;
+    });
 
     if (isValid) {
       const from = this.tableProps
@@ -764,7 +768,6 @@ class Selection {
     const countRows = this.tableProps.countRows();
     const countCols = this.tableProps.countCols();
     const countRowHeaders = this.tableProps.countRowHeaders();
-    const maxHeaderLevel = this.settings.navigableHeaders ? -countRowHeaders : 0;
 
     const fromCoords = new CellCoords(startRow, -countRowHeaders);
     const toCoords = new CellCoords(endRow, countCols - 1);
@@ -773,7 +776,7 @@ class Selection {
       countCols,
       countRowHeaders,
       countColHeaders: 0,
-    }) && headerLevel <= 0 && headerLevel >= maxHeaderLevel;
+    });
 
     if (isValid) {
       const from = this.tableProps

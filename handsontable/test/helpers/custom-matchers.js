@@ -114,7 +114,8 @@ beforeEach(function() {
 
           return {
             pass: jasmine.matchersUtil.equals(actualPattern, expected),
-            message: `Expected "${actualPattern}" does not match to the "${expected}" cell range pattern.`,
+            message: `Expected \`${JSON.stringify(actualPattern)}\` to match to the \`${JSON.stringify(expected)}\`
+ cell range pattern.`,
           };
         }
       };
