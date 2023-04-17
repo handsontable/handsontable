@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/require-description-complete-sentence */
 import { generateASCIITable } from './asciiTable';
 import { normalize, pretty } from './htmlNormalize';
 
@@ -92,6 +93,8 @@ beforeEach(function() {
      * ```
      * expect(hot.getSelectedRangeLast()).toEqualCellRange('highlight: 3,2 from: 3,2 to: 5,5');
      * ```
+     *
+     * @returns {object}
      */
     toEqualCellRange() {
       return {

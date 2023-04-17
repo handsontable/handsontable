@@ -764,6 +764,7 @@ class Selection {
     const countRows = this.tableProps.countRows();
     const countCols = this.tableProps.countCols();
     const countRowHeaders = this.tableProps.countRowHeaders();
+    const maxHeaderLevel = this.settings.navigableHeaders ? -countRowHeaders : 0;
 
     const fromCoords = new CellCoords(startRow, -countRowHeaders);
     const toCoords = new CellCoords(endRow, countCols - 1);
@@ -772,7 +773,7 @@ class Selection {
       countCols,
       countRowHeaders,
       countColHeaders: 0,
-    });
+    }) && headerLevel <= 0 && headerLevel >= maxHeaderLevel;
 
     if (isValid) {
       const from = this.tableProps
