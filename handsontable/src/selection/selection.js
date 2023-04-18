@@ -649,8 +649,14 @@ class Selection {
 
     this.clear();
     this.setRangeStartOnly(startCoords, void 0, highlight);
-    this.selectedByRowHeader.add(this.getLayerLevel());
-    this.selectedByColumnHeader.add(this.getLayerLevel());
+
+    if (rowFrom < 0) {
+      this.selectedByRowHeader.add(this.getLayerLevel());
+    }
+    if (columnFrom < 0) {
+      this.selectedByColumnHeader.add(this.getLayerLevel());
+    }
+
     this.setRangeEnd(endCoords);
     this.finish();
   }
