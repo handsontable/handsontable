@@ -12,6 +12,12 @@ tags:
   - dynamic filter
   - operator
   - criteria
+  - conditions
+  - expression
+  - subset of data
+  - excel filter
+  - advanced filter
+  - dropdown
 react:
   id: vz7ct2bv
   metaTitle: Column filter - React Data Grid | Handsontable
@@ -20,33 +26,35 @@ searchCategory: Guides
 
 # Column filter
 
-Filter your data by values or by a set of conditions.
+Filter your data by values or a by set of conditions, using Handsontable's intuitive user interface
+or flexible API.
 
 [[toc]]
 
 ## Overview
 
-With filtering, you can display the data that you want to see and temporarily hide the rest. This
-lets you quickly identify relevant data points from among thousands of records.
+With filtering, you can quickly find the information that you're looking for, based on specific
+criteria. This makes data analysis easier and faster, especially in case of large data sets.
 
-You filter rows of data based on values in one or more columns. In each column, you can:
+You can filter data by using Handsontable's built-in interface that resembles Excel. For less
+technical end users, this makes filtering intuitive right out of the box.
 
-- Select specific values, as many as you want.
-- Apply up to two filter conditions (also known as filter criteria or filter operators) such as
-  "Greater than" or "Begins with".
+You can also filter data programmatically with Handsontable's API. This way, you can filter data
+from outside of the grid and implement your own interface.
 
-Once you apply your filters, Handsontable displays only the rows that match your criteria and
-[trims](@/guides/rows/row-trimming.md) the rest.
+When creating a filter, you can:
+
+- Select specific values that you want to display.
+- Create a condition by using operators available for a given column's data type.
 
 ## Filtering demo
 
-To try out filtering, see the following demo:
+Click on one of the column menu buttons (▼) and play around with filtering by selecting values or
+conditions-based criteria.
 
-1. In the **Price** column, click on the column menu button (▼).
-2. In **Filter by condition**, select **Greater than**, and type **100**.
-3. As a second condition, select **Less than**, and type **1000**.
-4. Click **OK** to apply your filter. The menu button of the **Price** column turns green, and you
-   can only see two rows now.
+After filtering, columns readjust their widths to the longest values displayed on screen. To disable
+this behavior, set
+[fixed column widths](@/guides/columns/column-width.md#set-the-column-width-as-a-constant).
 
 ::: only-for javascript
 
@@ -148,10 +156,10 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htCenter',
     },
   ],
-  // enable the column menu
-  dropdownMenu: true,
   // enable filtering
   filters: true,
+  // enable the column menu
+  dropdownMenu: true,
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
 });
@@ -262,10 +270,10 @@ export const App = () => {
           className: 'htCenter',
         },
       ]}
-      // enable the column menu
-      dropdownMenu={true}
       // enable filtering
       filters={true}
+      // enable the column menu
+      dropdownMenu={true}
       height="auto"
       licenseKey="non-commercial-and-evaluation"
     />
@@ -281,26 +289,23 @@ ReactDOM.render(<App />, document.getElementById('exampleFilterBasicDemo'));
 
 :::
 
-To clear the filter:
-
-1. Click on the green column menu button (▼).
-2. In **Filter by condition**, select **None**.
-3. Press **OK** to display all the rows again.
-
 ## Enable filtering
 
-The filter menu is part of the [column menu](@/guides/columns/column-menu.md), so you need to enable
-two options: [`dropdownMenu`](@/api/options.md#dropdownmenu) and
-[`filters`](@/api/options.md#filters).
+To enable the filtering interface for all columns, you need to do two things: first, set the filters
+property to true, and second, enable the interface by setting the columnMenu property to true as
+well.
+
+Enabling the filters property without the interface can be useful if you plan to create your own
+custom interface for filtering by using the API.
 
 ::: only-for javascript
 
 ```js
 const configurationOptions = {
-  // enable the column menu
-  dropdownMenu: true,
   // enable filtering
   filters: true,
+  // enable the column menu
+  dropdownMenu: true,
 };
 ```
 
@@ -310,18 +315,18 @@ const configurationOptions = {
 
 ```jsx
 <HotTable
-  // enable the column menu
-  dropdownMenu={true}
   // enable filtering
   filters={true}
+  // enable the column menu
+  dropdownMenu={true}
 />
 ```
 
 :::
 
-To enable filtering without the default column menu items (**Insert column left**, **Clear column**
-etc.), set [`dropdownMenu`](@/api/options.md#dropdownmenu) to an array of strings. For example, in
-the following demo, click on any column menu button (▼): it displays only the filtering options.
+By default, the column menu presents the filtering interface along with other default items such as
+**Insert column left**. To display only the filtering interface, pass an array of filter items in
+the configuration.
 
 ::: only-for javascript
 
@@ -422,10 +427,10 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htCenter',
     },
   ],
-  // enable the column menu, but display only the filter menu items
-  dropdownMenu: ['filter_by_condition', 'filter_by_value', 'filter_action_bar'],
   // enable filtering
   filters: true,
+  // enable the column menu, but display only the filter menu items
+  dropdownMenu: ['filter_by_condition', 'filter_by_value', 'filter_action_bar'],
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
 });
@@ -548,10 +553,10 @@ export const App = () => {
           className: 'htCenter',
         },
       ]}
-      // enable the column menu, but display only the filter menu items
-      dropdownMenu={['filter_by_condition', 'filter_by_value', 'filter_action_bar']}
       // enable filtering
       filters={true}
+      // enable the column menu, but display only the filter menu items
+      dropdownMenu={['filter_by_condition', 'filter_by_value', 'filter_action_bar']}
       height="auto"
       licenseKey="non-commercial-and-evaluation"
     />
@@ -567,8 +572,10 @@ ReactDOM.render(<App />, document.getElementById('exampleShowFilterItemsOnly'));
 
 :::
 
-To enable filtering only for specific columns, hide the filter menu from the columns that you don't
-want to filter. For example, in the following demo, you can filter only the **Brand** column.
+You have control over which columns are filterable and for which columns the column menu is enabled.
+In the following demo, only the **Brand** column is filterable, while the other columns are not.
+However, the **Model** column still has the column menu available in case you want to have some
+useful items in the menu such as **Clear column**.
 
 ::: only-for javascript
 
@@ -687,7 +694,27 @@ const handsontableInstance = new Handsontable(container, {
           return this.getSelectedRangeLast().to.col > 0;
         },
       },
+      clear_column: {
+        // hide the 'Clear column' menu item from the first column
+        hidden() {
+          return this.getSelectedRangeLast().to.col < 1;
+        },
+      },
     },
+  },
+  // `afterGetColHeader()` is a Handsontable hook
+  // it's fired after Handsontable appends information about a column header to the table header
+  afterGetColHeader(col, TH) {
+    // remove the column menu button from the 'Brand', 'Price', and 'Date' columns
+    if (col > 1) {
+      const button = TH.querySelector('.changeType');
+
+      if (!button) {
+        return;
+      }
+
+      button.parentElement.removeChild(button);
+    }
   },
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
@@ -711,6 +738,19 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 export const App = () => {
+  // remove the column menu button from the 'Brand', 'Price', and 'Date' columns
+  const removeColumnMenuButton = (col, TH) => {
+    if (col > 1) {
+      const button = TH.querySelector('.changeType');
+
+      if (!button) {
+        return;
+      }
+
+      button.parentElement.removeChild(button);
+    }
+  };
+
   return (
     <HotTable
       data={[
@@ -816,8 +856,17 @@ export const App = () => {
               return this.getSelectedRangeLast().to.col > 0;
             },
           },
+          clear_column: {
+            // hide the 'Clear column' menu item from the first column
+            hidden() {
+              return this.getSelectedRangeLast().to.col < 1;
+            },
+          },
         },
       }}
+      // `afterGetColHeader()` is a Handsontable hook
+      // it's fired after Handsontable appends information about a column header to the table header
+      afterGetColHeader={removeColumnMenuButton}
       height="auto"
       licenseKey="non-commercial-and-evaluation"
     />
@@ -833,274 +882,12 @@ ReactDOM.render(<App />, document.getElementById('exampleEnableFilterInColumns')
 
 :::
 
-You can also remove the column menu button (▼) from the columns that you don't want to filter. For
-that, use Handsontable's [`afterGetColHeader()`](@/api/hooks.md#aftergetcolheader) hook.
-
-::: only-for javascript
-
-::: example #exampleRemoveColumnMenuButton --html 1 --js 2
-
-```html
-<div id="exampleRemoveColumnMenuButton"></div>
-```
-
-```js
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
-
-const container = document.querySelector('#exampleRemoveColumnMenuButton');
-const handsontableInstance = new Handsontable(container, {
-  data: [
-    {
-      brand: 'Jetpulse',
-      model: 'Racing Socks',
-      price: 30,
-      sellDate: 'Oct 11, 2023',
-      sellTime: '01:23 AM',
-      inStock: false,
-    },
-    {
-      brand: 'Gigabox',
-      model: 'HL Mountain Frame',
-      price: 1890.9,
-      sellDate: 'May 3, 2023',
-      sellTime: '11:27 AM',
-      inStock: false,
-    },
-    {
-      brand: 'Camido',
-      model: 'Cycling Cap',
-      price: 130.1,
-      sellDate: 'Mar 27, 2023',
-      sellTime: '03:17 AM',
-      inStock: true,
-    },
-    {
-      brand: 'Chatterpoint',
-      model: 'Road Tire Tube',
-      price: 59,
-      sellDate: 'Aug 28, 2023',
-      sellTime: '08:01 AM',
-      inStock: true,
-    },
-    {
-      brand: 'Eidel',
-      model: 'HL Road Tire',
-      price: 279.99,
-      sellDate: 'Oct 2, 2023',
-      sellTime: '01:23 AM',
-      inStock: true,
-    },
-  ],
-  columns: [
-    {
-      title: 'Brand',
-      type: 'text',
-      data: 'brand',
-    },
-    {
-      title: 'Model',
-      type: 'text',
-      data: 'model',
-    },
-    {
-      title: 'Price',
-      type: 'numeric',
-      data: 'price',
-      numericFormat: {
-        pattern: '$ 0,0.00',
-        culture: 'en-US',
-      },
-    },
-    {
-      title: 'Date',
-      type: 'date',
-      data: 'sellDate',
-      dateFormat: 'MMM D, YYYY',
-      correctFormat: true,
-      className: 'htRight',
-    },
-    {
-      title: 'Time',
-      type: 'time',
-      data: 'sellTime',
-      timeFormat: 'hh:mm A',
-      correctFormat: true,
-      className: 'htRight',
-    },
-    {
-      title: 'In stock',
-      type: 'checkbox',
-      data: 'inStock',
-      className: 'htCenter',
-    },
-  ],
-  // enable the column menu for all columns
-  dropdownMenu: true,
-  // enable filtering for all columns
-  filters: true,
-  // `afterGetColHeader()` is a Handsontable hook
-  // it's fired after Handsontable appends information about a column header to the table header
-  afterGetColHeader(col, TH) {
-    // remove the column menu button from the 'Brand', 'Price', and 'Date' columns
-    if (col == 0 || col == 2 || col == 4) {
-      const button = TH.querySelector('.changeType');
-
-      if (!button) {
-        return;
-      }
-
-      button.parentElement.removeChild(button);
-    }
-  },
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
-});
-```
-
-:::
-
-:::
-
-::: only-for react
-
-::: example #exampleRemoveColumnMenuButton :react
-
-```jsx
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
-
-export const App = () => {
-  // remove the column menu button from the 'Brand', 'Price', and 'Date' columns
-  const removeColumnMenuButton = (col, TH) => {
-    if (col == 0 || col == 2 || col == 4) {
-      const button = TH.querySelector('.changeType');
-
-      if (!button) {
-        return;
-      }
-
-      button.parentElement.removeChild(button);
-    }
-  };
-
-  return (
-    <HotTable
-      data={[
-        {
-          brand: 'Jetpulse',
-          model: 'Racing Socks',
-          price: 30,
-          sellDate: 'Oct 11, 2023',
-          sellTime: '01:23 AM',
-          inStock: false,
-        },
-        {
-          brand: 'Gigabox',
-          model: 'HL Mountain Frame',
-          price: 1890.9,
-          sellDate: 'May 3, 2023',
-          sellTime: '11:27 AM',
-          inStock: false,
-        },
-        {
-          brand: 'Camido',
-          model: 'Cycling Cap',
-          price: 130.1,
-          sellDate: 'Mar 27, 2023',
-          sellTime: '03:17 AM',
-          inStock: true,
-        },
-        {
-          brand: 'Chatterpoint',
-          model: 'Road Tire Tube',
-          price: 59,
-          sellDate: 'Aug 28, 2023',
-          sellTime: '08:01 AM',
-          inStock: true,
-        },
-        {
-          brand: 'Eidel',
-          model: 'HL Road Tire',
-          price: 279.99,
-          sellDate: 'Oct 2, 2023',
-          sellTime: '01:23 AM',
-          inStock: true,
-        },
-      ]}
-      columns={[
-        {
-          title: 'Brand',
-          type: 'text',
-          data: 'brand',
-        },
-        {
-          title: 'Model',
-          type: 'text',
-          data: 'model',
-        },
-        {
-          title: 'Price',
-          type: 'numeric',
-          data: 'price',
-          numericFormat: {
-            pattern: '$ 0,0.00',
-            culture: 'en-US',
-          },
-        },
-        {
-          title: 'Date',
-          type: 'date',
-          data: 'sellDate',
-          dateFormat: 'MMM D, YYYY',
-          correctFormat: true,
-          className: 'htRight',
-        },
-        {
-          title: 'Time',
-          type: 'time',
-          data: 'sellTime',
-          timeFormat: 'hh:mm A',
-          correctFormat: true,
-          className: 'htRight',
-        },
-        {
-          title: 'In stock',
-          type: 'checkbox',
-          data: 'inStock',
-          className: 'htCenter',
-        },
-      ]}
-      // enable the column menu for all columns
-      dropdownMenu={true}
-      // enable filtering for all columns
-      filters={true}
-      // `afterGetColHeader()` is a Handsontable hook
-      // it's fired after Handsontable appends information about a column header to the table header
-      afterGetColHeader={removeColumnMenuButton}
-      height="auto"
-      licenseKey="non-commercial-and-evaluation"
-    />
-  );
-};
-
-/* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('exampleRemoveColumnMenuButton'));
-/* end:skip-in-preview */
-```
-
-:::
-
-:::
-
 ## Filter different types of data
 
-You can filter different types of data, based on which [`type`](@/api/options.md#type) you configure
-for each column.
+With its built-in cell types, Handsontable makes it easy to handle common data types like text,
+numbers, and dates by providing numerous configuration options. In addition, the filtering feature
+is designed to understand the underlying data and provides an adaptive interface that is tailored to
+each data type.
 
 ::: only-for javascript
 
@@ -1222,10 +1009,10 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htCenter',
     },
   ],
-  // enable the column menu
-  dropdownMenu: true,
   // enable filtering
   filters: true,
+  // enable the column menu
+  dropdownMenu: true,
   height: 168,
   licenseKey: 'non-commercial-and-evaluation',
 });
@@ -1356,10 +1143,10 @@ export const App = () => {
           className: 'htCenter',
         },
       ]}
-      // enable the column menu
-      dropdownMenu={true}
       // enable filtering
       filters={true}
+      // enable the column menu
+      dropdownMenu={true}
       height={168}
       licenseKey="non-commercial-and-evaluation"
     />
@@ -1375,25 +1162,25 @@ ReactDOM.render(<App />, document.getElementById('exampleFilterDifferentTypes'))
 
 :::
 
-Different types offer different filter conditions. For details, see the following table.
+The following table contains all available filter conditions for each built-in data type.
 
-| Type                                                                                                                                                                                                                                                                                                | Available filter conditions                                                                                                                                                          |
-| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [`text`](@/guides/cell-types/cell-type.md)                                                                                                                                                                                                                                                          | None<br>Is empty<br>Is not empty<br>Is equal to<br>Is not equal to<br>Begins with<br>Ends with<br>Contains<br>Does not contain                                                       |
-| [`numeric`](@/guides/cell-types/numeric-cell-type.md)                                                                                                                                                                                                                                               | None<br>Is empty<br>Is not empty<br>Is equal to<br>Is not equal to<br>Greater than<br>Greater than or equal to<br>Less than<br>Less than or equal to<br>Is between<br>Is not between |
-| [`date`](@/guides/cell-types/date-cell-type.md)                                                                                                                                                                                                                                                     | None<br>Is empty<br>Is not empty<br>Is equal to<br>Is not equal to<br>Before<br>After<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
-| [`time`](@/guides/cell-types/time-cell-type.md)<br>[`checkbox`](@/guides/cell-types/checkbox-cell-type.md)<br>[`dropdown`](@/guides/cell-types/dropdown-cell-type.md)<br>[`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)<br>[`password`](@/guides/cell-types/password-cell-type.md) | Same as [`text`](@/guides/cell-types/cell-type.md)                                                                                                                                   |
+| Cell type                                                        | Available filter conditions                                                                                                                    |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| All cell types                                                   | Default conditions:<br><br>None<br>Is empty<br>Is not empty<br>Is equal to<br>Is not equal to                                                  |
+| text<br>time<br>checkbox<br>dropdown<br>autocomplete<br>password | Default conditions plus:<br><br>Begins with<br>Ends with<br>Contains<br>Does not contain                                                       |
+| numeric                                                          | Default conditions plus:<br><br>Greater than<br>Greater than or equal to<br>Less than<br>Less than or equal to<br>Is between<br>Is not between |
+| date                                                             | Default conditions plus:<br><br>Before<br>After<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
 
 ## Filter data on initialization
 
-You can filter data on Handsontable's initialization. This lets you apply default filters every time
-you launch your grid.
+You can filter data on Handsontable's initialization. This lets you apply pre-defined filters every
+time you launch your grid.
 
 ::: only-for javascript
 
-For that, use Handsontable's [`afterInit()`](@/api/hooks.md#afterinit) hook and the
-[`Filters`](@/api/filters.md) plugin's API. For example, the following demo starts off with a filter
-that's already applied, so it only displays items whose price is less than $200.
+To do this, you can use the [`afterInit()`](@/api/hooks.md#afterinit) hook in Handsontable along
+with the API provided by the Filters plugin. For instance, the demo below demonstrates how you can
+start with a pre-applied filter to display only items priced less than $200.
 
 ::: example #exampleFilterOnInitialization --html 1 --js 2
 
@@ -1492,10 +1279,10 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htCenter',
     },
   ],
-  // enable the column menu
-  dropdownMenu: true,
   // enable filtering
   filters: true,
+  // enable the column menu
+  dropdownMenu: true,
   // `afterInit()` is a Handsontable hook: it's fired after the Handsontable instance is initiated
   afterInit() {
     const handsontableInstance = this;
@@ -1518,8 +1305,8 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-For that, use the [`Filters`](@/api/filters.md) plugin's API. For example, the following demo starts
-off with a filter that's already applied, so it only displays items whose price is less than $200.
+To do this, use the API provided by the Filters plugin. For instance, the demo below demonstrates
+how you can start with a pre-applied filter to display only items priced less than $200.
 
 ::: example #exampleFilterOnInitialization :react
 
@@ -1635,10 +1422,10 @@ export const App = () => {
           className: 'htCenter',
         },
       ]}
-      // enable the column menu
-      dropdownMenu={true}
       // enable filtering
       filters={true}
+      // enable the column menu
+      dropdownMenu={true}
       height="auto"
       licenseKey="non-commercial-and-evaluation"
     />
@@ -1654,17 +1441,15 @@ ReactDOM.render(<App />, document.getElementById('exampleFilterOnInitialization'
 
 :::
 
-## Filter as you type
+## External quick filter
 
-You can filter data by typing into a text box. This functionality is similar to dynamic filters in
-spreadsheets.
-
-For example, in the following demo, select the **In stock** column and type "t" (for "true") into
-the text box. Immediately, the table displays only the rows that have their checkboxes checked.
+The quick filter feature in Handsontable enables you to search for a particular phrase in a specific
+column. To accomplish this, use methods [`filters.addCondition()`](@/api/filters.md#addcondition)
+and [`filters.filter()`](@/api/filters.md#filter).
 
 ::: only-for javascript
 
-::: example #exampleFilterAsYouType --html 1 --js 2
+::: example #exampleFilterAsYouType --html 1 --js 2 --css 3
 
 ```html
 <div class="controls">
@@ -1778,6 +1563,7 @@ const handsontableInstance = new Handsontable(container, {
   colHeaders: true,
   height: 'auto',
   filters: true,
+  className: 'example-filter-as-you-type',
   licenseKey: 'non-commercial-and-evaluation',
 });
 
@@ -1795,13 +1581,25 @@ filterField.addEventListener('keyup', function (event) {
 });
 ```
 
+```css
+.controls {
+  margin: 0;
+  padding: 0;
+}
+
+#filterField {
+  margin-top: 20px;
+  padding: 2px 5px;
+}
+```
+
 :::
 
 :::
 
 ::: only-for react
 
-::: example #exampleFilterAsYouType :react
+::: example #exampleFilterAsYouType :react --js 1 --css 2
 
 ```jsx
 // you need `useRef` to call Handsontable's instance methods
@@ -1938,6 +1736,7 @@ export const App = () => {
         ]}
         filters={true}
         height="auto"
+        className="example-filter-as-you-type"
         licenseKey="non-commercial-and-evaluation"
       />
     </>
@@ -1947,15 +1746,27 @@ export const App = () => {
 ReactDOM.render(<App />, document.getElementById('exampleFilterAsYouType'));
 ```
 
+```css
+.controls {
+  margin: 0;
+  padding: 0;
+}
+
+#filterField {
+  margin: 20px 0px;
+  padding: 2px 5px;
+}
+```
+
 :::
 
 :::
 
 ## Customize the filter button
 
-The filter menu is part of the [column menu](@/guides/columns/column-menu.md), so they both use the
-same button (▼). To modify or replace this button, override Handsontable's CSS by editing the style
-for a class called `changeType`.
+The default button that opens the column menu can be styled with CSS by modifying
+`button.changeType` and its `::before` pseudoclass that contains an HTML entity displaying an arrow
+down icon.
 
 ::: only-for javascript
 
@@ -2056,10 +1867,10 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htCenter',
     },
   ],
-  // enable the column menu
-  dropdownMenu: true,
   // enable filtering
   filters: true,
+  // enable the column menu
+  dropdownMenu: true,
   // to differentiate this example's CSS from other examples on this page
   className: 'custom-filter-button-example-1',
   height: 'auto',
@@ -2068,13 +1879,19 @@ const handsontableInstance = new Handsontable(container, {
 ```
 
 ```css
-/* the column menu button */
 .custom-filter-button-example-1 .changeType {
-  border: 1px solid blue;
-  background: white;
-  border-radius: 50%;
-  width: 20px;
-  color: red;
+  background: #e2e2e2;
+  border-radius: 100%;
+  width: 16px;
+  color: #0075ff;
+  height: 16px;
+  padding: 3px 2px;
+  border: none;
+}
+
+.custom-filter-button-example-1 .changeType::before {
+  content: '▼ ';
+  zoom: 0.9;
 }
 ```
 
@@ -2182,10 +1999,10 @@ export const App = () => {
           className: 'htCenter',
         },
       ]}
-      // enable the column menu
-      dropdownMenu={true}
       // enable filtering
       filters={true}
+      // enable the column menu
+      dropdownMenu={true}
       // to differentiate this example's CSS from other examples on this page
       className="custom-filter-button-example-1"
       height="auto"
@@ -2200,13 +2017,19 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomFilterButton'));
 ```
 
 ```css
-/* the column menu button */
 .custom-filter-button-example-1 .changeType {
-  border: 1px solid blue;
-  background: white;
-  border-radius: 50%;
-  width: 20px;
-  color: red;
+  background: #e2e2e2;
+  border-radius: 100%;
+  width: 16px;
+  color: #0075ff;
+  height: 16px;
+  padding: 3px 2px;
+  border: none;
+}
+
+.custom-filter-button-example-1 .changeType::before {
+  content: '▼ ';
+  zoom: 0.9;
 }
 ```
 
@@ -2214,8 +2037,8 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomFilterButton'));
 
 :::
 
-To make the column menu button visible only on hover, override Handsontable's CSS by using this
-selector: `.relative:hover .changeType`.
+The column menu button is always visible, but if you want it to appear only when the mouse cursor is
+over the header, apply additional styling to `.relative:hover .changeType`.
 
 ::: only-for javascript
 
@@ -2316,10 +2139,10 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htCenter',
     },
   ],
-  // enable the column menu
-  dropdownMenu: true,
   // enable filtering
   filters: true,
+  // enable the column menu
+  dropdownMenu: true,
   // to differentiate this example's CSS from other examples on this page
   className: 'custom-filter-button-example-2',
   height: 'auto',
@@ -2443,10 +2266,10 @@ export const App = () => {
           className: 'htCenter',
         },
       ]}
-      // enable the column menu
-      dropdownMenu={true}
       // enable filtering
       filters={true}
+      // enable the column menu
+      dropdownMenu={true}
       // to differentiate this example's CSS from other examples on this page
       className="custom-filter-button-example-2"
       height="auto"
@@ -2478,9 +2301,9 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomFilterButton2'));
 
 ## Change the width of the filter menu
 
-To make the filter menu wider, you can change the width of the entire
-[column menu](@/guides/columns/column-menu.md). For that, override Handsontable's CSS by using this
-selector: `.htDropdownMenu table.htCore`.
+If you have long text data in your columns that don't fit in the filters container, you may need to
+adjust the column menu's width for a better user experience. Fortunately, you can achieve this with
+just CSS by adding a style to `.htDropdownMenu table.htCore`.
 
 ```css
 /* style the column menu */
@@ -2595,10 +2418,10 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htCenter',
     },
   ],
-  // enable the column menu
-  dropdownMenu: true,
   // enable filtering
   filters: true,
+  // enable the column menu
+  dropdownMenu: true,
   // `afterFilter()` is a Handsontable hook: it's fired after each filtering
   afterFilter() {
     this.batch(() => {
@@ -2732,10 +2555,10 @@ export const App = () => {
           className: 'htCenter',
         },
       ]}
-      // enable the column menu
-      dropdownMenu={true}
       // enable filtering
       filters={true}
+      // enable the column menu
+      dropdownMenu={true}
       // `afterFilter()` is a Handsontable hook: it's fired after each filtering
       afterFilter={exclude}
       height="auto"
@@ -2801,12 +2624,8 @@ const configurationOptions = {
 
 You can control filtering at the grid's runtime by using Handsontable's
 [hooks](@/guides/getting-started/events-and-hooks.md) and [API methods](@/api/filters.md#methods).
-This allows you to:
-
-- Enable or disable filtering based on specified conditions. For example, you can disable filtering
-  for very large data sets.
-- Trigger filtering based on the state of another component in your application. For example, you
-  can let the end user filter data by clicking on buttons outside of the grid.
+This allows you to enable or disable filtering based on specific conditions. For instance, you may
+create a UI outside of the grid to manage its filtering behavior.
 
 ### Enable or disable filtering programmatically
 
@@ -2817,10 +2636,10 @@ To enable or disable filtering programmatically, use the
 
 ```js
 handsontableInstance.updateSettings({
-  // enable the column menu
-  dropdownMenu: true,
   // enable filtering
   filters: true,
+  // enable the column menu
+  dropdownMenu: true,
 });
 
 handsontableInstance.updateSettings({
@@ -2837,10 +2656,10 @@ handsontableInstance.updateSettings({
 const hotTableComponentRef = useRef(null);
 
 hotTableComponentRef.current.hotInstance.updateSettings({
-  // enable the column menu
-  dropdownMenu: true,
   // enable filtering
   filters: true,
+  // enable the column menu
+  dropdownMenu: true,
 });
 
 hotTableComponentRef.current.hotInstance.updateSettings({
@@ -3027,10 +2846,10 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htCenter',
     },
   ],
-  // enable the column menu
-  dropdownMenu: true,
   // enable filtering
   filters: true,
+  // enable the column menu
+  dropdownMenu: true,
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
 });
@@ -3199,10 +3018,10 @@ export const App = () => {
             className: 'htCenter',
           },
         ]}
-        // enable the column menu
-        dropdownMenu={true}
         // enable filtering
         filters={true}
+        // enable the column menu
+        dropdownMenu={true}
         height="auto"
         licenseKey="non-commercial-and-evaluation"
       />
@@ -3236,8 +3055,8 @@ You can reduce the size of your bundle by importing and registering only the
 To use filtering, you need only the following modules:
 
 - The [base module](@/guides/tools-and-building/modules.md#import-the-base-module)
-- The [`DropdownMenu`](@/api/dropdownMenu.md) module
 - The [`Filters`](@/api/filters.md) module
+- The [`DropdownMenu`](@/api/dropdownMenu.md) module
 
 ```js
 // import the base module
@@ -3247,23 +3066,20 @@ import Handsontable from 'handsontable/base';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // import the filtering plugins
-import { registerPlugin, DropdownMenu, Filters } from 'handsontable/plugins';
+import { registerPlugin, Filters, DropdownMenu } from 'handsontable/plugins';
 
 // register the filtering plugins
-registerPlugin(DropdownMenu);
 registerPlugin(Filters);
+registerPlugin(DropdownMenu);
 ```
 
 ## Known limitations
 
 At the moment, filtering comes with the following limitations:
 
-- You can't use filtering with [nested data structures](@/guides/rows/row-parent-child.md)
-  ([`NestedRows`](@/api/nestedRows.md)).
-- You can't add custom filter conditions.
-- You can't control the **Filter by value** list. The list of values is generated automatically and
-  there's no supported way of modifying it.
-- There's no built-in protection against filtering passwords.
+- There is no easy way to add custom filter conditions to the user interface.
+- The list of values that you can filter by is generated automatically and there's no supported way
+  of modifying it.
 
 ## API reference
 
