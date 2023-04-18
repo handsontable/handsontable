@@ -25,7 +25,13 @@ function getSelectionSymbol(cell) {
 
   let symbol = '   ';
 
-  if (hasCurrent && hasArea && areaLevel) {
+  if (hasRow) {
+    symbol = ' r ';
+
+  } else if (hasColumn) {
+    symbol = ' c ';
+
+  } else if (hasCurrent && hasArea && areaLevel) {
     symbol = ` ${String.fromCharCode(65 + areaLevel)} `;
 
   } else if (hasCurrent && hasArea && areaLevel === void 0) {
@@ -45,12 +51,6 @@ function getSelectionSymbol(cell) {
 
   } else if (hasHighlight) {
     symbol = ' - ';
-
-  } else if (hasRow) {
-    symbol = ' r ';
-
-  } else if (hasColumn) {
-    symbol = ' c ';
 
   } else if (hasCustom) {
     symbol = ' ? ';

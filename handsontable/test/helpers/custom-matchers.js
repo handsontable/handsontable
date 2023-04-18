@@ -100,7 +100,7 @@ beforeEach(function() {
       return {
         compare(actual, expected) {
           const rangeToString = (range) => {
-            if (range?.constructor?.name !== 'CellRange') {
+            if (!range || !range?.highlight || range?.from || range?.to) {
               return;
             }
 
