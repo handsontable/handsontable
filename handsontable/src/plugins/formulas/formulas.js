@@ -655,7 +655,7 @@ export class Formulas extends BasePlugin {
 
     for (let populatedRowIndex = 0; populatedRowIndex < fillRangeData.length; populatedRowIndex += 1) {
       for (let populatedColumnIndex = 0; populatedColumnIndex < fillRangeData[populatedRowIndex].length;
-           populatedColumnIndex += 1) {
+        populatedColumnIndex += 1) {
         const populatedValue = fillRangeData[populatedRowIndex][populatedColumnIndex];
         const sourceRow = populatedRowIndex % populationRowLength;
         const sourceColumn = populatedColumnIndex % populationColumnLength;
