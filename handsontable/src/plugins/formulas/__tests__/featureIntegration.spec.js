@@ -129,6 +129,153 @@ describe('Formulas: Integration with other features', () => {
     });
   });
 
+  describe('Integration with Autofill', () => {
+    it('should allow dragging the fill handle outside of the table, adding new rows and performing autofill', async() => {
+      const hot = handsontable({
+        data: [
+          ['test', 2, '=UPPER($A$1)', 4, 5, 6],
+          [1, 2, 3, 4, 5, 6],
+          [1, 2, 3, 4, 5, 6],
+          [1, 2, 3, 4, 5, 6]
+        ],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        fillHandle: true
+      });
+
+      selectCell(0, 2);
+
+      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+      spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
+
+      expect(hot.countRows()).toBe(4);
+
+      await sleep(300);
+      expect(hot.countRows()).toBe(5);
+
+      spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
+
+      await sleep(300);
+      expect(hot.countRows()).toBe(6);
+
+      spec().$container.find('tr:last-child td:eq(2)').simulate('mouseup');
+
+      await sleep(300);
+
+      expect(hot.getData()).toEqual([
+        ['test', 2, 'TEST', 4, 5, 6],
+        [1, 2, 'TEST', 4, 5, 6],
+        [1, 2, 'TEST', 4, 5, 6],
+        [1, 2, 'TEST', 4, 5, 6],
+        [null, null, 'TEST', null, null, null],
+        [null, null, null, null, null, null]
+      ]);
+
+      expect(hot.getSourceData()).toEqual([
+        ['test', 2, '=UPPER($A$1)', 4, 5, 6],
+        [1, 2, '=UPPER($A$1)', 4, 5, 6],
+        [1, 2, '=UPPER($A$1)', 4, 5, 6],
+        [1, 2, '=UPPER($A$1)', 4, 5, 6],
+        [null, null, '=UPPER($A$1)', null, null, null],
+        [null, null, null, null, null, null]
+      ]);
+    });
+
+    it('should populate dates and formulas referencing to them properly', async() => {
+      handsontable({
+        data: [
+          ['28/02/1900', '28/02/1900', '28/02/1900'],
+          ['=A1', '=B1', '=C1'],
+          [null, null, null],
+          [null, null, null],
+          [null, null, null],
+          [null, null, null],
+        ],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'MM/DD/YYYY'
+        }, {
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }, {
+          type: 'date',
+          dateFormat: 'MM/DD/YYYY'
+        }],
+        fillHandle: true,
+      });
+
+      selectRows(0, 1);
+
+      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+      spec().$container.find('tr:last-child td:eq(0)').simulate('mouseover');
+      spec().$container.find('tr:last-child td:eq(2)').simulate('mouseup');
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await sleep(300);
+
+      expect(getData()).toEqual([
+        ['28/02/1900', '28/02/1900', '28/02/1900'],
+        ['28/02/1900', '28/02/1900', '28/02/1900'],
+        ['28/02/1900', '28/02/1900', '28/02/1900'],
+        ['28/02/1900', '28/02/1900', '28/02/1900'],
+        ['28/02/1900', '28/02/1900', '28/02/1900'],
+        ['28/02/1900', '28/02/1900', '28/02/1900'],
+        [null, null, null]
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['28/02/1900', '28/02/1900', '28/02/1900'],
+        ['=A1', '=B1', '=C1'],
+        ['28/02/1900', '28/02/1900', '28/02/1900'],
+        ['=A3', '=B3', '=C3'],
+        ['28/02/1900', '28/02/1900', '28/02/1900'],
+        ['=A5', '=B5', '=C5'],
+        [null, null, null]
+      ]);
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['28/02/1900', 60, '28/02/1900'],
+        ['28/02/1900', 60, '28/02/1900'],
+        ['28/02/1900', 60, '28/02/1900'],
+        ['28/02/1900', 60, '28/02/1900'],
+        ['28/02/1900', 60, '28/02/1900'],
+        ['28/02/1900', 60, '28/02/1900'],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['\'28/02/1900', '28/02/1900', '\'28/02/1900'],
+        ['=A1', '=B1', '=C1'],
+        ['\'28/02/1900', '28/02/1900', '\'28/02/1900'],
+        ['=A3', '=B3', '=C3'],
+        ['\'28/02/1900', '28/02/1900', '\'28/02/1900'],
+        ['=A5', '=B5', '=C5'],
+      ]);
+
+      expect(getCellMeta(2, 0).valid).toBe(false);
+      expect(getCellMeta(2, 1).valid).toBe(true);
+      expect(getCellMeta(2, 2).valid).toBe(false);
+
+      expect(getCellMeta(3, 0).valid).toBe(false);
+      expect(getCellMeta(3, 1).valid).toBe(true);
+      expect(getCellMeta(3, 2).valid).toBe(false);
+
+      expect(getCellMeta(4, 0).valid).toBe(false);
+      expect(getCellMeta(4, 1).valid).toBe(true);
+      expect(getCellMeta(4, 2).valid).toBe(false);
+
+      expect(getCellMeta(5, 0).valid).toBe(false);
+      expect(getCellMeta(5, 1).valid).toBe(true);
+      expect(getCellMeta(5, 2).valid).toBe(false);
+    });
+  });
+
   describe('Integration with TrimRows and ColumnSorting plugins', () => {
     it('sorting dataset with one trimmed element', () => {
       const hot = handsontable({
