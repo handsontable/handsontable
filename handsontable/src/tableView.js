@@ -250,8 +250,8 @@ class TableView {
     priv.table = rootDocument.createElement('TABLE');
     addClass(priv.table, 'htCore');
 
-    priv.table.ariaRowCount = this.settings.data.length;
-    priv.table.ariaColCount = this.settings.data[0].length;
+    priv.table.ariaRowCount = this.settings?.data?.length;
+    priv.table.ariaColCount = this.settings?.data[0]?.length;
     priv.table.setAttribute('role', 'treegrid');
 
     if (this.instance.getSettings().tableClassName) {

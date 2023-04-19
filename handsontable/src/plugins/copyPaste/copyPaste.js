@@ -182,13 +182,6 @@ export class CopyPaste extends BasePlugin {
    * @type {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>}
    */
   copyableRanges = [];
-  /**
-   * Provides focusable element to support IME and copy/paste/cut actions.
-   *
-   * @private
-   * @type {FocusableWrapper}
-   */
-  focusableElement = void 0;
 
   /**
    * Checks if the [`CopyPaste`](#copypaste) plugin is enabled.
@@ -720,8 +713,6 @@ export class CopyPaste extends BasePlugin {
     }
 
     this.setCopyableText();
-
-    this.hot.getCell(...this.hot.getSelected()[0].slice(0, 2)).focus();
   }
 
   /**

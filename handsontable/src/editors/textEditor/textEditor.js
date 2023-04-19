@@ -1,9 +1,10 @@
 import { BaseEditor, EDITOR_STATE } from '../baseEditor';
 import EventManager from '../../eventManager';
-import { isMobileBrowser, isIE, isEdge, isIOS } from '../../helpers/browser';
+import { isIE, isEdge, isIOS } from '../../helpers/browser';
 import {
   addClass,
   getComputedStyle,
+  isHotChild,
   setCaretPosition,
   hasClass,
   removeClass,
@@ -132,7 +133,7 @@ export class TextEditor extends BaseEditor {
   close() {
     this.autoResize.unObserve();
 
-    if (this.hot.rootDocument.activeElement === this.TEXTAREA) {
+    if (isHotChild(this.hot.rootDocument.activeElement)) {
       this.hot.listen(); // don't refocus the table if user focused some cell outside of HT on purpose
     }
 
@@ -174,13 +175,15 @@ export class TextEditor extends BaseEditor {
         this.hideEditableElement();
       }
 
-      // @TODO: The fragmentSelection functionality is conflicted with IME. For this feature
-      // refocus has to be disabled (to make IME working).
-      const restoreFocus = !fragmentSelection;
+      // TODO: add behind a fullImeSupport option
 
-      if (restoreFocus && !isMobileBrowser()) {
-        // this.focus();
-      }
+      // // @TODO: The fragmentSelection functionality is conflicted with IME. For this feature
+      // // refocus has to be disabled (to make IME working).
+      // const restoreFocus = !fragmentSelection;
+      //
+      // if (restoreFocus && !isMobileBrowser()) {
+      //   // this.focus();
+      // }
     }
   }
 

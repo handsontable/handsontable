@@ -38,6 +38,16 @@ export function getParent(element, level = 0) {
 }
 
 /**
+ * Check if the provided element is a child of the Handsontable container.
+ *
+ * @param {HTMLElement} element Element to be analyzed.
+ * @returns {boolean}
+ */
+export function isHotChild(element) {
+  return !!element.closest('.handsontable');
+}
+
+/**
  * Gets `frameElement` of the specified frame. Returns null if it is a top frame or if script has no access to read property.
  *
  * @param {Window} frame Frame from which should be get frameElement in safe way.

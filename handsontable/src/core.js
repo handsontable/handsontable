@@ -381,6 +381,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const selectionLayerLevel = cellRanges.length - 1;
     const { from, to } = cellRanges[selectionLayerLevel];
 
+    this.focusOnHighlightedCell();
+
     this.runHooks('afterSelectionEnd',
       from.row, from.col, to.row, to.col, selectionLayerLevel);
     this.runHooks('afterSelectionEndByProp',
@@ -4694,6 +4696,24 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.isLtr = function() {
     return !instance.isRtl();
+  };
+
+  /**
+   * Set the browser's focus to the highlighted cell of the last selection.
+   */
+  this.focusOnHighlightedCell = function() {
+    const lastSelectedRange = this.getSelectedRangeLast();
+    const selectedCellCoords = lastSelectedRange.highlight;
+    const selectedCell = this.getCell(selectedCellCoords.row, selectedCellCoords.col);
+
+    if (
+      selectedCell &&
+      !this.getActiveEditor()?.isOpened()
+    ) {
+      this.getCell(selectedCellCoords.row, selectedCellCoords.col).focus({
+        preventScroll: true
+      });
+    }
   };
 
   /**
