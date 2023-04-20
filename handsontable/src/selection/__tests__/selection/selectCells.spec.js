@@ -151,6 +151,174 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
     });
 
+    it('should highlight the single column header (navigableHeaders on)', () => {
+      handsontable({
+        data: createSpreadsheetObjectData(6, 4),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+      });
+
+      expect(hot().selection.selectCells([[-1, 1]])).toBe(true);
+      expect(`
+        |   ║   : # :   :   |
+        |===:===:===:===:===|
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: -1,1']);
+    });
+
+    it('should highlight the single row header (navigableHeaders on)', () => {
+      handsontable({
+        data: createSpreadsheetObjectData(6, 4),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+      });
+
+      expect(hot().selection.selectCells([[1, -1]])).toBe(true);
+      expect(`
+        |   ║   :   :   :   |
+        |===:===:===:===:===|
+        |   ║   :   :   :   |
+        | # ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,-1']);
+    });
+
+    it('should highlight the single cell in corner (navigableHeaders on)', () => {
+      handsontable({
+        data: createSpreadsheetObjectData(6, 4),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        afterGetColumnHeaderRenderers(headerRenderers) {
+          headerRenderers.push(columnHeader.bind(this));
+          headerRenderers.push(columnHeader.bind(this));
+        },
+        afterGetRowHeaderRenderers(headerRenderers) {
+          headerRenderers.push(rowHeader.bind(this));
+          headerRenderers.push(rowHeader.bind(this));
+        },
+      });
+
+      expect(hot().selection.selectCells([[-1, -2]])).toBe(true);
+      expect(`
+        |   :   :   ║   :   :   :   |
+        |   :   :   ║   :   :   :   |
+        |   : # :   ║   :   :   :   |
+        |===:===:===:===:===:===:===|
+        |   :   :   ║   :   :   :   |
+        |   :   :   ║   :   :   :   |
+        |   :   :   ║   :   :   :   |
+        |   :   :   ║   :   :   :   |
+        |   :   :   ║   :   :   :   |
+        |   :   :   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,-2 from: -1,-2 to: -1,-2']);
+    });
+
+    it('should not highlight the range of the column headers (navigableHeaders on)', () => {
+      handsontable({
+        data: createSpreadsheetObjectData(6, 4),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+      });
+
+      expect(hot().selection.selectCells([[-1, 0, -1, 1]])).toBe(false);
+      expect(`
+        |   ║   :   :   :   |
+        |===:===:===:===:===|
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toBeUndefined();
+
+      expect(hot().selection.selectCells([[1, 1, -1, 1]])).toBe(false);
+      expect(`
+        |   ║   :   :   :   |
+        |===:===:===:===:===|
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toBeUndefined();
+    });
+
+    it('should not highlight the range of the row headers (navigableHeaders on)', () => {
+      handsontable({
+        data: createSpreadsheetObjectData(6, 4),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+      });
+
+      expect(hot().selection.selectCells([[0, -1, 1, -1]])).toBe(false);
+      expect(`
+        |   ║   :   :   :   |
+        |===:===:===:===:===|
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toBeUndefined();
+
+      expect(hot().selection.selectCells([[1, 1, 1, -1]])).toBe(false);
+      expect(`
+        |   ║   :   :   :   |
+        |===:===:===:===:===|
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toBeUndefined();
+    });
+
+    it('should not highlight single header (navigableHeaders off)', () => {
+      handsontable({
+        data: createSpreadsheetObjectData(6, 4),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: false,
+      });
+
+      expect(hot().selection.selectCells([[-1, 0]])).toBe(false);
+      expect(`
+        |   ║   :   :   :   |
+        |===:===:===:===:===|
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toBeUndefined();
+    });
+
     it('should highlight single cell (default selectionMode, multiple headers)', () => {
       handsontable({
         data: createSpreadsheetObjectData(6, 4),

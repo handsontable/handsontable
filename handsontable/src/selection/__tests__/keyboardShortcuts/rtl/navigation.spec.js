@@ -1,4 +1,4 @@
-describe('Core navigation (RTL mode) keyboard shortcut', () => {
+describe('Selection navigation (RTL mode)', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
