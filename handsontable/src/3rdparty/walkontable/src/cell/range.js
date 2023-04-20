@@ -134,7 +134,7 @@ class CellRange {
    *
    * @returns {boolean}
    */
-  isOverlapHeaders() {
+  containsHeaders() {
     return this.from.isHeader() || this.to.isHeader();
   }
 

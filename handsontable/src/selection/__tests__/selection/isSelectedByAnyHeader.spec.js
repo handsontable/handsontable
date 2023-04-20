@@ -46,12 +46,12 @@ describe('Selection', () => {
       hot.selection.deselect();
       hot.selection.selectAll(false, false);
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(true);
+      expect(hot.selection.isSelectedByAnyHeader()).toBe(false);
 
       hot.selection.deselect();
       hot.selection.selectAll(true, true);
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(true);
+      expect(hot.selection.isSelectedByAnyHeader()).toBe(false);
     });
 
     it('should return `true` when one of the headers are selected (headers on)', () => {

@@ -1026,6 +1026,72 @@ describe('CellRange', () => {
     });
   });
 
+  describe('containsHeaders()', () => {
+    it('should return `false` when `from` and `to` are not overlaps the header range', () => {
+      {
+        const range = createRange(0, 0, 4, 5, 4, 5);
+
+        expect(range.containsHeaders()).toBe(false);
+      }
+      {
+        const range = createRange(0, 0, 0, 0, 0, 0);
+
+        expect(range.containsHeaders()).toBe(false);
+      }
+      {
+        const range = createRange(-1, 0, 0, 0, 0, 0);
+
+        expect(range.containsHeaders()).toBe(false);
+      }
+      {
+        const range = createRange(0, -1, 0, 0, 0, 0);
+
+        expect(range.containsHeaders()).toBe(false);
+      }
+    });
+
+    it('should return `true` when one of the coords (from or to) overlaps the header range', () => {
+      {
+        const range = createRange(0, 0, -1, 0, 0, 0);
+
+        expect(range.containsHeaders()).toBe(true);
+      }
+      {
+        const range = createRange(0, 0, 0, -1, 0, 0);
+
+        expect(range.containsHeaders()).toBe(true);
+      }
+      {
+        const range = createRange(0, 0, 0, 0, -1, 0);
+
+        expect(range.containsHeaders()).toBe(true);
+      }
+      {
+        const range = createRange(0, 0, 0, 0, 0, -1);
+
+        expect(range.containsHeaders()).toBe(true);
+      }
+    });
+
+    it('should return `true` when all coords (from and to) overlaps the header range', () => {
+      {
+        const range = createRange(0, 0, -1, 0, -1, 0);
+
+        expect(range.containsHeaders()).toBe(true);
+      }
+      {
+        const range = createRange(0, 0, 0, -1, 0, -1);
+
+        expect(range.containsHeaders()).toBe(true);
+      }
+      {
+        const range = createRange(0, 0, -1, -1, -1, -1);
+
+        expect(range.containsHeaders()).toBe(true);
+      }
+    });
+  });
+
   describe('clone()', () => {
     it('should clone the object', () => {
       const range = createRange(-1, -2, -1, 5, 5, 2);

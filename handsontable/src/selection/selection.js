@@ -650,10 +650,10 @@ class Selection {
     this.clear();
     this.setRangeStartOnly(startCoords, void 0, highlight);
 
-    if (rowFrom < 0) {
+    if (columnFrom < 0) {
       this.selectedByRowHeader.add(this.getLayerLevel());
     }
-    if (columnFrom < 0) {
+    if (rowFrom < 0) {
       this.selectedByColumnHeader.add(this.getLayerLevel());
     }
 
@@ -699,8 +699,8 @@ class Selection {
       const cellRange = selectionSchemaNormalizer(selection);
       const rangeValidity = cellRange.isValid(tableParams);
 
-      return !(rangeValidity && !cellRange.isOverlapHeaders() ||
-               rangeValidity && cellRange.isOverlapHeaders() && cellRange.isSingleHeader());
+      return !(rangeValidity && !cellRange.containsHeaders() ||
+               rangeValidity && cellRange.containsHeaders() && cellRange.isSingleHeader());
     });
 
     if (isValid) {

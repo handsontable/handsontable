@@ -42,7 +42,7 @@ describe('Selection', () => {
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
           `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 3,5']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 3,5']);
     });
 
     it('should select all cells without row headers', () => {
@@ -63,7 +63,7 @@ describe('Selection', () => {
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
           `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,-1 to: 3,5']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,-1 to: 3,5']);
 
       hot.selection.selectAll(false, -1);
 
@@ -75,7 +75,7 @@ describe('Selection', () => {
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
           `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,-1 to: 3,5']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,-1 to: 3,5']);
     });
 
     it('should select all cells without column headers', () => {
@@ -96,7 +96,7 @@ describe('Selection', () => {
         | - ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | - ║ 0 : 0 : 0 : 0 : 0 : 0 |
           `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,0 to: 3,5']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,0 to: 3,5']);
 
       hot.selection.selectAll(-1, false);
 
@@ -108,7 +108,7 @@ describe('Selection', () => {
         | - ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | - ║ 0 : 0 : 0 : 0 : 0 : 0 |
           `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,0 to: 3,5']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,0 to: 3,5']);
     });
 
     it('should not be possible to move the highlight to the header', () => {
@@ -129,7 +129,7 @@ describe('Selection', () => {
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
           `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 3,5']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 3,5']);
 
       hot.selection.selectAll(2, 2);
 
@@ -141,7 +141,7 @@ describe('Selection', () => {
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
           `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 3,5']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 3,5']);
     });
 
     it('should select all cells with headers (multiple headers, navigableHeaders on)', () => {
@@ -173,7 +173,7 @@ describe('Selection', () => {
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
           `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: -3,-3 from: -3,-3 to: 3,5']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -3,-3 from: -3,-3 to: 3,5']);
     });
 
     it('should select all cells without row headers (multiple headers, navigableHeaders on)', () => {
@@ -205,7 +205,7 @@ describe('Selection', () => {
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
           `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: 0,-3 from: 0,-3 to: 3,5']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,-3 from: 0,-3 to: 3,5']);
 
       hot.selection.selectAll(false, -3);
 
@@ -219,7 +219,7 @@ describe('Selection', () => {
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
           `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: 0,-3 from: 0,-3 to: 3,5']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,-3 from: 0,-3 to: 3,5']);
     });
 
     it('should select all cells without column headers (multiple headers, navigableHeaders on)', () => {
@@ -251,7 +251,7 @@ describe('Selection', () => {
         |   :   : - ║ 0 : 0 : 0 : 0 : 0 : 0 |
         |   :   : - ║ 0 : 0 : 0 : 0 : 0 : 0 |
           `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: -3,0 from: -3,0 to: 3,5']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -3,0 from: -3,0 to: 3,5']);
 
       hot.selection.selectAll(-3, false);
 
@@ -265,7 +265,7 @@ describe('Selection', () => {
         |   :   : - ║ 0 : 0 : 0 : 0 : 0 : 0 |
         |   :   : - ║ 0 : 0 : 0 : 0 : 0 : 0 |
           `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: -3,0 from: -3,0 to: 3,5']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -3,0 from: -3,0 to: 3,5']);
     });
 
     it('should be possible to move the highlight around within the header range (multiple headers, navigableHeaders on)', () => {
@@ -311,9 +311,8 @@ describe('Selection', () => {
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
           `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: -3,-1 from: -3,-3 to: 3,5']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -3,-1 from: -3,-3 to: 3,5']);
     });
-
 
     it('should select the row and column headers when all rows are trimmed', () => {
       handsontable({
@@ -348,7 +347,6 @@ describe('Selection', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toBeUndefined();
     });
-
 
     it('should select the row and column headers when all rows are trimmed (multiple headers, navigableHeaders on)', () => {
       handsontable({
