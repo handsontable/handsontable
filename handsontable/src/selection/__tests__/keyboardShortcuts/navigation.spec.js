@@ -47,7 +47,7 @@ describe('Selection navigation', () => {
     expect(() => keyDownUp(['control/meta', 'arrowright'])).not.toThrow();
     expect(() => keyDownUp('arrowleft')).not.toThrow();
     expect(() => keyDownUp(['control/meta', 'arrowleft'])).not.toThrow();
-    expect(getSelected()).toEqual([[-1, -1, -1, -1]]);
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: -1,-1']);
   });
 
   describe('"ArrowRight"', () => {
@@ -194,7 +194,6 @@ describe('Selection navigation', () => {
 
         for (let row = 0, rlen = countRows(); row < rlen; row++) {
           for (let col = 0, clen = countCols(); col < clen; col++) {
-            expect(getSelected()).toEqual([[row, col, row, col]]);
             expect(getSelectedRange()).toEqualCellRange([
               `highlight: ${row},${col} from: ${row},${col} to: ${row},${col}`
             ]);
@@ -219,7 +218,7 @@ describe('Selection navigation', () => {
       selectCell(1, 3);
       keyDownUp(['control/meta', 'arrowright']);
 
-      expect(getSelected()).toEqual([[1, 4, 1, 4]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,4 from: 1,4 to: 1,4']);
       expect(`
         |   ║   :   :   :   : - |
         |===:===:===:===:===:===|
@@ -233,7 +232,7 @@ describe('Selection navigation', () => {
       selectCells([[3, 1, 1, 3]]);
       keyDownUp(['control/meta', 'arrowright']);
 
-      expect(getSelected()).toEqual([[3, 4, 3, 4]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,4 from: 3,4 to: 3,4']);
       expect(`
         |   ║   :   :   :   : - |
         |===:===:===:===:===:===|
@@ -247,7 +246,7 @@ describe('Selection navigation', () => {
       selectRows(2);
       keyDownUp(['control/meta', 'arrowright']);
 
-      expect(getSelected()).toEqual([[2, 4, 2, 4]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,4 from: 2,4 to: 2,4']);
       expect(`
         |   ║   :   :   :   : - |
         |===:===:===:===:===:===|
@@ -476,7 +475,7 @@ describe('Selection navigation', () => {
       selectCell(1, 3);
       keyDownUp(['control/meta', 'arrowleft']);
 
-      expect(getSelected()).toEqual([[1, 0, 1, 0]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 1,0']);
       expect(`
         |   ║ - :   :   :   :   |
         |===:===:===:===:===:===|
@@ -490,7 +489,7 @@ describe('Selection navigation', () => {
       selectCells([[3, 3, 1, 1]]);
       keyDownUp(['control/meta', 'arrowleft']);
 
-      expect(getSelected()).toEqual([[3, 0, 3, 0]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 3,0 to: 3,0']);
       expect(`
         |   ║ - :   :   :   :   |
         |===:===:===:===:===:===|
@@ -504,7 +503,59 @@ describe('Selection navigation', () => {
       selectRows(2);
       keyDownUp(['control/meta', 'arrowleft']);
 
-      expect(getSelected()).toEqual([[2, 0, 2, 0]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,0 to: 2,0']);
+      expect(`
+        |   ║ - :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        | - ║ # :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should move the cell selection to the most left cell in a row (navigableHeaders on)', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5,
+        navigableHeaders: true,
+      });
+
+      selectCell(1, 3);
+      keyDownUp(['control/meta', 'arrowleft']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 1,0']);
+      expect(`
+        |   ║ - :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | - ║ # :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+      selectCells([[3, 3, 1, 1]]);
+      keyDownUp(['control/meta', 'arrowleft']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 3,0 to: 3,0']);
+      expect(`
+        |   ║ - :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        | - ║ # :   :   :   :   |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+      selectRows(2);
+      keyDownUp(['control/meta', 'arrowleft']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,0 to: 2,0']);
       expect(`
         |   ║ - :   :   :   :   |
         |===:===:===:===:===:===|
@@ -733,7 +784,7 @@ describe('Selection navigation', () => {
       selectCell(3, 3);
       keyDownUp(['control/meta', 'arrowup']);
 
-      expect(getSelected()).toEqual([[0, 3, 0, 3]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: 0,3 to: 0,3']);
       expect(`
         |   ║   :   :   : - :   |
         |===:===:===:===:===:===|
@@ -747,7 +798,7 @@ describe('Selection navigation', () => {
       selectCells([[3, 1, 1, 3]]);
       keyDownUp(['control/meta', 'arrowup']);
 
-      expect(getSelected()).toEqual([[0, 1, 0, 1]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
       expect(`
         |   ║   : - :   :   :   |
         |===:===:===:===:===:===|
@@ -761,7 +812,59 @@ describe('Selection navigation', () => {
       selectColumns(2);
       keyDownUp(['control/meta', 'arrowup']);
 
-      expect(getSelected()).toEqual([[0, 2, 0, 2]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 0,2']);
+      expect(`
+        |   ║   :   : - :   :   |
+        |===:===:===:===:===:===|
+        | - ║   :   : # :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should move the cell selection to the first cell (first row) in a column (navigableHeaders on)', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5,
+        navigableHeaders: true,
+      });
+
+      selectCell(3, 3);
+      keyDownUp(['control/meta', 'arrowup']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: 0,3 to: 0,3']);
+      expect(`
+        |   ║   :   :   : - :   |
+        |===:===:===:===:===:===|
+        | - ║   :   :   : # :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+      selectCells([[3, 1, 1, 3]]);
+      keyDownUp(['control/meta', 'arrowup']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
+      expect(`
+        |   ║   : - :   :   :   |
+        |===:===:===:===:===:===|
+        | - ║   : # :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+      selectColumns(2);
+      keyDownUp(['control/meta', 'arrowup']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 0,2']);
       expect(`
         |   ║   :   : - :   :   |
         |===:===:===:===:===:===|
@@ -942,7 +1045,7 @@ describe('Selection navigation', () => {
       selectCell(1, 1);
       keyDownUp(['control/meta', 'arrowdown']);
 
-      expect(getSelected()).toEqual([[4, 1, 4, 1]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 4,1 from: 4,1 to: 4,1']);
       expect(`
         |   ║   : - :   :   :   |
         |===:===:===:===:===:===|
@@ -956,7 +1059,7 @@ describe('Selection navigation', () => {
       selectCells([[3, 3, 1, 1]]);
       keyDownUp(['control/meta', 'arrowdown']);
 
-      expect(getSelected()).toEqual([[4, 3, 4, 3]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 4,3 from: 4,3 to: 4,3']);
       expect(`
         |   ║   :   :   : - :   |
         |===:===:===:===:===:===|
@@ -970,7 +1073,7 @@ describe('Selection navigation', () => {
       selectColumns(2);
       keyDownUp(['control/meta', 'arrowdown']);
 
-      expect(getSelected()).toEqual([[4, 2, 4, 2]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 4,2 from: 4,2 to: 4,2']);
       expect(`
         |   ║   :   : - :   :   |
         |===:===:===:===:===:===|
@@ -1012,7 +1115,7 @@ describe('Selection navigation', () => {
         |   :   :   |
         |   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[9, 1, 9, 1]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 9,1 from: 9,1 to: 9,1']);
 
       keyDownUp('pageup');
 
@@ -1033,7 +1136,7 @@ describe('Selection navigation', () => {
         |   :   :   |
         |   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[5, 1, 5, 1]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 5,1 from: 5,1 to: 5,1']);
 
       keyDownUp('pageup');
 
@@ -1054,7 +1157,7 @@ describe('Selection navigation', () => {
         |   :   :   |
         |   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
 
       keyDownUp('pageup');
 
@@ -1075,7 +1178,7 @@ describe('Selection navigation', () => {
         |   :   :   |
         |   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[0, 1, 0, 1]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
     });
   });
 
@@ -1102,7 +1205,7 @@ describe('Selection navigation', () => {
         |   :   :   |
         |   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[5, 1, 5, 1]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 5,1 from: 5,1 to: 5,1']);
 
       keyDownUp('pagedown');
 
@@ -1123,7 +1226,7 @@ describe('Selection navigation', () => {
         |   :   :   |
         |   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[9, 1, 9, 1]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 9,1 from: 9,1 to: 9,1']);
 
       keyDownUp('pagedown');
 
@@ -1144,7 +1247,7 @@ describe('Selection navigation', () => {
         |   : # :   |
         |   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[13, 1, 13, 1]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 13,1']);
 
       keyDownUp('pagedown');
 
@@ -1165,7 +1268,7 @@ describe('Selection navigation', () => {
         |   :   :   |
         |   : # :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[14, 1, 14, 1]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 14,1 from: 14,1 to: 14,1']);
     });
   });
 
@@ -1420,7 +1523,90 @@ describe('Selection navigation', () => {
           selectCell(3, 3);
           keyDownUp(['control/meta', 'home']);
 
-          expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 0,0']);
+        });
+
+        it('while the currently selected cell is in the main table (with headers)', () => {
+          handsontable({
+            startRows: 5,
+            startCols: 5,
+            colHeaders: true,
+            rowHeaders: true,
+          });
+
+          selectCell(3, 3);
+          keyDownUp(['control/meta', 'home']);
+
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 0,0']);
+        });
+
+        it('while the currently selected cell is in the main table (with headers, navigableHeaders on)', () => {
+          handsontable({
+            startRows: 5,
+            startCols: 5,
+            colHeaders: true,
+            rowHeaders: true,
+            navigableHeaders: true,
+            afterGetColumnHeaderRenderers(headerRenderers) {
+              headerRenderers.push(columnHeader.bind(this));
+              headerRenderers.push(columnHeader.bind(this));
+            },
+            afterGetRowHeaderRenderers(headerRenderers) {
+              headerRenderers.push(rowHeader.bind(this));
+              headerRenderers.push(rowHeader.bind(this));
+            },
+          });
+
+          selectCell(3, 3);
+          keyDownUp(['control/meta', 'home']);
+
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 0,0']);
+        });
+
+        it('while the currently selected cell is in the column header', () => {
+          handsontable({
+            startRows: 5,
+            startCols: 5,
+            colHeaders: true,
+            rowHeaders: true,
+            navigableHeaders: true,
+            afterGetColumnHeaderRenderers(headerRenderers) {
+              headerRenderers.push(columnHeader.bind(this));
+              headerRenderers.push(columnHeader.bind(this));
+            },
+            afterGetRowHeaderRenderers(headerRenderers) {
+              headerRenderers.push(rowHeader.bind(this));
+              headerRenderers.push(rowHeader.bind(this));
+            },
+          });
+
+          selectCell(-2, 3);
+          keyDownUp(['control/meta', 'home']);
+
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 0,0']);
+        });
+
+        it('while the currently selected cell is in the row header', () => {
+          handsontable({
+            startRows: 5,
+            startCols: 5,
+            colHeaders: true,
+            rowHeaders: true,
+            navigableHeaders: true,
+            afterGetColumnHeaderRenderers(headerRenderers) {
+              headerRenderers.push(columnHeader.bind(this));
+              headerRenderers.push(columnHeader.bind(this));
+            },
+            afterGetRowHeaderRenderers(headerRenderers) {
+              headerRenderers.push(rowHeader.bind(this));
+              headerRenderers.push(rowHeader.bind(this));
+            },
+          });
+
+          selectCell(3, -2);
+          keyDownUp(['control/meta', 'home']);
+
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 0,0']);
         });
 
         it('while the currently selected cell is in the top-left overlay', () => {
@@ -1434,7 +1620,7 @@ describe('Selection navigation', () => {
           selectCell(0, 0);
           keyDownUp(['control/meta', 'home']);
 
-          expect(getSelected()).toEqual([[2, 2, 2, 2]]);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
         });
 
         it('while the currently selected cell is in the left overlay', () => {
@@ -1447,7 +1633,7 @@ describe('Selection navigation', () => {
           selectCell(1, 1);
           keyDownUp(['control/meta', 'home']);
 
-          expect(getSelected()).toEqual([[0, 2, 0, 2]]);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 0,2']);
         });
 
         it('while the currently selected cell is in the bottom-left overlay', () => {
@@ -1461,7 +1647,7 @@ describe('Selection navigation', () => {
           selectCell(4, 0);
           keyDownUp(['control/meta', 'home']);
 
-          expect(getSelected()).toEqual([[0, 2, 0, 2]]);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 0,2']);
         });
 
         it('when there is at least one cell visible in the viewport and belongs to the main table overlay', () => {
@@ -1476,11 +1662,11 @@ describe('Selection navigation', () => {
           selectCell(0, 0);
           keyDownUp(['control/meta', 'home']);
 
-          expect(getSelected()).toEqual([[2, 2, 2, 2]]);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
 
           keyDownUp(['control/meta', 'home']);
 
-          expect(getSelected()).toEqual([[2, 2, 2, 2]]);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
         });
       });
 
@@ -1495,7 +1681,7 @@ describe('Selection navigation', () => {
           selectCell(2, 2);
           keyDownUp(['control/meta', 'home']);
 
-          expect(getSelected()).toEqual([[2, 2, 2, 2]]);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
         });
 
         it('when the bottom overlay covers all table viewport', () => {
@@ -1508,7 +1694,7 @@ describe('Selection navigation', () => {
           selectCell(2, 2);
           keyDownUp(['control/meta', 'home']);
 
-          expect(getSelected()).toEqual([[2, 2, 2, 2]]);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
         });
 
         it('when the left overlay covers all table viewport', () => {
@@ -1521,7 +1707,7 @@ describe('Selection navigation', () => {
           selectCell(2, 2);
           keyDownUp(['control/meta', 'home']);
 
-          expect(getSelected()).toEqual([[2, 2, 2, 2]]);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
         });
 
         it('when all overlays cover all table viewport', () => {
@@ -1536,7 +1722,7 @@ describe('Selection navigation', () => {
           selectCell(1, 1);
           keyDownUp(['control/meta', 'home']);
 
-          expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
         });
       });
     });
@@ -1662,7 +1848,7 @@ describe('Selection navigation', () => {
           selectCell(0, 0);
           keyDownUp('end');
 
-          expect(getSelected()).toEqual([[0, 4, 0, 4]]);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 0,4 from: 0,4 to: 0,4']);
         });
 
         it('while the currently selected cell is in the left overlay', () => {
@@ -1793,7 +1979,90 @@ describe('Selection navigation', () => {
           selectCell(1, 1);
           keyDownUp(['control/meta', 'end']);
 
-          expect(getSelected()).toEqual([[4, 4, 4, 4]]);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 4,4 from: 4,4 to: 4,4']);
+        });
+
+        it('while the currently selected cell is in the main table (with headers)', () => {
+          handsontable({
+            startRows: 5,
+            startCols: 5,
+            colHeaders: true,
+            rowHeaders: true,
+          });
+
+          selectCell(1, 1);
+          keyDownUp(['control/meta', 'end']);
+
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 4,4 from: 4,4 to: 4,4']);
+        });
+
+        it('while the currently selected cell is in the main table (with headers, navigableHeaders on)', () => {
+          handsontable({
+            startRows: 5,
+            startCols: 5,
+            colHeaders: true,
+            rowHeaders: true,
+            navigableHeaders: true,
+            afterGetColumnHeaderRenderers(headerRenderers) {
+              headerRenderers.push(columnHeader.bind(this));
+              headerRenderers.push(columnHeader.bind(this));
+            },
+            afterGetRowHeaderRenderers(headerRenderers) {
+              headerRenderers.push(rowHeader.bind(this));
+              headerRenderers.push(rowHeader.bind(this));
+            },
+          });
+
+          selectCell(1, 1);
+          keyDownUp(['control/meta', 'end']);
+
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 4,4 from: 4,4 to: 4,4']);
+        });
+
+        it('while the currently selected cell is in the column header', () => {
+          handsontable({
+            startRows: 5,
+            startCols: 5,
+            colHeaders: true,
+            rowHeaders: true,
+            navigableHeaders: true,
+            afterGetColumnHeaderRenderers(headerRenderers) {
+              headerRenderers.push(columnHeader.bind(this));
+              headerRenderers.push(columnHeader.bind(this));
+            },
+            afterGetRowHeaderRenderers(headerRenderers) {
+              headerRenderers.push(rowHeader.bind(this));
+              headerRenderers.push(rowHeader.bind(this));
+            },
+          });
+
+          selectCell(-2, 3);
+          keyDownUp(['control/meta', 'end']);
+
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 4,4 from: 4,4 to: 4,4']);
+        });
+
+        it('while the currently selected cell is in the row header', () => {
+          handsontable({
+            startRows: 5,
+            startCols: 5,
+            colHeaders: true,
+            rowHeaders: true,
+            navigableHeaders: true,
+            afterGetColumnHeaderRenderers(headerRenderers) {
+              headerRenderers.push(columnHeader.bind(this));
+              headerRenderers.push(columnHeader.bind(this));
+            },
+            afterGetRowHeaderRenderers(headerRenderers) {
+              headerRenderers.push(rowHeader.bind(this));
+              headerRenderers.push(rowHeader.bind(this));
+            },
+          });
+
+          selectCell(3, -2);
+          keyDownUp(['control/meta', 'end']);
+
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 4,4 from: 4,4 to: 4,4']);
         });
 
         it('while the currently selected cell is in the top-left overlay', () => {
@@ -1807,7 +2076,7 @@ describe('Selection navigation', () => {
           selectCell(0, 0);
           keyDownUp(['control/meta', 'end']);
 
-          expect(getSelected()).toEqual([[4, 4, 4, 4]]);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 4,4 from: 4,4 to: 4,4']);
         });
 
         it('while the currently selected cell is in the left overlay', () => {
@@ -1820,7 +2089,7 @@ describe('Selection navigation', () => {
           selectCell(1, 1);
           keyDownUp(['control/meta', 'end']);
 
-          expect(getSelected()).toEqual([[4, 4, 4, 4]]);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 4,4 from: 4,4 to: 4,4']);
         });
 
         it('while the currently selected cell is in the bottom-left overlay', () => {
@@ -1834,7 +2103,7 @@ describe('Selection navigation', () => {
           selectCell(4, 0);
           keyDownUp(['control/meta', 'end']);
 
-          expect(getSelected()).toEqual([[2, 4, 2, 4]]);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 2,4 from: 2,4 to: 2,4']);
         });
 
         it('when there is at least one cell visible in the viewport and belongs to the main table overlay', () => {
@@ -1849,11 +2118,11 @@ describe('Selection navigation', () => {
           selectCell(0, 0);
           keyDownUp(['control/meta', 'end']);
 
-          expect(getSelected()).toEqual([[2, 2, 2, 2]]);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
 
           keyDownUp(['control/meta', 'end']);
 
-          expect(getSelected()).toEqual([[2, 2, 2, 2]]);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
         });
       });
 
@@ -1868,7 +2137,7 @@ describe('Selection navigation', () => {
           selectCell(2, 2);
           keyDownUp(['control/meta', 'end']);
 
-          expect(getSelected()).toEqual([[2, 2, 2, 2]]);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
         });
 
         it('when the bottom overlay covers all table viewport', () => {
@@ -1881,7 +2150,7 @@ describe('Selection navigation', () => {
           selectCell(2, 2);
           keyDownUp(['control/meta', 'end']);
 
-          expect(getSelected()).toEqual([[2, 2, 2, 2]]);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
         });
 
         it('when the left overlay covers all table viewport', () => {
@@ -1894,7 +2163,7 @@ describe('Selection navigation', () => {
           selectCell(2, 2);
           keyDownUp(['control/meta', 'end']);
 
-          expect(getSelected()).toEqual([[2, 2, 2, 2]]);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
         });
 
         it('when all overlays cover all table viewport', () => {
@@ -1909,7 +2178,7 @@ describe('Selection navigation', () => {
           selectCell(1, 1);
           keyDownUp(['control/meta', 'end']);
 
-          expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
         });
       });
     });
