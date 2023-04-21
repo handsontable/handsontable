@@ -163,6 +163,7 @@ export interface GridSettings extends Events {
   minSpareCols?: number;
   minSpareRows?: number;
   multiColumnSorting?: MultiColumnSortingSettings;
+  navigableHeaders?: boolean;
   nestedHeaders?: NestedHeadersSettings;
   nestedRows?: boolean;
   noWordWrapClassName?: string;
