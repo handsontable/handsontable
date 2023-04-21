@@ -21,7 +21,6 @@ describe('settings', () => {
       expect(hot.getSettings().autoWrapCol).toBe(false);
     });
 
-
     // The rest of the E2E tests you can find in the Selection module ./handsontable/src/selection/__tests__/keyboardShortcuts/navigation.spec.js
   });
 });
