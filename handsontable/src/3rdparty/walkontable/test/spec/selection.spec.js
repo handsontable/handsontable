@@ -10,6 +10,13 @@ describe('Walkontable.Selection', () => {
     this.$container.append(this.$table);
     this.$wrapper.appendTo('body');
     createDataArray(100, 4);
+
+    // Matchers configuration.
+    this.matchersConfig = {
+      toMatchHTML: {
+        keepAttributes: ['class']
+      }
+    };
   });
 
   afterEach(function() {

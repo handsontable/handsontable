@@ -215,9 +215,7 @@ export class CopyPaste extends BasePlugin {
     }
 
     this.addHook('afterContextMenuDefaultOptions', options => this.onAfterContextMenuDefaultOptions(options));
-    this.addHook('afterOnCellMouseUp', () => this.onAfterOnCellMouseUp());
     this.addHook('afterSelectionEnd', () => this.onAfterSelectionEnd());
-    this.addHook('beforeKeyDown', () => this.onBeforeKeyDown());
 
     this.eventManager = new EventManager(this);
 
@@ -686,19 +684,6 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Force focus on focusableElement.
-   *
-   * @private
-   */
-  onAfterOnCellMouseUp() {
-    // Changing focused element will remove current selection. It's unnecessary in case when we give possibility
-    // for fragment selection
-    if (!this.hot.isListening() || this.isEditorOpened() || this.hot.getSettings().fragmentSelection) {
-      return;
-    }
-  }
-
-  /**
    * Force focus on focusableElement after end of the selection.
    *
    * @private
@@ -713,23 +698,6 @@ export class CopyPaste extends BasePlugin {
     }
 
     this.setCopyableText();
-  }
-
-  /**
-   * `beforeKeyDown` listener to force focus of focusableElement.
-   *
-   * @private
-   */
-  onBeforeKeyDown() {
-    if (!this.hot.isListening() || this.isEditorOpened()) {
-      return;
-    }
-
-    const activeEditor = this.hot.getActiveEditor();
-
-    if (!activeEditor) {
-      return;
-    }
   }
 
   /**

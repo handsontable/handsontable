@@ -4714,6 +4714,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         preventScroll: true
       });
     }
+
+    // Re-focus on the editor's `TEXTAREA` element if the `imeFastEdit` option is enabled.
+    if (
+      this.getSettings().imeFastEdit &&
+      !!this.getActiveEditor()?.TEXTAREA
+    ) {
+      this._registerTimeout(() => {
+        this.getActiveEditor().TEXTAREA.select();
+      }, 50);
+    }
   };
 
   /**

@@ -157,6 +157,37 @@ export function wheelOnElement(elem, deltaX = 0, deltaY = 0) {
   elem.dispatchEvent(new WheelEvent('wheel', { deltaX, deltaY }));
 }
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+/**
+ * Extend the matcher factories with the `matchersUtil` argument extended with a configuration provided in the
+ * spec as:
+ * ```.
+ * spec().matchersConfig['matcherName'] = {
+ *   configItem: true,
+ *   // ...
+ * }
+ * ```.
+ *
+ * @param {object} matchers The object containing custom matcher factories.
+ * @returns {object}
+ */
+function extendMatchersWithConfig(matchers) {
+  Object.keys(matchers).forEach((matcherName) => {
+    const matcherFactory = matchers[matcherName];
+
+    matchers[matcherName] = function(matchersUtil) {
+      if (spec().matchersConfig?.[matcherName]) {
+        matchersUtil.matcherConfig = spec().matchersConfig[matcherName];
+      }
+
+      return matcherFactory(matchersUtil);
+    };
+  });
+
+  return matchers;
+}
+/* eslint-enable jsdoc/require-description-complete-sentence */
+
 beforeEach(function() {
   specContext.spec = this;
 
@@ -179,17 +210,38 @@ beforeEach(function() {
         }
       };
     },
-    toMatchHTML() {
+    toMatchHTML(matchersUtil) {
       return {
-        compare(actual, expected) {
-          const actualHTML = pretty(normalize(actual));
+        compare(actual, expected, attributesToKeep = []) {
           const expectedHTML = pretty(normalize(expected));
+          const actualHTML = pretty(normalize(actual));
+          const actualHTMLStripped = actualHTML.replaceAll(/<\/{0,1}\w+([^>]*)>/ig, (match, attributes) => {
+            let keptAttributes = null;
+
+            if (attributesToKeep.length === 0 && matchersUtil.matcherConfig) {
+              attributesToKeep = matchersUtil.matcherConfig.keepAttributes;
+            }
+
+            if (attributesToKeep.length) {
+
+              attributesToKeep = attributesToKeep.map((attribute) => {
+                // Replace * in, for example, `aria-*`.
+                return attribute.includes('*') ? attribute.replace('*', '([a-zA-Z-]+)') : attribute;
+              });
+
+              keptAttributes = attributes.match(
+                new RegExp(`(${attributesToKeep.join('|')})="([a-zA-Z0-9-_ ]*)"`, 'ig')
+              );
+            }
+
+            return match.replace(attributes, keptAttributes ? ` ${keptAttributes.join(' ')}` : '');
+          });
 
           const result = {
-            pass: actualHTML === expectedHTML,
+            pass: actualHTMLStripped === expectedHTML,
           };
 
-          result.message = `Expected ${actualHTML} NOT to be ${expectedHTML}`;
+          result.message = `Expected: ${actualHTMLStripped} \nto equal\n ${expectedHTML}`;
 
           return result;
         }
@@ -216,7 +268,7 @@ beforeEach(function() {
     }
   };
 
-  jasmine.addMatchers(matchers);
+  jasmine.addMatchers(extendMatchersWithConfig(matchers));
 });
 
 afterEach(() => {

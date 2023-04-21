@@ -162,7 +162,6 @@ export class TextEditor extends BaseEditor {
 
       const {
         allowInvalid,
-        fragmentSelection,
       } = cellProperties;
 
       if (allowInvalid) {
@@ -222,6 +221,8 @@ export class TextEditor extends BaseEditor {
     this.TEXTAREA = rootDocument.createElement('TEXTAREA');
     this.TEXTAREA.setAttribute('data-hot-input', ''); // Makes the element recognizable by Hot as its own component's element.
     this.TEXTAREA.tabIndex = -1;
+
+    this.TEXTAREA.setAttribute('aria-hidden', 'true');
 
     addClass(this.TEXTAREA, 'handsontableInput');
 

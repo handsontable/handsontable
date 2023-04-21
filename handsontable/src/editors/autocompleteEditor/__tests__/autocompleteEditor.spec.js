@@ -2722,8 +2722,8 @@ describe('AutocompleteEditor', () => {
     expect(getDataAtCell(0, 0)).toEqual('2');
   });
 
-  // Input element should be focused on cell selection othrwise it breaks IME editor functionality for Asian users.
-  it('should not lose the focus on input element while inserting new characters (#839)', async() => {
+  // Input element should be focused on cell selection otherwise it breaks IME editor functionality for Asian users.
+  it('should not lose the focus on input element while inserting new characters when `imeFastEditing` is enabled  (#839)', async() => {
     const hot = handsontable({
       data: [
         ['one', 'two'],
@@ -2736,9 +2736,13 @@ describe('AutocompleteEditor', () => {
         },
         {},
       ],
+      imeFastEdit: true,
     });
 
     selectCell(0, 0);
+
+    // The `imeFastEdit` timeout is set to 50ms.
+    await sleep(55);
 
     const activeElement = hot.getActiveEditor().TEXTAREA;
 
@@ -2747,6 +2751,27 @@ describe('AutocompleteEditor', () => {
     expect(document.activeElement).toBe(activeElement);
 
     await sleep(50);
+
+    keyDownUp('enter');
+
+    expect(document.activeElement).toBe(activeElement);
+
+    await sleep(200);
+
+    expect(document.activeElement).toBe(activeElement);
+
+    hot.getActiveEditor().TEXTAREA.value = 't';
+    keyDownUp('t');
+
+    expect(document.activeElement).toBe(activeElement);
+
+    hot.getActiveEditor().TEXTAREA.value = 'te';
+    keyDownUp('e');
+
+    expect(document.activeElement).toBe(activeElement);
+
+    hot.getActiveEditor().TEXTAREA.value = 'teo';
+    keyDownUp('o');
 
     expect(document.activeElement).toBe(activeElement);
   });
@@ -3445,18 +3470,22 @@ describe('AutocompleteEditor', () => {
   });
 
   describe('IME support', () => {
-    it('should focus editable element after selecting the cell', async() => {
+    it('should focus the editable element after a timeout when selecting the cell if `imeFastEdit` is' +
+      ' enabled', async() => {
       handsontable({
         columns: [
           {
             editor: 'autocomplete',
             source: choices
           }
-        ]
+        ],
+        imeFastEdit: true,
       });
+
       selectCell(0, 0, 0, 0, true, false);
 
-      await sleep(10);
+      // The `imeFastEdit` timeout is set to 50ms.
+      await sleep(55);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });

@@ -269,6 +269,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     indicators: true
   }),
   invalidCellClassName: 'foo',
+  imeFastEdit: true,
   isEmptyCol: (col) => col === 0,
   isEmptyRow: (row) => row === 0,
   label: {property: 'name.last', position: 'after', value: oneOf('My label: ', () => 'My label')},
