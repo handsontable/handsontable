@@ -2,10 +2,13 @@ export const command = {
   name: 'extendCellsSelectionToMostTop',
   callback(hot) {
     const { selection, rowIndexMapper } = hot;
-    const { from, to } = hot.getSelectedRangeLast();
-    const row = rowIndexMapper.getNearestNotHiddenIndex(0, 1);
+    const { highlight, from, to } = hot.getSelectedRangeLast();
 
-    selection.setRangeStart(from.clone());
-    selection.setRangeEnd(hot._createCellCoords(row, to.col));
+    if (highlight.isCell()) {
+      const row = rowIndexMapper.getNearestNotHiddenIndex(0, 1);
+
+      selection.setRangeStart(from.clone());
+      selection.setRangeEnd(hot._createCellCoords(row, to.col));
+    }
   },
 };
