@@ -579,7 +579,7 @@ describe('NestedHeaders', () => {
         </thead>
         `);
 
-      expect(getSelected()).toEqual([[-4, 1, 9, 2]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -4,1 to: 9,2']);
 
       $(getCell(-3, 1)) // Header "E"
         .simulate('mousedown')
@@ -638,7 +638,7 @@ describe('NestedHeaders', () => {
         </thead>
         `);
 
-      expect(getSelected()).toEqual([[-4, 1, 9, 4]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -4,1 to: 9,4']);
 
       $(getCell(-4, 1)) // Header "B"
         .simulate('mousedown')
@@ -697,7 +697,7 @@ describe('NestedHeaders', () => {
         </thead>
         `);
 
-      expect(getSelected()).toEqual([[-4, 1, 9, 8]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -4,1 to: 9,8']);
     });
 
     it('should active highlight column header for non-contiguous header selection', () => {
@@ -767,7 +767,7 @@ describe('NestedHeaders', () => {
         </thead>
         `);
 
-      expect(getSelected()).toEqual([[-4, 1, 9, 1]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -4,1 to: 9,1']);
 
       keyDown('control/meta');
 
@@ -828,9 +828,9 @@ describe('NestedHeaders', () => {
         </thead>
         `);
 
-      expect(getSelected()).toEqual([
-        [-4, 1, 9, 1],
-        [-4, 5, 9, 5],
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,1 from: -4,1 to: 9,1',
+        'highlight: 0,5 from: -4,5 to: 9,5',
       ]);
 
       keyDown('control/meta');
@@ -892,10 +892,10 @@ describe('NestedHeaders', () => {
         </thead>
         `);
 
-      expect(getSelected()).toEqual([
-        [-4, 1, 9, 1],
-        [-4, 5, 9, 5],
-        [-4, 1, 9, 3],
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,1 from: -4,1 to: 9,1',
+        'highlight: 0,5 from: -4,5 to: 9,5',
+        'highlight: 0,1 from: -4,1 to: 9,3',
       ]);
     });
 
@@ -1022,7 +1022,7 @@ describe('NestedHeaders', () => {
 
       simulateClick(getCell(-1, 5), 'RMB'); // Header "K"
 
-      expect(getSelected()).toEqual([[-3, 1, 9, 6]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -3,1 to: 9,6']);
     });
 
     it('should be possible to select the column header with RMB when no column is selected', () => {
@@ -1039,7 +1039,7 @@ describe('NestedHeaders', () => {
 
       simulateClick(getCell(-1, 5), 'RMB'); // Header "K"
 
-      expect(getSelected()).toEqual([[-3, 5, 9, 6]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,5 from: -3,5 to: 9,6']);
     });
 
     it('should be possible to back to the single column selection, when it was modified by the SHIFT key', () => {
@@ -1060,13 +1060,13 @@ describe('NestedHeaders', () => {
         shiftKey: true
       }); // select column L4
 
-      expect(getSelected()).toEqual([[-4, 1, 9, 12]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -4,1 to: 9,12']);
 
       simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)'), 'LMB', {
         shiftKey: true
       }); // Back to column B4
 
-      expect(getSelected()).toEqual([[-4, 1, 9, 2]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -4,1 to: 9,2']);
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>
           <tr>
@@ -1152,7 +1152,7 @@ describe('NestedHeaders', () => {
         shiftKey: true
       }); // select column D4
 
-      expect(getSelected()).toEqual([[-4, 1, 9, 4]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -4,1 to: 9,4']);
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>
           <tr>
@@ -1222,7 +1222,7 @@ describe('NestedHeaders', () => {
         shiftKey: true
       }); // select column F4
 
-      expect(getSelected()).toEqual([[-4, 1, 9, 6]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -4,1 to: 9,6']);
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>
           <tr>
@@ -1292,7 +1292,7 @@ describe('NestedHeaders', () => {
         shiftKey: true
       }); // select column H4
 
-      expect(getSelected()).toEqual([[-4, 1, 9, 8]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -4,1 to: 9,8']);
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>
           <tr>
@@ -1362,7 +1362,7 @@ describe('NestedHeaders', () => {
         shiftKey: true
       }); // select column K4
 
-      expect(getSelected()).toEqual([[-4, 1, 9, 10]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -4,1 to: 9,10']);
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>
           <tr>
@@ -1448,7 +1448,7 @@ describe('NestedHeaders', () => {
         shiftKey: true
       }); // select column J4
 
-      expect(getSelected()).toEqual([[-4, 10, 9, 9]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,10 from: -4,10 to: 9,9']);
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>
           <tr>
@@ -1518,7 +1518,7 @@ describe('NestedHeaders', () => {
         shiftKey: true
       }); // select column H4
 
-      expect(getSelected()).toEqual([[-4, 10, 9, 7]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,10 from: -4,10 to: 9,7']);
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>
           <tr>
@@ -1588,7 +1588,7 @@ describe('NestedHeaders', () => {
         shiftKey: true
       }); // select column F4
 
-      expect(getSelected()).toEqual([[-4, 10, 9, 5]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,10 from: -4,10 to: 9,5']);
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>
           <tr>
@@ -1658,7 +1658,7 @@ describe('NestedHeaders', () => {
         shiftKey: true
       }); // select column D4
 
-      expect(getSelected()).toEqual([[-4, 10, 9, 3]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,10 from: -4,10 to: 9,3']);
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>
           <tr>
@@ -1728,7 +1728,7 @@ describe('NestedHeaders', () => {
         shiftKey: true
       }); // select column B4
 
-      expect(getSelected()).toEqual([[-4, 10, 9, 1]]);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,10 from: -4,10 to: 9,1']);
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>
           <tr>

@@ -55,4 +55,26 @@ describe('Core.selectCell', () => {
     expect(hot.selectCells).toHaveBeenCalledWith([[1, 2, 3, 4]], false, false);
     expect(hot.selectCells).toHaveBeenCalledTimes(1);
   });
+
+  it('should call `afterSelectionEnd` as many times as for `afterSelection`', () => {
+    let tick = 0;
+    let tickEnd = 0;
+
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      afterSelection() {
+        tick += 1;
+      },
+      afterSelectionEnd() {
+        tickEnd += 1;
+      }
+    });
+
+    selectCell(3, 0);
+    selectCell(1, 1);
+
+    expect(tick).toEqual(2);
+    expect(tickEnd).toEqual(2);
+  });
 });
