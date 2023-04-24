@@ -42,10 +42,10 @@ filtering more intuitive for less technical end users, right out of the box.
 You can also filter data programmatically with Handsontable's API. This way, you can filter data
 from outside of the grid and implement your own interface.
 
-When creating a filter, you can:
+To create a filter, you can:
 
 - Select specific values that you want to display.
-- Create a condition by using operators available for a given column's data type.
+- Create a condition, using operators available for a given column's data type.
 
 ## Filtering demo
 
@@ -291,11 +291,12 @@ ReactDOM.render(<App />, document.getElementById('exampleFilterBasicDemo'));
 
 ## Enable filtering
 
-To enable the filtering interface for all columns, you need to do two things: first, set the
-`filters` property to `true`, and second, enable the interface by setting the `columnMenu` property
-to `true` as well.
+To enable the filtering interface for all columns, you need to do two things:
 
-Enabling the filters property without the interface can be useful if you plan to create your own
+1. Set the `filters` option to `true`.
+2. Enable the interface by setting the `columnMenu` option to `true`.
+
+Enabling the `filters` option without the interface can be useful if you plan to create your own
 custom interface for filtering by using the API.
 
 ::: only-for javascript
@@ -1179,9 +1180,9 @@ time you launch your grid.
 
 ::: only-for javascript
 
-To do this, you can use the [`afterInit()`](@/api/hooks.md#afterinit) hook in Handsontable along
-with the API provided by the Filters plugin. For instance, the demo below demonstrates how you can
-start with a pre-applied filter to display only items priced less than $200.
+To do this, you can use Handsontable's [`afterInit()`](@/api/hooks.md#afterinit) hook, along with
+the API provided by the Filters plugin. For instance, the demo below demonstrates how you can start
+with a pre-applied filter to display only items priced less than $200.
 
 ::: example #exampleFilterOnInitialization --html 1 --js 2
 
@@ -1306,7 +1307,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-To do this, use the API provided by the Filters plugin. For instance, the demo below demonstrates
+To do this, use the API provided by the [`Filters`](@/api/filters.md) plugin. For instance, the demo below demonstrates
 how you can start with a pre-applied filter to display only items priced less than $200.
 
 ::: example #exampleFilterOnInitialization :react
@@ -1444,9 +1445,9 @@ ReactDOM.render(<App />, document.getElementById('exampleFilterOnInitialization'
 
 ## External quick filter
 
-The quick filter feature in Handsontable enables you to search for a particular phrase in a specific
-column. To accomplish this, use methods [`filters.addCondition()`](@/api/filters.md#addcondition)
-and [`filters.filter()`](@/api/filters.md#filter).
+Handsontable's quick filter feature lets you search for a particular phrase in a specific column. To
+accomplish this, use methods [`filters.addCondition()`](@/api/filters.md#addcondition) and
+[`filters.filter()`](@/api/filters.md#filter).
 
 ::: only-for javascript
 
@@ -2314,9 +2315,9 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomFilterButton2'));
 
 ## Change the width of the filter menu
 
-If you have long text data in your columns that doesn't fit in the filters container, you may need
-to adjust the column menu's width for a better user experience. Fortunately, you can achieve this
-with just CSS by adding a style to `.htDropdownMenu table.htCore`.
+If the text data in your columns is too long to fit in the filters container, you can adjust the
+column menu's width for better user experience. You can achieve this with by styling
+`.htDropdownMenu table.htCore`.
 
 ```css
 .handsontable .htDropdownMenu table.htCore {
@@ -2735,18 +2736,18 @@ ReactDOM.render(<App />, document.getElementById('exampleExcludeRowsFromFilterin
 ## Server-side filtering
 
 You can use Handsontable's user interface to make filtering intuitive for less technical end users,
-but perform the actual filtering on the server.
+but decide to perform the actual filtering on the server.
 
-To help you with that, Handsontable's hook [`beforeFilter()`](@/api/hooks.md#beforefilter) allows
+To help you with that, Handsontable's [`beforeFilter()`](@/api/hooks.md#beforefilter) hook allows
 you to:
 
-- Gather information about the filters that the user wants to apply, so that you can send it to the
-  server.
+- Gather information about the filters that the user wants to apply, to send it to the server.
 - Disable filtering on the front end, so it doesn't interfere with filtering on the server.
 
 In the following demo, click on one of the column menu buttons (▼) and play around with filtering by
-selecting values or conditions-based criteria. After you click **OK**, the ▼ button turns green to indicate filtering, but the data is not
-filtered. Instead, the information about the chosen filters is logged to the console.
+selecting values or conditions-based criteria. After you click **OK**, the ▼ button turns green to
+indicate filtering, but the data is not filtered. Instead, the information about the specified
+filters is logged to the console.
 
 ::: only-for javascript
 
@@ -3013,8 +3014,8 @@ ReactDOM.render(<App />, document.getElementById('exampleServerSideFilter'));
 
 You can control filtering at the grid's runtime by using Handsontable's
 [hooks](@/guides/getting-started/events-and-hooks.md) and [API methods](@/api/filters.md#methods).
-This allows you to enable or disable filtering based on specific conditions. For instance, you may
-create a UI outside of the grid to manage its filtering behavior.
+This allows you to enable or disable filtering based on specific conditions. For example, you may
+create a user interface outside of the grid to manage Handsontable's filtering behavior.
 
 ### Enable or disable filtering programmatically
 
