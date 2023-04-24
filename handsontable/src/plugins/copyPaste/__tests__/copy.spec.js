@@ -99,10 +99,10 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>' +
           '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table><tbody>',
-        '<tr><td>{"test":&nbsp;"value"}</td></tr>',
-        '<tr><td>{"test":&nbsp;"value"}</td></tr>',
-        '<tr><td>{"test2":&nbsp;{"testtest":&nbsp;""}}</td></tr>',
-        '<tr><td>{"test3":&nbsp;""}</td></tr>',
+        '<tr><td>{"test": "value"}</td></tr>',
+        '<tr><td>{"test": "value"}</td></tr>',
+        '<tr><td>{"test2": {"testtest": ""}}</td></tr>',
+        '<tr><td>{"test3": ""}</td></tr>',
         '</tbody></table>',
       ].join(''));
     });
