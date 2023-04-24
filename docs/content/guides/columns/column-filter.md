@@ -26,33 +26,29 @@ searchCategory: Guides
 
 # Column filter
 
-Filter your data by values or by a set of conditions, using Handsontable's intuitive user interface
-or flexible API.
+Filter data by values or by a set of conditions, using Handsontable's intuitive user interface or
+flexible API.
 
 [[toc]]
 
 ## Overview
 
-With filtering, you can quickly find the information that you're looking for, based on specific
-criteria. This makes data analysis easier and faster, especially in case of large data sets.
+Filtering lets you quickly find the information that you're looking for, based on specific criteria.
+This makes data analysis easier and faster, especially with large data sets.
 
-You can filter data by using Handsontable's built-in interface that resembles Excel. This makes
-filtering more intuitive for less technical end users, right out of the box.
+Handsontable's built-in filtering interface resembles Excel's, so it's intuitive even to
+non-technical users. And if you want to implement your own interface, you can easily filter data
+programmatically, using Handsontable's API.
 
-You can also filter data programmatically with Handsontable's API. This way, you can filter data
-from outside of the grid and implement your own interface.
-
-To create a filter, you can:
-
-- Select specific values that you want to display.
-- Create a condition, using operators available for a given column's data type.
+You can filter data by value, or use the built-in conditions, which are different for each of the
+available column types.
 
 ## Filtering demo
 
 Click on one of the column menu buttons (▼) and play around with filtering by selecting values or
 conditions-based criteria.
 
-After filtering, columns readjust their widths to the longest values displayed on screen. To disable
+After filtering, the column readjusts its width to the longest value displayed on screen. To disable
 this behavior, set
 [fixed column widths](@/guides/columns/column-width.md#set-the-column-width-as-a-constant).
 
@@ -572,6 +568,8 @@ ReactDOM.render(<App />, document.getElementById('exampleShowFilterItemsOnly'));
 :::
 
 :::
+
+### Enable filtering for individual columns
 
 You have control over which columns are filterable and for which columns the column menu is enabled.
 In the following demo, only the **Brand** column is filterable, while the other columns are not.
@@ -1307,8 +1305,9 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-To do this, use the API provided by the [`Filters`](@/api/filters.md) plugin. For instance, the demo below demonstrates
-how you can start with a pre-applied filter to display only items priced less than $200.
+To do this, use the API provided by the [`Filters`](@/api/filters.md) plugin. For instance, the demo
+below demonstrates how you can start with a pre-applied filter to display only items priced less
+than $200.
 
 ::: example #exampleFilterOnInitialization :react
 
@@ -2329,7 +2328,8 @@ column menu's width for better user experience. You can achieve this with by sty
 
 You can exclude any number of top or bottom rows from filtering.
 
-For example, in the following demo, filtering doesn't affect the first and the last row.
+In the following demo, the first and the last row are [frozen](@/guides/rows/row-freezing.md), and
+filtering doesn't affect them.
 
 ::: only-for javascript
 
@@ -2735,8 +2735,8 @@ ReactDOM.render(<App />, document.getElementById('exampleExcludeRowsFromFilterin
 
 ## Server-side filtering
 
-You can use Handsontable's user interface to make filtering intuitive for less technical end users,
-but decide to perform the actual filtering on the server.
+You can decide to use Handsontable as an intuitive filtering interface, but perform the actual
+filtering on the server.
 
 To help you with that, Handsontable's [`beforeFilter()`](@/api/hooks.md#beforefilter) hook allows
 you to:
