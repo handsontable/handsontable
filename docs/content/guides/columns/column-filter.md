@@ -26,7 +26,7 @@ searchCategory: Guides
 
 # Column filter
 
-Filter your data by values or a by set of conditions, using Handsontable's intuitive user interface
+Filter your data by values or by a set of conditions, using Handsontable's intuitive user interface
 or flexible API.
 
 [[toc]]
@@ -222,7 +222,7 @@ export const App = () => {
           brand: 'Eidel',
           model: 'HL Road Tire',
           price: 279.99,
-          sellDate: 'Dec 2, 2023',
+          sellDate: 'Oct 2, 2023',
           sellTime: '01:23 AM',
           inStock: true,
         },
@@ -953,13 +953,13 @@ const handsontableInstance = new Handsontable(container, {
   ],
   columns: [
     {
-      title: 'Model<br>(text)',
+      title: 'Model',
       // set the type of the 'Model' column
       type: 'text', // 'text' is the default type, so you can omit this line
       data: 'model',
     },
     {
-      title: 'Price<br>(numeric)',
+      title: 'Price',
       // set the type of the 'Price' column
       type: 'numeric',
       data: 'price',
@@ -969,7 +969,7 @@ const handsontableInstance = new Handsontable(container, {
       },
     },
     {
-      title: 'Sold on<br>(date)',
+      title: 'Sold on',
       // set the type of the 'Date' column
       type: 'date',
       data: 'sellDate',
@@ -978,7 +978,7 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htRight',
     },
     {
-      title: 'Time<br>(time)',
+      title: 'Time',
       // set the type of the 'Time' column
       type: 'time',
       data: 'sellTime',
@@ -987,14 +987,14 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htRight',
     },
     {
-      title: 'In stock<br>(checkbox)',
+      title: 'In stock',
       // set the type of the 'In stock' column
       type: 'checkbox',
       data: 'inStock',
       className: 'htCenter',
     },
     {
-      title: 'Size<br>(dropdown)',
+      title: 'Size',
       // set the type of the 'Size' column
       type: 'dropdown',
       data: 'size',
@@ -1002,7 +1002,7 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htCenter',
     },
     {
-      title: 'Color<br>(autocomplete)',
+      title: 'Color',
       // set the type of the 'Size' column
       type: 'autocomplete',
       data: 'color',
@@ -1014,7 +1014,7 @@ const handsontableInstance = new Handsontable(container, {
   filters: true,
   // enable the column menu
   dropdownMenu: true,
-  height: 168,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -1087,13 +1087,13 @@ export const App = () => {
       ]}
       columns={[
         {
-          title: 'Model<br>(text)',
+          title: 'Model',
           // set the type of the 'Model' column
           type: 'text', // 'text' is the default type, so you can omit this line
           data: 'model',
         },
         {
-          title: 'Price<br>(numeric)',
+          title: 'Price',
           // set the type of the 'Price' column
           type: 'numeric',
           data: 'price',
@@ -1103,7 +1103,7 @@ export const App = () => {
           },
         },
         {
-          title: 'Sold on<br>(date)',
+          title: 'Sold on',
           // set the type of the 'Date' column
           type: 'date',
           data: 'sellDate',
@@ -1112,7 +1112,7 @@ export const App = () => {
           className: 'htRight',
         },
         {
-          title: 'Time<br>(time)',
+          title: 'Time',
           // set the type of the 'Time' column
           type: 'time',
           data: 'sellTime',
@@ -1121,14 +1121,14 @@ export const App = () => {
           className: 'htRight',
         },
         {
-          title: 'In stock<br>(checkbox)',
+          title: 'In stock',
           // set the type of the 'In stock' column
           type: 'checkbox',
           data: 'inStock',
           className: 'htCenter',
         },
         {
-          title: 'Size<br>(dropdown)',
+          title: 'Size',
           // set the type of the 'Size' column
           type: 'dropdown',
           data: 'size',
@@ -1136,7 +1136,7 @@ export const App = () => {
           className: 'htCenter',
         },
         {
-          title: 'Color<br>(autocomplete)',
+          title: 'Color',
           // set the type of the 'Size' column
           type: 'autocomplete',
           data: 'color',
@@ -1148,7 +1148,7 @@ export const App = () => {
       filters={true}
       // enable the column menu
       dropdownMenu={true}
-      height={168}
+      height="auto"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -1454,7 +1454,7 @@ and [`filters.filter()`](@/api/filters.md#filter).
 
 ```html
 <div class="controlsQuickFilter">
-  <label for="columns" class="selectColumn" >Select a column:</label>
+  <label for="columns" class="selectColumn">Select a column:</label>
   <select name="columns" id="columns">
     <option value="0">Brand</option>
     <option value="1">Model</option>
@@ -1640,7 +1640,9 @@ export const App = () => {
   return (
     <>
       <div class="controlsQuickFilter">
-        <label for="columns" class="selectColumn">Select a column: </label>
+        <label for="columns" class="selectColumn">
+          Select a column:{' '}
+        </label>
         <select name="columns" id="columns">
           <option value="0">Brand</option>
           <option value="1">Model</option>
@@ -2312,9 +2314,9 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomFilterButton2'));
 
 ## Change the width of the filter menu
 
-If you have long text data in your columns that doesn't fit in the filters container, you may need to
-adjust the column menu's width for a better user experience. Fortunately, you can achieve this with
-just CSS by adding a style to `.htDropdownMenu table.htCore`.
+If you have long text data in your columns that doesn't fit in the filters container, you may need
+to adjust the column menu's width for a better user experience. Fortunately, you can achieve this
+with just CSS by adding a style to `.htDropdownMenu table.htCore`.
 
 ```css
 .handsontable .htDropdownMenu table.htCore {
@@ -2326,10 +2328,7 @@ just CSS by adding a style to `.htDropdownMenu table.htCore`.
 
 You can exclude any number of top or bottom rows from filtering.
 
-For example, if you [freeze](@/guides/rows/row-freezing.md) a row at the top (to display column
-names), and freeze a row at the bottom (to display
-[column summaries](@/guides/columns/column-summary.md)), you can prevent those frozen rows from
-getting filtered, so they always stay in place.
+For example, in the following demo, filtering doesn't affect the first and the last row.
 
 ::: only-for javascript
 
@@ -2346,14 +2345,6 @@ import 'handsontable/dist/handsontable.full.min.css';
 const container = document.querySelector('#exampleExcludeRowsFromFiltering');
 const handsontableInstance = new Handsontable(container, {
   data: [
-    {
-      brand: 'Brand',
-      model: 'Model',
-      price: 'Price',
-      sellDate: 'Date',
-      sellTime: 'Time',
-      inStock: 'In stock',
-    },
     {
       brand: 'Gigabox',
       model: 'HL Mountain Frame',
@@ -2466,26 +2457,30 @@ const handsontableInstance = new Handsontable(container, {
       sellTime: '01:23 AM',
       inStock: 2,
     },
-    {},
   ],
   columns: [
     {
+      title: 'Brand',
       type: 'text',
       data: 'brand',
     },
     {
+      title: 'Model',
       type: 'text',
       data: 'model',
     },
     {
+      title: 'Price',
       type: 'numeric',
       data: 'price',
       numericFormat: {
         pattern: '$ 0,0.00',
         culture: 'en-US',
       },
+      className: 'htRight',
     },
     {
+      title: 'Date',
       type: 'date',
       data: 'sellDate',
       dateFormat: 'MMM D, YYYY',
@@ -2493,6 +2488,7 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htRight',
     },
     {
+      title: 'Time',
       type: 'time',
       data: 'sellTime',
       timeFormat: 'hh:mm A',
@@ -2500,12 +2496,14 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htRight',
     },
     {
+      title: 'In stock',
       type: 'numeric',
       data: 'inStock',
       className: 'htCenter',
     },
   ],
   height: 200,
+  colWidths: [120, 150, 120, 140, 120, 120],
   fixedRowsTop: 1,
   fixedRowsBottom: 1,
   colHeaders: true,
@@ -2514,49 +2512,11 @@ const handsontableInstance = new Handsontable(container, {
   // enable the column menu
   dropdownMenu: true,
   afterFilter() {
-    this.batch(() => {
-      let filtersRowsMap = this.getPlugin('filters').filtersRowsMap;
-      filtersRowsMap.setValueAtIndex(0, false);
-      filtersRowsMap.setValueAtIndex(filtersRowsMap.indexedValues.length - 1, false);
-    });
-  },
-  cells(row, col, prop) {
-    const lastRowIndex = this.instance.countRows() - 1;
+    let filtersRowsMap = this.getPlugin('filters').filtersRowsMap;
 
-    if (row === 0) {
-      return {
-        type: 'text',
-        className: 'htCenter',
-        readOnly: true,
-      };
-    }
-    if (row === lastRowIndex) {
-      return {
-        type: 'numeric',
-        className: 'htCenter',
-      };
-    }
+    filtersRowsMap.setValueAtIndex(0, false);
+    filtersRowsMap.setValueAtIndex(filtersRowsMap.indexedValues.length - 1, false);
   },
-  columnSummary: [
-    {
-      sourceColumn: 2,
-      type: 'sum',
-      reversedRowCoords: true,
-      destinationRow: 0,
-      destinationColumn: 2,
-      forceNumeric: true,
-      suppressDataTypeErrors: true,
-    },
-    {
-      sourceColumn: 5,
-      type: 'sum',
-      reversedRowCoords: true,
-      destinationRow: 0,
-      destinationColumn: 5,
-      forceNumeric: true,
-      suppressDataTypeErrors: true,
-    },
-  ],
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -2585,24 +2545,14 @@ export const App = () => {
     let hotInstance = hotTableComponentRef.current.hotInstance;
     let filtersRowsMap = hotInstance.getPlugin('filters').filtersRowsMap;
 
-    hotInstance.batch(() => {
-      filtersRowsMap.setValueAtIndex(0, false);
-      filtersRowsMap.setValueAtIndex(filtersRowsMap.indexedValues.length - 1, false);
-    });
+    filtersRowsMap.setValueAtIndex(0, false);
+    filtersRowsMap.setValueAtIndex(filtersRowsMap.indexedValues.length - 1, false);
   };
 
   return (
     <HotTable
       ref={hotTableComponentRef}
       data={[
-        {
-          brand: 'Brand',
-          model: 'Model',
-          price: 'Price',
-          sellDate: 'Date',
-          sellTime: 'Time',
-          inStock: 'In stock',
-        },
         {
           brand: 'Gigabox',
           model: 'HL Mountain Frame',
@@ -2715,26 +2665,30 @@ export const App = () => {
           sellTime: '01:23 AM',
           inStock: 2,
         },
-        {},
       ]}
       columns={[
         {
+          title: 'Brand',
           type: 'text',
           data: 'brand',
         },
         {
+          title: 'Model',
           type: 'text',
           data: 'model',
         },
         {
+          title: 'Price',
           type: 'numeric',
           data: 'price',
           numericFormat: {
             pattern: '$ 0,0.00',
             culture: 'en-US',
           },
+          className: 'htRight',
         },
         {
+          title: 'Date',
           type: 'date',
           data: 'sellDate',
           dateFormat: 'MMM D, YYYY',
@@ -2742,6 +2696,7 @@ export const App = () => {
           className: 'htRight',
         },
         {
+          title: 'Time',
           type: 'time',
           data: 'sellTime',
           timeFormat: 'hh:mm A',
@@ -2749,57 +2704,20 @@ export const App = () => {
           className: 'htRight',
         },
         {
+          title: 'In stock',
           type: 'numeric',
           data: 'inStock',
           className: 'htCenter',
         },
       ]}
       height={200}
+      colWidths={[120, 150, 120, 140, 120, 120]}
       fixedRowsTop={1}
       fixedRowsBottom={1}
       colHeaders={true}
       filters={true}
       dropdownMenu={true}
       afterFilter={exclude}
-      cells={(row, col, prop) => {
-        if (hotTableComponentRef.current != null) {
-          const lastRowIndex = hotTableComponentRef.current.hotInstance.countRows() - 1;
-
-          if (row === 0) {
-            return {
-              type: 'text',
-              className: 'htCenter',
-              readOnly: true,
-            };
-          }
-          if (row === lastRowIndex) {
-            return {
-              type: 'numeric',
-              className: 'htCenter',
-            };
-          }
-        }
-      }}
-      columnSummary={[
-        {
-          sourceColumn: 2,
-          type: 'sum',
-          reversedRowCoords: true,
-          destinationRow: 0,
-          destinationColumn: 2,
-          forceNumeric: true,
-          suppressDataTypeErrors: true,
-        },
-        {
-          sourceColumn: 5,
-          type: 'sum',
-          reversedRowCoords: true,
-          destinationRow: 0,
-          destinationColumn: 5,
-          forceNumeric: true,
-          suppressDataTypeErrors: true,
-        },
-      ]}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -2814,47 +2732,280 @@ ReactDOM.render(<App />, document.getElementById('exampleExcludeRowsFromFilterin
 
 :::
 
-## Use filtering hooks
+## Server-side filtering
 
-You can run your code before or after filtering, using the following
-[Handsontable hooks](@/guides/getting-started/events-and-hooks.md):
+You can use Handsontable's user interface to make filtering intuitive for less technical end users,
+but perform the actual filtering on the server.
 
-- [`beforeFilter()`](@/api/hooks.md#beforefilter)
-- [`afterFilter()`](@/api/hooks.md#afterfilter)
+To help you with that, Handsontable's hook [`beforeFilter()`](@/api/hooks.md#beforefilter) allows
+you to:
 
-For example, you can use [`beforeFilter()`](@/api/hooks.md#beforefilter) for server-side filtering,
-or use [`afterFilter()`](@/api/hooks.md#afterfilter) to
-[exclude rows from filtering](#exclude-rows-from-filtering).
+- Gather information about the filters that the user wants to apply, so that you can send it to the
+  server.
+- Disable filtering on the front end, so it doesn't interfere with filtering on the server.
+
+In the following demo, click on one of the column menu buttons (▼) and play around with filtering by
+selecting values or conditions-based criteria. After you click **OK**, the ▼ button turns green to indicate filtering, but the data is not
+filtered. Instead, the information about the chosen filters is logged to the console.
 
 ::: only-for javascript
 
-```js
-const configurationOptions = {
-  beforeFilter() {
-    // add your code here
-    return false; // to block front-end filtering
-  },
-  afterFilter() {
-    // add your code here
-  },
-};
+::: example #exampleServerSideFilter --html 1 --js 2
+
+```html
+<div id="exampleServerSideFilter"></div>
 ```
+
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const container = document.querySelector('#exampleServerSideFilter');
+const handsontableInstance = new Handsontable(container, {
+  data: [
+    {
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: 'Oct 11, 2023',
+      sellTime: '01:23 AM',
+      inStock: false,
+    },
+    {
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.9,
+      sellDate: 'May 3, 2023',
+      sellTime: '11:27 AM',
+      inStock: false,
+    },
+    {
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.1,
+      sellDate: 'Mar 27, 2023',
+      sellTime: '03:17 AM',
+      inStock: true,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: 'Aug 28, 2023',
+      sellTime: '08:01 AM',
+      inStock: true,
+    },
+    {
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: 'Oct 2, 2023',
+      sellTime: '01:23 AM',
+      inStock: true,
+    },
+  ],
+  columns: [
+    {
+      title: 'Brand',
+      type: 'text',
+      data: 'brand',
+    },
+    {
+      title: 'Model',
+      type: 'text',
+      data: 'model',
+    },
+    {
+      title: 'Price',
+      type: 'numeric',
+      data: 'price',
+      numericFormat: {
+        pattern: '$ 0,0.00',
+        culture: 'en-US',
+      },
+    },
+    {
+      title: 'Date',
+      type: 'date',
+      data: 'sellDate',
+      dateFormat: 'MMM D, YYYY',
+      correctFormat: true,
+      className: 'htRight',
+    },
+    {
+      title: 'Time',
+      type: 'time',
+      data: 'sellTime',
+      timeFormat: 'hh:mm A',
+      correctFormat: true,
+      className: 'htRight',
+    },
+    {
+      title: 'In stock',
+      type: 'checkbox',
+      data: 'inStock',
+      className: 'htCenter',
+    },
+  ],
+  // enable filtering
+  filters: true,
+  // enable the column menu
+  dropdownMenu: true,
+  height: 'auto',
+  // `beforeFilter()` is a Handsontable hook
+  // it's fired after Handsontable gathers information about the filters, but before the filters are applied
+  beforeFilter: function (conditionsStack) {
+    // gather information about the filters
+    console.log('The amount of filters: ' + conditionsStack.length);
+    console.log('The last changed column index: ' + conditionsStack[0].column);
+    console.log(
+      'The amount of filters added to this column: ' + conditionsStack[0].conditions.length
+    );
+    // the list of filter conditions
+    console.log(conditionsStack[0].conditions);
+
+    // return `false` to disable filtering on the client side
+    return false;
+  },
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+:::
 
 :::
 
 ::: only-for react
 
+::: example #exampleServerSideFilter :react
+
 ```jsx
-<HotTable
-  beforeFilter={
-    // add your code here
-    return false; // to block front-end filtering
-  }
-  afterFilter={
-    // add your code here
-  }
-/>
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const App = () => {
+  return (
+    <HotTable
+      data={[
+        {
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
+          price: 30,
+          sellDate: 'Oct 11, 2023',
+          sellTime: '01:23 AM',
+          inStock: false,
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          price: 1890.9,
+          sellDate: 'May 3, 2023',
+          sellTime: '11:27 AM',
+          inStock: false,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.1,
+          sellDate: 'Mar 27, 2023',
+          sellTime: '03:17 AM',
+          inStock: true,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: 'Aug 28, 2023',
+          sellTime: '08:01 AM',
+          inStock: true,
+        },
+        {
+          brand: 'Eidel',
+          model: 'HL Road Tire',
+          price: 279.99,
+          sellDate: 'Oct 2, 2023',
+          sellTime: '01:23 AM',
+          inStock: true,
+        },
+      ]}
+      columns={[
+        {
+          title: 'Brand',
+          type: 'text',
+          data: 'brand',
+        },
+        {
+          title: 'Model',
+          type: 'text',
+          data: 'model',
+        },
+        {
+          title: 'Price',
+          type: 'numeric',
+          data: 'price',
+          numericFormat: {
+            pattern: '$ 0,0.00',
+            culture: 'en-US',
+          },
+        },
+        {
+          title: 'Date',
+          type: 'date',
+          data: 'sellDate',
+          dateFormat: 'MMM D, YYYY',
+          correctFormat: true,
+          className: 'htRight',
+        },
+        {
+          title: 'Time',
+          type: 'time',
+          data: 'sellTime',
+          timeFormat: 'hh:mm A',
+          correctFormat: true,
+          className: 'htRight',
+        },
+        {
+          title: 'In stock',
+          type: 'checkbox',
+          data: 'inStock',
+          className: 'htCenter',
+        },
+      ]}
+      // enable filtering
+      filters={true}
+      // enable the column menu
+      dropdownMenu={true}
+      height="auto"
+      // `beforeFilter()` is a Handsontable hook
+      // it's fired after Handsontable gathers information about the filters, but before the filters are applied
+      beforeFilter={function (conditionsStack) {
+        // gather information about the filters
+        console.log('The amount of filters: ' + conditionsStack.length);
+        console.log('The last changed column index: ' + conditionsStack[0].column);
+        console.log(
+          'The amount of filters added to this column: ' + conditionsStack[0].conditions.length
+        );
+        // the list of filter conditions
+        console.log(conditionsStack[0].conditions);
+
+        // return `false` to disable filtering on the client side
+        return false;
+      }}
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<App />, document.getElementById('exampleServerSideFilter'));
+/* end:skip-in-preview */
 ```
+
+:::
 
 :::
 
