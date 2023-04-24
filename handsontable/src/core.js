@@ -338,7 +338,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (scrollToCell !== false) {
       if (!isSelectedByAnyHeader) {
         if (currentSelectedRange && !this.selection.isMultiple()) {
-          this.view.scrollViewport(visualToRenderableCoords(currentSelectedRange.from));
+          const renderableCoords = visualToRenderableCoords(currentSelectedRange.from);
+
+          if (renderableCoords.row < 0 && renderableCoords.col >= 0) {
+            this.view.scrollViewportHorizontally(renderableCoords.col);
+
+          } else if (renderableCoords.col < 0 && renderableCoords.row >= 0) {
+            this.view.scrollViewportVertically(renderableCoords.row);
+
+          } else {
+            this.view.scrollViewport(renderableCoords);
+          }
+
         } else {
           this.view.scrollViewport(visualToRenderableCoords(cellCoords));
         }

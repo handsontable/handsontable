@@ -864,6 +864,33 @@ describe('CellRange', () => {
     });
   });
 
+  describe('isSingle()', () => {
+    it('should return `true` when the range is a single cell', () => {
+      const range = createRange(1, 2, 1, 2, 1, 2);
+
+      expect(range.isSingle()).toBe(true);
+    });
+
+    it('should return `true` when the range is a single header', () => {
+      const range = createRange(-1, -2, -1, -2, -1, -2);
+
+      expect(range.isSingle()).toBe(true);
+    });
+
+    it('should return `false` when the range is not a single cell or header', () => {
+      {
+        const range = createRange(-1, 2, -1, 2, -1, 3);
+
+        expect(range.isSingle()).toBe(false);
+      }
+      {
+        const range = createRange(0, 2, 0, 2, 0, 3);
+
+        expect(range.isSingle()).toBe(false);
+      }
+    });
+  });
+
   describe('isSingleCell()', () => {
     it('should return `true` when `from` and `to` are equals and there are no headers selected', () => {
       {

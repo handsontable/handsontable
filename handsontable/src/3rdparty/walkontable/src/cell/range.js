@@ -110,6 +110,15 @@ class CellRange {
   }
 
   /**
+   * Checks if your range is just a single cell or header.
+   *
+   * @returns {boolean}
+   */
+  isSingle() {
+    return this.isSingleCell() || this.isSingleHeader();
+  }
+
+  /**
    * Checks if your range is just a single cell.
    *
    * @returns {boolean}

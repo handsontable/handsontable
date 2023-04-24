@@ -411,7 +411,7 @@ class Selection {
    * @returns {boolean}
    */
   isMultiple() {
-    const isMultipleListener = createObjectPropListener(!this.selectedRange.current().isSingleCell());
+    const isMultipleListener = createObjectPropListener(!this.selectedRange.current().isSingle());
 
     this.runLocalHooks('afterIsMultipleSelection', isMultipleListener);
 
