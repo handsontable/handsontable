@@ -1,6 +1,6 @@
 import { BaseEditor, EDITOR_STATE } from '../baseEditor';
 import EventManager from '../../eventManager';
-import { isIE, isEdge, isIOS } from '../../helpers/browser';
+import { isMobileBrowser, isIE, isEdge, isIOS } from '../../helpers/browser';
 import {
   addClass,
   getComputedStyle,
@@ -162,6 +162,7 @@ export class TextEditor extends BaseEditor {
 
       const {
         allowInvalid,
+        fragmentSelection,
       } = cellProperties;
 
       if (allowInvalid) {
@@ -174,15 +175,17 @@ export class TextEditor extends BaseEditor {
         this.hideEditableElement();
       }
 
-      // TODO: add behind a fullImeSupport option
+      // @TODO: The fragmentSelection functionality is conflicted with IME. For this feature
+      // refocus has to be disabled (to make IME working).
+      const restoreFocus = !fragmentSelection;
 
-      // // @TODO: The fragmentSelection functionality is conflicted with IME. For this feature
-      // // refocus has to be disabled (to make IME working).
-      // const restoreFocus = !fragmentSelection;
-      //
-      // if (restoreFocus && !isMobileBrowser()) {
-      //   // this.focus();
-      // }
+      if (
+        this.hot.getSettings().imeFastEdit &&
+        restoreFocus &&
+        !isMobileBrowser()
+      ) {
+        this.focus();
+      }
     }
   }
 
@@ -391,9 +394,6 @@ export class TextEditor extends BaseEditor {
    * @private
    */
   bindEvents() {
-    // this.eventManager.addEventListener(this.TEXTAREA, 'cut', event => event.stopPropagation());
-    // this.eventManager.addEventListener(this.TEXTAREA, 'paste', event => event.stopPropagation());
-
     if (isIOS()) {
       // on iOS after click "Done" the edit isn't hidden by default, so we need to handle it manually.
       this.eventManager.addEventListener(this.TEXTAREA, 'focusout', () => this.finishEditing(false));
@@ -401,16 +401,6 @@ export class TextEditor extends BaseEditor {
 
     this.addHook('afterScrollHorizontally', () => this.refreshDimensions());
     this.addHook('afterScrollVertically', () => this.refreshDimensions());
-
-    this.addHook('afterColumnResize', () => {
-      this.refreshDimensions();
-      // this.focus();
-    });
-
-    this.addHook('afterRowResize', () => {
-      this.refreshDimensions();
-      // this.focus();
-    });
   }
 
   /**
