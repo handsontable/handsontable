@@ -134,6 +134,8 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
     this.addHook('afterOnCellMouseDown', (...args) => this.onAfterOnCellMouseDown(...args));
     this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
+    this.addHook('modifyTransformStart', (...args) => this.onModifyTransformStart(...args));
+    this.addHook('afterSelection', (...args) => this.onAfterSelection(...args));
     this.addHook('afterGetColumnHeaderRenderers', array => this.onAfterGetColumnHeaderRenderers(array));
     this.addHook('modifyColWidth', (...args) => this.onModifyColWidth(...args));
     this.addHook('modifyColumnHeaderValue', (...args) => this.onModifyColumnHeaderValue(...args));
@@ -573,16 +575,65 @@ export class NestedHeaders extends BasePlugin {
     const columnsToSelect = [];
 
     if (coords.col < from.col) {
-      columnsToSelect.push(bottomEndCoords.col, columnIndex);
+      columnsToSelect.push(bottomEndCoords.col, columnIndex, coords.row);
 
     } else if (coords.col > from.col) {
-      columnsToSelect.push(topStartCoords.col, columnIndex + origColspan - 1);
+      columnsToSelect.push(topStartCoords.col, columnIndex + origColspan - 1, coords.row);
 
     } else {
-      columnsToSelect.push(columnIndex, columnIndex + origColspan - 1);
+      columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
     }
 
-    this.hot.selectColumns(...columnsToSelect);
+    this.hot.selection.selectColumns(...columnsToSelect);
+  }
+
+  /**
+   * `modifyTransformStart` hook is called every time the keyboard navigation is used.
+   *
+   * @private
+   * @param {object} delta The transformation delta.
+   */
+  onModifyTransformStart(delta) {
+    const { highlight } = this.hot.getSelectedRangeLast();
+    const rawCoords = this.hot._createCellCoords(highlight.row + delta.row, highlight.col + delta.col);
+
+    if (rawCoords.isCell()) {
+      return;
+    }
+
+    if (delta.col < 0) {
+      const lastColumnIndex = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
+      let nextColumnIndex = this.#stateManager.findLeftMostColumnIndex(rawCoords.row, rawCoords.col);
+
+      if (nextColumnIndex === lastColumnIndex) {
+        nextColumnIndex = this.#stateManager.findLeftMostColumnIndex(rawCoords.row, nextColumnIndex - 1);
+      }
+
+      delta.col = -(highlight.col - nextColumnIndex);
+
+    } else if (delta.col > 0) {
+      const columnIndex = this.#stateManager.findRightMostColumnIndex(rawCoords.row, rawCoords.col);
+
+      delta.col = columnIndex - highlight.col;
+    }
+  }
+
+  /**
+   * `onAfterSelection` hook is called every time the cells and/or headers selection is changed.
+   *
+   * @private
+   */
+  onAfterSelection() {
+    const range = this.hot.getSelectedRangeLast();
+    const { highlight } = range;
+    const columnIndex = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
+    const focusHighlight = this.hot.selection.highlight.getFocus();
+
+    // Correct the highlight/focus selection to highlight the correct TH element
+    focusHighlight.visualCellRange.highlight.col = columnIndex;
+    focusHighlight.visualCellRange.from.col = columnIndex;
+    focusHighlight.visualCellRange.to.col = columnIndex;
+    focusHighlight.commit();
   }
 
   /**

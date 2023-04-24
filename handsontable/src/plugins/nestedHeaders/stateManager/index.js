@@ -359,6 +359,41 @@ export default class StateManager {
   }
 
   /**
+   * The method is helpful in cases where the column index targets in-between currently
+   * collapsed column. In that case, the method returns the right-most column index
+   * where the nested header begins.
+   *
+   * @param {number} headerLevel Header level (there is support for negative and positive values).
+   * @param {number} columnIndex A visual column index.
+   * @returns {number}
+   */
+  findRightMostColumnIndex(headerLevel, columnIndex) {
+    const {
+      isRoot
+    } = this.getHeaderSettings(headerLevel, columnIndex) ?? { isRoot: true };
+
+    if (isRoot) {
+      return columnIndex;
+    }
+
+    let stepForthColumn = columnIndex + 1;
+
+    while (stepForthColumn < this.getColumnsCount()) {
+      const {
+        isRoot: isRootNode
+      } = this.getHeaderSettings(headerLevel, stepForthColumn) ?? { isRoot: true };
+
+      if (isRootNode) {
+        break;
+      }
+
+      stepForthColumn += 1;
+    }
+
+    return stepForthColumn;
+  }
+
+  /**
    * Gets a total number of headers levels.
    *
    * @returns {number}
