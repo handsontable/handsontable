@@ -1013,7 +1013,7 @@ const handsontableInstance = new Handsontable(container, {
   filters: true,
   // enable the column menu
   dropdownMenu: true,
-  height: 'auto',
+  height: 142,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -1147,7 +1147,7 @@ export const App = () => {
       filters={true}
       // enable the column menu
       dropdownMenu={true}
-      height="auto"
+      height={142}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -1589,8 +1589,7 @@ filterField.addEventListener('keyup', function (event) {
 }
 
 .selectColumn {
-  color: white;
-  mix-blend-mode: exclusion;
+  color: gray;
 }
 
 #filterField {
