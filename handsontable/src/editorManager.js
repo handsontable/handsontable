@@ -326,15 +326,13 @@ class EditorManager {
    * @param {KeyboardEvent} event The keyboard event object.
    */
   onAfterDocumentKeyDown(event) {
-    if (!this.instance.isListening()) {
+    const selection = this.instance.getSelectedRangeLast();
+
+    if (!this.instance.isListening() || !selection || selection.highlight.isHeader()) {
       return;
     }
 
     const { keyCode } = event;
-
-    if (!this.selection.isSelected()) {
-      return;
-    }
 
     // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     const isCtrlPressed = (event.ctrlKey || event.metaKey) && !event.altKey;
