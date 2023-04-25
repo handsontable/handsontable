@@ -132,5 +132,37 @@ describe('CopyPaste', () => {
         '</tbody></table>',
       ].join(''));
     });
+
+    it('should handle spaces properly (creates Excel compatible HTML)', () => {
+      handsontable({
+        colHeaders: ['a   b'],
+        data: [
+          ['c d'],
+          ['e  f'],
+          ['g      h'],
+        ],
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectAll();
+
+      plugin.copyWithColumnHeaders();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      expect(copyEvent.clipboardData.getData('text/plain'))
+        .toBe('a   b\nc d\ne  f\ng      h');
+      expect(copyEvent.clipboardData.getData('text/html')).toBe([
+        '<meta name="generator" content="Handsontable"/>' +
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table><tbody>',
+        '<tr><td>a<span style="mso-spacerun: yes">&nbsp;&nbsp; </span>b</td></tr>',
+        '<tr><td>c d</td></tr>',
+        '<tr><td>e<span style="mso-spacerun: yes">&nbsp; </span>f</td></tr>',
+        '<tr><td>g<span style="mso-spacerun: yes">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>h</td></tr>',
+        '</tbody></table>',
+      ].join(''));
+    });
   });
 });

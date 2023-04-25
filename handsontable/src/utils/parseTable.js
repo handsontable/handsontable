@@ -130,7 +130,7 @@ export function _dataToHTML(input) {
           .replace(/>/g, '&gt;')
           .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
           .replace(/\x20{2,}/gi, (substring) => {
-            // The way how Excel serializes data with at least two spaces
+            // The way how Excel serializes data with at least two spaces.
             return `<span style="mso-spacerun: yes">${'&nbsp;'.repeat(substring.length - 1)} </span>`;
           })
           .replace(/\t/gi, '&#9;');
