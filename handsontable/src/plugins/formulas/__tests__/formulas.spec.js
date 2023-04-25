@@ -2799,7 +2799,7 @@ describe('Formulas general', () => {
         data: [
           ['=DATE(2022, 8, 1)', '=DATEVALUE("01/03/2020")'],
           ['=EDATE(A1, 1)', '=DAYS(A1, A2)'],
-          ['=NOW()', '=DATEDIF(TODAY(), A3, "D")'],
+          ['=A2', '=DATEDIF(TODAY(), NOW(), "D")'],
         ],
         formulas: {
           engine: HyperFormula,
@@ -2815,13 +2815,13 @@ describe('Formulas general', () => {
       expect(getData()).toEqual([
         ['08/01/2022', 43891], // A Datestring handled using HF's `dateFormats` option.
         ['09/01/2022', -31],
-        ['04/20/2023', 0],
+        ['09/01/2022', 0],
       ]);
 
       expect(getSourceData()).toEqual([
         ['=DATE(2022, 8, 1)', '=DATEVALUE("01/03/2020")'],
         ['=EDATE(A1, 1)', '=DAYS(A1, A2)'],
-        ['=NOW()', '=DATEDIF(TODAY(), A3, "D")'],
+        ['=A2', '=DATEDIF(TODAY(), A3, "D")'],
       ]);
     });
 
