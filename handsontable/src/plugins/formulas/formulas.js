@@ -31,6 +31,7 @@ import { toUpperCaseFirst } from '../../helpers/string';
 import Hooks from '../../pluginHooks';
 
 export const PLUGIN_KEY = 'formulas';
+export const SETTING_KEYS = ['maxRows', 'maxColumns', 'language'];
 export const PLUGIN_PRIORITY = 260;
 const ROW_MOVE_UNDO_REDO_NAME = 'row_move';
 
@@ -64,6 +65,13 @@ export class Formulas extends BasePlugin {
 
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  static get SETTING_KEYS() {
+    return [
+      PLUGIN_KEY,
+      ...SETTING_KEYS
+    ];
   }
 
   /**
