@@ -22,13 +22,17 @@ import {
   getDateInHotFormat,
   isFormula,
 } from './utils';
-import { getEngineSettingsWithOverrides } from './engine/settings';
+import {
+  getEngineSettingsWithOverrides,
+  haveEngineSettingsChanged
+} from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
 import Hooks from '../../pluginHooks';
 import IndexSyncer from './indexSyncer';
 
 export const PLUGIN_KEY = 'formulas';
+export const SETTING_KEYS = ['maxRows', 'maxColumns', 'language'];
 export const PLUGIN_PRIORITY = 260;
 
 Hooks.getSingleton().register('afterNamedExpressionAdded');
@@ -61,6 +65,13 @@ export class Formulas extends BasePlugin {
 
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  static get SETTING_KEYS() {
+    return [
+      PLUGIN_KEY,
+      ...SETTING_KEYS
+    ];
   }
 
   /**
@@ -311,7 +322,11 @@ export class Formulas extends BasePlugin {
    * @param {object} newSettings New set of settings passed to the `updateSettings` method.
    */
   updatePlugin(newSettings) {
-    this.engine.updateConfig(getEngineSettingsWithOverrides(this.hot.getSettings()));
+    const newEngineSettings = getEngineSettingsWithOverrides(this.hot.getSettings());
+
+    if (haveEngineSettingsChanged(this.engine.getConfig(), newEngineSettings)) {
+      this.engine.updateConfig(newEngineSettings);
+    }
 
     const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
 
