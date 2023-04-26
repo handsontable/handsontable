@@ -15,13 +15,23 @@ import {
 import {
   isEscapedFormulaExpression,
   unescapeFormulaExpression,
+  isDate,
+  isDateValid,
+  getDateInHfFormat,
+  getDateFromExcelDate,
+  getDateInHotFormat,
+  isFormula,
 } from './utils';
-import { getEngineSettingsWithOverrides } from './engine/settings';
+import {
+  getEngineSettingsWithOverrides,
+  haveEngineSettingsChanged
+} from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
 import Hooks from '../../pluginHooks';
 
 export const PLUGIN_KEY = 'formulas';
+export const SETTING_KEYS = ['maxRows', 'maxColumns', 'language'];
 export const PLUGIN_PRIORITY = 260;
 const ROW_MOVE_UNDO_REDO_NAME = 'row_move';
 
@@ -55,6 +65,13 @@ export class Formulas extends BasePlugin {
 
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  static get SETTING_KEYS() {
+    return [
+      PLUGIN_KEY,
+      ...SETTING_KEYS
+    ];
   }
 
   /**
@@ -183,6 +200,11 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
+    // TODO: Actions related to overwriting dates from HOT format to HF default format are done as callback to this
+    // hook, because some hooks, such as `afterLoadData` doesn't have information about composed cell properties.
+    // Another hooks are triggered to late for setting HF's engine data needed for some actions.
+    this.addHook('afterCellMetaReset', (...args) => this.onAfterCellMetaReset(...args));
+
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeUndo', (action) => {
       // TODO: Move action isn't handled by HyperFormula.
@@ -232,7 +254,11 @@ export class Formulas extends BasePlugin {
    * @param {object} newSettings New set of settings passed to the `updateSettings` method.
    */
   updatePlugin(newSettings) {
-    this.engine.updateConfig(getEngineSettingsWithOverrides(this.hot.getSettings()));
+    const newEngineSettings = getEngineSettingsWithOverrides(this.hot.getSettings());
+
+    if (haveEngineSettingsChanged(this.engine.getConfig(), newEngineSettings)) {
+      this.engine.updateConfig(newEngineSettings);
+    }
 
     const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
 
@@ -553,6 +579,19 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    const cellMeta = this.hot.getCellMeta(row, column);
+
+    if (isDate(newValue, cellMeta.type)) {
+      if (isDateValid(newValue, cellMeta.dateFormat)) {
+        // Rewriting date in HOT format to HF format.
+        newValue = getDateInHfFormat(newValue, cellMeta.dateFormat);
+
+      } else if (isFormula(newValue) === false) {
+        // Escaping value from date parsing using "'" sign (HF feature).
+        newValue = `'${newValue}`;
+      }
+    }
+
     return this.engine.setCellContents(address, newValue);
   }
 
@@ -576,7 +615,12 @@ export class Formulas extends BasePlugin {
         sheet: this.sheetId,
       };
 
-      const cellValue = this.engine.getCellValue(address);
+      const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
+      let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel-like date).
+
+      if (cellMeta.type === 'date' && isNumeric(cellValue)) {
+        cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat);
+      }
 
       // If `cellValue` is an object it is expected to be an error
       return (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
@@ -614,7 +658,41 @@ export class Formulas extends BasePlugin {
       return false;
     }
 
-    return this.engine.getFillRangeData(engineSourceRange, engineTargetRange);
+    const fillRangeData = this.engine.getFillRangeData(engineSourceRange, engineTargetRange);
+    const {
+      row: sourceStartRow,
+      col: sourceStartColumn,
+    } = engineSourceRange.start;
+    const {
+      row: sourceEndRow,
+      col: sourceEndColumn,
+    } = engineSourceRange.end;
+    const populationRowLength = sourceEndRow - sourceStartRow + 1;
+    const populationColumnLength = sourceEndColumn - sourceStartColumn + 1;
+
+    for (let populatedRowIndex = 0; populatedRowIndex < fillRangeData.length; populatedRowIndex += 1) {
+      for (let populatedColumnIndex = 0; populatedColumnIndex < fillRangeData[populatedRowIndex].length;
+        populatedColumnIndex += 1) {
+        const populatedValue = fillRangeData[populatedRowIndex][populatedColumnIndex];
+        const sourceRow = populatedRowIndex % populationRowLength;
+        const sourceColumn = populatedColumnIndex % populationColumnLength;
+        const sourceCellMeta = this.hot.getCellMeta(sourceRow, sourceColumn);
+
+        if (isDate(populatedValue, sourceCellMeta.type)) {
+          if (populatedValue.startsWith('\'')) {
+            // Populating values on HOT side without apostrophe.
+            fillRangeData[populatedRowIndex][populatedColumnIndex] = populatedValue.slice(1);
+
+          } else if (this.isFormulaCellType(sourceRow, sourceColumn, this.sheetId) === false) {
+            // Populating date in proper format, coming from the source cell.
+            fillRangeData[populatedRowIndex][populatedColumnIndex] =
+              getDateInHotFormat(populatedValue, sourceCellMeta.dateFormat);
+          }
+        }
+      }
+    }
+
+    return fillRangeData;
   }
 
   /**
@@ -633,6 +711,44 @@ export class Formulas extends BasePlugin {
     // This flag needs to be defined, because not passing data to HOT results in HOT auto-generating a `null`-filled
     // initial dataset.
     this.#hotWasInitializedWithEmptyData = isUndefined(this.hot.getSettings().data);
+  }
+
+  /**
+   * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
+   *
+   * @private
+   */
+  onAfterCellMetaReset() {
+    const sourceDataArray = this.hot.getSourceDataArray();
+    let valueChanged = false;
+
+    sourceDataArray.forEach((rowData, rowIndex) => {
+      rowData.forEach((cellValue, columnIndex) => {
+        const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex);
+        const dateFormat = cellMeta.dateFormat;
+
+        if (isDate(cellValue, cellMeta.type)) {
+          valueChanged = true;
+
+          if (isDateValid(cellValue, dateFormat)) {
+            // Rewriting date in HOT format to HF format.
+            sourceDataArray[rowIndex][columnIndex] = getDateInHfFormat(cellValue, dateFormat);
+
+          } else if (this.isFormulaCellType(rowIndex, columnIndex) === false) {
+            // Escaping value from date parsing using "'" sign (HF feature).
+            sourceDataArray[rowIndex][columnIndex] = `'${cellValue}`;
+          }
+        }
+      });
+    });
+
+    if (valueChanged === true) {
+      this.#internalOperationPending = true;
+
+      this.engine.setSheetContent(this.sheetId, sourceDataArray);
+
+      this.#internalOperationPending = false;
+    }
   }
 
   /**
@@ -656,7 +772,7 @@ export class Formulas extends BasePlugin {
       if (this.engine.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
         this.#internalOperationPending = true;
 
-        const dependentCells = this.engine.setSheetContent(this.sheetId, this.hot.getSourceDataArray());
+        const dependentCells = this.engine.setSheetContent(this.sheetId, sourceDataArray);
 
         this.renderDependentSheets(dependentCells);
 
@@ -711,7 +827,12 @@ export class Formulas extends BasePlugin {
       col: this.toPhysicalColumnPosition(column),
       sheet: this.sheetId
     };
-    const cellValue = this.engine.getCellValue(address);
+    let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel like date).
+    const cellMeta = this.hot.getCellMeta(row, column);
+
+    if (cellMeta.type === 'date' && isNumeric(cellValue)) {
+      cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat);
+    }
 
     // If `cellValue` is an object it is expected to be an error
     const value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;

@@ -255,9 +255,14 @@ class Event {
     const table = this.wtTable.TABLE;
     const lastTD = closestDown(event.target, ['TD', 'TH'], table);
     const nextTD = closestDown(event.relatedTarget, ['TD', 'TH'], table);
+    const parent = this.parent || this;
 
     if (lastTD && lastTD !== nextTD && isChildOf(lastTD, table)) {
       this.callListener('onCellMouseOut', event, this.wtTable.getCoords(lastTD), lastTD);
+
+      if (nextTD === null) {
+        parent.lastMouseOver = null;
+      }
     }
   }
 
