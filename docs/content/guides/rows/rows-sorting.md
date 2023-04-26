@@ -56,9 +56,6 @@ Handsontable sorts data only visually, so your source data remains in the origin
 your sorting changes in the data source, see this guide:
 [Saving data](@/guides/getting-started/saving-data.md).
 
-You can't use sorting with [nested data structures](@/guides/rows/row-parent-child.md)
-([`NestedRows`](@/api/nestedRows.md)).
-
 ## Sorting demo
 
 Click on one of the column names to sort the values in ascending (↑) or descending (↓) order, or to
@@ -140,7 +137,6 @@ const handsontableInstance = new Handsontable(container, {
         pattern: '$ 0,0.00',
         culture: 'en-US',
       },
-      className: 'htLeft',
     },
     {
       title: 'Date',
@@ -254,7 +250,6 @@ export const App = () => {
             pattern: '$ 0,0.00',
             culture: 'en-US',
           },
-          className: 'htLeft',
         },
         {
           title: 'Date',
@@ -408,7 +403,6 @@ const handsontableInstance = new Handsontable(container, {
         pattern: '$ 0,0.00',
         culture: 'en-US',
       },
-      className: 'htLeft',
       // disable sorting for the 'Price' column
       columnSorting: {
         headerAction: false,
@@ -533,7 +527,6 @@ export const App = () => {
             pattern: '$ 0,0.00',
             culture: 'en-US',
           },
-          className: 'htLeft',
           // disable sorting for the 'Price' column
           columnSorting: {
             headerAction: false,
@@ -757,7 +750,6 @@ const handsontableInstance = new Handsontable(container, {
         pattern: '$ 0,0.00',
         culture: 'en-US',
       },
-      className: 'htLeft',
     },
     {
       title: 'Sold on<br>(date)',
@@ -901,7 +893,6 @@ export const App = () => {
             pattern: '$ 0,0.00',
             culture: 'en-US',
           },
-          className: 'htLeft',
         },
         {
           title: 'Sold on<br>(date)',
@@ -1059,7 +1050,6 @@ const handsontableInstance = new Handsontable(container, {
         pattern: '$ 0,0.00',
         culture: 'en-US',
       },
-      className: 'htLeft',
     },
     {
       title: 'Date',
@@ -1173,7 +1163,6 @@ export const App = () => {
             pattern: '$ 0,0.00',
             culture: 'en-US',
           },
-          className: 'htLeft',
         },
         {
           title: 'Date',
@@ -1370,7 +1359,6 @@ const handsontableInstance = new Handsontable(container, {
         pattern: '$ 0,0.00',
         culture: 'en-US',
       },
-      className: 'htLeft',
     },
     {
       title: 'Date',
@@ -1495,7 +1483,6 @@ export const App = () => {
             pattern: '$ 0,0.00',
             culture: 'en-US',
           },
-          className: 'htLeft',
         },
         {
           title: 'Date',
@@ -1716,7 +1703,6 @@ const handsontableInstance = new Handsontable(container, {
         pattern: '$ 0,0.00',
         culture: 'en-US',
       },
-      className: 'htLeft',
     },
     {
       title: 'Date',
@@ -1853,7 +1839,6 @@ export const App = () => {
             pattern: '$ 0,0.00',
             culture: 'en-US',
           },
-          className: 'htLeft',
         },
         {
           title: 'Date',
@@ -1997,7 +1982,6 @@ const handsontableInstance = new Handsontable(container, {
         pattern: '$ 0,0.00',
         culture: 'en-US',
       },
-      className: 'htLeft',
     },
     {
       title: 'Date',
@@ -2129,7 +2113,6 @@ export const App = () => {
             pattern: '$ 0,0.00',
             culture: 'en-US',
           },
-          className: 'htLeft',
         },
         {
           title: 'Date',
@@ -2280,7 +2263,6 @@ const handsontableInstance = new Handsontable(container, {
         pattern: '$ 0,0.00',
         culture: 'en-US',
       },
-      className: 'htLeft',
     },
     {
       title: 'Date',
@@ -2471,7 +2453,6 @@ export const App = () => {
             pattern: '$ 0,0.00',
             culture: 'en-US',
           },
-          className: 'htLeft',
         },
         {
           title: 'Date',
@@ -2850,7 +2831,6 @@ const handsontableInstance = new Handsontable(container, {
         pattern: '$ 0,0.00',
         culture: 'en-US',
       },
-      className: 'htLeft',
     },
     {
       type: 'date',
@@ -3107,7 +3087,6 @@ export const App = () => {
             pattern: '$ 0,0.00',
             culture: 'en-US',
           },
-          className: 'htLeft',
         },
         {
           type: 'date',
@@ -3444,7 +3423,6 @@ const handsontableInstance = new Handsontable(container, {
         pattern: '$ 0,0.00',
         culture: 'en-US',
       },
-      className: 'htLeft',
     },
     {
       title: 'Date',
@@ -3590,7 +3568,6 @@ export const App = () => {
               pattern: '$ 0,0.00',
               culture: 'en-US',
             },
-            className: 'htLeft',
           },
           {
             title: 'Date',
@@ -3794,7 +3771,6 @@ const handsontableInstance = new Handsontable(container, {
         pattern: '$ 0,0.00',
         culture: 'en-US',
       },
-      className: 'htLeft',
     },
     {
       title: 'Date',
@@ -3942,7 +3918,6 @@ export const App = () => {
               pattern: '$ 0,0.00',
               culture: 'en-US',
             },
-            className: 'htLeft',
           },
           {
             title: 'Date',
