@@ -276,6 +276,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
     countColsTranslated: () => this.view.countRenderableColumns(),
     countRowsTranslated: () => this.view.countRenderableRows(),
+    countRowHeaders: () => this.countRowHeaders(),
+    countColHeaders: () => this.countColHeaders(),
     getShortcutManager: () => instance.getShortcutManager(),
     createCellCoords: (row, column) => instance._createCellCoords(row, column),
     createCellRange: (highlight, from, to) => instance._createCellRange(highlight, from, to),
@@ -3961,6 +3963,30 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
+   * Returns the number of rendered row headers.
+   *
+   * @since 13.0.0
+   * @memberof Core#
+   * @function countRowHeaders
+   * @returns {number} Number of row headers.
+   */
+  this.countRowHeaders = function() {
+    return this.view.getRowHeadersCount();
+  };
+
+  /**
+   * Returns the number of rendered column headers.
+   *
+   * @since 13.0.0
+   * @memberof Core#
+   * @function countColHeaders
+   * @returns {number} Number of column headers.
+   */
+  this.countColHeaders = function() {
+    return this.view.getColumnHeadersCount();
+  };
+
+  /**
    * Returns the number of empty rows. If the optional ending parameter is `true`, returns the
    * number of empty rows at the bottom of the table.
    *
@@ -4778,7 +4804,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   shortcutManager.setActiveContextName('grid');
 
   gridContext.addShortcuts([{
-    keys: [['Control/Meta', 'A']],
+    keys: [['Control/Meta', 'A'], ['Control/Meta', 'Shift', 'Space']],
     callback: () => {
       instance.selectAll();
     },

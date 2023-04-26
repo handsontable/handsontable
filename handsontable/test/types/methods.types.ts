@@ -48,6 +48,8 @@ hot.countRows() === 123;
 hot.countSourceRows() === 123;
 hot.countVisibleCols() === 123;
 hot.countVisibleRows() === 123;
+hot.countRowHeaders() === 2;
+hot.countColHeaders() === 2;
 hot.deselectCell();
 hot.destroy();
 hot.destroyEditor(true, true);

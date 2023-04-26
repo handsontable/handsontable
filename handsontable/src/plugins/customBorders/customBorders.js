@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { hasOwnProperty, objectEach, deepClone } from '../../helpers/object';
+import { hasOwnProperty, deepClone } from '../../helpers/object';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayReduce, arrayMap } from '../../helpers/array';
 import * as C from '../../i18n/constants';
@@ -674,7 +674,9 @@ export class CustomBorders extends BasePlugin {
 
     arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
       if (border.id === customSelection.settings.id) {
-        objectEach(customSelection.instanceBorders, (borderObject) => {
+        const borders = this.hot.view._wt.selectionManager.getBorderInstances(customSelection);
+
+        arrayEach(borders, (borderObject) => {
           borderObject.toggleHiddenClass(place, remove); // TODO this also bad?
         });
 
@@ -712,7 +714,9 @@ export class CustomBorders extends BasePlugin {
           customSelection.commit();
 
           if (place) {
-            objectEach(customSelection.instanceBorders, (borderObject) => {
+            const borders = this.hot.view._wt.selectionManager.getBorderInstances(customSelection);
+
+            arrayEach(borders, (borderObject) => {
               borderObject.changeBorderStyle(place, border);
             });
           }

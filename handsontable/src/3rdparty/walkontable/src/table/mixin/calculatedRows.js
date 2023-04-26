@@ -93,7 +93,17 @@ const calculatedRows = {
    */
   getVisibleRowsCount() {
     return this.dataAccessObject.countRowsVisible;
-  }
+  },
+
+  /**
+   * Get the number of rendered column headers.
+   *
+   * @returns {number}
+   * @this Table
+   */
+  getColumnHeadersCount() {
+    return this.dataAccessObject.columnHeaders.length;
+  },
 };
 
 defineGetter(calculatedRows, 'MIXIN_NAME', MIXIN_NAME, {

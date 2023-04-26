@@ -2,7 +2,6 @@ import {
   hasClass,
   index,
   offset,
-  removeClass,
   removeTextNodes,
   overlayContainsElement,
   closest,
@@ -399,7 +398,9 @@ class Table {
       wtOverlays.refreshAll(); // `refreshAll()` internally already calls `refreshSelections()` method
       wtOverlays.adjustElementsSize();
     } else {
-      this.refreshSelections(runFastDraw);
+      this.dataAccessObject.selectionManager
+        .setActiveOverlay(this.facadeGetter())
+        .render(runFastDraw);
     }
 
     if (syncScroll) {
@@ -498,82 +499,6 @@ class Table {
           wtViewport.oversizedRows[sourceRow] = void 0;
         }
       }
-    }
-  }
-
-  /**
-   * @param {string} className The CSS class name to remove from the table cells.
-   */
-  removeClassFromCells(className) {
-    const nodes = this.TABLE.querySelectorAll(`.${className}`);
-
-    for (let i = 0, len = nodes.length; i < len; i++) {
-      removeClass(nodes[i], className);
-    }
-  }
-
-  /**
-   * Refresh the table selection by re-rendering Selection instances connected with that instance.
-   *
-   * @param {boolean} fastDraw If fast drawing is enabled than additionally className clearing is applied.
-   */
-  refreshSelections(fastDraw) {
-    const { wtSettings } = this;
-    const { selections } = this.dataAccessObject;
-
-    if (!selections) {
-      return;
-    }
-    const highlights = Array.from(selections);
-    const len = highlights.length;
-
-    if (fastDraw) {
-      const classesToRemove = [];
-
-      for (let i = 0; i < len; i++) {
-        const {
-          highlightHeaderClassName,
-          highlightRowClassName,
-          highlightColumnClassName,
-        } = highlights[i].settings;
-        const classNames = highlights[i].classNames;
-        const classNamesLength = classNames.length;
-
-        for (let j = 0; j < classNamesLength; j++) {
-          if (!classesToRemove.includes(classNames[j])) {
-            classesToRemove.push(classNames[j]);
-          }
-        }
-
-        if (highlightHeaderClassName && !classesToRemove.includes(highlightHeaderClassName)) {
-          classesToRemove.push(highlightHeaderClassName);
-        }
-        if (highlightRowClassName && !classesToRemove.includes(highlightRowClassName)) {
-          classesToRemove.push(highlightRowClassName);
-        }
-        if (highlightColumnClassName && !classesToRemove.includes(highlightColumnClassName)) {
-          classesToRemove.push(highlightColumnClassName);
-        }
-      }
-
-      const additionalClassesToRemove = wtSettings.getSetting('onBeforeRemoveCellClassNames');
-
-      if (Array.isArray(additionalClassesToRemove)) {
-        for (let i = 0; i < additionalClassesToRemove.length; i++) {
-          classesToRemove.push(additionalClassesToRemove[i]);
-        }
-      }
-
-      const classesToRemoveLength = classesToRemove.length;
-
-      for (let i = 0; i < classesToRemoveLength; i++) {
-        // there was no rerender, so we need to remove classNames by ourselves
-        this.removeClassFromCells(classesToRemove[i]);
-      }
-    }
-
-    for (let i = 0; i < len; i++) {
-      highlights[i].draw(this.facadeGetter(), fastDraw);
     }
   }
 
@@ -713,17 +638,16 @@ class Table {
    *   row headers`.
    */
   getRowHeader(row, level = 0) {
-    if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
-      return;
-    }
-
     const rowHeadersCount = this.wtSettings.getSetting('rowHeaders').length;
 
     if (level >= rowHeadersCount) {
       return;
     }
 
-    const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
+    const renderedRow = this.rowFilter.sourceToRendered(row);
+    const visibleRow = renderedRow < 0 ? this.rowFilter.sourceRowToVisibleColHeadedRow(row) : renderedRow;
+    const parentElement = renderedRow < 0 ? this.THEAD : this.TBODY;
+    const TR = parentElement.childNodes[visibleRow];
 
     return TR?.childNodes[level];
   }
@@ -735,10 +659,6 @@ class Table {
    * @returns {HTMLTableCellElement[]}
    */
   getRowHeaders(row) {
-    if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
-      return [];
-    }
-
     const THs = [];
     const rowHeadersCount = this.wtSettings.getSetting('rowHeaders').length;
 

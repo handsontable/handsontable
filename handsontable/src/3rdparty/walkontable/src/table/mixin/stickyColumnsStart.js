@@ -80,7 +80,17 @@ const stickyColumnsStart = {
    */
   getVisibleColumnsCount() {
     return this.getRenderedColumnsCount();
-  }
+  },
+
+  /**
+   * Get the number of rendered row headers.
+   *
+   * @returns {number}
+   * @this Table
+   */
+  getRowHeadersCount() {
+    return this.dataAccessObject.rowHeaders.length;
+  },
 };
 
 defineGetter(stickyColumnsStart, 'MIXIN_NAME', MIXIN_NAME, {

@@ -313,7 +313,7 @@ describe('HiddenColumns', () => {
         expect(getSelectedRangeLast().to.row).toBe(4);
         expect(getSelectedRangeLast().to.col).toBe(4);
         expect(`
-        |   ║ * : * |
+        | * ║ * : * |
         |===:===:===|
         | * ║ A : 0 |
         | * ║ 0 : 0 |
@@ -348,7 +348,7 @@ describe('HiddenColumns', () => {
         expect(getSelectedRangeLast().to.row).toBe(4);
         expect(getSelectedRangeLast().to.col).toBe(4);
         expect(`
-        |   |
+        | * |
         |===|
         | * |
         | * |
@@ -603,7 +603,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().to.row).toBe(4);
       expect(getSelectedRangeLast().to.col).toBe(4);
       expect(`
-      |   ║ * : * : * |
+      | * ║ * : * : * |
       |===:===:===:===|
       | * ║ A : 0 : 0 |
       | * ║ 0 : 0 : 0 |
@@ -633,7 +633,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().to.row).toBe(4);
       expect(getSelectedRangeLast().to.col).toBe(4);
       expect(`
-      |   |
+      | * |
       |===|
       | * |
       | * |
@@ -1439,7 +1439,7 @@ describe('HiddenColumns', () => {
         expect(getSelectedRangeLast().to.row).toBe(4);
         expect(getSelectedRangeLast().to.col).toBe(4);
         expect(`
-        |   ║ * : * : * : * : * |
+        | * ║ * : * : * : * : * |
         |===:===:===:===:===:===|
         | * ║ A : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 |
@@ -1638,7 +1638,7 @@ describe('HiddenColumns', () => {
         expect(getSelectedRangeLast().to.row).toBe(4);
         expect(getSelectedRangeLast().to.col).toBe(4);
         expect(`
-        |   |
+        | * |
         |===|
         | * |
         | * |

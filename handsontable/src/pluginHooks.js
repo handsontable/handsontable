@@ -2572,6 +2572,10 @@ const DEPRECATED_HOOKS = new Map([
   [
     'beforeAutofillInsidePopulate',
     'The plugin hook "beforeAutofillInsidePopulate" is deprecated and will be removed in the next major release.'
+  ],
+  [
+    'beforeRemoveCellClassNames',
+    'The hook "beforeRemoveCellClassNames" is deprecated and will be removed in the next major release.'
   ]
 ]);
 

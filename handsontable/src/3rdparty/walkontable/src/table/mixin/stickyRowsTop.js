@@ -80,6 +80,16 @@ const stickyRowsTop = {
    */
   getVisibleRowsCount() {
     return this.getRenderedRowsCount();
+  },
+
+  /**
+   * Get the number of rendered column headers.
+   *
+   * @returns {number}
+   * @this Table
+   */
+  getColumnHeadersCount() {
+    return this.dataAccessObject.columnHeaders.length;
   }
 };
 
