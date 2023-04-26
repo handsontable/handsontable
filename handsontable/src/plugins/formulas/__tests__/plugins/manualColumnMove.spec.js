@@ -26,7 +26,7 @@ describe('Formulas', () => {
     describe('should not move elements for some calls', () => {
       it('[0, 1] -> 0', () => {
         const hot = handsontable({
-          data: dataset,
+          data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
             engine: HyperFormula,
           },
@@ -55,7 +55,7 @@ describe('Formulas', () => {
 
       it('[3, 4] -> 3', () => {
         const hot = handsontable({
-          data: dataset,
+          data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
             engine: HyperFormula,
           },
@@ -84,7 +84,7 @@ describe('Formulas', () => {
 
       it('[1, 2, 3, 4] -> 1', () => {
         const hot = handsontable({
-          data: dataset,
+          data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
             engine: HyperFormula,
           },
@@ -113,7 +113,7 @@ describe('Formulas', () => {
 
       it('[0, 1, 2, 3, 4] -> 0', () => {
         const hot = handsontable({
-          data: dataset,
+          data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
             engine: HyperFormula,
           },
@@ -144,7 +144,7 @@ describe('Formulas', () => {
     describe('should move elements from the left to the right properly', () => {
       it('[0, 1] -> 1', () => {
         const hot = handsontable({
-          data: dataset,
+          data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
             engine: HyperFormula,
           },
@@ -175,7 +175,7 @@ describe('Formulas', () => {
 
       it('[0, 1] -> 2', () => {
         const hot = handsontable({
-          data: dataset,
+          data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
             engine: HyperFormula,
           },
@@ -206,7 +206,7 @@ describe('Formulas', () => {
 
       it('[0, 1] -> 3', () => {
         const hot = handsontable({
-          data: dataset,
+          data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
             engine: HyperFormula,
           },
@@ -237,7 +237,7 @@ describe('Formulas', () => {
 
       it('[0, 2] -> 2', () => {
         const hot = handsontable({
-          data: dataset,
+          data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
             engine: HyperFormula,
           },
@@ -268,7 +268,7 @@ describe('Formulas', () => {
 
       it('[0, 2] -> 3', () => {
         const hot = handsontable({
-          data: dataset,
+          data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
             engine: HyperFormula,
           },
@@ -299,7 +299,7 @@ describe('Formulas', () => {
 
       it('[0, 3] -> 3', () => {
         const hot = handsontable({
-          data: dataset,
+          data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
             engine: HyperFormula,
           },
@@ -330,7 +330,7 @@ describe('Formulas', () => {
 
       it('[0, 1, 2] -> 2', () => {
         const hot = handsontable({
-          data: dataset,
+          data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
             engine: HyperFormula,
           },
@@ -361,7 +361,7 @@ describe('Formulas', () => {
 
       it('[0, 1, 2, 3] -> 1', () => {
         const hot = handsontable({
-          data: dataset,
+          data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
             engine: HyperFormula,
           },
@@ -393,7 +393,7 @@ describe('Formulas', () => {
       describe('moving mixed elements', () => {
         it('[1, 0] -> 3', () => {
           const hot = handsontable({
-            data: dataset,
+            data: JSON.parse(JSON.stringify(dataset)),
             formulas: {
               engine: HyperFormula,
             },
@@ -424,7 +424,7 @@ describe('Formulas', () => {
 
         it('[1, 0, 3] -> 2', () => {
           const hot = handsontable({
-            data: dataset,
+            data: JSON.parse(JSON.stringify(dataset)),
             formulas: {
               engine: HyperFormula,
             },
@@ -455,7 +455,7 @@ describe('Formulas', () => {
 
         it('[1, 0, 3, 2] -> 1', () => {
           const hot = handsontable({
-            data: dataset,
+            data: JSON.parse(JSON.stringify(dataset)),
             formulas: {
               engine: HyperFormula,
             },
@@ -489,7 +489,7 @@ describe('Formulas', () => {
     describe('should move elements from the right to the left properly', () => {
       it('[3, 4] -> 0', () => {
         const hot = handsontable({
-          data: dataset,
+          data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
             engine: HyperFormula,
           },
@@ -520,7 +520,7 @@ describe('Formulas', () => {
 
       it('[3, 4] -> 1', () => {
         const hot = handsontable({
-          data: dataset,
+          data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
             engine: HyperFormula,
           },
@@ -551,7 +551,7 @@ describe('Formulas', () => {
 
       it('[3, 4] -> 2', () => {
         const hot = handsontable({
-          data: dataset,
+          data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
             engine: HyperFormula,
           },
@@ -582,7 +582,7 @@ describe('Formulas', () => {
 
       it('[2, 4] -> 0', () => {
         const hot = handsontable({
-          data: dataset,
+          data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
             engine: HyperFormula,
           },
@@ -613,7 +613,7 @@ describe('Formulas', () => {
 
       it('[2, 4] -> 1', () => {
         const hot = handsontable({
-          data: dataset,
+          data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
             engine: HyperFormula,
           },
@@ -644,7 +644,7 @@ describe('Formulas', () => {
 
       it('[2, 4] -> 2', () => {
         const hot = handsontable({
-          data: dataset,
+          data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
             engine: HyperFormula,
           },
@@ -676,7 +676,7 @@ describe('Formulas', () => {
       describe('moving mixed elements', () => {
         it('[4, 2] -> 0', () => {
           const hot = handsontable({
-            data: dataset,
+            data: JSON.parse(JSON.stringify(dataset)),
             formulas: {
               engine: HyperFormula,
             },
@@ -707,7 +707,7 @@ describe('Formulas', () => {
 
         it('[4, 3, 1] -> 0', () => {
           const hot = handsontable({
-            data: dataset,
+            data: JSON.parse(JSON.stringify(dataset)),
             formulas: {
               engine: HyperFormula,
             },
@@ -738,7 +738,7 @@ describe('Formulas', () => {
 
         it('[4, 3, 2, 1] -> 0', () => {
           const hot = handsontable({
-            data: dataset,
+            data: JSON.parse(JSON.stringify(dataset)),
             formulas: {
               engine: HyperFormula,
             },
@@ -769,7 +769,7 @@ describe('Formulas', () => {
 
         it('[4, 2, 3, 1] -> 0', () => {
           const hot = handsontable({
-            data: dataset,
+            data: JSON.parse(JSON.stringify(dataset)),
             formulas: {
               engine: HyperFormula,
             },
@@ -800,7 +800,7 @@ describe('Formulas', () => {
 
         it('[0, 3, 4, 1] -> 0', () => {
           const hot = handsontable({
-            data: dataset,
+            data: JSON.parse(JSON.stringify(dataset)),
             formulas: {
               engine: HyperFormula,
             },
@@ -871,7 +871,7 @@ describe('Formulas', () => {
     describe('should move elements, placed on both sides, to the middle properly', () => {
       it('[2, 4] -> 3', () => {
         const hot = handsontable({
-          data: dataset,
+          data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
             engine: HyperFormula,
           },
@@ -902,7 +902,7 @@ describe('Formulas', () => {
 
       it('[0, 3, 4] -> 1', () => {
         const hot = handsontable({
-          data: dataset,
+          data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
             engine: HyperFormula,
           },
@@ -930,6 +930,47 @@ describe('Formulas', () => {
           [5, '=B5+10', '=A5+100', '=E5+1000', '=C5+1000000'],
         ]);
       });
+    });
+
+    it('should work properly while moving, right after clearing a column #1', () => {
+      const hot = handsontable({
+        data: JSON.parse(JSON.stringify(dataset)),
+        formulas: {
+          engine: HyperFormula,
+        },
+        manualColumnMove: true,
+      });
+
+      hot.populateFromArray(0, 0, [[null]], 4, 0); // Clearing the first column.
+      hot.getPlugin('manualColumnMove').moveColumns([1], 0);
+      hot.render();
+
+      hot.selectCell(0, 0);
+
+      expect(() => {
+        keyDownUp('enter');
+        keyDownUp('enter');
+      }).not.toThrow();
+    });
+
+    it('should work properly while moving, right after clearing a column #2', () => {
+      const hot = handsontable({
+        data: JSON.parse(JSON.stringify(dataset)),
+        formulas: {
+          engine: HyperFormula,
+        },
+        manualColumnMove: true,
+      });
+
+      hot.populateFromArray(0, 3, [[null]], 4, 3); // Clearing the first column.
+      hot.getPlugin('manualColumnMove').moveColumns([4], 3);
+      hot.render();
+      hot.selectCell(0, 3);
+
+      expect(() => {
+        keyDownUp('enter');
+        keyDownUp('enter');
+      }).not.toThrow();
     });
   });
 });
