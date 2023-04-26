@@ -623,16 +623,35 @@ export class Formulas extends BasePlugin {
    * @returns {boolean|*}
    */
   onBeforeAutofill(fillData, sourceRange, targetRange) {
-    const withSheetId = range => ({ ...range, sheet: this.sheetId });
+    const { row: sourceTopStartRow, col: sourceTopStartColumn } = sourceRange.getTopStartCorner();
+    const { row: sourceBottomEndRow, col: sourceBottomEndColumn } = sourceRange.getBottomEndCorner();
+    const { row: targetTopStartRow, col: targetTopStartColumn } = targetRange.getTopStartCorner();
+    const { row: targetBottomEndRow, col: targetBottomEndColumn } = targetRange.getBottomEndCorner();
 
     const engineSourceRange = {
-      start: withSheetId(sourceRange.getTopStartCorner()),
-      end: withSheetId(sourceRange.getBottomEndCorner())
+      start: {
+        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(sourceTopStartRow),
+        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(sourceTopStartColumn),
+        sheet: this.sheetId,
+      },
+      end: {
+        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(sourceBottomEndRow),
+        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(sourceBottomEndColumn),
+        sheet: this.sheetId,
+      },
     };
 
     const engineTargetRange = {
-      start: withSheetId(targetRange.getTopStartCorner()),
-      end: withSheetId(targetRange.getBottomEndCorner())
+      start: {
+        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(targetTopStartRow),
+        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(targetTopStartColumn),
+        sheet: this.sheetId,
+      },
+      end: {
+        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(targetBottomEndRow),
+        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(targetBottomEndColumn),
+        sheet: this.sheetId,
+      },
     };
 
     // Blocks the autofill operation if HyperFormula says that at least one of
