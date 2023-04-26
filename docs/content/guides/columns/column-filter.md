@@ -2050,7 +2050,7 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomFilterButton'));
 :::
 
 The column menu button is always visible, but if you want it to appear only when the mouse cursor is
-over the header, apply additional styling to `.relative:hover .changeType`.
+over the header, apply additional styling to `th .relative:hover .changeType`.
 
 ::: only-for javascript
 
@@ -2169,7 +2169,7 @@ const handsontableInstance = new Handsontable(container, {
 }
 
 /* show the column menu button on hover */
-.customFilterButtonExample2 .relative:hover .changeType {
+.customFilterButtonExample2 th .relative:hover .changeType {
   visibility: visible;
 }
 ```
@@ -2302,7 +2302,7 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomFilterButton2'));
 }
 
 /* show the column menu button on hover */
-.customFilterButtonExample2 .relative:hover .changeType {
+.customFilterButtonExample2 th .relative:hover .changeType {
   visibility: visible;
 }
 ```
@@ -2506,6 +2506,7 @@ const handsontableInstance = new Handsontable(container, {
   colWidths: [120, 150, 120, 140, 120, 120],
   fixedRowsTop: 1,
   fixedRowsBottom: 1,
+  minSpareRows: 1,
   colHeaders: true,
   // enable filtering
   filters: true,
@@ -2714,6 +2715,7 @@ export const App = () => {
       colWidths={[120, 150, 120, 140, 120, 120]}
       fixedRowsTop={1}
       fixedRowsBottom={1}
+      minSpareRows={1}
       colHeaders={true}
       filters={true}
       dropdownMenu={true}
@@ -3138,9 +3140,13 @@ Mind that before you apply new filter conditions, you need to clear the previous
 <div id="exampleFilterThroughAPI1"></div>
 
 <div class="controls">
-  <button class="filterBelow200">Filter for items below $200</button>
-  <button class="filterAbove200">Filter for items above $200</button>
-  <button class="clearAllFilters">Clear all filters</button>
+  <button class="filterBelow200">Show items &lt; $200</button>
+  <br />
+  <br />
+  <button class="filterAbove200">Show items &gt; $200</button>
+  <br />
+  <br />
+  <button class="clearAllFilters">Clear filters</button>
 </div>
 ```
 
@@ -3415,13 +3421,13 @@ export const App = () => {
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
-        <button onClick={filterBelow200}>Filter for items below $200</button>
+        <button onClick={filterBelow200}>Show items &lt; $200</button>
         <br />
         <br />
-        <button onClick={filterAbove200}>Filter for items above $200</button>
+        <button onClick={filterAbove200}>Show items &gt; $200</button>
         <br />
         <br />
-        <button onClick={clearAllFilters}>Clear all filters</button>
+        <button onClick={clearAllFilters}>Clear filters</button>
       </div>
     </>
   );
