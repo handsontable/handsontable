@@ -16,6 +16,7 @@ import {
   createObjectPropListener,
   objectEach
 } from './helpers/object';
+import FocusManager from './focusManager';
 import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray, pivot } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
 import { getPlugin, getPluginsNames } from './plugins/registry';
@@ -101,6 +102,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   let dataSource;
   let grid;
   let editorManager;
+  let focusManager;
   let firstRun = true;
 
   if (hasValidParameter(rootInstanceSymbol)) {
@@ -380,8 +382,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.selection.addLocalHook('afterSelectionFinished', (cellRanges) => {
     const selectionLayerLevel = cellRanges.length - 1;
     const { from, to } = cellRanges[selectionLayerLevel];
-
-    this.focusOnHighlightedCell();
 
     this.runHooks('afterSelectionEnd',
       from.row, from.col, to.row, to.col, selectionLayerLevel);
@@ -1167,7 +1167,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.updateSettings(tableMeta, true);
 
     this.view = new TableView(this);
+
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
+
+    focusManager = new FocusManager(instance);
 
     instance.runHooks('init');
 
@@ -4699,34 +4702,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Set the browser's focus to the highlighted cell of the last selection.
-   */
-  this.focusOnHighlightedCell = function() {
-    const lastSelectedRange = this.getSelectedRangeLast();
-    const selectedCellCoords = lastSelectedRange.highlight;
-    const selectedCell = this.getCell(selectedCellCoords.row, selectedCellCoords.col);
-
-    if (
-      selectedCell &&
-      !this.getActiveEditor()?.isOpened()
-    ) {
-      this.getCell(selectedCellCoords.row, selectedCellCoords.col).focus({
-        preventScroll: true
-      });
-    }
-
-    // Re-focus on the editor's `TEXTAREA` element if the `imeFastEdit` option is enabled.
-    if (
-      this.getSettings().imeFastEdit &&
-      !!this.getActiveEditor()?.TEXTAREA
-    ) {
-      this._registerTimeout(() => {
-        this.getActiveEditor().TEXTAREA.select();
-      }, 50);
-    }
-  };
-
-  /**
    * Returns 1 for LTR; -1 for RTL. Useful for calculations.
    *
    * @private
@@ -4776,6 +4751,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getShortcutManager = function() {
     return shortcutManager;
+  };
+
+  /**
+   * Return the Focus Manager responsible for managing the browser's focus in the table.
+   *
+   * @memberof Core#
+   * @since 13.0.0
+   * @function getFocusManager
+   * @returns {FocusManager}
+   */
+  this.getFocusManager = function() {
+    return focusManager;
   };
 
   const gridContext = shortcutManager.addContext('grid');
