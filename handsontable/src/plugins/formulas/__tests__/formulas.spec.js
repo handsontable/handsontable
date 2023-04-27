@@ -2913,7 +2913,7 @@ describe('Formulas general', () => {
       expect(getSourceData()).toEqual([
         ['=DATE(2022, 8, 1)', '=DATEVALUE("01/03/2020")'],
         ['=EDATE(A1, 1)', '=DAYS(A1, A2)'],
-        ['=A2', '=DATEDIF(TODAY(), A3, "D")'],
+        ['=A2', '=DATEDIF(TODAY(), NOW(), "D")'],
       ]);
     });
 
