@@ -18,7 +18,7 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     return { renderer, tableMock, rootNode };
   }
 
-  beforeEach(() => {
+  beforeEach(function() {
     // Matchers configuration.
     this.matchersConfig = {
       toMatchHTML: {

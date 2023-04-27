@@ -65,8 +65,8 @@ beforeEach(function() {
       const matcherFactory = matchers[matcherName];
 
       matchers[matcherName] = function(matchersUtil) {
-        if (spec().matchersConfig?.[matcherName]) {
-          matchersUtil.matcherConfig = spec().matchersConfig[matcherName];
+        if (matchersUtil && currentSpec.matchersConfig?.[matcherName]) {
+          matchersUtil.matcherConfig = currentSpec.matchersConfig[matcherName];
         }
 
         return matcherFactory(matchersUtil);
@@ -76,6 +76,30 @@ beforeEach(function() {
     return matchers;
   }
   /* eslint-enable jsdoc/require-description-complete-sentence */
+
+  /**
+   * Modify the matchers configuration to match the one used in Jest.
+   * This allows sharing matchers between unit and e2e tests.
+   *
+   * @param {object} matchers The matchers object.
+   * @returns {object} A modified matchers object.
+   */
+  function modifyMatchersForJest(matchers) {
+    Object.keys(matchers).forEach((matcherName) => {
+      const jasmineMatcher = matchers[matcherName];
+
+      matchers[matcherName] = (received, expected, ...args) => {
+        const jasmineMatcherResult = jasmineMatcher().compare(received, expected, ...args);
+
+        return {
+          message: () => jasmineMatcherResult.message,
+          pass: jasmineMatcherResult.pass
+        };
+      };
+    });
+
+    return matchers;
+  }
 
   const matchers = {
     toBeInArray() {
@@ -122,10 +146,10 @@ beforeEach(function() {
         compare(actual, expected, attributesToKeep = []) {
           const expectedHTML = pretty(normalize(expected));
           const actualHTML = pretty(normalize(actual));
-          const actualHTMLStripped = actualHTML.replaceAll(/<\/{0,1}\w+([^>]*)>/ig, (match, attributes) => {
+          const actualHTMLStripped = actualHTML.replaceAll(/<\/{0,1}\w+([^>/]*)\/{0,1}>/ig, (match, attributes) => {
             let keptAttributes = null;
 
-            if (attributesToKeep.length === 0 && matchersUtil.matcherConfig) {
+            if (attributesToKeep.length === 0 && matchersUtil?.matcherConfig) {
               attributesToKeep = matchersUtil.matcherConfig.keepAttributes;
             }
 
@@ -137,7 +161,7 @@ beforeEach(function() {
               });
 
               keptAttributes = attributes.match(
-                new RegExp(`(${attributesToKeep.join('|')})="([a-zA-Z0-9-_ ]*)"`, 'ig')
+                new RegExp(`(${attributesToKeep.join('|')})="([a-zA-Z0-9-_:; ]*)"`, 'ig')
               );
             }
 
@@ -385,5 +409,10 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
     },
   };
 
-  jasmine.addMatchers(extendMatchersWithConfig(matchers));
+  if (expect?.extend) { // If running Jest
+    expect.extend(modifyMatchersForJest(matchers));
+
+  } else { // If running Jasmine
+    jasmine.addMatchers(extendMatchersWithConfig(matchers));
+  }
 });

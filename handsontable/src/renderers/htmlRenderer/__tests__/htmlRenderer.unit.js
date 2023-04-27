@@ -14,7 +14,7 @@ import {
 
 registerCellType(TextCellType);
 
-describe('textRenderer', () => {
+describe('htmlRenderer', () => {
   describe('registering', () => {
     it('should throw an error if renderer is not registered', () => {
       expect(getRegisteredRendererNames()).toEqual(['text']);
@@ -38,7 +38,7 @@ describe('textRenderer', () => {
 
       htmlRenderer(void 0, TD, void 0, void 0, void 0, value, {});
 
-      expect(TD.outerHTML).toBe('<td></td>');
+      expect(TD.outerHTML).toMatchHTML('<td></td>');
     });
 
     it('should left an empty element if value is undefined', () => {
@@ -47,7 +47,7 @@ describe('textRenderer', () => {
 
       htmlRenderer(void 0, TD, void 0, void 0, void 0, value, {});
 
-      expect(TD.outerHTML).toBe('<td></td>');
+      expect(TD.outerHTML).toMatchHTML('<td></td>');
     });
 
     it('should insert HTML value', () => {
@@ -56,7 +56,7 @@ describe('textRenderer', () => {
 
       htmlRenderer(void 0, TD, void 0, void 0, void 0, value, {});
 
-      expect(TD.outerHTML).toBe('<td><p><span>HTML value</span></p></td>');
+      expect(TD.outerHTML).toMatchHTML('<td><p><span>HTML value</span></p></td>');
     });
   });
 });

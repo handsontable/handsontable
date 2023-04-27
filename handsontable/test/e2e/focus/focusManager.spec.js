@@ -70,6 +70,7 @@ describe('Focus Manager', () => {
 
     hot.getFocusManager().setFocusMode('test');
 
+    // eslint-disable-next-line no-console
     expect(console.warn).toHaveBeenCalledWith('"test" is not a valid focus mode.');
   });
 });

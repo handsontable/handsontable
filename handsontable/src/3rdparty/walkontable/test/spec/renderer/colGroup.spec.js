@@ -29,7 +29,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     return { renderer, tableMock, columnUtilsMock, rootNode };
   }
 
-  beforeEach(() => {
+  beforeEach(function() {
     // Matchers configuration.
     this.matchersConfig = {
       toMatchHTML: {

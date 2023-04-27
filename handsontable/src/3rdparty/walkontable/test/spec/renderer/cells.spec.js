@@ -28,11 +28,11 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
     return { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode };
   }
 
-  beforeEach(() => {
+  beforeEach(function() {
     // Matchers configuration.
     this.matchersConfig = {
       toMatchHTML: {
-        keepAttributes: ['class']
+        keepAttributes: ['class', 'dir', 'style']
       }
     };
   });
