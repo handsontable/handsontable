@@ -71,7 +71,7 @@ const deprecationWarns = new Set();
  * :::
  *
  * ::: only-for react
- * ```jsx{3,7,13}
+ * ```jsx
  * import { useRef } from 'react';
  *
  * const hotTableComponent = useRef(null);
