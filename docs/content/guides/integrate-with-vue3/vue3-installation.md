@@ -68,7 +68,7 @@ npm install handsontable @handsontable/vue3
 ::: tip
 
 You can reduce the size of your bundle by importing and registering only the
-[modules](@/guides/tools-and-building/modules.md) that you need.
+[modules](@/guides/integrate-with-vue3/vue3-modules.md) that you need.
 
 :::
 
