@@ -320,7 +320,7 @@ const configurationOptions = {
 :::
 
 To enable sorting only for specific columns, set [`headerAction`](@/api/options.md#columnsorting) to
-`false` for those columns that you don't want to sort.
+`false` for those columns that you don't want to sort. In the following example, only columns **Model**, **Date** and **In stock** are sortable.
 
 ::: only-for javascript
 
