@@ -932,6 +932,7 @@ describe('Formulas', () => {
       });
     });
 
+    // Covers case 1 from the comment https://github.com/handsontable/handsontable/pull/10215
     it('should work properly while moving, right after clearing a column #1', () => {
       const hot = handsontable({
         data: JSON.parse(JSON.stringify(dataset)),
@@ -953,6 +954,7 @@ describe('Formulas', () => {
       }).not.toThrow();
     });
 
+    // Covers case 2 from the comment https://github.com/handsontable/handsontable/pull/10215
     it('should work properly while moving, right after clearing a column #2', () => {
       const hot = handsontable({
         data: JSON.parse(JSON.stringify(dataset)),

@@ -320,7 +320,7 @@ const configurationOptions = {
 :::
 
 To enable sorting only for specific columns, set [`headerAction`](@/api/options.md#columnsorting) to
-`false` for those columns that you don't want to sort.
+`false` for those columns that you don't want to sort. In the following example, only columns **Model**, **Date** and **In stock** are sortable.
 
 ::: only-for javascript
 
@@ -382,7 +382,7 @@ const handsontableInstance = new Handsontable(container, {
   columnSorting: true,
   columns: [
     {
-      title: 'Brand<br>(non-sortable)',
+      title: 'Brand',
       type: 'text',
       data: 'brand',
       // disable sorting for the 'Brand' column
@@ -391,12 +391,12 @@ const handsontableInstance = new Handsontable(container, {
       },
     },
     {
-      title: 'Model<br>(sortable)',
+      title: 'Model',
       type: 'text',
       data: 'model',
     },
     {
-      title: 'Price<br>(non-sortable)',
+      title: 'Price',
       type: 'numeric',
       data: 'price',
       numericFormat: {
@@ -409,7 +409,7 @@ const handsontableInstance = new Handsontable(container, {
       },
     },
     {
-      title: 'Date<br>(sortable)',
+      title: 'Date',
       type: 'date',
       data: 'sellDate',
       dateFormat: 'MMM D, YYYY',
@@ -417,7 +417,7 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htRight',
     },
     {
-      title: 'Time<br>(non-sortable)',
+      title: 'Time',
       type: 'time',
       data: 'sellTime',
       timeFormat: 'hh:mm A',
@@ -429,13 +429,13 @@ const handsontableInstance = new Handsontable(container, {
       },
     },
     {
-      title: 'In stock<br>(sortable)',
+      title: 'In stock',
       type: 'checkbox',
       data: 'inStock',
       className: 'htCenter',
     },
   ],
-  height: 168,
+  height: 'auto',
   stretchH: 'all',
   licenseKey: 'non-commercial-and-evaluation',
 });
@@ -506,7 +506,7 @@ export const App = () => {
       columnSorting={true}
       columns={[
         {
-          title: 'Brand<br>(non-sortable)',
+          title: 'Brand',
           type: 'text',
           data: 'brand',
           // disable sorting for the 'Brand' column
@@ -515,12 +515,12 @@ export const App = () => {
           },
         },
         {
-          title: 'Model<br>(sortable)',
+          title: 'Model',
           type: 'text',
           data: 'model',
         },
         {
-          title: 'Price<br>(non-sortable)',
+          title: 'Price',
           type: 'numeric',
           data: 'price',
           numericFormat: {
@@ -533,7 +533,7 @@ export const App = () => {
           },
         },
         {
-          title: 'Date<br>(sortable)',
+          title: 'Date',
           type: 'date',
           data: 'sellDate',
           dateFormat: 'MMM D, YYYY',
@@ -541,7 +541,7 @@ export const App = () => {
           className: 'htRight',
         },
         {
-          title: 'Time<br>(non-sortable)',
+          title: 'Time',
           type: 'time',
           data: 'sellTime',
           timeFormat: 'hh:mm A',
@@ -553,13 +553,13 @@ export const App = () => {
           },
         },
         {
-          title: 'In stock<br>(sortable)',
+          title: 'In stock',
           type: 'checkbox',
           data: 'inStock',
           className: 'htCenter',
         },
       ]}
-      height={168}
+      height="auto"
       stretchH="all"
       licenseKey="non-commercial-and-evaluation"
     />
