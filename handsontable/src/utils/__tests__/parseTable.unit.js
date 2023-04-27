@@ -137,7 +137,7 @@ describe('_dataToHTML', () => {
 
     expect(_dataToHTML(data)).toBe([
       '<table><tbody>',
-      '<tr><td>&lt;div&nbsp;class="test"&gt;A1&lt;/div&gt;</td></tr>',
+      '<tr><td>&lt;div class="test"&gt;A1&lt;/div&gt;</td></tr>',
       '</tbody></table>',
     ].join(''));
   });
