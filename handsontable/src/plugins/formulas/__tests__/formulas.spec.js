@@ -2886,6 +2886,37 @@ describe('Formulas general', () => {
   });
 
   describe('handling dates', () => {
+    it('should handle date functions properly', () => {
+      handsontable({
+        data: [
+          ['=DATE(2022, 8, 1)', '=DATEVALUE("01/03/2020")'],
+          ['=EDATE(A1, 1)', '=DAYS(A1, A2)'],
+          ['=A2', '=DATEDIF(TODAY(), NOW(), "D")'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'MM/DD/YYYY'
+        }, {
+          type: 'numeric'
+        }],
+      });
+
+      expect(getData()).toEqual([
+        ['08/01/2022', 43891], // A Datestring handled using HF's `dateFormats` option.
+        ['09/01/2022', -31],
+        ['09/01/2022', 0],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['=DATE(2022, 8, 1)', '=DATEVALUE("01/03/2020")'],
+        ['=EDATE(A1, 1)', '=DAYS(A1, A2)'],
+        ['=A2', '=DATEDIF(TODAY(), NOW(), "D")'],
+      ]);
+    });
+
     it('should handle improper on start dates properly (mismatching date formatting) #1', async() => {
       handsontable({
         data: [
