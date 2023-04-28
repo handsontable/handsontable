@@ -930,7 +930,50 @@ describe('Formulas general', () => {
       expect(hot.getPlugin('formulas').engine.getConfig().undoLimit).toEqual(50);
     });
 
-    it('should not update `sheetName` if `updateSettings` was got one that doesn\'t exist in the engine', () => {
+    it('should not update HyperFormula\'s settings if the new Handsontable settings wouldn\'t change anything in the' +
+      ' HF settings', () => {
+      const hot = handsontable({
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      spyOn(hot.getPlugin('formulas').engine, 'updateConfig').and.callThrough();
+
+      hot.updateSettings({
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      expect(hot.getPlugin('formulas').engine.updateConfig).not.toHaveBeenCalled();
+    });
+
+    it('should update HyperFormula\'s settings if the new Handsontable settings would change them', () => {
+      const hot = handsontable({
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      spyOn(hot.getPlugin('formulas').engine, 'updateConfig').and.callThrough();
+
+      hot.updateSettings({
+        maxColumns: 27
+      });
+
+      expect(hot.getPlugin('formulas').engine.updateConfig).toHaveBeenCalledTimes(1);
+      expect(hot.getPlugin('formulas').engine.getConfig().maxColumns).toEqual(27);
+
+      hot.updateSettings({
+        maxRows: 27
+      });
+
+      expect(hot.getPlugin('formulas').engine.updateConfig).toHaveBeenCalledTimes(2);
+      expect(hot.getPlugin('formulas').engine.getConfig().maxRows).toEqual(27);
+    });
+
+    it('should not update `sheetName` if `updateSettings` contains one that doesn\'t exist in the engine', () => {
       const hot = handsontable({
         formulas: {
           engine: HyperFormula,
