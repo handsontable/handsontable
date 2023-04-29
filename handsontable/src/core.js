@@ -71,7 +71,7 @@ const deprecationWarns = new Set();
  * :::
  *
  * ::: only-for react
- * ```jsx{3,7,13}
+ * ```jsx
  * import { useRef } from 'react';
  *
  * const hotTableComponent = useRef(null);
@@ -238,6 +238,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {IndexMapper}
    */
   this.rowIndexMapper = new IndexMapper();
+
+  this.columnIndexMapper.addLocalHook('indexesSequenceChange', (source) => {
+    instance.runHooks('afterColumnSequenceChange', source);
+  });
+
+  this.rowIndexMapper.addLocalHook('indexesSequenceChange', (source) => {
+    instance.runHooks('afterRowSequenceChange', source);
+  });
 
   dataSource = new DataSource(instance);
 
@@ -4381,9 +4389,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (datamap) {
       datamap.destroy();
     }
-
-    instance.rowIndexMapper = null;
-    instance.columnIndexMapper = null;
 
     datamap = null;
     grid = null;

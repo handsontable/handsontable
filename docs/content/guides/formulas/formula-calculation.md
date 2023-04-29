@@ -27,6 +27,11 @@ Perform calculations on cells' values, using a powerful calculation engine that 
 
 [[toc]]
 
+::: warning
+Moving using low-level functionality such as [index mapper's API](@/api/indexMapper.md) doesn't update dataset properly.
+Please consider using [ManualRowMove](@/api/manualRowMove.md) and [ManualColumnMove](@/api/manualColumnMove.md) plugins.
+:::
+
 ## Overview
 
 The _Formulas_ plugin provides you an extensive calculation capabilities based on formulas using the spreadsheet notation. Under the hood, it uses an engine called [HyperFormula](https://hyperformula.handsontable.com/) created by the Handsontable team as an independent library to help developers build complex data management apps.
