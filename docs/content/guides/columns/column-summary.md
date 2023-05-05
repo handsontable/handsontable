@@ -191,9 +191,7 @@ To set up a column summary, follow the steps below.
 
 ### Step 1: Enable the [`ColumnSummary`](@/api/columnSummary.md) plugin
 
-To enable the [`ColumnSummary`](@/api/columnSummary.md) plugin, set the [`columnSummary`](@/api/options.md#columnsummary) configuration option to an array of objects.
-
-Each object represents a single column summary.
+To enable the [`ColumnSummary`](@/api/columnSummary.md) plugin, set the [`columnSummary`](@/api/options.md#columnsummary) configuration option to an array of objects. Each object represents a single column summary.
 
 ::: only-for javascript
 ```js
@@ -248,9 +246,7 @@ export const ExampleComponent = () => {
 ```
 :::
 
-::: tip
-You can also set the [`columnSummary`](@/api/options.md#columnsummary) option to a function.
-:::
+You can also set the [`columnSummary`](@/api/options.md#columnsummary) option [to a function](#set-up-column-summaries-using-a-function).
 
 ### Step 2: Select cells that you want to summarize
 
