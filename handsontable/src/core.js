@@ -3347,7 +3347,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Checks if the data format and config allows user to modify the column structure.
+   * Checks if your [data format](@/guides/getting-started/binding-to-data.md#compatible-data-types)
+   * and [configuration options](@/guides/getting-started/configuration-options.md)
+   * allow for changing the number of columns.
+   *
+   * Returns `false` when your data is an array of objects,
+   * or when you use the [`columns`](@/api/options.md#columns) option.
+   * Otherwise, returns `true`.
    *
    * @memberof Core#
    * @function isColumnModificationAllowed
