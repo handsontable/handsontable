@@ -2612,11 +2612,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Get value from the selected cell.
+   * Gets the value of the currently focused cell.
+   *
+   * For column headers and row headers, returns `null`.
    *
    * @memberof Core#
    * @function getValue
-   * @returns {*} Value of selected cell.
+   * @returns {*} The value of the focused cell.
    */
   this.getValue = function() {
     const sel = instance.getSelectedLast();
