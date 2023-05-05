@@ -10,6 +10,10 @@ tags:
   - calculations
   - formulas
   - functions
+  - suppressDataTypeErrors
+  - destinationRow
+  - destinationColumn
+  - reversedRowCoords
 react:
   id: r3x4l0gp
   metaTitle: Column summary - React Data Grid | Handsontable
