@@ -425,8 +425,8 @@ const hot = new Handsontable(container, {
   cells(row, col, prop) {
     if (row === 1 || row === 4) {
       return {
-        // row options, apply to each cell of the first row
-        // and to each cell of the fourth row
+        // row options, which apply to each cell of the second row
+        // and to each cell of the fifth row
         readOnly: true,
       };
     }
@@ -450,8 +450,8 @@ The function can take three arguments:<br>
 <HotTable cells={(row, col, prop) => {
   if (row === 1 || row === 4) {
     return {
-      // row options, apply to each cell of the first row
-      // and to each cell of the fourth row
+      // row options, which apply to each cell of the second row
+      // and to each cell of the fifth row
       readOnly: true,
     };
   }

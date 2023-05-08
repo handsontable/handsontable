@@ -41,15 +41,15 @@ Thousands of business apps depend on Handsontable for entering, editing, validat
 ::: only-for javascript
 To jump straight into the sample code, open the demo app at CodeSandbox:
 
-- [JavaScript demo](https://codesandbox.io/s/handsontable-javascript-data-grid-hello-world-app-12-3-2-updhi7)
-- [React demo](https://codesandbox.io/s/handsontable-react-data-grid-hello-world-app-12-3-2-hqy9xi)
-- [Angular demo](https://codesandbox.io/s/handsontable-angular-data-grid-hello-world-app-12-3-2-hvzrx0)
-- [Vue 2 demo](https://codesandbox.io/s/handsontable-vue-data-grid-hello-world-app-12-3-2-eexqzj)
-- [TypeScript demo](https://codesandbox.io/s/handsontable-typescript-data-grid-hello-world-app-12-3-2-be9p99)
+- [JavaScript demo](https://codesandbox.io/s/handsontable-javascript-data-grid-hello-world-app-12-3-3-6rf1pz)
+- [React demo](https://codesandbox.io/s/handsontable-react-data-grid-hello-world-app-12-3-3-z9bmr6)
+- [Angular demo](https://codesandbox.io/s/handsontable-angular-data-grid-hello-world-app-12-3-3-9r6ve9)
+- [Vue 2 demo](https://codesandbox.io/s/handsontable-vue-data-grid-hello-world-app-12-3-3-p71oki)
+- [TypeScript demo](https://codesandbox.io/s/handsontable-typescript-data-grid-hello-world-app-12-3-3-be9p99)
 :::
 
 ::: only-for react
-To jump straight into the sample code, [open the demo app at CodeSandbox](https://codesandbox.io/s/handsontable-react-data-grid-hello-world-app-12-3-2-hqy9xi).
+To jump straight into the sample code, [open the demo app at CodeSandbox](https://codesandbox.io/s/handsontable-react-data-grid-hello-world-app-12-3-3-z9bmr6).
 :::
 
 Then, move on to [connecting](@/guides/getting-started/binding-to-data.md) your data and [configuring](@/guides/getting-started/configuration-options.md) Handsontable's built-in features. For more advanced implementations, use Handsontable's [API](@/api/introduction.md).
