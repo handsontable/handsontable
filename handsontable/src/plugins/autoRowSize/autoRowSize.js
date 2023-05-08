@@ -36,10 +36,10 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  * To configure the sync/async distribution, you can pass an absolute value (number of rows) or a percentage value to a config object:
  * ```js
  * // as a number (300 rows in sync, rest async)
- * autoRowSize: {syncLimit: 300},.
+ * autoRowSize: {syncLimit: 300},
  *
  * // as a string (percent)
- * autoRowSize: {syncLimit: '40%'},.
+ * autoRowSize: {syncLimit: '40%'},
  *
  * // allow sample duplication
  * autoRowSize: {syncLimit: '40%', allowSampleDuplicates: true},

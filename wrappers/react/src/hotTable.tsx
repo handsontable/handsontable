@@ -2,7 +2,6 @@ import React from 'react';
 import Handsontable from 'handsontable/base';
 import { SettingsMapper } from './settingsMapper';
 import { RenderersPortalManager } from './renderersPortalManager';
-import { EditorsPortalManager } from './editorsPortalManager';
 import { HotColumn } from './hotColumn';
 import * as packageJson from '../package.json';
 import {
@@ -93,12 +92,6 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * @type {React.Component}
    */
   renderersPortalManager: RenderersPortalManager = null;
-  /**
-   * Component used to manage the editor portals.
-   *
-   * @type {React.Component}
-   */
-  private editorsPortalManager: EditorsPortalManager = null;
 
   /**
    * Array containing the portals cashed to be rendered in bulk after Handsontable's render cycle.
@@ -194,7 +187,6 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * Clear both the editor and the renderer cache.
    */
   clearCache(): void {
-    this.getEditorCache().clear();
     this.getRenderedCellCache().clear();
     this.componentRendererColumns.clear();
   }
@@ -343,20 +335,6 @@ class HotTable extends React.Component<HotTableProps, {}> {
   }
 
   /**
-   * Creates the global editor portal and renders it within the editors portal manager component.
-   *
-   * @param {Function} callback Callback to call which is triggered after the editors portal is rendered.
-   */
-  renderGlobalEditorPortal(callback: () => void): void {
-    const globalEditorElement = this.getGlobalEditorElement();
-    const editorPortal = createEditorPortal(this.getOwnerDocument(), globalEditorElement)
-
-    this.editorsPortalManager.setState({
-      portals: [editorPortal]
-    }, callback);
-  }
-
-  /**
    * Create a new settings object containing the column settings and global editors and renderers.
    *
    * @returns {Handsontable.GridSettings} New global set of settings for Handsontable.
@@ -426,13 +404,10 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * Handsontable's `afterViewRender` hook callback.
    */
   handsontableAfterViewRender(): void {
-    this.renderersPortalManager.setState(() => {
-      return Object.assign({}, {
-        portals: this.portalCacheArray
-      });
-
+    this.renderersPortalManager.setState({
+      portals: [...this.portalCacheArray]
     }, () => {
-      this.portalCacheArray.length = 0;
+      this.portalCacheArray = [];
     });
   }
 
@@ -455,14 +430,6 @@ class HotTable extends React.Component<HotTableProps, {}> {
   private setRenderersPortalManagerRef(pmComponent: RenderersPortalManager): void {
     this.renderersPortalManager = pmComponent;
   }
-  /**
-   * Set the editors portal manager ref.
-   *
-   * @param {React.ReactComponent} pmComponent The PortalManager component.
-   */
-  private setEditorsPortalManagerRef(pmComponent: EditorsPortalManager): void {
-    this.editorsPortalManager = pmComponent;
-  }
 
   /*
   ---------------------------------------
@@ -474,26 +441,17 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * Initialize Handsontable after the component has mounted.
    */
   componentDidMount(): void {
-    this.clearCache();
-    this.renderGlobalEditorPortal(() => {
-      // In React strict mode the mount/unmount is triggered twice. The `if` prevents
-      // creating two Handsontable instances for the same component in that mode.
-      if (this.hotInstance) {
-        return;
-      }
+    const newGlobalSettings = this.createNewGlobalSettings();
 
-      const newGlobalSettings = this.createNewGlobalSettings();
+    this.hotInstance = new Handsontable.Core(this.hotElementRef, newGlobalSettings);
 
-      this.hotInstance = new Handsontable.Core(this.hotElementRef, newGlobalSettings);
+    this.hotInstance.addHook('beforeViewRender', () => this.handsontableBeforeViewRender());
+    this.hotInstance.addHook('afterViewRender', () => this.handsontableAfterViewRender());
 
-      this.hotInstance.addHook('beforeViewRender', () => this.handsontableBeforeViewRender());
-      this.hotInstance.addHook('afterViewRender', () => this.handsontableAfterViewRender());
+    // `init` missing in Handsontable's type definitions.
+    (this.hotInstance as any).init();
 
-      // `init` missing in Handsontable's type definitions.
-      (this.hotInstance as any).init();
-
-      this.displayAutoSizeWarning(newGlobalSettings);
-    });
+    this.displayAutoSizeWarning(newGlobalSettings);
   }
 
   /**
@@ -501,18 +459,19 @@ class HotTable extends React.Component<HotTableProps, {}> {
    */
   componentDidUpdate(): void {
     this.clearCache();
-    this.renderGlobalEditorPortal(() => {
-      const newGlobalSettings = this.createNewGlobalSettings();
 
-      this.updateHot(newGlobalSettings);
-      this.displayAutoSizeWarning(newGlobalSettings);
-    });
+    const newGlobalSettings = this.createNewGlobalSettings();
+
+    this.updateHot(newGlobalSettings);
+    this.displayAutoSizeWarning(newGlobalSettings);
   }
 
   /**
    * Destroy the Handsontable instance when the parent component unmounts.
    */
   componentWillUnmount(): void {
+    this.clearCache();
+
     if (this.hotInstance) {
       this.hotInstance.destroy();
     }
@@ -524,35 +483,34 @@ class HotTable extends React.Component<HotTableProps, {}> {
   render(): React.ReactElement {
     const containerProps = getContainerAttributesProps(this.props);
     const isHotColumn = (childNode: any) => childNode.type === HotColumn;
-    let children = React.Children.toArray(this.props.children);
-
-    // filter out anything that's not a HotColumn
-    children = children.filter(function (childNode: any) {
-      return isHotColumn(childNode);
-    });
+    const children = React.Children.toArray(this.props.children);
 
     // clone the HotColumn nodes and extend them with the callbacks
-    let childClones = children.map((childNode: React.ReactElement, columnIndex: number) => {
-      return React.cloneElement(childNode, {
-        _componentRendererColumns: this.componentRendererColumns,
-        _emitColumnSettings: this.setHotColumnSettings.bind(this),
-        _columnIndex: columnIndex,
-        _getChildElementByType: getChildElementByType.bind(this),
-        _getRendererWrapper: this.getRendererWrapper.bind(this),
-        _getEditorClass: this.getEditorClass.bind(this),
-        _getOwnerDocument: this.getOwnerDocument.bind(this),
-        _getEditorCache: this.getEditorCache.bind(this),
-        children: childNode.props.children
-      } as object);
-    });
+    const hotColumnClones = children
+      .filter((childNode: any) => isHotColumn(childNode))
+      .map((childNode: React.ReactElement, columnIndex: number) => {
+        return React.cloneElement(childNode, {
+          _componentRendererColumns: this.componentRendererColumns,
+          _emitColumnSettings: this.setHotColumnSettings.bind(this),
+          _columnIndex: columnIndex,
+          _getChildElementByType: getChildElementByType.bind(this),
+          _getRendererWrapper: this.getRendererWrapper.bind(this),
+          _getEditorClass: this.getEditorClass.bind(this),
+          _getOwnerDocument: this.getOwnerDocument.bind(this),
+          _getEditorCache: this.getEditorCache.bind(this),
+          children: childNode.props.children
+        } as object);
+      });
+
+    const editorPortal = createEditorPortal(this.getOwnerDocument(), this.getGlobalEditorElement());
 
     return (
       <React.Fragment>
         <div ref={this.setHotElementRef.bind(this)} {...containerProps}>
-          {childClones}
+          {hotColumnClones}
         </div>
         <RenderersPortalManager ref={this.setRenderersPortalManagerRef.bind(this)} />
-        <EditorsPortalManager ref={this.setEditorsPortalManagerRef.bind(this)} />
+        {editorPortal}
       </React.Fragment>
     )
   }
