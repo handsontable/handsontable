@@ -470,6 +470,16 @@ export class Formulas extends BasePlugin {
     });
   }
 
+  getSourceDataWithSourceFormulas() {
+    this.#internalOperationPending = true;
+
+    const sourceData = this.hot.getSourceData();
+
+    this.#internalOperationPending = false;
+
+    return sourceData;
+  }
+
   /**
    * Renders dependent sheets (handsontable instances) based on the changes - list of the
    * recalculated dependent cells.

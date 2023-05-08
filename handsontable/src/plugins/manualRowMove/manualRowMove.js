@@ -436,7 +436,7 @@ export class ManualRowMove extends BasePlugin {
     const rootElementOffset = offset(rootElement);
     const trimmingContainer = getTrimmingContainer(rootElement);
     const tableScroll = wtTable.holder.scrollTop;
-    const emptyPixelsAbove = rootElementOffset.top - (trimmingContainer.scrollTop ?? 0);
+    const emptyPixelsAbove = rootElementOffset.top - (trimmingContainer.scrollY ?? 0);
     const pixelsRelToTableStart = priv.target.eventPageY - emptyPixelsAbove + tableScroll;
     const hiderHeight = wtTable.hider.offsetHeight;
     const tbodyOffsetTop = wtTable.TBODY.offsetTop;
