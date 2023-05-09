@@ -369,8 +369,6 @@ describe('HiddenRows', () => {
             manualRowMove: true,
           });
 
-          debugger;
-
           const $headerTH = spec().$container.find('tbody tr:eq(2) th:eq(0)'); // header "5"
 
           $headerTH.simulate('mousedown');
