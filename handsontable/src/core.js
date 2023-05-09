@@ -2975,6 +2975,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * __Note__: This method does not participate in data transformation. If the visual data of the table is reordered,
    * sorted or trimmed only physical indexes are correct.
    *
+   * __Note__: By design, this method doesn't support [formulas](@/guides/formulas/formula-calculation.md).
+   * `getSourceData()` operates on physical data, whereas formulas operate on visual data.
+   *
    * @memberof Core#
    * @function getSourceData
    * @param {number} [row] From physical row index.

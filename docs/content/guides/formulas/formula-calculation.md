@@ -82,6 +82,7 @@ To use HyperFormula outside of a Handsontable instance (e.g., on a server), you 
 *   Doesn't work with [nested rows](@/guides/rows/row-parent-child.md)
 *   Doesn't work with [undo/redo](@/guides/accessories-and-menus/undo-redo.md)
 *   Doesn't work with nested data (when Handsontable's [`data`](@/api/options.md#data) is set to an [array of nested objects](@/guides/getting-started/binding-to-data.md#array-of-objects))
+*   Doesn't work with the [`getSourceData()`](@/api/core.md#getsourcedata) method.
 
 ## Available options and methods
 
