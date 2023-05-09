@@ -2976,7 +2976,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * sorted or trimmed only physical indexes are correct.
    *
    * __Note__: By design, this method doesn't support [formulas](@/guides/formulas/formula-calculation.md).
-   * `getSourceData()` operates on physical data, whereas formulas operate on visual data.
+   * `getSourceData()` operates on source data ([physical indexes](@/api/indexMapper.md)),
+   * whereas formulas operate on visual data (visual indexes).
    *
    * @memberof Core#
    * @function getSourceData
