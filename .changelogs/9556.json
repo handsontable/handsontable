@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Fixed problems with backlight element misalignment and moving element after the last position",
+  "title": "Fixed problems with backlight and guideline elements misalignment and moving row after the last position",
   "type": "fixed",
   "issueOrPR": 9556,
   "breaking": false,
