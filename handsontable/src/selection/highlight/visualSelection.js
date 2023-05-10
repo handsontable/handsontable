@@ -77,7 +77,7 @@ class VisualSelection extends Selection {
    */
   getNearestNotHiddenCoords(coords, rowSearchDirection, columnSearchDirection = rowSearchDirection) {
     const nextVisibleRow = this.getNearestNotHiddenIndex(
-      this.settings.rowIndexMapper(), coords.row, rowSearchDirection);
+      this.settings.rowIndexMapper, coords.row, rowSearchDirection);
 
     // There are no more visual rows in the range.
     if (nextVisibleRow === null) {
@@ -85,7 +85,7 @@ class VisualSelection extends Selection {
     }
 
     const nextVisibleColumn = this.getNearestNotHiddenIndex(
-      this.settings.columnIndexMapper(), coords.col, columnSearchDirection);
+      this.settings.columnIndexMapper, coords.col, columnSearchDirection);
 
     // There are no more visual columns in the range.
     if (nextVisibleColumn === null) {
@@ -132,6 +132,8 @@ class VisualSelection extends Selection {
       this.cellRange = null;
     } else {
       this.cellRange = this.createRenderableCellRange(trimmedCellRange.from, trimmedCellRange.to);
+
+      // console.log(this.cellRange?.highlight);
     }
 
     return this;
@@ -149,11 +151,13 @@ class VisualSelection extends Selection {
    * @returns {VisualSelection}
    */
   syncWith(broaderCellRange) {
+    // TODO: sync of the highlight is necessary for headers too (nested headers)
     if (broaderCellRange.highlight.isHeader()) {
       return this;
     }
 
-    const coordsFrom = broaderCellRange.from.clone().normalize();
+    // const coordsFrom = broaderCellRange.from.clone().normalize();
+    const coordsFrom = broaderCellRange.from.clone();
     const rowDirection = broaderCellRange.getVerticalDirection() === 'N-S' ? 1 : -1;
     const columnDirection = broaderCellRange.getHorizontalDirection() === 'W-E' ? 1 : -1;
     const cellCoordsVisual = this.getNearestNotHiddenCoords(coordsFrom, rowDirection, columnDirection);

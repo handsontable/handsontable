@@ -594,28 +594,36 @@ export class NestedHeaders extends BasePlugin {
    * @param {object} delta The transformation delta.
    */
   onModifyTransformStart(delta) {
-    const { highlight } = this.hot.getSelectedRangeLast();
-    const rawCoords = this.hot._createCellCoords(highlight.row + delta.row, highlight.col + delta.col);
+    // const { highlight } = this.hot.getSelectedRangeLast();
+    // const rawCoords = this.hot._createCellCoords(highlight.row + delta.row, highlight.col + delta.col);
 
-    if (rawCoords.isCell()) {
-      return;
-    }
+    // if (rawCoords.isCell()) {
+    //   return;
+    // }
 
-    if (delta.col < 0) {
-      const lastColumnIndex = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
-      let nextColumnIndex = this.#stateManager.findLeftMostColumnIndex(rawCoords.row, rawCoords.col);
+    // // const {
+    // //   // columnIndex,
+    // //   origColspan,
+    // //   colspan,
+    // // } = this._getHeaderTreeNodeDataByCoords(rawCoords) ?? {};
 
-      if (nextColumnIndex === lastColumnIndex) {
-        nextColumnIndex = this.#stateManager.findLeftMostColumnIndex(rawCoords.row, nextColumnIndex - 1);
-      }
+    // if (delta.col < 0) {
+    //   const lastColumnIndex = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
+    //   let nextColumnIndex = this.#stateManager.findLeftMostColumnIndex(rawCoords.row, rawCoords.col);
 
-      delta.col = -(highlight.col - nextColumnIndex);
+    //   if (nextColumnIndex === lastColumnIndex) {
+    //     nextColumnIndex = this.#stateManager.findLeftMostColumnIndex(rawCoords.row, nextColumnIndex - 1);
+    //   }
 
-    } else if (delta.col > 0) {
-      const columnIndex = this.#stateManager.findRightMostColumnIndex(rawCoords.row, rawCoords.col);
+    //   delta.col = -(highlight.col - nextColumnIndex);
 
-      delta.col = columnIndex - highlight.col;
-    }
+    // } else if (delta.col > 0) {
+    //   const columnIndex = this.#stateManager.findRightMostColumnIndex(rawCoords.row, rawCoords.col);
+    //   const renderableColumnIndex = columnIndex >= 0 ? this.hot.columnIndexMapper.getRenderableFromVisualIndex(columnIndex) : columnIndex;
+    //   const renderableColumnIndex2 = rawCoords.col >= 0 ? this.hot.columnIndexMapper.getRenderableFromVisualIndex(rawCoords.col) : rawCoords.col;
+
+    //   delta.col = (renderableColumnIndex - renderableColumnIndex2) + 1;
+    // }
   }
 
   /**
@@ -626,6 +634,11 @@ export class NestedHeaders extends BasePlugin {
   onAfterSelection() {
     const range = this.hot.getSelectedRangeLast();
     const { highlight } = range;
+
+    if (highlight.isCell()) {
+      return;
+    }
+
     const columnIndex = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
     const focusHighlight = this.hot.selection.highlight.getFocus();
 

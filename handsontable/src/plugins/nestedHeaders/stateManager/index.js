@@ -369,7 +369,7 @@ export default class StateManager {
    */
   findRightMostColumnIndex(headerLevel, columnIndex) {
     const {
-      isRoot
+      isRoot,
     } = this.getHeaderSettings(headerLevel, columnIndex) ?? { isRoot: true };
 
     if (isRoot) {
@@ -380,7 +380,7 @@ export default class StateManager {
 
     while (stepForthColumn < this.getColumnsCount()) {
       const {
-        isRoot: isRootNode
+        isRoot: isRootNode,
       } = this.getHeaderSettings(headerLevel, stepForthColumn) ?? { isRoot: true };
 
       if (isRootNode) {

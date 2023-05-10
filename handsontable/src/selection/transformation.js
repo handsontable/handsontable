@@ -74,9 +74,25 @@ class Transformation {
         col: x + delta.col,
       };
 
+      // if (delta.col > 0) {
+      //   rawCoords.col = this.#options.columnIndexMapper.getNearestNotHiddenIndex(rawCoords.col, 1) ?? rawCoords.col;
+
+      // } else if (delta.col < 0) {
+      //   rawCoords.col = this.#options.columnIndexMapper.getNearestNotHiddenIndex(rawCoords.col, -1) ?? rawCoords.col;
+      // }
+
+      // if (delta.row > 0) {
+      //   rawCoords.row = this.#options.rowIndexMapper.getNearestNotHiddenIndex(rawCoords.row, 1) ?? rawCoords.row;
+
+      // } else if (delta.row < 0) {
+      //   rawCoords.row = this.#options.rowIndexMapper.getNearestNotHiddenIndex(rawCoords.row, -1) ?? rawCoords.row;
+      // }
+
+      // console.log('rawCoords', rawCoords.row, rawCoords.col);
+
       if (rawCoords.row >= height) {
         if (createMissingRecords && minSpareRows > 0 && fixedRowsBottom === 0) {
-          this.runLocalHooks('insertRowRequire', this.#options.countRows());
+          this.runLocalHooks('insertRowRequire', this.#options.countRenderableRows());
 
         } else if (autoWrapCol) {
           const nextColumn = rawCoords.col + 1;
@@ -96,7 +112,7 @@ class Transformation {
 
       if (rawCoords.col >= width) {
         if (createMissingRecords && minSpareCols > 0) {
-          this.runLocalHooks('insertColRequire', this.#options.countCols());
+          this.runLocalHooks('insertColRequire', this.#options.countRenderableColumns());
 
         } else if (autoWrapRow) {
           const nextRow = rawCoords.row + 1;
@@ -192,19 +208,31 @@ class Transformation {
     if (zeroBasedCoords.row < 0) {
       rowDir = -1;
       zeroBasedCoords.row = 0;
+      // zeroBasedCoords.row = this.#options.rowIndexMapper.getNearestNotHiddenIndex(0, 1) ?? 0;
 
     } else if (zeroBasedCoords.row > 0 && zeroBasedCoords.row >= height) {
       rowDir = 1;
       zeroBasedCoords.row = height - 1;
+      // zeroBasedCoords.row = this.#options.rowIndexMapper.getNearestNotHiddenIndex(height - 1, -1) ?? height - 1;
+
+    } else {
+      // zeroBasedCoords.row = this.#options.rowIndexMapper.getNearestNotHiddenIndex(zeroBasedCoords.row, 1);
     }
 
     if (zeroBasedCoords.col < 0) {
       colDir = -1;
       zeroBasedCoords.col = 0;
+      // zeroBasedCoords.col = this.#options.columnIndexMapper.getNearestNotHiddenIndex(0, 1) ?? 0;
 
     } else if (zeroBasedCoords.col > 0 && zeroBasedCoords.col >= width) {
       colDir = 1;
       zeroBasedCoords.col = width - 1;
+      // zeroBasedCoords.col = this.#options.columnIndexMapper.getNearestNotHiddenIndex(width - 1, -1) ?? width - 1;
+
+    } else {
+      // console.log('zeroBasedCoords.col', zeroBasedCoords.col);
+      // zeroBasedCoords.col = this.#options.columnIndexMapper.getNearestNotHiddenIndex(zeroBasedCoords.col, 1);
+      // console.log('zeroBasedCoords.col2', zeroBasedCoords.col);
     }
 
     return { rowDir, colDir };
@@ -218,8 +246,8 @@ class Transformation {
    */
   #getTableSize() {
     return {
-      width: this.#offset.x + this.#options.countCols(),
-      height: this.#offset.y + this.#options.countRows(),
+      width: this.#offset.x + this.#options.countRenderableColumns(),
+      height: this.#offset.y + this.#options.countRenderableRows(),
     };
   }
 
@@ -231,6 +259,7 @@ class Transformation {
    */
   #getVisualCoordsZeroBasedPosition(visualCoords) {
     const { row, col } = this.#options.visualToRenderableCoords(visualCoords);
+    // const { row, col } = visualCoords;
 
     if (row === null || col === null) {
       return null;
@@ -252,6 +281,7 @@ class Transformation {
     coords.col = coords.col - this.#offset.x;
     coords.row = coords.row - this.#offset.y;
 
+    // return coords;
     return this.#options.renderableToVisualCoords(coords);
   }
 }

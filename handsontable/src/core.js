@@ -266,14 +266,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   let selection = new Selection(tableMeta, {
-    rowIndexMapper: () => instance.rowIndexMapper,
-    columnIndexMapper: () => instance.columnIndexMapper,
+    rowIndexMapper: instance.rowIndexMapper,
+    columnIndexMapper: instance.columnIndexMapper,
     countCols: () => instance.countCols(),
     countRows: () => instance.countRows(),
     propToCol: prop => datamap.propToCol(prop),
     isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
-    countColsTranslated: () => this.view.countRenderableColumns(),
-    countRowsTranslated: () => this.view.countRenderableRows(),
+    countRenderableColumns: () => this.view.countRenderableColumns(),
+    countRenderableRows: () => this.view.countRenderableRows(),
     countRowHeaders: () => this.countRowHeaders(),
     countColHeaders: () => this.countColHeaders(),
     getShortcutManager: () => instance.getShortcutManager(),
