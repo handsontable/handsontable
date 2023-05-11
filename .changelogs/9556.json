@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed problems with backlight and guideline elements misalignment and moving row after the last position",
+  "type": "fixed",
+  "issueOrPR": 9556,
+  "breaking": false,
+  "framework": "none"
+}
