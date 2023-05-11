@@ -275,7 +275,7 @@ export default class TableRenderer {
         const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
         const rowHeight = this.rowUtils.getHeight(sourceRowIndex);
 
-        TR.ariaRowIndex = `${sourceRowIndex}`;
+        TR.ariaRowIndex = sourceRowIndex;
         TR.setAttribute('role', 'row');
 
         if (rowHeight) {

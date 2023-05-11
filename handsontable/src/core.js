@@ -16,7 +16,7 @@ import {
   createObjectPropListener,
   objectEach
 } from './helpers/object';
-import FocusManager from './focusManager';
+import { FocusManager } from './focusManager';
 import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray, pivot } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
 import { getPlugin, getPluginsNames } from './plugins/registry';

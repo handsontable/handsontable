@@ -2489,6 +2489,11 @@ export default () => {
      * because of its incompatibility with some of the accessibility features.
      *
      * Enabling this option can make a negative impact on how some screen readers handle reading the table cells.
+     *
+     * @since 13.0.0
+     * @memberof Options#
+     * @type {boolean}
+     * @category Core
      */
     imeFastEdit: false,
 

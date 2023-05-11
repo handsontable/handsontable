@@ -223,9 +223,8 @@ export class TextEditor extends BaseEditor {
 
     this.TEXTAREA = rootDocument.createElement('TEXTAREA');
     this.TEXTAREA.setAttribute('data-hot-input', ''); // Makes the element recognizable by Hot as its own component's element.
-    this.TEXTAREA.tabIndex = -1;
-
     this.TEXTAREA.setAttribute('aria-hidden', 'true');
+    this.TEXTAREA.tabIndex = -1;
 
     addClass(this.TEXTAREA, 'handsontableInput');
 
@@ -401,6 +400,22 @@ export class TextEditor extends BaseEditor {
 
     this.addHook('afterScrollHorizontally', () => this.refreshDimensions());
     this.addHook('afterScrollVertically', () => this.refreshDimensions());
+
+    this.addHook('afterColumnResize', () => {
+      this.refreshDimensions();
+
+      if (this.state === EDITOR_STATE.EDITING) {
+        this.focus();
+      }
+    });
+
+    this.addHook('afterRowResize', () => {
+      this.refreshDimensions();
+
+      if (this.state === EDITOR_STATE.EDITING) {
+        this.focus();
+      }
+    });
   }
 
   /**

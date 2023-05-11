@@ -8,77 +8,77 @@ import { warn } from './helpers/console';
  *
  * @type {{CELL: string, MIXED: string}}
  */
-const FOCUS_MODES = {
+const FOCUS_MODES = Object.freeze({
   CELL: 'cell',
   MIXED: 'mixed',
-};
+});
 
 /**
  * Manages the browser's focus in the table.
  */
-export default class FocusManager {
+export class FocusManager {
+  /**
+   * The Handsontable instance.
+   *
+   * @private
+   */
+  #hot;
+  /**
+   * The currently enabled focus mode.
+   * Can be either:
+   *
+   * - 'cell' - The browser's focus stays on the lastly selected cell element.
+   * - 'mixed' - The browser's focus switches from the lastly selected cell element to the currently active editor's
+   * `TEXTAREA` element after a delay defined in the manager.
+   *
+   * @type {string}
+   * @private
+   */
+  #focusMode;
+  /**
+   * The delay after which the focus switches from the lastly selected cell to the active editor's `TEXTAREA`
+   * element if the focus mode is set to 'mixed'.
+   *
+   * @type {number}
+   * @private
+   */
+  #refocusDelay = 50;
+  /**
+   * Getter function for the element to be used when refocusing the browser after a delay. If `null`, the active
+   * editor's `TEXTAREA` element will be used.
+   *
+   * @type {null|Function}
+   * @private
+   */
+  #refocusElementGetter = null;
+
   constructor(hotInstance) {
     const hotSettings = hotInstance.getSettings();
 
-    /**
-     * The Handsontable instance.
-     *
-     * @private
-     */
-    this._hot = hotInstance;
+    this.#hot = hotInstance;
+    this.#focusMode = hotSettings.imeFastEdit ? FOCUS_MODES.MIXED : FOCUS_MODES.CELL;
 
-    /**
-     * The currently enabled focus mode.
-     * Can be either:
-     *
-     * - 'cell' - The browser's focus stays on the lastly selected cell element.
-     * - 'mixed' - The browser's focus switches from the lastly selected cell element to the currently active editor's
-     * `TEXTAREA` element after a delay defined in the manager.
-     *
-     * @type {string}
-     * @private
-     */
-    this._focusMode = hotSettings.imeFastEdit ? FOCUS_MODES.MIXED : FOCUS_MODES.CELL;
-
-    /**
-     * The delay after which the focus switches from the lastly selected cell to the active editor's `TEXTAREA`
-     * element if the focus mode is set to 'mixed'.
-     *
-     * @type {number}
-     * @private
-     */
-    this._refocusDelay = 50;
-
-    /**
-     * Getter function for the element to be used when refocusing the browser after a delay. If `null`, the active
-     * editor's `TEXTAREA` element will be used.
-     *
-     * @type {null|Function}
-     * @private
-     */
-    this._refocusElementGetter = null;
-
-    this._hot.addHook('afterUpdateSettings', (...args) => this.#onUpdateSettings(...args));
-    this._hot.addHook('afterSelectionEnd', (...args) => this.#manageFocus(...args));
+    this.#hot.addHook('afterUpdateSettings', (...args) => this.#onUpdateSettings(...args));
+    this.#hot.addHook('afterSelectionEnd', (...args) => this.#manageFocus(...args));
   }
 
   /**
    * Get the current focus mode.
    *
-   * @returns {string}
+   * @returns {'cell' | 'mixed'}
    */
   getFocusMode() {
-    return this._focusMode;
+    return this.#focusMode;
   }
 
   /**
    * Set the focus mode.
    *
-   * @param {string} focusMode The new focus mode.
+   * @param {'cell' | 'mixed'} focusMode The new focus mode.
    */
   setFocusMode(focusMode) {
     if (Object.values(FOCUS_MODES).includes(focusMode)) {
-      this._focusMode = focusMode;
+      this.#focusMode = focusMode;
 
     } else {
       warn(`"${focusMode}" is not a valid focus mode.`);
@@ -92,7 +92,7 @@ export default class FocusManager {
    * @returns {number} Delay in milliseconds.
    */
   getRefocusDelay() {
-    return this._refocusDelay;
+    return this.#refocusDelay;
   }
 
   /**
@@ -102,7 +102,7 @@ export default class FocusManager {
    * @param {number} delay Delay in milliseconds.
    */
   setRefocusDelay(delay) {
-    this._refocusDelay = delay;
+    this.#refocusDelay = delay;
   }
 
   /**
@@ -111,7 +111,7 @@ export default class FocusManager {
    * @param {Function} getRefocusElementFunction The refocus element getter.
    */
   setRefocusElementGetter(getRefocusElementFunction) {
-    this._refocusElementGetter = getRefocusElementFunction;
+    this.#refocusElementGetter = getRefocusElementFunction;
   }
 
   /**
@@ -120,11 +120,11 @@ export default class FocusManager {
    * @returns {HTMLTextAreaElement|HTMLElement|undefined}
    */
   getRefocusElement() {
-    if (this._refocusElementGetter !== null) {
-      return this._refocusElementGetter();
+    if (typeof this.#refocusElementGetter === 'function') {
+      return this.#refocusElementGetter();
 
     } else {
-      return this._hot.getActiveEditor()?.TEXTAREA;
+      return this.#hot.getActiveEditor()?.TEXTAREA;
     }
   }
 
@@ -132,15 +132,15 @@ export default class FocusManager {
    * Set the browser's focus to the highlighted cell of the last selection.
    */
   focusOnHighlightedCell() {
-    const lastSelectedRange = this._hot.getSelectedRangeLast();
+    const lastSelectedRange = this.#hot.getSelectedRangeLast();
     const selectedCellCoords = lastSelectedRange.highlight;
-    const selectedCell = this._hot.getCell(selectedCellCoords.row, selectedCellCoords.col);
+    const selectedCell = this.#hot.getCell(selectedCellCoords.row, selectedCellCoords.col);
 
     if (
       selectedCell &&
-      !this._hot.getActiveEditor()?.isOpened()
+      !this.#hot.getActiveEditor()?.isOpened()
     ) {
-      this._hot.getCell(selectedCellCoords.row, selectedCellCoords.col).focus({
+      this.#hot.getCell(selectedCellCoords.row, selectedCellCoords.col).focus({
         preventScroll: true
       });
     }
@@ -152,15 +152,15 @@ export default class FocusManager {
    *
    * @param {number} delay Delay in milliseconds.
    */
-  refocusToEditorTextarea(delay = this._refocusDelay) {
+  refocusToEditorTextarea(delay = this.#refocusDelay) {
     const refocusElement = this.getRefocusElement();
 
     // Re-focus on the editor's `TEXTAREA` element (or a predefined element) if the `imeFastEdit` option is enabled.
     if (
-      this._hot.getSettings().imeFastEdit &&
+      this.#hot.getSettings().imeFastEdit &&
       !!refocusElement
     ) {
-      this._hot._registerTimeout(() => {
+      this.#hot._registerTimeout(() => {
         refocusElement.select();
       }, delay);
     }
