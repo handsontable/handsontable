@@ -153,8 +153,8 @@ describe('manualRowMove', () => {
           }
        `;
 
-        $(document.createTextNode(css)).appendTo(spec().$styleDomEleement);
-        $(spec().$styleDomEleement).appendTo('body');
+        $(document.createTextNode(css)).appendTo(spec().$styleDomElement);
+        $(spec().$styleDomElement).appendTo('body');
         $(spec().$wrapper).appendTo('body');
         $(spec().$container).appendTo($(spec().$wrapper.find('.extra-div')));
 
