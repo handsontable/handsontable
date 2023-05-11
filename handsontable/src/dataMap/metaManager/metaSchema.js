@@ -959,8 +959,7 @@ export default () => {
     /**
      * The `colWidths` option sets columns' widths, in pixels.
      *
-     * In the rendering process, the default column width is 50px. To change it,
-     * set the `colWidths` option to one of the following:
+     * The default column width is 50px. To change it, set the `colWidths` option to one of the following:
      *
      * | Setting     | Description                                                                                          | Example                                                           |
      * | ----------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
@@ -970,7 +969,10 @@ export default () => {
      * | A function  | Set column widths dynamically,<br>on each render                                                     | `colWidths(visualColumnIndex) { return visualColumnIndex * 10; }` |
      * | `undefined` | Used by the [modifyColWidth](@/api/hooks.md#modifyColWidth) hook,<br>to detect column width changes. | `colWidths: undefined`                                            |
      *
-     * Setting the `colWidths` option disables the {@link AutoColumnSize} plugin.
+     * Setting `colWidths` even for a single column disables the {@link AutoColumnSize} plugin
+     * for all columns. For this reason, if you use `colWidths`, we recommend you set a width for each one
+     * of your columns. Otherwise, every column with an undefined width defaults back to 50px,
+     * which may cut longer columns names.
      *
      * Read more:
      * - [Column width](@/guides/columns/column-width.md)
@@ -992,8 +994,8 @@ export default () => {
      *
      * // set the first (by visual index) column's width to 100
      * // set the second (by visual index) column's width to 120
-     * // set the third (by visual index) column's width to `undefined`
-     * // set any other column's width to the default 50px
+     * // set the third (by visual index) column's width to `undefined`, so that it defaults to 50px
+     * // set any other column's width to the default 50px (note that longer cell values and column names can get cut)
      * colWidths: [100, 120, undefined],
      *
      * // set each column's width individually, using a function
