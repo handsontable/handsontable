@@ -14,8 +14,8 @@ export interface BorderRange {
   };
 }
 export type DetailedSettings = (SimpleCellCoords | BorderRange) & {
-  left?: BorderOptions | string;
-  right?: BorderOptions | string;
+  start?: BorderOptions | string;
+  end?: BorderOptions | string;
   top?: BorderOptions | string;
   bottom?: BorderOptions | string;
 };
