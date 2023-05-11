@@ -132,7 +132,7 @@ describe('manualRowMove', () => {
         `);
 
         spec().$container = $(`<div id="${id}"></div>`);
-        spec().$styleDomEleement = $('<style type="text/css"></style>');
+        spec().$styleDomElement = $('<style type="text/css"></style>');
 
         const css = `
           .wrapper {
