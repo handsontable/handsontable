@@ -2969,6 +2969,7 @@ console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate}) 
 - [Angular demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.3.3/docs/angular/demo/)
 - [React demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.3.3/docs/react/demo/)
 - [Vue demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.3.3/docs/vue/demo/)
+- [Vue3 demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.3.3/docs/vue3/demo/)
 
 ## Try out the demo's features
 
