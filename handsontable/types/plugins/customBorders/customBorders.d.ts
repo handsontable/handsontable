@@ -16,6 +16,8 @@ export interface BorderRange {
 export type DetailedSettings = (SimpleCellCoords | BorderRange) & {
   start?: BorderOptions | string;
   end?: BorderOptions | string;
+  left?: BorderOptions | string;
+  right?: BorderOptions | string;
   top?: BorderOptions | string;
   bottom?: BorderOptions | string;
 };
