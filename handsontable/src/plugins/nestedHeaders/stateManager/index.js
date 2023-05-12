@@ -338,7 +338,7 @@ export default class StateManager {
     } = this.getHeaderSettings(headerLevel, columnIndex) ?? { isRoot: true };
 
     if (isRoot) {
-      return columnIndex;
+      return Math.max(columnIndex, 0);
     }
 
     let stepBackColumn = columnIndex - 1;
@@ -355,13 +355,13 @@ export default class StateManager {
       stepBackColumn -= 1;
     }
 
-    return stepBackColumn;
+    return Math.max(stepBackColumn, 0);
   }
 
   /**
    * The method is helpful in cases where the column index targets in-between currently
    * collapsed column. In that case, the method returns the right-most column index
-   * where the nested header begins.
+   * where the nested header ends.
    *
    * @param {number} headerLevel Header level (there is support for negative and positive values).
    * @param {number} columnIndex A visual column index.
@@ -370,10 +370,11 @@ export default class StateManager {
   findRightMostColumnIndex(headerLevel, columnIndex) {
     const {
       isRoot,
-    } = this.getHeaderSettings(headerLevel, columnIndex) ?? { isRoot: true };
+      origColspan,
+    } = this.getHeaderSettings(headerLevel, columnIndex) ?? { isRoot: true, origColspan: 1 };
 
     if (isRoot) {
-      return columnIndex;
+      return Math.max(columnIndex + origColspan - 1, 0);
     }
 
     let stepForthColumn = columnIndex + 1;
@@ -390,7 +391,7 @@ export default class StateManager {
       stepForthColumn += 1;
     }
 
-    return stepForthColumn;
+    return Math.min(stepForthColumn - 1, this.getColumnsCount() - 1);
   }
 
   /**

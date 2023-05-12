@@ -124,7 +124,7 @@ describe('Selection', () => {
         | * : * : * ║ A : 0 : 0 : 0 : 0 : 0 |
         |   :   :   ║   :   :   :   :   :   |
         `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-3 to: 2,5']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-1 to: 2,5']);
     });
 
     it('should highlight single column (default selectionMode, multiple headers, navigableHeaders on)', () => {
@@ -154,7 +154,7 @@ describe('Selection', () => {
         | * : * : * ║ A : 0 : 0 : 0 : 0 : 0 |
         |   :   :   ║   :   :   :   :   :   |
         `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-3 to: 2,5']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-1 to: 2,5']);
     });
 
     it('should highlight non-contiguous selection when CTRL key is pressed', () => {
@@ -221,8 +221,8 @@ describe('Selection', () => {
         |   :   :   ║   :   :   :   :   :   |
         `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange([
-        'highlight: 2,0 from: 2,-3 to: 2,5',
-        'highlight: 0,0 from: 0,-3 to: 0,5',
+        'highlight: 2,0 from: 2,-1 to: 2,5',
+        'highlight: 0,0 from: 0,-1 to: 0,5',
       ]);
     });
 
@@ -293,7 +293,7 @@ describe('Selection', () => {
         | * : * : * ║ A : 0 : 0 : 0 : 0 : 0 |
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-3 to: 3,5']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-1 to: 3,5']);
     });
 
     it('should highlight range of the rows (default selectionMode, reversed selection)', () => {
@@ -342,7 +342,7 @@ describe('Selection', () => {
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * : * : * ║ A : 0 : 0 : 0 : 0 : 0 |
         `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 3,-3 to: 2,5']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 3,-1 to: 2,5']);
     });
 
     it('should not be possible to move the focus selection to header (navigableHeaders off, with headers)', () => {
@@ -425,7 +425,7 @@ describe('Selection', () => {
         | * : * : # ║ 0 : 0 : 0 |
         | * : * : * ║ 0 : 0 : 0 |
         `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,-1 from: 2,-3 to: 3,2']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,-1 from: 2,-1 to: 3,2']);
 
       expect(hot().selection.selectRows(2, 3, -3)).toBe(true);
       expect(`
@@ -451,7 +451,7 @@ describe('Selection', () => {
         | * : * : * ║ A : 0 : 0 |
         | * : * : * ║ 0 : 0 : 0 |
         `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-3 to: 3,2']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-1 to: 3,2']);
     });
 
     it('should not be possible to move the focus selection to header (navigableHeaders on, without headers)', () => {

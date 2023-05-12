@@ -573,6 +573,44 @@ class TableView {
   }
 
   /**
+   * The function returns the number of renderable column indexes within the passed range of the visual indexes.
+   *
+   * @param {number} columnStart The column visual start index.
+   * @param {number} columnEnd The column visual end index.
+   * @returns {number}
+   */
+  countRenderableColumnsInRange(columnStart, columnEnd) {
+    let count = 0;
+
+    for (let column = columnStart; column <= columnEnd; column++) {
+      if (this.instance.columnIndexMapper.getRenderableFromVisualIndex(column) !== null) {
+        count += 1;
+      }
+    }
+
+    return count;
+  }
+
+  /**
+   * The function returns the number of renderable row indexes within the passed range of the visual indexes.
+   *
+   * @param {number} rowStart The row visual start index.
+   * @param {number} rowEnd The row visual end index.
+   * @returns {number}
+   */
+  countRenderableRowsInRange(rowStart, rowEnd) {
+    let count = 0;
+
+    for (let row = rowStart; row <= rowEnd; row++) {
+      if (this.instance.rowIndexMapper.getRenderableFromVisualIndex(row) !== null) {
+        count += 1;
+      }
+    }
+
+    return count;
+  }
+
+  /**
    * Checks if at least one cell than belongs to the main table is not covered by the top, left or
    * bottom overlay.
    *

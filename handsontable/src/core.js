@@ -536,6 +536,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               // I can't use transforms as they don't work in negative indexes.
               selection.setRangeStartOnly(instance
                 ._createCellCoords(currentFromRow + rowDelta, currentFromColumn), true);
+              selection.selectedByRowHeader.add(selection.getLayerLevel());
               selection.setRangeEnd(instance
                 ._createCellCoords(currentToRow + rowDelta, currentToColumn)); // will call render() internally
             } else {
@@ -601,6 +602,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               // I can't use transforms as they don't work in negative indexes.
               selection.setRangeStartOnly(instance
                 ._createCellCoords(currentFromRow, currentFromColumn + colDelta), true);
+              selection.selectedByColumnHeader.add(selection.getLayerLevel());
               selection.setRangeEnd(instance
                 ._createCellCoords(currentToRow, currentToColumn + colDelta)); // will call render() internally
             } else {

@@ -567,6 +567,10 @@ describe('StateManager', () => {
         ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
       ]);
 
+      // out of range
+      expect(state.findLeftMostColumnIndex(0, -1)).toBe(0);
+      expect(state.findLeftMostColumnIndex(0, 100)).toBe(100);
+
       // header level = 0
       expect(state.findLeftMostColumnIndex(0, 0)).toBe(0);
 
@@ -610,6 +614,79 @@ describe('StateManager', () => {
 
       expect(state.findLeftMostColumnIndex(3, 5)).toBe(5);
       expect(state.findLeftMostColumnIndex(3, 6)).toBe(5);
+    });
+  });
+
+  describe('findRightMostColumnIndex', () => {
+    it('should return proper column index', () => {
+      /**
+       * The column headers visualisation:
+       *   +----+----+----+----+----+----+----+
+       *   | A1 | A2                | A3      |
+       *   +----+----+----+----+----+----+----+
+       *   | B1 | B2                | B3      |
+       *   +----+----+----+----+----+----+----+
+       *   | C1 | C2 | C3           | C4      |
+       *   +----+----+----+----+----+----+----+
+       *   | D1 | D2 | D3 | D4 | D5 | D6      |
+       *   +----+----+----+----+----+----+----+
+       */
+      const state = new StateManager();
+
+      state.setState([
+        ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
+        ['B1', { label: 'B2', colspan: 4 }, { label: 'B3', colspan: 2 }],
+        ['C1', 'C2', { label: 'C3', colspan: 3 }, { label: 'C4', colspan: 2 }],
+        ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
+      ]);
+
+      // out of range
+      expect(state.findRightMostColumnIndex(0, -1)).toBe(0);
+      expect(state.findRightMostColumnIndex(0, 100)).toBe(100);
+
+      // header level = 0
+      expect(state.findRightMostColumnIndex(0, 0)).toBe(0);
+
+      expect(state.findRightMostColumnIndex(0, 1)).toBe(4);
+      expect(state.findRightMostColumnIndex(0, 2)).toBe(4);
+      expect(state.findRightMostColumnIndex(0, 3)).toBe(4);
+      expect(state.findRightMostColumnIndex(0, 4)).toBe(4);
+
+      expect(state.findRightMostColumnIndex(0, 5)).toBe(6);
+      expect(state.findRightMostColumnIndex(0, 6)).toBe(6);
+
+      // header level = 1
+      expect(state.findRightMostColumnIndex(1, 0)).toBe(0);
+
+      expect(state.findRightMostColumnIndex(1, 1)).toBe(4);
+      expect(state.findRightMostColumnIndex(1, 2)).toBe(4);
+      expect(state.findRightMostColumnIndex(1, 3)).toBe(4);
+      expect(state.findRightMostColumnIndex(1, 4)).toBe(4);
+
+      expect(state.findRightMostColumnIndex(1, 5)).toBe(6);
+      expect(state.findRightMostColumnIndex(1, 6)).toBe(6);
+
+      // header level = 2
+      expect(state.findRightMostColumnIndex(2, 0)).toBe(0);
+
+      expect(state.findRightMostColumnIndex(2, 1)).toBe(1);
+
+      expect(state.findRightMostColumnIndex(2, 2)).toBe(4);
+      expect(state.findRightMostColumnIndex(2, 3)).toBe(4);
+      expect(state.findRightMostColumnIndex(2, 4)).toBe(4);
+
+      expect(state.findRightMostColumnIndex(2, 5)).toBe(6);
+      expect(state.findRightMostColumnIndex(2, 6)).toBe(6);
+
+      // header level = 3
+      expect(state.findRightMostColumnIndex(3, 0)).toBe(0);
+      expect(state.findRightMostColumnIndex(3, 1)).toBe(1);
+      expect(state.findRightMostColumnIndex(3, 2)).toBe(2);
+      expect(state.findRightMostColumnIndex(3, 3)).toBe(3);
+      expect(state.findRightMostColumnIndex(3, 4)).toBe(4);
+
+      expect(state.findRightMostColumnIndex(3, 5)).toBe(6);
+      expect(state.findRightMostColumnIndex(3, 6)).toBe(6);
     });
   });
 

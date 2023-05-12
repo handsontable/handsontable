@@ -26,8 +26,8 @@ function createTransformation(options) {
     renderableToVisualCoords(coords) {
       return coords.clone();
     },
-    countRows() { return options.countRows ?? 10; },
-    countCols() { return options.countCols ?? 10; },
+    countRenderableRows() { return options.countRenderableRows ?? 10; },
+    countRenderableColumns() { return options.countRenderableColumns ?? 10; },
     fixedRowsBottom() { return options.fixedRowsBottom ?? 0; },
     navigableHeaders() { return options.navigableHeaders ?? false; },
     minSpareRows() { return options.minSpareRows ?? 0; },

@@ -103,8 +103,8 @@ describe('CollapsibleColumns', () => {
           </tr>
         </thead>
         `);
-      expect(getSelected()).toEqual([[-4, 2, 4, 4]]);
-      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -4, col: 2 });
+      expect(getSelected()).toEqual([[-2, 2, 4, 4]]);
+      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -2, col: 2 });
       expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 4 });
       expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 2 });
 
@@ -156,8 +156,8 @@ describe('CollapsibleColumns', () => {
           </tr>
         </thead>
         `);
-      expect(getSelected()).toEqual([[-4, 7, 4, 7]]);
-      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -4, col: 7 });
+      expect(getSelected()).toEqual([[-1, 7, 4, 7]]);
+      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -1, col: 7 });
       expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 7 });
       expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 7 });
 
@@ -205,8 +205,8 @@ describe('CollapsibleColumns', () => {
           </tr>
         </thead>
         `);
-      expect(getSelected()).toEqual([[-4, 5, 4, 6]]);
-      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -4, col: 5 });
+      expect(getSelected()).toEqual([[-2, 5, 4, 6]]);
+      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -2, col: 5 });
       expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 6 });
       expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 5 });
 
@@ -247,8 +247,8 @@ describe('CollapsibleColumns', () => {
           </tr>
         </thead>
         `);
-      expect(getSelected()).toEqual([[-4, 5, 4, 6]]);
-      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -4, col: 5 });
+      expect(getSelected()).toEqual([[-2, 5, 4, 6]]);
+      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -2, col: 5 });
       expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 6 });
       expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 5 });
 
@@ -309,8 +309,8 @@ describe('CollapsibleColumns', () => {
           </tr>
         </thead>
         `);
-      expect(getSelected()).toEqual([[-4, 5, 4, 6]]);
-      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -4, col: 5 });
+      expect(getSelected()).toEqual([[-2, 5, 4, 6]]);
+      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -2, col: 5 });
       expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 6 });
       expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 5 });
     });
@@ -394,7 +394,7 @@ describe('CollapsibleColumns', () => {
           </tr>
         </thead>
         `);
-      expect(getSelected()).toEqual([[-5, 7, 4, 8], [-5, 5, 4, 5], [-5, 3, 4, 4]]);
+      expect(getSelected()).toEqual([[-2, 7, 4, 8], [-1, 5, 4, 5], [-2, 3, 4, 4]]);
 
       simulateClick(getCell(-4, 1).querySelector('.collapsibleIndicator')); // Collapse header "B1"
 
@@ -437,7 +437,7 @@ describe('CollapsibleColumns', () => {
           </tr>
         </thead>
         `);
-      expect(getSelected()).toEqual([[-5, 7, 4, 8], [-5, 5, 4, 5], [-5, 3, 4, 4]]);
+      expect(getSelected()).toEqual([[-2, 7, 4, 8], [-1, 5, 4, 5], [-2, 3, 4, 4]]);
     });
 
     it('should active highlight the column header when the header is collpased to the same colspan width as its child', () => {
@@ -497,8 +497,8 @@ describe('CollapsibleColumns', () => {
           </tr>
         </thead>
         `);
-      expect(getSelected()).toEqual([[-3, 0, 4, 0]]);
-      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -3, col: 0 });
+      expect(getSelected()).toEqual([[-1, 0, 4, 0]]);
+      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -1, col: 0 });
       expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 0 });
       expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 0 });
 
@@ -520,8 +520,8 @@ describe('CollapsibleColumns', () => {
           </tr>
         </thead>
         `);
-      expect(getSelected()).toEqual([[-3, 0, 4, 0]]);
-      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -3, col: 0 });
+      expect(getSelected()).toEqual([[-1, 0, 4, 0]]);
+      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -1, col: 0 });
       expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 0 });
       expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 0 });
 
@@ -570,8 +570,8 @@ describe('CollapsibleColumns', () => {
           </tr>
         </thead>
         `);
-      expect(getSelected()).toEqual([[-3, 0, 4, 0]]);
-      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -3, col: 0 });
+      expect(getSelected()).toEqual([[-1, 0, 4, 0]]);
+      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -1, col: 0 });
       expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 0 });
       expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 0 });
     });
