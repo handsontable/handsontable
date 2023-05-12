@@ -9,6 +9,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [12.4.0] - 2023-05-23
+
+### Added
+- Added new afterColumnSequenceChange and afterRowSequenceChange hooks and synchronization of actions done on HOT with HF's engine [#10215](https://github.com/handsontable/handsontable/pull/10215)
+
+### Fixed
+- Fixed problem related to copying and pasting from Hansontable to Excel [#10017](https://github.com/handsontable/handsontable/issues/10017)
+- Fixed an issue where Handsontable's dates didn't sync correctly with HyperFormula's dates. [#10085](https://github.com/handsontable/handsontable/issues/10085)
+- Fixed problem related to Autofill, TrimRows and Formulas plugins cooperation. [#10200](https://github.com/handsontable/handsontable/issues/10200)
+- Fixed a problem where re-entering the same cells/headers with the mouse cursor would not trigger the `beforeOnCellMouseOver` and `afterOnCellMouseOver` hooks. [#10321](https://github.com/handsontable/handsontable/pull/10321)
+- Fixed a problem where Handsontable's `updateSettings` method would reset the HyperFormula's Undo/Redo actions stack in the connected instance. [#10326](https://github.com/handsontable/handsontable/pull/10326)
+- Updated TypeScript definition files related to CustomBorders plugin [#1240](https://github.com/handsontable/handsontable/pull/1240)
+- Fixed problems with backlight and guideline elements misalignment and moving row after the last position [#9556](https://github.com/handsontable/handsontable/issues/9556)
+
 ## [12.3.3] - 2023-03-28
 
 ### Added
