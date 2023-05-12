@@ -173,6 +173,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
         from: { row: 1, col: 1 },
         to: { row: 3, col: 4 }
       },
+      start: { width: 2, color: 'red' },
+      end: { width: 2, color: 'red' },
       left: { width: 2, color: 'red' },
       right: { width: 2, color: 'red' },
       top: { width: 2, color: 'red' },
