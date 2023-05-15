@@ -16,7 +16,7 @@ describe('NestedHeaders', () => {
     describe('with selection', () => {
       it('should highlight column headers for selected cells', () => {
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 13),
+          data: Handsontable.helper.createSpreadsheetData(3, 13),
           colHeaders: true,
           nestedHeaders: [
             ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
@@ -39,26 +39,16 @@ describe('NestedHeaders', () => {
           [2, 11, 2, 11], // L3
         ]);
 
-        expect(extractDOMStructure(getTopClone())).toMatchHTML(`
-          <thead>
-            <tr>
-              <th class="" colspan="2">B1</th>
-              <th class="hiddenHeader"></th>
-            </tr>
-            <tr>
-              <th class="" colspan="2">B2</th>
-              <th class="hiddenHeader"></th>
-            </tr>
-            <tr>
-              <th class="">B3</th>
-              <th class="">F3</th>
-            </tr>
-            <tr>
-              <th class="ht__highlight">B4</th>
-              <th class="ht__highlight">F4</th>
-            </tr>
-          </thead>
-          `);
+        expect(`
+          |       |
+          |       |
+          |   :   |
+          | - : - |
+          |===:===|
+          |   :   |
+          |   :   |
+          | 0 : 0 |
+        `).toBeMatchToSelectionPattern();
 
         hidingMap.setValueAtIndex(6, false); // Show column that contains cells G{n}
         hidingMap.setValueAtIndex(11, false); // Show column that contains cells L{n}
@@ -69,34 +59,16 @@ describe('NestedHeaders', () => {
           'highlight: 2,5 from: 2,5 to: 2,5', // F3
           'highlight: 2,11 from: 2,11 to: 2,11', // L3
         ]);
-        expect(extractDOMStructure(getTopClone())).toMatchHTML(`
-          <thead>
-            <tr>
-              <th class="" colspan="3">B1</th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="">K1</th>
-            </tr>
-            <tr>
-              <th class="" colspan="3">B2</th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="">K2</th>
-            </tr>
-            <tr>
-              <th class="">B3</th>
-              <th class="" colspan="2">F3</th>
-              <th class="hiddenHeader"></th>
-              <th class="">K3</th>
-            </tr>
-            <tr>
-              <th class="ht__highlight">B4</th>
-              <th class="ht__highlight" colspan="2">F4</th>
-              <th class="hiddenHeader"></th>
-              <th class="ht__highlight">L4</th>
-            </tr>
-          </thead>
-          `);
+        expect(`
+          |           :   |
+          |           :   |
+          |   :       :   |
+          | - : -   - : - |
+          |===:===:===:===|
+          |   :   :   :   |
+          |   :   :   :   |
+          | 0 : 0 :   : A |
+        `).toBeMatchToSelectionPattern();
 
         hidingMap.setValueAtIndex(0, false); // Show column that contains cells A{n}
         hidingMap.setValueAtIndex(1, false); // Show column that contains cells B{n}
@@ -112,58 +84,16 @@ describe('NestedHeaders', () => {
           'highlight: 2,5 from: 2,5 to: 2,5', // F3
           'highlight: 2,11 from: 2,11 to: 2,11', // L3
         ]);
-        expect(extractDOMStructure(getTopClone())).toMatchHTML(`
-          <thead>
-            <tr>
-              <th class="">A1</th>
-              <th class="" colspan="7">B1</th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="" colspan="2">K1</th>
-              <th class="hiddenHeader"></th>
-            </tr>
-            <tr>
-              <th class="">A2</th>
-              <th class="" colspan="7">B2</th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="" colspan="2">K2</th>
-              <th class="hiddenHeader"></th>
-            </tr>
-            <tr>
-              <th class="">A3</th>
-              <th class="" colspan="3">B3</th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="" colspan="4">F3</th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="" colspan="2">K3</th>
-              <th class="hiddenHeader"></th>
-            </tr>
-            <tr>
-              <th class="">A4</th>
-              <th class="ht__highlight" colspan="2">B4</th>
-              <th class="hiddenHeader"></th>
-              <th class="">D4</th>
-              <th class="ht__highlight" colspan="2">F4</th>
-              <th class="hiddenHeader"></th>
-              <th class="" colspan="2">H4</th>
-              <th class="hiddenHeader"></th>
-              <th class="ht__highlight" colspan="2">L4</th>
-              <th class="hiddenHeader"></th>
-            </tr>
-          </thead>
-          `);
+        expect(`
+          |   :                           :       |
+          |   :                           :       |
+          |   :           :               :       |
+          |   : -   - :   : -   - :       : -   - |
+          |===:===:===:===:===:===:===:===:===:===|
+          |   :   :   :   :   :   :   :   :   :   |
+          |   :   :   :   :   :   :   :   :   :   |
+          |   :   : 0 :   : 0 :   :   :   : A :   |
+        `).toBeMatchToSelectionPattern();
 
         // Reset map to initial values (all columns hidden)
         hidingMap.setDefaultValues();
@@ -175,27 +105,21 @@ describe('NestedHeaders', () => {
           'highlight: 2,5 from: 2,5 to: 2,5', // F3
           'highlight: 2,11 from: 2,11 to: 2,11', // L3
         ]);
-        expect(extractDOMStructure(getTopClone())).toMatchHTML(`
-          <thead>
-            <tr>
-              <th class="">B1</th>
-            </tr>
-            <tr>
-              <th class="">B2</th>
-            </tr>
-            <tr>
-              <th class="">F3</th>
-            </tr>
-            <tr>
-              <th class="ht__highlight">F4</th>
-            </tr>
-          </thead>
-          `);
+        expect(`
+          |   |
+          |   |
+          |   |
+          | - |
+          |===|
+          |   |
+          |   |
+          | 0 |
+        `).toBeMatchToSelectionPattern();
       });
 
       it('should active highlight column headers correctly', () => {
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 13),
+          data: Handsontable.helper.createSpreadsheetData(3, 13),
           colHeaders: true,
           nestedHeaders: [
             ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
@@ -224,38 +148,20 @@ describe('NestedHeaders', () => {
         keyUp('control/meta');
 
         expect(getSelectedRange()).toEqualCellRange([
-          'highlight: 0,8 from: -2,5 to: 9,8', // F3
-          'highlight: 0,10 from: -3,10 to: 9,12', // K2
-          'highlight: 0,1 from: -1,1 to: 9,2', // B4
+          'highlight: 0,8 from: -2,5 to: 2,8', // F3
+          'highlight: 0,10 from: -3,10 to: 2,12', // K2
+          'highlight: 0,1 from: -1,1 to: 2,2', // B4
         ]);
-        expect(extractDOMStructure(getTopClone())).toMatchHTML(`
-          <thead>
-            <tr>
-              <th class="" colspan="3">B1</th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="ht__active_highlight">K1</th>
-            </tr>
-            <tr>
-              <th class="" colspan="3">B2</th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="ht__active_highlight">K2</th>
-            </tr>
-            <tr>
-              <th class="" colspan="2">B3</th>
-              <th class="hiddenHeader"></th>
-              <th class="ht__active_highlight">F3</th>
-              <th class="ht__active_highlight">K3</th>
-            </tr>
-            <tr>
-              <th class="ht__highlight ht__active_highlight">B4</th>
-              <th class="">D4</th>
-              <th class="ht__highlight ht__active_highlight">H4</th>
-              <th class="ht__highlight ht__active_highlight">K4</th>
-            </tr>
-          </thead>
-          `);
+        expect(`
+          |           : * |
+          |           : * |
+          |       : * : * |
+          | * :   : * : * |
+          |===:===:===:===|
+          | A :   : 0 : 0 |
+          | 0 :   : 0 : 0 |
+          | 0 :   : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
 
         hidingMap.setValueAtIndex(5, false); // Show column that contains cells F{n}
         hidingMap.setValueAtIndex(11, false); // Show column that contains cells L{n}
@@ -263,50 +169,20 @@ describe('NestedHeaders', () => {
         hot.render();
 
         expect(getSelectedRange()).toEqualCellRange([
-          'highlight: 0,8 from: -2,5 to: 9,8', // F3
-          'highlight: 0,10 from: -3,10 to: 9,12', // K2
-          'highlight: 0,1 from: -1,1 to: 9,2', // B4
+          'highlight: 0,8 from: -2,5 to: 2,8', // F3
+          'highlight: 0,10 from: -3,10 to: 2,12', // K2
+          'highlight: 0,1 from: -1,1 to: 2,2', // B4
         ]);
-        expect(extractDOMStructure(getTopClone())).toMatchHTML(`
-          <thead>
-            <tr>
-              <th class="">A1</th>
-              <th class="" colspan="4">B1</th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="ht__active_highlight" colspan="2">K1</th>
-              <th class="hiddenHeader"></th>
-            </tr>
-            <tr>
-              <th class="">A2</th>
-              <th class="" colspan="4">B2</th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="ht__active_highlight" colspan="2">K2</th>
-              <th class="hiddenHeader"></th>
-            </tr>
-            <tr>
-              <th class="">A3</th>
-              <th class="" colspan="2">B3</th>
-              <th class="hiddenHeader"></th>
-              <th class="ht__active_highlight" colspan="2">F3</th>
-              <th class="hiddenHeader"></th>
-              <th class="ht__active_highlight" colspan="2">K3</th>
-              <th class="hiddenHeader"></th>
-            </tr>
-            <tr>
-              <th class="">A4</th>
-              <th class="ht__highlight ht__active_highlight">B4</th>
-              <th class="">D4</th>
-              <th class="ht__highlight ht__active_highlight">F4</th>
-              <th class="ht__highlight ht__active_highlight">H4</th>
-              <th class="ht__highlight ht__active_highlight">K4</th>
-              <th class="ht__highlight ht__active_highlight">L4</th>
-            </tr>
-          </thead>
-          `);
+        expect(`
+          |   :               : *   * |
+          |   :               : *   * |
+          |   :       : *   * : *   * |
+          |   : * :   : * : * : * : * |
+          |===:===:===:===:===:===:===|
+          |   : A :   : 0 : 0 : 0 : 0 |
+          |   : 0 :   : 0 : 0 : 0 : 0 |
+          |   : 0 :   : 0 : 0 : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
 
         hidingMap.setValueAtIndex(2, false); // Show column that contains cells C{n}
         hidingMap.setValueAtIndex(6, false); // Show column that contains cells G{n}
@@ -315,66 +191,20 @@ describe('NestedHeaders', () => {
         hot.render();
 
         expect(getSelectedRange()).toEqualCellRange([
-          'highlight: 0,8 from: -2,5 to: 9,8', // F3
-          'highlight: 0,10 from: -3,10 to: 9,12', // K2
-          'highlight: 0,1 from: -1,1 to: 9,2', // B4
+          'highlight: 0,8 from: -2,5 to: 2,8', // F3
+          'highlight: 0,10 from: -3,10 to: 2,12', // K2
+          'highlight: 0,1 from: -1,1 to: 2,2', // B4
         ]);
-        expect(extractDOMStructure(getTopClone())).toMatchHTML(`
-          <thead>
-            <tr>
-              <th class="">A1</th>
-              <th class="" colspan="7">B1</th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="">J1</th>
-              <th class="ht__active_highlight" colspan="2">K1</th>
-              <th class="hiddenHeader"></th>
-            </tr>
-            <tr>
-              <th class="">A2</th>
-              <th class="" colspan="7">B2</th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="">J2</th>
-              <th class="ht__active_highlight" colspan="2">K2</th>
-              <th class="hiddenHeader"></th>
-            </tr>
-            <tr>
-              <th class="">A3</th>
-              <th class="" colspan="3">B3</th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="ht__active_highlight" colspan="4">F3</th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="">J3</th>
-              <th class="ht__active_highlight" colspan="2">K3</th>
-              <th class="hiddenHeader"></th>
-            </tr>
-            <tr>
-              <th class="">A4</th>
-              <th class="ht__highlight ht__active_highlight" colspan="2">B4</th>
-              <th class="hiddenHeader"></th>
-              <th class="">D4</th>
-              <th class="ht__highlight ht__active_highlight" colspan="2">F4</th>
-              <th class="hiddenHeader"></th>
-              <th class="ht__highlight ht__active_highlight" colspan="2">H4</th>
-              <th class="hiddenHeader"></th>
-              <th class="">J4</th>
-              <th class="ht__highlight ht__active_highlight">K4</th>
-              <th class="ht__highlight ht__active_highlight">L4</th>
-            </tr>
-          </thead>
-          `);
+        expect(`
+          |   :                           :   : *   * |
+          |   :                           :   : *   * |
+          |   :           : *   *   *   * :   : *   * |
+          |   : *   * :   : *   * : *   * :   : * : * |
+          |===:===:===:===:===:===:===:===:===:===:===|
+          |   : A : 0 :   : 0 : 0 : 0 : 0 :   : 0 : 0 |
+          |   : 0 : 0 :   : 0 : 0 : 0 : 0 :   : 0 : 0 |
+          |   : 0 : 0 :   : 0 : 0 : 0 : 0 :   : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
 
         // Reset map to initial values (all columns hidden)
         hidingMap.setDefaultValues();
@@ -382,26 +212,20 @@ describe('NestedHeaders', () => {
         hot.render();
 
         expect(getSelectedRange()).toEqualCellRange([
-          'highlight: 0,8 from: -2,5 to: 9,8', // F3
-          'highlight: 0,10 from: -3,10 to: 9,12', // K2
-          'highlight: 0,1 from: -1,1 to: 9,2', // B4
+          'highlight: 0,8 from: -2,5 to: 2,8', // F3
+          'highlight: 0,10 from: -3,10 to: 2,12', // K2
+          'highlight: 0,1 from: -1,1 to: 2,2', // B4
         ]);
-        expect(extractDOMStructure(getTopClone())).toMatchHTML(`
-          <thead>
-            <tr>
-              <th class="ht__active_highlight">B1</th>
-            </tr>
-            <tr>
-              <th class="ht__active_highlight">B2</th>
-            </tr>
-            <tr>
-              <th class="ht__active_highlight">F3</th>
-            </tr>
-            <tr>
-              <th class="ht__highlight ht__active_highlight">F4</th>
-            </tr>
-          </thead>
-          `);
+        expect(`
+          | * |
+          | * |
+          | * |
+          | * |
+          |===|
+          | 0 |
+          | 0 |
+          | 0 |
+        `).toBeMatchToSelectionPattern();
       });
     });
   });
