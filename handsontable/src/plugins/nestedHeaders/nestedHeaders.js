@@ -596,8 +596,9 @@ export class NestedHeaders extends BasePlugin {
   onModifyTransformStart(delta) {
     const { highlight } = this.hot.getSelectedRangeLast();
     const nextCoords = this.hot._createCellCoords(highlight.row + delta.row, highlight.col + delta.col);
+    const isNestedHeadersRange = nextCoords.isHeader() && nextCoords.col >= 0;
 
-    if (nextCoords.isCell()) {
+    if (!isNestedHeadersRange) {
       return;
     }
 
@@ -639,19 +640,18 @@ export class NestedHeaders extends BasePlugin {
    */
   onAfterSelection() {
     const { highlight } = this.hot.getSelectedRangeLast();
+    const isNestedHeadersRange = highlight.isHeader() && highlight.col >= 0;
 
-    if (highlight.isCell()) {
-      return;
+    if (isNestedHeadersRange) {
+      const columnIndex = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
+      const focusHighlight = this.hot.selection.highlight.getFocus();
+
+      // Correct the highlight/focus selection to highlight the correct TH element
+      focusHighlight.visualCellRange.highlight.col = columnIndex;
+      focusHighlight.visualCellRange.from.col = columnIndex;
+      focusHighlight.visualCellRange.to.col = columnIndex;
+      focusHighlight.commit();
     }
-
-    const columnIndex = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
-    const focusHighlight = this.hot.selection.highlight.getFocus();
-
-    // Correct the highlight/focus selection to highlight the correct TH element
-    focusHighlight.visualCellRange.highlight.col = columnIndex;
-    focusHighlight.visualCellRange.from.col = columnIndex;
-    focusHighlight.visualCellRange.to.col = columnIndex;
-    focusHighlight.commit();
   }
 
   /**

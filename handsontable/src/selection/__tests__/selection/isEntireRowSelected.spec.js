@@ -47,7 +47,7 @@ describe('Selection', () => {
 
       hot.selection.selectCells([[1, 0, 1, 5]]);
 
-      expect(hot.selection.isEntireRowSelected()).toBe(false);
+      expect(hot.selection.isEntireRowSelected()).toBe(true);
 
       hot.selection.selectRows(0);
 

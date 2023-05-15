@@ -338,7 +338,7 @@ export default class StateManager {
     } = this.getHeaderSettings(headerLevel, columnIndex) ?? { isRoot: true };
 
     if (isRoot) {
-      return Math.max(columnIndex, 0);
+      return columnIndex;
     }
 
     let stepBackColumn = columnIndex - 1;
@@ -355,7 +355,7 @@ export default class StateManager {
       stepBackColumn -= 1;
     }
 
-    return Math.max(stepBackColumn, 0);
+    return stepBackColumn;
   }
 
   /**
@@ -374,7 +374,7 @@ export default class StateManager {
     } = this.getHeaderSettings(headerLevel, columnIndex) ?? { isRoot: true, origColspan: 1 };
 
     if (isRoot) {
-      return Math.max(columnIndex + origColspan - 1, 0);
+      return columnIndex + origColspan - 1;
     }
 
     let stepForthColumn = columnIndex + 1;
@@ -391,7 +391,7 @@ export default class StateManager {
       stepForthColumn += 1;
     }
 
-    return Math.min(stepForthColumn - 1, this.getColumnsCount() - 1);
+    return stepForthColumn - 1;
   }
 
   /**

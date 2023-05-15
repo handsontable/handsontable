@@ -568,7 +568,8 @@ describe('StateManager', () => {
       ]);
 
       // out of range
-      expect(state.findLeftMostColumnIndex(0, -1)).toBe(0);
+      expect(state.findLeftMostColumnIndex(0, -10)).toBe(-10);
+      expect(state.findLeftMostColumnIndex(0, -1)).toBe(-1);
       expect(state.findLeftMostColumnIndex(0, 100)).toBe(100);
 
       // header level = 0
@@ -641,7 +642,8 @@ describe('StateManager', () => {
       ]);
 
       // out of range
-      expect(state.findRightMostColumnIndex(0, -1)).toBe(0);
+      expect(state.findRightMostColumnIndex(0, -10)).toBe(-10);
+      expect(state.findRightMostColumnIndex(0, -1)).toBe(-1);
       expect(state.findRightMostColumnIndex(0, 100)).toBe(100);
 
       // header level = 0

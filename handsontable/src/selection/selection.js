@@ -471,7 +471,8 @@ class Selection {
    * @returns {boolean}
    */
   isSelectedByRowHeader(layerLevel = this.getLayerLevel()) {
-    return !this.isSelectedByCorner(layerLevel) && this.isEntireRowSelected(layerLevel);
+    return !this.isSelectedByCorner(layerLevel) && (layerLevel === -1 ?
+      this.selectedByRowHeader.size > 0 : this.selectedByRowHeader.has(layerLevel));
   }
 
   /**
@@ -482,7 +483,20 @@ class Selection {
    * @returns {boolean}
    */
   isEntireRowSelected(layerLevel = this.getLayerLevel()) {
-    return layerLevel === -1 ? this.selectedByRowHeader.size > 0 : this.selectedByRowHeader.has(layerLevel);
+    const tester = (range) => {
+      const { col } = range.getOuterTopStartCorner();
+      const rowHeaders = this.tableProps.countRowHeaders();
+
+      return (rowHeaders > 0 && col < 0 || rowHeaders === 0) && range.getWidth() === this.tableProps.countCols();
+    };
+
+    if (layerLevel === -1) {
+      return Array.from(this.selectedRange).some(range => tester(range));
+    }
+
+    const range = this.selectedRange.peekByIndex(layerLevel);
+
+    return range ? tester(range) : false;
   }
 
   /**
@@ -494,7 +508,8 @@ class Selection {
    * @returns {boolean}
    */
   isSelectedByColumnHeader(layerLevel = this.getLayerLevel()) {
-    return !this.isSelectedByCorner() && this.isEntireColumnSelected(layerLevel);
+    return !this.isSelectedByCorner() && (layerLevel === -1 ?
+      this.selectedByColumnHeader.size > 0 : this.selectedByColumnHeader.has(layerLevel));
   }
 
   /**
@@ -505,7 +520,20 @@ class Selection {
    * @returns {boolean}
    */
   isEntireColumnSelected(layerLevel = this.getLayerLevel()) {
-    return layerLevel === -1 ? this.selectedByColumnHeader.size > 0 : this.selectedByColumnHeader.has(layerLevel);
+    const tester = (range) => {
+      const { row } = range.getOuterTopStartCorner();
+      const colHeaders = this.tableProps.countColHeaders();
+
+      return (colHeaders > 0 && row < 0 || colHeaders === 0) && range.getHeight() === this.tableProps.countRows();
+    };
+
+    if (layerLevel === -1) {
+      return Array.from(this.selectedRange).some(range => tester(range));
+    }
+
+    const range = this.selectedRange.peekByIndex(layerLevel);
+
+    return range ? tester(range) : false;
   }
 
   /**

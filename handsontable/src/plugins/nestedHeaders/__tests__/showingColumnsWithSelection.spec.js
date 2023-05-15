@@ -224,9 +224,9 @@ describe('NestedHeaders', () => {
         keyUp('control/meta');
 
         expect(getSelectedRange()).toEqualCellRange([
-          'highlight: 0,8 from: -4,5 to: 9,8', // F3
-          'highlight: 0,10 from: -4,10 to: 9,12', // K2
-          'highlight: 0,1 from: -4,1 to: 9,2', // B4
+          'highlight: 0,8 from: -2,5 to: 9,8', // F3
+          'highlight: 0,10 from: -3,10 to: 9,12', // K2
+          'highlight: 0,1 from: -1,1 to: 9,2', // B4
         ]);
         expect(extractDOMStructure(getTopClone())).toMatchHTML(`
           <thead>
@@ -263,9 +263,9 @@ describe('NestedHeaders', () => {
         hot.render();
 
         expect(getSelectedRange()).toEqualCellRange([
-          'highlight: 0,8 from: -4,5 to: 9,8', // F3
-          'highlight: 0,10 from: -4,10 to: 9,12', // K2
-          'highlight: 0,1 from: -4,1 to: 9,2', // B4
+          'highlight: 0,8 from: -2,5 to: 9,8', // F3
+          'highlight: 0,10 from: -3,10 to: 9,12', // K2
+          'highlight: 0,1 from: -1,1 to: 9,2', // B4
         ]);
         expect(extractDOMStructure(getTopClone())).toMatchHTML(`
           <thead>
@@ -315,9 +315,9 @@ describe('NestedHeaders', () => {
         hot.render();
 
         expect(getSelectedRange()).toEqualCellRange([
-          'highlight: 0,8 from: -4,5 to: 9,8', // F3
-          'highlight: 0,10 from: -4,10 to: 9,12', // K2
-          'highlight: 0,1 from: -4,1 to: 9,2', // B4
+          'highlight: 0,8 from: -2,5 to: 9,8', // F3
+          'highlight: 0,10 from: -3,10 to: 9,12', // K2
+          'highlight: 0,1 from: -1,1 to: 9,2', // B4
         ]);
         expect(extractDOMStructure(getTopClone())).toMatchHTML(`
           <thead>
@@ -382,9 +382,9 @@ describe('NestedHeaders', () => {
         hot.render();
 
         expect(getSelectedRange()).toEqualCellRange([
-          'highlight: 0,8 from: -4,5 to: 9,8', // F3
-          'highlight: 0,10 from: -4,10 to: 9,12', // K2
-          'highlight: 0,1 from: -4,1 to: 9,2', // B4
+          'highlight: 0,8 from: -2,5 to: 9,8', // F3
+          'highlight: 0,10 from: -3,10 to: 9,12', // K2
+          'highlight: 0,1 from: -1,1 to: 9,2', // B4
         ]);
         expect(extractDOMStructure(getTopClone())).toMatchHTML(`
           <thead>
