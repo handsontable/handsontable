@@ -3455,10 +3455,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Validates all cells using their validator functions and calls callback when finished.
+   * Validates every cell in the data set,
+   * using a [validator function](@/guides/cell-functions/cell-validator.md) configured for each cell.
    *
-   * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it
-   * would equal `true`.
+   * Doesn't validate cells that are currently [trimmed](@/guides/rows/row-trimming.md),
+   * [hidden](@/guides/rows/row-hiding.md), or [filtered](@/guides/columns/column-filter.md),
+   * as such cells are not included in the data set until you bring them back again.
+   *
+   * After the validation, the `callback` function is fired, with the `valid` argument set to:
+   * - `true` for valid cells
+   * - `false` for invalid cells
    *
    * @memberof Core#
    * @function validateCells
