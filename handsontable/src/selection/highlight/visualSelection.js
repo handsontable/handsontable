@@ -151,13 +151,7 @@ class VisualSelection extends Selection {
    * @returns {VisualSelection}
    */
   syncWith(broaderCellRange) {
-    // TODO: sync of the highlight is necessary for headers too (nested headers)
-    if (broaderCellRange.highlight.isHeader()) {
-      return this;
-    }
-
     const coordsFrom = broaderCellRange.from.clone().normalize();
-    // const coordsFrom = broaderCellRange.from.clone(); // TODO: check that
     const rowDirection = broaderCellRange.getVerticalDirection() === 'N-S' ? 1 : -1;
     const columnDirection = broaderCellRange.getHorizontalDirection() === 'W-E' ? 1 : -1;
     const cellCoordsVisual = this.getNearestNotHiddenCoords(coordsFrom, rowDirection, columnDirection);
@@ -172,7 +166,16 @@ class VisualSelection extends Selection {
 
       // We set new highlight as it might change (for example, when showing/hiding some cells from the broader selection range)
       // TODO: It is also handled by the `MergeCells` plugin while adjusting already modified coordinates. Should it?
-      broaderCellRange.setHighlight(cellCoordsVisual);
+      const currentHighlight = broaderCellRange.highlight.clone();
+
+      if (currentHighlight.row >= 0) {
+        currentHighlight.row = cellCoordsVisual.row;
+      }
+      if (currentHighlight.col >= 0) {
+        currentHighlight.col = cellCoordsVisual.col;
+      }
+
+      broaderCellRange.setHighlight(currentHighlight);
     }
 
     return this;
