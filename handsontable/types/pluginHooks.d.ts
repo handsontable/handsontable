@@ -68,7 +68,7 @@ export interface Events {
   afterColumnFreeze?: (columnIndex: number, isFreezingPerformed: boolean) => void;
   afterColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean, orderChanged: boolean) => void;
   afterColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void;
-  afterColumnSequenceChange: (source: 'init' | 'move' | 'insert' | 'remove' | 'update') => void;
+  afterColumnSequenceChange?: (source: 'init' | 'move' | 'insert' | 'remove' | 'update') => void;
   afterColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[]) => void;
   afterColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean) => void;
   afterContextMenuDefaultOptions?: (predefinedItems: Array<ContextMenuPredefinedMenuItemKey | ContextMenuMenuItemConfig>) => void;
@@ -125,7 +125,7 @@ export interface Events {
   afterRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number, value: string, cellProperties: CellProperties) => void;
   afterRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean, orderChanged: boolean) => void;
   afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
-  afterRowSequenceChange: (source: 'init' | 'move' | 'insert' | 'remove' | 'update') => void;
+  afterRowSequenceChange?: (source: 'init' | 'move' | 'insert' | 'remove' | 'update') => void;
   afterScrollHorizontally?: () => void;
   afterScrollVertically?: () => void;
   afterSelection?: (row: number, column: number, row2: number, column2: number, preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
