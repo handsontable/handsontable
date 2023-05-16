@@ -159,6 +159,8 @@ export class ManualRowMove extends BasePlugin {
   /**
    * Moves a single row.
    *
+   * To see the outcome, rerender your grid by calling [`render()`](@/api/core.md#render).
+   *
    * @param {number} row Visual row index to be moved.
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
    * To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md#drag-and-move-actions-of-manualrowmove-plugin).
@@ -171,7 +173,9 @@ export class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Moves a multiple rows.
+   * Moves multiple rows.
+   *
+   * To see the outcome, rerender your grid by calling [`render()`](@/api/core.md#render).
    *
    * @param {Array} rows Array of visual row indexes to be moved.
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
