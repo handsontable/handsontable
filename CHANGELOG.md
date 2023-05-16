@@ -12,9 +12,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [12.4.0] - 2023-05-23
 
 ### Added
-- Added new afterColumnSequenceChange and afterRowSequenceChange hooks and synchronization of actions done on HOT with HF's engine [#10215](https://github.com/handsontable/handsontable/pull/10215)
+
+- Added new `afterColumnSequenceChange` and `afterRowSequenceChange` hooks and synchronization of actions done on HOT with HF's engine [#10215](https://github.com/handsontable/handsontable/pull/10215)
 
 ### Fixed
+
 - Fixed problem related to copying and pasting from Hansontable to Excel [#10017](https://github.com/handsontable/handsontable/issues/10017)
 - Fixed an issue where Handsontable's dates didn't sync correctly with HyperFormula's dates. [#10085](https://github.com/handsontable/handsontable/issues/10085)
 - Fixed problem related to Autofill, TrimRows and Formulas plugins cooperation. [#10200](https://github.com/handsontable/handsontable/issues/10200)
