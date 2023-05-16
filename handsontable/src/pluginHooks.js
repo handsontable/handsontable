@@ -276,9 +276,11 @@ const REGISTERED_HOOKS = [
   'beforeCreateCol',
 
   /**
-   * Fired after changing a column sequence. It populates every change on indexes captured by {@link IndexMapper}.
+   * Fired after the order of columns has changed.
+   * This hook is fired by changing column indexes of any type supported by the {@link IndexMapper}.
    *
-   * @param {'init'|'remove'|'insert'|'move'|'update'} [source] String that identifies source of row sequence change.
+   * @event Hooks#afterColumnSequenceChange
+   * @param {string} [source] A string that indicates what caused the change to the order of columns: `'init'`, `'remove'`, `'insert'`, `'move'`, or `'update'`.
    */
   'afterColumnSequenceChange',
 
@@ -571,9 +573,11 @@ const REGISTERED_HOOKS = [
   'afterRenderer',
 
   /**
-   * Fired after changing a row sequence. It populates every change on indexes captured by {@link IndexMapper}.
+   * Fired after the order of rows has changed.
+   * This hook is fired by changing row indexes of any type supported by the {@link IndexMapper}.
    *
-   * @param {'init'|'remove'|'insert'|'move'|'update'} [source] String that identifies source of row sequence change.
+   * @event Hooks#afterRowSequenceChange
+   * @param {string} [source] A string that indicates what caused the change to the order of rows: `'init'`, `'remove'`, `'insert'`, `'move'`, or `'update'`.
    */
   'afterRowSequenceChange',
 
