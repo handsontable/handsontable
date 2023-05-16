@@ -975,12 +975,18 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example-named-exp
 
 :::
 
-For more information about named expressions, please refer to the
+For more information about named expressions, refer to the
 [HyperFormula docs](https://handsontable.github.io/hyperformula/guide/named-ranges.html).
 
 ## View the explainer video
 
 <iframe width="100%" height="425px" src="https://www.youtube.com/embed/JJXUmACTDdk"></iframe>
+
+## Known limitations
+
+- Using the [`IndexMapper`](@/api/indexMapper.md) API to programmatically [move rows](@/guides/rows/row-moving.md) or [columns](@/guides/columns/column-moving.md) that contain formulas is not supported. Instead, use the [`ManualRowMove`](@/api/manualRowMove.md) or [`ManualColumnMove`](@/api/manualColumnMove.md) APIs.
+- Formulas don't support [`getSourceData()`](@/api/core.md#getsourcedata), as this method operates on source data (using [physical indexes](@/api/indexMapper.md)), whereas formulas operate on visual data (using visual indexes).
+- Formulas don't support nested data, i.e., when Handsontable's [`data`](@/api/options.md#data) is set to an [array of nested objects](@/guides/getting-started/binding-to-data.md#array-of-objects).
 
 ### HyperFormula version support
 
