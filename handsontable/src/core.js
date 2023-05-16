@@ -2672,16 +2672,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    *  | Action               | With `index` | Without `index` |
    *  | -------------------- | ------------ | --------------- |
-   *  | `'insert_row_above'` | Inserts rows above the `index` row. | Inserts rows above the first row. |
-   *  | `'insert_row_below'` | Inserts rows below the `index` row. | Inserts rows below the last row. |
+   *  | `'insert_row_above'` | Inserts rows above the `index` row.<br><br>Works the same as the deprecated `insert_row` with an `index`. | Inserts rows above the first row. |
+   *  | `'insert_row_below'` | Inserts rows below the `index` row. | Inserts rows below the last row.<br><br>Works the same as the deprecated `insert_row` with no `index`. |
    *  | `'remove_row'`       | Removes rows, starting from the `index` row. | Removes rows, starting from the last row. |
-   *  | `'insert_col_start'` | Inserts columns before the `index` column. | Inserts columns before the first column. |
-   *  | `'insert_col_end'`   | Inserts columns after the `index` column. | Inserts columns after the last column. |
+   *  | `'insert_col_start'` | Inserts columns before the `index` column.<br><br>Works the same as the deprecated `insert_col` with an `index`. | Inserts columns before the first column. |
+   *  | `'insert_col_end'`   | Inserts columns after the `index` column. | Inserts columns after the last column.<br><br>Works the same as the deprecated `insert_col` with no `index`. |
    *  | `'remove_col'`       | Removes columns, starting from the `index` column. | Removes columns, starting from the last column. |
-   *  | `'insert_row'` (<b>Deprecated</b>) |  Inserts rows above the `index` row. | Inserts rows below the last row. |
-   *  | `'insert_col'` (<b>Deprecated</b>) |  Inserts columns before the `index` column. | Inserts columns after the last column. |
+   *  | `'insert_row'` (<b>Deprecated</b>) |  Inserts rows above the `index` row.<br><br>Works the same as `insert_row_above` with an `index`. | Inserts rows below the last row.<br><br>Works the same as `insert_row_below` with no `index`. |
+   *  | `'insert_col'` (<b>Deprecated</b>) |  Inserts columns before the `index` column.<br><br>Works the same as `insert_col_start` with an `index`.| Inserts columns after the last column.<br><br>Works the same as `insert_col_end` with no `index`. |
    *
-   * The behavior of `'insert_col_start'`, `'insert_col_end'`, and `'insert_col'` depends on your [`layoutDirection`](@/api/options.md#layoutdirection).
+   * Additional information about `'insert_col_start'`, `'insert_col_end'`, and `'insert_col'`:
+   * - Their behavior depends on your [`layoutDirection`](@/api/options.md#layoutdirection).
+   * - If the provided `index` is higher than the actual number of columns, Handsontable doesn't generate
+   * the columns missing in between. Instead, the new columns are inserted next to the last column.
    *
    * @memberof Core#
    * @function alter

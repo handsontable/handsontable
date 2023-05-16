@@ -1133,15 +1133,15 @@ export default () => {
      * contextMenu: {
      *   items: {
      *     'option1': {
-     *       name: 'option1'
+     *       name: 'Option 1'
      *     },
      *     'option2': {
-     *       name: 'option2',
+     *       name: 'Option 2',
      *       submenu: {
      *         items: [
      *           {
      *             key: 'option2:suboption1',
-     *             name: 'option2:suboption1',
+     *             name: 'Suboption 1',
      *             callback: function(key, options) {
      *               ...
      *             }
@@ -1806,15 +1806,15 @@ export default () => {
      * dropdownMenu: {
      *   items: {
      *     'option1': {
-     *       name: 'option1'
+     *       name: 'Option 1'
      *     },
      *     'option2': {
-     *       name: 'option2',
+     *       name: 'Option 2',
      *       submenu: {
      *         items: [
      *           {
      *             key: 'option2:suboption1',
-     *             name: 'option2:suboption1',
+     *             name: 'Suboption 1',
      *             callback(key, options) {
      *               ...
      *             }
