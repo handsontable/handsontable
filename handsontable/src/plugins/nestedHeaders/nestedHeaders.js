@@ -135,7 +135,7 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('afterOnCellMouseDown', (...args) => this.onAfterOnCellMouseDown(...args));
     this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
     this.addHook('modifyTransformStart', (...args) => this.onModifyTransformStart(...args));
-    this.addHook('afterSelection', (...args) => this.onAfterSelection(...args));
+    this.addHook('afterSelection', () => this.updateFocusHighlightPosition());
     this.addHook('afterGetColumnHeaderRenderers', array => this.onAfterGetColumnHeaderRenderers(array));
     this.addHook('modifyColWidth', (...args) => this.onModifyColWidth(...args));
     this.addHook('modifyColumnHeaderValue', (...args) => this.onModifyColumnHeaderValue(...args));
@@ -145,6 +145,8 @@ export class NestedHeaders extends BasePlugin {
       'afterViewportColumnCalculatorOverride',
       (...args) => this.onAfterViewportColumnCalculatorOverride(...args)
     );
+    this.hot.columnIndexMapper.addLocalHook('cacheUpdated', () => this.updateFocusHighlightPosition());
+    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', () => this.updateFocusHighlightPosition());
 
     super.enablePlugin();
     this.updatePlugin(); // @TODO: Workaround for broken plugin initialization abstraction.
@@ -380,6 +382,34 @@ export class NestedHeaders extends BasePlugin {
     }
 
     return this.hot.getColHeader(visualColumnIndex, headerLevel);
+  }
+
+  /**
+   * Updates the selection focus highlight position to point to the nested header root element (TH)
+   * even when the logical coordinates point in-between the header.
+   *
+   * @private
+   */
+  updateFocusHighlightPosition() {
+    const selection = this.hot.getSelectedRangeLast();
+
+    if (!selection) {
+      return;
+    }
+
+    const { highlight } = selection;
+    const isNestedHeadersRange = highlight.isHeader() && highlight.col >= 0;
+
+    if (isNestedHeadersRange) {
+      const columnIndex = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
+      const focusHighlight = this.hot.selection.highlight.getFocus();
+
+      // Correct the highlight/focus selection to highlight the correct TH element
+      focusHighlight.visualCellRange.highlight.col = columnIndex;
+      focusHighlight.visualCellRange.from.col = columnIndex;
+      focusHighlight.visualCellRange.to.col = columnIndex;
+      focusHighlight.commit();
+    }
   }
 
   /**
@@ -630,27 +660,6 @@ export class NestedHeaders extends BasePlugin {
       } else {
         delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1, 1);
       }
-    }
-  }
-
-  /**
-   * `onAfterSelection` hook is called every time the cells and/or headers selection is changed.
-   *
-   * @private
-   */
-  onAfterSelection() {
-    const { highlight } = this.hot.getSelectedRangeLast();
-    const isNestedHeadersRange = highlight.isHeader() && highlight.col >= 0;
-
-    if (isNestedHeadersRange) {
-      const columnIndex = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
-      const focusHighlight = this.hot.selection.highlight.getFocus();
-
-      // Correct the highlight/focus selection to highlight the correct TH element
-      focusHighlight.visualCellRange.highlight.col = columnIndex;
-      focusHighlight.visualCellRange.from.col = columnIndex;
-      focusHighlight.visualCellRange.to.col = columnIndex;
-      focusHighlight.commit();
     }
   }
 

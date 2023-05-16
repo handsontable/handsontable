@@ -166,7 +166,7 @@ class VisualSelection extends Selection {
         currentHighlight.col = cellCoordsVisual.col;
       }
 
-      // We can't show selection visually now, but we found fist visible range in the broader cell range.
+      // We can't show selection visually now, but we found first visible range in the broader cell range.
       if (this.cellRange === null) {
         const cellCoordsRenderable = this.settings.visualToRenderableCoords(currentHighlight);
 
