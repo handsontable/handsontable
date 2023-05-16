@@ -157,15 +157,6 @@ class VisualSelection extends Selection {
     const cellCoordsVisual = this.getNearestNotHiddenCoords(coordsFrom, rowDirection, columnDirection);
 
     if (cellCoordsVisual !== null && broaderCellRange.overlaps(cellCoordsVisual)) {
-      // We can't show selection visually now, but we found fist visible range in the broader cell range.
-      if (this.cellRange === null) {
-        const cellCoordsRenderable = this.settings.visualToRenderableCoords(cellCoordsVisual);
-
-        this.cellRange = this.settings.createCellRange(cellCoordsRenderable);
-      }
-
-      // We set new highlight as it might change (for example, when showing/hiding some cells from the broader selection range)
-      // TODO: It is also handled by the `MergeCells` plugin while adjusting already modified coordinates. Should it?
       const currentHighlight = broaderCellRange.highlight.clone();
 
       if (currentHighlight.row >= 0) {
@@ -175,6 +166,15 @@ class VisualSelection extends Selection {
         currentHighlight.col = cellCoordsVisual.col;
       }
 
+      // We can't show selection visually now, but we found fist visible range in the broader cell range.
+      if (this.cellRange === null) {
+        const cellCoordsRenderable = this.settings.visualToRenderableCoords(currentHighlight);
+
+        this.cellRange = this.settings.createCellRange(cellCoordsRenderable);
+      }
+
+      // We set new highlight as it might change (for example, when showing/hiding some cells from the broader selection range)
+      // TODO: It is also handled by the `MergeCells` plugin while adjusting already modified coordinates. Should it?
       broaderCellRange.setHighlight(currentHighlight);
     }
 
