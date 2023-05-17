@@ -99,14 +99,19 @@
 }
 
 .htDropdownMenu table tbody tr td .htItemWrapper {
-  margin-left: 10px;
-  margin-right: 10px;
+  margin-inline-start: 10px;
+  margin-inline-end: 10px;
 }
 
 .htDropdownMenu table tbody tr td div span.selected {
   margin-top: -2px;
   position: absolute;
-  left: 4px;
+  inset-inline-start: 4px;
+}
+
+[dir=rtl].handsontable .htDropdownMenu table tbody tr td div span.selected {
+  inset-inline-start: unset;
+  inset-inline-end: 4px;
 }
 
 .htDropdownMenu .ht_master .wtHolder {
