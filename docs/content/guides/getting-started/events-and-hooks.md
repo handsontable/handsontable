@@ -396,7 +396,6 @@ It's worth mentioning that some Handsontable hooks are triggered from the Handso
 List of callbacks that operate on the `source` parameter:
 
 * [`afterChange`](@/api/hooks.md#afterchange)
-* [`afterColumnSequenceChange`](@/api/hooks.md#aftercolumnsequencechange)
 * [`afterCreateCol`](@/api/hooks.md#aftercreatecol)
 * [`afterCreateRow`](@/api/hooks.md#aftercreaterow)
 * [`afterLoadData`](@/api/hooks.md#afterloaddata)
@@ -405,7 +404,6 @@ List of callbacks that operate on the `source` parameter:
 * [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell)
 * [`afterRemoveCol`](@/api/hooks.md#afterremovecol)
 * [`afterRemoveRow`](@/api/hooks.md#aftermoverow)
-* [`afterRowSequenceChange`](@/api/hooks.md#afterrowsequencechange)
 * [`afterValidate`](@/api/hooks.md#aftervalidate)
 * [`beforeChange`](@/api/hooks.md#beforechange)
 * [`beforeChangeRender`](@/api/hooks.md#beforechangerender)
