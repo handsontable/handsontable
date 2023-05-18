@@ -28,6 +28,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Updated TypeScript definition files related to the `CustomBorders` plugin [#10360](https://github.com/handsontable/handsontable/pull/10360)
 - Fixed an issue where moving rows manually to the bottom was difficult due the misalignment between the backlight and guideline elements. [#9556](https://github.com/handsontable/handsontable/issues/9556)
 
+For more information on Handsontable 12.4.3, see:
+
+- [Blog post (12.4.0)](PLACEHOLDER)
+- [Documentation (12.4)](https://handsontable.com/docs/12.4)
+- [Release notes (12.4.0)](https://handsontable.com/docs/release-notes/#_12-4-0)
+
 ## [12.3.3] - 2023-03-28
 
 ### Added
