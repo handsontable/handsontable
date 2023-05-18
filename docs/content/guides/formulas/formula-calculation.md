@@ -6,10 +6,10 @@ description: Perform calculations on cells' values, using a powerful calculation
 permalink: /formula-calculation
 canonicalUrl: /formula-calculation
 tags:
+  - formulas
   - formula
   - excel
   - spreadsheet
-  - gpu
   - worksheet
   - workbook
   - sheet
@@ -26,11 +26,6 @@ searchCategory: Guides
 Perform calculations on cells' values, using a powerful calculation engine that handles 380+ functions, custom functions, named expressions, and more.
 
 [[toc]]
-
-::: warning
-Moving using low-level functionality such as [index mapper's API](@/api/indexMapper.md) doesn't update dataset properly.
-Please consider using [ManualRowMove](@/api/manualRowMove.md) and [ManualColumnMove](@/api/manualColumnMove.md) plugins.
-:::
 
 ## Overview
 
@@ -949,12 +944,15 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example-named-exp
 :::
 :::
 
-
-For more information about named expressions, please refer to the [HyperFormula docs](https://handsontable.github.io/hyperformula/guide/named-ranges.html).
+For more information about named expressions, refer to the [HyperFormula docs](https://handsontable.github.io/hyperformula/guide/named-ranges.html).
 
 ## View the explainer video
 
 <iframe width="100%" height="425px" src="https://www.youtube.com/embed/JJXUmACTDdk"></iframe>
+
+## Known limitations
+
+- Using the [`IndexMapper`](@/api/indexMapper.md) API to programmatically [move rows](@/guides/rows/row-moving.md) or [columns](@/guides/columns/column-moving.md) that contain formulas is not supported. Instead, use the [`ManualRowMove`](@/api/manualRowMove.md) or [`ManualColumnMove`](@/api/manualColumnMove.md) APIs.
 
 ## Related articles
 
