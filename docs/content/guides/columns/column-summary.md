@@ -8,7 +8,6 @@ canonicalUrl: /column-summary
 tags:
   - column summaries
   - calculations
-  - formulas
   - functions
   - suppressDataTypeErrors
   - destinationRow
