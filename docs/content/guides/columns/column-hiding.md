@@ -15,8 +15,7 @@ searchCategory: Guides
 
 # Column hiding
 
-Hide individual columns to avoid rendering them as DOM elements. It helps you reduce screen clutter
-and improve the grid's performance.
+Hide individual columns to reduce screen clutter and improve the grid's performance.
 
 [[toc]]
 
