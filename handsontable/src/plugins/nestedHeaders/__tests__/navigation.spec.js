@@ -12,7 +12,7 @@ describe('NestedHeaders', () => {
     }
   });
 
-  describe('navigation in headers', () => {
+  describe('navigation in headers (navigableHeaders on)', () => {
     it('should be possible to move the focus around the headers (autoWrap off)', () => {
       handsontable({
         data: createSpreadsheetData(1, 7),
@@ -994,7 +994,7 @@ describe('NestedHeaders', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -3,-1 from: -3,-1 to: -3,-1']);
     });
 
-    it('should be possible to move the focus vertically when some columns are hidden (navigableHeaders on, autoWrap on)', () => {
+    it('should be possible to move the focus vertically when some columns are hidden (autoWrap on)', () => {
       const hot = handsontable({
         data: createSpreadsheetData(1, 7),
         colHeaders: true,
@@ -1238,7 +1238,7 @@ describe('NestedHeaders', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -3,-1 from: -3,-1 to: -3,-1']);
     });
 
-    it('should be possible to move the focus horizontally when some columns are hidden (navigableHeaders on, autoWrap on)', () => {
+    it('should be possible to move the focus horizontally when some columns are hidden (autoWrap on)', () => {
       const hot = handsontable({
         data: createSpreadsheetData(1, 7),
         colHeaders: true,
