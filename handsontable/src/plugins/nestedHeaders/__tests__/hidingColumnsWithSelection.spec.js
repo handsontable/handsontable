@@ -222,6 +222,95 @@ describe('NestedHeaders', () => {
         `).toBeMatchToSelectionPattern();
       });
 
+      it('should active highlight column headers correctly (navigableHeaders on)', () => {
+        const hot = handsontable({
+          data: Handsontable.helper.createSpreadsheetData(3, 13),
+          colHeaders: true,
+          navigableHeaders: true,
+          nestedHeaders: [
+            ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
+            ['A2', { label: 'B2', colspan: 8 }, 'J2', { label: 'K2', colspan: 3 }],
+            ['A3', { label: 'B3', colspan: 4 }, { label: 'F3', colspan: 4 }, 'J3', { label: 'K3', colspan: 3 }],
+            ['A4', { label: 'B4', colspan: 2 }, { label: 'D4', colspan: 2 }, { label: 'F4', colspan: 2 },
+              { label: 'H4', colspan: 2 }, 'J4', 'K4', { label: 'L4', colspan: 2 }],
+          ],
+        });
+
+        const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+        hidingMap.setValueAtIndex(1, true); // Hide column that contains cells B{n}
+        hidingMap.setValueAtIndex(4, true); // Hide column that contains cells E{n}
+        hidingMap.setValueAtIndex(8, true); // Hide column that contains cells I{n}
+        hidingMap.setValueAtIndex(10, true); // Hide column that contains cells K{n}
+        hot.render();
+
+        simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)')); // select column B4
+
+        keyDown('control/meta');
+
+        simulateClick(getTopClone().find('thead tr:eq(2) th:eq(3)')); // select column F3
+        simulateClick(getTopClone().find('thead tr:eq(1) th:eq(7)')); // select column K2
+
+        keyUp('control/meta');
+
+        expect(getSelectedRange()).toEqualCellRange([
+          'highlight: -1,2 from: -1,1 to: 2,2', // B4
+          'highlight: -2,5 from: -2,5 to: 2,8', // F3
+          'highlight: -3,11 from: -3,10 to: 2,12', // K2
+        ]);
+        expect(`
+          |   :                   :   : *   * |
+          |   :                   :   : #   # |
+          |   :       : *   *   * :   : *   * |
+          |   : * :   : *   * : * :   : *   * |
+          |===:===:===:===:===:===:===:===:===|
+          |   : 0 :   : 0 : 0 : 0 :   : 0 : 0 |
+          |   : 0 :   : 0 : 0 : 0 :   : 0 : 0 |
+          |   : 0 :   : 0 : 0 : 0 :   : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+        window.hidingMap = hidingMap;
+
+        hidingMap.setValueAtIndex(5, true); // Hide column that contains cells F{n}
+        hidingMap.setValueAtIndex(11, true); // Hide column that contains cells L{n}
+        hidingMap.setValueAtIndex(0, true); // Hide column that contains cells A{n}
+        hot.render();
+
+        expect(getSelectedRange()).toEqualCellRange([
+          'highlight: -1,2 from: -1,1 to: 2,2', // B4
+          'highlight: -2,5 from: -2,5 to: 2,8', // F3
+          'highlight: -3,12 from: -3,10 to: 2,12', // K2
+        ]);
+        expect(`
+          |               :   : * |
+          |               :   : # |
+          |       : *   * :   : * |
+          | * :   : * : * :   : * |
+          |===:===:===:===:===:===|
+          | 0 :   : 0 : 0 :   : 0 |
+          | 0 :   : 0 : 0 :   : 0 |
+          | 0 :   : 0 : 0 :   : 0 |
+        `).toBeMatchToSelectionPattern();
+
+        hot.columnIndexMapper.unregisterMap('my-hiding-map');
+        hot.render();
+
+        expect(getSelectedRange()).toEqualCellRange([
+          'highlight: -1,2 from: -1,1 to: 2,2', // B4
+          'highlight: -2,5 from: -2,5 to: 2,8', // F3
+          'highlight: -3,10 from: -3,10 to: 2,12', // K2
+        ]);
+        expect(`
+          |   :                               :   : *   *   * |
+          |   :                               :   : #   #   # |
+          |   :               : *   *   *   * :   : *   *   * |
+          |   : *   * :       : *   * : *   * :   : * : *   * |
+          |===:===:===:===:===:===:===:===:===:===:===:===:===|
+          |   : 0 : 0 :   :   : 0 : 0 : 0 : 0 :   : 0 : 0 : 0 |
+          |   : 0 : 0 :   :   : 0 : 0 : 0 : 0 :   : 0 : 0 : 0 |
+          |   : 0 : 0 :   :   : 0 : 0 : 0 : 0 :   : 0 : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+      });
+
       it('should select every column header under the nested headers, when changing the selection by dragging ' +
          'the cursor from the left to the right', () => {
         const hot = handsontable({

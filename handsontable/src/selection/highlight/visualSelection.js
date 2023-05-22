@@ -132,8 +132,6 @@ class VisualSelection extends Selection {
       this.cellRange = null;
     } else {
       this.cellRange = this.createRenderableCellRange(trimmedCellRange.from, trimmedCellRange.to);
-
-      // console.log(this.cellRange?.highlight);
     }
 
     return this;

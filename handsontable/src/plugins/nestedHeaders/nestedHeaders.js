@@ -391,7 +391,7 @@ export class NestedHeaders extends BasePlugin {
    * @private
    */
   updateFocusHighlightPosition() {
-    const selection = this.hot.getSelectedRangeLast();
+    const selection = this.hot?.getSelectedRangeLast();
 
     if (!selection) {
       return;
