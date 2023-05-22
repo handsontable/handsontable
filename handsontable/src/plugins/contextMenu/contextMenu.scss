@@ -88,11 +88,8 @@
   margin-top: -2px;
   position: absolute;
   inset-inline-start: 4px;
+  inset-inline-start: 0px;
 }
-
-[dir=rtl].handsontable .htContextMenu table tbody tr td div span.selected {
-  inset-inline-start: unset;
-  inset-inline-end: 4px;
 }
 
 .htContextMenu .ht_master .wtHolder {
