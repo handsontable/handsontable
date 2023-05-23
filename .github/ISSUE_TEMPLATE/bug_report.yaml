@@ -14,7 +14,7 @@ body:
     id: screenshots
     attributes:
       label: Video/Screenshots
-      description: Please provide a screenshot or a short video presenting the issue
+      description: Please provide a screenshot or a short video presenting the issue.
     validations:
       required: true
   - type: input
