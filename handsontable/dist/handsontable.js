@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 12.4.0
- * Release date: 23/05/2023 (built at 16/05/2023 10:19:26)
+ * Release date: 23/05/2023 (built at 23/05/2023 09:22:06)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -4534,9 +4534,11 @@ var REGISTERED_HOOKS = [/* eslint-disable jsdoc/require-description-complete-sen
  */
 'beforeCreateCol',
 /**
- * Fired after changing a column sequence. It populates every change on indexes captured by {@link IndexMapper}.
+ * Fired after the order of columns has changed.
+ * This hook is fired by changing column indexes of any type supported by the {@link IndexMapper}.
  *
- * @param {'init'|'remove'|'insert'|'move'|'update'} [source] String that identifies source of row sequence change.
+ * @event Hooks#afterColumnSequenceChange
+ * @param {'init'|'remove'|'insert'|'move'|'update'} [source] A string that indicates what caused the change to the order of columns.
  */
 'afterColumnSequenceChange',
 /**
@@ -4802,9 +4804,11 @@ var REGISTERED_HOOKS = [/* eslint-disable jsdoc/require-description-complete-sen
  */
 'afterRenderer',
 /**
- * Fired after changing a row sequence. It populates every change on indexes captured by {@link IndexMapper}.
+ * Fired after the order of rows has changed.
+ * This hook is fired by changing row indexes of any type supported by the {@link IndexMapper}.
  *
- * @param {'init'|'remove'|'insert'|'move'|'update'} [source] String that identifies source of row sequence change.
+ * @event Hooks#afterRowSequenceChange
+ * @param {'init'|'remove'|'insert'|'move'|'update'} [source] A string that indicates what caused the change to the order of rows.
  */
 'afterRowSequenceChange',
 /**
@@ -41995,7 +41999,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "16/05/2023 10:19:26";
+Handsontable.buildDate = "23/05/2023 09:22:06";
 Handsontable.version = "12.4.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
