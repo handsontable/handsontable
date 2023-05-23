@@ -15,6 +15,7 @@ report-check-links.xlsx
 ~$*.xlsx
 
 /.vuepress/public/handsontable
+/.vuepress/public/@handsontable
 /.vuepress/public/data/
 /.build-tmp/
 

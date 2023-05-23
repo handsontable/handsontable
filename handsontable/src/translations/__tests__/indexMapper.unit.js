@@ -62,17 +62,6 @@ describe('IndexMapper', () => {
     indexMapper.unregisterMap('lPIndexToValueMap');
   });
 
-  it('should trigger `change` hook on initialization once', () => {
-    const indexMapper = new IndexMapper();
-    const changeCallback = jasmine.createSpy('change');
-
-    indexMapper.addLocalHook('change', changeCallback);
-
-    indexMapper.initToLength(10);
-
-    expect(changeCallback.calls.count()).toEqual(1);
-  });
-
   it('should register map to proper collection when it is possible', () => {
     const indexMapper = new IndexMapper();
     const trimmingMap = new TrimmingMap();
@@ -656,6 +645,87 @@ describe('IndexMapper', () => {
 
     indexMapper.unregisterMap('trimmingMap');
     indexMapper.unregisterMap('hidingMap');
+  });
+
+  describe('local hooks', () => {
+    it('should trigger `change` hook on initialization once', () => {
+      const indexMapper = new IndexMapper();
+      const changeCallback = jasmine.createSpy('change');
+
+      indexMapper.addLocalHook('change', changeCallback);
+
+      indexMapper.initToLength(10);
+
+      expect(changeCallback.calls.count()).toEqual(1);
+    });
+
+    it('should trigger `indexesSequenceChange` hook on initialization once', () => {
+      const indexMapper = new IndexMapper();
+      const indexesSequenceChangeCallback = jasmine.createSpy('indexesSequenceChange');
+
+      indexMapper.addLocalHook('indexesSequenceChange', indexesSequenceChangeCallback);
+
+      indexMapper.initToLength(10);
+
+      expect(indexesSequenceChangeCallback.calls.count()).toEqual(1);
+      expect(indexesSequenceChangeCallback).toHaveBeenCalledWith('init');
+    });
+
+    it('should trigger `indexesSequenceChange` hook after reordering elements', () => {
+      const indexMapper = new IndexMapper();
+      const indexesSequenceChangeCallback = jasmine.createSpy('indexesSequenceChange');
+
+      indexMapper.initToLength(3);
+
+      indexMapper.addLocalHook('indexesSequenceChange', indexesSequenceChangeCallback);
+
+      indexMapper.setIndexesSequence([1, 0, 2]);
+
+      expect(indexesSequenceChangeCallback.calls.count()).toEqual(1);
+      expect(indexesSequenceChangeCallback).toHaveBeenCalledWith('update');
+    });
+
+    it('should trigger `indexesSequenceChange` hook after inserting elements', () => {
+      const indexMapper = new IndexMapper();
+      const indexesSequenceChangeCallback = jasmine.createSpy('indexesSequenceChange');
+
+      indexMapper.initToLength(3);
+
+      indexMapper.addLocalHook('indexesSequenceChange', indexesSequenceChangeCallback);
+
+      indexMapper.insertIndexes(1, 3);
+
+      expect(indexesSequenceChangeCallback.calls.count()).toEqual(1);
+      expect(indexesSequenceChangeCallback).toHaveBeenCalledWith('insert');
+    });
+
+    it('should trigger `indexesSequenceChange` hook after removing elements', () => {
+      const indexMapper = new IndexMapper();
+      const indexesSequenceChangeCallback = jasmine.createSpy('indexesSequenceChange');
+
+      indexMapper.initToLength(3);
+
+      indexMapper.addLocalHook('indexesSequenceChange', indexesSequenceChangeCallback);
+
+      indexMapper.removeIndexes([0, 1]);
+
+      expect(indexesSequenceChangeCallback.calls.count()).toEqual(1);
+      expect(indexesSequenceChangeCallback).toHaveBeenCalledWith('remove');
+    });
+
+    it('should trigger `indexesSequenceChange` hook after moving elements', () => {
+      const indexMapper = new IndexMapper();
+      const indexesSequenceChangeCallback = jasmine.createSpy('indexesSequenceChange');
+
+      indexMapper.initToLength(10);
+
+      indexMapper.addLocalHook('indexesSequenceChange', indexesSequenceChangeCallback);
+
+      indexMapper.moveIndexes([0, 1], 3);
+
+      expect(indexesSequenceChangeCallback.calls.count()).toEqual(1);
+      expect(indexesSequenceChangeCallback).toHaveBeenCalledWith('move');
+    });
   });
 
   describe('getFirstNotHiddenIndex() - legacy method', () => {

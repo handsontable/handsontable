@@ -6,10 +6,10 @@ description: Perform calculations on cells' values, using a powerful calculation
 permalink: /formula-calculation
 canonicalUrl: /formula-calculation
 tags:
+  - formulas
   - formula
   - excel
   - spreadsheet
-  - gpu
   - worksheet
   - workbook
   - sheet
@@ -33,13 +33,13 @@ The _Formulas_ plugin provides you an extensive calculation capabilities based o
 
 This plugin comes with a library of 386 functions grouped into categories, such as Math and trigonometry, Engineering, Statistical, Financial, and Logical. Using these, you can create complex data entry rules in business apps and much more. Below are some ideas on what you can do with it:
 
-*   Fully-featured spreadsheet apps
-*   Smart documents
-*   Educational apps
-*   Business logic builders
-*   Forms and form builders
-*   Online calculators
-*   Low connectivity apps
+- Fully-featured spreadsheet apps
+- Smart documents
+- Educational apps
+- Business logic builders
+- Forms and form builders
+- Online calculators
+- Low connectivity apps
 
 ### HyperFormula version support
 
@@ -63,20 +63,14 @@ To use HyperFormula outside of a Handsontable instance (e.g., on a server), you 
 
 ## Features
 
-*   High-speed formula calculations
-*   Function syntax compatible with Excel and Google Sheets
-*   A library of built-in functions available in 16 languages
-*   Support for wildcard characters
-*   Support for CRUD operations
-*   Support for cross-sheet references
-*   Support for multiple Handsontable instances
-*   Uses GPU acceleration for better performance
-
-**Known limitations:**
-
-*   Doesn't work with [nested rows](@/guides/rows/row-parent-child.md)
-*   Doesn't work with [undo/redo](@/guides/accessories-and-menus/undo-redo.md)
-*   Doesn't work with nested data (when Handsontable's [`data`](@/api/options.md#data) is set to an [array of nested objects](@/guides/getting-started/binding-to-data.md#array-of-objects))
+- High-speed formula calculations
+- Function syntax compatible with Excel and Google Sheets
+- A library of built-in functions available in 16 languages
+- Support for wildcard characters
+- Support for CRUD operations
+- Support for cross-sheet references
+- Support for multiple Handsontable instances
+- Uses GPU acceleration for better performance
 
 ## Available options and methods
 
@@ -943,12 +937,17 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example-named-exp
 :::
 :::
 
-
-For more information about named expressions, please refer to the [HyperFormula docs](https://handsontable.github.io/hyperformula/guide/named-ranges.html).
+For more information about named expressions, refer to the [HyperFormula docs](https://handsontable.github.io/hyperformula/guide/named-ranges.html).
 
 ## View the explainer video
 
 <iframe width="100%" height="425px" src="https://www.youtube.com/embed/JJXUmACTDdk"></iframe>
+
+## Known limitations
+
+- Using the [`IndexMapper`](@/api/indexMapper.md) API to programmatically [move rows](@/guides/rows/row-moving.md) or [columns](@/guides/columns/column-moving.md) that contain formulas is not supported. Instead, use the [`ManualRowMove`](@/api/manualRowMove.md) or [`ManualColumnMove`](@/api/manualColumnMove.md) APIs.
+- Formulas don't support [`getSourceData()`](@/api/core.md#getsourcedata), as this method operates on source data (using [physical indexes](@/api/indexMapper.md)), whereas formulas operate on visual data (using visual indexes).
+- Formulas don't support nested data, i.e., when Handsontable's [`data`](@/api/options.md#data) is set to an [array of nested objects](@/guides/getting-started/binding-to-data.md#array-of-objects).
 
 ## Related articles
 

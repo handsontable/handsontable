@@ -337,7 +337,9 @@ jobs:
       fail-fast: false
       matrix:
         version: ${{fromJson(needs.prepare-matrix.outputs.versions)}}
-        framework: [angular, angular-9, angular-10, angular-11, angular-12, angular-13, js, react, vue, vue3, ts]
+        # TODO: IMPORTANT! Add `angular` to the list below after fixing the issue described in
+        # https://github.com/handsontable/dev-handsontable/issues/1292
+        framework: [angular-9, angular-10, angular-11, angular-12, angular-13, js, react, vue, vue3, ts]
 
     env:
       FRAMEWORK_EXAMPLES_PATH: examples/${{ matrix.version }}/docs/${{ matrix.framework }}

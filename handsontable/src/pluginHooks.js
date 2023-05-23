@@ -276,6 +276,15 @@ const REGISTERED_HOOKS = [
   'beforeCreateCol',
 
   /**
+   * Fired after the order of columns has changed.
+   * This hook is fired by changing column indexes of any type supported by the {@link IndexMapper}.
+   *
+   * @event Hooks#afterColumnSequenceChange
+   * @param {'init'|'remove'|'insert'|'move'|'update'} [source] A string that indicates what caused the change to the order of columns.
+   */
+  'afterColumnSequenceChange',
+
+  /**
    * Fired after created a new column.
    *
    * @event Hooks#afterCreateCol
@@ -562,6 +571,15 @@ const REGISTERED_HOOKS = [
    * @param {object} cellProperties Object containing the cell's properties.
    */
   'afterRenderer',
+
+  /**
+   * Fired after the order of rows has changed.
+   * This hook is fired by changing row indexes of any type supported by the {@link IndexMapper}.
+   *
+   * @event Hooks#afterRowSequenceChange
+   * @param {'init'|'remove'|'insert'|'move'|'update'} [source] A string that indicates what caused the change to the order of rows.
+   */
+  'afterRowSequenceChange',
 
   /**
    * Fired after the horizontal scroll event.
@@ -1260,8 +1278,8 @@ const REGISTERED_HOOKS = [
    * Fired when a data was retrieved or modified.
    *
    * @event Hooks#modifyData
-   * @param {number} row Physical row height.
-   * @param {number} column Physical column index.
+   * @param {number} row Physical row index.
+   * @param {number} column Visual column index.
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
@@ -1273,7 +1291,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#modifySourceData
    * @since 8.0.0
    * @param {number} row Physical row index.
-   * @param {number} column Physical column index.
+   * @param {number} column Physical column index or property name.
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */

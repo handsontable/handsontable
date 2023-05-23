@@ -27,7 +27,7 @@ When you're hiding a row:
 
 ## Enable row hiding
 
-To simply enable row hiding (without further configuration), set the [`hiddenRows`](@/api/options.md#hiddenrows) configuration option to `true`:
+To enable row hiding, use the [`hiddenRows`](@/api/options.md#hiddenrows) option.
 
 ::: only-for javascript
 ::: example #example1
@@ -56,7 +56,11 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   rowHeaders: true,
   // enable the `HiddenRows` plugin
-  hiddenRows: true
+  hiddenRows: {
+    rows: [3, 5, 9],
+    // show UI indicators to mark hidden rows
+    indicators: true
+  }
 });
 ```
 :::
@@ -93,7 +97,11 @@ export const ExampleComponent = () => {
       height="auto"
       colHeaders={true}
       rowHeaders={true}
-      hiddenRows={true}
+      hiddenRows={{
+        rows: [3, 5, 9],
+        // show UI indicators to mark hidden rows
+        indicators: true
+      }}
     />
   );
 };
