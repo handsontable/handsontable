@@ -107,6 +107,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: Handsoncode
+ * Last updated: Feb 9, 2022
+ *
+ * Description: Definition file for Arabic - Without a specific country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'ar-AR',
@@ -211,6 +218,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: Ashus
+ * Last updated: Mar 22, 2022
+ *
+ * Description: Definition file for Czech - Czechia language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'cs-CZ'
@@ -232,6 +246,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: Stefan Salzl
+ * Last updated: Jan 08, 2018
+ *
+ * Description: Definition file for German - Switzerland language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'de-CH'
@@ -253,6 +274,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: Stefan Salzl
+ * Last updated: Jan 08, 2018
+ *
+ * Description: Definition file for German - Germany language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'de-DE'
@@ -274,6 +302,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: Handsoncode
+ * Last updated: Nov 15, 2017
+ *
+ * Description: Definition file for English - United States language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'en-US'
@@ -295,6 +330,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: Handsoncode, Enrique Enciso
+ * Last updated: Nov 18, 2022
+ *
+ * Description: Definition file for Spanish - Mexico language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'es-MX'
@@ -316,6 +358,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: Stefan Salzl, Thomas Senn
+ * Last updated: Feb 05, 2018
+ *
+ * Description: Definition file for French - France language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'fr-FR'
@@ -385,6 +434,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: Andrea Cattaneo
+ * Last updated: Sep 14, 2018
+ *
+ * Description: Definition file for Italian - Italy language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'it-IT'
@@ -406,6 +462,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: hand-dot
+ * Last updated: Jan 9, 2023
+ *
+ * Description: Definition file for Japanese - Japan language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'ja-JP'
@@ -427,6 +490,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: Hwang, Gun-gu
+ * Last updated: Aug 20, 2018
+ *
+ * Description: Definition file for Korean - Korea language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'ko-KR'
@@ -448,6 +518,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: Edgars Voroboks, NullIsNot0
+ * Last updated: Dec 5, 2022
+ *
+ * Description: Definition file for Latvian - Latvia language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'lv-LV'
@@ -469,6 +546,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: Simon Borøy-Johnsen (TheSimoms)
+ * Last updated: Dec 19, 2017
+ *
+ * Description: Definition file for Norwegian Bokmål - Norway language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'nb-NO'
@@ -490,6 +574,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: Tomas Rapkauskas, Anton Brouwer, webjazznl
+ * Last updated: Dec 5, 2022
+ *
+ * Description: Definition file for Dutch - The Netherlands language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'nl-NL'
@@ -511,6 +602,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: Handsoncode
+ * Last updated: Dec 5, 2022
+ *
+ * Description: Definition file for Polish - Poland language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'pl-PL'
@@ -532,6 +630,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: Júlio C. Zuppa
+ * Last updated: Jan 12, 2018
+ *
+ * Description: Definition file for Portuguese - Brazil language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'pt-BR'
@@ -553,6 +658,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: Alexey Rogachev
+ * Last updated: Feb 28, 2018
+ *
+ * Description: Definition file for Russian - Russia language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'ru-RU'
@@ -574,6 +686,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Author: Ivan Zarkovic
+ * Last updated: May 9, 2022
+ *
+ * Description: Definition file for Serbian - Republic of Serbia language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'sr-SP'
@@ -595,6 +714,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: soakit, HChenZi
+ * Last updated: Mar 09, 2023
+ *
+ * Description: Definition file for Chinese - China language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'zh-CN'
@@ -616,6 +742,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: Phyllis Yen
+ * Last updated: Mar 9, 2018
+ *
+ * Description: Definition file for Chinese - Taiwan language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'zh-TW'

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem where re-entering the same cells/headers with the mouse cursor would not trigger the `beforeOnCellMouseOver` and `afterOnCellMouseOver` hooks.",
-  "type": "fixed",
-  "issueOrPR": 10321,
-  "breaking": false,
-  "framework": "none"
-}

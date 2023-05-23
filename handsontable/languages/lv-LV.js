@@ -200,6 +200,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: Edgars Voroboks, NullIsNot0
+ * Last updated: Dec 5, 2022
+ *
+ * Description: Definition file for Latvian - Latvia language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'lv-LV'
