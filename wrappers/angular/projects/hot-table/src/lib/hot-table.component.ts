@@ -164,6 +164,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() afterColumnFreeze: Handsontable.GridSettings['afterColumnFreeze'];
   @Input() afterColumnMove: Handsontable.GridSettings['afterColumnMove'];
   @Input() afterColumnResize: Handsontable.GridSettings['afterColumnResize'];
+  @Input() afterColumnSequenceChange: Handsontable.GridSettings['afterColumnSequenceChange'];
   @Input() afterColumnSort: Handsontable.GridSettings['afterColumnSort'];
   @Input() afterColumnUnfreeze: Handsontable.GridSettings['afterColumnUnfreeze'];
   @Input() afterContextMenuDefaultOptions: Handsontable.GridSettings['afterContextMenuDefaultOptions'];
@@ -217,6 +218,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() afterRenderer: Handsontable.GridSettings['afterRenderer'];
   @Input() afterRowMove: Handsontable.GridSettings['afterRowMove'];
   @Input() afterRowResize: Handsontable.GridSettings['afterRowResize'];
+  @Input() afterRowSequenceChange: Handsontable.GridSettings['afterRowSequenceChange'];
   @Input() afterScrollHorizontally: Handsontable.GridSettings['afterScrollHorizontally'];
   @Input() afterScrollVertically: Handsontable.GridSettings['afterScrollVertically'];
   @Input() afterSelection: Handsontable.GridSettings['afterSelection'];

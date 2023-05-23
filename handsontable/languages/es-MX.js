@@ -194,6 +194,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: Handsoncode, Enrique Enciso
+ * Last updated: Nov 18, 2022
+ *
+ * Description: Definition file for Spanish - Mexico language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'es-MX'

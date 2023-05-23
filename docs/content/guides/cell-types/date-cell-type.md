@@ -87,6 +87,8 @@ correctFormat={true}
 
 ## Basic example
 
+Click on one of the ▼ icons to open an interactive date editor.
+
 ::: only-for javascript
 ::: example #example1
 ```js
@@ -123,7 +125,6 @@ const hot = new Handsontable(container, {
         // First day of the week (0: Sunday, 1: Monday, etc)
         firstDay: 0,
         showWeekNumber: true,
-        numberOfMonths: 3,
         disableDayFn(date) {
           // Disable Sunday and Saturday
           return date.getDay() === 0 || date.getDay() === 6;
@@ -182,7 +183,6 @@ export const ExampleComponent = () => {
             // First day of the week (0: Sunday, 1: Monday, etc)
             firstDay: 0,
             showWeekNumber: true,
-            numberOfMonths: 3,
             licenseKey: 'non-commercial-and-evaluation',
             disableDayFn(date) {
               // Disable Sunday and Saturday
@@ -207,7 +207,6 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 ```
 :::
 :::
-
 
 ## Related articles
 
