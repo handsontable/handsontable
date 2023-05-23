@@ -30,7 +30,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 For more information on Handsontable 12.4.0, see:
 
-- [Blog post (12.4.0)](PLACEHOLDER)
+- [Blog post (12.4.0)](https://handsontable.com/blog/handsontable-12-4-0-auto-updating-formulas)
 - [Documentation (12.4)](https://handsontable.com/docs/12.4)
 - [Release notes (12.4.0)](https://handsontable.com/docs/release-notes/#_12-4-0)
 

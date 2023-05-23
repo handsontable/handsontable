@@ -30,7 +30,7 @@ Released on May 23, 2023.
 
 For more information on this release, see:
 
-- [Blog post (12.4.0)](PLACEHOLDER)
+- [Blog post (12.4.0)](https://handsontable.com/blog/handsontable-12-4-0-auto-updating-formulas)
 - [Documentation (12.4)](https://handsontable.com/docs/12.4)
 
 #### Added
