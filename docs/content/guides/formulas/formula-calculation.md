@@ -8,6 +8,7 @@ description:
 permalink: /formula-calculation
 canonicalUrl: /formula-calculation
 tags:
+  - formulas
   - formula
   - formulas
   - excel

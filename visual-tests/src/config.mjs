@@ -5,7 +5,10 @@ export const BASE_BRANCH = 'develop';
 /**
  * The list of wrappers that are to be tested.
  */
-export const WRAPPERS = ['angular', 'react', 'vue'];
+// TODO: IMPORTANT! Add `angular` back to this array this after fixing the issue described in
+//  https://github.com/handsontable/dev-handsontable/issues/1292
+export const WRAPPERS = ['react', 'vue'];
+
 /**
  * The framework that provides reference screenshots to compare against other frameworks.
  */
