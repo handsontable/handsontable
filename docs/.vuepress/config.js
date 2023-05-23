@@ -218,9 +218,9 @@ module.exports = {
           .end();
       },
     },
-    [dumpDocsDataPlugin, {
-      outputDir: path.resolve(__dirname, './public/data/')
-    }],
+    // [dumpDocsDataPlugin, {
+    //   outputDir: path.resolve(__dirname, './public/data/')
+    // }],
     [dumpRedirectPageIdsPlugin, {
       outputFile: path.resolve(__dirname, '../docker/redirect-page-ids.json')
     }],
