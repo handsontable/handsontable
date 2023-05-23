@@ -12,6 +12,19 @@ describe('Selection using mouse interaction', () => {
     }
   });
 
+  function columnHeader(renderedColumnIndex, TH) {
+    const visualColumnsIndex = renderedColumnIndex >= 0 ?
+      this.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex) : renderedColumnIndex;
+
+    this.view.appendColHeader(visualColumnsIndex, TH);
+  }
+  function rowHeader(renderableRowIndex, TH) {
+    const visualRowIndex = renderableRowIndex >= 0 ?
+      this.rowIndexMapper.getVisualFromRenderableIndex(renderableRowIndex) : renderableRowIndex;
+
+    this.view.appendRowHeader(visualRowIndex, TH);
+  }
+
   it('should correctly render the selection using event simulation', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(9, 8),
@@ -86,6 +99,48 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
+  it('should select entire column by left click on column header', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      colHeaders: true,
+    });
+
+    simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)'), 'LMB'); // Header "A"
+
+    expect(`
+      |   ║ * :   :   :   :   |
+      |===:===:===:===:===:===|
+      | - ║ A :   :   :   :   |
+      | - ║ 0 :   :   :   :   |
+      | - ║ 0 :   :   :   :   |
+      | - ║ 0 :   :   :   :   |
+      | - ║ 0 :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,0 to: 4,0']);
+  });
+
+  it('should select entire row by left click on row header', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      colHeaders: true,
+    });
+
+    simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(0) th'), 'LMB'); // Header "1"
+
+    expect(`
+      |   ║ - : - : - : - : - |
+      |===:===:===:===:===:===|
+      | * ║ A : 0 : 0 : 0 : 0 |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,-1 to: 0,4']);
+  });
+
   it('should select entire column by right click on column header', () => {
     handsontable({
       data: createSpreadsheetData(5, 5),
@@ -126,6 +181,216 @@ describe('Selection using mouse interaction', () => {
       |   ║   :   :   :   :   |
       |   ║   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
+  });
+
+  it('should select entire column by left click on column header (navigableHeaders on)', () => {
+    handsontable({
+      data: createSpreadsheetData(2, 5),
+      rowHeaders: true,
+      colHeaders: true,
+      navigableHeaders: true,
+      afterGetColumnHeaderRenderers(headerRenderers) {
+        headerRenderers.push(columnHeader.bind(this));
+        headerRenderers.push(columnHeader.bind(this));
+      },
+    });
+
+    simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(2)'), 'LMB'); // First "B" header
+
+    expect(`
+      |   ║   : # :   :   :   |
+      |   ║   : * :   :   :   |
+      |   ║   : * :   :   :   |
+      |===:===:===:===:===:===|
+      | - ║   : 0 :   :   :   |
+      | - ║   : 0 :   :   :   |
+    `).toBeMatchToSelectionPattern();
+    expect(getSelectedRange()).toEqualCellRange(['highlight: -3,1 from: -3,1 to: 1,1']);
+
+    deselectCell();
+    simulateClick(spec().$container.find('.ht_clone_top tr:eq(1) th:eq(2)'), 'LMB'); // Second "B" header
+
+    expect(`
+      |   ║   : * :   :   :   |
+      |   ║   : # :   :   :   |
+      |   ║   : * :   :   :   |
+      |===:===:===:===:===:===|
+      | - ║   : 0 :   :   :   |
+      | - ║   : 0 :   :   :   |
+    `).toBeMatchToSelectionPattern();
+    expect(getSelectedRange()).toEqualCellRange(['highlight: -2,1 from: -2,1 to: 1,1']);
+
+    deselectCell();
+    simulateClick(spec().$container.find('.ht_clone_top tr:eq(2) th:eq(2)'), 'LMB'); // Third "B" header
+
+    expect(`
+      |   ║   : * :   :   :   |
+      |   ║   : * :   :   :   |
+      |   ║   : # :   :   :   |
+      |===:===:===:===:===:===|
+      | - ║   : 0 :   :   :   |
+      | - ║   : 0 :   :   :   |
+    `).toBeMatchToSelectionPattern();
+    expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 1,1']);
+  });
+
+  it('should select entire row by left click on row header (navigableHeaders on)', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 2),
+      rowHeaders: true,
+      colHeaders: true,
+      navigableHeaders: true,
+      afterGetRowHeaderRenderers(headerRenderers) {
+        headerRenderers.push(rowHeader.bind(this));
+        headerRenderers.push(rowHeader.bind(this));
+      },
+    });
+
+    simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(0)'), 'LMB'); // First header "2"
+
+    expect(`
+      |   :   :   ║ - : - |
+      |===:===:===:===:===|
+      |   :   :   ║   :   |
+      | # : * : * ║ 0 : 0 |
+      |   :   :   ║   :   |
+      |   :   :   ║   :   |
+      |   :   :   ║   :   |
+    `).toBeMatchToSelectionPattern();
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-3 from: 1,-3 to: 1,1']);
+
+    deselectCell();
+    simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(1)'), 'LMB'); // Second header "2"
+
+    expect(`
+      |   :   :   ║ - : - |
+      |===:===:===:===:===|
+      |   :   :   ║   :   |
+      | * : # : * ║ 0 : 0 |
+      |   :   :   ║   :   |
+      |   :   :   ║   :   |
+      |   :   :   ║   :   |
+    `).toBeMatchToSelectionPattern();
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-2 from: 1,-2 to: 1,1']);
+
+    deselectCell();
+    simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(2)'), 'LMB'); // Third header "2"
+
+    expect(`
+      |   :   :   ║ - : - |
+      |===:===:===:===:===|
+      |   :   :   ║   :   |
+      | * : * : # ║ 0 : 0 |
+      |   :   :   ║   :   |
+      |   :   :   ║   :   |
+      |   :   :   ║   :   |
+    `).toBeMatchToSelectionPattern();
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,1']);
+  });
+
+  it('should select entire column by right click on column header (navigableHeaders on)', () => {
+    handsontable({
+      data: createSpreadsheetData(2, 5),
+      rowHeaders: true,
+      colHeaders: true,
+      navigableHeaders: true,
+      afterGetColumnHeaderRenderers(headerRenderers) {
+        headerRenderers.push(columnHeader.bind(this));
+        headerRenderers.push(columnHeader.bind(this));
+      },
+    });
+
+    simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(2)'), 'RMB'); // First "B" header
+
+    expect(`
+      |   ║   : # :   :   :   |
+      |   ║   : * :   :   :   |
+      |   ║   : * :   :   :   |
+      |===:===:===:===:===:===|
+      | - ║   : 0 :   :   :   |
+      | - ║   : 0 :   :   :   |
+    `).toBeMatchToSelectionPattern();
+    expect(getSelectedRange()).toEqualCellRange(['highlight: -3,1 from: -3,1 to: 1,1']);
+
+    deselectCell();
+    simulateClick(spec().$container.find('.ht_clone_top tr:eq(1) th:eq(2)'), 'RMB'); // Second "B" header
+
+    expect(`
+      |   ║   : * :   :   :   |
+      |   ║   : # :   :   :   |
+      |   ║   : * :   :   :   |
+      |===:===:===:===:===:===|
+      | - ║   : 0 :   :   :   |
+      | - ║   : 0 :   :   :   |
+    `).toBeMatchToSelectionPattern();
+    expect(getSelectedRange()).toEqualCellRange(['highlight: -2,1 from: -2,1 to: 1,1']);
+
+    deselectCell();
+    simulateClick(spec().$container.find('.ht_clone_top tr:eq(2) th:eq(2)'), 'RMB'); // Third "B" header
+
+    expect(`
+      |   ║   : * :   :   :   |
+      |   ║   : * :   :   :   |
+      |   ║   : # :   :   :   |
+      |===:===:===:===:===:===|
+      | - ║   : 0 :   :   :   |
+      | - ║   : 0 :   :   :   |
+    `).toBeMatchToSelectionPattern();
+    expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 1,1']);
+  });
+
+  it('should select entire row by right click on row header (navigableHeaders on)', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 2),
+      rowHeaders: true,
+      colHeaders: true,
+      navigableHeaders: true,
+      afterGetRowHeaderRenderers(headerRenderers) {
+        headerRenderers.push(rowHeader.bind(this));
+        headerRenderers.push(rowHeader.bind(this));
+      },
+    });
+
+    simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(0)'), 'RMB'); // First header "2"
+
+    expect(`
+      |   :   :   ║ - : - |
+      |===:===:===:===:===|
+      |   :   :   ║   :   |
+      | # : * : * ║ 0 : 0 |
+      |   :   :   ║   :   |
+      |   :   :   ║   :   |
+      |   :   :   ║   :   |
+    `).toBeMatchToSelectionPattern();
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-3 from: 1,-3 to: 1,1']);
+
+    deselectCell();
+    simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(1)'), 'RMB'); // Second header "2"
+
+    expect(`
+      |   :   :   ║ - : - |
+      |===:===:===:===:===|
+      |   :   :   ║   :   |
+      | * : # : * ║ 0 : 0 |
+      |   :   :   ║   :   |
+      |   :   :   ║   :   |
+      |   :   :   ║   :   |
+    `).toBeMatchToSelectionPattern();
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-2 from: 1,-2 to: 1,1']);
+
+    deselectCell();
+    simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(2)'), 'RMB'); // Third header "2"
+
+    expect(`
+      |   :   :   ║ - : - |
+      |===:===:===:===:===|
+      |   :   :   ║   :   |
+      | * : * : # ║ 0 : 0 |
+      |   :   :   ║   :   |
+      |   :   :   ║   :   |
+      |   :   :   ║   :   |
+    `).toBeMatchToSelectionPattern();
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,1']);
   });
 
   it('should select entire column by right click on column header and overwrite the previous cell selection (#7051)', () => {
