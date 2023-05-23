@@ -15,8 +15,8 @@
     "build": "run-p type-check build-only",
     "build-only": "vite build",
     "dev": "vite",
-    "preview": "vite preview",
-    "start": "vite",
+    "preview": "vite preview --port 8080 --host",
+    "start": "vite --port 8080 --host",
     "test": "node spec/support/jasmine.config.js",
     "type-check": "vue-tsc --noEmit"
   },
