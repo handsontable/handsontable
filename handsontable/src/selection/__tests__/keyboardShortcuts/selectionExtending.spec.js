@@ -99,6 +99,61 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -1,1 to: 4,4']);
     });
 
+    it('should extend the column header selection to the right-most visible column', () => {
+      const hot = handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      hidingMap.setValueAtIndex(3, true);
+      hidingMap.setValueAtIndex(4, true);
+      hot.render();
+
+      selectColumns(1);
+      listen();
+      keyDownUp(['control/meta', 'shift', 'arrowright']);
+
+      expect(`
+        |   ║   : * : * |
+        |===:===:===:===|
+        | - ║   : A : 0 |
+        | - ║   : 0 : 0 |
+        | - ║   : 0 : 0 |
+        | - ║   : 0 : 0 |
+        | - ║   : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -1,1 to: 4,2']);
+    });
+
+    it('should extend the column header selection to the right-most column header (navigableHeaders on)', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      selectColumns(1);
+      listen();
+      keyDownUp(['control/meta', 'shift', 'arrowright']);
+
+      expect(`
+        |   ║   : # : * : * : * |
+        |===:===:===:===:===:===|
+        | - ║   : 0 : 0 : 0 : 0 |
+        | - ║   : 0 : 0 : 0 : 0 |
+        | - ║   : 0 : 0 : 0 : 0 |
+        | - ║   : 0 : 0 : 0 : 0 |
+        | - ║   : 0 : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 4,4']);
+    });
+
     it('should not change the selection when row header is selected', () => {
       handsontable({
         rowHeaders: true,
@@ -286,7 +341,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,3 from: 1,3 to: 3,0']);
     });
 
-    it('should extend the header selection to the left-most column header', () => {
+    it('should extend the column header selection to the left-most column header', () => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -308,6 +363,61 @@ describe('Selection extending', () => {
         | - ║ 0 : 0 : 0 : 0 :   |
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: -1,3 to: 4,0']);
+    });
+
+    it('should extend the column header selection to the left-most visible column', () => {
+      const hot = handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      hidingMap.setValueAtIndex(0, true);
+      hidingMap.setValueAtIndex(1, true);
+      hot.render();
+
+      selectColumns(3);
+      listen();
+      keyDownUp(['control/meta', 'shift', 'arrowleft']);
+
+      expect(`
+        |   ║ * : * :   |
+        |===:===:===:===|
+        | - ║ 0 : A :   |
+        | - ║ 0 : 0 :   |
+        | - ║ 0 : 0 :   |
+        | - ║ 0 : 0 :   |
+        | - ║ 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: -1,3 to: 4,2']);
+    });
+
+    it('should extend the column header selection to the left-most column header (navigableHeaders on)', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      selectColumns(3);
+      listen();
+      keyDownUp(['control/meta', 'shift', 'arrowleft']);
+
+      expect(`
+        |   ║ * : * : * : # :   |
+        |===:===:===:===:===:===|
+        | - ║ 0 : 0 : 0 : 0 :   |
+        | - ║ 0 : 0 : 0 : 0 :   |
+        | - ║ 0 : 0 : 0 : 0 :   |
+        | - ║ 0 : 0 : 0 : 0 :   |
+        | - ║ 0 : 0 : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,3 from: -1,3 to: 4,0']);
     });
 
     it('should not change the selection when row header is selected', () => {
@@ -521,6 +631,59 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 3,-1 to: 0,4']);
     });
 
+    it('should extend the row header selection to the top-most visible row', () => {
+      const hot = handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      const hidingMap = hot.rowIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      hidingMap.setValueAtIndex(0, true);
+      hidingMap.setValueAtIndex(1, true);
+      hot.render();
+
+      selectRows(3);
+      listen();
+      keyDownUp(['control/meta', 'shift', 'arrowup']);
+
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ A : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 3,-1 to: 2,4']);
+    });
+
+    it('should extend the row header selection to the top-most row header (navigableHeaders on)', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      selectRows(3);
+      listen();
+      keyDownUp(['control/meta', 'shift', 'arrowup']);
+
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | # ║ 0 : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,-1 from: 3,-1 to: 0,4']);
+    });
+
     it('should not change the selection when column header is selected', () => {
       handsontable({
         rowHeaders: true,
@@ -708,7 +871,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 4,3']);
     });
 
-    it('should extend the row header selection to the top-most row header', () => {
+    it('should extend the row header selection to the bottom-most row header', () => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -730,6 +893,59 @@ describe('Selection extending', () => {
       | * ║ 0 : 0 : 0 : 0 : 0 |
     `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,-1 to: 4,4']);
+    });
+
+    it('should extend the row header selection to the bottom-most visible row', () => {
+      const hot = handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      const hidingMap = hot.rowIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      hidingMap.setValueAtIndex(3, true);
+      hidingMap.setValueAtIndex(4, true);
+      hot.render();
+
+      selectRows(1);
+      listen();
+      keyDownUp(['control/meta', 'shift', 'arrowdown']);
+
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | * ║ A : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,-1 to: 2,4']);
+    });
+
+    it('should extend the row header selection to the bottom-most row header (navigableHeaders on)', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      selectRows(1);
+      listen();
+      keyDownUp(['control/meta', 'shift', 'arrowdown']);
+
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | # ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 4,4']);
     });
 
     it('should not change the selection when column header is selected', () => {
