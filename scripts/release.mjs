@@ -90,14 +90,25 @@ displaySeparator();
         shell: true,
       });
 
-      const { stdout: gitIgnoreCheckStdout, isGitignoreFileEmpty = gitIgnoreCheckStdout === 'true' } =
-        await execa.command('grep -q "[^[:space:]]" ./.gitignore && echo false || echo true', {
-          cwd: 'docs',
-          shell: true
-        });
+      const linesCount = parseInt((await execa.command('wc -l < .gitignore', {
+        cwd: 'docs',
+        shell: true
+      })).stdout);
 
-      if (isGitignoreFileEmpty) {
-        displayErrorMessage('The docs/.gitignore file modified by the release script is empty. Continuing the script' +
+      // Remove "/content/api/" entry from the ./docs/.gitignore file so generated API
+      // docs can be committed to the branch.
+      await execa.command('cat ./.gitignore | grep -v "^/content/api/$" | tee .gitignore', {
+        cwd: 'docs',
+        shell: true,
+      });
+
+      const newLinesCount = parseInt((await execa.command('wc -l < .gitignore', {
+        cwd: 'docs',
+        shell: true
+      })).stdout);
+
+      if (newLinesCount + 1 !== linesCount && !Number.isNaN(newLinesCount)) {
+        displayErrorMessage('The docs/.gitignore file modified by the release script is incorrect. Continuing the script' +
           ' execution would result in a broken documentation build.');
         process.exit(1);
       }
