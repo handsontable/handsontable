@@ -89,6 +89,18 @@ displaySeparator();
         cwd: 'docs',
         shell: true,
       });
+
+      let { stdout: gitIgnoreCheckStdout, isGitignoreFileEmpty = gitIgnoreCheckStdout === 'true' } =
+        await execa.command('grep -q "[^[:space:]]" ./.gitignore && echo false || echo true', {
+          cwd: 'docs',
+          shell: true
+        });
+
+      if (isGitignoreFileEmpty) {
+        displayErrorMessage('The docs/.gitignore file modified by the release script is empty. Continuing the script' +
+          ' execution would result in a broken documentation build.');
+        process.exit(1);
+      }
     }
 
     // Regenerate docs API md files.
