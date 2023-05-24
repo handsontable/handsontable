@@ -90,7 +90,7 @@ displaySeparator();
         shell: true,
       });
 
-      let { stdout: gitIgnoreCheckStdout, isGitignoreFileEmpty = gitIgnoreCheckStdout === 'true' } =
+      const { stdout: gitIgnoreCheckStdout, isGitignoreFileEmpty = gitIgnoreCheckStdout === 'true' } =
         await execa.command('grep -q "[^[:space:]]" ./.gitignore && echo false || echo true', {
           cwd: 'docs',
           shell: true
