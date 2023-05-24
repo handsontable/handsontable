@@ -112,29 +112,26 @@ export default defineComponent({
   </div>
 </template>
 
-<style lang="scss">
+<style lang="css">
 /*
   A stylesheet customizing app (custom renderers)
 */
 
+table.htCore tr.odd td {
+  background: #fafbff;
+}
 
-table.htCore {
-  tr.odd td {
-    background: #fafbff;
-  }
+table.htCore tr.selected td {
+  background: #edf3fd;
+}
 
-  tr.selected td {
-    background: #edf3fd;
-  }
+table.htCore td .progressBar {
+  background: #37bc6c;
+  height: 10px;
+}
 
-  td .progressBar {
-    background: #37bc6c;
-    height: 10px;
-  }
-
-  td .star {
-    color: #fcb515;
-  }
+table.htCore td .star {
+  color: #fcb515;
 }
 
 /*
@@ -147,9 +144,10 @@ table.htCore {
   'Ubuntu', 'Helvetica Neue', Arial, sans-serif;
   font-weight: 400;
 
-  .collapsibleIndicator {
-    text-align: center;
-  }
+}
+
+.handsontable .collapsibleIndicator {
+  text-align: center;
 }
 
 td .error {
