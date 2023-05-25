@@ -2,23 +2,52 @@
 const isBrowser = (typeof window !== 'undefined');
 
 const formatVersion = version => (/^\d+\.\d+$/.test(version) ? version : 'latest');
-const getHotUrls = (version) => {
+
+/**
+ * Gets the local/remote package url for the required file type.
+ *
+ * @param {string} packageName The package name.
+ * @param {string} version The package version. If specified as 'next', the local urls will be returned.
+ * @param {'js'|'css'|string} fileSelection If set to `js` or `css`, it will return the urls of the default js/css
+ * files. If any other value is provided, it will be treated as a path the required file.
+ * @returns {string} Url to the required file.
+ */
+const getPackageUrls = (packageName, version, fileSelection) => {
+  const subDirs = {
+    handsontable: {
+      js: 'handsontable.full.min.js',
+      css: 'handsontable.full.min.css'
+    },
+    '@handsontable/react': {
+      js: 'react-handsontable.min.js'
+    },
+    '@handsontable/angular': {
+      js: 'handsontable-angular.umd.min.js',
+      subDir: 'bundles/'
+    },
+    '@handsontable/vue': {
+      js: 'vue-handsontable.min.js'
+    },
+    '@handsontable/vue3': {
+      js: 'vue-handsontable.min.js'
+    }
+  };
+
+  const urlSet = subDirs[packageName];
+
   if (version === 'next' && isBrowser) {
-    return {
-      handsontableJs: '/docs/handsontable/handsontable.full.js',
-      handsontableCss: '/docs/handsontable/handsontable.full.css',
-      languagesJs: '/docs/handsontable/languages/all.js'
-    };
+    return urlSet[fileSelection] ?
+      `/docs/${packageName}/${urlSet[fileSelection]}` :
+      `/docs/${packageName}/${fileSelection}`;
   }
 
   const mappedVersion = formatVersion(version);
 
-  return {
-    handsontableJs: `https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/handsontable.full.min.js`,
-    handsontableCss: `https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/handsontable.full.min.css`,
-    languagesJs: `https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/languages/all.js`
-  };
+  return urlSet[fileSelection] ?
+    `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${urlSet.subDir || 'dist/'}${urlSet[fileSelection]}` :
+    `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${fileSelection}`;
 };
+
 const getCommonScript = (scriptName, version) => {
   if (isBrowser) {
     // eslint-disable-next-line no-restricted-globals
@@ -43,8 +72,6 @@ const getCommonScript = (scriptName, version) => {
  *                     `{function(dependency: string): [string,string[],string]} [jsUrl, dependentVars[]?, cssUrl?]`.
  */
 const buildDependencyGetter = (version) => {
-  const { handsontableJs, handsontableCss, languagesJs } = getHotUrls(version);
-  const mappedVersion = formatVersion(version);
   const fixer = getCommonScript('fixer', version);
   const helpers = getCommonScript('helpers', version);
 
@@ -53,10 +80,10 @@ const buildDependencyGetter = (version) => {
     const dependencies = {
       fixer,
       helpers,
-      hot: [handsontableJs, ['Handsontable'], handsontableCss],
+      hot: [getPackageUrls('handsontable', version, 'js'), ['Handsontable'], getPackageUrls('handsontable', version, 'css')],
       react: ['https://cdn.jsdelivr.net/npm/react@17/umd/react.production.min.js', ['React']],
       'react-dom': ['https://cdn.jsdelivr.net/npm/react-dom@17/umd/react-dom.production.min.js', ['ReactDOM']],
-      'hot-react': [`https://cdn.jsdelivr.net/npm/@handsontable/react@${mappedVersion}/dist/react-handsontable.js`, ['Handsontable.react']],
+      'hot-react': [getPackageUrls('@handsontable/react', version, 'js'), ['Handsontable.react']],
       'react-redux': ['https://cdnjs.cloudflare.com/ajax/libs/react-redux/7.2.4/react-redux.min.js'],
       'react-colorful': ['https://cdn.jsdelivr.net/npm/react-colorful@5.5.1/dist/index.min.js'],
       'react-star-rating-component': ['https://cdn.jsdelivr.net/npm/react-star-rating-component@1.4.1/dist/react-star-rating-component.min.js'],
@@ -71,47 +98,47 @@ const buildDependencyGetter = (version) => {
       'angular-forms': ['https://cdn.jsdelivr.net/npm/@angular/forms@7/bundles/forms.umd.min.js', [/* todo */]],
       'angular-platform-browser': ['https://cdn.jsdelivr.net/npm/@angular/platform-browser@8/bundles/platform-browser.umd.min.js', [/* todo */]],
       'angular-platform-browser-dynamic': ['https://cdn.jsdelivr.net/npm/@angular/platform-browser-dynamic@8/bundles/platform-browser-dynamic.umd.min.js', [/* todo */]],
-      'hot-angular': [`https://cdn.jsdelivr.net/npm/@handsontable/angular@${mappedVersion}/bundles/handsontable-angular.umd.min.js`, [/* todo */]],
-      'hot-vue': [`https://cdn.jsdelivr.net/npm/@handsontable/vue@${mappedVersion}/dist/vue-handsontable.min.js`, [/* todo */]],
-      'hot-vue3': [`https://cdn.jsdelivr.net/npm/@handsontable/vue3@${mappedVersion}/dist/vue-handsontable.min.js`, [/* todo */]],
-      vue: ['https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js', [/* todo */]],
-      vuex: ['https://cdn.jsdelivr.net/npm/vuex@3/dist/vuex.min.js', [/* todo */]],
+      'hot-angular': [getPackageUrls('@handsontable/angular', version, 'js'), [/* todo */]],
+      'hot-vue': [getPackageUrls('@handsontable/vue', version, 'js'), [/* todo */], null, 'hot-vue3'],
+      'hot-vue3': [getPackageUrls('@handsontable/vue3', version, 'js'), [/* todo */], null, 'hot-vue'],
+      vue: ['https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js', [/* todo */], null, 'vue3'],
+      vuex: ['https://cdn.jsdelivr.net/npm/vuex@3/dist/vuex.min.js', [/* todo */], null, 'vuex4'],
       'vue-color': ['https://cdn.jsdelivr.net/npm/vue-color@2/dist/vue-color.min.js', [/* todo */]],
       'vue-class-component': ['https://cdn.jsdelivr.net/npm/vue-class-component@7.1.0/dist/vue-class-component.min.js', [/* todo */]],
       'vue-star-rating': ['https://cdn.jsdelivr.net/npm/vue-star-rating@1/dist/VueStarRating.umd.min.js', [/* todo */]],
-      vue3: ['https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js', [/* todo */]],
-      vuex4: ['https://cdn.jsdelivr.net/npm/vuex@4/dist/vuex.global.min.js', [/* todo */]],
-      languages: [languagesJs, [/* todo */]],
+      vue3: ['https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js', [/* todo */], null, 'vue'],
+      vuex4: ['https://cdn.jsdelivr.net/npm/vuex@4/dist/vuex.global.min.js', [/* todo */], null, 'vuex'],
+      languages: [getPackageUrls('handsontable', version, 'languages/all.js'), [/* todo */]],
     };
     /* eslint-enable max-len */
 
-    // [jsUrl, dependentVars[]?, cssUrl?]
+    // [jsUrl, dependentVars[]?, cssUrl?, globalVarSharedDependency?]
     return dependencies[dependency];
   };
 };
 
 const presetMap = {
   /* eslint-disable max-len */
-  hot: ['hot'],
-  'hot-lang': ['hot', 'languages'],
-  'hot-numbro': ['hot', 'numbro'],
-  react: ['hot', 'react', 'react-dom', 'hot-react', 'fixer', 'helpers'],
-  'react-languages': ['hot', 'languages', 'react', 'react-dom', 'hot-react', 'fixer', 'helpers'],
-  'react-numbro': ['hot', 'numbro', 'react', 'react-dom', 'hot-react', 'fixer', 'helpers'],
-  'react-redux': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'fixer', 'helpers'],
-  'react-advanced': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'fixer', 'helpers', 'react-colorful', 'react-star-rating-component'],
-  angular: ['hot', 'fixer', 'helpers', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
-  'angular-languages': ['hot', 'languages', 'fixer', 'helpers', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
-  'angular-numbro': ['hot', 'numbro', 'fixer', 'helpers', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
-  vue: ['hot', 'vue', 'hot-vue', 'fixer', 'helpers'],
-  'vue-numbro': ['hot', 'numbro', 'vue', 'hot-vue', 'fixer', 'helpers'],
-  'vue-languages': ['hot', 'languages', 'vue', 'hot-vue', 'fixer', 'helpers'],
-  'vue-vuex': ['hot', 'vue', 'vuex', 'hot-vue', 'fixer', 'helpers'],
-  'vue-advanced': ['hot', 'vue', 'vuex', 'hot-vue', 'vue-color', 'vue-class-component', 'vue-star-rating', 'fixer', 'helpers'],
-  vue3: ['hot', 'vue3', 'hot-vue3', 'fixer', 'helpers'],
-  'vue3-numbro': ['hot', 'numbro', 'vue3', 'hot-vue3', 'fixer', 'helpers'],
-  'vue3-languages': ['hot', 'languages', 'vue3', 'hot-vue3', 'fixer', 'helpers'],
-  'vue3-vuex': ['hot', 'vue3', 'vuex4', 'hot-vue3', 'fixer', 'helpers'],
+  hot: ['hot', 'fixer'],
+  'hot-lang': ['hot', 'languages', 'fixer'],
+  'hot-numbro': ['hot', 'numbro', 'fixer'],
+  react: ['hot', 'react', 'react-dom', 'hot-react', 'fixer'],
+  'react-languages': ['hot', 'languages', 'react', 'react-dom', 'hot-react', 'fixer'],
+  'react-numbro': ['hot', 'numbro', 'react', 'react-dom', 'hot-react', 'fixer'],
+  'react-redux': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'fixer'],
+  'react-advanced': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'fixer', 'react-colorful', 'react-star-rating-component'],
+  angular: ['hot', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
+  'angular-languages': ['hot', 'languages', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
+  'angular-numbro': ['hot', 'numbro', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
+  vue: ['hot', 'vue', 'hot-vue', 'fixer'],
+  'vue-numbro': ['hot', 'numbro', 'vue', 'hot-vue', 'fixer'],
+  'vue-languages': ['hot', 'languages', 'vue', 'hot-vue', 'fixer'],
+  'vue-vuex': ['hot', 'vue', 'vuex', 'hot-vue', 'fixer'],
+  'vue-advanced': ['hot', 'vue', 'vuex', 'hot-vue', 'vue-color', 'vue-class-component', 'vue-star-rating', 'fixer'],
+  vue3: ['hot', 'vue3', 'hot-vue3', 'fixer'],
+  'vue3-numbro': ['hot', 'numbro', 'vue3', 'hot-vue3', 'fixer'],
+  'vue3-languages': ['hot', 'languages', 'vue3', 'hot-vue3', 'fixer'],
+  'vue3-vuex': ['hot', 'vue3', 'vuex4', 'hot-vue3', 'fixer'],
   /* eslint-enable max-len */
 };
 

@@ -1,4 +1,5 @@
 ---
+id: wwkiqxi9
 title: Basic example in Vue 2
 metaTitle: Basic example - Vue 2 Data Grid | Handsontable
 description: Start with a basic example of the Vue 2 data grid, using component props for configuration and external control.
@@ -20,33 +21,45 @@ In this example, a `div` element of `id="example1"` where the `@handsontable/vue
 ::: example #example1 :vue --html 1 --js 2
 ```html
 <div id="example1">
-    <hot-table :settings="hotSettings"></hot-table>
+  <hot-table :settings="hotSettings"></hot-table>
 </div>
 ```
 ```js
-import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
 import { registerAllModules } from 'handsontable/registry';
-import Handsontable from 'handsontable/base';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-new Vue({
-  el: '#example1',
+const ExampleComponent = {
   data: function() {
     return {
       hotSettings: {
-        data: Handsontable.helper.createSpreadsheetData(6, 10),
+        data: [
+          ['', 'Ford', 'Volvo', 'Toyota', 'Honda'],
+          ['2016', 10, 11, 12, 13],
+          ['2017', 20, 11, 14, 13],
+          ['2018', 30, 15, 12, 13]
+        ],
         colHeaders: true,
         height: 'auto',
         licenseKey: 'non-commercial-and-evaluation'
       }
-    }
+    };
   },
   components: {
     HotTable
   }
+}
+
+export default ExampleComponent;
+
+/* start:skip-in-preview */
+new Vue({
+  ...ExampleComponent,
+  el: '#example1',
 });
+/* end:skip-in-preview */
 ```
 :::

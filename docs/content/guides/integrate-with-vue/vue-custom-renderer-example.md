@@ -1,4 +1,5 @@
 ---
+id: 1ng09buy
 title: Custom renderer in Vue 2
 metaTitle: Custom cell renderer - Vue 2 Data Grid | Handsontable
 description: Create a custom cell renderer, and use it in your Vue 2 data grid by declaring it as a function.
@@ -28,16 +29,14 @@ The following example is an implementation of `@handsontable/vue` with a custom 
 </div>
 ```
 ```js
-import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
-import { textRenderer } from 'handsontable/renderers/textRenderer';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-new Vue({
-  el: '#example1',
+const ExampleComponent = {
   data() {
     return {
       hotSettings: {
@@ -49,7 +48,7 @@ new Vue({
         columns: [
           {},
           {
-            renderer(instance, td, row, col, prop, value, cellProperties) {
+            renderer(instance, td, row, col, prop, value) {
               const img = document.createElement('img');
 
               img.src = value;
@@ -75,7 +74,16 @@ new Vue({
   components: {
     HotTable
   }
+}
+
+export default ExampleComponent;
+
+/* start:skip-in-preview */
+new Vue({
+  ...ExampleComponent,
+  el: '#example1',
 });
+/* end:skip-in-preview */
 ```
 :::
 

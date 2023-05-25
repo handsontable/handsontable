@@ -120,6 +120,12 @@ export class IndexMapper {
      */
     this.indexesSequenceChanged = false;
     /**
+     * Flag informing about source of the change.
+     *
+     * @type {undefined|string}
+     */
+    this.indexesChangeSource = void 0;
+    /**
      * Flag determining whether any action on trimmed indexes has been performed. It's used for cache management.
      *
      * @private
@@ -161,6 +167,7 @@ export class IndexMapper {
       // Sequence of stored indexes might change.
       this.updateCache();
 
+      this.runLocalHooks('indexesSequenceChange', this.indexesChangeSource);
       this.runLocalHooks('change', this.indexesSequence, null);
     });
 
@@ -222,10 +229,10 @@ export class IndexMapper {
   }
 
   /**
-   * Creates and register the new IndexMap for specified IndexMapper instance.
+   * Creates and registers a new `IndexMap` for a specified `IndexMapper` instance.
    *
-   * @param {string} indexName The uniq index name.
-   * @param {string} mapType The index map type (e.q. "hiding, "trimming", "physicalIndexToValue").
+   * @param {string} indexName A unique index name.
+   * @param {string} mapType The index map type (e.g., "hiding", "trimming", "physicalIndexToValue").
    * @param {*} [initValueOrFn] The initial value for the index map.
    * @returns {IndexMap}
    */
@@ -479,7 +486,9 @@ export class IndexMapper {
     this.notHiddenIndexesCache = [...new Array(length).keys()];
 
     this.suspendOperations();
+    this.indexesChangeSource = 'init';
     this.indexesSequence.init(length);
+    this.indexesChangeSource = void 0;
     this.trimmingMapsCollection.initEvery(length);
     this.resumeOperations();
 
@@ -529,7 +538,15 @@ export class IndexMapper {
    * @param {Array} indexes Physical indexes.
    */
   setIndexesSequence(indexes) {
+    if (this.indexesChangeSource === void 0) {
+      this.indexesChangeSource = 'update';
+    }
+
     this.indexesSequence.setValues(indexes);
+
+    if (this.indexesChangeSource === 'update') {
+      this.indexesChangeSource = void 0;
+    }
   }
 
   /**
@@ -655,8 +672,12 @@ export class IndexMapper {
       destinationPosition = listWithRemovedItems.indexOf(physicalIndex);
     }
 
+    this.indexesChangeSource = 'move';
+
     // Adding indexes without re-indexing.
     this.setIndexesSequence(getListWithInsertedItems(listWithRemovedItems, destinationPosition, physicalMovedIndexes));
+
+    this.indexesChangeSource = void 0;
   }
 
   /**
@@ -695,7 +716,9 @@ export class IndexMapper {
       (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
     this.suspendOperations();
+    this.indexesChangeSource = 'insert';
     this.indexesSequence.insert(insertionIndex, insertedIndexes);
+    this.indexesChangeSource = void 0;
     this.trimmingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
     this.hidingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
     this.variousMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
@@ -710,7 +733,9 @@ export class IndexMapper {
    */
   removeIndexes(removedIndexes) {
     this.suspendOperations();
+    this.indexesChangeSource = 'remove';
     this.indexesSequence.remove(removedIndexes);
+    this.indexesChangeSource = void 0;
     this.trimmingMapsCollection.removeFromEvery(removedIndexes);
     this.hidingMapsCollection.removeFromEvery(removedIndexes);
     this.variousMapsCollection.removeFromEvery(removedIndexes);

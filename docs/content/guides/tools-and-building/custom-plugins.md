@@ -1,4 +1,5 @@
 ---
+id: 39o3uw0q
 title: Custom plugins
 metaTitle: Custom plugins - JavaScript Data Grid | Handsontable
 description: Extend Handsontable's functionality by writing your custom plugin. Use the BasePlugin for a quick start.
@@ -9,6 +10,7 @@ tags:
   - skeleton
   - extend
 react:
+  id: y66k6b2h
   metaTitle: Custom plugins - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -314,9 +316,9 @@ For more information, see the [`Instance Methods`](@/guides/getting-started/reac
 :::
 
 ```jsx
-const hotTableComponent = useRef(null);
+const hotTableComponentRef = useRef(null);
 
-const pluginInstance = hotTableComponent.current.hotInstance.getPlugin(CustomPlugin.PLUGIN_KEY);
+const pluginInstance = hotTableComponentRef.current.hotInstance.getPlugin(CustomPlugin.PLUGIN_KEY);
 ```
 :::
 

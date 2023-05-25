@@ -10,13 +10,10 @@ describe('ContextMenu keyboard shortcut', () => {
   }
 
   beforeEach(function() {
-    $('.jasmine_html-reporter').hide();
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
-    $('.jasmine_html-reporter').show();
-
     if (this.$container) {
       destroy();
       this.$container.remove();

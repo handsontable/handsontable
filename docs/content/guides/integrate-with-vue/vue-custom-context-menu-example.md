@@ -1,7 +1,8 @@
 ---
+id: 34csx83i
 title: Custom context menu in Vue 2
 metaTitle: Custom context menu - Vue 2 Data Grid | Handsontable
-description: Customize the right-click context menu of your Vue 2 data grid, by creating a custom function for each menu item.
+description: Customize the context menu of your Vue 2 data grid, by creating a custom function for each menu item.
 permalink: /vue-custom-context-menu-example
 canonicalUrl: /vue-custom-context-menu-example
 searchCategory: Guides
@@ -9,7 +10,7 @@ searchCategory: Guides
 
 # Custom context menu in Vue 2
 
-Customize the right-click context menu of your Vue 2 data grid, by creating a custom function for each menu item.
+Customize the context menu of your Vue 2 data grid, by creating a custom function for each menu item.
 
 [[toc]]
 
@@ -24,21 +25,25 @@ The following example implements the `@handsontable/vue` component, adding a cus
 </div>
 ```
 ```js
-import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
 import { ContextMenu } from 'handsontable/plugins/contextMenu';
 import { registerAllModules } from 'handsontable/registry';
-import Handsontable from 'handsontable/base';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-new Vue({
-  el: '#example1',
+const ExampleComponent = {
   data() {
     return {
       hotSettings: {
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: [
+          ['A1', 'B1', 'C1', 'D1', 'E1'],
+          ['A2', 'B2', 'C2', 'D2', 'E2'],
+          ['A3', 'B3', 'C3', 'D3', 'E3'],
+          ['A4', 'B4', 'C4', 'D4', 'E4'],
+          ['A5', 'B5', 'C5', 'D5', 'E5'],
+        ],
         colHeaders: true,
         contextMenu: {
           items: {
@@ -63,7 +68,16 @@ new Vue({
   components: {
     HotTable
   }
+}
+
+export default ExampleComponent;
+
+/* start:skip-in-preview */
+new Vue({
+  ...ExampleComponent,
+  el: '#example1',
 });
+/* end:skip-in-preview */
 ```
 :::
 
@@ -72,7 +86,7 @@ new Vue({
 ### Related guides
 
 - [Context menu](@/guides/accessories-and-menus/context-menu.md)
-- [Adding comments via the context menu](@/guides/cell-features/comments.md#adding-comments-via-the-context-menu)
+- [Adding comments via the context menu](@/guides/cell-features/comments.md#add-comments-via-the-context-menu)
 - [Clipboard: Context menu](@/guides/cell-features/clipboard.md#context-menu)
 - [Icon pack](@/guides/accessories-and-menus/icon-pack.md)
 

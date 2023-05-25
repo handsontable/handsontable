@@ -1,6 +1,7 @@
 import React from 'react';
 import { HotTable } from '../src/hotTable';
 import { HotColumn } from '../src/hotColumn';
+import { registerAllModules } from 'handsontable/registry';
 import {
   createSpreadsheetData,
   RendererComponent,
@@ -11,6 +12,9 @@ import {
   simulateMouseEvent,
   mountComponent
 } from './_helpers';
+
+// register Handsontable's modules
+registerAllModules();
 
 describe('Passing column settings using HotColumn', () => {
   it('should apply the Handsontable settings passed as HotColumn arguments to the Handsontable instance', async () => {
@@ -128,7 +132,7 @@ describe('Editor configuration using React components', () => {
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
   });
 
-  it('should be possible to reuse editor components between columns width different props passed to them', async () => {
+  it('should be possible to reuse editor components between columns with different props passed to them', async () => {
     class ReusableEditor extends EditorComponent {
       prepare(row, col, prop, TD, originalValue, cellProperties): any {
         super.prepare(row, col, prop, TD, originalValue, cellProperties);
@@ -306,5 +310,28 @@ describe('Dynamic HotColumn configuration changes', () => {
     hotInstance.getActiveEditor().close();
 
     expect(hotInstance.getSettings().licenseKey).toEqual('non-commercial-and-evaluation');
+  });
+});
+
+describe('Miscellaneous scenarios with `HotColumn` config', () => {
+  it('should validate all cells correctly in a `dropdown`-typed column after populating data through it', async () => {
+    const onAfterValidate = jasmine.createSpy('warn');
+    const hotInstance = mountComponent((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                data={[['yellow'], ['white'], ['orange']]}
+                afterValidate={onAfterValidate}
+      >
+        <HotColumn type="dropdown" source={['yellow', 'red', 'orange']}/>
+      </HotTable>
+    )).hotInstance;
+
+    hotInstance.populateFromArray(0, 0, [['test'], ['test2'], ['test3']]);
+
+    await sleep(300);
+
+    expect(onAfterValidate).toHaveBeenCalledTimes(3);
+    expect(onAfterValidate).toHaveBeenCalledWith(false, 'test3', 2, 0, 'populateFromArray');
+    expect(onAfterValidate).toHaveBeenCalledWith(false, 'test2', 1, 0, 'populateFromArray');
+    expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 0, 0, 'populateFromArray');
   });
 });

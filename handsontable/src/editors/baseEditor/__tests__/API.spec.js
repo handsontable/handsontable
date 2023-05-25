@@ -14,13 +14,11 @@ describe('BaseEditor API', () => {
     const id = 'testContainer';
 
     beforeEach(function() {
-      $('.jasmine_html-reporter').hide();
       $('html').attr('dir', htmlDir);
       this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
     afterEach(function() {
-      $('.jasmine_html-reporter').show();
       $('html').attr('dir', 'ltr');
 
       if (this.$container) {
@@ -57,7 +55,6 @@ describe('BaseEditor API', () => {
           it('and the scrollable element is the Window object', () => {
             handsontable({
               layoutDirection,
-              licenseKey: 'non-commercial-and-evaluation',
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedRowsTop: 2,
@@ -109,7 +106,6 @@ describe('BaseEditor API', () => {
 
             handsontable({
               layoutDirection,
-              licenseKey: 'non-commercial-and-evaluation',
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedRowsTop: 2,
@@ -156,7 +152,6 @@ describe('BaseEditor API', () => {
           it('and the scrollable element is the Window object', () => {
             handsontable({
               layoutDirection,
-              licenseKey: 'non-commercial-and-evaluation',
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedColumnsStart: 2,
@@ -204,7 +199,6 @@ describe('BaseEditor API', () => {
           it('and the scrollable element is the Window object', () => {
             handsontable({
               layoutDirection,
-              licenseKey: 'non-commercial-and-evaluation',
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedColumnsStart: 2,
@@ -251,7 +245,6 @@ describe('BaseEditor API', () => {
           it('and the scrollable element is the Window object', () => {
             handsontable({
               layoutDirection,
-              licenseKey: 'non-commercial-and-evaluation',
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedColumnsStart: 2,
@@ -297,7 +290,6 @@ describe('BaseEditor API', () => {
           it('and the scrollable element is the Window object', () => {
             handsontable({
               layoutDirection,
-              licenseKey: 'non-commercial-and-evaluation',
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedColumnsStart: 2,
@@ -344,7 +336,6 @@ describe('BaseEditor API', () => {
           it('and the scrollable element is the Window object', () => {
             handsontable({
               layoutDirection,
-              licenseKey: 'non-commercial-and-evaluation',
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedColumnsStart: 2,
@@ -392,7 +383,6 @@ describe('BaseEditor API', () => {
           it('and the scrollable element is the Window object', () => {
             handsontable({
               layoutDirection,
-              licenseKey: 'non-commercial-and-evaluation',
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedColumnsStart: 2,
@@ -439,7 +429,6 @@ describe('BaseEditor API', () => {
           it('and the scrollable element is the Window object', () => {
             handsontable({
               layoutDirection,
-              licenseKey: 'non-commercial-and-evaluation',
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedRowsBottom: 2,
@@ -491,20 +480,22 @@ describe('BaseEditor API', () => {
 
             handsontable({
               layoutDirection,
-              licenseKey: 'non-commercial-and-evaluation',
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedRowsBottom: 2,
+              // Disabling `autoColumnSize` to prevent pixel-length differences in the spreader width dependent
+              // on window size
+              autoColumnSize: false
             });
 
             scrollViewportTo(countRows() - 1, countCols() - 1);
             selectCell(countRows() - 1, countCols() - 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
-              start: 4950,
+              start: 4949,
               top: document.documentElement.offsetHeight - 24,
               width: 51,
-              maxWidth: 50,
+              maxWidth: 51,
               height: 24,
               // maxHeight: ?, // returns wrong value! it will be fixed within #9206
             }));

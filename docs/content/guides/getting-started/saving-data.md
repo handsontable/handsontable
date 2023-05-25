@@ -1,4 +1,5 @@
 ---
+id: 7js3d370
 title: Saving data
 metaTitle: Saving data - JavaScript Data Grid | Handsontable
 description: Saving data after each change to the data set, using Handsontable's API hooks. Preserve the table's state by saving data to the local storage.
@@ -9,6 +10,7 @@ tags:
   - server
   - ajax
 react:
+  id: rib1rhmf
   metaTitle: Saving data - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -43,6 +45,9 @@ The example below handles data by using `fetch`. Note that this is just a mockup
 
 ```
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 const container = document.querySelector('#example1');
 const exampleConsole = document.querySelector('#output');
 const autosave = document.querySelector('#autosave');
@@ -121,7 +126,6 @@ autosave.addEventListener('click', () => {
 ::: example #example1 :react
 ```jsx
 import { useEffect, useState, useRef } from 'react';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.css';
@@ -129,7 +133,7 @@ import 'handsontable/dist/handsontable.full.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
   const [output, setOutput] = useState('Click "Load" to load data from server');
   const [isAutosave, setIsAutosave] = useState(false);
@@ -224,7 +228,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::

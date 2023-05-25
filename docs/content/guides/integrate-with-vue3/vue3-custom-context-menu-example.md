@@ -1,7 +1,8 @@
 ---
+id: 38qivuj4
 title: Custom context menu in Vue 3
 metaTitle: Custom context menu - Vue 3 Data Grid | Handsontable
-description: Customize the right-click context menu of your Vue 3 data grid, by creating a custom function for each menu item.
+description: Customize the context menu of your Vue 3 data grid, by creating a custom function for each menu item.
 permalink: /vue3-custom-context-menu-example
 canonicalUrl: /vue3-custom-context-menu-example
 searchCategory: Guides
@@ -9,7 +10,7 @@ searchCategory: Guides
 
 # Custom context menu example in Vue 3
 
-Customize the right-click context menu of your Vue 3 data grid, by creating a custom function for each menu item.
+Customize the context menu of your Vue 3 data grid, by creating a custom function for each menu item.
 
 [[toc]]
 
@@ -26,20 +27,26 @@ The following example implements the `@handsontable/vue3` component, adding a cu
 </div>
 ```
 ```js
-import { createApp } from 'vue';
+import { defineComponent } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { ContextMenu } from 'handsontable/plugins/contextMenu';
 import { registerAllModules } from 'handsontable/registry';
-import Handsontable from 'handsontable/base';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-const app = createApp({
+const ExampleComponent = defineComponent({
   data() {
     return {
       hotSettings: {
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: [
+          ['A1', 'B1', 'C1', 'D1', 'E1'],
+          ['A2', 'B2', 'C2', 'D2', 'E2'],
+          ['A3', 'B3', 'C3', 'D3', 'E3'],
+          ['A4', 'B4', 'C4', 'D4', 'E4'],
+          ['A5', 'B5', 'C5', 'D5', 'E5'],
+        ],
         colHeaders: true,
         contextMenu: {
           items: {
@@ -66,7 +73,15 @@ const app = createApp({
   }
 });
 
+export default ExampleComponent;
+
+/* start:skip-in-preview */
+import { createApp } from 'vue';
+
+const app = createApp(ExampleComponent);
+
 app.mount('#example1');
+/* end:skip-in-preview */
 ```
 :::
 
@@ -75,7 +90,7 @@ app.mount('#example1');
 ### Related guides
 
 - [Context menu](@/guides/accessories-and-menus/context-menu.md)
-- [Adding comments via the context menu](@/guides/cell-features/comments.md#adding-comments-via-the-context-menu)
+- [Adding comments via the context menu](@/guides/cell-features/comments.md#add-comments-via-the-context-menu)
 - [Clipboard: Context menu](@/guides/cell-features/clipboard.md#context-menu)
 - [Icon pack](@/guides/accessories-and-menus/icon-pack.md)
 

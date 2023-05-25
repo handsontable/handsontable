@@ -1,4 +1,5 @@
 ---
+id: 97k6p9p7
 title: Locale
 metaTitle: Locale - JavaScript Data Grid | Handsontable
 description: Configure Handsontable's locale settings, to properly handle locale-related data and actions such as filtering, searching, or sorting.
@@ -10,6 +11,7 @@ tags:
   - L10n
   - i18n
 react:
+  id: 1ueuuazs
   metaTitle: Locale - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -34,8 +36,8 @@ You can configure your locale settings, using the [`locale`](@/api/options.md#lo
 You can set the [`locale`](@/api/options.md#locale) option to any valid and canonicalized Unicode BCP 47 locale tag. By default, Handsontable's locale is `en-US`.
 
 You can configure the locale setting:
-- [For the entire grid](#setting-the-grid-s-locale)
-- [For individual columns](#setting-a-column-s-locale)
+- [For the entire grid](#set-the-grid-s-locale)
+- [For individual columns](#set-a-column-s-locale)
 
 ## Set the grid's locale
 

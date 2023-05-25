@@ -1,4 +1,5 @@
 ---
+id: qpna498b
 title: Basic example in Angular
 metaTitle: Basic example - Angular Data Grid | Handsontable
 description: Start with the Angular data grid basic configuration examples, using component properties for configuration and external control.
@@ -23,27 +24,27 @@ The following example is a basic implementation of the `@handsontable/angular` w
 ```
 
 ```js
-// app.component.ts
+/* file: app.component.ts */
 import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-root',
   template: `
-  <div>
-    <hot-table
-      [data]="dataset"
-      [colHeaders]="true"
-      [rowHeaders]="true"
-      height="auto"
-      licenseKey="non-commercial-and-evaluation">
-        <hot-column data="id" [readOnly]="true" title="ID"></hot-column>
-        <hot-column data="name" title="Full name"></hot-column>
-        <hot-column data="address" title="Street name"></hot-column>
-    </hot-table>
-  </div>
+    <div>
+      <hot-table
+        [data]="dataset"
+        [colHeaders]="true"
+        [rowHeaders]="true"
+        height="auto"
+        licenseKey="non-commercial-and-evaluation">
+          <hot-column data="id" [readOnly]="true" title="ID"></hot-column>
+          <hot-column data="name" title="Full name"></hot-column>
+          <hot-column data="address" title="Street name"></hot-column>
+      </hot-table>
+    </div>
   `,
 })
-class AppComponent {
+export class AppComponent {
   dataset: any[] = [
     {id: 1, name: 'Ted Right', address: 'Wall Street'},
     {id: 2, name: 'Frank Honest', address: 'Pennsylvania Avenue'},
@@ -56,25 +57,31 @@ class AppComponent {
   ];
 }
 
-// app.module.ts
+/* file: app.module.ts */
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
 import { registerAllModules } from 'handsontable/registry';
+/* start:skip-in-compilation */
+import { AppComponent } from './app.component';
+/* end:skip-in-compilation */
 
 // register Handsontable's modules
 registerAllModules();
 
 @NgModule({
-  imports:      [ BrowserModule, HotTableModule ],
+  imports: [ BrowserModule, HotTableModule ],
   declarations: [ AppComponent ],
-  bootstrap:    [ AppComponent ]
+  bootstrap: [ AppComponent ]
 })
-class AppModule { }
+export class AppModule { }
 
-// bootstrap
+/* start:skip-in-preview */
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
-platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
+platformBrowserDynamic()
+  .bootstrapModule(AppModule)
+  .catch(err => { console.error(err) });
+/* end:skip-in-preview */
 ```
 :::

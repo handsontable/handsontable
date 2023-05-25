@@ -3,11 +3,13 @@ name: Docs Staging Deployment
 env:
   GHA_DOCKER_TAG_NEXT: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:next
   GHA_DOCKER_TAG_SHA: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:${{ github.sha }}
+  NODE_VERSION: 16
 
 on:
   push:
     branches-ignore:
       - 'prod-docs/**'
+      - 'master'
     paths:
       - 'docs/**'
   workflow_dispatch:
@@ -21,13 +23,25 @@ jobs:
     name: Build and push Docker image
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
 
       - name: Docker login into GHCR
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${GITHUB_ACTOR} --password-stdin https://docker.pkg.github.com
 
-      - name: Dependencies
+      - name: Install the monorepo dependencies and build the packages
+        run: |
+          cd ..
+          npm ci
+          npm run all build -- --e examples visual-tests
+
+      - name: Install the documentation dependencies
         run: |
           npm ci
 
@@ -64,15 +78,12 @@ jobs:
           docker push ${GHA_DOCKER_TAG_SHA}
 
       - name: Find PR
-        uses: jwalton/gh-find-current-pr@b6f8d7342efe4913388d5d1ac7f4b956caa5db52 # https://github.com/jwalton/gh-find-current-pr/tree/v1
+        uses: jwalton/gh-find-current-pr@7ada613939e2a233c83a1320679446fa1c6bdcb9 # https://github.com/jwalton/gh-find-current-pr/tree/v1.3.2
         id: pr-finder
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish sticky comment in PR
-        uses: marocchino/sticky-pull-request-comment@6804b5ad49d19c10c9ae7cf5057352f7ff333f31 # https://github.com/marocchino/sticky-pull-request-comment/tree/v1.6.0
+        uses: marocchino/sticky-pull-request-comment@adca94abcaf73c10466a71cc83ae561fd66d1a56 # https://github.com/marocchino/sticky-pull-request-comment/tree/v2.3.0
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           number: ${{ steps.pr-finder.outputs.pr }}
           message: |
             Launch the local version of documentation by running:

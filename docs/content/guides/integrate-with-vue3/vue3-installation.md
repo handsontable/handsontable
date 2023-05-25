@@ -1,4 +1,5 @@
 ---
+id: 6sl4ak1f
 title: Installation in Vue 3
 metaTitle: Installation - Vue 3 Data Grid | Handsontable
 description: Install Handsontable's Vue 3 wrapper via npm, import the stylesheets, and get your application up and running.
@@ -41,6 +42,7 @@ npm install handsontable @handsontable/vue3
   import { defineComponent } from 'vue';
   import { HotTable } from '@handsontable/vue3';
   import { registerAllModules } from 'handsontable/registry';
+  import 'handsontable/dist/handsontable.full.css';
 
   // register Handsontable's modules
   registerAllModules();
@@ -61,9 +63,14 @@ npm install handsontable @handsontable/vue3
     }
   });
 </script>
-
-<style src="handsontable/dist/handsontable.full.css"></style>
 ```
+
+::: tip
+
+You can reduce the size of your bundle by importing and registering only the
+[modules](@/guides/integrate-with-vue3/vue3-modules.md) that you need.
+
+:::
 
 ## Related API reference
 

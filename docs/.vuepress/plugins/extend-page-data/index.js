@@ -2,12 +2,14 @@ const {
   FRAMEWORK_SUFFIX,
   MULTI_FRAMEWORKED_CONTENT_DIR,
   getDefaultFramework,
+  getDocsBase,
+  getDocsHostname,
   getDocsRepoSHA,
+  getFrameworks,
   getPrettyFrameworkName,
   getSidebars,
   getThisDocsVersion,
   parseFramework,
-  getFrameworks,
 } = require('../../helpers');
 
 const buildMode = process.env.BUILD_MODE;
@@ -22,6 +24,16 @@ const now = new Date();
  */
 function removeEndingSlashes(string) {
   return string.replace(/^\//, '').replace(/\/$/, '');
+}
+
+/**
+ * Dedupes the slashes in the string.
+ *
+ * @param {string} string String to process.
+ * @returns {string}
+ */
+function dedupeSlashes(string) {
+  return string.replace(/(\/)+/g, '$1');
 }
 
 /**
@@ -67,6 +79,7 @@ module.exports = (options, context) => {
       $page.defaultFramework = getDefaultFramework();
       $page.frameworkSuffix = FRAMEWORK_SUFFIX;
       $page.buildMode = buildMode;
+      $page.hostname = getDocsHostname();
 
       if ($page.relativePath) {
         $page.originRelativePath = getOriginRelativePath($page.relativePath);
@@ -105,6 +118,17 @@ SHA: ${getDocsRepoSHA()}
       if ($page.frontmatter.permalink) {
         $page.frontmatter.permalink = `/${frameworkPath}${$page.frontmatter.permalink}`;
       }
+
+      const hostWithBase = getDocsHostname() + getDocsBase();
+
+      // Add OpenGraph entries
+      frontmatter.meta = [
+        { name: 'og:url', content: `${hostWithBase}${dedupeSlashes(`/${$page.frontmatter.permalink}/`)}` },
+        { name: 'og:type', content: 'website' },
+        { name: 'og:title', content: frontmatter.title },
+        { name: 'og:description', content: frontmatter.description },
+        { name: 'og:image', content: `${hostWithBase}/img/handsontable-banner-og.png` },
+      ];
     },
   };
 };

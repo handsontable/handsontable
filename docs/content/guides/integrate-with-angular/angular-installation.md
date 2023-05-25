@@ -1,4 +1,5 @@
 ---
+id: bptpnpet
 title: Installation in Angular
 metaTitle: Installation - Angular Data Grid | Handsontable
 description: Install Handsontable's Angular wrapper via npm, import the stylesheets, and get your application up and running.
@@ -55,13 +56,19 @@ registerAllModules();
 export class AppModule { }
 ```
 
+::: tip
+
+You can reduce the size of your bundle by importing and registering only the
+[modules](@/guides/integrate-with-angular/angular-modules.md) that you need.
+
+:::
+
 Now, you can use the Handsontable component in your HTML files.
 
 ```html
 <hot-table
   [colHeaders]="true"
   [rowHeaders]="true"
-  [data]="dataset"
   licenseKey="non-commercial-and-evaluation">
 </hot-table>
 ```

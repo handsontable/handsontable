@@ -36,10 +36,10 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  * To configure the sync/async distribution, you can pass an absolute value (number of rows) or a percentage value to a config object:
  * ```js
  * // as a number (300 rows in sync, rest async)
- * autoRowSize: {syncLimit: 300},.
+ * autoRowSize: {syncLimit: 300},
  *
  * // as a string (percent)
- * autoRowSize: {syncLimit: '40%'},.
+ * autoRowSize: {syncLimit: '40%'},
  *
  * // allow sample duplication
  * autoRowSize: {syncLimit: '40%', allowSampleDuplicates: true},
@@ -399,13 +399,17 @@ export class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Gets the calculated row height.
+   * Get a row's height, as measured in the DOM.
    *
-   * Mind that this method is different from the [Core](@/api/core.md)'s [`getRowHeight()`](@/api/core.md#getrowheight) method.
+   * The height returned includes 1 px of the row's bottom border.
    *
-   * @param {number} row Visual row index.
-   * @param {number} [defaultHeight] Default row height. It will be picked up if no calculated height found.
-   * @returns {number}
+   * Mind that this method is different from the
+   * [`getRowHeight()`](@/api/core.md#getrowheight) method
+   * of Handsontable's [Core](@/api/core.md).
+   *
+   * @param {number} row A visual row index.
+   * @param {number} [defaultHeight] If no height is found, `defaultHeight` is returned instead.
+   * @returns {number} The height of the specified row, in pixels.
    */
   getRowHeight(row, defaultHeight = void 0) {
     const cachedHeight = row < 0 ? this.headerHeight : this.rowHeightsMap.getValueAtIndex(this.hot.toPhysicalRow(row));

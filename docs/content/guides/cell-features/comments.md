@@ -1,19 +1,21 @@
 ---
+id: deqvum60
 title: Comments
 metaTitle: Comments - JavaScript Data Grid | Handsontable
-description: Add a comment (a note) to a cell, using the right-click context menu, just like in Excel. Edit and delete comments. Make comments read-only.
+description: Add a comment (a note) to a cell, using the context menu, just like in Excel. Edit and delete comments. Make comments read-only.
 permalink: /comments
 canonicalUrl: /comments
 tags:
   - notes
 react:
+  id: lxw2632u
   metaTitle: Comments - React Data Grid | Handsontable
 searchCategory: Guides
 ---
 
 # Comments
 
-Add a comment (a note) to a cell, using the right-click context menu, just like in Excel. Edit and delete comments. Make comments read-only.
+Add a comment (a note) to a cell, using the context menu, just like in Excel. Edit and delete comments. Make comments read-only.
 
 [[toc]]
 
@@ -24,7 +26,10 @@ Set the [`comments`](@/api/options.md#comments) configuration option to `true` t
 ::: only-for javascript
 ```js
 const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(10, 10),
+  data: [
+    ['A1', 'B1', 'C1'],
+    ['A2', 'B2', 'C2'],
+  ],
   comments: true
 });
 ```
@@ -33,7 +38,10 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ```jsx
 <HotTable
-  data={Handsontable.helper.createSpreadsheetData(10, 10)}
+  data={[
+    ['A1', 'B1', 'C1'],
+    ['A2', 'B2', 'C2'],
+  ]}
   comments={true}
 />
 ```
@@ -74,8 +82,10 @@ In this example, the comment "Hello world!" is added to the cell at `(1,1)`.
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data: [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
@@ -103,7 +113,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -111,7 +120,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -136,7 +145,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -149,8 +160,10 @@ By default, all comments are editable. To change this, set the [`readOnly`](@/ap
 ::: only-for javascript
 ::: example #example2
 ```js
-const container = document.querySelector('#example2');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   data: [
     ['', 'Tesla', 'Toyota', 'Honda', 'Ford'],
@@ -176,7 +189,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -184,7 +196,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -207,7 +219,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -220,8 +234,10 @@ To set the width and height of a comment box, use the [`style`](@/api/options.md
 ::: only-for javascript
 ::: example #example3
 ```js
-const container = document.querySelector('#example3');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
   data: [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
@@ -248,7 +264,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example3 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -256,7 +271,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -280,7 +295,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -293,8 +310,10 @@ To display comments after a pre-configured time delay, use the [`displayDelay`](
 ::: only-for javascript
 ::: example #example4
 ```js
-const container = document.querySelector('#example4');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example4');
 const hot = new Handsontable(container, {
   data: [
     ['', 'Tesla', 'Toyota', 'Honda', 'Ford'],
@@ -322,7 +341,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example4 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -330,7 +348,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -355,7 +373,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+/* end:skip-in-preview */
 ```
 :::
 :::

@@ -1,4 +1,5 @@
 ---
+id: svu0391b
 title: Grid size
 metaTitle: Grid size - JavaScript Data Grid | Handsontable
 description: Set the width and height of the grid, using either absolute values or values relative to the parent container.
@@ -10,6 +11,7 @@ tags:
   - height
   - dimensions
 react:
+  id: cifepxzs
   metaTitle: Grid size - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -83,7 +85,7 @@ Changes called in [`updateSettings()`](@/api/core.md#updatesettings) will re-ren
 
 If you don't define any dimensions, Handsontable generates as many rows and columns as needed to fill the available space.
 
-If the grid's content doesn't fit inside the viewport, the browser's native scrollbars are used for scrolling. For this to work properly, Handsontable's [layout direction](@/guides/internationalization/layout-direction.md) (e.g., [`layoutDirection: 'rtl'`](@/api/options.md#layoutdirection)) must be the same as your HTML document's layout direction (`<html dir='rtl'>`). Otherwise, horizontal scrolling doesn't work.
+If your grid's contents don't fit in the viewport, the browser's native scrollbars are used for scrolling. For this to work properly, Handsontable's [layout direction](@/guides/internationalization/layout-direction.md) (e.g., [`layoutDirection: 'rtl'`](@/api/options.md#layoutdirection)) must be the same as your HTML document's layout direction (`<html dir='rtl'>`). Otherwise, horizontal scrolling doesn't work.
 
 ## Autoresizing
 
@@ -140,12 +142,23 @@ You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforer
 }
 ```
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 const triggerBtn = document.querySelector('#triggerBtn');
 const example = document.querySelector('#example');
 const exampleParent = document.querySelector('#exampleParent');
 
+// generate an array of arrays with dummy data
+const data = new Array(100) // number of rows
+  .fill()
+  .map((_, row) => new Array(50) // number of columns
+    .fill()
+    .map((_, column) => `${row}, ${column}`)
+  );
+
 const hot = new Handsontable(example, {
-  data: Handsontable.helper.createSpreadsheetData(100, 50),
+  data,
   rowHeaders: true,
   colHeaders: true,
   width: '100%',
@@ -179,8 +192,6 @@ triggerBtn.addEventListener('click', () => {
 ```
 ```jsx
 import { useRef, useState, useEffect } from 'react';
-import Handsontable from 'handsontable';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -188,7 +199,15 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+// generate an array of arrays with dummy data
+const data = new Array(100) // number of rows
+  .fill()
+  .map((_, row) => new Array(50) // number of columns
+    .fill()
+    .map((_, column) => `${row}, ${column}`)
+  );
+
+export const ExampleComponent = () => {
   const [isContainerExpanded, setIsContainerExpanded] = useState(false);
   const hotRef = useRef(null);
 
@@ -206,7 +225,7 @@ const ExampleComponent = () => {
     <>
       <div id="exampleParent" className="exampleParent">
         <HotTable
-          data={Handsontable.helper.createSpreadsheetData(100, 50)}
+          data={data}
           rowHeaders={true}
           colHeaders={true}
           width="100%"
@@ -231,13 +250,20 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
+/* end:skip-in-preview */
 ```
 :::
 :::
 
 
-## Related API reference
+## Related articles
+
+- [Column widths](@/guides/columns/column-width.md)
+- [Row heights](@/guides/rows/row-height.md)
+
+**Related API reference**
 
 - Configuration options:
   - [`height`](@/api/options.md#height)

@@ -60,6 +60,26 @@ describe('Core_getDataAt*', () => {
     expect(getDataAtCol(1)).toEqual(['Kia', 10, 20, 30]);
   });
 
+  it('should not throw an exception while getting data for column by its index (big dataset)', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(130000, 5),
+    });
+
+    expect(() => {
+      getDataAtCol(0);
+    }).not.toThrowError();
+  });
+
+  it('should not throw an exception while getting data for column by its property (big dataset)', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(130000, 5),
+    });
+
+    expect(() => {
+      getDataAtProp(0);
+    }).not.toThrowError();
+  });
+
   describe('Core_getDataAtRowProp', () => {
     it('should return data at specified column', () => {
       handsontable({

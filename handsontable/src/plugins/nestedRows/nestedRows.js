@@ -116,6 +116,7 @@ export class NestedRows extends BasePlugin {
     this.addHook('afterCreateRow', (...args) => this.onAfterCreateRow(...args));
     this.addHook('beforeRowMove', (...args) => this.onBeforeRowMove(...args));
     this.addHook('beforeLoadData', data => this.onBeforeLoadData(data));
+    this.addHook('beforeUpdateData', data => this.onBeforeLoadData(data));
 
     super.enablePlugin();
   }

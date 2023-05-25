@@ -1,10 +1,12 @@
 ---
+id: nb36sme6
 title: Security
 metaTitle: Security - JavaScript Data Grid | Handsontable
 description: Learn about the security measures we take to make sure you can safely implement Handsontable in your client-side application.
 permalink: /security
 canonicalUrl: /security
 react:
+  id: h8zg4ign
   metaTitle: Security - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -76,7 +78,7 @@ The security audits were carried out in accordance with industry-standard method
 - OWASP Top 10
 - OWASP Application Security Verification Standard (ASVS)
 
-For detailed security reports, contact our [Support Team](https://handsontable.com/contact).
+For detailed security reports, contact our [Technical Support Team](https://handsontable.com/contact?category=technical_support).
 
 ## Code auditing
 

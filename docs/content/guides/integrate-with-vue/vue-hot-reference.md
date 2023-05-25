@@ -1,4 +1,5 @@
 ---
+id: fgl0jsk5
 title: Referencing the Handsontable instance in Vue 2
 metaTitle: Referencing Handsontable - Vue 2 Data Grid | Handsontable
 description: Reference the Handsontable instance from a Vue 2 component to programmatically perform actions such as reloading the data in your data grid.
@@ -25,20 +26,23 @@ The following example implements the `@handsontable/vue`, showing how to referen
 </div>
 ```
 ```js
-import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
 import { registerAllModules } from 'handsontable/registry';
-import Handsontable from 'handsontable/base';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-new Vue({
-  el: '#example1',
+const ExampleComponent = {
   data: function() {
     return {
       hotSettings: {
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: [
+          ['A1', 'B1', 'C1', 'D1'],
+          ['A2', 'B2', 'C2', 'D2'],
+          ['A3', 'B3', 'C3', 'D3'],
+          ['A4', 'B4', 'C4', 'D4'],
+        ],
         colHeaders: true,
         height: 'auto',
         licenseKey: 'non-commercial-and-evaluation'
@@ -54,6 +58,15 @@ new Vue({
   components: {
     HotTable
   }
+}
+
+export default ExampleComponent;
+
+/* start:skip-in-preview */
+new Vue({
+  ...ExampleComponent,
+  el: '#example1',
 });
+/* end:skip-in-preview */
 ```
 :::

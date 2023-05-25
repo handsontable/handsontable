@@ -1,4 +1,5 @@
 ---
+id: own6evdy
 title: Events and hooks
 metaTitle: Events and hooks - JavaScript Data Grid | Handsontable
 description: Run your code before or after specific data grid actions, using Handsontable's API hooks (callbacks). For example, control what happens with the user's input.
@@ -15,6 +16,7 @@ tags:
 - events
 - hooks
 react:
+  id: d966se98
   metaTitle: Events and hooks - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -113,9 +115,7 @@ The first argument may be modified and passed on through the Handsontable hooks 
 
 ::: example #example3 :react
 ```jsx
-import Handsontable from 'handsontable';
 import { useState } from 'react';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -123,10 +123,20 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const [settings, setSettings] = useState(() => {
     const initialState = {
-      data: Handsontable.helper.createSpreadsheetData(15, 20),
+      data: [
+        ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],
+        ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+        ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
+        ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4'],
+        ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5', 'J5'],
+        ['A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6', 'H6', 'I6', 'J6'],
+        ['A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7', 'H7', 'I7', 'J7'],
+        ['A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8', 'I8', 'J8'],
+        ['A9', 'B9', 'C9', 'D9', 'E9', 'F9', 'G9', 'H9', 'I9', 'J9'],
+      ],
       height: 220,
       licenseKey: 'non-commercial-and-evaluation'
     }
@@ -174,7 +184,9 @@ const ExampleComponent = () => {
   );
 }
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -183,6 +195,8 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 
 Note that some callbacks are checked on this page by default.
 
+::: example-without-tabs #example1
+```html
 <div class="example-container">
   <div class="example-table-container">
     <div id="example1"></div>
@@ -192,53 +206,52 @@ Note that some callbacks are checked on this page by default.
   <ul id="hooksList">
     <li><label><input type="checkbox" id="check_select_all">Select all</label></li>
   </ul>
-  <style>
-    #example1_events {
-      height: 166px;
-      padding: 6px;
-      margin: 10px 0;
-      overflow-y: scroll;
-      font-size: 13px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-    #example1_events div {
-      padding: 4px 0;
-    }
-    #example1_events div:nth-child(odd) {
-      background-color: rgba(255, 255 ,255, 0.1);
-    }
-    #example1 {
-      margin-top: 0;
-    }
-    #example3 .controls {
-      margin: 0 0 16px;
-      padding: 0;
-    }
-    #example3 .controls label {
-      display: inline-block;
-      padding: 3px 0;
-    }
-    #example3 .controls label input {
-      margin-right: 6px;
-    }
-    #hooksList {
-      padding: 0;
-      height: 300px;
-      overflow: auto;
-    }
-    #hooksList li {
-      list-style: none;
-      width: 33%;
-      display: inline-block;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
-    }
-  </style>
 </div>
-
-<HandsontablePreview>
+```
+```css
+#example1_events {
+  height: 166px;
+  padding: 6px;
+  margin: 10px 0;
+  overflow-y: scroll;
+  font-size: 13px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+#example1_events div {
+  padding: 4px 0;
+}
+#example1_events div:nth-child(odd) {
+  background-color: rgba(255, 255 ,255, 0.1);
+}
+#example1 {
+  margin-top: 0;
+}
+#example3 .controls {
+  margin: 0 0 16px;
+  padding: 0;
+}
+#example3 .controls label {
+  display: inline-block;
+  padding: 3px 0;
+}
+#example3 .controls label input {
+  margin-right: 6px;
+}
+#hooksList {
+  padding: 0;
+  height: 300px;
+  overflow: auto;
+}
+#hooksList li {
+  list-style: none;
+  width: 33%;
+  display: inline-block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+```
 ```js
 const config = {
   data: [
@@ -258,7 +271,7 @@ const config = {
   contextMenu: true,
   licenseKey: 'non-commercial-and-evaluation'
 };
-const example1Events = document.getElementById("example1_events");
+const example1Events = document.getElementById('example1_events');
 const hooksList = document.getElementById('hooksList');
 const hooks = Handsontable.hooks.getRegistered();
 
@@ -329,7 +342,7 @@ function log_events(event, data) {
   }
 }
 
-const example1 = document.getElementById('example1');
+const example1 = document.querySelector('#example1');
 const hot = new Handsontable(example1, config);
 
 document.querySelector('#check_select_all').addEventListener('click', function () {
@@ -346,7 +359,7 @@ document.querySelector('#hooksList input[type=checkbox]').addEventListener('clic
   }
 });
 ```
-</HandsontablePreview>
+:::
 
 ## Definition for `source` argument
 
@@ -411,9 +424,11 @@ The following demo uses [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
 ::: only-for javascript
 ::: example #example2
 ```js
-let lastChange = null;
-const container = document.getElementById('example2')
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+let lastChange = null;
+const container = document.querySelector('#example2')
 const hot = new Handsontable(container, {
   data: [
     ['Tesla', 2017, 'black', 'black'],
@@ -465,7 +480,6 @@ hot.updateSettings({
 ::: example #example2 :react
 ```jsx
 import { useEffect, useRef } from 'react';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -473,7 +487,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
   let lastChange = null;
 
@@ -529,7 +543,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
 ```
 :::
 :::

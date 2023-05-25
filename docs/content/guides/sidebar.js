@@ -1,6 +1,6 @@
 const gettingStartedItems = [
   { path: 'guides/getting-started/introduction' },
-  // { path: 'guides/getting-started/demo' }, (temporarily hidden, till the demo is fixed)
+  { path: 'guides/getting-started/demo' },
   { path: 'guides/getting-started/installation' },
   { path: 'guides/getting-started/binding-to-data' },
   { path: 'guides/getting-started/saving-data' },
@@ -65,7 +65,6 @@ const columnsItems = [
   { path: 'guides/columns/column-width' },
   { path: 'guides/columns/column-summary' },
   { path: 'guides/columns/column-virtualization' },
-  { path: 'guides/columns/column-sorting' },
   { path: 'guides/columns/column-menu' },
   { path: 'guides/columns/column-filter' },
 ];
@@ -78,7 +77,7 @@ const rowsItems = [
   { path: 'guides/rows/row-freezing' },
   { path: 'guides/rows/row-height' },
   { path: 'guides/rows/row-virtualization' },
-  { path: 'guides/rows/row-sorting' },
+  { path: 'guides/rows/rows-sorting' },
   { path: 'guides/rows/row-trimming' },
   { path: 'guides/rows/row-prepopulating' },
 ];

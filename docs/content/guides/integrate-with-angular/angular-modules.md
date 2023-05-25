@@ -1,4 +1,5 @@
 ---
+id: pbwa8bej
 title: Modules in Angular
 metaTitle: Modules - Angular Data Grid | Handsontable
 description: Reduce the size of your Angular app by importing only the modules that you need and use.
@@ -41,13 +42,13 @@ For example, to import the [`numeric`](@/guides/cell-types/numeric-cell-type.md)
 
 ```js
 import {
-registerCellType, // cell types' registering function
-NumericCellType,
+  registerCellType, // cell types' registering function
+  NumericCellType,
 } from 'handsontable/cellTypes';
 
 import {
-registerPlugin, // plugins' registering function
-UndoRedo,
+  registerPlugin, // plugins' registering function
+  UndoRedo,
 } from 'handsontable/plugins';
 ```
 

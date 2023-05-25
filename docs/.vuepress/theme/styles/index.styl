@@ -59,12 +59,12 @@ body div {
 .hidden {
   display none
 }
-  
+
 /* Layout */
 
 .page {
   // limit the width for enormously big screens, this way it looks good
-  max-width: $homePageWidth; 
+  max-width: $homePageWidth;
   padding: 7rem 20rem 0;
 
   @media (max-width: $large) {
@@ -117,7 +117,7 @@ a.source-code-link {
   margin-top: 60px !important;
 }
 
-.theme-default-content:not(.custom) {
+.theme-default-content:not(.custom), .page-top {
   width: 100%;
   min-width: 200px;
   max-width: $contentWidth;
@@ -167,7 +167,7 @@ a.source-code-link {
 */
 .custom-block {
   border-radius: 6px;
-  
+
   &.tip {
     border: 2px solid #2456f2;
     border-radius: 6px;
@@ -181,7 +181,7 @@ a.source-code-link {
       vertical-align: top;
     }
   }
-  
+
   code {
     white-space: nowrap;
   }
@@ -194,7 +194,7 @@ h1 {
   padding-top: 0 !important;
   margin-top: 0.7rem !important;
   position: relative;
-  
+
   .header-framework {
     position: absolute;
     top: -24px;
@@ -229,7 +229,7 @@ h5 {
 }
 
 h1, h2, h3, h4, h5 {
-  
+
   a.header-anchor::before {
     content: '#';
     visibility: 'hidden';
@@ -264,6 +264,11 @@ table.htCore {
   display: table;
 }
 
+table.pika-table {
+  display: table;
+  margin: 0;
+}
+
 table {
   width: 100%;
 
@@ -286,7 +291,7 @@ table {
     text-align: left;
   }
 }
-  
+
 .tabs-component-tab.js-fiddle-tab {
   position: absolute;
   top: 6px;
@@ -476,7 +481,7 @@ kbd {
 .handsontable-drawing {
   width: 90%;
   margin: 0 auto;
-  
+
   p {
     &:last-child {
       display: none;

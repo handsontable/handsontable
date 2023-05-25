@@ -1,4 +1,5 @@
 ---
+id: k41dcpud
 title: Disabled cells
 metaTitle: Disabled cells - JavaScript Data Grid | Handsontable
 description: Make specified cells read-only to protect them from unwanted changes but still allow navigation and copying of data.
@@ -11,6 +12,7 @@ tags:
   - noneditable
   - locked
 react:
+  id: zhv7fs29
   metaTitle: Disabled cells - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -26,9 +28,9 @@ Make specified cells read-only to protect them from unwanted changes but still a
 Disabling a cell makes the cell read-only or non-editable. Both have similar outcomes, with the following differences:
 
 | Read-only cell<br>`readOnly: true`                                           | Non-editable cell<br>`editor: false`                                       |
-| ---------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+|------------------------------------------------------------------------------| -------------------------------------------------------------------------- |
 | Has an additional CSS class (`htDimmed`)                                     | Has no additional CSS class                                                |
-| Copy-paste doesn't work                                                      | Copy-paste works                                                           |
+| Copy works, paste doesn't work                                               | Copy-paste works                                                           |
 | Drag-to-fill doesn't work                                                    | Drag-to-fill works                                                         |
 | Can't be changed by [`populateFromArray()`](@/api/core.md#populatefromarray) | Can be changed by [`populateFromArray()`](@/api/core.md#populatefromarray) |
 
@@ -41,14 +43,16 @@ To make a column read-only, declare it in the [`columns`](@/api/options.md#colum
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data: [
-    {car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black'},
-    {car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue'},
-    {car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black'},
-    {car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray'}
+    { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
+    { car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue' },
+    { car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black' },
+    { car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray' }
   ],
   height: 'auto',
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
@@ -76,7 +80,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -84,7 +87,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -115,7 +118,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -128,8 +133,10 @@ This example makes cells that contain the word "Nissan" read-only. It forces all
 ::: only-for javascript
 ::: example #example2
 ```js
-const container = document.querySelector('#example2');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   data: [
     { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
@@ -161,7 +168,6 @@ hot.updateSettings({
 ::: example #example2 :react
 ```jsx
 import { useRef, useEffect } from 'react';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -169,7 +175,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
 
   useEffect(() => {
@@ -204,7 +210,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -221,14 +229,16 @@ To make a column non-editable, declare it in the [`columns`](@/api/options.md#co
 ::: only-for javascript
 ::: example #example3
 ```js
-const container = document.querySelector('#example3');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
   data: [
-    {car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black'},
-    {car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue'},
-    {car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black'},
-    {car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray'}
+    { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
+    { car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue' },
+    { car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black' },
+    { car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray' }
   ],
   height: 'auto',
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
@@ -259,7 +269,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example3 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -267,7 +276,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -301,7 +310,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -314,8 +325,10 @@ The following example shows the table with non-editable cells containing the wor
 ::: only-for javascript
 ::: example #example4
 ```js
-const container = document.querySelector('#example4');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example4');
 const hot = new Handsontable(container, {
   data: [
     { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
@@ -350,7 +363,6 @@ hot.updateSettings({
 ::: example #example4 :react
 ```jsx
 import { useRef, useEffect } from 'react';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -358,7 +370,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
 
   useEffect(() => {
@@ -396,7 +408,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+/* end:skip-in-preview */
 ```
 :::
 :::

@@ -1,4 +1,5 @@
 ---
+id: 5864kf8v
 title: Custom editor in Vue 3
 metaTitle: Custom cell editor - Vue 3 Data Grid | Handsontable
 description: Create a custom cell editor, and use it in your Vue 3 data grid by declaring it as a class.
@@ -30,19 +31,16 @@ The following example implements the `@handsontable/vue3` component with a custo
 </div>
 ```
 ```js
-import { createApp } from 'vue';
+import { defineComponent } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { TextEditor } from 'handsontable/editors/textEditor';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 class CustomEditor extends TextEditor {
-  constructor(props) {
-    super(props);
-  }
-
   createElements() {
     super.createElements();
 
@@ -55,7 +53,7 @@ class CustomEditor extends TextEditor {
   }
 }
 
-const app = createApp({
+const ExampleComponent = defineComponent({
   data() {
     return {
       hotSettings: {
@@ -76,7 +74,15 @@ const app = createApp({
   }
 });
 
+export default ExampleComponent;
+
+/* start:skip-in-preview */
+import { createApp } from 'vue';
+
+const app = createApp(ExampleComponent);
+
 app.mount('#example1');
+/* end:skip-in-preview */
 ```
 :::
 

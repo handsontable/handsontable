@@ -1,4 +1,5 @@
 ---
+id: 6fv7kuj6
 title: Testing
 metaTitle: Testing - JavaScript Data Grid | Handsontable
 description: Run one or multiple tests, using Handsontable's ready-made commands for Jasmine and Puppeteer.
@@ -12,6 +13,7 @@ tags:
   - puppeteer
   - spec
 react:
+  id: y3wp74jh
   metaTitle: Testing - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -43,7 +45,7 @@ To run individual tests, go to to the `/handsontable` directory, and use the fol
 * `npm test:walkontable` - runs only Walkontable tests.
 * `npm test:e2e` - runs all end-to-end tests.
 * `npm run test:e2e --testPathPattern=selection` - runs only end-to-end tests and suites matching the filename "selection".
-* `npm run test:unit --testPathPattern=array` - runs only end-to-end tests and suites matching the filename "array".
+* `npm run test:unit --testPathPattern=array` - runs only unit tests and suites matching the filename "array".
 * `npm run test:e2e.dump` - generates the `test/E2ERunner.html` file which can by executed in the browser environment (Chrome, Firefox etc.) to check if tests passes.
 * `npm run test:e2e.dump -- --watch` - generates the `E2ERunner.html` file on every change detected in test files. It can be helpful for debugging proposes.
 
@@ -59,6 +61,12 @@ Keep in mind that running wrapper tests require building the Handsontable (`npm 
 * The scrollbars should be visible. The size of the scrollbar affects `clientWidth` and `clientHeight`, which can interfere visibility and the number of columns and rows.
 * The browser window running the test should be on top. Some tests will not pass while running in the background.
 * Focus should be on the browser window and the mouse should be still. Moving the mouse or losing focus on the window can interfere with the tests, causing them not to pass.
+
+## Visual testing
+
+To avoid unintended changes to Handsontable's UI, we use automated visual regression testing.
+
+Learn more on our [GitHub](https://github.com/handsontable/handsontable/blob/develop/visual-tests/README.md).
 
 ## Related guides
 

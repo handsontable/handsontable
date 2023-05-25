@@ -1,10 +1,12 @@
 ---
+id: jgk5hkn4
 title: Software license
 metaTitle: Software license - JavaScript Data Grid | Handsontable
 description: Learn about the licensing terms of the Handsontable data grid.
 permalink: /software-license
 canonicalUrl: /software-license
 react:
+  id: ea206i3o
   metaTitle: Software license - React Data Grid | Handsontable
 searchCategory: Guides
 ---

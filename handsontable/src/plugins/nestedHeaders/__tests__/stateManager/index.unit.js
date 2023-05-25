@@ -353,14 +353,18 @@ describe('StateManager', () => {
         ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
       ]);
 
-      expect(state.rowCoordsToLevel(10)).toBe(3);
-      expect(state.rowCoordsToLevel(0)).toBe(3);
+      expect(state.rowCoordsToLevel(10)).toBe(null);
+      expect(state.rowCoordsToLevel(4)).toBe(null);
+      expect(state.rowCoordsToLevel(3)).toBe(null);
+      expect(state.rowCoordsToLevel(2)).toBe(null);
+      expect(state.rowCoordsToLevel(1)).toBe(null);
+      expect(state.rowCoordsToLevel(0)).toBe(null);
       expect(state.rowCoordsToLevel(-1)).toBe(3);
       expect(state.rowCoordsToLevel(-2)).toBe(2);
       expect(state.rowCoordsToLevel(-3)).toBe(1);
       expect(state.rowCoordsToLevel(-4)).toBe(0);
-      expect(state.rowCoordsToLevel(-5)).toBe(0);
-      expect(state.rowCoordsToLevel(-10)).toBe(0);
+      expect(state.rowCoordsToLevel(-5)).toBe(null);
+      expect(state.rowCoordsToLevel(-10)).toBe(null);
     });
   });
 
@@ -387,14 +391,18 @@ describe('StateManager', () => {
         ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
       ]);
 
-      expect(state.levelToRowCoords(-10)).toBe(-4);
+      expect(state.levelToRowCoords(-10)).toBe(null);
+      expect(state.levelToRowCoords(-4)).toBe(null);
+      expect(state.levelToRowCoords(-3)).toBe(null);
+      expect(state.levelToRowCoords(-2)).toBe(null);
+      expect(state.levelToRowCoords(-1)).toBe(null);
       expect(state.levelToRowCoords(0)).toBe(-4);
       expect(state.levelToRowCoords(1)).toBe(-3);
       expect(state.levelToRowCoords(2)).toBe(-2);
       expect(state.levelToRowCoords(3)).toBe(-1);
-      expect(state.levelToRowCoords(4)).toBe(-1);
-      expect(state.levelToRowCoords(5)).toBe(-1);
-      expect(state.levelToRowCoords(10)).toBe(-1);
+      expect(state.levelToRowCoords(4)).toBe(null);
+      expect(state.levelToRowCoords(5)).toBe(null);
+      expect(state.levelToRowCoords(10)).toBe(null);
     });
   });
 

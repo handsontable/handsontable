@@ -1,4 +1,5 @@
 ---
+id: kgegbmgz
 title: Batch operations
 metaTitle: Batch operations - JavaScript Data Grid | Handsontable
 description: Batch CRUD operations, to avoid unnecessary rendering cycles and boost your grid's performance.
@@ -9,6 +10,7 @@ tags:
   - batching
   - performance
 react:
+  id: 3xqdvk3u
   metaTitle: Batch operations - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -193,6 +195,9 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 <output class="console" id="output">Here you will see the log</output>
 ```
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 const container = document.querySelector('#example1');
 const buttonWithout = document.querySelector('#buttonWithout');
 const buttonWith = document.querySelector('#buttonWith');
@@ -280,7 +285,6 @@ buttonWith.addEventListener('click', () => {
 ::: example #example1 :react
 ```jsx
 import { useRef, useEffect, useState } from 'react';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -288,7 +292,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
   const [counter, setCounter] = useState(0);
   const [output, setOutput] = useState('');
@@ -312,8 +316,8 @@ const ExampleComponent = () => {
     const hot = hotRef.current.hotInstance;
 
     const alterTable = () => {
-      hot.alter('insert_row', 10, 10);
-      hot.alter('insert_col', 6, 1);
+      hot.alter('insert_row_above', 10, 10);
+      hot.alter('insert_col_start', 6, 1);
       hot.populateFromArray(10, 0, data2);
       hot.populateFromArray(11, 0, data3);
       hot.setCellMeta(2, 2, 'className', 'green-bg');
@@ -377,7 +381,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::

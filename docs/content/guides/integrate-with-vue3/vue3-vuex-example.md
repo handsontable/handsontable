@@ -1,4 +1,5 @@
 ---
+id: pxr5suzy
 title: Vuex in Vue 3
 metaTitle: Integration with Vuex - Vue 3 Data Grid - Handsontable
 description: Use the Vuex state management pattern to maintain the data and configuration options of your Vue 3 data grid.
@@ -38,11 +39,11 @@ The following example implements the `@handsontable/vue3` component with a [`rea
 </div>
 ```
 ```js
-import { createApp } from 'vue';
 import { createStore } from 'vuex';
+import { defineComponent } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
-import Handsontable from 'handsontable/base';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -66,11 +67,16 @@ const store = createStore({
   }
 });
 
-const app = createApp({
+const ExampleComponent = defineComponent({
   data() {
     return {
       hotSettings: {
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: [
+          ['A1', 'B1', 'C1', 'D1'],
+          ['A2', 'B2', 'C2', 'D2'],
+          ['A3', 'B3', 'C3', 'D3'],
+          ['A4', 'B4', 'C4', 'D4'],
+        ],
         colHeaders: true,
         rowHeaders: true,
         readOnly: true,
@@ -87,9 +93,7 @@ const app = createApp({
   },
   mounted() {
     this.hotRef = this.$refs.wrapper.hotInstance;
-    store.subscribe((mutation, state) => {
-      this.updateVuexPreview();
-    });
+    store.subscribe(() => this.updateVuexPreview());
     store.commit('updateData', this.hotRef.getSourceData());
   },
   methods: {
@@ -141,7 +145,14 @@ const app = createApp({
   }
 });
 
-app.use(store);
+export default ExampleComponent;
+
+/* start:skip-in-preview */
+import { createApp } from 'vue';
+
+const app = createApp(ExampleComponent);
+
 app.mount('#example1');
+/* end:skip-in-preview */
 ```
 :::

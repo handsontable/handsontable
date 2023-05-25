@@ -69,6 +69,12 @@ describe('editors', () => {
     expect(getEditor('text')).toBeFunction();
   });
 
+  it('should return the original editor function when it was passed directly to the getter', () => {
+    class MyEditor {}
+
+    expect(getEditor(MyEditor)).toBe(MyEditor);
+  });
+
   it('should retrieve custom editor by its names', () => {
     class MyEditor {}
     registerEditor('myEditor', MyEditor);

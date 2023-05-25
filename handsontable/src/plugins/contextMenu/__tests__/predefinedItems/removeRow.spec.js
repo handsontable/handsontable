@@ -108,7 +108,7 @@ describe('ContextMenu', () => {
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
-        |   ║ - : - : - : - : - |
+        |   ║ * : * : * : * : * |
         |===:===:===:===:===:===|
         `).toBeMatchToSelectionPattern();
     });
@@ -227,27 +227,27 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      $(getCell(0, 0)).simulate('mousedown');
-      $(getCell(1, 0)).simulate('mouseover');
-      $(getCell(1, 0)).simulate('mouseup');
+      mouseDown(getCell(0, 0));
+      mouseOver(getCell(1, 0));
+      mouseUp(getCell(1, 0));
 
       keyDown('control/meta');
 
-      $(getCell(2, 1)).simulate('mousedown');
-      $(getCell(2, 1)).simulate('mouseover');
-      $(getCell(2, 1)).simulate('mouseup');
+      mouseDown(getCell(2, 1));
+      mouseOver(getCell(2, 1));
+      mouseUp(getCell(2, 1));
 
-      $(getCell(0, 3)).simulate('mousedown');
-      $(getCell(5, 3)).simulate('mouseover');
-      $(getCell(5, 3)).simulate('mouseup');
+      mouseDown(getCell(0, 3));
+      mouseOver(getCell(5, 3));
+      mouseUp(getCell(5, 3));
 
-      $(getCell(5, 0)).simulate('mousedown');
-      $(getCell(5, 4)).simulate('mouseover');
-      $(getCell(5, 4)).simulate('mouseup');
+      mouseDown(getCell(5, 0));
+      mouseOver(getCell(5, 4));
+      mouseUp(getCell(5, 4));
 
-      $(getCell(7, 4)).simulate('mousedown');
-      $(getCell(7, 4)).simulate('mouseover');
-      $(getCell(7, 4)).simulate('mouseup');
+      mouseDown(getCell(7, 4));
+      mouseOver(getCell(7, 4));
+      mouseUp(getCell(7, 4));
 
       keyUp('control/meta');
 

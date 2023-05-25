@@ -15,15 +15,25 @@ import {
 import {
   isEscapedFormulaExpression,
   unescapeFormulaExpression,
+  isDate,
+  isDateValid,
+  getDateInHfFormat,
+  getDateFromExcelDate,
+  getDateInHotFormat,
+  isFormula,
 } from './utils';
-import { getEngineSettingsWithOverrides } from './engine/settings';
+import {
+  getEngineSettingsWithOverrides,
+  haveEngineSettingsChanged
+} from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
 import Hooks from '../../pluginHooks';
+import IndexSyncer from './indexSyncer';
 
 export const PLUGIN_KEY = 'formulas';
+export const SETTING_KEYS = ['maxRows', 'maxColumns', 'language'];
 export const PLUGIN_PRIORITY = 260;
-const ROW_MOVE_UNDO_REDO_NAME = 'row_move';
 
 Hooks.getSingleton().register('afterNamedExpressionAdded');
 Hooks.getSingleton().register('afterNamedExpressionRemoved');
@@ -55,6 +65,13 @@ export class Formulas extends BasePlugin {
 
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  static get SETTING_KEYS() {
+    return [
+      PLUGIN_KEY,
+      ...SETTING_KEYS
+    ];
   }
 
   /**
@@ -109,6 +126,24 @@ export class Formulas extends BasePlugin {
    * @type {string|null}
    */
   sheetName = null;
+  /**
+   * Index synchronizer responsible for manipulating with some general options related to indexes synchronization.
+   *
+   * @type {IndexSyncer|null}
+   */
+  indexSyncer = null;
+  /**
+   * Index synchronizer responsible for syncing the order of HOT and HF's data for the axis of the rows.
+   *
+   * @type {AxisSyncer|null}
+   */
+  rowAxisSyncer = null;
+  /**
+   * Index synchronizer responsible for syncing the order of HOT and HF's data for the axis of the columns.
+   *
+   * @type {AxisSyncer|null}
+   */
+  columnAxisSyncer = null;
 
   /**
    * HyperFormula's sheet id.
@@ -158,6 +193,11 @@ export class Formulas extends BasePlugin {
 
     this.addHook('beforeLoadData', (...args) => this.onBeforeLoadData(...args));
     this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
+
+    // The `updateData` hooks utilize the same logic as the `loadData` hooks.
+    this.addHook('beforeUpdateData', (...args) => this.onBeforeLoadData(...args));
+    this.addHook('afterUpdateData', (...args) => this.onAfterLoadData(...args));
+
     this.addHook('modifyData', (...args) => this.onModifyData(...args));
     this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args));
     this.addHook('beforeValidate', (...args) => this.onBeforeValidate(...args));
@@ -178,24 +218,79 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
+    this.indexSyncer = new IndexSyncer(this.hot.rowIndexMapper, this.hot.columnIndexMapper, (postponedAction) => {
+      this.hot.addHookOnce('init', () => {
+        // Engine is initialized after executing callback to `afterLoadData` hook. Thus, some actions on indexes should
+        // be postponed.
+        postponedAction();
+      });
+    });
+
+    this.rowAxisSyncer = this.indexSyncer.getForAxis('row');
+    this.columnAxisSyncer = this.indexSyncer.getForAxis('column');
+
+    this.hot.addHook('afterRowSequenceChange', this.rowAxisSyncer.getIndexesChangeSyncMethod());
+    this.hot.addHook('afterColumnSequenceChange', this.columnAxisSyncer.getIndexesChangeSyncMethod());
+
+    this.hot.addHook('beforeRowMove', (movedRows, finalIndex, _, movePossible) => {
+      this.rowAxisSyncer.storeMovesInformation(movedRows, finalIndex, movePossible);
+    });
+
+    this.hot.addHook('beforeColumnMove', (movedColumns, finalIndex, _, movePossible) => {
+      this.columnAxisSyncer.storeMovesInformation(movedColumns, finalIndex, movePossible);
+    });
+
+    this.hot.addHook('afterRowMove', (movedRows, finalIndex, dropIndex, movePossible, orderChanged) => {
+      this.rowAxisSyncer.calculateAndSyncMoves(movePossible, orderChanged);
+    });
+
+    this.hot.addHook('afterColumnMove', (movedColumns, finalIndex, dropIndex, movePossible, orderChanged) => {
+      this.columnAxisSyncer.calculateAndSyncMoves(movePossible, orderChanged);
+    });
+
+    this.hot.addHook('beforeColumnFreeze', (column, freezePerformed) => {
+      this.columnAxisSyncer.storeMovesInformation(
+        [column], this.hot.getSettings().fixedColumnsStart, freezePerformed);
+    });
+
+    this.hot.addHook('afterColumnFreeze', (_, freezePerformed) => {
+      this.columnAxisSyncer.calculateAndSyncMoves(freezePerformed, freezePerformed);
+    });
+
+    this.hot.addHook('beforeColumnUnfreeze', (column, unfreezePerformed) => {
+      this.columnAxisSyncer.storeMovesInformation(
+        [column], this.hot.getSettings().fixedColumnsStart - 1, unfreezePerformed);
+    });
+
+    this.hot.addHook('afterColumnUnfreeze', (_, unfreezePerformed) => {
+      this.columnAxisSyncer.calculateAndSyncMoves(unfreezePerformed, unfreezePerformed);
+    });
+
+    // TODO: Actions related to overwriting dates from HOT format to HF default format are done as callback to this
+    // hook, because some hooks, such as `afterLoadData` doesn't have information about composed cell properties.
+    // Another hooks are triggered to late for setting HF's engine data needed for some actions.
+    this.addHook('afterCellMetaReset', (...args) => this.onAfterCellMetaReset(...args));
+
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
-    this.addHook('beforeUndo', (action) => {
-      // TODO: Move action isn't handled by HyperFormula.
-      if (action?.actionType === ROW_MOVE_UNDO_REDO_NAME) {
-        return;
-      }
+    this.addHook('beforeUndo', () => {
+      this.indexSyncer.setPerformUndo(true);
 
       this.engine.undo();
     });
 
     // Handling redo actions on data just using HyperFormula's UndoRedo mechanism
-    this.addHook('beforeRedo', (action) => {
-      // TODO: Move action isn't handled by HyperFormula.
-      if (action?.actionType === ROW_MOVE_UNDO_REDO_NAME) {
-        return;
-      }
+    this.addHook('beforeRedo', () => {
+      this.indexSyncer.setPerformRedo(true);
 
       this.engine.redo();
+    });
+
+    this.addHook('afterUndo', () => {
+      this.indexSyncer.setPerformUndo(false);
+    });
+
+    this.addHook('afterUndo', () => {
+      this.indexSyncer.setPerformRedo(false);
     });
 
     this.addHook('afterDetachChild', (...args) => this.onAfterDetachChild(...args));
@@ -227,7 +322,11 @@ export class Formulas extends BasePlugin {
    * @param {object} newSettings New set of settings passed to the `updateSettings` method.
    */
   updatePlugin(newSettings) {
-    this.engine.updateConfig(getEngineSettingsWithOverrides(this.hot.getSettings()));
+    const newEngineSettings = getEngineSettingsWithOverrides(this.hot.getSettings());
+
+    if (haveEngineSettingsChanged(this.engine.getConfig(), newEngineSettings)) {
+      this.engine.updateConfig(newEngineSettings);
+    }
 
     const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
 
@@ -267,68 +366,6 @@ export class Formulas extends BasePlugin {
     this.engine = null;
 
     super.destroy();
-  }
-
-  /**
-   * Helper function for `toPhysicalRowPosition` and `toPhysicalColumnPosition`.
-   *
-   * @private
-   * @param {number} visualIndex Visual entry index.
-   * @param {number} physicalIndex Physical entry index.
-   * @param {number} entriesCount Visual entries count.
-   * @param {number} sourceEntriesCount Source entries count.
-   * @param {boolean} contained `true` if it should return only indexes within boundaries of the table (basically
-   * `toPhysical` alias.
-   * @returns {*}
-   */
-  getPhysicalIndexPosition(visualIndex, physicalIndex, entriesCount, sourceEntriesCount, contained) {
-    if (!contained) {
-      if (visualIndex >= entriesCount) {
-        return sourceEntriesCount + (visualIndex - entriesCount);
-      }
-    }
-
-    return physicalIndex;
-  }
-
-  /**
-   * Returns the physical row index. The difference between this and Core's `toPhysical` is that it doesn't return
-   * `null` on rows with indexes higher than the number of rows.
-   *
-   * @private
-   * @param {number} row Visual row index.
-   * @param {boolean} [contained] `true` if it should return only indexes within boundaries of the table (basically
-   * `toPhysical` alias.
-   * @returns {number} The physical row index.
-   */
-  toPhysicalRowPosition(row, contained = false) {
-    return this.getPhysicalIndexPosition(
-      row,
-      this.hot.toPhysicalRow(row),
-      this.hot.countRows(),
-      this.hot.countSourceRows(),
-      contained
-    );
-  }
-
-  /**
-   * Returns the physical column index. The difference between this and Core's `toPhysical` is that it doesn't return
-   * `null` on columns with indexes higher than the number of columns.
-   *
-   * @private
-   * @param {number} column Visual column index.
-   * @param {boolean} [contained] `true` if it should return only indexes within boundaries of the table (basically
-   * `toPhysical` alias.
-   * @returns {number} The physical column index.
-   */
-  toPhysicalColumnPosition(column, contained = false) {
-    return this.getPhysicalIndexPosition(
-      column,
-      this.hot.toPhysicalColumn(column),
-      this.hot.countCols(),
-      this.hot.countSourceCols(),
-      contained
-    );
   }
 
   /**
@@ -407,8 +444,8 @@ export class Formulas extends BasePlugin {
     if (physicalRow !== null && physicalColumn !== null) {
       return this.engine.getCellType({
         sheet,
-        row: physicalRow,
-        col: physicalColumn
+        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(row),
+        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(column),
       });
 
     } else {
@@ -426,17 +463,10 @@ export class Formulas extends BasePlugin {
    * @returns {boolean}
    */
   isFormulaCellType(row, column, sheet = this.sheetId) {
-    const physicalRow = this.hot.toPhysicalRow(row);
-    const physicalColumn = this.hot.toPhysicalColumn(column);
-
-    if (physicalRow === null || physicalColumn === null) {
-      return false;
-    }
-
     return this.engine.doesCellHaveFormula({
       sheet,
-      row: physicalRow,
-      col: physicalColumn
+      row: this.rowAxisSyncer.getHfIndexFromVisualIndex(row),
+      col: this.columnAxisSyncer.getHfIndexFromVisualIndex(column),
     });
   }
 
@@ -494,11 +524,10 @@ export class Formulas extends BasePlugin {
 
     dependentCells.forEach((change) => {
       const { row, col } = change.address ?? {};
-      const visualRow = isDefined(row) ? this.hot.toVisualRow(row) : null;
-      const visualColumn = isDefined(col) ? this.hot.toVisualColumn(col) : null;
 
       // Don't try to validate cells outside of the visual part of the table.
-      if (visualRow === null || visualColumn === null) {
+      if (isDefined(row) === false || isDefined(col) === false ||
+        row >= this.hot.countRows() || col >= this.hot.countCols()) {
         return;
       }
 
@@ -518,8 +547,8 @@ export class Formulas extends BasePlugin {
 
         // It will just re-render certain cell when necessary.
         boundHot.validateCell(
-          boundHot.getDataAtCell(visualRow, visualColumn),
-          boundHot.getCellMeta(visualRow, visualColumn),
+          boundHot.getDataAtCell(row, col),
+          boundHot.getCellMeta(row, col),
           () => {}
         );
       }
@@ -537,8 +566,8 @@ export class Formulas extends BasePlugin {
    */
   syncChangeWithEngine(row, column, newValue) {
     const address = {
-      row: this.toPhysicalRowPosition(row),
-      col: this.toPhysicalColumnPosition(column),
+      row: this.rowAxisSyncer.getHfIndexFromVisualIndex(row),
+      col: this.columnAxisSyncer.getHfIndexFromVisualIndex(column),
       sheet: this.sheetId
     };
 
@@ -546,6 +575,19 @@ export class Formulas extends BasePlugin {
       warn(`Not possible to set cell data at ${JSON.stringify(address)}`);
 
       return;
+    }
+
+    const cellMeta = this.hot.getCellMeta(row, column);
+
+    if (isDate(newValue, cellMeta.type)) {
+      if (isDateValid(newValue, cellMeta.dateFormat)) {
+        // Rewriting date in HOT format to HF format.
+        newValue = getDateInHfFormat(newValue, cellMeta.dateFormat);
+
+      } else if (isFormula(newValue) === false) {
+        // Escaping value from date parsing using "'" sign (HF feature).
+        newValue = `'${newValue}`;
+      }
     }
 
     return this.engine.setCellContents(address, newValue);
@@ -566,12 +608,17 @@ export class Formulas extends BasePlugin {
 
     if (this.isFormulaCellType(visualRow, visualColumn)) {
       const address = {
-        row: this.hot.toPhysicalRow(visualRow),
-        col: this.hot.toPhysicalColumn(visualColumn),
+        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
+        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
         sheet: this.sheetId,
       };
 
-      const cellValue = this.engine.getCellValue(address);
+      const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
+      let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel-like date).
+
+      if (cellMeta.type === 'date' && isNumeric(cellValue)) {
+        cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat);
+      }
 
       // If `cellValue` is an object it is expected to be an error
       return (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
@@ -591,16 +638,35 @@ export class Formulas extends BasePlugin {
    * @returns {boolean|*}
    */
   onBeforeAutofill(fillData, sourceRange, targetRange) {
-    const withSheetId = range => ({ ...range, sheet: this.sheetId });
+    const { row: sourceTopStartRow, col: sourceTopStartColumn } = sourceRange.getTopStartCorner();
+    const { row: sourceBottomEndRow, col: sourceBottomEndColumn } = sourceRange.getBottomEndCorner();
+    const { row: targetTopStartRow, col: targetTopStartColumn } = targetRange.getTopStartCorner();
+    const { row: targetBottomEndRow, col: targetBottomEndColumn } = targetRange.getBottomEndCorner();
 
     const engineSourceRange = {
-      start: withSheetId(sourceRange.getTopStartCorner()),
-      end: withSheetId(sourceRange.getBottomEndCorner())
+      start: {
+        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(sourceTopStartRow),
+        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(sourceTopStartColumn),
+        sheet: this.sheetId,
+      },
+      end: {
+        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(sourceBottomEndRow),
+        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(sourceBottomEndColumn),
+        sheet: this.sheetId,
+      },
     };
 
     const engineTargetRange = {
-      start: withSheetId(targetRange.getTopStartCorner()),
-      end: withSheetId(targetRange.getBottomEndCorner())
+      start: {
+        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(targetTopStartRow),
+        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(targetTopStartColumn),
+        sheet: this.sheetId,
+      },
+      end: {
+        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(targetBottomEndRow),
+        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(targetBottomEndColumn),
+        sheet: this.sheetId,
+      },
     };
 
     // Blocks the autofill operation if HyperFormula says that at least one of
@@ -609,7 +675,41 @@ export class Formulas extends BasePlugin {
       return false;
     }
 
-    return this.engine.getFillRangeData(engineSourceRange, engineTargetRange);
+    const fillRangeData = this.engine.getFillRangeData(engineSourceRange, engineTargetRange);
+    const {
+      row: sourceStartRow,
+      col: sourceStartColumn,
+    } = engineSourceRange.start;
+    const {
+      row: sourceEndRow,
+      col: sourceEndColumn,
+    } = engineSourceRange.end;
+    const populationRowLength = sourceEndRow - sourceStartRow + 1;
+    const populationColumnLength = sourceEndColumn - sourceStartColumn + 1;
+
+    for (let populatedRowIndex = 0; populatedRowIndex < fillRangeData.length; populatedRowIndex += 1) {
+      for (let populatedColumnIndex = 0; populatedColumnIndex < fillRangeData[populatedRowIndex].length;
+        populatedColumnIndex += 1) {
+        const populatedValue = fillRangeData[populatedRowIndex][populatedColumnIndex];
+        const sourceRow = populatedRowIndex % populationRowLength;
+        const sourceColumn = populatedColumnIndex % populationColumnLength;
+        const sourceCellMeta = this.hot.getCellMeta(sourceRow, sourceColumn);
+
+        if (isDate(populatedValue, sourceCellMeta.type)) {
+          if (populatedValue.startsWith('\'')) {
+            // Populating values on HOT side without apostrophe.
+            fillRangeData[populatedRowIndex][populatedColumnIndex] = populatedValue.slice(1);
+
+          } else if (this.isFormulaCellType(sourceRow, sourceColumn, this.sheetId) === false) {
+            // Populating date in proper format, coming from the source cell.
+            fillRangeData[populatedRowIndex][populatedColumnIndex] =
+              getDateInHotFormat(populatedValue, sourceCellMeta.dateFormat);
+          }
+        }
+      }
+    }
+
+    return fillRangeData;
   }
 
   /**
@@ -628,6 +728,44 @@ export class Formulas extends BasePlugin {
     // This flag needs to be defined, because not passing data to HOT results in HOT auto-generating a `null`-filled
     // initial dataset.
     this.#hotWasInitializedWithEmptyData = isUndefined(this.hot.getSettings().data);
+  }
+
+  /**
+   * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
+   *
+   * @private
+   */
+  onAfterCellMetaReset() {
+    const sourceDataArray = this.hot.getSourceDataArray();
+    let valueChanged = false;
+
+    sourceDataArray.forEach((rowData, rowIndex) => {
+      rowData.forEach((cellValue, columnIndex) => {
+        const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex);
+        const dateFormat = cellMeta.dateFormat;
+
+        if (isDate(cellValue, cellMeta.type)) {
+          valueChanged = true;
+
+          if (isDateValid(cellValue, dateFormat)) {
+            // Rewriting date in HOT format to HF format.
+            sourceDataArray[rowIndex][columnIndex] = getDateInHfFormat(cellValue, dateFormat);
+
+          } else if (this.isFormulaCellType(rowIndex, columnIndex) === false) {
+            // Escaping value from date parsing using "'" sign (HF feature).
+            sourceDataArray[rowIndex][columnIndex] = `'${cellValue}`;
+          }
+        }
+      });
+    });
+
+    if (valueChanged === true) {
+      this.#internalOperationPending = true;
+
+      this.engine.setSheetContent(this.sheetId, sourceDataArray);
+
+      this.#internalOperationPending = false;
+    }
   }
 
   /**
@@ -651,8 +789,9 @@ export class Formulas extends BasePlugin {
       if (this.engine.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
         this.#internalOperationPending = true;
 
-        const dependentCells = this.engine.setSheetContent(this.sheetId, this.hot.getSourceDataArray());
+        const dependentCells = this.engine.setSheetContent(this.sheetId, sourceDataArray);
 
+        this.indexSyncer.setupSyncEndpoint(this.engine, this.sheetId);
         this.renderDependentSheets(dependentCells);
 
         this.#internalOperationPending = false;
@@ -667,13 +806,13 @@ export class Formulas extends BasePlugin {
    * `modifyData` hook callback.
    *
    * @private
-   * @param {number} row Physical row height.
-   * @param {number} column Physical column index.
+   * @param {number} physicalRow Physical row index.
+   * @param {number} visualColumn Visual column index.
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value`
    *   property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
-  onModifyData(row, column, valueHolder, ioMode) {
+  onModifyData(physicalRow, visualColumn, valueHolder, ioMode) {
     if (
       ioMode !== 'get' ||
       this.#internalOperationPending ||
@@ -683,13 +822,17 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const visualRow = this.hot.toVisualRow(row);
+    const visualRow = this.hot.toVisualRow(physicalRow);
+
+    if (visualRow === null || visualColumn === null) {
+      return;
+    }
 
     // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
-    const isFormulaCellType = this.isFormulaCellType(visualRow, column);
+    const isFormulaCellType = this.isFormulaCellType(visualRow, visualColumn);
 
     if (!isFormulaCellType) {
-      const cellType = this.getCellType(visualRow, column);
+      const cellType = this.getCellType(visualRow, visualColumn);
 
       if (cellType !== 'ARRAY') {
         if (isEscapedFormulaExpression(valueHolder.value)) {
@@ -700,13 +843,17 @@ export class Formulas extends BasePlugin {
       }
     }
 
-    // `toPhysicalColumn` is here because of inconsistencies related to hook execution in `DataMap`.
     const address = {
-      row,
-      col: this.toPhysicalColumnPosition(column),
+      row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
+      col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
       sheet: this.sheetId
     };
-    const cellValue = this.engine.getCellValue(address);
+    let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel like date).
+    const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
+
+    if (cellMeta.type === 'date' && isNumeric(cellValue)) {
+      cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat);
+    }
 
     // If `cellValue` is an object it is expected to be an error
     const value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
@@ -737,6 +884,10 @@ export class Formulas extends BasePlugin {
     const visualRow = this.hot.toVisualRow(row);
     const visualColumn = this.hot.propToCol(columnOrProp);
 
+    if (visualRow === null || visualColumn === null) {
+      return;
+    }
+
     // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
     const isFormulaCellType = this.isFormulaCellType(visualRow, visualColumn);
 
@@ -759,9 +910,8 @@ export class Formulas extends BasePlugin {
     }
 
     const address = {
-      row,
-      // Workaround for inconsistencies in `src/dataSource.js`
-      col: this.toPhysicalColumnPosition(visualColumn),
+      row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
+      col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
       sheet: this.sheetId
     };
 
@@ -774,7 +924,7 @@ export class Formulas extends BasePlugin {
    * @private
    * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
   onAfterSetDataAtCell(changes, source) {
     if (isBlockedSource(source)) {
@@ -785,21 +935,21 @@ export class Formulas extends BasePlugin {
     const changedCells = [];
 
     const dependentCells = this.engine.batch(() => {
-      changes.forEach(([row, prop, , newValue]) => {
-        const column = this.hot.propToCol(prop);
-        const physicalRow = this.hot.toPhysicalRow(row);
-        const physicalColumn = this.hot.toPhysicalColumn(column);
+      changes.forEach(([visualRow, prop, , newValue]) => {
+        const visualColumn = this.hot.propToCol(prop);
+        const physicalRow = this.hot.toPhysicalRow(visualRow);
+        const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
         const address = {
-          row: physicalRow,
-          col: physicalColumn,
+          row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
+          col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
           sheet: this.sheetId,
         };
 
         if (physicalRow !== null && physicalColumn !== null) {
-          this.syncChangeWithEngine(row, column, newValue);
+          this.syncChangeWithEngine(visualRow, visualColumn, newValue);
 
         } else {
-          outOfBoundsChanges.push([row, column, newValue]);
+          outOfBoundsChanges.push([visualRow, visualColumn, newValue]);
         }
 
         changedCells.push({ address });
@@ -830,7 +980,7 @@ export class Formulas extends BasePlugin {
    * @private
    * @param {Array[]} changes An array of changes in format [[row, column, oldValue, value], ...].
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
   onAfterSetSourceDataAtCell(changes, source) {
     if (isBlockedSource(source)) {
@@ -840,16 +990,16 @@ export class Formulas extends BasePlugin {
     const dependentCells = [];
     const changedCells = [];
 
-    changes.forEach(([row, prop, , newValue]) => {
-      const column = this.hot.propToCol(prop);
+    changes.forEach(([visualRow, prop, , newValue]) => {
+      const visualColumn = this.hot.propToCol(prop);
 
-      if (!isNumeric(column)) {
+      if (!isNumeric(visualColumn)) {
         return;
       }
 
       const address = {
-        row,
-        col: this.toPhysicalColumnPosition(column),
+        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
+        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
         sheet: this.sheetId
       };
 
@@ -871,15 +1021,21 @@ export class Formulas extends BasePlugin {
    * `beforeCreateRow` hook callback.
    *
    * @private
-   * @param {number} row Represents the visual index of first newly created row in the data source array.
+   * @param {number} visualRow Represents the visual index of first newly created row in the data source array.
    * @param {number} amount Number of newly created rows in the data source array.
    * @returns {*|boolean} If false is returned the action is canceled.
    */
-  onBeforeCreateRow(row, amount) {
+  onBeforeCreateRow(visualRow, amount) {
+    let hfRowIndex = this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow);
+
+    if (visualRow >= this.hot.countRows()) {
+      hfRowIndex = visualRow; // Row beyond the table boundaries.
+    }
+
     if (
       this.sheetId === null ||
       !this.engine.doesSheetExist(this.sheetName) ||
-      !this.engine.isItPossibleToAddRows(this.sheetId, [this.toPhysicalRowPosition(row), amount])
+      !this.engine.isItPossibleToAddRows(this.sheetId, [hfRowIndex, amount])
     ) {
       return false;
     }
@@ -889,15 +1045,21 @@ export class Formulas extends BasePlugin {
    * `beforeCreateCol` hook callback.
    *
    * @private
-   * @param {number} col Represents the visual index of first newly created column in the data source.
+   * @param {number} visualColumn Represents the visual index of first newly created column in the data source.
    * @param {number} amount Number of newly created columns in the data source.
    * @returns {*|boolean} If false is returned the action is canceled.
    */
-  onBeforeCreateCol(col, amount) {
+  onBeforeCreateCol(visualColumn, amount) {
+    let hfColumnIndex = this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn);
+
+    if (visualColumn >= this.hot.countCols()) {
+      hfColumnIndex = visualColumn; // Column beyond the table boundaries.
+    }
+
     if (
       this.sheetId === null ||
       !this.engine.doesSheetExist(this.sheetName) ||
-      !this.engine.isItPossibleToAddColumns(this.sheetId, [this.toPhysicalColumnPosition(col), amount])
+      !this.engine.isItPossibleToAddColumns(this.sheetId, [hfColumnIndex, amount])
     ) {
       return false;
     }
@@ -913,8 +1075,10 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onBeforeRemoveRow(row, amount, physicalRows) {
-    const possible = physicalRows.every((physicalRow) => {
-      return this.engine.isItPossibleToRemoveRows(this.sheetId, [physicalRow, 1]);
+    const hfRows = this.rowAxisSyncer.setRemovedHfIndexes(physicalRows);
+
+    const possible = hfRows.every((hfRow) => {
+      return this.engine.isItPossibleToRemoveRows(this.sheetId, [hfRow, 1]);
     });
 
     return possible === false ? false : void 0;
@@ -930,8 +1094,10 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onBeforeRemoveCol(col, amount, physicalColumns) {
-    const possible = physicalColumns.every((physicalColumn) => {
-      return this.engine.isItPossibleToRemoveColumns(this.sheetId, [physicalColumn, 1]);
+    const hfColumns = this.columnAxisSyncer.setRemovedHfIndexes(physicalColumns);
+
+    const possible = hfColumns.every((hfColumn) => {
+      return this.engine.isItPossibleToRemoveColumns(this.sheetId, [hfColumn, 1]);
     });
 
     return possible === false ? false : void 0;
@@ -941,17 +1107,18 @@ export class Formulas extends BasePlugin {
    * `afterCreateRow` hook callback.
    *
    * @private
-   * @param {number} row Represents the visual index of first newly created row in the data source array.
+   * @param {number} visualRow Represents the visual index of first newly created row in the data source array.
    * @param {number} amount Number of newly created rows in the data source array.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
-  onAfterCreateRow(row, amount, source) {
+  onAfterCreateRow(visualRow, amount, source) {
     if (isBlockedSource(source)) {
       return;
     }
 
-    const changes = this.engine.addRows(this.sheetId, [this.toPhysicalRowPosition(row), amount]);
+    const changes = this.engine.addRows(this.sheetId,
+      [this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow), amount]);
 
     this.renderDependentSheets(changes);
   }
@@ -960,17 +1127,18 @@ export class Formulas extends BasePlugin {
    * `afterCreateCol` hook callback.
    *
    * @private
-   * @param {number} col Represents the visual index of first newly created column in the data source.
+   * @param {number} visualColumn Represents the visual index of first newly created column in the data source.
    * @param {number} amount Number of newly created columns in the data source.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
-  onAfterCreateCol(col, amount, source) {
+  onAfterCreateCol(visualColumn, amount, source) {
     if (isBlockedSource(source)) {
       return;
     }
 
-    const changes = this.engine.addColumns(this.sheetId, [this.toPhysicalColumnPosition(col), amount]);
+    const changes = this.engine.addColumns(this.sheetId,
+      [this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn), amount]);
 
     this.renderDependentSheets(changes);
   }
@@ -983,18 +1151,17 @@ export class Formulas extends BasePlugin {
    * @param {number} amount An amount of removed rows.
    * @param {number[]} physicalRows An array of physical rows removed from the data source.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
   onAfterRemoveRow(row, amount, physicalRows, source) {
     if (isBlockedSource(source)) {
       return;
     }
 
-    const descendingPhysicalRows = physicalRows.sort().reverse();
-
+    const descendingHfRows = this.rowAxisSyncer.getRemovedHfIndexes().sort().reverse();
     const changes = this.engine.batch(() => {
-      descendingPhysicalRows.forEach((physicalRow) => {
-        this.engine.removeRows(this.sheetId, [physicalRow, 1]);
+      descendingHfRows.forEach((hfRow) => {
+        this.engine.removeRows(this.sheetId, [hfRow, 1]);
       });
     });
 
@@ -1009,18 +1176,18 @@ export class Formulas extends BasePlugin {
    * @param {number} amount An amount of removed columns.
    * @param {number[]} physicalColumns An array of physical columns removed from the data source.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
   onAfterRemoveCol(col, amount, physicalColumns, source) {
     if (isBlockedSource(source)) {
       return;
     }
 
-    const descendingPhysicalColumns = physicalColumns.sort().reverse();
+    const descendingHfColumns = this.columnAxisSyncer.getRemovedHfIndexes().sort().reverse();
 
     const changes = this.engine.batch(() => {
-      descendingPhysicalColumns.forEach((physicalColumn) => {
-        this.engine.removeColumns(this.sheetId, [physicalColumn, 1]);
+      descendingHfColumns.forEach((hfColumn) => {
+        this.engine.removeColumns(this.sheetId, [hfColumn, 1]);
       });
     });
 

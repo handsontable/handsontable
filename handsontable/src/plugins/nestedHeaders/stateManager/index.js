@@ -216,15 +216,21 @@ export default class StateManager {
    *           │    │    │    │
    *
    * @param {number} rowIndex A visual row index.
-   * @returns {number} Returns unsigned number.
+   * @returns {number|null} Returns unsigned number.
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
   rowCoordsToLevel(rowIndex) {
-    const layersCount = Math.max(this.getLayersCount(), 1);
-    const highestPossibleLevel = layersCount - 1;
-    const lowestPossibleLevel = 0;
+    if (rowIndex >= 0) {
+      return null;
+    }
 
-    return Math.min(Math.max(rowIndex + layersCount, lowestPossibleLevel), highestPossibleLevel);
+    const headerLevel = rowIndex + Math.max(this.getLayersCount(), 1);
+
+    if (headerLevel < 0) {
+      return null;
+    }
+
+    return headerLevel;
   }
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -254,11 +260,17 @@ export default class StateManager {
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
   levelToRowCoords(headerLevel) {
-    const layersCount = Math.max(this.getLayersCount(), 1);
-    const highestPossibleRow = -1;
-    const lowestPossibleRow = -layersCount;
+    if (headerLevel < 0) {
+      return null;
+    }
 
-    return Math.min(Math.max(headerLevel - layersCount, lowestPossibleRow), highestPossibleRow);
+    const rowIndex = headerLevel - Math.max(this.getLayersCount(), 1);
+
+    if (rowIndex >= 0) {
+      return null;
+    }
+
+    return rowIndex;
   }
 
   /**
@@ -275,7 +287,7 @@ export default class StateManager {
       headerLevel = this.rowCoordsToLevel(headerLevel);
     }
 
-    if (headerLevel >= this.getLayersCount()) {
+    if (headerLevel === null || headerLevel >= this.getLayersCount()) {
       return null;
     }
 
@@ -294,6 +306,10 @@ export default class StateManager {
   getHeaderTreeNodeData(headerLevel, columnIndex) {
     if (headerLevel < 0) {
       headerLevel = this.rowCoordsToLevel(headerLevel);
+    }
+
+    if (headerLevel === null || headerLevel >= this.getLayersCount()) {
+      return null;
     }
 
     const node = this.#headersTree.getNode(headerLevel, columnIndex);
