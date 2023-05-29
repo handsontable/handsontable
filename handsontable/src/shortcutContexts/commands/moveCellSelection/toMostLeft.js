@@ -3,9 +3,13 @@ export const command = {
   callback(hot) {
     const { selection, columnIndexMapper } = hot;
     const row = hot.getSelectedRangeLast().highlight.row;
-    const column = columnIndexMapper.getNearestNotHiddenIndex(
+    let column = columnIndexMapper.getNearestNotHiddenIndex(
       ...(hot.isRtl() ? [hot.countCols() - 1, -1] : [0, 1])
     );
+
+    if (column === null) {
+      column = hot.isRtl() ? -1 : -hot.countRowHeaders();
+    }
 
     selection.setRangeStart(hot._createCellCoords(row, column));
   },

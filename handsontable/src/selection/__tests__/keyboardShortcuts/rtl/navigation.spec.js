@@ -41,6 +41,20 @@ describe('Selection navigation (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 1,0']);
     });
 
+    it('should move the header selection to the right (navigableHeaders on)', () => {
+      handsontable({
+        startRows: 5,
+        startCols: 5,
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, 3);
+      keyDownUp('arrowright');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: -1,2']);
+    });
+
     describe('with autoWrap disabled', () => {
       it('should NOT move the cell selection to the row above, if the first column is already selected', () => {
         handsontable({
@@ -314,6 +328,20 @@ describe('Selection navigation (RTL mode)', () => {
         |   :   :   :   :   ║   |
       `).toBeMatchToSelectionPattern();
     });
+
+    it('should move the header selection to the most right column header in a row (navigableHeaders on)', () => {
+      handsontable({
+        startRows: 5,
+        startCols: 5,
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, 3);
+      keyDownUp(['control/meta', 'arrowright']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,0 from: -1,0 to: -1,0']);
+    });
   });
 
   describe('"ArrowLeft"', () => {
@@ -327,6 +355,20 @@ describe('Selection navigation (RTL mode)', () => {
       keyDownUp('arrowleft');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,3 from: 1,3 to: 1,3']);
+    });
+
+    it('should move the header selection to the left (navigableHeaders on)', () => {
+      handsontable({
+        startRows: 5,
+        startCols: 5,
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, 1);
+      keyDownUp('arrowleft');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: -1,2']);
     });
 
     describe('with autoWrap disabled', () => {
@@ -578,6 +620,20 @@ describe('Selection navigation (RTL mode)', () => {
         |   :   :   :   :   ║   |
       `).toBeMatchToSelectionPattern();
     });
+
+    it('should move the header selection to the most left header in a row (navigableHeaders on)', () => {
+      handsontable({
+        startRows: 5,
+        startCols: 5,
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, 1);
+      keyDownUp(['control/meta', 'arrowleft']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,4 from: -1,4 to: -1,4']);
+    });
   });
 
   describe('"ArrowUp"', () => {
@@ -591,6 +647,20 @@ describe('Selection navigation (RTL mode)', () => {
       keyDownUp('arrowup');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 0,2']);
+    });
+
+    it('should move the header selection up (navigableHeaders on)', () => {
+      handsontable({
+        startRows: 5,
+        startCols: 5,
+        rowHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(3, -1);
+      keyDownUp('arrowup');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,-1 from: 2,-1 to: 2,-1']);
     });
 
     describe('with autoWrap disabled', () => {
@@ -887,6 +957,20 @@ describe('Selection navigation (RTL mode)', () => {
         |   :   :   :   :   ║   |
       `).toBeMatchToSelectionPattern();
     });
+
+    it('should move the header selection to the most top header in a column (navigableHeaders on)', () => {
+      handsontable({
+        startRows: 5,
+        startCols: 5,
+        rowHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(3, -1);
+      keyDownUp(['control/meta', 'arrowup']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,-1 from: 0,-1 to: 0,-1']);
+    });
   });
 
   describe('"ArrowDown"', () => {
@@ -900,6 +984,20 @@ describe('Selection navigation (RTL mode)', () => {
       keyDownUp('arrowdown');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
+    });
+
+    it('should move the header selection down (navigableHeaders on)', () => {
+      handsontable({
+        startRows: 5,
+        startCols: 5,
+        rowHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(1, -1);
+      keyDownUp('arrowdown');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,-1 from: 2,-1 to: 2,-1']);
     });
 
     describe('with autoWrap disabled', () => {
@@ -1095,6 +1193,20 @@ describe('Selection navigation (RTL mode)', () => {
         |   :   :   :   :   ║   |
         |   :   : # :   :   ║ - |
       `).toBeMatchToSelectionPattern();
+    });
+
+    it('should move the header selection to the most bottom header in a column (navigableHeaders on)', () => {
+      handsontable({
+        startRows: 5,
+        startCols: 5,
+        rowHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(1, -1);
+      keyDownUp(['control/meta', 'arrowdown']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 4,-1 from: 4,-1 to: 4,-1']);
     });
   });
 });

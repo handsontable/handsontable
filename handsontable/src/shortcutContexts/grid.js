@@ -12,9 +12,10 @@ export function shortcutsGridContext(hot) {
   const commandsPool = createKeyboardShortcutCommandsPool(hot);
   const config = {
     runOnlyIf: () => {
+      const { navigableHeaders } = hot.getSettings();
+
       return isDefined(hot.getSelected()) &&
-        hot.countRenderedRows() > 0 &&
-        hot.countRenderedCols() > 0;
+        (navigableHeaders || !navigableHeaders && hot.countRenderedRows() > 0 && hot.countRenderedCols() > 0);
     },
     group: GRID_GROUP,
   };

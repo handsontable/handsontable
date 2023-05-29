@@ -486,8 +486,9 @@ class Selection {
     const tester = (range) => {
       const { col } = range.getOuterTopStartCorner();
       const rowHeaders = this.tableProps.countRowHeaders();
+      const countCols = this.tableProps.countCols();
 
-      return (rowHeaders > 0 && col < 0 || rowHeaders === 0) && range.getWidth() === this.tableProps.countCols();
+      return (rowHeaders > 0 && col < 0 || rowHeaders === 0) && range.getWidth() === countCols;
     };
 
     if (layerLevel === -1) {
@@ -523,8 +524,9 @@ class Selection {
     const tester = (range) => {
       const { row } = range.getOuterTopStartCorner();
       const colHeaders = this.tableProps.countColHeaders();
+      const countRows = this.tableProps.countRows();
 
-      return (colHeaders > 0 && row < 0 || colHeaders === 0) && range.getHeight() === this.tableProps.countRows();
+      return (colHeaders > 0 && row < 0 || colHeaders === 0) && range.getHeight() === countRows;
     };
 
     if (layerLevel === -1) {

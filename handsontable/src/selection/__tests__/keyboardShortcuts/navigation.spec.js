@@ -63,6 +63,50 @@ describe('Selection navigation', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
     });
 
+    it('should move the header selection to the right (navigableHeaders on)', () => {
+      handsontable({
+        startRows: 5,
+        startCols: 5,
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, 1);
+      keyDownUp('arrowright');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: -1,2']);
+    });
+
+    it('should move the header selection to the right when there is no rows (navigableHeaders on)', () => {
+      handsontable({
+        data: [],
+        columns: [{}, {}, {}, {}, {}],
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, 1);
+      keyDownUp('arrowright');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: -1,2']);
+    });
+
+    it('should move the header selection to the right when all rows are hidden (navigableHeaders on)', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+      render();
+
+      selectCell(-1, 1);
+      keyDownUp('arrowright');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: -1,2']);
+    });
+
     describe('with autoWrap disabled', () => {
       it('should NOT move the cell selection to the row below, if the last column is already selected', () => {
         handsontable({
@@ -257,6 +301,87 @@ describe('Selection navigation', () => {
         |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
     });
+
+    it('should move the header selection to the most right column header in a row (navigableHeaders on)', () => {
+      handsontable({
+        startRows: 5,
+        startCols: 5,
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, 1);
+      keyDownUp(['control/meta', 'arrowright']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,4 from: -1,4 to: -1,4']);
+    });
+
+    it('should move the header selection to the most right column header in a row when there is no rows (navigableHeaders on)', () => {
+      handsontable({
+        data: [],
+        columns: [{}, {}, {}, {}, {}],
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, 1);
+      keyDownUp(['control/meta', 'arrowright']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,4 from: -1,4 to: -1,4']);
+    });
+
+    it('should move the header selection to the most right column header in a row when all rows are hidden (navigableHeaders on)', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+      render();
+
+      selectCell(-1, 1);
+      keyDownUp(['control/meta', 'arrowright']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,4 from: -1,4 to: -1,4']);
+    });
+
+    it('should move the header selection to the most right row header in a row when there is no columns (navigableHeaders on)', () => {
+      handsontable({
+        data: [[], [], [], [], []],
+        rowHeaders: true,
+        navigableHeaders: true,
+        afterGetRowHeaderRenderers(headerRenderers) {
+          headerRenderers.push(rowHeader.bind(this));
+          headerRenderers.push(rowHeader.bind(this));
+        },
+      });
+
+      selectCell(1, -3);
+      keyDownUp(['control/meta', 'arrowright']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,-1']);
+    });
+
+    it('should move the header selection to the most right row header in a row when all columns are hidden (navigableHeaders on)', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        navigableHeaders: true,
+        afterGetRowHeaderRenderers(headerRenderers) {
+          headerRenderers.push(rowHeader.bind(this));
+          headerRenderers.push(rowHeader.bind(this));
+        },
+      });
+
+      columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+      render();
+
+      selectCell(1, -3);
+      keyDownUp(['control/meta', 'arrowright']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,-1']);
+    });
   });
 
   describe('"ArrowLeft"', () => {
@@ -270,6 +395,50 @@ describe('Selection navigation', () => {
       keyDownUp('arrowleft');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
+    });
+
+    it('should move the header selection to the left (navigableHeaders on)', () => {
+      handsontable({
+        startRows: 5,
+        startCols: 5,
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, 3);
+      keyDownUp('arrowleft');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: -1,2']);
+    });
+
+    it('should move the header selection to the left when there is no rows (navigableHeaders on)', () => {
+      handsontable({
+        data: [],
+        columns: [{}, {}, {}, {}, {}],
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, 3);
+      keyDownUp('arrowleft');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: -1,2']);
+    });
+
+    it('should move the header selection to the left when all rows are hidden (navigableHeaders on)', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+      render();
+
+      selectCell(-1, 3);
+      keyDownUp('arrowleft');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: -1,2']);
     });
 
     describe('with autoWrap disabled', () => {
@@ -515,56 +684,85 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the cell selection to the most left cell in a row (navigableHeaders on)', () => {
+    it('should move the header selection to the most left header in a row (navigableHeaders on)', () => {
       handsontable({
-        rowHeaders: true,
-        colHeaders: true,
         startRows: 5,
         startCols: 5,
+        colHeaders: true,
         navigableHeaders: true,
       });
 
-      selectCell(1, 3);
+      selectCell(-1, 3);
       keyDownUp(['control/meta', 'arrowleft']);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 1,0']);
-      expect(`
-        |   ║ - :   :   :   :   |
-        |===:===:===:===:===:===|
-        |   ║   :   :   :   :   |
-        | - ║ # :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,0 from: -1,0 to: -1,0']);
+    });
 
-      selectCells([[3, 3, 1, 1]]);
+    it('should move the header selection to the most left header in a row when there is no rows (navigableHeaders on)', () => {
+      handsontable({
+        data: [],
+        columns: [{}, {}, {}, {}, {}],
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, 3);
       keyDownUp(['control/meta', 'arrowleft']);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 3,0 to: 3,0']);
-      expect(`
-        |   ║ - :   :   :   :   |
-        |===:===:===:===:===:===|
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        | - ║ # :   :   :   :   |
-        |   ║   :   :   :   :   |
-      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,0 from: -1,0 to: -1,0']);
+    });
 
-      selectRows(2);
+    it('should move the header selection to the most left header in a row when all rows are hidden (navigableHeaders on)', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+      render();
+
+      selectCell(-1, 3);
       keyDownUp(['control/meta', 'arrowleft']);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,0 to: 2,0']);
-      expect(`
-        |   ║ - :   :   :   :   |
-        |===:===:===:===:===:===|
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        | - ║ # :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,0 from: -1,0 to: -1,0']);
+    });
+
+    it('should move the header selection to the most left row header in a row when there is no columns (navigableHeaders on)', () => {
+      handsontable({
+        data: [[], [], [], [], []],
+        rowHeaders: true,
+        navigableHeaders: true,
+        afterGetRowHeaderRenderers(headerRenderers) {
+          headerRenderers.push(rowHeader.bind(this));
+          headerRenderers.push(rowHeader.bind(this));
+        },
+      });
+
+      selectCell(1, -1);
+      keyDownUp(['control/meta', 'arrowleft']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-3 from: 1,-3 to: 1,-3']);
+    });
+
+    it('should move the header selection to the most left row header in a row when all columns are hidden (navigableHeaders on)', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        navigableHeaders: true,
+        afterGetRowHeaderRenderers(headerRenderers) {
+          headerRenderers.push(rowHeader.bind(this));
+          headerRenderers.push(rowHeader.bind(this));
+        },
+      });
+
+      columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+      render();
+
+      selectCell(1, -1);
+      keyDownUp(['control/meta', 'arrowleft']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-3 from: 1,-3 to: 1,-3']);
     });
   });
 
@@ -579,6 +777,49 @@ describe('Selection navigation', () => {
       keyDownUp('arrowup');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 0,2']);
+    });
+
+    it('should move the header selection up (navigableHeaders on)', () => {
+      handsontable({
+        startRows: 5,
+        startCols: 5,
+        rowHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(3, -1);
+      keyDownUp('arrowup');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,-1 from: 2,-1 to: 2,-1']);
+    });
+
+    it('should move the header selection up when there is no columns (navigableHeaders on)', () => {
+      handsontable({
+        data: [[], [], [], [], []],
+        rowHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(3, -1);
+      keyDownUp('arrowup');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,-1 from: 2,-1 to: 2,-1']);
+    });
+
+    it('should move the header selection up when all columns are hidden (navigableHeaders on)', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        navigableHeaders: true,
+      });
+
+      columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+      render();
+
+      selectCell(3, -1);
+      keyDownUp('arrowup');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,-1 from: 2,-1 to: 2,-1']);
     });
 
     describe('with autoWrap disabled', () => {
@@ -824,56 +1065,85 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the cell selection to the first cell (first row) in a column (navigableHeaders on)', () => {
+    it('should move the header selection to the most top header in a column (navigableHeaders on)', () => {
       handsontable({
-        rowHeaders: true,
-        colHeaders: true,
         startRows: 5,
         startCols: 5,
+        rowHeaders: true,
         navigableHeaders: true,
       });
 
-      selectCell(3, 3);
+      selectCell(3, -1);
       keyDownUp(['control/meta', 'arrowup']);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: 0,3 to: 0,3']);
-      expect(`
-        |   ║   :   :   : - :   |
-        |===:===:===:===:===:===|
-        | - ║   :   :   : # :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,-1 from: 0,-1 to: 0,-1']);
+    });
 
-      selectCells([[3, 1, 1, 3]]);
+    it('should move the header selection to the most top header in a column when there is no rows (navigableHeaders on)', () => {
+      handsontable({
+        data: [[], [], [], [], []],
+        rowHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(3, -1);
       keyDownUp(['control/meta', 'arrowup']);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
-      expect(`
-        |   ║   : - :   :   :   |
-        |===:===:===:===:===:===|
-        | - ║   : # :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,-1 from: 0,-1 to: 0,-1']);
+    });
 
-      selectColumns(2);
+    it('should move the header selection to the most top header in a column when all rows are hidden (navigableHeaders on)', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        navigableHeaders: true,
+      });
+
+      columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+      render();
+
+      selectCell(3, -1);
       keyDownUp(['control/meta', 'arrowup']);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 0,2']);
-      expect(`
-        |   ║   :   : - :   :   |
-        |===:===:===:===:===:===|
-        | - ║   :   : # :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,-1 from: 0,-1 to: 0,-1']);
+    });
+
+    it('should move the header selection to the most top column header in a column when there is no rows (navigableHeaders on)', () => {
+      handsontable({
+        data: [],
+        columns: [{}, {}, {}, {}, {}],
+        colHeaders: true,
+        navigableHeaders: true,
+        afterGetColumnHeaderRenderers(headerRenderers) {
+          headerRenderers.push(columnHeader.bind(this));
+          headerRenderers.push(columnHeader.bind(this));
+        },
+      });
+
+      selectCell(-1, 1);
+      keyDownUp(['control/meta', 'arrowup']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -3,1 from: -3,1 to: -3,1']);
+    });
+
+    it('should move the header selection to the most top column header in a column when all rows are hidden (navigableHeaders on)', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        navigableHeaders: true,
+        afterGetColumnHeaderRenderers(headerRenderers) {
+          headerRenderers.push(columnHeader.bind(this));
+          headerRenderers.push(columnHeader.bind(this));
+        },
+      });
+
+      rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+      render();
+
+      selectCell(-1, 1);
+      keyDownUp(['control/meta', 'arrowup']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -3,1 from: -3,1 to: -3,1']);
     });
   });
 
@@ -888,6 +1158,49 @@ describe('Selection navigation', () => {
       keyDownUp('arrowdown');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
+    });
+
+    it('should move the header selection down (navigableHeaders on)', () => {
+      handsontable({
+        startRows: 5,
+        startCols: 5,
+        rowHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(1, -1);
+      keyDownUp('arrowdown');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,-1 from: 2,-1 to: 2,-1']);
+    });
+
+    it('should move the header selection down when there is no columns (navigableHeaders on)', () => {
+      handsontable({
+        data: [[], [], [], [], []],
+        rowHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(1, -1);
+      keyDownUp('arrowdown');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,-1 from: 2,-1 to: 2,-1']);
+    });
+
+    it('should move the header selection down when all columns are hidden (navigableHeaders on)', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        navigableHeaders: true,
+      });
+
+      columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+      render();
+
+      selectCell(1, -1);
+      keyDownUp('arrowdown');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,-1 from: 2,-1 to: 2,-1']);
     });
 
     describe('with autoWrap disabled', () => {
@@ -1083,6 +1396,87 @@ describe('Selection navigation', () => {
         |   ║   :   :   :   :   |
         | - ║   :   : # :   :   |
       `).toBeMatchToSelectionPattern();
+    });
+
+    it('should move the header selection to the most bottom header in a column (navigableHeaders on)', () => {
+      handsontable({
+        startRows: 5,
+        startCols: 5,
+        rowHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(1, -1);
+      keyDownUp(['control/meta', 'arrowdown']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 4,-1 from: 4,-1 to: 4,-1']);
+    });
+
+    it('should move the header selection to the most bottom header in a column when there is no rows (navigableHeaders on)', () => {
+      handsontable({
+        data: [[], [], [], [], []],
+        rowHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(1, -1);
+      keyDownUp(['control/meta', 'arrowdown']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 4,-1 from: 4,-1 to: 4,-1']);
+    });
+
+    it('should move the header selection to the most bottom header in a column when all rows are hidden (navigableHeaders on)', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        navigableHeaders: true,
+      });
+
+      columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+      render();
+
+      selectCell(1, -1);
+      keyDownUp(['control/meta', 'arrowdown']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 4,-1 from: 4,-1 to: 4,-1']);
+    });
+
+    it('should move the header selection to the most bottom column header in a column when there is no rows (navigableHeaders on)', () => {
+      handsontable({
+        data: [],
+        columns: [{}, {}, {}, {}, {}],
+        colHeaders: true,
+        navigableHeaders: true,
+        afterGetColumnHeaderRenderers(headerRenderers) {
+          headerRenderers.push(columnHeader.bind(this));
+          headerRenderers.push(columnHeader.bind(this));
+        },
+      });
+
+      selectCell(-3, 1);
+      keyDownUp(['control/meta', 'arrowdown']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: -1,1']);
+    });
+
+    it('should move the header selection to the most bottom column header in a column when all rows are hidden (navigableHeaders on)', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        navigableHeaders: true,
+        afterGetColumnHeaderRenderers(headerRenderers) {
+          headerRenderers.push(columnHeader.bind(this));
+          headerRenderers.push(columnHeader.bind(this));
+        },
+      });
+
+      rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+      render();
+
+      selectCell(-3, 1);
+      keyDownUp(['control/meta', 'arrowdown']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: -1,1']);
     });
   });
 

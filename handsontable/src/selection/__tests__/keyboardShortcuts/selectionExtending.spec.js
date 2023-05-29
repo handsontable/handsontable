@@ -632,18 +632,18 @@ describe('Selection extending', () => {
     });
 
     it('should extend the row header selection to the top-most visible row', () => {
-      const hot = handsontable({
+      handsontable({
         rowHeaders: true,
         colHeaders: true,
         startRows: 5,
         startCols: 5
       });
 
-      const hidingMap = hot.rowIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       hidingMap.setValueAtIndex(0, true);
       hidingMap.setValueAtIndex(1, true);
-      hot.render();
+      render();
 
       selectRows(3);
       listen();
@@ -896,18 +896,18 @@ describe('Selection extending', () => {
     });
 
     it('should extend the row header selection to the bottom-most visible row', () => {
-      const hot = handsontable({
+      handsontable({
         rowHeaders: true,
         colHeaders: true,
         startRows: 5,
         startCols: 5
       });
 
-      const hidingMap = hot.rowIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       hidingMap.setValueAtIndex(3, true);
       hidingMap.setValueAtIndex(4, true);
-      hot.render();
+      render();
 
       selectRows(1);
       listen();
