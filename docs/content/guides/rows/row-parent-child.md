@@ -24,10 +24,6 @@ Reflect the parent-child relationship of your data, using the [`NestedRows`](@/a
 
 [[toc]]
 
-::: warning
-The [rows sorting](@/guides/rows/rows-sorting.md) and [column filter](@/guides/columns/column-filter.md) features don't work with the parent-child row structure.
-:::
-
 ## Quick setup
 
 To enable the [`NestedRows`](@/api/nestedRows.md) plugin, set the [`nestedRows`](@/api/options.md#nestedrows) option to `true`.
@@ -353,9 +349,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 In the example above, we’ve created a data object consisting of 2016’s Grammy nominees of the “Rock” genre. Each _0-level_ entry declares a category, while their children declare nominees - assigned under the `__children` properties.
 
-:::tip
 Note that the **first** 0-level object in the array needs to have all columns defined to display the table properly. They can be declared as `null` or an empty string `''`, but they need to be defined. This is optional for the other objects.
-:::
 
 ## User interface
 
@@ -375,6 +369,13 @@ The context menu has been extended with a few Nested Rows related options, such 
 * Detach from parent
 
 The “Insert row above” and “Insert row below” options were modified to work properly with the nested data structure.
+
+## Known limitations
+
+The parent-child row structure doesn't support the following Handsontable features:
+- [Array-of-arrays data source](@/guides/getting-started/binding-to-data.md#array-of-arrays)
+- [Column filter](@/guides/columns/column-filter.md)
+- [Rows sorting](@/guides/rows/rows-sorting.md)
 
 ## Related articles
 
