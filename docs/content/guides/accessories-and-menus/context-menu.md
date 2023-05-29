@@ -157,7 +157,7 @@ const hot = new Handsontable(container, {
   ],
   rowHeaders: true,
   colHeaders: true,
-  contextMenu: ['row_above', 'row_below', 'remove_row'],
+  contextMenu: ['row_above', 'row_below', 'remove_row', 'clear_column'],
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
@@ -188,7 +188,7 @@ export const ExampleComponent = () => {
       ]}
       rowHeaders={true}
       colHeaders={true}
-      contextMenu={['row_above', 'row_below', 'remove_row']}
+      contextMenu={['row_above', 'row_below', 'remove_row', 'clear_column']}
       height="auto"
       licenseKey="non-commercial-and-evaluation"
     />

@@ -9,6 +9,31 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [12.4.0] - 2023-05-23
+
+### Added
+
+- Added two new Handsontable hooks, `afterColumnSequenceChange` and `afterRowSequenceChange`, which are fired after changing the order of columns or rows, respectively. [#10215](https://github.com/handsontable/handsontable/pull/10215)
+
+### Fixed
+
+- Fixed numerous issues related to syncing Handsontable with HyperFormula. Now, formulas work properly with all the Handsontable features. [#10215](https://github.com/handsontable/handsontable/pull/10215)
+- Fixed na issue where formulas didn't recalculate after rows or columns were moved. [#4668](https://github.com/handsontable/handsontable/issues/4668)
+- Fixed an issue where Handsontable's dates didn't sync correctly with HyperFormula's dates. [#10085](https://github.com/handsontable/handsontable/issues/10085)
+- Fixed an issue where calling `updateSettings()` would reset HyperFormula's undo/redo actions stack. [#10326](https://github.com/handsontable/handsontable/pull/10326)
+- Fixed an issue where the `Autofill`, `TrimRows` and `Formulas` plugins didn't work properly together. [#10200](https://github.com/handsontable/handsontable/issues/10200)
+- Fixed an issue where the `modifySourceData` hook used the wrong type of indexes. [#10215](https://github.com/handsontable/handsontable/pull/10215)
+- Fixed an issue where text copied from Handsontable to Excel included wrong types of spaces. [#10017](https://github.com/handsontable/handsontable/issues/10017)
+- Fixed an issue where mousing over the same cell twice didn't trigger the `beforeOnCellMouseOver` and `afterOnCellMouseOver` hooks. [#10321](https://github.com/handsontable/handsontable/pull/10321)
+- Updated TypeScript definition files related to the `CustomBorders` plugin. [#10360](https://github.com/handsontable/handsontable/pull/10360)
+- Fixed an issue where moving rows manually to the bottom was difficult due the misalignment between the backlight and guideline elements. [#9556](https://github.com/handsontable/handsontable/issues/9556)
+
+For more information on Handsontable 12.4.0, see:
+
+- [Blog post (12.4.0)](https://handsontable.com/blog/handsontable-12-4-0-auto-updating-formulas)
+- [Documentation (12.4)](https://handsontable.com/docs/12.4)
+- [Release notes (12.4.0)](https://handsontable.com/docs/release-notes/#_12-4-0)
+
 ## [12.3.3] - 2023-03-28
 
 ### Added

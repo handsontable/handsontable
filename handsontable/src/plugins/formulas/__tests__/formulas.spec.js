@@ -1344,8 +1344,8 @@ describe('Formulas general', () => {
 
       expect(getSourceData()).toEqual([
         [5],
-        ['=A1+1'],
         ['=A2+1'],
+        ['=A1+1'],
       ]);
       expect(getData()).toEqual([
         [6],
@@ -2283,9 +2283,9 @@ describe('Formulas general', () => {
   it('should support basic sorting', () => {
     const hot = handsontable({
       data: [
-        ['B1', 3.9],
-        ['B2', 1.13],
-        ['B1+B2', '=SUM(B1:B2)']
+        ['B2', 3.5, '=B2'],
+        ['B1', 99, '=B1'],
+        ['SUM(B1:B2)', 1.5, '=SUM(B1:B2)'],
       ],
       colHeaders: true,
       rowHeaders: true,
@@ -2293,19 +2293,26 @@ describe('Formulas general', () => {
       formulas: {
         engine: HyperFormula
       },
-      columnSorting: {
-        sortEmptyCells: true,
-        initialConfig: {
-          column: 1,
-          sortOrder: 'asc'
-        }
-      }
+      columnSorting: true,
+    });
+
+    hot.getPlugin('columnSorting').sort({
+      column: 1,
+      sortOrder: 'asc'
     });
 
     expect(hot.getData()).toEqual([
-      ['B2', 1.13],
-      ['B1', 3.9],
-      ['B1+B2', 5.03]
+      ['SUM(B1:B2)', 1.5, '#REF!'],
+      ['B2', 3.5, 99],
+      ['B1', 99, 3.5],
+    ]);
+
+    // Currently chosen approach, please keep in mind that it could be changed to represent pure source data
+    // (the same as at the start).
+    expect(getSourceData()).toEqual([
+      ['B2', 3.5, '=B3'],
+      ['B1', 99, '=B2'],
+      ['SUM(B1:B2)', 1.5, '=SUM(#REF!)'],
     ]);
 
     hot.getPlugin('columnSorting').sort({
@@ -2314,17 +2321,102 @@ describe('Formulas general', () => {
     });
 
     expect(hot.getData()).toEqual([
-      ['B1+B2', 5.03],
-      ['B1', 3.9],
-      ['B2', 1.13]
+      ['B1', 99, '#REF!'],
+      ['B2', 3.5, 1.5],
+      ['SUM(B1:B2)', 1.5, '#REF!'],
+    ]);
+
+    // Currently chosen approach, please keep in mind that it could be changed to represent pure source data
+    // (the same as at the start).
+    expect(getSourceData()).toEqual([
+      ['B2', 3.5, '=B3'],
+      ['B1', 99, '=#REF!'],
+      ['SUM(B1:B2)', 1.5, '=SUM(#REF!)'],
     ]);
 
     hot.getPlugin('columnSorting').clearSort();
 
     expect(hot.getData()).toEqual([
-      ['B1', 3.9],
-      ['B2', 1.13],
-      ['B1+B2', 5.03]
+      ['B2', 3.5, 99],
+      ['B1', 99, '#REF!'],
+      ['SUM(B1:B2)', 1.5, '#REF!'],
+    ]);
+
+    // Currently chosen approach, please keep in mind that it could be changed to represent pure source data
+    // (the same as at the start).
+    expect(getSourceData()).toEqual([
+      ['B2', 3.5, '=B2'],
+      ['B1', 99, '=#REF!'],
+      ['SUM(B1:B2)', 1.5, '=SUM(#REF!)'],
+    ]);
+  });
+
+  it('should sort properly when some cell is referencing to element outside the table boundaries', () => {
+    const hot = handsontable({
+      data: [
+        [1, '=A3'],
+        [2, '=A1'],
+        [3, '=A2'],
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      contextMenu: true,
+      formulas: {
+        engine: HyperFormula
+      },
+      columnSorting: true,
+    });
+
+    hot.getPlugin('columnSorting').sort({
+      column: 0,
+      sortOrder: 'asc'
+    });
+
+    expect(getData()).toEqual([
+      [1, 3],
+      [2, 1],
+      [3, 2],
+    ]);
+
+    expect(getSourceData()).toEqual([
+      [1, '=A3'],
+      [2, '=A1'],
+      [3, '=A2'],
+    ]);
+
+    hot.getPlugin('columnSorting').sort({
+      column: 0,
+      sortOrder: 'desc'
+    });
+
+    expect(getData()).toEqual([
+      [3, '#REF!'],
+      [2, 3],
+      [1, 0],
+    ]);
+
+    // Currently chosen approach, please keep in mind that it could be changed to represent pure source data
+    // (the same as at the start).
+    expect(getSourceData()).toEqual([
+      [1, '=A5'],
+      [2, '=A1'],
+      [3, '=#REF!'],
+    ]);
+
+    hot.getPlugin('columnSorting').clearSort();
+
+    expect(getData()).toEqual([
+      [1, 3],
+      [2, 1],
+      [3, '#REF!'],
+    ]);
+
+    // Currently chosen approach, please keep in mind that it could be changed to represent pure source data
+    // (the same as at the start).
+    expect(getSourceData()).toEqual([
+      [1, '=A3'],
+      [2, '=A1'],
+      [3, '=#REF!'],
     ]);
   });
 
@@ -2794,6 +2886,37 @@ describe('Formulas general', () => {
   });
 
   describe('handling dates', () => {
+    it('should handle date functions properly', () => {
+      handsontable({
+        data: [
+          ['=DATE(2022, 8, 1)', '=DATEVALUE("01/03/2020")'],
+          ['=EDATE(A1, 1)', '=DAYS(A1, A2)'],
+          ['=A2', '=DATEDIF(TODAY(), NOW(), "D")'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'MM/DD/YYYY'
+        }, {
+          type: 'numeric'
+        }],
+      });
+
+      expect(getData()).toEqual([
+        ['08/01/2022', 43891], // A Datestring handled using HF's `dateFormats` option.
+        ['09/01/2022', -31],
+        ['09/01/2022', 0],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['=DATE(2022, 8, 1)', '=DATEVALUE("01/03/2020")'],
+        ['=EDATE(A1, 1)', '=DAYS(A1, A2)'],
+        ['=A2', '=DATEDIF(TODAY(), NOW(), "D")'],
+      ]);
+    });
+
     it('should handle improper on start dates properly (mismatching date formatting) #1', async() => {
       handsontable({
         data: [

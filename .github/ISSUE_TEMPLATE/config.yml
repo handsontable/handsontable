@@ -1,0 +1,10 @@
+contact_links:
+  - name: Feature requests and questions
+    url: https://github.com/handsontable/handsontable/discussions
+    about: Start a new discussion about your idea.
+  - name: Discuss on Forum
+    url: https://forum.handsontable.com/
+    about: Start a discussion with the community on our Developers’ Forum.
+  - name: Support request
+    url: https://handsontable.com/contact?category=technical_support
+    about: Report your issue to our technical support team.

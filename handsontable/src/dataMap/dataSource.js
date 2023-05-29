@@ -187,7 +187,7 @@ class DataSource {
     if (this.hot.hasHook('modifySourceData')) {
       const valueHolder = createObjectPropListener(value);
 
-      this.hot.runHooks('modifySourceData', row, this.propToCol(column), valueHolder, 'set');
+      this.hot.runHooks('modifySourceData', row, column, valueHolder, 'set');
 
       if (valueHolder.isTouched()) {
         value = valueHolder.value;
@@ -230,7 +230,7 @@ class DataSource {
     if (this.hot.hasHook('modifySourceData')) {
       const valueHolder = createObjectPropListener(result);
 
-      this.hot.runHooks('modifySourceData', row, this.colToProp(column), valueHolder, 'get');
+      this.hot.runHooks('modifySourceData', row, column, valueHolder, 'get');
 
       if (valueHolder.isTouched()) {
         result = valueHolder.value;
@@ -244,13 +244,13 @@ class DataSource {
    * Returns a single value from the data.
    *
    * @param {number} row Physical row index.
-   * @param {number} column Visual column index.
+   * @param {number} columnOrProp Visual column index or property.
    * @returns {*}
    */
-  getAtCell(row, column) {
+  getAtCell(row, columnOrProp) {
     const dataRow = this.modifyRowData(row);
 
-    return this.getAtPhysicalCell(row, this.colToProp(column), dataRow);
+    return this.getAtPhysicalCell(row, this.colToProp(columnOrProp), dataRow);
   }
 
   /**
