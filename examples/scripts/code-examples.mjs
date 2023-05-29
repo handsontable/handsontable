@@ -29,7 +29,19 @@ const getExamplesFolders = (dirPath, exampleFolders, onlyWorkspaceConfigs = fals
   exampleFolders = exampleFolders || [];
 
   files.forEach((file) => {
-    if (file !== '.cache' && file !== 'node_modules' && fs.statSync(path.join(dirPath, file)).isDirectory()) {
+    if (
+      file !== '.cache' &&
+      file !== 'node_modules' &&
+
+      // TODO: IMPORTANT! Remove this after fixing the issue described in https://github.com/handsontable/dev-handsontable/issues/1292
+      (
+        hotVersion === 'next' &&
+        file !== 'angular'
+      ) &&
+      // ------------------------------------------------------------------------------------------------------
+
+      fs.statSync(path.join(dirPath, file)).isDirectory()
+    ) {
       exampleFolders = getExamplesFolders(path.join(dirPath, file), exampleFolders, onlyWorkspaceConfigs);
       return;
     }

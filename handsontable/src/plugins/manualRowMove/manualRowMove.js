@@ -1,7 +1,7 @@
 import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
 import { arrayReduce } from '../../helpers/array';
-import { addClass, removeClass, offset } from '../../helpers/dom/element';
+import { addClass, removeClass, offset, getTrimmingContainer } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import EventManager from '../../eventManager';
 import BacklightUI from './ui/backlight';
@@ -159,6 +159,8 @@ export class ManualRowMove extends BasePlugin {
   /**
    * Moves a single row.
    *
+   * To see the outcome, rerender your grid by calling [`render()`](@/api/core.md#render).
+   *
    * @param {number} row Visual row index to be moved.
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
    * To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md#drag-and-move-actions-of-manualrowmove-plugin).
@@ -171,7 +173,9 @@ export class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Moves a multiple rows.
+   * Moves multiple rows.
+   *
+   * To see the outcome, rerender your grid by calling [`render()`](@/api/core.md#render).
    *
    * @param {Array} rows Array of visual row indexes to be moved.
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
@@ -432,45 +436,62 @@ export class ManualRowMove extends BasePlugin {
 
     const wtTable = this.hot.view._wt.wtTable;
     const TD = priv.target.TD;
-    const rootElementOffset = offset(this.hot.rootElement);
-    let tdOffsetTop = this.hot.view.THEAD.offsetHeight + this.getRowsHeight(0, coords.row - 1);
-    const mouseOffsetTop = priv.target.eventPageY - rootElementOffset.top + wtTable.holder.scrollTop;
+    const rootElement = this.hot.rootElement;
+    const rootElementOffset = offset(rootElement);
+    const trimmingContainer = getTrimmingContainer(rootElement);
+    const tableScroll = wtTable.holder.scrollTop;
+    let trimmingContainerScroll;
+
+    // Trimming container is the `window` element.
+    if (this.hot.rootWindow === trimmingContainer) {
+      trimmingContainerScroll = trimmingContainer.scrollY;
+
+    } else {
+      trimmingContainerScroll = trimmingContainer.scrollTop;
+    }
+
+    const pixelsAbove = rootElementOffset.top - trimmingContainerScroll;
+    const pixelsRelToTableStart = priv.target.eventPageY - pixelsAbove + tableScroll;
     const hiderHeight = wtTable.hider.offsetHeight;
     const tbodyOffsetTop = wtTable.TBODY.offsetTop;
     const backlightElemMarginTop = this.backlight.getOffset().top;
     const backlightElemHeight = this.backlight.getSize().height;
+    const tdMiddle = (TD.offsetHeight / 2);
+    const tdHeight = TD.offsetHeight;
+    let tdStartPixel = this.hot.view.THEAD.offsetHeight + this.getRowsHeight(0, coords.row - 1);
+    const isBelowTable = pixelsRelToTableStart >= tdStartPixel + tdMiddle;
 
     if (this.isFixedRowTop(coords.row)) {
-      tdOffsetTop += wtTable.holder.scrollTop;
+      tdStartPixel += wtTable.holder.scrollTop;
     }
 
     if (coords.row < 0) {
       // if hover on colHeader
       priv.target.row = firstVisible > 0 ? firstVisible - 1 : firstVisible;
-    } else if ((TD.offsetHeight / 2) + tdOffsetTop <= mouseOffsetTop) {
+    } else if (isBelowTable) {
       // if hover on lower part of TD
       priv.target.row = coords.row + 1;
       // unfortunately first row is bigger than rest
-      tdOffsetTop += coords.row === 0 ? TD.offsetHeight - 1 : TD.offsetHeight;
+      tdStartPixel += coords.row === 0 ? tdHeight - 1 : tdHeight;
 
     } else {
       // elsewhere on table
       priv.target.row = coords.row;
     }
 
-    let backlightTop = mouseOffsetTop;
-    let guidelineTop = tdOffsetTop;
+    let backlightTop = pixelsRelToTableStart;
+    let guidelineTop = tdStartPixel;
 
-    if (mouseOffsetTop + backlightElemHeight + backlightElemMarginTop >= hiderHeight) {
+    if (pixelsRelToTableStart + backlightElemHeight + backlightElemMarginTop >= hiderHeight) {
       // prevent display backlight below table
       backlightTop = hiderHeight - backlightElemHeight - backlightElemMarginTop;
 
-    } else if (mouseOffsetTop + backlightElemMarginTop < tbodyOffsetTop) {
+    } else if (pixelsRelToTableStart + backlightElemMarginTop < tbodyOffsetTop) {
       // prevent display above below table
       backlightTop = tbodyOffsetTop + Math.abs(backlightElemMarginTop);
     }
 
-    if (tdOffsetTop >= hiderHeight - 1) {
+    if (tdStartPixel >= hiderHeight - 1) {
       // prevent display guideline below table
       guidelineTop = hiderHeight - 1;
     }

@@ -95,7 +95,7 @@ describe('Core.setSourceDataAtCell', () => {
     setSourceDataAtCell(0, 'foo', 'foo2');
 
     expect(argumentHistory[0][0]).toEqual(0);
-    expect(argumentHistory[0][1]).toEqual(0);
+    expect(argumentHistory[0][1]).toEqual('foo');
     expect(argumentHistory[0][2].value).toEqual('foo2');
     expect(argumentHistory[0][3]).toEqual('set');
   });

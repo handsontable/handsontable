@@ -56,6 +56,13 @@ registerAllModules();
 export class AppModule { }
 ```
 
+::: tip
+
+You can reduce the size of your bundle by importing and registering only the
+[modules](@/guides/integrate-with-angular/angular-modules.md) that you need.
+
+:::
+
 Now, you can use the Handsontable component in your HTML files.
 
 ```html

@@ -193,6 +193,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: Handsoncode
+ * Last updated: Nov 15, 2017
+ *
+ * Description: Definition file for English - United States language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'en-US'
