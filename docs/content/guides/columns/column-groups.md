@@ -2,9 +2,7 @@
 id: k4mb003v
 title: Column groups
 metaTitle: Column groups - JavaScript Data Grid | Handsontable
-description:
-  Group your columns, using multiple levels of nested column headers, to better reflect the
-  structure of your data.
+description: Group your columns, using multiple levels of nested column headers, to better reflect the structure of your data.
 permalink: /column-groups
 canonicalUrl: /column-groups
 tags:
@@ -20,20 +18,16 @@ searchCategory: Guides
 
 # Column groups
 
-Group your columns, using multiple levels of nested column headers, to better reflect the structure
-of your data.
+Group your columns, using multiple levels of nested column headers, to better reflect the structure of your data.
 
 [[toc]]
 
 ## Nested column headers
 
-The [`NestedHeaders`](@/api/nestedHeaders.md) plugin allows you to create a nested headers structure
-by using the `colspan` attribute.
+The [`NestedHeaders`](@/api/nestedHeaders.md) plugin allows you to create a nested headers structure by using the `colspan` attribute.
 
-To create a header that spans multiple columns, its corresponding configuration array element should
-be provided as an object with `label` and `colspan` properties. The `label` property defines the
-header's label, while the `colspan` property defines the number of columns that the header should
-cover.
+To create a header that spans multiple columns, its corresponding configuration array element should be provided as an object with `label` and `colspan`
+properties. The `label` property defines the header's label, while the `colspan` property defines the number of columns that the header should cover.
 
 ### Configuration
 
@@ -88,7 +82,7 @@ const hot = new Handsontable(container, {
   nestedHeaders: [
     ['A', { label: 'B', colspan: 8 }, 'C'],
     ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
-    ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 },  { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
+    ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
     ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W'],
   ],
   licenseKey: 'non-commercial-and-evaluation',
@@ -146,23 +140,19 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 ## Collapsible headers
 
-The [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin enables columns and their headers to
-be collapsed/expanded.
+The [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin enables columns and their headers to be collapsed/expanded.
 
-This plugin adds multi-column headers which have buttons. Clicking these buttons will collapse or
-expand all "child" headers, leaving the first one visible.
+This plugin adds multi-column headers which have buttons. Clicking these buttons will collapse or expand all "child" headers, leaving the first one visible.
 
 The [`NestedHeaders`](@/api/nestedHeaders.md) plugin needs to be enabled for this to work properly.
 
 ### Configuration
 
-To enable the Collapsible Columns plugin, either set the
-[`collapsibleColumns`](@/api/options.md#collapsiblecolumns) configuration option to:
+To enable the Collapsible Columns plugin, either set the [`collapsibleColumns`](@/api/options.md#collapsiblecolumns) configuration option to:
 
-- `true` - this will enable the functionality for _all_ multi-column headers, every column with the
-  `colspan` attribute defined will be extended with the "expand/collapse" button
-- An array of objects containing information specifying which headers should have the
-  "expand/collapse" buttons for example:
+- `true` - this will enable the functionality for _all_ multi-column headers, every column with the `colspan` attribute defined will be extended with the
+  "expand/collapse" button
+- An array of objects containing information specifying which headers should have the "expand/collapse" buttons for example:
 
 ::: only-for javascript
 
@@ -283,7 +273,8 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 
 ## Known limitations
 
-- A column header can span up to 1000 columns, as the [HTML table specification](https://html.spec.whatwg.org/multipage/tables.html#dom-tdth-colspan) sets the limit of `colspan` to `1000`.
+- A column header can span up to 1000 columns, as the [HTML table specification](https://html.spec.whatwg.org/multipage/tables.html#dom-tdth-colspan) sets the
+  limit of `colspan` to `1000`.
 - A nested column header can't be wider than its parent element (headers can't overlap).
 
 ## Related API reference
