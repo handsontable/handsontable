@@ -43,14 +43,7 @@ cover.
 nestedHeaders: [
   ['A', { label: 'B', colspan: 8 }, 'C'],
   ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
-  [
-    'H',
-    { label: 'I', colspan: 2 },
-    { label: 'J', colspan: 2 },
-    { label: 'K', colspan: 2 },
-    { label: 'L', colspan: 2 },
-    'M',
-  ],
+  ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
   ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W'],
 ];
 ```
