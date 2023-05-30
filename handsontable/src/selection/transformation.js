@@ -3,7 +3,7 @@ import localHooks from './../mixins/localHooks';
 
 /**
  * The Transformation class implements algorithms for transforming coordinates based on current settings
- * passed to the Handsontable.
+ * passed to the Handsontable. The class performs the calculations based on the renderable indexes.
  *
  * Transformation is always applied relative to the current selection.
  *
@@ -38,7 +38,7 @@ class Transformation {
   }
 
   /**
-   * Selects cell relative to current cell (if possible).
+   * Selects cell relative to the current cell (if possible).
    *
    * @param {number} rowDelta Rows number to move, value can be passed as negative number.
    * @param {number} colDelta Columns number to move, value can be passed as negative number.
@@ -54,15 +54,15 @@ class Transformation {
 
     const delta = this.#options.createCellCoords(rowDelta, colDelta);
     let visualCoords = this.#range.current().highlight;
-    const zeroBasedPosition = this.#getVisualCoordsZeroBasedPosition(visualCoords);
+    const highlightRenderableCoords = this.#options.visualToRenderableCoords(visualCoords);
     let rowTransformDir = 0;
     let colTransformDir = 0;
 
     this.runLocalHooks('beforeTransformStart', delta);
 
-    if (zeroBasedPosition !== null) {
+    if (highlightRenderableCoords.row !== null && highlightRenderableCoords.col !== null) {
       const { width, height } = this.#getTableSize();
-      const { x, y } = zeroBasedPosition;
+      const { x, y } = this.#visualToZeroBasedCoords(visualCoords);
       const fixedRowsBottom = this.#options.fixedRowsBottom();
       const minSpareRows = this.#options.minSpareRows();
       const minSpareCols = this.#options.minSpareCols();
@@ -128,7 +128,7 @@ class Transformation {
   }
 
   /**
-   * Sets selection end cell relative to current selection end cell (if possible).
+   * Sets selection end cell relative to the current selection end cell (if possible).
    *
    * @param {number} rowDelta Rows number to move, value can be passed as negative number.
    * @param {number} colDelta Columns number to move, value can be passed as negative number.
@@ -136,21 +136,21 @@ class Transformation {
    */
   transformEnd(rowDelta, colDelta) {
     this.#setOffsetSize({
-      x: 0,
-      y: 0,
+      x: this.#options.navigableHeaders() ? this.#options.countRowHeaders() : 0,
+      y: this.#options.navigableHeaders() ? this.#options.countColHeaders() : 0,
     });
 
     const delta = this.#options.createCellCoords(rowDelta, colDelta);
     const cellRange = this.#range.current();
-    let visualCoords = cellRange.to;
-    const zeroBasedPosition = this.#getVisualCoordsZeroBasedPosition(cellRange.highlight);
+    const highlightRenderableCoords = this.#options.visualToRenderableCoords(cellRange.highlight);
+    const visualCoords = cellRange.to.clone();
     let rowTransformDir = 0;
     let colTransformDir = 0;
 
     this.runLocalHooks('beforeTransformEnd', delta);
 
-    if (zeroBasedPosition !== null) {
-      const { x, y } = this.#getVisualCoordsZeroBasedPosition(cellRange.to);
+    if (highlightRenderableCoords.row !== null && highlightRenderableCoords.col !== null) {
+      const { x, y } = this.#visualToZeroBasedCoords(cellRange.to);
       const rawCoords = {
         row: y + delta.row,
         col: x + delta.col,
@@ -160,7 +160,19 @@ class Transformation {
 
       rowTransformDir = rowDir;
       colTransformDir = colDir;
-      visualCoords = this.#zeroBasedToVisualCoords(coords);
+
+      const newVisualCoords = this.#zeroBasedToVisualCoords(coords);
+
+      if (delta.row === 0 && delta.col !== 0) {
+        visualCoords.col = newVisualCoords.col;
+
+      } else if (delta.row !== 0 && delta.col === 0) {
+        visualCoords.row = newVisualCoords.row;
+
+      } else {
+        visualCoords.row = newVisualCoords.row;
+        visualCoords.col = newVisualCoords.col;
+      }
     }
 
     this.runLocalHooks('afterTransformEnd', visualCoords, rowTransformDir, colTransformDir);
@@ -224,35 +236,31 @@ class Transformation {
   }
 
   /**
-   * Gets the zero-based highlight position.
+   * Translates the visual coordinates to zero-based ones.
    *
    * @param {CellCoords} visualCoords The visual coords to process.
    * @returns {{x: number, y: number}}
    */
-  #getVisualCoordsZeroBasedPosition(visualCoords) {
+  #visualToZeroBasedCoords(visualCoords) {
     const { row, col } = this.#options.visualToRenderableCoords(visualCoords);
 
-    if (row === null || col === null) {
-      return null;
-    }
-
     return {
-      x: this.#offset.x + col,
-      y: this.#offset.y + row,
+      x: this.#offset.x + (col ?? visualCoords.col),
+      y: this.#offset.y + (row ?? visualCoords.row),
     };
   }
 
   /**
    * Translates the zero-based coordinates to visual ones.
    *
-   * @param {CellCoords} coords The coordinates to process.
+   * @param {CellCoords} zeroBasedCoords The coordinates to process.
    * @returns {CellCoords}
    */
-  #zeroBasedToVisualCoords(coords) {
-    coords.col = coords.col - this.#offset.x;
-    coords.row = coords.row - this.#offset.y;
+  #zeroBasedToVisualCoords(zeroBasedCoords) {
+    zeroBasedCoords.col = zeroBasedCoords.col - this.#offset.x;
+    zeroBasedCoords.row = zeroBasedCoords.row - this.#offset.y;
 
-    return this.#options.renderableToVisualCoords(coords);
+    return this.#options.renderableToVisualCoords(zeroBasedCoords);
   }
 }
 

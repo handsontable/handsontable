@@ -4222,6 +4222,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.selectColumns('id');
    * // Select range of columns using visual indexes.
    * hot.selectColumns(1, 4);
+   * // Select range of columns using visual indexes and mark the header as highlighted.
+   * hot.selectColumns(1, 2, -1);
    * // Select range of columns using column properties.
    * hot.selectColumns('id', 'last_name');
    * ```
@@ -4232,10 +4234,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {number} startColumn The visual column index from which the selection starts.
    * @param {number} [endColumn=startColumn] The visual column index to which the selection finishes. If `endColumn`
    *                                         is not defined the column defined by `startColumn` will be selected.
+   * @param {number} [headerLevel=0] The header level allows changing the cell/header highlight position. The value can
+   *                                 take 0 to -N, where 0 means highlighting the cell nearest the column header, -1
+   *                                 means the highlighting header starting from the header closest to the cells.
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
-  this.selectColumns = function(startColumn, endColumn = startColumn) {
-    return selection.selectColumns(startColumn, endColumn);
+  this.selectColumns = function(startColumn, endColumn = startColumn, headerLevel) {
+    return selection.selectColumns(startColumn, endColumn, headerLevel);
   };
 
   /**
@@ -4247,6 +4252,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.selectRows(1);
    * // Select range of rows using visual indexes.
    * hot.selectRows(1, 4);
+   * // Select range of rows using visual indexes and mark the header as highlighted.
+   * hot.selectRows(1, 2, -1);
    * ```
    *
    * @memberof Core#
@@ -4255,10 +4262,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {number} startRow The visual row index from which the selection starts.
    * @param {number} [endRow=startRow] The visual row index to which the selection finishes. If `endRow`
    *                                   is not defined the row defined by `startRow` will be selected.
+   * @param {number} [headerLevel=0] The header level allows changing the cell/header highlight position. The value can
+   *                                 take 0 to -N, where 0 means highlighting the cell nearest the row header, -1
+   *                                 means the highlighting header starting from the header closest to the cells.
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
-  this.selectRows = function(startRow, endRow = startRow) {
-    return selection.selectRows(startRow, endRow);
+  this.selectRows = function(startRow, endRow = startRow, headerLevel) {
+    return selection.selectRows(startRow, endRow, headerLevel);
   };
 
   /**

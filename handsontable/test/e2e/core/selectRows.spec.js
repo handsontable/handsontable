@@ -18,25 +18,31 @@ describe('Core.selectRows', () => {
     spyOn(hot.selection, 'selectRows').and.returnValue('return value');
 
     expect(selectRows()).toBe('return value');
-    expect(hot.selection.selectRows).toHaveBeenCalledWith(undefined, undefined);
+    expect(hot.selection.selectRows).toHaveBeenCalledWith(undefined, undefined, undefined);
     expect(hot.selection.selectRows).toHaveBeenCalledTimes(1);
 
     hot.selection.selectRows.calls.reset();
 
     expect(selectRows(4)).toBe('return value');
-    expect(hot.selection.selectRows).toHaveBeenCalledWith(4, 4);
+    expect(hot.selection.selectRows).toHaveBeenCalledWith(4, 4, undefined);
     expect(hot.selection.selectRows).toHaveBeenCalledTimes(1);
 
     hot.selection.selectRows.calls.reset();
 
     expect(selectRows(2, 3)).toBe('return value');
-    expect(hot.selection.selectRows).toHaveBeenCalledWith(2, 3);
+    expect(hot.selection.selectRows).toHaveBeenCalledWith(2, 3, undefined);
     expect(hot.selection.selectRows).toHaveBeenCalledTimes(1);
 
     hot.selection.selectRows.calls.reset();
 
     expect(selectRows(2, 3, -1)).toBe('return value');
-    expect(hot.selection.selectRows).toHaveBeenCalledWith(2, 3);
+    expect(hot.selection.selectRows).toHaveBeenCalledWith(2, 3, -1);
+    expect(hot.selection.selectRows).toHaveBeenCalledTimes(1);
+
+    hot.selection.selectRows.calls.reset();
+
+    expect(selectRows(2, 3, -1, 1)).toBe('return value');
+    expect(hot.selection.selectRows).toHaveBeenCalledWith(2, 3, -1);
     expect(hot.selection.selectRows).toHaveBeenCalledTimes(1);
   });
 });

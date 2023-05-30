@@ -736,10 +736,9 @@ class Selection {
    *
    * @param {number|string} startColumn Visual column index or column property from which the selection starts.
    * @param {number|string} [endColumn] Visual column index or column property from to the selection finishes.
-   * @param {number} [headerLevel=0] A row header index that triggers the column selection. The value can
-   *                                 take 0 to -N, where 0 means cells, -1 means the header closest to the cells
-   *                                 and so on.
-   *
+   * @param {number} [headerLevel=0] The header level allows changing the cell/header highlight position. The value can
+   *                                 take 0 to -N, where 0 means highlighting the cell nearest the column header, -1
+   *                                 means the highlighting header starting from the header closest to the cells.
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
   selectColumns(startColumn, endColumn = startColumn, headerLevel = 0) {
@@ -779,9 +778,9 @@ class Selection {
    *
    * @param {number} startRow Visual row index from which the selection starts.
    * @param {number} [endRow] Visual row index from to the selection finishes.
-   * @param {number} [headerLevel=0] A columns header index that triggers the row selection. The value can
-   *                                 take 0 to -N, where 0 means cells, -1 means the header closest to the cells
-   *                                 and so on.
+   * @param {number} [headerLevel=0] The header level allows changing the cell/header highlight position. The value can
+   *                                 take 0 to -N, where 0 means highlighting the cell nearest the row header, -1
+   *                                 means the highlighting header starting from the header closest to the cells.
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
   selectRows(startRow, endRow = startRow, headerLevel = 0) {

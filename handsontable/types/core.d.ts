@@ -136,8 +136,8 @@ export default class Core {
   selectCell(row: number, col: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean): boolean;
   selectCellByProp(row: number, prop: string, endRow?: number, endProp?: string, scrollToCell?: boolean): boolean;
   selectCells(coords: Array<[number, number | string, number, number | string]> | CellRange[], scrollToCell?: boolean, changeListener?: boolean): boolean;
-  selectColumns(startColumn: number | string, endColumn?: number | string): boolean;
-  selectRows(startRow: number, endRow?: number): boolean;
+  selectColumns(startColumn: number | string, endColumn?: number | string, headerLevel?: number): boolean;
+  selectRows(startRow: number, endRow?: number, headerLevel?: number): boolean;
   setCellMeta(row: number, col: number, key: string, val: any): void;
   setCellMeta<K extends keyof CellMeta>(row: number, col: number, key: K, val: CellMeta[K]): void;
   setCellMetaObject(row: number, col: number, prop: CellMeta): void;
