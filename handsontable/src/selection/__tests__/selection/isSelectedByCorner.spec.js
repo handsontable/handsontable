@@ -79,6 +79,11 @@ describe('Selection', () => {
       expect(hot.selection.isSelectedByCorner()).toBe(false);
 
       hot.selection.deselect();
+      hot.selection.selectCells([[-1, -1, -1, -1]]);
+
+      expect(hot.selection.isSelectedByCorner()).toBe(false);
+
+      hot.selection.deselect();
       hot.selection.selectCells([[2, 2, 2, 2]]);
 
       expect(hot.selection.isSelectedByCorner()).toBe(false);

@@ -7,6 +7,12 @@ import localHooks from './../mixins/localHooks';
  *
  * Transformation is always applied relative to the current selection.
  *
+ * The class operates on a table size defined by the renderable indexes. If the `navigableHeaders`
+ * option is enabled, the table size is increased by the number of row and/or column headers.
+ * Because the headers are treated as cells as part of the table size (indexes always go from 0 to N),
+ * the algorithm can be written as simply as possible (without new if's that distinguish the headers
+ * logic).
+ *
  * @class Transformation
  * @util
  */

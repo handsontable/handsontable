@@ -226,10 +226,13 @@ class Selection {
     const coordsClone = coords.clone();
     const countRows = this.tableProps.countRows();
     const countCols = this.tableProps.countCols();
+    const isSingle = this.selectedRange.current().clone().setTo(coords).isSingleHeader();
 
-    // Ignore processing the end range when the header selection starts overlapping the corner.
+    // Ignore processing the end range when the header selection starts overlapping the corner and
+    // the selection is not a single header highlight.
     if ((countRows > 0 || countCols > 0) &&
-       (countRows === 0 && coordsClone.col < 0 || countCols === 0 && coordsClone.row < 0)) {
+       (countRows === 0 && coordsClone.col < 0 && !isSingle ||
+        countCols === 0 && coordsClone.row < 0 && !isSingle)) {
       return;
     }
 
@@ -373,9 +376,11 @@ class Selection {
       }
 
       const highlightRowHeaders = this.isEntireRowSelected() &&
-        this.tableProps.countCols() === cellRange.getWidth();
+        (countCols > 0 && countCols === cellRange.getWidth() ||
+        countCols === 0 && (this.isSelectedByRowHeader() || this.isSelectedByCorner()));
       const highlightColumnHeaders = this.isEntireColumnSelected() &&
-        this.tableProps.countRows() === cellRange.getHeight();
+        (countRows > 0 && countRows === cellRange.getHeight() ||
+        countRows === 0 && (this.isSelectedByColumnHeader() || this.isSelectedByCorner()));
 
       if (highlightRowHeaders) {
         activeRowHeaderHighlight
@@ -555,13 +560,8 @@ class Selection {
    * @returns {boolean}
    */
   isSelectedByCorner() {
-    const range = this.selectedRange.current();
-
-    if (!range) {
-      return false;
-    }
-
-    return range.from.row < 0 && range.from.col < 0;
+    return this.selectedByColumnHeader.has(this.getLayerLevel()) &&
+      this.selectedByRowHeader.has(this.getLayerLevel());
   }
 
   /**

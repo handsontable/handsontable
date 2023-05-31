@@ -91,6 +91,25 @@ describe('Selection navigation', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: -1,2']);
     });
 
+    it('should move the header selection to the right from the corner when there is no rows (navigableHeaders on)', () => {
+      handsontable({
+        data: [],
+        columns: [{}, {}, {}, {}, {}],
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, -1);
+      keyDownUp('arrowright');
+
+      expect(`
+        |   ║ # :   :   :   :   |
+        |===:===:===:===:===:===|
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,0 from: -1,0 to: -1,0']);
+    });
+
     it('should move the header selection to the right when all rows are hidden (navigableHeaders on)', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
@@ -423,6 +442,25 @@ describe('Selection navigation', () => {
       keyDownUp('arrowleft');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: -1,2']);
+    });
+
+    it('should move the header selection to the left to the corner when there is no rows (navigableHeaders on)', () => {
+      handsontable({
+        data: [],
+        columns: [{}, {}, {}, {}, {}],
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, 0);
+      keyDownUp('arrowleft');
+
+      expect(`
+        | # ║   :   :   :   :   |
+        |===:===:===:===:===:===|
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,-1 from: -1,-1 to: -1,-1']);
     });
 
     it('should move the header selection to the left when all rows are hidden (navigableHeaders on)', () => {
