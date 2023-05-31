@@ -4287,8 +4287,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * The previous selection is overwritten.
    *
    * ```js
-   * // select all cells in the table, including all headers
+   * // select all cells in the table, including all headers with corner
    * hot.selectAll();
+   *
+   * // select all cells in the table, including row headers without corner
+   * hot.selectAll(true, false);
+   *
+   * // select all cells in the table, including all headers with corner but move the focus
+   * // highlight to position -2,-1
+   * hot.selectAll(-2, -1);
    *
    * // select all cells in the table, without headers
    * hot.selectAll(false);
@@ -4297,12 +4304,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @since 0.38.2
    * @memberof Core#
    * @function selectAll
-   * @param {boolean} [includeHeaders=true] `true`: include all row, column and corner headers.
+   * @param {boolean|number} [rowHeaderLevel=true] `true`: include all row headers.
+   * @param {boolean|number} [columnHeaderLevel=true] `true`: include all column headers.
    * `false`: don't include any headers.
    */
-  this.selectAll = function(includeHeaders = true) {
+  this.selectAll = function(rowHeaderLevel = true, columnHeaderLevel = rowHeaderLevel) {
     preventScrollingToCell = true;
-    selection.selectAll(includeHeaders, includeHeaders);
+    selection.selectAll(rowHeaderLevel, columnHeaderLevel);
     preventScrollingToCell = false;
   };
 

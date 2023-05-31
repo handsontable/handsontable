@@ -26,6 +26,18 @@ describe('Core.selectAll', () => {
 
     expect(hot.selection.selectAll).toHaveBeenCalledWith(false, false);
     expect(hot.selection.selectAll).toHaveBeenCalledTimes(1);
+
+    hot.selection.selectAll.calls.reset();
+    selectAll(true, false);
+
+    expect(hot.selection.selectAll).toHaveBeenCalledWith(true, false);
+    expect(hot.selection.selectAll).toHaveBeenCalledTimes(1);
+
+    hot.selection.selectAll.calls.reset();
+    selectAll(-2, -1);
+
+    expect(hot.selection.selectAll).toHaveBeenCalledWith(-2, -1);
+    expect(hot.selection.selectAll).toHaveBeenCalledTimes(1);
   });
 
   it('should not scroll the viewport when all cells without headers are selected', () => {
