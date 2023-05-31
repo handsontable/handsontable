@@ -152,7 +152,9 @@ class VisualSelection extends Selection {
     const coordsFrom = broaderCellRange.from.clone().normalize();
     const rowDirection = broaderCellRange.getVerticalDirection() === 'N-S' ? 1 : -1;
     const columnDirection = broaderCellRange.getHorizontalDirection() === 'W-E' ? 1 : -1;
-    const cellCoordsVisual = this.getNearestNotHiddenCoords(coordsFrom, rowDirection, columnDirection);
+    const isHighlightRenderable = this.settings.visualToRenderableCoords(broaderCellRange.highlight);
+    const cellCoordsVisual = isHighlightRenderable === null ?
+      this.getNearestNotHiddenCoords(coordsFrom, rowDirection, columnDirection) : null;
 
     if (cellCoordsVisual !== null && broaderCellRange.overlaps(cellCoordsVisual)) {
       const currentHighlight = broaderCellRange.highlight.clone();

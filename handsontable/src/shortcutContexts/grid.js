@@ -41,6 +41,14 @@ export function shortcutsGridContext(hot) {
     callback: () => commandsPool.populateSelectedCellsData(),
     runOnlyIf: () => hot.getSelectedRangeLast().getCellsCount() > 1,
   }, {
+    keys: [['Control', 'Space']],
+    captureCtrl: true,
+    callback: () => commandsPool.extendCellsSelectionToColumns(),
+  }, {
+    keys: [['Shift', 'Space']],
+    stopPropagation: true,
+    callback: () => commandsPool.extendCellsSelectionToRows(),
+  }, {
     keys: [['ArrowUp']],
     callback: () => commandsPool.moveCellSelectionUp(),
   }, {

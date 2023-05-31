@@ -624,39 +624,39 @@ class Selection {
   /**
    * Selects all cells and headers.
    *
-   * @param {number|boolean} [rowHeaderLevel=false] If passed as `true`, it selects all row headers.
-   * If a value is passed as a number (from -1 to -N), then it additionally allows moving the cell
-   * focus (highlight) to the header (available when the `navigableHeaders` is enabled).
-   * @param {number|boolean} [columnHeaderLevel=false] If passed as `true`, it selects all column headers.
-   * If a value is passed as a number (from -1 to -N), then it additionally allows moving the cell
-   * focus (highlight) to the header (available when the `navigableHeaders` is enabled).
+   * @param {boolean} [includeRowHeaders=false] `true` If the selection should include the row headers,
+   * `false` otherwise.
+   * @param {boolean} [includeColumnHeaders=false] `true` If the selection should include the column
+   * headers, `false` otherwise.
+   * @param {{row: number, col: number}} [highlightPosition] The argument allows changing the cell/header
+   * highlight position. The value takes an object with a `row` and `col` properties from -N to N, where
+   * negative values point to the headers and positive values point to the cell range.
    */
-  selectAll(rowHeaderLevel = false, columnHeaderLevel = false) {
+  selectAll(includeRowHeaders = false, includeColumnHeaders = false, highlightPosition = {
+    row: this.tableProps.countRowHeaders() > 0 ? -this.tableProps.countRowHeaders() : 0,
+    col: this.tableProps.countColHeaders() > 0 ? -this.tableProps.countColHeaders() : 0,
+  }) {
     const nrOfRows = this.tableProps.countRows();
     const nrOfColumns = this.tableProps.countCols();
     const countRowHeaders = this.tableProps.countRowHeaders();
     const countColHeaders = this.tableProps.countColHeaders();
 
-    let rowFrom = rowHeaderLevel ? -countColHeaders : 0;
-
-    if (Number.isInteger(rowHeaderLevel)) {
-      rowFrom = clamp(rowHeaderLevel, -countColHeaders, -1);
-    }
-
-    let columnFrom = columnHeaderLevel ? -countRowHeaders : 0;
-
-    if (Number.isInteger(columnHeaderLevel)) {
-      columnFrom = clamp(columnHeaderLevel, -countRowHeaders, -1);
-    }
+    const rowFrom = includeRowHeaders ? -countColHeaders : 0;
+    const columnFrom = includeColumnHeaders ? -countRowHeaders : 0;
 
     // We can't select cells when there is no data.
     if (rowFrom === 0 && columnFrom === 0 && (nrOfRows === 0 || nrOfColumns === 0)) {
       return;
     }
 
-    const startCoords = this.tableProps
-      .createCellCoords(rowFrom < 0 ? -countColHeaders : 0, columnFrom < 0 ? -countRowHeaders : 0);
-    const highlight = this.tableProps.createCellCoords(rowFrom, columnFrom);
+    const highlightRow = Number.isInteger(highlightPosition.row) ? highlightPosition.row : 0;
+    const highlightColumn = Number.isInteger(highlightPosition.col) ? highlightPosition.col : 0;
+    const startCoords = this.tableProps.createCellCoords(rowFrom, columnFrom);
+    const highlight = this.tableProps
+      .createCellCoords(
+        clamp(highlightRow, rowFrom, nrOfRows - 1),
+        clamp(highlightColumn, columnFrom, nrOfColumns - 1)
+      );
     const endCoords = this.tableProps.createCellCoords(nrOfRows - 1, nrOfColumns - 1);
 
     this.clear();
@@ -736,12 +736,12 @@ class Selection {
    *
    * @param {number|string} startColumn Visual column index or column property from which the selection starts.
    * @param {number|string} [endColumn] Visual column index or column property from to the selection finishes.
-   * @param {number} [headerLevel=0] The header level allows changing the cell/header highlight position. The value can
-   *                                 take 0 to -N, where 0 means highlighting the cell nearest the column header, -1
-   *                                 means the highlighting header starting from the header closest to the cells.
+   * @param {number} [focusPosition=0] The argument allows changing the cell/header highlight position.
+   *                                   The value can take visual row index from -N to N, where negative values
+   *                                   point to the headers and positive values point to the cell range.
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
-  selectColumns(startColumn, endColumn = startColumn, headerLevel = 0) {
+  selectColumns(startColumn, endColumn = startColumn, focusPosition = 0) {
     const start = typeof startColumn === 'string' ? this.tableProps.propToCol(startColumn) : startColumn;
     const end = typeof endColumn === 'string' ? this.tableProps.propToCol(endColumn) : endColumn;
     const countRows = this.tableProps.countRows();
@@ -760,9 +760,9 @@ class Selection {
 
     if (isValid) {
       const from = this.tableProps
-        .createCellCoords(countColHeaders === 0 ? 0 : clamp(headerLevel, columnHeaderLastIndex, -1), start);
+        .createCellCoords(countColHeaders === 0 ? 0 : clamp(focusPosition, columnHeaderLastIndex, -1), start);
       const highlight = this.tableProps
-        .createCellCoords(clamp(headerLevel, columnHeaderLastIndex, 0), start);
+        .createCellCoords(clamp(focusPosition, columnHeaderLastIndex, countRows - 1), start);
 
       this.setRangeStartOnly(from, void 0, highlight);
       this.selectedByColumnHeader.add(this.getLayerLevel());
@@ -778,12 +778,12 @@ class Selection {
    *
    * @param {number} startRow Visual row index from which the selection starts.
    * @param {number} [endRow] Visual row index from to the selection finishes.
-   * @param {number} [headerLevel=0] The header level allows changing the cell/header highlight position. The value can
-   *                                 take 0 to -N, where 0 means highlighting the cell nearest the row header, -1
-   *                                 means the highlighting header starting from the header closest to the cells.
+   * @param {number} [focusPosition=0] The argument allows changing the cell/header highlight position.
+   *                                   The value can take visual column index from -N to N, where negative values
+   *                                   point to the headers and positive values point to the cell range.
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
-  selectRows(startRow, endRow = startRow, headerLevel = 0) {
+  selectRows(startRow, endRow = startRow, focusPosition = 0) {
     const countRows = this.tableProps.countRows();
     const countCols = this.tableProps.countCols();
     const countRowHeaders = this.tableProps.countRowHeaders();
@@ -800,9 +800,9 @@ class Selection {
 
     if (isValid) {
       const from = this.tableProps
-        .createCellCoords(startRow, countRowHeaders === 0 ? 0 : clamp(headerLevel, rowHeaderLastIndex, -1));
+        .createCellCoords(startRow, countRowHeaders === 0 ? 0 : clamp(focusPosition, rowHeaderLastIndex, -1));
       const highlight = this.tableProps
-        .createCellCoords(startRow, clamp(headerLevel, rowHeaderLastIndex, 0));
+        .createCellCoords(startRow, clamp(focusPosition, rowHeaderLastIndex, countCols - 1));
 
       this.setRangeStartOnly(from, void 0, highlight);
       this.selectedByRowHeader.add(this.getLayerLevel());
