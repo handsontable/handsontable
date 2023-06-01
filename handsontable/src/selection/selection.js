@@ -137,14 +137,14 @@ class Selection {
   }
 
   /**
-   * Indicate that selection process began. It sets internaly `.inProgress` property to `true`.
+   * Indicate that selection process began. It sets internally `.inProgress` property to `true`.
    */
   begin() {
     this.inProgress = true;
   }
 
   /**
-   * Indicate that selection process finished. It sets internaly `.inProgress` property to `false`.
+   * Indicate that selection process finished. It sets internally `.inProgress` property to `false`.
    */
   finish() {
     this.runLocalHooks('afterSelectionFinished', Array.from(this.selectedRange));
