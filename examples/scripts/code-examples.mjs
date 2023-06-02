@@ -29,7 +29,11 @@ const getExamplesFolders = (dirPath, exampleFolders, onlyWorkspaceConfigs = fals
   exampleFolders = exampleFolders || [];
 
   files.forEach((file) => {
-    if (file !== '.cache' && file !== 'node_modules' && fs.statSync(path.join(dirPath, file)).isDirectory()) {
+    if (
+      file !== '.cache' &&
+      file !== 'node_modules' &&
+      fs.statSync(path.join(dirPath, file)).isDirectory()
+    ) {
       exampleFolders = getExamplesFolders(path.join(dirPath, file), exampleFolders, onlyWorkspaceConfigs);
       return;
     }

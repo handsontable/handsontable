@@ -4,17 +4,25 @@
   "newProjectRoot": "projects",
   "projects": {
     "hot-table": {
+      "projectType": "library",
       "root": "projects/hot-table",
       "sourceRoot": "projects/hot-table/src",
-      "projectType": "library",
       "prefix": "hot",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-ng-packagr:build",
+          "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
-            "tsConfig": "projects/hot-table/tsconfig.lib.json",
             "project": "projects/hot-table/ng-package.json"
-          }
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/hot-table/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/hot-table/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
@@ -28,18 +36,19 @@
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@angular-eslint/builder:lint",
           "options": {
-            "tsConfig": [
-              "projects/hot-table/tsconfig.lib.json",
-              "projects/hot-table/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
+            "lintFilePatterns": [
+              "projects/hot-table/**/*.ts",
+              "projects/hot-table/**/*.html"
             ]
           }
         }
       }
     }
+  },
+  "defaultProject": "hot-table",
+  "cli": {
+    "defaultCollection": "@angular-eslint/schematics"
   }
 }

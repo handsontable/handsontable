@@ -1,11 +1,12 @@
+/* To learn more about this file see: https://angular.io/config/tsconfig. */
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "resolveJsonModule": true,
     "outDir": "../../out-tsc/spec",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
     "types": [
-      "jasmine",
-      "node"
+      "jasmine"
     ]
   },
   "files": [
