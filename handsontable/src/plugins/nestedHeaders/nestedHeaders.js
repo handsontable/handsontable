@@ -3,7 +3,6 @@ import {
   removeClass,
 } from '../../helpers/dom/element';
 import { isNumeric } from '../../helpers/number';
-import { isLeftClick, isRightClick } from '../../helpers/dom/event';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import {
@@ -131,10 +130,8 @@ export class NestedHeaders extends BasePlugin {
 
     this.addHook('init', () => this.onInit());
     this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
-    this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
-    this.addHook('afterOnCellMouseDown', (...args) => this.onAfterOnCellMouseDown(...args));
-    this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
     this.addHook('modifyTransformStart', (...args) => this.onModifyTransformStart(...args));
+    this.addHook('beforeSetRangeEnd', (...args) => this.onBeforeSetRangeEnd(...args));
     this.addHook('afterSelection', () => this.updateFocusHighlightPosition());
     this.addHook('afterGetColumnHeaderRenderers', array => this.onAfterGetColumnHeaderRenderers(array));
     this.addHook('modifyColWidth', (...args) => this.onModifyColWidth(...args));
@@ -500,124 +497,6 @@ export class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Allows blocking the column selection that is controlled by the core Selection module.
-   *
-   * @private
-   * @param {MouseEvent} event Mouse event.
-   * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
-   * @param {CellCoords} TD The table cell or header element.
-   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
-   *                            a boolean value that allows or disallows changing the selection for that particular area.
-   */
-  onBeforeOnCellMouseDown(event, coords, TD, controller) {
-    const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
-
-    if (headerNodeData) {
-      // Block the Selection module in controlling how the columns are selected. Pass the
-      // responsibility of the column selection to this plugin (see "onAfterOnCellMouseDown" hook).
-      controller.column = true;
-    }
-  }
-
-  /**
-   * Allows to control how the column selection based on the coordinates and the nested headers is made.
-   *
-   * @private
-   * @param {MouseEvent} event Mouse event.
-   * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
-   */
-  onAfterOnCellMouseDown(event, coords) {
-    const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
-
-    if (!headerNodeData) {
-      return;
-    }
-
-    const { selection } = this.hot;
-    const currentSelection = selection.isSelected() ? selection.getSelectedRange().current() : null;
-    const columnsToSelect = [];
-    const {
-      columnIndex,
-      origColspan,
-    } = headerNodeData;
-
-    // The Selection module doesn't allow it to extend its behavior easily. That's why here we need
-    // to re-implement the "click" and "shift" behavior. As a workaround, the logic for the nested
-    // headers must implement a similar logic as in the original Selection handler
-    // (see src/selection/mouseEventHandler.js).
-    const allowRightClickSelection = !selection.inInSelection(coords);
-
-    if (event.shiftKey && currentSelection) {
-      if (coords.col < currentSelection.from.col) {
-        columnsToSelect.push(currentSelection.getTopEndCorner().col, columnIndex, coords.row);
-
-      } else if (coords.col > currentSelection.from.col) {
-        columnsToSelect.push(currentSelection.getTopStartCorner().col, columnIndex + origColspan - 1, coords.row);
-
-      } else {
-        columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
-      }
-
-    } else if (isLeftClick(event) || (isRightClick(event) && allowRightClickSelection)) {
-      columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
-    }
-
-    // The plugin takes control of how the columns are selected.
-    selection.selectColumns(...columnsToSelect);
-  }
-
-  /**
-   * Makes the header-selection properly select the nested headers.
-   *
-   * @private
-   * @param {MouseEvent} event Mouse event.
-   * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
-   * @param {HTMLElement} TD The cell element.
-   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
-   *                            a boolean value that allows or disallows changing the selection for that particular area.
-   */
-  onBeforeOnCellMouseOver(event, coords, TD, controller) {
-    if (!this.hot.view.isMouseDown()) {
-      return;
-    }
-
-    const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
-
-    if (!headerNodeData) {
-      return;
-    }
-
-    const {
-      columnIndex,
-      origColspan,
-    } = headerNodeData;
-
-    const selectedRange = this.hot.getSelectedRangeLast();
-    const topStartCoords = selectedRange.getTopStartCorner();
-    const bottomEndCoords = selectedRange.getBottomEndCorner();
-    const { from } = selectedRange;
-
-    // Block the Selection module in controlling how the columns and cells are selected.
-    // From now on, the plugin is responsible for the selection.
-    controller.column = true;
-    controller.cell = true;
-
-    const columnsToSelect = [];
-
-    if (coords.col < from.col) {
-      columnsToSelect.push(bottomEndCoords.col, columnIndex, coords.row);
-
-    } else if (coords.col > from.col) {
-      columnsToSelect.push(topStartCoords.col, columnIndex + origColspan - 1, coords.row);
-
-    } else {
-      columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
-    }
-
-    this.hot.selection.selectColumns(...columnsToSelect);
-  }
-
-  /**
    * `modifyTransformStart` hook is called every time the keyboard navigation is used.
    *
    * @private
@@ -659,6 +538,54 @@ export class NestedHeaders extends BasePlugin {
         delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, this.hot.countCols());
       } else {
         delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1, 1);
+      }
+    }
+  }
+
+  /**
+   * The hook observes the column selection from the Selection API and modifies the column range to
+   * ensure that the whole nested column will be covered.
+   *
+   * @private
+   * @param {CellCoords} cellCoords The selection end coords object.
+   */
+  onBeforeSetRangeEnd(cellCoords) {
+    if (!this.hot.selection.isSelectedByColumnHeader()) {
+      return;
+    }
+
+    const { from, highlight } = this.hot.getSelectedRangeLast();
+    const headerLevel = from.row;
+    const startNodeData = this._getHeaderTreeNodeDataByCoords({
+      row: headerLevel,
+      col: from.col,
+    });
+    const endNodeData = this._getHeaderTreeNodeDataByCoords({
+      row: headerLevel,
+      col: cellCoords.col,
+    });
+
+    if (cellCoords.col < from.col) { // Column selection dragged from right to left
+      if (startNodeData) {
+        from.col = startNodeData.columnIndex + startNodeData.origColspan - 1;
+        highlight.col = from.col;
+      }
+
+      if (endNodeData) {
+        cellCoords.col = endNodeData.columnIndex;
+      }
+
+    } else if (cellCoords.col >= from.col) { // Column selection dragged from left to right or a single column selection
+      if (startNodeData) {
+        from.col = startNodeData.columnIndex;
+
+        if (cellCoords.col !== from.col) {
+          highlight.col = from.col;
+        }
+      }
+
+      if (endNodeData) {
+        cellCoords.col = endNodeData.columnIndex + endNodeData.origColspan - 1;
       }
     }
   }
