@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added support for keyboard shortcuts that allows selecting all rows and columns",
+  "type": "added",
+  "issueOrPR": 10389,
+  "breaking": false,
+  "framework": "none"
+}

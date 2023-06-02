@@ -297,7 +297,7 @@ describe('NestedHeaders', () => {
         expect(getSelectedRange()).toEqualCellRange([
           'highlight: -1,2 from: -1,1 to: 2,2', // B4
           'highlight: -2,5 from: -2,5 to: 2,8', // F3
-          'highlight: -3,10 from: -3,10 to: 2,12', // K2
+          'highlight: -3,12 from: -3,10 to: 2,12', // K2
         ]);
         expect(`
           |   :                               :   : *   *   * |
