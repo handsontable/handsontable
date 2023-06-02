@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Updated TypeScript definition files related to CustomBorders plugin",
-  "type": "fixed",
-  "issueOrPR": 1240,
-  "breaking": false,
-  "framework": "none"
-}

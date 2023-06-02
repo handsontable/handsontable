@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed problem related to copying and pasting from Hansontable to Excel",
-  "type": "fixed",
-  "issueOrPR": 10017,
-  "breaking": false,
-  "framework": "none"
-}
