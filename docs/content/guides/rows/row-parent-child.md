@@ -96,7 +96,7 @@ const sourceDataObject = [
         label: 'RCA Records',
       },
       {
-        title: "Ex's & Oh's",
+        title: 'Ex\'s & Oh\'s',
         artist: 'Elle King',
         label: 'RCA Records',
       },
@@ -146,7 +146,7 @@ const sourceDataObject = [
         label: 'ATO Records',
       },
       {
-        title: "Ex's & Oh's",
+        title: 'Ex\'s & Oh\'s',
         artist: 'Elle King',
         label: 'RCA Records',
       },
@@ -252,7 +252,7 @@ export const ExampleComponent = () => {
           label: 'RCA Records',
         },
         {
-          title: "Ex's & Oh's",
+          title: 'Ex\'s & Oh\'s',
           artist: 'Elle King',
           label: 'RCA Records',
         },
@@ -302,7 +302,7 @@ export const ExampleComponent = () => {
           label: 'ATO Records',
         },
         {
-          title: "Ex's & Oh's",
+          title: 'Ex\'s & Oh\'s',
           artist: 'Elle King',
           label: 'RCA Records',
         },
@@ -410,7 +410,7 @@ data structure.
 
 ## Known limitations
 
-The parent-child row structure doesn't support the following Handsontable features:
+When you use the parent-child row structure, the following Handsontable features are not supported:
 
 - [Data source as an array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays)
 - [Column filter](@/guides/columns/column-filter.md)

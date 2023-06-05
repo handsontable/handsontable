@@ -2,15 +2,12 @@
 id: g7i1xok4
 title: Formula calculation
 metaTitle: Formula calculation - JavaScript Data Grid | Handsontable
-description:
-  Perform calculations on cells' values, using a powerful calculation engine that handles 380+
-  functions, custom functions, named expressions, and more.
+description: Perform calculations on cells' values, using a powerful calculation engine that handles nearly 400 functions, custom functions, named expressions, and more.
 permalink: /formula-calculation
 canonicalUrl: /formula-calculation
 tags:
   - formulas
   - formula
-  - formulas
   - excel
   - spreadsheet
   - worksheet
@@ -26,7 +23,7 @@ searchCategory: Guides
 
 # Formula calculation
 
-Perform calculations on cells' values, using a powerful calculation engine that handles 380+
+Perform calculations on cells' values, using a powerful calculation engine that handles nearly 400
 functions, custom functions, named expressions, and more.
 
 [[toc]]
@@ -52,7 +49,7 @@ data entry rules in business apps and much more. Below are some ideas on what yo
 
 ## Basic multi-sheet example
 
-It is possible to use the plugin in a single-sheet mode or with multiple Handsontable instances with
+You can use formulas in a single-sheet mode or with multiple Handsontable instances with
 cross-sheet references.
 
 Double click on a cell to open the editor and preview the formula.

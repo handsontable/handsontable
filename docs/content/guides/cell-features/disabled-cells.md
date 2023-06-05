@@ -341,7 +341,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 
 ## Non-editable specific cells
 
-The following example shows the table with non-editable cells containing the word "Nissan". This cell property is optional and you can easily set in the Handsontable configuration.
+The following example shows the table with non-editable cells containing the word "Nissan". This cell property is optional and you can easily set it in the Handsontable configuration.
 
 ::: only-for javascript
 
