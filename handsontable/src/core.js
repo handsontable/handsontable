@@ -409,6 +409,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
   });
 
+  this.selection.addLocalHook('beforeSelectColumns', (...args) => this.runHooks('beforeSelectColumns', ...args));
+  this.selection.addLocalHook('afterSelectColumns', (...args) => this.runHooks('afterSelectColumns', ...args));
+  this.selection.addLocalHook('beforeSelectRows', (...args) => this.runHooks('beforeSelectRows', ...args));
+  this.selection.addLocalHook('afterSelectRows', (...args) => this.runHooks('afterSelectRows', ...args));
+
   this.selection.addLocalHook('beforeModifyTransformStart', (cellCoordsDelta) => {
     this.runHooks('modifyTransformStart', cellCoordsDelta);
   });

@@ -3,7 +3,7 @@ export const command = {
   callback(hot) {
     const { highlight, from, to } = hot.getSelectedRangeLast();
 
-    if (from.col < 0 || to.col < 0) {
+    if (hot.selection.isSelectedByRowHeader()) {
       hot.selectAll(true, true, highlight);
     } else {
       hot.selectColumns(from.col, to.col, highlight.row);
