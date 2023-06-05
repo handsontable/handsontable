@@ -87,6 +87,7 @@ To sum up, a well prepared validator function should look like this:
 From now on, you can use `customValidator` like so:
 
 ::: only-for javascript
+
 ```js
 const container = document.querySelector('#container')
 const hot = new Handsontable(container, {
@@ -95,9 +96,11 @@ const hot = new Handsontable(container, {
   }]
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   columns={[{
@@ -105,6 +108,7 @@ const hot = new Handsontable(container, {
   }]}
 />
 ```
+
 :::
 
 ## Full featured example
@@ -118,20 +122,23 @@ By default, all invalid cells are marked by `htInvalid` CSS class. If you want t
 For the entire table
 
 ::: only-for javascript
+
 ```js
 invalidCellClassName: 'myInvalidClass'
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 invalidCellClassName="myInvalidClass"
 ```
-:::
 
 For specific columns
 
 ::: only-for javascript
+
 ```js
 columns: [
   { data: 'firstName', invalidCellClassName: 'myInvalidClass' },
@@ -139,9 +146,10 @@ columns: [
   { data: 'address' }
 ]
 ```
-:::
+
 
 ::: only-for react
+
 ```jsx
 columns={[
   { data: 'firstName', invalidCellClassName: 'myInvalidClass' },
@@ -149,12 +157,15 @@ columns={[
   { data: 'address' }
 ]}
 ```
+
 :::
 
 Callback console log:
 
 ::: only-for javascript
+
 ::: example #example1 --js 2 --html 1
+
 ```html
 <div id="example1"></div>
 <output class="console" id="output">Here you will see the log</output>
@@ -228,11 +239,15 @@ const hot = new Handsontable(container, {
   ]
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { useState } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -316,9 +331,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 Edit the above grid to see the `changes` argument from the callback.
 

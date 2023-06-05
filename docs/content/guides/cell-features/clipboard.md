@@ -53,7 +53,9 @@ When the context menu is enabled, it includes default items, including copy & cu
 You can use them in the same way as the rest of the predefined items in the [context menu](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options). These operations are executed by `document.execCommand()`.
 
 ::: only-for javascript
+
 ::: example #example1
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -74,11 +76,15 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -110,17 +116,23 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
+
 :::
+
 :::
 
 ### Trigger copy & cut programmatically
 
 ::: only-for react
+
 ::: tip
+
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+
 :::
+
 :::
 
 First, select a cell range to copy or cut.
@@ -137,7 +149,9 @@ Then use one of the following commands:
 The [`CopyPaste`](@/api/copyPaste.md) plugin listens to the browser's `copy` and `cut` events. If triggered, our implementation will copy or cut the selected data to the system clipboard.
 
 ::: only-for javascript
+
 ::: example #example3 --html 1 --js 2
+
 ```html
 <div id="example3"></div>
 <div class="controls">
@@ -185,11 +199,15 @@ cutBtn.addEventListener('click', function() {
   document.execCommand('cut');
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example3 :react
+
 ```jsx
 import { useEffect, useRef } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -263,7 +281,9 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 /* end:skip-in-preview */
 ```
+
 :::
+
 :::
 
 Mind that some of Handsontable's selection-related methods don't set focus on your grid automatically. To make sure that your grid is focused, call [`isListening()`](@/api/core.md#islistening) before you copy, cut or paste data.
@@ -292,7 +312,9 @@ You can let the end user copy the contents of column headers, by enabling additi
 Right-click on a cell to try it out:
 
 ::: only-for javascript
+
 ::: example #example2
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -322,11 +344,15 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example2 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -368,7 +394,9 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 /* end:skip-in-preview */
 ```
+
 :::
+
 :::
 
 To add the context menu items, configure the [`CopyPaste`](@/api/copyPaste.md) plugin with these options:
@@ -390,11 +418,15 @@ To copy column headers programmatically, call the [`copyPaste.copy()`](@/api/cop
 - [`'column-headers-only'`](@/api/copyPaste.md#copy)
 
 ::: only-for react
+
 ::: tip
+
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+
 :::
+
 :::
 
 ```js

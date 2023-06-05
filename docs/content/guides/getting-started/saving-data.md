@@ -28,7 +28,9 @@ To track changes made in your data grid, use Handsontable's [`afterChange`](@/ap
 The example below handles data by using `fetch`. Note that this is just a mockup, and nothing is actually saved. You need to implement the server-side part by yourself.
 
 ::: only-for javascript
+
 ::: example #example1 --html 1 --js 2
+
 ```html
 <div id="example1"></div>
 
@@ -119,11 +121,15 @@ autosave.addEventListener('click', () => {
   }
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { useEffect, useState, useRef } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -232,7 +238,9 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
+
 :::
+
 :::
 
 ## Save data locally

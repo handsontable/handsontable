@@ -41,7 +41,9 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 - [`multiple`](@/api/options.md#selectionmode) - Multiple, non-adjacent ranges of cells can be selected.
 
 ::: only-for javascript
+
 ::: example #example1 --html 1 --js 2
+
 ```html
 <div id="example1"></div>
 <div class="controls">
@@ -89,11 +91,15 @@ selectOption.addEventListener('change', event => {
   });
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { useRef, useEffect } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -164,16 +170,19 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Get data from the selected ranges
 
 To retrieve the selected cells as an array of arrays, you use the [`getSelected()`](@/api/core.md#getselected) or [`getSelectedRange()`](@/api/core.md#getselectedrange) methods.
 
 ::: only-for javascript
+
 ::: example #example2 --html 1 --js 2
+
 ```html
 <div id="example2"></div>
 <output class="console" id="output">Here you will see the log</output>
@@ -224,11 +233,15 @@ getButton.addEventListener('click', event => {
   output.innerText = JSON.stringify(data);
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example2 :react
+
 ```jsx
 import { useRef, useEffect, useState } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -303,16 +316,19 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Modify the selected cells
 
 You may want to delete, format, or otherwise change the selected cells. For example, you can change a value or add CSS classes to the selected cells using the demo below.
 
 ::: only-for javascript
+
 ::: example #example3 --html 1 --css 2 --js 3
+
 ```html
 <div id="example3"></div>
 
@@ -379,11 +395,15 @@ button.addEventListener('click', event => {
   hot.resumeRender();
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example3 :react --css 1 --js 2
+
 ```css
 .c-red {
   color: red;
@@ -468,9 +488,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Style the selection area
 

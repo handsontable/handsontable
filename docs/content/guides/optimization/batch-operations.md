@@ -57,11 +57,15 @@ There are several API methods you can use for suspending, but [`batch()`](@/api/
 The following snippet shows a simple example of a few operations batched. Three API operations are called one after another. Without placing them inside the batch callback, every single operation would end with a [`render()`](@/api/core.md#render). Thanks to the batching feature, you can skip two renders and end the whole action with one render at the end. This is more optimal, and the gain increases with the number of operations placed inside the [`batch()`](@/api/core.md#batch).
 
 ::: only-for react
+
 ::: tip
+
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+
 :::
+
 :::
 
 ```js
@@ -79,8 +83,10 @@ Suspending the render results in better performance, which is especially noticea
 
 ![batch_operations_comparison]({{$basePath}}/img/batch_operations_comparison.png)
 
-:::tip
+::: tip
+
 Note that other methods can be used to batch operations, but they are slightly more advanced and should be used with caution. Flickering, glitches or other visual distortion may happen when you forget to `resume` render after suspending it several times. Mixing methods of a render type with those focused on operations can also result in some unexpected behavior. Above all, [`batch()`](@/api/core.md#batch) should be sufficient in most use cases, and it is safe to work with.
+
 :::
 
 ## API methods
@@ -185,7 +191,9 @@ hot.resumeExecution(); // It updates the cache internally
 The following examples show how much the [`batch()`](@/api/core.md#batch) method can decrease the render time. Both of the examples share the same dataset and operations. The first one shows how much time lapsed when the [`batch()`](@/api/core.md#batch) method was used. Run the second example to check how much time it takes to render without the [`batch()`](@/api/core.md#batch) method.
 
 ::: only-for javascript
+
 ::: example #example1 --html 1 --js 2
+
 ```html
 <div id="example1"></div>
 <div class="controls">
@@ -278,11 +286,15 @@ buttonWith.addEventListener('click', () => {
   logOutput('Time with batch ' + (t2 - t1).toFixed(2) + 'ms');
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { useRef, useEffect, useState } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -385,9 +397,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Related articles
 

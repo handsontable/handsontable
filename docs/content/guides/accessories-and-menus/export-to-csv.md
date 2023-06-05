@@ -27,7 +27,9 @@ Mind that CSV exports contain only raw data, and don't include formulas, styling
 ### Export to file
 
 ::: only-for javascript
+
 ::: example #example1 --html 1 --js 2
+
 ```html
 <div id="example1"></div>
 
@@ -76,11 +78,15 @@ button.addEventListener('click', () => {
   });
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { useRef, useEffect } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -146,7 +152,9 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
+
 :::
+
 :::
 
 
@@ -155,7 +163,9 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 Open a console in browser developer tools to see the result for the below example.
 
 ::: only-for javascript
+
 ::: example #example2 --html 1 --js 2
+
 ```html
 <div id="example2"></div>
 
@@ -204,11 +214,15 @@ button.addEventListener('click', () => {
   console.log(exportedBlob);
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example2 :react
+
 ```jsx
 import { useRef, useEffect } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -274,16 +288,19 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ### Export as a string
 
 Open a console in browser developer tools to see the result for the below example.
 
 ::: only-for javascript
+
 ::: example #example3 --html 1 --js 2
+
 ```html
 <div id="example3"></div>
 
@@ -331,11 +348,15 @@ button.addEventListener('click', () => {
   console.log(exportedString);
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example3 :react
+
 ```jsx
 import { useRef, useEffect } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -400,18 +421,23 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Available methods
 
 ::: only-for react
+
 ::: tip
+
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+
 :::
+
 :::
 
 The plugin exposes the following methods to export data.

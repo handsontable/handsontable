@@ -71,6 +71,9 @@ Learn more on our [GitHub](https://github.com/handsontable/handsontable/blob/dev
 ## Related guides
 
 - [Building](@/guides/tools-and-building/custom-builds.md)
+
 ::: only-for javascript
+
 - [Packages](@/guides/tools-and-building/packages.md)
+
 :::

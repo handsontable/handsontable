@@ -25,6 +25,7 @@ You can declare a custom renderer for the `HotTable` component by declaring it a
 The following example is an implementation of `@handsontable/vue3` with a custom renderer added. It takes an image URL as the input and renders the image in the edited cell.
 
 ::: example #example1 :vue3 --html 1 --js 2
+
 ```html
 <div id="example1">
   <hot-table :settings="hotSettings"></hot-table>
@@ -89,6 +90,7 @@ const app = createApp(ExampleComponent);
 app.mount('#example1');
 /* end:skip-in-preview */
 ```
+
 :::
 
 ## Related articles

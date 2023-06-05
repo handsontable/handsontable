@@ -21,6 +21,7 @@ A custom `id` can be passed in together with other attributes to the `hot-table`
 ## Example
 
 ::: example :angular --html 1 --js 2
+
 ```html
 <app-root></app-root>
 ```
@@ -79,4 +80,5 @@ platformBrowserDynamic()
   .catch(err => { console.error(err) });
 /* end:skip-in-preview */
 ```
+
 :::

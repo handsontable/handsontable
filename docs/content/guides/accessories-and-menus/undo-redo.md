@@ -33,13 +33,15 @@ The basic methods are [`undo()`](@/api/undoRedo.md#undo) and [`redo()`](@/api/un
 
 This feature is provided by the [`UndoRedo`](@/api/undoRedo.md) plugin, and is enabled by default.
 
-:::tip
+::: tip
+
 Not all user-triggered actions are covered by this feature. See the below list of actions that won't be added to the history of changes:
 
 - Sort
 - Filter
 - Move column
 - Move row
+
 :::
 
 ## Basic demo
@@ -47,7 +49,9 @@ Not all user-triggered actions are covered by this feature. See the below list o
 Make some changes to the grid below and the use the <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Z**</kbd> command to redo the previous state. Then, use <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Y**</kbd> (or <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**Z**</kbd>) to restore it.
 
 ::: only-for javascript
+
 ::: example #example
+
 ```javascript
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -72,11 +76,16 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
-:::
+
 :::
 
+:::
+
+
 ::: only-for react
+
 ::: example #example :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -112,7 +121,9 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
 /* end:skip-in-preview */
 ```
+
 :::
+
 :::
 
 
