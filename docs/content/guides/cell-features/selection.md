@@ -482,7 +482,7 @@ Unfortunately, there is no easy way to change the border color of the selection.
 
 ## Jump across the grid's edges
 
-When you use keyboard navigation, and you cross an edge of the grid, you can set cell selection to jump to the opposite edge.
+When you use keyboard navigation to cross an edge of the grid, you can set cell selection to jump to the opposite edge.
 
 #### Jump across vertical edges
 
