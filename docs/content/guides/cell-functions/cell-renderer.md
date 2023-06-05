@@ -22,16 +22,16 @@ Create a custom cell renderer function, to have full control over how a cell loo
 
 When you create a renderer, a good idea is to assign it as an alias that will refer to this particular renderer function. Handsontable defines 10 aliases by default:
 
-* `autocomplete` for `Handsontable.renderers.AutocompleteRenderer`
-* `base` for `Handsontable.renderers.BaseRenderer`
-* `checkbox` for `Handsontable.renderers.CheckboxRenderer`
-* `date` for `Handsontable.renderers.DateRenderer`
-* `dropdown` for `Handsontable.renderers.DropdownRenderer`
-* `html` for `Handsontable.renderers.HtmlRenderer`
-* `numeric` for `Handsontable.renderers.NumericRenderer`
-* `password` for `Handsontable.renderers.PasswordRenderer`
-* `text` for `Handsontable.renderers.TextRenderer`
-* `time` for `Handsontable.renderers.TimeRenderer`
+- `autocomplete` for `Handsontable.renderers.AutocompleteRenderer`
+- `base` for `Handsontable.renderers.BaseRenderer`
+- `checkbox` for `Handsontable.renderers.CheckboxRenderer`
+- `date` for `Handsontable.renderers.DateRenderer`
+- `dropdown` for `Handsontable.renderers.DropdownRenderer`
+- `html` for `Handsontable.renderers.HtmlRenderer`
+- `numeric` for `Handsontable.renderers.NumericRenderer`
+- `password` for `Handsontable.renderers.PasswordRenderer`
+- `text` for `Handsontable.renderers.TextRenderer`
+- `time` for `Handsontable.renderers.TimeRenderer`
 
 It gives users a convenient way for defining which renderer should be used when table rendering was triggered. User doesn't need to know which renderer function is responsible for displaying the cell value, he does not even need to know that there is any function at all. What is more, you can change the render function associated with an alias without a need to change code that defines a table.
 :::
@@ -46,7 +46,7 @@ Set together, a renderer, [editor](@/guides/cell-functions/cell-editor.md) and [
 ## Declare a custom renderer as a component
 
 Handsontable's React wrapper lets you create custom cell renderers using React components.
-Although it's possible to use class-based react components for this purpose, **we strongly suggest** using functional components, as using the `state` of a class-based component would re-initialize on every Handsontable render.
+Although it's possible to use class-based react components for this purpose, we strongly suggest using functional components, as using the `state` of a class-based component would re-initialize on every Handsontable render.
 
 To mark a component as a Handsontable renderer, simply add a `hot-renderer` attribute to it.
 
@@ -256,16 +256,16 @@ All the sections below describe how to utilize the features available for the Ha
 
 When you create a renderer, a good idea is to assign it as an alias that will refer to this particular renderer function. Handsontable defines 10 aliases by default:
 
-* `autocomplete` for `Handsontable.renderers.AutocompleteRenderer`
-* `base` for `Handsontable.renderers.BaseRenderer`
-* `checkbox` for `Handsontable.renderers.CheckboxRenderer`
-* `date` for `Handsontable.renderers.DateRenderer`
-* `dropdown` for `Handsontable.renderers.DropdownRenderer`
-* `html` for `Handsontable.renderers.HtmlRenderer`
-* `numeric` for `Handsontable.renderers.NumericRenderer`
-* `password` for `Handsontable.renderers.PasswordRenderer`
-* `text` for `Handsontable.renderers.TextRenderer`
-* `time` for `Handsontable.renderers.TimeRenderer`
+- `autocomplete` for `Handsontable.renderers.AutocompleteRenderer`
+- `base` for `Handsontable.renderers.BaseRenderer`
+- `checkbox` for `Handsontable.renderers.CheckboxRenderer`
+- `date` for `Handsontable.renderers.DateRenderer`
+- `dropdown` for `Handsontable.renderers.DropdownRenderer`
+- `html` for `Handsontable.renderers.HtmlRenderer`
+- `numeric` for `Handsontable.renderers.NumericRenderer`
+- `password` for `Handsontable.renderers.PasswordRenderer`
+- `text` for `Handsontable.renderers.TextRenderer`
+- `time` for `Handsontable.renderers.TimeRenderer`
 
 It gives users a convenient way for defining which renderer should be used when table rendering was triggered. User doesn't need to know which renderer function is responsible for displaying the cell value, he does not even need to know that there is any function at all. What is more, you can change the render function associated with an alias without a need to change code that defines a table.
 
@@ -318,8 +318,8 @@ const hot = new Handsontable(container, {
 
 To register your own alias use `Handsontable.renderers.registerRenderer()` function. It takes two arguments:
 
-* `rendererName` - a string representing a renderer function
-* `renderer` - a renderer function that will be represented by `rendererName`
+- `rendererName` - a string representing a renderer function
+- `renderer` - a renderer function that will be represented by `rendererName`
 
 If you'd like to register `asterixDecoratorRenderer` under alias `asterix` you have to call:
 
@@ -409,10 +409,10 @@ const hot = new Handsontable(container, {
 
 This example shows how to use custom cell renderers to display HTML content in a cell. This is a very powerful feature. Just remember to escape any HTML code that could be used for XSS attacks. In the below configuration:
 
-* **Title** column uses built-in HTML renderer that allows any HTML. This is unsafe if your code comes from untrusted source. Take notice that a Handsontable user can use it to enter `<script>` or other potentially malicious tags using the cell editor!
-* **Description** column also uses HTML renderer (same as above)
-* **Comments** column uses a custom renderer (`safeHtmlRenderer`). This should be safe for user input, because only certain tags are allowed
-* **Cover** column accepts image URL as a string and converts it to a `<img>` in the renderer
+- **Title** column uses built-in HTML renderer that allows any HTML. This is unsafe if your code comes from untrusted source. Take notice that a Handsontable user can use it to enter `<script>` or other potentially malicious tags using the cell editor!
+- **Description** column also uses HTML renderer (same as above)
+- **Comments** column uses a custom renderer (`safeHtmlRenderer`). This should be safe for user input, because only certain tags are allowed
+- **Cover** column accepts image URL as a string and converts it to a `<img>` in the renderer
 
 ::: only-for javascript
 ::: example #example4
@@ -714,8 +714,8 @@ If you are writing an advanced cell renderer, and you want to add some custom be
 
 This is because Handsontable:
 
-* calls `renderer` functions multiple times per cell - this can lead to having multiple copies of the same event listener attached to a cell
-* reuses table cell nodes during table scrolling and adding/removing new rows/columns - this can lead to having event listeners attached to the wrong cell
+- Calls `renderer` functions multiple times per cell - this can lead to having multiple copies of the same event listener attached to a cell
+- Reuses table cell nodes during table scrolling and adding/removing new rows/columns - this can lead to having event listeners attached to the wrong cell
 
 Before deciding to attach an event listener in cell renderer make sure, that there is no [Handsontable event](@/guides/getting-started/events-and-hooks.md) that suits your needs. Using _Handsontable events_ system is the safest way to respond to user actions.
 

@@ -30,52 +30,52 @@ Handsontable 8.0.0 introduces [`IndexMapper`](@/api/indexMapper.md), a new API t
 
 ## General guidelines
 
-* Check if you use any of the features listed in the [Keywords](#keywords-alphabetically) section. You need to address them first after installing Handsontable 8.0.0.
-* To keep backward compatibility, test solutions proposed in this guide. If you experience any problems, contact our [Technical Support Team](https://handsontable.com/contact?category=technical_support).
-* You can also check the release notes for a complete list of all changes.
+- Check if you use any of the features listed in the [Keywords](#keywords-alphabetically) section. You need to address them first after installing Handsontable 8.0.0.
+- To keep backward compatibility, test solutions proposed in this guide. If you experience any problems, contact our [Technical Support Team](https://handsontable.com/contact?category=technical_support).
+- You can also check the release notes for a complete list of all changes.
 
 ## Keywords (alphabetically)
 
-* [`afterFilter`](@/api/hooks.md#afterfilter)
-* [`afterLoadData`](@/api/hooks.md#afterloaddata)
-* [`afterRowMove`](@/api/hooks.md#afterrowmove)
-* [`afterUnmergeCells`](@/api/hooks.md#afterunmergecells)
-* `batch()`
-* [`beforeRowMove`](@/api/hooks.md#beforerowmove)
-* [`CollapsibleColumns`](@/api/collapsibleColumns.md)
-* [`ColumnSorting`](@/api/columnSorting.md)
-* [Data binding](@/guides/getting-started/binding-to-data.md)
-* [`dragColumns()`](@/api/manualColumnMove.md#dragcolumns)
-* [`dragRows`](@/api/manualRowMove.md#dragrows)
-* [`Filters`](@/api/filters.md)
-* `finalIndex`
-* `GanttChart`
-* [`HiddenColumns`](@/api/hiddenColumns.md)
-* `insert`
-* [`isMovePossible`](@/api/manualRowMove.md#ismovepossible)
-* [`ManualColumnFreeze`](@/api/manualColumnFreeze.md)
-* [`ManualColumnMove`](@/api/manualColumnMove.md)
-* [`ManualRowMove`](@/api/manualRowMove.md)
-* [`minRows`](@/api/options.md#minrows)
-* [`minSpareRows`](@/api/options.md#minsparerows)
-* `modifyCol`
-* `modifyRow`
-* [`moveColumns`](@/api/manualColumnMove.md#movecolumns)
-* [`moveRows`](@/api/manualRowMove.md#moverows)
-* [`NestedRows`](@/api/nestedRows.md)
-* `ObserveChanges`
-* [`populateFromArray()`](@/api/core.md#populatefromarray)
-* `RecordTranslator`
-* [`setDataAtCell()`](@/api/core.md#setdataatcell)
-* [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop)
-* `skipLengthCache`
-* [`toPhysicalColumn()`](@/api/core.md#tophysicalcolumn)
-* [`toPhysicalRow()`](@/api/core.md#tophysicalrow)
-* [`toVisualColumn()`](@/api/core.md#tovisualcolumn)
-* [`toVisualRow()`](@/api/core.md#tovisualrow)
-* [`TrimRows`](@/api/trimRows.md)
-* `unmodifyCol`
-* `unmodifyRow`
+- [`afterFilter`](@/api/hooks.md#afterfilter)
+- [`afterLoadData`](@/api/hooks.md#afterloaddata)
+- [`afterRowMove`](@/api/hooks.md#afterrowmove)
+- [`afterUnmergeCells`](@/api/hooks.md#afterunmergecells)
+- `batch()`
+- [`beforeRowMove`](@/api/hooks.md#beforerowmove)
+- [`CollapsibleColumns`](@/api/collapsibleColumns.md)
+- [`ColumnSorting`](@/api/columnSorting.md)
+- [Data binding](@/guides/getting-started/binding-to-data.md)
+- [`dragColumns()`](@/api/manualColumnMove.md#dragcolumns)
+- [`dragRows`](@/api/manualRowMove.md#dragrows)
+- [`Filters`](@/api/filters.md)
+- `finalIndex`
+- `GanttChart`
+- [`HiddenColumns`](@/api/hiddenColumns.md)
+- `insert`
+- [`isMovePossible`](@/api/manualRowMove.md#ismovepossible)
+- [`ManualColumnFreeze`](@/api/manualColumnFreeze.md)
+- [`ManualColumnMove`](@/api/manualColumnMove.md)
+- [`ManualRowMove`](@/api/manualRowMove.md)
+- [`minRows`](@/api/options.md#minrows)
+- [`minSpareRows`](@/api/options.md#minsparerows)
+- `modifyCol`
+- `modifyRow`
+- [`moveColumns`](@/api/manualColumnMove.md#movecolumns)
+- [`moveRows`](@/api/manualRowMove.md#moverows)
+- [`NestedRows`](@/api/nestedRows.md)
+- `ObserveChanges`
+- [`populateFromArray()`](@/api/core.md#populatefromarray)
+- `RecordTranslator`
+- [`setDataAtCell()`](@/api/core.md#setdataatcell)
+- [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop)
+- `skipLengthCache`
+- [`toPhysicalColumn()`](@/api/core.md#tophysicalcolumn)
+- [`toPhysicalRow()`](@/api/core.md#tophysicalrow)
+- [`toVisualColumn()`](@/api/core.md#tovisualcolumn)
+- [`toVisualRow()`](@/api/core.md#tovisualrow)
+- [`TrimRows`](@/api/trimRows.md)
+- `unmodifyCol`
+- `unmodifyRow`
 
 ## Installation
 

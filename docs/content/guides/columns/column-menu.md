@@ -22,7 +22,7 @@ Display a configurable dropdown menu, triggered by clicking on a button in a col
 ## Overview
 
 The [`DropdownMenu`](@/api/dropdownMenu.md) plugin enables you to add a configurable dropdown menu to the table's column headers.
-The dropdown menu acts like the **Context Menu** but is triggered by clicking the button in the header.
+The dropdown menu acts like the [context menu](@/guides/accessories-and-menus/context-menu.md) but is triggered by clicking the button in the header.
 
 ## Quick setup
 

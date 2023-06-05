@@ -2,7 +2,7 @@
 id: neoo8dhv
 title: Cell functions
 metaTitle: Cell functions - JavaScript Data Grid | Handsontable
-description: Render, edit, and validate the contents of your cells, using Handsontable's cell functions. Quickly set up your cell, using cell types.
+description: Render, edit, and validate the contents of your cells, using Handsontable's cell functions. Quickly set up your cells, using cell types.
 permalink: /cell-function
 canonicalUrl: /cell-function
 react:
@@ -13,7 +13,7 @@ searchCategory: Guides
 
 # Cell functions
 
-Render, edit, and validate the contents of your cells, using Handsontable's cell functions. Quickly set up your cell, using cell types.
+Render, edit, and validate the contents of your cells, using Handsontable's cell functions. Quickly set up your cells, using cell types.
 
 [[toc]]
 
@@ -21,9 +21,9 @@ Render, edit, and validate the contents of your cells, using Handsontable's cell
 
 With every cell in the Handsontable there are 3 associated functions:
 
-* [renderer](#renderer)
-* [editor](#editor)
-* [validator](#validator)
+- [Renderer](#renderer)
+- [Editor](#editor)
+- [Validator](#validator)
 
 Each of those functions are responsible for a different cell behavior. You can define them separately or use a [cell type](#cell-type) to define all three at once.
 
@@ -123,9 +123,9 @@ export const ExampleComponent = () => {
 
 To get the actual cell function use appropriate _cell function getter_:
 
-* [`getCellRenderer(row, col)`](@/api/core.md#getcellrenderer)
-* [`getCellEditor(row, col)`](@/api/core.md#getcelleditor)
-* [`getCellValidator(row, col)`](@/api/core.md#getcellvalidator)
+- [`getCellRenderer(row, col)`](@/api/core.md#getcellrenderer)
+- [`getCellEditor(row, col)`](@/api/core.md#getcelleditor)
+- [`getCellValidator(row, col)`](@/api/core.md#getcellvalidator)
 
 Those functions will always return an appropriate value, regardless of whether cell functions have been defined directly or using a cell type.
 

@@ -723,7 +723,7 @@ Handsontable binds to your data source by reference, not by values. We don't cop
 JavaScript to handle the objects. Any data entered into the grid will alter the original data source.
 
 ::: tip
-**Note:** Handsontable initializes the source data for the table using a reference, but you shouldn't rely on it. For
+Handsontable initializes the source data for the table using a reference, but you shouldn't rely on it. For
 example, you shouldn't change values in the source data using the reference to the input dataset. Some mechanisms for
 handling data aren't prepared for external changes that are made in this way.
 :::

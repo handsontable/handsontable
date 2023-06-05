@@ -37,9 +37,9 @@ You should first enable the plugin by setting the [`search`](@/api/options.md#se
 
 [`query(queryStr, [callback], [queryMethod])`](@/api/search.md#query) method does 2 things. First of all, it returns an array of search results. Every element is an objects containing 3 properties:
 
-* `row` – index of the row where the value has been found
-* `col` – index of the column where the value has been found
-* `data` – the value that has been found
+- `row` – index of the row where the value has been found
+- `col` – index of the column where the value has been found
+- `data` – the value that has been found
 
 The second thing the [`query()`](@/api/search.md#query) method does is set the `isSearchResult` property for each cell. If a cell is in search results, then its `isSearchResult` is set to `true`, otherwise the property is set to `false`.
 

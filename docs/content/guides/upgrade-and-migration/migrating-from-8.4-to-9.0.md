@@ -130,8 +130,8 @@ In [`beforeAutofill`](@/api/hooks.md#beforeautofill) instead of mutating [`data`
 
 In Handsontable `9.0.0` we removed the following, previously-deprecated plugins:
 
-*   Header Tooltips
-*   Observe Changes
+- Header Tooltips
+- Observe Changes
 
 ### Header Tooltips
 

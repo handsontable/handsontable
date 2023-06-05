@@ -323,7 +323,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
 You can adjust the width of the columns to make them fit the table's width automatically. The width of a particular column will be calculated based on the size and number of other columns in the grid. This option only makes sense when you have at least one column in your data set and fewer columns than needed to enable the horizontal scrollbar.
 
 ::: tip
-Use the **context menu** to insert or remove columns. This will help you understand how the grid reacts to changes.
+Use the [context menu](@/guides/accessories-and-menus/context-menu.md) to insert or remove columns. This will help you understand how the grid reacts to changes.
 :::
 
 ### Fit all columns equally

@@ -26,7 +26,7 @@ Autocomplete can be configured in three different ways:
 
 ## Autocomplete flexible mode
 
-This example uses the `autocomplete` feature in the default **flexible mode**. In this mode, the user can choose one of the suggested options while typing or enter a custom value that is not included in the suggestions.
+This example uses the `autocomplete` feature in the default flexible mode. In this mode, the user can choose one of the suggested options while typing or enter a custom value that is not included in the suggestions.
 
 ::: only-for javascript
 ::: example #example1
@@ -130,15 +130,15 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 ## Autocomplete strict mode
 
-This is the same example as above, the difference being that `autocomplete` now runs in **strict mode**. In this mode, the autocomplete cells will only accept values that are defined in the source array. The mouse and keyboard bindings are identical to the `Handsontable` cell type but with the differences below:
+This is the same example as above, the difference being that `autocomplete` now runs in strict mode. In this mode, the autocomplete cells will only accept values that are defined in the source array. The mouse and keyboard bindings are identical to the `Handsontable` cell type but with the differences below:
 
-* If there is at least one option visible, there always is a selection in HOT-in-HOT
-* When the first row is selected, pressing <kbd>**Arrow Up**</kbd> does not deselect HOT-in-HOT. Instead, it behaves as the <kbd>**Enter**</kbd> key but moves the selection in the main HOT upwards
+- If there is at least one option visible, there always is a selection in HOT-in-HOT
+- When the first row is selected, pressing <kbd>**Arrow Up**</kbd> does not deselect HOT-in-HOT. Instead, it behaves as the <kbd>**Enter**</kbd> key but moves the selection in the main HOT upwards
 
-In strict mode, the **allowInvalid** option determines the behaviour in the case of manual user input:
+In strict mode, the [`allowInvalid`](@/api/options.md#allowinvalid) option determines the behaviour in the case of manual user input:
 
-* [`allowInvalid: true`](@/api/options.md#allowinvalid) optional - allows manual input of a value that does not exist in the `source`, the field background is highlighted in red, and the selection advances to the next cell
-* [`allowInvalid: false`](@/api/options.md#allowinvalid) - does not allow manual input of a value that does not exist in the `source`, the <kbd>**Enter**</kbd> key is ignored, and the editor field remains open
+- [`allowInvalid: true`](@/api/options.md#allowinvalid) optional - allows manual input of a value that does not exist in the `source`, the field background is highlighted in red, and the selection advances to the next cell
+- [`allowInvalid: false`](@/api/options.md#allowinvalid) - does not allow manual input of a value that does not exist in the `source`, the <kbd>**Enter**</kbd> key is ignored, and the editor field remains open
 
 ::: only-for javascript
 ::: example #example2

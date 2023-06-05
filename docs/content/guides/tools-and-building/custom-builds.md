@@ -42,13 +42,13 @@ But each project has its own [building](#build-processes) and [testing](@/guides
 
 The building processes transform the source files located in the `/handsontable/src/` directory into the following output files:
 
-* `/handsontable/dist/handsontable.js`
-* `/handsontable/dist/handsontable.css`
-* `/handsontable/dist/handsontable.full.js`
-* `/handsontable/dist/handsontable.full.css`
-* `/handsontable/dist/handsontable.full.min.js`
-* `/handsontable/dist/handsontable.full.min.css`
-* `/handsontable/dist/languages/*`
+- `/handsontable/dist/handsontable.js`
+- `/handsontable/dist/handsontable.css`
+- `/handsontable/dist/handsontable.full.js`
+- `/handsontable/dist/handsontable.full.css`
+- `/handsontable/dist/handsontable.full.min.js`
+- `/handsontable/dist/handsontable.full.min.css`
+- `/handsontable/dist/languages/*`
 
 ::: tip
 Don't modify the output files mentioned above. Instead, make changes in the `/handsontable/src/` directory and then run a selected [build](#build-the-packages). This is especially important if you want to contribute your changes back to Handsontable through a pull request.

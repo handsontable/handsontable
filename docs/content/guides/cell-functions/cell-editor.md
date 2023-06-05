@@ -255,10 +255,10 @@ This information is applicable in React when using the non-component editor appr
 
 [`EditorManager`](@/api/baseEditor.md) has 4 main tasks:
 
-* selecting proper editor for an active cell
-* preparing editor to be displayed
-* displaying editor (based on user behavior)
-* closing editor (based on user behavior).
+- Selecting proper editor for an active cell
+- Preparing editor to be displayed
+- Displaying editor (based on user behavior)
+- Closing editor (based on user behavior).
 
 We will discuss each of those tasks in detail.
 
@@ -294,10 +294,10 @@ When [`EditorManager`](@/api/baseEditor.md) obtain editor class instance (editor
 
 When editor is prepared the [`EditorManager`](@/api/baseEditor.md) waits for user event that triggers cell edition. Those events are:
 
-* pressing <kbd>**Enter**</kbd>
-* pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>
-* double clicking cell
-* pressing <kbd>**F2**</kbd>
+- Pressing <kbd>**Enter**</kbd>
+- Pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>
+- double clicking cell
+- Pressing <kbd>**F2**</kbd>
 
 If any of those events is triggered, [`EditorManager`](@/api/baseEditor.md) calls editor's [`beginEditing()`](@/api/baseEditor.md#beginediting) method, which should display the editor.
 
@@ -311,14 +311,14 @@ If any of those events is triggered, [`EditorManager`](@/api/baseEditor.md) call
 
 When editor is opened the [`EditorManager`](@/api/baseEditor.md) waits for user event that should end cell edition. Those events are:
 
-* clicking on another cell (saves changes)
-* pressing <kbd>**Enter**</kbd> (saves changes and moves selection one cell down)
-* pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd> (saves changes and moves selection one cell up)
-* pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Enter**</kbd> or <kbd>**Alt**</kbd>/<kbd>**Option**</kbd> + <kbd>**Enter**</kbd> (adds a new line inside the cell)
-* pressing <kbd>**Escape**</kbd> (aborts changes)
-* pressing <kbd>**Tab**</kbd> (saves changes and moves one cell to the right or to the left, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
-* pressing <kbd>**Shift**</kbd> + <kbd>**Tab**</kbd> (saves changes and moves one cell to the left or to the right, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
-* pressing <kbd>**Page Up**</kbd>, <kbd>**Page Down**</kbd> (saves changes and moves one screen up/down)
+- Clicking on another cell (saves changes)
+- Pressing <kbd>**Enter**</kbd> (saves changes and moves selection one cell down)
+- Pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd> (saves changes and moves selection one cell up)
+- Pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Enter**</kbd> or <kbd>**Alt**</kbd>/<kbd>**Option**</kbd> + <kbd>**Enter**</kbd> (adds a new line inside the cell)
+- Pressing <kbd>**Escape**</kbd> (aborts changes)
+- Pressing <kbd>**Tab**</kbd> (saves changes and moves one cell to the right or to the left, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
+- Pressing <kbd>**Shift**</kbd> + <kbd>**Tab**</kbd> (saves changes and moves one cell to the left or to the right, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
+- Pressing <kbd>**Page Up**</kbd>, <kbd>**Page Down**</kbd> (saves changes and moves one screen up/down)
 
 If any of those events is triggered, [`EditorManager`](@/api/baseEditor.md) calls editor's [`finishEditing()`](@/api/baseEditor.md#finishediting) method, which should try to save changes (unless ESC key has been pressed) and close the editor.
 
@@ -716,11 +716,11 @@ Things to do:
 2. Add function creating `<select>` input and attaching to DOM.
 3. Add function that populates `<select>` with options array passed in the cell properties.
 4. Implement methods:
-    * [`getvalue()`](@/api/baseEditor.md#getvalue)
-    * [`setvalue()`](@/api/baseEditor.md#setvalue)
-    * [`open()`](@/api/baseEditor.md#open)
-    * [`close()`](@/api/baseEditor.md#close)
-    * [`focus()`](@/api/baseEditor.md#focus)
+    - [`getvalue()`](@/api/baseEditor.md#getvalue)
+    - [`setvalue()`](@/api/baseEditor.md#setvalue)
+    - [`open()`](@/api/baseEditor.md#open)
+    - [`close()`](@/api/baseEditor.md#close)
+    - [`focus()`](@/api/baseEditor.md#focus)
 5. Override the default [`EditorManager`](@/api/baseEditor.md) behaviour, so that pressing <kbd>**Arrow Up**</kbd> and <kbd>**Arrow Down**</kbd> keys won't close the editor, but instead change the currently selected value.
 6. Register editor.
 
@@ -750,9 +750,9 @@ Task one: **DONE**
 
 There are three potential places where we can put the function that will create `<select>` element and put it in the DOM:
 
-* [`init()`](@/api/baseEditor.md#init) method
-* [`prepare()`](@/api/baseEditor.md#prepare) method
-* [`open()`](@/api/baseEditor.md#open) method
+- [`init()`](@/api/baseEditor.md#init) method
+- [`prepare()`](@/api/baseEditor.md#prepare) method
+- [`open()`](@/api/baseEditor.md#open) method
 
 The key to choose the best solution is to understand when each of those methods are called.
 
@@ -1034,24 +1034,24 @@ Registering an editor
 
 When you create an editor, a good idea is to assign it an alias that will refer to this particular editor class. Handsontable defines 11 aliases by default:
 
-* `autocomplete` for `Handsontable.editors.AutocompleteEditor`
-* `base` for `Handsontable.editors.BaseEditor`
-* `checkbox` for `Handsontable.editors.CheckboxEditor`
-* `date` for `Handsontable.editors.DateEditor`
-* `dropdown` for `Handsontable.editors.DropdownEditor`
-* `handsontable` for `Handsontable.editors.HandsontableEditor`
-* `numeric` for `Handsontable.editors.NumericEditor`
-* `password` for `Handsontable.editors.PasswordEditor`
-* `select` for `Handsontable.editors.SelectEditor`
-* `text` for `Handsontable.editors.TextEditor`
-* `time` for `Handsontable.editors.TimeEditor`
+- `autocomplete` for `Handsontable.editors.AutocompleteEditor`
+- `base` for `Handsontable.editors.BaseEditor`
+- `checkbox` for `Handsontable.editors.CheckboxEditor`
+- `date` for `Handsontable.editors.DateEditor`
+- `dropdown` for `Handsontable.editors.DropdownEditor`
+- `handsontable` for `Handsontable.editors.HandsontableEditor`
+- `numeric` for `Handsontable.editors.NumericEditor`
+- `password` for `Handsontable.editors.PasswordEditor`
+- `select` for `Handsontable.editors.SelectEditor`
+- `text` for `Handsontable.editors.TextEditor`
+- `time` for `Handsontable.editors.TimeEditor`
 
 It gives users a convenient way for defining which editor should be use when changing value of certain cells. User doesn't need to know which class is responsible for displaying the editor, he does not even need to know that there is any class at all. What is more, you can change the class associated with an alias without a need to change code that defines a table.
 
 To register your own alias use `Handsontable.editors.registerEditor()` function. It takes two arguments:
 
-* `editorName` - a string representing an editor
-* `editorClass` - a class that will be represented by `editorName`
+- `editorName` - a string representing an editor
+- `editorClass` - a class that will be represented by `editorName`
 
 If you'd like to register `SelectEditor` under alias `select` you have to call:
 

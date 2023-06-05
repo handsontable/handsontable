@@ -48,7 +48,7 @@ Batch CRUD operations, to avoid unnecessary rendering cycles and boost your grid
 
 Within Handsontable, every CRUD operation ends with a [`render()`](@/api/core.md#render). In most cases, this is considered expected behaviour. The table has to reflect the requested changes at some point. However, sometimes you may find this mechanism slightly excessive.
 
-For example, if you wrote a custom function that uses several CRUD operations, those CRUD operations will call a [`render()`](@/api/core.md#render) for each API method. You only need one render at the end, which is sufficient to reflect all the changes. You can treat those combined operations as a single action and let the render wait for them to complete. To do this, use **suspend the render** to batch the operations.
+For example, if you wrote a custom function that uses several CRUD operations, those CRUD operations will call a [`render()`](@/api/core.md#render) for each API method. You only need one render at the end, which is sufficient to reflect all the changes. You can treat those combined operations as a single action and let the render wait for them to complete. To do this, use suspend the render to batch the operations.
 
 This can improve the overall performance of the application. Batching several operations can decrease the number of renders, so any API call that ends with a render will benefit from this improvement. It results in less layout trashing, fewer freezes, and a more responsive feel.
 
@@ -75,7 +75,7 @@ hot.batch(() => {
 });
 ```
 
-Suspending the render results in better performance, which is especially noticeable when numerous operations are batched. The diagram shows a comparison where the same operations were performed **with** (deep blue columns) **and without the batch** (light blue columns). The gain in speed of execution time increases with the number of operations batched.
+Suspending the render results in better performance, which is especially noticeable when numerous operations are batched. The diagram shows a comparison where the same operations were performed with (deep blue columns) and without the batch (light blue columns). The gain in speed of execution time increases with the number of operations batched.
 
 ![batch_operations_comparison]({{$basePath}}/img/batch_operations_comparison.png)
 
@@ -85,7 +85,7 @@ Note that other methods can be used to batch operations, but they are slightly m
 
 ## API methods
 
-The following **API methods** allow suspending:
+The following API methods allow suspending:
 
 - [`batch()`](@/api/core.md#batch)
 - [`batchRender()`](@/api/core.md#batchrender)
@@ -101,8 +101,8 @@ By using these methods, you can suspend:
 
 The term "rendering" refers directly to DOM rendering, and the term "execution" refers to all operations that are different from DOM rendering. Currently, only the indexing recalculation allows you to postpone the process.
 
-Method names that are prefixed with **batch\***, i.e., [`batch()`](@/api/core.md#batch), [`batchRender()`](@/api/core.md#batchrender), and [`batchExecution()`](@/api/core.md#batchexecution) are recommended to be used as the first choice if **you don't need to batch async operations**.
-Methods names that are prefixed with **suspend\***, i.e., [`suspendRender()`](@/api/core.md#suspendrender) and [`suspendExecution()`](@/api/core.md#suspendexecution), are the second choice. These are useful when you need to batch async operations. Essentially they work the same way as **batch\*** methods, but the **render has to be resumed manually**.
+Method names that are prefixed with `batch\*`, i.e., [`batch()`](@/api/core.md#batch), [`batchRender()`](@/api/core.md#batchrender), and [`batchExecution()`](@/api/core.md#batchexecution) are recommended to be used as the first choice if you don't need to batch async operations.
+Methods names that are prefixed with `suspend\*`, i.e., [`suspendRender()`](@/api/core.md#suspendrender) and [`suspendExecution()`](@/api/core.md#suspendexecution), are the second choice. These are useful when you need to batch async operations. Essentially they work the same way as `batch\*` methods, but the render has to be resumed manually.
 
 ### batch* methods
 

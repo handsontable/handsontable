@@ -243,9 +243,9 @@ Persistent state storage is particularly useful when running multiple instances 
 
 When the [`persistentState`](@/api/options.md#persistentstate) option is enabled, the [`PersistentState`](@/api/persistentState.md) plugin exposes hooks listed below:
 
-* [`persistentStateSave`](@/api/hooks.md#persistentstatesave)
-* [`persistentStateLoad`](@/api/hooks.md#persistentstateload)
-* [`persistentStateReset`](@/api/hooks.md#persistentstatereset)
+- [`persistentStateSave`](@/api/hooks.md#persistentstatesave)
+- [`persistentStateLoad`](@/api/hooks.md#persistentstateload)
+- [`persistentStateReset`](@/api/hooks.md#persistentstatereset)
 
 ## [`PersistentState`](@/api/persistentState.md) vs `localStorage`
 

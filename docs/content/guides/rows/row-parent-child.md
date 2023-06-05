@@ -58,7 +58,7 @@ the Context Menu.
 
 The data source must have a specific structure to be used with the _Nested Rows_ plugin.
 
-The plugin requires the data source to be an **array of objects**. Each object in the array
+The plugin requires the data source to be an array of objects. Each object in the array
 represents a single _0-level_ entry. _0-level_ refers to an entry, which is not a child of any other
 entry. If an entry has any child entries, they need to be declared again as an _array of objects_.
 To assign them to a row, create a `__children` property in the parent element.
@@ -382,7 +382,7 @@ In the example above, we’ve created a data object consisting of 2016’s Gramm
 genre. Each _0-level_ entry declares a category, while their children declare nominees - assigned
 under the `__children` properties.
 
-Note that the **first** 0-level object in the array needs to have all columns defined to display the
+Note that the first 0-level object in the array needs to have all columns defined to display the
 table properly. They can be declared as `null` or an empty string `''`, but they need to be defined.
 This is optional for the other objects.
 

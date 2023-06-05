@@ -211,7 +211,7 @@ const App = new Vue({
 ```
 :::
 
-**Note:** For the cell renderers to be independent, renderer components are created for each displayed cell - all of them being clones of the "original" renderer component. For performance reasons, these are cached using the LRU algorithm, which stores a certain amount of entries and overwrites the least recently used ones with fresh ones.
+For the cell renderers to be independent, renderer components are created for each displayed cell - all of them being clones of the "original" renderer component. For performance reasons, these are cached using the LRU algorithm, which stores a certain amount of entries and overwrites the least recently used ones with fresh ones.
 
 By default, the number of entries available for the cache is set to `3000`, which means 3000 cells can be rendered simultaneously while being read from the cache. However, for larger tables, some of the cells may not be able to be cached, and therefore, their corresponding component would be recreated each time a cell is rendered - this is not great for performance.
 

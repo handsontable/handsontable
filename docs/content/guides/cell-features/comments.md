@@ -51,9 +51,9 @@ const hot = new Handsontable(container, {
 
 After you've enabled the plugin, the [Context Menu](@/guides/accessories-and-menus/context-menu.md) gains a few new items:
 
-* Add/Edit comment
-* Delete comment
-* Read-only comment
+- Add/Edit comment
+- Delete comment
+- Read-only comment
 
 ## Set up pre-set comments
 

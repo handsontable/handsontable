@@ -37,8 +37,8 @@ Cells can be also configured individually by setting up the [`cells`](@/api/opti
 
 Available class names:
 
-* Horizontal: `htLeft`, `htCenter`, `htRight`, `htJustify`,
-* Vertical: `htTop`, `htMiddle`, `htBottom`.
+- Horizontal: `htLeft`, `htCenter`, `htRight`, `htJustify`,
+- Vertical: `htTop`, `htMiddle`, `htBottom`.
 
 Alignment changes can be tracked using the [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta) hook.
 

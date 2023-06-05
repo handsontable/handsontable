@@ -416,9 +416,9 @@ For more information, see the [`Instance Methods`](@/guides/getting-started/reac
 
 The plugin exposes the following methods to export data.
 
-* [`downloadFile(format, options)`](@/api/exportFile.md#downloadfile) - allows you to generate a downloadable file, directly in your browser.
-* [`exportAsBlob(format, options)`](@/api/exportFile.md#exportasblob) - allows you to export a JavaScript Blob object.
-* [`exportAsString(format, options)`](@/api/exportFile.md#exportasstring) - allows you to export data as a string.
+- [`downloadFile(format, options)`](@/api/exportFile.md#downloadfile) - allows you to generate a downloadable file, directly in your browser.
+- [`exportAsBlob(format, options)`](@/api/exportFile.md#exportasblob) - allows you to export a JavaScript Blob object.
+- [`exportAsString(format, options)`](@/api/exportFile.md#exportasstring) - allows you to export data as a string.
 
 All of them accept the same arguments:
 
@@ -438,7 +438,7 @@ Below you can find all supported options:
 
 Allows you to export data with a BOM signature.
 
-**Please note:** This property will prepend content with the UTF-16BE BOM signature (_FE FF_). The browser will convert the signature to the UTF-8 value (_EF BB BF_) automatically.
+Note that this property will prepend content with the UTF-16BE BOM signature (_FE FF_). The browser will convert the signature to the UTF-8 value (_EF BB BF_) automatically.
 
 You can use this property in all of the [available methods](#available-methods).
 
@@ -482,7 +482,7 @@ Default value: `false`
 
 Allows you to define the file extension.
 
-You can use this property in the **downloadFile** method.
+You can use this property in the `downloadFile()` method.
 
 Default value: `'csv'`
 
@@ -492,7 +492,7 @@ Allows you to define the file name.
 
 You can use predefined placeholders, which will be replaced by the date.
 
-You can use this property in the **downloadFile** method.
+You can use this property in the `downloadFile()` method.
 
 Default value: `'Handsontable [YYYY]-[MM]-[DD]'`
 
@@ -500,7 +500,7 @@ Default value: `'Handsontable [YYYY]-[MM]-[DD]'`
 
 Allows you to define the MIME type.
 
-You can use this property in the **downloadFile** and **exportAsBlob** methods.
+You can use this property in the `downloadFile()` and `exportAsBlob()` methods.
 
 Default value: `'text/csv'`
 

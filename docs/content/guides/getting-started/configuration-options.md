@@ -137,9 +137,9 @@ For more details on Handsontable's cascading configuration, see the [MetaManager
 ### Plugin options
 
 Configuration options can come from:
-* Handsontable's [Core](@/api/core.md)
-* Handsontable's [plugins](@/api/plugins.md)
-* Handsontable's [hooks](@/api/hooks.md)
+- Handsontable's [Core](@/api/core.md)
+- Handsontable's [plugins](@/api/plugins.md)
+- Handsontable's [hooks](@/api/hooks.md)
 
 If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, you need to import and register that plugin when initializing your Handsontable instance.
 
@@ -414,8 +414,8 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
 
 ::: only-for javascript
  The function can take three arguments:<br>
-- `row`: a row coordinate (a **physical** index)
-- `col`: a column coordinate (a **physical** index)
+- `row`: a row coordinate (a physical index)
+- `col`: a column coordinate (a physical index)
 - `prop`: if your [`data`](@/api/options.md#data) is an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), `prop` is a property name for a column's data source object.<br>
 If your [`data`](@/api/options.md#data) is an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), `prop` is the same as `col`.
 
@@ -439,8 +439,8 @@ const hot = new Handsontable(container, {
 
 The function can take three arguments:<br>
 
-- `row`: a row coordinate (a **physical** index)
-- `col`: a column coordinate (a **physical** index)
+- `row`: a row coordinate (a physical index)
+- `col`: a column coordinate (a physical index)
 - `prop`: if your [`data`](@/api/options.md#data) is
   an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), `prop` is a property name for a
   column's data source object.<br>
@@ -858,8 +858,8 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
 
 ::: only-for javascript
 The function can take three arguments:<br>
-   - `row`: a row coordinate (a **physical** index)
-   - `col`: a column coordinate (a **physical** index)
+   - `row`: a row coordinate (a physical index)
+   - `col`: a column coordinate (a physical index)
    - `prop`: if your [`data`](@/api/options.md#data) is an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), `prop` is a property name for a column's data source object.<br>
    If your [`data`](@/api/options.md#data) is an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), `prop` is the same as `col`.
 
@@ -879,8 +879,8 @@ const hot = new Handsontable(container, {
 ::: only-for react
 The function can take three arguments:<br>
 
-- `row`: a row coordinate (a **physical** index)
-- `col`: a column coordinate (a **physical** index)
+- `row`: a row coordinate (a physical index)
+- `col`: a column coordinate (a physical index)
 - `prop`: if your [`data`](@/api/options.md#data) is
   an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), `prop` is a property name for a
   column's data source object.<br>

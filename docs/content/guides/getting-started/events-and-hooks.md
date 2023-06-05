@@ -395,31 +395,31 @@ It's worth mentioning that some Handsontable hooks are triggered from the Handso
 
 List of callbacks that operate on the `source` parameter:
 
-* [`afterChange`](@/api/hooks.md#afterchange)
-* [`afterCreateCol`](@/api/hooks.md#aftercreatecol)
-* [`afterCreateRow`](@/api/hooks.md#aftercreaterow)
-* [`afterLoadData`](@/api/hooks.md#afterloaddata)
-* [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell)
-* [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop)
-* [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell)
-* [`afterRemoveCol`](@/api/hooks.md#afterremovecol)
-* [`afterRemoveRow`](@/api/hooks.md#aftermoverow)
-* [`afterValidate`](@/api/hooks.md#aftervalidate)
-* [`beforeChange`](@/api/hooks.md#beforechange)
-* [`beforeChangeRender`](@/api/hooks.md#beforechangerender)
-* [`beforeCreateCol`](@/api/hooks.md#beforecreatecol)
-* [`beforeCreateRow`](@/api/hooks.md#beforecreaterow)
-* [`beforeLoadData`](@/api/hooks.md#beforeloaddata)
-* [`beforeRemoveCol`](@/api/hooks.md#beforeremovecol)
-* [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow)
-* [`beforeValidate`](@/api/hooks.md#beforevalidate)
+- [`afterChange`](@/api/hooks.md#afterchange)
+- [`afterCreateCol`](@/api/hooks.md#aftercreatecol)
+- [`afterCreateRow`](@/api/hooks.md#aftercreaterow)
+- [`afterLoadData`](@/api/hooks.md#afterloaddata)
+- [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell)
+- [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop)
+- [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell)
+- [`afterRemoveCol`](@/api/hooks.md#afterremovecol)
+- [`afterRemoveRow`](@/api/hooks.md#aftermoverow)
+- [`afterValidate`](@/api/hooks.md#aftervalidate)
+- [`beforeChange`](@/api/hooks.md#beforechange)
+- [`beforeChangeRender`](@/api/hooks.md#beforechangerender)
+- [`beforeCreateCol`](@/api/hooks.md#beforecreatecol)
+- [`beforeCreateRow`](@/api/hooks.md#beforecreaterow)
+- [`beforeLoadData`](@/api/hooks.md#beforeloaddata)
+- [`beforeRemoveCol`](@/api/hooks.md#beforeremovecol)
+- [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow)
+- [`beforeValidate`](@/api/hooks.md#beforevalidate)
 
 ## The [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
 
 The following demo uses [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback to modify some key bindings:
 
-* Pressing <kbd>**Delete**</kbd> or <kbd>**Backspace**</kbd> on a cell deletes the cell and shifts all cells beneath it in the column up resulting in the cursor, which doesn't move, having the value previously beneath it, now in the current cell.
-* Pressing <kbd>**Enter**</kbd> in a cell where the value remains unchanged pushes all the cells in the column beneath and including the current cell down one row. This results in a blank cell under the cursor which hasn't moved.
+- Pressing <kbd>**Delete**</kbd> or <kbd>**Backspace**</kbd> on a cell deletes the cell and shifts all cells beneath it in the column up resulting in the cursor, which doesn't move, having the value previously beneath it, now in the current cell.
+- Pressing <kbd>**Enter**</kbd> in a cell where the value remains unchanged pushes all the cells in the column beneath and including the current cell down one row. This results in a blank cell under the cursor which hasn't moved.
 
 ::: only-for javascript
 ::: example #example2

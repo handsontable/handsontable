@@ -22,15 +22,15 @@ Use Handsontable's built-in cell types such as autocomplete, date, time, and mor
 There are three functions associated with every table cell: [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor), and optionally [`validator`](@/api/options.md#validator). These functions are mostly used all together as they are strongly connected.
 
 Example scenario - To store a date in a cell, you would:
-* Use a [`renderer`](@/api/options.md#renderer) to display the date using appropriate formatting `dd/mm/yyyy`, `yyyy-mm-dd`, etc.
-* Use an [`editor`](@/api/options.md#editor) that displays a calendar instead of the default text input, allowing the user to easily pick the right date.
-* Use a [`validator`](@/api/options.md#validator) to check if the value entered by a user is valid.
+- Use a [`renderer`](@/api/options.md#renderer) to display the date using appropriate formatting `dd/mm/yyyy`, `yyyy-mm-dd`, etc.
+- Use an [`editor`](@/api/options.md#editor) that displays a calendar instead of the default text input, allowing the user to easily pick the right date.
+- Use a [`validator`](@/api/options.md#validator) to check if the value entered by a user is valid.
 
 Cell type is represented by a string i.e. `"text"`, `"numeric"`, `"date"`. Each string is internally mapped to functions associated with this type e.g., `"numeric"` type is associated with the following functions:
 
-* `Handsontable.renderers.NumericRenderer`
-* `Handsontable.editors.TextEditor`
-* `Handsontable.validators.NumericValidator`
+- `Handsontable.renderers.NumericRenderer`
+- `Handsontable.editors.TextEditor`
+- `Handsontable.validators.NumericValidator`
 
 
 When Handsontable encounters a cell with the [`type`](@/api/options.md#type) option defined, it checks which cell functions this type refers to and uses them. For example, when setting the column type to `'password'`:
@@ -77,16 +77,16 @@ columns={[{
 
 Handsontable comes with nine types:
 
-* ["autocomplete"](@/guides/cell-types/autocomplete-cell-type.md) or `Handsontable.cellTypes.autocomplete`
-* ["checkbox"](@/guides/cell-types/checkbox-cell-type.md) or `Handsontable.cellTypes.checkbox`
-* ["date"](@/guides/cell-types/date-cell-type.md) or `Handsontable.cellTypes.date`
-* ["dropdown"](@/guides/cell-types/dropdown-cell-type.md) or `Handsontable.cellTypes.dropdown`
-* ["handsontable"](@/guides/cell-types/handsontable-cell-type.md) or `Handsontable.cellTypes.handsontable`
-* ["numeric"](@/guides/cell-types/numeric-cell-type.md) or `Handsontable.cellTypes.numeric`
-* ["password"](@/guides/cell-types/password-cell-type.md) or `Handsontable.cellTypes.password`
-* ["select"](@/guides/cell-types/select-cell-type.md) or `Handsontable.cellTypes.select`
-* ["time"](@/guides/cell-types/time-cell-type.md) or `Handsontable.cellTypes.time`
-* "text" or `Handsontable.cellTypes.text`
+- ["autocomplete"](@/guides/cell-types/autocomplete-cell-type.md) or `Handsontable.cellTypes.autocomplete`
+- ["checkbox"](@/guides/cell-types/checkbox-cell-type.md) or `Handsontable.cellTypes.checkbox`
+- ["date"](@/guides/cell-types/date-cell-type.md) or `Handsontable.cellTypes.date`
+- ["dropdown"](@/guides/cell-types/dropdown-cell-type.md) or `Handsontable.cellTypes.dropdown`
+- ["handsontable"](@/guides/cell-types/handsontable-cell-type.md) or `Handsontable.cellTypes.handsontable`
+- ["numeric"](@/guides/cell-types/numeric-cell-type.md) or `Handsontable.cellTypes.numeric`
+- ["password"](@/guides/cell-types/password-cell-type.md) or `Handsontable.cellTypes.password`
+- ["select"](@/guides/cell-types/select-cell-type.md) or `Handsontable.cellTypes.select`
+- ["time"](@/guides/cell-types/time-cell-type.md) or `Handsontable.cellTypes.time`
+- "text" or `Handsontable.cellTypes.text`
 
 The `text` cell type is the default type.
 
@@ -155,8 +155,8 @@ This gives users a convenient way of defining which cell type should be used for
 
 To register your own alias use `Handsontable.cellTypes.registerCellType()` function. It takes two arguments:
 
-* `cellTypeName` - a string representing the cell type object
-* [`type`](@/api/options.md#type) - an object with keys [`editor`](@/api/options.md#editor), [`renderer`](@/api/options.md#renderer), and [`validator`](@/api/options.md#validator) that will be represented by `cellTypeName`
+- `cellTypeName` - a string representing the cell type object
+- [`type`](@/api/options.md#type) - an object with keys [`editor`](@/api/options.md#editor), [`renderer`](@/api/options.md#renderer), and [`validator`](@/api/options.md#validator) that will be represented by `cellTypeName`
 
 If you'd like to register `copyablePasswordType` under alias `copyable-password`, you need to call:
 
@@ -506,7 +506,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 It's worth to mention that values such as `''` (empty string), `null` and `undefined` are considered empty values. Cells with empty values are displayed in a similar way for most of the data types (see below).
 
 :::tip
-Please keep in mind that opening a cell with `undefined` and `null` values results in **overwriting** the original value with an empty string. Moreover, copying and pasting that values will result in pasting the empty string.
+Please keep in mind that opening a cell with `undefined` and `null` values results in overwriting the original value with an empty string. Moreover, copying and pasting that values will result in pasting the empty string.
 :::
 
 ::: only-for javascript

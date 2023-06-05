@@ -33,10 +33,10 @@ To make the grid scrollable, set the constant width and height to same as the co
 
 The scrolling performance depends mainly on four factors:
 
-* Number of cells - number of rows multiplied by the number of columns
-* Amount and complexity of custom renderers in cells
-* Number of options enabled in the configuration
-* Performance of your setup - physical machine and browser
+- Number of cells - number of rows multiplied by the number of columns
+- Amount and complexity of custom renderers in cells
+- Number of options enabled in the configuration
+- Performance of your setup - physical machine and browser
 
 The demo below presents a data grid displaying one million cells (1000 rows x 1000 columns).
 

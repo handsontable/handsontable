@@ -265,11 +265,11 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
 
 This example shows how to:
 
-* add common callback for all options
-* dynamically disable option
-* set custom text for predefined option
-* add own custom option
-* add callback for specific option
+- Add common callback for all options
+- Dynamically disable option
+- Set custom text for predefined option
+- Add own custom option
+- Add callback for specific option
 
 To see the context menu, right-click on a cell:
 

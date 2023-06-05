@@ -29,7 +29,7 @@ To turn the headers on, set the option [`rowHeaders`](@/api/options.md#rowheader
 
 ## Bind rows with headers
 
-There is a plugin **Bind rows with headers** which allows the binding of row numbers to their headers. This is used mostly to differentiate two business cases in which Handsontable is most often used.
+You can bind row numbers with row headers. This is used mostly to differentiate two business cases in which Handsontable is most often used.
 
 1. When moving a row in a typical grid-like application, the numbers in the row headers remain intact. Only the content is moved.
 

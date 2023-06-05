@@ -44,9 +44,9 @@ import { BasePlugin, registerPlugin } from 'handsontable/plugins';
 The best way to start creating your own plugin is to extend the [`BasePlugin`](@/api/basePlugin.md).
 
 The [`BasePlugin`](@/api/basePlugin.md) interface takes care of:
-* Backward compatibility
-* Memory leak prevention
-* Properly binding your plugin's instance to Handsontable
+- Backward compatibility
+- Memory leak prevention
+- Properly binding your plugin's instance to Handsontable
 
 ```js
 export class CustomPlugin extends BasePlugin {
