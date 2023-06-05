@@ -322,7 +322,7 @@ pluginInstance.externalMethodExample();
 
 To use the Handsontable API, create a reference to the `HotTable` component, and read its `hotInstance` property.
 
-For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+For more information, see the [Instance methods](@/guides/getting-started/react-methods.md) page.
 
 :::
 

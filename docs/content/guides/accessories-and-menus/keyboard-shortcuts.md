@@ -207,7 +207,7 @@ You can customize your keyboard shortcuts, using the [`ShortcutManager`](@/api/s
 
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
-For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+For more information, see the [Instance methods](@/guides/getting-started/react-methods.md) page.
 
 :::
 
