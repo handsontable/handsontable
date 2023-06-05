@@ -134,7 +134,7 @@ Then use one of the following commands:
 * `document.execCommand('copy')`
 * `document.execCommand('cut')`
 
-The **CopyPaste** plugin listens to the browser's `copy` and `cut` events. If triggered, our implementation will copy or cut the selected data to the system clipboard.
+The [`CopyPaste`](@/api/copyPaste.md) plugin listens to the browser's `copy` and `cut` events. If triggered, our implementation will copy or cut the selected data to the system clipboard.
 
 ::: only-for javascript
 ::: example #example3 --html 1 --js 2
@@ -266,7 +266,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 :::
 :::
 
-**Note:** Not all selection-related Handsontable methods result in it gaining focus. Make sure your table instance is focused by calling [isListening()](@/api/core.md#islistening) before copying or pasting data.
+Mind that some of Handsontable's selection-related methods don't set focus on your grid automatically. To make sure that your grid is focused, call [`isListening()`](@/api/core.md#islistening) before you copy, cut or paste data.
 
 ### Hooks
 
