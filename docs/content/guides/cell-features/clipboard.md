@@ -281,7 +281,7 @@ Examples of how to use them are provided in their descriptions.
 
 ### Copy with headers
 
-Let the end user copy the contents of column headers, by enabling additional [context menu](@/guides/accessories-and-menus/context-menu.md) items:
+You can let the end user copy the contents of column headers, by enabling additional [context menu](@/guides/accessories-and-menus/context-menu.md) items:
 
 | Context menu item         | Copied area                                                               |
 | ------------------------- | ------------------------------------------------------------------------- |
@@ -417,7 +417,7 @@ copyPastePlugin.copy('column-headers-only');
 
 ## Paste
 
-The Paste action allows the importing of data from external sources using the user's system clipboard. The **CopyPaste** firstly looks for `text/html` in the system clipboard, followed by `text/plain`.
+The `Paste` action allows the importing of data from external sources, using the user's system clipboard. The [`CopyPaste`](@/api/copyPaste.md) plugin firstly looks for `text/html` in the system clipboard, followed by `text/plain`.
 
 ### End-user usage
 
@@ -448,9 +448,9 @@ Examples of how to use them are provided in their descriptions.
 
 ## Known limitations
 
-1.  The [`CopyPaste`](@/api/copyPaste.md) plugin doesn't copy, cut or paste cells' appearance.
-2.  The data copied from Handsontable will always remain as plain text. For example, if you copy a checked checkbox, the input will be kept as a value of `'true'`.
-3.  `document.execCommand` can be called only during an immediate-execute event, such as a `MouseEvent` or a `KeyboardEvent`.
+1. The [`CopyPaste`](@/api/copyPaste.md) plugin doesn't copy, cut or paste cells' appearance.
+2. The data copied from Handsontable will always remain as plain text. For example, if you copy a checked checkbox, the input will be kept as the value of `'true'`.
+3. `document.execCommand` can be called only during an immediate-execute event, such as a `MouseEvent` or a `KeyboardEvent`.
 
 ## Related keyboard shortcuts
 
