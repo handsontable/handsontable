@@ -17,13 +17,13 @@ searchCategory: Guides
 
 # Clipboard
 
-Copy data from selected cells to the clipboard, using the <kbd>**Ctrl**</kbd> / <kbd>**Cmd**</kbd>  + <kbd>**C**</kbd> shortcut or the context menu. Control the clipboard with Handsontable's API.
+Copy data from selected cells to the system clipboard.
 
 [[toc]]
 
 ## Overview
 
-The clipboard offers Copy & Cut and Paste functionality, enabling you to copy & cut cell data from Handsontable and paste it to the system clipboard. This can be achieved either via shortcut keys or by triggering a copy & cut or paste programmatically.
+You can copy or cut data from Handsontable to the system clipboard, either manually (using the context menu or the <kbd>**Ctrl**</kbd> / <kbd>**Cmd**</kbd>  + <kbd>**C**</kbd> / <kbd>**X**</kbd> shortcuts) or programmatically (using Handsontable's API methods).
 
 ## Copy & Cut
 

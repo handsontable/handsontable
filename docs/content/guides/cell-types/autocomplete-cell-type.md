@@ -19,7 +19,7 @@ Collect user input with a list of choices, by using the autocomplete cell type.
 
 ## Overview
 
-Autocomplete can be configured in three different ways:
+You can complete the autocomplete cell type in three different ways:
 - Flexible mode
 - Strict mode
 - Strict mode using Ajax

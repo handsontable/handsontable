@@ -22,7 +22,7 @@ Change the appearance of cells, using custom CSS classes, inline styles, or cust
 Handsontable uses the HTML `table` structure so customization is based either on referencing to the already existing elements, such as `TR`/`TD`, or by applying
 your own CSS classes to HTML elements.
 
-A cell can be formatted either using a `CSS` class or with a style applied directly to the DOM element.
+You can format a cell either using a `CSS` class or with a style applied directly to the DOM element.
 
 ## Apply custom CSS class styles
 

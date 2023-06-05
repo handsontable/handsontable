@@ -61,7 +61,7 @@ After you've enabled the plugin, the [Context Menu](@/guides/accessories-and-men
 
 ## Set up pre-set comments
 
-You can also pre-define comments for your table. Comments are stored in the table's/column's/cell's metadata object and can be declared as any value of that type. For example:
+You can also pre-define comments for your table. Comments are stored in the table's/column's/cell's metadata object and you can declare as any value of the respective type. For example:
 
 ::: only-for javascript
 

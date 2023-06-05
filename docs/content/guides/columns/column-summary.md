@@ -1255,7 +1255,7 @@ To summarize a column that contains non-numeric data, you can:
 
 You can force your column summary to treat non-numeric values as numeric values.
 
-:::tip
+::: tip
 
 The [`forceNumeric`](@/api/columnSummary.md) option uses JavaScript's `parseFloat()` function.
 

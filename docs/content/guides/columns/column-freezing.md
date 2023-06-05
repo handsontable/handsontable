@@ -27,7 +27,7 @@ Lock the position of specified columns, keeping them visible when scrolling.
 Column freezing locks specific columns of a grid in place, keeping them visible while scrolling to
 another area of the grid. We refer to frozen columns as _fixed_.
 
-Columns can be frozen during initialization and by the user.
+You can freeze columns during initialization and by the user.
 
 ## Freeze columns at initialization
 

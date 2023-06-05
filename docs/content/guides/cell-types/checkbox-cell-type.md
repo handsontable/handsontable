@@ -19,11 +19,11 @@ Create interactive elements that can be checked or unchecked, by using the check
 
 ## Overview
 
-Data in these cells will be rendered as a checkbox and can be easily changed by checking/unchecking the checkbox.
+Data in these cells will be rendered as a checkbox and you can easily change it by checking/unchecking the checkbox.
 
-Checking the box can be performed using a mouse, or by pressing <kbd>**Space**</kbd> or <kbd>**Enter**</kbd>.
+To check the box, use the mouse or press <kbd>**Space**</kbd> or <kbd>**Enter**</kbd>.
 
-Unchecking the box can be performed using a mouse, or by pressing <kbd>**Space**</kbd>, <kbd>**Enter**</kbd>, <kbd>**Delete**</kbd> or <kbd>**Backspace**</kbd>.
+To uncheck the box, use the mouse or press <kbd>**Space**</kbd>, <kbd>**Enter**</kbd>, <kbd>**Delete**</kbd> or <kbd>**Backspace**</kbd>.
 
 You can change the state of multiple cells at once by selecting the cells you want to change and pressing <kbd>**Space**</kbd>.
 

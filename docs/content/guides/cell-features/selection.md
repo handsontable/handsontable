@@ -36,9 +36,9 @@ There are different modes in which you can use this plugin. Choose between selec
 
 Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 
-- [`single`](@/api/options.md#selectionmode) - A single cell can be selected.
-- [`range`](@/api/options.md#selectionmode) - Multiple cells within a single range can be selected.
-- [`multiple`](@/api/options.md#selectionmode) - Multiple, non-adjacent ranges of cells can be selected.
+- [`single`](@/api/options.md#selectionmode) - You can select a single cell.
+- [`range`](@/api/options.md#selectionmode) - You can select multiple cells within a single rangeselected.
+- [`multiple`](@/api/options.md#selectionmode) - You can select multiple, non-adjacent ranges of cells.
 
 ::: only-for javascript
 
@@ -495,7 +495,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 
 ## Style the selection area
 
-The background color can be easily changed using CSS styles. The main, light blue background color is defined in the `.area` class.
+You can easily change the background color, using CSS styles. The main, light blue background color is defined in the `.area` class.
 
 For non-adjacent selection, multiple classes are making each level a bit darker. These classes are called `area-1`, `area-2`, etc.
 

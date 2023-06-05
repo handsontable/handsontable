@@ -37,14 +37,14 @@ className="htCenter"
 
 :::
 
-Cells can be also configured individually by setting up the [`cells`](@/api/options.md#cells) option. See the code sample below for an example.
+You can also configure cells individually by setting up the [`cells`](@/api/options.md#cells) option. See the code sample below for an example.
 
 Available class names:
 
 - Horizontal: `htLeft`, `htCenter`, `htRight`, `htJustify`,
 - Vertical: `htTop`, `htMiddle`, `htBottom`.
 
-Alignment changes can be tracked using the [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta) hook.
+You can track alignment changes by using the [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta) hook.
 
 ## Basic example
 
