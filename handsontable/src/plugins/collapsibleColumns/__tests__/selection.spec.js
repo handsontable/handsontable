@@ -289,5 +289,94 @@ describe('CollapsibleColumns', () => {
         'highlight: 0,0 from: -1,0 to: 4,0', // A4
       ]);
     });
+
+    it('should highlight the whole column even when the API is called with indexes that points to the columns ' +
+        'in-between the nested header', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 10),
+        colHeaders: true,
+        nestedHeaders: [
+          ['A1', { label: 'B1', colspan: 5 }, 'G1', 'H1', 'I1', 'J1'],
+          ['A2', { label: 'B2', colspan: 4 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
+          ['A3', 'B3', { label: 'C3', colspan: 3 }, 'F3', 'G3', 'H3', 'I3', 'J3'],
+        ],
+        collapsibleColumns: true,
+      });
+
+      selectColumns(2);
+      $(getCell(-1, 2).querySelector('.collapsibleIndicator')) // Collapse header "C3"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      expect(`
+        |   :           :   :   :   :   |
+        |   :       :   :   :   :   :   |
+        |   :   : * :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===|
+        |   :   : A :   :   :   :   :   |
+        |   :   : 0 :   :   :   :   :   |
+        |   :   : 0 :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 2,4']);
+
+      selectColumns(3);
+
+      expect(`
+        |   :           :   :   :   :   |
+        |   :       :   :   :   :   :   |
+        |   :   : * :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===|
+        |   :   : A :   :   :   :   :   |
+        |   :   : 0 :   :   :   :   :   |
+        |   :   : 0 :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 2,4']);
+
+      selectColumns(4);
+
+      expect(`
+        |   :           :   :   :   :   |
+        |   :       :   :   :   :   :   |
+        |   :   : * :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===|
+        |   :   : A :   :   :   :   :   |
+        |   :   : 0 :   :   :   :   :   |
+        |   :   : 0 :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 2,4']);
+    });
+
+    it('should highlight the whole collapsed column when "Ctrl" + "Space" keyboard shortcuts are pressed', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 10),
+        colHeaders: true,
+        nestedHeaders: [
+          ['A1', { label: 'B1', colspan: 5 }, 'G1', 'H1', 'I1', 'J1'],
+          ['A2', { label: 'B2', colspan: 4 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
+          ['A3', 'B3', { label: 'C3', colspan: 3 }, 'F3', 'G3', 'H3', 'I3', 'J3'],
+        ],
+        collapsibleColumns: true,
+      });
+
+      $(getCell(-1, 2).querySelector('.collapsibleIndicator')) // Collapse header "C3"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      selectCell(2, 2);
+      keyDownUp(['control', 'space']);
+
+      expect(`
+        |   :           :   :   :   :   |
+        |   :       :   :   :   :   :   |
+        |   :   : * :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===|
+        |   :   : 0 :   :   :   :   :   |
+        |   :   : 0 :   :   :   :   :   |
+        |   :   : A :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: -1,2 to: 2,4']);
+    });
   });
 });
