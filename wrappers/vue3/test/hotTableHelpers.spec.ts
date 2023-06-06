@@ -39,7 +39,7 @@ describe('prepareSettings', () => {
     expect(preparedSettings.rowHeaders).toBe(true);
     expect(preparedSettings.data).toEqual([[1, 2], [3, 4]]);
     expect(preparedSettings.beforeChange([], 'auto')).toBe(true);
-    expect(preparedSettings.beforeRemoveCellClassNames()).toBe(['beforeRemoveCellClassNamesResult']);
+    expect(preparedSettings.beforeRemoveCellClassNames()).toEqual(['beforeRemoveCellClassNamesResult']);
     expect(preparedSettings.id).toBe(void 0);
     expect(preparedSettings.settings).toBe(void 0);
   });
