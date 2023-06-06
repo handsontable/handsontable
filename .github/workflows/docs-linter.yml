@@ -22,7 +22,11 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: docs/package-lock.json
+          cache-dependency-path: package-lock.json
+
+      - name: Install Handsontable dependencies
+        run: |
+          npm ci --no-audit
 
       - name: Install Documentation dependencies
         run: |
