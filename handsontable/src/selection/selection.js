@@ -759,13 +759,19 @@ class Selection {
     });
 
     if (isValid) {
-      const from = this.tableProps
-        .createCellCoords(countColHeaders === 0 ? 0 : clamp(focusPosition, columnHeaderLastIndex, -1), start);
-      const to = this.tableProps.createCellCoords(countRows - 1, end);
+      const fromRow = countColHeaders === 0 ? 0 : clamp(focusPosition, columnHeaderLastIndex, -1);
+      const toRow = countRows - 1;
+      const from = this.tableProps.createCellCoords(fromRow, start);
+      const to = this.tableProps.createCellCoords(toRow, end);
       const highlight = this.tableProps
         .createCellCoords(clamp(focusPosition, columnHeaderLastIndex, countRows - 1), start);
 
       this.runLocalHooks('beforeSelectColumns', from, to, highlight);
+
+      // disallow modifying row axis for that hooks
+      from.row = fromRow;
+      to.row = toRow;
+
       this.setRangeStartOnly(from, void 0, highlight);
       this.selectedByColumnHeader.add(this.getLayerLevel());
       this.setRangeEnd(to);
@@ -802,17 +808,23 @@ class Selection {
     });
 
     if (isValid) {
-      const from = this.tableProps
-        .createCellCoords(startRow, countRowHeaders === 0 ? 0 : clamp(focusPosition, rowHeaderLastIndex, -1));
-      const to = this.tableProps.createCellCoords(endRow, countCols - 1);
+      const fromColumn = countRowHeaders === 0 ? 0 : clamp(focusPosition, rowHeaderLastIndex, -1);
+      const toColumn = countCols - 1;
+      const from = this.tableProps.createCellCoords(startRow, fromColumn);
+      const to = this.tableProps.createCellCoords(endRow, toColumn);
       const highlight = this.tableProps
         .createCellCoords(startRow, clamp(focusPosition, rowHeaderLastIndex, countCols - 1));
 
       this.runLocalHooks('beforeSelectRows', from, to, highlight);
+
+      // disallow modifying column axis for that hooks
+      from.col = fromColumn;
+      to.col = toColumn;
+
       this.setRangeStartOnly(from, void 0, highlight);
       this.selectedByRowHeader.add(this.getLayerLevel());
       this.setRangeEnd(to);
-      this.runLocalHooks('beforeSelectRows', from, to, highlight);
+      this.runLocalHooks('afterSelectRows', from, to, highlight);
       this.finish();
     }
 
