@@ -703,7 +703,7 @@ const REGISTERED_HOOKS = [
   'afterSelectionEndByProp',
 
   /**
-   * Fired before one or more columns are selected (e.g. During mouse move or API call).
+   * Fired before one or more columns are selected (e.g. During mouse header click or {@link Core#selectColumns} API call).
    *
    * @since 13.0.0
    * @event Hooks#beforeSelectColumns
@@ -738,7 +738,7 @@ const REGISTERED_HOOKS = [
   'beforeSelectColumns',
 
   /**
-   * Fired after one or more columns are selected (e.g. During mouse move or API call).
+   * Fired after one or more columns are selected (e.g. During mouse header click or {@link Core#selectColumns} API call).
    *
    * @since 13.0.0
    * @event Hooks#afterSelectColumns
@@ -749,7 +749,7 @@ const REGISTERED_HOOKS = [
   'afterSelectColumns',
 
   /**
-   * Fired before one or more rows are selected (e.g. During mouse move or API call).
+   * Fired before one or more rows are selected (e.g. During mouse header click or {@link Core#selectRows} API call).
    *
    * @since 13.0.0
    * @event Hooks#beforeSelectRows
@@ -784,7 +784,7 @@ const REGISTERED_HOOKS = [
   'beforeSelectRows',
 
   /**
-   * Fired after one or more rows are selected (e.g. During mouse move or API call).
+   * Fired after one or more rows are selected (e.g. During mouse header click or {@link Core#selectRows} API call).
    *
    * @since 13.0.0
    * @event Hooks#afterSelectRows
