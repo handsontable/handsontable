@@ -55,15 +55,18 @@
     "publish-package": "cd dist/hot-table && npm publish",
     "release": "npm run test && npm run publish"
   },
+  "peerDependencies": {
+    "@angular/animations": ">=12.0.0",
+    "@angular/common": ">=12.0.0",
+    "@angular/compiler": ">=12.0.0",
+    "@angular/core": ">=12.0.0",
+    "@angular/forms": ">=12.0.0",
+    "@angular/platform-browser": ">=12.0.0",
+    "@angular/platform-browser-dynamic": ">=12.0.0",
+    "@angular/router": ">=12.0.0",
+    "handsontable": "^12.0.0"
+  },
   "dependencies": {
-    "@angular/animations": "~12.2.0",
-    "@angular/common": "~12.2.0",
-    "@angular/compiler": "~12.2.0",
-    "@angular/core": "~12.2.0",
-    "@angular/forms": "~12.2.0",
-    "@angular/platform-browser": "~12.2.0",
-    "@angular/platform-browser-dynamic": "~12.2.0",
-    "@angular/router": "~12.2.0",
     "handsontable": "^12.0.0",
     "rxjs": "~6.6.0",
     "tslib": "^2.3.0",
