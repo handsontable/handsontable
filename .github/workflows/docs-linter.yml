@@ -24,13 +24,13 @@ jobs:
           cache: 'npm'
           cache-dependency-path: docs/package-lock.json
 
-      - name: Install Handsontable dependencies
-        run: |
-          npm ci --no-audit
-
       - name: Install Documentation dependencies
         run: |
           cd docs/ && npm ci --no-audit
+
+      - name: Install Handsontable dependencies
+        run: |
+          npm ci --no-audit
 
       - name: Lint
         run: |
