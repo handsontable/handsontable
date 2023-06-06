@@ -64,10 +64,11 @@ jobs:
         with:
           fetch-depth: 2
       - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # https://github.com/actions/setup-node/releases/tag/v3.6.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          cache-dependency-path: package-lock.json
       - run: npm ci --no-audit
       - uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # https://github.com/actions/cache/releases/tag/v3.0.11
         with:
@@ -118,7 +119,7 @@ jobs:
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
       - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # https://github.com/actions/setup-node/releases/tag/v3.6.0
         with:
           node-version: ${{ env.NODE_VERSION }}
       - uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # https://github.com/actions/cache/releases/tag/v3.0.11
@@ -148,7 +149,7 @@ jobs:
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
       - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # https://github.com/actions/setup-node/releases/tag/v3.6.0
         with:
           node-version: ${{ env.NODE_VERSION }}
       - uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # https://github.com/actions/cache/releases/tag/v3.0.11
@@ -179,7 +180,7 @@ jobs:
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
       - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # https://github.com/actions/setup-node/releases/tag/v3.6.0
         with:
           node-version: ${{ env.NODE_VERSION }}
       - uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # https://github.com/actions/cache/releases/tag/v3.0.11
@@ -215,7 +216,7 @@ jobs:
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
       - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # https://github.com/actions/setup-node/releases/tag/v3.6.0
         with:
           node-version: ${{ env.NODE_VERSION }}
       - uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # https://github.com/actions/cache/releases/tag/v3.0.11
@@ -251,7 +252,7 @@ jobs:
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
       - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # https://github.com/actions/setup-node/releases/tag/v3.6.0
         with:
           node-version: ${{ env.NODE_VERSION }}
       - uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # https://github.com/actions/cache/releases/tag/v3.0.11
@@ -287,7 +288,7 @@ jobs:
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
       - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # https://github.com/actions/setup-node/releases/tag/v3.6.0
         with:
           node-version: ${{ env.NODE_VERSION }}
       - uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # https://github.com/actions/cache/releases/tag/v3.0.11
@@ -351,7 +352,7 @@ jobs:
         run: if [ ! -d ./${{ env.FRAMEWORK_EXAMPLES_PATH }} ]; then echo "n-a=true" >> $GITHUB_OUTPUT; fi
       - name: Use Node.js ${{ env.NODE_VERSION }}
         if: steps.path-check.outputs.n-a != 'true'
-        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # https://github.com/actions/setup-node/releases/tag/v3.6.0
         with:
           node-version: ${{ env.NODE_VERSION }}
       - uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # https://github.com/actions/cache/releases/tag/v3.0.11
