@@ -658,24 +658,25 @@ export class IndexMapper {
     const notTrimmedIndexesLength = this.getNotTrimmedIndexesLength();
     const movedIndexesLength = movedIndexes.length;
 
-    // Removing indexes without re-indexing.
-    const listWithRemovedItems = getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes);
+    // Removing moved indexes without re-indexing.
+    const notMovedIndexes = getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes);
+    const notTrimmedNotMovedItems = notMovedIndexes.filter(index => this.isTrimmed(index) === false);
 
     // When item(s) are moved after the last visible item we assign the last possible index.
-    let destinationPosition = notTrimmedIndexesLength - movedIndexesLength;
+    let destinationPosition = notMovedIndexes.indexOf(notTrimmedNotMovedItems[notTrimmedNotMovedItems.length - 1]) + 1;
 
     // Otherwise, we find proper index for inserted item(s).
     if (finalIndex + movedIndexesLength < notTrimmedIndexesLength) {
       // Physical index at final index position.
-      const physicalIndex = listWithRemovedItems.filter(index => this.isTrimmed(index) === false)[finalIndex];
+      const physicalIndex = notTrimmedNotMovedItems[finalIndex];
 
-      destinationPosition = listWithRemovedItems.indexOf(physicalIndex);
+      destinationPosition = notMovedIndexes.indexOf(physicalIndex);
     }
 
     this.indexesChangeSource = 'move';
 
     // Adding indexes without re-indexing.
-    this.setIndexesSequence(getListWithInsertedItems(listWithRemovedItems, destinationPosition, physicalMovedIndexes));
+    this.setIndexesSequence(getListWithInsertedItems(notMovedIndexes, destinationPosition, physicalMovedIndexes));
 
     this.indexesChangeSource = void 0;
   }
