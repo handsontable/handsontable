@@ -218,7 +218,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,5 from: -3,-3 to: 3,5']);
     });
 
-    it('should select all cells with headers (multiple headers, navigableHeaders on)', () => {
+    it('should select all cells with headers and move focus to the top-start tables edge (multiple headers, navigableHeaders on)', () => {
       const hot = handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -246,8 +246,60 @@ describe('Selection', () => {
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-          `).toBeMatchToSelectionPattern();
+      `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: -3,-3 from: -3,-3 to: 3,5']);
+    });
+
+    it('should select all cells with row headers and move focus to the top-start tables edge (multiple headers, navigableHeaders on)', () => {
+      const hot = handsontable({
+        data: createSpreadsheetObjectData(4, 6),
+        colHeaders: false,
+        rowHeaders: true,
+        navigableHeaders: true,
+        afterGetRowHeaderRenderers(headerRenderers) {
+          headerRenderers.push(rowHeader.bind(this));
+          headerRenderers.push(rowHeader.bind(this));
+        },
+      });
+
+      selectCells([[1, 1, 2, 2]]);
+      hot.selection.selectAll(true, true);
+
+      expect(`
+        | # : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,-3 from: 0,-3 to: 3,5']);
+    });
+
+    it('should select all cells with column headers and move focus to the top-start tables edge (multiple headers, navigableHeaders on)', () => {
+      const hot = handsontable({
+        data: createSpreadsheetObjectData(4, 6),
+        colHeaders: true,
+        rowHeaders: false,
+        navigableHeaders: true,
+        afterGetColumnHeaderRenderers(headerRenderers) {
+          headerRenderers.push(columnHeader.bind(this));
+          headerRenderers.push(columnHeader.bind(this));
+        },
+      });
+
+      selectCells([[1, 1, 2, 2]]);
+      hot.selection.selectAll(true, true);
+
+      expect(`
+        | # : * : * : * : * : * |
+        | * : * : * : * : * : * |
+        | * : * : * : * : * : * |
+        |===:===:===:===:===:===|
+        | 0 : 0 : 0 : 0 : 0 : 0 |
+        | 0 : 0 : 0 : 0 : 0 : 0 |
+        | 0 : 0 : 0 : 0 : 0 : 0 |
+        | 0 : 0 : 0 : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -3,0 from: -3,0 to: 3,5']);
     });
 
     it('should select all cells without row headers (multiple headers, navigableHeaders on)', () => {
@@ -278,7 +330,7 @@ describe('Selection', () => {
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-          `).toBeMatchToSelectionPattern();
+      `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,-3 from: 0,-3 to: 3,5']);
     });
 
@@ -310,7 +362,7 @@ describe('Selection', () => {
         |   :   : - ║ 0 : 0 : 0 : 0 : 0 : 0 |
         |   :   : - ║ 0 : 0 : 0 : 0 : 0 : 0 |
         |   :   : - ║ 0 : 0 : 0 : 0 : 0 : 0 |
-          `).toBeMatchToSelectionPattern();
+      `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: -3,0 from: -3,0 to: 3,5']);
     });
 

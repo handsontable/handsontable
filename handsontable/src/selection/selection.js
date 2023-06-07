@@ -633,8 +633,8 @@ class Selection {
    * negative values point to the headers and positive values point to the cell range.
    */
   selectAll(includeRowHeaders = false, includeColumnHeaders = false, focusPosition = {
-    row: this.tableProps.countRowHeaders() > 0 ? -this.tableProps.countRowHeaders() : 0,
-    col: this.tableProps.countColHeaders() > 0 ? -this.tableProps.countColHeaders() : 0,
+    row: this.tableProps.countColHeaders() > 0 ? -this.tableProps.countColHeaders() : 0,
+    col: this.tableProps.countRowHeaders() > 0 ? -this.tableProps.countRowHeaders() : 0,
   }) {
     const nrOfRows = this.tableProps.countRows();
     const nrOfColumns = this.tableProps.countCols();
