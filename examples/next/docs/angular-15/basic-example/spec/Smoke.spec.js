@@ -15,7 +15,7 @@ describe('Smoke check', () => {
   }, 90000);
 
   afterEach(async () => {
-      await browser.close();
+    await browser.close();
   });
 
   it('should render Handsontable', async () => {
