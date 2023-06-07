@@ -290,7 +290,7 @@ describe('CollapsibleColumns', () => {
       ]);
     });
 
-    it('should highlight the whole column even when the API is called with indexes that points to the columns ' +
+    it('should highlight the whole column when the API is called with indexes that points to the columns ' +
         'in-between the nested header', () => {
       handsontable({
         data: createSpreadsheetData(3, 10),
