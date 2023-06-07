@@ -1831,6 +1831,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const changes = [];
 
     arrayEach(selection.getSelectedRange(), (cellRange) => {
+      if (cellRange.isSingleHeader()) {
+        return;
+      }
+
       const topStart = cellRange.getTopStartCorner();
       const bottomEnd = cellRange.getBottomEndCorner();
 

@@ -295,4 +295,77 @@ describe('Core data modification keyboard shortcuts', () => {
       ], 'edit');
     });
   });
+
+  using('key', ['Delete', 'Backspace'], (pressedKey) => {
+    it('should make selected cell empty', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      selectCell(1, 1);
+      keyDownUp([pressedKey]);
+
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1', 'D1', 'E1'],
+        ['A2', null, 'C2', 'D2', 'E2'],
+        ['A3', 'B3', 'C3', 'D3', 'E3'],
+        ['A4', 'B4', 'C4', 'D4', 'E4'],
+        ['A5', 'B5', 'C5', 'D5', 'E5'],
+      ]);
+    });
+
+    it('should make selected cells empty', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      selectCells([[1, 1, 2, 2]]);
+      keyDownUp([pressedKey]);
+
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1', 'D1', 'E1'],
+        ['A2', null, null, 'D2', 'E2'],
+        ['A3', null, null, 'D3', 'E3'],
+        ['A4', 'B4', 'C4', 'D4', 'E4'],
+        ['A5', 'B5', 'C5', 'D5', 'E5'],
+      ]);
+    });
+
+    it('should make non-contiguous selection empty', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      selectCells([[0, 0, 0, 0], [1, 1, 2, 2], [4, 2, 4, 4]]);
+      keyDownUp([pressedKey]);
+
+      expect(getData()).toEqual([
+        [null, 'B1', 'C1', 'D1', 'E1'],
+        ['A2', null, null, 'D2', 'E2'],
+        ['A3', null, null, 'D3', 'E3'],
+        ['A4', 'B4', 'C4', 'D4', 'E4'],
+        ['A5', 'B5', null, null, null],
+      ]);
+    });
+
+    it('should not make selected cells empty when header is focused', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, 1);
+      keyDownUp([pressedKey]);
+
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1', 'D1', 'E1'],
+        ['A2', 'B2', 'C2', 'D2', 'E2'],
+        ['A3', 'B3', 'C3', 'D3', 'E3'],
+        ['A4', 'B4', 'C4', 'D4', 'E4'],
+        ['A5', 'B5', 'C5', 'D5', 'E5'],
+      ]);
+    });
+  });
 });
