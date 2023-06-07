@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Added support for keyboard shortcuts that allows selecting all rows and columns",
+  "title": "Added support for keyboard shortcuts that allows selecting all rows and columns and add 4 new hooks",
   "type": "added",
   "issueOrPR": 10389,
   "breaking": false,

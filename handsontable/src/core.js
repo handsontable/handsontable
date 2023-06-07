@@ -4317,13 +4317,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * `false` otherwise.
    * @param {boolean} [includeColumnHeaders=false] `true` If the selection should include the column
    * headers, `false` otherwise.
-   * @param {{row: number, col: number}} [highlightPosition] The argument allows changing the cell/header
-   * highlight position. The value takes an object with a `row` and `col` properties (visual indexes)
+   * @param {{row: number, col: number}} [focusPosition] The argument allows changing the cell/header
+   * focus position. The value takes an object with a `row` and `col` properties (visual indexes)
    * from -N to N, where negative values point to the headers and positive values point to the cell range.
    */
-  this.selectAll = function(includeRowHeaders = true, includeColumnHeaders = includeRowHeaders, highlightPosition) {
+  this.selectAll = function(includeRowHeaders = true, includeColumnHeaders = includeRowHeaders, focusPosition) {
     preventScrollingToCell = true;
-    selection.selectAll(includeRowHeaders, includeColumnHeaders, highlightPosition);
+    selection.selectAll(includeRowHeaders, includeColumnHeaders, focusPosition);
     preventScrollingToCell = false;
   };
 
