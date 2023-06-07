@@ -88,27 +88,23 @@ exampleFrameworkSubdirs.forEach((packagesLocation) => {
 
   subdirs.forEach((packageLocation) => {
     const frameworkLocationName = packageLocation.split('/').pop();
-    const frameworkName = frameworkLocationName.replace(/-(\d+|next)/, '');
 
-    if (argv.framework.length) {
-      argv.framework.forEach(providedFrameworkName => {
-        if (
-          packageLocation.startsWith(`./${argv.examplesVersion}`) &&
-          providedFrameworkName.includes(frameworkName)
-        ) {
+    if (
+      packageLocation.startsWith(`./${argv.examplesVersion}`) &&
+      ((argv.framework && argv.framework.includes(frameworkLocationName)) ||
+      !argv.framework)
+    ) {
 
-          // Currently linking the live dependencies only for the 'next' directory.
-          if (argv.examplesVersion.startsWith('next')) {
-            packagesToLink.forEach((packageName) => {
-              linkPackage(
-                path.resolve('../node_modules'),
-                path.resolve(packageLocation, './node_modules'),
-                packageName
-              );
-            });
-          }
-        }
-    });
+      // Currently linking the live dependencies only for the 'next' directory.
+      if (argv.examplesVersion.startsWith('next')) {
+        packagesToLink.forEach((packageName) => {
+          linkPackage(
+            path.resolve('../node_modules'),
+            path.resolve(packageLocation, './node_modules'),
+            packageName
+          );
+        });
+      }
 
       // Additional linking to all the examples for Angular (required to load css files from `angular.json`)
       if (/^angular(-(\d+|next))?$/.test(frameworkLocationName)) {
