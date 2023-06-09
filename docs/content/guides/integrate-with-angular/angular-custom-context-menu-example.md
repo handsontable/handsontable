@@ -19,6 +19,7 @@ Customize the context menu of your Angular data grid, by creating a custom funct
 The following is an implementation of the `@handsontable/angular` component with a custom context menu added.
 
 ::: example :angular --html 1 --js 2
+
 ```html
 <app-root></app-root>
 ```
@@ -93,6 +94,7 @@ platformBrowserDynamic()
   .catch(err => { console.error(err) });
 /* end:skip-in-preview */
 ```
+
 :::
 
 ## Related articles

@@ -49,15 +49,19 @@ An enterprise license is available on demand.
 In your Handsontable configuration, enter either a corresponding keyword, or a generated commercial license key:
 
 ::: only-for javascript
+
 ```js
 licenseKey: '00000-00000-00000-00000-00000',
 ```
+
 :::
 
 ::: only-for react
+
 ```js
 licenseKey="00000-00000-00000-00000-00000"
 ```
+
 :::
 
 For more details on entering the license key, see the [License key](@/guides/getting-started/license-key.md) page.

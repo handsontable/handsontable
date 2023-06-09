@@ -19,6 +19,7 @@ Start with a basic example of the Vue 2 data grid, using component props for con
 In this example, a `div` element of `id="example1"` where the `@handsontable/vue` component will be rendered.
 
 ::: example #example1 :vue --html 1 --js 2
+
 ```html
 <div id="example1">
   <hot-table :settings="hotSettings"></hot-table>
@@ -62,4 +63,5 @@ new Vue({
 });
 /* end:skip-in-preview */
 ```
+
 :::
