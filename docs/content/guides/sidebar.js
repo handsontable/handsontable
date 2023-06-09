@@ -128,6 +128,12 @@ const accessoriesAndMenusItems = [
   // TODO { path: 'guides/accessories-and-menus/export-to-excel' },
 ];
 
+const accessibilityItems = [
+  { path: 'guides/accessibility/about-accessibility' },
+  { path: 'guides/accessibility/keyboard-navigation' },
+  { path: 'guides/accessibility/accessibility-compliance' },
+];
+
 const internationalizationItems = [
   { path: 'guides/internationalization/language' },
   { path: 'guides/internationalization/locale' },
@@ -188,6 +194,7 @@ module.exports = {
     { title: 'Cell types', children: cellTypesItems },
     { title: 'Formulas', children: formulasItems },
     { title: 'Accessories and menus', children: accessoriesAndMenusItems },
+    { title: 'Accessibility', children: accessibilityItems },
     { title: 'Internationalization', children: internationalizationItems },
     { title: 'Tools and building', children: buildingAndToolingItems },
     { title: 'Optimization', children: optimizationItems },
