@@ -514,9 +514,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 - [Adding comments via the context menu](@/guides/cell-features/comments.md#add-comments-via-the-context-menu)
 - [Clipboard: Context menu](@/guides/cell-features/clipboard.md#context-menu)
 - [Icon pack](@/guides/accessories-and-menus/icon-pack.md)
-
 ::: only-for javascript
-
 - [Custom context menu in React](@/react/guides/accessories-and-menus/context-menu.md)
 - [Custom context menu in Angular](@/guides/integrate-with-angular/angular-custom-context-menu-example.md)
 - [Custom context menu in Vue 2](@/guides/integrate-with-vue/vue-custom-context-menu-example.md)
