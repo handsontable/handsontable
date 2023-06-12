@@ -1656,6 +1656,166 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
     });
+
+    it('should move the cell selection up to the first cell', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      selectCell(3, 2);
+      keyDownUp('pageup');
+
+      expect(`
+        |   ║   :   : - :   :   |
+        |===:===:===:===:===:===|
+        | - ║   :   : # :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 0,2']);
+
+      keyDownUp('pageup');
+
+      expect(`
+        |   ║   :   : - :   :   |
+        |===:===:===:===:===:===|
+        | - ║   :   : # :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 0,2']);
+    });
+
+    it('should move the cell selection up to the first cell and then to the last cell of the previous column (autoWrap on)', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5,
+        autoWrapCol: true,
+        autoWrapRow: true,
+      });
+
+      selectCell(3, 2);
+      keyDownUp('pageup');
+
+      expect(`
+        |   ║   :   : - :   :   |
+        |===:===:===:===:===:===|
+        | - ║   :   : # :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 0,2']);
+
+      keyDownUp('pageup');
+
+      expect(`
+        |   ║   : - :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   : # :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 4,1 from: 4,1 to: 4,1']);
+    });
+
+    it('should move the cell selection up to the first column header and then to the last cell of the previous column (autoWrap on, navigableHeaders on)', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5,
+        autoWrapCol: true,
+        autoWrapRow: true,
+        navigableHeaders: true,
+        afterGetColumnHeaderRenderers(headerRenderers) {
+          headerRenderers.push(columnHeader.bind(this));
+          headerRenderers.push(columnHeader.bind(this));
+        },
+        afterGetRowHeaderRenderers(headerRenderers) {
+          headerRenderers.push(rowHeader.bind(this));
+          headerRenderers.push(rowHeader.bind(this));
+        },
+      });
+
+      selectCell(3, 2);
+      keyDownUp('pageup');
+
+      expect(`
+        |   :   :   ║   :   : # :   :   |
+        |   :   :   ║   :   :   :   :   |
+        |   :   :   ║   :   :   :   :   |
+        |===:===:===:===:===:===:===:===|
+        |   :   :   ║   :   :   :   :   |
+        |   :   :   ║   :   :   :   :   |
+        |   :   :   ║   :   :   :   :   |
+        |   :   :   ║   :   :   :   :   |
+        |   :   :   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -3,2 from: -3,2 to: -3,2']);
+
+      keyDownUp('pageup');
+
+      expect(`
+        |   :   :   ║   :   :   :   :   |
+        |   :   :   ║   :   :   :   :   |
+        |   :   :   ║   : - :   :   :   |
+        |===:===:===:===:===:===:===:===|
+        |   :   :   ║   :   :   :   :   |
+        |   :   :   ║   :   :   :   :   |
+        |   :   :   ║   :   :   :   :   |
+        |   :   :   ║   :   :   :   :   |
+        |   :   : - ║   : # :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 4,1 from: 4,1 to: 4,1']);
+    });
+
+    it('should move the cell selection up to the first column header and scroll the viewport (navigableHeaders on)', async() => {
+      const hot = handsontable({
+        height: 200,
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 15,
+        startCols: 3,
+        autoWrapCol: true,
+        autoWrapRow: true,
+        navigableHeaders: true,
+        afterGetColumnHeaderRenderers(headerRenderers) {
+          headerRenderers.push(columnHeader.bind(this));
+          headerRenderers.push(columnHeader.bind(this));
+        },
+        afterGetRowHeaderRenderers(headerRenderers) {
+          headerRenderers.push(rowHeader.bind(this));
+          headerRenderers.push(rowHeader.bind(this));
+        },
+      });
+
+      selectCell(13, 1);
+
+      expect(hot.view.getFirstFullyVisibleRow()).toBe(9);
+
+      keyDownUp('pageup');
+      await sleep(100);
+
+      expect(hot.view.getFirstFullyVisibleRow()).toBe(5);
+
+      keyDownUp('pageup');
+      await sleep(100);
+
+      expect(hot.view.getFirstFullyVisibleRow()).toBe(0);
+    });
   });
 
   describe('"PageDown"', () => {
@@ -1745,6 +1905,131 @@ describe('Selection navigation', () => {
         |   : # :   |
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 14,1 from: 14,1 to: 14,1']);
+    });
+
+    it('should move the cell selection down to the last cell', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      selectCell(1, 2);
+      keyDownUp('pagedown');
+
+      expect(`
+        |   ║   :   : - :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   :   : # :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 4,2 from: 4,2 to: 4,2']);
+
+      keyDownUp('pagedown');
+
+      expect(`
+        |   ║   :   : - :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   :   : # :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 4,2 from: 4,2 to: 4,2']);
+    });
+
+    it('should move the cell selection down to the last cell and then to the first cell of the next column (autoWrap on)', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5,
+        autoWrapCol: true,
+        autoWrapRow: true,
+      });
+
+      selectCell(1, 2);
+      keyDownUp('pagedown');
+
+      expect(`
+        |   ║   :   : - :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   :   : # :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 4,2 from: 4,2 to: 4,2']);
+
+      keyDownUp('pagedown');
+
+      expect(`
+        |   ║   :   :   : - :   |
+        |===:===:===:===:===:===|
+        | - ║   :   :   : # :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: 0,3 to: 0,3']);
+    });
+
+    it('should move the cell selection down to the last row and then to the first column header of the next column (autoWrap on, navigableHeaders on)', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5,
+        autoWrapCol: true,
+        autoWrapRow: true,
+        navigableHeaders: true,
+        afterGetColumnHeaderRenderers(headerRenderers) {
+          headerRenderers.push(columnHeader.bind(this));
+          headerRenderers.push(columnHeader.bind(this));
+        },
+        afterGetRowHeaderRenderers(headerRenderers) {
+          headerRenderers.push(rowHeader.bind(this));
+          headerRenderers.push(rowHeader.bind(this));
+        },
+      });
+
+      selectCell(1, 2);
+      keyDownUp('pagedown');
+
+      expect(`
+        |   :   :   ║   :   :   :   :   |
+        |   :   :   ║   :   :   :   :   |
+        |   :   :   ║   :   : - :   :   |
+        |===:===:===:===:===:===:===:===|
+        |   :   :   ║   :   :   :   :   |
+        |   :   :   ║   :   :   :   :   |
+        |   :   :   ║   :   :   :   :   |
+        |   :   :   ║   :   :   :   :   |
+        |   :   : - ║   :   : # :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 4,2 from: 4,2 to: 4,2']);
+
+      keyDownUp('pagedown');
+
+      expect(`
+        |   :   :   ║   :   :   : # :   |
+        |   :   :   ║   :   :   :   :   |
+        |   :   :   ║   :   :   :   :   |
+        |===:===:===:===:===:===:===:===|
+        |   :   :   ║   :   :   :   :   |
+        |   :   :   ║   :   :   :   :   |
+        |   :   :   ║   :   :   :   :   |
+        |   :   :   ║   :   :   :   :   |
+        |   :   :   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -3,3 from: -3,3 to: -3,3']);
     });
   });
 

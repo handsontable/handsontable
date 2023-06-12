@@ -277,6 +277,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   language: 'foo',
   layoutDirection: oneOf('rtl', 'ltr', 'inherit'),
   licenseKey: '',
+  locale: 'pl-PL',
   manualColumnFreeze: true,
   manualColumnMove: oneOf(true, [1, 4]),
   manualColumnResize: oneOf(true, [40, 50]),
