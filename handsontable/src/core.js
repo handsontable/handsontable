@@ -1836,6 +1836,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const changes = [];
 
     arrayEach(selection.getSelectedRange(), (cellRange) => {
+      if (cellRange.isSingleHeader()) {
+        return;
+      }
+
       const topStart = cellRange.getTopStartCorner();
       const bottomEnd = cellRange.getBottomEndCorner();
 
@@ -4257,9 +4261,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * ```js
    * // Select row using visual index.
    * hot.selectRows(1);
-   * // Select range of rows using visual indexes.
+   * // select a range of rows, using visual indexes.
    * hot.selectRows(1, 4);
-   * // Select range of rows using visual indexes and mark the first header as highlighted.
+   * // select a range of rows, using visual indexes, and mark the header as highlighted.
    * hot.selectRows(1, 2, -1);
    * // Select range of rows using visual indexes and mark the second cell as highlighted.
    * hot.selectRows(2, 1, 1);
@@ -4296,15 +4300,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * The previous selection is overwritten.
    *
    * ```js
-   * // select all cells in the table, including all headers with corner
+   * // select all cells in the table, including all headers and the corner cell
    * hot.selectAll();
    *
-   * // select all cells in the table, including row headers without corner
+   * // select all cells in the table, including row headers but excluding the corner cell
    * hot.selectAll(true, false);
    *
-   * // select all cells in the table, including all headers with corner but move the focus
-   * // highlight to position -2,-1
-   * hot.selectAll(true, true, { row: -2, col: -1 });
+   * // select all cells in the table, including all headers and the corner cell, but move the focus
+   * // highlight to position -2, -1
+   * hot.selectAll(-2, -1);
    *
    * // select all cells in the table, without headers
    * hot.selectAll(false);

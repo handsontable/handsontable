@@ -45,23 +45,23 @@ class CellCoords {
 
   /**
    * Checks if the coordinates in your `CellCoords` instance are valid
-   * in the context of a given table parameters.
+   * in the context of given table parameters.
    *
    * The `row` index:
-   * - Cannot be a type other than Integer.
-   * - Can't be lower than the number of column headers in the table.
-   * - Can't be higher than the total number of rows in the table.
+   * - Must be an integer.
+   * - Must be higher than the number of column headers in the table.
+   * - Must be lower than the total number of rows in the table.
    *
    * The `col` index:
-   * - Cannot be a type other than Integer.
-   * - Can't be lower than the number of rows headers in the table.
-   * - Can't be higher than the total number of columns in the table.
+   * - Must be an integer.
+   * - Must be higher than the number of row headers in the table.
+   * - Must be lower than the total number of columns in the table.
    *
-   * @param {object} [tableParams] An object with defined table size.
-   * @param {number} [tableParams.countRows=0] Total number of rows.
-   * @param {number} [tableParams.countCols=0] Total number of columns.
-   * @param {number} [tableParams.countRowHeaders=0] A number of row headers
-   * @param {number} [tableParams.countColHeaders=0] A number of column headers
+   * @param {object} [tableParams] An object with a defined table size.
+   * @param {number} [tableParams.countRows=0] The total number of rows.
+   * @param {number} [tableParams.countCols=0] The total number of columns.
+   * @param {number} [tableParams.countRowHeaders=0] A number of row headers.
+   * @param {number} [tableParams.countColHeaders=0] A number of column headers.
    * @returns {boolean} `true`: The coordinates are valid.
    */
   isValid(tableParams) {

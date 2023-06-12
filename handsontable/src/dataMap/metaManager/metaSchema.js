@@ -3188,7 +3188,7 @@ export default () => {
     multiColumnSorting: void 0,
 
     /**
-     * The `navigableHeaders` option enables or disables the ability to navigate in headers.
+     * When set to `true`, the `navigableHeaders` option lets you navigate [row headers](@/guides/rows/row-header.md) and [column headers](@/guides/columns/column-header.md), using the arrow keys or the <kbd>**Tab**</kbd> key (if the [`disableTabNavigation`](#disabletabnavigation) option is set to `false`).
      *
      * @since 13.0.0
      * @memberof Options#
@@ -3198,7 +3198,11 @@ export default () => {
      *
      * @example
      * ```js
+     * // you can navigate row and column headers with the keyboard
      * navigableHeaders: true,
+     *
+     * // default behavior: you can't navigate row and column headers with the keyboard
+     * navigableHeaders: false,
      * ```
      */
     navigableHeaders: false,
