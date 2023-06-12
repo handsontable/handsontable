@@ -91,7 +91,7 @@ const buildDependencyGetter = (version) => {
       redux: ['https://cdn.jsdelivr.net/npm/redux@4/dist/redux.min.js', []],
       rxjs: ['https://cdn.jsdelivr.net/npm/rxjs@6/bundles/rxjs.umd.js', [/* todo */]],
       'core-js': ['https://cdn.jsdelivr.net/npm/core-js@2/client/core.min.js', [/* todo */]],
-      zone: ['https://cdn.jsdelivr.net/npm/zone.js@0.9/dist/zone.min.js', [/* todo */]],
+      zone: ['https://cdn.jsdelivr.net/npm/zone.js@0.11.4/dist/zone.min.js', [/* todo */]],
       'angular-compiler': ['https://cdn.jsdelivr.net/npm/@angular/compiler@12/bundles/compiler.umd.min.js', [/* todo
        */]],
       'angular-core': ['https://cdn.jsdelivr.net/npm/@angular/core@12/bundles/core.umd.min.js', [/* todo */]],
