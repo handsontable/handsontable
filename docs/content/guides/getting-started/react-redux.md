@@ -19,7 +19,9 @@ Maintain the data and configuration options of your grid by using the Redux stat
 ## Integrate with Redux
 
 ::: tip
+
 Before using any state management library, make sure you know how Handsontable handles data: see the [Binding to data](@/guides/getting-started/binding-to-data.md#understand-binding-as-a-reference) page.
+
 :::
 
 The following example implements the `@handsontable/react` component with a [`readOnly`](@/api/options.md#readonly) toggle switch and the Redux state manager.
@@ -27,6 +29,7 @@ The following example implements the `@handsontable/react` component with a [`re
 ## Simple example
 
 ::: example #example1 :react-redux
+
 ```jsx
 import { useRef } from 'react';
 import ReactDOM from 'react-dom';
@@ -166,6 +169,7 @@ ReactDOM.render(
   document.getElementById('example1')
 );
 ```
+
 :::
 
 ## Advanced example
@@ -177,6 +181,7 @@ This example shows:
 The editor component changes the behavior of the renderer component, by passing information through Redux (and the `connect()` method of `react-redux`).
 
 ::: example #example6 :react-advanced --tab preview
+
 ```jsx
 import React, { useEffect } from 'react';
 import { HexColorPicker } from 'react-colorful';
@@ -446,4 +451,5 @@ export const ExampleComponent = () => {
 
 ReactDOM.render(<ExampleComponent />, document.getElementById('example6'));
 ```
+
 :::

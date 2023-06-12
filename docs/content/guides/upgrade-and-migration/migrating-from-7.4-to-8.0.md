@@ -30,72 +30,77 @@ Handsontable 8.0.0 introduces [`IndexMapper`](@/api/indexMapper.md), a new API t
 
 ## General guidelines
 
-* Check if you use any of the features listed in the [Keywords](#keywords-alphabetically) section. You need to address them first after installing Handsontable 8.0.0.
-* To keep backward compatibility, test solutions proposed in this guide. If you experience any problems, contact our [Technical Support Team](https://handsontable.com/contact?category=technical_support).
-* You can also check the release notes for a complete list of all changes.
+- Check if you use any of the features listed in the [Keywords](#keywords-alphabetically) section. You need to address them first after installing Handsontable 8.0.0.
+- To keep backward compatibility, test solutions proposed in this guide. If you experience any problems, contact our [Technical Support Team](https://handsontable.com/contact?category=technical_support).
+- You can also check the release notes for a complete list of all changes.
 
 ## Keywords (alphabetically)
 
-* [`afterFilter`](@/api/hooks.md#afterfilter)
-* [`afterLoadData`](@/api/hooks.md#afterloaddata)
-* [`afterRowMove`](@/api/hooks.md#afterrowmove)
-* [`afterUnmergeCells`](@/api/hooks.md#afterunmergecells)
-* `batch()`
-* [`beforeRowMove`](@/api/hooks.md#beforerowmove)
-* [`CollapsibleColumns`](@/api/collapsibleColumns.md)
-* [`ColumnSorting`](@/api/columnSorting.md)
-* [Data binding](@/guides/getting-started/binding-to-data.md)
-* [`dragColumns()`](@/api/manualColumnMove.md#dragcolumns)
-* [`dragRows`](@/api/manualRowMove.md#dragrows)
-* [`Filters`](@/api/filters.md)
-* `finalIndex`
-* `GanttChart`
-* [`HiddenColumns`](@/api/hiddenColumns.md)
-* `insert`
-* [`isMovePossible`](@/api/manualRowMove.md#ismovepossible)
-* [`ManualColumnFreeze`](@/api/manualColumnFreeze.md)
-* [`ManualColumnMove`](@/api/manualColumnMove.md)
-* [`ManualRowMove`](@/api/manualRowMove.md)
-* [`minRows`](@/api/options.md#minrows)
-* [`minSpareRows`](@/api/options.md#minsparerows)
-* `modifyCol`
-* `modifyRow`
-* [`moveColumns`](@/api/manualColumnMove.md#movecolumns)
-* [`moveRows`](@/api/manualRowMove.md#moverows)
-* [`NestedRows`](@/api/nestedRows.md)
-* `ObserveChanges`
-* [`populateFromArray()`](@/api/core.md#populatefromarray)
-* `RecordTranslator`
-* [`setDataAtCell()`](@/api/core.md#setdataatcell)
-* [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop)
-* `skipLengthCache`
-* [`toPhysicalColumn()`](@/api/core.md#tophysicalcolumn)
-* [`toPhysicalRow()`](@/api/core.md#tophysicalrow)
-* [`toVisualColumn()`](@/api/core.md#tovisualcolumn)
-* [`toVisualRow()`](@/api/core.md#tovisualrow)
-* [`TrimRows`](@/api/trimRows.md)
-* `unmodifyCol`
-* `unmodifyRow`
+- [`afterFilter`](@/api/hooks.md#afterfilter)
+- [`afterLoadData`](@/api/hooks.md#afterloaddata)
+- [`afterRowMove`](@/api/hooks.md#afterrowmove)
+- [`afterUnmergeCells`](@/api/hooks.md#afterunmergecells)
+- `batch()`
+- [`beforeRowMove`](@/api/hooks.md#beforerowmove)
+- [`CollapsibleColumns`](@/api/collapsibleColumns.md)
+- [`ColumnSorting`](@/api/columnSorting.md)
+- [Data binding](@/guides/getting-started/binding-to-data.md)
+- [`dragColumns()`](@/api/manualColumnMove.md#dragcolumns)
+- [`dragRows`](@/api/manualRowMove.md#dragrows)
+- [`Filters`](@/api/filters.md)
+- `finalIndex`
+- `GanttChart`
+- [`HiddenColumns`](@/api/hiddenColumns.md)
+- `insert`
+- [`isMovePossible`](@/api/manualRowMove.md#ismovepossible)
+- [`ManualColumnFreeze`](@/api/manualColumnFreeze.md)
+- [`ManualColumnMove`](@/api/manualColumnMove.md)
+- [`ManualRowMove`](@/api/manualRowMove.md)
+- [`minRows`](@/api/options.md#minrows)
+- [`minSpareRows`](@/api/options.md#minsparerows)
+- `modifyCol`
+- `modifyRow`
+- [`moveColumns`](@/api/manualColumnMove.md#movecolumns)
+- [`moveRows`](@/api/manualRowMove.md#moverows)
+- [`NestedRows`](@/api/nestedRows.md)
+- `ObserveChanges`
+- [`populateFromArray()`](@/api/core.md#populatefromarray)
+- `RecordTranslator`
+- [`setDataAtCell()`](@/api/core.md#setdataatcell)
+- [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop)
+- `skipLengthCache`
+- [`toPhysicalColumn()`](@/api/core.md#tophysicalcolumn)
+- [`toPhysicalRow()`](@/api/core.md#tophysicalrow)
+- [`toVisualColumn()`](@/api/core.md#tovisualcolumn)
+- [`toVisualRow()`](@/api/core.md#tovisualrow)
+- [`TrimRows`](@/api/trimRows.md)
+- `unmodifyCol`
+- `unmodifyRow`
 
 ## Installation
 
 ::: only-for javascript
+
 To update Handsontable to version 8, run:
 
 ```bash
 npm install handsontable@8
 ```
+
 :::
 
 ::: only-for react
+
 To update Handsontable to version 8, run:
 
 ```bash
 npm install handsontable@8 @handsontable/react@4
 ```
+
 :::
 
 ::: only-for javascript
+
 ### Using with wrappers
 
 When you use the wrapper you need to update it as well. Run the following command, respectively:
@@ -117,6 +122,7 @@ If you use Handsontable with Angular:
 ```bash
 npm install handsontable@8 @handsontable/angular@6
 ```
+
 :::
 
 ## Breaking changes of Handsontable 8.0.0
@@ -150,13 +156,16 @@ modifyRow(row) {
 In 8.0.0 it is no longer the case. To achieve the same functionality you need to use [`rowIndexMapper()`](@/api/core.md#rowindexmapper):
 
 ::: only-for javascript
+
 ```js
 hotInstance.rowIndexMapper.moveIndexes([1, 0], 0);
 hotInstance.render();
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 import { useRef } from 'react';
 
@@ -165,11 +174,13 @@ const hotTableComponentRef = useRef(null);
 hotTableComponentRef.current.hotInstance.rowIndexMapper.moveIndexes([1, 0], 0);
 hotTableComponentRef.current.hotInstance.render();
 ```
+
 :::
 
 Take a look on the trimming example, too. It used to work like this:
 
 ::: only-for javascript
+
 ```js
 data: [
   ['A1', 'B1', 'C1'],
@@ -192,9 +203,11 @@ modifyRow(row) {
   return null;
 }
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   data={[
@@ -219,11 +232,13 @@ modifyRow(row) {
   }}
  />
 ```
+
 :::
 
 Now, if you want to get the same results you need to use the [`TrimmingMap`](@/api/trimmingMap.md):
 
 ::: only-for javascript
+
 ```js
 import { TrimmingMap } from "handsontable/es/translations";
 ...
@@ -234,9 +249,11 @@ hotInstance.rowIndexMapper.registerMap('customTrimmingMap', customTrimmingMap);
 customTrimmingMap.setValueAtIndex(0, true); // trimming index 0
 hotInstance.render();
 ```
+
 :::
 
 ::: only-for react
+
 ```js
 import { TrimmingMap } from "handsontable/es/translations";
 import { useRef } from 'react';
@@ -251,6 +268,7 @@ hotTableComponentRef.current.hotInstance.rowIndexMapper.registerMap('customTrimm
 customTrimmingMap.setValueAtIndex(0, true); // trimming index 0
 hotTableComponentRef.current.hotInstance.render();
 ```
+
 :::
 
 ### Handsontable's `hiddenRow` and `hiddenColumn` hooks
@@ -305,25 +323,30 @@ From version 8.0.0 you can set plugins separately. They no longer rely on each o
 Before 8.0.0
 
 ::: only-for javascript
+
 ```js
 nestedRows: true
 
 filters: true
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 nestedRows={true}
 
 filters={true}
 ```
+
 :::
 
 
 After:
 
 ::: only-for javascript
+
 ```js
 nestedRows: true,
 trimRows: true
@@ -331,9 +354,11 @@ trimRows: true
 filters: true,
 trimRows: true
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 nestedRows={true}
 trimRows={true}
@@ -341,6 +366,7 @@ trimRows={true}
 filters={true}
 trimRows={true}
 ```
+
 :::
 
 [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) does not rely on the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin. To preserve the same functionality as before you need to set it explicitly:
@@ -348,31 +374,39 @@ trimRows={true}
 Before 8.0.0
 
 ::: only-for javascript
+
 ```js
 manualColumnFreeze: true
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 manualColumnFreeze={true}
 ```
+
 :::
 
 After:
 
 ::: only-for javascript
+
 ```js
 manualColumnFreeze: true,
 manualColumnMove: true
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 manualColumnFreeze={true}
 manualColumnMove={true}
 ```
+
 :::
 
 [`ColumnSorting`](@/api/columnSorting.md) will not enable `ObserveChanges`. To preserve the same functionality as before you need to set it explicitly:
@@ -380,31 +414,39 @@ manualColumnMove={true}
 Before 8.0.0
 
 ::: only-for javascript
+
 ```js
 columnSorting: true
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 columnSorting={true}
 ```
+
 :::
 
 After:
 
 ::: only-for javascript
+
 ```js
 columnSorting: true,
 observeChanges: true
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 columnSorting={true}
 observeChanges={true}
 ```
+
 :::
 
 [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin no longer uses [`HiddenColumns`](@/api/hiddenColumns.md) plugin, hence it will not be enabled. What's more, it won't enforce the inclusion of the second plugin anymore. To preserve the functionality of hiding columns separately (out of collapsing) as before you need to set it explicitly:
@@ -412,31 +454,39 @@ observeChanges={true}
 Before 8.0.0
 
 ::: only-for javascript
+
 ```js
 collapsibleColumns: true
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 collapsibleColumns={true}
 ```
+
 :::
 
 After:
 
 ::: only-for javascript
+
 ```js
 collapsibleColumns: true,
 hiddenColumns: true
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 collapsibleColumns={true}
 hiddenColumns={true}
 ```
+
 :::
 
 ### Data reference and the `ObserveChanges` plugin
@@ -456,29 +506,35 @@ data[0][0] = 'A1';
 or by getting the reference to the underlying source data:
 
 ::: only-for javascript
+
 ```js
 hotInstance.getSourceData()[0][0] = 'A1';
 ```
+
 :::
 
 ::: only-for react
 ```js
 hotTableComponentRef.current.hotInstance.getSourceData()[0][0] = 'A1';
 ```
+
 :::
 
 Now, you should use the API instead:
 
 ::: only-for javascript
+
 ```js
 hotInstance.setSourceDataAtCell(0, 0, 'A1');
 ```
+
 :::
 
 ::: only-for react
 ```js
 hotTableComponentRef.current.hotInstance.setSourceDataAtCell(0, 0, 'A1');
 ```
+
 :::
 
 It is also worth mentioning that [`getSourceData()`](@/api/core.md#getsourcedata) returns a clone of the entire dataset when run without arguments. However, if a row/column range is provided (`getSourceData(0, 0, 10, 10)`) the method filters the dataset with the [`columns`](@/api/options.md#columns) and/or [`dataSchema`](@/api/options.md#dataschema) options, and returns only the columns that are configured to be visible.
@@ -486,6 +542,7 @@ It is also worth mentioning that [`getSourceData()`](@/api/core.md#getsourcedata
 Before, it was also possible to extend the row-object by [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) when your source data was an array of objects. Since 8.0.0, the only way to do that is to use [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell):
 
 ::: only-for javascript
+
 ```js
 const hot = new Handsontable(container, {
   data: [
@@ -497,6 +554,7 @@ const hot = new Handsontable(container, {
 hot.setDataAtRowProp(0, 'available', true) // in 8.0.0, this throws an error
 hot.setSourceDataAtCell(0, 'available', true) // in 8.0.0, this sets a new property
 ```
+
 :::
 
 ::: only-for react
@@ -511,6 +569,7 @@ hot.setSourceDataAtCell(0, 'available', true) // in 8.0.0, this sets a new prope
 hotTableComponentRef.current.hotInstance.setDataAtRowProp(0, 'available', true) // in 8.0.0, this throws an error
 hotTableComponentRef.current.hotInstance.setSourceDataAtCell(0, 'available', true) // in 8.0.0, this sets a new property
 ```
+
 :::
 
 ### `ManualRowMove` and `ManualColumnMove` changes
@@ -554,6 +613,7 @@ Another breaking change is related to [`minSpareRows`](@/api/options.md#minspare
 Check the following code example:
 
 ::: only-for javascript
+
 ```js
 const hotInstance = new Handsontable(container, {
   data: [
@@ -567,9 +627,11 @@ const hotInstance = new Handsontable(container, {
   trimRows: [1, 2, 3, 4]
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   data={[
@@ -583,6 +645,7 @@ const hotInstance = new Handsontable(container, {
   trimRows={[1, 2, 3, 4]}
 />
 ```
+
 :::
 
 The results before:
@@ -596,6 +659,7 @@ The results after:
 To ensure your application works as expected you should review it and search the use cases of [`minSpareRows`](@/api/options.md#minsparerows) or [`minRows`](@/api/options.md#minrows). If your application relies on this mechanism, you may need to adapt your application's code. For example, in prior versions the following code:
 
 ::: only-for javascript
+
 ```js
 const hotInstance = new Handsontable(container, {
   data: [
@@ -609,9 +673,11 @@ const hotInstance = new Handsontable(container, {
   minSpareRows: 2
 }
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   data={[
@@ -625,11 +691,13 @@ const hotInstance = new Handsontable(container, {
   minSpareRows={2}
 />
 ```
+
 :::
 
 rendered **0** spare rows. If you want to keep it that way you may need a workaround, for example:
 
 ::: only-for javascript
+
 ```js
 const hotInstance = new Handsontable(container, {
   data: [
@@ -650,9 +718,11 @@ const hotInstance = new Handsontable(container, {
   minSpareRows: 2
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   data={[
@@ -673,6 +743,7 @@ const hotInstance = new Handsontable(container, {
   minSpareRows={2}
 />
 ```
+
 :::
 
 ### Custom editors
@@ -828,14 +899,17 @@ From `v8.0.0` selecting columns or rows with headers will include headers as a p
 When the selection is returned as an array, just map the values and limit them to positive values:
 
 ::: only-for javascript
+
 ```js
 hotInstance.getSelectedLast().map((indexIncludingHeader) => {
   return Math.max(0, indexIncludingHeader);
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 import { useRef } from 'react';
 
@@ -845,17 +919,21 @@ hotTableComponentRef.current.hotInstance.getSelectedLast().map((indexIncludingHe
   return Math.max(0, indexIncludingHeader);
 });
 ```
+
 :::
 
 Selection Range object has a new method [`normalize`](@/api/cellCoords.md#normalize) that will do this for you:
 
 ::: only-for javascript
+
 ```js
 hotInstance.getSelectedRangeLast().from.clone().normalize()
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 import { useRef } from 'react';
 
@@ -863,6 +941,7 @@ const hotTableComponentRef = useRef(null);
 
 hotTableComponentRef.current.hotInstance.getSelectedRangeLast().from.clone().normalize()
 ```
+
 :::
 
 ### Removals

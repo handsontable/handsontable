@@ -16,11 +16,12 @@ Pass a custom ID to the `hot-table` component to further customize your Angular 
 
 ## Overview
 
-A custom `id` can be passed in together with other attributes to the `hot-table` wrapper element. It will be applied to the root Handsontable element, allowing further customization of the table.
+Along with other attributes of the `hot-table` wrapper element, you can also pass a custom `id`. It will be applied to the root Handsontable element, allowing further customization of the table.
 
 ## Example
 
 ::: example :angular --html 1 --js 2
+
 ```html
 <app-root></app-root>
 ```
@@ -79,4 +80,5 @@ platformBrowserDynamic()
   .catch(err => { console.error(err) });
 /* end:skip-in-preview */
 ```
+
 :::

@@ -19,7 +19,7 @@ Use the time cell type to display, format, and validate values as times. The tim
 
 ## Usage
 To use the time cell type, set the `type: 'time'` option in the [`columns`](@/api/options.md#columns) array or the [`cells`](@/api/options.md#cells) function.
-The time cell uses [Moment.js](https://github.com/moment/moment) as the time formatter, therefore you **must** add the following required dependency:
+The time cell uses [Moment.js](https://github.com/moment/moment) as the time formatter, therefore you must add the following required dependency:
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
@@ -29,13 +29,17 @@ All data entered into the time-typed cells is eventually validated against the d
 If you enable the [`correctFormat`](@/api/options.md#correctformat) configuration option, the values will be automatically formatted to match the desired time format.
 
 ::: tip
-By default, the values entered into the time-type column are **not** validated, so if you want them to display in the proper format, remember to call [`hot.validateCells()`](@/api/core.md#validatecells) after the table initialization.
+
+By default, the values entered into the time-type column are not validated, so if you want them to display in the proper format, remember to call [`hot.validateCells()`](@/api/core.md#validatecells) after the table initialization.
+
 :::
 
 ## Basic example
 
 ::: only-for javascript
+
 ::: example #example1
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -76,11 +80,15 @@ const hot = new Handsontable(container, {
 
 hot.validateCells();
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { useEffect, useRef } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -139,9 +147,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Related articles
 
