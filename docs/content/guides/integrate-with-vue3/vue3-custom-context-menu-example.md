@@ -21,6 +21,7 @@ The following example implements the `@handsontable/vue3` component, adding a cu
 [Find out which Vue 3 versions are supported](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
 
 ::: example #example1 :vue3 --html 1 --js 2
+
 ```html
 <div id="example1">
   <hot-table :settings="hotSettings"></hot-table>
@@ -83,6 +84,7 @@ const app = createApp(ExampleComponent);
 app.mount('#example1');
 /* end:skip-in-preview */
 ```
+
 :::
 
 ## Related articles

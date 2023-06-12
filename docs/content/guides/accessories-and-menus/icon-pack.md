@@ -22,12 +22,12 @@ Create toolbars, menu bars, and context menus with our set of icons, designed sp
 
 ## Overview
 
-**Spreadsheet icons** are designed to accompany data grids, spreadsheets and other dynamic data views. They are clean, consistent and lightweight. You can use them to create toolbars, menu bars and context menus. They look great at any scale and screen resolution.
+Spreadsheet icons are designed to accompany data grids, spreadsheets and other dynamic data views. They are clean, consistent and lightweight. You can use them to create toolbars, menu bars and context menus. They look great at any scale and screen resolution.
 
-* 160+ SVG icons.
-* Recommended size is 24px or scaled accordingly - 18, 24 or 36px.
-* Recommended color on light background is black at 75% opacity - `rgba(0, 0, 0, 0.75)`. For disabled icon style reduce the opacity to 35%.
-* Recommended color on dark background is white at 80% opacity - `rgba(255, 255, 255, 0.8)`. For disabled icon style reduce the opacity. to 30%.
+- 160+ SVG icons.
+- Recommended size is 24px or scaled accordingly - 18, 24 or 36px.
+- Recommended color on light background is black at 75% opacity - `rgba(0, 0, 0, 0.75)`. For disabled icon style reduce the opacity to 35%.
+- Recommended color on dark background is white at 80% opacity - `rgba(255, 255, 255, 0.8)`. For disabled icon style reduce the opacity. to 30%.
 
 ## Download the package
 
