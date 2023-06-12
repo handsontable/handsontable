@@ -30,7 +30,9 @@ Copy a cell's value into multiple other cells, using the "fill handle" UI elemen
 Using the tiny square known as the 'fill handle' in the corner of the selected cell, you can drag it (drag-down) to repeat the values from the cell. Double click the fill handle in `cell B4` where the value is `30` to fill the selection down to the last value in neighboring column, just like it would in Excel or Google Sheets.
 
 ::: only-for javascript
+
 ::: example #example1
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -56,11 +58,15 @@ const hot = new Handsontable(container, {
 // or, use `updateData()` to replace `data` without resetting states
 hot.loadData(data);
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -98,16 +104,19 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Autofill in a vertical direction only and creating new rows
 
 In this configuration, the fill handle is restricted to move only vertically. New rows are automatically added to the bottom of the table by changing [`autoInsertRow`](@/api/options.md#fillhandle) to `true`.
 
 ::: only-for javascript
+
 ::: example #example2
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -134,11 +143,15 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example2 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -179,9 +192,10 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Related API reference
 

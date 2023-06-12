@@ -2,7 +2,7 @@ import { PLUGIN_KEY } from '../formulas';
 
 export const DEFAULT_LICENSE_KEY = 'internal-use-in-handsontable';
 
-const DEFAULT_SETTINGS = {
+export const DEFAULT_SETTINGS = {
   licenseKey: DEFAULT_LICENSE_KEY,
 
   useArrayArithmetic: true,
@@ -12,11 +12,11 @@ const DEFAULT_SETTINGS = {
   precisionEpsilon: 1e-13,
   precisionRounding: 14,
   smartRounding: true,
-  leapYear1900: true,
+  leapYear1900: false,
   nullDate: {
     year: 1899,
     month: 12,
-    day: 31
+    day: 30
   },
   nullYear: 30,
   dateFormats: ['DD/MM/YYYY', 'DD/MM/YY'],
@@ -109,4 +109,18 @@ export function getEngineSettingsWithOverrides(hotSettings) {
     ...userSettings,
     ...overrides
   };
+}
+
+/**
+ * Check if the new settings are defined and are different from the ones currently used by the engine.
+ *
+ * @param {object} currentEngineSettings Currently used engine settings.
+ * @param {object} newEngineSettings New engine settings.
+ * @returns {boolean}
+ */
+export function haveEngineSettingsChanged(currentEngineSettings, newEngineSettings) {
+  return Object.keys(newEngineSettings).some((settingOption) => {
+    return newEngineSettings[settingOption] !== void 0 &&
+      newEngineSettings[settingOption] !== currentEngineSettings[settingOption];
+  });
 }

@@ -42,15 +42,19 @@ Handsontable doesn't support JavaScript's `Date` object.
 To change the date format accepted by `date` cells, set the [`dateFormat`](@/api/options.md#dateformat) configuration option to a string with your preferred format. For example:
 
 ::: only-for javascript
+
 ```js
 dateFormat: 'YYYY-MM-DD',
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 dateFormat={'YYYY-MM-DD'}
 ```
+
 :::
 
 ### Autocorrect invalid dates
@@ -60,6 +64,7 @@ By default, when the user enters a date in a format that doesn't match the [`dat
 You can let Handsontable correct such dates automatically, so they match the required format. To do this, set the [`correctFormat`](@/api/options.md#correctformat) option to `true`. For example:
 
 ::: only-for javascript
+
 ```js
 dateFormat: 'YYYY-MM-DD',
 
@@ -70,9 +75,11 @@ correctFormat: false,
 // date entered as `30/12/2022` will be corrected to `2022/12/30`
 correctFormat: true,
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 dateFormat={'YYYY-MM-DD'}
 
@@ -83,12 +90,17 @@ correctFormat={false}
 // date entered as `30/12/2022` will be corrected to `2022/12/30`
 correctFormat={true}
 ```
+
 :::
 
 ## Basic example
 
+Click on one of the ▼ icons to open an interactive date editor.
+
 ::: only-for javascript
+
 ::: example #example1
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -123,7 +135,6 @@ const hot = new Handsontable(container, {
         // First day of the week (0: Sunday, 1: Monday, etc)
         firstDay: 0,
         showWeekNumber: true,
-        numberOfMonths: 3,
         disableDayFn(date) {
           // Disable Sunday and Saturday
           return date.getDay() === 0 || date.getDay() === 6;
@@ -139,11 +150,15 @@ const hot = new Handsontable(container, {
   ]
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -182,7 +197,6 @@ export const ExampleComponent = () => {
             // First day of the week (0: Sunday, 1: Monday, etc)
             firstDay: 0,
             showWeekNumber: true,
-            numberOfMonths: 3,
             licenseKey: 'non-commercial-and-evaluation',
             disableDayFn(date) {
               // Disable Sunday and Saturday
@@ -208,9 +222,10 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Related articles
 

@@ -2,14 +2,14 @@
 id: g7i1xok4
 title: Formula calculation
 metaTitle: Formula calculation - JavaScript Data Grid | Handsontable
-description: Perform calculations on cells' values, using a powerful calculation engine that handles 380+ functions, custom functions, named expressions, and more.
+description: Perform calculations on cells' values, using a powerful calculation engine that handles nearly 400 functions, custom functions, named expressions, and more.
 permalink: /formula-calculation
 canonicalUrl: /formula-calculation
 tags:
+  - formulas
   - formula
   - excel
   - spreadsheet
-  - gpu
   - worksheet
   - workbook
   - sheet
@@ -23,83 +23,48 @@ searchCategory: Guides
 
 # Formula calculation
 
-Perform calculations on cells' values, using a powerful calculation engine that handles 380+ functions, custom functions, named expressions, and more.
+Perform calculations on cells' values, using a powerful calculation engine that handles nearly 400
+functions, custom functions, named expressions, and more.
 
 [[toc]]
 
 ## Overview
 
-The _Formulas_ plugin provides you an extensive calculation capabilities based on formulas using the spreadsheet notation. Under the hood, it uses an engine called [HyperFormula](https://hyperformula.handsontable.com/) created by the Handsontable team as an independent library to help developers build complex data management apps.
+The _Formulas_ plugin provides you an extensive calculation capabilities based on formulas using the
+spreadsheet notation. Under the hood, it uses an engine called
+[HyperFormula](https://hyperformula.handsontable.com/) created by the Handsontable team as an
+independent library to help developers build complex data management apps.
 
-This plugin comes with a library of 386 functions grouped into categories, such as Math and trigonometry, Engineering, Statistical, Financial, and Logical. Using these, you can create complex data entry rules in business apps and much more. Below are some ideas on what you can do with it:
+This plugin comes with a library of 386 functions grouped into categories, such as Math and
+trigonometry, Engineering, Statistical, Financial, and Logical. Using these, you can create complex
+data entry rules in business apps and much more. Below are some ideas on what you can do with it:
 
-*   Fully-featured spreadsheet apps
-*   Smart documents
-*   Educational apps
-*   Business logic builders
-*   Forms and form builders
-*   Online calculators
-*   Low connectivity apps
-
-### HyperFormula version support
-
-Different versions of Handsontable support different versions of HyperFormula.
-
-To find out which HyperFormula version to use, see the table below:
-
-| Handsontable version                                                                    | HyperFormula version                                                                                           |
-| --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| [`8.x.x`](https://github.com/handsontable/handsontable/releases/tag/8.0.0) and lower    | No HyperFormula support (old [Formulas](https://handsontable.com/docs/8.0.0/demo-formula-support.html) plugin) |
-| [`9.x.x`](https://github.com/handsontable/handsontable/releases/tag/9.0.0)              | [`0.6.2`](https://github.com/handsontable/hyperformula/releases/tag/0.6.2)                                     |
-| [`10.x.x`](https://github.com/handsontable/handsontable/releases/tag/10.0.0)            | [`^1.2.0`](https://github.com/handsontable/hyperformula/releases/tag/1.2.0)                                    |
-| [`11.x.x`](https://github.com/handsontable/handsontable/releases/tag/11.0.0)            | [`^1.2.0`](https://github.com/handsontable/hyperformula/releases/tag/1.2.0)                                    |
-| [`12.x.x`](https://github.com/handsontable/handsontable/releases/tag/12.0.0) and higher | [`^2.0.0`](https://github.com/handsontable/hyperformula/releases/tag/2.0.0)                                    |
-
-::: tip
-You can use the `'internal-use-in-handsontable'` license key only in those HyperFormula instances that are connected to a Handsontable instance.
-
-To use HyperFormula outside of a Handsontable instance (e.g., on a server), you need a dedicated [HyperFormula license key](https://hyperformula.handsontable.com/guide/license-key.html). For details, [contact our Sales Team](https://handsontable.com/get-a-quote).
-:::
-
-## Features
-
-*   High-speed formula calculations
-*   Function syntax compatible with Excel and Google Sheets
-*   A library of built-in functions available in 16 languages
-*   Support for wildcard characters
-*   Support for CRUD operations
-*   Support for cross-sheet references
-*   Support for multiple Handsontable instances
-*   Uses GPU acceleration for better performance
-
-**Known limitations:**
-
-*   Doesn't work with [nested rows](@/guides/rows/row-parent-child.md)
-*   Doesn't work with [undo/redo](@/guides/accessories-and-menus/undo-redo.md)
-*   Doesn't work with nested data (when Handsontable's [`data`](@/api/options.md#data) is set to an [array of nested objects](@/guides/getting-started/binding-to-data.md#array-of-objects))
-
-## Available options and methods
-
-For the list of available settings and methods, visit the [API reference](@/api/formulas.md).
-
-## Available functions
-
-This plugin inherits the calculation powers from _HyperFormula_. The complete functions reference can be found in the [HyperFormula documentation](https://handsontable.github.io/hyperformula/guide/built-in-functions.html).
+- Fully-featured spreadsheet apps
+- Smart documents
+- Educational apps
+- Business logic builders
+- Forms and form builders
+- Online calculators
+- Low connectivity apps
 
 ## Basic multi-sheet example
 
-It is possible to use the plugin in single sheet mode or with multiple Handsontable instances with cross-sheet references.
+You can use formulas in a single-sheet mode or with multiple Handsontable instances with
+cross-sheet references.
 
 Double click on a cell to open the editor and preview the formula.
 
 ::: only-for javascript
+
 ::: example #example1 --html 1 --css 2 --js 3
+
 ```html
 <h3 class="demo-preview">Sheet 1</h3>
 <div id="example-basic-multi-sheet-1"></div>
 <h3 class="demo-preview">Sheet 2</h3>
 <div id="example-basic-multi-sheet-2"></div>
 ```
+
 ```css
 h3.demo-preview {
   margin-bottom: 0.3rem !important;
@@ -107,6 +72,7 @@ h3.demo-preview {
   margin-top: 0.5rem !important;
 }
 ```
+
 ```js
 import Handsontable from 'handsontable';
 import HyperFormula from 'hyperformula';
@@ -143,9 +109,9 @@ new Handsontable(container1, {
   height: 'auto',
   formulas: {
     engine: hyperformulaInstance,
-    sheetName: 'Sheet1'
+    sheetName: 'Sheet1',
   },
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
 
 const container2 = document.querySelector('#example-basic-multi-sheet-2');
@@ -156,16 +122,20 @@ new Handsontable(container2, {
   height: 'auto',
   formulas: {
     engine: hyperformulaInstance,
-    sheetName: 'Sheet2'
+    sheetName: 'Sheet2',
   },
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react --css 1 --js 2
+
 ```css
 h3.demo-preview {
   margin-bottom: 0.3rem !important;
@@ -173,6 +143,7 @@ h3.demo-preview {
   margin-top: 0.5rem !important;
 }
 ```
+
 ```jsx
 import { HyperFormula } from 'hyperformula';
 import { HotTable } from '@handsontable/react';
@@ -214,7 +185,7 @@ export const ExampleComponent = () => {
         height="auto"
         formulas={{
           engine: hyperformulaInstance,
-          sheetName: 'Sheet1'
+          sheetName: 'Sheet1',
         }}
         licenseKey="non-commercial-and-evaluation"
       />
@@ -226,7 +197,7 @@ export const ExampleComponent = () => {
         height="auto"
         formulas={{
           engine: hyperformulaInstance,
-          sheetName: 'Sheet2'
+          sheetName: 'Sheet2',
         }}
         licenseKey="non-commercial-and-evaluation"
       />
@@ -241,16 +212,20 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Data grid example
 
-This example is more typical of data grids than spreadsheets. Calculations are present in two places – in a column “Total due (fx)”, and in the summary row at the bottom.
+This example is more typical of data grids than spreadsheets. Calculations are present in two places
+– in column “Total due (fx)”, and in the summary row at the bottom.
 
 ::: only-for javascript
+
 ::: example #example-data-grid
+
 ```js
 import Handsontable from 'handsontable';
 import HyperFormula from 'hyperformula';
@@ -358,7 +333,7 @@ const data = [
   ['41', '739', '0.88', '11', '=A99*(B99*C99)+D99'],
   ['144', '289', '0.87', '13', '=A100*(B100*C100)+D100'],
   ['Sum', 'Average', 'Average', 'Sum', 'Sum'],
-  ['=SUM(A1:A100)', '=AVERAGE(B1:B100)', '=AVERAGE(C1:C100)', '=SUM(D1:D100)', '=SUM(E1:E100)']
+  ['=SUM(A1:A100)', '=AVERAGE(B1:B100)', '=AVERAGE(C1:C100)', '=SUM(D1:D100)', '=SUM(E1:E100)'],
 ];
 
 const container = document.querySelector('#example-data-grid');
@@ -371,14 +346,18 @@ const hot = new Handsontable(container, {
   fixedRowsBottom: 2,
   stretchH: 'all',
   height: 500,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example-data-grid :react
+
 ```jsx
 import { HyperFormula } from 'hyperformula';
 import { HotTable } from '@handsontable/react';
@@ -491,7 +470,7 @@ export const ExampleComponent = () => {
     ['41', '739', '0.88', '11', '=A99*(B99*C99)+D99'],
     ['144', '289', '0.87', '13', '=A100*(B100*C100)+D100'],
     ['Sum', 'Average', 'Average', 'Sum', 'Sum'],
-    ['=SUM(A1:A100)', '=AVERAGE(B1:B100)', '=AVERAGE(C1:C100)', '=SUM(D1:D100)', '=SUM(E1:E100)']
+    ['=SUM(A1:A100)', '=AVERAGE(B1:B100)', '=AVERAGE(C1:C100)', '=SUM(D1:D100)', '=SUM(E1:E100)'],
   ];
 
   return (
@@ -516,13 +495,15 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Initialization methods
 
-There're multiple ways of initializing the plugin. You can select the most convenient one depending on your use case.
+There are multiple ways of initializing the Formulas plugin. You can select the most convenient one
+depending on your use case.
 
 In all cases, it is required to either pass in the `HyperFormula` object or a HyperFormula instance:
 
@@ -530,11 +511,13 @@ In all cases, it is required to either pass in the `HyperFormula` object or a Hy
 import { HyperFormula } from 'hyperformula';
 ```
 
-There are also other installation methods available. Check out [HyperFormula's installation documentation](https://handsontable.github.io/hyperformula/guide/client-side-installation.html).
+There are also other installation methods available. Check out
+[HyperFormula's installation documentation](https://handsontable.github.io/hyperformula/guide/client-side-installation.html).
 
 ::: tip HyperFormula instance
-To use the [`Formulas`](@/api/formulas.md) plugin with an external HyperFormula instance,
-initialize HyperFormula with the `'internal-use-in-handsontable'` license key:
+
+To use the [`Formulas`](@/api/formulas.md) plugin with an external HyperFormula instance, initialize
+HyperFormula with the `'internal-use-in-handsontable'` license key:
 
 ```js
 // create an external HyperFormula instance
@@ -543,11 +526,13 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
   licenseKey: 'internal-use-in-handsontable',
 });
 ```
+
 :::
 
 ### Pass the HyperFormula class/instance to Handsontable
 
 ::: only-for javascript
+
 ```js
 {
   formulas: {
@@ -556,9 +541,11 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
   }
 }
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   formulas={{
@@ -567,11 +554,13 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
   }}
 />
 ```
+
 :::
 
 or
 
 ::: only-for javascript
+
 ```js
 {
   formulas: {
@@ -585,9 +574,11 @@ or
   }
 }
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   formulas={{
@@ -601,11 +592,13 @@ or
   }}
 />
 ```
+
 :::
 
 ### Single Handsontable instance with an external HyperFormula instance
 
 ::: only-for javascript
+
 ```js
 const hyperformulaInstance = HyperFormula.buildEmpty({
   // to use an external HyperFormula instance,
@@ -615,13 +608,15 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 
 {
   formulas: {
-    engine: hyperformulaInstance
+    engine: hyperformulaInstance;
   }
 }
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 export const ExampleComponent = () => {
   const hyperformulaInstance = HyperFormula.buildEmpty({
@@ -633,17 +628,19 @@ export const ExampleComponent = () => {
   return (
     <HotTable
       formulas={{
-        engine: hyperformulaInstance
+        engine: hyperformulaInstance,
       }}
     />
   );
 };
 ```
+
 :::
 
 ### Multiple independent Handsontable instances
 
 ::: only-for javascript
+
 ```js
 // Instance 1
 {
@@ -661,9 +658,11 @@ export const ExampleComponent = () => {
   }
 }
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 export const ExampleComponent = () => {
   return (
@@ -684,9 +683,11 @@ export const ExampleComponent = () => {
   );
 };
 ```
+
 :::
 
 ::: only-for javascript
+
 ### Multiple Handsontable instances with a shared HyperFormula instance
 
 ```js
@@ -708,11 +709,13 @@ export const ExampleComponent = () => {
   }
 }
 ```
+
 :::
 
 ### Multiple Handsontable instances with an external shared HyperFormula instance
 
 ::: only-for javascript
+
 ```js
 const hyperformulaInstance = HyperFormula.buildEmpty({
   // to use an external HyperFormula instance,
@@ -738,9 +741,11 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
   }
 }
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 export const ExampleComponent = () => {
   const hyperformulaInstance = HyperFormula.buildEmpty({
@@ -754,14 +759,14 @@ export const ExampleComponent = () => {
       <HotTable
         formulas={{
           engine: hyperformulaInstance,
-          sheetName: 'Sheet1'
+          sheetName: 'Sheet1',
           // [plugin configuration]
         }}
       />
       <HotTable
         formulas={{
           engine: hyperformulaInstance,
-          sheetName: 'Sheet2'
+          sheetName: 'Sheet2',
           // [plugin configuration]
         }}
       />
@@ -769,63 +774,84 @@ export const ExampleComponent = () => {
   );
 };
 ```
+
 :::
+
+## Available options and methods
+
+For the list of available settings and methods, visit the [API reference](@/api/formulas.md).
+
+## Available functions
+
+This plugin inherits the calculation powers from _HyperFormula_. The complete functions reference
+can be found in the
+[HyperFormula documentation](https://handsontable.github.io/hyperformula/guide/built-in-functions.html).
 
 ## [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook
 
-This hook listens for any changes to cells in the calculation engine, including dependent cells containing formulas.
+This hook listens for any changes to cells in the calculation engine, including dependent cells
+containing formulas.
 
 ::: only-for javascript
+
 ```js
 const afterFormulasValuesUpdate = (changes) => {
   changes.forEach((change) => {
-    console.log('change', change.address, change.newValue)
-  })
-}
+    console.log('change', change.address, change.newValue);
+  });
+};
 
 new Handsontable(element, {
   formulas: {
-    engine: HyperFormula
+    engine: HyperFormula,
   },
-  afterFormulasValuesUpdate
-})
+  afterFormulasValuesUpdate,
+});
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 export const ExampleComponent = () => {
   const afterFormulasValuesUpdate = (changes) => {
     changes.forEach((change) => {
-      console.log('change', change.address, change.newValue)
-    })
-  }
+      console.log('change', change.address, change.newValue);
+    });
+  };
 
   return (
     <HotTable
       formulas={{
-        engine: HyperFormula
+        engine: HyperFormula,
       }}
       afterFormulasValuesUpdate={afterFormulasValuesUpdate}
     />
   );
 };
 ```
+
 :::
 
 ## Named expressions
 
-You can use custom-named expressions in your formula expressions. A named expression can be either plain values or formulas with references to absolute cell addresses. To register a named expression, pass an array with `name` and `expression` to your `formulas` configuration object:
+You can use custom-named expressions in your formula expressions. A named expression can be either
+plain values or formulas with references to absolute cell addresses. To register a named expression,
+pass an array with `name` and `expression` to your `formulas` configuration object:
 
 ::: only-for javascript
+
 ::: example #example-named-expressions1 --html 1 --js 2
+
 ```html
 <div id="example-named-expressions1"></div>
 <div class="controls">
-  <input id="named-expressions-input" type="text" value="=10 * Sheet1!$A$2">
+  <input id="named-expressions-input" type="text" value="=10 * Sheet1!$A$2" />
   <button id="named-expressions-button">Calculate the price</button>
 </div>
 ```
+
 ```js
 import Handsontable from 'handsontable';
 import HyperFormula from 'hyperformula';
@@ -835,7 +861,7 @@ const data = [
   ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
   ['154', 'Rome', 400, '=ROUND(ADDITIONAL_COST+C2,0)'],
   ['155', 'Athens', 300, '=ROUND(ADDITIONAL_COST+C3,0)'],
-  ['156', 'Warsaw', 150, '=ROUND(ADDITIONAL_COST+C4,0)']
+  ['156', 'Warsaw', 150, '=ROUND(ADDITIONAL_COST+C4,0)'],
 ];
 
 const container = document.querySelector('#example-named-expressions1');
@@ -849,11 +875,11 @@ const hotNamedExpressions = new Handsontable(container, {
     namedExpressions: [
       {
         name: 'ADDITIONAL_COST',
-        expression: 100
-      }
-    ]
+        expression: 100,
+      },
+    ],
   },
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
 
 const input = document.getElementById('named-expressions-input');
@@ -865,13 +891,17 @@ button.addEventListener('click', (event) => {
   hotNamedExpressions.render();
 });
 ```
-:::
+
 :::
 
-[//]: # (TODO: [react-docs] Requires rewriting the input submission logic)
+:::
+
+[//]: # 'TODO: [react-docs] Requires rewriting the input submission logic'
 
 ::: only-for react
+
 ::: example #example-named-expressions1 :react
+
 ```jsx
 import { useEffect, useRef, useState } from 'react';
 import { HyperFormula } from 'hyperformula';
@@ -890,7 +920,7 @@ export const ExampleComponent = () => {
     ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
     ['154', 'Rome', 400, '=ROUND(ADDITIONAL_COST+C2,0)'],
     ['155', 'Athens', 300, '=ROUND(ADDITIONAL_COST+C3,0)'],
-    ['156', 'Warsaw', 150, '=ROUND(ADDITIONAL_COST+C4,0)']
+    ['156', 'Warsaw', 150, '=ROUND(ADDITIONAL_COST+C4,0)'],
   ];
   const inputChangeCallback = (event) => {
     setNamedExpressionValue(event.target.value);
@@ -918,10 +948,12 @@ export const ExampleComponent = () => {
         height="auto"
         formulas={{
           engine: HyperFormula,
-          namedExpressions: [{
-            name: 'ADDITIONAL_COST',
-            expression: 100
-          }]
+          namedExpressions: [
+            {
+              name: 'ADDITIONAL_COST',
+              expression: 100,
+            },
+          ],
         }}
         licenseKey="non-commercial-and-evaluation"
       />
@@ -930,11 +962,9 @@ export const ExampleComponent = () => {
           id="named-expressions-input"
           type="text"
           defaultValue={namedExpressionValue}
-          onChange={(...args) => inputChangeCallback(...args)}/>
-        <button
-          id="named-expressions-button"
-          onClick={(...args) => buttonClickCallback(...args)}
-        >
+          onChange={(...args) => inputChangeCallback(...args)}
+        />
+        <button id="named-expressions-button" onClick={(...args) => buttonClickCallback(...args)}>
           Calculate the price
         </button>
       </div>
@@ -949,19 +979,46 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
-For more information about named expressions, please refer to the [HyperFormula docs](https://handsontable.github.io/hyperformula/guide/named-ranges.html).
+For more information about named expressions, please refer to the
+[HyperFormula docs](https://handsontable.github.io/hyperformula/guide/named-ranges.html).
 
 ## View the explainer video
 
 <iframe width="100%" height="425px" src="https://www.youtube.com/embed/JJXUmACTDdk"></iframe>
 
+### HyperFormula version support
+
+Different versions of Handsontable support different versions of HyperFormula.
+
+To find out which HyperFormula version to use, see the table below:
+
+| Handsontable version                                                                    | HyperFormula version                                                                                           |
+| --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| [`8.x.x`](https://github.com/handsontable/handsontable/releases/tag/8.0.0) and lower    | No HyperFormula support (old [Formulas](https://handsontable.com/docs/8.0.0/demo-formula-support.html) plugin) |
+| [`9.x.x`](https://github.com/handsontable/handsontable/releases/tag/9.0.0)              | [`0.6.2`](https://github.com/handsontable/hyperformula/releases/tag/0.6.2)                                     |
+| [`10.x.x`](https://github.com/handsontable/handsontable/releases/tag/10.0.0)            | [`^1.2.0`](https://github.com/handsontable/hyperformula/releases/tag/1.2.0)                                    |
+| [`11.x.x`](https://github.com/handsontable/handsontable/releases/tag/11.0.0)            | [`^1.2.0`](https://github.com/handsontable/hyperformula/releases/tag/1.2.0)                                    |
+| [`12.x.x`](https://github.com/handsontable/handsontable/releases/tag/12.0.0) and higher | [`^2.0.0`](https://github.com/handsontable/hyperformula/releases/tag/2.0.0)                                    |
+
+::: tip
+
+You can use the `'internal-use-in-handsontable'` license key only in those HyperFormula instances
+that are connected to a Handsontable instance.
+
+To use HyperFormula outside of a Handsontable instance (e.g., on a server), you need a dedicated
+[HyperFormula license key](https://hyperformula.handsontable.com/guide/license-key.html). For
+details, [contact our Sales Team](https://handsontable.com/get-a-quote).
+
+:::
+
 ## Related articles
 
-#### HyperFormula documentation
+### HyperFormula documentation
 
 - [HyperFormula guides](https://handsontable.github.io/hyperformula/)
 - [HyperFormula API reference](https://handsontable.github.io/hyperformula/api/)

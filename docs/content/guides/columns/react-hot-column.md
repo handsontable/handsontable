@@ -21,6 +21,7 @@ Configure your grid's columns, using the props of the `HotColumn` component. Pas
 To declare column-specific settings, pass the settings as `HotColumn` props, either separately or wrapped as a `settings` prop, exactly as you would with `HotTable`.
 
 ::: example #example1 :react --tab preview
+
 ```jsx
 import { HotTable, HotColumn } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -62,6 +63,7 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
+
 :::
 
 ## Object data source
@@ -69,6 +71,7 @@ root.render(<ExampleComponent />);
 When you use object data binding for `<HotColumn/>`, you need to provide precise information about the data structure for columns. To do so, refer to your object-based data property in `HotColumn`'s `data` prop, for example, `<HotColumn data='id' />`:
 
 ::: example #example3 :react --tab preview
+
 ```jsx
 import { HotTable, HotColumn } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -163,4 +166,5 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
+
 :::

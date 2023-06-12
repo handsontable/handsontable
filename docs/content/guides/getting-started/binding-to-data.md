@@ -28,7 +28,9 @@ Fill your data grid with various data structures, including an array of arrays o
 Array of arrays is a good choice for the more grid-like scenarios where you need to provide the end user with permission to manipulate the grid, e.g., insert columns, delete rows, decorate cells, etc.
 
 ::: only-for javascript
+
 ::: example #example1
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -54,11 +56,15 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -98,16 +104,19 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ### Array of arrays with a selective display of columns
 
 The following example shows how you would use the array of arrays with a selective display of columns. This scenario uses the same data source as in the previous example, this time omitting the `Tesla` column from the grid.
 
 ::: only-for javascript
+
 ::: example #example2
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -140,11 +149,15 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example2 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -191,16 +204,19 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ### Array of objects
 
 An array of objects can be used as a data source as follows:
 
 ::: only-for javascript
+
 ::: example #example3
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -223,11 +239,15 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example3 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -264,16 +284,19 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ### Array of objects with column as a function
 
 You can set the [`columns`](@/api/options.md#columns) configuration option to a function. This is good practice when you want to bind data more dynamically.
 
 ::: only-for javascript
+
 ::: example #example4 .custom-class
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -311,11 +334,15 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example4 .custom-class :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -367,16 +394,19 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ### Array of objects with column mapping
 
 In a scenario where you have nested objects, you can use them as the data source by mapping the columns using the [`columns`](@/api/options.md#columns) option.
 
 ::: only-for javascript
+
 ::: example #example5
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -403,11 +433,15 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example5 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -448,9 +482,10 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ### Array of objects with custom data schema
 
@@ -459,7 +494,9 @@ When using object data binding, Handsontable needs to know what data structure t
 In a scenario where you start with an empty data source, you will need to provide the [`dataSchema`](@/api/options.md#dataschema) option containing the data structure for any new row added to the grid. The example below shows a custom data schema with an empty data source:
 
 ::: only-for javascript
+
 ::: example #example6
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -483,11 +520,15 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example6 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -532,9 +573,10 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ### Function data source and schema
 
@@ -543,7 +585,9 @@ If your [`dataSchema`](@/api/options.md#dataschema) is a constructor of an objec
 The example below shows how to use such objects:
 
 ::: only-for javascript
+
 ::: example #example7
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -606,11 +650,15 @@ function property(attr) {
   }
 }
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example7 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -689,16 +737,19 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ### No data
 
 By default, if you don't provide any data, Handsontable renders as an empty 5x5 grid.
 
 ::: only-for javascript
+
 ::: example #example9
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -708,11 +759,15 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example9 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -734,7 +789,9 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
+
 :::
+
 :::
 
 To change the number of rows or columns rendered by default, use the [`startRows`](@/api/options.md#startrows) and [`startCols`](@/api/options.md#startcols) options.
@@ -747,9 +804,11 @@ Handsontable binds to your data source by reference, not by values. We don't cop
 JavaScript to handle the objects. Any data entered into the grid will alter the original data source.
 
 ::: tip
-**Note:** Handsontable initializes the source data for the table using a reference, but you shouldn't rely on it. For
+
+Handsontable initializes the source data for the table using a reference, but you shouldn't rely on it. For
 example, you shouldn't change values in the source data using the reference to the input dataset. Some mechanisms for
 handling data aren't prepared for external changes that are made in this way.
+
 :::
 
 To avoid this scenario, copy the data before you pass it to the grid. To change the data from outside Handsontable, you
@@ -757,6 +816,7 @@ can use our API methods. For example, a change being made will be displayed imme
 the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 
 ::: only-for javascript
+
 ::: example #example10
 
 ```js
@@ -784,9 +844,11 @@ hot.setDataAtCell(0, 1, 'Ford');
 ```
 
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example10 :react
 
 ```jsx
@@ -835,12 +897,15 @@ root.render(<ExampleComponent />);
 ```
 
 :::
+
 :::
 
 There are multiple ways you can insert your data into Handsontable. Let's go through the most useful ones:
 
 ### The [`data`](@/api/options.md#data) configuration option
+
 ::: only-for javascript
+
 You will probably want to initialize the table with some data (if you don't, the table will render an empty 5x5 grid for you). The easiest way to do it is passing your data array as [`data`](@/api/options.md#data) option in the initial config object:
 ```js
 const hot = new Handsontable(container, {
@@ -848,25 +913,31 @@ const hot = new Handsontable(container, {
   // ... other config options
 });
 ```
+
 :::
 
 ::: only-for react
+
 You will probably want to initialize the table with some data (if you don't, the table will render an empty 5x5 grid for
 you). The easiest way to do it is by passing your data array as the value of `HotTable`'s [`data`](@/api/options.md#data) prop:
 ```jsx
 <HotTable data={newDataset} />
 ```
+
 :::
 
 ### The data-loading API methods
 
 ::: only-for react
+
 ::: tip
+
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference
 to the `HotTable` component, and reading its `hotInstance` property.
 
-For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+For more information, see the [Instance methods](@/guides/getting-started/react-methods.md) page.
 :::
+
 :::
 
 To replace the entire data in an already-initialized Handsontable instance, you can use one of the data-loading API methods:
@@ -890,6 +961,7 @@ To replace the entire data in an already-initialized Handsontable instance, you 
   ```
 
 ### The data-modifying API methods
+
 To modify just a subset of data passed to Handsontable, these are the methods you might want to check out:
 
 - [`setDataAtCell()`](@/api/core.md#setdataatcell)<br>
@@ -941,9 +1013,13 @@ To modify just a subset of data passed to Handsontable, these are the methods yo
   ```
 - [`populateFromArray()`](@/api/core.md#populatefromarray)<br>
   Replaces a chunk of the dataset by provided the start (and optionally end) coordinates and a two-dimensional data array of new values.
+
   ::: tip
+
   The [`populateFromArray()`](@/api/core.md#populatefromarray) method can't change [read-only](@/guides/cell-features/disabled-cells.md) cells.
+
   :::
+
   ```js
   const newValues = [
     ['A', 'B', 'C'],
@@ -962,6 +1038,7 @@ To modify just a subset of data passed to Handsontable, these are the methods yo
 When working with a copy of data for Handsontable, it is best practice is to clone the data source before loading it into Handsontable. This can be done with `JSON.parse(JSON.stringify(data))` or another deep-cloning function.
 
 ::: only-for javascript
+
 ::: example #example11
 ```js
 import Handsontable from 'handsontable';
@@ -983,7 +1060,9 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
@@ -1022,7 +1101,9 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
+
 :::
+
 :::
 
 

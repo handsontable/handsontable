@@ -26,7 +26,9 @@ Extend Handsontable's functionality by writing your custom plugin. Use the BaseP
 Plugins are a great way of extending Handsontable's capabilities. In fact, most Handsontable features are provided by plugins.
 
 ::: only-for react
+
 You can create a custom plugin in JavaScript, and then reference it from within your React app.
+
 :::
 
 ### 1. Prerequisites
@@ -44,9 +46,9 @@ import { BasePlugin, registerPlugin } from 'handsontable/plugins';
 The best way to start creating your own plugin is to extend the [`BasePlugin`](@/api/basePlugin.md).
 
 The [`BasePlugin`](@/api/basePlugin.md) interface takes care of:
-* Backward compatibility
-* Memory leak prevention
-* Properly binding your plugin's instance to Handsontable
+- Backward compatibility
+- Memory leak prevention
+- Properly binding your plugin's instance to Handsontable
 
 ```js
 export class CustomPlugin extends BasePlugin {
@@ -262,6 +264,7 @@ There are two ways to register a plugin:
 To control the plugin's options, pass a boolean or an object at the plugin's initialization:
 
 ::: only-for javascript
+
 ```js
 import Handsontable from 'handsontable';
 import { CustomPlugin } from './customPlugin';
@@ -277,9 +280,11 @@ const hotInstance = new Handsontable(container, {
   [CustomPlugin.PLUGIN_KEY]: false,
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 import Handsontable from 'handsontable';
 import { CustomPlugin } from './customPlugin';
@@ -295,24 +300,30 @@ import { CustomPlugin } from './customPlugin';
   customPlugin={false}
 />
 ```
+
 :::
 
 ### 5. Get a reference to the plugin's instance
 To use the plugin's API, call the [`getPlugin`](@/api/core.md#getplugin) method to get a reference to the plugin's instance.
 
 ::: only-for javascript
+
 ```js
 const pluginInstance = hotInstance.getPlugin(CustomPlugin.PLUGIN_KEY);
 
 pluginInstance.externalMethodExample();
 ```
+
 :::
 
 ::: only-for react
+
 ::: tip
+
 To use the Handsontable API, create a reference to the `HotTable` component, and read its `hotInstance` property.
 
-For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+For more information, see the [Instance methods](@/guides/getting-started/react-methods.md) page.
+
 :::
 
 ```jsx
@@ -320,6 +331,7 @@ const hotTableComponentRef = useRef(null);
 
 const pluginInstance = hotTableComponentRef.current.hotInstance.getPlugin(CustomPlugin.PLUGIN_KEY);
 ```
+
 :::
 
 ## Related API reference

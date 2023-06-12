@@ -24,27 +24,53 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
-## 12.3.2
+## 12.4.0
 
-Released on March 23, 2023.
+Released on May 23, 2023.
 
 For more information on this release, see:
 
-- [Blog post (12.3.2)](https://handsontable.com/blog/handsontable-12-3-2-better-support-for-react-18-and-large-data-sets)
+- [Blog post (12.4.0)](https://handsontable.com/blog/handsontable-12-4-0-auto-updating-formulas)
+- [Documentation (12.4)](https://handsontable.com/docs/12.4)
+
+#### Added
+
+- Added two new Handsontable hooks, [`afterColumnSequenceChange`](@/api/hooks.md#aftercolumnsequencechange) and [`afterRowSequenceChange`](@/api/hooks.md#afterrowsequencechange), which are fired after changing the order of columns or rows, respectively. [#10215](https://github.com/handsontable/handsontable/pull/10215)
+
+#### Fixed
+
+- Fixed numerous issues related to syncing Handsontable with HyperFormula. Now, formulas work properly with all the Handsontable features. [#10215](https://github.com/handsontable/handsontable/pull/10215)
+- Fixed na issue where formulas didn't recalculate after rows or columns were moved. [#4668](https://github.com/handsontable/handsontable/issues/4668)
+- Fixed an issue where Handsontable's dates didn't sync correctly with HyperFormula's dates. [#10085](https://github.com/handsontable/handsontable/issues/10085)
+- Fixed an issue where calling [`updateSettings()`](@/api/core.md#updatesettings) would reset HyperFormula's undo/redo actions stack. [#10326](https://github.com/handsontable/handsontable/pull/10326)
+- Fixed an issue where the [`Autofill`](@/api/autofill.md), [`TrimRows`](@/api/trimRows.md) and [`Formulas`](@/api/formulas.md) plugins didn't work properly together. [#10200](https://github.com/handsontable/handsontable/issues/10200)
+- Fixed an issue where the [`modifySourceData`](@/api/hooks.md#modifysourcedata) hook used the wrong type of indexes. [#10215](https://github.com/handsontable/handsontable/pull/10215)
+- Fixed an issue where text copied from Handsontable to Excel included wrong types of spaces. [#10017](https://github.com/handsontable/handsontable/issues/10017)
+- Fixed an issue where mousing over the same cell twice didn't trigger the [`beforeOnCellMouseOver`](@/api/hooks.md#beforeoncellmouseover) and [`afterOnCellMouseOver`](@/api/hooks.md#afteroncellmouseover) hooks. [#10321](https://github.com/handsontable/handsontable/pull/10321)
+- Updated TypeScript definition files related to the [`CustomBorders`](@/api/customBorders.md) plugin. [#10360](https://github.com/handsontable/handsontable/pull/10360)
+- Fixed an issue where moving rows manually to the bottom was difficult due the misalignment between the backlight and guideline elements. [#9556](https://github.com/handsontable/handsontable/issues/9556)
+
+## 12.3.3
+
+Released on March 28, 2023.
+
+For more information on this release, see:
+
+- [Blog post (12.3.3)](https://handsontable.com/blog/handsontable-12-3-3-better-support-for-react-18-and-large-data-sets)
 - [Documentation (12.3)](https://handsontable.com/docs/12.3)
 
 #### Added
 
 - Added a Chinese (zh-CN) translation of the "Copy with headers" feature.
   [#10273](https://github.com/handsontable/handsontable/pull/10273)
-- Added a new "[Rows sorting](https://handsontable.com/docs/rows-sorting)" guide.
+- Added a new guide: [Rows sorting](@/guides/rows/rows-sorting.md).
   [#10183](https://github.com/handsontable/handsontable/pull/10183)
 
 #### Fixed
 
-- Fixed an issue where column-filter checkboxes were resetting when the table was scrolled out of
-  view. We solved this by preventing the table from triggering a complete render each time it leaves
-  the viewport. [#10206](https://github.com/handsontable/handsontable/pull/10206)
+- Fixed an issue where column-filter checkboxes got reset when the table was scrolled out of view.
+  We solved this by preventing the table from triggering a complete render each time it leaves the
+  viewport. [#10206](https://github.com/handsontable/handsontable/pull/10206)
 - Fixed an issue where clicking on a cell scrolled the table sideways in certain RTL configurations.
   [#10206](https://github.com/handsontable/handsontable/pull/10206)
 - Fixed an issue where calling
@@ -56,6 +82,13 @@ For more information on this release, see:
   `componentWillMount()` and `componentWillUpdate()` from Handsontable's codebase and recreated
   their functionality by using React's portals.
   [#10263](https://github.com/handsontable/handsontable/pull/10263)
+
+## 12.3.2
+
+Released on March 23, 2023.
+
+Handsontable 12.3.2 may not work properly with React's functional components. If you're using React,
+you should upgrade to [12.3.3](#_12-3-3).
 
 ## 12.3.1
 

@@ -282,6 +282,11 @@ export class Filters extends BasePlugin {
    *  * `between` - Between
    *  * `by_value` - By value
    *  * `contains` - Contains
+   *  * `date_after` - After a date
+   *  * `date_before` - Before a date
+   *  * `date_today` - Today
+   *  * `date_tomorrow` - Tomorrow
+   *  * `date_yesterday` - Yesterday
    *  * `empty` - Empty
    *  * `ends_with` - Ends with
    *  * `eq` - Equal

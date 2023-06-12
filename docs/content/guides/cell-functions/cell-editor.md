@@ -40,6 +40,7 @@ If you are using React 17 and newer, `event.stopPropagation()` should work for y
 Note that in case of React 16 and older, it wouldn't work out of the box because of the way how React used to handle events. [This article by Eric Clemmons](https://medium.com/@ericclemmons/react-event-preventdefault-78c28c950e46) sums it up pretty well and presents a solution ([react-native-listener](https://www.npmjs.com/package/react-native-listener)).
 
 ::: example #example1 :react --tab preview
+
 ```jsx
 import React from 'react';
 import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/react';
@@ -177,6 +178,7 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
+
 :::
 
 ## Class-based editors
@@ -186,6 +188,7 @@ You can also declare a custom editor for the `HotTable` component by declaring i
 The following example implements the `@handsontable/react` component with a custom editor added, utilizing the `placeholder` attribute in the editor's `input` element.
 
 ::: example #example2 :react  --no-edit
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { TextEditor } from 'handsontable/editors/textEditor';
@@ -232,48 +235,60 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
+
 :::
 
 ::: tip
+
 All the sections below describe how to utilize the features available for the Handsontable class-based editors.
 This information is applicable in React when using the non-component editor approach.
-:::
 
 :::
 
 ::: only-for javascript
+
 ## EditorManager
+
 :::
 
 ::: only-for react
+
 ### EditorManager
+
 :::
 
 [`EditorManager`](@/api/baseEditor.md) is a class responsible for handling all editors available in Handsontable. If `Handsontable` needs to interact with editors it uses [`EditorManager`](@/api/baseEditor.md) object. [`EditorManager`](@/api/baseEditor.md) object is instantiated in [`init()`](@/api/baseEditor.md#init) method which is run, after you invoke `Handsontable()` constructor for the first time. The reference for [`EditorManager`](@/api/baseEditor.md) object is kept private in Handsontable instance and you cannot access it. However, there are ways to alter the default behaviour of [`EditorManager`](@/api/baseEditor.md), more on that later.
 
 ::: only-for javascript
 ### EditorManager tasks
+
 :::
 
 ::: only-for react
+
 #### EditorManager tasks
+
 :::
 
 [`EditorManager`](@/api/baseEditor.md) has 4 main tasks:
 
-* selecting proper editor for an active cell
-* preparing editor to be displayed
-* displaying editor (based on user behavior)
-* closing editor (based on user behavior).
+- Selecting proper editor for an active cell
+- Preparing editor to be displayed
+- Displaying editor (based on user behavior)
+- Closing editor (based on user behavior).
 
 We will discuss each of those tasks in detail.
 
 ::: only-for javascript
+
 #### Select proper editor for an active cell
+
 :::
 
 ::: only-for react
+
 ##### Select proper editor for an active cell
+
 :::
 
 When user selects a cell [`EditorManager`](@/api/baseEditor.md) finds the editor class assigned to this cell, examining the value of the [`editor`](@/api/options.md#editor) configuration option. You can define the [`editor`](@/api/options.md#editor) configuration option globally (for all cells in table), per column (for all cells in column) or for each cell individually. For more details, see the [Configuration options](@/guides/getting-started/configuration-options.md#cascading-configuration) guide.
@@ -281,58 +296,71 @@ When user selects a cell [`EditorManager`](@/api/baseEditor.md) finds the editor
 The value of the [`editor`](@/api/options.md#editor) configuration option can be either a string representing an editor (such as 'text', 'autocomplete', 'checkbox' etc.), or an editor class. [`EditorManager`](@/api/baseEditor.md) will then get an instance of editor class and the first very important thing to remember is: **there is always one instance of certain editor class in a single table**, in other words each editor class object **is a singleton** within a single table, which means that its constructor will be invoked only once per table. If you have 3 tables on a page, each table will have its own instance of editor class. This has some important implications that you have to consider creating your own editor.
 
 ::: only-for javascript
+
 #### Prepare editor to be displayed
+
 :::
 
 ::: only-for react
+
 ##### Prepare editor to be displayed
+
 :::
 
 When [`EditorManager`](@/api/baseEditor.md) obtain editor class instance (editor object) it invokes its [`prepare()`](@/api/baseEditor.md#prepare) method. The [`prepare()`](@/api/baseEditor.md#prepare) method sets editor objects properties related to the selected cell, but does not display the editor. [`prepare()`](@/api/baseEditor.md#prepare) is called each time user selects a cell. In some cases it can be invoked multiple times for the same cell, without changing the selection.
 
 ::: only-for javascript
+
 #### Display editor
+
 :::
 
 ::: only-for react
+
 ##### Display editor
 :::
 
 When editor is prepared the [`EditorManager`](@/api/baseEditor.md) waits for user event that triggers cell edition. Those events are:
 
-* pressing <kbd>**Enter**</kbd>
-* pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>
-* double clicking cell
-* pressing <kbd>**F2**</kbd>
+- Pressing <kbd>**Enter**</kbd>
+- Pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>
+- double clicking cell
+- Pressing <kbd>**F2**</kbd>
 
 If any of those events is triggered, [`EditorManager`](@/api/baseEditor.md) calls editor's [`beginEditing()`](@/api/baseEditor.md#beginediting) method, which should display the editor.
 
 ::: only-for javascript
+
 #### Close editor
+
 :::
 
 ::: only-for react
+
 ##### Close editor
 :::
 
 When editor is opened the [`EditorManager`](@/api/baseEditor.md) waits for user event that should end cell edition. Those events are:
 
-* clicking on another cell (saves changes)
-* pressing <kbd>**Enter**</kbd> (saves changes and moves selection one cell down)
-* pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd> (saves changes and moves selection one cell up)
-* pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Enter**</kbd> or <kbd>**Alt**</kbd>/<kbd>**Option**</kbd> + <kbd>**Enter**</kbd> (adds a new line inside the cell)
-* pressing <kbd>**Escape**</kbd> (aborts changes)
-* pressing <kbd>**Tab**</kbd> (saves changes and moves one cell to the right or to the left, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
-* pressing <kbd>**Shift**</kbd> + <kbd>**Tab**</kbd> (saves changes and moves one cell to the left or to the right, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
-* pressing <kbd>**Page Up**</kbd>, <kbd>**Page Down**</kbd> (saves changes and moves one screen up/down)
+- Clicking on another cell (saves changes)
+- Pressing <kbd>**Enter**</kbd> (saves changes and moves selection one cell down)
+- Pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd> (saves changes and moves selection one cell up)
+- Pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Enter**</kbd> or <kbd>**Alt**</kbd>/<kbd>**Option**</kbd> + <kbd>**Enter**</kbd> (adds a new line inside the cell)
+- Pressing <kbd>**Escape**</kbd> (aborts changes)
+- Pressing <kbd>**Tab**</kbd> (saves changes and moves one cell to the right or to the left, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
+- Pressing <kbd>**Shift**</kbd> + <kbd>**Tab**</kbd> (saves changes and moves one cell to the left or to the right, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
+- Pressing <kbd>**Page Up**</kbd>, <kbd>**Page Down**</kbd> (saves changes and moves one screen up/down)
 
 If any of those events is triggered, [`EditorManager`](@/api/baseEditor.md) calls editor's [`finishEditing()`](@/api/baseEditor.md#finishediting) method, which should try to save changes (unless ESC key has been pressed) and close the editor.
 
 ::: only-for javascript
+
 ### Overriding EditorManager default behaviour
+
 :::
 
 ::: only-for react
+
 #### Overriding EditorManager default behaviour
 :::
 
@@ -341,20 +369,26 @@ You may want to change the default events that causes editor to open or close. F
 You should now have a better understanding on how [`EditorManager`](@/api/baseEditor.md) works. Let's go a bit deeper and see what methods every editor class must implement and what those methods do.
 
 ::: only-for javascript
+
 ## [`BaseEditor`](@/api/baseEditor.md)
+
 :::
 
 ::: only-for react
+
 ### [`BaseEditor`](@/api/baseEditor.md)
 :::
 
 `Handsontable.editors.BaseEditor` is an abstract class from which all editor classes should inherit. It implements some of the basic editor methods as well as declares some methods that should be implemented by each editor class. In this section we examine all of those methods.
 
 ::: only-for javascript
+
 ### Common methods
+
 :::
 
 ::: only-for react
+
 #### Common methods
 :::
 
@@ -377,10 +411,13 @@ class CustomEditor extends BaseEditor {
 There are 7 common methods. All of them are described below.
 
 ::: only-for javascript
+
 #### prepare(row: `Number`, col: `Number`, prop: `Number|String`, td: `HTMLTableCellElement`, originalValue: `Mixed`, cellProperties: `Object`)
+
 :::
 
 ::: only-for react
+
 ##### prepare(row: `Number`, col: `Number`, prop: `Number|String`, td: `HTMLTableCellElement`, originalValue: `Mixed`, cellProperties: `Object`)
 :::
 
@@ -390,10 +427,13 @@ Returns: `undefined`
 
 ::: only-for javascript
 #### beginEditing(newInitialValue: `Mixed`, event: `Mixed`)
+
 :::
 
 ::: only-for react
+
 ##### beginEditing(newInitialValue: `Mixed`, event: `Mixed`)
+
 :::
 
 Sets editor value to `newInitialValue`. If `newInitialValue` is undefined, the editor value is set to original cell value. Calls [`open()`](@/api/baseEditor.md#open) method internally.
@@ -401,10 +441,13 @@ Sets editor value to `newInitialValue`. If `newInitialValue` is undefined, the e
 Returns: `undefined`
 
 ::: only-for javascript
+
 #### finishEditing(restoreOriginalValue: 'Boolean' _\[optional\]_, ctrlDown: `Boolean` _\[optional\]_, callback: `Function`)
+
 :::
 
 ::: only-for react
+
 ##### finishEditing(restoreOriginalValue: 'Boolean' _\[optional\]_, ctrlDown: `Boolean` _\[optional\]_, callback: `Function`)
 :::
 
@@ -413,10 +456,13 @@ Tries to finish cell edition. Calls [`saveValue()`](@/api/baseEditor.md#savevalu
 Callback function contains a boolean parameter - if new value is valid or the [`allowInvalid`](@/api/options.md#allowinvalid) configuration option is set to `true`, otherwise the parameter is `false`.
 
 ::: only-for javascript
+
 #### discardEditor(result: `Boolean`)
+
 :::
 
 ::: only-for react
+
 ##### discardEditor(result: `Boolean`)
 :::
 
@@ -425,10 +471,13 @@ Called when cell validation ends. If new value is saved successfully (`result` i
 Returns: `undefined`
 
 ::: only-for javascript
+
 #### saveValue(value: `Mixed`, ctrlDown: `Boolean`)
+
 :::
 
 ::: only-for react
+
 ##### saveValue(value: `Mixed`, ctrlDown: `Boolean`)
 :::
 
@@ -437,10 +486,13 @@ Tries to save `value` as new cell value. Performs validation internally. If `ctr
 Returns: `undefined`
 
 ::: only-for javascript
+
 #### isOpened()
+
 :::
 
 ::: only-for react
+
 ##### isOpened()
 :::
 
@@ -449,10 +501,13 @@ Returns `true` if editor is opened or `false` if editor is closed. Editor is con
 Returns: `Boolean`
 
 ::: only-for javascript
+
 #### extend()
+
 :::
 
 ::: only-for react
+
 ##### extend()
 :::
 
@@ -479,21 +534,29 @@ const CustomTextEditor = Handsontable.editors.TextEditor.prototype.extend();
 **Note:** This is an utility method not related to the process of editing cell.
 
 ::: only-for javascript
+
 ### Editor specific methods
+
 :::
 
 ::: only-for react
+
 #### Editor specific methods
+
 :::
 
 Editor specific methods are methods not implemented in [`BaseEditor`](@/api/baseEditor.md). In order to work, every editor class has to implement those methods.
 
 ::: only-for javascript
+
 #### init()
+
 :::
 
 ::: only-for react
+
 ##### init()
+
 :::
 
 Method called when new instance of editor class is created. That happens at most once per table instance, as all used editors as **singletons** within table instance. You should use this methods to perform tasks which results can be reused during editor's lifecycle. The most common operation is creating HTML structure of editor.
@@ -501,21 +564,29 @@ Method called when new instance of editor class is created. That happens at most
 Method does not need to return any value.
 
 ::: only-for javascript
+
 #### getValue()
+
 :::
 
 ::: only-for react
+
 ##### getValue()
+
 :::
 
 Method should act return the current editor value, that is value that should be saved as a new cell value.
 
 ::: only-for javascript
+
 #### setValue(newValue: `Mixed`)
+
 :::
 
 ::: only-for react
+
 ##### setValue(newValue: `Mixed`)
+
 :::
 
 Method should set editor value to `newValue`.
@@ -541,10 +612,13 @@ class CalendarEditor extends TextEditor {
 ```
 
 ::: only-for javascript
+
 #### open()
+
 :::
 
 ::: only-for react
+
 ##### open()
 :::
 
@@ -561,11 +635,15 @@ class CustomEditor extends TextEditor {
 This method does not need to return any value.
 
 ::: only-for javascript
+
 #### close()
+
 :::
 
 ::: only-for react
+
 ##### close()
+
 :::
 
 Hides the editor after cell value has been changed. In most cases this method can be as simple as:
@@ -581,11 +659,15 @@ class CustomEditor extends TextEditor {
 This method does not need to return any value.
 
 ::: only-for javascript
+
 #### focus()
+
 :::
 
 ::: only-for react
+
 ##### focus()
+
 :::
 
 Focuses the editor. This method is called when user wants to close the editor by selecting another cell and the value in editor does not validate (and [`allowInvalid`](@/api/options.md#allowinvalid) is `false`). In most cases this method can be as simple as:
@@ -601,10 +683,13 @@ class CustomEditor extends TextEditor {
 This method does not need to return any value.
 
 ::: only-for javascript
+
 ### Common editor properties
+
 :::
 
 ::: only-for react
+
 #### Common editor properties
 :::
 
@@ -620,11 +705,15 @@ All the undermentioned properties are available in editor instance through `this
   | cellProperties | `Object`            | An object representing active cell properties. Updated on every [`prepare()`](@/api/baseEditor.md#prepare) method call.                                                         |
 
 ::: only-for javascript
+
 ## How to create a custom editor?
+
 :::
 
 ::: only-for react
+
 ### How to create a custom editor?
+
 :::
 
 Now you know the philosophy behind the Handsontable editors and you're ready to write your own editor. Basically, you can build a new editor from scratch, by creating a new editor class, which inherits from [`BaseEditor`](@/api/baseEditor.md), or if you just want to enhance an existing editor, you can extend its class and override only a few of its methods.
@@ -634,10 +723,13 @@ In this tutorial we will examine both approaches. We will create a completely ne
 Let's begin with `PasswordEditor` as it is a bit easier.
 
 ::: only-for javascript
+
 ### `PasswordEditor` - extending an existing editor
+
 :::
 
 ::: only-for react
+
 #### `PasswordEditor` - extending an existing editor
 :::
 
@@ -670,6 +762,7 @@ class PasswordEditor extends Handsontable.editors.TextEditor {
 That's it! You can now use your new editor:
 
 ::: only-for javascript
+
 ```js
 const container = document.querySelector('#container')
 const hot = new Handsontable(container, {
@@ -685,9 +778,11 @@ const hot = new Handsontable(container, {
   ]
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   columns={[
@@ -702,16 +797,21 @@ const hot = new Handsontable(container, {
   ]}
 />
 ```
+
 :::
 
 Let's try something more complex: we'll build a new editor from the ground up.
 
 ::: only-for javascript
+
 ### `SelectEditor` - creating editor from scratch
+
 :::
 
 ::: only-for react
+
 #### `SelectEditor` - creating editor from scratch
+
 :::
 
 We're going to build a full featured editor, that lets user choose a cell value from predefined list of options, using standard `<select>` input. As an extra feature, we'll add an ability to change currently selected option with <kbd>**ARROW_UP**</kbd> and <kbd>**ARROW_DOWN**</kbd> keys.
@@ -722,20 +822,24 @@ Things to do:
 2. Add function creating `<select>` input and attaching to DOM.
 3. Add function that populates `<select>` with options array passed in the cell properties.
 4. Implement methods:
-    * [`getvalue()`](@/api/baseEditor.md#getvalue)
-    * [`setvalue()`](@/api/baseEditor.md#setvalue)
-    * [`open()`](@/api/baseEditor.md#open)
-    * [`close()`](@/api/baseEditor.md#close)
-    * [`focus()`](@/api/baseEditor.md#focus)
+    - [`getvalue()`](@/api/baseEditor.md#getvalue)
+    - [`setvalue()`](@/api/baseEditor.md#setvalue)
+    - [`open()`](@/api/baseEditor.md#open)
+    - [`close()`](@/api/baseEditor.md#close)
+    - [`focus()`](@/api/baseEditor.md#focus)
 5. Override the default [`EditorManager`](@/api/baseEditor.md) behaviour, so that pressing <kbd>**Arrow Up**</kbd> and <kbd>**Arrow Down**</kbd> keys won't close the editor, but instead change the currently selected value.
 6. Register editor.
 
 ::: only-for javascript
+
 #### Create new editor
+
 :::
 
 ::: only-for react
+
 ##### Create new editor
+
 :::
 
 That's probably the easiest part. All we have to do is call `BaseEditor.prototype.extend()` function which will return a new function class that inherits from [`BaseEditor`](@/api/baseEditor.md).
@@ -747,18 +851,22 @@ const SelectEditor = Handsontable.editors.BaseEditor.prototype.extend();
 Task one: **DONE**
 
 ::: only-for javascript
+
 #### Create `<select>` input and attaching it to DOM
+
 :::
 
 ::: only-for react
+
 ##### Create `<select>` input and attaching it to DOM
+
 :::
 
 There are three potential places where we can put the function that will create `<select>` element and put it in the DOM:
 
-* [`init()`](@/api/baseEditor.md#init) method
-* [`prepare()`](@/api/baseEditor.md#prepare) method
-* [`open()`](@/api/baseEditor.md#open) method
+- [`init()`](@/api/baseEditor.md#init) method
+- [`prepare()`](@/api/baseEditor.md#prepare) method
+- [`open()`](@/api/baseEditor.md#open) method
 
 The key to choose the best solution is to understand when each of those methods are called.
 
@@ -803,11 +911,15 @@ class SelectEditor extends Handsontable.editors.BaseEditor {
 Task two: **DONE**
 
 ::: only-for javascript
+
 #### Populate `<select>` with options
+
 :::
 
 ::: only-for react
+
 ##### Populate `<select>` with options
+
 :::
 
 In the previous step we implemented a function that creates the `<select>` input and attaches it to the DOM. You probably noticed that we haven't written any code that would create the `<option>` elements, therefore if we displayed the list, it would be empty.
@@ -815,6 +927,7 @@ In the previous step we implemented a function that creates the `<select>` input
 We want to be able to define an option list like this:
 
 ::: only-for javascript
+
 ```js
 const container = document.querySelector('#container')
 const hot = new Handsontable(container, {
@@ -826,9 +939,11 @@ const hot = new Handsontable(container, {
   ]
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   columns={[
@@ -839,6 +954,7 @@ const hot = new Handsontable(container, {
   ]}
 />
 ```
+
 :::
 
 There is no (easy) way to get to the value of [`selectOptions`](@/api/options.md#selectoptions). Even if we could get to this array we could only populate the list with options once, if we do this in the 'init' function. What if we have more than one column using `SelectEditor` and each of them has it's own option list? It's even possible that two cells in the same column can have different option lists (cascade configuration - remember?) It's clear that we have to find a better place for the code that creates items for our list.
@@ -893,11 +1009,15 @@ prepareOptions(optionsToPrepare) {
 Task three: **DONE**
 
 ::: only-for javascript
+
 #### Implement editor specific methods
+
 :::
 
 ::: only-for react
+
 ##### Implement editor specific methods
+
 :::
 
 Most of the work is done. Now we just need to implement all the editor specific methods. Luckily, our editor is quite simple so those methods will be only few lines of code.
@@ -947,6 +1067,7 @@ Task four: **DONE**
 At this point we should have an editor that is ready to use. Put the code somewhere in your page and pass `SelectEditor` class function as value of the [`editor`](@/api/options.md#editor) configuration option.
 
 ::: only-for javascript
+
 ```js
 const container = document.querySelector('#container')
 const hot = new Handsontable(container, {
@@ -959,9 +1080,11 @@ const hot = new Handsontable(container, {
   ]
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   columns={[
@@ -973,14 +1096,19 @@ const hot = new Handsontable(container, {
   ]}
 />
 ```
+
 :::
 
 ::: only-for javascript
+
 #### Use <kbd>**Arrow Up**</kbd> and <kbd>**Arrow Down**</kbd> to change selected value
+
 :::
 
 ::: only-for react
+
 ##### Use <kbd>**Arrow Up**</kbd> and <kbd>**Arrow Down**</kbd> to change selected value
+
 :::
 
 We know that our editor works, but let's add one more tweak to it. Currently, when editor is opened and user presses <kbd>**Arrow Up**</kbd> or <kbd>**Arrow Down**</kbd> editor closes and the selection moves one cell up or down. Wouldn't it be nice, if pressing up and down arrow keys changed the currently selected value? User could navigate to the cell, hit <kbd>**Enter**</kbd>, choose the desired value and save changes by hitting <kbd>**Enter**</kbd> again. It would be possible to work with the table without even laying your hand on a mouse. Sounds pretty good, but how to override the default behavior? After all, it's the [`EditorManager`](@/api/baseEditor.md) who decides when to close the editor.
@@ -1040,24 +1168,24 @@ Registering an editor
 
 When you create an editor, a good idea is to assign it an alias that will refer to this particular editor class. Handsontable defines 11 aliases by default:
 
-* `autocomplete` for `Handsontable.editors.AutocompleteEditor`
-* `base` for `Handsontable.editors.BaseEditor`
-* `checkbox` for `Handsontable.editors.CheckboxEditor`
-* `date` for `Handsontable.editors.DateEditor`
-* `dropdown` for `Handsontable.editors.DropdownEditor`
-* `handsontable` for `Handsontable.editors.HandsontableEditor`
-* `numeric` for `Handsontable.editors.NumericEditor`
-* `password` for `Handsontable.editors.PasswordEditor`
-* `select` for `Handsontable.editors.SelectEditor`
-* `text` for `Handsontable.editors.TextEditor`
-* `time` for `Handsontable.editors.TimeEditor`
+- `autocomplete` for `Handsontable.editors.AutocompleteEditor`
+- `base` for `Handsontable.editors.BaseEditor`
+- `checkbox` for `Handsontable.editors.CheckboxEditor`
+- `date` for `Handsontable.editors.DateEditor`
+- `dropdown` for `Handsontable.editors.DropdownEditor`
+- `handsontable` for `Handsontable.editors.HandsontableEditor`
+- `numeric` for `Handsontable.editors.NumericEditor`
+- `password` for `Handsontable.editors.PasswordEditor`
+- `select` for `Handsontable.editors.SelectEditor`
+- `text` for `Handsontable.editors.TextEditor`
+- `time` for `Handsontable.editors.TimeEditor`
 
 It gives users a convenient way for defining which editor should be use when changing value of certain cells. User doesn't need to know which class is responsible for displaying the editor, he does not even need to know that there is any class at all. What is more, you can change the class associated with an alias without a need to change code that defines a table.
 
 To register your own alias use `Handsontable.editors.registerEditor()` function. It takes two arguments:
 
-* `editorName` - a string representing an editor
-* `editorClass` - a class that will be represented by `editorName`
+- `editorName` - a string representing an editor
+- `editorClass` - a class that will be represented by `editorName`
 
 If you'd like to register `SelectEditor` under alias `select` you have to call:
 
@@ -1088,21 +1216,29 @@ Handsontable.editors.registerEditor('my.select', SelectEditor);
 That's better.
 
 ::: only-for javascript
+
 ## Prepare editor for publication
+
 :::
 
 ::: only-for react
+
 ### Prepare editor for publication
+
 :::
 
 If you plan to publish your editor or just want to keep your code nice and clean (as we all do :) there are 3 simple steps that will help you to organize your code.
 
 ::: only-for javascript
+
 ### Enclose in IIFE
+
 :::
 
 ::: only-for react
+
 #### Enclose in IIFE
+
 :::
 
 Put your code in a module, to avoid polluting the global namespace. You can use AMD, CommonJS or any other module pattern, but the easiest way to isolate your code is to use plain immediately invoked function expression (IIFE).
@@ -1119,11 +1255,15 @@ Put your code in a module, to avoid polluting the global namespace. You can use 
 Passing `Handsontable` namespace as argument is optional (as it is defined globally), but it's a good practice to use as few global objects as possible, to make modularisation and dependency management easier.
 
 ::: only-for javascript
+
 ### Add editor to dedicated namespace
+
 :::
 
 ::: only-for react
+
 #### Add editor to dedicated namespace
+
 :::
 
 Code enclosed in IIFE cannot be accessed from outside, unless it's intentionally exposed. To keep things well organized register your editor to the collection of editors using `Handsontable.editors.registerEditor` method. This way you can use your editor during table definition and other users will have an easy access to your editor, in case they would like to extend it.
@@ -1143,6 +1283,7 @@ Code enclosed in IIFE cannot be accessed from outside, unless it's intentionally
 From now on, you can use `CustomEditor` like so:
 
 ::: only-for javascript
+
 ```js
 const container = document.querySelector('#container');
 const hot = new Handsontable(container, {
@@ -1151,9 +1292,11 @@ const hot = new Handsontable(container, {
   }]
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   columns={[{
@@ -1161,6 +1304,7 @@ const hot = new Handsontable(container, {
   }]}
 />
 ```
+
 :::
 
 Extending your `CustomEditor` is also easy.
@@ -1172,11 +1316,15 @@ const AnotherEditor = Handsontable.editors.getEditor('custom').prototype.extend(
 Keep in mind, that there are no restrictions to the name you choose, but choose wisely and do not overwrite existing editors. Try to keep the names unique.
 
 ::: only-for javascript
+
 ### Register an alias
+
 :::
 
 ::: only-for react
+
 #### Register an alias
+
 :::
 
 The final touch is to register your editor under some alias, so that users can easily refer to it without the need to now the actual class name. See Registering editor for details.
@@ -1201,6 +1349,7 @@ To sum up, a well prepared editor should look like this:
 From now on, you can use `CustomEditor` like so:
 
 ::: only-for javascript
+
 ```js
 const container = document.querySelector('#container')
 const hot = new Handsontable(container, {
@@ -1209,9 +1358,11 @@ const hot = new Handsontable(container, {
   }]
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   columns={[{
@@ -1219,6 +1370,7 @@ const hot = new Handsontable(container, {
   }]}
 />
 ```
+
 :::
 
 ## Related keyboard shortcuts
@@ -1246,6 +1398,7 @@ const hot = new Handsontable(container, {
 <sup>*</sup> This action depends on your [layout direction](@/guides/internationalization/layout-direction.md).
 
 ::: only-for javascript
+
 ## Related articles
 
 ### Related guides
@@ -1255,10 +1408,13 @@ const hot = new Handsontable(container, {
 - [Custom editor in Vue 3](@/guides/integrate-with-vue3/vue3-custom-editor-example.md)
 
 ### Related API reference
+
 :::
 
 ::: only-for react
+
 ## Related API reference
+
 :::
 
 - APIs:

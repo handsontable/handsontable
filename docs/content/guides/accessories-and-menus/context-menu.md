@@ -33,7 +33,9 @@ contextMenu: true,
 To see the context menu, right-click on a cell:
 
 ::: only-for javascript
+
 ::: example #example1
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -55,11 +57,15 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -95,7 +101,9 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
+
 :::
+
 :::
 
 
@@ -143,7 +151,9 @@ You can define items in the menu by passing the [`contextMenu`](@/api/options.md
 To see the context menu, right-click on a cell:
 
 ::: only-for javascript
+
 ::: example #example2
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -160,16 +170,20 @@ const hot = new Handsontable(container, {
   ],
   rowHeaders: true,
   colHeaders: true,
-  contextMenu: ['row_above', 'row_below', 'remove_row'],
+  contextMenu: ['row_above', 'row_below', 'remove_row', 'clear_column'],
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example2 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -191,7 +205,7 @@ export const ExampleComponent = () => {
       ]}
       rowHeaders={true}
       colHeaders={true}
-      contextMenu={['row_above', 'row_below', 'remove_row']}
+      contextMenu={['row_above', 'row_below', 'remove_row', 'clear_column']}
       height="auto"
       licenseKey="non-commercial-and-evaluation"
     />
@@ -205,10 +219,13 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ## Context menu with custom options
 
 In addition to built-in options, you can equip your context menu with custom options.
@@ -216,6 +233,7 @@ In addition to built-in options, you can equip your context menu with custom opt
 To see the context menu, right-click on a cell:
 
 ::: example #example4 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { ContextMenu } from 'handsontable/plugins/contextMenu';
@@ -267,23 +285,27 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
+
 :::
+
 :::
 
 ## Context menu with a fully custom configuration
 
 This example shows how to:
 
-* add common callback for all options
-* dynamically disable option
-* set custom text for predefined option
-* add own custom option
-* add callback for specific option
+- Add common callback for all options
+- Dynamically disable option
+- Set custom text for predefined option
+- Add own custom option
+- Add callback for specific option
 
 To see the context menu, right-click on a cell:
 
 ::: only-for javascript
+
 ::: example #example3
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -372,11 +394,15 @@ const hot = new Handsontable(container, {
   }
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example3 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -478,7 +504,9 @@ const root = ReactDOM.createRoot(container);
 root.render(<ExampleComponent />);
 /* end:skip-in-preview */
 ```
+
 :::
+
 :::
 
 ## Related keyboard shortcuts
@@ -503,6 +531,7 @@ root.render(<ExampleComponent />);
 - [Custom context menu in Angular](@/guides/integrate-with-angular/angular-custom-context-menu-example.md)
 - [Custom context menu in Vue 2](@/guides/integrate-with-vue/vue-custom-context-menu-example.md)
 - [Custom context menu in Vue 3](@/guides/integrate-with-vue3/vue3-custom-context-menu-example.md)
+
 :::
 
 ### Related blog articles
