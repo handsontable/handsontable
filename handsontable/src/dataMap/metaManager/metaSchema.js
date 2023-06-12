@@ -10,7 +10,7 @@ import { isObjectEqual } from '../../helpers/object';
  * [Configuration options](@/guides/getting-started/configuration-options.md) let you heavily customize your Handsontable instance. For example, you can:
  *
  * - Enable and disable built-in features
- * - Enable and configure additional [plugins](@/guides/tools-and-building/custom-plugins.md)
+ * - Enable and configure additional [plugins](@/api/plugins.md)
  * - Personalize Handsontable's look
  * - Adjust Handsontable's behavior
  * - Implement your own custom features
@@ -838,10 +838,10 @@ export default () => {
      *
      * | Option                   | Possible settings                                                                                                                                |
      * | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-     * | `indicator`              | `true`: Display an arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header  |
+     * | `indicator`              | `true`: Display the arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header  |
      * | `headerAction`           | `true`: Enable clicking on the column header to sort the column<br>`false`: Disable clicking on the column header to sort the column             |
      * | `sortEmptyCells`         | `true`: Sort empty cells as well<br>`false`: Place empty cells at the end                                                                        |
-     * | `compareFunctionFactory` | A [custom compare function](@/guides/rows/row-sorting.md#custom-compare-functions)                                                                |
+     * | `compareFunctionFactory` | A [custom compare function](@/guides/rows/rows-sorting.md#add-a-custom-comparator)                                                                |
      *
      * If you set the `columnSorting` option to an object,
      * you can also sort individual columns at Handsontable's initialization.
@@ -854,8 +854,8 @@ export default () => {
      * | `sortOrder` | `'asc'` \| `'desc'` | The sorting order:<br>`'asc'`: ascending<br>`'desc'`: descending |
      *
      * Read more:
-     * - [Row sorting](@/guides/rows/row-sorting.md)
-     * - [Row sorting: Custom compare functions](@/guides/rows/row-sorting.md#custom-compare-functions)
+     * - [Rows sorting](@/guides/rows/rows-sorting.md)
+     * - [Rows sorting: Custom compare functions](@/guides/rows/rows-sorting.md#add-a-custom-comparator)
      * - [`multiColumnSorting`](#multiColumnSorting)
      *
      * @memberof Options#
@@ -872,7 +872,7 @@ export default () => {
      * columnSorting: {
      *   // sort empty cells as well
      *   sortEmptyCells: true,
-     *   // display an arrow icon in the column header
+     *   // display the arrow icon in the column header
      *   indicator: true,
      *   // disable clicking on the column header to sort the column
      *   headerAction: false,
@@ -959,8 +959,7 @@ export default () => {
     /**
      * The `colWidths` option sets columns' widths, in pixels.
      *
-     * In the rendering process, the default column width is 50px. To change it,
-     * set the `colWidths` option to one of the following:
+     * The default column width is 50px. To change it, set the `colWidths` option to one of the following:
      *
      * | Setting     | Description                                                                                          | Example                                                           |
      * | ----------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
@@ -970,7 +969,10 @@ export default () => {
      * | A function  | Set column widths dynamically,<br>on each render                                                     | `colWidths(visualColumnIndex) { return visualColumnIndex * 10; }` |
      * | `undefined` | Used by the [modifyColWidth](@/api/hooks.md#modifyColWidth) hook,<br>to detect column width changes. | `colWidths: undefined`                                            |
      *
-     * Setting the `colWidths` option disables the {@link AutoColumnSize} plugin.
+     * Setting `colWidths` even for a single column disables the {@link AutoColumnSize} plugin
+     * for all columns. For this reason, if you use `colWidths`, we recommend you set a width for each one
+     * of your columns. Otherwise, every column with an undefined width defaults back to 50px,
+     * which may cut longer columns names.
      *
      * Read more:
      * - [Column width](@/guides/columns/column-width.md)
@@ -992,8 +994,8 @@ export default () => {
      *
      * // set the first (by visual index) column's width to 100
      * // set the second (by visual index) column's width to 120
-     * // set the third (by visual index) column's width to `undefined`
-     * // set any other column's width to the default 50px
+     * // set the third (by visual index) column's width to `undefined`, so that it defaults to 50px
+     * // set any other column's width to the default 50px (note that longer cell values and column names can get cut)
      * colWidths: [100, 120, undefined],
      *
      * // set each column's width individually, using a function
@@ -1131,15 +1133,15 @@ export default () => {
      * contextMenu: {
      *   items: {
      *     'option1': {
-     *       name: 'option1'
+     *       name: 'Option 1'
      *     },
      *     'option2': {
-     *       name: 'option2',
+     *       name: 'Option 2',
      *       submenu: {
      *         items: [
      *           {
      *             key: 'option2:suboption1',
-     *             name: 'option2:suboption1',
+     *             name: 'Suboption 1',
      *             callback: function(key, options) {
      *               ...
      *             }
@@ -1804,15 +1806,15 @@ export default () => {
      * dropdownMenu: {
      *   items: {
      *     'option1': {
-     *       name: 'option1'
+     *       name: 'Option 1'
      *     },
      *     'option2': {
-     *       name: 'option2',
+     *       name: 'Option 2',
      *       submenu: {
      *         items: [
      *           {
      *             key: 'option2:suboption1',
-     *             name: 'option2:suboption1',
+     *             name: 'Suboption 1',
      *             callback(key, options) {
      *               ...
      *             }
@@ -2940,7 +2942,7 @@ export default () => {
      * The `maxRows` option sets a maximum number of rows.
      *
      * The `maxRows` option is used:
-     * - At initialization: if the `maxRows` value is lower than the initial number of columns,
+     * - At initialization: if the `maxRows` value is lower than the initial number of rows,
      * Handsontable trims rows from the bottom.
      * - At runtime: for example, when inserting rows.
      *
@@ -3123,10 +3125,10 @@ export default () => {
      *
      * | Option                   | Possible settings                                                                                                                                |
      * | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-     * | `indicator`              | `true`: Display an arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header  |
+     * | `indicator`              | `true`: Display the arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header |
      * | `headerAction`           | `true`: Enable clicking on the column header to sort the column<br>`false`: Disable clicking on the column header to sort the column             |
      * | `sortEmptyCells`         | `true`: Sort empty cells as well<br>`false`: Place empty cells at the end                                                                        |
-     * | `compareFunctionFactory` | A [custom compare function](@/guides/rows/row-sorting.md#custom-compare-functions)                                                                |
+     * | `compareFunctionFactory` | A [custom compare function](@/guides/rows/rows-sorting.md#add-a-custom-comparator)                                                               |
      *
      * If you set the `multiColumnSorting` option to an object,
      * you can also sort individual columns at Handsontable's initialization.
@@ -3139,7 +3141,7 @@ export default () => {
      * | `sortOrder` | `'asc'` \| `'desc'` | The sorting order:<br>`'asc'`: ascending<br>`'desc'`: descending |
      *
      * Read more:
-     * - [Row sorting](@/guides/rows/row-sorting.md)
+     * - [Rows sorting](@/guides/rows/rows-sorting.md)
      * - [`columnSorting`](#columnSorting)
      *
      * @memberof Options#
@@ -3156,7 +3158,7 @@ export default () => {
      * multiColumnSorting: {
      *   // sort empty cells as well
      *   sortEmptyCells: true,
-     *   // display an arrow icon in the column header
+     *   // display the arrow icon in the column header
      *   indicator: true,
      *   // disable clicking on the column header to sort the column
      *   headerAction: false,

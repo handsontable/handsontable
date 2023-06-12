@@ -71,7 +71,7 @@ const deprecationWarns = new Set();
  * :::
  *
  * ::: only-for react
- * ```jsx{3,7,13}
+ * ```jsx
  * import { useRef } from 'react';
  *
  * const hotTableComponent = useRef(null);
@@ -238,6 +238,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {IndexMapper}
    */
   this.rowIndexMapper = new IndexMapper();
+
+  this.columnIndexMapper.addLocalHook('indexesSequenceChange', (source) => {
+    instance.runHooks('afterColumnSequenceChange', source);
+  });
+
+  this.rowIndexMapper.addLocalHook('indexesSequenceChange', (source) => {
+    instance.runHooks('afterRowSequenceChange', source);
+  });
 
   dataSource = new DataSource(instance);
 
@@ -2618,11 +2626,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Get value from the selected cell.
+   * Gets the value of the currently focused cell.
+   *
+   * For column headers and row headers, returns `null`.
    *
    * @memberof Core#
    * @function getValue
-   * @returns {*} Value of selected cell.
+   * @returns {*} The value of the focused cell.
    */
   this.getValue = function() {
     const sel = instance.getSelectedLast();
@@ -2676,16 +2686,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    *  | Action               | With `index` | Without `index` |
    *  | -------------------- | ------------ | --------------- |
-   *  | `'insert_row_above'` | Inserts rows above the `index` row. | Inserts rows above the first row. |
-   *  | `'insert_row_below'` | Inserts rows below the `index` row. | Inserts rows below the last row. |
+   *  | `'insert_row_above'` | Inserts rows above the `index` row.<br><br>Works the same as the deprecated `insert_row` with an `index`. | Inserts rows above the first row. |
+   *  | `'insert_row_below'` | Inserts rows below the `index` row. | Inserts rows below the last row.<br><br>Works the same as the deprecated `insert_row` with no `index`. |
    *  | `'remove_row'`       | Removes rows, starting from the `index` row. | Removes rows, starting from the last row. |
-   *  | `'insert_col_start'` | Inserts columns before the `index` column. | Inserts columns before the first column. |
-   *  | `'insert_col_end'`   | Inserts columns after the `index` column. | Inserts columns after the last column. |
+   *  | `'insert_col_start'` | Inserts columns before the `index` column.<br><br>Works the same as the deprecated `insert_col` with an `index`. | Inserts columns before the first column. |
+   *  | `'insert_col_end'`   | Inserts columns after the `index` column. | Inserts columns after the last column.<br><br>Works the same as the deprecated `insert_col` with no `index`. |
    *  | `'remove_col'`       | Removes columns, starting from the `index` column. | Removes columns, starting from the last column. |
-   *  | `'insert_row'` (<b>Deprecated</b>) |  Inserts rows above the `index` row. | Inserts rows below the last row. |
-   *  | `'insert_col'` (<b>Deprecated</b>) |  Inserts columns before the `index` column. | Inserts columns after the last column. |
+   *  | `'insert_row'` (<b>Deprecated</b>) |  Inserts rows above the `index` row.<br><br>Works the same as `insert_row_above` with an `index`. | Inserts rows below the last row.<br><br>Works the same as `insert_row_below` with no `index`. |
+   *  | `'insert_col'` (<b>Deprecated</b>) |  Inserts columns before the `index` column.<br><br>Works the same as `insert_col_start` with an `index`.| Inserts columns after the last column.<br><br>Works the same as `insert_col_end` with no `index`. |
    *
-   * The behavior of `'insert_col_start'`, `'insert_col_end'`, and `'insert_col'` depends on your [`layoutDirection`](@/api/options.md#layoutdirection).
+   * Additional information about `'insert_col_start'`, `'insert_col_end'`, and `'insert_col'`:
+   * - Their behavior depends on your [`layoutDirection`](@/api/options.md#layoutdirection).
+   * - If the provided `index` is higher than the actual number of columns, Handsontable doesn't generate
+   * the columns missing in between. Instead, the new columns are inserted next to the last column.
    *
    * @memberof Core#
    * @function alter
@@ -2929,11 +2942,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array} Array of cell values.
    */
   this.getDataAtCol = function(column) {
-    return [].concat(...datamap.getRange(
+    const columnData = [];
+    const dataByRows = datamap.getRange(
       instance._createCellCoords(0, column),
       instance._createCellCoords(tableMeta.data.length - 1, column),
       datamap.DESTINATION_RENDERER
-    ));
+    );
+
+    for (let i = 0; i < dataByRows.length; i += 1) {
+      for (let j = 0; j < dataByRows[i].length; j += 1) {
+        columnData.push(dataByRows[i][j]);
+      }
+    }
+
+    return columnData;
   };
 
   /**
@@ -2947,12 +2969,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   // TODO: Getting data from `datamap` should work on visual indexes.
   this.getDataAtProp = function(prop) {
-    const range = datamap.getRange(
+    const columnData = [];
+    const dataByRows = datamap.getRange(
       instance._createCellCoords(0, datamap.propToCol(prop)),
       instance._createCellCoords(tableMeta.data.length - 1, datamap.propToCol(prop)),
       datamap.DESTINATION_RENDERER);
 
-    return [].concat(...range);
+    for (let i = 0; i < dataByRows.length; i += 1) {
+      for (let j = 0; j < dataByRows[i].length; j += 1) {
+        columnData.push(dataByRows[i][j]);
+      }
+    }
+
+    return columnData;
   };
 
   /**
@@ -2962,6 +2991,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * __Note__: This method does not participate in data transformation. If the visual data of the table is reordered,
    * sorted or trimmed only physical indexes are correct.
+   *
+   * __Note__: This method may return incorrect values for cells that contain
+   * [formulas](@/guides/formulas/formula-calculation.md). This is because `getSourceData()`
+   * operates on source data ([physical indexes](@/api/indexMapper.md)),
+   * whereas formulas operate on visual data (visual indexes).
    *
    * @memberof Core#
    * @function getSourceData
@@ -3337,7 +3371,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Checks if the data format and config allows user to modify the column structure.
+   * Checks if your [data format](@/guides/getting-started/binding-to-data.md#compatible-data-types)
+   * and [configuration options](@/guides/getting-started/configuration-options.md)
+   * allow for changing the number of columns.
+   *
+   * Returns `false` when your data is an array of objects,
+   * or when you use the [`columns`](@/api/options.md#columns) option.
+   * Otherwise, returns `true`.
    *
    * @memberof Core#
    * @function isColumnModificationAllowed
@@ -3429,10 +3469,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Validates all cells using their validator functions and calls callback when finished.
+   * Validates every cell in the data set,
+   * using a [validator function](@/guides/cell-functions/cell-validator.md) configured for each cell.
    *
-   * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it
-   * would equal `true`.
+   * Doesn't validate cells that are currently [trimmed](@/guides/rows/row-trimming.md),
+   * [hidden](@/guides/rows/row-hiding.md), or [filtered](@/guides/columns/column-filter.md),
+   * as such cells are not included in the data set until you bring them back again.
+   *
+   * After the validation, the `callback` function is fired, with the `valid` argument set to:
+   * - `true` for valid cells
+   * - `false` for invalid cells
    *
    * @memberof Core#
    * @function validateCells
@@ -4379,9 +4425,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (datamap) {
       datamap.destroy();
     }
-
-    instance.rowIndexMapper = null;
-    instance.columnIndexMapper = null;
 
     datamap = null;
     grid = null;

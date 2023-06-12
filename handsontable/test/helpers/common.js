@@ -82,6 +82,7 @@ export const getCopyableText = handsontableMethodFactory('getCopyableText');
 export const getData = handsontableMethodFactory('getData');
 export const getDataAtCell = handsontableMethodFactory('getDataAtCell');
 export const getDataAtCol = handsontableMethodFactory('getDataAtCol');
+export const getDataAtProp = handsontableMethodFactory('getDataAtProp');
 export const getDataAtRow = handsontableMethodFactory('getDataAtRow');
 export const getDataAtRowProp = handsontableMethodFactory('getDataAtRowProp');
 export const getDataType = handsontableMethodFactory('getDataType');

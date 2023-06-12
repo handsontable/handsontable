@@ -1344,8 +1344,8 @@ describe('Formulas general', () => {
 
       expect(getSourceData()).toEqual([
         [5],
-        ['=A1+1'],
         ['=A2+1'],
+        ['=A1+1'],
       ]);
       expect(getData()).toEqual([
         [6],
@@ -2283,9 +2283,9 @@ describe('Formulas general', () => {
   it('should support basic sorting', () => {
     const hot = handsontable({
       data: [
-        ['B1', 3.9],
-        ['B2', 1.13],
-        ['B1+B2', '=SUM(B1:B2)']
+        ['B2', 3.5, '=B2'],
+        ['B1', 99, '=B1'],
+        ['SUM(B1:B2)', 1.5, '=SUM(B1:B2)'],
       ],
       colHeaders: true,
       rowHeaders: true,
@@ -2293,19 +2293,26 @@ describe('Formulas general', () => {
       formulas: {
         engine: HyperFormula
       },
-      columnSorting: {
-        sortEmptyCells: true,
-        initialConfig: {
-          column: 1,
-          sortOrder: 'asc'
-        }
-      }
+      columnSorting: true,
+    });
+
+    hot.getPlugin('columnSorting').sort({
+      column: 1,
+      sortOrder: 'asc'
     });
 
     expect(hot.getData()).toEqual([
-      ['B2', 1.13],
-      ['B1', 3.9],
-      ['B1+B2', 5.03]
+      ['SUM(B1:B2)', 1.5, '#REF!'],
+      ['B2', 3.5, 99],
+      ['B1', 99, 3.5],
+    ]);
+
+    // Currently chosen approach, please keep in mind that it could be changed to represent pure source data
+    // (the same as at the start).
+    expect(getSourceData()).toEqual([
+      ['B2', 3.5, '=B3'],
+      ['B1', 99, '=B2'],
+      ['SUM(B1:B2)', 1.5, '=SUM(#REF!)'],
     ]);
 
     hot.getPlugin('columnSorting').sort({
@@ -2314,17 +2321,102 @@ describe('Formulas general', () => {
     });
 
     expect(hot.getData()).toEqual([
-      ['B1+B2', 5.03],
-      ['B1', 3.9],
-      ['B2', 1.13]
+      ['B1', 99, '#REF!'],
+      ['B2', 3.5, 1.5],
+      ['SUM(B1:B2)', 1.5, '#REF!'],
+    ]);
+
+    // Currently chosen approach, please keep in mind that it could be changed to represent pure source data
+    // (the same as at the start).
+    expect(getSourceData()).toEqual([
+      ['B2', 3.5, '=B3'],
+      ['B1', 99, '=#REF!'],
+      ['SUM(B1:B2)', 1.5, '=SUM(#REF!)'],
     ]);
 
     hot.getPlugin('columnSorting').clearSort();
 
     expect(hot.getData()).toEqual([
-      ['B1', 3.9],
-      ['B2', 1.13],
-      ['B1+B2', 5.03]
+      ['B2', 3.5, 99],
+      ['B1', 99, '#REF!'],
+      ['SUM(B1:B2)', 1.5, '#REF!'],
+    ]);
+
+    // Currently chosen approach, please keep in mind that it could be changed to represent pure source data
+    // (the same as at the start).
+    expect(getSourceData()).toEqual([
+      ['B2', 3.5, '=B2'],
+      ['B1', 99, '=#REF!'],
+      ['SUM(B1:B2)', 1.5, '=SUM(#REF!)'],
+    ]);
+  });
+
+  it('should sort properly when some cell is referencing to element outside the table boundaries', () => {
+    const hot = handsontable({
+      data: [
+        [1, '=A3'],
+        [2, '=A1'],
+        [3, '=A2'],
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      contextMenu: true,
+      formulas: {
+        engine: HyperFormula
+      },
+      columnSorting: true,
+    });
+
+    hot.getPlugin('columnSorting').sort({
+      column: 0,
+      sortOrder: 'asc'
+    });
+
+    expect(getData()).toEqual([
+      [1, 3],
+      [2, 1],
+      [3, 2],
+    ]);
+
+    expect(getSourceData()).toEqual([
+      [1, '=A3'],
+      [2, '=A1'],
+      [3, '=A2'],
+    ]);
+
+    hot.getPlugin('columnSorting').sort({
+      column: 0,
+      sortOrder: 'desc'
+    });
+
+    expect(getData()).toEqual([
+      [3, '#REF!'],
+      [2, 3],
+      [1, 0],
+    ]);
+
+    // Currently chosen approach, please keep in mind that it could be changed to represent pure source data
+    // (the same as at the start).
+    expect(getSourceData()).toEqual([
+      [1, '=A5'],
+      [2, '=A1'],
+      [3, '=#REF!'],
+    ]);
+
+    hot.getPlugin('columnSorting').clearSort();
+
+    expect(getData()).toEqual([
+      [1, 3],
+      [2, 1],
+      [3, '#REF!'],
+    ]);
+
+    // Currently chosen approach, please keep in mind that it could be changed to represent pure source data
+    // (the same as at the start).
+    expect(getSourceData()).toEqual([
+      [1, '=A3'],
+      [2, '=A1'],
+      [3, '=#REF!'],
     ]);
   });
 
@@ -2825,5 +2917,499 @@ describe('Formulas general', () => {
       ['2018', 20, 11, 14, 13],
       ['2019', 30, 15, 12, 13],
     ]);
+  });
+
+  describe('handling dates', () => {
+    it('should handle date functions properly', () => {
+      handsontable({
+        data: [
+          ['=DATE(2022, 8, 1)', '=DATEVALUE("01/03/2020")'],
+          ['=EDATE(A1, 1)', '=DAYS(A1, A2)'],
+          ['=A2', '=DATEDIF(TODAY(), NOW(), "D")'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'MM/DD/YYYY'
+        }, {
+          type: 'numeric'
+        }],
+      });
+
+      expect(getData()).toEqual([
+        ['08/01/2022', 43891], // A Datestring handled using HF's `dateFormats` option.
+        ['09/01/2022', -31],
+        ['09/01/2022', 0],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['=DATE(2022, 8, 1)', '=DATEVALUE("01/03/2020")'],
+        ['=EDATE(A1, 1)', '=DAYS(A1, A2)'],
+        ['=A2', '=DATEDIF(TODAY(), NOW(), "D")'],
+      ]);
+    });
+
+    it('should handle improper on start dates properly (mismatching date formatting) #1', async() => {
+      handsontable({
+        data: [
+          ['13/12/2022'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'MM/DD/YYYY'
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['13/12/2022'], // Not converted - improper date (we treat it as a string)
+        ['13/12/2022'],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['\'13/12/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['13/12/2022'],
+        ['13/12/2022'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['13/12/2022'],
+        ['=A1'],
+      ]);
+
+      validateCells();
+
+      await sleep(10);
+
+      expect(getCellMeta(0, 0).valid).toBe(false);
+      expect(getCellMeta(1, 0).valid).toBe(false);
+    });
+
+    it('should handle improper on start dates properly (mismatching date formatting) #2', async() => {
+      handsontable({
+        data: [
+          ['13/12/2022'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD-MM-YYYY'
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['13/12/2022'], // Not converted - improper date (we treat it as a string)
+        ['13/12/2022'],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['\'13/12/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['13/12/2022'],
+        ['13/12/2022'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['13/12/2022'],
+        ['=A1'],
+      ]);
+
+      validateCells();
+
+      await sleep(10);
+
+      expect(getCellMeta(0, 0).valid).toBe(false);
+      expect(getCellMeta(1, 0).valid).toBe(false);
+    });
+
+    it('should handle correct on start dates properly (mismatching date formatting)', async() => {
+      handsontable({
+        data: [
+          ['12/11/2022'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'MM/DD/YYYY'
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        [44906], // 11 Dec 2022
+        [44906], // 11 Dec 2022
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['11/12/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['12/11/2022'],
+        ['12/11/2022'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['12/11/2022'],
+        ['=A1'],
+      ]);
+
+      validateCells();
+
+      await sleep(10);
+
+      expect(getCellMeta(0, 0).valid).toBe(true);
+      expect(getCellMeta(1, 0).valid).toBe(true);
+    });
+
+    it('should handle dates after change properly (mismatching date formatting)', async() => {
+      handsontable({
+        data: [
+          ['12/11/2022'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'MM/DD/YYYY'
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      setDataAtCell(0, 0, '13/12/2022');
+
+      await sleep(10);
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['13/12/2022'], // Not converted - improper date (we treat it as a string)
+        ['13/12/2022'],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['\'13/12/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['13/12/2022'],
+        ['13/12/2022'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['13/12/2022'],
+        ['=A1'],
+      ]);
+
+      validateCells();
+
+      await sleep(10);
+
+      expect(getCellMeta(0, 0).valid).toBe(false);
+      expect(getCellMeta(1, 0).valid).toBe(false);
+
+      setDataAtCell(0, 0, '12/11/2022');
+
+      await sleep(100);
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        [44906], // 11 Dec 2022
+        [44906], // 11 Dec 2022
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['11/12/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['12/11/2022'],
+        ['12/11/2022'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['12/11/2022'],
+        ['=A1'],
+      ]);
+
+      validateCells();
+
+      await sleep(10);
+
+      expect(getCellMeta(0, 0).valid).toBe(true);
+      expect(getCellMeta(1, 0).valid).toBe(true);
+    });
+
+    it('should handle dates properly (matching date formatting)', async() => {
+      handsontable({
+        data: [
+          ['12/11/2022'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        [44877], // 12 Nov 2022
+        [44877], // 12 Nov 2022
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['12/11/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['12/11/2022'],
+        ['12/11/2022'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['12/11/2022'],
+        ['=A1'],
+      ]);
+
+      validateCells();
+
+      await sleep(10);
+
+      expect(getCellMeta(0, 0).valid).toBe(true);
+      expect(getCellMeta(1, 0).valid).toBe(true);
+
+      setDataAtCell(0, 0, '12/13/2022');
+
+      await sleep(10);
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['12/13/2022'], // Not converted - improper date (we treat it as a string)
+        ['12/13/2022'],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['\'12/13/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['12/13/2022'],
+        ['12/13/2022'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['12/13/2022'],
+        ['=A1'],
+      ]);
+
+      validateCells();
+
+      await sleep(10);
+
+      expect(getCellMeta(0, 0).valid).toBe(false);
+      expect(getCellMeta(1, 0).valid).toBe(false);
+
+      setDataAtCell(0, 0, '13/11/2022');
+
+      await sleep(10);
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        [44878], // 13 Nov 2022
+        [44878], // 13 Nov 2022
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['13/11/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['13/11/2022'],
+        ['13/11/2022'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['13/11/2022'],
+        ['=A1'],
+      ]);
+
+      validateCells();
+
+      await sleep(0);
+
+      expect(getCellMeta(0, 0).valid).toBe(true);
+      expect(getCellMeta(1, 0).valid).toBe(true);
+    });
+
+    it('should handle HF configuration property (HF instance should not overwrite `leapYear1900` and `nullDate` properties)', () => {
+      // Create an external HyperFormula instance
+      const hfInstance = HyperFormula.buildEmpty({});
+
+      handsontable({
+        data: [
+          ['01/03/1900'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: hfInstance,
+          sheetName: 'Sheet1'
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        [61],
+        [61],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['01/03/1900'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['01/03/1900'],
+        ['01/03/1900'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['01/03/1900'],
+        ['=A1'],
+      ]);
+    });
+
+    it('should not show warn for default HyperFormula configuration', () => {
+      const warnSpy = spyOn(console, 'warn');
+
+      handsontable({
+        data: [
+          ['01/03/1900'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not show warn for not overwritten HF\'s configuration options such as `leapYear1900` and `nullDate`', () => {
+      // Create an external HyperFormula instance
+      const hfInstance = HyperFormula.buildEmpty({});
+      const warnSpy = spyOn(console, 'warn');
+
+      handsontable({
+        data: [
+          ['01/03/1900'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: hfInstance,
+          sheetName: 'Sheet1'
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should show warn for overwritten HF\'s configuration option such as `leapYear1900`', () => {
+      // Create an external HyperFormula instance
+      const hfInstance = HyperFormula.buildEmpty({
+        leapYear1900: true,
+      });
+      const warnSpy = spyOn(console, 'warn');
+
+      handsontable({
+        data: [
+          ['01/03/1900'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: hfInstance,
+          sheetName: 'Sheet1'
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      expect(warnSpy).toHaveBeenCalled();
+    });
+
+    it('should show warn for overwritten HF\'s configuration option such as `nullDate`', () => {
+      // Create an external HyperFormula instance
+      const hfInstance = HyperFormula.buildEmpty({
+        nullDate: {
+          year: 1970,
+          month: 0,
+          day: 0,
+        },
+      });
+      const warnSpy = spyOn(console, 'warn');
+
+      handsontable({
+        data: [
+          ['01/03/1900'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: hfInstance,
+          sheetName: 'Sheet1'
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      expect(warnSpy).toHaveBeenCalled();
+    });
   });
 });

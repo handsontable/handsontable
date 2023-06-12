@@ -117,5 +117,26 @@ describe('DropdownMenu (RTL mode)', () => {
         expect(subMenuOffset.left).toBeCloseTo(dropdownOffset.left + dropdownWidth, 0);
       });
     });
+
+    it('should show tick from "Read only" element at proper place', () => {
+      handsontable({
+        layoutDirection,
+        data: createSpreadsheetData(10, 10),
+        dropdownMenu: true,
+        colHeaders: true,
+        readOnly: true,
+      });
+
+      dropdownMenu(0);
+
+      const $readOnlyItem = $('.htDropdownMenu .ht_master .htCore td:contains(Read only)');
+      const $tickItem = $readOnlyItem.find('span.selected');
+      const tickItemOffset = $tickItem.offset();
+      const $dropdownMenuRoot = $('.htDropdownMenu');
+      const dropdownMenuOffset = $dropdownMenuRoot.offset();
+
+      expect(tickItemOffset.top).toBe(135);
+      expect(tickItemOffset.left).toBe(dropdownMenuOffset.left + $dropdownMenuRoot.outerWidth() - 4);
+    });
   });
 });
