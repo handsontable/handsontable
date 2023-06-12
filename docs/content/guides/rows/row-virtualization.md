@@ -35,15 +35,17 @@ To make the grid scrollable, set the constant width and height to the same as th
 
 The scrolling performance depends mainly on four factors:
 
-* Number of cells - number of rows multiplied by the number of columns
-* Amount and complexity of custom renderers in cells
-* Number of options enabled in the configuration
-* Performance of your setup - physical machine and a browser
+- Number of cells - number of rows multiplied by the number of columns
+- Amount and complexity of custom renderers in cells
+- Number of options enabled in the configuration
+- Performance of your setup - physical machine and a browser
 
 The example below presents a data grid displaying 1 million cells (1000 rows x 1000 columns):
 
 ::: only-for javascript
+
 ::: example #example1
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -67,11 +69,15 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -106,9 +112,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Related articles
 

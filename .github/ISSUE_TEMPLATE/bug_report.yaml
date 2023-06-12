@@ -15,8 +15,6 @@ body:
     attributes:
       label: Video/Screenshots
       description: Please provide a screenshot or a short video presenting the issue.
-    validations:
-      required: true
   - type: input
     id: demo
     attributes:

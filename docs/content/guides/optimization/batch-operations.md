@@ -48,7 +48,7 @@ Batch CRUD operations, to avoid unnecessary rendering cycles and boost your grid
 
 Within Handsontable, every CRUD operation ends with a [`render()`](@/api/core.md#render). In most cases, this is considered expected behaviour. The table has to reflect the requested changes at some point. However, sometimes you may find this mechanism slightly excessive.
 
-For example, if you wrote a custom function that uses several CRUD operations, those CRUD operations will call a [`render()`](@/api/core.md#render) for each API method. You only need one render at the end, which is sufficient to reflect all the changes. You can treat those combined operations as a single action and let the render wait for them to complete. To do this, use **suspend the render** to batch the operations.
+For example, if you wrote a custom function that uses several CRUD operations, those CRUD operations will call a [`render()`](@/api/core.md#render) for each API method. You only need one render at the end, which is sufficient to reflect all the changes. You can treat those combined operations as a single action and let the render wait for them to complete. To do this, use suspend the render to batch the operations.
 
 This can improve the overall performance of the application. Batching several operations can decrease the number of renders, so any API call that ends with a render will benefit from this improvement. It results in less layout trashing, fewer freezes, and a more responsive feel.
 
@@ -57,11 +57,15 @@ There are several API methods you can use for suspending, but [`batch()`](@/api/
 The following snippet shows a simple example of a few operations batched. Three API operations are called one after another. Without placing them inside the batch callback, every single operation would end with a [`render()`](@/api/core.md#render). Thanks to the batching feature, you can skip two renders and end the whole action with one render at the end. This is more optimal, and the gain increases with the number of operations placed inside the [`batch()`](@/api/core.md#batch).
 
 ::: only-for react
+
 ::: tip
+
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
-For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+For more information, see the [Instance methods](@/guides/getting-started/react-methods.md) page.
+
 :::
+
 :::
 
 ```js
@@ -75,17 +79,19 @@ hot.batch(() => {
 });
 ```
 
-Suspending the render results in better performance, which is especially noticeable when numerous operations are batched. The diagram shows a comparison where the same operations were performed **with** (deep blue columns) **and without the batch** (light blue columns). The gain in speed of execution time increases with the number of operations batched.
+Suspending the render results in better performance, which is especially noticeable when numerous operations are batched. The diagram shows a comparison where the same operations were performed with (deep blue columns) and without the batch (light blue columns). The gain in speed of execution time increases with the number of operations batched.
 
 ![batch_operations_comparison]({{$basePath}}/img/batch_operations_comparison.png)
 
-:::tip
+::: tip
+
 Note that other methods can be used to batch operations, but they are slightly more advanced and should be used with caution. Flickering, glitches or other visual distortion may happen when you forget to `resume` render after suspending it several times. Mixing methods of a render type with those focused on operations can also result in some unexpected behavior. Above all, [`batch()`](@/api/core.md#batch) should be sufficient in most use cases, and it is safe to work with.
+
 :::
 
 ## API methods
 
-The following **API methods** allow suspending:
+The following API methods allow suspending:
 
 - [`batch()`](@/api/core.md#batch)
 - [`batchRender()`](@/api/core.md#batchrender)
@@ -101,8 +107,8 @@ By using these methods, you can suspend:
 
 The term "rendering" refers directly to DOM rendering, and the term "execution" refers to all operations that are different from DOM rendering. Currently, only the indexing recalculation allows you to postpone the process.
 
-Method names that are prefixed with **batch\***, i.e., [`batch()`](@/api/core.md#batch), [`batchRender()`](@/api/core.md#batchrender), and [`batchExecution()`](@/api/core.md#batchexecution) are recommended to be used as the first choice if **you don't need to batch async operations**.
-Methods names that are prefixed with **suspend\***, i.e., [`suspendRender()`](@/api/core.md#suspendrender) and [`suspendExecution()`](@/api/core.md#suspendexecution), are the second choice. These are useful when you need to batch async operations. Essentially they work the same way as **batch\*** methods, but the **render has to be resumed manually**.
+Method names that are prefixed with `batch\*`, i.e., [`batch()`](@/api/core.md#batch), [`batchRender()`](@/api/core.md#batchrender), and [`batchExecution()`](@/api/core.md#batchexecution) are recommended to be used as the first choice if you don't need to batch async operations.
+Methods names that are prefixed with `suspend\*`, i.e., [`suspendRender()`](@/api/core.md#suspendrender) and [`suspendExecution()`](@/api/core.md#suspendexecution), are the second choice. These are useful when you need to batch async operations. Essentially they work the same way as `batch\*` methods, but the render has to be resumed manually.
 
 ### batch* methods
 
@@ -185,7 +191,9 @@ hot.resumeExecution(); // It updates the cache internally
 The following examples show how much the [`batch()`](@/api/core.md#batch) method can decrease the render time. Both of the examples share the same dataset and operations. The first one shows how much time lapsed when the [`batch()`](@/api/core.md#batch) method was used. Run the second example to check how much time it takes to render without the [`batch()`](@/api/core.md#batch) method.
 
 ::: only-for javascript
+
 ::: example #example1 --html 1 --js 2
+
 ```html
 <div id="example1"></div>
 <div class="controls">
@@ -278,11 +286,15 @@ buttonWith.addEventListener('click', () => {
   logOutput('Time with batch ' + (t2 - t1).toFixed(2) + 'ms');
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { useRef, useEffect, useState } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -385,9 +397,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Related articles
 
