@@ -27,7 +27,9 @@ Populate newly-added rows with predefined template values, using cell renderers.
 The example below shows how cell renderers can be used to populate the template values in empty rows. When a cell in the empty row is edited, the [`beforeChange`](@/api/hooks.md#beforechange) callback fills the row with the template values.
 
 ::: only-for javascript
+
 ::: example #example1
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -114,11 +116,15 @@ const hot = new Handsontable(container, {
 // or, use `updateData()` to replace `data` without resetting states
 hot.loadData(data);
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { useEffect, useRef } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -226,9 +232,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Related API reference
 

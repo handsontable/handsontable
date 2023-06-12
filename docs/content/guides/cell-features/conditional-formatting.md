@@ -36,9 +36,10 @@ This demo shows how to use the cell type renderer feature to make some condition
 3. Empty cells are formatted with a silver background.
 4. Negative numbers are formatted as red text.
 
-
 ::: only-for javascript
+
 ::: example #example1
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -114,11 +115,15 @@ const hot = new Handsontable(container, {
   }
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -206,9 +211,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Related articles
 

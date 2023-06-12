@@ -41,7 +41,9 @@ In many use cases, you will need to configure a certain column to be read-only. 
 To make a column read-only, declare it in the [`columns`](@/api/options.md#columns) configuration option. You can also define a special renderer function that will dim the read-only values, providing a visual cue for the user that the cells are read-only.
 
 ::: only-for javascript
+
 ::: example #example1
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -74,11 +76,15 @@ const hot = new Handsontable(container, {
   ]
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -122,16 +128,19 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Read-only specific cells
 
 This example makes cells that contain the word "Nissan" read-only. It forces all cells to be processed by the [`cells`](@/api/options.md#cells) function which will decide whether a cell's metadata should have the [`readOnly`](@/api/options.md#readonly) property set.
 
 ::: only-for javascript
+
 ::: example #example2
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -161,11 +170,15 @@ hot.updateSettings({
   }
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example2 :react
+
 ```jsx
 import { useRef, useEffect } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -214,9 +227,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 Non-editable cells behave like any other cells apart from preventing you from manually changing their values.
 
@@ -227,7 +241,9 @@ In many cases, you will need to configure a certain column to be non-editable. D
 To make a column non-editable, declare it in the [`columns`](@/api/options.md#columns) configuration option. You can also define a special renderer function that will dim the `editor` value. This will provide the user with a visual cue that the cell is non-editable.
 
 ::: only-for javascript
+
 ::: example #example3
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -263,11 +279,15 @@ const hot = new Handsontable(container, {
   ]
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example3 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -314,16 +334,19 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Non-editable specific cells
 
-The following example shows the table with non-editable cells containing the word "Nissan". This cell property is optional and can be easily set in the Handsontable configuration.
+The following example shows the table with non-editable cells containing the word "Nissan". This cell property is optional and you can easily set it in the Handsontable configuration.
 
 ::: only-for javascript
+
 ::: example #example4
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -356,11 +379,15 @@ hot.updateSettings({
   }
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example4 :react
+
 ```jsx
 import { useRef, useEffect } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -412,9 +439,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Related API reference
 

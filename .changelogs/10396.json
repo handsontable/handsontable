@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Rewritten the Angular wrapper to be based on Angular@12 and to support Angular versions 12 and above.",
+  "type": "added",
+  "issueOrPR": 10396,
+  "breaking": true,
+  "framework": "angular"
+}

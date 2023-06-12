@@ -13,26 +13,31 @@ searchCategory: Guides
 
 # Row trimming
 
-Hide individual rows from your interface and exclude them from the rendering process and `DataMap`. This feature is similar to [row hiding](@/guides/rows/row-hiding.md), but works a bit differently.
+Hide individual rows from your interface and exclude them from the rendering process and `DataMap`.
 
 [[toc]]
 
 ## Overview
 
-The [`TrimRows`](@/api/trimRows.md) plugin allows the trimming of specific rows from the table. Rows being trimmed **aren't rendered** and **aren't included** in a `DataMap`, which can be retrieved by calling the [`getData`](@/api/core.md#getdata) method.
+Row trimming is similar to [row hiding](@/guides/rows/row-hiding.md), but works a bit differently.
+
+The [`TrimRows`](@/api/trimRows.md) plugin allows the trimming of specific rows from the table. Rows being trimmed aren't rendered and aren't included in the `DataMap`, which can be retrieved by calling the [`getData`](@/api/core.md#getdata) method.
 
 ## Setup
 
 To enable row trimming, set the [`trimRows`](@/api/options.md#trimrows) option to `true`.
 
 ::: only-for javascript
+
 ```js
 // enable the `TrimRows` plugin
 trimRows: true,
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 // enable the `TrimRows` plugin
 
@@ -40,19 +45,23 @@ trimRows: true,
   trimRows={true}
 />
 ```
+
 :::
 
 To both enable row trimming and trim selected rows at Handsontable's initialization, set the [`trimRows`](@/api/options.md#trimrows) option to an array of physical row indexes.
 
 ::: only-for javascript
+
 ```js
 // enable the `TrimRows` plugin
 // at Handsontable's initialization, trim rows 5, 10, and 15
 trimRows: [5, 10, 15],
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 // enable the `TrimRows` plugin
 // at Handsontable's initialization, trim rows 5, 10, and 15
@@ -61,6 +70,7 @@ trimRows: [5, 10, 15],
   trimRows={[5, 10, 15]}
 />
 ```
+
 :::
 
 ## Example
@@ -68,7 +78,9 @@ trimRows: [5, 10, 15],
 Note that the second, third, and sixth rows are missing in the following example:
 
 ::: only-for javascript
+
 ::: example #example1
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -93,11 +105,15 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -133,18 +149,23 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## API examples
 
 ::: only-for react
+
 ::: tip
+
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotIntance` property.
 
-For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+For more information, see the [Instance methods](@/guides/getting-started/react-methods.md) page.
+
 :::
+
 :::
 
 The plugin instance can be accessed by calling:
