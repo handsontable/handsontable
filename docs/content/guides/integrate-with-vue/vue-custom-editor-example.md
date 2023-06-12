@@ -23,6 +23,7 @@ You can declare a custom editor for the `HotTable` component by declaring it as 
 The following example implements the `@handsontable/vue` component with a custom editor added, utilizing the `placeholder` attribute in the editor's `input` element.
 
 ::: example #example1 :vue --html 1 --js 2
+
 ```html
 <div id="example1">
   <hot-table :settings="hotSettings"></hot-table>
@@ -85,6 +86,7 @@ new Vue({
 });
 /* end:skip-in-preview */
 ```
+
 :::
 
 ## Related articles

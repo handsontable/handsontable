@@ -42,18 +42,20 @@ But each project has its own [building](#build-processes) and [testing](@/guides
 
 The building processes transform the source files located in the `/handsontable/src/` directory into the following output files:
 
-* `/handsontable/dist/handsontable.js`
-* `/handsontable/dist/handsontable.css`
-* `/handsontable/dist/handsontable.full.js`
-* `/handsontable/dist/handsontable.full.css`
-* `/handsontable/dist/handsontable.full.min.js`
-* `/handsontable/dist/handsontable.full.min.css`
-* `/handsontable/dist/languages/*`
+- `/handsontable/dist/handsontable.js`
+- `/handsontable/dist/handsontable.css`
+- `/handsontable/dist/handsontable.full.js`
+- `/handsontable/dist/handsontable.full.css`
+- `/handsontable/dist/handsontable.full.min.js`
+- `/handsontable/dist/handsontable.full.min.css`
+- `/handsontable/dist/languages/*`
 
 ::: tip
+
 Don't modify the output files mentioned above. Instead, make changes in the `/handsontable/src/` directory and then run a selected [build](#build-the-packages). This is especially important if you want to contribute your changes back to Handsontable through a pull request.
 
 For more information on the distribution packages, see [this file](https://github.com/handsontable/handsontable/blob/master/handsontable/dist/README.md).
+
 :::
 
 ### Build requirements
@@ -119,6 +121,7 @@ To build the JavaScript package from the root directory:
 From the `/handsontable` directory, you can also run individual JavaScript `build` tasks:
 
 ::: details JavaScript build tasks
+
 `npm run build:commonjs`
   - Transpiles the files into the CommonJS format.
 
@@ -155,6 +158,7 @@ From the `/handsontable` directory, you can also run individual JavaScript `buil
    - Creates the minified [language](@/guides/internationalization/language.md) bundles compatible with the Universal Module Definition, for example:
      - `/handsontable/dist/languages/de-DE.min.js`
      - `/handsontable/dist/languages/all.min.js`
+
 :::
 
 ### Build the React package
@@ -174,6 +178,7 @@ To build the React package from the root directory:
 From the `/wrappers/react` directory, you can also run individual React `build` tasks:
 
 ::: details React build tasks
+
 `npm run build:commonjs`
   - Transpiles the files into the CommonJS format.
   - Places the output in `/wrappers/react/commonjs/react-handsontable.js`
@@ -191,9 +196,11 @@ From the `/wrappers/react` directory, you can also run individual React `build` 
   - Creates the minified bundles:
     - `/wrappers/react/dist/react-handsontable.min.js`
     - `/wrappers/react/dist/react-handsontable.min.js.map`
+
 :::
 
 ::: only-for javascript
+
 ### Build the Angular package
 
 To build the Angular package:
@@ -211,13 +218,17 @@ To build the Angular package from the root directory:
 From the `/wrappers/angular` directory, You can also run individual Angular `build` tasks:
 
 ::: details Angular build tasks
+
 `npm run build`
   - Builds the `@handsontable/angular` package for multiple module systems.
   - Places the output in the `/wrappers/angular/dist/hot-table/` directory.
+
 :::
+
 :::
 
 ::: only-for javascript
+
 ### Build the Vue 2 package
 
 To build the Vue 2 package:
@@ -235,6 +246,7 @@ To build the Vue 2 package from the root directory:
 From the `/wrappers/vue` directory, you can also run individual Vue 2 `build` tasks:
 
 ::: details Vue 2 build tasks
+
 `npm run build:commonjs`
   - Transpiles the files into the CommonJS format.
   - Places the output in `/wrappers/vue/commonjs/vue-handsontable.js`
@@ -252,10 +264,13 @@ From the `/wrappers/vue` directory, you can also run individual Vue 2 `build` ta
   - Creates the minified bundles:
     - `/wrappers/vue/dist/vue-handsontable.min.js`
     - `/wrappers/vue/dist/vue-handsontable.min.js.map`
+
 :::
+
 :::
 
 ::: only-for javascript
+
 ### Build the Vue 3 package
 
 To build the Vue 3 package:
@@ -273,6 +288,7 @@ To build the Vue 3 package from the root directory:
 From the `/wrappers/vue3` directory, you can also run individual Vue 3 `build` tasks:
 
 ::: details Vue 3 build tasks
+
 `npm run build:commonjs`
   - Transpiles the files into the CommonJS format.
   - Places the output in `/wrappers/vue3/commonjs/vue-handsontable.js`
@@ -290,12 +306,17 @@ From the `/wrappers/vue3` directory, you can also run individual Vue 3 `build` t
   - Creates the minified bundles:
     - `/wrappers/vue3/dist/vue-handsontable.min.js`
     - `/wrappers/vue3/dist/vue-handsontable.min.js.map`
+
 :::
+
 :::
 
 ## Related guides
 
 ::: only-for javascript
+
 - [Packages](@/guides/tools-and-building/packages.md)
+
 :::
+
 - [Testing](@/guides/tools-and-building/testing.md)
