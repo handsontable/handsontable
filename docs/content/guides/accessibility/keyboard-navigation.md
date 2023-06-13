@@ -2,17 +2,17 @@
 id: 6qwoo503
 title: Keyboard navigation
 metaTitle: Keyboard navigation - JavaScript Data Grid | Handsontable
-description: Navigate the grid with the keyboard alone. Use additional options to make your application more accessible.
+description: Navigate the grid with the keyboard alone. Use the navigation options to meet the needs of your users.
 permalink: /keyboard-navigation
 canonicalUrl: /keyboard-navigation
 tags:
-- accessibility
-- certification
-- section 508
-- WCAG
-- ADA
-- a11y
-- aria
+  - accessibility
+  - certification
+  - section 508
+  - WCAG
+  - ADA
+  - a11y
+  - aria
 react:
   id: 3m72vkzl
   metaTitle: Keyboard navigation - React Data Grid | Handsontable
@@ -21,7 +21,7 @@ searchCategory: Guides
 
 # Keyboard navigation
 
-Navigate the grid with the keyboard alone. Use additional options to make your application more accessible.
+Navigate the grid with the keyboard alone. Use the navigation options to meet the needs of your users.
 
 [[toc]]
 
@@ -29,18 +29,18 @@ Navigate the grid with the keyboard alone. Use additional options to make your a
 
 You can easily access all of Handsontable's features without using a mouse. This is especially useful for people with disabilities who rely on keyboard navigation.
 
-Navigating the grid is intuitive, and involves a few simple keystrokes. Try it out in the [demo](#default-keyboard-navigation) below. For example, you can move the focus with the arrow keys, press <kbd>**Enter**</kbd> to edit a cell, and press <kbd>**Esc**</kbd> to cancel editing. For more advanced actions, see the list of all [built-in shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md#default-keyboard-shortcuts) or add shortcuts of [your own](@/guides/accessories-and-menus/keyboard-shortcuts.md#custom-keyboard-shortcuts).
+Keyboard navigation works out of the box and follows international standards. Navigating the grid takes a few simple keystrokes: you can try it out in the [demo](#default-keyboard-navigation) below. You can also fine-tune its behavior by using the navigation [options](#configure-keyboard-navigation-options).
 
-Handsontable's keyboard navigation works out of the box and follows international standards. You can also fine-tune its behavior by using the navigation [options](#enable-tab-key-navigation).
+For more advanced actions, see the [list of all built-in shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md#default-keyboard-shortcuts), or add shortcuts of [your own](@/guides/accessories-and-menus/keyboard-shortcuts.md#custom-keyboard-shortcuts).
 
 ## Default keyboard navigation
 
-list shortcuts (which ones?)
-demo
+- A **short** list of selected navigation shortcuts (which ones?)
+- Demo with default navigation
 
-## Keyboard navigation options
+## Configure keyboard navigation options
 
-Demo with options:
+A single demo with all navigation options:
 
 - `disableTabNavigation`
 - `navigableHeaders`
