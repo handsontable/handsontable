@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Swapping `beforeChange` and `afterSetDataAtCell`/`afterSetDataAtRowProp` hooks order",
+  "type": "changed",
+  "issueOrPR": 677,
+  "breaking": true,
+  "framework": "none"
+}

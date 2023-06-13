@@ -317,6 +317,65 @@ describe('Core_setDataAtCell', () => {
     expect(errors).toBe(0);
   });
 
+  it('should trigger `beforeChange` and `afterSetDataAtCell` in the correct order', () => {
+    const beforeChange = jasmine.createSpy('beforeChange');
+    const afterSetDataAtCell = jasmine.createSpy('afterSetDataAtCell');
+
+    handsontable({
+      data: [[1, 1]],
+      beforeChange,
+      afterSetDataAtCell,
+    });
+
+    setDataAtCell(0, 0, 5);
+
+    expect(beforeChange).toHaveBeenCalledBefore(afterSetDataAtCell);
+  });
+
+  it('should trigger `beforeChange` and `afterSetDataAtRowProp` in the correct order', () => {
+    const beforeChange = jasmine.createSpy('beforeChange');
+    const afterSetDataAtRowProp = jasmine.createSpy('afterSetDataAtRowProp');
+
+    handsontable({
+      data: [[1, 1]],
+      beforeChange,
+      afterSetDataAtRowProp,
+    });
+
+    setDataAtRowProp(0, 0, 5);
+
+    expect(beforeChange).toHaveBeenCalledBefore(afterSetDataAtRowProp);
+  });
+
+  it('should override set values using `beforeChange` hook', () => {
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+      ],
+      beforeChange(changes) {
+        changes[0][3] = 'test';
+      }
+    });
+
+    setDataAtCell(0, 0, 5);
+    setDataAtCell(1, 1, 6);
+    setDataAtCell(2, 2, 7);
+    setDataAtRowProp(3, 3, 8);
+    setDataAtRowProp(4, 4, 9);
+
+    expect(getData()).toEqual([
+      ['test', 2, 3, 4, 5, 6],
+      [1, 'test', 3, 4, 5, 6],
+      [1, 2, 'test', 4, 5, 6],
+      [1, 2, 3, 'test', 5, 6],
+      [1, 2, 3, 4, 'test', 6],
+    ]);
+  });
+
   describe('Coordinates out of dataset', () => {
     it('should insert new column', () => {
       handsontable({

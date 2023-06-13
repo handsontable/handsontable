@@ -35,6 +35,29 @@ describe('Core_populateFromArray', () => {
     expect(output).toEqual([[0, 0, '', 'test'], [0, 1, 'Kia', 'test'], [1, 0, '2008', 'test'], [1, 1, 10, 'test']]);
   });
 
+  it('should override populated values using `beforeChange` hook', () => {
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+      ],
+      beforeChange(changes) {
+        changes[0][3] = 'test1';
+        changes[3][3] = 'test4';
+      }
+    });
+    populateFromArray(0, 0, [['test', 'test'], ['test', 'test']], 1, 1);
+
+    expect(getData()).toEqual([
+      ['test1', 'test', 3, 4, 5, 6],
+      ['test', 'test4', 3, 4, 5, 6],
+      [1, 2, 3, 4, 5, 6],
+      [1, 2, 3, 4, 5, 6],
+    ]);
+  });
+
   it('should populate single value for whole selection', () => {
     let output = null;
 

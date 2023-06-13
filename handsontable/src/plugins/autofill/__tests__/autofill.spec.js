@@ -506,6 +506,38 @@ describe('AutoFill', () => {
     });
   });
 
+  describe('beforeChange hook autofill value overrides', () => {
+    it('should use a custom value when introducing changes', () => {
+      handsontable({
+        data: [
+          [1, 2, 3, 4, 5, 6],
+          [1, 2, 3, 4, 5, 6],
+          [1, 2, 3, 4, 5, 6],
+          [1, 2, 3, 4, 5, 6],
+        ],
+        beforeChange(changes) {
+          changes[0][3] = 'test2';
+          changes[1][3] = 'test3';
+          changes[2][3] = 'test4';
+        }
+      });
+      selectCell(0, 0);
+
+      spec().$container.find('.wtBorder.corner').simulate('mousedown');
+      spec().$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
+      spec().$container.find('tr:eq(3) td:eq(0)').simulate('mouseover');
+      spec().$container.find('.wtBorder.corner').simulate('mouseup');
+
+      expect(getSelected()).toEqual([[0, 0, 3, 0]]);
+      expect(getData()).toEqual([
+        [1, 2, 3, 4, 5, 6],
+        ['test2', 2, 3, 4, 5, 6],
+        ['test3', 2, 3, 4, 5, 6],
+        ['test4', 2, 3, 4, 5, 6]
+      ]);
+    });
+  });
+
   it('should pass correct arguments to `afterAutofill`', () => {
     const afterAutofill = jasmine.createSpy();
 
