@@ -22,7 +22,9 @@ Play around with a demo of Handsontable, in your favorite framework.
 [[toc]]
 
 ::: only-for javascript
+
 ::: example-without-tabs #example
+
 ```html
 <div id="example"></div>
 ```
@@ -1525,11 +1527,15 @@ new Handsontable(example, {
 console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate})`);
 
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example-without-tabs #example2 :react
+
 ```html
 <div id="example2"></div>
 ```
@@ -2959,7 +2965,9 @@ ReactDOM.render(<App />, rootElement);
 
 console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate}) Wrapper: v${HotTable.version} React: v${React.version}`);
 ```
+
 :::
+
 :::
 
 ## Find the code on GitHub

@@ -29,6 +29,7 @@ You can programmatically change the internal state of Handsontable beyond what's
 The following example implements the [`HotTable`](@/guides/getting-started/installation.md#_4-use-the-hottable-component) component showing how to reference the Handsontable instance from the wrapper component.
 
 ::: example #example1 :react
+
 ```jsx
 import { useRef } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -72,4 +73,5 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
+
 :::

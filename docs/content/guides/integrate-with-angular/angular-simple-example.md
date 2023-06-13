@@ -19,6 +19,7 @@ Start with the Angular data grid basic configuration examples, using component p
 The following example is a basic implementation of the `@handsontable/angular` wrapper.
 
 ::: example :angular --html 1 --js 2
+
 ```html
 <app-root></app-root>
 ```
@@ -84,4 +85,5 @@ platformBrowserDynamic()
   .catch(err => { console.error(err) });
 /* end:skip-in-preview */
 ```
+
 :::

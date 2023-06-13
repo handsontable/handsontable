@@ -24,20 +24,22 @@ Lock the position of specified columns, keeping them visible when scrolling.
 
 ## Overview
 
-Column freezing locks specific columns of a grid in place, keeping them visible while scrolling to another area of the grid. We refer to frozen columns as *fixed*.
+Column freezing locks specific columns of a grid in place, keeping them visible while scrolling to
+another area of the grid. We refer to frozen columns as _fixed_.
 
-Columns can be frozen during initialization and by the user.
+You can freeze columns during initialization and by the user.
 
 ## Freeze columns at initialization
 
-To freeze the columns on the left-hand side, you need to pass the option [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart) in the Settings object. The container you initialize the data grid in will need additional CSS attributes configured: `width` and `overflow: hidden`.
+To freeze columns at initialization, use the [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart) option. Then, configure the container of your grid with the following CSS attributes: `width` and
+`overflow: hidden`.
 
-::: warning
-The [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart) property used to be called [`fixedColumnsLeft`](@/api/options.md#fixedcolumnleft) before Handsontable 12.0.0. The old name [`fixedColumnsLeft`](@/api/options.md#fixedcolumnleft) works in the LTR [layout direction](@/guides/internationalization/layout-direction.md) but throws an error when the layout direction is set to RTL.
-:::
+If your [layout direction](@/guides/internationalization/layout-direction.md) is `ltr`, columns get frozen from the left side of the table. If your layout direction is `rtl`, columns get frozen from the right side of the table.
 
 ::: only-for javascript
+
 ::: example #example1
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -59,14 +61,18 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   fixedColumnsStart: 1,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -102,18 +108,21 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## User-triggered freeze
 
-To manually freeze a column, you need to set the [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) configuration option to `true` in the Handsontable settings. When the Manual Column Freeze plugin is enabled, you can freeze any non-fixed column and unfreeze any fixed column in your Handsontable instance using the Context Menu.
+To enable manual column freezing, set [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) to `true`. This lets you freeze and unfreeze columns by using the grid's [context menu](@/guides/accessories-and-menus/context-menu.md).
 
-Mind that a frozen column won't go back to the original position after you unfreeze it.
+Mind that when you unfreeze a frozen column, it doesn't go back to the original position.
 
 ::: only-for javascript
+
 ::: example #example2
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -137,14 +146,18 @@ const hot = new Handsontable(container, {
   fixedColumnsStart: 2,
   contextMenu: true,
   manualColumnFreeze: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example2 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -182,9 +195,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Related API reference
 

@@ -50,7 +50,9 @@ For Arabic, use Handsontable's built-in [Arabic translation](@/guides/internatio
 To try out Handsontable's RTL support, check out the demo below:
 
 ::: only-for javascript
+
 ::: example #example1 :hot-lang
+
 ```js
 import Handsontable from 'handsontable';
 import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
@@ -104,11 +106,15 @@ const hot = new Handsontable(container, {
   contextMenu: true
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react-languages
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -167,9 +173,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ### Elements affected by layout direction
 
@@ -208,7 +215,9 @@ and set it to `'inherit'`. As this is the default setting, you can also skip set
 In the example below, the RTL layout direction is inherited from a `dir` attribute up in the DOM tree:
 
 ::: only-for javascript
+
 ::: example #example2 --html 1 --js 2
+
 ```html
 <section dir="rtl">
   <div id="example2"></div>
@@ -235,11 +244,15 @@ const hot = new Handsontable(container, {
   layoutDirection: 'inherit',
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example2 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -272,9 +285,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ### Set the layout direction to RTL
 
@@ -284,7 +298,9 @@ At Handsontable's initialization, add [`layoutDirection`](@/api/options.md#layou
 and set it to `'rtl'`:
 
 ::: only-for javascript
+
 ::: example #example3
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -306,11 +322,15 @@ const hot = new Handsontable(container, {
   layoutDirection: 'rtl',
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example3 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -341,9 +361,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ### Set the layout direction to LTR
 
@@ -353,7 +374,9 @@ At Handsontable's initialization, add [`layoutDirection`](@/api/options.md#layou
 and set it to `'ltr'`:
 
 ::: only-for javascript
+
 ::: example #example4
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -375,11 +398,15 @@ const hot = new Handsontable(container, {
   layoutDirection: 'ltr',
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example4 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -410,9 +437,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Set the horizontal text alignment
 
@@ -421,7 +449,9 @@ You can apply different horizontal [text alignment](@/guides/cell-features/text-
 In the example below, some columns are explicitly aligned to the left, center, or right:
 
 ::: only-for javascript
+
 ::: example #example5
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -453,11 +483,15 @@ const hot = new Handsontable(container, {
   ]
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example5 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -498,9 +532,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example5'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 You can apply the horizontal text alignment settings to:
 - [The entire grid](@/guides/getting-started/configuration-options.md#set-grid-options), by setting [`className`](@/api/options.md#classname) on the global level

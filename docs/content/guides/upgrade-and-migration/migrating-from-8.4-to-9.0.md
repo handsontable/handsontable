@@ -27,15 +27,19 @@ The purpose of this guide is to make it easier to migrate from v8.4.0 to v9.0.0.
 The plugin uses HyperFormula, which is meant to be passed in as an external dependency every time you want to initialize the plugin. HyperFormula installation guide is available [here](https://handsontable.github.io/hyperformula/guide/client-side-installation.html).
 
 ::: only-for javascript
+
 | Before 9.0 (legacy plugin) | After 9.0 (new plugin)                                                                                                                         |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | `formulas: true`           | `import { HyperFormula } from 'hyperformula';`<br><br>`formulas: {`<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; `engine: HyperFormula`<br>`}` |
+
 :::
 
 ::: only-for react
+
 | Before 9.0 (legacy plugin) | After 9.0 (new plugin)                                                                                                                          |
 | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | `formulas={true}`          | `import { HyperFormula } from 'hyperformula';`<br><br>`formulas={{`<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; `engine: HyperFormula`<br>`}}` |
+
 :::
 
 See other available initialization methods [here](@/guides/formulas/formula-calculation.md#initialization-methods).
@@ -67,6 +71,7 @@ To make autofill hooks more consistent and more powerful, [`beforeAutofill`](@/a
 Before 9.0.0:
 
 ::: only-for javascript
+
 ```js
 new Handsontable(container, {
   data,
@@ -74,9 +79,11 @@ new Handsontable(container, {
   afterAutofill(start, end, data) {}
 })
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   data={data}
@@ -84,11 +91,13 @@ new Handsontable(container, {
   afterAutofill={(start, end, data) {}}
 />
 ```
+
 :::
 
 After:
 
 ::: only-for javascript
+
 ```js
 new Handsontable(container, {
   data,
@@ -104,9 +113,11 @@ new Handsontable(container, {
   }
 })
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   data={data}
@@ -122,6 +133,7 @@ new Handsontable(container, {
   }}
 />
 ```
+
 :::
 
 In [`beforeAutofill`](@/api/hooks.md#beforeautofill) instead of mutating [`data`](@/api/options.md#data), you can now just return a new array of arrays with your desired fill pattern.
@@ -130,8 +142,8 @@ In [`beforeAutofill`](@/api/hooks.md#beforeautofill) instead of mutating [`data`
 
 In Handsontable `9.0.0` we removed the following, previously-deprecated plugins:
 
-*   Header Tooltips
-*   Observe Changes
+- Header Tooltips
+- Observe Changes
 
 ### Header Tooltips
 
@@ -139,6 +151,7 @@ To implement functionality similar to that of the Header Tooltips plugin, you ca
 See the snippet below for example implementation.
 
 ::: only-for javascript
+
 ```js
 const onAfterGetHeader = function(index, TH) {
   TH.setAttribute('title', TH.querySelector('span').textContent);
@@ -160,9 +173,11 @@ const hot = new Handsontable(example, {
   afterGetRowHeader: onAfterGetHeader
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 const onAfterGetHeader = function(index, TH) {
   TH.setAttribute('title', TH.querySelector('span').textContent);
@@ -183,6 +198,7 @@ const onAfterGetHeader = function(index, TH) {
   afterGetRowHeader={onAfterGetHeader}
 />
 ```
+
 :::
 
 ### Observe Changes
