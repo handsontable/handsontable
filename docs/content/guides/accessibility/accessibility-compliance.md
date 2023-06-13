@@ -2,7 +2,7 @@
 id: 47yk0ksz
 title: Accessibility compliance
 metaTitle: Accessibility compliance - JavaScript Data Grid | Handsontable
-description: Learn about Handsontable's accessibility compliance.
+description: Learn about Handsontable's compliance with WCAG 2.1, Section 508, and ADA, to make sure your application meets accessibility standards.
 permalink: /accessibility-compliance
 canonicalUrl: /accessibility-compliance
 tags:
@@ -19,7 +19,7 @@ react:
 searchCategory: Guides
 ---
 
-# About accessibility
+# Accessibility compliance
 
 Learn about Handsontable's accessibility compliance.
 
@@ -27,7 +27,7 @@ Learn about Handsontable's accessibility compliance.
 
 ## Overview
 
-..
+https://www.ag-grid.com/javascript-data-grid/accessibility/
 
 ## WCAG 2.1 AA
 
