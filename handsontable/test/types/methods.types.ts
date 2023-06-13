@@ -111,7 +111,7 @@ const isUndoAvailable: boolean = hot.isUndoAvailable();
 hot.listen();
 hot.loadData([[1, 2, 3], [1, 2, 3]]);
 hot.loadData([{ a: 'a', b: 2, c: '' }, { a: 'a', b: 2, c: '' }]);
-hot.populateFromArray(123, 123, [], 123, 123, 'foo', 'shift_down', 'left', []);
+hot.populateFromArray(123, 123, [], 123, 123, 'foo', 'shift_down');
 hot.propToCol('foo') === 123;
 hot.propToCol(123) === 123;
 hot.redo();

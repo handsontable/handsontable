@@ -113,8 +113,7 @@ export default class Core {
   listen(): void;
   loadData(data: CellValue[][] | RowObject[], source?: string): void;
   populateFromArray(row: number, col: number, input: CellValue[][], endRow?: number,
-    endCol?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite',
-    direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void;
+    endCol?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite'): void;
   propToCol(prop: string | number): number;
   redo(): void;
   refreshDimensions(): void;

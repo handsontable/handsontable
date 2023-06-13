@@ -467,7 +467,7 @@ describe('Core_populateFromArray', () => {
       data: arrayOfArrays()
     });
 
-    populateFromArray(2, 0, [['A1'], ['A2']], 2, 0, 'autofill', null, 'down', [[0]]);
+    populateFromArray(2, 0, [['A1'], ['A2']], 2, 0, 'autofill', null);
 
     expect(getDataAtCell(2, 0)).toEqual('A1');
     expect(getDataAtCell(3, 0)).toEqual('2010');
@@ -478,7 +478,7 @@ describe('Core_populateFromArray', () => {
       data: arrayOfArrays()
     });
 
-    populateFromArray(0, 2, [['A1', 'A2']], 0, 2, 'autofill', null, 'right', [[0]]);
+    populateFromArray(0, 2, [['A1', 'A2']], 0, 2, 'autofill', null);
 
     expect(getDataAtCell(0, 2)).toEqual('A1');
     expect(getDataAtCell(0, 3)).toEqual('Toyota');
