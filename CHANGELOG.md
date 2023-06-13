@@ -9,6 +9,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [13.0.0] - 2023-06-20
+
+### Added
+- **Breaking change**: Angular: Rewritten the Angular wrapper to be based on Angular@12 and to support Angular versions 12 and above. [#10396](https://github.com/handsontable/handsontable/pull/10396)
+
+### Changed
+- **Breaking change**: Swapping `beforeChange` and `afterSetDataAtCell`/`afterSetDataAtRowProp` hooks order [#677](https://github.com/handsontable/handsontable/pull/677)
+
+### Removed
+- **Breaking change**: Removed the the deprecated hooks, methods and options for 13.0.0. [#10407](https://github.com/handsontable/handsontable/issues/10407)
+
+### Fixed
+- Changed margins for context-menu in RTL mode and fixed problem with wrong position for check inside Read only entry [#10375](https://github.com/handsontable/handsontable/pull/10375)
+
 ## [12.4.0] - 2023-05-23
 
 ### Added
