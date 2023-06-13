@@ -93,5 +93,26 @@ describe('editorManager', () => {
         });
       });
     });
+
+    describe('should not throw an error', () => {
+      [
+        ['f2'],
+        ['backspace'],
+        ['delete'],
+        ['enter'],
+        ['enter', 'shift']
+      ].forEach((key) => {
+        it(`if ${key.join(', ')} was pressed`, () => {
+          handsontable();
+
+          selectCell(0, 0);
+          deselectCell(0, 0);
+
+          expect(() => {
+            keyDownUp(key);
+          }).not.toThrowError();
+        });
+      });
+    });
   });
 });
