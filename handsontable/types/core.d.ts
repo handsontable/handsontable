@@ -18,8 +18,8 @@ import { Plugins } from './plugins';
 import { CellType } from './cellTypes';
 import { ShortcutManager } from './shortcuts';
 
-type AlterActions = 'insert_row' | 'insert_row_above' | 'insert_row_below' |
-                    'insert_col' | 'insert_col_start' | 'insert_col_end' |
+type AlterActions = 'insert_row_above' | 'insert_row_below' |
+                    'insert_col_start' | 'insert_col_end' |
                     'remove_row' | 'remove_col';
 
 export default class Core {

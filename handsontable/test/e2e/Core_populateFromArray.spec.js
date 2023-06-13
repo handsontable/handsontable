@@ -462,36 +462,6 @@ describe('Core_populateFromArray', () => {
     });
   });
 
-  it('should run beforeAutofillInsidePopulate hook for each inserted value', () => {
-    const hot = handsontable({
-      data: arrayOfArrays()
-    });
-    let called = 0;
-
-    hot.addHook('beforeAutofillInsidePopulate', () => {
-      called += 1;
-    });
-
-    populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 1, 1, 'Autofill.fill', 'overwrite');
-
-    expect(called).toEqual(4);
-  });
-
-  it('should run beforeAutofillInsidePopulate hook and could change cell data before insert if returned object with value property', () => {
-
-    const hot = handsontable({
-      data: arrayOfArrays()
-    });
-
-    hot.addHook('beforeAutofillInsidePopulate', () => ({
-      value: 'my_test'
-    }));
-
-    populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 1, 1, 'Autofill.fill', 'overwrite');
-
-    expect(getDataAtCell(0, 0)).toEqual('my_test');
-  });
-
   it('should populate 1 row from 2 selected rows', () => {
     handsontable({
       data: arrayOfArrays()
