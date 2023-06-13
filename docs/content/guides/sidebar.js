@@ -129,9 +129,10 @@ const accessoriesAndMenusItems = [
 ];
 
 const accessibilityItems = [
-  { path: 'guides/accessibility/about-accessibility' },
-  { path: 'guides/accessibility/keyboard-navigation' },
+  { path: 'guides/accessibility/accessibility-overview' },
+  { path: 'guides/accessibility/accessibility-configuration' },
   { path: 'guides/accessibility/accessibility-compliance' },
+  { path: 'guides/accessibility/keyboard-navigation' },
 ];
 
 const internationalizationItems = [
