@@ -94,24 +94,22 @@ describe('editorManager', () => {
       });
     });
 
-    describe('should not throw an error', () => {
-      [
-        ['f2'],
-        ['backspace'],
-        ['delete'],
-        ['enter'],
-        ['enter', 'shift']
-      ].forEach((key) => {
-        it(`if ${key.join(', ')} was pressed`, () => {
-          handsontable();
+    using('shortcut key', [
+      ['f2'],
+      ['backspace'],
+      ['delete'],
+      ['enter'],
+      ['enter', 'shift']
+    ], (shortcutKey) => {
+      it('should not throw an error when pressed in case when the table is not selected', () => {
+        handsontable();
 
-          selectCell(0, 0);
-          deselectCell(0, 0);
+        selectCell(0, 0);
+        deselectCell(0, 0);
 
-          expect(() => {
-            keyDownUp(key);
-          }).not.toThrowError();
-        });
+        expect(() => {
+          keyDownUp(shortcutKey);
+        }).not.toThrowError();
       });
     });
   });
