@@ -447,7 +447,6 @@ describe('Core_view', () => {
     expect(leftClone.find('tr:eq(0) td:eq(0)').html()).toEqual('A1');
     expect(leftClone.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
     expect(leftClone.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
-
   });
 
   it('should enable to change fixedColumnsStart with updateSettings', () => {
@@ -490,7 +489,148 @@ describe('Core_view', () => {
     expect(leftClone.find('tr:eq(1) td:eq(1)').html()).toEqual('B2');
     expect(leftClone.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
     expect(leftClone.find('tr:eq(2) td:eq(1)').html()).toEqual('B3');
+  });
 
+  it('should scroll the viewport horizontally from the column header navigation', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 50),
+      width: 200,
+      height: 200,
+      colHeaders: true,
+      rowHeaders: true,
+      navigableHeaders: true,
+    });
+
+    const htCore = getHtCore();
+
+    selectCell(-1, 10);
+
+    keyDownUp('arrowleft');
+    keyDownUp('arrowleft');
+    keyDownUp('arrowleft');
+    keyDownUp('arrowleft');
+    keyDownUp('arrowleft');
+    keyDownUp('arrowleft');
+
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('D1');
+    expect(htCore.find('tr:eq(1) td:eq(1)').html()).toEqual('E1');
+    expect(htCore.find('tr:eq(1) td:eq(2)').html()).toEqual('F1');
+  });
+
+  it('should scroll the viewport to the first column when the highlight moves to cell from the row header', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 50),
+      width: 200,
+      height: 200,
+      colHeaders: true,
+      rowHeaders: true,
+      navigableHeaders: true,
+    });
+
+    const htCore = getHtCore();
+
+    selectCell(1, 40);
+    selectCell(1, -1);
+
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('AH1');
+
+    keyDownUp('arrowright');
+
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
+  });
+
+  it('should scroll the viewport to the first column when the highlight moves to column header from the corner', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 50),
+      width: 200,
+      height: 200,
+      colHeaders: true,
+      rowHeaders: true,
+      navigableHeaders: true,
+    });
+
+    const htCore = getHtCore();
+
+    selectCell(1, 40);
+    selectCell(-1, -1);
+
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('AH1');
+
+    keyDownUp('arrowright');
+
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
+  });
+
+  it('should scroll the viewport vertically from the row header navigation', () => {
+    handsontable({
+      data: createSpreadsheetData(50, 10),
+      width: 200,
+      height: 200,
+      colHeaders: true,
+      rowHeaders: true,
+      navigableHeaders: true,
+    });
+
+    const htCore = getHtCore();
+
+    selectCell(10, -1);
+
+    keyDownUp('arrowup');
+    keyDownUp('arrowup');
+    keyDownUp('arrowup');
+    keyDownUp('arrowup');
+    keyDownUp('arrowup');
+    keyDownUp('arrowup');
+    keyDownUp('arrowup');
+    keyDownUp('arrowup');
+
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
+    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
+    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual('A4');
+  });
+
+  it('should scroll the viewport to the first row when the highlight moves down to the cell from the column header', () => {
+    handsontable({
+      data: createSpreadsheetData(50, 10),
+      width: 200,
+      height: 200,
+      colHeaders: true,
+      rowHeaders: true,
+      navigableHeaders: true,
+    });
+
+    const htCore = getHtCore();
+
+    selectCell(40, 1);
+    selectCell(-1, 1);
+
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
+
+    keyDownUp('arrowdown');
+
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
+  });
+
+  it('should scroll the viewport to the first row when the highlight moves down to the row header from the corner', () => {
+    handsontable({
+      data: createSpreadsheetData(50, 10),
+      width: 200,
+      height: 200,
+      colHeaders: true,
+      rowHeaders: true,
+      navigableHeaders: true,
+    });
+
+    const htCore = getHtCore();
+
+    selectCell(40, 1);
+    selectCell(-1, -1);
+
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
+
+    keyDownUp('arrowdown');
+
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
   });
 
   it('should not scroll viewport when last cell is clicked', () => {

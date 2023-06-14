@@ -12,7 +12,7 @@ describe('Core.emptySelectedCells', () => {
 
   it('should make all selected cells empty', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(9, 8),
+      data: createSpreadsheetObjectData(9, 8),
       selectionMode: 'multiple',
     });
 
@@ -55,9 +55,31 @@ describe('Core.emptySelectedCells', () => {
     expect(getData()).toEqual(snapshot);
   });
 
+  it('should not make the cells empty when the focus points to the header', () => {
+    const beforeChange = jasmine.createSpy('beforeChange');
+
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      rowHeaders: true,
+      colHeaders: true,
+      navigableHeaders: true,
+      beforeChange,
+    });
+
+    selectCell(-1, 1);
+    emptySelectedCells();
+
+    expect(getData()).toEqual([
+      ['A1', 'B1', 'C1'],
+      ['A2', 'B2', 'C2'],
+      ['A3', 'B3', 'C3'],
+    ]);
+    expect(beforeChange).not.toHaveBeenCalled();
+  });
+
   it('should not throw an error when method is called when all headers are selected', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       rowHeaders: true,
       colHeaders: true,
     });

@@ -164,4 +164,108 @@ describe('TableView', () => {
       expect(hot.view.getRowHeadersCount(0)).toBe(3);
     });
   });
+
+  describe('countRenderableColumnsInRange()', () => {
+    it('should return 0 if dataset is empty', () => {
+      const hot = handsontable({
+        data: [],
+      });
+
+      expect(hot.view.countRenderableColumnsInRange(0, 100)).toBe(0);
+      expect(hot.view.countRenderableColumnsInRange(100, 0)).toBe(0);
+      expect(hot.view.countRenderableColumnsInRange(0, 0)).toBe(0);
+      expect(hot.view.countRenderableColumnsInRange(1, 1)).toBe(0);
+      expect(hot.view.countRenderableColumnsInRange(1, 2)).toBe(0);
+    });
+
+    it('should return count of renderable columns depends on the passed range', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      expect(hot.view.countRenderableColumnsInRange(0, 100)).toBe(5);
+      expect(hot.view.countRenderableColumnsInRange(100, 0)).toBe(0);
+      expect(hot.view.countRenderableColumnsInRange(0, 0)).toBe(1);
+      expect(hot.view.countRenderableColumnsInRange(1, 1)).toBe(1);
+      expect(hot.view.countRenderableColumnsInRange(1, 2)).toBe(2);
+      expect(hot.view.countRenderableColumnsInRange(4, 5)).toBe(1);
+      expect(hot.view.countRenderableColumnsInRange(1, 5)).toBe(4);
+      expect(hot.view.countRenderableColumnsInRange(-1, 3)).toBe(4);
+    });
+
+    it('should return count of renderable columns depends on the passed range when some columns are hidden', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      hidingMap.setValueAtIndex(0, true); // Hide column that contains cells A{n}
+      hidingMap.setValueAtIndex(1, true); // Hide column that contains cells B{n}
+      hidingMap.setValueAtIndex(3, true); // Hide column that contains cells D{n}
+      hot.render();
+
+      expect(hot.view.countRenderableColumnsInRange(0, 100)).toBe(2);
+      expect(hot.view.countRenderableColumnsInRange(100, 0)).toBe(0);
+      expect(hot.view.countRenderableColumnsInRange(0, 0)).toBe(0);
+      expect(hot.view.countRenderableColumnsInRange(1, 1)).toBe(0);
+      expect(hot.view.countRenderableColumnsInRange(2, 2)).toBe(1);
+      expect(hot.view.countRenderableColumnsInRange(0, 2)).toBe(1);
+      expect(hot.view.countRenderableColumnsInRange(4, 5)).toBe(1);
+      expect(hot.view.countRenderableColumnsInRange(1, 5)).toBe(2);
+      expect(hot.view.countRenderableColumnsInRange(-1, 3)).toBe(1);
+    });
+  });
+
+  describe('countRenderableRowsInRange()', () => {
+    it('should return 0 if dataset is empty', () => {
+      const hot = handsontable({
+        data: [],
+      });
+
+      expect(hot.view.countRenderableRowsInRange(0, 100)).toBe(0);
+      expect(hot.view.countRenderableRowsInRange(100, 0)).toBe(0);
+      expect(hot.view.countRenderableRowsInRange(0, 0)).toBe(0);
+      expect(hot.view.countRenderableRowsInRange(1, 1)).toBe(0);
+      expect(hot.view.countRenderableRowsInRange(2, 1)).toBe(0);
+    });
+
+    it('should return count of renderable rows depends on the passed range', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      expect(hot.view.countRenderableRowsInRange(0, 100)).toBe(5);
+      expect(hot.view.countRenderableRowsInRange(100, 0)).toBe(0);
+      expect(hot.view.countRenderableRowsInRange(0, 0)).toBe(1);
+      expect(hot.view.countRenderableRowsInRange(1, 1)).toBe(1);
+      expect(hot.view.countRenderableRowsInRange(1, 2)).toBe(2);
+      expect(hot.view.countRenderableRowsInRange(4, 5)).toBe(1);
+      expect(hot.view.countRenderableRowsInRange(1, 5)).toBe(4);
+      expect(hot.view.countRenderableRowsInRange(-1, 3)).toBe(4);
+    });
+
+    it('should return count of renderable rows depends on the passed range when some rows are hidden', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      const hidingMap = hot.rowIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      hidingMap.setValueAtIndex(0, true);
+      hidingMap.setValueAtIndex(1, true);
+      hidingMap.setValueAtIndex(3, true);
+      hot.render();
+
+      expect(hot.view.countRenderableRowsInRange(0, 100)).toBe(2);
+      expect(hot.view.countRenderableRowsInRange(100, 0)).toBe(0);
+      expect(hot.view.countRenderableRowsInRange(0, 0)).toBe(0);
+      expect(hot.view.countRenderableRowsInRange(1, 1)).toBe(0);
+      expect(hot.view.countRenderableRowsInRange(2, 2)).toBe(1);
+      expect(hot.view.countRenderableRowsInRange(0, 2)).toBe(1);
+      expect(hot.view.countRenderableRowsInRange(4, 5)).toBe(1);
+      expect(hot.view.countRenderableRowsInRange(1, 5)).toBe(2);
+      expect(hot.view.countRenderableRowsInRange(-1, 3)).toBe(1);
+    });
+  });
 });

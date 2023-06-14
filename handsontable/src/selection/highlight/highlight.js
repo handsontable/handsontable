@@ -122,6 +122,14 @@ class Highlight {
    */
   activeColumnHeaders = new Map();
   /**
+   * Collection of the `active-header` highlights. That objects describes attributes for the selection of
+   * the selected corner in the table header. The table headers which have selected all items in
+   * a row will be marked as `active-header`.
+   *
+   * @type {Map.<number, Selection>}
+   */
+  activeCornerHeaders = new Map();
+  /**
    * Collection of the `rows` highlights. That objects describes attributes for the selection of
    * the multiple selected cells in a row. It can occur multiple times on the table.
    *
@@ -323,6 +331,25 @@ class Highlight {
 
   /**
    * Creates (if not exist in the cache) Walkontable Selection instance created for controlling
+   * highlight for the headers corner.
+   *
+   * @returns {Selection}
+   */
+  createActiveCornerHeader() {
+    return this.#createHighlight(this.activeCornerHeaders, createActiveHighlight);
+  }
+
+  /**
+   * Get all Walkontable Selection instances which describes the state of the visual highlight of the headers corner.
+   *
+   * @returns {Selection[]}
+   */
+  getActiveCornerHeaders() {
+    return [...this.activeCornerHeaders.values()];
+  }
+
+  /**
+   * Creates (if not exist in the cache) Walkontable Selection instance created for controlling
    * highlight cells in a row.
    *
    * @returns {Selection}
@@ -393,6 +420,7 @@ class Highlight {
     arrayEach(this.columnHeaders.values(), highlight => void highlight.clear());
     arrayEach(this.activeRowHeaders.values(), highlight => void highlight.clear());
     arrayEach(this.activeColumnHeaders.values(), highlight => void highlight.clear());
+    arrayEach(this.activeCornerHeaders.values(), highlight => void highlight.clear());
     arrayEach(this.rowHighlights.values(), highlight => void highlight.clear());
     arrayEach(this.columnHighlights.values(), highlight => void highlight.clear());
   }
@@ -433,6 +461,7 @@ class Highlight {
       ...this.columnHeaders.values(),
       ...this.activeRowHeaders.values(),
       ...this.activeColumnHeaders.values(),
+      ...this.activeCornerHeaders.values(),
       ...this.rowHighlights.values(),
       ...this.columnHighlights.values(),
       ...this.customSelections,

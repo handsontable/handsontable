@@ -10,7 +10,37 @@ describe('Core.selectAll', () => {
     }
   });
 
-  it('should select all cells and clear previous selection', () => {
+  it('should call the `selectAll` method of the Selection module internally', () => {
+    const hot = handsontable({
+      data: createSpreadsheetObjectData(5, 5),
+    });
+
+    spyOn(hot.selection, 'selectAll');
+    selectAll();
+
+    expect(hot.selection.selectAll).toHaveBeenCalledWith(true, true);
+    expect(hot.selection.selectAll).toHaveBeenCalledTimes(1);
+
+    hot.selection.selectAll.calls.reset();
+    selectAll(false);
+
+    expect(hot.selection.selectAll).toHaveBeenCalledWith(false, false);
+    expect(hot.selection.selectAll).toHaveBeenCalledTimes(1);
+
+    hot.selection.selectAll.calls.reset();
+    selectAll(true, false);
+
+    expect(hot.selection.selectAll).toHaveBeenCalledWith(true, false);
+    expect(hot.selection.selectAll).toHaveBeenCalledTimes(1);
+
+    hot.selection.selectAll.calls.reset();
+    selectAll(-2, -1);
+
+    expect(hot.selection.selectAll).toHaveBeenCalledWith(-2, -1);
+    expect(hot.selection.selectAll).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not scroll the viewport when all cells without headers are selected', () => {
     const scrollbarWidth = Handsontable.dom.getScrollbarWidth(); // normalize viewport size disregarding of the scrollbar size on any OS
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(15, 20),
@@ -26,7 +56,45 @@ describe('Core.selectAll', () => {
     hot.view._wt.wtTable.holder.scrollTop = 150;
     hot.view._wt.wtTable.holder.scrollLeft = 150;
 
-    selectAll();
+    selectAll(false);
+
+    expect(`
+      |   ║ - : - : - : - : - : - : - |
+      |===:===:===:===:===:===:===:===|
+      | - ║ A : 0 : 0 : 0 : 0 : 0 : 0 |
+      | - ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+      | - ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+      | - ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+      | - ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+      | - ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+      | - ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+      | - ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+      | - ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+      | - ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+
+    // "Select all" shouldn't scroll te table.
+    expect(hot.view._wt.wtTable.holder.scrollTop).toBe(150);
+    expect(hot.view._wt.wtTable.holder.scrollLeft).toBe(150);
+  });
+
+  it('should not scroll the viewport when all cells with headers are selected', () => {
+    const scrollbarWidth = Handsontable.dom.getScrollbarWidth(); // normalize viewport size disregarding of the scrollbar size on any OS
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(15, 20),
+      width: Math.min(200 - scrollbarWidth, 185),
+      height: Math.min(100 - scrollbarWidth, 85),
+      selectionMode: 'multiple',
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    selectCells([[1, 1, 2, 2], [2, 2, 4, 4]]);
+
+    hot.view._wt.wtTable.holder.scrollTop = 150;
+    hot.view._wt.wtTable.holder.scrollLeft = 150;
+
+    selectAll(true);
 
     expect(`
       | * ║ * : * : * : * : * : * : * |
@@ -46,39 +114,5 @@ describe('Core.selectAll', () => {
     // "Select all" shouldn't scroll te table.
     expect(hot.view._wt.wtTable.holder.scrollTop).toBe(150);
     expect(hot.view._wt.wtTable.holder.scrollLeft).toBe(150);
-  });
-
-  it('should select the row and column headers after calling the `selectAll` method, when all rows are trimmed', () => {
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      rowHeaders: true,
-      colHeaders: true,
-      trimRows: [0, 1, 2, 3, 4], // TODO: The TrimmingMap should be used instead of the plugin.
-    });
-
-    selectAll();
-
-    expect(getSelected()).toEqual([[-1, -1, -1, 4]]);
-    expect(`
-      | * ║ * : * : * : * : * |
-      |===:===:===:===:===:===|
-    `).toBeMatchToSelectionPattern();
-  });
-
-  it('should NOT select the row and column headers after calling the `selectAll` method with the `inclueHeaders`' +
-    ' arguments set to `false`, when all rows are trimmed', () => {
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      rowHeaders: true,
-      colHeaders: true,
-      trimRows: [0, 1, 2, 3, 4], // TODO: The TrimmingMap should be used instead of the plugin.
-    });
-
-    selectAll(false);
-
-    expect(`
-      |   ║   :   :   :   :   |
-      |===:===:===:===:===:===|
-    `).toBeMatchToSelectionPattern();
   });
 });

@@ -169,6 +169,20 @@ export function hot() {
 }
 
 /**
+ * @returns {IndexMapper} Returns the row index mapper instance.
+ */
+export function rowIndexMapper() {
+  return hot().rowIndexMapper;
+}
+
+/**
+ * @returns {IndexMapper} Returns the column index mapper instance.
+ */
+export function columnIndexMapper() {
+  return hot().columnIndexMapper;
+}
+
+/**
  * Creates the Handsontable instance.
  *
  * @param {object} options The Handsontable options.

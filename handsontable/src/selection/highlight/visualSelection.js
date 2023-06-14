@@ -77,7 +77,7 @@ class VisualSelection extends Selection {
    */
   getNearestNotHiddenCoords(coords, rowSearchDirection, columnSearchDirection = rowSearchDirection) {
     const nextVisibleRow = this.getNearestNotHiddenIndex(
-      this.settings.rowIndexMapper(), coords.row, rowSearchDirection);
+      this.settings.rowIndexMapper, coords.row, rowSearchDirection);
 
     // There are no more visual rows in the range.
     if (nextVisibleRow === null) {
@@ -85,7 +85,7 @@ class VisualSelection extends Selection {
     }
 
     const nextVisibleColumn = this.getNearestNotHiddenIndex(
-      this.settings.columnIndexMapper(), coords.col, columnSearchDirection);
+      this.settings.columnIndexMapper, coords.col, columnSearchDirection);
 
     // There are no more visual columns in the range.
     if (nextVisibleColumn === null) {
@@ -149,31 +149,32 @@ class VisualSelection extends Selection {
    * @returns {VisualSelection}
    */
   syncWith(broaderCellRange) {
+    const coordsFrom = broaderCellRange.from.clone().normalize();
     const rowDirection = broaderCellRange.getVerticalDirection() === 'N-S' ? 1 : -1;
     const columnDirection = broaderCellRange.getHorizontalDirection() === 'W-E' ? 1 : -1;
-    const singleCellRangeVisual = this.getNearestNotHiddenCoords(
-      broaderCellRange.from.clone().normalize(),
-      rowDirection,
-      columnDirection
-    );
+    const cellCoordsVisual = this.getNearestNotHiddenCoords(coordsFrom, rowDirection, columnDirection);
 
-    if (singleCellRangeVisual !== null && broaderCellRange.overlaps(singleCellRangeVisual)) {
-      // We can't show selection visually now, but we found fist visible range in the broader cell range.
+    if (cellCoordsVisual !== null && broaderCellRange.overlaps(cellCoordsVisual)) {
+      const currentHighlight = broaderCellRange.highlight.clone();
+
+      if (currentHighlight.row >= 0) {
+        currentHighlight.row = cellCoordsVisual.row;
+      }
+      if (currentHighlight.col >= 0) {
+        currentHighlight.col = cellCoordsVisual.col;
+      }
+
+      // We can't show selection visually now, but we found first visible range in the broader cell range.
       if (this.cellRange === null) {
-        const singleCellRangeRenderable = this.settings.visualToRenderableCoords(singleCellRangeVisual);
+        const cellCoordsRenderable = this.settings.visualToRenderableCoords(currentHighlight);
 
-        this.cellRange = this.settings.createCellRange(singleCellRangeRenderable);
+        this.cellRange = this.settings.createCellRange(cellCoordsRenderable);
       }
 
       // We set new highlight as it might change (for example, when showing/hiding some cells from the broader selection range)
       // TODO: It is also handled by the `MergeCells` plugin while adjusting already modified coordinates. Should it?
-      broaderCellRange.setHighlight(singleCellRangeVisual);
-
-      return this;
+      broaderCellRange.setHighlight(currentHighlight);
     }
-
-    // Fallback to the start of the range. It resets the previous highlight (for example, when all columns have been hidden).
-    broaderCellRange.setHighlight(broaderCellRange.from);
 
     return this;
   }

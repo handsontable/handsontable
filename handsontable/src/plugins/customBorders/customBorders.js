@@ -182,15 +182,11 @@ export class CustomBorders extends BasePlugin {
     const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType);
 
     arrayEach(selectionRanges, (selection) => {
-      const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
-
-      for (let row = rowStart; row <= rowEnd; row += 1) {
-        for (let col = columnStart; col <= columnEnd; col += 1) {
-          arrayEach(borderKeys, (borderKey) => {
-            this.prepareBorderFromCustomAdded(row, col, normBorder, toInlinePropName(borderKey));
-          });
-        }
-      }
+      selectionSchemaNormalizer(selection).forAll((row, col) => {
+        arrayEach(borderKeys, (borderKey) => {
+          this.prepareBorderFromCustomAdded(row, col, normBorder, toInlinePropName(borderKey));
+        });
+      });
     });
 
     /*
@@ -234,17 +230,13 @@ export class CustomBorders extends BasePlugin {
     const selectedBorders = [];
 
     arrayEach(selectionRanges, (selection) => {
-      const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
-
-      for (let row = rowStart; row <= rowEnd; row += 1) {
-        for (let col = columnStart; col <= columnEnd; col += 1) {
-          arrayEach(this.savedBorders, (border) => {
-            if (border.row === row && border.col === col) {
-              selectedBorders.push(denormalizeBorder(border));
-            }
-          });
-        }
-      }
+      selectionSchemaNormalizer(selection).forAll((row, col) => {
+        arrayEach(this.savedBorders, (border) => {
+          if (border.row === row && border.col === col) {
+            selectedBorders.push(denormalizeBorder(border));
+          }
+        });
+      });
     });
 
     return selectedBorders;

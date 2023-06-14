@@ -45,26 +45,43 @@ class CellCoords {
 
   /**
    * Checks if the coordinates in your `CellCoords` instance are valid
-   * in the context of a given Walkontable instance.
+   * in the context of given table parameters.
    *
    * The `row` index:
-   * - Can't be negative.
-   * - Can't be higher than the total number of rows in the Walkontable instance.
+   * - Must be an integer.
+   * - Must be higher than the number of column headers in the table.
+   * - Must be lower than the total number of rows in the table.
    *
    * The `col` index:
-   * - Can't be negative.
-   * - Can't be higher than the total number of columns in the Walkontable instance.
+   * - Must be an integer.
+   * - Must be higher than the number of row headers in the table.
+   * - Must be lower than the total number of columns in the table.
    *
-   * @param {Walkontable} wot A Walkontable instance.
+   * @param {object} [tableParams] An object with a defined table size.
+   * @param {number} [tableParams.countRows=0] The total number of rows.
+   * @param {number} [tableParams.countCols=0] The total number of columns.
+   * @param {number} [tableParams.countRowHeaders=0] A number of row headers.
+   * @param {number} [tableParams.countColHeaders=0] A number of column headers.
    * @returns {boolean} `true`: The coordinates are valid.
    */
-  isValid(wot) {
-    // check if the row and column indexes are valid (0 or higher)
-    if (this.row < 0 || this.col < 0) {
+  isValid(tableParams) {
+    const { countRows, countCols, countRowHeaders, countColHeaders } = {
+      countRows: 0,
+      countCols: 0,
+      countRowHeaders: 0,
+      countColHeaders: 0,
+      ...tableParams,
+    };
+
+    if (!Number.isInteger(this.row) || !Number.isInteger(this.col)) {
       return false;
     }
-    // check if the selection fits in the total of rows and columns
-    if (this.row >= wot.getSetting('totalRows') || this.col >= wot.getSetting('totalColumns')) {
+
+    if (this.row < -countColHeaders || this.col < -countRowHeaders) {
+      return false;
+    }
+
+    if (this.row >= countRows || this.col >= countCols) {
       return false;
     }
 

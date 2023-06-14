@@ -132,12 +132,12 @@ export default class Core {
   rowIndexMapper: IndexMapper;
   runHooks(key: keyof Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
   scrollViewportTo(row?: number, column?: number, snapToBottom?: boolean, snapToRight?: boolean, considerHiddenIndexes?: boolean): boolean;
-  selectAll(): void;
+  selectAll(rowHeaderLevel?: boolean | number, columnHeaderLevel?: boolean | number): void;
   selectCell(row: number, col: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean): boolean;
   selectCellByProp(row: number, prop: string, endRow?: number, endProp?: string, scrollToCell?: boolean): boolean;
   selectCells(coords: Array<[number, number | string, number, number | string]> | CellRange[], scrollToCell?: boolean, changeListener?: boolean): boolean;
-  selectColumns(startColumn: number | string, endColumn?: number | string): boolean;
-  selectRows(startRow: number, endRow?: number): boolean;
+  selectColumns(startColumn: number | string, endColumn?: number | string, headerLevel?: number): boolean;
+  selectRows(startRow: number, endRow?: number, headerLevel?: number): boolean;
   setCellMeta(row: number, col: number, key: string, val: any): void;
   setCellMeta<K extends keyof CellMeta>(row: number, col: number, key: K, val: CellMeta[K]): void;
   setCellMetaObject(row: number, col: number, prop: CellMeta): void;

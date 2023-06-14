@@ -306,6 +306,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
       return (a: any, b: any) => columnMeta.type === 'text' && sortOrder === 'asc' ? -1 : 1;
     }
   },
+  navigableHeaders: true,
   nestedHeaders:  [
     ['A', {label: 'B', colspan: 8}, 'C'],
     ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],

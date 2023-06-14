@@ -1,4 +1,4 @@
-import { CellRange } from './../3rdparty/walkontable/src';
+import { CellRange, CellCoords } from './../3rdparty/walkontable/src';
 import { arrayEach, arrayReduce } from './../helpers/array';
 import { isUndefined } from './../helpers/mixed';
 
@@ -114,7 +114,10 @@ export function normalizeSelectionFactory(type, { keepDirection = false, propToC
       columnEnd = Math.max(origColumnStart, origColumnEnd);
     }
 
-    return [rowStart, columnStart, rowEnd, columnEnd];
+    const from = new CellCoords(rowStart, columnStart);
+    const to = new CellCoords(rowEnd, columnEnd);
+
+    return new CellRange(from, from, to);
   };
 }
 
@@ -142,9 +145,9 @@ export function transformSelectionToColumnDistance(selectionRanges) {
 
   // Iterate through all ranges and collect all column indexes which are not saved yet.
   arrayEach(selectionRanges, (selection) => {
-    const [, columnStart,, columnEnd] = selectionSchemaNormalizer(selection);
-    const columnNonHeaderStart = Math.max(columnStart, 0);
-    const amount = columnEnd - columnNonHeaderStart + 1;
+    const { from, to } = selectionSchemaNormalizer(selection);
+    const columnNonHeaderStart = Math.max(from.col, 0);
+    const amount = to.col - columnNonHeaderStart + 1;
 
     arrayEach(Array.from(new Array(amount), (_, i) => columnNonHeaderStart + i), (index) => {
       if (!unorderedIndexes.has(index)) {
@@ -193,9 +196,9 @@ export function transformSelectionToRowDistance(selectionRanges) {
 
   // Iterate through all ranges and collect all column indexes which are not saved yet.
   arrayEach(selectionRanges, (selection) => {
-    const [rowStart,, rowEnd] = selectionSchemaNormalizer(selection);
-    const rowNonHeaderStart = Math.max(rowStart, 0);
-    const amount = rowEnd - rowNonHeaderStart + 1;
+    const { from, to } = selectionSchemaNormalizer(selection);
+    const rowNonHeaderStart = Math.max(from.row, 0);
+    const amount = to.row - rowNonHeaderStart + 1;
 
     arrayEach(Array.from(new Array(amount), (_, i) => rowNonHeaderStart + i), (index) => {
       if (!unorderedIndexes.has(index)) {
@@ -218,16 +221,4 @@ export function transformSelectionToRowDistance(selectionRanges) {
   }, []);
 
   return normalizedRowRanges;
-}
-
-/**
- * Check if passed value can be treated as valid cell coordinate. The second argument is
- * used to check if the value doesn't exceed the defined max table rows/columns count.
- *
- * @param {number} coord The coordinate to validate (row index or column index).
- * @param {number} maxTableItemsCount The value that declares the maximum coordinate that is still validatable.
- * @returns {boolean}
- */
-export function isValidCoord(coord, maxTableItemsCount = Infinity) {
-  return typeof coord === 'number' && coord >= 0 && coord < maxTableItemsCount;
 }

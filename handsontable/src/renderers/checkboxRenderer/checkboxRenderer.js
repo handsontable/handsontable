@@ -2,7 +2,7 @@ import { baseRenderer } from '../baseRenderer';
 import EventManager from '../../eventManager';
 import { empty, addClass } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
-import { SHORTCUTS_GROUP_EDITOR } from '../../editorManager';
+import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
 
 import './checkboxRenderer.css';
 import Hooks from '../../pluginHooks';
