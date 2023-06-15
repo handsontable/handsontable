@@ -39,7 +39,9 @@ export function shortcutsGridContext(hot) {
   }, {
     keys: [['Control/Meta', 'Enter']],
     callback: () => commandsPool.populateSelectedCellsData(),
-    runOnlyIf: () => hot.getSelectedRangeLast().getCellsCount() > 1,
+    runOnlyIf: () => {
+      return !hot.getSelectedRangeLast().highlight.isHeader() && hot.getSelectedRangeLast().getCellsCount() > 1;
+    },
   }, {
     keys: [['Control', 'Space']],
     captureCtrl: true,
