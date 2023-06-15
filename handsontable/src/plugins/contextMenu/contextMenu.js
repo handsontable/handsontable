@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
 import { arrayEach } from '../../helpers/array';
+import { isMacOS } from '../../helpers/browser';
 import CommandExecutor from './commandExecutor';
 import EventManager from '../../eventManager';
 import ItemsFactory from './itemsFactory';
@@ -24,6 +25,7 @@ import './contextMenu.scss';
 
 export const PLUGIN_KEY = 'contextMenu';
 export const PLUGIN_PRIORITY = 70;
+const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 Hooks.getSingleton().register('afterContextMenuDefaultOptions');
 Hooks.getSingleton().register('beforeContextMenuShow');
@@ -163,6 +165,7 @@ export class ContextMenu extends BasePlugin {
 
     this.addHook('afterOnCellContextMenu', event => this.onAfterOnCellContextMenu(event));
 
+    this.registerShortcuts();
     super.enablePlugin();
   }
 
@@ -176,6 +179,7 @@ export class ContextMenu extends BasePlugin {
     this.disablePlugin();
     this.enablePlugin();
 
+    this.unregisterShortcuts();
     super.updatePlugin();
   }
 
@@ -193,11 +197,67 @@ export class ContextMenu extends BasePlugin {
   }
 
   /**
+   * Register shortcuts responsible for toggling context menu.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .addShortcut({
+        keys: [isMacOS() ? ['Meta', 'Alt', 'Shift', 'm'] : ['Shift', 'F10']],
+        stopPropagation: true,
+        callback: (event) => {
+          const { highlight } = this.hot.getSelectedRangeLast();
+
+          let offsetTop = 0;
+          let offsetLeft = 0;
+
+          if (this.hot.rootDocument !== this.menu.container.ownerDocument) {
+            const { frameElement } = this.hot.rootWindow;
+            const { top, left } = frameElement.getBoundingClientRect();
+
+            offsetTop = top - getWindowScrollTop(event.view);
+            offsetLeft = left - getWindowScrollLeft(event.view);
+
+          } else {
+            offsetTop = -1 * getWindowScrollTop(this.menu.container.ownerDocument.defaultView);
+            offsetLeft = -1 * getWindowScrollLeft(this.menu.container.ownerDocument.defaultView);
+          }
+
+          const rect = this.hot.getCell(highlight.row, highlight.col).getBoundingClientRect();
+
+          this.open({
+            left: rect.left + offsetLeft + 1,
+            top: rect.top + offsetTop,
+          });
+        },
+        runOnlyIf: () => this.hot.getSelectedRangeLast(),
+        group: SHORTCUTS_GROUP,
+      });
+  }
+
+  /**
+   * Unregister shortcuts responsible for toggling context menu.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .removeShortcutsByGroup(SHORTCUTS_GROUP);
+  }
+
+  /**
    * Opens menu and re-position it based on the passed coordinates.
    *
-   * @param {Event} event The mouse event object.
+   * @param {object|Event} position An object with `pageX` and `pageY` properties which contains values relative to
+   *                                the top left of the fully rendered content area in the browser or with `clientX`
+   *                                and `clientY`  properties which contains values relative to the upper left edge
+   *                                of the content area (the viewport) of the browser window. This object is structurally
+   *                                compatible with native mouse event so it can be used either.
    */
-  open(event) {
+  open(position) {
     if (!this.menu) {
       return;
     }
@@ -205,29 +265,10 @@ export class ContextMenu extends BasePlugin {
     this.prepareMenuItems();
     this.menu.open();
 
-    if (!this.menu.isOpened()) {
-      return;
+    if (position.width) {
+      this.menu.setOffset('left', position.width);
     }
-
-    let offsetTop = 0;
-    let offsetLeft = 0;
-
-    if (this.hot.rootDocument !== this.menu.container.ownerDocument) {
-      const { frameElement } = this.hot.rootWindow;
-      const { top, left } = frameElement.getBoundingClientRect();
-
-      offsetTop = top - getWindowScrollTop(event.view);
-      offsetLeft = left - getWindowScrollLeft(event.view);
-
-    } else {
-      offsetTop = -1 * getWindowScrollTop(this.menu.hotMenu.rootWindow);
-      offsetLeft = -1 * getWindowScrollLeft(this.menu.hotMenu.rootWindow);
-    }
-
-    this.menu.setPosition({
-      top: parseInt(event.pageY, 10) + offsetTop,
-      left: parseInt(event.pageX, 10) + offsetLeft,
-    });
+    this.menu.setPosition(position);
   }
 
   /**
@@ -344,7 +385,25 @@ export class ContextMenu extends BasePlugin {
       }
     }
 
-    this.open(event);
+    let offsetTop = 0;
+    let offsetLeft = 0;
+
+    if (this.hot.rootDocument !== this.menu.container.ownerDocument) {
+      const { frameElement } = this.hot.rootWindow;
+      const { top, left } = frameElement.getBoundingClientRect();
+
+      offsetTop = top - getWindowScrollTop(event.view);
+      offsetLeft = left - getWindowScrollLeft(event.view);
+
+    } else {
+      offsetTop = -1 * getWindowScrollTop(this.menu.container.ownerDocument.defaultView);
+      offsetLeft = -1 * getWindowScrollLeft(this.menu.container.ownerDocument.defaultView);
+    }
+
+    this.open({
+      top: parseInt(event.pageY, 10) + offsetTop,
+      left: parseInt(event.pageX, 10) + offsetLeft,
+    });
   }
 
   /**
