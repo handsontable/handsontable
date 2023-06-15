@@ -2,4 +2,6 @@ export {
   PLUGIN_KEY,
   PLUGIN_PRIORITY,
   ColumnSorting,
+  APPEND_COLUMN_CONFIG_STRATEGY,
+  REPLACE_COLUMN_CONFIG_STRATEGY
 } from './columnSorting';
