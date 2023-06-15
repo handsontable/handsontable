@@ -703,6 +703,98 @@ const REGISTERED_HOOKS = [
   'afterSelectionEndByProp',
 
   /**
+   * Fired before one or more columns are selected (e.g. During mouse header click or {@link Core#selectColumns} API call).
+   *
+   * @since 13.0.0
+   * @event Hooks#beforeSelectColumns
+   * @param {CellCoords} from Selection start coords object.
+   * @param {CellCoords} to Selection end coords object.
+   * @param {CellCoords} highlight Selection cell focus coords object.
+   * @example
+   * ::: only-for javascript
+   * ```js
+   * new Handsontable(element, {
+   *   beforeSelectColumns: (from, to, highlight) => {
+   *     // Extend the column selection by one column left and one column right.
+   *     from.col = Math.max(from.col - 1, 0);
+   *     to.col = Math.min(to.col + 1, this.countCols() - 1);
+   *   }
+   * })
+   * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   beforeSelectColumns={(from, to, highlight) => {
+   *     // Extend the column selection by one column left and one column right.
+   *     from.col = Math.max(from.col - 1, 0);
+   *     to.col = Math.min(to.col + 1, this.countCols() - 1);
+   *   }}
+   * />
+   * ```
+   * :::
+   */
+  'beforeSelectColumns',
+
+  /**
+   * Fired after one or more columns are selected (e.g. During mouse header click or {@link Core#selectColumns} API call).
+   *
+   * @since 13.0.0
+   * @event Hooks#afterSelectColumns
+   * @param {CellCoords} from Selection start coords object.
+   * @param {CellCoords} to Selection end coords object.
+   * @param {CellCoords} highlight Selection cell focus coords object.
+   */
+  'afterSelectColumns',
+
+  /**
+   * Fired before one or more rows are selected (e.g. During mouse header click or {@link Core#selectRows} API call).
+   *
+   * @since 13.0.0
+   * @event Hooks#beforeSelectRows
+   * @param {CellCoords} from Selection start coords object.
+   * @param {CellCoords} to Selection end coords object.
+   * @param {CellCoords} highlight Selection cell focus coords object.
+   * @example
+   * ::: only-for javascript
+   * ```js
+   * new Handsontable(element, {
+   *   beforeSelectRows: (from, to, highlight) => {
+   *     // Extend the row selection by one row up and one row bottom more.
+   *     from.row = Math.max(from.row - 1, 0);
+   *     to.row = Math.min(to.row + 1, this.countRows() - 1);
+   *   }
+   * })
+   * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   beforeSelectRows={(from, to, highlight) => {
+   *     // Extend the row selection by one row up and one row bottom more.
+   *     from.row = Math.max(from.row - 1, 0);
+   *     to.row = Math.min(to.row + 1, this.countRows() - 1);
+   *   }}
+   * />
+   * ```
+   * :::
+   */
+  'beforeSelectRows',
+
+  /**
+   * Fired after one or more rows are selected (e.g. During mouse header click or {@link Core#selectRows} API call).
+   *
+   * @since 13.0.0
+   * @event Hooks#afterSelectRows
+   * @param {CellCoords} from Selection start coords object.
+   * @param {CellCoords} to Selection end coords object.
+   * @param {CellCoords} highlight Selection cell focus coords object.
+   */
+  'afterSelectRows',
+
+  /**
    * Fired after cell meta is changed.
    *
    * @event Hooks#afterSetCellMeta

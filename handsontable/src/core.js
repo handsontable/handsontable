@@ -409,6 +409,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
   });
 
+  this.selection.addLocalHook('beforeSelectColumns', (...args) => this.runHooks('beforeSelectColumns', ...args));
+  this.selection.addLocalHook('afterSelectColumns', (...args) => this.runHooks('afterSelectColumns', ...args));
+  this.selection.addLocalHook('beforeSelectRows', (...args) => this.runHooks('beforeSelectRows', ...args));
+  this.selection.addLocalHook('afterSelectRows', (...args) => this.runHooks('afterSelectRows', ...args));
+
   this.selection.addLocalHook('beforeModifyTransformStart', (cellCoordsDelta) => {
     this.runHooks('modifyTransformStart', cellCoordsDelta);
   });
@@ -4226,8 +4231,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.selectColumns('id');
    * // Select range of columns using visual indexes.
    * hot.selectColumns(1, 4);
-   * // Select range of columns using visual indexes and mark the header as highlighted.
+   * // Select range of columns using visual indexes and mark the first header as highlighted.
    * hot.selectColumns(1, 2, -1);
+   * // Select range of columns using visual indexes and mark the second cell as highlighted.
+   * hot.selectColumns(2, 1, 1);
    * // Select range of columns using column properties.
    * hot.selectColumns('id', 'last_name');
    * ```
@@ -4238,13 +4245,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {number} startColumn The visual column index from which the selection starts.
    * @param {number} [endColumn=startColumn] The visual column index to which the selection finishes. If `endColumn`
    *                                         is not defined the column defined by `startColumn` will be selected.
-   * @param {number} [headerLevel=0] The header level allows changing the cell/header highlight position. The value can
-   *                                 take 0 to -N, where 0 means highlighting the cell nearest the column header, -1
-   *                                 means the highlighting header starting from the header closest to the cells.
+   * @param {number} [focusPosition=0] The argument allows changing the cell/header focus position.
+   *                                   The value can take visual row index from -N to N, where negative values
+   *                                   point to the headers and positive values point to the cell range.
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
-  this.selectColumns = function(startColumn, endColumn = startColumn, headerLevel) {
-    return selection.selectColumns(startColumn, endColumn, headerLevel);
+  this.selectColumns = function(startColumn, endColumn = startColumn, focusPosition) {
+    return selection.selectColumns(startColumn, endColumn, focusPosition);
   };
 
   /**
@@ -4258,6 +4265,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.selectRows(1, 4);
    * // select a range of rows, using visual indexes, and mark the header as highlighted.
    * hot.selectRows(1, 2, -1);
+   * // Select range of rows using visual indexes and mark the second cell as highlighted.
+   * hot.selectRows(2, 1, 1);
    * ```
    *
    * @memberof Core#
@@ -4266,13 +4275,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {number} startRow The visual row index from which the selection starts.
    * @param {number} [endRow=startRow] The visual row index to which the selection finishes. If `endRow`
    *                                   is not defined the row defined by `startRow` will be selected.
-   * @param {number} [headerLevel=0] The header level allows changing the cell/header highlight position. The value can
-   *                                 take 0 to -N, where 0 means highlighting the cell nearest the row header, -1
-   *                                 means the highlighting header starting from the header closest to the cells.
+   * @param {number} [focusPosition=0] The argument allows changing the cell/header focus position.
+   *                                   The value can take visual column index from -N to N, where negative values
+   *                                   point to the headers and positive values point to the cell range.
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
-  this.selectRows = function(startRow, endRow = startRow, headerLevel) {
-    return selection.selectRows(startRow, endRow, headerLevel);
+  this.selectRows = function(startRow, endRow = startRow, focusPosition) {
+    return selection.selectRows(startRow, endRow, focusPosition);
   };
 
   /**
@@ -4308,13 +4317,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @since 0.38.2
    * @memberof Core#
    * @function selectAll
-   * @param {boolean|number} [rowHeaderLevel=true] `true`: include all row headers.
-   * @param {boolean|number} [columnHeaderLevel=true] `true`: include all column headers.
-   * `false`: don't include any headers.
+   * @param {boolean} [includeRowHeaders=false] `true` If the selection should include the row headers,
+   * `false` otherwise.
+   * @param {boolean} [includeColumnHeaders=false] `true` If the selection should include the column
+   * headers, `false` otherwise.
+   * @param {{row: number, col: number}} [focusPosition] The argument allows changing the cell/header
+   * focus position. The value takes an object with a `row` and `col` properties (visual indexes)
+   * from -N to N, where negative values point to the headers and positive values point to the cell range.
    */
-  this.selectAll = function(rowHeaderLevel = true, columnHeaderLevel = rowHeaderLevel) {
+  this.selectAll = function(includeRowHeaders = true, includeColumnHeaders = includeRowHeaders, focusPosition) {
     preventScrollingToCell = true;
-    selection.selectAll(rowHeaderLevel, columnHeaderLevel);
+    selection.selectAll(includeRowHeaders, includeColumnHeaders, focusPosition);
     preventScrollingToCell = false;
   };
 

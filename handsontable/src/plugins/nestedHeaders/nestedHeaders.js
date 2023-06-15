@@ -3,8 +3,8 @@ import {
   removeClass,
 } from '../../helpers/dom/element';
 import { isNumeric } from '../../helpers/number';
-import { isLeftClick, isRightClick } from '../../helpers/dom/event';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
+import { isLeftClick, isRightClick } from '../../helpers/dom/event';
 import { warn } from '../../helpers/console';
 import {
   ACTIVE_HEADER_TYPE,
@@ -141,6 +141,7 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('modifyColumnHeaderValue', (...args) => this.onModifyColumnHeaderValue(...args));
     this.addHook('beforeHighlightingColumnHeader', (...args) => this.onBeforeHighlightingColumnHeader(...args));
     this.addHook('beforeCopy', (...args) => this.onBeforeCopy(...args));
+    this.addHook('beforeSelectColumns', (...args) => this.onBeforeSelectColumns(...args));
     this.addHook(
       'afterViewportColumnCalculatorOverride',
       (...args) => this.onAfterViewportColumnCalculatorOverride(...args)
@@ -659,6 +660,45 @@ export class NestedHeaders extends BasePlugin {
         delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, this.hot.countCols());
       } else {
         delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1, 1);
+      }
+    }
+  }
+
+  /**
+   * The hook observes the column selection from the Selection API and modifies the column range to
+   * ensure that the whole nested column will be covered.
+   *
+   * @private
+   * @param {*} from The coords object where the selection starts.
+   * @param {*} to The coords object where the selection ends.
+   */
+  onBeforeSelectColumns(from, to) {
+    const headerLevel = from.row;
+    const startNodeData = this._getHeaderTreeNodeDataByCoords({
+      row: headerLevel,
+      col: from.col,
+    });
+    const endNodeData = this._getHeaderTreeNodeDataByCoords({
+      row: headerLevel,
+      col: to.col,
+    });
+
+    if (to.col < from.col) { // Column selection from right to left
+      if (startNodeData) {
+        from.col = startNodeData.columnIndex + startNodeData.origColspan - 1;
+      }
+
+      if (endNodeData) {
+        to.col = endNodeData.columnIndex;
+      }
+
+    } else if (to.col >= from.col) { // Column selection from left to right or a single column selection
+      if (startNodeData) {
+        from.col = startNodeData.columnIndex;
+      }
+
+      if (endNodeData) {
+        to.col = endNodeData.columnIndex + endNodeData.origColspan - 1;
       }
     }
   }

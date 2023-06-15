@@ -235,6 +235,24 @@ describe('shortcutManager', () => {
     expect(text).toBe('13123');
   });
 
+  it('should be possible to stop propagate the shortcut to cell editor', () => {
+    const hot = handsontable();
+    const shortcutManager = hot.getShortcutManager();
+    const gridContext = shortcutManager.getContext('grid');
+
+    gridContext.addShortcut({
+      keys: [['shift', 'z']],
+      callback: () => {},
+      stopPropagation: true,
+      group: 'spy',
+    });
+
+    selectCell(0, 0);
+    keyDownUp(['shift', 'z']);
+
+    expect(getActiveEditor().isOpened()).toBe(false);
+  });
+
   it('should give a possibility to block actions by `beforeKeyDown` hook', () => {
     let text = '';
 

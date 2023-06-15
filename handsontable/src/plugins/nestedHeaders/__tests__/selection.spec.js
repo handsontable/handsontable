@@ -769,5 +769,111 @@ describe('NestedHeaders', () => {
         |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   :   |
       `).toBeMatchToSelectionPattern();
     });
+
+    it('should highlight the whole column when the API is called with indexes that points to the columns ' +
+        'in-between the nested header', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 10),
+        colHeaders: true,
+        nestedHeaders: [
+          ['A1', { label: 'B1', colspan: 5 }, 'G1', 'H1', 'I1', 'J1'],
+          ['A2', { label: 'B2', colspan: 4 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
+          ['A3', 'B3', { label: 'C3', colspan: 3 }, 'F3', 'G3', 'H3', 'I3', 'J3'],
+        ],
+      });
+
+      selectColumns(2);
+
+      expect(`
+        |   :                   :   :   :   :   |
+        |   :               :   :   :   :   :   |
+        |   :   : *   *   * :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   :   : A : 0 : 0 :   :   :   :   :   |
+        |   :   : 0 : 0 : 0 :   :   :   :   :   |
+        |   :   : 0 : 0 : 0 :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 2,4']);
+
+      selectColumns(3);
+
+      expect(`
+        |   :                   :   :   :   :   |
+        |   :               :   :   :   :   :   |
+        |   :   : *   *   * :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   :   : 0 : A : 0 :   :   :   :   :   |
+        |   :   : 0 : 0 : 0 :   :   :   :   :   |
+        |   :   : 0 : 0 : 0 :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: -1,2 to: 2,4']);
+
+      selectColumns(4);
+
+      expect(`
+        |   :                   :   :   :   :   |
+        |   :               :   :   :   :   :   |
+        |   :   : *   *   * :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   :   : 0 : 0 : A :   :   :   :   :   |
+        |   :   : 0 : 0 : 0 :   :   :   :   :   |
+        |   :   : 0 : 0 : 0 :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,4 from: -1,2 to: 2,4']);
+    });
+
+    it('should highlight the whole nested column when "Ctrl" + "Space" keyboard shortcuts are pressed', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 10),
+        colHeaders: true,
+        nestedHeaders: [
+          ['A1', { label: 'B1', colspan: 5 }, 'G1', 'H1', 'I1', 'J1'],
+          ['A2', { label: 'B2', colspan: 4 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
+          ['A3', 'B3', { label: 'C3', colspan: 3 }, 'F3', 'G3', 'H3', 'I3', 'J3'],
+        ],
+      });
+
+      selectCell(2, 2);
+      keyDownUp(['control', 'space']);
+
+      expect(`
+        |   :                   :   :   :   :   |
+        |   :               :   :   :   :   :   |
+        |   :   : *   *   * :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   :   : 0 : 0 : 0 :   :   :   :   :   |
+        |   :   : 0 : 0 : 0 :   :   :   :   :   |
+        |   :   : A : 0 : 0 :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: -1,2 to: 2,4']);
+
+      selectCell(1, 3);
+      keyDownUp(['control', 'space']);
+
+      expect(`
+        |   :                   :   :   :   :   |
+        |   :               :   :   :   :   :   |
+        |   :   : *   *   * :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   :   : 0 : 0 : 0 :   :   :   :   :   |
+        |   :   : 0 : A : 0 :   :   :   :   :   |
+        |   :   : 0 : 0 : 0 :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,3 from: -1,2 to: 2,4']);
+
+      selectCell(2, 4);
+      keyDownUp(['control', 'space']);
+
+      expect(`
+        |   :                   :   :   :   :   |
+        |   :               :   :   :   :   :   |
+        |   :   : *   *   * :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   :   : 0 : 0 : 0 :   :   :   :   :   |
+        |   :   : 0 : 0 : 0 :   :   :   :   :   |
+        |   :   : 0 : 0 : A :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,4 from: -1,2 to: 2,4']);
+    });
   });
 });

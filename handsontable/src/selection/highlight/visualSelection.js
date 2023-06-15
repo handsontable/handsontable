@@ -152,7 +152,12 @@ class VisualSelection extends Selection {
     const coordsFrom = broaderCellRange.from.clone().normalize();
     const rowDirection = broaderCellRange.getVerticalDirection() === 'N-S' ? 1 : -1;
     const columnDirection = broaderCellRange.getHorizontalDirection() === 'W-E' ? 1 : -1;
-    const cellCoordsVisual = this.getNearestNotHiddenCoords(coordsFrom, rowDirection, columnDirection);
+    const renderableHighlight = this.settings.visualToRenderableCoords(this.visualCellRange.highlight);
+    let cellCoordsVisual = null;
+
+    if (renderableHighlight === null || renderableHighlight.col === null || renderableHighlight.row === null) {
+      cellCoordsVisual = this.getNearestNotHiddenCoords(coordsFrom, rowDirection, columnDirection);
+    }
 
     if (cellCoordsVisual !== null && broaderCellRange.overlaps(cellCoordsVisual)) {
       const currentHighlight = broaderCellRange.highlight.clone();
@@ -174,6 +179,11 @@ class VisualSelection extends Selection {
       // We set new highlight as it might change (for example, when showing/hiding some cells from the broader selection range)
       // TODO: It is also handled by the `MergeCells` plugin while adjusting already modified coordinates. Should it?
       broaderCellRange.setHighlight(currentHighlight);
+    }
+
+    // Sync the highlight coords from the visual selection layer with logical coords.
+    if (this.settings.selectionType === 'focus' && renderableHighlight !== null && cellCoordsVisual === null) {
+      broaderCellRange.setHighlight(this.visualCellRange.highlight);
     }
 
     return this;

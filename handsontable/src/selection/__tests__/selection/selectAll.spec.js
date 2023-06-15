@@ -41,7 +41,7 @@ describe('Selection', () => {
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-          `).toBeMatchToSelectionPattern();
+      `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 3,5']);
     });
 
@@ -62,19 +62,7 @@ describe('Selection', () => {
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-          `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,-1 to: 3,5']);
-
-      hot.selection.selectAll(false, -1);
-
-      expect(`
-        |   ║ - : - : - : - : - : - |
-        |===:===:===:===:===:===:===|
-        | * ║ A : 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-          `).toBeMatchToSelectionPattern();
+      `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,-1 to: 3,5']);
     });
 
@@ -95,31 +83,30 @@ describe('Selection', () => {
         | - ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | - ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | - ║ 0 : 0 : 0 : 0 : 0 : 0 |
-          `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,0 to: 3,5']);
-
-      hot.selection.selectAll(-1, false);
-
-      expect(`
-        |   ║ * : * : * : * : * : * |
-        |===:===:===:===:===:===:===|
-        | - ║ A : 0 : 0 : 0 : 0 : 0 |
-        | - ║ 0 : 0 : 0 : 0 : 0 : 0 |
-        | - ║ 0 : 0 : 0 : 0 : 0 : 0 |
-        | - ║ 0 : 0 : 0 : 0 : 0 : 0 |
-          `).toBeMatchToSelectionPattern();
+      `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,0 to: 3,5']);
     });
 
-    it('should not be possible to move the highlight to the header', () => {
+    it('should select all cells and move the focus selection around the cells range', () => {
       const hot = handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
         rowHeaders: true,
       });
 
-      selectCells([[1, 1, 2, 2]]);
-      hot.selection.selectAll(-1, 0);
+      hot.selection.selectAll(true, true, { row: 2, col: 4 });
+
+      expect(`
+        | * ║ * : * : * : * : * : * |
+        |===:===:===:===:===:===:===|
+        | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : A : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,4 from: -1,-1 to: 3,5']);
+
+      hot.selection.selectAll(true, true, { row: -10, col: -10 });
 
       expect(`
         | * ║ * : * : * : * : * : * |
@@ -128,23 +115,110 @@ describe('Selection', () => {
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-          `).toBeMatchToSelectionPattern();
+      `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 3,5']);
 
-      hot.selection.selectAll(2, 2);
+      hot.selection.selectAll(true, true, { row: 10, col: 10 });
 
       expect(`
         | * ║ * : * : * : * : * : * |
         |===:===:===:===:===:===:===|
-        | * ║ A : 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-          `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 3,5']);
+        | * ║ 0 : 0 : 0 : 0 : 0 : A |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,5 from: -1,-1 to: 3,5']);
     });
 
-    it('should select all cells with headers (multiple headers, navigableHeaders on)', () => {
+    it('should select all cells and move the focus selection around the tables range (navigableHeaders on)', () => {
+      const hot = handsontable({
+        data: createSpreadsheetObjectData(4, 6),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        afterGetColumnHeaderRenderers(headerRenderers) {
+          headerRenderers.push(columnHeader.bind(this));
+          headerRenderers.push(columnHeader.bind(this));
+        },
+        afterGetRowHeaderRenderers(headerRenderers) {
+          headerRenderers.push(rowHeader.bind(this));
+          headerRenderers.push(rowHeader.bind(this));
+        },
+      });
+
+      hot.selection.selectAll(true, true, { row: 2, col: 4 });
+
+      expect(`
+        | * : * : * ║ * : * : * : * : * : * |
+        | * : * : * ║ * : * : * : * : * : * |
+        | * : * : * ║ * : * : * : * : * : * |
+        |===:===:===:===:===:===:===:===:===|
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : A : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,4 from: -3,-3 to: 3,5']);
+
+      hot.selection.selectAll(true, true, { row: -1, col: -2 });
+
+      expect(`
+        | * : * : * ║ * : * : * : * : * : * |
+        | * : * : * ║ * : * : * : * : * : * |
+        | * : # : * ║ * : * : * : * : * : * |
+        |===:===:===:===:===:===:===:===:===|
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,-2 from: -3,-3 to: 3,5']);
+
+      hot.selection.selectAll(true, true, { row: -3, col: -1 });
+
+      expect(`
+        | * : * : # ║ * : * : * : * : * : * |
+        | * : * : * ║ * : * : * : * : * : * |
+        | * : * : * ║ * : * : * : * : * : * |
+        |===:===:===:===:===:===:===:===:===|
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -3,-1 from: -3,-3 to: 3,5']);
+
+      hot.selection.selectAll(true, true, { row: -10, col: -10 });
+
+      expect(`
+        | # : * : * ║ * : * : * : * : * : * |
+        | * : * : * ║ * : * : * : * : * : * |
+        | * : * : * ║ * : * : * : * : * : * |
+        |===:===:===:===:===:===:===:===:===|
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -3,-3 from: -3,-3 to: 3,5']);
+
+      hot.selection.selectAll(true, true, { row: 10, col: 10 });
+
+      expect(`
+        | * : * : * ║ * : * : * : * : * : * |
+        | * : * : * ║ * : * : * : * : * : * |
+        | * : * : * ║ * : * : * : * : * : * |
+        |===:===:===:===:===:===:===:===:===|
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : A |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,5 from: -3,-3 to: 3,5']);
+    });
+
+    it('should select all cells with headers and move focus to the top-start tables edge (multiple headers, navigableHeaders on)', () => {
       const hot = handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -172,8 +246,60 @@ describe('Selection', () => {
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-          `).toBeMatchToSelectionPattern();
+      `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: -3,-3 from: -3,-3 to: 3,5']);
+    });
+
+    it('should select all cells with row headers and move focus to the top-start tables edge (multiple headers, navigableHeaders on)', () => {
+      const hot = handsontable({
+        data: createSpreadsheetObjectData(4, 6),
+        colHeaders: false,
+        rowHeaders: true,
+        navigableHeaders: true,
+        afterGetRowHeaderRenderers(headerRenderers) {
+          headerRenderers.push(rowHeader.bind(this));
+          headerRenderers.push(rowHeader.bind(this));
+        },
+      });
+
+      selectCells([[1, 1, 2, 2]]);
+      hot.selection.selectAll(true, true);
+
+      expect(`
+        | # : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,-3 from: 0,-3 to: 3,5']);
+    });
+
+    it('should select all cells with column headers and move focus to the top-start tables edge (multiple headers, navigableHeaders on)', () => {
+      const hot = handsontable({
+        data: createSpreadsheetObjectData(4, 6),
+        colHeaders: true,
+        rowHeaders: false,
+        navigableHeaders: true,
+        afterGetColumnHeaderRenderers(headerRenderers) {
+          headerRenderers.push(columnHeader.bind(this));
+          headerRenderers.push(columnHeader.bind(this));
+        },
+      });
+
+      selectCells([[1, 1, 2, 2]]);
+      hot.selection.selectAll(true, true);
+
+      expect(`
+        | # : * : * : * : * : * |
+        | * : * : * : * : * : * |
+        | * : * : * : * : * : * |
+        |===:===:===:===:===:===|
+        | 0 : 0 : 0 : 0 : 0 : 0 |
+        | 0 : 0 : 0 : 0 : 0 : 0 |
+        | 0 : 0 : 0 : 0 : 0 : 0 |
+        | 0 : 0 : 0 : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -3,0 from: -3,0 to: 3,5']);
     });
 
     it('should select all cells without row headers (multiple headers, navigableHeaders on)', () => {
@@ -204,21 +330,7 @@ describe('Selection', () => {
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
         | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-          `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,-3 from: 0,-3 to: 3,5']);
-
-      hot.selection.selectAll(false, -3);
-
-      expect(`
-        |   :   :   ║   :   :   :   :   :   |
-        |   :   :   ║   :   :   :   :   :   |
-        |   :   :   ║ - : - : - : - : - : - |
-        |===:===:===:===:===:===:===:===:===|
-        | # : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-          `).toBeMatchToSelectionPattern();
+      `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,-3 from: 0,-3 to: 3,5']);
     });
 
@@ -250,68 +362,8 @@ describe('Selection', () => {
         |   :   : - ║ 0 : 0 : 0 : 0 : 0 : 0 |
         |   :   : - ║ 0 : 0 : 0 : 0 : 0 : 0 |
         |   :   : - ║ 0 : 0 : 0 : 0 : 0 : 0 |
-          `).toBeMatchToSelectionPattern();
+      `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: -3,0 from: -3,0 to: 3,5']);
-
-      hot.selection.selectAll(-3, false);
-
-      expect(`
-        |   :   :   ║ # : * : * : * : * : * |
-        |   :   :   ║ * : * : * : * : * : * |
-        |   :   :   ║ * : * : * : * : * : * |
-        |===:===:===:===:===:===:===:===:===|
-        |   :   : - ║ 0 : 0 : 0 : 0 : 0 : 0 |
-        |   :   : - ║ 0 : 0 : 0 : 0 : 0 : 0 |
-        |   :   : - ║ 0 : 0 : 0 : 0 : 0 : 0 |
-        |   :   : - ║ 0 : 0 : 0 : 0 : 0 : 0 |
-          `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: -3,0 from: -3,0 to: 3,5']);
-    });
-
-    it('should be possible to move the highlight around within the header range (multiple headers, navigableHeaders on)', () => {
-      const hot = handsontable({
-        data: createSpreadsheetObjectData(4, 6),
-        colHeaders: true,
-        rowHeaders: true,
-        navigableHeaders: true,
-        afterGetColumnHeaderRenderers(headerRenderers) {
-          headerRenderers.push(columnHeader.bind(this));
-          headerRenderers.push(columnHeader.bind(this));
-        },
-        afterGetRowHeaderRenderers(headerRenderers) {
-          headerRenderers.push(rowHeader.bind(this));
-          headerRenderers.push(rowHeader.bind(this));
-        },
-      });
-
-      selectCells([[1, 1, 2, 2]]);
-      hot.selection.selectAll(-1, -2);
-
-      expect(`
-        | * : * : * ║ * : * : * : * : * : * |
-        | * : * : * ║ * : * : * : * : * : * |
-        | * : # : * ║ * : * : * : * : * : * |
-        |===:===:===:===:===:===:===:===:===|
-        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-          `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,-2 from: -3,-3 to: 3,5']);
-
-      hot.selection.selectAll(-3, -1);
-
-      expect(`
-        | * : * : # ║ * : * : * : * : * : * |
-        | * : * : * ║ * : * : * : * : * : * |
-        | * : * : * ║ * : * : * : * : * : * |
-        |===:===:===:===:===:===:===:===:===|
-        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-          `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: -3,-1 from: -3,-3 to: 3,5']);
     });
 
     it('should select the row and column headers when all rows are trimmed', () => {

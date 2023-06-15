@@ -251,8 +251,8 @@ class Transformation {
     const { row, col } = this.#options.visualToRenderableCoords(visualCoords);
 
     return {
-      x: this.#offset.x + (col ?? visualCoords.col),
-      y: this.#offset.y + (row ?? visualCoords.row),
+      x: this.#offset.x + col,
+      y: this.#offset.y + row,
     };
   }
 

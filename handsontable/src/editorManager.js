@@ -1,5 +1,6 @@
 import { isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
 import { isOutsideInput } from './helpers/dom/element';
+import { isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors/registry';
 import EventManager from './eventManager';
 import { isDefined } from './helpers/mixed';
@@ -328,7 +329,8 @@ class EditorManager {
   onAfterDocumentKeyDown(event) {
     const selection = this.instance.getSelectedRangeLast();
 
-    if (!this.instance.isListening() || !selection || selection.highlight.isHeader()) {
+    if (!this.instance.isListening() || !selection || selection.highlight.isHeader() ||
+        isImmediatePropagationStopped(event)) {
       return;
     }
 

@@ -18,25 +18,25 @@ describe('Core.selectAll', () => {
     spyOn(hot.selection, 'selectAll');
     selectAll();
 
-    expect(hot.selection.selectAll).toHaveBeenCalledWith(true, true);
+    expect(hot.selection.selectAll).toHaveBeenCalledWith(true, true, undefined);
     expect(hot.selection.selectAll).toHaveBeenCalledTimes(1);
 
     hot.selection.selectAll.calls.reset();
     selectAll(false);
 
-    expect(hot.selection.selectAll).toHaveBeenCalledWith(false, false);
+    expect(hot.selection.selectAll).toHaveBeenCalledWith(false, false, undefined);
     expect(hot.selection.selectAll).toHaveBeenCalledTimes(1);
 
     hot.selection.selectAll.calls.reset();
     selectAll(true, false);
 
-    expect(hot.selection.selectAll).toHaveBeenCalledWith(true, false);
+    expect(hot.selection.selectAll).toHaveBeenCalledWith(true, false, undefined);
     expect(hot.selection.selectAll).toHaveBeenCalledTimes(1);
 
     hot.selection.selectAll.calls.reset();
-    selectAll(-2, -1);
+    selectAll(true, true, { row: 1, col: 1 });
 
-    expect(hot.selection.selectAll).toHaveBeenCalledWith(-2, -1);
+    expect(hot.selection.selectAll).toHaveBeenCalledWith(true, true, { row: 1, col: 1 });
     expect(hot.selection.selectAll).toHaveBeenCalledTimes(1);
   });
 
