@@ -30,21 +30,25 @@ To measure Handsontable's execution times in various configurations, we use our 
 Configure your [column widths](@/guides/columns/column-width.md) and [row heights](@/guides/rows/row-height.md) in advance. This way, Handsontable doesn't have to calculate them.
 
 ::: only-for javascript
+
 ```js
 const hot = new Handsontable(obj, {
   colWidths: [50, 150, 45],
   rowHeights: [40, 40, 40, 40],
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```js
 <HotTable
   colWidths={[50, 150, 45]}
   rowHeights={[40, 40, 40, 40]}
 />
 ```
+
 :::
 
 When taking this approach, make sure that the contents of your cells fit in your row and column sizes, or let the user change [column widths](@/guides/columns/column-width.md#adjust-the-column-width-manually) and [row heights](@/guides/rows/row-height.md#adjust-row-heights-manually) manually.
@@ -77,11 +81,15 @@ Changing your background, font colors, etc., shouldn't lower the performance. Ho
 By default, Handsontable will call the render after each CRUD operation. Usually, this is expected behavior, but you may find it slightly excessive in some use cases. By using one of the batching methods, you can suspend rendering and call it just once at the end. For example:
 
 ::: only-for react
+
 ::: tip
+
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
-For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+For more information, see the [Instance methods](@/guides/getting-started/react-methods.md) page.
+
 :::
+
 :::
 
 ```js

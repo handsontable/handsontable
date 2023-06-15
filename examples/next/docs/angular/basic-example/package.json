@@ -26,11 +26,11 @@
     "@angular/platform-browser": "latest",
     "@angular/platform-browser-dynamic": "latest",
     "@angular/router": "latest",
-    "@handsontable/angular": "12.0.1",
+    "@handsontable/angular": "latest",
     "handsontable": "latest",
     "rxjs": "6.6.7",
     "tslib": "2.1.0",
-    "zone.js": "0.11.5"
+    "zone.js": "0.13.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "latest",
@@ -44,7 +44,7 @@
     "jasmine-console-reporter": "3.1.0",
     "puppeteer": "14.3.0",
     "ts-node": "8.3.0",
-    "typescript": "4.8.2"
+    "typescript": "4.9.3"
   },
   "license": "SEE LICENSE IN LICENSE.txt"
 }

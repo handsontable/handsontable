@@ -19,6 +19,7 @@ Configure the Vue 2 data grid's columns, using the props of the `HotColumn` comp
 To declare column-specific settings, pass the settings as `hot-column` properties, either separately or wrapped as a `settings` property, exactly as you would for `hot-table`.
 
 ::: example #example1 :vue --html 1 --js 2
+
 ```html
 <div id="example1">
   <hot-table :settings="hotSettings">
@@ -77,6 +78,7 @@ new Vue({
 });
 /* end:skip-in-preview */
 ```
+
 :::
 
 ## Array of objects
@@ -84,6 +86,7 @@ new Vue({
 To work with an array of objects for the `hot-column` component, you need to provide precise information about the data structure for the columns. To do this, refer to the data for a column in properties as `data`.
 
 ::: example #example2 :vue --html 1 --js 2
+
 ```html
 <div id="example2">
   <hot-table :data="hotData" :settings="settings">
@@ -126,6 +129,7 @@ new Vue({
   }
 });
 ```
+
 :::
 
 ## Declare a custom renderer as a component
@@ -135,12 +139,15 @@ The wrapper allows creating custom renderers using Vue 2 components. The data yo
 To mark a component as a Handsontable renderer, simply add a `hot-renderer` attribute to it.
 
 ::: tip
+
 Handsontable's [`autoRowSize`](@/api/options.md#autorowsize) and [`autoColumnSize`](@/api/options.md#autocolumnsize) options require calculating the widths/heights of some of the cells before rendering them into the table. For this reason, it's not currently possible to use them alongside component-based renderers, as they're created after the table's initialization.
 
 Be sure to turn those options off in your Handsontable config, as keeping them enabled may cause unexpected results. Please note that [`autoColumnSize`](@/api/options.md#autocolumnsize) is enabled by default.
+
 :::
 
 ::: example #custom-renderer-example :vue --html 1 --js 2
+
 ```html
 <div id="custom-renderer-example">
   <hot-table :settings="hotSettings">
@@ -209,9 +216,10 @@ const App = new Vue({
   }
 });
 ```
+
 :::
 
-**Note:** For the cell renderers to be independent, renderer components are created for each displayed cell - all of them being clones of the "original" renderer component. For performance reasons, these are cached using the LRU algorithm, which stores a certain amount of entries and overwrites the least recently used ones with fresh ones.
+For the cell renderers to be independent, renderer components are created for each displayed cell - all of them being clones of the "original" renderer component. For performance reasons, these are cached using the LRU algorithm, which stores a certain amount of entries and overwrites the least recently used ones with fresh ones.
 
 By default, the number of entries available for the cache is set to `3000`, which means 3000 cells can be rendered simultaneously while being read from the cache. However, for larger tables, some of the cells may not be able to be cached, and therefore, their corresponding component would be recreated each time a cell is rendered - this is not great for performance.
 
@@ -224,6 +232,7 @@ You can also utilize the Vue 2 components to create custom editors. To do so, yo
 This will give you a solid base to build on. Note that the editor component needs to tick all of the boxes that a regular editor does, such as defining the [`getValue`](@/api/baseEditor.md#getvalue), [`setValue`](@/api/baseEditor.md#setvalue), [`open`](@/api/baseEditor.md#open), [`close`](@/api/baseEditor.md#close), and [`focus`](@/api/baseEditor.md#focus) methods. These are abstract in the `BaseEditor`. For more info, check the documentation on [creating custom editors from scratch](@/guides/cell-functions/cell-editor.md#how-to-create-a-custom-editor).
 
 ::: example #custom-editor-example :vue --html 1 --js 2
+
 ```html
 <div id="custom-editor-example">
   <hot-table :settings="hotSettings">
@@ -348,6 +357,7 @@ const App = new Vue({
   }
 });
 ```
+
 :::
 
 ## Use the renderer/editor components with `v-model`
@@ -359,6 +369,7 @@ In the example below, we're utilizing an input with `v-model` assigned and readi
 List of row indexes (starting from 0):
 
 ::: example #v-model-example :vue --html 1 --js 2
+
 ```html
 <div id="v-model-example" class="controls v-model">
   <label for="mainInput">List of row indexes (starting from 0):</label><br>
@@ -429,6 +440,7 @@ const App = new Vue({
   }
 });
 ```
+
 :::
 
 ## A more advanced example
@@ -440,6 +452,7 @@ In this example, several capabilities of the wrapper are combined:
 3. Create a component where the state will be bound by the data retrieved from the first component
 
 ::: example #advanced-editor-example :vue-advanced --html 1 --css 2 --js 3
+
 ```html
 <div id="advanced-editor-example">
   <hot-table :settings="hotSettings">
@@ -671,6 +684,7 @@ const App = new Vue({
   }
 });
 ```
+
 :::
 
 ### 1. Editor component with an external dependency, which will act as both renderer and editor

@@ -28,7 +28,9 @@ Set Handsontable's UI language to one of the built-in translations, or create yo
 You can easily change the text of the UI for the purpose of translating it to specific languages. We provide the developer with predefined languages, which can be applied by loading the language set and changing just one setting, and an ability to use their own language sets, created using templates of existing language files.
 
 ::: tip
+
 To properly display RTL languages, configure Handsontable's [layout direction](@/guides/internationalization/layout-direction.md).
+
 :::
 
 ## Load the prepared language files
@@ -36,6 +38,7 @@ To properly display RTL languages, configure Handsontable's [layout direction](@
 To properly use the internationalization feature, you need to load the language sets. It's important that they're included after the Handsontable files. You can do it by getting the necessary files created with the UMD standard:
 
 ::: only-for javascript
+
 1. **ES modules (ESM)**
   ```js
   import Handsontable from 'handsontable/base';
@@ -72,9 +75,11 @@ To properly use the internationalization feature, you need to load the language 
     });
   </script>
   ```
+
 :::
 
 ::: only-for react
+
 1. **ES modules (ESM)**
   ```js
   import Handsontable from 'handsontable/base';
@@ -107,6 +112,7 @@ To properly use the internationalization feature, you need to load the language 
     );
   };
   ```
+
 :::
 
 ### Demo
@@ -116,7 +122,9 @@ To see the translated context menu, right-click on a cell.
 Language files were loaded after loading Handsontable.
 
 ::: only-for javascript
+
 ::: example #example1 :hot-lang
+
 ```js
 import Handsontable from 'handsontable';
 import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
@@ -141,11 +149,15 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react-languages
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -178,15 +190,21 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: tip
+
 Note that the `language` property is bound to the component separately using `language={language}`, but it could be included in the `settings` property just as well.
+
 :::
 
 ::: example #example2 :react-languages
+
 ```jsx
 import { useState, useEffect } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -279,47 +297,49 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 /* end:skip-in-preview */
 ```
+
 :::
+
 :::
 
 ## List of translatable features
 
 Below is a list of features which can be translated:
 
-* Dropdown menu
-* Filtering
-* Hiding columns
-* Hiding rows
-* Nesting rows
-* Comments
-* Context menu
-* Custom borders
-* Freezing
-* Merge cells
-* Read-only
+- Dropdown menu
+- Filtering
+- Hiding columns
+- Hiding rows
+- Nesting rows
+- Comments
+- Context menu
+- Custom borders
+- Freezing
+- Merge cells
+- Read-only
 
 ## List of available languages
 
 By default, Handsontable uses the **English - United States** language-country set (`en-US` code) for creating the text of UI elements. However, it can be used like every extra, "non-standard" language file, thus the `en-US.js` file can be found in `/dist/languages`, `/languages` and `/src/languages` folders. Currently, we also distribute extra language-country files:
 
-* `ar-AR.js` for **Arabic - Global** (`ar-AR` code). To render this language as intended, set the [layout direction](@/guides/internationalization/language.md) to RTL.
-* `cs-CZ.js` for **Czech - Czechia** (`cs-CZ` code).
-* `de-CH.js` for **German - Switzerland** (`de-CH` code).
-* `de-DE.js` for **German - Germany** (`de-DE` code).
-* `es-MX.js` for **Spanish - Mexico** (`es-MX` code).
-* `fr-FR.js` for **French - France** (`fr-FR` code).
-* `it-IT.js` for **Italian - Italy** (`it-IT` code).
-* `ja-JP.js` for **Japanese - Japan** (`ja-JP` code).
-* `ko-KR.js` for **Korean - Korea** (`ko-KR` code).
-* `lv-LV.js` for **Latvian - Latvia** (`lv-LV` code).
-* `nb-NO.js` for **Norwegian (Bokmål) - Norway** (`nb-NO` code).
-* `nl-NL.js` for **Dutch - Netherlands** (`nl-NL` code).
-* `pl-PL.js` for **Polish - Poland** (`pl-PL` code).
-* `pt-BR.js` for **Portuguese - Brazil** (`pt-BR` code).
-* `ru-RU.js` for **Russian - Russia** (`ru-RU` code).
-* `sr-SP.js` for **Serbian (Latin) - Serbia** (`sr-SP` code).
-* `zh-CN.js` for **Chinese - China** (`zh-CN` code).
-* `zh-TW.js` for **Chinese - Taiwan** (`zh-TW` code).
+- `ar-AR.js` for **Arabic - Global** (`ar-AR` code). To render this language as intended, set the [layout direction](@/guides/internationalization/language.md) to RTL.
+- `cs-CZ.js` for **Czech - Czechia** (`cs-CZ` code).
+- `de-CH.js` for **German - Switzerland** (`de-CH` code).
+- `de-DE.js` for **German - Germany** (`de-DE` code).
+- `es-MX.js` for **Spanish - Mexico** (`es-MX` code).
+- `fr-FR.js` for **French - France** (`fr-FR` code).
+- `it-IT.js` for **Italian - Italy** (`it-IT` code).
+- `ja-JP.js` for **Japanese - Japan** (`ja-JP` code).
+- `ko-KR.js` for **Korean - Korea** (`ko-KR` code).
+- `lv-LV.js` for **Latvian - Latvia** (`lv-LV` code).
+- `nb-NO.js` for **Norwegian (Bokmål) - Norway** (`nb-NO` code).
+- `nl-NL.js` for **Dutch - Netherlands** (`nl-NL` code).
+- `pl-PL.js` for **Polish - Poland** (`pl-PL` code).
+- `pt-BR.js` for **Portuguese - Brazil** (`pt-BR` code).
+- `ru-RU.js` for **Russian - Russia** (`ru-RU` code).
+- `sr-SP.js` for **Serbian (Latin) - Serbia** (`sr-SP` code).
+- `zh-CN.js` for **Chinese - China** (`zh-CN` code).
+- `zh-TW.js` for **Chinese - Taiwan** (`zh-TW` code).
 
 ### Create custom languages
 

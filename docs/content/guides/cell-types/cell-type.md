@@ -22,38 +22,43 @@ Use Handsontable's built-in cell types such as autocomplete, date, time, and mor
 There are three functions associated with every table cell: [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor), and optionally [`validator`](@/api/options.md#validator). These functions are mostly used all together as they are strongly connected.
 
 Example scenario - To store a date in a cell, you would:
-* Use a [`renderer`](@/api/options.md#renderer) to display the date using appropriate formatting `dd/mm/yyyy`, `yyyy-mm-dd`, etc.
-* Use an [`editor`](@/api/options.md#editor) that displays a calendar instead of the default text input, allowing the user to easily pick the right date.
-* Use a [`validator`](@/api/options.md#validator) to check if the value entered by a user is valid.
+- Use a [`renderer`](@/api/options.md#renderer) to display the date using appropriate formatting `dd/mm/yyyy`, `yyyy-mm-dd`, etc.
+- Use an [`editor`](@/api/options.md#editor) that displays a calendar instead of the default text input, allowing the user to easily pick the right date.
+- Use a [`validator`](@/api/options.md#validator) to check if the value entered by a user is valid.
 
 Cell type is represented by a string i.e. `"text"`, `"numeric"`, `"date"`. Each string is internally mapped to functions associated with this type e.g., `"numeric"` type is associated with the following functions:
 
-* `Handsontable.renderers.NumericRenderer`
-* `Handsontable.editors.TextEditor`
-* `Handsontable.validators.NumericValidator`
+- `Handsontable.renderers.NumericRenderer`
+- `Handsontable.editors.TextEditor`
+- `Handsontable.validators.NumericValidator`
 
 
 When Handsontable encounters a cell with the [`type`](@/api/options.md#type) option defined, it checks which cell functions this type refers to and uses them. For example, when setting the column type to `'password'`:
 
 ::: only-for javascript
+
 ```js
 columns: [{
   type: 'password'
 }]
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 columns={[{
   type: 'password'
 }]}
 ```
+
 :::
 
 the functions [`editor`](@/api/options.md#editor), [`renderer`](@/api/options.md#renderer), and [`copyable`](@/api/options.md#copyable) are automatically set as follows:
 
 ::: only-for javascript
+
 ```js
 columns: [{
   editor: Handsontable.editors.PasswordEditor
@@ -61,9 +66,11 @@ columns: [{
   copyable: false,
 }]
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 columns={[{
   editor: Handsontable.editors.PasswordEditor
@@ -71,22 +78,23 @@ columns={[{
   copyable: false,
 }]}
 ```
+
 :::
 
 ## Available cell types
 
 Handsontable comes with nine types:
 
-* ["autocomplete"](@/guides/cell-types/autocomplete-cell-type.md) or `Handsontable.cellTypes.autocomplete`
-* ["checkbox"](@/guides/cell-types/checkbox-cell-type.md) or `Handsontable.cellTypes.checkbox`
-* ["date"](@/guides/cell-types/date-cell-type.md) or `Handsontable.cellTypes.date`
-* ["dropdown"](@/guides/cell-types/dropdown-cell-type.md) or `Handsontable.cellTypes.dropdown`
-* ["handsontable"](@/guides/cell-types/handsontable-cell-type.md) or `Handsontable.cellTypes.handsontable`
-* ["numeric"](@/guides/cell-types/numeric-cell-type.md) or `Handsontable.cellTypes.numeric`
-* ["password"](@/guides/cell-types/password-cell-type.md) or `Handsontable.cellTypes.password`
-* ["select"](@/guides/cell-types/select-cell-type.md) or `Handsontable.cellTypes.select`
-* ["time"](@/guides/cell-types/time-cell-type.md) or `Handsontable.cellTypes.time`
-* "text" or `Handsontable.cellTypes.text`
+- ["autocomplete"](@/guides/cell-types/autocomplete-cell-type.md) or `Handsontable.cellTypes.autocomplete`
+- ["checkbox"](@/guides/cell-types/checkbox-cell-type.md) or `Handsontable.cellTypes.checkbox`
+- ["date"](@/guides/cell-types/date-cell-type.md) or `Handsontable.cellTypes.date`
+- ["dropdown"](@/guides/cell-types/dropdown-cell-type.md) or `Handsontable.cellTypes.dropdown`
+- ["handsontable"](@/guides/cell-types/handsontable-cell-type.md) or `Handsontable.cellTypes.handsontable`
+- ["numeric"](@/guides/cell-types/numeric-cell-type.md) or `Handsontable.cellTypes.numeric`
+- ["password"](@/guides/cell-types/password-cell-type.md) or `Handsontable.cellTypes.password`
+- ["select"](@/guides/cell-types/select-cell-type.md) or `Handsontable.cellTypes.select`
+- ["time"](@/guides/cell-types/time-cell-type.md) or `Handsontable.cellTypes.time`
+- "text" or `Handsontable.cellTypes.text`
 
 The `text` cell type is the default type.
 
@@ -106,24 +114,29 @@ Handsontable.cellTypes.registerCellType('custom', {
 When used in Handsontable settings:
 
 ::: only-for javascript
+
 ```js
 columns: [{
   type: 'custom'
 }]
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 columns={[{
   type: 'custom'
 }]}
 ```
+
 :::
 
 Is an equivalent to defining them all:
 
 ::: only-for javascript
+
 ```js
 columns: [{
   editor: false,
@@ -133,9 +146,11 @@ columns: [{
   myCustomProperty: 'foo'
 }]
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 columns={[{
   editor: false,
@@ -145,6 +160,7 @@ columns={[{
   myCustomProperty: 'foo',
 }]}
 ```
+
 :::
 
 ## Register custom cell type
@@ -155,8 +171,8 @@ This gives users a convenient way of defining which cell type should be used for
 
 To register your own alias use `Handsontable.cellTypes.registerCellType()` function. It takes two arguments:
 
-* `cellTypeName` - a string representing the cell type object
-* [`type`](@/api/options.md#type) - an object with keys [`editor`](@/api/options.md#editor), [`renderer`](@/api/options.md#renderer), and [`validator`](@/api/options.md#validator) that will be represented by `cellTypeName`
+- `cellTypeName` - a string representing the cell type object
+- [`type`](@/api/options.md#type) - an object with keys [`editor`](@/api/options.md#editor), [`renderer`](@/api/options.md#renderer), and [`validator`](@/api/options.md#validator) that will be represented by `cellTypeName`
 
 If you'd like to register `copyablePasswordType` under alias `copyable-password`, you need to call:
 
@@ -230,6 +246,7 @@ Handsontable.cellTypes.registerCellType('my.custom', {
 The next step is to use the registered aliases to enable users to easily refer to them without the need to know what the actual cell type object is. Here's an example of how you would use your cell definition:
 
 ::: only-for javascript
+
 ```js
 const hot = new Handsontable(container, {
   columns: [{
@@ -237,9 +254,11 @@ const hot = new Handsontable(container, {
   }]
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   columns={[{
@@ -247,6 +266,7 @@ const hot = new Handsontable(container, {
   }]}
 />
 ```
+
 :::
 
 ## Precedence
@@ -254,6 +274,7 @@ const hot = new Handsontable(container, {
 It is possible to define the [`type`](@/api/options.md#type) option together with options such as [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor) or [`validator`](@/api/options.md#validator). For example:
 
 ::: only-for javascript
+
 ```js
 const hot = new Handsontable(container, {
   columns: [{
@@ -263,9 +284,11 @@ const hot = new Handsontable(container, {
   }]
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   columns={[{
@@ -275,11 +298,13 @@ const hot = new Handsontable(container, {
   }]}
 />
 ```
+
 :::
 
 We defined the[`type`](@/api/options.md#type) for all cells in a column to be `numeric`. We also defined a validator function directly. In Handsontable, cell functions that are defined directly always take precedence over functions associated with cell type, so the above configuration is equivalent to:
 
 ::: only-for javascript
+
 ```js
 const hot = new Handsontable(container, {
   columns: [{
@@ -289,9 +314,11 @@ const hot = new Handsontable(container, {
   }]
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   columns={[{
@@ -301,11 +328,13 @@ const hot = new Handsontable(container, {
   }]}
 />
 ```
+
 :::
 
 There is one more way you can define the configuration using types:
 
 ::: only-for javascript
+
 ```js
 const hot = new Handsontable(container, {
   // validator function defined elsewhere
@@ -315,9 +344,11 @@ const hot = new Handsontable(container, {
   }]
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   validator={customValidator}
@@ -326,6 +357,7 @@ const hot = new Handsontable(container, {
   }]}
 />
 ```
+
 :::
 
 Using [cascade configuration](@/guides/getting-started/configuration-options.md#cascading-configuration) we define a table with two columns, with [`validator`](@/api/options.md#validator) set to `customValidator` function. The s[`type`](@/api/options.md#type) of the first column is set to `password`. The `Password` cell type does not define a validator function:
@@ -341,6 +373,7 @@ Using [cascade configuration](@/guides/getting-started/configuration-options.md#
 Because `type: 'password'` is a more specific configuration for the cells in the first column than the `validator: customValidator`, cell functions associated with the `password` type take precedence over the functions defined on the higher level of configuration. Therefore, the equivalent configuration is:
 
 ::: only-for javascript
+
 ```js
 function customValidator(query, callback) {
   // ...validator logic
@@ -359,9 +392,11 @@ const hot = new Handsontable(container, {
   }]
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 function customValidator(query, callback) {
   // ...validator logic
@@ -381,6 +416,7 @@ function customValidator(query, callback) {
   ]}
 />
 ```
+
 :::
 
 ## Built-in cell types example
@@ -388,7 +424,9 @@ function customValidator(query, callback) {
 The example below shows some of the built-in cell types, i.e. combinations of cell renderers and editors available in Handsontable. The example also shows the declaration of custom cell renderers, namely `yellowRenderer` and `greenRenderer`.
 
 ::: only-for javascript
+
 ::: example #example1
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -435,11 +473,15 @@ const hot = new Handsontable(container, {
   }
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -497,7 +539,9 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
+
 :::
+
 :::
 
 
@@ -505,12 +549,16 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 It's worth to mention that values such as `''` (empty string), `null` and `undefined` are considered empty values. Cells with empty values are displayed in a similar way for most of the data types (see below).
 
-:::tip
-Please keep in mind that opening a cell with `undefined` and `null` values results in **overwriting** the original value with an empty string. Moreover, copying and pasting that values will result in pasting the empty string.
+::: tip
+
+Please keep in mind that opening a cell with `undefined` and `null` values results in overwriting the original value with an empty string. Moreover, copying and pasting that values will result in pasting the empty string.
+
 :::
 
 ::: only-for javascript
+
 ::: example #example2
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -556,11 +604,15 @@ const hot = new Handsontable(container, {
   colHeaders: ['value<br>underneath', 'type:text', 'type:numeric', 'type:checkbox', 'type:dropdown', 'type:password'],
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example2 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -617,9 +669,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 Empty cells may be treated differently in different contexts, for example, the [`ColumnSorting`](@/api/columnSorting.md) plugin has `sortEmptyCells` option which is responsible for establishing whether empty cells should be sorted like non-empty cells.
 

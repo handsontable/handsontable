@@ -3,13 +3,14 @@ const path = require('path');
 
 const LICENSE = 'LICENSE.txt';
 const README = 'README.md';
+const NON_COMMERCIAL_LICENSE = 'handsontable-non-commercial-license.pdf';
 const PACKAGE = 'package.json';
 const TARGET_PATH = './dist/hot-table';
 
 [
-  'LICENSE.txt',
-  'README.md',
-  'handsontable-non-commercial-license.pdf',
+  LICENSE,
+  README,
+  NON_COMMERCIAL_LICENSE,
 ].forEach((file) => {
   fse.copySync(path.resolve(`./${file}`), path.resolve(`${TARGET_PATH}/${file}`), { overwrite: true });
 });
