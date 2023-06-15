@@ -15,6 +15,7 @@ export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
 const SETTING_KEYS = ['nestedHeaders'];
 const COLLAPSIBLE_ELEMENT_CLASS = 'collapsibleIndicator';
+const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 const actionDictionary = new Map([
   ['collapse', {
@@ -184,6 +185,7 @@ export class CollapsibleColumns extends BasePlugin {
     this.addHook('afterGetColHeader', (...args) => this.onAfterGetColHeader(...args));
     this.addHook('beforeOnCellMouseDown', (event, coords, TD) => this.onBeforeOnCellMouseDown(event, coords, TD));
 
+    this.registerShortcuts();
     super.enablePlugin();
     // @TODO: Workaround for broken plugin initialization abstraction (#6806).
     this.updatePlugin();
@@ -232,8 +234,53 @@ export class CollapsibleColumns extends BasePlugin {
     this.#collapsedColumnsMap = null;
     this.nestedHeadersPlugin = null;
 
+    this.unregisterShortcuts();
     this.clearButtons();
     super.disablePlugin();
+  }
+
+  /**
+   * Register shortcuts responsible for toggling collapsible columns.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .addShortcut({
+        keys: [['Enter']],
+        callback: () => {
+          const { row, col } = this.hot.getSelectedRangeLast().highlight;
+          const {
+            collapsible,
+            isCollapsed,
+            columnIndex,
+          } = this.headerStateManager.getHeaderTreeNodeData(row, col) ?? {};
+
+          if (!collapsible) {
+            return;
+          }
+
+          if (isCollapsed) {
+            this.expandSection({ row, col: columnIndex });
+          } else {
+            this.collapseSection({ row, col: columnIndex });
+          }
+        },
+        runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isHeader(),
+        group: SHORTCUTS_GROUP,
+      });
+  }
+
+  /**
+   * Unregister shortcuts responsible for toggling collapsible columns.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**

@@ -50,6 +50,69 @@ describe('Core data modification keyboard shortcuts', () => {
       expect(afterChange).not.toHaveBeenCalled();
     });
 
+    it('should not populate the cell value when the focus highlight points to the column header', () => {
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+        afterChange,
+      });
+
+      afterChange.calls.reset(); // reset initial "afterChange" call after load data
+      selectColumns(1, 2, -1);
+      listen();
+      keyDownUp(['control/meta', 'enter']);
+
+      expect(getData()).toEqual(createSpreadsheetData(5, 5));
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 4,2']);
+      expect(afterChange).not.toHaveBeenCalled();
+    });
+
+    it('should not populate the cell value when the focus highlight points to the row header', () => {
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+        afterChange,
+      });
+
+      afterChange.calls.reset(); // reset initial "afterChange" call after load data
+      selectRows(1, 2, -1);
+      listen();
+      keyDownUp(['control/meta', 'enter']);
+
+      expect(getData()).toEqual(createSpreadsheetData(5, 5));
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 2,4']);
+      expect(afterChange).not.toHaveBeenCalled();
+    });
+
+    it('should not populate the cell value when the focus highlight points to the corner', () => {
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+        afterChange,
+      });
+
+      afterChange.calls.reset(); // reset initial "afterChange" call after load data
+      selectAll(true, true, { row: -1, col: -1 });
+      listen();
+      keyDownUp(['control/meta', 'enter']);
+
+      expect(getData()).toEqual(createSpreadsheetData(5, 5));
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,-1 from: -1,-1 to: 4,4']);
+      expect(afterChange).not.toHaveBeenCalled();
+    });
+
     it('should not trigger the cells value change more than once for the same coords in "{after/before}Change" hooks ' +
        'when selection layers overlap each self', () => {
       const beforeChange = jasmine.createSpy('beforeChange');
