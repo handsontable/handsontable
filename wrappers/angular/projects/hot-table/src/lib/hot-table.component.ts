@@ -255,7 +255,6 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() afterViewRender: Handsontable.GridSettings['afterViewRender'];
   @Input() beforeAddChild: Handsontable.GridSettings['beforeAddChild'];
   @Input() beforeAutofill: Handsontable.GridSettings['beforeAutofill'];
-  @Input() beforeAutofillInsidePopulate: Handsontable.GridSettings['beforeAutofillInsidePopulate'];
   @Input() beforeCellAlignment: Handsontable.GridSettings['beforeCellAlignment'];
   @Input() beforeChange: Handsontable.GridSettings['beforeChange'];
   @Input() beforeChangeRender: Handsontable.GridSettings['beforeChangeRender'];

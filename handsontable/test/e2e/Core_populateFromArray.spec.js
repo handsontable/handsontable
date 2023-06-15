@@ -35,6 +35,29 @@ describe('Core_populateFromArray', () => {
     expect(output).toEqual([[0, 0, '', 'test'], [0, 1, 'Kia', 'test'], [1, 0, '2008', 'test'], [1, 1, 10, 'test']]);
   });
 
+  it('should override populated values using `beforeChange` hook', () => {
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+      ],
+      beforeChange(changes) {
+        changes[0][3] = 'test1';
+        changes[3][3] = 'test4';
+      }
+    });
+    populateFromArray(0, 0, [['test', 'test'], ['test', 'test']], 1, 1);
+
+    expect(getData()).toEqual([
+      ['test1', 'test', 3, 4, 5, 6],
+      ['test', 'test4', 3, 4, 5, 6],
+      [1, 2, 3, 4, 5, 6],
+      [1, 2, 3, 4, 5, 6],
+    ]);
+  });
+
   it('should populate single value for whole selection', () => {
     let output = null;
 
@@ -439,42 +462,12 @@ describe('Core_populateFromArray', () => {
     });
   });
 
-  it('should run beforeAutofillInsidePopulate hook for each inserted value', () => {
-    const hot = handsontable({
-      data: arrayOfArrays()
-    });
-    let called = 0;
-
-    hot.addHook('beforeAutofillInsidePopulate', () => {
-      called += 1;
-    });
-
-    populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 1, 1, 'Autofill.fill', 'overwrite');
-
-    expect(called).toEqual(4);
-  });
-
-  it('should run beforeAutofillInsidePopulate hook and could change cell data before insert if returned object with value property', () => {
-
-    const hot = handsontable({
-      data: arrayOfArrays()
-    });
-
-    hot.addHook('beforeAutofillInsidePopulate', () => ({
-      value: 'my_test'
-    }));
-
-    populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 1, 1, 'Autofill.fill', 'overwrite');
-
-    expect(getDataAtCell(0, 0)).toEqual('my_test');
-  });
-
   it('should populate 1 row from 2 selected rows', () => {
     handsontable({
       data: arrayOfArrays()
     });
 
-    populateFromArray(2, 0, [['A1'], ['A2']], 2, 0, 'autofill', null, 'down', [[0]]);
+    populateFromArray(2, 0, [['A1'], ['A2']], 2, 0, 'autofill', null);
 
     expect(getDataAtCell(2, 0)).toEqual('A1');
     expect(getDataAtCell(3, 0)).toEqual('2010');
@@ -485,7 +478,7 @@ describe('Core_populateFromArray', () => {
       data: arrayOfArrays()
     });
 
-    populateFromArray(0, 2, [['A1', 'A2']], 0, 2, 'autofill', null, 'right', [[0]]);
+    populateFromArray(0, 2, [['A1', 'A2']], 0, 2, 'autofill', null);
 
     expect(getDataAtCell(0, 2)).toEqual('A1');
     expect(getDataAtCell(0, 3)).toEqual('Toyota');
