@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 13.0.0
- * Release date: 20/06/2023 (built at 13/06/2023 15:03:18)
+ * Release date: 22/06/2023 (built at 15/06/2023 14:29:12)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -2914,7 +2914,7 @@ function _injectProductInfo(key, element) {
   var schemaValidity = _checkKeySchema(key);
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      var releaseDate = (0, _moment.default)("20/06/2023", 'DD/MM/YYYY');
+      var releaseDate = (0, _moment.default)("22/06/2023", 'DD/MM/YYYY');
       var releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
       var keyValidityDays = _extractTime(key);
       keyValidityDate = (0, _moment.default)((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
@@ -41973,7 +41973,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "13/06/2023 15:03:18";
+Handsontable.buildDate = "15/06/2023 14:29:12";
 Handsontable.version = "13.0.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
