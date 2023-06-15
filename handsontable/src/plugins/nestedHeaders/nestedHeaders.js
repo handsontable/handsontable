@@ -615,7 +615,262 @@ export class NestedHeaders extends BasePlugin {
       columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
     }
 
-    this.hot.selectColumns(...columnsToSelect);
+    this.hot.selection.selectColumns(...columnsToSelect);
+  }
+
+  /**
+   * `modifyTransformStart` hook is called every time the keyboard navigation is used.
+   *
+   * @private
+   * @param {object} delta The transformation delta.
+   */
+  onModifyTransformStart(delta) {
+    const { highlight } = this.hot.getSelectedRangeLast();
+    const nextCoords = this.hot._createCellCoords(highlight.row + delta.row, highlight.col + delta.col);
+    const isNestedHeadersRange = nextCoords.isHeader() && nextCoords.col >= 0;
+
+    if (!isNestedHeadersRange) {
+      return;
+    }
+
+    const visualColumnIndexStart = this.#stateManager.findLeftMostColumnIndex(nextCoords.row, nextCoords.col);
+    const visualColumnIndexEnd = this.#stateManager.findRightMostColumnIndex(nextCoords.row, nextCoords.col);
+
+    if (delta.col < 0) {
+      const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ?
+        visualColumnIndexStart - 1 : visualColumnIndexEnd;
+      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, -1);
+
+      if (notHiddenColumnIndex === null) {
+        // There are no visible columns anymore, so move the selection out of the table edge. This will
+        // be processed by the selection Transformer class as a move selection to the previous row (if autoWrapRow is enabled).
+        delta.col = -this.hot.view.countRenderableColumnsInRange(0, highlight.col);
+      } else {
+        delta.col = -Math.max(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, highlight.col) - 1, 1);
+      }
+
+    } else if (delta.col > 0) {
+      const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ?
+        visualColumnIndexEnd + 1 : visualColumnIndexStart;
+      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, 1);
+
+      if (notHiddenColumnIndex === null) {
+        // There are no visible columns anymore, so move the selection out of the table edge. This will
+        // be processed by the selection Transformer class as a move selection to the next row (if autoWrapRow is enabled).
+        delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, this.hot.countCols());
+      } else {
+        delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1, 1);
+      }
+    }
+  }
+
+  /**
+   * The hook observes the column selection from the Selection API and modifies the column range to
+   * ensure that the whole nested column will be covered.
+   *
+   * @private
+   * @param {*} from The coords object where the selection starts.
+   * @param {*} to The coords object where the selection ends.
+   */
+  onBeforeSelectColumns(from, to) {
+    const headerLevel = from.row;
+    const startNodeData = this._getHeaderTreeNodeDataByCoords({
+      row: headerLevel,
+      col: from.col,
+    });
+    const endNodeData = this._getHeaderTreeNodeDataByCoords({
+      row: headerLevel,
+      col: to.col,
+    });
+
+    if (to.col < from.col) { // Column selection from right to left
+      if (startNodeData) {
+        from.col = startNodeData.columnIndex + startNodeData.origColspan - 1;
+      }
+
+      if (endNodeData) {
+        to.col = endNodeData.columnIndex;
+      }
+
+    } else if (to.col >= from.col) { // Column selection from left to right or a single column selection
+      if (startNodeData) {
+        from.col = startNodeData.columnIndex;
+      }
+
+      if (endNodeData) {
+        to.col = endNodeData.columnIndex + endNodeData.origColspan - 1;
+      }
+    }
+  }
+
+  /**
+   * `modifyTransformStart` hook is called every time the keyboard navigation is used.
+   *
+   * @private
+   * @param {object} delta The transformation delta.
+   */
+  onModifyTransformStart(delta) {
+    const { highlight } = this.hot.getSelectedRangeLast();
+    const nextCoords = this.hot._createCellCoords(highlight.row + delta.row, highlight.col + delta.col);
+    const isNestedHeadersRange = nextCoords.isHeader() && nextCoords.col >= 0;
+
+    if (!isNestedHeadersRange) {
+      return;
+    }
+
+    const visualColumnIndexStart = this.#stateManager.findLeftMostColumnIndex(nextCoords.row, nextCoords.col);
+    const visualColumnIndexEnd = this.#stateManager.findRightMostColumnIndex(nextCoords.row, nextCoords.col);
+
+    if (delta.col < 0) {
+      const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ?
+        visualColumnIndexStart - 1 : visualColumnIndexEnd;
+      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, -1);
+
+      if (notHiddenColumnIndex === null) {
+        // There are no visible columns anymore, so move the selection out of the table edge. This will
+        // be processed by the selection Transformer class as a move selection to the previous row (if autoWrapRow is enabled).
+        delta.col = -this.hot.view.countRenderableColumnsInRange(0, highlight.col);
+      } else {
+        delta.col = -Math.max(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, highlight.col) - 1, 1);
+      }
+
+    } else if (delta.col > 0) {
+      const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ?
+        visualColumnIndexEnd + 1 : visualColumnIndexStart;
+      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, 1);
+
+      if (notHiddenColumnIndex === null) {
+        // There are no visible columns anymore, so move the selection out of the table edge. This will
+        // be processed by the selection Transformer class as a move selection to the next row (if autoWrapRow is enabled).
+        delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, this.hot.countCols());
+      } else {
+        delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1, 1);
+      }
+    }
+  }
+
+  /**
+   * The hook observes the column selection from the Selection API and modifies the column range to
+   * ensure that the whole nested column will be covered.
+   *
+   * @private
+   * @param {*} from The coords object where the selection starts.
+   * @param {*} to The coords object where the selection ends.
+   */
+  onBeforeSelectColumns(from, to) {
+    const headerLevel = from.row;
+    const startNodeData = this._getHeaderTreeNodeDataByCoords({
+      row: headerLevel,
+      col: from.col,
+    });
+    const endNodeData = this._getHeaderTreeNodeDataByCoords({
+      row: headerLevel,
+      col: to.col,
+    });
+
+    if (to.col < from.col) { // Column selection from right to left
+      if (startNodeData) {
+        from.col = startNodeData.columnIndex + startNodeData.origColspan - 1;
+      }
+
+      if (endNodeData) {
+        to.col = endNodeData.columnIndex;
+      }
+
+    } else if (to.col >= from.col) { // Column selection from left to right or a single column selection
+      if (startNodeData) {
+        from.col = startNodeData.columnIndex;
+      }
+
+      if (endNodeData) {
+        to.col = endNodeData.columnIndex + endNodeData.origColspan - 1;
+      }
+    }
+  }
+
+  /**
+   * `modifyTransformStart` hook is called every time the keyboard navigation is used.
+   *
+   * @private
+   * @param {object} delta The transformation delta.
+   */
+  onModifyTransformStart(delta) {
+    const { highlight } = this.hot.getSelectedRangeLast();
+    const nextCoords = this.hot._createCellCoords(highlight.row + delta.row, highlight.col + delta.col);
+    const isNestedHeadersRange = nextCoords.isHeader() && nextCoords.col >= 0;
+
+    if (!isNestedHeadersRange) {
+      return;
+    }
+
+    const visualColumnIndexStart = this.#stateManager.findLeftMostColumnIndex(nextCoords.row, nextCoords.col);
+    const visualColumnIndexEnd = this.#stateManager.findRightMostColumnIndex(nextCoords.row, nextCoords.col);
+
+    if (delta.col < 0) {
+      const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ?
+        visualColumnIndexStart - 1 : visualColumnIndexEnd;
+      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, -1);
+
+      if (notHiddenColumnIndex === null) {
+        // There are no visible columns anymore, so move the selection out of the table edge. This will
+        // be processed by the selection Transformer class as a move selection to the previous row (if autoWrapRow is enabled).
+        delta.col = -this.hot.view.countRenderableColumnsInRange(0, highlight.col);
+      } else {
+        delta.col = -Math.max(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, highlight.col) - 1, 1);
+      }
+
+    } else if (delta.col > 0) {
+      const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ?
+        visualColumnIndexEnd + 1 : visualColumnIndexStart;
+      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, 1);
+
+      if (notHiddenColumnIndex === null) {
+        // There are no visible columns anymore, so move the selection out of the table edge. This will
+        // be processed by the selection Transformer class as a move selection to the next row (if autoWrapRow is enabled).
+        delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, this.hot.countCols());
+      } else {
+        delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1, 1);
+      }
+    }
+  }
+
+  /**
+   * The hook observes the column selection from the Selection API and modifies the column range to
+   * ensure that the whole nested column will be covered.
+   *
+   * @private
+   * @param {*} from The coords object where the selection starts.
+   * @param {*} to The coords object where the selection ends.
+   */
+  onBeforeSelectColumns(from, to) {
+    const headerLevel = from.row;
+    const startNodeData = this._getHeaderTreeNodeDataByCoords({
+      row: headerLevel,
+      col: from.col,
+    });
+    const endNodeData = this._getHeaderTreeNodeDataByCoords({
+      row: headerLevel,
+      col: to.col,
+    });
+
+    if (to.col < from.col) { // Column selection from right to left
+      if (startNodeData) {
+        from.col = startNodeData.columnIndex + startNodeData.origColspan - 1;
+      }
+
+      if (endNodeData) {
+        to.col = endNodeData.columnIndex;
+      }
+
+    } else if (to.col >= from.col) { // Column selection from left to right or a single column selection
+      if (startNodeData) {
+        from.col = startNodeData.columnIndex;
+      }
+
+      if (endNodeData) {
+        to.col = endNodeData.columnIndex + endNodeData.origColspan - 1;
+      }
+    }
   }
 
   /**

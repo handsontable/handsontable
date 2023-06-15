@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added support for collapsing/expanding nested rows using a keyboard shortcut.",
+  "type": "added",
+  "issueOrPR": 10405,
+  "breaking": false,
+  "framework": "none"
+}
