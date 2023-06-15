@@ -281,3 +281,25 @@ export function filterSeparators(items, separator = SEPARATOR) {
 
   return result;
 }
+
+/**
+ * Returns document offset based on the passed element. If the document objects between element and the
+ * base document are not the same the offset as top and left properties will be returned.
+ *
+ * @param {Element} elementToCheck The element to compare with Document object.
+ * @param {Document} baseDocument The base Document object.
+ * @returns {{ top: number, left: number }}
+ */
+export function getDocumentOffsetByElement(elementToCheck, baseDocument) {
+  const offset = { top: 0, left: 0 };
+
+  if (baseDocument !== elementToCheck.ownerDocument) {
+    const { frameElement } = baseDocument.defaultView;
+    const { top, left } = frameElement.getBoundingClientRect();
+
+    offset.top = top;
+    offset.left = left;
+  }
+
+  return offset;
+}

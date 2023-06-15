@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { arrayEach } from '../../helpers/array';
 import CommandExecutor from '../contextMenu/commandExecutor';
+import { getDocumentOffsetByElement } from '../contextMenu/utils';
 import EventManager from '../../eventManager';
 import { hasClass } from '../../helpers/dom/element';
 import ItemsFactory from '../contextMenu/itemsFactory';
@@ -247,69 +248,40 @@ export class DropdownMenu extends BasePlugin {
    */
   registerShortcuts() {
     const context = this.hot.getShortcutManager().getContext('grid');
+    const callback = () => {
+      const { highlight } = this.hot.getSelectedRangeLast();
 
-    context.addShortcut({
-      keys: [['Shift', 'Enter']],
-      callback: () => {
-        const { highlight } = this.hot.getSelectedRangeLast();
+      if ((highlight.isHeader() && highlight.row === -1 || highlight.isCell()) && highlight.col >= 0) {
+        this.hot.selectColumns(highlight.col, highlight.col, -1);
 
-        if (highlight.row === -1 && highlight.col >= 0) {
-          let offsetTop = 0;
-          let offsetLeft = 0;
-
-          if (this.hot.rootDocument !== this.menu.container.ownerDocument) {
-            const { frameElement } = this.hot.rootWindow;
-            const { top, left } = frameElement.getBoundingClientRect();
-
-            offsetTop = top;
-            offsetLeft = left;
-          }
-
-          const target = hot.getCell(highlight.row, highlight.col);
-          const rect = target.getBoundingClientRect();
-
-          this.hot.selectColumns(highlight.col, highlight.col, -1);
-          this.open({
-            left: rect.left + offsetLeft,
-            top: rect.top + target.offsetHeight + offsetTop,
-            width: rect.width,
-            height: rect.height,
-          });
-        }
-      },
-      runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isHeader() && !this.menu.isOpened(),
-      group: SHORTCUTS_GROUP,
-    });
-
-    context.addShortcut({
-      keys: [['Alt', 'Shift', 'ArrowDown']],
-      callback: () => {
-        const { highlight } = this.hot.getSelectedRangeLast();
-        let offsetTop = 0;
-        let offsetLeft = 0;
-
-        if (this.hot.rootDocument !== this.menu.container.ownerDocument) {
-          const { frameElement } = this.hot.rootWindow;
-          const { top, left } = frameElement.getBoundingClientRect();
-
-          offsetTop = top;
-          offsetLeft = left;
-        }
-
-        const target = hot.getCell(highlight.row, highlight.col);
+        const { from } = this.hot.getSelectedRangeLast();
+        const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
+        const target = this.hot.getCell(-1, from.col, true);
         const rect = target.getBoundingClientRect();
 
-        // this.hot.selectColumns(highlight.col, highlight.col, -1);
         this.open({
-          left: rect.left + offsetLeft,
-          top: rect.top + target.offsetHeight + offsetTop,
+          left: rect.left + offset.left,
+          top: rect.top + target.offsetHeight + offset.top,
           width: rect.width,
           height: rect.height,
         });
-      },
+        this.hot._registerTimeout(() => {
+          this.menu.selectFirstCell();
+        });
+      }
+    };
+
+    context.addShortcuts([{
+      keys: [['Shift', 'Alt', 'ArrowDown'], ['Shift', 'Enter']],
+      callback,
+      runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isHeader() && !this.menu.isOpened(),
+      group: SHORTCUTS_GROUP,
+    }, {
+      keys: [['Shift', 'Alt', 'ArrowDown']],
+      callback,
       runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isCell() && !this.menu.isOpened(),
       group: SHORTCUTS_GROUP,
-    });
+    }]);
   }
 
   /**
@@ -335,19 +307,19 @@ export class DropdownMenu extends BasePlugin {
   /**
    * Opens menu and re-position it based on the passed coordinates.
    *
-   * @param {object|Event} position An object with `pageX` and `pageY` properties which contains values relative to
-   *                                the top left of the fully rendered content area in the browser or with `clientX`
-   *                                and `clientY`  properties which contains values relative to the upper left edge
-   *                                of the content area (the viewport) of the browser window. This object is structurally
-   *                                compatible with native mouse event so it can be used either.
+   * @param {{ top: number, left: number }|Event} position An object with `top` and `left` properties
+   * which contains coordinates relative to the browsers viewport (without included scroll offsets).
+   * Or if the native event is passed the menu will be positioned based on the `pageX` and `pageY`
+   * coordinates.
    * @fires Hooks#beforeDropdownMenuShow
    * @fires Hooks#afterDropdownMenuShow
    */
 
   open(position) {
-    if (!this.menu) {
+    if (this.menu?.isOpened()) {
       return;
     }
+
     this.menu.open();
 
     if (position.width) {
@@ -360,10 +332,7 @@ export class DropdownMenu extends BasePlugin {
    * Closes dropdown menu.
    */
   close() {
-    if (!this.menu) {
-      return;
-    }
-    this.menu.close();
+    this.menu?.close();
   }
 
   /**
@@ -425,23 +394,13 @@ export class DropdownMenu extends BasePlugin {
   onTableClick(event) {
     event.stopPropagation();
 
-    if (hasClass(event.target, BUTTON_CLASS_NAME) && !this.menu.isOpened()) {
-      let offsetTop = 0;
-      let offsetLeft = 0;
-
-      if (this.hot.rootDocument !== this.menu.container.ownerDocument) {
-        const { frameElement } = this.hot.rootWindow;
-        const { top, left } = frameElement.getBoundingClientRect();
-
-        offsetTop = top;
-        offsetLeft = left;
-      }
-
+    if (hasClass(event.target, BUTTON_CLASS_NAME)) {
+      const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
       const rect = event.target.getBoundingClientRect();
 
       this.open({
-        left: rect.left + offsetLeft,
-        top: rect.top + event.target.offsetHeight + 3 + offsetTop,
+        left: rect.left + offset.left,
+        top: rect.top + event.target.offsetHeight + 3 + offset.top,
         width: rect.width,
         height: rect.height,
       });
