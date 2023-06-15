@@ -27,6 +27,7 @@ Hooks.getSingleton().register('afterDropdownMenuExecute');
 export const PLUGIN_KEY = 'dropdownMenu';
 export const PLUGIN_PRIORITY = 230;
 const BUTTON_CLASS_NAME = 'changeType';
+const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -181,6 +182,8 @@ export class DropdownMenu extends BasePlugin {
     if (typeof settings.callback === 'function') {
       this.commandExecutor.setCommonCallback(settings.callback);
     }
+
+    this.registerShortcuts();
     super.enablePlugin();
 
     this.callOnPluginsReady(() => {
@@ -232,7 +235,92 @@ export class DropdownMenu extends BasePlugin {
     if (this.menu) {
       this.menu.destroy();
     }
+
+    this.unregisterShortcuts();
     super.disablePlugin();
+  }
+
+  /**
+   * Register shortcuts responsible for toggling dropdown menu.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    const context = this.hot.getShortcutManager().getContext('grid');
+
+    context.addShortcut({
+      keys: [['Shift', 'Enter']],
+      callback: () => {
+        const { highlight } = this.hot.getSelectedRangeLast();
+
+        if (highlight.row === -1 && highlight.col >= 0) {
+          let offsetTop = 0;
+          let offsetLeft = 0;
+
+          if (this.hot.rootDocument !== this.menu.container.ownerDocument) {
+            const { frameElement } = this.hot.rootWindow;
+            const { top, left } = frameElement.getBoundingClientRect();
+
+            offsetTop = top;
+            offsetLeft = left;
+          }
+
+          const target = hot.getCell(highlight.row, highlight.col);
+          const rect = target.getBoundingClientRect();
+
+          this.hot.selectColumns(highlight.col, highlight.col, -1);
+          this.open({
+            left: rect.left + offsetLeft,
+            top: rect.top + target.offsetHeight + offsetTop,
+            width: rect.width,
+            height: rect.height,
+          });
+        }
+      },
+      runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isHeader() && !this.menu.isOpened(),
+      group: SHORTCUTS_GROUP,
+    });
+
+    context.addShortcut({
+      keys: [['Alt', 'Shift', 'ArrowDown']],
+      callback: () => {
+        const { highlight } = this.hot.getSelectedRangeLast();
+        let offsetTop = 0;
+        let offsetLeft = 0;
+
+        if (this.hot.rootDocument !== this.menu.container.ownerDocument) {
+          const { frameElement } = this.hot.rootWindow;
+          const { top, left } = frameElement.getBoundingClientRect();
+
+          offsetTop = top;
+          offsetLeft = left;
+        }
+
+        const target = hot.getCell(highlight.row, highlight.col);
+        const rect = target.getBoundingClientRect();
+
+        // this.hot.selectColumns(highlight.col, highlight.col, -1);
+        this.open({
+          left: rect.left + offsetLeft,
+          top: rect.top + target.offsetHeight + offsetTop,
+          width: rect.width,
+          height: rect.height,
+        });
+      },
+      runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isCell() && !this.menu.isOpened(),
+      group: SHORTCUTS_GROUP,
+    });
+  }
+
+  /**
+   * Unregister shortcuts responsible for toggling dropdown menu.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
