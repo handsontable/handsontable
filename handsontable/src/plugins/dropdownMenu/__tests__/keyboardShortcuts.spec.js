@@ -223,6 +223,34 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect(getActiveEditor()).toBeUndefined();
     });
+
+    describe('cooperation with nested headers', () => {
+      it('should be possible to open the dropdown menu in the correct position when the cells in-between nested headers is selected', () => {
+        handsontable({
+          data: createSpreadsheetData(3, 8),
+          colHeaders: true,
+          rowHeaders: true,
+          navigableHeaders: true,
+          dropdownMenu: true,
+          nestedHeaders: [
+            ['A', { label: 'B', colspan: 3 }, 'E', 'F', { label: 'G', colspan: 2 }, 'I', 'J'],
+          ],
+        });
+
+        selectCell(-1, 2);
+        keyDownUp(['shift', 'enter']);
+
+        const cell = getCell(-1, 1, true);
+        const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
+        const menuOffset = $dropdownMenu.offset();
+        const cellOffset = $(cell).offset();
+
+        expect($dropdownMenu.length).toBe(1);
+        expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
+        expect(menuOffset.left).toBeCloseTo(cellOffset.left);
+        expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,1 to: 2,3']);
+      });
+    });
   });
 
   describe('"Shift" + "Alt/Option" + "ArrowDown"', () => {
@@ -490,6 +518,34 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       // the editor is created and prepared after cell selection but should be still not opened
       expect(getActiveEditor().isOpened()).toBe(false);
+    });
+
+    describe('cooperation with nested headers', () => {
+      it('should be possible to open the dropdown menu in the correct position when the cells in-between nested headers is selected', () => {
+        handsontable({
+          data: createSpreadsheetData(3, 8),
+          colHeaders: true,
+          rowHeaders: true,
+          navigableHeaders: true,
+          dropdownMenu: true,
+          nestedHeaders: [
+            ['A', { label: 'B', colspan: 3 }, 'E', 'F', { label: 'G', colspan: 2 }, 'I', 'J'],
+          ],
+        });
+
+        selectCell(1, 3);
+        keyDownUp(['shift', 'alt', 'arrowdown']);
+
+        const cell = getCell(-1, 1, true);
+        const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
+        const menuOffset = $dropdownMenu.offset();
+        const cellOffset = $(cell).offset();
+
+        expect($dropdownMenu.length).toBe(1);
+        expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
+        expect(menuOffset.left).toBeCloseTo(cellOffset.left);
+        expect(getSelectedRange()).toEqualCellRange(['highlight: -1,3 from: -1,1 to: 2,3']);
+      });
     });
   });
 });

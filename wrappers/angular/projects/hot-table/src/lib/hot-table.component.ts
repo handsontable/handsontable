@@ -109,6 +109,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() minSpareCols: Handsontable.GridSettings['minSpareCols'];
   @Input() minSpareRows: Handsontable.GridSettings['minSpareRows'];
   @Input() multiColumnSorting: Handsontable.GridSettings['multiColumnSorting'];
+  @Input() navigableHeaders: Handsontable.GridSettings['navigableHeaders'];
   @Input() nestedHeaders: Handsontable.GridSettings['nestedHeaders'];
   @Input() nestedRows: Handsontable.GridSettings['nestedRows'];
   @Input() noWordWrapClassName: Handsontable.GridSettings['noWordWrapClassName'];
