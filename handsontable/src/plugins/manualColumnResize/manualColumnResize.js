@@ -52,7 +52,7 @@ export class ManualColumnResize extends BasePlugin {
     this.guide = rootDocument.createElement('DIV');
     this.eventManager = new EventManager(this);
     this.pressed = null;
-    this.isTriggeredbyRMB = false;
+    this.isTriggeredByRMB = false;
     this.dblclick = 0;
     this.autoresizeTimeout = null;
 
@@ -398,7 +398,7 @@ export class ManualColumnResize extends BasePlugin {
     }
 
     // A "mouseover" action is triggered right after executing "contextmenu" event. It should be ignored.
-    if (this.isTriggeredbyRMB === true) {
+    if (this.isTriggeredByRMB === true) {
       return;
     }
 
@@ -577,12 +577,12 @@ export class ManualColumnResize extends BasePlugin {
     this.hot.rootElement.removeChild(this.guide);
 
     this.pressed = false;
-    this.isTriggeredbyRMB = true;
+    this.isTriggeredByRMB = true;
 
     // There is thrown "mouseover" event right after opening a context menu. This flag inform that handle
     // shouldn't be drawn just after removing it.
     this.hot._registerImmediate(() => {
-      this.isTriggeredbyRMB = false;
+      this.isTriggeredByRMB = false;
     });
   }
 
