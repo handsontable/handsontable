@@ -1,0 +1,495 @@
+describe('DropdownMenu keyboard shortcut', () => {
+  const id = 'testContainer';
+
+  beforeEach(function() {
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+  });
+
+  afterEach(function() {
+    if (this.$container) {
+      destroy();
+      this.$container.remove();
+    }
+  });
+
+  function columnHeader(renderedColumnIndex, TH) {
+    const visualColumnsIndex = renderedColumnIndex >= 0 ?
+      this.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex) : renderedColumnIndex;
+
+    this.view.appendColHeader(visualColumnsIndex, TH);
+  }
+
+  describe('"Shift" + "Enter"', () => {
+    it('should not be possible to open the dropdown menu (navigableHeaders off)', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: false,
+        dropdownMenu: true
+      });
+
+      selectCell(0, 1);
+      keyDownUp(['shift', 'enter']);
+
+      const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
+
+      expect($dropdownMenu.length).toBe(0);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
+    });
+
+    it('should be possible to open the dropdown menu in the correct position', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        dropdownMenu: true
+      });
+
+      selectCell(-1, 1);
+      keyDownUp(['shift', 'enter']);
+
+      const cell = getCell(-1, 1, true);
+      const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
+      const menuOffset = $dropdownMenu.offset();
+      const cellOffset = $(cell).offset();
+
+      expect($dropdownMenu.length).toBe(1);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
+      expect(menuOffset.left).toBeCloseTo(cellOffset.left);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
+    });
+
+    it('should be possible to open the dropdown menu on the left position when on the right there is no space left', () => {
+      handsontable({
+        data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        dropdownMenu: true
+      });
+
+      const lastColumn = countCols() - 1;
+
+      selectCell(-1, lastColumn);
+      keyDownUp(['shift', 'enter']);
+
+      const cell = getCell(-1, lastColumn, true);
+      const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
+      const menuOffset = $dropdownMenu.offset();
+      const menuWidth = $dropdownMenu.outerWidth();
+      const cellOffset = $(cell).offset();
+      const cellWidth = $(cell).outerWidth();
+
+      expect($dropdownMenu.length).toBe(1);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
+      expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth + cellWidth);
+      expect(getSelectedRange()).toEqualCellRange([
+        `highlight: -1,${lastColumn} from: -1,${lastColumn} to: 3,${lastColumn}`
+      ]);
+    });
+
+    it('should highlight first item of the menu after open it', async() => {
+      handsontable({
+        data: createSpreadsheetData(3, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        dropdownMenu: true
+      });
+
+      selectCell(-1, 1);
+      keyDownUp(['shift', 'enter']);
+
+      await sleep(100);
+
+      expect(getPlugin('dropdownMenu').menu.hotMenu.getSelected()).toEqual([[0, 0, 0, 0]]);
+    });
+
+    it('should not be possible to close already opened the dropdown menu', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        dropdownMenu: true
+      });
+
+      selectCell(-1, 1);
+      keyDownUp(['shift', 'enter']);
+      keyDownUp(['shift', 'enter']);
+
+      const cell = getCell(-1, 1, true);
+      const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
+      const menuOffset = $dropdownMenu.offset();
+      const cellOffset = $(cell).offset();
+
+      expect($dropdownMenu.length).toBe(1);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
+      expect(menuOffset.left).toBeCloseTo(cellOffset.left);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
+    });
+
+    it('should be possible to open the dropdown menu from the focused column when a range of the columns are selected', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        dropdownMenu: true
+      });
+
+      selectColumns(1, 4, -1);
+      listen();
+      keyDownUp(['shift', 'enter']);
+
+      const cell = getCell(-1, 1, true);
+      const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
+      const menuOffset = $dropdownMenu.offset();
+      const cellOffset = $(cell).offset();
+
+      expect($dropdownMenu.length).toBe(1);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
+      expect(menuOffset.left).toBeCloseTo(cellOffset.left);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
+    });
+
+    it('should be possible to open the dropdown menu only by triggering the action only from the lowest column header', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        dropdownMenu: true,
+        afterGetColumnHeaderRenderers(headerRenderers) {
+          headerRenderers.push(columnHeader.bind(this));
+          headerRenderers.push(columnHeader.bind(this));
+        },
+      });
+
+      selectCell(-1, -1); // corner
+      keyDownUp(['shift', 'enter']);
+
+      {
+        expect($(document.body).find('.htDropdownMenu:visible').length).toBe(0);
+        expect(getSelectedRange()).toEqualCellRange(['highlight: -1,-1 from: -1,-1 to: -1,-1']);
+      }
+
+      selectCell(1, -1); // row header
+      keyDownUp(['shift', 'enter']);
+
+      {
+        expect($(document.body).find('.htDropdownMenu:visible').length).toBe(0);
+        expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,-1']);
+      }
+
+      selectCell(-3, 1); // the first (top) column header
+      keyDownUp(['shift', 'enter']);
+
+      {
+        expect($(document.body).find('.htDropdownMenu:visible').length).toBe(0);
+        expect(getSelectedRange()).toEqualCellRange(['highlight: -3,1 from: -3,1 to: -3,1']);
+      }
+
+      selectCell(-2, 1); // the second column header
+      keyDownUp(['shift', 'enter']);
+
+      {
+        expect($(document.body).find('.htDropdownMenu:visible').length).toBe(0);
+        expect(getSelectedRange()).toEqualCellRange(['highlight: -2,1 from: -2,1 to: -2,1']);
+      }
+
+      selectCell(-1, 1); // the third (bottom) column header
+      keyDownUp(['shift', 'enter']);
+
+      {
+        expect($(document.body).find('.htDropdownMenu:visible').length).toBe(1);
+        expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
+      }
+    });
+
+    it('should not trigger the editor to be opened', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        dropdownMenu: true,
+      });
+
+      selectCell(-1, 1);
+      keyDownUp(['shift', 'enter']);
+
+      expect(getActiveEditor()).toBeUndefined();
+    });
+  });
+
+  describe('"Shift" + "Alt/Option" + "ArrowDown"', () => {
+    it('should be possible to open the dropdown menu in the correct position triggered from the single cell', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: false,
+        dropdownMenu: true
+      });
+
+      selectCell(1, 1);
+      keyDownUp(['shift', 'alt', 'arrowdown']);
+
+      const cell = getCell(-1, 1, true);
+      const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
+      const menuOffset = $dropdownMenu.offset();
+      const cellOffset = $(cell).offset();
+
+      expect($dropdownMenu.length).toBe(1);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
+      expect(menuOffset.left).toBeCloseTo(cellOffset.left);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -1,1 to: 2,1']);
+    });
+
+    it('should be possible to open the dropdown menu on the left position when on the right there is no space left', () => {
+      handsontable({
+        data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        dropdownMenu: true
+      });
+
+      const lastColumn = countCols() - 1;
+
+      selectCell(-1, lastColumn);
+      keyDownUp(['shift', 'alt', 'arrowdown']);
+
+      const cell = getCell(-1, lastColumn, true);
+      const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
+      const menuOffset = $dropdownMenu.offset();
+      const menuWidth = $dropdownMenu.outerWidth();
+      const cellOffset = $(cell).offset();
+      const cellWidth = $(cell).outerWidth();
+
+      expect($dropdownMenu.length).toBe(1);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
+      expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth + cellWidth);
+      expect(getSelectedRange()).toEqualCellRange([
+        `highlight: -1,${lastColumn} from: -1,${lastColumn} to: 3,${lastColumn}`
+      ]);
+    });
+
+    it('should be possible to open the dropdown menu in the correct position triggered from the range of the cells', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: false,
+        dropdownMenu: true
+      });
+
+      selectCells([[2, 4, 0, 0]]);
+      keyDownUp(['shift', 'alt', 'arrowdown']);
+
+      const cell = getCell(-1, 4, true);
+      const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
+      const menuOffset = $dropdownMenu.offset();
+      const cellOffset = $(cell).offset();
+
+      expect($dropdownMenu.length).toBe(1);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
+      expect(menuOffset.left).toBeCloseTo(cellOffset.left);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,4 from: -1,4 to: 2,4']);
+    });
+
+    it('should be possible to open the dropdown menu in the correct position triggered from the range of non-contiguous selection', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: false,
+        dropdownMenu: true
+      });
+
+      selectCells([[2, 4, 0, 0], [2, 3, 2, 2]]);
+      keyDownUp(['shift', 'alt', 'arrowdown']);
+
+      const cell = getCell(-1, 3, true);
+      const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
+      const menuOffset = $dropdownMenu.offset();
+      const cellOffset = $(cell).offset();
+
+      expect($dropdownMenu.length).toBe(1);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
+      expect(menuOffset.left).toBeCloseTo(cellOffset.left);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: -1,3 to: 2,3']);
+    });
+
+    it('should be possible to open the dropdown menu in the correct position triggered from the single cell (navigableHeaders on)', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        dropdownMenu: true
+      });
+
+      selectCell(1, 1);
+      keyDownUp(['shift', 'alt', 'arrowdown']);
+
+      const cell = getCell(-1, 1, true);
+      const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
+      const menuOffset = $dropdownMenu.offset();
+      const cellOffset = $(cell).offset();
+
+      expect($dropdownMenu.length).toBe(1);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
+      expect(menuOffset.left).toBeCloseTo(cellOffset.left);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
+    });
+
+    it('should be possible to open the dropdown menu in the correct position triggered from the range of the cells (navigableHeaders on)', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        dropdownMenu: true
+      });
+
+      selectCells([[2, 4, 0, 0]]);
+      keyDownUp(['shift', 'alt', 'arrowdown']);
+
+      const cell = getCell(-1, 4, true);
+      const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
+      const menuOffset = $dropdownMenu.offset();
+      const cellOffset = $(cell).offset();
+
+      expect($dropdownMenu.length).toBe(1);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
+      expect(menuOffset.left).toBeCloseTo(cellOffset.left);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,4 from: -1,4 to: 2,4']);
+    });
+
+    it('should be possible to open the dropdown menu in the correct position triggered from the range of non-contiguous selection (navigableHeaders on)', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        dropdownMenu: true
+      });
+
+      selectCells([[2, 4, 0, 0], [2, 3, 2, 2]]);
+      keyDownUp(['shift', 'alt', 'arrowdown']);
+
+      const cell = getCell(-1, 3, true);
+      const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
+      const menuOffset = $dropdownMenu.offset();
+      const cellOffset = $(cell).offset();
+
+      expect($dropdownMenu.length).toBe(1);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
+      expect(menuOffset.left).toBeCloseTo(cellOffset.left);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,3 from: -1,3 to: 2,3']);
+    });
+
+    it('should be possible to open the dropdown menu from the focused column when a range of the columns are selected', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        dropdownMenu: true
+      });
+
+      selectColumns(1, 4, -1);
+      listen();
+      keyDownUp(['shift', 'alt', 'arrowdown']);
+
+      const cell = getCell(-1, 1, true);
+      const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
+      const menuOffset = $dropdownMenu.offset();
+      const cellOffset = $(cell).offset();
+
+      expect($dropdownMenu.length).toBe(1);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
+      expect(menuOffset.left).toBeCloseTo(cellOffset.left);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
+    });
+
+    it('should be possible to open the dropdown menu only by triggering the action only from the lowest column header', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        dropdownMenu: true,
+        afterGetColumnHeaderRenderers(headerRenderers) {
+          headerRenderers.push(columnHeader.bind(this));
+          headerRenderers.push(columnHeader.bind(this));
+        },
+      });
+
+      selectCell(-1, -1); // corner
+      keyDownUp(['shift', 'alt', 'arrowdown']);
+
+      {
+        expect($(document.body).find('.htDropdownMenu:visible').length).toBe(0);
+        expect(getSelectedRange()).toEqualCellRange(['highlight: -1,-1 from: -1,-1 to: -1,-1']);
+      }
+
+      selectCell(1, -1); // row header
+      keyDownUp(['shift', 'alt', 'arrowdown']);
+
+      {
+        expect($(document.body).find('.htDropdownMenu:visible').length).toBe(0);
+        expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,-1']);
+      }
+
+      selectCell(-3, 1); // the first (top) column header
+      keyDownUp(['shift', 'alt', 'arrowdown']);
+
+      {
+        expect($(document.body).find('.htDropdownMenu:visible').length).toBe(0);
+        expect(getSelectedRange()).toEqualCellRange(['highlight: -3,1 from: -3,1 to: -3,1']);
+      }
+
+      selectCell(-2, 1); // the second column header
+      keyDownUp(['shift', 'alt', 'arrowdown']);
+
+      {
+        expect($(document.body).find('.htDropdownMenu:visible').length).toBe(0);
+        expect(getSelectedRange()).toEqualCellRange(['highlight: -2,1 from: -2,1 to: -2,1']);
+      }
+
+      selectCell(-1, 1); // the third (bottom) column header
+      keyDownUp(['shift', 'alt', 'arrowdown']);
+
+      {
+        expect($(document.body).find('.htDropdownMenu:visible').length).toBe(1);
+        expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
+      }
+    });
+
+    it('should not trigger the editor to be opened', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        dropdownMenu: true,
+      });
+
+      selectCell(-1, 1);
+      keyDownUp(['shift', 'alt', 'arrowdown']);
+
+      expect(getActiveEditor()).toBeUndefined();
+
+      selectCell(1, 1);
+      keyDownUp(['shift', 'alt', 'arrowdown']);
+
+      // the editor is created and prepared after cell selection but should be still not opened
+      expect(getActiveEditor().isOpened()).toBe(false);
+    });
+  });
+});
