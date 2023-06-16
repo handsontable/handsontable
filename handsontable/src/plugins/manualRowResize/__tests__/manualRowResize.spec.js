@@ -943,8 +943,6 @@ describe('manualRowResize', () => {
 
       const $rowHeader = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
 
-      debugger;
-
       $rowHeader.simulate('mouseover');
 
       const $handle = spec().$container.find('.manualRowResizer');
