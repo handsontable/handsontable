@@ -29,11 +29,11 @@ In case of data grids and spreadsheet components, there's no universal accessibi
 
 ## Accessibility demo
 
-DRAFT: A simple interactive demo showcasing Handsontable's capabilities for logical and intuitive keyboard navigation, and how the configuration affects the grid's behavior.
+A simple interactive demo showcasing Handsontable's capabilities for logical and intuitive keyboard navigation, and how the configuration affects the grid's behavior.
 
 ## Keyboard navigation
 
-A word about our overview toward shortcuts, and a link to the new Keyboard navigation page.
+A word about our approach toward shortcuts, and a link to the new Keyboard navigation page.
 
 ## Supported screen readers
 
