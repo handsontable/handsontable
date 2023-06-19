@@ -1,5 +1,5 @@
 <template>
-  <label id="switch" class="switch" :class="{ ready: isReady }">
+  <label id="switch" class="switch" :class="{ ready: isReady }" :aria-label="isDarkTheme ? 'Light theme' : 'Dark Theme'">
     <div class="inner" v-show="isReady">
       <input type="checkbox" v-on:change="toggleTheme" :checked="isDarkTheme">
       <span class="slider round"></span>

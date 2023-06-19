@@ -92,14 +92,16 @@ module.exports = {
       containerHeaderHtml: '<div class="toc-container-header">In this article</div>'
     },
     anchor: {
-      permalinkSymbol: '',
+      permalinkSymbol: `
+        <span class="sr-only">Jump to heading</span>
+        <span aria-hidden="true">#</span>
+      `,
       permalinkHref: getPermalinkHrefMethod(uniqueSlugs),
       callback(token, slugInfo) {
         // The map is filled in before by a legacy `permalinkHref` method.
         if (['h1', 'h2', 'h3'].includes(token.tag)) {
           const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(token.attrGet('id'));
           const slugWithoutNumber = duplicatedSlugsMatch?.[1];
-
           if (slugWithoutNumber && uniqueSlugs.has(slugWithoutNumber)) {
             token.attrSet('id', slugWithoutNumber);
             slugInfo.slug = slugWithoutNumber;

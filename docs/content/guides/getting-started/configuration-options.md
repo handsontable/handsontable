@@ -180,7 +180,7 @@ const hot = new Handsontable(container, {
 If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
 :::
 
-#### Example
+### Example
 
 To configure each cell in the grid as read-only, apply the [`readOnly`](@/api/options.md#readonly) option as a top-level grid option.
 
@@ -304,7 +304,7 @@ Alternatively, you can use the [`HotColumn`](@/guides/columns/react-hot-column.m
 If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
 :::
 
-#### Example
+### Example
 
 In the example below, the [`columns`](@/api/options.md#columns) option is set to a function.
 
@@ -464,7 +464,7 @@ The function can take three arguments:<br>
 If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
 :::
 
-#### Example
+### Example
 
 In the example below, the [`cells`](@/api/options.md#cells) option sets each cell in the first and fourth row as [`readOnly`](@/api/options.md#readonly).
 
@@ -604,7 +604,7 @@ const hot = new Handsontable(container, {
 If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
 :::
 
-#### Example
+### Example
 
 In the example below, the [`cell`](@/api/options.md#cell) option sets cell `A1`(`0, 0`) and cell `B2`(`1, 1`) as [`readOnly`](@/api/options.md#readonly).
 
@@ -898,7 +898,7 @@ The function can take three arguments:<br>
 />
 ```
 :::
-#### Example
+### Example
 
 In the example below, the modified [`cells`](@/api/options.md#cells) options overwrite the top-level grid options.
 

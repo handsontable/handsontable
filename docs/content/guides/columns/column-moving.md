@@ -92,7 +92,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 :::
 :::
 
-#### Move column headers
+### Move column headers
 
 When you move columns, the default column headers (A, B, C) stay in place.
 

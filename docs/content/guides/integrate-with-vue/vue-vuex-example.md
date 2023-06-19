@@ -33,7 +33,7 @@ Toggle [`readOnly`](@/api/options.md#readonly) for the entire table.
     <hot-table ref="wrapper" :settings="hotSettings"></hot-table>
   </div>
   <div id="vuex-preview">
-    <h4>Vuex store dump:</h4>
+    <h3>Vuex store dump:</h3>
     <table></table>
   </div>
 </div>

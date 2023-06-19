@@ -1,6 +1,6 @@
 <template>
   <nav class="nav-frameworks nav-links">
-    <img :src="imageUrl"/>
+    <img :src="imageUrl" :alt="getFrameworkName(frameworkWithoutNumber)"/>
     <!-- user links -->
     <nav class="nav-item" >
       <DropdownLink @item-click="onFrameworkClick" :item="item"></DropdownLink>
@@ -90,13 +90,14 @@ export default {
           isHtmlLink: true
         };
       });
-    }
+    },
   },
   computed: {
     imageUrl() {
-      const frameworkWithoutNumber = (this.legacyFramework ?? this.$page.currentFramework).replace(/\d+$/, '');
-
-      return this.$withBase(`/img/pages/introduction/${frameworkWithoutNumber}.svg`);
+      return this.$withBase(`/img/pages/introduction/${this.frameworkWithoutNumber}.svg`);
+    },
+    frameworkWithoutNumber() {
+      return (this.legacyFramework ?? this.$page.currentFramework).replace(/\d+$/, '');
     },
     item() {
       return {
