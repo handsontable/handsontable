@@ -2197,18 +2197,6 @@ const REGISTERED_HOOKS = [
   'modifyRowHeaderWidth',
 
   /**
-   * Fired from the `populateFromArray` method during the `autofill` process. Fired for each "autofilled" cell individually.
-   *
-   * @deprecated
-   * @event Hooks#beforeAutofillInsidePopulate
-   * @param {object} index Object containing `row` and `col` properties, defining the number of rows/columns from the initial cell of the autofill.
-   * @param {string} direction Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`.
-   * @param {Array[]} input Contains an array of rows with data being used in the autofill.
-   * @param {Array} deltas The deltas array passed to the `populateFromArray` method.
-   */
-  'beforeAutofillInsidePopulate',
-
-  /**
    * Fired when the start of the selection is being modified (e.g. Moving the selection with the arrow keys).
    *
    * @event Hooks#modifyTransformStart
@@ -2679,10 +2667,6 @@ const REMOVED_HOOKS = new Map([
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 const DEPRECATED_HOOKS = new Map([
-  [
-    'beforeAutofillInsidePopulate',
-    'The plugin hook "beforeAutofillInsidePopulate" is deprecated and will be removed in the next major release.'
-  ],
   [
     'beforeRemoveCellClassNames',
     'The hook "beforeRemoveCellClassNames" is deprecated and will be removed in the next major release.'

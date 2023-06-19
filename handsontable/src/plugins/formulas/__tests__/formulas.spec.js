@@ -2885,6 +2885,40 @@ describe('Formulas general', () => {
     expect(getDataAtCell(1, 4)).toEqual(3);
   });
 
+  it('should display calculated formula after changing value using `beforeChange` hook #6932', () => {
+    handsontable({
+      data: [
+        ['2016', 1, 1, 2, 3],
+        ['2017', 10, 11, 12, 13],
+        ['2018', 20, 11, 14, 13],
+        ['2019', 30, 15, 12, 13],
+      ],
+      rowHeaders: true,
+      colHeaders: true,
+      formulas: {
+        engine: HyperFormula
+      },
+      beforeChange(beforeChanges) {
+        beforeChanges[0][3] = '=SUM(B3:E3)';
+      },
+    });
+
+    setDataAtCell(0, 0, 1);
+
+    expect(getData()).toEqual([
+      [58, 1, 1, 2, 3],
+      ['2017', 10, 11, 12, 13],
+      ['2018', 20, 11, 14, 13],
+      ['2019', 30, 15, 12, 13],
+    ]);
+    expect(getSourceData()).toEqual([
+      ['=SUM(B3:E3)', 1, 1, 2, 3],
+      ['2017', 10, 11, 12, 13],
+      ['2018', 20, 11, 14, 13],
+      ['2019', 30, 15, 12, 13],
+    ]);
+  });
+
   describe('handling dates', () => {
     it('should handle date functions properly', () => {
       handsontable({
