@@ -5,7 +5,8 @@ import CommandExecutor from './commandExecutor';
 import EventManager from '../../eventManager';
 import ItemsFactory from './itemsFactory';
 import Menu from './menu';
-import { getWindowScrollLeft, getWindowScrollTop, hasClass } from '../../helpers/dom/element';
+import { getDocumentOffsetByElement } from './utils';
+import { hasClass } from '../../helpers/dom/element';
 import {
   ROW_ABOVE,
   ROW_BELOW,
@@ -24,6 +25,7 @@ import './contextMenu.scss';
 
 export const PLUGIN_KEY = 'contextMenu';
 export const PLUGIN_PRIORITY = 70;
+const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 Hooks.getSingleton().register('afterContextMenuDefaultOptions');
 Hooks.getSingleton().register('beforeContextMenuShow');
@@ -163,6 +165,7 @@ export class ContextMenu extends BasePlugin {
 
     this.addHook('afterOnCellContextMenu', event => this.onAfterOnCellContextMenu(event));
 
+    this.registerShortcuts();
     super.enablePlugin();
   }
 
@@ -176,6 +179,7 @@ export class ContextMenu extends BasePlugin {
     this.disablePlugin();
     this.enablePlugin();
 
+    this.unregisterShortcuts();
     super.updatePlugin();
   }
 
@@ -193,41 +197,62 @@ export class ContextMenu extends BasePlugin {
   }
 
   /**
+   * Register shortcuts responsible for toggling context menu.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .addShortcut({
+        keys: [['Control/Meta', 'Shift', '\\'], ['Shift', 'F10']],
+        callback: () => {
+          const { highlight } = this.hot.getSelectedRangeLast();
+          const rect = this.hot.getCell(highlight.row, highlight.col, true).getBoundingClientRect();
+          const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
+
+          this.open({
+            left: rect.left + offset.left,
+            top: rect.top + offset.top - 1 + rect.height,
+          });
+          this.hot._registerTimeout(() => {
+            this.menu.selectFirstCell();
+          });
+        },
+        runOnlyIf: () => this.hot.getSelectedRangeLast() && !this.menu.isOpened(),
+        group: SHORTCUTS_GROUP,
+      });
+  }
+
+  /**
+   * Unregister shortcuts responsible for toggling context menu.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .removeShortcutsByGroup(SHORTCUTS_GROUP);
+  }
+
+  /**
    * Opens menu and re-position it based on the passed coordinates.
    *
-   * @param {Event} event The mouse event object.
+   * @param {{ top: number, left: number }|Event} position An object with `top` and `left` properties
+   * which contains coordinates relative to the browsers viewport (without included scroll offsets).
+   * Or if the native event is passed the menu will be positioned based on the `pageX` and `pageY`
+   * coordinates.
+   * @fires Hooks#beforeContextMenuShow
+   * @fires Hooks#afterContextMenuShow
    */
-  open(event) {
-    if (!this.menu) {
+  open(position) {
+    if (this.menu?.isOpened()) {
       return;
     }
 
     this.prepareMenuItems();
     this.menu.open();
-
-    if (!this.menu.isOpened()) {
-      return;
-    }
-
-    let offsetTop = 0;
-    let offsetLeft = 0;
-
-    if (this.hot.rootDocument !== this.menu.container.ownerDocument) {
-      const { frameElement } = this.hot.rootWindow;
-      const { top, left } = frameElement.getBoundingClientRect();
-
-      offsetTop = top - getWindowScrollTop(event.view);
-      offsetLeft = left - getWindowScrollLeft(event.view);
-
-    } else {
-      offsetTop = -1 * getWindowScrollTop(this.menu.hotMenu.rootWindow);
-      offsetLeft = -1 * getWindowScrollLeft(this.menu.hotMenu.rootWindow);
-    }
-
-    this.menu.setPosition({
-      top: parseInt(event.pageY, 10) + offsetTop,
-      left: parseInt(event.pageX, 10) + offsetLeft,
-    });
+    this.menu.setPosition(position);
   }
 
   /**
@@ -344,7 +369,12 @@ export class ContextMenu extends BasePlugin {
       }
     }
 
-    this.open(event);
+    const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
+
+    this.open({
+      top: event.clientY + offset.top,
+      left: event.clientX + offset.left,
+    });
   }
 
   /**

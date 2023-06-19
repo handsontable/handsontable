@@ -314,7 +314,6 @@ export class DropdownMenu extends BasePlugin {
    * @fires Hooks#beforeDropdownMenuShow
    * @fires Hooks#afterDropdownMenuShow
    */
-
   open(position) {
     if (this.menu?.isOpened()) {
       return;
