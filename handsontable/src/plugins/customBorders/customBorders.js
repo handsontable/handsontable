@@ -787,6 +787,16 @@ export class CustomBorders extends BasePlugin {
         return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS);
       },
       disabled() {
+        const range = this.getSelectedRangeLast();
+
+        if (!range) {
+          return true;
+        }
+
+        if (range.isSingleHeader()) {
+          return true;
+        }
+
         return this.selection.isSelectedByCorner();
       },
       submenu: {

@@ -1,5 +1,6 @@
 import { BasePlugin } from '../base';
 import { arrayEach } from '../../helpers/array';
+import { objectEach } from '../../helpers/object';
 import CommandExecutor from '../contextMenu/commandExecutor';
 import { getDocumentOffsetByElement } from '../contextMenu/utils';
 import EventManager from '../../eventManager';
@@ -262,8 +263,8 @@ export class DropdownMenu extends BasePlugin {
         this.open({
           left: rect.left + offset.left,
           top: rect.top + target.offsetHeight + offset.top,
-          width: rect.width,
-          height: rect.height,
+        }, {
+          left: rect.width,
         });
         this.hot._registerTimeout(() => {
           this.menu.selectFirstCell();
@@ -311,19 +312,21 @@ export class DropdownMenu extends BasePlugin {
    * which contains coordinates relative to the browsers viewport (without included scroll offsets).
    * Or if the native event is passed the menu will be positioned based on the `pageX` and `pageY`
    * coordinates.
+   * @param {{ above: number, below: number, left: number, right: number }} offset An object allows applying
+   * the offset to the menu position.
    * @fires Hooks#beforeDropdownMenuShow
    * @fires Hooks#afterDropdownMenuShow
    */
-  open(position) {
+  open(position, offset = { above: 0, below: 0, left: 0, right: 0 }) {
     if (this.menu?.isOpened()) {
       return;
     }
 
     this.menu.open();
 
-    if (position.width) {
-      this.menu.setOffset('left', position.width);
-    }
+    objectEach(offset, (value, key) => {
+      this.menu.setOffset(key, value);
+    });
     this.menu.setPosition(position);
   }
 
@@ -400,8 +403,8 @@ export class DropdownMenu extends BasePlugin {
       this.open({
         left: rect.left + offset.left,
         top: rect.top + event.target.offsetHeight + 3 + offset.top,
-        width: rect.width,
-        height: rect.height,
+      }, {
+        left: rect.width,
       });
     }
   }

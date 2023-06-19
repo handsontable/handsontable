@@ -425,6 +425,72 @@ describe('ContextMenu', () => {
         expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
       });
 
+      it('should display a disabled entry, when the column header is selected', () => {
+        handsontable({
+          data: createSpreadsheetData(4, 4),
+          contextMenu: true,
+          rowHeaders: true,
+          colHeaders: true,
+          navigableHeaders: true,
+          beforeContextMenuShow() {
+            this.deselectCell();
+          }
+        });
+
+        selectCell(-1, 1);
+        contextMenu();
+
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Alignment';
+        });
+
+        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+      });
+
+      it('should display a disabled entry, when the row header is selected', () => {
+        handsontable({
+          data: createSpreadsheetData(4, 4),
+          contextMenu: true,
+          rowHeaders: true,
+          colHeaders: true,
+          navigableHeaders: true,
+          beforeContextMenuShow() {
+            this.deselectCell();
+          }
+        });
+
+        selectCell(1, -1);
+        contextMenu();
+
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Alignment';
+        });
+
+        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+      });
+
+      it('should display a disabled entry, when the corner is selected', () => {
+        handsontable({
+          data: createSpreadsheetData(4, 4),
+          contextMenu: true,
+          rowHeaders: true,
+          colHeaders: true,
+          navigableHeaders: true,
+          beforeContextMenuShow() {
+            this.deselectCell();
+          }
+        });
+
+        selectCell(-1, -1);
+        contextMenu();
+
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Alignment';
+        });
+
+        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+      });
+
       it('should enable the item when all rows are hidden', () => {
         handsontable({
           data: createSpreadsheetData(5, 5),

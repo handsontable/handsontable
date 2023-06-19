@@ -293,6 +293,63 @@ describe('ContextMenu', () => {
         expect(readOnlyItem.hasClass('htDisabled')).toBe(false);
       });
 
+      it('should disable the item when the row header is focused', () => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          contextMenu: true,
+          navigableHeaders: true,
+        });
+
+        selectCell(1, -1);
+        getPlugin('contextMenu').open({ top: 0, left: 0 });
+
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Read only';
+        });
+
+        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+      });
+
+      it('should disable the item when the column header is focused', () => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          contextMenu: true,
+          navigableHeaders: true,
+        });
+
+        selectCell(-1, 1);
+        getPlugin('contextMenu').open({ top: 0, left: 0 });
+
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Read only';
+        });
+
+        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+      });
+
+      it('should disable the item when the corner is focused', () => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          contextMenu: true,
+          navigableHeaders: true,
+        });
+
+        selectCell(-1, -1);
+        getPlugin('contextMenu').open({ top: 0, left: 0 });
+
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Read only';
+        });
+
+        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+      });
+
       it('should disable the item when all rows are trimmed', () => {
         handsontable({
           data: createSpreadsheetData(5, 5),

@@ -770,7 +770,17 @@ export class Comments extends BasePlugin {
    * @param {object} defaultOptions The menu options.
    */
   addToContextMenu(defaultOptions) {
-    const isThereAnyCellRendered = () => {
+    const isThereAnySelectedCellToProcess = () => {
+      const range = this.hot.getSelectedRangeLast();
+
+      if (!range) {
+        return false;
+      }
+
+      if (range.isSingleHeader() || range.highlight.isHeader()) {
+        return false;
+      }
+
       return this.hot.rowIndexMapper.getRenderableIndexesLength() > 0 &&
              this.hot.columnIndexMapper.getRenderableIndexesLength() > 0;
     };
@@ -790,7 +800,7 @@ export class Comments extends BasePlugin {
         },
         callback: () => this.onContextMenuAddComment(),
         disabled: () => {
-          if (!isThereAnyCellRendered()) {
+          if (!isThereAnySelectedCellToProcess()) {
             return true;
           }
 
@@ -804,7 +814,7 @@ export class Comments extends BasePlugin {
         },
         callback: () => this.onContextMenuRemoveComment(),
         disabled: () => {
-          if (!isThereAnyCellRendered()) {
+          if (!isThereAnySelectedCellToProcess()) {
             return true;
           }
 
@@ -835,7 +845,7 @@ export class Comments extends BasePlugin {
         },
         callback: () => this.onContextMenuMakeReadOnly(),
         disabled: () => {
-          if (!isThereAnyCellRendered()) {
+          if (!isThereAnySelectedCellToProcess()) {
             return true;
           }
 

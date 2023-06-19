@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
 import { arrayEach } from '../../helpers/array';
+import { objectEach } from '../../helpers/object';
 import CommandExecutor from './commandExecutor';
 import EventManager from '../../eventManager';
 import ItemsFactory from './itemsFactory';
@@ -214,7 +215,11 @@ export class ContextMenu extends BasePlugin {
           this.open({
             left: rect.left + offset.left,
             top: rect.top + offset.top - 1 + rect.height,
+          }, {
+            left: rect.width,
+            above: -rect.height,
           });
+
           this.hot._registerTimeout(() => {
             this.menu.selectFirstCell();
           });
@@ -242,16 +247,22 @@ export class ContextMenu extends BasePlugin {
    * which contains coordinates relative to the browsers viewport (without included scroll offsets).
    * Or if the native event is passed the menu will be positioned based on the `pageX` and `pageY`
    * coordinates.
+   * @param {{ above: number, below: number, left: number, right: number }} offset An object allows applying
+   * the offset to the menu position.
    * @fires Hooks#beforeContextMenuShow
    * @fires Hooks#afterContextMenuShow
    */
-  open(position) {
+  open(position, offset = { above: 0, below: 0, left: 0, right: 0 }) {
     if (this.menu?.isOpened()) {
       return;
     }
 
     this.prepareMenuItems();
     this.menu.open();
+
+    objectEach(offset, (value, key) => {
+      this.menu.setOffset(key, value);
+    });
     this.menu.setPosition(position);
   }
 
@@ -259,11 +270,7 @@ export class ContextMenu extends BasePlugin {
    * Closes the menu.
    */
   close() {
-    if (!this.menu) {
-      return;
-    }
-
-    this.menu.close();
+    this.menu?.close();
     this.itemsFactory = null;
   }
 

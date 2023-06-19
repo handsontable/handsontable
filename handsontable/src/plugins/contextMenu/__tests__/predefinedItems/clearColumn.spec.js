@@ -19,7 +19,8 @@ describe('ContextMenu', () => {
         contextMenu: ['clear_column'],
         height: 100,
         rowHeaders: true,
-        colHeaders: true
+        colHeaders: true,
+        navigableHeaders: true,
       });
 
       contextMenu();
@@ -55,6 +56,30 @@ describe('ContextMenu', () => {
       contextMenuPlugin.close();
 
       hot.selectAll();
+
+      contextMenu();
+
+      expect(getClearColumnItem().hasClass('htDisabled')).toBe(true);
+
+      contextMenuPlugin.close();
+
+      hot.selectCell(-1, 1);
+
+      contextMenu();
+
+      expect(getClearColumnItem().hasClass('htDisabled')).toBe(true);
+
+      contextMenuPlugin.close();
+
+      hot.selectCell(1, -1);
+
+      contextMenu();
+
+      expect(getClearColumnItem().hasClass('htDisabled')).toBe(true);
+
+      contextMenuPlugin.close();
+
+      hot.selectCell(-1, -1);
 
       contextMenu();
 

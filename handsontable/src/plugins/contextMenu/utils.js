@@ -46,23 +46,6 @@ export function isSelectionDisabled(cell) {
 }
 
 /**
- * @param {Core} hot The Handsontable instance.
- * @returns {Array[]|null}
- */
-export function getValidSelection(hot) {
-  const selected = hot.getSelected();
-
-  if (!selected) {
-    return null;
-  }
-  if (selected[0] < 0) {
-    return null;
-  }
-
-  return selected;
-}
-
-/**
  * @param {string} className The full element class name to process.
  * @param {string} alignment The slignment class name to compare with.
  * @returns {string}
