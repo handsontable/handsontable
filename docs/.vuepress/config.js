@@ -99,6 +99,7 @@ module.exports = {
       permalinkHref: getPermalinkHrefMethod(uniqueSlugs),
       callback(token, slugInfo) {
         // The map is filled in before by a legacy `permalinkHref` method.
+        
         if (['h1', 'h2', 'h3'].includes(token.tag)) {
           const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(token.attrGet('id'));
           const slugWithoutNumber = duplicatedSlugsMatch?.[1];
