@@ -18,4 +18,108 @@ Migrate from Handsontable 12.4 to Handsontable 13.0, released on June 22, 2023.
 
 [[toc]]
 
-## Step 1:
+## Step 1: Update to Angular 12 or higher
+
+Handsontable 13.0 requires Angular 12 or higher. If you're using an older version of Angular, you need to upgrade it.
+
+If you're having any issues with Handsontable's [Angular wrapper](@/guides/integrate-with-angular/angular-installation.md), contact our
+[technical support](https://handsontable.com/contact?category=technical_support) for help.
+
+## Step 2: Stop using `beforeAutofillInsidePopulate`
+
+Handsontable 13.0 removes the [`beforeAutofillInsidePopulate`](https://handsontable.com/docs/javascript-data-grid/api/hooks/#beforeautofillinsidepopulate) hook,
+which has been marked as deprecated ever since Handsontable [9.0.0](@/guides/upgrade-and-migration/release-notes.md#deprecated-3).
+
+Make sure you're not using this hook.
+
+## Step 3: Remove `direction` and `deltas` from your `populateFromArray()` calls
+
+The [`populateFromArray()`](@/api/core.md#populatefromarray) method no longer accepts `direction` and `deltas` arguments, as they were used only by the
+deprecated [`beforeAutofillInsidePopulate`](https://handsontable.com/docs/javascript-data-grid/api/hooks/#beforeautofillinsidepopulate) hook. Make sure that you
+don't pass these arguments to [`populateFromArray()`](@/api/core.md#populatefromarray).
+
+## Step 4: Instead of `getFirstNotHiddenIndex()`, use `getNearestNotHiddenIndex()`
+
+Handsontable 13.0 removes the [`getFirstNotHiddenIndex()`](https://handsontable.com/docs/javascript-data-grid/api/index-mapper/#getfirstnothiddenindex) method,
+which has been marked as deprecated since Handsontable [12.1.0](@/guides/upgrade-and-migration/release-notes.md#deprecated-2). Instead , use the new
+[`getNearestNotHiddenIndex()`](@/api/indexMapper.md#getnearestnothiddenindex) method.
+
+For more details, see the API reference:
+
+- [`getFirstNotHiddenIndex()`](https://handsontable.com/docs/javascript-data-grid/api/index-mapper/#getfirstnothiddenindex)
+- [`getNearestNotHiddenIndex()`](@/api/indexMapper.md#getnearestnothiddenindex)
+
+#### Before
+
+```js
+handsontableInstance.getFirstNotHiddenIndex(0, 1, true, 1);
+```
+
+#### After
+
+```js
+handsontableInstance.getNearestNotHiddenIndex(0, 1, true);
+```
+
+## Step 5: Replace `'insert_row'` and `'insert_col'` in your `alter()` calls
+
+The [`alter()`](@/api/core.md#alter) method no longer accepts `'insert_row'` and `'insert_col'` arguments, which have been marked as deprecated since
+Handsontable [12.2.0](@/guides/upgrade-and-migration/release-notes.md#deprecated).
+
+You can read more about this change on [our blog](https://handsontable.com/blog/handsontable-12.2.0).
+
+#### Before
+
+```js
+// insert a row below the last row
+handsontableInstance.alter('insert_row');
+
+// insert a row above row number 10
+handsontableInstance.alter('insert_row', 10);
+
+// insert a column after the last column
+handsontableInstance.alter('insert_col');
+
+// insert a column before column number 10
+handsontableInstance.alter('insert_col', 10);
+```
+
+#### After
+
+```js
+// insert a row below the last row
+handsontableInstance.alter('insert_row_below');
+
+// insert a row above row number 10
+handsontableInstance.alter('insert_row_above', 10);
+
+// insert a column after the last column
+handsontableInstance.alter('insert_col_end');
+
+// insert a column before column number 10
+handsontableInstance.alter('insert_col_start', 10);
+```
+
+## Step 6: The `beforeChange` hook is fired before the `afterSetDataAtCell` and `afterSetDataAtRowProp` hooks
+
+Handsontable 13.0 changes the order of execution for the following hooks:
+
+- [`beforeChange`](@/api/hooks.md#beforechange)
+- [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell)
+- [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop)
+
+For more details on this change, see this pull request: [#10231](https://github.com/handsontable/handsontable/pull/10231).
+
+#### Before
+
+Up to Handsontable 12.4, the hooks were fired in the following order:
+
+1. [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell) or [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop)
+2. [`beforeChange`](@/api/hooks.md#beforechange)
+
+#### After
+
+Since Handsontable 13.0, the hooks are fired in the following order:
+
+1. [`beforeChange`](@/api/hooks.md#beforechange)
+2. [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell) or [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop)

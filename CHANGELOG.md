@@ -15,7 +15,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Breaking change**: Angular: Rewritten the Angular wrapper to be based on Angular@12 and to support Angular versions 12 and above. [#10396](https://github.com/handsontable/handsontable/pull/10396)
 
 ### Changed
-- **Breaking change**: Swapping `beforeChange` and `afterSetDataAtCell`/`afterSetDataAtRowProp` hooks order [#677](https://github.com/handsontable/handsontable/pull/677)
+- **Breaking change**: Swapping `beforeChange` and `afterSetDataAtCell`/`afterSetDataAtRowProp` hooks order [#10231](https://github.com/handsontable/handsontable/pull/10231)
 
 ### Removed
 - **Breaking change**: Removed the the deprecated hooks, methods and options for 13.0.0. [#10407](https://github.com/handsontable/handsontable/issues/10407)
