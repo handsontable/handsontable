@@ -9,19 +9,36 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [13.0.0] - 2023-06-20
+## [13.0.0] - 2023-06-22
 
 ### Added
-- **Breaking change**: Angular: Rewritten the Angular wrapper to be based on Angular@12 and to support Angular versions 12 and above. [#10396](https://github.com/handsontable/handsontable/pull/10396)
+
+- Angular: Added support for Angular 16. [#10396](https://github.com/handsontable/handsontable/pull/10396)
 
 ### Changed
-- **Breaking change**: Swapping `beforeChange` and `afterSetDataAtCell`/`afterSetDataAtRowProp` hooks order [#10231](https://github.com/handsontable/handsontable/pull/10231)
+
+- **Breaking change**: Changed the order in which hooks are executed: now, the `beforeChange` hook is fired before the `afterSetDataAtCell` and `afterSetDataAtRowProp` hooks. [#10231](https://github.com/handsontable/handsontable/pull/10231)
+- React, Angular, Vue 2, Vue 3: Changed Handsontable's policy toward supporting frameworks versions. From now on, Handsontable supports only those versions of Angular, React, and Vue that are officially supported by their respective teams. Dropping Handsontable's support for any older versions of the frameworks won't be treated as a breaking change. [#10396](https://github.com/handsontable/handsontable/pull/10396)
+- Changed the margins of the context menu in the RTL layout direction. [#10375](https://github.com/handsontable/handsontable/pull/10375)
 
 ### Removed
-- **Breaking change**: Removed the the deprecated hooks, methods and options for 13.0.0. [#10407](https://github.com/handsontable/handsontable/issues/10407)
+
+- **Breaking change (Angular)**: Dropped support for Angular 13 and lower. From now on, Handsontable supports only those versions of Angular that are officially supported by the Angular team. Dropping Handsontable's support for any older Angular versions won't be treated as a breaking change. [#10396](https://github.com/handsontable/handsontable/pull/10396)
+- **Breaking change**: Removed the deprecated `beforeAutofillInsidePopulate` hook. [#10407](https://github.com/handsontable/handsontable/pull/10407)
+- **Breaking change**: Removed the deprecated `getFirstNotHiddenIndex` method. Instead, use the `getNearestNotHiddenIndex()` method. [#10407](https://github.com/handsontable/handsontable/pull/10407)
+- **Breaking change**: Removed the deprecated parameters of the `alter()` method: `insert_row` and `insert_col`. Instead, use the following parameters: `insert_row_above`, `insert_row_below`, `insert_col_start`, and `insert_col_end`. [#10407](https://github.com/handsontable/handsontable/pull/10407)
+- **Breaking change**: Removed the deprecated parameters of the `populateFromArray()` method: `direction` and `deltas`. [#10407](https://github.com/handsontable/handsontable/pull/10407)
 
 ### Fixed
-- Changed margins for context-menu in RTL mode and fixed problem with wrong position for check inside Read only entry [#10375](https://github.com/handsontable/handsontable/pull/10375)
+
+- Fixed an issue where the "Read only" icon of the context menu displayed incorrectly in the RTL layout direction. [#10375](https://github.com/handsontable/handsontable/pull/10375)
+
+For more information on Handsontable 13.0.0, see:
+
+- [Blog post (13.4.0)](PLACEHOLDER)
+- [Documentation (13.0)](https://handsontable.com/docs/13.0)
+- [Migration guide (12.4 → 13.0)](https://handsontable.com/docs/migration-from-12.4-to-13.0)
+- [Release notes (13.0.0)](https://handsontable.com/docs/release-notes/#_13-0-0)
 
 ## [12.4.0] - 2023-05-23
 
