@@ -142,7 +142,10 @@ class EditorManager {
 
         stopImmediatePropagation(event); // required by HandsontableEditor
       },
-    }], config);
+    }], {
+      ...config,
+      runOnlyIf: () => isDefined(this.instance.getSelected()),
+    });
   }
 
   /**

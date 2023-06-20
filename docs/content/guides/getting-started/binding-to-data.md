@@ -1143,7 +1143,6 @@ root.render(<ExampleComponent />);
   - [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell)
   - [`afterUpdateData`](@/api/hooks.md#afterupdatedata)
   - [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings)
-  - [`beforeAutofillInsidePopulate`](@/api/hooks.md#beforeautofillinsidepopulate)
   - [`beforeLoadData`](@/api/hooks.md#beforeloaddata)
   - [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata)
   - [`modifyData`](@/api/hooks.md#modifydata)
