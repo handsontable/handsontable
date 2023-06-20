@@ -1,6 +1,4 @@
 import { arrayMap } from '../helpers/array';
-import { toSingleLine } from '../helpers/templateLiteralTag';
-import { warn } from '../helpers/console';
 import {
   createIndexMap,
   getListWithInsertedItems,
@@ -18,7 +16,13 @@ import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
 import { ChangesObservable } from './changesObservable/observable';
 
-const deprecationWarns = new Set(['getFirstNotHiddenIndex']);
+/**
+ * A set of deprecated feature names.
+ *
+ * @type {Set<string>}
+ */
+// eslint-disable-next-line no-unused-vars
+const deprecationWarns = new Set();
 
 /**
  * @class IndexMapper
@@ -376,61 +380,6 @@ export class IndexMapper {
     }
 
     return null;
-  }
-
-  /**
-   * Search for the first visible, not hidden index (represented by a visual index).
-   *
-   * This method is deprecated and will be removed in a next major version of Handsontable.
-   * Use the {@link IndexMapper#getNearestNotHiddenIndex} method instead.
-   *
-   * @deprecated
-   * @param {number} fromVisualIndex Visual start index. Starting point for finding destination index. Start point may be destination
-   * point when handled index is NOT hidden.
-   * @param {number} incrementBy We are searching for a next visible indexes by increasing (to be precise, or decreasing) indexes.
-   * This variable represent indexes shift. We are looking for an index:
-   * - for rows: from the top to the bottom (increasing indexes, then variable should have value 1) or
-   * other way around (decreasing indexes, then variable should have the value -1)
-   * - for columns: from the left to the right (increasing indexes, then variable should have value 1)
-   * or other way around (decreasing indexes, then variable should have the value -1).
-   * @param {boolean} searchAlsoOtherWayAround The argument determine if an additional other way around search should be
-   * performed, when the search in the first direction had no effect in finding visual index.
-   * @param {number} indexForNextSearch Visual index for next search, when the flag is truthy.
-   *
-   * @returns {number|null} Visual column index or `null`.
-   */
-  getFirstNotHiddenIndex(fromVisualIndex, incrementBy, searchAlsoOtherWayAround = false,
-                         indexForNextSearch = fromVisualIndex - incrementBy) {
-    if (deprecationWarns.has('getFirstNotHiddenIndex')) {
-      deprecationWarns.delete('getFirstNotHiddenIndex');
-      warn(toSingleLine`The method "getFirstNotHiddenIndex" is deprecated and will be removed in the next\x20
-                        major release. Please use "getNearestNotHiddenIndex" instead.`);
-    }
-
-    const physicalIndex = this.getPhysicalFromVisualIndex(fromVisualIndex);
-
-    // First or next (it may be end of the table) index is beyond the table boundaries.
-    if (physicalIndex === null) {
-      // Looking for the next index in the opposite direction. This conditional won't be fulfilled when we STARTED
-      // the search from the index beyond the table boundaries.
-      if (searchAlsoOtherWayAround === true && indexForNextSearch !== fromVisualIndex - incrementBy) {
-        return this.getFirstNotHiddenIndex(indexForNextSearch, -incrementBy, false, indexForNextSearch);
-      }
-
-      return null;
-    }
-
-    if (this.isHidden(physicalIndex) === false) {
-      return fromVisualIndex;
-    }
-
-    // Looking for the next index, as the current isn't visible.
-    return this.getFirstNotHiddenIndex(
-      fromVisualIndex + incrementBy,
-      incrementBy,
-      searchAlsoOtherWayAround,
-      indexForNextSearch
-    );
   }
 
   /**

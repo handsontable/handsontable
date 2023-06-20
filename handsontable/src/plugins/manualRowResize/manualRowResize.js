@@ -53,6 +53,7 @@ export class ManualRowResize extends BasePlugin {
     this.guide = rootDocument.createElement('DIV');
     this.eventManager = new EventManager(this);
     this.pressed = null;
+    this.isTriggeredByRMB = false;
     this.dblclick = 0;
     this.autoresizeTimeout = null;
 
@@ -373,6 +374,11 @@ export class ManualRowResize extends BasePlugin {
       return;
     }
 
+    // A "mouseover" action is triggered right after executing "contextmenu" event. It should be ignored.
+    if (this.isTriggeredByRMB === true) {
+      return;
+    }
+
     if (this.checkIfRowHeader(event.target)) {
       const th = this.getClosestTHParent(event.target);
 
@@ -524,6 +530,26 @@ export class ManualRowResize extends BasePlugin {
   }
 
   /**
+   * Callback for "contextmenu" event triggered on element showing move handle. It removes handle and guide elements.
+   *
+   * @private
+   */
+  onContextMenu() {
+    this.hideHandleAndGuide();
+    this.hot.rootElement.removeChild(this.handle);
+    this.hot.rootElement.removeChild(this.guide);
+
+    this.pressed = false;
+    this.isTriggeredByRMB = true;
+
+    // There is thrown "mouseover" event right after opening a context menu. This flag inform that handle
+    // shouldn't be drawn just after removing it.
+    this.hot._registerImmediate(() => {
+      this.isTriggeredByRMB = false;
+    });
+  }
+
+  /**
    * Binds the mouse events.
    *
    * @private
@@ -535,6 +561,7 @@ export class ManualRowResize extends BasePlugin {
     this.eventManager.addEventListener(rootElement, 'mousedown', e => this.onMouseDown(e));
     this.eventManager.addEventListener(rootWindow, 'mousemove', e => this.onMouseMove(e));
     this.eventManager.addEventListener(rootWindow, 'mouseup', () => this.onMouseUp());
+    this.eventManager.addEventListener(this.handle, 'contextmenu', () => this.onContextMenu());
   }
 
   /**
