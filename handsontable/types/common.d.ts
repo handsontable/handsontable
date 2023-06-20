@@ -51,7 +51,7 @@ export interface RangeType {
  */
 export type ChangeSource = 'auto' | 'edit' | 'loadData' | 'populateFromArray' | 'spliceCol' |
                            'spliceRow' | 'timeValidate' | 'dateValidate' | 'validateCells' |
-                           'Autofill.fill' | 'ContextMenu.clearColumns' | 'ContextMenu.columnLeft' |
+                           'Autofill.fill' | 'ContextMenu.clearColumn' | 'ContextMenu.columnLeft' |
                            'ContextMenu.columnRight' | 'ContextMenu.removeColumn' |
                            'ContextMenu.removeRow' | 'ContextMenu.rowAbove' | 'ContextMenu.rowBelow' |
                            'CopyPaste.paste' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'ColumnSummary.set' |
