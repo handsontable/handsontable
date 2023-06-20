@@ -34,17 +34,17 @@ For more information on this release, see:
 - [Documentation (13.0)](https://handsontable.com/docs/13.0)
 - [Migration guide (12.4 → 13.0)](@/guides/upgrade-and-migration/migrating-from-12.4-to-13.0.md)
 
-### Added
+#### Added
 
 - Angular: Added support for Angular 16. [#10396](https://github.com/handsontable/handsontable/pull/10396)
 
-### Changed
+#### Changed
 
 - **Breaking change**: Changed the order in which hooks are executed: now, the [`beforeChange`](@/api/hooks.md#beforechange) hook is fired before the [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell) and [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop) hooks. [#10231](https://github.com/handsontable/handsontable/pull/10231)
 - React, Angular, Vue 2, Vue 3: Changed Handsontable's policy toward supporting frameworks versions. From now on, Handsontable supports only those versions of Angular, React, and Vue that are officially supported by their respective teams. Dropping Handsontable's support for any older versions of the frameworks won't be treated as a breaking change. [#10396](https://github.com/handsontable/handsontable/pull/10396)
 - Changed the margins of the context menu in the RTL layout direction. [#10375](https://github.com/handsontable/handsontable/pull/10375)
 
-### Removed
+#### Removed
 
 - **Breaking change (Angular)**: Dropped support for Angular 13 and lower. From now on, Handsontable supports only those versions of Angular that are officially supported by the Angular team. Dropping Handsontable's support for any older Angular versions won't be treated as a breaking change. [#10396](https://github.com/handsontable/handsontable/pull/10396)
 - **Breaking change**: Removed the deprecated [`beforeAutofillInsidePopulate`](https://handsontable.com/docs/javascript-data-grid/api/hooks/#beforeautofillinsidepopulate) hook. [#10407](https://github.com/handsontable/handsontable/pull/10407)
@@ -52,7 +52,7 @@ For more information on this release, see:
 - **Breaking change**: Removed the deprecated parameters of the [`alter()`](@/api/core.md#alter) method: `insert_row` and `insert_col`. Instead, use the following parameters: `insert_row_above`, `insert_row_below`, `insert_col_start`, and `insert_col_end`. [#10407](https://github.com/handsontable/handsontable/pull/10407)
 - **Breaking change**: Removed the deprecated parameters of the [`populateFromArray()`](@/api/core.md#populatefromarray) method: `direction` and `deltas`. [#10407](https://github.com/handsontable/handsontable/pull/10407)
 
-### Fixed
+#### Fixed
 
 - Fixed an issue where the "Read only" icon of the context menu displayed incorrectly in the RTL layout direction. [#10375](https://github.com/handsontable/handsontable/pull/10375)
 
