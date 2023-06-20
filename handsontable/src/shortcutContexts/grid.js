@@ -154,5 +154,8 @@ export function shortcutsGridContext(hot) {
   }, {
     keys: [['Shift', 'Tab']],
     callback: () => commandsPool.moveCellSelectionInlineEnd(),
+  }, {
+    keys: [['Control/Meta', 'Backspace']],
+    callback: () => commandsPool.scrollToFocusedCell(),
   }], config);
 }
