@@ -89,7 +89,7 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
       return;
     }
 
-    const pressedKey = normalizeEventKey(event.key);
+    const pressedKey = normalizeEventKey(event);
     let extraModifierKeys = [];
 
     if (isModifierKey(pressedKey)) {
@@ -122,7 +122,7 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
       return;
     }
 
-    const pressedKey = normalizeEventKey(event.key);
+    const pressedKey = normalizeEventKey(event);
 
     if (isModifierKey(pressedKey) === false) {
       return;
