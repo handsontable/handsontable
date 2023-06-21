@@ -247,7 +247,7 @@ export class ContextMenu extends BasePlugin {
    * which contains coordinates relative to the browsers viewport (without included scroll offsets).
    * Or if the native event is passed the menu will be positioned based on the `pageX` and `pageY`
    * coordinates.
-   * @param {{ above?: number, below?: number, left?: number, right?: number }} offset An object allows applying
+   * @param {{ above: number, below: number, left: number, right: number }} offset An object allows applying
    * the offset to the menu position.
    * @fires Hooks#beforeContextMenuShow
    * @fires Hooks#afterContextMenuShow
