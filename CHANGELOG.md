@@ -17,8 +17,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
-- **Breaking change**: Changed the order in which hooks are executed: now, the `beforeChange` hook is fired before the `afterSetDataAtCell` and `afterSetDataAtRowProp` hooks. [#10231](https://github.com/handsontable/handsontable/pull/10231)
-- React, Angular, Vue 2, Vue 3: Changed Handsontable's policy toward supporting frameworks versions. From now on, Handsontable supports only those versions of Angular, React, and Vue that are officially supported by their respective teams. Dropping Handsontable's support for any older versions of the frameworks won't be treated as a breaking change. [#10396](https://github.com/handsontable/handsontable/pull/10396)
+- **Breaking change**: React, Angular, Vue 2, Vue 3: Changed Handsontable's policy toward older versions of supported frameworks. From now on, Handsontable supports only those versions of any supported frameworks that are officially supported by their respective teams. Dropping Handsontable's support for any older framework versions won't be treated as a breaking change. [#10396](https://github.com/handsontable/handsontable/pull/10396)
+- **Breaking change**: Changed the order in which three hooks are executed: now, the `beforeChange` hook is fired before the `afterSetDataAtCell` and `afterSetDataAtRowProp` hooks. [#10231](https://github.com/handsontable/handsontable/pull/10231)
 - Changed the margins of the context menu in the RTL layout direction. [#10375](https://github.com/handsontable/handsontable/pull/10375)
 
 ### Removed
