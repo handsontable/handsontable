@@ -89,6 +89,31 @@ displaySeparator();
         cwd: 'docs',
         shell: true,
       });
+
+      const linesCount = parseInt((await execa.command('wc -l < .gitignore', {
+        cwd: 'docs',
+        shell: true
+      })).stdout, 10);
+
+      // Remove "/content/api/" entry from the ./docs/.gitignore file so generated API
+      // docs can be committed to the branch.
+      await execa.command('cat ./.gitignore | grep -v "^/content/api/$" | tee .gitignore', {
+        cwd: 'docs',
+        shell: true,
+      });
+
+      const newLinesCount = parseInt((await execa.command('wc -l < .gitignore', {
+        cwd: 'docs',
+        shell: true
+      })).stdout, 10);
+
+      if (newLinesCount + 1 !== linesCount && !Number.isNaN(newLinesCount)) {
+        displayErrorMessage(
+          'The docs/.gitignore file modified by the release script is incorrect. Continuing the script' +
+          ' execution would result in a broken documentation build.'
+        );
+        process.exit(1);
+      }
     }
 
     // Regenerate docs API md files.
