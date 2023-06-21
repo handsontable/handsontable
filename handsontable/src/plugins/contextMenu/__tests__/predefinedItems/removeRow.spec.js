@@ -63,6 +63,75 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
+    it('should remove row when the menu is triggered by focused row header', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(1, -1);
+      getPlugin('contextMenu').open({ top: 0, left: 0 });
+
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
+        .not('.htSeparator')
+        .eq(4); // "Remove row"
+
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(false);
+      expect(getDataAtCol(0)).toEqual(['A1', 'A3', 'A4', 'A5']);
+    });
+
+    it('should not remove row when the menu is triggered by focused corner', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, -1);
+      getPlugin('contextMenu').open({ top: 0, left: 0 });
+
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
+        .not('.htSeparator')
+        .eq(4); // "Remove row"
+
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(true);
+      expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
+    });
+
+    it('should not remove row when the menu is triggered by focused column header', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, 1);
+      getPlugin('contextMenu').open({ top: 0, left: 0 });
+
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
+        .not('.htSeparator')
+        .eq(4); // "Remove row"
+
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(true);
+      expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
+    });
+
     it('should remove all rows when the menu is triggered by corner', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
