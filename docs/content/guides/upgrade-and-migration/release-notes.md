@@ -47,8 +47,8 @@ For more information on this release, see:
 #### Removed
 
 - **Breaking change (Angular)**: Dropped support for Angular 13 and lower. From now on, Handsontable supports only those versions of Angular that are officially supported by the Angular team. Dropping Handsontable's support for any older Angular versions won't be treated as a breaking change. [#10396](https://github.com/handsontable/handsontable/pull/10396)
-- **Breaking change**: Removed the deprecated [`beforeAutofillInsidePopulate`](https://handsontable.com/docs/javascript-data-grid/api/hooks/#beforeautofillinsidepopulate) hook. [#10407](https://github.com/handsontable/handsontable/pull/10407)
-- **Breaking change**: Removed the deprecated [`getFirstNotHiddenIndex`](https://handsontable.com/docs/javascript-data-grid/api/index-mapper/#getfirstnothiddenindex) method. Instead, use the [`getNearestNotHiddenIndex()`](@/api/indexMapper.md#getnearestnothiddenindex) method. [#10407](https://github.com/handsontable/handsontable/pull/10407)
+- **Breaking change**: Removed the deprecated [`beforeAutofillInsidePopulate`](https://handsontable.com/docs/12.4/javascript-data-grid/api/hooks/#beforeautofillinsidepopulate) hook. [#10407](https://github.com/handsontable/handsontable/pull/10407)
+- **Breaking change**: Removed the deprecated [`getFirstNotHiddenIndex`](https://handsontable.com/docs/12.4/javascript-data-grid/api/index-mapper/#getfirstnothiddenindex) method. Instead, use the [`getNearestNotHiddenIndex()`](@/api/indexMapper.md#getnearestnothiddenindex) method. [#10407](https://github.com/handsontable/handsontable/pull/10407)
 - **Breaking change**: Removed the deprecated parameters of the [`alter()`](@/api/core.md#alter) method: `insert_row` and `insert_col`. Instead, use the following parameters: `insert_row_above`, `insert_row_below`, `insert_col_start`, and `insert_col_end`. [#10407](https://github.com/handsontable/handsontable/pull/10407)
 - **Breaking change**: Removed the deprecated parameters of the [`populateFromArray()`](@/api/core.md#populatefromarray) method: `direction` and `deltas`. [#10407](https://github.com/handsontable/handsontable/pull/10407)
 

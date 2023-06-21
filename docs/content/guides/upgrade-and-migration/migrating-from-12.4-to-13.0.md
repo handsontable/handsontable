@@ -27,7 +27,7 @@ If you're having any issues with Handsontable's [Angular wrapper](@/guides/integ
 
 ## Step 2: Stop using the `beforeAutofillInsidePopulate` hook
 
-Handsontable 13.0 removes the [`beforeAutofillInsidePopulate`](https://handsontable.com/docs/javascript-data-grid/api/hooks/#beforeautofillinsidepopulate) hook,
+Handsontable 13.0 removes the [`beforeAutofillInsidePopulate`](https://handsontable.com/docs/12.4/javascript-data-grid/api/hooks/#beforeautofillinsidepopulate) hook,
 which has been marked as deprecated since Handsontable [9.0.0](@/guides/upgrade-and-migration/release-notes.md#deprecated-3).
 
 Make sure you're not using this hook.
@@ -35,18 +35,18 @@ Make sure you're not using this hook.
 ## Step 3: Remove `direction` and `deltas` from your `populateFromArray()` calls
 
 The [`populateFromArray()`](@/api/core.md#populatefromarray) method no longer accepts `direction` and `deltas` arguments, as they were used only by the
-deprecated [`beforeAutofillInsidePopulate`](https://handsontable.com/docs/javascript-data-grid/api/hooks/#beforeautofillinsidepopulate) hook. Make sure that you
+deprecated [`beforeAutofillInsidePopulate`](https://handsontable.com/docs/12.4/javascript-data-grid/api/hooks/#beforeautofillinsidepopulate) hook. Make sure that you
 don't pass these arguments to [`populateFromArray()`](@/api/core.md#populatefromarray).
 
 ## Step 4: Change from `getFirstNotHiddenIndex()` to `getNearestNotHiddenIndex()`
 
-Handsontable 13.0 removes the [`getFirstNotHiddenIndex()`](https://handsontable.com/docs/javascript-data-grid/api/index-mapper/#getfirstnothiddenindex) method,
+Handsontable 13.0 removes the [`getFirstNotHiddenIndex()`](https://handsontable.com/docs/12.4/javascript-data-grid/api/index-mapper/#getfirstnothiddenindex) method,
 which has been marked as deprecated since Handsontable [12.1.0](@/guides/upgrade-and-migration/release-notes.md#deprecated-2). Instead , use the new
 [`getNearestNotHiddenIndex()`](@/api/indexMapper.md#getnearestnothiddenindex) method.
 
 For more details, see the API reference:
 
-- [`getFirstNotHiddenIndex()`](https://handsontable.com/docs/javascript-data-grid/api/index-mapper/#getfirstnothiddenindex)
+- [`getFirstNotHiddenIndex()`](https://handsontable.com/docs/12.4/javascript-data-grid/api/index-mapper/#getfirstnothiddenindex)
 - [`getNearestNotHiddenIndex()`](@/api/indexMapper.md#getnearestnothiddenindex)
 
 #### Before
