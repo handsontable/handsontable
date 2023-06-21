@@ -71,14 +71,8 @@ You can read more about this change on [our blog](https://handsontable.com/blog/
 #### Before
 
 ```js
-// insert a row below the last row
-handsontableInstance.alter('insert_row');
-
 // insert a row above row number 10
 handsontableInstance.alter('insert_row', 10);
-
-// insert a column after the last column
-handsontableInstance.alter('insert_col');
 
 // insert a column before column number 10
 handsontableInstance.alter('insert_col', 10);
