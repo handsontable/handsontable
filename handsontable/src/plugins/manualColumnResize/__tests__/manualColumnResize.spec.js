@@ -1087,5 +1087,31 @@ describe('manualColumnResize', () => {
         expect($handle.css('z-index')).toBeGreaterThan(getTopClone().css('z-index'));
       });
     });
+
+    it('should remove resize handler when user clicks RMB', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        colHeaders: true,
+        manualColumnResize: true
+      });
+
+      const $colHeader = getTopClone().find('thead tr:eq(0) th:eq(2)');
+
+      $colHeader.simulate('mouseover');
+
+      const $handle = spec().$container.find('.manualColumnResizer');
+      const resizerPosition = $handle.position();
+
+      $handle.simulate('mousedown', { clientX: resizerPosition.left });
+
+      // To watch whether color has changed.
+      expect(getComputedStyle($handle[0]).backgroundColor).toBe('rgb(52, 169, 219)');
+
+      $handle.simulate('contextmenu');
+
+      await sleep(0);
+
+      expect(getComputedStyle($handle[0]).backgroundColor).not.toBe('rgb(52, 169, 219)');
+    });
   });
 });

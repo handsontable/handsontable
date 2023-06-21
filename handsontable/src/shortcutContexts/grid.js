@@ -31,6 +31,7 @@ export function shortcutsGridContext(hot) {
     callback: () => commandsPool.emptySelectedCells(),
   }], {
     group: EDITOR_EDIT_GROUP,
+    runOnlyIf: () => isDefined(hot.getSelected()),
   });
 
   context.addShortcuts([{

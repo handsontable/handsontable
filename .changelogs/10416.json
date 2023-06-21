@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue with not removing the resize handler when user clicks RMB ",
+  "type": "fixed",
+  "issueOrPR": 10416,
+  "breaking": false,
+  "framework": "none"
+}
