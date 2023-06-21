@@ -31,21 +31,27 @@ You need to define the grid's container as a starting point to initialize it. Us
 Both `width` and `height` could be defined as inline styles or as a CSS class property. In this case, it's important to define what should be an `overflow` parent properly. Handsontable looks for the closest element with `overflow: auto` or `overflow: hidden` to use it as a scrollable container. If no such element is found, a window will be used.
 
 ::: tip
+
 Handsontable doesn't observe CSS changes for containers out of the box.
 If you'd like to observe it, you can define the dimensions in the configuration object or create your own observer.
+
 :::
 
 ### Pass the size in the configuration
 
 You can pass width and height values to Handsontable as numbers or possible CSS values for the "width"/"height" properties:
+
 ::: only-for javascript
+
 ```js
 {
   width: '100px',
   height: '100px',
 }
 ```
+
 or
+
 ```js
 {
   width: '75%',
@@ -59,9 +65,11 @@ or
   height: 100,
 }
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
   <HotTable height={100} width={100} />
 ```
@@ -73,6 +81,7 @@ or
 ```jsx
   <HotTable height="100px" width="100px" />
 ```
+
 :::
 
 These dimensions will be set as inline styles in a container element, and `overflow: hidden` will be added automatically.
@@ -94,17 +103,21 @@ Handsontable observes window resizing. If the window's dimensions have changed, 
 You can easily overwrite this behaviour by returning `false` in the [`beforeRefreshDimensions`](@/api/hooks.md#beforerefreshdimensions) hook.
 
 ::: only-for javascript
+
 ```js
 {
   beforeRefreshDimensions() { return false; }
 }
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
   <HotTable beforeRefreshDimensions={() => false} />
 ```
+
 :::
 
 ## Manual resizing
@@ -112,11 +125,15 @@ You can easily overwrite this behaviour by returning `false` in the [`beforeRefr
 The Handsontable instance exposes the [`refreshDimensions()`](@/api/core.md#refreshdimensions) method, which helps you to resize grid elements properly.
 
 ::: only-for react
+
 ::: tip
+
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
-For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+For more information, see the [Instance methods](@/guides/getting-started/react-methods.md) page.
+
 :::
+
 :::
 
 ```js
@@ -126,7 +143,9 @@ hot.refreshDimensions();
 You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforerefreshdimensions) and [`afterRefreshDimensions`](@/api/hooks.md#afterrefreshdimensions).
 
 ::: only-for javascript
+
 ::: example #example --html 1 --css 2 --js 3
+
 ```html
 <div id="exampleParent"><!-- element with dynamically added styles -->
   <div id="example"></div>
@@ -180,11 +199,15 @@ triggerBtn.addEventListener('click', () => {
   }
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example :react --css 1 --js 2
+
 ```css
 #exampleParent {
   height: 157px;
@@ -254,9 +277,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Related articles
 

@@ -27,7 +27,9 @@ Mind that CSV exports contain only raw data, and don't include formulas, styling
 ### Export to file
 
 ::: only-for javascript
+
 ::: example #example1 --html 1 --js 2
+
 ```html
 <div id="example1"></div>
 
@@ -76,11 +78,15 @@ button.addEventListener('click', () => {
   });
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { useRef, useEffect } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -146,7 +152,9 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
+
 :::
+
 :::
 
 
@@ -155,7 +163,9 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 Open a console in browser developer tools to see the result for the below example.
 
 ::: only-for javascript
+
 ::: example #example2 --html 1 --js 2
+
 ```html
 <div id="example2"></div>
 
@@ -204,11 +214,15 @@ button.addEventListener('click', () => {
   console.log(exportedBlob);
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example2 :react
+
 ```jsx
 import { useRef, useEffect } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -274,16 +288,19 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ### Export as a string
 
 Open a console in browser developer tools to see the result for the below example.
 
 ::: only-for javascript
+
 ::: example #example3 --html 1 --js 2
+
 ```html
 <div id="example3"></div>
 
@@ -331,11 +348,15 @@ button.addEventListener('click', () => {
   console.log(exportedString);
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example3 :react
+
 ```jsx
 import { useRef, useEffect } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -400,25 +421,30 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Available methods
 
 ::: only-for react
+
 ::: tip
+
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
-For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+For more information, see the [Instance methods](@/guides/getting-started/react-methods.md) page.
+
 :::
+
 :::
 
 The plugin exposes the following methods to export data.
 
-* [`downloadFile(format, options)`](@/api/exportFile.md#downloadfile) - allows you to generate a downloadable file, directly in your browser.
-* [`exportAsBlob(format, options)`](@/api/exportFile.md#exportasblob) - allows you to export a JavaScript Blob object.
-* [`exportAsString(format, options)`](@/api/exportFile.md#exportasstring) - allows you to export data as a string.
+- [`downloadFile(format, options)`](@/api/exportFile.md#downloadfile) - allows you to generate a downloadable file, directly in your browser.
+- [`exportAsBlob(format, options)`](@/api/exportFile.md#exportasblob) - allows you to export a JavaScript Blob object.
+- [`exportAsString(format, options)`](@/api/exportFile.md#exportasstring) - allows you to export data as a string.
 
 All of them accept the same arguments:
 
@@ -438,7 +464,7 @@ Below you can find all supported options:
 
 Allows you to export data with a BOM signature.
 
-**Please note:** This property will prepend content with the UTF-16BE BOM signature (_FE FF_). The browser will convert the signature to the UTF-8 value (_EF BB BF_) automatically.
+Note that this property will prepend content with the UTF-16BE BOM signature (_FE FF_). The browser will convert the signature to the UTF-8 value (_EF BB BF_) automatically.
 
 You can use this property in all of the [available methods](#available-methods).
 
@@ -482,7 +508,7 @@ Default value: `false`
 
 Allows you to define the file extension.
 
-You can use this property in the **downloadFile** method.
+You can use this property in the `downloadFile()` method.
 
 Default value: `'csv'`
 
@@ -492,7 +518,7 @@ Allows you to define the file name.
 
 You can use predefined placeholders, which will be replaced by the date.
 
-You can use this property in the **downloadFile** method.
+You can use this property in the `downloadFile()` method.
 
 Default value: `'Handsontable [YYYY]-[MM]-[DD]'`
 
@@ -500,7 +526,7 @@ Default value: `'Handsontable [YYYY]-[MM]-[DD]'`
 
 Allows you to define the MIME type.
 
-You can use this property in the **downloadFile** and **exportAsBlob** methods.
+You can use this property in the `downloadFile()` and `exportAsBlob()` methods.
 
 Default value: `'text/csv'`
 

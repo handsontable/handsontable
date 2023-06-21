@@ -24,11 +24,15 @@ Search data across Handsontable, using the built-in API methods of the [`Search`
 ## Overview
 
 ::: only-for react
+
 ::: tip
+
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
-For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+For more information, see the [Instance methods](@/guides/getting-started/react-methods.md) page.
+
 :::
+
 :::
 
 The [`Search`](@/api/search.md) plugin provides an easy API to search data across Handsontable.
@@ -37,9 +41,9 @@ You should first enable the plugin by setting the [`search`](@/api/options.md#se
 
 [`query(queryStr, [callback], [queryMethod])`](@/api/search.md#query) method does 2 things. First of all, it returns an array of search results. Every element is an objects containing 3 properties:
 
-* `row` – index of the row where the value has been found
-* `col` – index of the column where the value has been found
-* `data` – the value that has been found
+- `row` – index of the row where the value has been found
+- `col` – index of the column where the value has been found
+- `data` – the value that has been found
 
 The second thing the [`query()`](@/api/search.md#query) method does is set the `isSearchResult` property for each cell. If a cell is in search results, then its `isSearchResult` is set to `true`, otherwise the property is set to `false`.
 
@@ -95,7 +99,9 @@ The example below:
 - Uses the [`Search`](@/api/search.md) plugin's [`query()`](@/api/search.md#query) method
 
 ::: only-for javascript
+
 ::: example #example1 --html 1 --js 2
+
 ```html
 <div class="controls">
   <input id="search_field" type="search" placeholder="Search">
@@ -136,11 +142,15 @@ searchField.addEventListener('keyup', function(event) {
   hot.render();
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { useRef, useEffect } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -198,9 +208,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Custom search result class
 
@@ -212,7 +223,9 @@ The example below highlights its search results in bold red. To do this, it:
 - Sets the [`Search`](@/api/search.md) plugin's [`searchResultClass`](@/api/options.md#search) option to `'my-custom-search-result-class'`
 
 ::: only-for javascript
+
 ::: example #example2 --css 1 --html 2 --js 3
+
 ````css
 .my-custom-search-result-class{
   color: #ff0000;
@@ -258,11 +271,15 @@ searchField.addEventListener('keyup', function(event) {
   hot.render();
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example2 :react --css 1 --js 2
+
 ````css
 .my-custom-search-result-class{
   color: #ff0000;
@@ -326,9 +343,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Custom query method
 
@@ -340,7 +358,9 @@ The example below searches only for exact search query matches. To do this, it:
 - Sets the [`Search`](@/api/search.md) plugin's [`queryMethod`](@/api/options.md#search) option to `onlyExactMatch`
 
 ::: only-for javascript
+
 ::: example #example3 --html 1 --js 2
+
 ```html
 <div class="controls">
   <input id="search_field3" type="search" placeholder="Search">
@@ -387,11 +407,15 @@ searchField.addEventListener('keyup', function(event) {
   hot.render();
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example3 :react
+
 ```jsx
 import { useRef, useEffect } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -456,9 +480,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Custom callback
 
@@ -470,7 +495,9 @@ The example below displays the number of matching search results. To do this, it
 - Sets the [`Search`](@/api/search.md) plugin's [`callback`](@/api/search.md) option to `searchResultCounter`
 
 ::: only-for javascript
+
 ::: example #example4 --html 1 --js 2
+
 ```html
 <div class="controls">
   <input id="search_field4" type="search" placeholder="Search">
@@ -531,11 +558,15 @@ searchField.addEventListener('keyup', function(event) {
   hot.render();
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example4 :react
+
 ```jsx
 import { useRef, useEffect, useState } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -612,9 +643,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Related API reference
 
