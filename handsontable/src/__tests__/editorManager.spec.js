@@ -93,5 +93,24 @@ describe('editorManager', () => {
         });
       });
     });
+
+    using('shortcut key', [
+      ['f2'],
+      ['backspace'],
+      ['delete'],
+      ['enter'],
+      ['enter', 'shift']
+    ], (shortcutKey) => {
+      it('should not throw an error when pressed in case when the table is not selected', () => {
+        handsontable();
+
+        selectCell(0, 0);
+        deselectCell(0, 0);
+
+        expect(() => {
+          keyDownUp(shortcutKey);
+        }).not.toThrowError();
+      });
+    });
   });
 });
