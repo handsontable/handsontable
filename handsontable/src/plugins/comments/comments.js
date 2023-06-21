@@ -10,19 +10,23 @@ import { deepClone, deepExtend, isObject } from '../../helpers/object';
 import EventManager from '../../eventManager';
 import { BasePlugin } from '../base';
 import CommentEditor from './commentEditor';
-import { checkSelectionConsistency, markLabelAsSelected } from '../contextMenu/utils';
 import DisplaySwitch from './displaySwitch';
-import * as C from '../../i18n/constants';
+import { SEPARATOR } from '../contextMenu/predefinedItems';
+import addEditCommentItem from './contextMenuItem/addEditComment';
+import removeCommentItem from './contextMenuItem/removeComment';
+import readOnlyCommentItem from './contextMenuItem/readOnlyComment';
 
 import './comments.scss';
 
+const privatePool = new WeakMap();
+
 export const PLUGIN_KEY = 'comments';
 export const PLUGIN_PRIORITY = 60;
-const privatePool = new WeakMap();
-const META_COMMENT = 'comment';
-const META_COMMENT_VALUE = 'value';
-const META_STYLE = 'style';
-const META_READONLY = 'readOnly';
+export const META_COMMENT = 'comment';
+export const META_COMMENT_VALUE = 'value';
+export const META_STYLE = 'style';
+export const META_READONLY = 'readOnly';
+const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -206,8 +210,8 @@ export class Comments extends BasePlugin {
     this.displaySwitch.addLocalHook('hide', () => this.hide());
     this.displaySwitch.addLocalHook('show', (row, col) => this.showAtCell(row, col));
 
+    this.registerShortcuts();
     this.registerListeners();
-
     super.enablePlugin();
   }
 
@@ -229,7 +233,56 @@ export class Comments extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.unregisterShortcuts();
     super.disablePlugin();
+  }
+
+  /**
+   * Register shortcuts responsible for toggling context menu.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    const context = this.hot.getShortcutManager().getContext('grid');
+
+    context.addShortcut({
+      keys: [['Control', 'Alt', 'M']],
+      callback: () => {
+        const range = this.hot.getSelectedRangeLast();
+
+        this.setRange(range);
+        this.show();
+        this.editor.focus();
+      },
+      stopPropagation: true,
+      runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isCell(),
+      group: SHORTCUTS_GROUP,
+    });
+
+    context.addShortcut({
+      keys: [['Control/Meta', 'Enter']],
+      callback: () => {},
+      runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isCell(),
+      group: SHORTCUTS_GROUP,
+    });
+
+    context.addShortcut({
+      keys: [['Escape']],
+      callback: () => {},
+      runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isCell(),
+      group: SHORTCUTS_GROUP,
+    });
+  }
+
+  /**
+   * Unregister shortcuts responsible for toggling context menu.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -403,6 +456,7 @@ export class Comments extends BasePlugin {
 
     const meta = this.hot.getCellMeta(this.range.from.row, this.range.from.col);
 
+    this.displaySwitch.cancelHiding();
     this.editor.setValue(meta[META_COMMENT] ? meta[META_COMMENT][META_COMMENT_VALUE] : null || '');
     this.editor.show();
     this.refreshEditor(true);
@@ -521,29 +575,6 @@ export class Comments extends BasePlugin {
 
     this.editor.setPosition(x, y);
     this.editor.setReadOnlyState(this.getCommentMeta(visualRow, visualColumn, META_READONLY));
-  }
-
-  /**
-   * Checks if there is a comment for selected range.
-   *
-   * @private
-   * @returns {boolean}
-   */
-  checkSelectionCommentsConsistency() {
-    const selected = this.hot.getSelectedRangeLast();
-
-    if (!selected) {
-      return false;
-    }
-
-    let hasComment = false;
-    const cell = selected.getTopStartCorner(); // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
-
-    if (this.getCommentMeta(cell.row, cell.col, META_COMMENT_VALUE)) {
-      hasComment = true;
-    }
-
-    return hasComment;
   }
 
   /**
@@ -707,152 +738,19 @@ export class Comments extends BasePlugin {
   }
 
   /**
-   * Context Menu's "Add comment" callback. Results in showing the comment editor.
-   *
-   * @private
-   */
-  onContextMenuAddComment() {
-    const coords = this.hot.getSelectedRangeLast();
-
-    this.preventEditorAutoSwitch = true;
-    this.displaySwitch.cancelHiding();
-
-    this.setRange({
-      from: coords.highlight,
-    });
-    this.show();
-    this.hot.deselectCell();
-    this.editor.focus();
-  }
-
-  /**
-   * Context Menu's "remove comment" callback.
-   *
-   * @private
-   */
-  onContextMenuRemoveComment() {
-    const coords = this.hot.getSelectedRangeLast();
-
-    this.preventEditorAutoSwitch = true;
-
-    coords.forAll((row, column) => {
-      if (row >= 0 && column >= 0) {
-        this.removeCommentAtCell(row, column, false);
-      }
-    });
-
-    this.hot.render();
-  }
-
-  /**
-   * Context Menu's "make comment read-only" callback.
-   *
-   * @private
-   */
-  onContextMenuMakeReadOnly() {
-    const coords = this.hot.getSelectedRangeLast();
-
-    this.preventEditorAutoSwitch = true;
-
-    coords.forAll((row, column) => {
-      if (row >= 0 && column >= 0) {
-        const currentState = !!this.getCommentMeta(row, column, META_READONLY);
-
-        this.updateCommentMeta(row, column, { [META_READONLY]: !currentState });
-      }
-    });
-  }
-
-  /**
    * Add Comments plugin options to the Context Menu.
    *
    * @private
-   * @param {object} defaultOptions The menu options.
+   * @param {object} options The menu options.
    */
-  addToContextMenu(defaultOptions) {
-    const isThereAnySelectedCellToProcess = () => {
-      const range = this.hot.getSelectedRangeLast();
-
-      if (!range) {
-        return false;
-      }
-
-      if (range.isSingleHeader() || range.highlight.isHeader()) {
-        return false;
-      }
-
-      return this.hot.rowIndexMapper.getRenderableIndexesLength() > 0 &&
-             this.hot.columnIndexMapper.getRenderableIndexesLength() > 0;
-    };
-
-    defaultOptions.items.push(
+  addToContextMenu(options) {
+    options.items.push(
       {
-        name: '---------',
+        name: SEPARATOR
       },
-      {
-        key: 'commentsAddEdit',
-        name: () => {
-          if (this.checkSelectionCommentsConsistency()) {
-            return this.hot.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_EDIT_COMMENT);
-          }
-
-          return this.hot.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ADD_COMMENT);
-        },
-        callback: () => this.onContextMenuAddComment(),
-        disabled: () => {
-          if (!isThereAnySelectedCellToProcess()) {
-            return true;
-          }
-
-          return !(this.hot.getSelectedLast() && !this.hot.selection.isSelectedByCorner());
-        }
-      },
-      {
-        key: 'commentsRemove',
-        name() {
-          return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COMMENT);
-        },
-        callback: () => this.onContextMenuRemoveComment(),
-        disabled: () => {
-          if (!isThereAnySelectedCellToProcess()) {
-            return true;
-          }
-
-          return !(this.hot.getSelectedLast() && !this.hot.selection.isSelectedByCorner());
-        }
-      },
-      {
-        key: 'commentsReadOnly',
-        name() {
-          let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT);
-          const hasProperty = checkSelectionConsistency(this.getSelectedRangeLast(), (row, col) => {
-            let readOnlyProperty = this.getCellMeta(row, col)[META_COMMENT];
-
-            if (readOnlyProperty) {
-              readOnlyProperty = readOnlyProperty[META_READONLY];
-            }
-
-            if (readOnlyProperty) {
-              return true;
-            }
-          });
-
-          if (hasProperty) {
-            label = markLabelAsSelected(label);
-          }
-
-          return label;
-        },
-        callback: () => this.onContextMenuMakeReadOnly(),
-        disabled: () => {
-          if (!isThereAnySelectedCellToProcess()) {
-            return true;
-          }
-
-          return !(this.hot.getSelectedLast() && !this.hot.selection.isSelectedByCorner()) ||
-                 !this.checkSelectionCommentsConsistency();
-        }
-      }
+      addEditCommentItem(this),
+      removeCommentItem(this),
+      readOnlyCommentItem(this),
     );
   }
 
