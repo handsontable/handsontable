@@ -83,12 +83,6 @@ displaySeparator();
       // Create a new branch based on the git tag (not `develop` branch). Thanks to that, the docs
       // branch will not contain the code changes made between freeze and release.
       await spawnProcess(`git checkout -b ${docsVersion} ${releaseVersion}`);
-      // Remove "/content/api/" entry from the ./docs/.gitignore file so generated API
-      // docs can be committed to the branch.
-      await execa.command('cat ./.gitignore | grep -v "^/content/api/$" | tee .gitignore', {
-        cwd: 'docs',
-        shell: true,
-      });
 
       const linesCount = parseInt((await execa.command('wc -l < .gitignore', {
         cwd: 'docs',
