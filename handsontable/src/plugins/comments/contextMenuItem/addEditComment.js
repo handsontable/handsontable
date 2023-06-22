@@ -23,7 +23,7 @@ export default function addEditCommentItem(plugin) {
 
       plugin.setRange(range);
       plugin.show();
-      plugin.editor.focus();
+      plugin.focusEditor();
     },
     disabled() {
       const range = this.getSelectedRangeLast();
