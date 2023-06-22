@@ -35,7 +35,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 For more information on Handsontable 13.0.0, see:
 
-- [Blog post (13.4.0)](PLACEHOLDER)
+- [Blog post (13.0.0)](PLACEHOLDER)
 - [Documentation (13.0)](https://handsontable.com/docs/13.0)
 - [Migration guide (12.4 → 13.0)](https://handsontable.com/docs/migration-from-12.4-to-13.0)
 - [Release notes (13.0.0)](https://handsontable.com/docs/release-notes/#_13-0-0)
