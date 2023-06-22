@@ -2972,11 +2972,11 @@ console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate}) 
 
 ## Find the code on GitHub
 
-- [JavaScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.4.0/docs/js/demo/)
-- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.4.0/docs/ts/demo/)
-- [Angular demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.4.0/docs/angular/demo/)
-- [React demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.4.0/docs/react/demo/)
-- [Vue demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.4.0/docs/vue/demo/)
+- [JavaScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/13.0.0/docs/js/demo/)
+- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/13.0.0/docs/ts/demo/)
+- [Angular demo app](https://github.com/handsontable/handsontable/tree/develop/examples/13.0.0/docs/angular/demo/)
+- [React demo app](https://github.com/handsontable/handsontable/tree/develop/examples/13.0.0/docs/react/demo/)
+- [Vue demo app](https://github.com/handsontable/handsontable/tree/develop/examples/13.0.0/docs/vue/demo/)
 
 ## Try out the demo's features
 
