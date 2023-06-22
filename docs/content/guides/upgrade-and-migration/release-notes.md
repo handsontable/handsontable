@@ -30,7 +30,7 @@ Released on June 22, 2023.
 
 For more information on this release, see:
 
-- [Blog post (13.0.0)](PLACEHOLDER)
+- [Blog post (13.0.0)](https://handsontable.com/blog/handsontable-13-0-0-support-for-angular-16-and-new-frameworks-support-policy)
 - [Documentation (13.0)](https://handsontable.com/docs/13.0)
 - [Migration guide (12.4 → 13.0)](@/guides/upgrade-and-migration/migrating-from-12.4-to-13.0.md)
 
