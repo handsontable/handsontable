@@ -30,6 +30,7 @@ The following table outlines which number would change when a Major, Minor, or P
 | Patch | Z (x.y.Z)      | Backward-compatible bug fixes are introduced. We define a bug fix as an internal change that fixes an incorrect behavior of Handsontable. |
 
 ::: only-for javascript
+
 ## Versioning of framework variants
 
 Up to Handsontable 8.3.2, each framework variant of Handsontable was versioned separately:
@@ -40,9 +41,11 @@ Up to Handsontable 8.3.2, each framework variant of Handsontable was versioned s
 - [Vue 3 wrapper](@/guides/integrate-with-vue3/vue3-installation.md)
 
 Starting with version 8.4.0 (released in May 2021), all framework variants of Handsontable have the same version number.
+
 :::
 
 ::: only-for react
+
 ## Versioning of framework variants
 
 Up to Handsontable 8.3.2, the JavaScript variant and the React variant of Handsontable were versioned separately:
@@ -50,4 +53,5 @@ Up to Handsontable 8.3.2, the JavaScript variant and the React variant of Handso
 - [React wrapper](@/guides/getting-started/introduction.md)
 
 Starting with version 8.4.0 (released in May 2021), both the JavaScript variant and the React variant of Handsontable have the same version number.
+
 :::

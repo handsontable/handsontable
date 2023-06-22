@@ -44,33 +44,41 @@ For more details on the breaking changes between HyperFormula 0.6.x and HyperFor
 In Handsontable 10.0.0, we changed the default values of the [`autoWrapCol`](@/api/options.md#autowrapcol) and [`autoWrapRow`](@/api/options.md#autowraprow) [configuration options](@/guides/getting-started/configuration-options.md), from `true` to `false` ([#8662](https://github.com/handsontable/handsontable/pull/8662)):
 
 ::: only-for javascript
+
 | Before                                              | After                                                |
 | --------------------------------------------------- | ---------------------------------------------------- |
 | [`autoWrapCol: true`](@/api/options.md#autowrapcol) | [`autoWrapCol: false`](@/api/options.md#autowrapcol) |
 | [`autoWrapRow: true`](@/api/options.md#autowraprow) | [`autoWrapRow: false`](@/api/options.md#autowraprow) |
+
 :::
 
 ::: only-for react
+
 | Before                                               | After                                                 |
 | ---------------------------------------------------- | ----------------------------------------------------- |
 | [`autoWrapCol={true}`](@/api/options.md#autowrapcol) | [`autoWrapCol={false}`](@/api/options.md#autowrapcol) |
 | [`autoWrapRow={true}`](@/api/options.md#autowraprow) | [`autoWrapRow={false}`](@/api/options.md#autowraprow) |
+
 :::
 
 We also changed the default values for the [`rowsLimit`](@/api/copyPaste.md#rowslimit) and [`columnsLimit`](@/api/copyPaste.md#columnslimit) options of the [`CopyPaste`](@/api/copyPaste.md) plugin, from `1000` to `Infinity` ([#8676](https://github.com/handsontable/handsontable/pull/8676)):
 
 ::: only-for javascript
+
 | Before                                                  | After                                                       |
 | ------------------------------------------------------- | ----------------------------------------------------------- |
 | [`rowsLimit: 1000`](@/api/copyPaste.md#rowslimit)       | [`rowsLimit: Infinity`](@/api/copyPaste.md#rowslimit)       |
 | [`columnsLimit: 1000`](@/api/copyPaste.md#columnslimit) | [`columnsLimit: Infinity`](@/api/copyPaste.md#columnslimit) |
+
 :::
 
 ::: only-for react
+
 | Before                                                   | After                                                        |
 | -------------------------------------------------------- | ------------------------------------------------------------ |
 | [`rowsLimit={1000}`](@/api/copyPaste.md#rowslimit)       | [`rowsLimit={Infinity}`](@/api/copyPaste.md#rowslimit)       |
 | [`columnsLimit={1000}`](@/api/copyPaste.md#columnslimit) | [`columnsLimit={Infinity}`](@/api/copyPaste.md#columnslimit) |
+
 :::
 
 ## Step 4: Adapt to the Handsontable hooks changes

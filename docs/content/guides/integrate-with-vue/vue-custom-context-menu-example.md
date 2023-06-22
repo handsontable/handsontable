@@ -19,6 +19,7 @@ Customize the context menu of your Vue 2 data grid, by creating a custom functio
 The following example implements the `@handsontable/vue` component, adding a custom Context Menu.
 
 ::: example #example1 :vue --html 1 --js 2
+
 ```html
 <div id="example1">
   <hot-table :settings="hotSettings"></hot-table>
@@ -79,6 +80,7 @@ new Vue({
 });
 /* end:skip-in-preview */
 ```
+
 :::
 
 ## Related articles

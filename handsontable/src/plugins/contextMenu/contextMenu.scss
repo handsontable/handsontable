@@ -80,14 +80,15 @@
 }
 
 .htContextMenu table tbody tr td .htItemWrapper {
-  margin-left: 10px;
-  margin-right: 6px;
+  margin-inline-start: 10px;
+  margin-inline-end: 6px;
 }
 
 .htContextMenu table tbody tr td div span.selected {
   margin-top: -2px;
   position: absolute;
-  left: 4px;
+  inset-inline-start: 4px;
+  inset-inline-end: 0;
 }
 
 .htContextMenu .ht_master .wtHolder {

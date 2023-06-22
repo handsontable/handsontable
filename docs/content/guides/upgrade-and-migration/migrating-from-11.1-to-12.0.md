@@ -34,6 +34,7 @@ Each [`updateSettings()`](@/api/core.md#updatesettings) call with the [`data`](@
 #### Migrating to Handsontable 12.0
 
 ::: only-for javascript
+
 If you need to reset your index mapper information and configuration options  along with updating your [`data`](@/api/options.md#data):
 
 - Instead of passing the [`data`](@/api/options.md#data) option to the [`updateSettings()`](@/api/core.md#updatesettings) method, run [`loadData()`](@/api/core.md#loadData) and provide the new dataset as its argument:
@@ -47,9 +48,11 @@ hotInstance.updateSettings({
 // Handsontable 12.0: this does reset your configuration options and index mapper information
 hotInstance.loadData(newDataset);
 ```
+
 :::
 
 ::: only-for react
+
 Updating your [`data`](@/api/options.md#data) through a component's property no longer resets your [index mapper](@/api/indexMapper.md) information and [configuration options](@/guides/getting-started/configuration-options.md).
 
 If you still want to reset the states when replacing [`data`](@/api/options.md#data), call the [`loadData()`](@/api/core.md#loadData) method, referencing the Handsontable instance from the component:
@@ -72,6 +75,7 @@ To learn more about referencing the Handsontable instance, see the [Instance met
 :::
 
 ::: only-for javascript
+
 #### Framework wrappers
 
 Updating your [`data`](@/api/options.md#data) through a component property no longer resets your index mapper information and configuration options.
@@ -83,6 +87,7 @@ Read more on referencing the Handsontable instance:
 - [Referencing the Handsontable instance in React](@/react/guides/getting-started/react-methods.md)
 - [Referencing the Handsontable instance in Vue 2](@/guides/integrate-with-vue/vue-hot-reference.md)
 - [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference.md)
+
 :::
 
 ## Step 2: Adjust to the `updatePlugin()` changes
@@ -157,7 +162,9 @@ You can't change this behavior by using any of Handsontable's APIs.
 ## Step 4: Adjust to the default keyboard shortcuts changes
 
 ::: tip
+
 These changes don't affect your custom keyboard shortcuts.
+
 :::
 
 Handsontable 12.0 introduces a new keyboard shortcuts API, [`ShortcutManager`](@/api/shortcutManager.md).
@@ -184,7 +191,9 @@ For example, the table below shows how this change affects the <kbd>**Ctrl**</kb
 | macOS   | <kbd>**Ctrl**</kbd> + <kbd>**A**</kbd> works<br><kbd>**Cmd**</kbd> + <kbd>**A**</kbd> works | Only <kbd>**Cmd**</kbd> + <kbd>**A**</kbd> works  |
 
 ::: tip
+
 The default keyboard shortcut for [merging cells](#keyboard-shortcuts-changes-cell-merging) is an exception: <kbd>**Cmd**</kbd> + <kbd>**M**</kbd> doesn't work anymore, as it conflicted with macOS's shortcut for window minimizing.
+
 :::
 
 #### Keyboard shortcuts changes: Navigation
@@ -271,8 +280,10 @@ To emphasize this, we changed the following property name:
 If you use a private implementation of Handsontable, and you can't avoid referring to Walkontable (for example, in your custom editor or plugin), update your Walkontable references from `handsontableInstance.view.wt` to `handsontableInstance.view._wt`.
 
 ::: tip
+
 **New method: [`getEditedCellRect()`](@/api/baseEditor.md#geteditedcellrect)**
 
 If your custom editor needs to know the size and position of the edited cell,
 now you can get them without referring to `_wt`. Instead, use the new [`getEditedCellRect()`](@/api/baseEditor.md#geteditedcellrect) method.
+
 :::

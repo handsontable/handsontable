@@ -1,0 +1,43 @@
+name: Bug Report
+description: Something is broken? Create a report to help us improve.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: textarea
+    id: describe-bug
+    attributes:
+      label: Describe the bug
+      description: Describe what happens and the steps to recreate the problem. Issues that we can't reproduced will be closed.
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Video/Screenshots
+      description: Please provide a screenshot or a short video presenting the issue.
+  - type: input
+    id: demo
+    attributes:
+      label: Provide a link to the demo with the bug reproduction
+      description: Use StackBlitz, CodeSandbox, CodePen, JSFiddle, or any other online sandbox.
+  - type: input
+    id: hot-version
+    attributes:
+      label: Handsontable version
+    validations:
+      required: true
+  - type: input
+    id: framework
+    attributes:
+      label: Framework version
+  - type: input
+    id: environment
+    attributes:
+      label: Your environment
+      description: What browser and operating system are you using?
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for contributing by creating this issue! ❤️
