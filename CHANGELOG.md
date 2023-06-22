@@ -23,7 +23,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Removed
 
-- **Breaking change (Angular)**: Dropped support for Angular 13 and lower. From now on, Handsontable supports only those versions of Angular that are officially supported by the Angular team. Dropping Handsontable's support for any older Angular versions won't be treated as a breaking change. [#10396](https://github.com/handsontable/handsontable/pull/10396)
+- **Breaking change (Angular)**: Dropped support for Angular 13 and lower. From now on, Handsontable supports only those versions of Angular that are officially supported by the Angular team: currently, it's 14-16. However, Handsontable 13.0.0 was thoroughly tested and, to the best of our knowledge, works correctly with versions down to Angular 12. [#10396](https://github.com/handsontable/handsontable/pull/10396)
 - **Breaking change**: Removed the deprecated `beforeAutofillInsidePopulate` hook. [#10407](https://github.com/handsontable/handsontable/pull/10407)
 - **Breaking change**: Removed the deprecated `getFirstNotHiddenIndex` method. Instead, use the `getNearestNotHiddenIndex()` method. [#10407](https://github.com/handsontable/handsontable/pull/10407)
 - **Breaking change**: Removed the deprecated parameters of the `alter()` method: `insert_row` and `insert_col`. Instead, use the following parameters: `insert_row_above`, `insert_row_below`, `insert_col_start`, and `insert_col_end`. [#10407](https://github.com/handsontable/handsontable/pull/10407)
