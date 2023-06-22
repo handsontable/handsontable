@@ -22,7 +22,7 @@ Migrate from Handsontable 12.4 to Handsontable 13.0, released on June 22, 2023.
 
 ## Update to Angular 12 or higher
 
-Handsontable 13.0 is no longer compatible with Angular 11 and lower.
+Handsontable 13.0 is not compatible with Angular 11 and lower.
 
 Officially, Handsontable 13.0 supports only Angular 14-16. Handsontable 13.0 was thoroughly tested and, to the best of our knowledge, works correctly with versions down to Angular 12, but this may change with no further notice.
 
