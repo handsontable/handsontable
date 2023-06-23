@@ -97,6 +97,7 @@ export const getSelectedLast = handsontableMethodFactory('getSelectedLast');
 export const getSelectedRange = handsontableMethodFactory('getSelectedRange');
 export const getSelectedRangeLast = handsontableMethodFactory('getSelectedRangeLast');
 export const getSettings = handsontableMethodFactory('getSettings');
+export const getShortcutManager = handsontableMethodFactory('getShortcutManager');
 export const getSourceData = handsontableMethodFactory('getSourceData');
 export const getSourceDataArray = handsontableMethodFactory('getSourceDataArray');
 export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCell');
