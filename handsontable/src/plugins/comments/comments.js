@@ -6,6 +6,7 @@ import {
   outerWidth,
   outerHeight
 } from '../../helpers/dom/element';
+import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { deepClone, deepExtend, isObject } from '../../helpers/object';
 import EventManager from '../../eventManager';
 import { BasePlugin } from '../base';
@@ -133,6 +134,13 @@ export class Comments extends BasePlugin {
    */
   range = {};
   /**
+   * Instance of {@link EventManager}.
+   *
+   * @protected
+   * @type {EventManager}
+   */
+  eventManager = null;
+  /**
    * Instance of {@link CommentEditor}.
    *
    * @private
@@ -146,13 +154,6 @@ export class Comments extends BasePlugin {
    * @type {DisplaySwitch}
    */
   #displaySwitch = null;
-  /**
-   * Instance of {@link EventManager}.
-   *
-   * @private
-   * @type {EventManager}
-   */
-  #eventManager = null;
   /**
    * Prevents showing/hiding editor that reacts on the logic triggered by the "mouseover" events.
    *
@@ -174,6 +175,13 @@ export class Comments extends BasePlugin {
    * @type {boolean}
    */
   #cellBelowCursor = null;
+  /**
+   * Holds the comment value before it's actually saved to the cell meta.
+   *
+   * @private
+   * @type {string}
+   */
+  #commentValueBeforeSave = '';
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -197,8 +205,8 @@ export class Comments extends BasePlugin {
       this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl());
     }
 
-    if (!this.#eventManager) {
-      this.#eventManager = new EventManager(this);
+    if (!this.eventManager) {
+      this.eventManager = new EventManager(this);
     }
 
     if (!this.#displaySwitch) {
@@ -211,6 +219,7 @@ export class Comments extends BasePlugin {
     this.addHook('afterScrollHorizontally', () => this.hide());
     this.addHook('afterScrollVertically', () => this.hide());
     this.addHook('afterBeginEditing', () => this.hide());
+    this.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
 
     this.#displaySwitch.addLocalHook('hide', () => this.hide());
     this.#displaySwitch.addLocalHook('show', (row, col) => this.showAtCell(row, col));
@@ -227,11 +236,8 @@ export class Comments extends BasePlugin {
    *   - [`comments`](@/api/options.md#comments)
    */
   updatePlugin() {
-    this.disablePlugin();
-    this.enablePlugin();
-    super.updatePlugin();
-
     this.#displaySwitch.updateDelay(this.getDisplayDelaySetting());
+    super.updatePlugin();
   }
 
   /**
@@ -251,7 +257,6 @@ export class Comments extends BasePlugin {
     const manager = this.hot.getShortcutManager();
     const gridContext = manager.getContext('grid');
     const pluginContext = manager.addContext(SHORTCUTS_CONTEXT_NAME);
-    let originCommentValue = '';
 
     gridContext.addShortcut({
       keys: [['Control', 'Alt', 'M']],
@@ -262,8 +267,6 @@ export class Comments extends BasePlugin {
         this.show();
         this.focusEditor();
         manager.setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-
-        originCommentValue = this.getComment();
       },
       stopPropagation: true,
       runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isCell() && !this.#editor.isVisible(),
@@ -273,7 +276,7 @@ export class Comments extends BasePlugin {
     pluginContext.addShortcut({
       keys: [['Escape']],
       callback: () => {
-        this.setComment(originCommentValue);
+        this.#editor.setValue(this.#commentValueBeforeSave);
         this.hide();
         manager.setActiveContextName('grid');
       },
@@ -310,15 +313,15 @@ export class Comments extends BasePlugin {
    */
   registerListeners() {
     const { rootDocument } = this.hot;
-    const editorElement = this.#editor.getInputElement();
+    const editorElement = this.getEditorInputElement();
 
-    this.#eventManager.addEventListener(rootDocument, 'mouseover', event => this.onMouseOver(event));
-    this.#eventManager.addEventListener(rootDocument, 'mousedown', event => this.onMouseDown(event));
-    this.#eventManager.addEventListener(rootDocument, 'mouseup', () => this.onMouseUp());
-    this.#eventManager.addEventListener(editorElement, 'focus', () => this.onEditorFocus());
-    this.#eventManager.addEventListener(editorElement, 'blur', () => this.onEditorBlur());
-    this.#eventManager.addEventListener(editorElement, 'mousedown', event => this.onEditorMouseDown(event));
-    this.#eventManager.addEventListener(editorElement, 'mouseup', event => this.onEditorMouseUp(event));
+    this.eventManager.addEventListener(rootDocument, 'mouseover', event => this.onMouseOver(event));
+    this.eventManager.addEventListener(rootDocument, 'mousedown', event => this.onMouseDown(event));
+    this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.onMouseUp());
+    this.eventManager.addEventListener(editorElement, 'focus', () => this.onEditorFocus());
+    this.eventManager.addEventListener(editorElement, 'blur', () => this.onEditorBlur());
+    this.eventManager.addEventListener(editorElement, 'mousedown', event => this.onEditorMouseDown(event));
+    this.eventManager.addEventListener(editorElement, 'mouseup', event => this.onEditorMouseUp(event));
   }
 
   /**
@@ -358,7 +361,7 @@ export class Comments extends BasePlugin {
    * @returns {boolean}
    */
   targetIsCommentTextArea(event) {
-    return this.#editor.getInputElement() === event.target;
+    return this.getEditorInputElement() === event.target;
   }
 
   /**
@@ -722,6 +725,7 @@ export class Comments extends BasePlugin {
    * @private
    */
   onEditorBlur() {
+    this.#commentValueBeforeSave = '';
     this.hot.getShortcutManager().setActiveContextName('grid');
     this.setComment();
   }
@@ -733,6 +737,8 @@ export class Comments extends BasePlugin {
    * @private
    */
   onEditorFocus() {
+    this.#commentValueBeforeSave = this.getComment();
+    this.hot.listen();
     this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
   }
 
@@ -771,6 +777,18 @@ export class Comments extends BasePlugin {
   }
 
   /**
+   * Observes the pressed keys and if there is already opened the comment editor prevents open
+   * the table editor into the fast edit mode.
+   *
+   * @param {Event} event The keydown event.
+   */
+  onAfterDocumentKeyDown(event) {
+    if (this.#editor.isVisible()) {
+      stopImmediatePropagation(event);
+    }
+  }
+
+  /**
    * Add Comments plugin options to the Context Menu.
    *
    * @private
@@ -778,9 +796,7 @@ export class Comments extends BasePlugin {
    */
   addToContextMenu(options) {
     options.items.push(
-      {
-        name: SEPARATOR
-      },
+      { name: SEPARATOR },
       addEditCommentItem(this),
       removeCommentItem(this),
       readOnlyCommentItem(this),
@@ -799,6 +815,16 @@ export class Comments extends BasePlugin {
     if (isObject(commentSetting)) {
       return commentSetting.displayDelay;
     }
+  }
+
+  /**
+   * Gets the editors input element.
+   *
+   * @private
+   * @returns {HTMLTextAreaElement}
+   */
+  getEditorInputElement() {
+    return this.#editor.getInputElement();
   }
 
   /**
