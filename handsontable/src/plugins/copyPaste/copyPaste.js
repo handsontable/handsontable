@@ -640,7 +640,7 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onPaste(event) {
-    if (!this.hot.isListening() || this.isEditorOpened()) {
+    if (!this.hot.isListening() || this.isEditorOpened() || !this.hot.getSelected()) {
       return;
     }
 

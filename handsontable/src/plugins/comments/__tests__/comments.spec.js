@@ -677,6 +677,36 @@ describe('Comments', () => {
     expect(editor.parentNode.style.display).toBe('block');
   });
 
+  it('should set the table active and switch the keyboard shortcuts context to plugin when the comment is triggered ' +
+      'by LMB to inactive (unlisten) table', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(4, 4),
+      contextMenu: true,
+      comments: true,
+      cell: [
+        { row: 1, col: 1, comment: { value: 'Hello world!' } }
+      ],
+    });
+
+    $(getCell(1, 1)).simulate('mouseover', {
+      clientX: Handsontable.dom.offset(getCell(1, 1)).left + 5,
+      clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
+    });
+
+    await sleep(400);
+
+    $(getPlugin('comments').getEditorInputElement())
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click');
+    getPlugin('comments').getEditorInputElement().focus();
+
+    await sleep(50);
+
+    expect(hot.isListening()).toBe(true);
+    expect(getShortcutManager().getActiveContextName()).toBe('plugin:comments');
+  });
+
   describe('Using the Context Menu', () => {
     it('should open the comment editor when clicking the "Add comment" entry', () => {
       const hot = handsontable({

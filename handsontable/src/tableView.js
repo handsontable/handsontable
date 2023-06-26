@@ -314,12 +314,14 @@ class TableView {
 
       priv.mouseDown = false;
 
-      if (!isOutsideInput(rootDocument.activeElement)) {
+      const isOutsideInputElement = isOutsideInput(rootDocument.activeElement);
+
+      if (!isOutsideInputElement) {
         return;
       }
 
-      if (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
-          !rootElement.contains(event.target) && !isRightClick(event)) {
+      if (isOutsideInputElement || (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
+          !rootElement.contains(event.target) && !isRightClick(event))) {
         this.instance.unlisten();
       }
     });
