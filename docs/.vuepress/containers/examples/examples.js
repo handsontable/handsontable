@@ -143,13 +143,13 @@ module.exports = function(docsVersion, base) {
         tokens.splice(index + 1, 0, ...newTokens);
 
         return `
-            ${!noEdit ? jsfiddle(id, htmlContent, codeToCompile, cssContent, docsVersion, preset) : ''}
             <tabs
               :class="$parent.$parent.addClassIfPreviewTabIsSelected('${id}', 'selected-preview')"
               :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }"
               cache-lifetime="0"
               @changed="$parent.$parent.codePreviewTabChanged(...arguments, '${id}')"
             >
+            ${!noEdit ? jsfiddle(id, htmlContent, codeToCompile, cssContent, docsVersion, preset) : ''}
           `;
       } else { // close preview
         return '</tabs>';
