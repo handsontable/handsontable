@@ -2,6 +2,7 @@ import { getAllCommands as getAllEditorCommands } from './editor';
 import { getAllCommands as getAllSelectionExtendCommands } from './extendCellsSelection';
 import { getAllCommands as getAllSelectionMoveCommands } from './moveCellSelection';
 import { command as emptySelectedCells } from './emptySelectedCells';
+import { command as scrollToFocusedCell } from './scrollToFocusedCell';
 import { command as selectAll } from './selectAll';
 import { command as populateSelectedCellsData } from './populateSelectedCellsData';
 
@@ -10,6 +11,7 @@ const allCommands = [
   ...getAllSelectionExtendCommands(),
   ...getAllSelectionMoveCommands(),
   emptySelectedCells,
+  scrollToFocusedCell,
   selectAll,
   populateSelectedCellsData,
 ];
