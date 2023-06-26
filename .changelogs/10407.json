@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Removed the the deprecated hooks, methods and options for 13.0.0.",
-  "type": "removed",
-  "issueOrPR": 10407,
-  "breaking": true,
-  "framework": "none"
-}
