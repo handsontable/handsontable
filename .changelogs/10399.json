@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue with improper moving of rows when there are trimmed elements",
+  "type": "fixed",
+  "issueOrPR": 10399,
+  "breaking": false,
+  "framework": "none"
+}
