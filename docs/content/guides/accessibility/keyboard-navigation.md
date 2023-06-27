@@ -21,7 +21,7 @@ searchCategory: Guides
 
 # Keyboard navigation
 
-Navigate the grid with the keyboard alone. Use the navigation options to meet the needs of your users.
+Navigate the grid with the keyboard alone, and tweak the navigation options to meet your users' needs.
 
 [[toc]]
 
