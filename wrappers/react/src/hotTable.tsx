@@ -462,6 +462,8 @@ class HotTable extends React.Component<HotTableProps, {}> {
 
     const newGlobalSettings = this.createNewGlobalSettings();
 
+    // See `suspendRender` method call on Handsontable instance to understand this call.
+    this.hotInstance.resumeRender();
     this.updateHot(newGlobalSettings);
     this.displayAutoSizeWarning(newGlobalSettings);
   }
@@ -503,6 +505,18 @@ class HotTable extends React.Component<HotTableProps, {}> {
       });
 
     const editorPortal = createEditorPortal(this.getOwnerDocument(), this.getGlobalEditorElement());
+
+    if (this.hotInstance !== null) {
+      // This render comes from update performed on React component (not the first render). In process of updating
+      // component some properties are set to `null` values as it's described in React's documentation:
+      // "React sets ref.current during the commit. Before updating the DOM, React sets the affected ref.current
+      // values to null. After updating the DOM, React immediately sets them to the corresponding DOM nodes.".
+      // Thus, any extra rendering coming from Handsontable (Core and plugins do it sometimes; wrote in Vanilla JS) and
+      // corresponding callbacks to their hooks cause executing wrapper's actions while React component isn't ready.
+      // The below call stops HOT from executing extra render. The `resumeRender` call should be done right after component update.
+      // console.log('suspendRender');
+      this.hotInstance.suspendRender()
+    }
 
     return (
       <React.Fragment>
