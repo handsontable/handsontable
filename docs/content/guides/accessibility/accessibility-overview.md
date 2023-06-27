@@ -23,9 +23,16 @@ Learn about our approach to accessibility, and get an overview of Handsontable's
 
 ## Overview
 
-At Handsontable, we believe in a web that's accessible to everyone. That's why we designed our data grid to be used by people with disabilities, including those who use assistive technologies like screen readers and keyboard navigation.
+At Handsontable, we believe in a web that's accessible to everyone. We designed our data grid to be used by people with disabilities, including those who use assistive technologies like screen readers and keyboard navigation.
 
-In case of data grids and spreadsheet components, there's no universal accessibility standard. Depending on your use case, industry or location, your application may need to meet different accessibility requirements. That's why we're opting for a flexible approach to accessibility. This means that we strive to make our data grid accessible to as many users as possible, while still letting developers customize the grid to meet their specific needs.
+List of accessibility features:
+- Keyboard navigation
+- Screen readers support
+- 
+
+## Accessible by default
+
+In case of data grids and spreadsheet components, there's no universal accessibility standard. Depending on your use case, industry or location, your application may need to meet different accessibility requirements. That's why we're opting for a flexible approach to accessibility. This means that we strive to make our data grid accessible by default, while still letting developers customize the grid to meet the exact needs of their specific user base.
 
 ## Accessibility demo
 
