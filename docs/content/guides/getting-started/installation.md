@@ -154,6 +154,7 @@ const hot = new Handsontable(container, {
 ### Preview the result
 
 ::: example #example
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -172,6 +173,7 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
 });
 ```
+
 :::
 
 :::
@@ -279,9 +281,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Related articles
 

@@ -155,7 +155,6 @@ export interface Events {
   afterViewRender?: (isForced: boolean) => void;
   beforeAddChild?: (parent: RowObject, element?: RowObject, index?: number) => void;
   beforeAutofill?: (selectionData: CellValue[][], sourceRange: CellRange, targetRange: CellRange, direction: 'up' | 'down' | 'left' | 'right') => CellValue[][] | boolean | void;
-  beforeAutofillInsidePopulate?: (index: CellCoords, direction: 'up' | 'down' | 'left' | 'right', input: CellValue[][], deltas: any[]) => void;
   beforeCellAlignment?: (stateBefore: { [row: number]: string[] }, range: CellRange[], type: 'horizontal' | 'vertical',
     alignmentClass: 'htLeft' | 'htCenter' | 'htRight' | 'htJustify' | 'htTop' | 'htMiddle' | 'htBottom') => void;
   beforeChange?: (changes: Array<CellChange | null>, source: ChangeSource) => void | boolean;

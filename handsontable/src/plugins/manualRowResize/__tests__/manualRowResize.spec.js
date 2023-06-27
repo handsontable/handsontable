@@ -933,6 +933,32 @@ describe('manualRowResize', () => {
         expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
       });
     });
+
+    it('should remove resize handler when user clicks RMB', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        manualRowResize: true
+      });
+
+      const $rowHeader = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
+
+      $rowHeader.simulate('mouseover');
+
+      const $handle = spec().$container.find('.manualRowResizer');
+      const resizerPosition = $handle.position();
+
+      $handle.simulate('mousedown', { clientY: resizerPosition.top });
+
+      // To watch whether color has changed.
+      expect(getComputedStyle($handle[0]).backgroundColor).toBe('rgb(52, 169, 219)');
+
+      $handle.simulate('contextmenu');
+
+      await sleep(0);
+
+      expect(getComputedStyle($handle[0]).backgroundColor).not.toBe('rgb(52, 169, 219)');
+    });
   });
 
   describe('hooks', () => {

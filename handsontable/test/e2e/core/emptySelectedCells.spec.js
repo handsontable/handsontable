@@ -129,4 +129,29 @@ describe('Core.emptySelectedCells', () => {
 
     expect(onBeforeChange).not.toHaveBeenCalled();
   });
+
+  it('should override cleared values using `beforeChange` hook', () => {
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+      ],
+      beforeChange(changes) {
+        changes[0][3] = 'test';
+      }
+    });
+
+    selectCells([[0, 0, 2, 2]]);
+
+    emptySelectedCells();
+
+    expect(getData()).toEqual([
+      ['test', null, null, 4, 5, 6],
+      [null, null, null, 4, 5, 6],
+      [null, null, null, 4, 5, 6],
+      [1, 2, 3, 4, 5, 6],
+    ]);
+  });
 });

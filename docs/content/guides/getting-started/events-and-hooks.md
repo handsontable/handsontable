@@ -36,19 +36,23 @@ Callbacks are used to react before or after actions occur. We refer to them as h
 If you only react to emitted hooks and forget about all their other features, you can treat Handsontable's hooks as pure events. You would want to limit your scope to `after` prefixed hooks, so they are emitted after something has happened and the results of the actions are already committed.
 
 ::: only-for react
+
 ```jsx
 <HotTable afterCreateRow={(row, amount) => {
   console.log(`${amount} row(s) were created, starting at index ${row}`);
 }}/>
 ```
+
 :::
 
 ::: only-for javascript
+
 ```js
 hot.addHook('afterCreateRow', (row, amount) => {
   console.log(`${amount} row(s) were created, starting at index ${row}`);
 })
 ```
+
 :::
 
 ## Middleware
@@ -64,9 +68,11 @@ Middleware is a concept known in the JavaScript world from Node.js frameworks su
     }
 }}/>
 ```
+
 :::
 
 ::: only-for javascript
+
 ```js
 hot.addHook('modifyColWidth', (width, column) => {
   if (column > 10) {
@@ -74,6 +80,7 @@ hot.addHook('modifyColWidth', (width, column) => {
   }
 })
 ```
+
 :::
 
 Note that the first argument is the current width that we're going to modify. Later arguments are immutable, and additional information can be used to decide whether the data should be modified.
@@ -96,9 +103,11 @@ A great example for this is our integration with HyperFormula engine where creat
     }
 }}/>
 ```
+
 :::
 
 ::: only-for javascript
+
 ```js
 hot.addHook('beforeCreateRow', (row, amount) => {
   if (!hyperFormula.isItPossibleToAddRows(0, [row, amount])) {
@@ -106,14 +115,17 @@ hot.addHook('beforeCreateRow', (row, amount) => {
   }
 })
 ```
+
 :::
 
 The first argument may be modified and passed on through the Handsontable hooks that are next in the queue. This characteristic is shared between `before` and `after` hooks but is more common with the former. Before something happens, we can run the data through a pipeline of hooks that may modify or reject the operation. This provides many possibilities to extend the default Handsontable functionality and customize it for your application.
 
 ::: only-for react
+
 ## External control
 
 ::: example #example3 :react
+
 ```jsx
 import { useState } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -188,7 +200,9 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 /* end:skip-in-preview */
 ```
+
 :::
+
 :::
 
 ## All available Handsontable hooks example
@@ -196,6 +210,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 Note that some callbacks are checked on this page by default.
 
 ::: example-without-tabs #example1
+
 ```html
 <div class="example-container">
   <div class="example-table-container">
@@ -359,6 +374,7 @@ document.querySelector('#hooksList input[type=checkbox]').addEventListener('clic
   }
 });
 ```
+
 :::
 
 ## Definition for `source` argument
@@ -395,34 +411,36 @@ It's worth mentioning that some Handsontable hooks are triggered from the Handso
 
 List of callbacks that operate on the `source` parameter:
 
-* [`afterChange`](@/api/hooks.md#afterchange)
-* [`afterCreateCol`](@/api/hooks.md#aftercreatecol)
-* [`afterCreateRow`](@/api/hooks.md#aftercreaterow)
-* [`afterLoadData`](@/api/hooks.md#afterloaddata)
-* [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell)
-* [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop)
-* [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell)
-* [`afterRemoveCol`](@/api/hooks.md#afterremovecol)
-* [`afterRemoveRow`](@/api/hooks.md#aftermoverow)
-* [`afterValidate`](@/api/hooks.md#aftervalidate)
-* [`beforeChange`](@/api/hooks.md#beforechange)
-* [`beforeChangeRender`](@/api/hooks.md#beforechangerender)
-* [`beforeCreateCol`](@/api/hooks.md#beforecreatecol)
-* [`beforeCreateRow`](@/api/hooks.md#beforecreaterow)
-* [`beforeLoadData`](@/api/hooks.md#beforeloaddata)
-* [`beforeRemoveCol`](@/api/hooks.md#beforeremovecol)
-* [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow)
-* [`beforeValidate`](@/api/hooks.md#beforevalidate)
+- [`afterChange`](@/api/hooks.md#afterchange)
+- [`afterCreateCol`](@/api/hooks.md#aftercreatecol)
+- [`afterCreateRow`](@/api/hooks.md#aftercreaterow)
+- [`afterLoadData`](@/api/hooks.md#afterloaddata)
+- [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell)
+- [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop)
+- [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell)
+- [`afterRemoveCol`](@/api/hooks.md#afterremovecol)
+- [`afterRemoveRow`](@/api/hooks.md#aftermoverow)
+- [`afterValidate`](@/api/hooks.md#aftervalidate)
+- [`beforeChange`](@/api/hooks.md#beforechange)
+- [`beforeChangeRender`](@/api/hooks.md#beforechangerender)
+- [`beforeCreateCol`](@/api/hooks.md#beforecreatecol)
+- [`beforeCreateRow`](@/api/hooks.md#beforecreaterow)
+- [`beforeLoadData`](@/api/hooks.md#beforeloaddata)
+- [`beforeRemoveCol`](@/api/hooks.md#beforeremovecol)
+- [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow)
+- [`beforeValidate`](@/api/hooks.md#beforevalidate)
 
 ## The [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
 
 The following demo uses [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback to modify some key bindings:
 
-* Pressing <kbd>**Delete**</kbd> or <kbd>**Backspace**</kbd> on a cell deletes the cell and shifts all cells beneath it in the column up resulting in the cursor, which doesn't move, having the value previously beneath it, now in the current cell.
-* Pressing <kbd>**Enter**</kbd> in a cell where the value remains unchanged pushes all the cells in the column beneath and including the current cell down one row. This results in a blank cell under the cursor which hasn't moved.
+- Pressing <kbd>**Delete**</kbd> or <kbd>**Backspace**</kbd> on a cell deletes the cell and shifts all cells beneath it in the column up resulting in the cursor, which doesn't move, having the value previously beneath it, now in the current cell.
+- Pressing <kbd>**Enter**</kbd> in a cell where the value remains unchanged pushes all the cells in the column beneath and including the current cell down one row. This results in a blank cell under the cursor which hasn't moved.
 
 ::: only-for javascript
+
 ::: example #example2
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -473,11 +491,15 @@ hot.updateSettings({
   }
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example2 :react
+
 ```jsx
 import { useEffect, useRef } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -547,9 +569,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Related API reference
 

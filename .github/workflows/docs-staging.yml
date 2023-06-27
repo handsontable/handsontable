@@ -35,15 +35,15 @@ jobs:
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${GITHUB_ACTOR} --password-stdin https://docker.pkg.github.com
 
+      - name: Install the documentation dependencies
+        run: |
+          npm ci
+
       - name: Install the monorepo dependencies and build the packages
         run: |
           cd ..
           npm ci
           npm run all build -- --e examples visual-tests
-
-      - name: Install the documentation dependencies
-        run: |
-          npm ci
 
       - name: Generate API references
         run: |

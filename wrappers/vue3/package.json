@@ -1,6 +1,6 @@
 {
   "name": "@handsontable/vue3",
-  "version": "12.4.0",
+  "version": "13.0.0",
   "description": "Best Data Grid for Vue with Spreadsheet Look and Feel.",
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "homepage": "https://handsontable.com",
@@ -52,7 +52,7 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "peerDependencies": {
-    "handsontable": ">=12.0.0",
+    "handsontable": ">=13.0.0",
     "vue": "next"
   },
   "devDependencies": {
@@ -71,9 +71,10 @@
     "babel-core": "^7.0.0-bridge.0",
     "cross-env": "^7.0.3",
     "eslint-plugin-vue": "^8.0.3",
-    "handsontable": "^12.0.0",
+    "handsontable": "^13.0.0",
     "jest": "^26.6.3",
     "rimraf": "^3.0.2",
+    "rollup": "^2.0.0",
     "rollup-plugin-babel": "^4.3.2",
     "rollup-plugin-cleanup": "^3.1.1",
     "rollup-plugin-commonjs": "^10.0.0",
@@ -83,11 +84,10 @@
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.21.1",
     "rollup-plugin-vue": "^6.0.0",
-    "rollup": "^2.0.0",
     "ts-jest": "^26.5.6",
     "typescript": "^4.0.0",
-    "vue-eslint-parser": "^8.0.1",
     "vue": "^3.2.22",
+    "vue-eslint-parser": "^8.0.1",
     "vue-jest": "5.0.0-alpha.10"
   },
   "scripts": {

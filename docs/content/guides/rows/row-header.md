@@ -29,7 +29,7 @@ To turn the headers on, set the option [`rowHeaders`](@/api/options.md#rowheader
 
 ## Bind rows with headers
 
-There is a plugin **Bind rows with headers** which allows the binding of row numbers to their headers. This is used mostly to differentiate two business cases in which Handsontable is most often used.
+You can bind row numbers with row headers. This is used mostly to differentiate two business cases in which Handsontable is most often used.
 
 1. When moving a row in a typical grid-like application, the numbers in the row headers remain intact. Only the content is moved.
 
@@ -40,7 +40,9 @@ There is a plugin **Bind rows with headers** which allows the binding of row num
 To enable the plugin, set the [`bindRowsWithHeaders`](@/api/options.md#bindrowswithheaders) property to `true`. Move the rows in the example below to see what this plugin does.
 
 ::: only-for javascript
+
 ::: example #example1
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -73,11 +75,15 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -121,9 +127,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Tree grid
 
