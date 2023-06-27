@@ -115,6 +115,7 @@ export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
 export const render = handsontableMethodFactory('render');
 export const updateData = handsontableMethodFactory('updateData');
 export const scrollViewportTo = handsontableMethodFactory('scrollViewportTo');
+export const scrollToFocusedCell = handsontableMethodFactory('scrollToFocusedCell');
 export const selectAll = handsontableMethodFactory('selectAll');
 export const selectCell = handsontableMethodFactory('selectCell');
 export const selectCells = handsontableMethodFactory('selectCells');

@@ -213,12 +213,7 @@ class EditorManager {
     }
 
     if (!this.activeEditor) {
-      const { row, col } = this.instance.getSelectedRangeLast().highlight;
-      const renderableRowIndex = this.instance.rowIndexMapper.getRenderableFromVisualIndex(row);
-      const renderableColumnIndex = this.instance.columnIndexMapper.getRenderableFromVisualIndex(col);
-
-      this.instance.view.scrollViewport(this.instance._createCellCoords(renderableRowIndex, renderableColumnIndex));
-      this.instance.view.render();
+      this.instance.scrollToFocusedCell();
       this.prepareEditor();
     }
 

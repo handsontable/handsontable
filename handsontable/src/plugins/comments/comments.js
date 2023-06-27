@@ -162,6 +162,14 @@ export class Comments extends BasePlugin {
    */
   #preventEditorAutoSwitch = false;
   /**
+   * Prevents hiding editor when the table viewport is scrolled and that scroll is triggered by the
+   * keyboard shortcut that insert or edits the comment.
+   *
+   * @private
+   * @type {boolean}
+   */
+  #preventEditorHiding = false;
+  /**
    * The property for holding editor dimensions for further processing.
    *
    * @private
@@ -216,8 +224,7 @@ export class Comments extends BasePlugin {
     this.addHook('afterContextMenuDefaultOptions', options => this.addToContextMenu(options));
     this.addHook('afterRenderer',
       (TD, row, col, prop, value, cellProperties) => this.onAfterRenderer(TD, cellProperties));
-    this.addHook('afterScrollHorizontally', () => this.hide());
-    this.addHook('afterScrollVertically', () => this.hide());
+    this.addHook('afterScroll', () => this.onAfterScroll());
     this.addHook('afterBeginEditing', () => this.hide());
     this.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
 
@@ -263,10 +270,17 @@ export class Comments extends BasePlugin {
       callback: () => {
         const range = this.hot.getSelectedRangeLast();
 
-        this.setRange(range);
-        this.show();
-        this.focusEditor();
-        manager.setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+        this.#preventEditorHiding = true;
+        this.hot.scrollToFocusedCell(() => {
+          this.setRange(range);
+          this.show();
+          this.focusEditor();
+          manager.setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+
+          this.hot._registerTimeout(() => {
+            this.#preventEditorHiding = false;
+          });
+        });
       },
       stopPropagation: true,
       runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isCell() && !this.#editor.isVisible(),
@@ -785,6 +799,15 @@ export class Comments extends BasePlugin {
   onAfterDocumentKeyDown(event) {
     if (this.#editor.isVisible()) {
       stopImmediatePropagation(event);
+    }
+  }
+
+  /**
+   * Observes the changes in the scroll position if triggered it hides the comment editor.
+   */
+  onAfterScroll() {
+    if (!this.#preventEditorHiding) {
+      this.hide();
     }
   }
 

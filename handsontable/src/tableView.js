@@ -884,8 +884,14 @@ class TableView {
       },
       beforeDraw: (force, skipRender) => this.beforeRender(force, skipRender),
       onDraw: force => this.afterRender(force),
-      onScrollVertically: () => this.instance.runHooks('afterScrollVertically'),
-      onScrollHorizontally: () => this.instance.runHooks('afterScrollHorizontally'),
+      onScrollVertically: () => {
+        this.instance.runHooks('afterScrollVertically');
+        this.instance.runHooks('afterScroll');
+      },
+      onScrollHorizontally: () => {
+        this.instance.runHooks('afterScrollHorizontally');
+        this.instance.runHooks('afterScroll');
+      },
       onBeforeRemoveCellClassNames: () => this.instance.runHooks('beforeRemoveCellClassNames'),
       onBeforeHighlightingRowHeader: (renderableRow, headerLevel, highlightMeta) => {
         const rowMapper = this.instance.rowIndexMapper;

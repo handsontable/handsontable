@@ -13,7 +13,7 @@ describe('Comments keyboard shortcut', () => {
   });
 
   describe('"Ctrl" + "Alt" + "M"', () => {
-    it('should open and create a new comment, make it active, and ready for typing', () => {
+    it('should open and create a new comment, make it active, and ready for typing', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
         rowHeaders: true,
@@ -23,6 +23,8 @@ describe('Comments keyboard shortcut', () => {
 
       selectCell(1, 1);
       keyDownUp(['control', 'alt', 'm']);
+
+      await sleep(10);
 
       const plugin = getPlugin('comments');
       const editor = plugin.getEditorInputElement();
@@ -38,7 +40,37 @@ describe('Comments keyboard shortcut', () => {
       expect(document.activeElement).toBe(editor);
     });
 
-    it('should open and edit a comment, make it active, and ready for typing', () => {
+    it('should scroll the viewport, open and create a new comment when the focused cell is outside the table', async() => {
+      const hot = handsontable({
+        data: createSpreadsheetData(500, 50),
+        width: 300,
+        height: 300,
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+      });
+
+      selectCell(400, 40);
+      scrollViewportTo(0, 0);
+
+      await sleep(10);
+
+      keyDownUp(['control', 'alt', 'm']);
+
+      await sleep(10);
+
+      const plugin = getPlugin('comments');
+      const editor = plugin.getEditorInputElement();
+
+      expect(editor.parentNode.style.display).toBe('block');
+      expect(editor.value).toBe('');
+      expect(document.activeElement).toBe(editor);
+      expect(plugin.range).toEqualCellRange('highlight: 400,40 from: 400,40 to: 400,40');
+      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(1816);
+      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(8965);
+    });
+
+    it('should open and edit a comment, make it active, and ready for typing', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
         rowHeaders: true,
@@ -51,6 +83,8 @@ describe('Comments keyboard shortcut', () => {
 
       selectCell(1, 1);
       keyDownUp(['control', 'alt', 'm']);
+
+      await sleep(10);
 
       const plugin = getPlugin('comments');
       const editor = plugin.getEditorInputElement();
@@ -66,7 +100,7 @@ describe('Comments keyboard shortcut', () => {
       expect(document.activeElement).toBe(editor);
     });
 
-    it('should open the comment when the multiple cells are selected', () => {
+    it('should open the comment when the multiple cells are selected', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
         rowHeaders: true,
@@ -76,6 +110,8 @@ describe('Comments keyboard shortcut', () => {
 
       selectCells([[3, 3, 2, 1]]);
       keyDownUp(['control', 'alt', 'm']);
+
+      await sleep(10);
 
       const plugin = getPlugin('comments');
       const editor = plugin.getEditorInputElement();
@@ -91,7 +127,7 @@ describe('Comments keyboard shortcut', () => {
       expect(document.activeElement).toBe(editor);
     });
 
-    it('should not open the comment when the column header is selected', () => {
+    it('should not open the comment when the column header is selected', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
         comments: true,
@@ -103,6 +139,8 @@ describe('Comments keyboard shortcut', () => {
       selectCell(-1, 1);
       keyDownUp(['control', 'alt', 'm']);
 
+      await sleep(10);
+
       const plugin = getPlugin('comments');
       const editor = plugin.getEditorInputElement();
 
@@ -111,7 +149,7 @@ describe('Comments keyboard shortcut', () => {
       expect(getShortcutManager().getActiveContextName()).toBe('grid');
     });
 
-    it('should not open the comment when the row header is selected', () => {
+    it('should not open the comment when the row header is selected', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
         comments: true,
@@ -123,6 +161,8 @@ describe('Comments keyboard shortcut', () => {
       selectCell(1, -1);
       keyDownUp(['control', 'alt', 'm']);
 
+      await sleep(10);
+
       const plugin = getPlugin('comments');
       const editor = plugin.getEditorInputElement();
 
@@ -131,7 +171,7 @@ describe('Comments keyboard shortcut', () => {
       expect(getShortcutManager().getActiveContextName()).toBe('grid');
     });
 
-    it('should not open the comment when the corner header is selected', () => {
+    it('should not open the comment when the corner header is selected', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
         comments: true,
@@ -142,6 +182,8 @@ describe('Comments keyboard shortcut', () => {
 
       selectCell(-1, -1);
       keyDownUp(['control', 'alt', 'm']);
+
+      await sleep(10);
 
       const plugin = getPlugin('comments');
       const editor = plugin.getEditorInputElement();
@@ -163,6 +205,9 @@ describe('Comments keyboard shortcut', () => {
 
       selectCell(1, 1);
       keyDownUp(['control', 'alt', 'm']);
+
+      await sleep(10);
+
       getPlugin('comments').getEditorInputElement().value = 'Test comment';
 
       keyDownUp(['control/meta', 'enter']);

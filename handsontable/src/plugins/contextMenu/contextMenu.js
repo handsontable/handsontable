@@ -209,6 +209,9 @@ export class ContextMenu extends BasePlugin {
         keys: [['Control/Meta', 'Shift', '\\'], ['Shift', 'F10']],
         callback: () => {
           const { highlight } = this.hot.getSelectedRangeLast();
+
+          this.hot.scrollToFocusedCell();
+
           const rect = this.hot.getCell(highlight.row, highlight.col, true).getBoundingClientRect();
           const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
 
