@@ -12,7 +12,7 @@ import { rangeEach } from '../../helpers/number';
 import { KEY_CODES } from '../../helpers/unicode';
 import { autoResize } from '../../3rdparty/autoResize';
 import { isDefined } from '../../helpers/mixed';
-import { SHORTCUTS_GROUP_NAVIGATION, SHORTCUTS_GROUP_EDITOR as EDITOR_MANAGER_GROUP } from '../../editorManager';
+import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
 import { SHORTCUTS_GROUP_EDITOR } from '../baseEditor/baseEditor';
 import { updateCaretPosition } from './caretPositioner';
 
@@ -475,8 +475,6 @@ export class TextEditor extends BaseEditor {
       runOnlyIf: event => !this.hot.selection.isMultiple() && // We trigger a data population for multiple selection.
         // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
         !event.altKey,
-      relativeToGroup: EDITOR_MANAGER_GROUP,
-      position: 'before',
     }, {
       keys: [['Meta', 'Enter']],
       callback: () => {
@@ -485,8 +483,6 @@ export class TextEditor extends BaseEditor {
         return false; // Will block closing editor.
       },
       runOnlyIf: () => !this.hot.selection.isMultiple(), // We trigger a data population for multiple selection.
-      relativeToGroup: EDITOR_MANAGER_GROUP,
-      position: 'before',
     }, {
       keys: [['Alt', 'Enter']],
       callback: () => {
@@ -494,8 +490,6 @@ export class TextEditor extends BaseEditor {
 
         return false; // Will block closing editor.
       },
-      relativeToGroup: EDITOR_MANAGER_GROUP,
-      position: 'before',
     }, {
       // TODO: Duplicated part of code (callback to shortcut)
       keys: [

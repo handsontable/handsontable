@@ -18,8 +18,8 @@ import { Plugins } from './plugins';
 import { CellType } from './cellTypes';
 import { ShortcutManager } from './shortcuts';
 
-type AlterActions = 'insert_row' | 'insert_row_above' | 'insert_row_below' |
-                    'insert_col' | 'insert_col_start' | 'insert_col_end' |
+type AlterActions = 'insert_row_above' | 'insert_row_below' |
+                    'insert_col_start' | 'insert_col_end' |
                     'remove_row' | 'remove_col';
 
 export default class Core {
@@ -115,8 +115,7 @@ export default class Core {
   listen(): void;
   loadData(data: CellValue[][] | RowObject[], source?: string): void;
   populateFromArray(row: number, col: number, input: CellValue[][], endRow?: number,
-    endCol?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite',
-    direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void;
+    endCol?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite'): void;
   propToCol(prop: string | number): number;
   redo(): void;
   refreshDimensions(): void;
@@ -132,12 +131,12 @@ export default class Core {
   rowIndexMapper: IndexMapper;
   runHooks(key: keyof Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
   scrollViewportTo(row?: number, column?: number, snapToBottom?: boolean, snapToRight?: boolean, considerHiddenIndexes?: boolean): boolean;
-  selectAll(): void;
+  selectAll(includeRowHeaders?: boolean, includeColumnHeaders?: boolean, focusPosition?: { row?: number, col?: number }): void;
   selectCell(row: number, col: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean): boolean;
   selectCellByProp(row: number, prop: string, endRow?: number, endProp?: string, scrollToCell?: boolean): boolean;
   selectCells(coords: Array<[number, number | string, number, number | string]> | CellRange[], scrollToCell?: boolean, changeListener?: boolean): boolean;
-  selectColumns(startColumn: number | string, endColumn?: number | string): boolean;
-  selectRows(startRow: number, endRow?: number): boolean;
+  selectColumns(startColumn: number | string, endColumn?: number | string, focusPosition?: number): boolean;
+  selectRows(startRow: number, endRow?: number, focusPosition?: number): boolean;
   setCellMeta(row: number, col: number, key: string, val: any): void;
   setCellMeta<K extends keyof CellMeta>(row: number, col: number, key: K, val: CellMeta[K]): void;
   setCellMetaObject(row: number, col: number, prop: CellMeta): void;

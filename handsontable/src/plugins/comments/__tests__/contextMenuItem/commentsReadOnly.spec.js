@@ -12,7 +12,7 @@ describe('ContextMenu', () => {
     }
   });
 
-  describe('delete comment', () => {
+  describe('read-only comment', () => {
     describe('UI', () => {
       it('should disable the item when all rows are hidden', () => {
         handsontable({
@@ -28,7 +28,7 @@ describe('ContextMenu', () => {
         contextMenu(getCell(-1, 1)); // Column header "B"
 
         const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
-          return this.textContent === 'Delete comment';
+          return this.textContent === 'Read-only comment';
         });
 
         expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
@@ -48,7 +48,7 @@ describe('ContextMenu', () => {
         contextMenu(getCell(1, -1)); // Row header "2"
 
         const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
-          return this.textContent === 'Delete comment';
+          return this.textContent === 'Read-only comment';
         });
 
         expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
@@ -66,7 +66,7 @@ describe('ContextMenu', () => {
         contextMenu(getCell(-1, 1)); // Column header "B"
 
         const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
-          return this.textContent === 'Delete comment';
+          return this.textContent === 'Read-only comment';
         });
 
         expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
@@ -84,7 +84,67 @@ describe('ContextMenu', () => {
         contextMenu(getCell(1, -1)); // Row header "2"
 
         const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
-          return this.textContent === 'Delete comment';
+          return this.textContent === 'Read-only comment';
+        });
+
+        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+      });
+
+      it('should be disabled when the single row header is selected', () => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          contextMenu: true,
+          comments: true,
+          navigableHeaders: true,
+        });
+
+        selectCell(1, -1);
+        getPlugin('contextMenu').open($(getCell(1, -1)).offset());
+
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Read-only comment';
+        });
+
+        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+      });
+
+      it('should be disabled when the single column header is selected', () => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          contextMenu: true,
+          comments: true,
+          navigableHeaders: true,
+        });
+
+        selectCell(-1, 1);
+        getPlugin('contextMenu').open($(getCell(-1, 1)).offset());
+
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Read-only comment';
+        });
+
+        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+      });
+
+      it('should be disabled when the single corner is selected', () => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          contextMenu: true,
+          comments: true,
+          navigableHeaders: true,
+        });
+
+        selectCell(-1, -1);
+        getPlugin('contextMenu').open($(getCell(-1, -1)).offset());
+
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Read-only comment';
         });
 
         expect(readOnlyItem.hasClass('htDisabled')).toBe(true);

@@ -46,23 +46,6 @@ export function isSelectionDisabled(cell) {
 }
 
 /**
- * @param {Core} hot The Handsontable instance.
- * @returns {Array[]|null}
- */
-export function getValidSelection(hot) {
-  const selected = hot.getSelected();
-
-  if (!selected) {
-    return null;
-  }
-  if (selected[0] < 0) {
-    return null;
-  }
-
-  return selected;
-}
-
-/**
  * @param {string} className The full element class name to process.
  * @param {string} alignment The slignment class name to compare with.
  * @returns {string}
@@ -280,4 +263,26 @@ export function filterSeparators(items, separator = SEPARATOR) {
   result = removeDuplicatedSeparators(result);
 
   return result;
+}
+
+/**
+ * Returns document offset based on the passed element. If the document objects between element and the
+ * base document are not the same the offset as top and left properties will be returned.
+ *
+ * @param {Element} elementToCheck The element to compare with Document object.
+ * @param {Document} baseDocument The base Document object.
+ * @returns {{ top: number, left: number }}
+ */
+export function getDocumentOffsetByElement(elementToCheck, baseDocument) {
+  const offset = { top: 0, left: 0 };
+
+  if (baseDocument !== elementToCheck.ownerDocument) {
+    const { frameElement } = baseDocument.defaultView;
+    const { top, left } = frameElement.getBoundingClientRect();
+
+    offset.top = top;
+    offset.left = left;
+  }
+
+  return offset;
 }

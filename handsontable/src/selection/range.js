@@ -68,7 +68,7 @@ class SelectionRange {
    * @returns {CellRange|undefined}
    */
   current() {
-    return this.peekByIndex(0);
+    return this.peekByIndex(this.size() - 1);
   }
 
   /**
@@ -77,7 +77,7 @@ class SelectionRange {
    * @returns {CellRange|undefined}
    */
   previous() {
-    return this.peekByIndex(-1);
+    return this.peekByIndex(this.size() - 2);
   }
 
   /**
@@ -112,17 +112,17 @@ class SelectionRange {
   }
 
   /**
-   * Peek the coordinates based on the offset where that coordinate resides in the collection.
+   * Peek the coordinates based on the index where that coordinate resides in the collection.
    *
-   * @param {number} [offset=0] An offset where the coordinate will be retrieved from.
+   * @param {number} [index=0] An index where the coordinate will be retrieved from. The index '0' gets the
+   * latest range.
    * @returns {CellRange|undefined}
    */
-  peekByIndex(offset = 0) {
-    const rangeIndex = this.size() + offset - 1;
+  peekByIndex(index = 0) {
     let cellRange;
 
-    if (rangeIndex >= 0) {
-      cellRange = this.ranges[rangeIndex];
+    if (index >= 0 && index < this.size()) {
+      cellRange = this.ranges[index];
     }
 
     return cellRange;

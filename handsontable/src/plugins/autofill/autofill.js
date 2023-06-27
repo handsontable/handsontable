@@ -3,7 +3,7 @@ import Hooks from '../../pluginHooks';
 import { offset, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import EventManager from '../../eventManager';
-import { getDeltas, getDragDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting } from './utils';
+import { getDragDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting } from './utils';
 
 Hooks.getSingleton().register('modifyAutofillRange');
 Hooks.getSingleton().register('beforeAutofill');
@@ -269,8 +269,6 @@ export class Autofill extends BasePlugin {
         return false;
       }
 
-      const deltas = getDeltas(startOfDragCoords, endOfDragCoords, selectionData, directionOfDrag);
-
       let fillData = beforeAutofillHookResult;
       const res = beforeAutofillHookResult;
 
@@ -310,9 +308,7 @@ export class Autofill extends BasePlugin {
         endOfDragCoords.row,
         endOfDragCoords.col,
         `${this.pluginName}.fill`,
-        null,
-        directionOfDrag,
-        deltas
+        null
       );
 
       this.setSelection(cornersOfSelectionAndDragAreas);

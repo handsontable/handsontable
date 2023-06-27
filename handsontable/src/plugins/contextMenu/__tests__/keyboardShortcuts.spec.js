@@ -226,4 +226,126 @@ describe('ContextMenu keyboard shortcut', () => {
       }
     });
   });
+
+  using('', [
+    ['shift', 'control/meta', '\\'],
+    ['shift', 'F10'],
+  ], (keyboardShortcut) => {
+    it('should internally call `open()` method with correct cell coordinates', () => {
+      handsontable({
+        contextMenu: true,
+      });
+
+      selectCell(1, 1);
+
+      const plugin = getPlugin('contextMenu');
+      const cellRect = getCell(1, 1).getBoundingClientRect();
+
+      spyOn(plugin, 'open').and.callThrough();
+      keyDownUp(keyboardShortcut);
+
+      expect(plugin.open).toHaveBeenCalledTimes(1);
+      expect(plugin.open).toHaveBeenCalledWith({
+        left: cellRect.left,
+        top: cellRect.top + cellRect.height - 1,
+      }, {
+        left: cellRect.width,
+        above: -cellRect.height,
+      });
+    });
+
+    it('should internally call `open()` method with correct row header coordinates', () => {
+      handsontable({
+        contextMenu: true,
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(1, -1);
+
+      const plugin = getPlugin('contextMenu');
+      const cellRect = getCell(1, -1).getBoundingClientRect();
+
+      spyOn(plugin, 'open').and.callThrough();
+      keyDownUp(keyboardShortcut);
+
+      expect(plugin.open).toHaveBeenCalledTimes(1);
+      expect(plugin.open).toHaveBeenCalledWith({
+        left: cellRect.left,
+        top: cellRect.top + cellRect.height - 1,
+      }, {
+        left: cellRect.width,
+        above: -cellRect.height,
+      });
+    });
+
+    it('should internally call `open()` method with correct column header coordinates', () => {
+      handsontable({
+        contextMenu: true,
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, 1);
+
+      const plugin = getPlugin('contextMenu');
+      const cellRect = getCell(-1, 1).getBoundingClientRect();
+
+      spyOn(plugin, 'open').and.callThrough();
+      keyDownUp(keyboardShortcut);
+
+      expect(plugin.open).toHaveBeenCalledTimes(1);
+      expect(plugin.open).toHaveBeenCalledWith({
+        left: cellRect.left,
+        top: cellRect.top + cellRect.height - 1,
+      }, {
+        left: cellRect.width,
+        above: -cellRect.height,
+      });
+    });
+
+    it('should internally call `open()` method with correct corner coordinates', () => {
+      handsontable({
+        contextMenu: true,
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, -1);
+
+      const plugin = getPlugin('contextMenu');
+      const cellRect = getCell(-1, -1).getBoundingClientRect();
+
+      spyOn(plugin, 'open').and.callThrough();
+      keyDownUp(keyboardShortcut);
+
+      expect(plugin.open).toHaveBeenCalledTimes(1);
+      expect(plugin.open).toHaveBeenCalledWith({
+        left: cellRect.left,
+        top: cellRect.top + cellRect.height - 1,
+      }, {
+        left: cellRect.width,
+        above: -cellRect.height,
+      });
+    });
+
+    it('should not close the menu after hitting the same shortcut many times', () => {
+      handsontable({
+        contextMenu: true,
+      });
+
+      selectCell(1, 1);
+
+      keyDownUp(keyboardShortcut);
+      keyDownUp(keyboardShortcut);
+      keyDownUp(keyboardShortcut);
+
+      const $contextMenu = $(document.body).find('.htContextMenu:visible');
+
+      expect($contextMenu.length).toBe(1);
+    });
+  });
 });

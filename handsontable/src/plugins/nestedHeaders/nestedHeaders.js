@@ -3,8 +3,8 @@ import {
   removeClass,
 } from '../../helpers/dom/element';
 import { isNumeric } from '../../helpers/number';
-import { isLeftClick, isRightClick } from '../../helpers/dom/event';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
+import { isLeftClick, isRightClick } from '../../helpers/dom/event';
 import { warn } from '../../helpers/console';
 import {
   ACTIVE_HEADER_TYPE,
@@ -134,15 +134,20 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
     this.addHook('afterOnCellMouseDown', (...args) => this.onAfterOnCellMouseDown(...args));
     this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
+    this.addHook('modifyTransformStart', (...args) => this.onModifyTransformStart(...args));
+    this.addHook('afterSelection', () => this.updateFocusHighlightPosition());
     this.addHook('afterGetColumnHeaderRenderers', array => this.onAfterGetColumnHeaderRenderers(array));
     this.addHook('modifyColWidth', (...args) => this.onModifyColWidth(...args));
     this.addHook('modifyColumnHeaderValue', (...args) => this.onModifyColumnHeaderValue(...args));
     this.addHook('beforeHighlightingColumnHeader', (...args) => this.onBeforeHighlightingColumnHeader(...args));
     this.addHook('beforeCopy', (...args) => this.onBeforeCopy(...args));
+    this.addHook('beforeSelectColumns', (...args) => this.onBeforeSelectColumns(...args));
     this.addHook(
       'afterViewportColumnCalculatorOverride',
       (...args) => this.onAfterViewportColumnCalculatorOverride(...args)
     );
+    this.hot.columnIndexMapper.addLocalHook('cacheUpdated', () => this.updateFocusHighlightPosition());
+    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', () => this.updateFocusHighlightPosition());
 
     super.enablePlugin();
     this.updatePlugin(); // @TODO: Workaround for broken plugin initialization abstraction.
@@ -381,6 +386,34 @@ export class NestedHeaders extends BasePlugin {
   }
 
   /**
+   * Updates the selection focus highlight position to point to the nested header root element (TH)
+   * even when the logical coordinates point in-between the header.
+   *
+   * @private
+   */
+  updateFocusHighlightPosition() {
+    const selection = this.hot?.getSelectedRangeLast();
+
+    if (!selection) {
+      return;
+    }
+
+    const { highlight } = selection;
+    const isNestedHeadersRange = highlight.isHeader() && highlight.col >= 0;
+
+    if (isNestedHeadersRange) {
+      const columnIndex = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
+      const focusHighlight = this.hot.selection.highlight.getFocus();
+
+      // Correct the highlight/focus selection to highlight the correct TH element
+      focusHighlight.visualCellRange.highlight.col = columnIndex;
+      focusHighlight.visualCellRange.from.col = columnIndex;
+      focusHighlight.visualCellRange.to.col = columnIndex;
+      focusHighlight.commit();
+    }
+  }
+
+  /**
    * Allows to control which header DOM element will be used to highlight.
    *
    * @private
@@ -573,16 +606,101 @@ export class NestedHeaders extends BasePlugin {
     const columnsToSelect = [];
 
     if (coords.col < from.col) {
-      columnsToSelect.push(bottomEndCoords.col, columnIndex);
+      columnsToSelect.push(bottomEndCoords.col, columnIndex, coords.row);
 
     } else if (coords.col > from.col) {
-      columnsToSelect.push(topStartCoords.col, columnIndex + origColspan - 1);
+      columnsToSelect.push(topStartCoords.col, columnIndex + origColspan - 1, coords.row);
 
     } else {
-      columnsToSelect.push(columnIndex, columnIndex + origColspan - 1);
+      columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
     }
 
-    this.hot.selectColumns(...columnsToSelect);
+    this.hot.selection.selectColumns(...columnsToSelect);
+  }
+
+  /**
+   * `modifyTransformStart` hook is called every time the keyboard navigation is used.
+   *
+   * @private
+   * @param {object} delta The transformation delta.
+   */
+  onModifyTransformStart(delta) {
+    const { highlight } = this.hot.getSelectedRangeLast();
+    const nextCoords = this.hot._createCellCoords(highlight.row + delta.row, highlight.col + delta.col);
+    const isNestedHeadersRange = nextCoords.isHeader() && nextCoords.col >= 0;
+
+    if (!isNestedHeadersRange) {
+      return;
+    }
+
+    const visualColumnIndexStart = this.#stateManager.findLeftMostColumnIndex(nextCoords.row, nextCoords.col);
+    const visualColumnIndexEnd = this.#stateManager.findRightMostColumnIndex(nextCoords.row, nextCoords.col);
+
+    if (delta.col < 0) {
+      const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ?
+        visualColumnIndexStart - 1 : visualColumnIndexEnd;
+      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, -1);
+
+      if (notHiddenColumnIndex === null) {
+        // There are no visible columns anymore, so move the selection out of the table edge. This will
+        // be processed by the selection Transformer class as a move selection to the previous row (if autoWrapRow is enabled).
+        delta.col = -this.hot.view.countRenderableColumnsInRange(0, highlight.col);
+      } else {
+        delta.col = -Math.max(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, highlight.col) - 1, 1);
+      }
+
+    } else if (delta.col > 0) {
+      const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ?
+        visualColumnIndexEnd + 1 : visualColumnIndexStart;
+      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, 1);
+
+      if (notHiddenColumnIndex === null) {
+        // There are no visible columns anymore, so move the selection out of the table edge. This will
+        // be processed by the selection Transformer class as a move selection to the next row (if autoWrapRow is enabled).
+        delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, this.hot.countCols());
+      } else {
+        delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1, 1);
+      }
+    }
+  }
+
+  /**
+   * The hook observes the column selection from the Selection API and modifies the column range to
+   * ensure that the whole nested column will be covered.
+   *
+   * @private
+   * @param {*} from The coords object where the selection starts.
+   * @param {*} to The coords object where the selection ends.
+   */
+  onBeforeSelectColumns(from, to) {
+    const headerLevel = from.row;
+    const startNodeData = this._getHeaderTreeNodeDataByCoords({
+      row: headerLevel,
+      col: from.col,
+    });
+    const endNodeData = this._getHeaderTreeNodeDataByCoords({
+      row: headerLevel,
+      col: to.col,
+    });
+
+    if (to.col < from.col) { // Column selection from right to left
+      if (startNodeData) {
+        from.col = startNodeData.columnIndex + startNodeData.origColspan - 1;
+      }
+
+      if (endNodeData) {
+        to.col = endNodeData.columnIndex;
+      }
+
+    } else if (to.col >= from.col) { // Column selection from left to right or a single column selection
+      if (startNodeData) {
+        from.col = startNodeData.columnIndex;
+      }
+
+      if (endNodeData) {
+        to.col = endNodeData.columnIndex + endNodeData.origColspan - 1;
+      }
+    }
   }
 
   /**

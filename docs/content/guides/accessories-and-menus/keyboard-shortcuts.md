@@ -284,14 +284,6 @@ To add a custom keyboard shortcut:
     - Accepts key names in both lowercase and uppercase (e.g., both `Enter` and `enter` work)
     - Handles key-name discrepancies between browsers (e.g., both `'Spacebar'` and `' '` work)
     - Accepts key names in any order (e.g., both `[['control', 'a']]` and `[['a', 'control']]`) work)
-    ::: tip
-    **Using the <kbd>**Alt**</kbd> (<kbd>**Option ⌥**</kbd>) modifier key**
-
-    <kbd>**Alt**</kbd> (<kbd>**Option ⌥**</kbd>) is often used for typing special characters (e.g., letters wich diacritical marks),
-    and its behavior may vary depending on the user's language and keyboard settings.
-
-    To properly use <kbd>**Alt**</kbd> (<kbd>**Option ⌥**</kbd>) in your shortcut, you may need to pass language-specific signs (such as `à` or `ś`) to the [`keys`](@/api/shortcutContext.md#addshortcut) parameter.
-    :::
 
 #### Add a conditional keyboard action
 

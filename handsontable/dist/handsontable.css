@@ -25,8 +25,8 @@
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 12.4.0
- * Release date: 23/05/2023 (built at 23/05/2023 09:22:06)
+ * Version: 13.0.0
+ * Release date: 22/06/2023 (built at 22/06/2023 12:51:30)
  */
 /**
  * Fix for bootstrap styles
@@ -1064,10 +1064,21 @@ CheckboxRenderer
   margin-right: 6px;
 }
 
+[dir=rtl].htContextMenu table tbody tr td .htItemWrapper {
+  margin-right: 10px;
+  margin-left: 6px;
+}
+
 .htContextMenu table tbody tr td div span.selected {
   margin-top: -2px;
   position: absolute;
   left: 4px;
+  right: 0;
+}
+
+[dir=rtl].htContextMenu table tbody tr td div span.selected {
+  right: 4px;
+  left: 0;
 }
 
 .htContextMenu .ht_master .wtHolder {
@@ -1202,10 +1213,21 @@ textarea.HandsontableCopyPaste {
   margin-right: 10px;
 }
 
+[dir=rtl].htDropdownMenu table tbody tr td .htItemWrapper {
+  margin-right: 10px;
+  margin-left: 10px;
+}
+
 .htDropdownMenu table tbody tr td div span.selected {
   margin-top: -2px;
   position: absolute;
   left: 4px;
+  right: 0;
+}
+
+[dir=rtl].htDropdownMenu table tbody tr td div span.selected {
+  right: 4px;
+  left: 0;
 }
 
 .htDropdownMenu .ht_master .wtHolder {

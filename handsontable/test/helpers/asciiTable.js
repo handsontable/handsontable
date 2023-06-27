@@ -25,23 +25,11 @@ function getSelectionSymbol(cell) {
 
   let symbol = '   ';
 
-  if (hasActiveHeader) {
-    symbol = ' * ';
-
-  } else if (hasHighlight) {
-    symbol = ' - ';
-
-  } else if (hasRow) {
+  if (hasRow) {
     symbol = ' r ';
 
   } else if (hasColumn) {
     symbol = ' c ';
-
-  } else if (hasCustom) {
-    symbol = ' ? ';
-
-  } else if (hasFill) {
-    symbol = ' F ';
 
   } else if (hasCurrent && hasArea && areaLevel) {
     symbol = ` ${String.fromCharCode(65 + areaLevel)} `;
@@ -57,6 +45,18 @@ function getSelectionSymbol(cell) {
 
   } else if (!hasCurrent && hasArea && areaLevel) {
     symbol = ` ${areaLevel} `;
+
+  } else if (hasActiveHeader) {
+    symbol = ' * ';
+
+  } else if (hasHighlight) {
+    symbol = ' - ';
+
+  } else if (hasCustom) {
+    symbol = ' ? ';
+
+  } else if (hasFill) {
+    symbol = ' F ';
   }
 
   return symbol;
@@ -91,25 +91,43 @@ export function generateASCIITable(context) {
   const rowsLength = masterTable.rows.length;
   const isRtl = $('.ht_master').dir === 'rtl';
   const stringRows = [];
+  let headerRootSymbol = '';
 
   for (let r = 0; r < rowsLength; r++) {
     const stringCells = [];
     const columnsLength = masterTable.rows[0].cells.length;
 
     for (let c = 0; c < columnsLength; c++) {
+      const cellElement = masterTable.rows[r].cells[c];
+      const nextCellElement = masterTable.rows[r].cells[c + 1];
+      let symbol = getSelectionSymbol(cellElement);
       let separatorSymbol = COLUMN_SEPARATOR;
 
-      if (c === leftHeadersCount - 1) {
+      // support for nested headers
+      if (
+        cellElement.nodeName === 'TH' &&
+        (cellElement.colSpan > 1 || cellElement.classList.contains('hiddenHeader') &&
+        (!nextCellElement || nextCellElement.classList.contains('hiddenHeader')))
+      ) {
+        separatorSymbol = ' ';
+
+        if (cellElement.colSpan > 1) {
+          headerRootSymbol = symbol;
+        }
+
+      } else if (c === leftHeadersCount - 1) {
         separatorSymbol = ROW_HEADER_SEPARATOR;
 
       } else if (c === leftHeadersCount + fixedLeftCellsCount - 1) {
         separatorSymbol = ROW_OVERLAY_SEPARATOR;
       }
 
-      const cellElement = masterTable.rows[r].cells[c];
+      if (cellElement.classList.contains('hiddenHeader')) {
+        symbol = headerRootSymbol;
+      }
 
       if (cellElement) {
-        stringCells.push(getSelectionSymbol(cellElement));
+        stringCells.push(symbol);
       }
 
       const isLastColumn = c === columnsLength - 1;

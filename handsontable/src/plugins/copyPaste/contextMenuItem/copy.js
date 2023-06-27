@@ -18,6 +18,16 @@ export default function copyItem(copyPastePlugin) {
         return true;
       }
 
+      const range = this.getSelectedRangeLast();
+
+      if (!range) {
+        return true;
+      }
+
+      if (range.isSingleHeader()) {
+        return true;
+      }
+
       const selected = this.getSelected();
 
       // Disable for no selection or for non-contiguous selection.
