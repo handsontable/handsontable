@@ -13,6 +13,9 @@ tags:
   - ADA
   - a11y
   - aria
+  - jaws
+  - nvda
+  - voiceover
 react:
   id: 73q9rlko
   metaTitle: Accessibility compliance - React Data Grid | Handsontable
@@ -26,6 +29,10 @@ Learn about Handsontable's compliance with WCAG 2.1, Section 508, and ADA, to ma
 [[toc]]
 
 ## Overview
+
+## Accessibility statement
+
+Downloadable PDF, to be generated here: https://www.w3.org/WAI/planning/statements/generator/#create
 
 ## WCAG 2.1 AA
 
@@ -54,9 +61,10 @@ For detailed accessibility reports, contact our [Technical Support Team](https:/
 
 ## Related API reference
 
-- Configuration options:
-  - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
-  - [`enterMoves`](@/api/options.md#entermoves)
-  - [`disableTabNavigation`](@/api/options.md#disabletabnavigation)
-  - [`navigableHeaders`](@/api/options.md#navigableheaders)
-  - [`tabMoves`](@/api/options.md#tabmoves)
+Configuration options:
+
+- [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
+- [`enterMoves`](@/api/options.md#entermoves)
+- [`disableTabNavigation`](@/api/options.md#disabletabnavigation)
+- [`navigableHeaders`](@/api/options.md#navigableheaders)
+- [`tabMoves`](@/api/options.md#tabmoves)

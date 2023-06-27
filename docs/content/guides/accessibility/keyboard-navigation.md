@@ -2,7 +2,7 @@
 id: 6qwoo503
 title: Keyboard navigation
 metaTitle: Keyboard navigation - JavaScript Data Grid | Handsontable
-description: Navigate the grid with the keyboard alone. Use the navigation options to meet the needs of your users.
+description: Navigate the grid with the keyboard alone. Use the navigation options to meet the accessibility needs of your users.
 permalink: /keyboard-navigation
 canonicalUrl: /keyboard-navigation
 tags:
@@ -13,6 +13,9 @@ tags:
   - ADA
   - a11y
   - aria
+  - jaws
+  - nvda
+  - voiceover
 react:
   id: 3m72vkzl
   metaTitle: Keyboard navigation - React Data Grid | Handsontable
@@ -21,7 +24,7 @@ searchCategory: Guides
 
 # Keyboard navigation
 
-Navigate the grid with the keyboard alone, and tweak the navigation options to meet your users' needs.
+Navigate the grid with the keyboard alone, and change the navigation options to meet your users' accessibility needs.
 
 [[toc]]
 
@@ -50,9 +53,10 @@ A single demo with all navigation options:
 
 ## Related API reference
 
-- Configuration options:
-  - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
-  - [`enterMoves`](@/api/options.md#entermoves)
-  - [`disableTabNavigation`](@/api/options.md#disabletabnavigation)
-  - [`navigableHeaders`](@/api/options.md#navigableheaders)
-  - [`tabMoves`](@/api/options.md#tabmoves)
+Configuration options:
+
+- [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
+- [`enterMoves`](@/api/options.md#entermoves)
+- [`disableTabNavigation`](@/api/options.md#disabletabnavigation)
+- [`navigableHeaders`](@/api/options.md#navigableheaders)
+- [`tabMoves`](@/api/options.md#tabmoves)
