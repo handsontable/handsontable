@@ -1216,7 +1216,7 @@ export class MergeCells extends BasePlugin {
 
   /**
    * `afterModifyTransformStart` hook callback. Fixes a problem with navigating through merged cells at the edges of
-   * the table with the ENTER/SHIFT+ENTER/TAB/SHIFT+TAB keys.
+   * the table with the <kbd>**Enter**</kbd>/<kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>/<kbd>**Tab**</kbd>/<kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> keys.
    *
    * @private
    * @param {CellCoords} coords Coordinates of the to-be-selected cell.
