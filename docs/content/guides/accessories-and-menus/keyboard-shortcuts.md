@@ -51,9 +51,11 @@ You can easily check if a keyboard shortcut's action is compatible with Microsof
 - Not compatible: &cross;
 
 ::: tip
+
 Handsontable doesn't detect data series (doesn't differentiate between blank cells and non-blank cells).
 For this reason, some keyboard shortcuts (e.g., <kbd>**Cmd**</kbd> + Arrow keys) may behave differently
 than in Microsoft Excel or Google Sheets in certain situations.
+
 :::
 
 ### Navigation keyboard shortcuts
@@ -200,11 +202,15 @@ These keyboard shortcuts work in context menus. To activate them, enable the [`C
 You can customize your keyboard shortcuts, using the [`ShortcutManager`](@/api/shortcutManager.md) API.
 
 ::: only-for react
+
 ::: tip
+
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
-For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+For more information, see the [Instance methods](@/guides/getting-started/react-methods.md) page.
+
 :::
+
 :::
 
 1. Access the [`ShortcutManager`](@/api/shortcutManager.md) API:
@@ -276,14 +282,6 @@ To add a custom keyboard shortcut:
     - Accepts key names in both lowercase and uppercase (e.g., both `Enter` and `enter` work)
     - Handles key-name discrepancies between browsers (e.g., both `'Spacebar'` and `' '` work)
     - Accepts key names in any order (e.g., both `[['control', 'a']]` and `[['a', 'control']]`) work)
-    ::: tip
-    **Using the <kbd>**Alt**</kbd> (<kbd>**Option ⌥**</kbd>) modifier key**
-
-    <kbd>**Alt**</kbd> (<kbd>**Option ⌥**</kbd>) is often used for typing special characters (e.g., letters wich diacritical marks),
-    and its behavior may vary depending on the user's language and keyboard settings.
-
-    To properly use <kbd>**Alt**</kbd> (<kbd>**Option ⌥**</kbd>) in your shortcut, you may need to pass language-specific signs (such as `à` or `ś`) to the [`keys`](@/api/shortcutContext.md#addshortcut) parameter.
-    :::
 
 #### Add a conditional keyboard action
 
@@ -371,6 +369,7 @@ gridContext.addShortcuts(undoShortcut);
 To block a keyboard shortcut's actions, return `false` in the [`beforeKeyDown`](@/api/hooks.md#beforekeydown) hook's callback:
 
 ::: only-for javascript
+
 ```js
 hot.addHook('beforeKeyDown', (event) => {
   // the `Enter` shortcut won't work
@@ -379,9 +378,11 @@ hot.addHook('beforeKeyDown', (event) => {
   }
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   beforeKeyDown={(event) => {
@@ -392,6 +393,7 @@ hot.addHook('beforeKeyDown', (event) => {
   }}
 />
 ```
+
 :::
 
 ## Related API reference

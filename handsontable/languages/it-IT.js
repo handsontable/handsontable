@@ -197,6 +197,13 @@ exports.default = void 0;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(2));
 var _handsontable = _interopRequireDefault(__webpack_require__(6));
 var _dictionary;
+/**
+ * @preserve
+ * Authors: Andrea Cattaneo
+ * Last updated: Sep 14, 2018
+ *
+ * Description: Definition file for Italian - Italy language-country.
+ */
 var C = _handsontable.default.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'it-IT'

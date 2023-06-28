@@ -24,6 +24,64 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
+## 13.0.0
+
+Released on June 22, 2023.
+
+For more information on this release, see:
+
+- [Blog post (13.0.0)](https://handsontable.com/blog/handsontable-13-0-0-support-for-angular-16-and-new-frameworks-support-policy)
+- [Documentation (13.0)](https://handsontable.com/docs/13.0)
+- [Migration guide (12.4 → 13.0)](@/guides/upgrade-and-migration/migrating-from-12.4-to-13.0.md)
+
+#### Added
+
+- Angular: Added support for Angular 16. [#10396](https://github.com/handsontable/handsontable/pull/10396)
+
+#### Changed
+
+- **Breaking change (React, Angular, Vue 2, Vue 3)**: Changed Handsontable's policy toward older versions of supported frameworks. From now on, Handsontable supports only those versions of any supported frameworks that are officially supported by their respective teams. Dropping Handsontable's support for any older framework versions won't be treated as a breaking change. [#10396](https://github.com/handsontable/handsontable/pull/10396)
+- **Breaking change**: Changed the order in which three hooks are executed: now, the [`beforeChange`](@/api/hooks.md#beforechange) hook is fired before the [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell) and [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop) hooks. [#10231](https://github.com/handsontable/handsontable/pull/10231)
+- Changed the margins of the context menu in the RTL layout direction. [#10375](https://github.com/handsontable/handsontable/pull/10375)
+
+#### Removed
+
+- **Breaking change (Angular)**: Dropped support for Angular 13 and lower. From now on, Handsontable supports only those versions of Angular that are officially supported by the Angular team: currently, it's 14-16. However, Handsontable 13.0.0 was thoroughly tested and, to the best of our knowledge, works correctly with versions down to Angular 12. [#10396](https://github.com/handsontable/handsontable/pull/10396)
+- **Breaking change**: Removed the deprecated [`beforeAutofillInsidePopulate`](https://handsontable.com/docs/12.4/javascript-data-grid/api/hooks/#beforeautofillinsidepopulate) hook. [#10407](https://github.com/handsontable/handsontable/pull/10407)
+- **Breaking change**: Removed the deprecated [`getFirstNotHiddenIndex`](https://handsontable.com/docs/12.4/javascript-data-grid/api/index-mapper/#getfirstnothiddenindex) method. Instead, use the [`getNearestNotHiddenIndex()`](@/api/indexMapper.md#getnearestnothiddenindex) method. [#10407](https://github.com/handsontable/handsontable/pull/10407)
+- **Breaking change**: Removed the deprecated parameters of the [`alter()`](@/api/core.md#alter) method: `insert_row` and `insert_col`. Instead, use the following parameters: `insert_row_above`, `insert_row_below`, `insert_col_start`, and `insert_col_end`. [#10407](https://github.com/handsontable/handsontable/pull/10407)
+- **Breaking change**: Removed the deprecated parameters of the [`populateFromArray()`](@/api/core.md#populatefromarray) method: `direction` and `deltas`. [#10407](https://github.com/handsontable/handsontable/pull/10407)
+
+#### Fixed
+
+- Fixed an issue where the "Read only" icon of the context menu displayed incorrectly in the RTL layout direction. [#10375](https://github.com/handsontable/handsontable/pull/10375)
+
+## 12.4.0
+
+Released on May 23, 2023.
+
+For more information on this release, see:
+
+- [Blog post (12.4.0)](https://handsontable.com/blog/handsontable-12-4-0-auto-updating-formulas)
+- [Documentation (12.4)](https://handsontable.com/docs/12.4)
+
+#### Added
+
+- Added two new Handsontable hooks, [`afterColumnSequenceChange`](@/api/hooks.md#aftercolumnsequencechange) and [`afterRowSequenceChange`](@/api/hooks.md#afterrowsequencechange), which are fired after changing the order of columns or rows, respectively. [#10215](https://github.com/handsontable/handsontable/pull/10215)
+
+#### Fixed
+
+- Fixed numerous issues related to syncing Handsontable with HyperFormula. Now, formulas work properly with all the Handsontable features. [#10215](https://github.com/handsontable/handsontable/pull/10215)
+- Fixed na issue where formulas didn't recalculate after rows or columns were moved. [#4668](https://github.com/handsontable/handsontable/issues/4668)
+- Fixed an issue where Handsontable's dates didn't sync correctly with HyperFormula's dates. [#10085](https://github.com/handsontable/handsontable/issues/10085)
+- Fixed an issue where calling [`updateSettings()`](@/api/core.md#updatesettings) would reset HyperFormula's undo/redo actions stack. [#10326](https://github.com/handsontable/handsontable/pull/10326)
+- Fixed an issue where the [`Autofill`](@/api/autofill.md), [`TrimRows`](@/api/trimRows.md) and [`Formulas`](@/api/formulas.md) plugins didn't work properly together. [#10200](https://github.com/handsontable/handsontable/issues/10200)
+- Fixed an issue where the [`modifySourceData`](@/api/hooks.md#modifysourcedata) hook used the wrong type of indexes. [#10215](https://github.com/handsontable/handsontable/pull/10215)
+- Fixed an issue where text copied from Handsontable to Excel included wrong types of spaces. [#10017](https://github.com/handsontable/handsontable/issues/10017)
+- Fixed an issue where mousing over the same cell twice didn't trigger the [`beforeOnCellMouseOver`](@/api/hooks.md#beforeoncellmouseover) and [`afterOnCellMouseOver`](@/api/hooks.md#afteroncellmouseover) hooks. [#10321](https://github.com/handsontable/handsontable/pull/10321)
+- Updated TypeScript definition files related to the [`CustomBorders`](@/api/customBorders.md) plugin. [#10360](https://github.com/handsontable/handsontable/pull/10360)
+- Fixed an issue where moving rows manually to the bottom was difficult due the misalignment between the backlight and guideline elements. [#9556](https://github.com/handsontable/handsontable/issues/9556)
+
 ## 12.3.3
 
 Released on March 28, 2023.

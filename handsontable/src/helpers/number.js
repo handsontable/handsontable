@@ -116,3 +116,22 @@ export function valueAccordingPercent(value, percent) {
 
   return parseInt(value * percent / 100, 10);
 }
+
+/**
+ * Clamps the value between min and max.
+ *
+ * @param {number} value The base number value.
+ * @param {number} minValue The max number value.
+ * @param {number} maxValue The min number value.
+ * @returns {number}
+ */
+export function clamp(value, minValue, maxValue) {
+  if (Math.min(value, minValue) === value) {
+    return minValue;
+
+  } else if (Math.max(value, maxValue) === value) {
+    return maxValue;
+  }
+
+  return value;
+}

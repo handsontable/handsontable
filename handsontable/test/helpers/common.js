@@ -97,6 +97,7 @@ export const getSelectedLast = handsontableMethodFactory('getSelectedLast');
 export const getSelectedRange = handsontableMethodFactory('getSelectedRange');
 export const getSelectedRangeLast = handsontableMethodFactory('getSelectedRangeLast');
 export const getSettings = handsontableMethodFactory('getSettings');
+export const getShortcutManager = handsontableMethodFactory('getShortcutManager');
 export const getSourceData = handsontableMethodFactory('getSourceData');
 export const getSourceDataArray = handsontableMethodFactory('getSourceDataArray');
 export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCell');
@@ -114,6 +115,7 @@ export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
 export const render = handsontableMethodFactory('render');
 export const updateData = handsontableMethodFactory('updateData');
 export const scrollViewportTo = handsontableMethodFactory('scrollViewportTo');
+export const scrollToFocusedCell = handsontableMethodFactory('scrollToFocusedCell');
 export const selectAll = handsontableMethodFactory('selectAll');
 export const selectCell = handsontableMethodFactory('selectCell');
 export const selectCells = handsontableMethodFactory('selectCells');
@@ -166,6 +168,20 @@ export function spec() {
  */
 export function hot() {
   return spec().$container.data('handsontable');
+}
+
+/**
+ * @returns {IndexMapper} Returns the row index mapper instance.
+ */
+export function rowIndexMapper() {
+  return hot().rowIndexMapper;
+}
+
+/**
+ * @returns {IndexMapper} Returns the column index mapper instance.
+ */
+export function columnIndexMapper() {
+  return hot().columnIndexMapper;
 }
 
 /**

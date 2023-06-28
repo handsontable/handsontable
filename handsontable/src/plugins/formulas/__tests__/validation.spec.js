@@ -319,7 +319,7 @@ describe('Formulas general', () => {
           ['2', 2, '=D2', 'text2', 'foo2'],
           ['3', 2, '=D3', 'text3', 'foo3'],
           ['4', 2, '=D4', 'text4', 'foo4'],
-          ['5', 2, '=D5', 'text5', '=A1+3'],
+          ['5', 2, '=D5', 'text5', '=B5+3'],
         ],
         formulas: {
           engine: HyperFormula
@@ -330,16 +330,16 @@ describe('Formulas general', () => {
         beforeValidate,
       });
 
-      hot.columnIndexMapper.indexesSequence.setValues([0, 2, 3, 4, 1]);
-      hot.rowIndexMapper.indexesSequence.setValues([0, 2, 3, 4, 1]);
+      hot.columnIndexMapper.setIndexesSequence([0, 2, 3, 4, 1]);
+      hot.rowIndexMapper.setIndexesSequence([0, 2, 3, 4, 1]);
 
       render();
-      setDataAtCell(0, 0, 6);
+      setDataAtCell(3, 0, 6);
 
       await sleep(100); // Validator is asynchronous.
 
       expect(beforeValidate).toHaveBeenCalledTimes(2);
-      expect(beforeValidate).toHaveBeenCalledWith(6, 0, 0);
+      expect(beforeValidate).toHaveBeenCalledWith(6, 3, 0);
       expect(beforeValidate).toHaveBeenCalledWith(9, 3, 4);
     });
 

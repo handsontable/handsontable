@@ -149,6 +149,7 @@ export interface GridSettings extends Events {
   isEmptyRow?: (this: Core, row: number) => boolean;
   label?: LabelOptions;
   language?: string;
+  locale?: string;
   layoutDirection?: 'ltr' | 'rtl' | 'inherit';
   licenseKey?: string | 'non-commercial-and-evaluation';
   manualColumnFreeze?: boolean;
@@ -164,6 +165,7 @@ export interface GridSettings extends Events {
   minSpareCols?: number;
   minSpareRows?: number;
   multiColumnSorting?: MultiColumnSortingSettings;
+  navigableHeaders?: boolean;
   nestedHeaders?: NestedHeadersSettings;
   nestedRows?: boolean;
   noWordWrapClassName?: string;

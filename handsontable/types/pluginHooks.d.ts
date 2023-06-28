@@ -68,6 +68,7 @@ export interface Events {
   afterColumnFreeze?: (columnIndex: number, isFreezingPerformed: boolean) => void;
   afterColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean, orderChanged: boolean) => void;
   afterColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void;
+  afterColumnSequenceChange?: (source: 'init' | 'move' | 'insert' | 'remove' | 'update') => void;
   afterColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[]) => void;
   afterColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean) => void;
   afterContextMenuDefaultOptions?: (predefinedItems: Array<ContextMenuPredefinedMenuItemKey | ContextMenuMenuItemConfig>) => void;
@@ -109,8 +110,8 @@ export interface Events {
   afterOnCellCornerDblClick?: (event: MouseEvent) => void;
   afterOnCellCornerMouseDown?: (event: MouseEvent) => void;
   afterOnCellMouseDown?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
-  afterOnCellMouseOver?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseOut?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
+  afterOnCellMouseOver?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseUp?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   afterPaste?: (data: CellValue[][], coords: RangeType[]) => void;
   afterPluginsInitialized?: () => void;
@@ -124,12 +125,16 @@ export interface Events {
   afterRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number, value: string, cellProperties: CellProperties) => void;
   afterRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean, orderChanged: boolean) => void;
   afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
+  afterRowSequenceChange?: (source: 'init' | 'move' | 'insert' | 'remove' | 'update') => void;
   afterScrollHorizontally?: () => void;
   afterScrollVertically?: () => void;
+  afterScroll?: () => void;
+  afterSelectColumns?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
   afterSelection?: (row: number, column: number, row2: number, column2: number, preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
   afterSelectionByProp?: (row: number, prop: string, row2: number, prop2: string, preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
   afterSelectionEnd?: (row: number, column: number, row2: number, column2: number, selectionLayerLevel: number) => void;
   afterSelectionEndByProp?: (row: number, prop: string, row2: number, prop2: string, selectionLayerLevel: number) => void;
+  afterSelectRows?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
   afterSetCellMeta?: (row: number, column: number, key: string, value: any) => void;
   afterSetDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
   afterSetDataAtRowProp?: (changes: CellChange[], source?: ChangeSource) => void;
@@ -153,7 +158,6 @@ export interface Events {
   afterViewRender?: (isForced: boolean) => void;
   beforeAddChild?: (parent: RowObject, element?: RowObject, index?: number) => void;
   beforeAutofill?: (selectionData: CellValue[][], sourceRange: CellRange, targetRange: CellRange, direction: 'up' | 'down' | 'left' | 'right') => CellValue[][] | boolean | void;
-  beforeAutofillInsidePopulate?: (index: CellCoords, direction: 'up' | 'down' | 'left' | 'right', input: CellValue[][], deltas: any[]) => void;
   beforeCellAlignment?: (stateBefore: { [row: number]: string[] }, range: CellRange[], type: 'horizontal' | 'vertical',
     alignmentClass: 'htLeft' | 'htCenter' | 'htRight' | 'htJustify' | 'htTop' | 'htMiddle' | 'htBottom') => void;
   beforeChange?: (changes: Array<CellChange | null>, source: ChangeSource) => void | boolean;
@@ -204,6 +208,8 @@ export interface Events {
   beforeRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number, value: CellValue, cellProperties: CellProperties) => void;
   beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean) => void;
   beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
+  beforeSelectColumns?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
+  beforeSelectRows?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
   beforeSetCellMeta?: (row: number, col: number, key: string, value: any) => boolean | void;
   beforeSetRangeEnd?: (coords: CellCoords) => void;
   beforeSetRangeStart?: (coords: CellCoords) => void;

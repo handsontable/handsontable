@@ -22,32 +22,38 @@ Align values within cells: horizontally (to the right, left, center, or by justi
 To initialize Handsontable with predefined horizontal and vertical alignment globally, provide the alignment details in the [`className`](@/api/options.md#classname) option, for example:
 
 ::: only-for javascript
+
 ```js
 className: 'htCenter'
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 className="htCenter"
 ```
+
 :::
 
-Cells can be also configured individually by setting up the [`cells`](@/api/options.md#cells) option. See the code sample below for an example.
+You can also configure cells individually by setting up the [`cells`](@/api/options.md#cells) option. See the code sample below for an example.
 
 Available class names:
 
-* Horizontal: `htLeft`, `htCenter`, `htRight`, `htJustify`,
-* Vertical: `htTop`, `htMiddle`, `htBottom`.
+- Horizontal: `htLeft`, `htCenter`, `htRight`, `htJustify`,
+- Vertical: `htTop`, `htMiddle`, `htBottom`.
 
-Alignment changes can be tracked using the [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta) hook.
+You can track alignment changes by using the [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta) hook.
 
 ## Basic example
 
 The following code sample configures the grid to use `htCenter` and configures individual cells to use different alignments.
 
 ::: only-for javascript
+
 ::: example #example1
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -84,11 +90,15 @@ const hot = new Handsontable(container, {
   }
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -136,9 +146,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Related API reference
 

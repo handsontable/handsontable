@@ -27,10 +27,12 @@ When you're hiding a row:
 
 ## Enable row hiding
 
-To simply enable row hiding (without further configuration), set the [`hiddenRows`](@/api/options.md#hiddenrows) configuration option to `true`:
+To enable row hiding, use the [`hiddenRows`](@/api/options.md#hiddenrows) option.
 
 ::: only-for javascript
+
 ::: example #example1
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -56,14 +58,22 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   rowHeaders: true,
   // enable the `HiddenRows` plugin
-  hiddenRows: true
+  hiddenRows: {
+    rows: [3, 5, 9],
+    // show UI indicators to mark hidden rows
+    indicators: true
+  }
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -93,7 +103,11 @@ export const ExampleComponent = () => {
       height="auto"
       colHeaders={true}
       rowHeaders={true}
-      hiddenRows={true}
+      hiddenRows={{
+        rows: [3, 5, 9],
+        // show UI indicators to mark hidden rows
+        indicators: true
+      }}
     />
   );
 };
@@ -102,9 +116,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Set up row hiding
 
@@ -119,7 +134,9 @@ In the object, add a `rows` property, and set it to an array of row indexes.
 Now, those rows are hidden by default:
 
 ::: only-for javascript
+
 ::: example #example2
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -151,11 +168,15 @@ const hot = new Handsontable(container, {
   }
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example2 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -197,9 +218,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ### Step 2: Show UI indicators
 
@@ -208,11 +230,15 @@ To easily see which rows are currently hidden, display UI indicators.
 To enable the UI indicators, in the `hiddenRows` object, set the `indicators` property to `true`:
 
 ::: tip
+
 If you use both the [`NestedHeaders`](@/api/nestedHeaders.md) plugin and the [`HiddenRows`](@/api/hiddenRows.md) plugin, you also need to set the `colHeaders` property to `true`. Otherwise, `indicators` won't work.
+
 :::
 
 ::: only-for javascript
+
 ::: example #example3
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -244,11 +270,15 @@ const hot = new Handsontable(container, {
   }
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example3 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -291,9 +321,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ### Step 3: Set up context menu items
 
@@ -302,7 +333,9 @@ To easily hide and unhide rows, add row hiding items to Handsontable's [context 
 Enable both the [`ContextMenu`](@/api/contextMenu.md) plugin and the [`HiddenRows`](@/api/hiddenRows.md) plugin. Now, the [context menu](@/guides/accessories-and-menus/context-menu.md) automatically displays additional items for hiding and unhiding rows.
 
 ::: only-for javascript
+
 ::: example #example4
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -337,11 +370,15 @@ const hot = new Handsontable(container, {
   }
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example4 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -384,14 +421,17 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 You can also add the row hiding menu items individually, by adding the [`hidden_rows_show`](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options) and [`hidden_rows_hide`](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options) strings to the `contextMenu` parameter:
 
 ::: only-for javascript
+
 ::: example #example5
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -424,11 +464,15 @@ const hot = new Handsontable(container, {
   }
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example5 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -471,9 +515,10 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example5'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ### Step 4: Set up copy and paste behavior
 
@@ -482,7 +527,9 @@ By default, hidden rows are included in copying and pasting.
 To exclude hidden rows from copying and pasting, in the `hiddenRows` object, set the `copyPasteEnabled` property to `false`:
 
 ::: only-for javascript
+
 ::: example #example6
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -516,11 +563,15 @@ const hot = new Handsontable(container, {
   }
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example6 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -565,18 +616,23 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example6'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 ## Row hiding API methods
 
 ::: only-for react
+
 ::: tip
+
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
-For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+For more information, see the [Instance methods](@/guides/getting-started/react-methods.md) page.
+
 :::
+
 :::
 
 For the most popular row hiding tasks, use the API methods below.

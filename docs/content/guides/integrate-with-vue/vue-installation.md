@@ -55,6 +55,13 @@ npm install handsontable @handsontable/vue
 </script>
 ```
 
+::: tip
+
+You can reduce the size of your bundle by importing and registering only the
+[modules](@/guides/integrate-with-vue/vue-modules.md) that you need.
+
+:::
+
 ## Related API reference
 
 - Configuration options:

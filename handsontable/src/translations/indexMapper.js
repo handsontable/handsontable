@@ -1,6 +1,4 @@
 import { arrayMap } from '../helpers/array';
-import { toSingleLine } from '../helpers/templateLiteralTag';
-import { warn } from '../helpers/console';
 import {
   createIndexMap,
   getListWithInsertedItems,
@@ -18,7 +16,13 @@ import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
 import { ChangesObservable } from './changesObservable/observable';
 
-const deprecationWarns = new Set(['getFirstNotHiddenIndex']);
+/**
+ * A set of deprecated feature names.
+ *
+ * @type {Set<string>}
+ */
+// eslint-disable-next-line no-unused-vars
+const deprecationWarns = new Set();
 
 /**
  * @class IndexMapper
@@ -120,6 +124,12 @@ export class IndexMapper {
      */
     this.indexesSequenceChanged = false;
     /**
+     * Flag informing about source of the change.
+     *
+     * @type {undefined|string}
+     */
+    this.indexesChangeSource = void 0;
+    /**
      * Flag determining whether any action on trimmed indexes has been performed. It's used for cache management.
      *
      * @private
@@ -161,6 +171,7 @@ export class IndexMapper {
       // Sequence of stored indexes might change.
       this.updateCache();
 
+      this.runLocalHooks('indexesSequenceChange', this.indexesChangeSource);
       this.runLocalHooks('change', this.indexesSequence, null);
     });
 
@@ -372,61 +383,6 @@ export class IndexMapper {
   }
 
   /**
-   * Search for the first visible, not hidden index (represented by a visual index).
-   *
-   * This method is deprecated and will be removed in a next major version of Handsontable.
-   * Use the {@link IndexMapper#getNearestNotHiddenIndex} method instead.
-   *
-   * @deprecated
-   * @param {number} fromVisualIndex Visual start index. Starting point for finding destination index. Start point may be destination
-   * point when handled index is NOT hidden.
-   * @param {number} incrementBy We are searching for a next visible indexes by increasing (to be precise, or decreasing) indexes.
-   * This variable represent indexes shift. We are looking for an index:
-   * - for rows: from the top to the bottom (increasing indexes, then variable should have value 1) or
-   * other way around (decreasing indexes, then variable should have the value -1)
-   * - for columns: from the left to the right (increasing indexes, then variable should have value 1)
-   * or other way around (decreasing indexes, then variable should have the value -1).
-   * @param {boolean} searchAlsoOtherWayAround The argument determine if an additional other way around search should be
-   * performed, when the search in the first direction had no effect in finding visual index.
-   * @param {number} indexForNextSearch Visual index for next search, when the flag is truthy.
-   *
-   * @returns {number|null} Visual column index or `null`.
-   */
-  getFirstNotHiddenIndex(fromVisualIndex, incrementBy, searchAlsoOtherWayAround = false,
-                         indexForNextSearch = fromVisualIndex - incrementBy) {
-    if (deprecationWarns.has('getFirstNotHiddenIndex')) {
-      deprecationWarns.delete('getFirstNotHiddenIndex');
-      warn(toSingleLine`The method "getFirstNotHiddenIndex" is deprecated and will be removed in the next\x20
-                        major release. Please use "getNearestNotHiddenIndex" instead.`);
-    }
-
-    const physicalIndex = this.getPhysicalFromVisualIndex(fromVisualIndex);
-
-    // First or next (it may be end of the table) index is beyond the table boundaries.
-    if (physicalIndex === null) {
-      // Looking for the next index in the opposite direction. This conditional won't be fulfilled when we STARTED
-      // the search from the index beyond the table boundaries.
-      if (searchAlsoOtherWayAround === true && indexForNextSearch !== fromVisualIndex - incrementBy) {
-        return this.getFirstNotHiddenIndex(indexForNextSearch, -incrementBy, false, indexForNextSearch);
-      }
-
-      return null;
-    }
-
-    if (this.isHidden(physicalIndex) === false) {
-      return fromVisualIndex;
-    }
-
-    // Looking for the next index, as the current isn't visible.
-    return this.getFirstNotHiddenIndex(
-      fromVisualIndex + incrementBy,
-      incrementBy,
-      searchAlsoOtherWayAround,
-      indexForNextSearch
-    );
-  }
-
-  /**
    * Search for the nearest not-hidden row or column.
    *
    * @param {number} fromVisualIndex The visual index of the row or column from which the search starts.<br><br>
@@ -479,7 +435,9 @@ export class IndexMapper {
     this.notHiddenIndexesCache = [...new Array(length).keys()];
 
     this.suspendOperations();
+    this.indexesChangeSource = 'init';
     this.indexesSequence.init(length);
+    this.indexesChangeSource = void 0;
     this.trimmingMapsCollection.initEvery(length);
     this.resumeOperations();
 
@@ -529,7 +487,15 @@ export class IndexMapper {
    * @param {Array} indexes Physical indexes.
    */
   setIndexesSequence(indexes) {
+    if (this.indexesChangeSource === void 0) {
+      this.indexesChangeSource = 'update';
+    }
+
     this.indexesSequence.setValues(indexes);
+
+    if (this.indexesChangeSource === 'update') {
+      this.indexesChangeSource = void 0;
+    }
   }
 
   /**
@@ -641,22 +607,27 @@ export class IndexMapper {
     const notTrimmedIndexesLength = this.getNotTrimmedIndexesLength();
     const movedIndexesLength = movedIndexes.length;
 
-    // Removing indexes without re-indexing.
-    const listWithRemovedItems = getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes);
+    // Removing moved indexes without re-indexing.
+    const notMovedIndexes = getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes);
+    const notTrimmedNotMovedItems = notMovedIndexes.filter(index => this.isTrimmed(index) === false);
 
     // When item(s) are moved after the last visible item we assign the last possible index.
-    let destinationPosition = notTrimmedIndexesLength - movedIndexesLength;
+    let destinationPosition = notMovedIndexes.indexOf(notTrimmedNotMovedItems[notTrimmedNotMovedItems.length - 1]) + 1;
 
     // Otherwise, we find proper index for inserted item(s).
     if (finalIndex + movedIndexesLength < notTrimmedIndexesLength) {
       // Physical index at final index position.
-      const physicalIndex = listWithRemovedItems.filter(index => this.isTrimmed(index) === false)[finalIndex];
+      const physicalIndex = notTrimmedNotMovedItems[finalIndex];
 
-      destinationPosition = listWithRemovedItems.indexOf(physicalIndex);
+      destinationPosition = notMovedIndexes.indexOf(physicalIndex);
     }
 
+    this.indexesChangeSource = 'move';
+
     // Adding indexes without re-indexing.
-    this.setIndexesSequence(getListWithInsertedItems(listWithRemovedItems, destinationPosition, physicalMovedIndexes));
+    this.setIndexesSequence(getListWithInsertedItems(notMovedIndexes, destinationPosition, physicalMovedIndexes));
+
+    this.indexesChangeSource = void 0;
   }
 
   /**
@@ -695,7 +666,9 @@ export class IndexMapper {
       (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
     this.suspendOperations();
+    this.indexesChangeSource = 'insert';
     this.indexesSequence.insert(insertionIndex, insertedIndexes);
+    this.indexesChangeSource = void 0;
     this.trimmingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
     this.hidingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
     this.variousMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
@@ -710,7 +683,9 @@ export class IndexMapper {
    */
   removeIndexes(removedIndexes) {
     this.suspendOperations();
+    this.indexesChangeSource = 'remove';
     this.indexesSequence.remove(removedIndexes);
+    this.indexesChangeSource = void 0;
     this.trimmingMapsCollection.removeFromEvery(removedIndexes);
     this.hidingMapsCollection.removeFromEvery(removedIndexes);
     this.variousMapsCollection.removeFromEvery(removedIndexes);

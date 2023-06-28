@@ -1,4 +1,5 @@
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
+import { stopImmediatePropagation } from '../helpers/dom/event';
 import { createContext } from './context';
 import { useRecorder } from './recorder';
 
@@ -119,6 +120,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
         }
 
         if (stopPropagation) {
+          stopImmediatePropagation(event);
           event.stopPropagation();
         }
 

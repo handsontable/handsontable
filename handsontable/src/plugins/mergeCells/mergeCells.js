@@ -581,8 +581,12 @@ export class MergeCells extends BasePlugin {
     gridContext.addShortcut({
       keys: [['Control', 'm']],
       callback: () => {
-        this.toggleMerge(this.hot.getSelectedRangeLast());
-        this.hot.render();
+        const range = this.hot.getSelectedRangeLast();
+
+        if (range && !range.isSingleHeader()) {
+          this.toggleMerge(range);
+          this.hot.render();
+        }
       },
       runOnlyIf: event => !event.altKey, // right ALT in some systems triggers ALT+CTRL
       group: SHORTCUTS_GROUP,

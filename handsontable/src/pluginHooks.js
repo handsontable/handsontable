@@ -276,6 +276,15 @@ const REGISTERED_HOOKS = [
   'beforeCreateCol',
 
   /**
+   * Fired after the order of columns has changed.
+   * This hook is fired by changing column indexes of any type supported by the {@link IndexMapper}.
+   *
+   * @event Hooks#afterColumnSequenceChange
+   * @param {'init'|'remove'|'insert'|'move'|'update'} [source] A string that indicates what caused the change to the order of columns.
+   */
+  'afterColumnSequenceChange',
+
+  /**
    * Fired after created a new column.
    *
    * @event Hooks#afterCreateCol
@@ -564,6 +573,15 @@ const REGISTERED_HOOKS = [
   'afterRenderer',
 
   /**
+   * Fired after the order of rows has changed.
+   * This hook is fired by changing row indexes of any type supported by the {@link IndexMapper}.
+   *
+   * @event Hooks#afterRowSequenceChange
+   * @param {'init'|'remove'|'insert'|'move'|'update'} [source] A string that indicates what caused the change to the order of rows.
+   */
+  'afterRowSequenceChange',
+
+  /**
    * Fired after the horizontal scroll event.
    *
    * @event Hooks#afterScrollHorizontally
@@ -576,6 +594,14 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterScrollVertically
    */
   'afterScrollVertically',
+
+  /**
+   * Fired after the vertical or horizontal scroll event.
+   *
+   * @since 14.0.0
+   * @event Hooks#afterScroll
+   */
+  'afterScroll',
 
   /**
    * Fired after one or more cells are selected (e.g. During mouse move).
@@ -683,6 +709,98 @@ const REGISTERED_HOOKS = [
    * @param {number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    */
   'afterSelectionEndByProp',
+
+  /**
+   * Fired before one or more columns are selected (e.g. During mouse header click or {@link Core#selectColumns} API call).
+   *
+   * @since 14.0.0
+   * @event Hooks#beforeSelectColumns
+   * @param {CellCoords} from Selection start coords object.
+   * @param {CellCoords} to Selection end coords object.
+   * @param {CellCoords} highlight Selection cell focus coords object.
+   * @example
+   * ::: only-for javascript
+   * ```js
+   * new Handsontable(element, {
+   *   beforeSelectColumns: (from, to, highlight) => {
+   *     // Extend the column selection by one column left and one column right.
+   *     from.col = Math.max(from.col - 1, 0);
+   *     to.col = Math.min(to.col + 1, this.countCols() - 1);
+   *   }
+   * })
+   * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   beforeSelectColumns={(from, to, highlight) => {
+   *     // Extend the column selection by one column left and one column right.
+   *     from.col = Math.max(from.col - 1, 0);
+   *     to.col = Math.min(to.col + 1, this.countCols() - 1);
+   *   }}
+   * />
+   * ```
+   * :::
+   */
+  'beforeSelectColumns',
+
+  /**
+   * Fired after one or more columns are selected (e.g. During mouse header click or {@link Core#selectColumns} API call).
+   *
+   * @since 14.0.0
+   * @event Hooks#afterSelectColumns
+   * @param {CellCoords} from Selection start coords object.
+   * @param {CellCoords} to Selection end coords object.
+   * @param {CellCoords} highlight Selection cell focus coords object.
+   */
+  'afterSelectColumns',
+
+  /**
+   * Fired before one or more rows are selected (e.g. During mouse header click or {@link Core#selectRows} API call).
+   *
+   * @since 14.0.0
+   * @event Hooks#beforeSelectRows
+   * @param {CellCoords} from Selection start coords object.
+   * @param {CellCoords} to Selection end coords object.
+   * @param {CellCoords} highlight Selection cell focus coords object.
+   * @example
+   * ::: only-for javascript
+   * ```js
+   * new Handsontable(element, {
+   *   beforeSelectRows: (from, to, highlight) => {
+   *     // Extend the row selection by one row up and one row bottom more.
+   *     from.row = Math.max(from.row - 1, 0);
+   *     to.row = Math.min(to.row + 1, this.countRows() - 1);
+   *   }
+   * })
+   * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   beforeSelectRows={(from, to, highlight) => {
+   *     // Extend the row selection by one row up and one row bottom more.
+   *     from.row = Math.max(from.row - 1, 0);
+   *     to.row = Math.min(to.row + 1, this.countRows() - 1);
+   *   }}
+   * />
+   * ```
+   * :::
+   */
+  'beforeSelectRows',
+
+  /**
+   * Fired after one or more rows are selected (e.g. During mouse header click or {@link Core#selectRows} API call).
+   *
+   * @since 14.0.0
+   * @event Hooks#afterSelectRows
+   * @param {CellCoords} from Selection start coords object.
+   * @param {CellCoords} to Selection end coords object.
+   * @param {CellCoords} highlight Selection cell focus coords object.
+   */
+  'afterSelectRows',
 
   /**
    * Fired after cell meta is changed.
@@ -1260,8 +1378,8 @@ const REGISTERED_HOOKS = [
    * Fired when a data was retrieved or modified.
    *
    * @event Hooks#modifyData
-   * @param {number} row Physical row height.
-   * @param {number} column Physical column index.
+   * @param {number} row Physical row index.
+   * @param {number} column Visual column index.
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
@@ -1273,7 +1391,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#modifySourceData
    * @since 8.0.0
    * @param {number} row Physical row index.
-   * @param {number} column Physical column index.
+   * @param {number} column Physical column index or property name.
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
@@ -2087,18 +2205,6 @@ const REGISTERED_HOOKS = [
   'modifyRowHeaderWidth',
 
   /**
-   * Fired from the `populateFromArray` method during the `autofill` process. Fired for each "autofilled" cell individually.
-   *
-   * @deprecated
-   * @event Hooks#beforeAutofillInsidePopulate
-   * @param {object} index Object containing `row` and `col` properties, defining the number of rows/columns from the initial cell of the autofill.
-   * @param {string} direction Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`.
-   * @param {Array[]} input Contains an array of rows with data being used in the autofill.
-   * @param {Array} deltas The deltas array passed to the `populateFromArray` method.
-   */
-  'beforeAutofillInsidePopulate',
-
-  /**
    * Fired when the start of the selection is being modified (e.g. Moving the selection with the arrow keys).
    *
    * @event Hooks#modifyTransformStart
@@ -2569,10 +2675,6 @@ const REMOVED_HOOKS = new Map([
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 const DEPRECATED_HOOKS = new Map([
-  [
-    'beforeAutofillInsidePopulate',
-    'The plugin hook "beforeAutofillInsidePopulate" is deprecated and will be removed in the next major release.'
-  ],
   [
     'beforeRemoveCellClassNames',
     'The hook "beforeRemoveCellClassNames" is deprecated and will be removed in the next major release.'

@@ -19,6 +19,7 @@ Reference a Handsontable instance from an Angular component to programmatically 
 The following example is an implementation of `@handsontable/angular`, which shows you how to reference the Handsontable instance from the wrapper component.
 
 ::: example :angular --html 1 --js 2
+
 ```html
 <app-root></app-root>
 ```
@@ -85,4 +86,5 @@ platformBrowserDynamic()
   .catch(err => { console.error(err) });
 /* end:skip-in-preview */
 ```
+
 :::

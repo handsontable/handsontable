@@ -28,6 +28,7 @@ import './filters.scss';
 
 export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
+const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 /**
  * @plugin Filters
@@ -246,6 +247,7 @@ export class Filters extends BasePlugin {
       this.dropdownMenuPlugin.enablePlugin();
     }
 
+    this.registerShortcuts();
     super.enablePlugin();
   }
 
@@ -267,7 +269,38 @@ export class Filters extends BasePlugin {
       this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     }
 
+    this.unregisterShortcuts();
     super.disablePlugin();
+  }
+
+  /**
+   * Register shortcuts responsible for clearing the filters.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .addShortcut({
+        keys: [['Alt', 'A']],
+        stopPropagation: true,
+        callback: () => {
+          this.clearConditions();
+          this.filter();
+        },
+        group: SHORTCUTS_GROUP,
+      });
+  }
+
+  /**
+   * Unregister shortcuts responsible for clearing the filters.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -282,6 +315,11 @@ export class Filters extends BasePlugin {
    *  * `between` - Between
    *  * `by_value` - By value
    *  * `contains` - Contains
+   *  * `date_after` - After a date
+   *  * `date_before` - Before a date
+   *  * `date_today` - Today
+   *  * `date_tomorrow` - Tomorrow
+   *  * `date_yesterday` - Yesterday
    *  * `empty` - Empty
    *  * `ends_with` - Ends with
    *  * `eq` - Equal
@@ -462,7 +500,6 @@ export class Filters extends BasePlugin {
 
     this.hot.view.adjustElementsSize(true);
     this.hot.render();
-    this.clearColumnSelection();
   }
 
   /**
@@ -483,19 +520,6 @@ export class Filters extends BasePlugin {
       visualIndex: highlight.col,
       physicalIndex: this.hot.toPhysicalColumn(highlight.col),
     };
-  }
-
-  /**
-   * Clears column selection.
-   *
-   * @private
-   */
-  clearColumnSelection() {
-    const selectedColumn = this.getSelectedColumn();
-
-    if (selectedColumn !== null) {
-      this.hot.selectCell(0, selectedColumn.visualIndex);
-    }
   }
 
   /**
@@ -700,6 +724,7 @@ export class Filters extends BasePlugin {
       this.components.forEach(component => component.saveState(physicalIndex));
       this.filtersRowsMap.clear();
       this.filter();
+      this.hot.selectCell(0, selectedColumn.visualIndex);
     }
 
     this.dropdownMenuPlugin?.close();

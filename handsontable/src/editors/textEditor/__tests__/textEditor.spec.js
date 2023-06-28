@@ -905,8 +905,58 @@ describe('TextEditor', () => {
     selectCell(2, 2);
 
     expect(isEditorVisible()).toEqual(false);
+
     keyDownUp('f2');
+
     expect(isEditorVisible()).toEqual(true);
+  });
+
+  it('should open editor after hitting any other printable character', () => {
+    handsontable();
+    selectCell(2, 2);
+
+    expect(isEditorVisible()).toBe(false);
+
+    keyDownUp('z');
+
+    expect(isEditorVisible()).toBe(true);
+
+    keyDownUp('escape');
+
+    expect(isEditorVisible()).toBe(false);
+
+    keyDownUp('1');
+
+    expect(isEditorVisible()).toBe(true);
+  });
+
+  it('should not open editor after hitting any other printable character when header is highlighted', () => {
+    handsontable({
+      rowHeaders: true,
+      colHeaders: true,
+      navigableHeaders: true,
+    });
+
+    expect(selectCell(-1, 2)).toBe(true);
+    expect(isEditorVisible()).toBe(false);
+
+    keyDownUp('z');
+
+    expect(isEditorVisible()).toBe(false);
+
+    expect(selectCell(2, -1)).toBe(true);
+    expect(isEditorVisible()).toBe(false);
+
+    keyDownUp('1');
+
+    expect(isEditorVisible()).toBe(false);
+
+    expect(selectCell(-1, -1)).toBe(true);
+    expect(isEditorVisible()).toBe(false);
+
+    keyDownUp('.');
+
+    expect(isEditorVisible()).toBe(false);
   });
 
   it('should close editor after hitting ESC', () => {
@@ -914,9 +964,13 @@ describe('TextEditor', () => {
     selectCell(2, 2);
 
     expect(isEditorVisible()).toEqual(false);
+
     keyDownUp('f2');
+
     expect(isEditorVisible()).toEqual(true);
+
     keyDownUp('escape');
+
     expect(isEditorVisible()).toEqual(false);
   });
 
@@ -925,7 +979,9 @@ describe('TextEditor', () => {
     selectCell(2, 2);
 
     expect(isEditorVisible()).toEqual(false);
+
     keyDownUp('capslock');
+
     expect(isEditorVisible()).toEqual(false);
   });
 
@@ -934,11 +990,17 @@ describe('TextEditor', () => {
     selectCell(2, 2);
 
     expect(isEditorVisible()).toEqual(false);
+
     keyDownUp('f2');
+
     expect(isEditorVisible()).toEqual(true);
+
     keyDownUp('escape');
+
     expect(isEditorVisible()).toEqual(false);
+
     keyDownUp('f2');
+
     expect(isEditorVisible()).toEqual(true);
   });
 
