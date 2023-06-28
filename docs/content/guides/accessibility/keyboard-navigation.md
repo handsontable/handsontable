@@ -283,8 +283,6 @@ ReactDOM.render(<App />, document.getElementById('exampleKeyboardNavigation'));
 
 A single demo with all navigation options:
 
-[To do: change buttons into switch buttons]
-
 - `disableTabNavigation`
 - `navigableHeaders`
 - `tabMoves`
@@ -296,20 +294,14 @@ A single demo with all navigation options:
 ::: example #exampleNavigationOptions --html 1 --js 2
 
 ```html
+<input type="checkbox" id="enable_tab_navigation">Enable tab navigation</input>
+<br />
+<input type="checkbox" id="enable_enter_navigation">Enable enter navigation</input>
+<br />
+<input type="checkbox" id="enable_headers_navigation">Enable navigation in headers</input>
+<br />
+<br />
 <div id="exampleNavigationOptions"></div>
-
-<div class="controls">
-  <button id="enable_tab_navigation" class="button">Enable tab navigation</button>
-  <button id="disable_tab_navigation" class="button">Disable tab navigation</button>
-  <br />
-  <br />
-  <button id="enable_enter_navigation" class="button">Enable enter navigation</button>
-  <button id="disable_enter_navigation" class="button">Disable enter navigation</button>
-  <br />
-  <br />
-  <button id="enable_headers_navigation" class="button">Enable navigation in headers</button>
-  <button id="disable_headers_navigation" class="button">Disable navigation in headers</button>
-</div>
 ```
 
 ```js
@@ -317,12 +309,9 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#exampleNavigationOptions');
-const buttonEnableTabNavigation = document.querySelector('#enable_tab_navigation');
-const buttonDisableTabNavigation = document.querySelector('#disable_tab_navigation');
-const buttonEnableEnterNavigation = document.querySelector('#enable_enter_navigation');
-const buttonDisableEnterNavigation = document.querySelector('#disable_enter_navigation');
-const buttonEnableHeadersNavigation = document.querySelector('#enable_headers_navigation');
-const buttonDisableHeadersNavigation = document.querySelector('#disable_headers_navigation');
+const checkboxEnableTabNavigation = document.querySelector('#enable_tab_navigation');
+const checkboxEnableEnterNavigation = document.querySelector('#enable_enter_navigation');
+const checkboxEnableHeadersNavigation = document.querySelector('#enable_headers_navigation');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -411,43 +400,45 @@ const handsontableInstance = new Handsontable(container, {
   ],
   height: 168,
   disableTabNavigation: true,
+  enterBeginsEditing: true,
+  navigableHeaders: false,
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-buttonEnableTabNavigation.addEventListener('click', () => {
-  handsontableInstance.updateSettings({
-    disableTabNavigation: false,
-  });
+checkboxEnableTabNavigation.addEventListener('change', () => {
+  if (this.checked) {
+      handsontableInstance.updateSettings({
+        disableTabNavigation: false,
+      });
+  } else {
+      handsontableInstance.updateSettings({
+        disableTabNavigation: true,
+      });
+  }
 });
 
-buttonDisableTabNavigation.addEventListener('click', () => {
-  handsontableInstance.updateSettings({
-    disableTabNavigation: true,
-  });
+checkboxEnableEnterNavigation.addEventListener('change', () => {
+  if (this.checked) {
+      handsontableInstance.updateSettings({
+        enterBeginsEditing: false,
+      });
+  } else {
+      handsontableInstance.updateSettings({
+        enterBeginsEditing: true,
+      });
+  }
 });
 
-buttonEnableEnterNavigation.addEventListener('click', () => {
-  handsontableInstance.updateSettings({
-    enterBeginsEditing: false,
-  });
-});
-
-buttonDisableEnterNavigation.addEventListener('click', () => {
-  handsontableInstance.updateSettings({
-    enterBeginsEditing: true,
-  });
-});
-
-buttonEnableHeadersNavigation.addEventListener('click', () => {
-  handsontableInstance.updateSettings({
-    navigableHeaders: true,
-  });
-});
-
-buttonDisableHeadersNavigation.addEventListener('click', () => {
-  handsontableInstance.updateSettings({
-    navigableHeaders: false,
-  });
+checkboxEnableHeadersNavigation.addEventListener('change', () => {
+  if (this.checked) {
+      handsontableInstance.updateSettings({
+        navigableHeaders: true,
+      });
+  } else {
+      handsontableInstance.updateSettings({
+        navigableHeaders: false,
+      });
+  }
 });
 ```
 

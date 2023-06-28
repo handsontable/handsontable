@@ -37,14 +37,10 @@ By default, you can use <kbd>**Tab**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Tab**
 ::: example #exampleEnableTabNavigation --html 1 --js 2
 
 ```html
+<input type="checkbox" id="enable_tab_navigation">Enable tab navigation</input>
+<br />
+<br />
 <div id="exampleEnableTabNavigation"></div>
-
-<div class="controls">
-  <button id="enable_tab_navigation" class="button">Enable tab navigation</button>
-  <br />
-  <br />
-  <button id="disable_tab_navigation" class="button">Disable tab navigation</button>
-</div>
 ```
 
 ```js
@@ -52,8 +48,7 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#exampleEnableTabNavigation');
-const buttonEnableTabNavigation = document.querySelector('#enable_tab_navigation');
-const buttonDisableTabNavigation = document.querySelector('#disable_tab_navigation');
+const checkboxEnableTabNavigation = document.querySelector('#enable_tab_navigation');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -145,16 +140,16 @@ const handsontableInstance = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-buttonEnableTabNavigation.addEventListener('click', () => {
-  handsontableInstance.updateSettings({
-    disableTabNavigation: false,
-  });
-});
-
-buttonDisableTabNavigation.addEventListener('click', () => {
-  handsontableInstance.updateSettings({
-    disableTabNavigation: true,
-  });
+checkboxEnableTabNavigation.addEventListener('change', () => {
+  if (this.checked) {
+      handsontableInstance.updateSettings({
+        disableTabNavigation: false,
+      });
+  } else {
+      handsontableInstance.updateSettings({
+        disableTabNavigation: true,
+      });
+  }
 });
 ```
 
@@ -313,14 +308,10 @@ By default, you can't navigate [column headers](@/guides/columns/column-header.m
 ::: example #exampleEnableHeadersNavigation --html 1 --js 2
 
 ```html
+<input type="checkbox" id="enable_headers_navigation">Enable navigation in headers</input>
+<br />
+<br />
 <div id="exampleEnableHeadersNavigation"></div>
-
-<div class="controls">
-  <button id="enable_headers_navigation" class="button">Enable navigation in headers</button>
-  <br />
-  <br />
-  <button id="disable_headers_navigation" class="button">Disable navigation in headers</button>
-</div>
 ```
 
 ```js
@@ -328,8 +319,7 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#exampleEnableHeadersNavigation');
-const buttonEnableHeadersNavigation = document.querySelector('#enable_headers_navigation');
-const buttonDisableHeadersNavigation = document.querySelector('#disable_headers_navigation');
+const checkboxEnableHeadersNavigation = document.querySelector('#enable_headers_navigation');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -422,16 +412,16 @@ const handsontableInstance = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-buttonEnableHeadersNavigation.addEventListener('click', () => {
-  handsontableInstance.updateSettings({
-    navigableHeaders: true,
-  });
-});
-
-buttonDisableHeadersNavigation.addEventListener('click', () => {
-  handsontableInstance.updateSettings({
-    navigableHeaders: false,
-  });
+checkboxEnableHeadersNavigation.addEventListener('change', () => {
+  if (this.checked) {
+      handsontableInstance.updateSettings({
+        navigableHeaders: true,
+      });
+  } else {
+      handsontableInstance.updateSettings({
+        navigableHeaders: false,
+      });
+  }
 });
 ```
 
