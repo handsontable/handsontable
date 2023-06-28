@@ -33,6 +33,7 @@ import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
 import { Selection } from './selection';
 import { MetaManager, DynamicCellMetaMod, ExtendMetaPropertiesMod, replaceData } from './dataMap';
+import { installFocusCatcher } from './core/index';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
@@ -1156,6 +1157,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.view = new TableView(this);
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
 
+    installFocusCatcher(instance);
     instance.runHooks('init');
 
     this.forceFullRender = true; // used when data was changed
