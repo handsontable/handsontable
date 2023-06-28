@@ -55,7 +55,15 @@ the exact needs of your users. By using Handsontable's configuration options, yo
 ::: example #exampleA11y --html 1 --js 2
 
 ```html
+<input type="checkbox" id="enable_tab_navigation">Enable tab navigation</input>
+<input type="checkbox" id="enable_headers_navigation">Enable navigation in headers</input>
+<br />
+<br />
+<input type="text" id=navigable_test_input_1 placeholder="Navigable test input"/>
+<br />
+<br />
 <div id="exampleA11y"></div>
+<input type="text" id=navigable_test_input_2 placeholder="Navigable test input"/>
 ```
 
 ```js
@@ -63,6 +71,8 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#exampleA11y');
+const checkboxEnableTabNavigation = document.querySelector('#enable_tab_navigation');
+const checkboxEnableHeadersNavigation = document.querySelector('#enable_headers_navigation');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -149,10 +159,34 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htCenter',
     },
   ],
-  disableTabNavigation: false,
-  navigableHeaders: true,
+  disableTabNavigation: true,
+  navigableHeaders: false,
   height: 168,
   licenseKey: 'non-commercial-and-evaluation',
+});
+
+checkboxEnableTabNavigation.addEventListener('change', () => {
+  if (this.checked) {
+      handsontableInstance.updateSettings({
+        disableTabNavigation: false,
+      });
+  } else {
+      handsontableInstance.updateSettings({
+        disableTabNavigation: true,
+      });
+  }
+});
+
+checkboxEnableHeadersNavigation.addEventListener('change', () => {
+  if (this.checked) {
+      handsontableInstance.updateSettings({
+        navigableHeaders: true,
+      });
+  } else {
+      handsontableInstance.updateSettings({
+        navigableHeaders: false,
+      });
+  }
 });
 ```
 
@@ -165,7 +199,7 @@ const handsontableInstance = new Handsontable(container, {
 ::: example #exampleA11y :react
 
 ```jsx
-// to import sorting as an individual module, see the 'Import the sorting module' section of this page
+import { useRef } from 'react';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -174,7 +208,32 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 export const App = () => {
+  const hotTableComponentRef = useRef(null);
+  const enableTabNavigation = () => {
+    const handsontableInstance = hotTableComponentRef.current.hotInstance;
+
+    handsontableInstance.updateSettings({
+      disableTabNavigation: false,
+    });
+  };
+
+  const enableHeadersNavigation = () => {
+    const handsontableInstance = hotTableComponentRef.current.hotInstance;
+
+    handsontableInstance.updateSettings({
+      navigableHeaders: true,
+    });
+  };
+
   return (
+    <>
+    <input type="checkbox" id="enable_tab_navigation" onChange={enableTabNavigation}>Enable tab navigation</input>
+    <input type="checkbox" id="enable_headers_navigation" onChange={enableHeadersNavigation}>Enable navigation in headers</input>
+    <br />
+    <br />
+    <input type="text" id="navigable_test_input_1" placeholder="Navigable test input"/>
+    <br />
+    <br />
     <HotTable
       data={[
         {
@@ -262,11 +321,13 @@ export const App = () => {
           className: 'htCenter',
         },
       ]}
-      disableTabNavigation="false"
-      navigableHeaders="true"
+      disableTabNavigation="true"
+      navigableHeaders="false"
       height={168}
       licenseKey="non-commercial-and-evaluation"
     />
+    <input type="text" id="navigable_test_input_2" placeholder="Navigable test input"/>
+    </>
   );
 };
 
