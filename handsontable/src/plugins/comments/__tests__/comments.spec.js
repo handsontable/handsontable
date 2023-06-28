@@ -57,7 +57,7 @@ describe('Comments', () => {
       });
 
       const plugin = hot.getPlugin('comments');
-      const editor = plugin.editor.getInputElement();
+      const editor = plugin.getEditorInputElement();
 
       updateSettings({
         comments: {
@@ -126,7 +126,7 @@ describe('Comments', () => {
         });
 
         const plugin = getPlugin('comments');
-        const $editor = $(plugin.editor.getInputElement());
+        const $editor = $(plugin.getEditorInputElement());
 
         plugin.showAtCell(0, 1);
 
@@ -153,7 +153,7 @@ describe('Comments', () => {
         scrollViewportTo(countRows() - 1, countCols() - 1);
 
         const plugin = getPlugin('comments');
-        const $editor = $(plugin.editor.getInputElement());
+        const $editor = $(plugin.getEditorInputElement());
 
         await sleep(10);
 
@@ -176,7 +176,7 @@ describe('Comments', () => {
         });
 
         const plugin = getPlugin('comments');
-        const $editor = $(plugin.editor.getInputElement());
+        const $editor = $(plugin.getEditorInputElement());
 
         plugin.showAtCell(0, 1);
 
@@ -199,7 +199,7 @@ describe('Comments', () => {
         scrollViewportTo(countRows() - 1, countCols() - 1);
 
         const plugin = getPlugin('comments');
-        const $editor = $(plugin.editor.getInputElement());
+        const $editor = $(plugin.getEditorInputElement());
 
         await sleep(10);
 
@@ -228,7 +228,7 @@ describe('Comments', () => {
         scrollViewportTo(countRows() - 1, countCols() - 1);
 
         const plugin = getPlugin('comments');
-        const $editor = $(plugin.editor.getInputElement());
+        const $editor = $(plugin.getEditorInputElement());
 
         await sleep(10);
 
@@ -259,7 +259,7 @@ describe('Comments', () => {
         scrollViewportTo(countRows() - 1, countCols() - 1);
 
         const plugin = getPlugin('comments');
-        const $editor = $(plugin.editor.getInputElement());
+        const $editor = $(plugin.getEditorInputElement());
 
         await sleep(10);
 
@@ -292,7 +292,7 @@ describe('Comments', () => {
         scrollViewportTo(countRows() - 1, 0);
 
         const plugin = getPlugin('comments');
-        const $editor = $(plugin.editor.getInputElement());
+        const $editor = $(plugin.getEditorInputElement());
 
         await sleep(10);
 
@@ -334,7 +334,7 @@ describe('Comments', () => {
 
       await sleep(300);
 
-      const editor = getPlugin('comments').editor.getInputElement();
+      const editor = getPlugin('comments').getEditorInputElement();
 
       expect(editor.parentNode.style.display).toBe('block');
     });
@@ -364,7 +364,7 @@ describe('Comments', () => {
 
       await sleep(300);
 
-      const editorStyle = getPlugin('comments').editor.editorStyle;
+      const editorStyle = document.querySelector('.htComments').style;
 
       expect(editorStyle.display).toBe('none');
 
@@ -409,7 +409,7 @@ describe('Comments', () => {
 
       await sleep(10);
 
-      const commentEditorOffset = $(hot.getPlugin('comments').editor.getInputElement()).offset();
+      const commentEditorOffset = $(hot.getPlugin('comments').getEditorInputElement()).offset();
 
       expect({
         top: commentEditorOffset.top,
@@ -437,7 +437,7 @@ describe('Comments', () => {
     await sleep(10);
 
     const plugin = hot.getPlugin('comments');
-    const editor = plugin.editor.getInputElement();
+    const editor = plugin.getEditorInputElement();
 
     expect(plugin.getCommentAtCell(0, 0)).toEqual('test');
 
@@ -589,7 +589,7 @@ describe('Comments', () => {
       });
 
       const plugin = hot.getPlugin('comments');
-      const editor = plugin.editor.getInputElement();
+      const editor = plugin.getEditorInputElement();
 
       expect(editor.parentNode.style.display).toEqual('none');
 
@@ -605,7 +605,7 @@ describe('Comments', () => {
       });
 
       const plugin = hot.getPlugin('comments');
-      const editor = plugin.editor.getInputElement();
+      const editor = plugin.getEditorInputElement();
 
       plugin.showAtCell(1, 1);
       expect(editor.parentNode.style.display).toEqual('block');
@@ -670,11 +670,41 @@ describe('Comments', () => {
         clientY: 1,
       });
 
-    const editor = getPlugin('comments').editor.getInputElement();
+    const editor = getPlugin('comments').getEditorInputElement();
 
     await sleep(400);
 
     expect(editor.parentNode.style.display).toBe('block');
+  });
+
+  it('should set the table active and switch the keyboard shortcuts context to plugin when the comment is triggered ' +
+      'by LMB to inactive (unlisten) table', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(4, 4),
+      contextMenu: true,
+      comments: true,
+      cell: [
+        { row: 1, col: 1, comment: { value: 'Hello world!' } }
+      ],
+    });
+
+    $(getCell(1, 1)).simulate('mouseover', {
+      clientX: Handsontable.dom.offset(getCell(1, 1)).left + 5,
+      clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
+    });
+
+    await sleep(400);
+
+    $(getPlugin('comments').getEditorInputElement())
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click');
+    getPlugin('comments').getEditorInputElement().focus();
+
+    await sleep(50);
+
+    expect(hot.isListening()).toBe(true);
+    expect(getShortcutManager().getActiveContextName()).toBe('plugin:comments');
   });
 
   describe('Using the Context Menu', () => {
@@ -694,7 +724,7 @@ describe('Comments', () => {
 
       $(addCommentButton).simulate('mousedown').simulate('mouseup');
 
-      const editor = hot.getPlugin('comments').editor.getInputElement();
+      const editor = hot.getPlugin('comments').getEditorInputElement();
 
       expect($(editor).parents('.htComments')[0].style.display).toEqual('block');
     });
@@ -788,7 +818,7 @@ describe('Comments', () => {
       selectCell(1, 1);
       contextMenu();
 
-      const editor = getPlugin('comments').editor.getInputElement();
+      const editor = getPlugin('comments').getEditorInputElement();
 
       expect(editor.readOnly).toBe(false);
 
@@ -822,7 +852,7 @@ describe('Comments', () => {
       selectCell(1, 1, 3, 3);
       contextMenu();
 
-      const editor = hot.getPlugin('comments').editor.getInputElement();
+      const editor = hot.getPlugin('comments').getEditorInputElement();
 
       expect($(editor)[0].readOnly).toBe(false);
 
@@ -853,7 +883,7 @@ describe('Comments', () => {
       selectCell(3, 3, 1, 1);
       contextMenu();
 
-      const editor = hot.getPlugin('comments').editor.getInputElement();
+      const editor = hot.getPlugin('comments').getEditorInputElement();
 
       expect($(editor)[0].readOnly).toBe(false);
 
@@ -1040,7 +1070,7 @@ describe('Comments', () => {
       });
 
       const plugin = hot.getPlugin('comments');
-      const editor = plugin.editor.getInputElement();
+      const editor = plugin.getEditorInputElement();
 
       plugin.showAtCell(0, 0);
 
@@ -1112,7 +1142,7 @@ describe('Comments', () => {
       });
 
       const plugin = hot.getPlugin('comments');
-      const editor = plugin.editor.getInputElement();
+      const editor = plugin.getEditorInputElement();
 
       plugin.showAtCell(2, 2);
       expect($(editor).val()).toEqual('Foo');

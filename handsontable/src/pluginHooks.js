@@ -596,6 +596,14 @@ const REGISTERED_HOOKS = [
   'afterScrollVertically',
 
   /**
+   * Fired after the vertical or horizontal scroll event.
+   *
+   * @since 14.0.0
+   * @event Hooks#afterScroll
+   */
+  'afterScroll',
+
+  /**
    * Fired after one or more cells are selected (e.g. During mouse move).
    *
    * @event Hooks#afterSelection
@@ -705,7 +713,7 @@ const REGISTERED_HOOKS = [
   /**
    * Fired before one or more columns are selected (e.g. During mouse header click or {@link Core#selectColumns} API call).
    *
-   * @since 13.0.0
+   * @since 14.0.0
    * @event Hooks#beforeSelectColumns
    * @param {CellCoords} from Selection start coords object.
    * @param {CellCoords} to Selection end coords object.
@@ -740,7 +748,7 @@ const REGISTERED_HOOKS = [
   /**
    * Fired after one or more columns are selected (e.g. During mouse header click or {@link Core#selectColumns} API call).
    *
-   * @since 13.0.0
+   * @since 14.0.0
    * @event Hooks#afterSelectColumns
    * @param {CellCoords} from Selection start coords object.
    * @param {CellCoords} to Selection end coords object.
@@ -751,7 +759,7 @@ const REGISTERED_HOOKS = [
   /**
    * Fired before one or more rows are selected (e.g. During mouse header click or {@link Core#selectRows} API call).
    *
-   * @since 13.0.0
+   * @since 14.0.0
    * @event Hooks#beforeSelectRows
    * @param {CellCoords} from Selection start coords object.
    * @param {CellCoords} to Selection end coords object.
@@ -786,7 +794,7 @@ const REGISTERED_HOOKS = [
   /**
    * Fired after one or more rows are selected (e.g. During mouse header click or {@link Core#selectRows} API call).
    *
-   * @since 13.0.0
+   * @since 14.0.0
    * @event Hooks#afterSelectRows
    * @param {CellCoords} from Selection start coords object.
    * @param {CellCoords} to Selection end coords object.

@@ -308,14 +308,19 @@ class TableView {
     });
 
     this.eventManager.addEventListener(documentElement, 'mouseup', (event) => {
-      if (selection.isInProgress() && isLeftClick(event)) { // is left mouse button
+      if (selection.isInProgress() && isLeftClick(event)) {
         selection.finish();
       }
 
       priv.mouseDown = false;
 
-      if (isOutsideInput(rootDocument.activeElement) ||
-         (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
+      const isOutsideInputElement = isOutsideInput(rootDocument.activeElement);
+
+      if (!isOutsideInputElement) {
+        return;
+      }
+
+      if (isOutsideInputElement || (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
           !rootElement.contains(event.target) && !isRightClick(event))) {
         this.instance.unlisten();
       }
@@ -879,8 +884,14 @@ class TableView {
       },
       beforeDraw: (force, skipRender) => this.beforeRender(force, skipRender),
       onDraw: force => this.afterRender(force),
-      onScrollVertically: () => this.instance.runHooks('afterScrollVertically'),
-      onScrollHorizontally: () => this.instance.runHooks('afterScrollHorizontally'),
+      onScrollVertically: () => {
+        this.instance.runHooks('afterScrollVertically');
+        this.instance.runHooks('afterScroll');
+      },
+      onScrollHorizontally: () => {
+        this.instance.runHooks('afterScrollHorizontally');
+        this.instance.runHooks('afterScroll');
+      },
       onBeforeRemoveCellClassNames: () => this.instance.runHooks('beforeRemoveCellClassNames'),
       onBeforeHighlightingRowHeader: (renderableRow, headerLevel, highlightMeta) => {
         const rowMapper = this.instance.rowIndexMapper;

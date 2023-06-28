@@ -457,6 +457,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterRowSequenceChange: (source) => {},
   afterScrollHorizontally: () => {},
   afterScrollVertically: () => {},
+  afterScroll: () => {},
   afterSelectColumns: (from, to, highlight) => {},
   afterSelection: (r, c, r2, c2, preventScrolling, selectionLayerLevel) => preventScrolling.value = true,
   afterSelectionByProp: (r, p, r2, p2, preventScrolling, selectionLayerLevel) => preventScrolling.value = true,
