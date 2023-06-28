@@ -2,7 +2,7 @@
 id: 47yk0ksz
 title: Accessibility compliance
 metaTitle: Accessibility compliance - JavaScript Data Grid | Handsontable
-description: Learn about Handsontable's compliance with WCAG 2.1, Section 508, and ADA, to make sure your application meets relevant accessibility standards.
+description: Learn about Handsontable's compliance with WCAG 2.1, Section 508, and ADA to make sure your application meets required accessibility standards.
 permalink: /accessibility-compliance
 canonicalUrl: /accessibility-compliance
 tags:
@@ -24,15 +24,19 @@ searchCategory: Guides
 
 # Accessibility compliance
 
-Learn about Handsontable's compliance with WCAG 2.1, Section 508, and ADA, to make sure your application meets relevant accessibility standards.
+Learn about Handsontable's compliance with WCAG 2.1, Section 508, and ADA to make sure your application meets required accessibility standards.
 
 [[toc]]
 
 ## Overview
 
+
+
 ## Accessibility statement
 
-Downloadable PDF, to be generated here: https://www.w3.org/WAI/planning/statements/generator/#create
+TBD
+
+[Downloadable PDF, to be generated here: https://www.w3.org/WAI/planning/statements/generator/#create]
 
 ## WCAG 2.1 AA
 
@@ -58,13 +62,3 @@ The accessibility audits were carried out in accordance with industry-standard m
 - ADA
 
 For detailed accessibility reports, contact our [Technical Support Team](https://handsontable.com/contact?category=technical_support).
-
-## Related API reference
-
-Configuration options:
-
-- [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
-- [`enterMoves`](@/api/options.md#entermoves)
-- [`disableTabNavigation`](@/api/options.md#disabletabnavigation)
-- [`navigableHeaders`](@/api/options.md#navigableheaders)
-- [`tabMoves`](@/api/options.md#tabmoves)
