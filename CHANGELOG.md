@@ -441,7 +441,7 @@ For more information on Handsontable 12.0.1, see:
 - Added an Arabic translation. [#9208](https://github.com/handsontable/handsontable/issues/9208)
 - Added a new configuration option: `fixedColumnsStart`.
   [#8760](https://github.com/handsontable/handsontable/issues/8760)
-- Added a new keyboard shortcut (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Enter</kbd>) for filling the
+- Added a new keyboard shortcut (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>Enter</kbd>) for filling the
   selected range of cells with the value of the active cell.
   [#9366](https://github.com/handsontable/handsontable/issues/9366)
 - Added support for the <kbd>Home</kbd> and <kbd>End</kbd> keys inside cell editors, for moving the
@@ -472,23 +472,23 @@ For more information on Handsontable 12.0.1, see:
   [keyboard shortcuts](https://handsontable.com/docs/keyboard-shortcuts/#default-keyboard-shortcuts)
   guide. However, some shortcuts that were not defined explicitly, and were not listed in the
   documentation, don't work anymore (e.g., <kbd>Enter</kbd> opens a cell's editor, but
-  <kbd>Ctrl</kbd> + <kbd>Enter</kbd> doesn't). This change doesn't affect custom keyboard shortcuts.
+  <kbd>Ctrl</kbd>+<kbd>Enter</kbd> doesn't). This change doesn't affect custom keyboard shortcuts.
   [#8942](https://github.com/handsontable/handsontable/issues/8942)
 - **Breaking change**: Split a cross-platform modifier key (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>) into two
   separate keys, to improve keyboard navigation consistency. Now, the <kbd>Cmd</kbd> key triggers
   actions on macOS where the <kbd>Ctrl</kbd> key triggers actions on Windows. For example, on macOS,
-  <kbd>Ctrl</kbd> + <kbd>A</kbd> doesn't work anymore: <kbd>Cmd</kbd> + <kbd>A</kbd> is used
+  <kbd>Ctrl</kbd>+<kbd>A</kbd> doesn't work anymore: <kbd>Cmd</kbd>+<kbd>A</kbd> is used
   instead. [#9369](https://github.com/handsontable/handsontable/issues/9369)
 - **Breaking change**: Changed the actions of the following
   [keyboard shortcuts](https://handsontable.com/docs/keyboard-shortcuts/#default-keyboard-shortcuts),
   to match the usual spreadsheet software behavior, and provide a more intuitive user experience:
-  <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>↑</kbd>, <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Shift</kbd> +
-  <kbd>↑</kbd>, <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>↓</kbd>, <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> +
-  <kbd>Shift</kbd> + <kbd>↓</kbd>, <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>←</kbd>,
-  <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>←</kbd>, <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> +
-  <kbd>→</kbd>, <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>→</kbd>, <kbd>Home</kbd>,
-  <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Home</kbd>, <kbd>End</kbd>, <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> +
-  <kbd>End</kbd>, <kbd>Shift</kbd> + <kbd>Page Up</kbd>, and <kbd>Shift</kbd> + <kbd>Page
+  <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>↑</kbd>, <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>Shift</kbd> +
+  <kbd>↑</kbd>, <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>↓</kbd>, <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> +
+  <kbd>Shift</kbd>+<kbd>↓</kbd>, <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>←</kbd>,
+  <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>←</kbd>, <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> +
+  <kbd>→</kbd>, <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>→</kbd>, <kbd>Home</kbd>,
+  <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>Home</kbd>, <kbd>End</kbd>, <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> +
+  <kbd>End</kbd>, <kbd>Shift</kbd>+<kbd>Page Up</kbd>, and <kbd>Shift</kbd>+<kbd>Page
   Down</kbd>. [#9363](https://github.com/handsontable/handsontable/issues/9363)
   [#9364](https://github.com/handsontable/handsontable/issues/9364)
   [#9365](https://github.com/handsontable/handsontable/issues/9365)
@@ -507,11 +507,11 @@ For more information on Handsontable 12.0.1, see:
 
 ### Removed
 
-- **Breaking change**: Removed the <kbd>Cmd</kbd> + <kbd>M</kbd> keyboard shortcut (used for cell
-  merging), as it conflicted with window minimizing on macOS. The <kbd>Ctrl</kbd> + <kbd>M</kbd>
+- **Breaking change**: Removed the <kbd>Cmd</kbd>+<kbd>M</kbd> keyboard shortcut (used for cell
+  merging), as it conflicted with window minimizing on macOS. The <kbd>Ctrl</kbd>+<kbd>M</kbd>
   keyboard shortcut works the same as before.
   [#9368](https://github.com/handsontable/handsontable/issues/9368)
-- **Breaking change**: Removed the <kbd>Shift</kbd> + <kbd>Page Up</kbd>/<kbd>Page Down</kbd>
+- **Breaking change**: Removed the <kbd>Shift</kbd>+<kbd>Page Up</kbd>/<kbd>Page Down</kbd>
   keyboard shortcuts from the cell editing context.
   [#9401](https://github.com/handsontable/handsontable/issues/9401)
 - Dropped support for Internet Explorer 11 and Edge Legacy (the non-Chromium version of Edge).
@@ -542,8 +542,8 @@ For more information on Handsontable 12.0.1, see:
   [#5455](https://github.com/handsontable/handsontable/issues/5455)
 - Fixed a wrong TypeScript definition in the `BasePlugin` class.
   [#9175](https://github.com/handsontable/handsontable/issues/9175)
-- Fixed an issue where the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Z</kbd> and
-  <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> keyboard shortcuts didn't behave
+- Fixed an issue where the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>Z</kbd> and
+  <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> keyboard shortcuts didn't behave
   properly inside cell editors. [#9367](https://github.com/handsontable/handsontable/issues/9367)
 - Fixed an issue where the dropdown menu contained unwanted rectangle elements.
   [#9240](https://github.com/handsontable/handsontable/issues/9240)
