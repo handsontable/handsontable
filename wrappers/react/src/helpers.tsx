@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {
+  EditorScopeIdentifier,
   HotEditorCache,
   HotEditorElement
 } from './types';
@@ -104,15 +105,15 @@ export function createEditorPortal(doc: Document = document, editorElement: HotE
 }
 
 /**
- * Get an editor element extended with a instance-emitting method.
+ * Get an editor element extended with an instance-emitting method.
  *
  * @param {React.ReactNode} children Component children.
  * @param {Map} editorCache Component's editor cache.
- * @param {string|number} [editorColumnScope] The editor scope (column index or a 'global' string). Defaults to
+ * @param {EditorScopeIdentifier} [editorColumnScope] The editor scope (column index or a 'global' string). Defaults to
  * 'global'.
  * @returns {React.ReactElement} An editor element containing the additional methods.
  */
-export function getExtendedEditorElement(children: React.ReactNode, editorCache: HotEditorCache, editorColumnScope: string | number = GLOBAL_EDITOR_SCOPE): React.ReactElement | null {
+export function getExtendedEditorElement(children: React.ReactNode, editorCache: HotEditorCache, editorColumnScope: EditorScopeIdentifier = GLOBAL_EDITOR_SCOPE): React.ReactElement | null {
   const editorElement = getChildElementByType(children, 'hot-editor');
   const editorClass = getOriginalEditorClass(editorElement);
 
