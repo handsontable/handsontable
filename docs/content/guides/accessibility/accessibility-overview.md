@@ -29,7 +29,7 @@ Learn about our approach to accessibility, and get an overview of Handsontable's
 We believe in a web that's available to everyone. That's why we designed our data grid to be used by people with disabilities, including those who use assistive
 technologies like screen readers or keyboard navigation.
 
-To make Handsontable accessible by default, its out-of-the-box accessibility features include:
+Ensuring a high level of accessibility by default, Handsontable's built-in features include:
 
 - Intuitive [keyboard navigation](#keyboard-navigation) that lets you access any feature without using a mouse.
 - Transparent HTML structure following best accessibility practices.
@@ -37,11 +37,11 @@ To make Handsontable accessible by default, its out-of-the-box accessibility fea
 - Support for the most popular [screen readers](#supported-screen-readers).
 - Compliance with the most important [accessibility standards](#accessibility-compliance).
 
-In case of data grids and spreadsheet components, there's no universal accessibility standard. Depending on your use case, industry or location, your
+In the case of data grids and spreadsheet components, there's no universal accessibility standard. Depending on your use case, industry or location, your
 application may need to meet different accessibility requirements. With that in mind, we prepared a set of accessibility options that you can configure to meet
 the exact needs of your users. By using Handsontable's configuration options, you can easily:
 
-- [Enable tab key navigation](@/guides/accessibility/accessibility-configuration.md#enable-tab-key-navigation),
+- [Enable tab navigation](@/guides/accessibility/accessibility-configuration.md#enable-tab-navigation),
 - [Enable navigation in headers](@/guides/accessibility/accessibility-configuration.md#enable-navigation-in-headers),
 - [Configure virtual rendering options](@/guides/accessibility/accessibility-configuration.md#disable-virtual-rendering),
 - [Configure IME fast-editing](@/guides/accessibility/accessibility-configuration.md#ime-fast-editing),
@@ -283,13 +283,14 @@ ReactDOM.render(<App />, document.getElementById('exampleA11y'));
 
 To meet the needs of visually impaired users, Handsontable supports the world's most popular screen readers:
 
-- **JAWS** (Job Access With Speech) is one of the most widely used screen readers for Windows. It provides speech and Braille output. [how compatible is HoT with JAWS?]
+- **JAWS** (Job Access With Speech) is one of the most widely used screen readers for Windows. It provides speech and Braille output. [how compatible is HoT
+  with JAWS?]
 - **NVDA** (NonVisual Desktop Access) is a popular open-source screen reader for Windows. [how compatible is HoT with NVDA?]
-- **VoiceOver** is the default screen reader built into macOS. [how compatible is HoT with VoiceOver?]
+- **VoiceOver** is the default screen reader of macOS. [how compatible is HoT with VoiceOver?]
 
 ## Keyboard navigation
 
-You can navigate Handsontable with the keyboard alone, easily change navigation options, use more advanced shortcuts or add shortcuts of your own. Learn more:
+You can navigate Handsontable with the keyboard alone, easily change navigation options, use more advanced shortcuts, or add shortcuts of your own. Learn more:
 
 - [Use keyboard navigation](@/guides/accessibility/keyboard-navigation.md)
 - [Configure keyboard navigation options](@/guides/accessibility/keyboard-navigation.md#configure-keyboard-navigation-options)
@@ -303,10 +304,10 @@ Before releasing a new version of Handsontable, we carefully test it for accessi
 - We cover the most common use cases with automated tests.
 - We manually test all of Handsontable's features with the most popular screen readers.
 - We use automated visual regression testing.
-- We check Handsontable's accessibility score with a range of the most popular accessibility testing tools, such as Lighthouse, Axe-core or Accessibility
+- We check Handsontable's accessibility score with a range of the most popular accessibility testing tools, such as Lighthouse, Axe-core, or Accessibility
   Insights for Web.
 
-Learn more at: [Testing](@/guides/tools-and-building/testing.md)
+Learn more at [Testing](@/guides/tools-and-building/testing.md).
 
 ## Accessibility compliance
 
@@ -316,7 +317,7 @@ Handsontable is compliant with the following accessibility standards:
 - Section 508 of the Rehabilitation Act
 - The Americans with Disabilities Act (ADA)
 
-Learn more at: [Accessibility compliance](@/guides/accessibility/accessibility-compliance.md).
+Learn more at [Accessibility compliance](@/guides/accessibility/accessibility-compliance.md).
 
 ## Accessibility and customization
 
