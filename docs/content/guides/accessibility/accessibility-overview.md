@@ -39,9 +39,9 @@ Ensuring a high level of accessibility by default, Handsontable's built-in featu
 
 In the case of data grids and spreadsheet components, there's no universal accessibility standard. Depending on your use case, industry or location, your
 application may need to meet different accessibility requirements. With that in mind, we prepared a set of accessibility options that you can configure to meet
-the exact needs of your users. By using Handsontable's configuration options, you can easily:
+the exact needs of your users. By using those options, you can easily:
 
-- [Enable tab navigation](@/guides/accessibility/accessibility-configuration.md#enable-tab-navigation),
+- [Enable the tab key navigation](@/guides/accessibility/accessibility-configuration.md#enable-the-tab-key-navigation),
 - [Enable navigation in headers](@/guides/accessibility/accessibility-configuration.md#enable-navigation-in-headers),
 - [Configure virtual rendering options](@/guides/accessibility/accessibility-configuration.md#disable-virtual-rendering),
 - [Configure IME fast-editing](@/guides/accessibility/accessibility-configuration.md#ime-fast-editing),
@@ -55,7 +55,7 @@ the exact needs of your users. By using Handsontable's configuration options, yo
 ::: example #exampleA11y --html 1 --js 2
 
 ```html
-<input type="checkbox" id="enable_tab_navigation">Enable tab navigation</input>
+<input type="checkbox" id="enable_tab_navigation">Enable the tab key navigation</input>
 <input type="checkbox" id="enable_headers_navigation">Enable navigation in headers</input>
 <br />
 <br />
@@ -227,7 +227,7 @@ export const App = () => {
 
   return (
     <>
-    <input type="checkbox" id="enable_tab_navigation" onChange={enableTabNavigation}>Enable tab navigation</input>
+    <input type="checkbox" id="enable_tab_navigation" onChange={enableTabNavigation}>Enable the tab key navigation</input>
     <input type="checkbox" id="enable_headers_navigation" onChange={enableHeadersNavigation}>Enable navigation in headers</input>
     <br />
     <br />

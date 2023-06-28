@@ -28,7 +28,7 @@ Configure your grid for better compatibility with screen readers, and adjust oth
 
 Handsontable is designed to be accessible by default. However, you can adjust some of its accessibility options for better compatibility with a particular screen reader or to match a specific behavior that your users are familiar with.
 
-## Enable tab navigation
+## Enable the tab key navigation
 
 By default, you can use <kbd>**Tab**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> to navigate between cells. To turn off this behavior, set [`disableTabNavigation`](@/api/options.md#disabletabnavigation) to `true`.
 
@@ -37,7 +37,7 @@ By default, you can use <kbd>**Tab**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Tab**
 ::: example #exampleEnableTabNavigation --html 1 --js 2
 
 ```html
-<input type="checkbox" id="enable_tab_navigation">Enable tab navigation</input>
+<input type="checkbox" id="enable_tab_navigation">Enable the tab key navigation</input>
 <br />
 <br />
 <div id="exampleEnableTabNavigation"></div>
@@ -281,10 +281,10 @@ export const App = () => {
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
-        <button onClick={enableTabNavigation}>Enable tab navigation</button>
+        <button onClick={enableTabNavigation}>Enable the tab key navigation</button>
         <br />
         <br />
-        <button onClick={disableTabNavigation}>Disable tab navigation</button>
+        <button onClick={disableTabNavigation}>Disable tab key navigation</button>
       </div>
     </>
   );
@@ -553,10 +553,10 @@ export const App = () => {
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
-        <button onClick={enableTabNavigation}>Enable tab navigation</button>
+        <button onClick={enableTabNavigation}>Enable the tab key navigation</button>
         <br />
         <br />
-        <button onClick={disableTabNavigation}>Disable tab navigation</button>
+        <button onClick={disableTabNavigation}>Disable tab key navigation</button>
       </div>
     </>
   );
