@@ -30,8 +30,6 @@ Learn about Handsontable's compliance with WCAG 2.1, Section 508, and ADA to mak
 
 ## Overview
 
-
-
 ## Accessibility statement
 
 TBD
