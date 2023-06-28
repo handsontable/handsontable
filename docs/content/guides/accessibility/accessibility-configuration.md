@@ -26,13 +26,11 @@ Configure your grid for better compatibility with screen readers, and adjust oth
 
 ## Overview
 
-Handsontable is designed to be accessible by default. However, you can adjust some of its accessibility options for better compatibility with a particular screen reader, or to match a specific behavior that your users are used to.
+Handsontable is designed to be accessible by default. However, you can adjust some of its accessibility options for better compatibility with a particular screen reader or to match a specific behavior that your users are familiar with.
 
 ## Enable tab navigation
 
-By default, you can navigate between cells with the <kbd>**Tab**</kbd> key. However, you can also disable this behavior by setting the [`disableTabNavigation`](@/api/options.md#disabletabnavigation) option to `true`.
-
-Regardless of this setting, you can always navigate the grid by using the arrow keys.
+By default, you can use <kbd>**Tab**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> to navigate between cells. To turn off this behavior, set [`disableTabNavigation`](@/api/options.md#disabletabnavigation) to `true`.
 
 ::: only-for javascript
 
@@ -308,7 +306,7 @@ ReactDOM.render(<App />, document.getElementById('exampleEnableTabNavigation'));
 
 ## Enable navigation in headers
 
-By default, you can't navigate the [column headers](@/guides/columns/column-header.md) or the [row headers](@/guides/rows/row-header.md) with the keyboard. To enable this feature, set the [`navigableHeaders`](@/api/options.md#navigableheaders) option to `true`.
+By default, you can't navigate [column headers](@/guides/columns/column-header.md) or [row headers](@/guides/rows/row-header.md). To change it, set [`navigableHeaders`](@/api/options.md#navigableheaders) to `true`.
 
 ::: only-for javascript
 
@@ -589,14 +587,51 @@ TBD
 
 ## IME fast editing
 
+TBD
+
 - Demo that showcases the `imeFastEdit` option (TBD) [#10342](https://github.com/handsontable/handsontable/pull/10342)
 - IME fast edit works only with JAWS
 
-## Set explicit height of the grid
+## Set the grid's height explicitly
 
-"nawigacja lepiej działa z określoną `height`, z `height: 'auto'` tak sobie"
+TBD
+
+::: only-for javascript
+
+For a better keyboard navigation experience, we recommend setting the [grid's height](@/guides/getting-started/grid-size.md) explicitly, rather than using `height: 'auto'`.
+
+```js
+const configurationOptions = {
+  // set the grid's height explicitly
+  height: 168,
+};
+```
+
+:::
+
+::: only-for react
+
+For a better keyboard navigation experience, we recommend setting the [grid's height](@/guides/getting-started/grid-size.md) explicitly, rather than using `height="auto"`.
+
+```jsx
+<HotTable
+  // set the grid's height explicitly
+  height={168}
+/>
+```
+
+:::
 
 ## Styling for accessibility
+
+At the moment, Handsontable doesn't feature a high-contrast theme out of the box. However, you can easily create your own theme by overriding the default Handsontable styles.
+
+Whatever your styling choices are, we recommend that you:
+
+- Follow best web accessibility practices,
+- Use proper color contrast, font size, and semantic HTML tags,
+- Avoid flashing or blinking content,
+- Test your customizations with real users who have different types of disabilities.
 
 ## Related API reference
 
