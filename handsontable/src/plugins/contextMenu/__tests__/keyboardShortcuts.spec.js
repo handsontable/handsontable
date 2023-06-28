@@ -332,6 +332,40 @@ describe('ContextMenu keyboard shortcut', () => {
       });
     });
 
+    it('should scroll the viewport when the focused cell is outside the table and call the `open` method', async() => {
+      const hot = handsontable({
+        data: createSpreadsheetData(500, 50),
+        width: 300,
+        height: 300,
+        contextMenu: true,
+      });
+
+      selectCell(400, 40);
+      scrollViewportTo(0, 0);
+
+      await sleep(10);
+
+      const plugin = getPlugin('contextMenu');
+
+      spyOn(plugin, 'open').and.callThrough();
+      keyDownUp(keyboardShortcut);
+
+      await sleep(10);
+
+      const cellRect = getCell(400, 40).getBoundingClientRect();
+
+      expect(plugin.open).toHaveBeenCalledTimes(1);
+      expect(plugin.open).toHaveBeenCalledWith({
+        left: cellRect.left,
+        top: cellRect.top + cellRect.height - 1,
+      }, {
+        left: cellRect.width,
+        above: -cellRect.height,
+      });
+      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(1766);
+      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(8939);
+    });
+
     it('should not close the menu after hitting the same shortcut many times', () => {
       handsontable({
         contextMenu: true,

@@ -3980,7 +3980,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Returns the number of rendered row headers.
    *
-   * @since 13.0.0
+   * @since 14.0.0
    * @memberof Core#
    * @function countRowHeaders
    * @returns {number} Number of row headers.
@@ -3992,7 +3992,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Returns the number of rendered column headers.
    *
-   * @since 13.0.0
+   * @since 14.0.0
    * @memberof Core#
    * @function countColHeaders
    * @returns {number} Number of column headers.
@@ -4376,6 +4376,34 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     return false;
+  };
+
+  /**
+   * Scrolls the viewport to coordinates specified by the currently focused cell.
+   *
+   * @since 14.0.0
+   * @memberof Core#
+   * @function scrollToFocusedCell
+   * @param {Function} callback The callback function to call after the viewport is scrolled.
+   */
+  this.scrollToFocusedCell = function(callback = () => {}) {
+    if (!this.selection.isSelected()) {
+      return;
+    }
+
+    this.addHookOnce('afterScroll', callback);
+
+    const { highlight } = this.getSelectedRangeLast();
+    const renderableRowIndex = this.rowIndexMapper.getRenderableFromVisualIndex(highlight.row);
+    const renderableColumnIndex = this.columnIndexMapper.getRenderableFromVisualIndex(highlight.col);
+    const isScrolled = this.view.scrollViewport(this._createCellCoords(renderableRowIndex, renderableColumnIndex));
+
+    if (isScrolled) {
+      this.view.render();
+    } else {
+      this.removeHook('afterScroll', callback);
+      this._registerImmediate(() => callback());
+    }
   };
 
   /**

@@ -52,7 +52,7 @@ describe('Comments (RTL mode)', () => {
         });
 
         const plugin = getPlugin('comments');
-        const $editor = $(plugin.editor.getInputElement());
+        const $editor = $(plugin.getEditorInputElement());
 
         plugin.showAtCell(0, 1);
 
@@ -80,7 +80,7 @@ describe('Comments (RTL mode)', () => {
         scrollViewportTo(countRows() - 1, countCols() - 1);
 
         const plugin = getPlugin('comments');
-        const $editor = $(plugin.editor.getInputElement());
+        const $editor = $(plugin.getEditorInputElement());
 
         await sleep(10);
 
@@ -104,7 +104,7 @@ describe('Comments (RTL mode)', () => {
         });
 
         const plugin = getPlugin('comments');
-        const $editor = $(plugin.editor.getInputElement());
+        const $editor = $(plugin.getEditorInputElement());
 
         plugin.showAtCell(0, 1);
 
@@ -128,7 +128,7 @@ describe('Comments (RTL mode)', () => {
         scrollViewportTo(countRows() - 1, countCols() - 1);
 
         const plugin = getPlugin('comments');
-        const $editor = $(plugin.editor.getInputElement());
+        const $editor = $(plugin.getEditorInputElement());
 
         await sleep(10);
 
@@ -158,7 +158,7 @@ describe('Comments (RTL mode)', () => {
         scrollViewportTo(countRows() - 1, countCols() - 1);
 
         const plugin = getPlugin('comments');
-        const $editor = $(plugin.editor.getInputElement());
+        const $editor = $(plugin.getEditorInputElement());
 
         await sleep(10);
 
@@ -188,7 +188,7 @@ describe('Comments (RTL mode)', () => {
         scrollViewportTo(countRows() - 1, countCols() - 1);
 
         const plugin = getPlugin('comments');
-        const $editor = $(plugin.editor.getInputElement());
+        const $editor = $(plugin.getEditorInputElement());
 
         await sleep(10);
 
@@ -221,7 +221,7 @@ describe('Comments (RTL mode)', () => {
         scrollViewportTo(countRows() - 1, 0);
 
         const plugin = getPlugin('comments');
-        const $editor = $(plugin.editor.getInputElement());
+        const $editor = $(plugin.getEditorInputElement());
 
         await sleep(10);
 
@@ -277,7 +277,7 @@ describe('Comments (RTL mode)', () => {
 
         await sleep(10);
 
-        const commentEditor = $(hot.getPlugin('comments').editor.getInputElement());
+        const commentEditor = $(hot.getPlugin('comments').getEditorInputElement());
         const commentEditorOffset = commentEditor.offset();
         const commentEditorWidth = commentEditor.outerWidth();
 
