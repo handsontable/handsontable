@@ -44,7 +44,7 @@ shortcuts of [your own](@/guides/accessories-and-menus/keyboard-shortcuts.md#cus
 By default, you can navigate Handsontable in the following way:
 
 - Use the arrow keys to move one cell up, down, left, or right.
-- Press <kbd>**Tab**</kbd> to move one cell to the right, and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> to move one cell to the left.
+- Press <kbd>**Tab**</kbd> to move to the next cell, and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> to move to the previous cell.
 - Press <kbd>**Enter**</kbd> to start editing the active cell.
 - For more advanced actions, see the [list of all built-in shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md#default-keyboard-shortcuts).
 
@@ -294,7 +294,7 @@ A single demo with all navigation options:
 ::: example #exampleNavigationOptions --html 1 --js 2
 
 ```html
-<input type="checkbox" id="enable_tab_navigation">Enable tab navigation</input>
+<input type="checkbox" id="enable_tab_navigation">Enable the tab key navigation</input>
 <br />
 <input type="checkbox" id="enable_enter_navigation">Enable enter navigation</input>
 <br />
@@ -570,10 +570,10 @@ export const App = () => {
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
-        <button onClick={enableTabNavigation}>Enable tab navigation</button>
+        <button onClick={enableTabNavigation}>Enable the tab key navigation</button>
         <br />
         <br />
-        <button onClick={disableTabNavigation}>Disable tab navigation</button>
+        <button onClick={disableTabNavigation}>Disable tab key navigation</button>
       </div>
     </>
   );
