@@ -226,14 +226,6 @@ export const App = () => {
   };
 
   return (
-    <>
-    <input type="checkbox" id="enable_tab_navigation" onChange={enableTabNavigation}>Enable the tab key navigation</input>
-    <input type="checkbox" id="enable_headers_navigation" onChange={enableHeadersNavigation}>Enable navigation in headers</input>
-    <br />
-    <br />
-    <input type="text" id="navigable_test_input_1" placeholder="Navigable test input"/>
-    <br />
-    <br />
     <HotTable
       data={[
         {
@@ -326,8 +318,6 @@ export const App = () => {
       height={168}
       licenseKey="non-commercial-and-evaluation"
     />
-    <input type="text" id="navigable_test_input_2" placeholder="Navigable test input"/>
-    </>
   );
 };
 
