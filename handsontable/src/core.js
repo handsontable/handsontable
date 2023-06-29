@@ -3982,7 +3982,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Returns the number of rendered row headers.
    *
-   * @since 13.0.0
+   * @since 14.0.0
    * @memberof Core#
    * @function countRowHeaders
    * @returns {number} Number of row headers.
@@ -3994,7 +3994,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Returns the number of rendered column headers.
    *
-   * @since 13.0.0
+   * @since 14.0.0
    * @memberof Core#
    * @function countColHeaders
    * @returns {number} Number of column headers.

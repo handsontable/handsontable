@@ -3190,7 +3190,7 @@ export default () => {
     /**
      * When set to `true`, the `navigableHeaders` option lets you navigate [row headers](@/guides/rows/row-header.md) and [column headers](@/guides/columns/column-header.md), using the arrow keys or the <kbd>**Tab**</kbd> key (if the [`disableTabNavigation`](#disabletabnavigation) option is set to `false`).
      *
-     * @since 13.0.0
+     * @since 14.0.0
      * @memberof Options#
      * @type {boolean}
      * @default false

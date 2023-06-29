@@ -5,18 +5,26 @@ import { installFocusDetector } from './focusDetector';
  * Installs a focus catcher module. The module observes the cell focus position and depends on the
  * position it releases the TAB navigation to the browser or not.
  *
- * @param {Handsontable} hot The Handsontable instance.
+ * @param {Core} hot The Handsontable instance.
  */
 export function installFocusCatcher(hot) {
   const { activate, deactivate } = installFocusDetector(hot, {
     onFocusFromTop() {
-      // TODO add correct start coords depends on the user settings
-      hot.selectCell(-1, -1);
+      const mostTopStartCoords = getMostTopStartPosition(hot);
+
+      if (mostTopStartCoords) {
+        hot.selectCell(mostTopStartCoords.row, mostTopStartCoords.col);
+      }
+
       hot.listen();
     },
     onFocusFromBottom() {
-      // TODO add correct end coords depends on the table size
-      hot.selectCell(0, 2);
+      const mostBottomEndCoords = getMostBottomEndPosition(hot);
+
+      if (mostBottomEndCoords) {
+        hot.selectCell(mostBottomEndCoords.row, mostBottomEndCoords.col);
+      }
+
       hot.listen();
     },
   });
@@ -29,9 +37,13 @@ export function installFocusCatcher(hot) {
     .addShortcut({
       keys: [['Tab'], ['Shift', 'Tab']],
       callback: (event) => {
-        const { row, col } = hot.getSelectedRangeLast().highlight;
+        const isSelected = hot.selection.isSelected();
+        const highlight = hot.getSelectedRangeLast()?.highlight;
+        const mostTopStartCoords = getMostTopStartPosition(hot);
+        const mostBottomEndCoords = getMostBottomEndPosition(hot);
 
-        if (event.shiftKey && row === -1 && col === -1 || !event.shiftKey && row === 0 && col === 2) {
+        if (event.shiftKey && (!isSelected || highlight.isEqual(mostTopStartCoords)) ||
+            !event.shiftKey && (!isSelected || highlight.isEqual(mostBottomEndCoords))) {
           hot.deselectCell();
           hot.unlisten();
 
@@ -40,11 +52,61 @@ export function installFocusCatcher(hot) {
 
         return true;
       },
-      runOnlyIf: () => hot.selection.isSelected(),
       preventDefault: false,
       stopPropagation: false,
       position: 'before',
       relativeToGroup: GRID_GROUP,
       group: 'focusCatcher',
     });
+}
+
+/**
+ * Gets the coordinates of the most top-start cell or header (depends on the table settings and its size).
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @returns {CellCoords|null}
+ */
+function getMostTopStartPosition(hot) {
+  const { rowIndexMapper, columnIndexMapper } = hot;
+  const { navigableHeaders } = hot.getSettings();
+  let topRow = navigableHeaders && hot.countColHeaders() > 0 ? -hot.countColHeaders() : 0;
+  let startColumn = navigableHeaders && hot.countRowHeaders() > 0 ? -hot.countRowHeaders() : 0;
+
+  topRow = topRow === 0 ? rowIndexMapper.getVisualFromRenderableIndex(topRow) : topRow;
+  startColumn = startColumn === 0 ? columnIndexMapper.getVisualFromRenderableIndex(startColumn) : startColumn;
+
+  if (topRow === null || startColumn === null) {
+    return null;
+  }
+
+  return hot._createCellCoords(topRow, startColumn);
+}
+
+/**
+ * Gets the coordinates of the most bottom-end cell or header (depends on the table settings and its size).
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @returns {CellCoords|null}
+ */
+function getMostBottomEndPosition(hot) {
+  const { rowIndexMapper, columnIndexMapper } = hot;
+  const { navigableHeaders } = hot.getSettings();
+  let bottomRow = rowIndexMapper.getRenderableIndexesLength() - 1;
+  let endColumn = columnIndexMapper.getRenderableIndexesLength() - 1;
+
+  if (bottomRow < 0) {
+    bottomRow = navigableHeaders && hot.countColHeaders() > 0 ? -1 : null;
+  }
+  if (endColumn < 0) {
+    endColumn = navigableHeaders && hot.countRowHeaders() > 0 ? -1 : null;
+  }
+
+  if (bottomRow === null || endColumn === null) {
+    return null;
+  }
+
+  return hot._createCellCoords(
+    rowIndexMapper.getVisualFromRenderableIndex(bottomRow) ?? bottomRow,
+    columnIndexMapper.getVisualFromRenderableIndex(endColumn) ?? endColumn,
+  );
 }
