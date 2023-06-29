@@ -21,9 +21,12 @@ describe('Focus handling', () => {
       expect(hot.getSettings().imeFastEdit).toBe(false);
     });
 
-    it('should focus the browser on the last selection\'s `highlight` cell element after selection', () => {
+    it('should focus the browser on the last selection\'s `highlight` cell/header element after selection', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
+        navigableHeaders: true,
+        rowHeaders: true,
+        colHeaders: true
       });
 
       expect(document.activeElement).toEqual(document.body);
@@ -41,6 +44,22 @@ describe('Focus handling', () => {
       ));
 
       hot.selectCells([[1, 1, 3, 3], [4, 4, 2, 2]]);
+
+      expect(document.activeElement).toEqual(hot.getCell(
+        hot.getSelectedRangeLast().highlight.row,
+        hot.getSelectedRangeLast().highlight.col,
+        true
+      ));
+
+      hot.selectCells([[0, -1, 0, -1]]);
+
+      expect(document.activeElement).toEqual(hot.getCell(
+        hot.getSelectedRangeLast().highlight.row,
+        hot.getSelectedRangeLast().highlight.col,
+        true
+      ));
+
+      hot.selectCells([[-1, 0, -1, 0]]);
 
       expect(document.activeElement).toEqual(hot.getCell(
         hot.getSelectedRangeLast().highlight.row,
@@ -95,6 +114,50 @@ describe('Focus handling', () => {
       expect(document.activeElement).toEqual(document.body);
 
       hot.selectCell(2, 2);
+
+      expect(document.activeElement).toEqual(hot.getCell(
+        hot.getSelectedRangeLast().highlight.row,
+        hot.getSelectedRangeLast().highlight.col,
+        true
+      ));
+
+      await sleep(hot.getFocusManager().getRefocusDelay());
+
+      expect(document.activeElement).toEqual(hot.getCell(
+        hot.getSelectedRangeLast().highlight.row,
+        hot.getSelectedRangeLast().highlight.col,
+        true
+      ));
+    });
+
+    it('should not refocus the browser if the selected element is a header', async() => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        navigableHeaders: true,
+        rowHeaders: true,
+        colHeaders: true,
+        imeFastEdit: true,
+      });
+
+      expect(document.activeElement).toEqual(document.body);
+
+      hot.selectCell(0, -1);
+
+      expect(document.activeElement).toEqual(hot.getCell(
+        hot.getSelectedRangeLast().highlight.row,
+        hot.getSelectedRangeLast().highlight.col,
+        true
+      ));
+
+      await sleep(hot.getFocusManager().getRefocusDelay());
+
+      expect(document.activeElement).toEqual(hot.getCell(
+        hot.getSelectedRangeLast().highlight.row,
+        hot.getSelectedRangeLast().highlight.col,
+        true
+      ));
+
+      hot.selectCell(-1, 0);
 
       expect(document.activeElement).toEqual(hot.getCell(
         hot.getSelectedRangeLast().highlight.row,

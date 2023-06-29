@@ -130,11 +130,13 @@ export class FocusManager {
 
   /**
    * Set the browser's focus to the highlighted cell of the last selection.
+   *
+   * @param {HTMLTableCellElement} [selectedCell] The highlighted cell/header element.
    */
-  focusOnHighlightedCell() {
-    const lastSelectedRange = this.#hot.getSelectedRangeLast();
-    const selectedCellCoords = lastSelectedRange.highlight;
-    const selectedCell = this.#hot.getCell(selectedCellCoords.row, selectedCellCoords.col, true);
+  focusOnHighlightedCell(selectedCell) {
+    if (!selectedCell) {
+      selectedCell = this.#getSelectedCell();
+    }
 
     if (
       selectedCell &&
@@ -168,14 +170,32 @@ export class FocusManager {
   }
 
   /**
+   * Get and return the currently selected and highlighted cell/header element.
+   *
+   * @private
+   * @returns {HTMLTableCellElement}
+   */
+  #getSelectedCell() {
+    const lastSelectedRange = this.#hot.getSelectedRangeLast();
+    const selectedCellCoords = lastSelectedRange.highlight;
+
+    return this.#hot.getCell(selectedCellCoords.row, selectedCellCoords.col, true);
+  }
+
+  /**
    * Manage the browser's focus after cell selection.
    *
    * @private
    */
   #manageFocus() {
-    this.focusOnHighlightedCell();
+    const selectedCell = this.#getSelectedCell();
 
-    if (this.getFocusMode() === FOCUS_MODES.MIXED) {
+    this.focusOnHighlightedCell(selectedCell);
+
+    if (
+      this.getFocusMode() === FOCUS_MODES.MIXED &&
+      selectedCell.nodeName === 'TD'
+    ) {
       this.refocusToEditorTextarea();
     }
   }
