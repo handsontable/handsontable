@@ -41,6 +41,15 @@ import { registerAllShortcutContexts } from './shortcutContexts';
 let activeGuid = null;
 
 /**
+ * Keeps the collection of the all Handsontable instances created on the same page. The
+ * list is then used to trigger the "afterUnlisten" hook when the "listen()" method was
+ * called on another instance.
+ *
+ * @type {Map<string, Core>}
+ */
+const foreignHotInstances = new Map();
+
+/**
  * A set of deprecated feature names.
  *
  * @type {Set<string>}
@@ -227,6 +236,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   this.guid = `ht_${randomString()}`; // this is the namespace for global events
+
+  foreignHotInstances.set(this.guid, this);
 
   /**
    * Instance of index mapper which is responsible for managing the column indexes.
@@ -1628,6 +1639,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.listen = function() {
     if (instance && !instance.isListening()) {
+      foreignHotInstances.forEach((foreignHot) => {
+        if (instance !== foreignHot) {
+          foreignHot.unlisten();
+        }
+      });
+
       activeGuid = instance.guid;
       instance.runHooks('afterListen');
     }
@@ -4401,6 +4418,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     this.getShortcutManager().destroy();
     metaManager.clearCache();
+    foreignHotInstances.delete(this.guid);
 
     if (isRootInstance(instance)) {
       const licenseInfo = this.rootDocument.querySelector('.hot-display-license-info');

@@ -37,6 +37,15 @@ export function installFocusCatcher(hot) {
     .addShortcut({
       keys: [['Tab'], ['Shift', 'Tab']],
       callback: (event) => {
+        const { disableTabNavigation } = hot.getSettings();
+
+        if (disableTabNavigation) {
+          hot.deselectCell();
+          hot.unlisten();
+
+          return false;
+        }
+
         const isSelected = hot.selection.isSelected();
         const highlight = hot.getSelectedRangeLast()?.highlight;
         const mostTopStartCoords = getMostTopStartPosition(hot);

@@ -124,6 +124,7 @@ export interface GridSettings extends Events {
   dateFormat?: string;
   datePickerConfig?: PikadayOptions;
   defaultDate?: string;
+  disableTabNavigation?: boolean;
   disableVisualSelection?: boolean | 'current' | 'area' | 'header' | Array<'current' | 'area' | 'header'>;
   dragToScroll?: boolean;
   dropdownMenu?: DropdownMenuSettings;
