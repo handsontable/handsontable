@@ -4,7 +4,7 @@ import { isMobileBrowser, isIE, isEdge, isIOS } from '../../helpers/browser';
 import {
   addClass,
   getComputedStyle,
-  isHotChild,
+  isThisHotChild,
   setCaretPosition,
   hasClass,
   removeClass,
@@ -133,7 +133,7 @@ export class TextEditor extends BaseEditor {
   close() {
     this.autoResize.unObserve();
 
-    if (isHotChild(this.hot.rootDocument.activeElement)) {
+    if (isThisHotChild(this.hot.rootDocument.activeElement, this.hot.rootElement)) {
       this.hot.listen(); // don't refocus the table if user focused some cell outside of HT on purpose
     }
 

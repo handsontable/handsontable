@@ -47,7 +47,6 @@ beforeEach(function() {
     return currentSpec.$container.data('handsontable');
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Extend the matcher factories with the `matchersUtil` argument extended with a configuration provided in the
    * spec as:
@@ -76,7 +75,6 @@ beforeEach(function() {
 
     return matchers;
   }
-  /* eslint-enable jsdoc/require-description-complete-sentence */
 
   /**
    * Modify the matchers configuration to match the one used in Jest.
@@ -366,7 +364,6 @@ list: ${redColor}${checkedArray.join(', ')}${resetColor} doesn't satisfy the con
         }
       };
     },
-    /* eslint-disable jsdoc/require-description-complete-sentence */
     /**
      * The matcher checks if the provided selection pattern matches to the rendered cells by checking if
      * the appropriate CSS class name was added.
@@ -418,7 +415,6 @@ list: ${redColor}${checkedArray.join(', ')}${resetColor} doesn't satisfy the con
      *
      * @returns {object}
      */
-    /* eslint-enable jsdoc/require-description-complete-sentence */
     toBeMatchToSelectionPattern() {
       return {
         compare(actualPattern) {

@@ -38,13 +38,16 @@ export function getParent(element, level = 0) {
 }
 
 /**
- * Check if the provided element is a child of the Handsontable container.
+ * Check if the provided element is a child of the provided Handsontable container.
  *
  * @param {HTMLElement} element Element to be analyzed.
+ * @param {HTMLElement} thisHotContainer The Handsontable container.
  * @returns {boolean}
  */
-export function isHotChild(element) {
-  return !!element.closest('.handsontable');
+export function isThisHotChild(element, thisHotContainer) {
+  const closestHandsontableContainer = element.closest('.handsontable');
+
+  return !!closestHandsontableContainer && (closestHandsontableContainer.parentNode === thisHotContainer);
 }
 
 /**
@@ -60,7 +63,7 @@ export function getFrameElement(frame) {
 /**
  * Gets parent frame of the specified frame. Returns null if it is a top frame or if script has no access to read property.
  *
- * @param {Window} frame Frame from which should be get frameElement in safe way.
+ * @param {Window} frame Frame from which should get frameElement in a safe way.
  * @returns {Window|null}
  */
 export function getParentWindow(frame) {
@@ -70,7 +73,7 @@ export function getParentWindow(frame) {
 /**
  * Checks if script has access to read from parent frame of specified frame.
  *
- * @param {Window} frame Frame from which should be get frameElement in safe way.
+ * @param {Window} frame Frame from which should get frameElement in a safe way.
  * @returns {boolean}
  */
 export function hasAccessToParentWindow(frame) {
