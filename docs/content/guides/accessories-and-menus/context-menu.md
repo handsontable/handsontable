@@ -499,13 +499,14 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 
 ## Related keyboard shortcuts
 
-| Windows                  | macOS                    | Action                                                        |  Excel  | Sheets  |
-| ------------------------ | ------------------------ | ------------------------------------------------------------- | :-----: | :-----: |
-| Arrow keys               | Arrow keys               | Move one available menu item up, down, left, or right         | &check; | &check; |
-| <kbd>**Page Up**</kbd>   | <kbd>**Page Up**</kbd>   | Move to the first visible item of the context menu or submenu | &check; | &cross; |
-| <kbd>**Page Down**</kbd> | <kbd>**Page Down**</kbd> | Move to the last visible item of the context menu or submenu  | &check; | &cross; |
-| <kbd>**Escape**</kbd>    | <kbd>**Escape**</kbd>    | Close the context menu or submenu                             | &check; | &check; |
-| <kbd>**Enter**</kbd>     | <kbd>**Enter**</kbd>     | Run the action of the selected menu item                      | &check; | &cross; |
+| Windows                                                                                               | macOS                                                                                                | Action                                                        |  Excel  | Sheets  |
+| ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**\\**</kbd> or <kbd>**Shift**</kbd>+<kbd>**F10**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**\\**</kbd> or <kbd>**Shift**</kbd>+<kbd>**F10**</kbd> | Open the context menu                                         | &cross; | &check; |
+| Arrow keys                                                                                            | Arrow keys                                                                                           | Move one available menu item up, down, left, or right         | &check; | &check; |
+| <kbd>**Page Up**</kbd>                                                                                | <kbd>**Page Up**</kbd>                                                                               | Move to the first visible item of the context menu or submenu | &check; | &cross; |
+| <kbd>**Page Down**</kbd>                                                                              | <kbd>**Page Down**</kbd>                                                                             | Move to the last visible item of the context menu or submenu  | &check; | &cross; |
+| <kbd>**Escape**</kbd>                                                                                 | <kbd>**Escape**</kbd>                                                                                | Close the context menu or submenu                             | &check; | &check; |
+| <kbd>**Enter**</kbd>                                                                                  | <kbd>**Enter**</kbd>                                                                                 | Run the action of the selected menu item                      | &check; | &cross; |
 
 ## Related articles
 
