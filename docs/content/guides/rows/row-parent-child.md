@@ -2,7 +2,9 @@
 id: ivtc0o9b
 title: Row parent-child
 metaTitle: Row parent-child - JavaScript Data Grid | Handsontable
-description: Reflect the parent-child relationship of your data, using Handsontable's interactive UI elements such as expand and collapse buttons or an extended context menu.
+description:
+  Reflect the parent-child relationship of your data, using Handsontable's interactive UI elements such as expand and collapse buttons or an extended context
+  menu.
 permalink: /row-parent-child
 canonicalUrl: /row-parent-child
 tags:
@@ -20,15 +22,14 @@ searchCategory: Guides
 
 # Row parent-child
 
-Reflect the parent-child relationship of your data, using the [`NestedRows`](@/api/nestedRows.md)
-plugin's interactive UI elements such as expand and collapse buttons or an extended context menu.
+Reflect the parent-child relationship of your data, using the [`NestedRows`](@/api/nestedRows.md) plugin's interactive UI elements such as expand and collapse
+buttons or an extended context menu.
 
 [[toc]]
 
 ## Quick setup
 
-To enable the [`NestedRows`](@/api/nestedRows.md) plugin, set the
-[`nestedRows`](@/api/options.md#nestedrows) option to `true`.
+To enable the [`NestedRows`](@/api/nestedRows.md) plugin, set the [`nestedRows`](@/api/options.md#nestedrows) option to `true`.
 
 ::: only-for javascript
 
@@ -48,20 +49,17 @@ const hot = new Handsontable(container, {
 
 :::
 
-Note that using all the functionalities provided by the plugin requires enabling the row headers and
-the Handsontable context menu. To do this set [`rowHeaders`](@/api/options.md#rowheaders) and
-[`contextMenu`](@/api/options.md#contextmenu) to `true`. The _collapse_ / _expand_ buttons are
-located in the row headers, and the row modification options _add row_, _insert child_, etc., are in
-the Context Menu.
+Note that using all the functionalities provided by the plugin requires enabling the row headers and the Handsontable context menu. To do this set
+[`rowHeaders`](@/api/options.md#rowheaders) and [`contextMenu`](@/api/options.md#contextmenu) to `true`. The _collapse_ / _expand_ buttons are located in the
+row headers, and the row modification options _add row_, _insert child_, etc., are in the Context Menu.
 
 ## Prepare the data source
 
 The data source must have a specific structure to be used with the _Nested Rows_ plugin.
 
-The plugin requires the data source to be an array of objects. Each object in the array
-represents a single _0-level_ entry. _0-level_ refers to an entry, which is not a child of any other
-entry. If an entry has any child entries, they need to be declared again as an _array of objects_.
-To assign them to a row, create a `__children` property in the parent element.
+The plugin requires the data source to be an array of objects. Each object in the array represents a single _0-level_ entry. _0-level_ refers to an entry, which
+is not a child of any other entry. If an entry has any child entries, they need to be declared again as an _array of objects_. To assign them to a row, create a
+`__children` property in the parent element.
 
 Here's an example:
 
@@ -96,7 +94,7 @@ const sourceDataObject = [
         label: 'RCA Records',
       },
       {
-        title: 'Ex\'s & Oh\'s',
+        title: "Ex's & Oh's",
         artist: 'Elle King',
         label: 'RCA Records',
       },
@@ -146,7 +144,7 @@ const sourceDataObject = [
         label: 'ATO Records',
       },
       {
-        title: 'Ex\'s & Oh\'s',
+        title: "Ex's & Oh's",
         artist: 'Elle King',
         label: 'RCA Records',
       },
@@ -252,7 +250,7 @@ export const ExampleComponent = () => {
           label: 'RCA Records',
         },
         {
-          title: 'Ex\'s & Oh\'s',
+          title: "Ex's & Oh's",
           artist: 'Elle King',
           label: 'RCA Records',
         },
@@ -302,7 +300,7 @@ export const ExampleComponent = () => {
           label: 'ATO Records',
         },
         {
-          title: 'Ex\'s & Oh\'s',
+          title: "Ex's & Oh's",
           artist: 'Elle King',
           label: 'RCA Records',
         },
@@ -378,25 +376,21 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 :::
 
-In the example above, we’ve created a data object consisting of 2016’s Grammy nominees of the “Rock”
-genre. Each _0-level_ entry declares a category, while their children declare nominees - assigned
-under the `__children` properties.
+In the example above, we’ve created a data object consisting of 2016’s Grammy nominees of the “Rock” genre. Each _0-level_ entry declares a category, while
+their children declare nominees - assigned under the `__children` properties.
 
-Note that the first 0-level object in the array needs to have all columns defined to display the
-table properly. They can be declared as `null` or an empty string `''`, but they need to be defined.
-This is optional for the other objects.
+Note that the first 0-level object in the array needs to have all columns defined to display the table properly. They can be declared as `null` or an empty
+string `''`, but they need to be defined. This is optional for the other objects.
 
 ## User interface
 
-The _Nested Rows_ plugin's user interface is placed in the row headers and the Handsontable’s
-context menu.
+The _Nested Rows_ plugin's user interface is placed in the row headers and the Handsontable’s context menu.
 
 ### Row headers
 
 Each _parent_ row header contains a `+`/`-` button. It is used to collapse or expand its child rows.
 
-The child row headers have a bigger indentation, to enable the user to clearly recognize the child
-and parent elements.
+The child row headers have a bigger indentation, to enable the user to clearly recognize the child and parent elements.
 
 ### Context Menu
 
@@ -405,8 +399,7 @@ The context menu has been extended with a few Nested Rows related options, such 
 - Insert child row
 - Detach from parent
 
-The “Insert row above” and “Insert row below” options were modified to work properly with the nested
-data structure.
+The “Insert row above” and “Insert row below” options were modified to work properly with the nested data structure.
 
 ## Known limitations
 
@@ -415,6 +408,12 @@ When you use the parent-child row structure, the following Handsontable features
 - [Data source as an array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays)
 - [Column filter](@/guides/columns/column-filter.md)
 - [Rows sorting](@/guides/rows/rows-sorting.md)
+
+## Related keyboard shortcuts
+
+| Windows              | macOS                | Action                           |  Excel  | Sheets  |
+| -------------------- | -------------------- | -------------------------------- | :-----: | :-----: |
+| <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the row group | &cross; | &cross; |
 
 ## Related articles
 
