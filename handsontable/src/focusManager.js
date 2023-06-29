@@ -134,13 +134,14 @@ export class FocusManager {
   focusOnHighlightedCell() {
     const lastSelectedRange = this.#hot.getSelectedRangeLast();
     const selectedCellCoords = lastSelectedRange.highlight;
-    const selectedCell = this.#hot.getCell(selectedCellCoords.row, selectedCellCoords.col);
+    const selectedCell = this.#hot.getCell(selectedCellCoords.row, selectedCellCoords.col, true);
 
     if (
       selectedCell &&
       !this.#hot.getActiveEditor()?.isOpened()
     ) {
-      this.#hot.getCell(selectedCellCoords.row, selectedCellCoords.col).focus({
+
+      selectedCell.focus({
         preventScroll: true
       });
     }
