@@ -1417,6 +1417,8 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#modifyFocusOnTabNavigation
    * @since 14.0.0
+   * @param {'from_above' | 'from_below'} tabActivationDir The browsers Tab navigation direction. Depending on
+   * whether the user activated the table from the element above or below, another cell can be selected.
    * @param {CellCoords} visualCoords The coords that will be used to select a cell.
    */
   'modifyFocusOnTabNavigation',

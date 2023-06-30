@@ -236,6 +236,7 @@ export interface Events {
   modifyColWidth?: (width: number, column: number) => void;
   modifyCopyableRange?: (copyableRanges: RangeType[]) => void;
   modifyData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
+  modifyFocusOnTabNavigation?: (tabActivationDir: 'from_above' | 'from_below', visualCoords: CellCoords) => void;
   modifyGetCellCoords?: (row: number, column: number, topmost: boolean) => void | [number, number] | [number, number, number, number];
   modifyRowData?: (row: number) => void;
   modifyRowHeader?: (row: number) => void;
