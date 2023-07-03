@@ -2,15 +2,18 @@ import { GRID_GROUP } from '../../shortcutContexts';
 import { installFocusDetector } from './focusDetector';
 
 /**
- * Installs a focus catcher module. The module observes the cell focus position and depends on the
- * position it releases the TAB navigation to the browser or not.
+ * Installs a focus catcher module. The module observes when the table is focused and depending on
+ * which side it was focused on it selects a specified cell or releases the TAB navigation to the
+ * browser.
  *
  * @param {Core} hot The Handsontable instance.
  */
 export function installFocusCatcher(hot) {
+  let recentlyAddedFocusCoords;
+
   const { activate, deactivate } = installFocusDetector(hot, {
     onFocusFromTop() {
-      const mostTopStartCoords = getMostTopStartPosition(hot);
+      const mostTopStartCoords = recentlyAddedFocusCoords ?? getMostTopStartPosition(hot);
 
       if (mostTopStartCoords) {
         hot.runHooks('modifyFocusOnTabNavigation', 'from_above', mostTopStartCoords);
@@ -20,7 +23,7 @@ export function installFocusCatcher(hot) {
       hot.listen();
     },
     onFocusFromBottom() {
-      const mostBottomEndCoords = getMostBottomEndPosition(hot);
+      const mostBottomEndCoords = recentlyAddedFocusCoords ?? getMostBottomEndPosition(hot);
 
       if (mostBottomEndCoords) {
         hot.runHooks('modifyFocusOnTabNavigation', 'from_below', mostBottomEndCoords);
@@ -33,6 +36,9 @@ export function installFocusCatcher(hot) {
 
   hot.addHook('afterListen', () => deactivate());
   hot.addHook('afterUnlisten', () => activate());
+  hot.addHook('afterSelection', () => {
+    recentlyAddedFocusCoords = hot.getSelectedRangeLast()?.highlight;
+  });
 
   hot.getShortcutManager()
     .getContext('grid')
@@ -63,6 +69,7 @@ export function installFocusCatcher(hot) {
 
         return true;
       },
+      runOnlyIf: () => !hot.getSettings().minSpareCols,
       preventDefault: false,
       stopPropagation: false,
       position: 'before',
