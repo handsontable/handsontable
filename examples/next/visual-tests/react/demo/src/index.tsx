@@ -15,7 +15,7 @@ import {
   alignHeaders
 } from "./hooksCallbacks";
 
-import "handsontable/dist/handsontable.min.css";
+import "handsontable/dist/handsontable.css";
 
 const App = () => {
   return (
@@ -72,4 +72,3 @@ const rootElement = document.getElementById("root");
 ReactDOM.render(<App />, rootElement);
 
 console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate}) Wrapper: v${HotTable.version} React: v${React.version}`);
-
