@@ -131,6 +131,7 @@ export const undo = handsontableMethodFactory('undo');
 export const updateSettings = handsontableMethodFactory('updateSettings');
 export const validateCell = handsontableMethodFactory('validateCell');
 export const validateCells = handsontableMethodFactory('validateCells');
+export const unlisten = handsontableMethodFactory('unlisten');
 
 const specContext = {};
 
@@ -188,20 +189,19 @@ export function columnIndexMapper() {
  * @param {object} options The Handsontable options.
  * @param {boolean} explicitOptions If set to `true`, the options will be passed to the Handsontable instance as-is
  * and license key won't be added automatically.
+ * @param {jQuery} container The root element where the Handsontable will be injected.
  * @returns {Handsontable}
  */
-export function handsontable(options, explicitOptions = false) {
-  const currentSpec = spec();
-
+export function handsontable(options, explicitOptions = false, container = spec().$container) {
   // Add a license key to every Handsontable instance.
   if (options && !explicitOptions) {
     options.licenseKey = 'non-commercial-and-evaluation';
   }
 
-  currentSpec.$container.handsontable(options);
-  currentSpec.$container[0].focus(); // otherwise TextEditor tests do not pass in IE8
+  container.handsontable(options);
+  container[0].focus(); // otherwise TextEditor tests do not pass in IE8
 
-  return currentSpec.$container.data('handsontable');
+  return container.data('handsontable');
 }
 
 /**
