@@ -1169,7 +1169,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
 
     if (isRootInstance(this)) {
-      // installFocusCatcher(instance);
+      installFocusCatcher(instance);
     }
 
     instance.runHooks('init');
