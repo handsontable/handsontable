@@ -260,6 +260,50 @@ export function getBottomInlineStartClone() {
 }
 
 /**
+ * Emulates the browser's TAB navigation to the Handsontable (from element above).
+ */
+export function triggerTabNavigationFromTop() {
+  spec().$container.find('.htFocusCatcher').first().focus();
+}
+
+/**
+ * Emulates the browser's Shift+TAB navigation to the Handsontable (from element below).
+ */
+export function triggerTabNavigationFromBottom() {
+  spec().$container.find('.htFocusCatcher').last().focus();
+}
+
+/**
+ * Returns an instance of the CellCoords class.
+ *
+ * @param {number} row The row index.
+ * @param {number} col The column index.
+ * @returns {CellCoords}
+ */
+export function cellCoords(row, col) {
+  return hot()._createCellCoords(row, col);
+}
+
+/**
+ * Returns an instance of the CellRange class.
+ *
+ * @param {number} rowFrom The row start index of the range.
+ * @param {number} colFrom The column start index.of the range.
+ * @param {number} rowTo The row end index of the range.
+ * @param {number} colTo The column end index of the range.
+ * @param {number} [rowFocus] The row focus/highlight index.
+ * @param {number} [colFocus] The column focus/highlight index.
+ * @returns {CellRange}
+ */
+export function cellRange(rowFrom, colFrom, rowTo, colTo, rowFocus = rowFrom, colFocus = colFrom) {
+  return hot()._createCellRange(
+    hot()._createCellCoords(rowFocus, colFocus),
+    hot()._createCellCoords(rowFrom, colFrom),
+    hot()._createCellCoords(rowTo, colTo),
+  );
+}
+
+/**
  * TODO: Rename me to countTD.
  *
  * @returns {number}
