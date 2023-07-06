@@ -1,7 +1,7 @@
 /**
  * Installs a focus detector module. The module appends two input elements into the DOM side by side.
- * When the first input is focused, then it means that a user entered the component using the TAB key
- * from the element above. When the second input is focused, a user enters the component from
+ * When the first input is focused, then it means that a user entered to the component using the TAB key
+ * from the element above. When the second input is focused, a user enters to the component from
  * the element below the table. Each action, once detected, triggers the specific hook.
  *
  * @param {Handsontable} hot The Handsontable instance.
@@ -21,12 +21,18 @@ export function installFocusDetector(hot, hooks = {}) {
   rootElement.insertBefore(inputTrapTop, rootElement.firstChild);
 
   return {
+    /**
+     * Activates the detector by resetting the tabIndex of the input elements.
+     */
     activate() {
       hot._registerTimeout(() => {
         inputTrapTop.tabIndex = 0;
         inputTrapBottom.tabIndex = 0;
       }, 10);
     },
+    /**
+     * Deactivates the detector by setting tabIndex to -1.
+     */
     deactivate() {
       hot._registerTimeout(() => {
         inputTrapTop.tabIndex = -1;

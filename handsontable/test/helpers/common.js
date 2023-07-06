@@ -261,16 +261,20 @@ export function getBottomInlineStartClone() {
 
 /**
  * Emulates the browser's TAB navigation to the Handsontable (from element above).
+ *
+ * @param {Handsontable} hotInstance The Handsontable instance to apply the event.
  */
-export function triggerTabNavigationFromTop() {
-  spec().$container.find('.htFocusCatcher').first().focus();
+export function triggerTabNavigationFromTop(hotInstance = hot()) {
+  $(hotInstance.rootElement).find('.htFocusCatcher').first().focus();
 }
 
 /**
  * Emulates the browser's Shift+TAB navigation to the Handsontable (from element below).
+ *
+ * @param {Handsontable} hotInstance The Handsontable instance to apply the event.
  */
-export function triggerTabNavigationFromBottom() {
-  spec().$container.find('.htFocusCatcher').last().focus();
+export function triggerTabNavigationFromBottom(hotInstance = hot()) {
+  $(hotInstance.rootElement).find('.htFocusCatcher').last().focus();
 }
 
 /**

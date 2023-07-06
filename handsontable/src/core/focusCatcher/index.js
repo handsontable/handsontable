@@ -3,8 +3,8 @@ import { installFocusDetector } from './focusDetector';
 
 /**
  * Installs a focus catcher module. The module observes when the table is focused and depending on
- * which side it was focused on it selects a specified cell or releases the TAB navigation to the
- * browser.
+ * from the which side it was focused on it selects a specified cell or releases the TAB navigation
+ * to the browser.
  *
  * @param {Core} hot The Handsontable instance.
  */
@@ -45,7 +45,7 @@ export function installFocusCatcher(hot) {
     .addShortcut({
       keys: [['Tab'], ['Shift', 'Tab']],
       callback: (event) => {
-        const { disableTabNavigation } = hot.getSettings();
+        const { disableTabNavigation, autoWrapRow } = hot.getSettings();
 
         if (disableTabNavigation) {
           hot.deselectCell();
@@ -58,6 +58,12 @@ export function installFocusCatcher(hot) {
         const highlight = hot.getSelectedRangeLast()?.highlight;
         const mostTopStartCoords = getMostTopStartPosition(hot);
         const mostBottomEndCoords = getMostBottomEndPosition(hot);
+
+        // For disabled `autoWrapRow` option set the row to the same position as the currently selected row.
+        if (!autoWrapRow) {
+          mostTopStartCoords.row = highlight.row;
+          mostBottomEndCoords.row = highlight.row;
+        }
 
         if (event.shiftKey && (!isSelected || highlight.isEqual(mostTopStartCoords)) ||
             !event.shiftKey && (!isSelected || highlight.isEqual(mostBottomEndCoords))) {
