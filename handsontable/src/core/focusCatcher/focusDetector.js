@@ -17,8 +17,8 @@ export function installFocusDetector(hot, hooks = {}) {
   inputTrapTop.addEventListener('focus', () => hooks?.onFocusFromTop());
   inputTrapBottom.addEventListener('focus', () => hooks?.onFocusFromBottom());
 
-  rootElement.insertBefore(inputTrapBottom, rootElement.firstChild);
-  rootElement.insertBefore(inputTrapTop, rootElement.firstChild);
+  rootElement.firstChild.before(inputTrapTop);
+  rootElement.lastChild.after(inputTrapBottom);
 
   return {
     /**

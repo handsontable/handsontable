@@ -42,6 +42,7 @@
 
 .handsontable .htFocusCatcher {
   position: absolute;
+  left: -99000px;
   z-index: -1;
   opacity: 0;
   border: 0;

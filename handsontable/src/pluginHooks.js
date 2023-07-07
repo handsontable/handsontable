@@ -1413,7 +1413,7 @@ const REGISTERED_HOOKS = [
   'modifyGetCellCoords',
 
   /**
-   * Used to modify the cell coordinates when the table is activated (going to listen mode).
+   * Used to modify the cell coordinates when the table is activated (going into the listen mode).
    *
    * @event Hooks#modifyFocusOnTabNavigation
    * @since 14.0.0

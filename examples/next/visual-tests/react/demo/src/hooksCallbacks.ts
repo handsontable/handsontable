@@ -66,6 +66,7 @@ export const drawCheckboxInRowHeaders: DrawCheckboxInRowHeaders = function drawC
   const input = document.createElement("input");
 
   input.type = "checkbox";
+  input.tabIndex = -1;
 
   if (row >= 0 && this.getDataAtRowProp(row, "0")) {
     input.checked = true;
