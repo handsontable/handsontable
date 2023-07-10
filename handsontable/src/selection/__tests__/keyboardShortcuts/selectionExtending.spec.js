@@ -1,8 +1,6 @@
 describe('Selection extending', () => {
-  const id = 'testContainer';
-
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
   });
 
   afterEach(function() {
@@ -194,6 +192,50 @@ describe('Selection extending', () => {
         |===:===:===:===:===:===|
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 4,4']);
+    });
+
+    it('should extend the selection done by Cmd+Shift+ArrowUp to the right', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(1, 1);
+      keyDownUp(['control/meta', 'shift', 'arrowup']);
+      keyDownUp(['control/meta', 'shift', 'arrowright']);
+
+      expect(`
+        |   ║   : - : - |
+        |===:===:===:===|
+        | - ║   : 0 : 0 |
+        | - ║   : A : 0 |
+        |   ║   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 0,2']);
+    });
+
+    it('should extend the selection done by Cmd+Shift+ArrowDown to the right', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(1, 1);
+      keyDownUp(['control/meta', 'shift', 'arrowdown']);
+      keyDownUp(['control/meta', 'shift', 'arrowright']);
+
+      expect(`
+        |   ║   : - : - |
+        |===:===:===:===|
+        |   ║   :   :   |
+        | - ║   : A : 0 |
+        | - ║   : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 2,2']);
     });
 
     it('should not change the selection when row header is selected', () => {
@@ -786,6 +828,50 @@ describe('Selection extending', () => {
         |===:===:===:===:===:===|
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,3 from: -1,3 to: 4,0']);
+    });
+
+    it('should extend the selection done by Cmd+Shift+ArrowUp to the left', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(1, 1);
+      keyDownUp(['control/meta', 'shift', 'arrowup']);
+      keyDownUp(['control/meta', 'shift', 'arrowleft']);
+
+      expect(`
+        |   ║ - : - :   |
+        |===:===:===:===|
+        | - ║ 0 : 0 :   |
+        | - ║ 0 : A :   |
+        |   ║   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 0,0']);
+    });
+
+    it('should extend the selection done by Cmd+Shift+ArrowDown to the left', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(1, 1);
+      keyDownUp(['control/meta', 'shift', 'arrowdown']);
+      keyDownUp(['control/meta', 'shift', 'arrowleft']);
+
+      expect(`
+        |   ║ - : - :   |
+        |===:===:===:===|
+        |   ║   :   :   |
+        | - ║ 0 : A :   |
+        | - ║ 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 2,0']);
     });
 
     it('should not change the selection when row header is selected', () => {
@@ -1385,6 +1471,50 @@ describe('Selection extending', () => {
         |   |
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,-1 from: 3,-1 to: 0,4']);
+    });
+
+    it('should extend the selection done by Cmd+Shift+ArrowRight to the top', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(1, 1);
+      keyDownUp(['control/meta', 'shift', 'arrowright']);
+      keyDownUp(['control/meta', 'shift', 'arrowup']);
+
+      expect(`
+        |   ║   : - : - |
+        |===:===:===:===|
+        | - ║   : 0 : 0 |
+        | - ║   : A : 0 |
+        |   ║   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 0,2']);
+    });
+
+    it('should extend the selection done by Cmd+Shift+ArrowLeft to the top', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(1, 1);
+      keyDownUp(['control/meta', 'shift', 'arrowleft']);
+      keyDownUp(['control/meta', 'shift', 'arrowup']);
+
+      expect(`
+        |   ║ - : - :   |
+        |===:===:===:===|
+        | - ║ 0 : 0 :   |
+        | - ║ 0 : A :   |
+        |   ║   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 0,0']);
     });
 
     it('should not change the selection when column header is selected', () => {
@@ -1991,6 +2121,50 @@ describe('Selection extending', () => {
         | * |
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 4,4']);
+    });
+
+    it('should extend the selection done by Cmd+Shift+ArrowRight to the bottom', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(1, 1);
+      keyDownUp(['control/meta', 'shift', 'arrowright']);
+      keyDownUp(['control/meta', 'shift', 'arrowdown']);
+
+      expect(`
+        |   ║   : - : - |
+        |===:===:===:===|
+        |   ║   :   :   |
+        | - ║   : A : 0 |
+        | - ║   : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 2,2']);
+    });
+
+    it('should extend the selection done by Cmd+Shift+ArrowLeft to the bottom', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(1, 1);
+      keyDownUp(['control/meta', 'shift', 'arrowleft']);
+      keyDownUp(['control/meta', 'shift', 'arrowdown']);
+
+      expect(`
+        |   ║ - : - :   |
+        |===:===:===:===|
+        |   ║   :   :   |
+        | - ║ 0 : A :   |
+        | - ║ 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 2,0']);
     });
 
     it('should not change the selection when column header is selected', () => {
