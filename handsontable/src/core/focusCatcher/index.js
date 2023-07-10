@@ -101,7 +101,7 @@ function getMostTopStartPosition(hot) {
   }
 
   if (startColumn === 0) {
-    startColumn =  columnIndexMapper.getVisualFromRenderableIndex(startColumn);
+    startColumn = columnIndexMapper.getVisualFromRenderableIndex(startColumn);
   }
 
   if (topRow === null || startColumn === null) {
@@ -124,7 +124,7 @@ function getMostBottomEndPosition(hot) {
   let endColumn = columnIndexMapper.getRenderableIndexesLength() - 1;
 
   if (bottomRow < 0) {
-    if (navigableHeaders === false || hot.countColHeaders() === 0) {
+    if (!navigableHeaders || hot.countColHeaders() === 0) {
       return null;
     }
 
@@ -132,7 +132,7 @@ function getMostBottomEndPosition(hot) {
   }
 
   if (endColumn < 0) {
-    if (navigableHeaders === false || hot.countColHeaders() === 0) {
+    if (!navigableHeaders || hot.countColHeaders() === 0) {
       return null;
     }
 

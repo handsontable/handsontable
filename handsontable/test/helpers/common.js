@@ -199,7 +199,6 @@ export function handsontable(options, explicitOptions = false, container = spec(
   }
 
   container.handsontable(options);
-  container[0].focus(); // otherwise TextEditor tests do not pass in IE8
 
   return container.data('handsontable');
 }
