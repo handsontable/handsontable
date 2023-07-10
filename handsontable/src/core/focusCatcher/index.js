@@ -124,14 +124,19 @@ function getMostBottomEndPosition(hot) {
   let endColumn = columnIndexMapper.getRenderableIndexesLength() - 1;
 
   if (bottomRow < 0) {
-    bottomRow = navigableHeaders && hot.countColHeaders() > 0 ? -1 : null;
-  }
-  if (endColumn < 0) {
-    endColumn = navigableHeaders && hot.countRowHeaders() > 0 ? -1 : null;
+    if (navigableHeaders === false || hot.countColHeaders() === 0) {
+      return null;
+    }
+
+    bottomRow = -1;
   }
 
-  if (bottomRow === null || endColumn === null) {
-    return null;
+  if (endColumn < 0) {
+    if (navigableHeaders === false || hot.countColHeaders() === 0) {
+      return null;
+    }
+
+    endColumn = -1;
   }
 
   return hot._createCellCoords(
