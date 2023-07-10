@@ -96,8 +96,13 @@ function getMostTopStartPosition(hot) {
   let topRow = navigableHeaders && hot.countColHeaders() > 0 ? -hot.countColHeaders() : 0;
   let startColumn = navigableHeaders && hot.countRowHeaders() > 0 ? -hot.countRowHeaders() : 0;
 
-  topRow = topRow === 0 ? rowIndexMapper.getVisualFromRenderableIndex(topRow) : topRow;
-  startColumn = startColumn === 0 ? columnIndexMapper.getVisualFromRenderableIndex(startColumn) : startColumn;
+  if (topRow === 0) {
+    topRow = rowIndexMapper.getVisualFromRenderableIndex(topRow);
+  }
+
+  if (startColumn === 0) {
+    startColumn =  columnIndexMapper.getVisualFromRenderableIndex(startColumn);
+  }
 
   if (topRow === null || startColumn === null) {
     return null;
