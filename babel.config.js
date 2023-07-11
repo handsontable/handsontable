@@ -1,9 +1,8 @@
 const babelPresetConfig = () => ({
   targets: {
-    chrome: '41',
-    firefox: '34',
-    ie: '9',
-    safari: '9'
+    chrome: '110',
+    firefox: '110',
+    safari: '14.1'
   },
   modules: false,
   debug: false,
