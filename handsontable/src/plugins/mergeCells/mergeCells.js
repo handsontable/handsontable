@@ -152,6 +152,7 @@ export class MergeCells extends BasePlugin {
         return false;
       }
     });
+    this.addHook('beforePaste', (...args) => this.onBeforePaste(...args));
 
     this.registerShortcuts();
 
@@ -476,12 +477,13 @@ export class MergeCells extends BasePlugin {
    * @private
    * @param {CellRange} cellRange Selection cell range.
    * @param {boolean} [auto=false] `true` if called automatically by the plugin.
+   * @param {boolean} [unmergePartials=false] If set to `true`, all the merged cells overlapping the range will be unmerged.
    *
    * @fires Hooks#beforeUnmergeCells
    * @fires Hooks#afterUnmergeCells
    */
-  unmergeRange(cellRange, auto = false) {
-    const mergedCells = this.mergedCellsCollection.getWithinRange(cellRange);
+  unmergeRange(cellRange, auto = false, unmergePartials = false) {
+    const mergedCells = this.mergedCellsCollection.getWithinRange(cellRange, unmergePartials);
 
     if (!mergedCells) {
       return;
@@ -1280,5 +1282,39 @@ export class MergeCells extends BasePlugin {
    */
   onBeforeRemoveCellClassNames() {
     return this.selectionCalculations.getSelectedMergedCellClassNameToRemove();
+  }
+
+  /**
+   * `beforePaste` hook callback. Used for manipulating with area of paste (by changing selection) and unmerging cells.
+   *
+   * @param {Array<Array>} data An array of arrays which contains data to paste.
+   * @param {Array<object>} listOfCoords An array of objects with ranges of the visual indexes (startRow, startCol,
+   * endRow, endCol) that correspond to the previously selected area.
+   */
+  onBeforePaste(data, listOfCoords) {
+    const pastedColumns = data[0].length;
+    const pastedRows = data.length;
+
+    listOfCoords.forEach((singleCoords) => {
+      const startCellCoords = this.hot._createCellCoords(singleCoords.startRow, singleCoords.startCol);
+      const endCellCoords = this.hot._createCellCoords(singleCoords.endRow, singleCoords.endCol);
+      const cellRange = this.hot._createCellRange(startCellCoords, startCellCoords, endCellCoords);
+      const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(cellRange);
+
+      if (pastedColumns > 1 || pastedRows > 1) {
+        if (mergedCellsWithinRange.length === 1) {
+          this.unmergeRange(cellRange, true, true);
+
+        } else if (mergedCellsWithinRange.length > 1) {
+          const dataEndCoords = this.hot._createCellCoords(singleCoords.startRow + pastedRows - 1,
+            singleCoords.startCol + pastedColumns - 1);
+          const dataCellRange = this.hot._createCellRange(startCellCoords, startCellCoords, dataEndCoords);
+
+          this.unmergeRange(dataCellRange, true, true);
+          // Changing selection to paste data only within the selected area.
+          this.hot.selectCell(startCellCoords.row, startCellCoords.col, dataEndCoords.row, dataEndCoords.col);
+        }
+      }
+    });
   }
 }
