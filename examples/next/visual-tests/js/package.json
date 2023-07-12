@@ -4,5 +4,8 @@
   "private": true,
   "workspaces": [
     "@(!(node_modules))/"
-  ]
+  ],
+  "devDependencies": {
+    "process": "^0.11.10"
+  }
 }

@@ -12,8 +12,8 @@
   },
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
-    "start": "parcel index.html --no-cache --no-autoinstall --port 8080",
-    "build": "parcel build index.html --no-cache --no-autoinstall --public-url '.'",
+    "start": "parcel index.html --no-cache --port 8080",
+    "build": "parcel build index.html --no-cache --public-url '.'",
     "test": "node spec/support/jasmine.config.js"
   },
   "dependencies": {
