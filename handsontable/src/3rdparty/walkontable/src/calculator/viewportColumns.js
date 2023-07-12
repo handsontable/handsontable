@@ -160,7 +160,7 @@ class ViewportColumnsCalculator {
       // the table is to the left of the viewport
       (
         mostRightScrollOffset < (-1) * priv.inlineStartOffset ||
-        scrollOffset > startPositions.at(-1) + inlineEndColumnOffset
+        scrollOffset > startPositions[startPositions.length - 1] + inlineEndColumnOffset
       ) ||
       // the table is to the right of the viewport
       (((-1) * priv.scrollOffset) - priv.viewportWidth > (-1) * inlineStartColumnOffset)
