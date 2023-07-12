@@ -1421,6 +1421,17 @@ const REGISTERED_HOOKS = [
   'modifyGetCellCoords',
 
   /**
+   * Used to modify the cell coordinates when the table is activated (going into the listen mode).
+   *
+   * @event Hooks#modifyFocusOnTabNavigation
+   * @since 14.0.0
+   * @param {'from_above' | 'from_below'} tabActivationDir The browsers Tab navigation direction. Depending on
+   * whether the user activated the table from the element above or below, another cell can be selected.
+   * @param {CellCoords} visualCoords The coords that will be used to select a cell.
+   */
+  'modifyFocusOnTabNavigation',
+
+  /**
    * Allows modify the visual row index that is used to retrieve the row header element (TH) before it's
    * highlighted (proper CSS class names are added). Modifying the visual row index allows building a custom
    * implementation of the nested headers feature or other features that require highlighting other DOM

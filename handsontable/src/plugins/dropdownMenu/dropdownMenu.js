@@ -449,6 +449,7 @@ export class DropdownMenu extends BasePlugin {
 
     button.className = BUTTON_CLASS_NAME;
     button.type = 'button';
+    button.tabIndex = -1;
 
     // prevent page reload on button click
     button.onclick = function() {

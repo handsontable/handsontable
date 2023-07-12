@@ -33,11 +33,21 @@ import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
 import { Selection } from './selection';
 import { MetaManager, DynamicCellMetaMod, ExtendMetaPropertiesMod, replaceData } from './dataMap';
+import { installFocusCatcher } from './core/index';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
 
 let activeGuid = null;
+
+/**
+ * Keeps the collection of the all Handsontable instances created on the same page. The
+ * list is then used to trigger the "afterUnlisten" hook when the "listen()" method was
+ * called on another instance.
+ *
+ * @type {Map<string, Core>}
+ */
+const foreignHotInstances = new Map();
 
 /**
  * A set of deprecated feature names.
@@ -226,6 +236,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   this.guid = `ht_${randomString()}`; // this is the namespace for global events
+
+  foreignHotInstances.set(this.guid, this);
 
   /**
    * Instance of index mapper which is responsible for managing the column indexes.
@@ -1156,6 +1168,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.view = new TableView(this);
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
 
+    if (isRootInstance(this)) {
+      installFocusCatcher(instance);
+    }
+
     instance.runHooks('init');
 
     this.forceFullRender = true; // used when data was changed
@@ -1626,6 +1642,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.listen = function() {
     if (instance && !instance.isListening()) {
+      foreignHotInstances.forEach((foreignHot) => {
+        if (instance !== foreignHot) {
+          foreignHot.unlisten();
+        }
+      });
+
       activeGuid = instance.guid;
       instance.runHooks('afterListen');
     }
@@ -4427,6 +4449,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     this.getShortcutManager().destroy();
     metaManager.clearCache();
+    foreignHotInstances.delete(this.guid);
 
     if (isRootInstance(instance)) {
       const licenseInfo = this.rootDocument.querySelector('.hot-display-license-info');
