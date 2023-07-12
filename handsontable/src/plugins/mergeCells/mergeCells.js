@@ -1342,6 +1342,10 @@ export class MergeCells extends BasePlugin {
         this.unmergeRange(pasteRange, true, true);
         this.hot.selectCell(selectionStart.row, selectionStart.col, pasteEnd.row, pasteEnd.col);
 
+        if (mergedCellsWithinPaste === false) {
+          return;
+        }
+
         mergedCellsWithinPaste.forEach((mergedCell) => {
           const { row, col, rowspan, colspan } = mergedCell;
           const mergeStart = this.hot._createCellCoords(row, col);
