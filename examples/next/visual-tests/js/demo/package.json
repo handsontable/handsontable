@@ -3,7 +3,6 @@
   "private": true,
   "version": "0.0.0",
   "description": "This is a general purpose demo that showcases the most popular features of Handsontable",
-  "main": "index.html",
   "homepage": "https://handsontable.com/",
   "repository": {
     "type": "git",
@@ -20,13 +19,14 @@
     "test": "node spec/support/jasmine.config.js"
   },
   "dependencies": {
-    "handsontable": "latest"
+    "handsontable": "latest",
+    "pikaday": "1.8.2"
   },
   "devDependencies": {
     "http-server": "^14.1.1",
     "jasmine": "3.7.0",
     "jasmine-console-reporter": "3.1.0",
-    "parcel-bundler": "1.12.3",
+    "parcel": "2.9.3",
     "puppeteer": "14.3.0"
   },
   "license": "SEE LICENSE IN LICENSE.txt"

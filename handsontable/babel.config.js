@@ -22,6 +22,10 @@ const allowedE2EModules = [
 
 module.exports = {
   extends: '../babel.config.js',
+  assumptions: {
+    setSpreadProperties: true, // saves 17 kB (July 12, 2023)
+    noIncompleteNsImportDetection: true, // saves 21 kB (July 12, 2023)
+  },
   env: {
     // Environment for unit testing, source code and languages building via webpack (UMD).
     commonjs: {

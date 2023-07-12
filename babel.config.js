@@ -15,8 +15,6 @@ module.exports = {
     ['@babel/preset-env', babelPresetConfig()]
   ],
   plugins: [
-    ['@babel/plugin-proposal-object-rest-spread', { useBuiltIns: true }],
-    ['transform-inline-environment-variables'],
-    ['@babel/plugin-proposal-class-properties']
+    ['transform-inline-environment-variables']
   ]
 };
