@@ -3,7 +3,6 @@
   "private": true,
   "version": "1.0.0",
   "description": "",
-  "main": "index.html",
   "scripts": {
     "start": "parcel index.html --open",
     "build": "parcel build index.html",
@@ -12,7 +11,8 @@
   },
   "dependencies": {
     "handsontable": "latest",
-    "parcel-bundler": "^1.6.1"
+    "parcel": "2.9.3",
+    "process": "^0.11.10"
   },
   "devDependencies": {
     "typescript": "4.2.3"
