@@ -26,10 +26,5 @@
     "puppeteer": "14.3.0",
     "vite": "4.4.3"
   },
-  "alias": {
-    "process": {
-      "global": "process"
-    }
-  },
   "license": "SEE LICENSE IN LICENSE.txt"
 }
