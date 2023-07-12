@@ -1321,45 +1321,41 @@ export class MergeCells extends BasePlugin {
         this.hot._createCellCoords(endRow, endColumn));
       const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(theBiggestRange, true);
 
-      if (mergedCellsWithinRange.length === 1) {
-        this.unmergeRange(theBiggestRange, true, true);
+      if (mergedCellsWithinRange.length === 0) {
+        return;
+      }
 
-        const { row, col, rowspan, colspan } = mergedCellsWithinRange[0];
+      let rangeToUnmerge = pasteRange;
+
+      if (mergedCellsWithinRange.length === 1) {
+        rangeToUnmerge = theBiggestRange;
+      }
+
+      const mergedCellsWithinPaste = this.mergedCellsCollection.getWithinRange(rangeToUnmerge, true);
+
+      this.unmergeRange(rangeToUnmerge, true, true);
+
+      if (rangeToUnmerge === pasteRange) {
+        this.hot.selectCell(selectionStart.row, selectionStart.col, pasteEnd.row, pasteEnd.col);
+      }
+
+      if (mergedCellsWithinPaste === false) {
+        return;
+      }
+
+      mergedCellsWithinPaste.forEach((mergedCell) => {
+        const { row, col, rowspan, colspan } = mergedCell;
         const mergeStart = this.hot._createCellCoords(row, col);
         const mergeEnd = this.hot._createCellCoords(row + rowspan - 1, col + colspan - 1);
         const mergeRange = this.hot._createCellRange(mergeStart, mergeStart, mergeEnd);
 
-        theBiggestRange.expandByRange(mergeRange);
+        rangeToUnmerge.expandByRange(mergeRange);
+      });
 
-        this.hot.addHookOnce('afterPaste', () => {
-          this.hot.selectCell(theBiggestRange.from.row, theBiggestRange.from.col,
-            theBiggestRange.to.row, theBiggestRange.to.col);
-        });
-
-      } else if (mergedCellsWithinRange.length > 1) {
-        const mergedCellsWithinPaste = this.mergedCellsCollection.getWithinRange(pasteRange, true);
-
-        this.unmergeRange(pasteRange, true, true);
-        this.hot.selectCell(selectionStart.row, selectionStart.col, pasteEnd.row, pasteEnd.col);
-
-        if (mergedCellsWithinPaste === false) {
-          return;
-        }
-
-        mergedCellsWithinPaste.forEach((mergedCell) => {
-          const { row, col, rowspan, colspan } = mergedCell;
-          const mergeStart = this.hot._createCellCoords(row, col);
-          const mergeEnd = this.hot._createCellCoords(row + rowspan - 1, col + colspan - 1);
-          const mergeRange = this.hot._createCellRange(mergeStart, mergeStart, mergeEnd);
-
-          pasteRange.expandByRange(mergeRange);
-        });
-
-        this.hot.addHookOnce('afterPaste', () => {
-          this.hot.selectCell(pasteRange.from.row, pasteRange.from.col,
-            pasteRange.to.row, pasteRange.to.col);
-        });
-      }
+      this.hot.addHookOnce('afterPaste', () => {
+        this.hot.selectCell(rangeToUnmerge.from.row, rangeToUnmerge.from.col,
+          rangeToUnmerge.to.row, rangeToUnmerge.to.col);
+      });
     });
   }
 }
