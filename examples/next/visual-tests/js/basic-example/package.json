@@ -12,9 +12,8 @@
   },
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
-    "start": "parcel index.html --no-cache --port 8080",
-    "serve": "http-server dist",
-    "build": "parcel build index.html --no-cache --public-url '.'",
+    "start": "vite",
+    "build": "vite build",
     "test": "node spec/support/jasmine.config.js"
   },
   "dependencies": {
@@ -24,9 +23,8 @@
   "devDependencies": {
     "jasmine": "3.7.0",
     "jasmine-console-reporter": "3.1.0",
-    "parcel": "2.9.3",
-    "process": "^0.11.10",
-    "puppeteer": "14.3.0"
+    "puppeteer": "14.3.0",
+    "vite": "4.4.3"
   },
   "license": "SEE LICENSE IN LICENSE.txt"
 }
