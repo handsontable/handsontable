@@ -1367,7 +1367,7 @@ export class MergeCells extends BasePlugin {
       // Checking merged cells on unmerge range right before performing the unmerge.
       const listOfUnmergedCells = this.mergedCellsCollection.getWithinRange(rangeToUnmerge, true);
 
-      this.unmergeRange(rangeToUnmerge, true, true);
+      this.unmergeRange(rangeToUnmerge, false, true);
 
       // Changing selection (place where the data is populated) only for greater range (at least two merged cells).
       if (rangeToUnmerge === pasteRange) {
