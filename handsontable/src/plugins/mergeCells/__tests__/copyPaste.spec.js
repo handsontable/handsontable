@@ -96,7 +96,7 @@ describe('MergeCells copy and paste', () => {
       expect(mergeCellsPlugin.mergedCellsCollection.mergedCells.length).toEqual(1);
     });
 
-    it(' merged area and some cells above it', () => {
+    it('merged area and some cells above it', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(8, 8),
         rowHeaders: true,
@@ -141,7 +141,7 @@ describe('MergeCells copy and paste', () => {
       expect(mergeCellsPlugin.mergedCellsCollection.mergedCells.length).toEqual(1);
     });
 
-    it(' merged area and some cells below it', () => {
+    it('merged area and some cells below it', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(8, 8),
         rowHeaders: true,
@@ -186,7 +186,7 @@ describe('MergeCells copy and paste', () => {
       expect(mergeCellsPlugin.mergedCellsCollection.mergedCells.length).toEqual(1);
     });
 
-    it(' merged area and some cells below and after it', () => {
+    it('merged area and some cells below and after it', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(8, 8),
         rowHeaders: true,
