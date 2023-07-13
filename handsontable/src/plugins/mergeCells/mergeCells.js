@@ -1345,10 +1345,9 @@ export class MergeCells extends BasePlugin {
         pastedColumns);
       const populationRange = this.getCellRange(selectionCoords.startRow, selectionCoords.startCol,
         Math.max(pastedRows, selectedRows), Math.max(pastedColumns, selectedColumns));
-
       const selectedOnlySingleCell = this.mergedCellsCollection.getByRange(populationRange) !== false;
 
-      // Doesn't perform unmerge for pasting single cell to merged cell.
+      // Doesn't perform unmerge while pasting single cell's data to single merged cell.
       if (pastedColumns === 1 && pastedRows === 1 && selectedOnlySingleCell) {
         return;
       }
