@@ -52,8 +52,53 @@ describe('MergeCells copy and paste', () => {
     expect(mergeCellsPlugin.mergedCellsCollection.mergedCells.length).toEqual(2);
   });
 
-  describe('pasting data to selection containing', () => {
-    it('merged area', () => {
+  it('should properly paste single cell data to selection containing merged cell', async() => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(8, 8),
+      rowHeaders: true,
+      colHeaders: true,
+      mergeCells: [
+        { row: 1, col: 1, rowspan: 2, colspan: 2 },
+        { row: 3, col: 3, rowspan: 3, colspan: 3 }
+      ],
+    });
+
+    const clipboardEvent = getClipboardEvent();
+    const copyPastePlugin = getPlugin('CopyPaste');
+
+    clipboardEvent.clipboardData.setData('text/html', [
+      '<table><tbody><tr><td>A1</td></tr></tbody></table>'
+    ].join('\r\n'));
+
+    selectCell(0, 1, 3, 2);
+    copyPastePlugin.onPaste(clipboardEvent);
+
+    expect(getDataAtCell(1, 1)).toEqual('A1');
+    expect(getDataAtCell(1, 2)).toEqual('A1');
+    expect(getDataAtCell(2, 1)).toEqual('A1');
+    expect(getDataAtCell(2, 2)).toEqual('A1');
+    expect(getDataAtCell(3, 1)).toEqual('A1');
+    expect(getDataAtCell(3, 2)).toEqual('A1');
+    expect(`
+        |   ║   : - : - :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===|
+        | - ║   : A : 0 :   :   :   :   :   |
+        | - ║   : 0 : 0 :   :   :   :   :   |
+        | - ║   : 0 : 0 :   :   :   :   :   |
+        | - ║   : 0 : 0 :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    const mergeCellsPlugin = getPlugin('mergeCells');
+
+    expect(mergeCellsPlugin.mergedCellsCollection.mergedCells.length).toEqual(1);
+  });
+
+  describe('pasting multiple cells data to selection containing', () => {
+    it('only merged area', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(8, 8),
         rowHeaders: true,
@@ -286,7 +331,7 @@ describe('MergeCells copy and paste', () => {
     expect(mergeCellsPlugin.mergedCellsCollection.mergedCells.length).toEqual(0);
   });
 
-  it('should unmerge only one cell when selection contains two merged areas, but pasted data fits to one area', () => {
+  it('should unmerge only one cell when selection contains two merged areas, but pasted data fills out one area', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(8, 8),
       rowHeaders: true,
@@ -335,7 +380,7 @@ describe('MergeCells copy and paste', () => {
     expect(mergeCellsPlugin.mergedCellsCollection.mergedCells.length).toEqual(1);
   });
 
-  it('should not unmerge cell when selection contains two merged areas, but pasted data fits to unmerged area', () => {
+  it('should not unmerge cell when selection contains two merged areas, but pasted data fills out unmerged area', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(8, 8),
       rowHeaders: true,

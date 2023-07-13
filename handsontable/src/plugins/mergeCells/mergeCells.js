@@ -1338,11 +1338,6 @@ export class MergeCells extends BasePlugin {
     const pastedColumns = data[0].length;
     const pastedRows = data.length;
 
-    // Doesn't perform unmerge for pasting single cell.
-    if (pastedColumns === 1 && pastedRows === 1) {
-      return;
-    }
-
     listOfCoords.forEach((selectionCoords) => {
       const selectedRows = selectionCoords.endRow - selectionCoords.startRow + 1;
       const selectedColumns = selectionCoords.endCol - selectionCoords.startCol + 1;
@@ -1350,6 +1345,14 @@ export class MergeCells extends BasePlugin {
         pastedColumns);
       const populationRange = this.getCellRange(selectionCoords.startRow, selectionCoords.startCol,
         Math.max(pastedRows, selectedRows), Math.max(pastedColumns, selectedColumns));
+
+      const selectedOnlySingleCell = this.mergedCellsCollection.getByRange(populationRange) !== false;
+
+      // Doesn't perform unmerge for pasting single cell to merged cell.
+      if (pastedColumns === 1 && pastedRows === 1 && selectedOnlySingleCell) {
+        return;
+      }
+
       const mergedCellsWithinPopulation = this.mergedCellsCollection.getWithinRange(populationRange, true);
 
       if (mergedCellsWithinPopulation.length === 0) {
