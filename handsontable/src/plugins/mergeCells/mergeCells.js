@@ -723,13 +723,13 @@ export class MergeCells extends BasePlugin {
     const newSelectionRange = this.selectionCalculations.getUpdatedSelectionRange(currentSelectionRange, delta);
     let tempDelta = clone(newDelta);
 
-    const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(newSelectionRange, true);
+    const mergedCellsWithinPopulation = this.mergedCellsCollection.getWithinRange(newSelectionRange, true);
 
     do {
       tempDelta = clone(newDelta);
       this.selectionCalculations.getUpdatedSelectionRange(currentSelectionRange, newDelta);
 
-      arrayEach(mergedCellsWithinRange, (mergedCell) => {
+      arrayEach(mergedCellsWithinPopulation, (mergedCell) => {
         this.selectionCalculations.snapDelta(newDelta, currentSelectionRange, mergedCell);
       });
 
@@ -1201,9 +1201,9 @@ export class MergeCells extends BasePlugin {
   onBeforeDrawAreaBorders(corners, className) {
     if (className && className === 'area') {
       const selectedRange = this.hot.getSelectedRangeLast();
-      const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(selectedRange);
+      const mergedCellsWithinPopulation = this.mergedCellsCollection.getWithinRange(selectedRange);
 
-      arrayEach(mergedCellsWithinRange, (mergedCell) => {
+      arrayEach(mergedCellsWithinPopulation, (mergedCell) => {
         if (selectedRange.getBottomEndCorner().row === mergedCell.getLastRow() &&
           selectedRange.getBottomEndCorner().col === mergedCell.getLastColumn()) {
           corners[2] = mergedCell.row;
@@ -1285,8 +1285,26 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
+   * Creates cell range.
+   *
+   * @private
+   * @param {number} startRow Visual start row index for the range.
+   * @param {number} startColumn Visual start column index for the range.
+   * @param {number} numberOfRows Number of rows within the range.
+   * @param {number} numberOfColumns Number of columns within the range.
+   * @returns {CellRange}
+   */
+  getCellRange(startRow, startColumn, numberOfRows, numberOfColumns) {
+    const rangeStart = this.hot._createCellCoords(startRow, startColumn);
+    const rangeEnd = this.hot._createCellCoords(startRow + numberOfRows - 1, startColumn + numberOfColumns - 1);
+
+    return this.hot._createCellRange(rangeStart, rangeStart, rangeEnd);
+  }
+
+  /**
    * `beforePaste` hook callback. Used for manipulating with area of paste (by changing selection) and unmerging cells.
    *
+   * @private
    * @param {Array<Array>} data An array of arrays which contains data to paste.
    * @param {Array<object>} listOfCoords An array of objects with ranges of the visual indexes (startRow, startCol,
    * endRow, endCol) that correspond to the previously selected area.
@@ -1295,6 +1313,7 @@ export class MergeCells extends BasePlugin {
     const pastedColumns = data[0].length;
     const pastedRows = data.length;
 
+    // Doesn't perform unmerge.
     if (pastedColumns === 1 && pastedRows === 1) {
       return;
     }
@@ -1302,52 +1321,39 @@ export class MergeCells extends BasePlugin {
     listOfCoords.forEach((singleCoords) => {
       const selectionRows = singleCoords.endRow - singleCoords.startRow + 1;
       const selectionColumns = singleCoords.endCol - singleCoords.startCol + 1;
-      let endRow = singleCoords.endRow;
-      let endColumn = singleCoords.endCol;
+      const pasteRange = this.getCellRange(singleCoords.startRow, singleCoords.startCol, pastedRows, pastedColumns);
+      const populationRange = this.getCellRange(singleCoords.startRow, singleCoords.startCol,
+        Math.max(pastedRows, selectionRows), Math.max(pastedColumns, selectionColumns));
+      const mergedCellsWithinPopulation = this.mergedCellsCollection.getWithinRange(populationRange, true);
 
-      if (pastedRows > selectionRows) {
-        endRow = singleCoords.startRow + pastedRows - 1;
-      }
-
-      if (pastedColumns > selectionColumns) {
-        endColumn = singleCoords.startCol + pastedColumns - 1;
-      }
-
-      const selectionStart = this.hot._createCellCoords(singleCoords.startRow, singleCoords.startCol);
-      const pasteEnd = this.hot._createCellCoords(singleCoords.startRow + pastedRows - 1,
-        singleCoords.startCol + pastedColumns - 1);
-      const pasteRange = this.hot._createCellRange(selectionStart, selectionStart, pasteEnd);
-      const theBiggestRange = this.hot._createCellRange(selectionStart, selectionStart,
-        this.hot._createCellCoords(endRow, endColumn));
-      const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(theBiggestRange, true);
-
-      if (mergedCellsWithinRange.length === 0) {
+      if (mergedCellsWithinPopulation.length === 0) {
         return;
       }
 
       let rangeToUnmerge = pasteRange;
 
-      if (mergedCellsWithinRange.length === 1) {
-        rangeToUnmerge = theBiggestRange;
+      if (mergedCellsWithinPopulation.length === 1) {
+        rangeToUnmerge = populationRange;
       }
 
-      const mergedCellsWithinPaste = this.mergedCellsCollection.getWithinRange(rangeToUnmerge, true);
+      // Checking merged cells on range to unmerge right before performing the unmerge.
+      const unmergedCellsRange = this.mergedCellsCollection.getWithinRange(rangeToUnmerge, true);
 
       this.unmergeRange(rangeToUnmerge, true, true);
 
+      // Changing selection, where the data is populated, only for bigger range (at least two merged cells).
       if (rangeToUnmerge === pasteRange) {
-        this.hot.selectCell(selectionStart.row, selectionStart.col, pasteEnd.row, pasteEnd.col);
+        this.hot.selectCell(singleCoords.startRow, singleCoords.startCol, pasteRange.endRow, pasteRange.endCol);
       }
 
-      if (mergedCellsWithinPaste === false) {
+      if (unmergedCellsRange === false) {
         return;
       }
 
-      mergedCellsWithinPaste.forEach((mergedCell) => {
+      // Adjusting selection to select complete area of previously merged cells.
+      unmergedCellsRange.forEach((mergedCell) => {
         const { row, col, rowspan, colspan } = mergedCell;
-        const mergeStart = this.hot._createCellCoords(row, col);
-        const mergeEnd = this.hot._createCellCoords(row + rowspan - 1, col + colspan - 1);
-        const mergeRange = this.hot._createCellRange(mergeStart, mergeStart, mergeEnd);
+        const mergeRange = this.getCellRange(row, col, rowspan, colspan);
 
         rangeToUnmerge.expandByRange(mergeRange);
       });
