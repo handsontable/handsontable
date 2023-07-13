@@ -42,6 +42,7 @@ module.exports = {
     // Environment for transpiling files to be compatible with CommonJS.
     commonjs_dist: {
       plugins: [
+        ['@babel/plugin-transform-nullish-coalescing-operator', { loose: true }],
         ['@babel/plugin-transform-modules-commonjs', { loose: true }],
         ['babel-plugin-transform-require-ignore', { extensions: ['.css','.scss'] }]
       ],
@@ -54,6 +55,7 @@ module.exports = {
     // Environment for transpiling files to be compatible with ES Modules.
     es: {
       plugins: [
+        ['@babel/plugin-transform-nullish-coalescing-operator', { loose: true }],
         ['babel-plugin-transform-require-ignore', { extensions: ['.css','.scss'] }],
         ['./.config/plugin/babel/add-import-extension.js', { extension: 'mjs' }]
       ],
