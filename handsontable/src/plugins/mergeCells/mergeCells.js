@@ -1302,6 +1302,31 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
+   * Adjusting selection to select complete area of previously merged cells.
+   *
+   * @private
+   * @param {Array|boolean} listOfUnmergedCells Array of found merged cells of `false` if none were found.
+   * @param {CellRange} unmergedRange Range for unmerged cells.
+   */
+  adjustSelectionAfterPasting(listOfUnmergedCells, unmergedRange) {
+    if (listOfUnmergedCells === false) {
+      return;
+    }
+
+    listOfUnmergedCells.forEach((mergedCell) => {
+      const { row, col, rowspan, colspan } = mergedCell;
+      const mergeRange = this.getCellRange(row, col, rowspan, colspan);
+
+      unmergedRange.expandByRange(mergeRange);
+    });
+
+    this.hot.addHookOnce('afterPaste', () => {
+      this.hot.selectCell(unmergedRange.from.row, unmergedRange.from.col,
+        unmergedRange.to.row, unmergedRange.to.col);
+    });
+  }
+
+  /**
    * `beforePaste` hook callback. Used for manipulating with area of paste (by changing selection) and unmerging cells.
    *
    * @private
@@ -1313,17 +1338,18 @@ export class MergeCells extends BasePlugin {
     const pastedColumns = data[0].length;
     const pastedRows = data.length;
 
-    // Doesn't perform unmerge.
+    // Doesn't perform unmerge for pasting single cell.
     if (pastedColumns === 1 && pastedRows === 1) {
       return;
     }
 
-    listOfCoords.forEach((singleCoords) => {
-      const selectionRows = singleCoords.endRow - singleCoords.startRow + 1;
-      const selectionColumns = singleCoords.endCol - singleCoords.startCol + 1;
-      const pasteRange = this.getCellRange(singleCoords.startRow, singleCoords.startCol, pastedRows, pastedColumns);
-      const populationRange = this.getCellRange(singleCoords.startRow, singleCoords.startCol,
-        Math.max(pastedRows, selectionRows), Math.max(pastedColumns, selectionColumns));
+    listOfCoords.forEach((selectionCoords) => {
+      const selectedRows = selectionCoords.endRow - selectionCoords.startRow + 1;
+      const selectedColumns = selectionCoords.endCol - selectionCoords.startCol + 1;
+      const pasteRange = this.getCellRange(selectionCoords.startRow, selectionCoords.startCol, pastedRows,
+        pastedColumns);
+      const populationRange = this.getCellRange(selectionCoords.startRow, selectionCoords.startCol,
+        Math.max(pastedRows, selectedRows), Math.max(pastedColumns, selectedColumns));
       const mergedCellsWithinPopulation = this.mergedCellsCollection.getWithinRange(populationRange, true);
 
       if (mergedCellsWithinPopulation.length === 0) {
@@ -1337,31 +1363,16 @@ export class MergeCells extends BasePlugin {
       }
 
       // Checking merged cells on range to unmerge right before performing the unmerge.
-      const unmergedCellsRange = this.mergedCellsCollection.getWithinRange(rangeToUnmerge, true);
+      const listOfUnmergedCells = this.mergedCellsCollection.getWithinRange(rangeToUnmerge, true);
 
       this.unmergeRange(rangeToUnmerge, true, true);
 
       // Changing selection, where the data is populated, only for bigger range (at least two merged cells).
       if (rangeToUnmerge === pasteRange) {
-        this.hot.selectCell(singleCoords.startRow, singleCoords.startCol, pasteRange.endRow, pasteRange.endCol);
+        this.hot.selectCell(selectionCoords.startRow, selectionCoords.startCol, pasteRange.endRow, pasteRange.endCol);
       }
 
-      if (unmergedCellsRange === false) {
-        return;
-      }
-
-      // Adjusting selection to select complete area of previously merged cells.
-      unmergedCellsRange.forEach((mergedCell) => {
-        const { row, col, rowspan, colspan } = mergedCell;
-        const mergeRange = this.getCellRange(row, col, rowspan, colspan);
-
-        rangeToUnmerge.expandByRange(mergeRange);
-      });
-
-      this.hot.addHookOnce('afterPaste', () => {
-        this.hot.selectCell(rangeToUnmerge.from.row, rangeToUnmerge.from.col,
-          rangeToUnmerge.to.row, rangeToUnmerge.to.col);
-      });
+      this.adjustSelectionAfterPasting(listOfUnmergedCells, rangeToUnmerge);
     });
   }
 }
