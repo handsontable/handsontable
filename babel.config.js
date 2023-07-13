@@ -7,7 +7,9 @@ const babelPresetConfig = () => ({
   modules: false,
   debug: false,
   useBuiltIns: 'usage',
-  corejs: 3,
+  corejs: {
+    version: '3.31'
+  }
 });
 
 module.exports = {

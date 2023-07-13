@@ -36,6 +36,7 @@ module.exports = {
           regenerator: true,
           useESModules: false,
         }],
+        ['@babel/plugin-transform-nullish-coalescing-operator', { loose: true }],
         ['@babel/plugin-transform-modules-commonjs', { loose: true }]
       ]
     },
@@ -71,6 +72,7 @@ module.exports = {
     // the Handsontable.
     es_languages: {
       plugins: [
+        ['@babel/plugin-transform-nullish-coalescing-operator', { loose: true }],
         ['babel-plugin-transform-require-ignore', { extensions: ['.css','.scss'] }],
         ['./.config/plugin/babel/add-import-extension.js', { extension: 'mjs' }],
         ['./.config/plugin/babel/add-language-registration.js'],
