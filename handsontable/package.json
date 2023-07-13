@@ -77,7 +77,7 @@
   ],
   "dependencies": {
     "@types/pikaday": "1.7.4",
-    "core-js": "^3.0.0",
+    "core-js": "^3.31.1",
     "dompurify": "^2.1.1",
     "moment": "2.29.4",
     "numbro": "2.1.2",
