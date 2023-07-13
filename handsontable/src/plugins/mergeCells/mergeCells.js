@@ -723,13 +723,13 @@ export class MergeCells extends BasePlugin {
     const newSelectionRange = this.selectionCalculations.getUpdatedSelectionRange(currentSelectionRange, delta);
     let tempDelta = clone(newDelta);
 
-    const mergedCellsWithinPopulation = this.mergedCellsCollection.getWithinRange(newSelectionRange, true);
+    const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(newSelectionRange, true);
 
     do {
       tempDelta = clone(newDelta);
       this.selectionCalculations.getUpdatedSelectionRange(currentSelectionRange, newDelta);
 
-      arrayEach(mergedCellsWithinPopulation, (mergedCell) => {
+      arrayEach(mergedCellsWithinRange, (mergedCell) => {
         this.selectionCalculations.snapDelta(newDelta, currentSelectionRange, mergedCell);
       });
 
@@ -1201,9 +1201,9 @@ export class MergeCells extends BasePlugin {
   onBeforeDrawAreaBorders(corners, className) {
     if (className && className === 'area') {
       const selectedRange = this.hot.getSelectedRangeLast();
-      const mergedCellsWithinPopulation = this.mergedCellsCollection.getWithinRange(selectedRange);
+      const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(selectedRange);
 
-      arrayEach(mergedCellsWithinPopulation, (mergedCell) => {
+      arrayEach(mergedCellsWithinRange, (mergedCell) => {
         if (selectedRange.getBottomEndCorner().row === mergedCell.getLastRow() &&
           selectedRange.getBottomEndCorner().col === mergedCell.getLastColumn()) {
           corners[2] = mergedCell.row;
