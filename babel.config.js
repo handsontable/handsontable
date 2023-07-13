@@ -2,7 +2,8 @@ const babelPresetConfig = () => ({
   targets: {
     chrome: '110',
     firefox: '110',
-    safari: '14.1'
+    safari: '14.1',
+    node: '11', // support for Webpack 4 and similar oldish bundlers
   },
   modules: false,
   debug: false,
