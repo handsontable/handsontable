@@ -1,6 +1,6 @@
 import { BaseEditor, EDITOR_STATE } from '../baseEditor';
 import EventManager from '../../eventManager';
-import { isMobileBrowser, isIE, isEdge, isIOS } from '../../helpers/browser';
+import { isMobileBrowser, isEdge, isIOS } from '../../helpers/browser';
 import {
   addClass,
   getComputedStyle,
@@ -249,7 +249,7 @@ export class TextEditor extends BaseEditor {
    * @private
    */
   hideEditableElement() {
-    if (isIE() || isEdge()) {
+    if (isEdge()) {
       this.textareaStyle.textIndent = '-99999px';
     }
     this.textareaStyle.overflowY = 'visible';
