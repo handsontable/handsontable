@@ -17,6 +17,7 @@ module.exports.create = function create(envArgs) {
     c.target = 'web';
     c.cache = true;
     c.output = {
+      library: '__hot_tests__',
       libraryTarget: 'var',
       filename: '[name].entry.js',
       path: path.resolve(__dirname, '../test/dist'),
@@ -65,7 +66,9 @@ module.exports.create = function create(envArgs) {
       })
     );
 
-    c.node.global = true;
+    c.node = {
+      global: true,
+    }
   });
 
   return [].concat(config);

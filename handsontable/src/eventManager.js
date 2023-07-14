@@ -1,4 +1,3 @@
-import { isPassiveEventSupported } from './helpers/feature';
 import { stopImmediatePropagation as _stopImmediatePropagation } from './helpers/dom/event';
 
 /**
@@ -43,10 +42,6 @@ class EventManager {
      */
     function callbackProxy(event) {
       callback.call(this, extendEvent(event));
-    }
-
-    if (typeof options !== 'boolean' && !isPassiveEventSupported()) {
-      options = false;
     }
 
     this.context.eventListeners.push({
