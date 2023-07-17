@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the ability to traverse the grid using TAB key throughout the page and added new `disableTabNavigation` option.",
+  "type": "added",
+  "issueOrPR": 10430,
+  "breaking": false,
+  "framework": "none"
+}

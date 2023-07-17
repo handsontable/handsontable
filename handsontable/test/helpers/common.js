@@ -133,6 +133,7 @@ export const undo = handsontableMethodFactory('undo');
 export const updateSettings = handsontableMethodFactory('updateSettings');
 export const validateCell = handsontableMethodFactory('validateCell');
 export const validateCells = handsontableMethodFactory('validateCells');
+export const unlisten = handsontableMethodFactory('unlisten');
 
 const specContext = {};
 
@@ -190,20 +191,18 @@ export function columnIndexMapper() {
  * @param {object} options The Handsontable options.
  * @param {boolean} explicitOptions If set to `true`, the options will be passed to the Handsontable instance as-is
  * and license key won't be added automatically.
+ * @param {jQuery} container The root element where the Handsontable will be injected.
  * @returns {Handsontable}
  */
-export function handsontable(options, explicitOptions = false) {
-  const currentSpec = spec();
-
+export function handsontable(options, explicitOptions = false, container = spec().$container) {
   // Add a license key to every Handsontable instance.
   if (options && !explicitOptions) {
     options.licenseKey = 'non-commercial-and-evaluation';
   }
 
-  currentSpec.$container.handsontable(options);
-  currentSpec.$container[0].focus(); // otherwise TextEditor tests do not pass in IE8
+  container.handsontable(options);
 
-  return currentSpec.$container.data('handsontable');
+  return container.data('handsontable');
 }
 
 /**
@@ -259,6 +258,54 @@ export function getBottomClone() {
  */
 export function getBottomInlineStartClone() {
   return spec().$container.find('.ht_clone_bottom_inline_start_corner');
+}
+
+/**
+ * Emulates the browser's TAB navigation to the Handsontable (from element above).
+ *
+ * @param {Handsontable} hotInstance The Handsontable instance to apply the event.
+ */
+export function triggerTabNavigationFromTop(hotInstance = hot()) {
+  $(hotInstance.rootElement).find('.htFocusCatcher').first().focus();
+}
+
+/**
+ * Emulates the browser's Shift+TAB navigation to the Handsontable (from element below).
+ *
+ * @param {Handsontable} hotInstance The Handsontable instance to apply the event.
+ */
+export function triggerTabNavigationFromBottom(hotInstance = hot()) {
+  $(hotInstance.rootElement).find('.htFocusCatcher').last().focus();
+}
+
+/**
+ * Returns an instance of the CellCoords class.
+ *
+ * @param {number} row The row index.
+ * @param {number} col The column index.
+ * @returns {CellCoords}
+ */
+export function cellCoords(row, col) {
+  return hot()._createCellCoords(row, col);
+}
+
+/**
+ * Returns an instance of the CellRange class.
+ *
+ * @param {number} rowFrom The row start index of the range.
+ * @param {number} colFrom The column start index.of the range.
+ * @param {number} rowTo The row end index of the range.
+ * @param {number} colTo The column end index of the range.
+ * @param {number} [rowFocus] The row focus/highlight index.
+ * @param {number} [colFocus] The column focus/highlight index.
+ * @returns {CellRange}
+ */
+export function cellRange(rowFrom, colFrom, rowTo, colTo, rowFocus = rowFrom, colFocus = colFrom) {
+  return hot()._createCellRange(
+    hot()._createCellCoords(rowFocus, colFocus),
+    hot()._createCellCoords(rowFrom, colFrom),
+    hot()._createCellCoords(rowTo, colTo),
+  );
 }
 
 /**

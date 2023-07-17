@@ -5,9 +5,7 @@ import {
   isEdgeWebKit,
   isFirefox,
   isFirefoxWebKit,
-  isIE,
   isMobileBrowser,
-  isMSBrowser,
   isSafari,
   isWindowsOS,
   isMacOS,
@@ -173,49 +171,6 @@ describe('Browser helper', () => {
     });
   });
 
-  describe('isIE', () => {
-    it('should recognize browser properly', () => {
-      setBrowserMeta({
-        userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) ' +
-          'Chrome/38.0.2125.111 Safari/537.36'
-      });
-
-      expect(isIE()).toBeFalsy();
-
-      setBrowserMeta({
-        userAgent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:33.0) Gecko/20100101 Firefox/33.0'
-      });
-
-      expect(isIE()).toBeFalsy();
-
-      setBrowserMeta({
-        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) ' +
-          'AppleWebKit/600.1.17 (KHTML, like Gecko) Version/7.1 Safari/537.85.10'
-      });
-
-      expect(isIE()).toBeFalsy();
-
-      setBrowserMeta({
-        userAgent: 'Mozilla/5.0 (iPad; CPU OS 8_1 like Mac OS X) ' +
-          'AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B410 Safari/600.1.4'
-      });
-
-      expect(isIE()).toBeFalsy();
-
-      setBrowserMeta({
-        userAgent: 'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko'
-      });
-
-      expect(isIE()).toBeTruthy();
-
-      setBrowserMeta({
-        userAgent: 'Mozilla/4.0 (compatible; MSIE 7.0; Windows Phone OS 7.0; Trident/3.1; IEMobile/7.0; Nokia;N70)'
-      });
-
-      expect(isIE()).toBeTruthy();
-    });
-  });
-
   describe('isEdge', () => {
     it('should recognize browser properly', () => {
       setBrowserMeta({
@@ -327,56 +282,6 @@ describe('Browser helper', () => {
       });
 
       expect(isEdgeWebKit()).toBeTruthy();
-    });
-  });
-
-  describe('isMSBrowser', () => {
-    it('should recognize browser properly', () => {
-      setBrowserMeta({
-        userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) ' +
-          'Chrome/38.0.2125.111 Safari/537.36'
-      });
-
-      expect(isMSBrowser()).toBeFalsy();
-
-      setBrowserMeta({
-        userAgent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:33.0) Gecko/20100101 Firefox/33.0'
-      });
-
-      expect(isMSBrowser()).toBeFalsy();
-
-      setBrowserMeta({
-        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) ' +
-          'AppleWebKit/600.1.17 (KHTML, like Gecko) Version/7.1 Safari/537.85.10'
-      });
-
-      expect(isMSBrowser()).toBeFalsy();
-
-      setBrowserMeta({
-        userAgent: 'Mozilla/5.0 (iPad; CPU OS 8_1 like Mac OS X) ' +
-          'AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B410 Safari/600.1.4'
-      });
-
-      expect(isMSBrowser()).toBeFalsy();
-
-      setBrowserMeta({
-        userAgent: 'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko'
-      });
-
-      expect(isMSBrowser()).toBeTruthy();
-
-      setBrowserMeta({
-        userAgent: 'Mozilla/4.0 (compatible; MSIE 7.0; Windows Phone OS 7.0; Trident/3.1; IEMobile/7.0; Nokia;N70)'
-      });
-
-      expect(isMSBrowser()).toBeTruthy();
-
-      setBrowserMeta({
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
-          'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393'
-      });
-
-      expect(isMSBrowser()).toBeTruthy();
     });
   });
 

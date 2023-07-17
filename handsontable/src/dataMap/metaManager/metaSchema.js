@@ -3208,6 +3208,29 @@ export default () => {
     navigableHeaders: false,
 
     /**
+     * When set to `true`, the `disableTabNavigation` option changes the behavior of the
+     * <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts. The Handsontable
+     * no more captures that shortcuts to make the grid navigation available (`disableTabNavigation: false`)
+     * but returns control to the browser so the native page navigation is possible.
+     *
+     * @since 14.0.0
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // you can't navigate row and column headers using <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts
+     * disableTabNavigation: true,
+     *
+     * // default behavior: you can navigate row and column headers using <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts
+     * disableTabNavigation: false,
+     * ```
+     */
+    disableTabNavigation: false,
+
+    /**
      * @description
      * The `nestedHeaders` option configures the [`NestedHeaders`](@/api/nestedHeaders.md) plugin.
      *
