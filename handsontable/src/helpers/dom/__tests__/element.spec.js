@@ -33,8 +33,8 @@ describe('DOM helpers', () => {
 
         return element;
       };
-
       const hotContainer = createDivWithId('hot');
+
       document.body.appendChild(hotContainer);
 
       const hot = new Handsontable(hotContainer, {
