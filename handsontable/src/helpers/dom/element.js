@@ -40,7 +40,11 @@ export function getParent(element, level = 0) {
 export function isThisHotChild(element, thisHotContainer) {
   const closestHandsontableContainer = element.closest('.handsontable');
 
-  return !!closestHandsontableContainer && (closestHandsontableContainer.parentNode === thisHotContainer);
+  return !!closestHandsontableContainer &&
+    (
+      closestHandsontableContainer.parentNode === thisHotContainer ||
+      closestHandsontableContainer === thisHotContainer
+    );
 }
 
 /**

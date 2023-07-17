@@ -19,8 +19,6 @@ const FOCUS_MODES = Object.freeze({
 export class FocusManager {
   /**
    * The Handsontable instance.
-   *
-   * @private
    */
   #hot;
   /**
@@ -32,7 +30,6 @@ export class FocusManager {
    * `TEXTAREA` element after a delay defined in the manager.
    *
    * @type {string}
-   * @private
    */
   #focusMode;
   /**
@@ -40,7 +37,6 @@ export class FocusManager {
    * element if the focus mode is set to 'mixed'.
    *
    * @type {number}
-   * @private
    */
   #refocusDelay = 50;
   /**
@@ -48,7 +44,6 @@ export class FocusManager {
    * editor's `TEXTAREA` element will be used.
    *
    * @type {null|Function}
-   * @private
    */
   #refocusElementGetter = null;
 
