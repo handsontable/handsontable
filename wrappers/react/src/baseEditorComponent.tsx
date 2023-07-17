@@ -1,10 +1,10 @@
 import React from 'react';
 import Handsontable from 'handsontable/base';
-import { HotEditorProps } from './types';
+import { EditorScopeIdentifier, HotEditorProps } from './types';
 
 interface BaseEditorProps extends HotEditorProps {
-  editorColumnScope: number;
-  emitEditorInstance?: (editor: BaseEditorComponent, column: number) => void,
+  editorColumnScope?: EditorScopeIdentifier;
+  emitEditorInstance?: (editor: BaseEditorComponent, column: EditorScopeIdentifier) => void,
 }
 
 class BaseEditorComponent<P = {}, S = {}, SS = any> extends React.Component<P & BaseEditorProps, S, SS> implements Handsontable.editors.BaseEditor {

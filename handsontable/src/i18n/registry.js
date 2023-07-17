@@ -6,8 +6,9 @@ import staticRegister from '../utils/staticRegister';
 import { getPhraseFormatters } from './phraseFormatters';
 import DEFAULT_DICTIONARY from './languages/en-US';
 
-export * as dictionaryKeys from './constants';
+import * as _dictionaryKeys from './constants';
 
+export const dictionaryKeys = _dictionaryKeys;
 export const DEFAULT_LANGUAGE_CODE = DEFAULT_DICTIONARY.languageCode;
 
 const {
