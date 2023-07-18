@@ -38,8 +38,8 @@ Ensuring a high level of accessibility by default, Handsontable's built-in featu
 - Compliance with the most important [accessibility standards](#accessibility-compliance).
 
 In the case of data grids and spreadsheet components, there's no universal accessibility standard. Depending on your use case, industry or location, your
-application may need to meet different accessibility requirements. With that in mind, we prepared a set of accessibility options that you can configure to meet
-the exact needs of your users. By using those options, you can easily:
+application may need to meet different accessibility requirements. With that in mind, we prepared a set of options that you can configure to meet the exact
+needs of your users. Using those options, you can easily:
 
 - [Enable the tab key navigation](@/guides/accessibility/accessibility-configuration.md#enable-the-tab-key-navigation),
 - [Enable navigation in headers](@/guides/accessibility/accessibility-configuration.md#enable-navigation-in-headers),
@@ -167,25 +167,25 @@ const handsontableInstance = new Handsontable(container, {
 
 checkboxEnableTabNavigation.addEventListener('change', () => {
   if (this.checked) {
-      handsontableInstance.updateSettings({
-        disableTabNavigation: false,
-      });
+    handsontableInstance.updateSettings({
+      disableTabNavigation: false,
+    });
   } else {
-      handsontableInstance.updateSettings({
-        disableTabNavigation: true,
-      });
+    handsontableInstance.updateSettings({
+      disableTabNavigation: true,
+    });
   }
 });
 
 checkboxEnableHeadersNavigation.addEventListener('change', () => {
   if (this.checked) {
-      handsontableInstance.updateSettings({
-        navigableHeaders: true,
-      });
+    handsontableInstance.updateSettings({
+      navigableHeaders: true,
+    });
   } else {
-      handsontableInstance.updateSettings({
-        navigableHeaders: false,
-      });
+    handsontableInstance.updateSettings({
+      navigableHeaders: false,
+    });
   }
 });
 ```
