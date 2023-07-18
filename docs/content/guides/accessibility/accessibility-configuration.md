@@ -550,6 +550,7 @@ export const App = () => {
           },
         ]}
         height={168}
+        rowHeaders={true}
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
