@@ -1,4 +1,5 @@
 import { warn } from './helpers/console';
+import { isOutsideInput } from './helpers/dom/element';
 
 /**
  * Possible focus modes.
@@ -54,7 +55,7 @@ export class FocusManager {
     this.#focusMode = hotSettings.imeFastEdit ? FOCUS_MODES.MIXED : FOCUS_MODES.CELL;
 
     this.#hot.addHook('afterUpdateSettings', (...args) => this.#onUpdateSettings(...args));
-    this.#hot.addHook('afterSelectionEnd', (...args) => this.#manageFocus(...args));
+    this.#hot.addHook('afterSelection', (...args) => this.#manageFocus(...args));
   }
 
   /**
@@ -184,6 +185,15 @@ export class FocusManager {
    */
   #manageFocus() {
     const selectedCell = this.#getSelectedCell();
+    const { activeElement } = this.#hot.rootDocument;
+
+    // Blurring the `activeElement` removes the unwanted border around the focusable element (#6877)
+    // and resets the `document.activeElement` property. The blurring should happen only when the
+    // previously selected input element has not belonged to the Handsontable editor. If blurring is
+    // triggered for all elements, there is a problem with the disappearing IME editor (#9672).
+    if (activeElement && isOutsideInput(activeElement)) {
+      activeElement.blur();
+    }
 
     this.focusOnHighlightedCell(selectedCell);
 
@@ -191,7 +201,9 @@ export class FocusManager {
       this.getFocusMode() === FOCUS_MODES.MIXED &&
       selectedCell.nodeName === 'TD'
     ) {
-      this.refocusToEditorTextarea();
+      this.#hot.addHookOnce('afterSelectionEnd', () => {
+        this.refocusToEditorTextarea();
+      });
     }
   }
 

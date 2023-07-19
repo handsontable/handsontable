@@ -155,16 +155,6 @@ class EditorManager {
     // Getting values using the modified coordinates.
     this.cellProperties = this.instance.getCellMeta(visualRowToCheck, visualColumnToCheck);
 
-    const { activeElement } = this.instance.rootDocument;
-
-    // Blurring the `activeElement` removes the unwanted border around the focusable element (#6877)
-    // and resets the `document.activeElement` property. The blurring should happen only when the
-    // previously selected input element has not belonged to the Handsontable editor. If blurring is
-    // triggered for all elements, there is a problem with the disappearing IME editor (#9672).
-    if (activeElement && isOutsideInput(activeElement)) {
-      activeElement.blur();
-    }
-
     if (!this.isCellEditable()) {
       this.clearActiveEditor();
 

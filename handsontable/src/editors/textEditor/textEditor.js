@@ -162,7 +162,6 @@ export class TextEditor extends BaseEditor {
 
       const {
         allowInvalid,
-        fragmentSelection,
       } = cellProperties;
 
       if (allowInvalid) {
@@ -173,18 +172,6 @@ export class TextEditor extends BaseEditor {
 
       if (previousState !== EDITOR_STATE.FINISHED) {
         this.hideEditableElement();
-      }
-
-      // @TODO: The fragmentSelection functionality is conflicted with IME. For this feature
-      // refocus has to be disabled (to make IME working).
-      const restoreFocus = !fragmentSelection;
-
-      if (
-        this.hot.getSettings().imeFastEdit &&
-        restoreFocus &&
-        !isMobileBrowser()
-      ) {
-        this.focus();
       }
     }
   }
