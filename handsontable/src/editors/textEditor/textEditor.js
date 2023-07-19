@@ -1,6 +1,6 @@
 import { BaseEditor, EDITOR_STATE } from '../baseEditor';
 import EventManager from '../../eventManager';
-import { isMobileBrowser, isEdge, isIOS } from '../../helpers/browser';
+import { isEdge, isIOS } from '../../helpers/browser';
 import {
   addClass,
   getComputedStyle,

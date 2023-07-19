@@ -1,5 +1,4 @@
 import { isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
-import { isOutsideInput } from './helpers/dom/element';
 import { isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors/registry';
 import EventManager from './eventManager';
