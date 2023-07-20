@@ -35,17 +35,17 @@ Ensuring a high level of accessibility by default, Handsontable's built-in featu
 - Transparent HTML structure following best accessibility practices.
 - ARIA attributes that complement HTML where needed.
 - Support for the most popular [screen readers](#supported-screen-readers).
-- Compliance with the most important [accessibility standards](#accessibility-compliance).
+- Compliance with the most important [accessibility standards](#accessibility).
 
 In the case of data grids and spreadsheet components, there's no universal accessibility standard. Depending on your use case, industry or location, your
 application may need to meet different accessibility requirements. With that in mind, we prepared a set of options that you can configure to meet the exact
 needs of your users. Using those options, you can easily:
 
-- [Enable the tab key navigation](@/guides/accessibility/accessibility-configuration.md#enable-the-tab-key-navigation),
-- [Enable navigation in headers](@/guides/accessibility/accessibility-configuration.md#enable-navigation-in-headers),
-- [Configure virtual rendering options](@/guides/accessibility/accessibility-configuration.md#disable-virtual-rendering),
-- [Configure IME fast-editing](@/guides/accessibility/accessibility-configuration.md#ime-fast-editing),
-- [Style your grid](@/guides/accessibility/accessibility-configuration.md#styling-for-accessibility) for the required color contrast, font size, and other
+- [Enable the tab key navigation](@/guides/accessibility/accessibility.md#enable-the-tab-key-navigation),
+- [Enable navigation in headers](@/guides/accessibility/accessibility.md#enable-navigation-in-headers),
+- [Configure virtual rendering options](@/guides/accessibility/accessibility.md#disable-virtual-rendering),
+- [Configure IME fast-editing](@/guides/accessibility/accessibility.md#ime-fast-editing),
+- [Style your grid](@/guides/accessibility/accessibility.md#styling-for-accessibility) for the required color contrast, font size, and other
   accessibility requirements.
 
 ## Accessibility demo
@@ -368,29 +368,7 @@ Handsontable is compliant with the following accessibility standards:
 - Section 508 of the Rehabilitation Act
 - The Americans with Disabilities Act (ADA)
 
-Learn more at [Accessibility compliance](@/guides/accessibility/accessibility-compliance.md).
-
-## Accessibility and customization
-
-As a JavaScript component, Handsontable is highly customizable. You can completely change the look and feel of the grid, add custom cell types, or create your
-own plugins, features, and integrations. However, when you customize Handsontable, it's you who's responsible for ensuring the accessibility of your solution.
-
-Whatever your customization, we always recommend that you:
-
-- Follow best web accessibility practices,
-- Use proper color contrast, font size, and semantic HTML tags,
-- Implement ARIA attributes if needed,
-- Avoid flashing or blinking content,
-- Test your customizations with real users who have different types of disabilities.
-
-## Known limitations
-
-At the moment, Handsontable's accessibility features come with the following limitations:
-
-- There's no built-in high-contrast theme. To create it, you need to
-  [override Handsontable's CSS](@/guides/accessibility/accessibility-configuration.md#styling-for-accessibility).
-- We don't test Handsontable against all available screen readers. We focus on the most popular ones: JAWS, NVDA, and VoiceOver.
-- NVDA and VoiceOver don't support [IME fast editing](@/guides/accessibility/accessibility-configuration.md#ime-fast-editing).
+Learn more at [Accessibility compliance](@/guides/accessibility/accessibility.md).
 
 ## Accessibility configuration
 
@@ -996,39 +974,24 @@ Whatever your styling choices are, we recommend that you:
 - Avoid flashing or blinking content,
 - Test your customizations with real users who have different types of disabilities.
 
-## Accessibility compliance
+## Accessibility and customization
 
-Learn about Handsontable's compliance with WCAG 2.1, Section 508, and ADA to make sure your application meets required accessibility standards.
+As a JavaScript component, Handsontable is highly customizable. You can completely change the look and feel of the grid, add custom cell types, or create your
+own plugins, features, and integrations. However, when you customize Handsontable, it's you who's responsible for ensuring the accessibility of your solution.
 
-### Overview
+Whatever your customization, we always recommend that you:
 
-### Accessibility statement
+- Follow best web accessibility practices,
+- Use proper color contrast, font size, and semantic HTML tags,
+- Implement ARIA attributes if needed,
+- Avoid flashing or blinking content,
+- Test your customizations with real users who have different types of disabilities.
 
-TBD
+## Known limitations
 
-[Downloadable PDF, to be generated here: https://www.w3.org/WAI/planning/statements/generator/#create]
+At the moment, Handsontable's accessibility features come with the following limitations:
 
-### WCAG 2.1 AA
-
-### Section 508
-
-### ADA
-
-### Accessibility certificates
-
-We regularly order accessibility audits of Handsontable, carried out by independent accessibility experts.
-
-The latest accessibility audits:
-
-| Handsontable version | Company | Concluded on | Certificate                                         |
-| -------------------- | ------- | ------------ | --------------------------------------------------- |
-| 13.0.0               | xxx     | xxx xx, 2023 | [Download]({{$basePath}}/securitum-certificate.pdf) |
-| 14.0.0               | xxx     | xxx xx, 2023 | [Download]({{$basePath}}/securitum-certificate.pdf) |
-
-The accessibility audits were carried out in accordance with industry-standard methodologies, including:
-
-- WCAG 2.1
-- Section 508
-- ADA
-
-For detailed accessibility reports, contact our [Technical Support Team](https://handsontable.com/contact?category=technical_support).
+- There's no built-in high-contrast theme. To create it, you need to
+  [override Handsontable's CSS](@/guides/accessibility/accessibility.md#styling-for-accessibility).
+- We don't test Handsontable against all available screen readers. We focus on the most popular ones: JAWS, NVDA, and VoiceOver.
+- NVDA and VoiceOver don't support [IME fast editing](@/guides/accessibility/accessibility.md#ime-fast-editing).
