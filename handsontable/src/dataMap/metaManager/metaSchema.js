@@ -3874,13 +3874,13 @@ export default () => {
      * | Option              | Possible settings | Description                                                                                          |
      * | ------------------- | ----------------- | ---------------------------------------------------------------------------------------------------- |
      * | `searchResultClass` | A string          | Add a custom CSS class name to search results                                                        |
-     * | `queryMethod`       | A function        | Add a [custom query method](@/guides/accessories-and-menus/searching-values.md#custom-query-method)  |
-     * | `callback`          | A function        | Add a [custom callback function](@/guides/accessories-and-menus/searching-values.md#custom-callback) |
+     * | `queryMethod`       | A function        | Add a [custom query method](@/guides/navigation/searching-values.md#custom-query-method)  |
+     * | `callback`          | A function        | Add a [custom callback function](@/guides/navigation/searching-values.md#custom-callback) |
      *
      * Read more:
-     * - [Searching values](@/guides/accessories-and-menus/searching-values.md)
-     * - [Searching values: Custom query method](@/guides/accessories-and-menus/searching-values.md#custom-query-method)
-     * - [Searching values: Custom callback](@/guides/accessories-and-menus/searching-values.md#custom-callback)
+     * - [Searching values](@/guides/navigation/searching-values.md)
+     * - [Searching values: Custom query method](@/guides/navigation/searching-values.md#custom-query-method)
+     * - [Searching values: Custom callback](@/guides/navigation/searching-values.md#custom-callback)
      *
      * @memberof Options#
      * @type {boolean|object}

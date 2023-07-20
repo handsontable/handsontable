@@ -258,10 +258,10 @@ The table below summarizes default keyboard shortcuts changes related to cell me
 #### Migrating to Handsontable 12.0
 
 To keep the previous (pre-12.0) behavior of a default keyboard shortcut, use the new [`ShortcutManager`](@/api/shortcutManager.md) API to:
-- [Add a custom keyboard shortcut](@/guides/accessories-and-menus/keyboard-shortcuts.md#add-a-custom-keyboard-shortcut)
-- [Remove a default keyboard shortcut](@/guides/accessories-and-menus/keyboard-shortcuts.md#remove-a-keyboard-shortcut)
-- [Replace a default keyboard shortcut](@/guides/accessories-and-menus/keyboard-shortcuts.md#replace-a-keyboard-shortcut)
-- [Block a default keyboard shortcut's action](@/guides/accessories-and-menus/keyboard-shortcuts.md#block-a-keyboard-shortcut-s-actions)
+- [Add a custom keyboard shortcut](@/guides/navigation/keyboard-shortcuts.md#add-a-custom-keyboard-shortcut)
+- [Remove a default keyboard shortcut](@/guides/navigation/keyboard-shortcuts.md#remove-a-keyboard-shortcut)
+- [Replace a default keyboard shortcut](@/guides/navigation/keyboard-shortcuts.md#replace-a-keyboard-shortcut)
+- [Block a default keyboard shortcut's action](@/guides/navigation/keyboard-shortcuts.md#block-a-keyboard-shortcut-s-actions)
 
 ## Step 5: Avoid referring to `_wt`
 

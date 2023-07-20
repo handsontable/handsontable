@@ -118,21 +118,24 @@ const formulasItems = [
   { path: 'guides/formulas/formula-calculation' },
 ];
 
-const accessoriesAndMenusItems = [
-  { path: 'guides/accessories-and-menus/context-menu' },
-  { path: 'guides/accessories-and-menus/undo-redo' },
-  { path: 'guides/accessories-and-menus/keyboard-shortcuts' },
-  { path: 'guides/accessories-and-menus/searching-values' },
-  { path: 'guides/accessories-and-menus/icon-pack' },
-  { path: 'guides/accessories-and-menus/export-to-csv' },
-  // TODO { path: 'guides/accessories-and-menus/export-to-excel' },
+const navigationItems = [
+  { path: 'guides/navigation/keyboard-navigation' },
+  { path: 'guides/navigation/keyboard-shortcuts' },
+  { path: 'guides/navigation/custom-shortcuts' },
+  { path: 'guides/navigation/touch-navigation' },
+  { path: 'guides/navigation/searching-values' },
 ];
 
 const accessibilityItems = [
-  { path: 'guides/accessibility/accessibility-overview' },
-  { path: 'guides/accessibility/accessibility-configuration' },
-  { path: 'guides/accessibility/accessibility-compliance' },
-  { path: 'guides/accessibility/keyboard-navigation' },
+  { path: 'guides/accessibility/accessibility' },
+];
+
+const accessoriesAndMenusItems = [
+  { path: 'guides/accessories-and-menus/context-menu' },
+  { path: 'guides/accessories-and-menus/undo-redo' },
+  { path: 'guides/accessories-and-menus/icon-pack' },
+  { path: 'guides/accessories-and-menus/export-to-csv' },
+  // TODO { path: 'guides/accessories-and-menus/export-to-excel' },
 ];
 
 const internationalizationItems = [
@@ -195,8 +198,9 @@ module.exports = {
     { title: 'Cell functions', children: cellFunctionsItems },
     { title: 'Cell types', children: cellTypesItems },
     { title: 'Formulas', children: formulasItems },
-    { title: 'Accessories and menus', children: accessoriesAndMenusItems },
+    { title: 'Navigation', children: navigationItems },
     { title: 'Accessibility', children: accessibilityItems },
+    { title: 'Accessories and menus', children: accessoriesAndMenusItems },
     { title: 'Internationalization', children: internationalizationItems },
     { title: 'Tools and building', children: buildingAndToolingItems },
     { title: 'Optimization', children: optimizationItems },
