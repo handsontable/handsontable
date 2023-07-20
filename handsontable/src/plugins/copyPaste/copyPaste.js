@@ -145,10 +145,10 @@ export class CopyPaste extends BasePlugin {
    * Defines the data range to copy. Possible values:
    *  * `'cells-only'` Copy selected cells only;
    *  * `'column-headers-only'` Copy column headers only;
-   *  * `'with-all-column-headers'` Copy cells with all column headers;
+   *  * `'with-column-group-headers'` Copy cells with all column headers;
    *  * `'with-column-headers'` Copy cells with column headers;
    *
-   * @type {'cells-only' | 'column-headers-only' | 'with-all-column-headers' | 'with-column-headers'}
+   * @type {'cells-only' | 'column-headers-only' | 'with-column-group-headers' | 'with-column-headers'}
    */
   #copyMode = 'cells-only';
   /**
@@ -268,12 +268,12 @@ export class CopyPaste extends BasePlugin {
    *
    * Takes an optional parameter (`copyMode`) that defines the scope of copying:
    *
-   * | `copyMode` value            | Description                                                     |
-   * | --------------------------- | --------------------------------------------------------------- |
-   * | `'cells-only'` (default)    | Copy the selected cells                                         |
-   * | `'with-column-headers'`     | - Copy the selected cells<br>- Copy the nearest column headers  |
-   * | `'with-all-column-headers'` | - Copy the selected cells<br>- Copy all related columns headers |
-   * | `'column-headers-only'`     | Copy the nearest column headers (without copying cells)         |
+   * | `copyMode` value              | Description                                                     |
+   * | ----------------------------- | --------------------------------------------------------------- |
+   * | `'cells-only'` (default)      | Copy the selected cells                                         |
+   * | `'with-column-headers'`       | - Copy the selected cells<br>- Copy the nearest column headers  |
+   * | `'with-column-group-headers'` | - Copy the selected cells<br>- Copy all related columns headers |
+   * | `'column-headers-only'`       | Copy the nearest column headers (without copying cells)         |
    *
    * @param {string} [copyMode='cells-only'] Copy mode.
    */
