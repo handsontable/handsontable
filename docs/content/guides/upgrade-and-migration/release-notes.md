@@ -470,7 +470,7 @@ For more information on this release, see:
 - **Breaking change**: Changed how default keyboard shortcuts are defined, to improve keyboard
   navigation consistency. Most of the shortcuts did not change and are now properly documented in
   the
-  [keyboard shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md#default-keyboard-shorcuts)
+  [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts.md#default-keyboard-shorcuts)
   guide. However, some shortcuts that were not defined explicitly, and were not listed in the
   documentation, don't work anymore (e.g., <kbd>**Enter**</kbd> opens a cell's editor, but
   <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd> doesn't). This change doesn't affect custom keyboard
@@ -484,7 +484,7 @@ For more information on this release, see:
   [#9369](https://github.com/handsontable/handsontable/issues/9369)
   [[migration guide]](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#ctrl-vs-cmd)
 - **Breaking change**: Changed the actions of the following
-  [keyboard shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md#default-keyboard-shorcuts),
+  [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts.md#default-keyboard-shorcuts),
   to match the usual spreadsheet software behavior, and provide a more intuitive user experience:
   <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**↑**</kbd>,
   <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↑**</kbd>,
