@@ -968,3 +968,63 @@ export function observeVisibilityChangeOnce(elementToBeObserved, callback) {
 
   visibilityObserver.observe(elementToBeObserved);
 }
+
+/**
+ * Add a `contenteditable` attribute, select the contents and optionally add the `invisibleSelection`
+ * class to the provided element.
+ *
+ * @param {HTMLElement} element Element to be processed.
+ * @param {boolean} [invisibleSelection=true] `true` if the class should be added to the element.
+ */
+export function makeElementContentEditableAndSelectItsContent(element, invisibleSelection = true) {
+  const ownerDocument = element.ownerDocument;
+  const range = ownerDocument.createRange();
+  const sel = ownerDocument.defaultView.getSelection();
+
+  element.setAttribute('contenteditable', true);
+
+  if (invisibleSelection) {
+    addClass(element, 'invisibleSelection');
+  }
+
+  range.selectNodeContents(element);
+
+  sel.removeAllRanges();
+
+  sel.addRange(range);
+}
+
+/**
+ * Remove the `contenteditable` attribute, deselect the contents and optionally remove the `invisibleSelection`
+ * class from the provided element.
+ *
+ * @param {HTMLElement} selectedElement The element to be deselected.
+ * @param {boolean} [removeInvisibleSelectionClass=true] `true` if the class should be removed from the element.
+ */
+export function removeContentEditableFromElementAndDeselect(selectedElement, removeInvisibleSelectionClass = true) {
+  const sel = selectedElement.ownerDocument.defaultView.getSelection();
+
+  sel.removeAllRanges();
+
+  if (removeInvisibleSelectionClass) {
+    removeClass(selectedElement, 'invisibleSelection');
+  }
+
+  selectedElement.removeAttribute('contenteditable');
+}
+
+/**
+ * Run the provided callback while the provided element is selected and modified to have the `contenteditable`
+ * attribute added. Optionally, the selection can be configured to be invisible.
+ *
+ * @param {HTMLElement} element Element to be selected.
+ * @param {Function} callback Callback to be called.
+ * @param {boolean} [invisibleSelection=true] `true` if the selection should be invisible.
+ */
+export function runWithSelectedContendEditableElement(element, callback, invisibleSelection = true) {
+  makeElementContentEditableAndSelectItsContent(element, invisibleSelection);
+
+  callback();
+
+  removeContentEditableFromElementAndDeselect(element, invisibleSelection);
+}

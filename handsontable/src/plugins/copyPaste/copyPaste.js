@@ -3,6 +3,12 @@ import Hooks from '../../pluginHooks';
 import { stringify, parse } from '../../3rdparty/SheetClip';
 import { arrayEach } from '../../helpers/array';
 import { sanitize } from '../../helpers/string';
+import {
+  removeContentEditableFromElementAndDeselect,
+  runWithSelectedContendEditableElement,
+  makeElementContentEditableAndSelectItsContent
+} from '../../helpers/dom/element';
+import { isSafari } from '../../helpers/browser';
 import copyItem from './contextMenuItem/copy';
 import copyColumnHeadersOnlyItem from './contextMenuItem/copyColumnHeadersOnly';
 import copyWithColumnGroupHeadersItem from './contextMenuItem/copyWithColumnGroupHeaders';
@@ -223,6 +229,16 @@ export class CopyPaste extends BasePlugin {
     this.eventManager.addEventListener(this.hot.rootDocument, 'cut', (...args) => this.onCut(...args));
     this.eventManager.addEventListener(this.hot.rootDocument, 'paste', (...args) => this.onPaste(...args));
 
+    // Without this workaround Safari (tested on Safari@16.5.2) does allow copying/cutting from the browser menu.
+    if (isSafari()) {
+      this.eventManager.addEventListener(
+        this.hot.rootDocument.body, 'mouseenter', (...args) => this.onSafariMouseEnter(...args)
+      );
+      this.eventManager.addEventListener(
+        this.hot.rootDocument.body, 'mouseleave', (...args) => this.onSafariMouseLeave(...args)
+      );
+    }
+
     super.enablePlugin();
   }
 
@@ -265,7 +281,8 @@ export class CopyPaste extends BasePlugin {
   copy(copyMode = 'cells-only') {
     this.#copyMode = copyMode;
     this.#isTriggeredByCopy = true;
-    this.hot.rootDocument.execCommand('copy');
+
+    this.#ensureClipboardEventsGetTriggered('copy');
   }
 
   /**
@@ -298,7 +315,8 @@ export class CopyPaste extends BasePlugin {
    */
   cut() {
     this.#isTriggeredByCut = true;
-    this.hot.rootDocument.execCommand('cut');
+
+    this.#ensureClipboardEventsGetTriggered('cut');
   }
 
   /**
@@ -428,6 +446,27 @@ export class CopyPaste extends BasePlugin {
    */
   isEditorOpened() {
     return this.hot.getActiveEditor()?.isOpened();
+  }
+
+  /**
+   * Ensure that the `copy`/`cut` events get triggered properly in Safari.
+   *
+   * @param {string} eventName Name of the event to get triggered.
+   */
+  #ensureClipboardEventsGetTriggered(eventName) {
+    // Without this workaround Safari (tested on Safari@16.5.2) does not trigger the 'copy' event.
+    if (isSafari()) {
+      const lastSelectedRange = this.hot.getSelectedRangeLast();
+      const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
+      const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
+
+      runWithSelectedContendEditableElement(currentlySelectedCell, () => {
+        this.hot.rootDocument.execCommand(eventName);
+      });
+
+    } else {
+      this.hot.rootDocument.execCommand(eventName);
+    }
   }
 
   /**
@@ -704,6 +743,40 @@ export class CopyPaste extends BasePlugin {
     }
 
     this.setCopyableText();
+  }
+
+  /**
+   * `document.body` `mouseenter` callback used to work around a Safari's problem with copying/cutting from the
+   * browser's menu.
+   */
+  onSafariMouseEnter() {
+    // If the instance is not listening, the workaround is not needed.
+    if (this.hot.isListening()) {
+      const lastSelectedRange = this.hot.getSelectedRangeLast();
+
+      if (lastSelectedRange) {
+        const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
+        const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
+
+        removeContentEditableFromElementAndDeselect(currentlySelectedCell);
+      }
+    }
+  }
+
+  /**
+   * `document.body` `mouseleave` callback used to work around a Safari's problem with copying/cutting from the
+   * browser's menu.
+   */
+  onSafariMouseLeave() {
+    if (this.hot.isListening()) {
+      const lastSelectedRange = this.hot.getSelectedRangeLast();
+      const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
+      const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
+
+      if (lastSelectedRange) {
+        makeElementContentEditableAndSelectItsContent(currentlySelectedCell);
+      }
+    }
   }
 
   /**
