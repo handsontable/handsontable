@@ -23,13 +23,17 @@ Render hundreds of columns without freezing the browser, using column virtualiza
 
 ## Overview
 
-To process a large number of columns in a browser Handsontable utilizes the virtualization process to display only the visible part of the grid with a small offset for a better scrolling experience. This feature is turned on by default and can be turned off only for rows, not columns.
+To process a large number of columns in a browser Handsontable utilizes the virtualization process to display only the visible part of the grid with a small
+offset for a better scrolling experience. This feature is turned on by default and can be turned off only for rows, not columns.
 
 ## Configure the column virtualization
 
-You can experiment with the [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset) config option, which determines the number of columns being displayed outside the visible viewport. If the number passed to that option is greater than the total columns in your data set, the virtualization will be practically turned off.
+You can experiment with the [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset) config option, which determines the number of
+columns being displayed outside the visible viewport. If the number passed to that option is greater than the total columns in your data set, the virtualization
+will be practically turned off.
 
-To make the grid scrollable, set the constant width and height to same as the container holding Handsontable and height and set the `overflow` property to `hidden` in the container's stylesheet. If the table contains enough rows or columns, it will be scrollable.
+To make the grid scrollable, set the constant width and height to same as the container holding Handsontable and height and set the `overflow` property to
+`hidden` in the container's stylesheet. If the table contains enough rows or columns, it will be scrollable.
 
 The scrolling performance depends mainly on four factors:
 
@@ -51,9 +55,10 @@ import 'handsontable/dist/handsontable.full.min.css';
 // generate an array of arrays with dummy data
 const data = new Array(1000) // number of rows
   .fill()
-  .map((_, row) => new Array(1000) // number of columns
-    .fill()
-    .map((_, column) => `${row}, ${column}`)
+  .map((_, row) =>
+    new Array(1000) // number of columns
+      .fill()
+      .map((_, column) => `${row}, ${column}`)
   );
 
 const container = document.querySelector('#example1');
@@ -64,7 +69,7 @@ const hot = new Handsontable(container, {
   height: 320,
   rowHeaders: true,
   colHeaders: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
 ```
 
@@ -87,23 +92,14 @@ registerAllModules();
 // generate an array of arrays with dummy data
 const data = new Array(1000) // number of rows
   .fill()
-  .map((_, row) => new Array(1000) // number of columns
-    .fill()
-    .map((_, column) => `${row}, ${column}`)
+  .map((_, row) =>
+    new Array(1000) // number of columns
+      .fill()
+      .map((_, column) => `${row}, ${column}`)
   );
 
 export const ExampleComponent = () => {
-  return (
-    <HotTable
-      data={data}
-      colWidths={100}
-      width="100%"
-      height={320}
-      rowHeaders={true}
-      colHeaders={true}
-      licenseKey="non-commercial-and-evaluation"
-    />
-  );
+  return <HotTable data={data} colWidths={100} width="100%" height={320} rowHeaders={true} colHeaders={true} licenseKey="non-commercial-and-evaluation" />;
 };
 
 /* start:skip-in-preview */
@@ -115,6 +111,14 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 :::
 
+## Known limitations
+
+Using column virtualization has the following side effects:
+
+- The browser's native search will work only for the visible part of the grid.
+- Screen readers may announce the wrong total number of columns. Read more in the
+  [Accessibility](@/guides/accessibility/accessibility.md#configure-row-and-column-virtualization) guide.
+
 ## Related articles
 
 ### Related guides
@@ -123,5 +127,6 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 - [Performance](@/guides/optimization/performance.md)
 
 ### Related API reference
+
 - Configuration options:
   - [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
