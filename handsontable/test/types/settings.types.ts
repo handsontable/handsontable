@@ -566,6 +566,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   modifyColumnHeaderValue: (headerValue, visualColumnIndex, headerLevel) => {},
   modifyColWidth: (width) => {},
   modifyCopyableRange: (copyableRanges) => {},
+  modifyFocusedElement: (row, column, focusedElement) => document.createElement('TD'),
   modifyData: () => {},
   modifyFocusOnTabNavigation: (tabActivationDir, visualCoords) => {},
   modifyGetCellCoords: (row, column, topmost) => {},
