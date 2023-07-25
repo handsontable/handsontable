@@ -2,7 +2,7 @@
 id: o4qhm1bg
 title: Accessibility
 metaTitle: Accessibility - JavaScript Data Grid | Handsontable
-description: Learn about our approach to accessibility, and get an overview of Handsontable's accessibility features.
+description: Learn about Handsontable's accessibility features.
 permalink: /accessibility
 canonicalUrl: /accessibility
 tags:
@@ -26,7 +26,7 @@ searchCategory: Guides
 
 # Accessibility
 
-Learn about our approach to accessibility, and get an overview of Handsontable's accessibility features.
+Learn about Handsontable's accessibility features.
 
 [[toc]]
 
@@ -37,17 +37,16 @@ technologies like screen readers or keyboard navigation.
 
 Ensuring a high level of accessibility by default, Handsontable's built-in features include:
 
-- Intuitive [keyboard navigation](#keyboard-navigation) that lets you access any feature without using a mouse.
+- Intuitive [keyboard navigation](@/guides/navigation/keyboard-navigation.md) that lets you access any feature without using a mouse.
 - Transparent HTML structure following best accessibility practices.
 - [ARIA attributes](#aria-attributes) that complement HTML where needed.
 - Support for the most popular [screen readers](#supported-screen-readers).
-- Compliance with the most important [accessibility standards](#accessibility).
+- Compliance with the most important accessibility [standards and regulations](#accessibility-compliance).
+- A set of configurable [accessibility options](#accessibility-configuration).
 
-Navigation modes (about our general approach towards different a11y settings within Handsontable)
-
-- Our approach - different behavior depending on the context and business case (spreadsheet vs data grid)
-- Handsontable requires to be adjusted (configure or customized) for each particular use case, as we don't assume anything upfront (how he grid will be used
-  etc.), and there are not standards for spreadsheets; even for complex data grid the standards are incomplete.
+That said, there's no universal accessibility standard for spreadsheets, and such standards for data grids are incomplete. Also, the number of Handsontable's
+use case scenarios is huge and each implementation is different. That's why we don't make any assumptions about how you'll use Handsontable. Instead, we give
+you a set of [options](#accessibility-configuration) that you can configure to better match your users' accessibility needs.
 
 ### Accessibility demo
 
@@ -56,7 +55,7 @@ Navigation modes (about our general approach towards different a11y settings wit
 ::: example #exampleA11y --html 1 --js 2
 
 ```html
-<input type="checkbox" id="enable_tab_navigation">Enable the tab key navigation</input>
+<input type="checkbox" id="enable_tab_navigation">Enable the Tab key navigation</input>
 <input type="checkbox" id="enable_headers_navigation">Enable navigation in headers</input>
 <br />
 <br />
@@ -346,7 +345,7 @@ Handsontable complies with the following accessibility standards and regulations
 
 Before releasing a new version of Handsontable, we carefully test it for accessibility, using a combination of different approaches:
 
-- We cover the most common use cases with automated tests.
+- We cover the most common use cases with automated unit and end-to-end tests.
 - We manually test all of Handsontable's features with the most popular screen readers.
 - We use automated visual regression testing.
 - We check Handsontable's accessibility score with a range of the most popular accessibility testing tools, such as Lighthouse, Axe-core, or Accessibility
@@ -354,12 +353,13 @@ Before releasing a new version of Handsontable, we carefully test it for accessi
 
 ### Keyboard navigation
 
-You can navigate Handsontable with the keyboard alone, easily change navigation options, use more advanced shortcuts, or add shortcuts of your own. Learn more:
+Out of the box, you can easily use all of Handsontable's features with just your keyboard. You can also configure specific aspects of keyboard navigation, and
+add custom shortcuts. Learn more in the following sections:
 
-- [Use keyboard navigation](@/guides/navigation/keyboard-navigation.md)
+- [Keyboard navigation](@/guides/navigation/keyboard-navigation.md)
 - [Configure keyboard navigation options](@/guides/navigation/keyboard-navigation.md#configure-keyboard-navigation-options)
-- [Use default keyboard shortcuts](@/guides/navigation/keyboard-shortcuts.md#default-keyboard-shortcuts)
-- [Add custom keyboard shortcuts](@/guides/navigation/custom-shortcuts.md)
+- [Default keyboard shortcuts](@/guides/navigation/keyboard-shortcuts.md#default-keyboard-shortcuts)
+- [Custom shortcuts](@/guides/navigation/custom-shortcuts.md)
 
 ### Supported screen readers
 
@@ -370,585 +370,46 @@ To meet the needs of visually impaired users, Handsontable supports two of the w
 
 ### ARIA attributes
 
-table
+TBD
 
-### Accessibility and customization
-
-Being a JavaScript component, Handsontable is infinitely customizable. You can completely change the look and feel of the grid, add custom cell types, or create your
-own plugins, features, and integrations. However, when you customize Handsontable, it's you who's responsible for ensuring the accessibility of your solution.
-
-Whatever your customization, we always recommend that you:
-
-- Follow best web accessibility practices,
-- Use proper color contrast, font size, and semantic HTML tags,
-- Implement ARIA attributes if needed,
-- Avoid flashing or blinking content,
-- Test your customizations with real users who have different types of disabilities.
+- WAI-ARIA attributes
+- Handsontable is based on the HTML table element so some of its structure is properly interpreted properly by screen readers and other assistive solutions.
+  Mention that we put WAI-ARIA whenever needed.
+- WAI-ARIA roles (the idea is to mention only ROLES, nothing else - this is also to show the complexity of the grid; and that the grid contains subcomponents
+  (like date picker) that require their own roles)
+  - Main component
+    - Tree grid (and why - VoiceOver + nested rows setting if passed as a function)
+  - Subcomponents
+    - Context menu
+    - Column menu and filters
+    - Built-in cell types:
+      - Text
+      - Numeric
+      - Date
+      - Time
+      - Checkbox
+      - Select
+      - Dropdown
+      - Autocomplete
+      - Password
+    - Custom cell types
+      - A developer creating custom cell types is responsible for the accessibility, mainly using native (generic and proper) HTML elements to render the
+        contents; testing it and enriching with WAI-ARIA attributes whenever required.
+    - Search field
+      - https://handsontable.com/docs/react-data-grid/searching-values/
+- Dynamic ARIA tags
+  - ARIA are dynamic in some cases: e.g. sorting data, read-only cells, loading data (busy-state), etc.
 
 ## Accessibility configuration
 
-Configure your grid for better compatibility with screen readers, and adjust other accessibility options.
+You can easily configure Handsontable's accessibility features to better match your users' needs. For example, you can change Handsontable's
+[keyboard navigation](#configure-the-keyboard-navigation) behavior, disable [virtual rendering](#disable-virtual-rendering), configure
+[IME fast-editing](#ime-fast-editing), and [style your grid](#create-a-high-contrast-theme) for the required color contrast, font size or other accessibility
+requirements.
 
-### Enable the tab key navigation
-
-By default, you can use <kbd>**Tab**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> to navigate between cells. To turn off this behavior, set
-[`disableTabNavigation`](@/api/options.md#disabletabnavigation) to `true`.
-
-::: only-for javascript
-
-::: example #exampleEnableTabNavigation --html 1 --js 2
-
-```html
-<input type="checkbox" id="enable_tab_navigation">Enable the tab key navigation</input>
-<br />
-<br />
-<div id="exampleEnableTabNavigation"></div>
-```
-
-```js
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
-
-const container = document.querySelector('#exampleEnableTabNavigation');
-const checkboxEnableTabNavigation = document.querySelector('#enable_tab_navigation');
-const handsontableInstance = new Handsontable(container, {
-  data: [
-    {
-      brand: 'Jetpulse',
-      model: 'Racing Socks',
-      price: 30,
-      sellDate: 'Oct 11, 2023',
-      sellTime: '01:23 AM',
-      inStock: false,
-    },
-    {
-      brand: 'Gigabox',
-      model: 'HL Mountain Frame',
-      price: 1890.9,
-      sellDate: 'May 3, 2023',
-      sellTime: '11:27 AM',
-      inStock: false,
-    },
-    {
-      brand: 'Camido',
-      model: 'Cycling Cap',
-      price: 130.1,
-      sellDate: 'Mar 27, 2023',
-      sellTime: '03:17 AM',
-      inStock: true,
-    },
-    {
-      brand: 'Chatterpoint',
-      model: 'Road Tire Tube',
-      price: 59,
-      sellDate: 'Aug 28, 2023',
-      sellTime: '08:01 AM',
-      inStock: true,
-    },
-    {
-      brand: 'Eidel',
-      model: 'HL Road Tire',
-      price: 279.99,
-      sellDate: 'Oct 2, 2023',
-      sellTime: '13:23 AM',
-      inStock: true,
-    },
-  ],
-  columns: [
-    {
-      title: 'Brand',
-      type: 'text',
-      data: 'brand',
-    },
-    {
-      title: 'Model',
-      type: 'text',
-      data: 'model',
-    },
-    {
-      title: 'Price',
-      type: 'numeric',
-      data: 'price',
-      numericFormat: {
-        pattern: '$ 0,0.00',
-        culture: 'en-US',
-      },
-    },
-    {
-      title: 'Date',
-      type: 'date',
-      data: 'sellDate',
-      dateFormat: 'MMM D, YYYY',
-      correctFormat: true,
-      className: 'htRight',
-    },
-    {
-      title: 'Time',
-      type: 'time',
-      data: 'sellTime',
-      timeFormat: 'hh:mm A',
-      correctFormat: true,
-      className: 'htRight',
-    },
-    {
-      title: 'In stock',
-      type: 'checkbox',
-      data: 'inStock',
-      className: 'htCenter',
-    },
-  ],
-  height: 168,
-  disableTabNavigation: true,
-  licenseKey: 'non-commercial-and-evaluation',
-});
-
-checkboxEnableTabNavigation.addEventListener('change', () => {
-  if (this.checked) {
-    handsontableInstance.updateSettings({
-      disableTabNavigation: false,
-    });
-  } else {
-    handsontableInstance.updateSettings({
-      disableTabNavigation: true,
-    });
-  }
-});
-```
-
-:::
-
-:::
-
-::: only-for react
-
-::: example #exampleEnableTabNavigation :react
-
-```jsx
-import { useRef } from 'react';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
-
-export const App = () => {
-  const hotTableComponentRef = useRef(null);
-  const enableTabNavigation = () => {
-    const handsontableInstance = hotTableComponentRef.current.hotInstance;
-
-    handsontableInstance.updateSettings({
-      disableTabNavigation: false,
-    });
-  };
-
-  const disableTabNavigation = () => {
-    const handsontableInstance = hotTableComponentRef.current.hotInstance;
-
-    handsontableInstance.updateSettings({
-      disableTabNavigation: true,
-    });
-  };
-
-  return (
-    <>
-      <HotTable
-        ref={hotTableComponentRef}
-        data={[
-          {
-            brand: 'Jetpulse',
-            model: 'Racing Socks',
-            price: 30,
-            sellDate: 'Oct 11, 2023',
-            sellTime: '01:23 AM',
-            inStock: false,
-          },
-          {
-            brand: 'Gigabox',
-            model: 'HL Mountain Frame',
-            price: 1890.9,
-            sellDate: 'May 3, 2023',
-            sellTime: '11:27 AM',
-            inStock: false,
-          },
-          {
-            brand: 'Camido',
-            model: 'Cycling Cap',
-            price: 130.1,
-            sellDate: 'Mar 27, 2023',
-            sellTime: '03:17 AM',
-            inStock: true,
-          },
-          {
-            brand: 'Chatterpoint',
-            model: 'Road Tire Tube',
-            price: 59,
-            sellDate: 'Aug 28, 2023',
-            sellTime: '08:01 AM',
-            inStock: true,
-          },
-          {
-            brand: 'Eidel',
-            model: 'HL Road Tire',
-            price: 279.99,
-            sellDate: 'Oct 2, 2023',
-            sellTime: '13:23 AM',
-            inStock: true,
-          },
-        ]}
-        columns={[
-          {
-            title: 'Brand',
-            type: 'text',
-            data: 'brand',
-          },
-          {
-            title: 'Model',
-            type: 'text',
-            data: 'model',
-          },
-          {
-            title: 'Price',
-            type: 'numeric',
-            data: 'price',
-            numericFormat: {
-              pattern: '$ 0,0.00',
-              culture: 'en-US',
-            },
-          },
-          {
-            title: 'Date',
-            type: 'date',
-            data: 'sellDate',
-            dateFormat: 'MMM D, YYYY',
-            correctFormat: true,
-            className: 'htRight',
-          },
-          {
-            title: 'Time',
-            type: 'time',
-            data: 'sellTime',
-            timeFormat: 'hh:mm A',
-            correctFormat: true,
-            className: 'htRight',
-          },
-          {
-            title: 'In stock',
-            type: 'checkbox',
-            data: 'inStock',
-            className: 'htCenter',
-          },
-        ]}
-        height={168}
-        licenseKey="non-commercial-and-evaluation"
-      />
-      <div className="controls">
-        <button onClick={enableTabNavigation}>Enable the tab key navigation</button>
-        <br />
-        <br />
-        <button onClick={disableTabNavigation}>Disable tab key navigation</button>
-      </div>
-    </>
-  );
-};
-
-/* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('exampleEnableTabNavigation'));
-/* end:skip-in-preview */
-```
-
-:::
-
-:::
-
-### Enable navigation in headers
-
-By default, you can't navigate [column headers](@/guides/columns/column-header.md) or [row headers](@/guides/rows/row-header.md). To change it, set
-[`navigableHeaders`](@/api/options.md#navigableheaders) to `true`.
-
-::: only-for javascript
-
-::: example #exampleEnableHeadersNavigation --html 1 --js 2
-
-```html
-<input type="checkbox" id="enable_headers_navigation">Enable navigation in headers</input>
-<br />
-<br />
-<div id="exampleEnableHeadersNavigation"></div>
-```
-
-```js
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
-
-const container = document.querySelector('#exampleEnableHeadersNavigation');
-const checkboxEnableHeadersNavigation = document.querySelector('#enable_headers_navigation');
-const handsontableInstance = new Handsontable(container, {
-  data: [
-    {
-      brand: 'Jetpulse',
-      model: 'Racing Socks',
-      price: 30,
-      sellDate: 'Oct 11, 2023',
-      sellTime: '01:23 AM',
-      inStock: false,
-    },
-    {
-      brand: 'Gigabox',
-      model: 'HL Mountain Frame',
-      price: 1890.9,
-      sellDate: 'May 3, 2023',
-      sellTime: '11:27 AM',
-      inStock: false,
-    },
-    {
-      brand: 'Camido',
-      model: 'Cycling Cap',
-      price: 130.1,
-      sellDate: 'Mar 27, 2023',
-      sellTime: '03:17 AM',
-      inStock: true,
-    },
-    {
-      brand: 'Chatterpoint',
-      model: 'Road Tire Tube',
-      price: 59,
-      sellDate: 'Aug 28, 2023',
-      sellTime: '08:01 AM',
-      inStock: true,
-    },
-    {
-      brand: 'Eidel',
-      model: 'HL Road Tire',
-      price: 279.99,
-      sellDate: 'Oct 2, 2023',
-      sellTime: '13:23 AM',
-      inStock: true,
-    },
-  ],
-  columns: [
-    {
-      title: 'Brand',
-      type: 'text',
-      data: 'brand',
-    },
-    {
-      title: 'Model',
-      type: 'text',
-      data: 'model',
-    },
-    {
-      title: 'Price',
-      type: 'numeric',
-      data: 'price',
-      numericFormat: {
-        pattern: '$ 0,0.00',
-        culture: 'en-US',
-      },
-    },
-    {
-      title: 'Date',
-      type: 'date',
-      data: 'sellDate',
-      dateFormat: 'MMM D, YYYY',
-      correctFormat: true,
-      className: 'htRight',
-    },
-    {
-      title: 'Time',
-      type: 'time',
-      data: 'sellTime',
-      timeFormat: 'hh:mm A',
-      correctFormat: true,
-      className: 'htRight',
-    },
-    {
-      title: 'In stock',
-      type: 'checkbox',
-      data: 'inStock',
-      className: 'htCenter',
-    },
-  ],
-  height: 168,
-  rowHeaders: true,
-  navigableHeaders: true,
-  licenseKey: 'non-commercial-and-evaluation',
-});
-
-checkboxEnableHeadersNavigation.addEventListener('change', () => {
-  if (this.checked) {
-    handsontableInstance.updateSettings({
-      navigableHeaders: true,
-    });
-  } else {
-    handsontableInstance.updateSettings({
-      navigableHeaders: false,
-    });
-  }
-});
-```
-
-:::
-
-:::
-
-::: only-for react
-
-::: example #exampleEnableHeadersNavigation :react
-
-```jsx
-import { useRef } from 'react';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
-
-export const App = () => {
-  const hotTableComponentRef = useRef(null);
-  const enableTabNavigation = () => {
-    const handsontableInstance = hotTableComponentRef.current.hotInstance;
-
-    handsontableInstance.updateSettings({
-      disableTabNavigation: false,
-    });
-  };
-
-  const disableTabNavigation = () => {
-    const handsontableInstance = hotTableComponentRef.current.hotInstance;
-
-    handsontableInstance.updateSettings({
-      disableTabNavigation: true,
-    });
-  };
-
-  return (
-    <>
-      <HotTable
-        ref={hotTableComponentRef}
-        data={[
-          {
-            brand: 'Jetpulse',
-            model: 'Racing Socks',
-            price: 30,
-            sellDate: 'Oct 11, 2023',
-            sellTime: '01:23 AM',
-            inStock: false,
-          },
-          {
-            brand: 'Gigabox',
-            model: 'HL Mountain Frame',
-            price: 1890.9,
-            sellDate: 'May 3, 2023',
-            sellTime: '11:27 AM',
-            inStock: false,
-          },
-          {
-            brand: 'Camido',
-            model: 'Cycling Cap',
-            price: 130.1,
-            sellDate: 'Mar 27, 2023',
-            sellTime: '03:17 AM',
-            inStock: true,
-          },
-          {
-            brand: 'Chatterpoint',
-            model: 'Road Tire Tube',
-            price: 59,
-            sellDate: 'Aug 28, 2023',
-            sellTime: '08:01 AM',
-            inStock: true,
-          },
-          {
-            brand: 'Eidel',
-            model: 'HL Road Tire',
-            price: 279.99,
-            sellDate: 'Oct 2, 2023',
-            sellTime: '13:23 AM',
-            inStock: true,
-          },
-        ]}
-        columns={[
-          {
-            title: 'Brand',
-            type: 'text',
-            data: 'brand',
-          },
-          {
-            title: 'Model',
-            type: 'text',
-            data: 'model',
-          },
-          {
-            title: 'Price',
-            type: 'numeric',
-            data: 'price',
-            numericFormat: {
-              pattern: '$ 0,0.00',
-              culture: 'en-US',
-            },
-          },
-          {
-            title: 'Date',
-            type: 'date',
-            data: 'sellDate',
-            dateFormat: 'MMM D, YYYY',
-            correctFormat: true,
-            className: 'htRight',
-          },
-          {
-            title: 'Time',
-            type: 'time',
-            data: 'sellTime',
-            timeFormat: 'hh:mm A',
-            correctFormat: true,
-            className: 'htRight',
-          },
-          {
-            title: 'In stock',
-            type: 'checkbox',
-            data: 'inStock',
-            className: 'htCenter',
-          },
-        ]}
-        height={168}
-        rowHeaders={true}
-        licenseKey="non-commercial-and-evaluation"
-      />
-      <div className="controls">
-        <button onClick={enableTabNavigation}>Enable the tab key navigation</button>
-        <br />
-        <br />
-        <button onClick={disableTabNavigation}>Disable tab key navigation</button>
-      </div>
-    </>
-  );
-};
-
-/* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('exampleEnableHeadersNavigation'));
-/* end:skip-in-preview */
-```
-
-:::
-
-:::
-
-### Disable virtual rendering
-
-TBD
-
-### IME fast editing
-
-TBD
-
-- Demo that showcases the `imeFastEdit` option (TBD) [#10342](https://github.com/handsontable/handsontable/pull/10342)
-- IME fast edit works only with JAWS
+On top of that, you can always [customize Handsontable](#accessibility-and-customization) to meet the specific accessibility needs of your user base.
 
 ### Set the grid's height explicitly
-
-TBD
 
 ::: only-for javascript
 
@@ -978,7 +439,35 @@ For a better keyboard navigation experience, we recommend setting the [grid's he
 
 :::
 
-### Styling for accessibility
+### Configure the keyboard navigation
+
+You can easily configure various aspects of Handsontable's keyboard navigation. For details, see the following sections:
+
+- [Navigate Handsontable like a spreadsheet or like a data grid](@/guides/navigation/keyboard-navigation.md#navigation-modes),
+- [Enable navigation in headers](@/guides/navigation/keyboard-navigation.md#enable-navigation-in-headers),
+- [Change the Tab key behavior](@/guides/navigation/keyboard-navigation.md#change-the-tab-key-behavior),
+- [Change the Enter key behavior](@/guides/navigation/keyboard-navigation.md#change-the-enter-key-behavior),
+- [Enable jumping over the edges of the grid](@/guides/navigation/keyboard-navigation.md#enable-jumping-over-the-edges),
+- [Add custom shortcuts](@/guides/navigation/custom-shortcuts.md).
+
+### Disable virtual rendering
+
+TBD
+
+- for rows: renderAllRows: true or with https://handsontable.com/docs/react-data-grid/api/options/#viewportrowrenderingoffset
+- for columns: set offset (https://handsontable.com/docs/react-data-grid/api/options/#viewportcolumnrenderingoffset)
+- Ask Adrian / Jan to help you create a setting that fetches the numer of rows and columns initially loaded to the grid and renders them all.
+- Warn users that this has its negative consequences (performance)
+- Explain users why it's sometimes useful to do that (number of rows and cols properly announced but also working native browser search feature CTRL/CMD+F)
+
+### IME fast editing
+
+TBD
+
+- Demo that showcases the `imeFastEdit` option [#10342](https://github.com/handsontable/handsontable/pull/10342)
+- IME fast edit works only with JAWS
+
+### Create a high-contrast theme
 
 At the moment, Handsontable doesn't feature a high-contrast theme out of the box. However, you can easily create your own theme by overriding the default
 Handsontable styles.
@@ -990,11 +479,59 @@ Whatever your styling choices are, we recommend that you:
 - Avoid flashing or blinking content,
 - Test your customizations with real users who have different types of disabilities.
 
+- Color and contrast
+- The default theme is required to be overrriden, e.g. to achieve high-contrast theme, or any other that is anticipated by users.
+- We don't assume any particular sight disabilities, and we recommend using dedicated tools like Colorblindly.
+- As a developer you can make ensure about background/foreground contrast of rendered elements e.g. with Chrome DevTools or plugins such as
+  [Kontrast](https://chrome.google.com/webstore/detail/kontrast-wcag-contrast-ch/haphaaenepedkjngghandlmhfillnhjk)
+
+### Accessibility and customization
+
+Being a JavaScript component, Handsontable is infinitely customizable. You can completely change the look and feel of the grid, add
+[custom cell types](@/guides/cell-types/cell-type.md), or create your own plugins, features, and integrations. However, when you customize Handsontable, it's
+you who's responsible for ensuring the accessibility of your solution.
+
+Whatever your customization, we always recommend that you:
+
+- Follow [best web accessibility practices](https://developer.mozilla.org/en-US/docs/Learn/Accessibility/CSS_and_JavaScript),
+- Use proper color contrast, font size, and semantic HTML tags,
+- Implement ARIA attributes if needed,
+- Avoid flashing or blinking content,
+- Test your customizations with real users who have different types of disabilities.
+
+The accessibility level of any component in your application may be decreased by a low accessibility level of its parent elements. For this reason, make sure to
+always check the accessibility of the entire page, using tools such as [Lighthouse](https://github.com/GoogleChrome/lighthouse).
+
 ## Known limitations
 
-At the moment, Handsontable's accessibility features come with the following limitations:
+As of July 2023, Handsontable's accessibility features come with the following limitations:
 
-- There's no built-in high-contrast theme. To create it, you need to
-  [override Handsontable's CSS](@/guides/accessibility/accessibility.md#styling-for-accessibility).
-- We don't test Handsontable against all available screen readers, such as VoiceOver or TalkBack. We focus on the most popular ones: JAWS and NVDA.
+- We're still working on a built-in high-contrast theme. For now, you can create your own theme by
+  [overriding Handsontable's CSS](@/guides/accessibility/accessibility.md#create-a-high-contrast-theme).
+- We don't test Handsontable against all available screen readers, such as VoiceOver (macOS) or TalkBack (Android). We focus on the most popular ones: JAWS and
+  NVDA.
 - NVDA and VoiceOver don't support [IME fast editing](@/guides/accessibility/accessibility.md#ime-fast-editing).
+- VoiceOver may announce wrong numbers of rows and columns in the grid.
+
+## API reference
+
+For the list of [options](@/guides/getting-started/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks.md)
+related to accessibility, see the following API reference pages:
+
+- [`autoWrapCol`](@/api/options.md#autowrapcol)
+- [`autoWrapRow`](@/api/options.md#autowraprow)
+- [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
+- [`enterMoves`](@/api/options.md#entermoves)
+- [`disableTabNavigation`](@/api/options.md#disabletabnavigation)
+- [`navigableHeaders`](@/api/options.md#navigableheaders)
+- [`tabMoves`](@/api/options.md#tabmoves)
+
+## Troubleshooting
+
+Didn't find what you need? Try this:
+
+- [View related topics](https://github.com/handsontable/handsontable/labels/Accessibility) on GitHub
+- [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
+- [Ask a question](https://stackoverflow.com/questions/tagged/handsontable) on Stack Overflow
+- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
+- [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
