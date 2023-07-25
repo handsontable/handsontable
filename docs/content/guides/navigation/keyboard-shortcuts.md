@@ -2,7 +2,7 @@
 id: 5w6juytv
 title: Keyboard shortcuts
 metaTitle: Keyboard shortcuts - JavaScript Data Grid | Handsontable
-description: Access all Handsontable features using just your keyboard. Use shortcuts similar to Google Sheets or Microsoft Excel.
+description: Access all Handsontable features using just your keyboard. Use shortcuts you know from Google Sheets or Microsoft Excel.
 permalink: /keyboard-shortcuts
 canonicalUrl: /keyboard-shortcuts
 tags:
@@ -22,7 +22,7 @@ searchCategory: Guides
 
 # Keyboard shortcuts
 
-Access all Handsontable features using just your keyboard. Use shortcuts similar to Google Sheets or Microsoft Excel.
+Access all Handsontable features using just your keyboard. Use shortcuts you know from Google Sheets or Microsoft Excel.
 
 [[toc]]
 
@@ -263,7 +263,10 @@ These keyboard shortcuts work with [comments](@/guides/cell-features/comments.md
 
 :::
 
-## Related API reference
+## API reference
+
+For the list of [options](@/guides/getting-started/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks.md)
+related to keyboard navigation, see the following API reference pages:
 
 - APIs:
   - [`ShortcutContext`](@/api/shortcutContext.md)
@@ -280,3 +283,13 @@ These keyboard shortcuts work with [comments](@/guides/cell-features/comments.md
 - Hooks:
   - [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown)
   - [`beforeKeyDown`](@/api/hooks.md#beforekeydown)
+
+## Troubleshooting
+
+Didn't find what you need? Try this:
+
+- [View related topics](https://github.com/handsontable/handsontable/issues) on GitHub
+- [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
+- [Ask a question](https://stackoverflow.com/questions/tagged/handsontable) on Stack Overflow
+- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
+- [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
