@@ -291,6 +291,9 @@ export class Overlay {
     }
 
     clonedTable.className = wtTable.TABLE.className;
+
+    clonedTable.setAttribute('role', wtTable.TABLE.getAttribute('role'));
+
     clone.appendChild(clonedTable);
 
     tableParent.appendChild(clone);
