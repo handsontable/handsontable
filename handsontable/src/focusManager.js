@@ -130,16 +130,22 @@ export class FocusManager {
    * @param {HTMLTableCellElement} [selectedCell] The highlighted cell/header element.
    */
   focusOnHighlightedCell(selectedCell) {
-    if (!selectedCell) {
-      selectedCell = this.#getSelectedCell();
+    const currentHighlightCoords = this.#getCurrentHighlightCoords();
+    const currentlySelectedHighlight = selectedCell || this.#getSelectedCell();
+
+    let elementToBeFocused = this.#hot.runHooks(
+      'modifyFocusedElement', currentHighlightCoords.row, currentHighlightCoords.col, currentlySelectedHighlight
+    );
+
+    if (!(elementToBeFocused instanceof HTMLElement)) {
+      elementToBeFocused = currentlySelectedHighlight;
     }
 
     if (
-      selectedCell &&
+      elementToBeFocused &&
       !this.#hot.getActiveEditor()?.isOpened()
     ) {
-
-      selectedCell.focus({
+      elementToBeFocused.focus({
         preventScroll: true
       });
     }
@@ -166,14 +172,24 @@ export class FocusManager {
   }
 
   /**
+   * Get the coordinates of the highlight of the currently selected cell/header.
+   *
+   * @returns {CellCoords}
+   */
+  #getCurrentHighlightCoords() {
+    const lastSelectedRange = this.#hot.getSelectedRangeLast();
+
+    return lastSelectedRange.highlight;
+  }
+
+  /**
    * Get and return the currently selected and highlighted cell/header element.
    *
    * @private
    * @returns {HTMLTableCellElement}
    */
   #getSelectedCell() {
-    const lastSelectedRange = this.#hot.getSelectedRangeLast();
-    const selectedCellCoords = lastSelectedRange.highlight;
+    const selectedCellCoords = this.#getCurrentHighlightCoords();
 
     return this.#hot.getCell(selectedCellCoords.row, selectedCellCoords.col, true);
   }
