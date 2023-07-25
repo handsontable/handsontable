@@ -403,7 +403,7 @@ TBD
 ## Accessibility configuration
 
 You can easily configure Handsontable's accessibility features to better match your users' needs. For example, you can change Handsontable's
-[keyboard navigation](#configure-the-keyboard-navigation) behavior, disable [virtual rendering](#disable-virtual-rendering), configure
+[keyboard navigation](#configure-keyboard-navigation) behavior, disable [virtual rendering](#configure-row-and-column-virtualization), configure
 [IME fast-editing](#ime-fast-editing), and [style your grid](#create-a-high-contrast-theme) for the required color contrast, font size or other accessibility
 requirements.
 
@@ -439,7 +439,7 @@ For a better keyboard navigation experience, we recommend setting the [grid's he
 
 :::
 
-### Configure the keyboard navigation
+### Configure keyboard navigation
 
 You can easily configure various aspects of Handsontable's keyboard navigation. For details, see the following sections:
 
@@ -450,15 +450,66 @@ You can easily configure various aspects of Handsontable's keyboard navigation. 
 - [Enable jumping over the edges of the grid](@/guides/navigation/keyboard-navigation.md#enable-jumping-over-the-edges),
 - [Add custom shortcuts](@/guides/navigation/custom-shortcuts.md).
 
-### Disable virtual rendering
+### Configure row and column virtualization
 
-TBD
+By default, Handsontable renders only those parts of the grid that are currently visible. This feature, called
+[row virtualization](@/guides/rows/row-virtualization.md) and [column virtualization](@/guides/columns/column-virtualization.md), is great for
+[performance](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns), but may have a negative impact on accessibility.
 
-- for rows: renderAllRows: true or with https://handsontable.com/docs/react-data-grid/api/options/#viewportrowrenderingoffset
-- for columns: set offset (https://handsontable.com/docs/react-data-grid/api/options/#viewportcolumnrenderingoffset)
-- Ask Adrian / Jan to help you create a setting that fetches the numer of rows and columns initially loaded to the grid and renders them all.
-- Warn users that this has its negative consequences (performance)
-- Explain users why it's sometimes useful to do that (number of rows and cols properly announced but also working native browser search feature CTRL/CMD+F)
+For example, if only the visible rows are rendered, screen readers may announce the wrong total number of rows in the grid. To avoid this, you can configure
+Handsontable to render all rows at once, regardless of their number, however, remember that this may have a negative impact on performance, especially with very
+large data sets.
+
+To always render all rows, set the [`renderAllRows`](@/api/options.md#renderallrows) option to `true`:
+
+::: only-for javascript
+
+```js
+const configurationOptions = {
+  // disable row virtualization
+  renderAllRows: true,
+};
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  // disable row virtualization
+  renderAllRows={true}
+/>
+```
+
+:::
+
+To always render all columns, set the [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset) option to `0`:
+
+::: only-for javascript
+
+```js
+const configurationOptions = {
+  // disable column virtualization
+  viewportColumnRenderingOffset: 0,
+};
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  // disable column virtualization
+  viewportColumnRenderingOffset={0}
+/>
+```
+
+:::
+
+For more details, see the [Row virtualization](@/guides/rows/row-virtualization.md) and [Column virtualization](@/guides/columns/column-virtualization.md)
+guides.
 
 ### IME fast editing
 
@@ -469,21 +520,12 @@ TBD
 
 ### Create a high-contrast theme
 
-At the moment, Handsontable doesn't feature a high-contrast theme out of the box. However, you can easily create your own theme by overriding the default
-Handsontable styles.
+At the moment, Handsontable doesn't feature a high-contrast theme out of the box. However, you can easily create your own theme by overriding
+[Handsontable's default CSS](https://github.com/handsontable/handsontable/blob/master/handsontable/dist/handsontable.css).
 
-Whatever your styling choices are, we recommend that you:
-
-- Follow best web accessibility practices,
-- Use proper color contrast, font size, and semantic HTML tags,
-- Avoid flashing or blinking content,
-- Test your customizations with real users who have different types of disabilities.
-
-- Color and contrast
-- The default theme is required to be overrriden, e.g. to achieve high-contrast theme, or any other that is anticipated by users.
-- We don't assume any particular sight disabilities, and we recommend using dedicated tools like Colorblindly.
-- As a developer you can make ensure about background/foreground contrast of rendered elements e.g. with Chrome DevTools or plugins such as
-  [Kontrast](https://chrome.google.com/webstore/detail/kontrast-wcag-contrast-ch/haphaaenepedkjngghandlmhfillnhjk)
+To ensure sufficient color contrast, we recommend using Chrome DevTools and dedicated accessibility tools such as
+[Colorblindly](https://chrome.google.com/webstore/detail/colorblindly/floniaahmccleoclneebhhmnjgdfijgg) or
+[Kontrast](https://chrome.google.com/webstore/detail/kontrast-wcag-contrast-ch/haphaaenepedkjngghandlmhfillnhjk).
 
 ### Accessibility and customization
 
@@ -511,7 +553,7 @@ As of July 2023, Handsontable's accessibility features come with the following l
 - We don't test Handsontable against all available screen readers, such as VoiceOver (macOS) or TalkBack (Android). We focus on the most popular ones: JAWS and
   NVDA.
 - NVDA and VoiceOver don't support [IME fast editing](@/guides/accessibility/accessibility.md#ime-fast-editing).
-- VoiceOver may announce wrong numbers of rows and columns in the grid.
+- VoiceOver may announce the wrong number of rows and columns in the grid.
 
 ## API reference
 
@@ -524,7 +566,10 @@ related to accessibility, see the following API reference pages:
 - [`enterMoves`](@/api/options.md#entermoves)
 - [`disableTabNavigation`](@/api/options.md#disabletabnavigation)
 - [`navigableHeaders`](@/api/options.md#navigableheaders)
+- [`renderAllRows`](@/api/options.md#renderallrows)
 - [`tabMoves`](@/api/options.md#tabmoves)
+- [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
+- [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
 
 ## Troubleshooting
 
