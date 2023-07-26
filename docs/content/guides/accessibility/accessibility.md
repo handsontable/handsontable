@@ -517,9 +517,9 @@ To start editing a focused cell, you can simply start typing – we call this fe
 
 This configuration ensures better accessibility by default, as screen readers may have problems with reading the contents of the edited cell when you're using an IME.
 
-You can enable fast editing for IMEs by setting [`imeFastEdit`](@/api/options.md#imefastedit) to `true`. However, remember that this may have a negative impact on accessibility.
+To enable fast editing for IMEs, set [`imeFastEdit`](@/api/options.md#imefastedit) to `true`. However, remember that this may have a negative impact on accessibility.
 
-To see the difference, make sure that your keyboard is set to a language that uses an IME (e.g. Japanese), and then edit a cell in the demo below:
+To see the difference, make sure that your keyboard is set to a language that uses an IME (e.g. Japanese), and then edit a cell in the following demo:
 
 ::: only-for javascript
 
