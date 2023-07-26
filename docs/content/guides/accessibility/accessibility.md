@@ -56,7 +56,7 @@ you a set of [options](#accessibility-configuration) that you can configure to b
 
 ```html
 <input type="checkbox" id="enable_tab_navigation">Enable the Tab key navigation</input>
-<input type="checkbox" id="enable_headers_navigation">Enable navigation in headers</input>
+<input type="checkbox" id="enable_ime_fast_edit">Enable navigation in headers</input>
 <br />
 <br />
 <input type="text" id=navigable_test_input_1 placeholder="Navigable test input"/>
@@ -72,7 +72,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#exampleA11y');
 const checkboxEnableTabNavigation = document.querySelector('#enable_tab_navigation');
-const checkboxEnableHeadersNavigation = document.querySelector('#enable_headers_navigation');
+const checkboxEnableHeadersNavigation = document.querySelector('#enable_ime_fast_edit');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -404,8 +404,8 @@ TBD
 
 You can easily configure Handsontable's accessibility features to better match your users' needs. For example, you can change Handsontable's
 [keyboard navigation](#configure-keyboard-navigation) behavior, disable [virtual rendering](#configure-row-and-column-virtualization), configure
-[IME fast-editing](#ime-fast-editing), and [style your grid](#create-a-high-contrast-theme) for the required color contrast, font size or other accessibility
-requirements.
+[IME fast-editing](#configure-fast-editing-for-imes), and [style your grid](#create-a-high-contrast-theme) for the required color contrast, font size or other
+accessibility requirements.
 
 On top of that, you can always [customize Handsontable](#accessibility-and-customization) to meet the specific accessibility needs of your user base.
 
@@ -511,12 +511,285 @@ const configurationOptions = {
 For more details, see the [Row virtualization](@/guides/rows/row-virtualization.md) and [Column virtualization](@/guides/columns/column-virtualization.md)
 guides.
 
-### IME fast editing
+### Configure fast editing for IMEs
 
-TBD
+To start editing a focused cell, you can simply start typing – we call this feature "fast editing". However, when you're using an [Input Method Editor](@/guides/internationalization/ime-support.md) (IME), fast editing is disabled: you need to press <kbd>**Enter**</kbd> or <kbd>**F2**</kbd> first.
 
-- Demo that showcases the `imeFastEdit` option [#10342](https://github.com/handsontable/handsontable/pull/10342)
-- IME fast edit works only with JAWS
+This configuration ensures better accessibility by default, as screen readers may have problems with reading the contents of the edited cell when you're using an IME.
+
+You can enable fast editing for IMEs by setting [`imeFastEdit`](@/api/options.md#imefastedit) to `true`. However, remember that this may have a negative impact on accessibility.
+
+To see the difference, make sure that your keyboard is set to a language that uses an IME (e.g. Japanese), and then edit a cell in the demo below:
+
+::: only-for javascript
+
+::: example #exampleImeFastEdit --html 1 --js 2
+
+```html
+<input type="checkbox" id="enable_ime_fast_edit" checked>Enable fast editing with the IME</input>
+<br />
+<br />
+<div id="exampleImeFastEdit"></div>
+```
+
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const container = document.querySelector('#exampleImeFastEdit');
+const checkboxEnableHeadersNavigation = document.querySelector('#enable_ime_fast_edit');
+const handsontableInstance = new Handsontable(container, {
+  data: [
+    {
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: 'Oct 11, 2023',
+      sellTime: '01:23 AM',
+      inStock: false,
+    },
+    {
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.9,
+      sellDate: 'May 3, 2023',
+      sellTime: '11:27 AM',
+      inStock: false,
+    },
+    {
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.1,
+      sellDate: 'Mar 27, 2023',
+      sellTime: '03:17 AM',
+      inStock: true,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: 'Aug 28, 2023',
+      sellTime: '08:01 AM',
+      inStock: true,
+    },
+    {
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: 'Oct 2, 2023',
+      sellTime: '13:23 AM',
+      inStock: true,
+    },
+  ],
+  columns: [
+    {
+      title: 'Brand',
+      type: 'text',
+      data: 'brand',
+    },
+    {
+      title: 'Model',
+      type: 'text',
+      data: 'model',
+    },
+    {
+      title: 'Price',
+      type: 'numeric',
+      data: 'price',
+      numericFormat: {
+        pattern: '$ 0,0.00',
+        culture: 'en-US',
+      },
+    },
+    {
+      title: 'Date',
+      type: 'date',
+      data: 'sellDate',
+      dateFormat: 'MMM D, YYYY',
+      correctFormat: true,
+      className: 'htRight',
+    },
+    {
+      title: 'Time',
+      type: 'time',
+      data: 'sellTime',
+      timeFormat: 'hh:mm A',
+      correctFormat: true,
+      className: 'htRight',
+    },
+    {
+      title: 'In stock',
+      type: 'checkbox',
+      data: 'inStock',
+      className: 'htCenter',
+    },
+  ],
+  height: 168,
+  rowHeaders: true,
+  navigableHeaders: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+checkboxEnableHeadersNavigation.addEventListener('change', () => {
+  if (this.checked) {
+    handsontableInstance.updateSettings({
+      navigableHeaders: true,
+    });
+  } else {
+    handsontableInstance.updateSettings({
+      navigableHeaders: false,
+    });
+  }
+});
+```
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleImeFastEdit :react
+
+```jsx
+import { useRef } from 'react';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const App = () => {
+  const hotTableComponentRef = useRef(null);
+  const enableTabNavigation = () => {
+    const handsontableInstance = hotTableComponentRef.current.hotInstance;
+
+    handsontableInstance.updateSettings({
+      disableTabNavigation: false,
+    });
+  };
+
+  const disableTabNavigation = () => {
+    const handsontableInstance = hotTableComponentRef.current.hotInstance;
+
+    handsontableInstance.updateSettings({
+      disableTabNavigation: true,
+    });
+  };
+
+  return (
+    <>
+      <HotTable
+        ref={hotTableComponentRef}
+        data={[
+          {
+            brand: 'Jetpulse',
+            model: 'Racing Socks',
+            price: 30,
+            sellDate: 'Oct 11, 2023',
+            sellTime: '01:23 AM',
+            inStock: false,
+          },
+          {
+            brand: 'Gigabox',
+            model: 'HL Mountain Frame',
+            price: 1890.9,
+            sellDate: 'May 3, 2023',
+            sellTime: '11:27 AM',
+            inStock: false,
+          },
+          {
+            brand: 'Camido',
+            model: 'Cycling Cap',
+            price: 130.1,
+            sellDate: 'Mar 27, 2023',
+            sellTime: '03:17 AM',
+            inStock: true,
+          },
+          {
+            brand: 'Chatterpoint',
+            model: 'Road Tire Tube',
+            price: 59,
+            sellDate: 'Aug 28, 2023',
+            sellTime: '08:01 AM',
+            inStock: true,
+          },
+          {
+            brand: 'Eidel',
+            model: 'HL Road Tire',
+            price: 279.99,
+            sellDate: 'Oct 2, 2023',
+            sellTime: '13:23 AM',
+            inStock: true,
+          },
+        ]}
+        columns={[
+          {
+            title: 'Brand',
+            type: 'text',
+            data: 'brand',
+          },
+          {
+            title: 'Model',
+            type: 'text',
+            data: 'model',
+          },
+          {
+            title: 'Price',
+            type: 'numeric',
+            data: 'price',
+            numericFormat: {
+              pattern: '$ 0,0.00',
+              culture: 'en-US',
+            },
+          },
+          {
+            title: 'Date',
+            type: 'date',
+            data: 'sellDate',
+            dateFormat: 'MMM D, YYYY',
+            correctFormat: true,
+            className: 'htRight',
+          },
+          {
+            title: 'Time',
+            type: 'time',
+            data: 'sellTime',
+            timeFormat: 'hh:mm A',
+            correctFormat: true,
+            className: 'htRight',
+          },
+          {
+            title: 'In stock',
+            type: 'checkbox',
+            data: 'inStock',
+            className: 'htCenter',
+          },
+        ]}
+        height={168}
+        rowHeaders={true}
+        navigableHeaders={true}
+        licenseKey="non-commercial-and-evaluation"
+      />
+      <div className="controls">
+        <button onClick={enableTabNavigation}>Enable the Tab key navigation</button>
+        <br />
+        <br />
+        <button onClick={disableTabNavigation}>Disable tab key navigation</button>
+      </div>
+    </>
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<App />, document.getElementById('exampleImeFastEdit'));
+/* end:skip-in-preview */
+```
+
+:::
+
+:::
 
 ### Create a high-contrast theme
 
@@ -552,7 +825,7 @@ As of July 2023, Handsontable's accessibility features come with the following l
   [overriding Handsontable's CSS](@/guides/accessibility/accessibility.md#create-a-high-contrast-theme).
 - We don't test Handsontable against all available screen readers, such as VoiceOver (macOS) or TalkBack (Android). We focus on the most popular ones: JAWS and
   NVDA.
-- NVDA and VoiceOver don't support [IME fast editing](@/guides/accessibility/accessibility.md#ime-fast-editing).
+- NVDA and VoiceOver don't support [IME fast editing](@/guides/accessibility/accessibility.md#configure-fast-editing-for-imes).
 - VoiceOver may announce the wrong number of rows and columns in the grid.
 
 ## API reference
