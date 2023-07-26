@@ -513,9 +513,7 @@ guides.
 
 ### Configure fast editing for IMEs
 
-To start editing a focused cell, you can simply start typing – we call this feature "fast editing". However, when you're using an [Input Method Editor](@/guides/internationalization/ime-support.md) (IME), fast editing is disabled: you need to press <kbd>**Enter**</kbd> or <kbd>**F2**</kbd> first.
-
-This configuration ensures better accessibility by default, as screen readers may have problems with reading the contents of the edited cell when you're using an IME.
+To start editing a focused cell, you can simply start typing – we call this feature "fast editing". However, when you're using an [Input Method Editor](@/guides/internationalization/ime-support.md) (IME), fast editing is disabled: you need to press <kbd>**Enter**</kbd> or <kbd>**F2**</kbd> first. This configuration ensures better accessibility by default, as screen readers may have problems reading the contents of the edited cell when you're using an IME.
 
 To enable fast editing for IMEs, set [`imeFastEdit`](@/api/options.md#imefastedit) to `true`. However, remember that this may have a negative impact on accessibility.
 
