@@ -790,7 +790,7 @@ To ensure sufficient color contrast, we recommend using Chrome DevTools and dedi
 ## WAI-ARIA roles
 
 [WAI-ARIA](https://www.w3.org/TR/wai-aria-roles-1.1/) (Web Accessibility Initiative - Accessible Rich Internet Applications) is a W3C specification. It defines
-additional HTML attributes that can make web applications more compatible with assistive technologies such as screen readers.
+additional HTML attributes that help make web applications more compatible with assistive technologies such as screen readers.
 
 Sticking to the [First Rule of ARIA Use](https://www.w3.org/TR/using-aria/#rule1), Handsontable uses WAI-ARIA attributes only when necessary. Handsontable is
 based on the HTML `<table>` element, so assistive technologies already interpret most of its structure properly.
@@ -823,24 +823,23 @@ For example:
 
 ### Subcomponent ARIA roles
 
-- Subcomponents
-  - Context menu
-  - Column menu and filters
-  - Built-in cell types:
-    - Text
-    - Numeric
-    - Date
-    - Time
-    - Checkbox
-    - Select
-    - Dropdown
-    - Autocomplete
-    - Password
-  - Custom cell types
-    - A developer creating custom cell types is responsible for the accessibility, mainly using native (generic and proper) HTML elements to render the
-      contents; testing it and enriching with WAI-ARIA attributes whenever required.
-  - Search field
-    - https://handsontable.com/docs/react-data-grid/searching-values/
+- Context menu
+- Column menu and filters
+- Built-in cell types:
+  - Text
+  - Numeric
+  - Date
+  - Time
+  - Checkbox
+  - Select
+  - Dropdown
+  - Autocomplete
+  - Password
+- Custom cell types
+  - A developer creating custom cell types is responsible for the accessibility, mainly using native (generic and proper) HTML elements to render the contents;
+    testing it and enriching with WAI-ARIA attributes whenever required.
+- Search field
+  - https://handsontable.com/docs/react-data-grid/searching-values/
 - Dynamic ARIA tags
   - ARIA are dynamic in some cases: e.g. sorting data, read-only cells, loading data (busy-state), etc.
 
