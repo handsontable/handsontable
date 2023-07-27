@@ -37,11 +37,11 @@ technologies like screen readers or keyboard navigation.
 
 Ensuring a high level of accessibility by default, Handsontable's built-in features include:
 
-- Intuitive [keyboard navigation](@/guides/navigation/keyboard-navigation.md) that lets you access any feature without using a mouse.
-- Transparent HTML structure following best accessibility practices.
-- [WAI-ARIA](#wai-aria-roles) roles and attributes that complement HTML where needed.
-- Support for the most popular [screen readers](#supported-screen-readers).
-- Compliance with the most important accessibility [standards and regulations](#accessibility-compliance).
+- Intuitive [keyboard navigation](@/guides/navigation/keyboard-navigation.md) that lets you access any feature without using a mouse,
+- Transparent HTML structure following best accessibility practices,
+- [WAI-ARIA](#wai-aria-roles) roles and attributes that complement HTML where needed,
+- Support for the most popular [screen readers](#supported-screen-readers),
+- Compliance with the most important accessibility [standards and regulations](#accessibility-compliance),
 - A set of configurable [accessibility options](#accessibility-configuration).
 
 That said, there's no universal accessibility standard for spreadsheets, and such standards for data grids are incomplete. Also, the number of Handsontable's
@@ -358,7 +358,7 @@ add custom shortcuts. Learn more in the following sections:
 
 - [Keyboard navigation](@/guides/navigation/keyboard-navigation.md)
 - [Configure keyboard navigation options](@/guides/navigation/keyboard-navigation.md#configure-keyboard-navigation-options)
-- [Default keyboard shortcuts](@/guides/navigation/keyboard-shortcuts.md#default-keyboard-shortcuts)
+- [Default keyboard shortcuts](@/guides/navigation/keyboard-shortcuts.md)
 - [Custom shortcuts](@/guides/navigation/custom-shortcuts.md)
 
 ### Supported screen readers
