@@ -39,7 +39,7 @@ Ensuring a high level of accessibility by default, Handsontable's built-in featu
 
 - Intuitive [keyboard navigation](@/guides/navigation/keyboard-navigation.md) that lets you access any feature without using a mouse.
 - Transparent HTML structure following best accessibility practices.
-- [ARIA attributes](#aria-attributes) that complement HTML where needed.
+- [WAI-ARIA](#wai-aria-roles) roles and attributes that complement HTML where needed.
 - Support for the most popular [screen readers](#supported-screen-readers).
 - Compliance with the most important accessibility [standards and regulations](#accessibility-compliance).
 - A set of configurable [accessibility options](#accessibility-configuration).
@@ -368,43 +368,28 @@ To meet the needs of visually impaired users, Handsontable supports two of the w
 - **JAWS** (Job Access With Speech)
 - **NVDA** (NonVisual Desktop Access)
 
-### ARIA attributes
+### Accessibility and customization
 
-TBD
+Being a JavaScript component, Handsontable is infinitely customizable. You can completely change the look and feel of the grid, add
+[custom cell types](@/guides/cell-types/cell-type.md), or create your own plugins, features, and integrations. However, when you customize Handsontable, it's
+you who's responsible for ensuring the accessibility of your solution.
 
-- WAI-ARIA attributes
-- Handsontable is based on the HTML table element so some of its structure is properly interpreted properly by screen readers and other assistive solutions.
-  Mention that we put WAI-ARIA whenever needed.
-- WAI-ARIA roles (the idea is to mention only ROLES, nothing else - this is also to show the complexity of the grid; and that the grid contains subcomponents
-  (like date picker) that require their own roles)
-  - Main component
-    - Tree grid (and why - VoiceOver + nested rows setting if passed as a function)
-  - Subcomponents
-    - Context menu
-    - Column menu and filters
-    - Built-in cell types:
-      - Text
-      - Numeric
-      - Date
-      - Time
-      - Checkbox
-      - Select
-      - Dropdown
-      - Autocomplete
-      - Password
-    - Custom cell types
-      - A developer creating custom cell types is responsible for the accessibility, mainly using native (generic and proper) HTML elements to render the
-        contents; testing it and enriching with WAI-ARIA attributes whenever required.
-    - Search field
-      - https://handsontable.com/docs/react-data-grid/searching-values/
-- Dynamic ARIA tags
-  - ARIA are dynamic in some cases: e.g. sorting data, read-only cells, loading data (busy-state), etc.
+Whatever your customization, we always recommend that you:
+
+- Follow [best web accessibility practices](https://developer.mozilla.org/en-US/docs/Learn/Accessibility/CSS_and_JavaScript),
+- Use proper color contrast, font size, and semantic HTML tags,
+- Implement additional WAI-ARIA attributes if needed,
+- Avoid flashing or blinking content,
+- Test your customizations with real users who have different types of disabilities.
+
+The accessibility level of any component in your application may be decreased by a low accessibility level of its parent elements. For this reason, make sure to
+always check the accessibility of the entire page, using tools such as [Lighthouse](https://github.com/GoogleChrome/lighthouse).
 
 ## Accessibility configuration
 
 You can easily configure Handsontable's accessibility features to better match your users' needs. For example, you can change Handsontable's
-[keyboard navigation](#configure-keyboard-navigation) behavior, disable [virtual rendering](#configure-row-and-column-virtualization), configure
-[IME fast-editing](#configure-fast-editing-for-imes), and [style your grid](#create-a-high-contrast-theme) for the required color contrast, font size or other
+[keyboard navigation](#configure-keyboard-navigation) behavior, disable [virtual rendering](#configure-virtualization), configure
+[IME fast-editing](#configure-fast-editing-with-imes), and [style your grid](#create-a-high-contrast-theme) for the required color contrast, font size or other
 accessibility requirements.
 
 On top of that, you can always [customize Handsontable](#accessibility-and-customization) to meet the specific accessibility needs of your user base.
@@ -450,7 +435,7 @@ You can easily configure various aspects of Handsontable's keyboard navigation. 
 - [Enable jumping over the edges of the grid](@/guides/navigation/keyboard-navigation.md#enable-jumping-over-the-edges),
 - [Add custom shortcuts](@/guides/navigation/custom-shortcuts.md).
 
-### Configure row and column virtualization
+### Configure virtualization
 
 By default, Handsontable renders only those parts of the grid that are currently visible. This feature, called
 [row virtualization](@/guides/rows/row-virtualization.md) and [column virtualization](@/guides/columns/column-virtualization.md), is great for
@@ -511,20 +496,24 @@ const configurationOptions = {
 For more details, see the [Row virtualization](@/guides/rows/row-virtualization.md) and [Column virtualization](@/guides/columns/column-virtualization.md)
 guides.
 
-### Configure fast editing for IMEs
+### Configure fast editing with IMEs
 
-To start editing a focused cell, you can simply start typing – we call this feature "fast editing". However, when you're using an [Input Method Editor](@/guides/internationalization/ime-support.md) (IME), fast editing is disabled: you need to press <kbd>**Enter**</kbd> or <kbd>**F2**</kbd> first. This configuration ensures better accessibility by default, as screen readers may have problems reading the contents of the edited cell when you're using an IME.
+To start editing a focused cell, you can simply start typing – we call this feature "fast editing". However, when you're using an
+[Input Method Editor](@/guides/internationalization/ime-support.md) (IME), fast editing is disabled: you need to press <kbd>**Enter**</kbd> or <kbd>**F2**</kbd>
+first. This configuration ensures better accessibility by default, as screen readers may have problems reading the contents of the edited cell when you're using
+an IME.
 
-To enable fast editing for IMEs, set [`imeFastEdit`](@/api/options.md#imefastedit) to `true`. However, remember that this may have a negative impact on accessibility.
+To enable fast editing with IMEs, set the [`imeFastEdit`](@/api/options.md#imefastedit) option to `true`. However, remember that this may have a negative impact
+on accessibility.
 
-To see the difference, make sure that your keyboard is set to a language that uses an IME (e.g. Japanese), and then edit a cell in the following demo:
+To see the difference in the following demo, make sure that your keyboard is set to a language that uses an IME (e.g. Japanese), and try editing a cell:
 
 ::: only-for javascript
 
 ::: example #exampleImeFastEdit --html 1 --js 2
 
 ```html
-<input type="checkbox" id="enable_ime_fast_edit" checked>Enable fast editing with the IME</input>
+<input type="checkbox" id="enable_ime_fast_edit">Enable fast editing with IMEs</input>
 <br />
 <br />
 <div id="exampleImeFastEdit"></div>
@@ -798,22 +787,62 @@ To ensure sufficient color contrast, we recommend using Chrome DevTools and dedi
 [Colorblindly](https://chrome.google.com/webstore/detail/colorblindly/floniaahmccleoclneebhhmnjgdfijgg) or
 [Kontrast](https://chrome.google.com/webstore/detail/kontrast-wcag-contrast-ch/haphaaenepedkjngghandlmhfillnhjk).
 
-### Accessibility and customization
+## WAI-ARIA roles
 
-Being a JavaScript component, Handsontable is infinitely customizable. You can completely change the look and feel of the grid, add
-[custom cell types](@/guides/cell-types/cell-type.md), or create your own plugins, features, and integrations. However, when you customize Handsontable, it's
-you who's responsible for ensuring the accessibility of your solution.
+[WAI-ARIA](https://www.w3.org/TR/wai-aria-roles-1.1/) (Web Accessibility Initiative - Accessible Rich Internet Applications) is a W3C specification. It defines
+additional HTML attributes that can make web applications more compatible with assistive technologies such as screen readers.
 
-Whatever your customization, we always recommend that you:
+Sticking to the [First Rule of ARIA Use](https://www.w3.org/TR/using-aria/#rule1), Handsontable uses WAI-ARIA attributes only when necessary. Handsontable is
+based on the HTML `<table>` element, so assistive technologies already interpret most of its structure properly.
 
-- Follow [best web accessibility practices](https://developer.mozilla.org/en-US/docs/Learn/Accessibility/CSS_and_JavaScript),
-- Use proper color contrast, font size, and semantic HTML tags,
-- Implement ARIA attributes if needed,
-- Avoid flashing or blinking content,
-- Test your customizations with real users who have different types of disabilities.
+The following sections list all [WAI-ARIA roles](https://www.w3.org/TR/wai-aria-1.1/#usage_intro) used on the different levels of Handsontable's structure: the
+page, the main component (the grid), and subcomponents (such as the [column menu](@/guides/columns/column-menu.md) or the
+[date picker](@/guides/cell-types/date-cell-type.md)).
 
-The accessibility level of any component in your application may be decreased by a low accessibility level of its parent elements. For this reason, make sure to
-always check the accessibility of the entire page, using tools such as [Lighthouse](https://github.com/GoogleChrome/lighthouse).
+### Page-level ARIA role
+
+why - VoiceOver + nested rows setting if passed as a function
+
+`role="treegrid"`
+
+For example:
+
+```html
+<div id="hot" dir="ltr" role="treegrid"></div>
+```
+
+### Component-level ARIA roles
+
+| Elements                                                                | WAI-ARIA role         |
+| ----------------------------------------------------------------------- | --------------------- |
+| All `handsontable`, `wtHolder`, `wtSpreader`, `wtHider`, `table.htCore` | `role="presentation"` |
+| All `.htCore tr`                                                        | `role="row"`          |
+| All `.htCore td`                                                        | `role="gridcell"`     |
+| All `.htCore th` in `.ht_master`                                        | `role="columngroup"`  |
+| All `.htCore tbody` and `thead`                                         | `role="rowgroup"`     |
+
+### Subcomponent ARIA roles
+
+- Subcomponents
+  - Context menu
+  - Column menu and filters
+  - Built-in cell types:
+    - Text
+    - Numeric
+    - Date
+    - Time
+    - Checkbox
+    - Select
+    - Dropdown
+    - Autocomplete
+    - Password
+  - Custom cell types
+    - A developer creating custom cell types is responsible for the accessibility, mainly using native (generic and proper) HTML elements to render the
+      contents; testing it and enriching with WAI-ARIA attributes whenever required.
+  - Search field
+    - https://handsontable.com/docs/react-data-grid/searching-values/
+- Dynamic ARIA tags
+  - ARIA are dynamic in some cases: e.g. sorting data, read-only cells, loading data (busy-state), etc.
 
 ## Known limitations
 
@@ -823,7 +852,7 @@ As of July 2023, Handsontable's accessibility features come with the following l
   [overriding Handsontable's CSS](@/guides/accessibility/accessibility.md#create-a-high-contrast-theme).
 - We don't test Handsontable against all available screen readers, such as VoiceOver (macOS) or TalkBack (Android). We focus on the most popular ones: JAWS and
   NVDA.
-- NVDA and VoiceOver don't support [IME fast editing](@/guides/accessibility/accessibility.md#configure-fast-editing-for-imes).
+- NVDA and VoiceOver don't support [IME fast editing](@/guides/accessibility/accessibility.md#configure-fast-editing-with-imes).
 - VoiceOver may announce the wrong number of rows and columns in the grid.
 
 ## API reference
