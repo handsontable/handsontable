@@ -24,27 +24,11 @@ searchCategory: Guides
 
 Access all Handsontable features using just your keyboard. Use shortcuts you know from Google Sheets or Microsoft Excel.
 
-[[toc]]
-
 ## Overview
 
-To navigate Handsontable similarly to Google Sheets or Microsoft Excel, use the [default](#default-keyboard-shortcuts) keyboard shortcuts.
+[[toc]]
 
-You can also completely [customize](#custom-keyboard-shortcuts) your keyboard shortcuts, using the [`ShortcutManager`](@/api/shortcutManager.md) API:
-
-- [Add custom keyboard shortcuts](#add-a-custom-keyboard-shortcut)
-- [Remove keyboard shortcuts](#remove-a-keyboard-shortcut)
-- [Replace keyboard shortcuts](#replace-a-keyboard-shortcut)
-- [Block keyboard shortcuts' actions](#block-a-keyboard-shortcut-s-actions)
-
-## Default keyboard shortcuts
-
-By default, Handsontable features the keyboard shortcuts listed below.
-
-- [Navigation keyboard shortcuts](#navigation-keyboard-shortcuts)
-- [Selection keyboard shortcuts](#selection-keyboard-shortcuts)
-- [Edition keyboard shortcuts](#edition-keyboard-shortcuts)
-- [Plugin keyboard shortcuts](#plugin-keyboard-shortcuts)
+This page lists all of Handsontable's default keyboard shortcuts.
 
 You can easily check if a keyboard shortcut's action is compatible with Microsoft Excel or Google Sheets:
 
@@ -58,7 +42,7 @@ Handsontable doesn't detect data series (doesn't differentiate between blank cel
 
 :::
 
-### Navigation keyboard shortcuts
+## Navigation keyboard shortcuts
 
 These keyboard shortcuts work when you navigate the grid. They come from Handsontable's [`Core`](@/api/core.md), so they work out of the box, with no need for
 additional plugins.
@@ -86,7 +70,7 @@ additional plugins.
 
 <sup>\*</sup> This action depends on your layout direction.
 
-### Selection keyboard shortcuts
+## Selection keyboard shortcuts
 
 These keyboard shortcuts help you select cells. They come from Handsontable's [`Core`](@/api/core.md), so they work out of the box, with no need for additional
 plugins.
@@ -112,7 +96,7 @@ plugins.
 <sup>\*</sup> This action depends on your layout direction.<br> <sup>\*\*</sup> In case of multiple selection layers, only the last selection layer gets
 extended.
 
-### Edition keyboard shortcuts
+## Edition keyboard shortcuts
 
 These keyboard shortcuts work when you're editing a cell's contents. They come from Handsontable's [`Core`](@/api/core.md), so they work out of the box, with no
 need for additional plugins.
@@ -139,7 +123,7 @@ need for additional plugins.
 
 <sup>\*</sup> This action depends on your layout direction.
 
-#### Checkbox editor keyboard shortcuts
+### Checkbox editor keyboard shortcuts
 
 These keyboard shortcuts work in the [`checkbox`](@/guides/cell-types/checkbox-cell-type.md) cell editor.
 
@@ -150,7 +134,7 @@ These keyboard shortcuts work in the [`checkbox`](@/guides/cell-types/checkbox-c
 | <kbd>**Delete**</kbd>    | <kbd>**Delete**</kbd>    | Uncheck the checkbox          | &cross; | &check; |
 | <kbd>**Backspace**</kbd> | <kbd>**Backspace**</kbd> | Uncheck the checkbox          | &cross; | &check; |
 
-#### `handsontable` editor keyboard shortcuts
+### `handsontable` editor keyboard shortcuts
 
 These keyboard shortcuts work in the [`handsontable`](@/guides/cell-types/handsontable-cell-type.md) cell editor.
 
@@ -159,11 +143,11 @@ These keyboard shortcuts work in the [`handsontable`](@/guides/cell-types/handso
 | <kbd>**↑**</kbd> | <kbd>**↑**</kbd> | Move to the cell above the active cell | &cross; | &cross; |
 | <kbd>**↓**</kbd> | <kbd>**↓**</kbd> | Move to the cell below the active cell | &cross; | &cross; |
 
-### Plugin keyboard shortcuts
+## Plugin keyboard shortcuts
 
 These keyboard shortcuts work with particular plugins.
 
-#### Clipboard keyboard shortcuts
+### Clipboard keyboard shortcuts
 
 These keyboard shortcuts work when the [`CopyPaste`](@/api/copyPaste.md) plugin is enabled.
 
@@ -173,7 +157,7 @@ These keyboard shortcuts work when the [`CopyPaste`](@/api/copyPaste.md) plugin 
 | <kbd>**Ctrl**</kbd>+<kbd>**C**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**C**</kbd> | Copy the contents of the selected cells to the system clipboard | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**V**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**V**</kbd> | Paste from the system clipboard                                 | &check; | &check; |
 
-#### Cell merging keyboard shortcuts
+### Cell merging keyboard shortcuts
 
 These keyboard shortcuts work when the [`MergeCells`](@/api/mergeCells.md) plugin is enabled.
 
@@ -181,7 +165,7 @@ These keyboard shortcuts work when the [`MergeCells`](@/api/mergeCells.md) plugi
 | ------------------------------------ | ------------------------------------ | ----------------------------------- | :-----: | :-----: |
 | <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | Merge or unmerge the selected cells | &cross; | &cross; |
 
-#### Undo and redo keyboard shortcuts
+### Undo and redo keyboard shortcuts
 
 These keyboard shortcuts work when the [`UndoRedo`](@/api/undoRedo.md) plugin is enabled.
 
@@ -191,7 +175,7 @@ These keyboard shortcuts work when the [`UndoRedo`](@/api/undoRedo.md) plugin is
 | <kbd>**Ctrl**</kbd>+<kbd>**Y**</kbd>                      | <kbd>**Cmd**</kbd>+<kbd>**Y**</kbd>                      | Redo the last action | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Z**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Z**</kbd> | Redo the last action | &check; | &check; |
 
-#### Context menu keyboard shortcuts
+### Context menu keyboard shortcuts
 
 These keyboard shortcuts work in context menus. To activate them, enable the [`ContextMenu`](@/api/contextMenu.md) plugin.
 
@@ -204,7 +188,7 @@ These keyboard shortcuts work in context menus. To activate them, enable the [`C
 | <kbd>**Escape**</kbd>                                                                                 | <kbd>**Escape**</kbd>                                                                                | Close the context menu or submenu                             | &check; | &check; |
 | <kbd>**Enter**</kbd>                                                                                  | <kbd>**Enter**</kbd>                                                                                 | Run the action of the selected menu item                      | &check; | &cross; |
 
-#### Column groups keyboard shortcuts
+### Column groups keyboard shortcuts
 
 These keyboard shortcuts work in [column groups](@/guides/columns/column-groups.md), also known as "nested headers". To activate them, enable the
 [`NestedHeaders`](@/api/nestedHeaders.md) plugin.
@@ -213,7 +197,7 @@ These keyboard shortcuts work in [column groups](@/guides/columns/column-groups.
 | -------------------- | -------------------- | ----------------------------------- | :-----: | :-----: |
 | <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the column group | &cross; | &cross; |
 
-#### Row parent-child keyboard shortcuts
+### Row parent-child keyboard shortcuts
 
 These keyboard shortcuts work in [row groups](@/guides/rows/row-parent-child.md), also known as "nested rows". To activate them, enable the
 [`NestedRows`](@/api/nestedRows.md) plugin.
@@ -222,7 +206,7 @@ These keyboard shortcuts work in [row groups](@/guides/rows/row-parent-child.md)
 | -------------------- | -------------------- | -------------------------------- | :-----: | :-----: |
 | <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the row group | &cross; | &cross; |
 
-#### Rows sorting keyboard shortcuts
+### Rows sorting keyboard shortcuts
 
 These keyboard shortcuts work with [rows sorting](@/guides/rows/rows-sorting.md). To activate them, enable the [`ColumnSorting`](@/api/columnSorting.md) plugin.
 , or the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin.
@@ -232,7 +216,7 @@ These keyboard shortcuts work with [rows sorting](@/guides/rows/rows-sorting.md)
 | <kbd>**Enter**</kbd>                     | <kbd>**Enter**</kbd>                    | Sort data by the selected column, in ascending, descending, or the original order                                                                        | &cross; | &cross; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd> | Sort data by multiple columns, in ascending, descending, or the original order. Requires the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin. | &cross; | &cross; |
 
-#### Column menu keyboard shortcuts
+### Column menu keyboard shortcuts
 
 These keyboard shortcuts work with the [column menu](@/guides/columns/column-menu.md). To activate them, enable the [`DropdownMenu`](@/api/dropdownMenu.md)
 plugin.
@@ -242,7 +226,7 @@ plugin.
 | <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↓**</kbd> | <kbd>**Shift**</kbd>+<kbd>**Option**</kbd>+<kbd>**↓**</kbd> | Open the column menu. Works in any cell, if the respective column header displays the menu button.           | &cross; | &cross; |
 | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>                | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>                   | Open the column menu. Works only when you're selecting a column header that displays the column menu button. | &cross; | &cross; |
 
-#### Column filter keyboard shortcuts
+### Column filter keyboard shortcuts
 
 These keyboard shortcuts work with the [column filter](@/guides/columns/column-filter.md). To activate them, enable the [`Filters`](@/api/filters.md) plugin and
 the [`DropdownMenu`](@/api/dropdownMenu.md) plugin.
@@ -251,7 +235,7 @@ the [`DropdownMenu`](@/api/dropdownMenu.md) plugin.
 | ----------------------------------- | -------------------------------------- | ----------------- | :-----: | :-----: |
 | <kbd>**Alt**</kbd>+<kbd>**A**</kbd> | <kbd>**Option**</kbd>+<kbd>**A**</kbd> | Clear all filters | &cross; | &cross; |
 
-#### Comments keyboard shortcuts
+### Comments keyboard shortcuts
 
 These keyboard shortcuts work with [comments](@/guides/cell-features/comments.md). To activate them, enable the [`Comments`](@/api/comments.md) plugin.
 
