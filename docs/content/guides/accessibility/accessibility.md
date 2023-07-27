@@ -789,8 +789,8 @@ To ensure sufficient color contrast, we recommend using Chrome DevTools and dedi
 
 ## WAI-ARIA roles
 
-[WAI-ARIA](https://www.w3.org/TR/wai-aria-roles-1.1/) (Web Accessibility Initiative - Accessible Rich Internet Applications) is a W3C specification. It defines
-additional HTML attributes that help make web applications more compatible with assistive technologies such as screen readers.
+[WAI-ARIA](https://www.w3.org/TR/wai-aria-roles-1.1/) (Web Accessibility Initiative - Accessible Rich Internet Applications) is a W3C specification that defines
+additional HTML attributes, helping make web applications more compatible with assistive technologies such as screen readers.
 
 Sticking to the [First Rule of ARIA Use](https://www.w3.org/TR/using-aria/#rule1), Handsontable uses WAI-ARIA attributes only when necessary. Handsontable is
 based on the HTML `<table>` element, so assistive technologies already interpret most of its structure properly.
