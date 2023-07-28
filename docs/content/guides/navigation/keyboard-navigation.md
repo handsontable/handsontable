@@ -31,11 +31,11 @@ Navigate the grid using just your keyboard. Configure navigation options to meet
 ## Overview
 
 You can easily access all of Handsontable's features without using a mouse, which is particularly important for people with
-[accessibility](@/guides/accessibility/accessibility.md) needs. Keyboard navigation works out of the box and follows international standards. Navigating the
-grid takes a few simple keystrokes: you can try it out in the [demo](#default-keyboard-navigation) below.
+[accessibility](@/guides/accessibility/accessibility.md) needs. Keyboard navigation works out of the box and follows well-known patterns. Navigating the grid
+takes a few simple keystrokes: you can try it out in the [demo](#default-keyboard-navigation) below.
 
-You can easily switch between navigating Handsontable [like a spreadsheet or like a data grid](#navigation-modes). You can also fine-tune the grid's behavior by
-configuring individual [navigation options](#configure-keyboard-navigation-options).
+You can choose between two [navigation modes](#navigation-modes): spreadsheet or data grid. You can also fine-tune the grid's behavior by configuring individual
+[navigation options](#configure-keyboard-navigation-options).
 
 To use your keyboard for more advanced actions, see the list of [all built-in shortcuts](@/guides/navigation/keyboard-shortcuts.md#default-keyboard-shortcuts),
 or add [shortcuts of your own](@/guides/navigation/custom-shortcuts.md).
@@ -283,7 +283,7 @@ ReactDOM.render(<App />, document.getElementById('exampleKeyboardNavigation'));
 ## Navigation modes
 
 You can tweak Handsontable's [navigation options](#configure-keyboard-navigation-options) any way you want, but in most cases, you'll want to use one of the two
-configurations: the spreadsheet mode (default) or the data grid mode.
+configurations: the spreadsheet mode (default) or the data-grid mode.
 
 To navigate Handsontable like a spreadsheet, use the default configuration:
 
