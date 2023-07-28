@@ -392,7 +392,7 @@ You can easily configure Handsontable's accessibility features to better match y
 [IME fast-editing](#configure-fast-editing-with-imes), and [style your grid](#create-a-high-contrast-theme) for the required color contrast, font size or other
 accessibility requirements.
 
-On top of that, you can always [customize Handsontable](#accessibility-and-customization) to meet the specific accessibility needs of your user base.
+On top of that, you can always [customize Handsontable](#accessibility-and-customization) to meet more specific accessibility needs of your user base.
 
 ### Set the grid's height explicitly
 
@@ -780,7 +780,7 @@ ReactDOM.render(<App />, document.getElementById('exampleImeFastEdit'));
 
 ### Create a high-contrast theme
 
-At the moment, Handsontable doesn't feature a high-contrast theme out of the box. However, you can easily create your own theme by overriding
+At the moment, we're still working on an out-of-the-box high-contrast theme. However, you can easily create your own theme by overriding
 [Handsontable's default CSS](https://github.com/handsontable/handsontable/blob/master/handsontable/dist/handsontable.css).
 
 To ensure sufficient color contrast, we recommend using Chrome DevTools and dedicated accessibility tools such as
