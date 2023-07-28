@@ -39,7 +39,7 @@ Ensuring a high level of accessibility by default, Handsontable's built-in featu
 
 - Intuitive [keyboard navigation](@/guides/navigation/keyboard-navigation.md) that lets you access any feature without using a mouse,
 - Transparent HTML structure following best accessibility practices,
-- [WAI-ARIA](#wai-aria-roles) roles and attributes that complement HTML where needed,
+- [WAI-ARIA](#wai-aria) roles and attributes that complement HTML where needed,
 - Support for the most popular [screen readers](#supported-screen-readers),
 - Compliance with the most important accessibility [standards and regulations](#accessibility-compliance),
 - A set of configurable [accessibility options](#accessibility-configuration).
@@ -437,7 +437,7 @@ You can easily configure various aspects of Handsontable's keyboard navigation. 
 
 ### Configure virtualization
 
-By default, Handsontable renders only those parts of the grid that are currently visible. This feature, called
+By default, Handsontable renders only those rows and columns that are currently in the viewport. This feature, called
 [row virtualization](@/guides/rows/row-virtualization.md) and [column virtualization](@/guides/columns/column-virtualization.md), is great for
 [performance](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns), but may have a negative impact on accessibility.
 
@@ -787,61 +787,29 @@ To ensure sufficient color contrast, we recommend using Chrome DevTools and dedi
 [Colorblindly](https://chrome.google.com/webstore/detail/colorblindly/floniaahmccleoclneebhhmnjgdfijgg) or
 [Kontrast](https://chrome.google.com/webstore/detail/kontrast-wcag-contrast-ch/haphaaenepedkjngghandlmhfillnhjk).
 
-## WAI-ARIA roles
+## WAI-ARIA
 
-[WAI-ARIA](https://www.w3.org/TR/wai-aria-roles-1.1/) (Web Accessibility Initiative - Accessible Rich Internet Applications) is a W3C specification that defines
-additional HTML attributes, helping make web applications more compatible with assistive technologies such as screen readers.
+Sticking to the [First Rule of ARIA Use](https://www.w3.org/TR/using-aria/#rule1), we implement WAI-ARIA attributes only when necessary. Handsontable is based
+on the HTML `<table>` element, so assistive technologies already interpret most of its structure properly.
 
-Sticking to the [First Rule of ARIA Use](https://www.w3.org/TR/using-aria/#rule1), Handsontable uses WAI-ARIA attributes only when necessary. Handsontable is
-based on the HTML `<table>` element, so assistive technologies already interpret most of its structure properly.
-
-The following sections list all [WAI-ARIA roles](https://www.w3.org/TR/wai-aria-1.1/#usage_intro) used on the different levels of Handsontable's structure: the
-page, the main component (the grid), and subcomponents (such as the [column menu](@/guides/columns/column-menu.md) or the
-[date picker](@/guides/cell-types/date-cell-type.md)).
-
-### Page-level ARIA role
-
-why - VoiceOver + nested rows setting if passed as a function
-
-`role="treegrid"`
-
-For example:
+On the page level, Handsontable's main component has the [`treegrid`](https://www.w3.org/WAI/ARIA/apg/patterns/treegrid/) role:
 
 ```html
-<div id="hot" dir="ltr" role="treegrid"></div>
+<div id="handsontable" role="treegrid"></div>
 ```
 
-### Component-level ARIA roles
+Within Handsontable's main component, you'll find subcomponents such as the [context menu](@/guides/accessories-and-menus/context-menu.md), the
+[date picker](@/guides/cell-types/date-cell-type.md) and others. Such subcomponents have can have other WAI-ARIA roles. For example, the
+[column menu](@/guides/columns/column-menu.md) has the [`menu`](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/menu_role) role:
 
-| Elements                                                                | WAI-ARIA role         |
-| ----------------------------------------------------------------------- | --------------------- |
-| All `handsontable`, `wtHolder`, `wtSpreader`, `wtHider`, `table.htCore` | `role="presentation"` |
-| All `.htCore tr`                                                        | `role="row"`          |
-| All `.htCore td`                                                        | `role="gridcell"`     |
-| All `.htCore th` in `.ht_master`                                        | `role="columngroup"`  |
-| All `.htCore tbody` and `thead`                                         | `role="rowgroup"`     |
+```html
+<div id="handsontable" role="treegrid">
+  <div id="handsontableColumnMenu" role="menu"></div>
+</div>
+```
 
-### Subcomponent ARIA roles
-
-- Context menu
-- Column menu and filters
-- Built-in cell types:
-  - Text
-  - Numeric
-  - Date
-  - Time
-  - Checkbox
-  - Select
-  - Dropdown
-  - Autocomplete
-  - Password
-- Custom cell types
-  - A developer creating custom cell types is responsible for the accessibility, mainly using native (generic and proper) HTML elements to render the contents;
-    testing it and enriching with WAI-ARIA attributes whenever required.
-- Search field
-  - https://handsontable.com/docs/react-data-grid/searching-values/
-- Dynamic ARIA tags
-  - ARIA are dynamic in some cases: e.g. sorting data, read-only cells, loading data (busy-state), etc.
+If you're creating a custom subcomponent, always make sure to assign a proper WAI-ARIA role to it. Otherwise, it can lower the overall accessibility of your
+application.
 
 ## Known limitations
 
