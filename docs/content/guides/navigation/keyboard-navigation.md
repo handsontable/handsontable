@@ -263,8 +263,8 @@ export const App = () => {
           className: 'htCenter',
         },
       ]}
-      disableTabNavigation="false"
-      navigableHeaders="true"
+      disableTabNavigation={false}
+      navigableHeaders={true}
       height={168}
       licenseKey="non-commercial-and-evaluation"
     />
@@ -362,6 +362,8 @@ const configurationOptions = {
 :::
 
 See the difference in the following demo:
+
+::: only-for javascript
 
 ::: example #exampleNavigationModes --html 1 --js 2
 
@@ -510,6 +512,8 @@ checkboxEnableHeadersNavigation.addEventListener('change', () => {
 
 :::
 
+:::
+
 ::: only-for react
 
 ::: example #exampleNavigationModes :react
@@ -629,8 +633,8 @@ export const App = () => {
           className: 'htCenter',
         },
       ]}
-      disableTabNavigation="true"
-      navigableHeaders="false"
+      disableTabNavigation={true}
+      navigableHeaders={false}
       height={168}
       rowHeaders={true}
       licenseKey="non-commercial-and-evaluation"
