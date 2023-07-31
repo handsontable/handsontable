@@ -1721,4 +1721,32 @@ describe('MergeCells', () => {
       expect(coordsOnCellMouseDown).toEqual(jasmine.objectContaining({ row: 0, col: 0 }));
     });
   });
+
+  it('should set/unset "copyable" cell meta attribute after performing merge/unmerge', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      mergeCells: true
+    });
+
+    selectCell(2, 2, 4, 4);
+    keyDownUp(['control', 'm']);
+
+    getCell(2, 2);
+
+    expect(getCellMeta(2, 2).copyable).toBe(true);
+    expect(getCellMeta(2, 3).copyable).toBe(false);
+    expect(getCellMeta(2, 4).copyable).toBe(false);
+    expect(getCellMeta(3, 3).copyable).toBe(false);
+    expect(getCellMeta(3, 4).copyable).toBe(false);
+    expect(getCellMeta(4, 4).copyable).toBe(false);
+
+    keyDownUp(['control', 'm']);
+
+    expect(getCellMeta(2, 2).copyable).toBe(true);
+    expect(getCellMeta(2, 3).copyable).toBe(true);
+    expect(getCellMeta(2, 4).copyable).toBe(true);
+    expect(getCellMeta(3, 3).copyable).toBe(true);
+    expect(getCellMeta(3, 4).copyable).toBe(true);
+    expect(getCellMeta(4, 4).copyable).toBe(true);
+  });
 });
