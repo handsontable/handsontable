@@ -3,7 +3,6 @@
  *  - walkontable.js
  */
 const path = require('path');
-const webpack = require('webpack');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const compilationDoneMarker = require('./plugin/webpack/compilation-done-marker');
 
@@ -44,9 +43,7 @@ module.exports.create = function create() {
       ]
     },
     plugins: [
-      // This helps ensure the builds are consistent if source code hasn't changed
-      new webpack.optimize.OccurrenceOrderPlugin(),
-      new MiniCssExtractPlugin({ filename: `walkontable.css` }),
+      new MiniCssExtractPlugin({ filename: 'walkontable.css' }),
       compilationDoneMarker(),
     ],
   };

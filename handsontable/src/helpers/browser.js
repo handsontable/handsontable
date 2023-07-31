@@ -19,9 +19,6 @@ const browsers = {
   edgeWebKit: tester(ua => /EdgiOS/.test(ua)),
   firefox: tester(ua => /Firefox/.test(ua)),
   firefoxWebKit: tester(ua => /FxiOS/.test(ua)),
-  ie: tester(ua => /Trident/.test(ua)),
-  // eslint-disable-next-line no-restricted-globals
-  ie9: tester(() => !!(document.documentMode)),
   mobile: tester(ua => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)),
   safari: tester((ua, vendor) => /Safari/.test(ua) && /Apple Computer/.test(vendor)),
 };
@@ -100,27 +97,6 @@ export function isEdge() {
  */
 export function isEdgeWebKit() {
   return browsers.edgeWebKit.value;
-}
-
-/**
- * @returns {boolean}
- */
-export function isIE() {
-  return browsers.ie.value;
-}
-
-/**
- * @returns {boolean}
- */
-export function isIE9() {
-  return browsers.ie9.value;
-}
-
-/**
- * @returns {boolean}
- */
-export function isMSBrowser() {
-  return browsers.ie.value || browsers.edge.value;
 }
 
 /**

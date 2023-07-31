@@ -12,7 +12,7 @@ export type CellValue = any;
 /**
  * A cell change represented by `[row, column, prevValue, nextValue]`.
  */
-export type CellChange = [number, string | number, CellValue, CellValue];
+export type CellChange = [number, string | number | ColumnDataGetterSetterFunction, CellValue, CellValue];
 
 /**
  * A row object, one of the two ways to supply data to the table, the alternative being an array of values.
