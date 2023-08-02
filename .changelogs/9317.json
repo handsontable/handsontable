@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Hovering \"handsontable\" cell type header handles won't throw an error",
+  "type": "fixed",
+  "issueOrPR": 9317,
+  "breaking": false,
+  "framework": "none"
+}
