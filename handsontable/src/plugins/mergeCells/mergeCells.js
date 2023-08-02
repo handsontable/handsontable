@@ -497,6 +497,7 @@ export class MergeCells extends BasePlugin {
       rangeEach(0, currentCollection.rowspan - 1, (i) => {
         rangeEach(0, currentCollection.colspan - 1, (j) => {
           this.hot.removeCellMeta(currentCollection.row + i, currentCollection.col + j, 'hidden');
+          this.hot.removeCellMeta(currentCollection.row + i, currentCollection.col + j, 'copyable');
         });
       });
 
