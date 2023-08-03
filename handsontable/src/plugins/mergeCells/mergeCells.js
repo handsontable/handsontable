@@ -98,6 +98,13 @@ export class MergeCells extends BasePlugin {
      * @type {SelectionCalculations}
      */
     this.selectionCalculations = null;
+    /**
+     * An array of objects with ranges of the visual indexes (startRow, startCol, endRow, endCol) which was copied.
+     *
+     * @private
+     * @type {Array<object>}
+     */
+    this.copiedRanges = [];
   }
 
   /**
@@ -153,6 +160,8 @@ export class MergeCells extends BasePlugin {
       }
     });
     this.addHook('beforePaste', (...args) => this.onBeforePaste(...args));
+    this.addHook('afterCopy', (...args) => this.onAfterCopy(...args));
+    this.addHook('afterCut', (...args) => this.onAfterCopy(...args));
 
     this.registerShortcuts();
 
@@ -1328,16 +1337,71 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
+   * `afterCopy` hook callback. Used for storing information about copied ranges.
+   *
+   * @private
+   * @param {Array<Array>} data An array of arrays which contains the copied data.
+   * @param {Array<object>} copiedRanges An array of objects with ranges of the visual indexes (startRow, startCol, endRow, endCol) which was copied.
+   */
+  onAfterCopy(data, copiedRanges) {
+    this.copiedRanges = copiedRanges;
+  }
+
+  /**
+   * Checks if we copy data from single merged cell.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isCopyingFromMergedCell() {
+    if (this.copiedRanges.length === 1) {
+      const copiedRange = this.copiedRanges[0];
+      const { startRow, startCol, endRow, endCol } = copiedRange;
+      const copiedCellRange = this.getCellRange(startRow, startCol, endRow - startRow + 1,
+        endCol - startCol + 1);
+
+      return this.mergedCellsCollection.getByRange(copiedCellRange) !== false;
+    }
+
+    return false;
+  }
+
+  /**
+   * Checks if unmerge should be performed.
+   *
+   * @private
+   * @param {object} selectionCoords Object with ranges of the visual indexes (startRow, startCol,
+   * endRow, endCol) that correspond to the previously selected area.
+   * @param {number} selectedRows Number of selected rows.
+   * @param {number} selectedColumns Number of selected columns.
+   * @param {number} pastedRows Number of pasted data rows.
+   * @param {number} pastedColumns Number of pasted data columns.
+   * @returns {boolean}
+   */
+  shouldUnmerge(selectionCoords, selectedRows, selectedColumns, pastedRows, pastedColumns) {
+    const selectionRange = this.getCellRange(selectionCoords.startRow, selectionCoords.startCol, selectedRows,
+      selectedColumns);
+    const pastingToMergedCell = this.mergedCellsCollection.getByRange(selectionRange) !== false;
+
+    if (this.isCopyingFromMergedCell() && pastingToMergedCell) {
+      return false;
+    }
+
+    // Doesn't perform unmerge while pasting single cell's data to single merged cell.
+    return pastedColumns > 1 || pastedRows > 1 || pastingToMergedCell === false;
+  }
+
+  /**
    * `beforePaste` hook callback. Used for manipulating with area of paste (by changing selection) and unmerging cells.
    *
    * @private
-   * @param {Array<Array>} data An array of arrays which contains data to paste.
+   * @param {Array<Array>} pastedData An array of arrays which contains data to paste.
    * @param {Array<object>} listOfCoords An array of objects with ranges of the visual indexes (startRow, startCol,
    * endRow, endCol) that correspond to the previously selected area.
    */
-  onBeforePaste(data, listOfCoords) {
-    const pastedColumns = data[0].length;
-    const pastedRows = data.length;
+  onBeforePaste(pastedData, listOfCoords) {
+    const pastedColumns = pastedData[0].length;
+    const pastedRows = pastedData.length;
 
     listOfCoords.forEach((selectionCoords) => {
       const selectedRows = selectionCoords.endRow - selectionCoords.startRow + 1;
@@ -1346,20 +1410,18 @@ export class MergeCells extends BasePlugin {
         pastedColumns);
       const populationRange = this.getCellRange(selectionCoords.startRow, selectionCoords.startCol,
         Math.max(pastedRows, selectedRows), Math.max(pastedColumns, selectedColumns));
-      const selectedOnlySingleCell = this.mergedCellsCollection.getByRange(populationRange) !== false;
 
-      // Doesn't perform unmerge while pasting single cell's data to single merged cell.
-      if (pastedColumns === 1 && pastedRows === 1 && selectedOnlySingleCell) {
-        return;
-      }
-
-      const mergedCellsWithinPopulation = this.mergedCellsCollection.getWithinRange(populationRange, true);
-
-      if (mergedCellsWithinPopulation.length === 0) {
+      if (this.shouldUnmerge(selectionCoords, selectedRows, selectedColumns, pastedRows, pastedColumns) === false) {
         return;
       }
 
       let rangeToUnmerge = pasteRange;
+      const mergedCellsWithinPopulation = this.mergedCellsCollection.getWithinRange(populationRange, true);
+
+      // Nothing to unmerge.
+      if (mergedCellsWithinPopulation.length === 0) {
+        return;
+      }
 
       if (mergedCellsWithinPopulation.length === 1) {
         rangeToUnmerge = populationRange;
@@ -1376,6 +1438,8 @@ export class MergeCells extends BasePlugin {
       }
 
       this.adjustSelectionAfterPasting(listOfUnmergedCells, rangeToUnmerge);
+
+      this.copiedRanges = [];
     });
   }
 }

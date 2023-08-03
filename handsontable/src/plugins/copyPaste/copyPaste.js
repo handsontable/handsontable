@@ -671,7 +671,7 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
-    if (this.hot.runHooks('beforePaste', pastedData, this.copyableRanges) === false) {
+    if (this.hot.runHooks('beforePaste', pastedData, this.copyableRanges, event) === false) {
       return;
     }
 
