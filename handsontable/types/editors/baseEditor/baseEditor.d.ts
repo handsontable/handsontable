@@ -32,6 +32,7 @@ export abstract class BaseEditor {
   finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: () => void): void;
   abstract focus(): void;
   getEditedCell(): HTMLTableCellElement | null;
+  getEditedCellRect(): { top: number, start: number, width: number, maxWidth: number, height: number, maxHeight: number } | undefined;
   getEditedCellsZIndex(): string;
   abstract getValue(): any;
   init(): void;
