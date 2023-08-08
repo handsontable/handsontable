@@ -539,7 +539,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             const startVisualRowIndex = instance.toVisualRow(startRowPhysicalIndex);
 
             if (selection.isSelectedByCorner()) {
-              instance.selectAll();
+              instance.selectAll(false, false);
 
             } else if (isDefined(currentFromRow) && currentFromRow >= startVisualRowIndex) {
               // Moving the selection (if it exists) downward – it should be applied to the "old" row.
@@ -594,7 +594,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             const startVisualColumnIndex = instance.toVisualColumn(startColumnPhysicalIndex);
 
             if (selection.isSelectedByCorner()) {
-              instance.selectAll();
+              instance.selectAll(false, false);
 
             } else if (isDefined(currentFromColumn) && currentFromColumn >= startVisualColumnIndex) {
               // Moving the selection (if it exists) rightward – it should be applied to the "old" column.
@@ -2670,7 +2670,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function clear
    */
   this.clear = function() {
-    this.selectAll();
+    this.selectAll(false, false);
     this.emptySelectedCells();
   };
 

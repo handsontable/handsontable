@@ -61,7 +61,7 @@ export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selec
         selection.setRangeStart(coords);
       }
     } else if (coords.col < 0 && coords.row < 0) {
-      selection.selectAll(true, true, coords);
+      selection.selectAll(false, false, coords);
     }
   }
 }

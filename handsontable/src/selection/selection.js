@@ -632,10 +632,7 @@ class Selection {
    * focus position. The value takes an object with a `row` and `col` properties from -N to N, where
    * negative values point to the headers and positive values point to the cell range.
    */
-  selectAll(includeRowHeaders = false, includeColumnHeaders = false, focusPosition = {
-    row: this.tableProps.countColHeaders() > 0 ? -this.tableProps.countColHeaders() : 0,
-    col: this.tableProps.countRowHeaders() > 0 ? -this.tableProps.countRowHeaders() : 0,
-  }) {
+  selectAll(includeRowHeaders = false, includeColumnHeaders = false, focusPosition) {
     const nrOfRows = this.tableProps.countRows();
     const nrOfColumns = this.tableProps.countCols();
     const countRowHeaders = this.tableProps.countRowHeaders();
@@ -649,23 +646,32 @@ class Selection {
       return;
     }
 
-    const highlightRow = Number.isInteger(focusPosition.row) ? focusPosition.row : 0;
-    const highlightColumn = Number.isInteger(focusPosition.col) ? focusPosition.col : 0;
+    let highlight = this.getSelectedRange().current()?.highlight;
+    let isSelectedByCorner = false;
+
+    if (focusPosition && Number.isInteger(focusPosition?.row) && Number.isInteger(focusPosition?.col)) {
+      isSelectedByCorner = focusPosition.row < 0 && focusPosition.col < 0;
+      highlight = this.tableProps
+        .createCellCoords(
+          clamp(focusPosition.row, rowFrom, nrOfRows - 1),
+          clamp(focusPosition.col, columnFrom, nrOfColumns - 1)
+        );
+    }
+
     const startCoords = this.tableProps.createCellCoords(rowFrom, columnFrom);
-    const highlight = this.tableProps
-      .createCellCoords(
-        clamp(highlightRow, rowFrom, nrOfRows - 1),
-        clamp(highlightColumn, columnFrom, nrOfColumns - 1)
-      );
     const endCoords = this.tableProps.createCellCoords(nrOfRows - 1, nrOfColumns - 1);
 
     this.clear();
     this.setRangeStartOnly(startCoords, void 0, highlight);
 
-    if (columnFrom < 0) {
+    if (isSelectedByCorner) {
       this.selectedByRowHeader.add(this.getLayerLevel());
-    }
-    if (rowFrom < 0) {
+      this.selectedByColumnHeader.add(this.getLayerLevel());
+
+    } else if (columnFrom < 0) {
+      this.selectedByRowHeader.add(this.getLayerLevel());
+
+    } else if (rowFrom < 0) {
       this.selectedByColumnHeader.add(this.getLayerLevel());
     }
 

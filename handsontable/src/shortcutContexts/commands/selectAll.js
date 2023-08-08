@@ -1,6 +1,6 @@
 export const command = {
   name: 'selectAll',
   callback(hot) {
-    hot.selectAll();
+    hot.selectAll(false, false);
   },
 };
