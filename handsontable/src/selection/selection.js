@@ -628,11 +628,11 @@ class Selection {
    * `false` otherwise.
    * @param {boolean} [includeColumnHeaders=false] `true` If the selection should include the column
    * headers, `false` otherwise.
-   * @param {{row: number, col: number}} [focusPosition] The argument allows changing the cell/header
+   * @param {{row: number, col: number} | false} [focusPosition] The argument allows changing the cell/header
    * focus position. The value takes an object with a `row` and `col` properties from -N to N, where
    * negative values point to the headers and positive values point to the cell range.
    */
-  selectAll(includeRowHeaders = false, includeColumnHeaders = false, focusPosition) {
+  selectAll(includeRowHeaders = false, includeColumnHeaders = false, focusPosition = false) {
     const nrOfRows = this.tableProps.countRows();
     const nrOfColumns = this.tableProps.countCols();
     const countRowHeaders = this.tableProps.countRowHeaders();
