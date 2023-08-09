@@ -4888,12 +4888,24 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Return the Focus Manager responsible for managing the browser's focus in the table.
    *
    * @memberof Core#
-   * @since 13.0.0
+   * @since 14.0.0
    * @function getFocusManager
    * @returns {FocusManager}
    */
   this.getFocusManager = function() {
     return focusManager;
+  };
+
+  /**
+   * Return the Aria Manager responsible for managing the ARIA attributes added to the table.
+   *
+   * @memberof Core#
+   * @since 14.0.0
+   * @function getAriaManager
+   * @returns {AriaManager}
+   */
+  this.getAriaManager = function() {
+    return ariaManager;
   };
 
   getPluginsNames().forEach((pluginName) => {
