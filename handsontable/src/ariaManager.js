@@ -128,6 +128,11 @@ export class AriaManager {
    * @param {number} visualColumnIndex The visual column index.
    */
   #onAfterRenderer(TD, visualRowIndex, visualColumnIndex) {
+    // Don't add aria tags to the ghost table.
+    if (TD.getAttribute('ghost-table')) {
+      return;
+    }
+
     const firstRenderedColumn = this.#hot.view._wt.wtTable.getFirstRenderedColumn();
     const cellMeta = this.#hot.getCellMeta(visualRowIndex, visualColumnIndex);
 
@@ -249,6 +254,11 @@ export class AriaManager {
    * @param {HTMLElement} thElement The header's HTML element.
    */
   #onAfterGetRowHeader(rowIndex, thElement) {
+    // Don't add aria tags to the ghost table.
+    if (!thElement.parentElement) {
+      return;
+    }
+
     // Add tags to the parent TR element only once per row
     if (this.#hasRowHeaders) {
       this.#applyAriaInformation(
@@ -269,6 +279,11 @@ export class AriaManager {
    * @param {HTMLElement} thElement The header's HTML element.
    */
   #onAfterGetColHeader(colIndex, thElement) {
+    // Don't add aria tags to the ghost table.
+    if (!thElement.parentElement) {
+      return;
+    }
+
     // Add tags to the parent TR element only once per row
     if (this.#hasColumnHeaders) {
       this.#applyAriaInformation(
