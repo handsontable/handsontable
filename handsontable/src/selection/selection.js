@@ -667,11 +667,12 @@ class Selection {
     if (isSelectedByCorner) {
       this.selectedByRowHeader.add(this.getLayerLevel());
       this.selectedByColumnHeader.add(this.getLayerLevel());
+    }
 
-    } else if (columnFrom < 0) {
+    if (columnFrom < 0) {
       this.selectedByRowHeader.add(this.getLayerLevel());
-
-    } else if (rowFrom < 0) {
+    }
+    if (rowFrom < 0) {
       this.selectedByColumnHeader.add(this.getLayerLevel());
     }
 
