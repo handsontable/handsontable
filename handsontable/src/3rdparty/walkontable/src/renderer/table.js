@@ -275,9 +275,6 @@ export default class TableRenderer {
         const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
         const rowHeight = this.rowUtils.getHeight(sourceRowIndex);
 
-        TR.ariaRowIndex = sourceRowIndex;
-        TR.setAttribute('role', 'row');
-
         if (rowHeight) {
           // Decrease height. 1 pixel will be "replaced" by 1px border top
           TR.firstChild.style.height = `${rowHeight - 1}px`;

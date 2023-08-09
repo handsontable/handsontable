@@ -755,6 +755,7 @@ class TableView {
           value,
           cellProperties
         );
+
         this.instance.runHooks('afterRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
       },
       selections: this.instance.selection.highlight,

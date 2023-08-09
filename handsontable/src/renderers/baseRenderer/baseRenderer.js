@@ -43,11 +43,6 @@ export function baseRenderer(instance, TD, row, col, prop, value, cellProperties
 
   removeClass(TD, classesToRemove);
   addClass(TD, classesToAdd);
-
-  TD.ariaColIndex = col;
-  TD.setAttribute('tabindex', '-1');
-  TD.setAttribute('role', 'gridcell');
-
 }
 
 baseRenderer.RENDERER_TYPE = RENDERER_TYPE;
