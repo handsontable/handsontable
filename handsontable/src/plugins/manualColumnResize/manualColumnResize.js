@@ -1,5 +1,6 @@
 import { BasePlugin } from '../base';
-import { addClass, closest, hasClass, removeClass, outerHeight, isDetached } from '../../helpers/dom/element';
+import { addClass, closest, hasClass, removeClass, outerHeight, isDetached,
+  overlayContainsElement } from '../../helpers/dom/element';
 import EventManager from '../../eventManager';
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
@@ -237,6 +238,14 @@ export class ManualColumnResize extends BasePlugin {
     }
 
     this.currentTH = TH;
+
+    const hotRootElement = this.hot.rootElement;
+
+    // Handling elements placed only inside columns header of the main instance.
+    if (overlayContainsElement('top_inline_start_corner', this.currentTH, hotRootElement) === false &&
+      overlayContainsElement('top', this.currentTH, hotRootElement) === false) {
+      return;
+    }
 
     const { _wt: wt } = this.hot.view;
     const cellCoords = wt.wtTable.getCoords(this.currentTH);
