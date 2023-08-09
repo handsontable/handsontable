@@ -61,12 +61,6 @@ module.exports = {
       crossorigin: ''
     }],
     ['meta', { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
-    // Cookiebot - cookie consent popup
-    ['script', {
-      id: 'Cookiebot',
-      src: 'https://consent.cookiebot.com/uc.js',
-      'data-cbid': 'ef171f1d-a288-433f-b680-3cdbdebd5646'
-    }],
     ['script', {}, `const DOCS_VERSION = '${getThisDocsVersion()}';`],
     ['script', {}, `
       (function(w, d) {
