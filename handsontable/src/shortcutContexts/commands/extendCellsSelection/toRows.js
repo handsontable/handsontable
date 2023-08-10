@@ -4,7 +4,7 @@ export const command = {
     const { highlight, from, to } = hot.getSelectedRangeLast();
 
     if (hot.selection.isSelectedByColumnHeader()) {
-      hot.selectAll(true, true, highlight);
+      hot.selection.selectAll(true, true);
     } else {
       hot.selectRows(from.row, to.row, highlight.col);
     }

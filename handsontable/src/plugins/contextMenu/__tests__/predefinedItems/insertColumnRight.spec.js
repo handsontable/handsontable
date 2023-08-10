@@ -174,13 +174,13 @@ describe('ContextMenu', () => {
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', null]);
       expect(`
-        | * ║ * : * : * : * : * : * |
+        |   ║ - : - : - : - : - : - |
         |===:===:===:===:===:===:===|
-        | * ║ A : 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | - ║ A : 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 : 0 |
         `).toBeMatchToSelectionPattern();
     });
 
@@ -204,13 +204,13 @@ describe('ContextMenu', () => {
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
       expect(`
-        | * ║ * : * : * : * : * |
+        |   ║ - : - : - : - : - |
         |===:===:===:===:===:===|
-        | * ║ A : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ A : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
         `).toBeMatchToSelectionPattern();
     });
 
@@ -235,7 +235,7 @@ describe('ContextMenu', () => {
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getColHeader()).toEqual([1, 2, 3, 4, 5, 'F']);
       expect(`
-        | * ║ * : * : * : * : * : * |
+        |   ║ - : - : - : - : - : - |
         |===:===:===:===:===:===:===|
         `).toBeMatchToSelectionPattern();
     });
@@ -260,13 +260,13 @@ describe('ContextMenu', () => {
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(`
-        | * ║ * |
+        |   ║ - |
         |===:===|
-        | * ║ A |
-        | * ║ 0 |
-        | * ║ 0 |
-        | * ║ 0 |
-        | * ║ 0 |
+        | - ║ A |
+        | - ║ 0 |
+        | - ║ 0 |
+        | - ║ 0 |
+        | - ║ 0 |
         `).toBeMatchToSelectionPattern();
     });
 
@@ -290,7 +290,7 @@ describe('ContextMenu', () => {
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(`
-        | * ║ * |
+        |   ║ - |
         |===:===|
         `).toBeMatchToSelectionPattern();
     });

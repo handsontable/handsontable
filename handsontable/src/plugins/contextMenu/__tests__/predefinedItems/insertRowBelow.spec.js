@@ -85,14 +85,14 @@ describe('ContextMenu', () => {
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', null]);
       expect(`
-        | * ║ * : * : * : * : * |
+        |   ║ - : - : - : - : - |
         |===:===:===:===:===:===|
-        | * ║ A : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ A : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
         `).toBeMatchToSelectionPattern();
     });
 
@@ -186,9 +186,9 @@ describe('ContextMenu', () => {
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual([null]);
       expect(`
-        | * ║ * : * : * : * : * |
+        |   ║ - : - : - : - : - |
         |===:===:===:===:===:===|
-        | * ║ A : 0 : 0 : 0 : 0 |
+        | - ║ A : 0 : 0 : 0 : 0 |
         `).toBeMatchToSelectionPattern();
     });
 
@@ -214,14 +214,14 @@ describe('ContextMenu', () => {
       // Should be `[1, 'A', 'B', 'C', 'D', 'E']`.
       expect(getRowHeader()).toEqual(['A', 'B', 'C', 'D', 'E', 6]);
       expect(`
-        | * |
+        |   |
         |===|
-        | * |
-        | * |
-        | * |
-        | * |
-        | * |
-        | * |
+        | - |
+        | - |
+        | - |
+        | - |
+        | - |
+        | - |
         `).toBeMatchToSelectionPattern();
     });
 
@@ -247,9 +247,9 @@ describe('ContextMenu', () => {
       // Should be `[1]`.
       expect(getRowHeader()).toEqual(['A']);
       expect(`
-        | * |
+        |   |
         |===|
-        | * |
+        | - |
         `).toBeMatchToSelectionPattern();
     });
 

@@ -186,13 +186,13 @@ describe('ContextMenu', () => {
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
-        | * ║ * : * : * : * : * |
+        |   ║ - : - : - : - : - |
         |===:===:===:===:===:===|
-        | * ║ A : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ A : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
         `).toBeMatchToSelectionPattern();
     });
 
@@ -242,13 +242,13 @@ describe('ContextMenu', () => {
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
-        | * |
+        |   |
         |===|
-        | * |
-        | * |
-        | * |
-        | * |
-        | * |
+        | - |
+        | - |
+        | - |
+        | - |
+        | - |
         `).toBeMatchToSelectionPattern();
     });
 
@@ -272,7 +272,7 @@ describe('ContextMenu', () => {
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
-        | * |
+        |   |
         |===|
         `).toBeMatchToSelectionPattern();
     });
