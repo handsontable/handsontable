@@ -826,21 +826,15 @@ describe('HiddenRows', () => {
           expect(getCell(2, 0).innerText).toBe('A3');
           expect(getCell(3, 0).innerText).toBe('A4');
           expect(getCell(4, 0).innerText).toBe('A5');
-          expect(getSelected()).toEqual([[-1, -1, 4, 1]]);
-          expect(getSelectedRangeLast().highlight.row).toBe(0);
-          expect(getSelectedRangeLast().highlight.col).toBe(0);
-          expect(getSelectedRangeLast().from.row).toBe(-1);
-          expect(getSelectedRangeLast().from.col).toBe(-1);
-          expect(getSelectedRangeLast().to.row).toBe(4);
-          expect(getSelectedRangeLast().to.col).toBe(1);
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 4,1']);
           expect(`
-            | * ║ * : * |
+            |   ║ - : - |
             |===:===:===|
-            | * ║ A : 0 |
-            | * ║ 0 : 0 |
-            | * ║ 0 : 0 |
-            | * ║ 0 : 0 |
-            | * ║ 0 : 0 |
+            | - ║ A : 0 |
+            | - ║ 0 : 0 |
+            | - ║ 0 : 0 |
+            | - ║ 0 : 0 |
+            | - ║ 0 : 0 |
           `).toBeMatchToSelectionPattern();
         });
 

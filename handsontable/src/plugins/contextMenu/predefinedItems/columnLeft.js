@@ -12,10 +12,10 @@ export default function columnLeftItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_LEFT);
     },
     callback() {
-      const latestSelection = this.getSelectedRangeLast().getTopLeftCorner();
+      const currentColumn = this.getSelectedRangeLast()?.getTopLeftCorner()?.col ?? 0;
       const alterAction = this.isRtl() ? 'insert_col_end' : 'insert_col_start';
 
-      this.alter(alterAction, latestSelection.col, 1, 'ContextMenu.columnLeft');
+      this.alter(alterAction, currentColumn, 1, 'ContextMenu.columnLeft');
     },
     disabled() {
       if (!this.isColumnModificationAllowed()) {

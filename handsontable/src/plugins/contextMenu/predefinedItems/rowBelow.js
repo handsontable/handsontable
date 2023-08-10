@@ -12,11 +12,16 @@ export default function rowBelowItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_BELOW);
     },
     callback() {
-      const latestSelection = this.getSelectedRangeLast().getBottomRightCorner();
+      const currentRow = this.getSelectedRangeLast()?.getBottomRightCorner()?.row ?? 0;
 
-      this.alter('insert_row_below', latestSelection.row, 1, 'ContextMenu.rowBelow');
+      this.alter('insert_row_below', currentRow, 1, 'ContextMenu.rowBelow');
     },
     disabled() {
+      // allows adding new row below when dataset is empty
+      if (this.countSourceRows() === 0 && this.countSourceRows() === 0) {
+        return false;
+      }
+
       const range = this.getSelectedRangeLast();
 
       if (!range) {

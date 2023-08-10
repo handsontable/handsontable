@@ -641,8 +641,11 @@ class Selection {
     const rowFrom = includeRowHeaders ? -countColHeaders : 0;
     const columnFrom = includeColumnHeaders ? -countRowHeaders : 0;
 
-    // We can't select cells when there is no data.
     if (rowFrom === 0 && columnFrom === 0 && (nrOfRows === 0 || nrOfColumns === 0)) {
+      this.selectedByColumnHeader.clear();
+      this.selectedByRowHeader.clear();
+      this.deselect();
+
       return;
     }
 

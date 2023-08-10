@@ -454,7 +454,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should select the row and column headers after clicking the corner header, when all rows are trimmed', () => {
+  it('should select row and column headers after clicking the corner header, when all rows are trimmed', () => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeaders: true,
@@ -464,9 +464,9 @@ describe('Selection using mouse interaction', () => {
 
     simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(0)'));
 
-    expect(getSelected()).toEqual([[-1, -1, -1, 4]]);
+    expect(getSelected()).toBeUndefined();
     expect(`
-      | * ║ * : * : * : * : * |
+      |   ║   :   :   :   :   |
       |===:===:===:===:===:===|
     `).toBeMatchToSelectionPattern();
   });
@@ -1057,15 +1057,15 @@ describe('Selection using mouse interaction', () => {
 
     spec().$container.find('thead').find('th').eq(0).simulate('mousedown');
 
-    expect(getSelected()).toEqual([[-1, -1, 4, 4]]);
+    expect(getSelected()).toEqual([[0, 0, 4, 4]]);
     expect(`
-      | * ║ * : * : * : * : * |
+      |   ║ - : - : - : - : - |
       |===:===:===:===:===:===|
-      | * ║ A : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 |
+      | - ║ A : 0 : 0 : 0 : 0 |
+      | - ║ 0 : 0 : 0 : 0 : 0 |
+      | - ║ 0 : 0 : 0 : 0 : 0 |
+      | - ║ 0 : 0 : 0 : 0 : 0 |
+      | - ║ 0 : 0 : 0 : 0 : 0 |
     `).toBeMatchToSelectionPattern();
   });
 

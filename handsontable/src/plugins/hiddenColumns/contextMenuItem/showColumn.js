@@ -51,8 +51,7 @@ export default function showColumnItem(hiddenColumnsPlugin) {
         return this.toPhysicalColumn(visualColumnIndex);
       });
 
-      if (!(this.selection.isSelectedByColumnHeader() || this.selection.isSelectedByCorner()) ||
-          hiddenPhysicalColumns.length < 1) {
+      if (!this.selection.isSelectedByColumnHeader() || hiddenPhysicalColumns.length < 1) {
         return true;
       }
 

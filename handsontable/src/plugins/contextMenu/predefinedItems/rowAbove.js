@@ -12,9 +12,9 @@ export default function rowAboveItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_ABOVE);
     },
     callback() {
-      const latestSelection = this.getSelectedRangeLast().getTopLeftCorner();
+      const currentRow = this.getSelectedRangeLast()?.getTopLeftCorner()?.row ?? 0;
 
-      this.alter('insert_row_above', latestSelection.row, 1, 'ContextMenu.rowAbove');
+      this.alter('insert_row_above', currentRow, 1, 'ContextMenu.rowAbove');
     },
     disabled() {
       const range = this.getSelectedRangeLast();

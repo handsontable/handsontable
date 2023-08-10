@@ -100,9 +100,9 @@ describe('HiddenRows', () => {
 
       simulateClick(header, 'LMB');
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 4,4']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 4,4']);
       expect(`
-        | * ║ * : * : * : * : * |
+        |   ║ - : - : - : - : - |
         |===:===:===:===:===:===|
       `).toBeMatchToSelectionPattern();
     });
@@ -277,12 +277,12 @@ describe('HiddenRows', () => {
 
         simulateClick(corner, 'LMB');
 
-        expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: -1,-1 to: 4,4']);
+        expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 0,0 to: 4,4']);
         expect(`
-          | * ║ * : * : * : * : * |
+          |   ║ - : - : - : - : - |
           |===:===:===:===:===:===|
-          | * ║ A : 0 : 0 : 0 : 0 |
-          | * ║ 0 : 0 : 0 : 0 : 0 |
+          | - ║ A : 0 : 0 : 0 : 0 |
+          | - ║ 0 : 0 : 0 : 0 : 0 |
         `).toBeMatchToSelectionPattern();
       });
 
@@ -300,9 +300,9 @@ describe('HiddenRows', () => {
 
         simulateClick(corner, 'LMB');
 
-        expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 4,4']);
+        expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 4,4']);
         expect(`
-          | * ║ * : * : * : * : * |
+          |   ║ - : - : - : - : - |
           |===:===:===:===:===:===|
         `).toBeMatchToSelectionPattern();
       });

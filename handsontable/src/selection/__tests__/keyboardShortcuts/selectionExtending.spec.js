@@ -2852,15 +2852,15 @@ describe('Selection extending', () => {
       keyDownUp(['control/meta', 'a']);
 
       expect(`
-        | * ║ * : * : * : * : * |
+        |   ║ - : - : - : - : - |
         |===:===:===:===:===:===|
-        | * ║ A : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : A : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 4,4']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 0,0 to: 4,4']);
     });
   });
 
@@ -2877,15 +2877,15 @@ describe('Selection extending', () => {
       keyDownUp(['control/meta', 'shift', 'space']);
 
       expect(`
-        | * ║ * : * : * : * : * |
+        |   ║ - : - : - : - : - |
         |===:===:===:===:===:===|
-        | * ║ A : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : A : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 4,4']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 0,0 to: 4,4']);
     });
   });
 

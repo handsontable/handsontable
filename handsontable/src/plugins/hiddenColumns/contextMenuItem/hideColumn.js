@@ -48,7 +48,7 @@ export default function hideColumnItem(hiddenColumnsPlugin) {
     },
     disabled: false,
     hidden() {
-      return !(this.selection.isSelectedByColumnHeader() || this.selection.isSelectedByCorner());
+      return !this.selection.isSelectedByColumnHeader();
     }
   };
 }
