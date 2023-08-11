@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [13.1.0] - 2023-08-17
+## [13.1.0] - 2023-08-21
 
 ### Changed
 - Optimized the transpilation process of the distribution files. [#10440](https://github.com/handsontable/handsontable/pull/10440)
@@ -17,7 +17,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Fixed
 - Fixed a problem with errors being thrown when pressing `delete` or `backspace` keys after deselecting cells. [#10272](https://github.com/handsontable/handsontable/issues/10272)
 - Fixed problems with moving rows when there are trimmed rows in the table. [#10399](https://github.com/handsontable/handsontable/pull/10399)
-- Fixed a problem with the column resize handler being stuck after the used clicked the right mouse button.  [#10416](https://github.com/handsontable/handsontable/pull/10416)
+- Fixed a problem with the column resize handle being stuck after the used clicked the right mouse button.  [#10416](https://github.com/handsontable/handsontable/pull/10416)
 - Extended the type definition of `CellChange` to match the actual implementation. [#10432](https://github.com/handsontable/handsontable/issues/10432)
 - Fixed a typo in the Copy Paste plugin's `copy` method argument. [#10446](https://github.com/handsontable/handsontable/pull/10446)
 - Fixed the mobile selection handlers that disappeared below the table headers when multiple cells were selected. [#10447](https://github.com/handsontable/handsontable/pull/10447)
