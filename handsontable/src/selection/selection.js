@@ -76,6 +76,11 @@ class Selection {
    * @type {Set<number>}
    */
   selectedByColumnHeader = new Set();
+  /**
+   * When sets disable highlighting the headers even when the logical coordinates points on them.
+   *
+   * @type {boolean}
+   */
   #disableHeadersHighlight = false;
 
   constructor(settings, tableProps) {
@@ -629,9 +634,12 @@ class Selection {
    * `false` otherwise.
    * @param {boolean} [includeColumnHeaders=false] `true` If the selection should include the column
    * headers, `false` otherwise.
-   * @param {object} [options] The argument allows changing the cell/header
+   * @param {object} [options] Additional object with options.
+   * @param {{row: number, col: number}} [options.focusPosition] The argument allows changing the cell/header
    * focus position. The value takes an object with a `row` and `col` properties from -N to N, where
    * negative values point to the headers and positive values point to the cell range.
+   * @param {boolean} [options.disableHeadersHighlight] If `true`, disables highlighting the headers event when
+   * the logical coordinates points on them.
    */
   selectAll(includeRowHeaders = false, includeColumnHeaders = false, options = {
     focusPosition: false,
