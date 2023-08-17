@@ -42,7 +42,7 @@ on:
       - examples/next/**
 
 env:
-  NODE_VERSION: 16
+  NODE_VERSION: 20
 
 jobs:
   prepare-matrix:
@@ -299,7 +299,7 @@ jobs:
       fail-fast: false
       matrix:
         version: ${{fromJson(needs.prepare-matrix.outputs.versions)}}
-        framework: [angular, angular-12, angular-13, angular-14, angular-15, angular-16, js, react, vue, vue3, ts]
+        framework: [angular, angular-13, angular-14, angular-15, angular-16, js, react, vue, vue3, ts]
 
     env:
       FRAMEWORK_EXAMPLES_PATH: examples/${{ matrix.version }}/docs/${{ matrix.framework }}
@@ -411,8 +411,8 @@ jobs:
 
       # Setup symlinks for the needed packages
       - run: |
-          node --experimental-json-modules ./scripts/swap-package-links.mjs handsontable
-          node --experimental-json-modules ./scripts/swap-package-links.mjs @handsontable/${{ matrix.framework }}
+          node ./scripts/swap-package-links.mjs handsontable
+          node ./scripts/swap-package-links.mjs @handsontable/${{ matrix.framework }}
         if: matrix.version == 'next' && steps.path-check.outputs.n-a != 'true'
 
       # ---------------------------------------------------------
