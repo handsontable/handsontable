@@ -1,7 +1,7 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fse from 'fs-extra';
 import fs from 'fs/promises';
+import fse from 'fs-extra';
 import utils from './utils.js';
 import { getThisDocsVersion } from '../helpers.js';
 
