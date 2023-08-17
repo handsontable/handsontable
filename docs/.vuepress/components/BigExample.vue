@@ -19,7 +19,7 @@
       </div>
     </div>
 
-    <div id="tab-content-preview" class="active">
+    <div id="tab-content-preview"  class="active">
       <iframe
         :src="previewUrl"
         class="bigPreviewExampleIframe"
