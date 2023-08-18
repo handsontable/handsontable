@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [13.1.0] - 2023-08-21
+## [13.1.0] - 2023-08-23
 
 ### Changed
 - Optimized the transpilation process of the distribution files. [#10440](https://github.com/handsontable/handsontable/pull/10440)
