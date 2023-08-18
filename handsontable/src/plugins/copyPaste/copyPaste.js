@@ -792,6 +792,8 @@ export class CopyPaste extends BasePlugin {
   /**
    * `document.body` `mouseenter` callback used to work around a Safari's problem with copying/cutting from the
    * browser's menu.
+   *
+   * @private
    */
   onSafariMouseEnter() {
     this.#removeContentEditableFromHighlightedCell();
@@ -800,6 +802,8 @@ export class CopyPaste extends BasePlugin {
   /**
    * `document.body` `mouseleave` callback used to work around a Safari's problem with copying/cutting from the
    * browser's menu.
+   *
+   * @private
    */
   onSafariMouseLeave() {
     this.#addContentEditableToHighlightedCell();
@@ -807,6 +811,8 @@ export class CopyPaste extends BasePlugin {
 
   /**
    * `afterSelection` hook callback triggered only on Safari.
+   *
+   * @private
    */
   onSafariAfterSelection() {
     this.#removeContentEditableFromHighlightedCell();
