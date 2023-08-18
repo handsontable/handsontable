@@ -975,13 +975,18 @@ export function observeVisibilityChangeOnce(elementToBeObserved, callback) {
  *
  * @param {HTMLElement} element Element to be processed.
  * @param {boolean} [invisibleSelection=true] `true` if the class should be added to the element.
+ * @param {boolean} [ariaHidden=true] `true` if the `aria-hidden` attribute should be added to the processed element.
  */
-export function makeElementContentEditableAndSelectItsContent(element, invisibleSelection = true) {
+export function makeElementContentEditableAndSelectItsContent(element, invisibleSelection = true, ariaHidden = true) {
   const ownerDocument = element.ownerDocument;
   const range = ownerDocument.createRange();
   const sel = ownerDocument.defaultView.getSelection();
 
   element.setAttribute('contenteditable', true);
+
+  if (ariaHidden) {
+    element.setAttribute('aria-hidden', true);
+  }
 
   if (invisibleSelection) {
     addClass(element, 'invisibleSelection');
@@ -1003,6 +1008,10 @@ export function makeElementContentEditableAndSelectItsContent(element, invisible
  */
 export function removeContentEditableFromElementAndDeselect(selectedElement, removeInvisibleSelectionClass = true) {
   const sel = selectedElement.ownerDocument.defaultView.getSelection();
+
+  if (selectedElement.hasAttribute('aria-hidden')) {
+    selectedElement.removeAttribute('aria-hidden');
+  }
 
   sel.removeAllRanges();
 

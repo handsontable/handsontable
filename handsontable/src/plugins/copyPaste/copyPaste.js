@@ -237,6 +237,8 @@ export class CopyPaste extends BasePlugin {
       this.eventManager.addEventListener(
         this.hot.rootDocument.body, 'mouseleave', (...args) => this.onSafariMouseLeave(...args)
       );
+
+      this.addHook('afterSelection', () => this.onSafariAfterSelection());
     }
 
     super.enablePlugin();
@@ -457,12 +459,17 @@ export class CopyPaste extends BasePlugin {
     // Without this workaround Safari (tested on Safari@16.5.2) does not trigger the 'copy' event.
     if (isSafari()) {
       const lastSelectedRange = this.hot.getSelectedRangeLast();
-      const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
-      const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
 
-      runWithSelectedContendEditableElement(currentlySelectedCell, () => {
-        this.hot.rootDocument.execCommand(eventName);
-      });
+      if (lastSelectedRange) {
+        const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
+        const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
+
+        if (currentlySelectedCell) {
+          runWithSelectedContendEditableElement(currentlySelectedCell, () => {
+            this.hot.rootDocument.execCommand(eventName);
+          });
+        }
+      }
 
     } else {
       this.hot.rootDocument.execCommand(eventName);
@@ -560,6 +567,43 @@ export class CopyPaste extends BasePlugin {
     this.hot.populateFromArray(startRow, startColumn, newRows, void 0, void 0, 'CopyPaste.paste', this.pasteMode);
 
     return [startRow, startColumn, lastVisualRow, lastVisualColumn];
+  }
+
+  /**
+   * Add the `contenteditable` attribute to the highlighted cell and select its content.
+   */
+  #addContentEditableToHighlightedCell() {
+    if (this.hot.isListening()) {
+      const lastSelectedRange = this.hot.getSelectedRangeLast();
+
+      if (lastSelectedRange) {
+        const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
+        const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
+
+        if (currentlySelectedCell) {
+          makeElementContentEditableAndSelectItsContent(currentlySelectedCell);
+        }
+      }
+    }
+  }
+
+  /**
+   * Remove the `contenteditable` attribute from the highlighted cell and deselect its content.
+   */
+  #removeContentEditableFromHighlightedCell() {
+    // If the instance is not listening, the workaround is not needed.
+    if (this.hot.isListening()) {
+      const lastSelectedRange = this.hot.getSelectedRangeLast();
+
+      if (lastSelectedRange) {
+        const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
+        const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
+
+        if (currentlySelectedCell && currentlySelectedCell.hasAttribute('contenteditable')) {
+          removeContentEditableFromElementAndDeselect(currentlySelectedCell);
+        }
+      }
+    }
   }
 
   /**
@@ -750,17 +794,7 @@ export class CopyPaste extends BasePlugin {
    * browser's menu.
    */
   onSafariMouseEnter() {
-    // If the instance is not listening, the workaround is not needed.
-    if (this.hot.isListening()) {
-      const lastSelectedRange = this.hot.getSelectedRangeLast();
-
-      if (lastSelectedRange) {
-        const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
-        const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
-
-        removeContentEditableFromElementAndDeselect(currentlySelectedCell);
-      }
-    }
+    this.#removeContentEditableFromHighlightedCell();
   }
 
   /**
@@ -768,15 +802,14 @@ export class CopyPaste extends BasePlugin {
    * browser's menu.
    */
   onSafariMouseLeave() {
-    if (this.hot.isListening()) {
-      const lastSelectedRange = this.hot.getSelectedRangeLast();
-      const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
-      const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
+    this.#addContentEditableToHighlightedCell();
+  }
 
-      if (lastSelectedRange) {
-        makeElementContentEditableAndSelectItsContent(currentlySelectedCell);
-      }
-    }
+  /**
+   * `afterSelection` hook callback triggered only on Safari.
+   */
+  onSafariAfterSelection() {
+    this.#removeContentEditableFromHighlightedCell();
   }
 
   /**
