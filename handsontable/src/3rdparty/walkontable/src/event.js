@@ -43,7 +43,8 @@ class Event {
      * Should be use only for passing face called external origin methods, like registered event listeners.
      * It provides backward compatibility by getting instance facade.
      *
-     * @todo Consider about removing this from Event class, because it make relationship into facade (implicit circular dependency).
+     * @todo Consider about removing this from Event class, because it make relationship into facade (implicit circular
+     *   dependency).
      * @todo Con. Maybe passing listener caller as an ioc from faced resolves this issue. To rethink later.
      *
      * @type {FacadeGetter}
@@ -176,10 +177,15 @@ class Event {
     const getParentNode = partial(getParent, event.target);
     const realTarget = event.target;
 
-    // ignore focusable element from mouse down processing (https://github.com/handsontable/handsontable/issues/3555)
-    if (realTarget === activeElement ||
+    // ignore non-TD focusable elements from mouse down processing
+    // (https://github.com/handsontable/handsontable/issues/3555)
+    if (!['TD', 'TH'].includes(activeElement.nodeName) &&
+      (
+        realTarget === activeElement ||
         getParentNode(0) === activeElement ||
-        getParentNode(1) === activeElement) {
+        getParentNode(1) === activeElement
+      )
+    ) {
       return;
     }
 

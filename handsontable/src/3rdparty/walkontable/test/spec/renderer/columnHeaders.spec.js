@@ -18,6 +18,15 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     return { renderer, tableMock, rootNode };
   }
 
+  beforeEach(function() {
+    // Matchers configuration.
+    this.matchersConfig = {
+      toMatchHTML: {
+        keepAttributes: ['class']
+      }
+    };
+  });
+
   it('should generate as many TR (with TH) as the `columnHeadersCount`, `rowHeadersCount` and `columnsToRender` is set', () => {
     const { renderer, tableMock, rootNode } = createRenderer();
 

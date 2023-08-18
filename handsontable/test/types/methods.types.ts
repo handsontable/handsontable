@@ -72,6 +72,7 @@ hot.getDataAtRow(123).forEach(v => v === '');
 hot.getDataAtRowProp(123, 'foo') === '';
 hot.getDataType(123, 123, 123, 123) === 'text';
 hot.getDirectionFactor() === 1;
+hot.getFocusManager();
 
 const _hot: Handsontable = hot.getInstance();
 

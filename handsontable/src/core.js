@@ -14,6 +14,7 @@ import {
   createObjectPropListener,
   objectEach
 } from './helpers/object';
+import { FocusManager } from './focusManager';
 import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray, pivot } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
 import { getPlugin, getPluginsNames } from './plugins/registry';
@@ -116,6 +117,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   let dataSource;
   let grid;
   let editorManager;
+  let focusManager;
   let firstRun = true;
 
   if (hasValidParameter(rootInstanceSymbol)) {
@@ -1166,7 +1168,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.updateSettings(tableMeta, true);
 
     this.view = new TableView(this);
+
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
+
+    focusManager = new FocusManager(instance);
 
     if (isRootInstance(this)) {
       installFocusCatcher(instance);
@@ -4873,6 +4878,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getShortcutManager = function() {
     return shortcutManager;
+  };
+
+  /**
+   * Return the Focus Manager responsible for managing the browser's focus in the table.
+   *
+   * @memberof Core#
+   * @since 13.0.0
+   * @function getFocusManager
+   * @returns {FocusManager}
+   */
+  this.getFocusManager = function() {
+    return focusManager;
   };
 
   getPluginsNames().forEach((pluginName) => {

@@ -17,6 +17,7 @@ import { BaseValidator } from './validators/base';
 import { Plugins } from './plugins';
 import { CellType } from './cellTypes';
 import { ShortcutManager } from './shortcuts';
+import { FocusManager } from './focusManager';
 
 type AlterActions = 'insert_row_above' | 'insert_row_below' |
                     'insert_col_start' | 'insert_col_end' |
@@ -77,6 +78,7 @@ export default class Core {
   getDataAtRowProp(row: number, prop: string): CellValue;
   getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): CellType | 'mixed';
   getDirectionFactor(): 1 | -1;
+  getFocusManager(): FocusManager;
   getInstance(): Core;
   getPlugin<T extends keyof Plugins>(pluginName: T): Plugins[T];
   getPlugin(pluginName: string): Plugins['basePlugin'];

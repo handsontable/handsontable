@@ -47,6 +47,59 @@ beforeEach(function() {
     return currentSpec.$container.data('handsontable');
   }
 
+  /**
+   * Extend the matcher factories with the `matchersUtil` argument extended with a configuration provided in the
+   * spec as:
+   * ```.
+   * spec().matchersConfig['matcherName'] = {
+   *   configItem: true,
+   *   // ...
+   * }
+   * ```.
+   *
+   * @param {object} matchers The object containing custom matcher factories.
+   * @returns {object}
+   */
+  function extendMatchersWithConfig(matchers) {
+    Object.keys(matchers).forEach((matcherName) => {
+      const matcherFactory = matchers[matcherName];
+
+      matchers[matcherName] = function(matchersUtil) {
+        if (matchersUtil && currentSpec.matchersConfig?.[matcherName]) {
+          matchersUtil.matcherConfig = currentSpec.matchersConfig[matcherName];
+        }
+
+        return matcherFactory(matchersUtil);
+      };
+    });
+
+    return matchers;
+  }
+
+  /**
+   * Modify the matchers configuration to match the one used in Jest.
+   * This allows sharing matchers between unit and e2e tests.
+   *
+   * @param {object} matchers The matchers object.
+   * @returns {object} A modified matchers object.
+   */
+  function modifyMatchersForJest(matchers) {
+    Object.keys(matchers).forEach((matcherName) => {
+      const jasmineMatcher = matchers[matcherName];
+
+      matchers[matcherName] = (received, expected, ...args) => {
+        const jasmineMatcherResult = jasmineMatcher().compare(received, expected, ...args);
+
+        return {
+          message: () => jasmineMatcherResult.message,
+          pass: jasmineMatcherResult.pass
+        };
+      };
+    });
+
+    return matchers;
+  }
+
   const matchers = {
     toBeInArray() {
       return {
@@ -141,17 +194,37 @@ beforeEach(function() {
         }
       };
     },
-    toMatchHTML() {
+    toMatchHTML(matchersUtil) {
       return {
-        compare(actual, expected) {
-          const actualHTML = pretty(normalize(actual));
+        compare(actual, expected, attributesToKeep = []) {
           const expectedHTML = pretty(normalize(expected));
+          const actualHTML = pretty(normalize(actual));
+          const actualHTMLStripped = actualHTML.replaceAll(/<\/{0,1}\w+([^>/]*)\/{0,1}>/ig, (match, attributes) => {
+            let keptAttributes = null;
+
+            if (attributesToKeep.length === 0 && matchersUtil?.matcherConfig) {
+              attributesToKeep = matchersUtil.matcherConfig.keepAttributes;
+            }
+
+            if (attributesToKeep.length) {
+              attributesToKeep = attributesToKeep.map((attribute) => {
+                // Replace * in, for example, `aria-*`.
+                return attribute.includes('*') ? attribute.replace('*', '([a-zA-Z-]+)') : attribute;
+              });
+
+              keptAttributes = attributes.match(
+                new RegExp(`(${attributesToKeep.join('|')})="([a-zA-Z0-9-_:; ]*)"`, 'ig')
+              );
+            }
+
+            return match.replace(attributes, keptAttributes ? ` ${keptAttributes.join(' ')}` : '');
+          });
 
           const result = {
-            pass: actualHTML === expectedHTML,
+            pass: actualHTMLStripped === expectedHTML,
           };
 
-          result.message = `Expected ${actualHTML} NOT to be ${expectedHTML}`;
+          result.message = `Expected: ${actualHTMLStripped} \nto equal\n ${expectedHTML}`;
 
           return result;
         }
@@ -291,7 +364,6 @@ list: ${redColor}${checkedArray.join(', ')}${resetColor} doesn't satisfy the con
         }
       };
     },
-    /* eslint-disable jsdoc/require-description-complete-sentence */
     /**
      * The matcher checks if the provided selection pattern matches to the rendered cells by checking if
      * the appropriate CSS class name was added.
@@ -343,7 +415,6 @@ list: ${redColor}${checkedArray.join(', ')}${resetColor} doesn't satisfy the con
      *
      * @returns {object}
      */
-    /* eslint-enable jsdoc/require-description-complete-sentence */
     toBeMatchToSelectionPattern() {
       return {
         compare(actualPattern) {
@@ -388,5 +459,10 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
     },
   };
 
-  jasmine.addMatchers(matchers);
+  if (expect?.extend) { // If running Jest
+    expect.extend(modifyMatchersForJest(matchers));
+
+  } else { // If running Jasmine
+    jasmine.addMatchers(extendMatchersWithConfig(matchers));
+  }
 });

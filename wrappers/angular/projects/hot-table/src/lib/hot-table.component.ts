@@ -92,6 +92,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() hiddenColumns: Handsontable.GridSettings['hiddenColumns'];
   @Input() hiddenRows: Handsontable.GridSettings['hiddenRows'];
   @Input() invalidCellClassName: Handsontable.GridSettings['invalidCellClassName'];
+  @Input() imeFastEdit: Handsontable.GridSettings['imeFastEdit'];
   @Input() label: Handsontable.GridSettings['label'];
   @Input() language: Handsontable.GridSettings['language'];
   @Input() layoutDirection: Handsontable.GridSettings['layoutDirection'];
@@ -335,6 +336,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() modifyColumnHeaderValue: Handsontable.GridSettings['modifyColumnHeaderValue'];
   @Input() modifyColWidth: Handsontable.GridSettings['modifyColWidth'];
   @Input() modifyCopyableRange: Handsontable.GridSettings['modifyCopyableRange'];
+  @Input() modifyFocusedElement: Handsontable.GridSettings['modifyFocusedElement'];
   @Input() modifyData: Handsontable.GridSettings['modifyData'];
   @Input() modifyFocusOnTabNavigation: Handsontable.GridSettings['modifyFocusOnTabNavigation'];
   @Input() modifyGetCellCoords: Handsontable.GridSettings['modifyGetCellCoords'];

@@ -28,6 +28,15 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     return { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode };
   }
 
+  beforeEach(function() {
+    // Matchers configuration.
+    this.matchersConfig = {
+      toMatchHTML: {
+        keepAttributes: ['class']
+      }
+    };
+  });
+
   it('should not generate any row headers', () => {
     const { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode } = createRenderer();
 

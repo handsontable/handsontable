@@ -250,6 +250,8 @@ class TableView {
     priv.table = rootDocument.createElement('TABLE');
     addClass(priv.table, 'htCore');
 
+    priv.table.setAttribute('role', 'treegrid');
+
     if (this.instance.getSettings().tableClassName) {
       addClass(priv.table, this.instance.getSettings().tableClassName);
     }

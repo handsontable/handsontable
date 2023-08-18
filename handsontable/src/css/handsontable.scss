@@ -26,6 +26,16 @@
   white-space: nowrap;
 }
 
+.handsontable td.invisibleSelection,
+.handsontable th.invisibleSelection {
+  outline: none;
+}
+
+.handsontable td.invisibleSelection::selection,
+.handsontable th.invisibleSelection::selection {
+  background: rgb(255 255 255 / 0%);
+}
+
 .hot-display-license-info {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
   font-size: 10px;

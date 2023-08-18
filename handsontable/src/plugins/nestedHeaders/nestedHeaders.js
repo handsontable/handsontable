@@ -146,6 +146,7 @@ export class NestedHeaders extends BasePlugin {
       'afterViewportColumnCalculatorOverride',
       (...args) => this.onAfterViewportColumnCalculatorOverride(...args)
     );
+    this.addHook('modifyFocusedElement', (...args) => this.onModifyFocusedElement(...args));
     this.hot.columnIndexMapper.addLocalHook('cacheUpdated', () => this.updateFocusHighlightPosition());
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', () => this.updateFocusHighlightPosition());
 
@@ -787,6 +788,20 @@ export class NestedHeaders extends BasePlugin {
     } = this.#stateManager.getHeaderTreeNodeData(headerLevel, visualColumnIndex) ?? { label: '' };
 
     return label;
+  }
+
+  /**
+   * `modifyFocusedElement` hook callback.
+   *
+   * @private
+   * @param {number} row Row index.
+   * @param {number} column Column index.
+   * @returns {HTMLTableCellElement} The `TH` element to be focused.
+   */
+  onModifyFocusedElement(row, column) {
+    if (row < 0) {
+      return this.hot.getCell(row, this.#stateManager.findLeftMostColumnIndex(row, column), true);
+    }
   }
 
   /**

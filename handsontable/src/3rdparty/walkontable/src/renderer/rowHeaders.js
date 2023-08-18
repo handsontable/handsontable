@@ -83,6 +83,9 @@ export default class RowHeadersRenderer extends BaseRenderer {
         TH.className = '';
         TH.removeAttribute('style');
 
+        TH.setAttribute('tabindex', '-1');
+        TH.setAttribute('role', 'rowheader');
+
         rowHeaderFunctions[visibleColumnIndex](sourceRowIndex, TH, visibleColumnIndex);
       }
 

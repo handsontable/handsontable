@@ -1358,6 +1358,18 @@ const REGISTERED_HOOKS = [
   'modifyColWidth',
 
   /**
+   * Fired when focusing a cell or a header element. Allows replacing the element to be focused by returning a
+   * different HTML element.
+   *
+   * @since 14.0.0
+   * @event Hooks#modifyFocusedElement
+   * @param {number} row Row index.
+   * @param {number} column Column index.
+   * @param {HTMLElement|undefined} focusedElement The element to be focused.
+   */
+  'modifyFocusedElement',
+
+  /**
    * Fired when a row header index is about to be modified by a callback function.
    *
    * @event Hooks#modifyRowHeader

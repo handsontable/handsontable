@@ -1507,4 +1507,39 @@ describe('NestedHeaders', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -3,4 from: -3,4 to: -3,4']);
     });
   });
+
+  describe('focusing table elements', () => {
+    it('should focus on the leftmost element of the merged header when navigating the headers in both directions' +
+      ' (left and right)', () => {
+      handsontable({
+        startRows: 2,
+        startCols: 4,
+        colHeaders: true,
+        nestedHeaders: [
+          ['a', { label: 'b', colspan: 2 }, 'c'],
+        ],
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, 0);
+
+      expect(document.activeElement).toEqual(getCell(-1, 0));
+
+      keyDownUp('arrowright');
+
+      expect(document.activeElement).toEqual(getCell(-1, 1));
+
+      keyDownUp('arrowright');
+
+      expect(document.activeElement).toEqual(getCell(-1, 3));
+
+      keyDownUp('arrowleft');
+
+      expect(document.activeElement).toEqual(getCell(-1, 1));
+
+      keyDownUp('arrowleft');
+
+      expect(document.activeElement).toEqual(getCell(-1, 0));
+    });
+  });
 });

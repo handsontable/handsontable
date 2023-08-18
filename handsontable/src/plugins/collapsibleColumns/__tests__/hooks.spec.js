@@ -1,4 +1,13 @@
 describe('CollapsibleColumns Hooks', () => {
+  beforeEach(function() {
+    // Matchers configuration.
+    this.matchersConfig = {
+      toMatchHTML: {
+        keepAttributes: ['class', 'colspan']
+      }
+    };
+  });
+
   const id = 'testContainer';
 
   function extractDOMStructure(overlayTHead, overlayTBody) {

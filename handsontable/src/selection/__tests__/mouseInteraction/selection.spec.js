@@ -721,7 +721,7 @@ describe('Selection using mouse interaction', () => {
     handsontable();
     selectCell(0, 0);
 
-    expect(document.activeElement.nodeName).toBeInArray(['TEXTAREA', 'BODY', 'HTML']);
+    expect(document.activeElement.nodeName).toBeInArray(['TEXTAREA', 'BODY', 'HTML', 'TD', 'TH']);
 
     $input.focus();
     expect(document.activeElement.nodeName).toBe('INPUT');

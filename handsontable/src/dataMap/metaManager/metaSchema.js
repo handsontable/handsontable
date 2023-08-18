@@ -2487,6 +2487,19 @@ export default () => {
     invalidCellClassName: 'htInvalid',
 
     /**
+     * The `imeFastEdit` option allows using the "fast edit" feature for the IME users. It's disabled by default
+     * because of its incompatibility with some of the accessibility features.
+     *
+     * Enabling this option can make a negative impact on how some screen readers handle reading the table cells.
+     *
+     * @since 13.0.0
+     * @memberof Options#
+     * @type {boolean}
+     * @category Core
+     */
+    imeFastEdit: false,
+
+    /**
      * The `isEmptyCol` option lets you define your own custom method
      * for checking if a column at a given visual index is empty.
      *

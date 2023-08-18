@@ -31,6 +31,23 @@ export function getParent(element, level = 0) {
 }
 
 /**
+ * Check if the provided element is a child of the provided Handsontable container.
+ *
+ * @param {HTMLElement} element Element to be analyzed.
+ * @param {HTMLElement} thisHotContainer The Handsontable container.
+ * @returns {boolean}
+ */
+export function isThisHotChild(element, thisHotContainer) {
+  const closestHandsontableContainer = element.closest('.handsontable');
+
+  return !!closestHandsontableContainer &&
+    (
+      closestHandsontableContainer.parentNode === thisHotContainer ||
+      closestHandsontableContainer === thisHotContainer
+    );
+}
+
+/**
  * Gets `frameElement` of the specified frame. Returns null if it is a top frame or if script has no access to read property.
  *
  * @param {Window} frame Frame from which should be get frameElement in safe way.
@@ -43,7 +60,7 @@ export function getFrameElement(frame) {
 /**
  * Gets parent frame of the specified frame. Returns null if it is a top frame or if script has no access to read property.
  *
- * @param {Window} frame Frame from which should be get frameElement in safe way.
+ * @param {Window} frame Frame from which should get frameElement in a safe way.
  * @returns {Window|null}
  */
 export function getParentWindow(frame) {
@@ -53,7 +70,7 @@ export function getParentWindow(frame) {
 /**
  * Checks if script has access to read from parent frame of specified frame.
  *
- * @param {Window} frame Frame from which should be get frameElement in safe way.
+ * @param {Window} frame Frame from which should get frameElement in a safe way.
  * @returns {boolean}
  */
 export function hasAccessToParentWindow(frame) {
@@ -950,4 +967,73 @@ export function observeVisibilityChangeOnce(elementToBeObserved, callback) {
   });
 
   visibilityObserver.observe(elementToBeObserved);
+}
+
+/**
+ * Add a `contenteditable` attribute, select the contents and optionally add the `invisibleSelection`
+ * class to the provided element.
+ *
+ * @param {HTMLElement} element Element to be processed.
+ * @param {boolean} [invisibleSelection=true] `true` if the class should be added to the element.
+ * @param {boolean} [ariaHidden=true] `true` if the `aria-hidden` attribute should be added to the processed element.
+ */
+export function makeElementContentEditableAndSelectItsContent(element, invisibleSelection = true, ariaHidden = true) {
+  const ownerDocument = element.ownerDocument;
+  const range = ownerDocument.createRange();
+  const sel = ownerDocument.defaultView.getSelection();
+
+  element.setAttribute('contenteditable', true);
+
+  if (ariaHidden) {
+    element.setAttribute('aria-hidden', true);
+  }
+
+  if (invisibleSelection) {
+    addClass(element, 'invisibleSelection');
+  }
+
+  range.selectNodeContents(element);
+
+  sel.removeAllRanges();
+
+  sel.addRange(range);
+}
+
+/**
+ * Remove the `contenteditable` attribute, deselect the contents and optionally remove the `invisibleSelection`
+ * class from the provided element.
+ *
+ * @param {HTMLElement} selectedElement The element to be deselected.
+ * @param {boolean} [removeInvisibleSelectionClass=true] `true` if the class should be removed from the element.
+ */
+export function removeContentEditableFromElementAndDeselect(selectedElement, removeInvisibleSelectionClass = true) {
+  const sel = selectedElement.ownerDocument.defaultView.getSelection();
+
+  if (selectedElement.hasAttribute('aria-hidden')) {
+    selectedElement.removeAttribute('aria-hidden');
+  }
+
+  sel.removeAllRanges();
+
+  if (removeInvisibleSelectionClass) {
+    removeClass(selectedElement, 'invisibleSelection');
+  }
+
+  selectedElement.removeAttribute('contenteditable');
+}
+
+/**
+ * Run the provided callback while the provided element is selected and modified to have the `contenteditable`
+ * attribute added. Optionally, the selection can be configured to be invisible.
+ *
+ * @param {HTMLElement} element Element to be selected.
+ * @param {Function} callback Callback to be called.
+ * @param {boolean} [invisibleSelection=true] `true` if the selection should be invisible.
+ */
+export function runWithSelectedContendEditableElement(element, callback, invisibleSelection = true) {
+  makeElementContentEditableAndSelectItsContent(element, invisibleSelection);
+
+  callback();
+
+  removeContentEditableFromElementAndDeselect(element, invisibleSelection);
 }

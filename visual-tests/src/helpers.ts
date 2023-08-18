@@ -43,12 +43,12 @@ export const helpers = {
     this.browser = workerInfo.project.name;
   },
 
-  findCell(options = { row: 1, cell: 1, cellType: 'td' }) {
-    return `> tr:nth-child(${options.row}) > ${options.cellType}:nth-child(${options.cell})`;
+  findCell(options = { row: 0, column: 0, cellType: 'td' }) {
+    return `> tr:nth-of-type(${options.row + 1}) > ${options.cellType}:nth-of-type(${options.column + 1})`;
   },
 
   findDropdownMenuExpander(options = { col: 1 }) {
-    return `${this.selectors.mainTableHead} > tr > th:nth-child(${options.col + 1}) button.changeType`;
+    return `${this.selectors.mainTableHead} > tr > th:nth-of-type(${options.col + 1}) button.changeType`;
   },
 
   testTitle(filename: string) {

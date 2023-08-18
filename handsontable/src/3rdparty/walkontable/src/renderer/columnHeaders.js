@@ -76,6 +76,9 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
         TH.className = '';
         TH.removeAttribute('style');
 
+        TH.setAttribute('tabindex', '-1');
+        TH.setAttribute('role', 'columnheader');
+
         columnHeaderFunctions[rowHeaderIndex](sourceColumnIndex, TH, rowHeaderIndex);
       }
     }
