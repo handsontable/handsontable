@@ -317,6 +317,78 @@ html.theme-dark {
     }
   }
 
+  /* Cookie Consent styling starts */
+  #CybotCookiebotDialog {
+    background $backgroundColor
+    color $fontColor
+    border-top 3px solid $sectionBorderColor
+
+    #CybotCookiebotDialogBodyContentTitle {
+      color $fontColor
+    }
+
+    .CybotCookiebotDialogBodyLink {
+      color $fontColor
+    }
+  }
+
+  #CybotCookiebotDialogDetailBodyContentTextOverview,
+  .CybotCookiebotDialogDetailBodyContentTab,
+  .CybotCookiebotDialogDetailBodyContentTabsItemSelected,
+  .CybotCookiebotDialogDetailBodyContentCookieContainerTypes,
+  .CybotCookiebotDialogDetailBodyContentCookieTypeTable thead th,
+  .CybotCookiebotDialogDetailBodyContentCookieTypeTable tbody td a,
+  .CybotCookiebotDialogDetailBodyContentTab,
+  #CybotCookiebotDialogDetailFooter,
+  #CybotCookiebotDialogDetailBodyContent,
+  #CybotCookiebotDialogDetail {
+    background $backgroundColor !important
+    color $fontColor !important
+    border-color $sectionBorderColor
+
+    &:hover {
+      color $fontColor !important
+      background $backgroundColor !important
+      border-color $sectionBorderColor
+    }
+  }
+
+  #CybotCookiebotDialogDetailBodyContentCookieContainerTypeDetails, #CybotCookiebotDialogDetailBodyContentTextAbout {
+    scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
+  }
+
+  .CybotCookiebotDialogDetailBodyContentCookieContainerTypes {
+    &:hover {
+      border-color $sectionBorderColor
+      color $fontColor !important
+      background $sidebarSelectedBackgroundColor !important
+    }
+  }
+
+  .CybotCookiebotDialogDetailBodyContentCookieContainerTypesSelected, .CybotCookiebotDialogDetailBodyContentTab.CybotCookiebotDialogDetailBodyContentTabsItemSelected {
+    background $sidebarSelectedBackgroundColor
+    border-color $sectionBorderColor
+    color $fontColor !important
+
+    &:hover, &:focus {
+      border-color $sectionBorderColor !important
+      color $fontColor !important
+      background $sidebarSelectedBackgroundColor !important
+    }
+  }
+
+  #CybotCookiebotDialogDetail {
+    table td {
+      color $fontColor !important
+      border-color $sectionBorderColor
+    }
+
+    .CybotCookiebotDialogDetailBodyContentTab {
+      border-color $sectionBorderColor
+    }
+  }
+  /* Cookie Consent styling ends */
+
   /* Handsontable drawing on the introduction page */
 
   .handsontable-drawing {
