@@ -23,20 +23,17 @@ module.exports.create = function create(envArgs) {
     c.devtool = false;
     c.output.filename = c.output.filename.replace(/\.js$/, '.min.js');
 
+    c.mode = 'production';
     c.optimization = {
       minimize: true,
       minimizer: [
         new TerserPlugin({
           extractComments: false,
-          terserOptions: {
-            format: {
-              comments: false,
-            },
-          },
         }),
         new CssMinimizerPlugin(),
       ],
     };
+
     // Remove all 'MiniCssExtractPlugin' instances
     c.plugins = c.plugins.filter(function(plugin) {
       return !(plugin instanceof MiniCssExtractPlugin);
