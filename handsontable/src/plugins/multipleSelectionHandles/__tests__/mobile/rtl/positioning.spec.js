@@ -41,6 +41,8 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
 
       expect(topSelectionHandle.is(':visible')).toBe(true);
       expect(bottomSelectionHandle.is(':visible')).toBe(true);
+      expect(topSelectionHandle.css('z-index')).toBe('9999');
+      expect(bottomSelectionHandle.css('z-index')).toBe('9999');
       expect(topSelectionHandle.offset()).toEqual({
         top: cellOffset.top - topSelectionHandleSize,
         left: cellOffset.left + cellWidth,
@@ -86,6 +88,8 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
 
       expect(topSelectionHandle.is(':visible')).toBe(true);
       expect(bottomSelectionHandle.is(':visible')).toBe(true);
+      expect(topSelectionHandle.css('z-index')).toBe('9999');
+      expect(bottomSelectionHandle.css('z-index')).toBe('9999');
       expect(topSelectionHandle.offset()).toEqual({
         top: cellFromOffset.top - topSelectionHandleSize,
         left: cellFromOffset.left + cellFromWidth,
@@ -132,6 +136,8 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
 
       expect(topSelectionHandle.is(':visible')).toBe(true);
       expect(bottomSelectionHandle.is(':visible')).toBe(true);
+      expect(topSelectionHandle.css('z-index')).toBe('9999');
+      expect(bottomSelectionHandle.css('z-index')).toBe('9999');
       expect(topSelectionHandle.offset()).toEqual({
         top: cellFromOffset.top - topSelectionHandleSize,
         left: cellFromOffset.left + cellFromWidth,

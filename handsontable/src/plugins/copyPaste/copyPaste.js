@@ -150,10 +150,10 @@ export class CopyPaste extends BasePlugin {
    * Defines the data range to copy. Possible values:
    *  * `'cells-only'` Copy selected cells only;
    *  * `'column-headers-only'` Copy column headers only;
-   *  * `'with-all-column-headers'` Copy cells with all column headers;
+   *  * `'with-column-group-headers'` Copy cells with all column headers;
    *  * `'with-column-headers'` Copy cells with column headers;
    *
-   * @type {'cells-only' | 'column-headers-only' | 'with-all-column-headers' | 'with-column-headers'}
+   * @type {'cells-only' | 'column-headers-only' | 'with-column-group-headers' | 'with-column-headers'}
    */
   #copyMode = 'cells-only';
   /**
@@ -237,6 +237,8 @@ export class CopyPaste extends BasePlugin {
       this.eventManager.addEventListener(
         this.hot.rootDocument.body, 'mouseleave', (...args) => this.onSafariMouseLeave(...args)
       );
+
+      this.addHook('afterSelection', () => this.onSafariAfterSelection());
     }
 
     super.enablePlugin();
@@ -269,12 +271,12 @@ export class CopyPaste extends BasePlugin {
    *
    * Takes an optional parameter (`copyMode`) that defines the scope of copying:
    *
-   * | `copyMode` value            | Description                                                     |
-   * | --------------------------- | --------------------------------------------------------------- |
-   * | `'cells-only'` (default)    | Copy the selected cells                                         |
-   * | `'with-column-headers'`     | - Copy the selected cells<br>- Copy the nearest column headers  |
-   * | `'with-all-column-headers'` | - Copy the selected cells<br>- Copy all related columns headers |
-   * | `'column-headers-only'`     | Copy the nearest column headers (without copying cells)         |
+   * | `copyMode` value              | Description                                                     |
+   * | ----------------------------- | --------------------------------------------------------------- |
+   * | `'cells-only'` (default)      | Copy the selected cells                                         |
+   * | `'with-column-headers'`       | - Copy the selected cells<br>- Copy the nearest column headers  |
+   * | `'with-column-group-headers'` | - Copy the selected cells<br>- Copy all related columns headers |
+   * | `'column-headers-only'`       | Copy the nearest column headers (without copying cells)         |
    *
    * @param {string} [copyMode='cells-only'] Copy mode.
    */
@@ -457,12 +459,17 @@ export class CopyPaste extends BasePlugin {
     // Without this workaround Safari (tested on Safari@16.5.2) does not trigger the 'copy' event.
     if (isSafari()) {
       const lastSelectedRange = this.hot.getSelectedRangeLast();
-      const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
-      const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
 
-      runWithSelectedContendEditableElement(currentlySelectedCell, () => {
-        this.hot.rootDocument.execCommand(eventName);
-      });
+      if (lastSelectedRange) {
+        const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
+        const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
+
+        if (currentlySelectedCell) {
+          runWithSelectedContendEditableElement(currentlySelectedCell, () => {
+            this.hot.rootDocument.execCommand(eventName);
+          });
+        }
+      }
 
     } else {
       this.hot.rootDocument.execCommand(eventName);
@@ -560,6 +567,43 @@ export class CopyPaste extends BasePlugin {
     this.hot.populateFromArray(startRow, startColumn, newRows, void 0, void 0, 'CopyPaste.paste', this.pasteMode);
 
     return [startRow, startColumn, lastVisualRow, lastVisualColumn];
+  }
+
+  /**
+   * Add the `contenteditable` attribute to the highlighted cell and select its content.
+   */
+  #addContentEditableToHighlightedCell() {
+    if (this.hot.isListening()) {
+      const lastSelectedRange = this.hot.getSelectedRangeLast();
+
+      if (lastSelectedRange) {
+        const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
+        const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
+
+        if (currentlySelectedCell) {
+          makeElementContentEditableAndSelectItsContent(currentlySelectedCell);
+        }
+      }
+    }
+  }
+
+  /**
+   * Remove the `contenteditable` attribute from the highlighted cell and deselect its content.
+   */
+  #removeContentEditableFromHighlightedCell() {
+    // If the instance is not listening, the workaround is not needed.
+    if (this.hot.isListening()) {
+      const lastSelectedRange = this.hot.getSelectedRangeLast();
+
+      if (lastSelectedRange) {
+        const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
+        const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
+
+        if (currentlySelectedCell && currentlySelectedCell.hasAttribute('contenteditable')) {
+          removeContentEditableFromElementAndDeselect(currentlySelectedCell);
+        }
+      }
+    }
   }
 
   /**
@@ -748,35 +792,30 @@ export class CopyPaste extends BasePlugin {
   /**
    * `document.body` `mouseenter` callback used to work around a Safari's problem with copying/cutting from the
    * browser's menu.
+   *
+   * @private
    */
   onSafariMouseEnter() {
-    // If the instance is not listening, the workaround is not needed.
-    if (this.hot.isListening()) {
-      const lastSelectedRange = this.hot.getSelectedRangeLast();
-
-      if (lastSelectedRange) {
-        const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
-        const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
-
-        removeContentEditableFromElementAndDeselect(currentlySelectedCell);
-      }
-    }
+    this.#removeContentEditableFromHighlightedCell();
   }
 
   /**
    * `document.body` `mouseleave` callback used to work around a Safari's problem with copying/cutting from the
    * browser's menu.
+   *
+   * @private
    */
   onSafariMouseLeave() {
-    if (this.hot.isListening()) {
-      const lastSelectedRange = this.hot.getSelectedRangeLast();
-      const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
-      const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
+    this.#addContentEditableToHighlightedCell();
+  }
 
-      if (lastSelectedRange) {
-        makeElementContentEditableAndSelectItsContent(currentlySelectedCell);
-      }
-    }
+  /**
+   * `afterSelection` hook callback triggered only on Safari.
+   *
+   * @private
+   */
+  onSafariAfterSelection() {
+    this.#removeContentEditableFromHighlightedCell();
   }
 
   /**

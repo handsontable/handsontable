@@ -793,6 +793,7 @@ export class NestedHeaders extends BasePlugin {
   /**
    * `modifyFocusedElement` hook callback.
    *
+   * @private
    * @param {number} row Row index.
    * @param {number} column Column index.
    * @returns {HTMLTableCellElement} The `TH` element to be focused.

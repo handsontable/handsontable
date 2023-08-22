@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixes the selection handlers (mobile) that disappear below the headers for multiple cells selection.",
+  "type": "fixed",
+  "issueOrPR": 10447,
+  "breaking": false,
+  "framework": "none"
+}
