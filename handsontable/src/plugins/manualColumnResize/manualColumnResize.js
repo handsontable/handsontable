@@ -1,5 +1,6 @@
 import { BasePlugin } from '../base';
-import { addClass, closest, hasClass, removeClass, outerHeight, isDetached } from '../../helpers/dom/element';
+import { addClass, closest, hasClass, removeClass, outerHeight, isDetached,
+  overlayContainsElement } from '../../helpers/dom/element';
 import EventManager from '../../eventManager';
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
@@ -52,6 +53,7 @@ export class ManualColumnResize extends BasePlugin {
     this.guide = rootDocument.createElement('DIV');
     this.eventManager = new EventManager(this);
     this.pressed = null;
+    this.isTriggeredByRMB = false;
     this.dblclick = 0;
     this.autoresizeTimeout = null;
 
@@ -237,6 +239,14 @@ export class ManualColumnResize extends BasePlugin {
 
     this.currentTH = TH;
 
+    const hotRootElement = this.hot.rootElement;
+
+    // Handling elements placed only inside columns header of the main instance.
+    if (overlayContainsElement('top_inline_start_corner', this.currentTH, hotRootElement) === false &&
+      overlayContainsElement('top', this.currentTH, hotRootElement) === false) {
+      return;
+    }
+
     const { _wt: wt } = this.hot.view;
     const cellCoords = wt.wtTable.getCoords(this.currentTH);
     const col = cellCoords.col;
@@ -393,6 +403,11 @@ export class ManualColumnResize extends BasePlugin {
     // Workaround for #6926 - if the `event.target` is temporarily detached, we can skip this callback and wait for
     // the next `onmouseover`.
     if (isDetached(event.target)) {
+      return;
+    }
+
+    // A "mouseover" action is triggered right after executing "contextmenu" event. It should be ignored.
+    if (this.isTriggeredByRMB === true) {
       return;
     }
 
@@ -561,6 +576,26 @@ export class ManualColumnResize extends BasePlugin {
   }
 
   /**
+   * Callback for "contextmenu" event triggered on element showing move handle. It removes handle and guide elements.
+   *
+   * @private
+   */
+  onContextMenu() {
+    this.hideHandleAndGuide();
+    this.hot.rootElement.removeChild(this.handle);
+    this.hot.rootElement.removeChild(this.guide);
+
+    this.pressed = false;
+    this.isTriggeredByRMB = true;
+
+    // There is thrown "mouseover" event right after opening a context menu. This flag inform that handle
+    // shouldn't be drawn just after removing it.
+    this.hot._registerImmediate(() => {
+      this.isTriggeredByRMB = false;
+    });
+  }
+
+  /**
    * Binds the mouse events.
    *
    * @private
@@ -572,6 +607,7 @@ export class ManualColumnResize extends BasePlugin {
     this.eventManager.addEventListener(rootElement, 'mousedown', e => this.onMouseDown(e));
     this.eventManager.addEventListener(rootWindow, 'mousemove', e => this.onMouseMove(e));
     this.eventManager.addEventListener(rootWindow, 'mouseup', () => this.onMouseUp());
+    this.eventManager.addEventListener(this.handle, 'contextmenu', () => this.onContextMenu());
   }
 
   /**

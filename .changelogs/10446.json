@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a typo in the CopyPaste copy argument method.",
+  "type": "fixed",
+  "issueOrPR": 10446,
+  "breaking": false,
+  "framework": "none"
+}

@@ -1,14 +1,16 @@
 const babelPresetConfig = () => ({
   targets: {
-    chrome: '41',
-    firefox: '34',
-    ie: '9',
-    safari: '9'
+    chrome: '110',
+    firefox: '110',
+    safari: '14.1',
+    node: '11', // support for Webpack 4 and similar oldish bundlers
   },
   modules: false,
   debug: false,
   useBuiltIns: 'usage',
-  corejs: 3,
+  corejs: {
+    version: '3.31'
+  }
 });
 
 module.exports = {
@@ -16,8 +18,6 @@ module.exports = {
     ['@babel/preset-env', babelPresetConfig()]
   ],
   plugins: [
-    ['@babel/plugin-proposal-object-rest-spread', { useBuiltIns: true }],
-    ['transform-inline-environment-variables'],
-    ['@babel/plugin-proposal-class-properties']
+    ['transform-inline-environment-variables']
   ]
 };

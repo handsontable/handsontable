@@ -43,18 +43,10 @@ on:
 
 env:
   NODE_VERSION: 16
-  NODE_MODULES_PATHS: |
-    ./node_modules
-    ./handsontable/node_modules/
-    ./wrappers/angular/node_modules/
-    ./wrappers/react/node_modules/
-    ./wrappers/vue/node_modules/
-    ./wrappers/vue3/node_modules/
-    ./visual-tests/node_modules/
 
 jobs:
   prepare-matrix:
-    name: Prepare the version Matrix and cache dependencies.
+    name: Prepare the version Matrix.
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     outputs:
@@ -69,12 +61,6 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
-      - uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # https://github.com/actions/cache/releases/tag/v3.0.11
-        with:
-          path: ${{ env.NODE_MODULES_PATHS }}
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
       - id: get-dispatch-value
         run: echo "matrix=${{ format('[\"{0}\"]', github.event.inputs.hotVersion) }}" >> $GITHUB_OUTPUT
         if: github.event_name == 'workflow_dispatch'
@@ -121,12 +107,8 @@ jobs:
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # https://github.com/actions/cache/releases/tag/v3.0.11
-        with:
-          path: ${{ env.NODE_MODULES_PATHS }}
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          cache: 'npm'
+      - run: npm ci --no-audit
       - name: Build
         run: |
           cd handsontable
@@ -151,12 +133,8 @@ jobs:
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # https://github.com/actions/cache/releases/tag/v3.0.11
-        with:
-          path: ${{ env.NODE_MODULES_PATHS }}
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          cache: 'npm'
+      - run: npm ci --no-audit
       - name: Build
         run: |
           cd handsontable
@@ -182,12 +160,8 @@ jobs:
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # https://github.com/actions/cache/releases/tag/v3.0.11
-        with:
-          path: ${{ env.NODE_MODULES_PATHS }}
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          cache: 'npm'
+      - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
@@ -218,12 +192,8 @@ jobs:
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # https://github.com/actions/cache/releases/tag/v3.0.11
-        with:
-          path: ${{ env.NODE_MODULES_PATHS }}
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          cache: 'npm'
+      - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
@@ -254,12 +224,8 @@ jobs:
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # https://github.com/actions/cache/releases/tag/v3.0.11
-        with:
-          path: ${{ env.NODE_MODULES_PATHS }}
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          cache: 'npm'
+      - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
@@ -290,12 +256,8 @@ jobs:
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # https://github.com/actions/cache/releases/tag/v3.0.11
-        with:
-          path: ${{ env.NODE_MODULES_PATHS }}
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          cache: 'npm'
+      - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
@@ -337,9 +299,7 @@ jobs:
       fail-fast: false
       matrix:
         version: ${{fromJson(needs.prepare-matrix.outputs.versions)}}
-        # TODO: IMPORTANT! Add `angular` to the list below after fixing the issue described in
-        # https://github.com/handsontable/dev-handsontable/issues/1292
-        framework: [angular-9, angular-10, angular-11, angular-12, angular-13, js, react, vue, vue3, ts]
+        framework: [angular, angular-12, angular-13, angular-14, angular-15, angular-16, js, react, vue, vue3, ts]
 
     env:
       FRAMEWORK_EXAMPLES_PATH: examples/${{ matrix.version }}/docs/${{ matrix.framework }}
@@ -356,13 +316,8 @@ jobs:
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # https://github.com/actions/cache/releases/tag/v3.0.11
-        if: steps.path-check.outputs.n-a != 'true'
-        with:
-          path: ${{ env.NODE_MODULES_PATHS }}
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          cache: 'npm'
+      - run: npm ci --no-audit
 
       # ---------------------------------------------------------
       # --- Only applicable if processing the `next` version. ---

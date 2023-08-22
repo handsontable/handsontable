@@ -19,6 +19,7 @@ Configure your Angular data grid with different number formats, depending on the
 The following example shows a Handsontable instance with translations set up in Angular.
 
 ::: example :angular-numbro --html 1 --js 2
+
 ```html
 <app-root></app-root>
 ```
@@ -114,6 +115,7 @@ platformBrowserDynamic()
   .catch(err => { console.error(err) });
 /* end:skip-in-preview */
 ```
+
 :::
 
 ## Related articles

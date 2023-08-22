@@ -6,7 +6,6 @@ const SOURCE_LANGUAGES_DIRECTORY = 'src/i18n/languages';
 const OUTPUT_LANGUAGES_DIRECTORY = 'languages';
 
 const path = require('path');
-const WebpackOnBuildPlugin = require('on-build-webpack');
 const fs  = require('fs');
 const fsExtra  = require('fs-extra');
 
@@ -86,29 +85,34 @@ module.exports.create = function create() {
     },
     module: {
       rules: [
-        {test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader'},
+        { test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader' },
         ruleForSnippetsInjection
       ]
     },
     plugins: [
-      new WebpackOnBuildPlugin(() => {
-        const filesInOutputLanguagesDirectory = fs.readdirSync(OUTPUT_LANGUAGES_DIRECTORY);
-        const indexFileName = 'index.js';
-        const allLanguagesFileName = 'all.js';
+      new class OnBuildDonePlugin {
+        apply(compiler) {
+          // Specify the event hook to attach to
+          compiler.hooks.done.tap('OnBuildDonePlugin', () => {
+            const filesInOutputLanguagesDirectory = fs.readdirSync(OUTPUT_LANGUAGES_DIRECTORY);
+            const indexFileName = 'index.js';
+            const allLanguagesFileName = 'all.js';
 
-        // Copy files from `languages` directory to `dist/languages` directory
-        filesInOutputLanguagesDirectory.forEach((fileName) => {
-          // Copy only UMD language files (ignore ES files that with .mjs extension)
-          if (fileName !== indexFileName && fileName.endsWith('.js')) {
-            fsExtra.copySync(`${OUTPUT_LANGUAGES_DIRECTORY}/${fileName}`, `dist/languages/${fileName}`);
-          }
-        });
+            // Copy files from `languages` directory to `dist/languages` directory
+            filesInOutputLanguagesDirectory.forEach((fileName) => {
+              // Copy only UMD language files (ignore ES files that with .mjs extension)
+              if (fileName !== indexFileName && fileName.endsWith('.js')) {
+                fsExtra.copySync(`${OUTPUT_LANGUAGES_DIRECTORY}/${fileName}`, `dist/languages/${fileName}`);
+              }
+            });
 
-        // Copy from `languages/all.js` to `languages/index.js`
-        if (filesInOutputLanguagesDirectory.includes(allLanguagesFileName)) {
-          fsExtra.copySync(`${OUTPUT_LANGUAGES_DIRECTORY}/${allLanguagesFileName}`, `${OUTPUT_LANGUAGES_DIRECTORY}/${indexFileName}`);
+            // Copy from `languages/all.js` to `languages/index.js`
+            if (filesInOutputLanguagesDirectory.includes(allLanguagesFileName)) {
+              fsExtra.copySync(`${OUTPUT_LANGUAGES_DIRECTORY}/${allLanguagesFileName}`, `${OUTPUT_LANGUAGES_DIRECTORY}/${indexFileName}`);
+            }
+          });
         }
-      })
+      }
     ]
   };
 

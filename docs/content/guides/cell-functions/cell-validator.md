@@ -21,11 +21,11 @@ Validate data added or changed by the user, with predefined or custom rules. Val
 
 When you create a validator, a good idea is to assign it as an alias that will refer to this particular validator function. Handsontable defines 5 aliases by default:
 
-* `autocomplete` for `Handsontable.validators.AutocompleteValidator`
-* `date` for `Handsontable.validators.DateValidator`
-* `dropdown` for `Handsontable.validators.DropdownValidator`
-* `numeric` for `Handsontable.validators.NumericValidator`
-* `time` for `Handsontable.validators.TimeValidator`
+- `autocomplete` for `Handsontable.validators.AutocompleteValidator`
+- `date` for `Handsontable.validators.DateValidator`
+- `dropdown` for `Handsontable.validators.DropdownValidator`
+- `numeric` for `Handsontable.validators.NumericValidator`
+- `time` for `Handsontable.validators.TimeValidator`
 
 It gives users a convenient way for defining which validator should be used when table validation was triggered. User doesn't need to know which validator function is responsible for checking the cell value, he does not even need to know that there is any function at all. What is more, you can change the validator function associated with an alias without a need to change code that defines a table.
 
@@ -33,8 +33,8 @@ It gives users a convenient way for defining which validator should be used when
 
 To register your own alias use `Handsontable.validators.registerValidator()` function. It takes two arguments:
 
-* `validatorName` - a string representing a validator function
-* `validator` - a validator function that will be represented by `validatorName`
+- `validatorName` - a string representing a validator function
+- `validator` - a validator function that will be represented by `validatorName`
 
 If you'd like to register `creditCardValidator` under alias `credit-card` you have to call:
 
@@ -87,6 +87,7 @@ To sum up, a well prepared validator function should look like this:
 From now on, you can use `customValidator` like so:
 
 ::: only-for javascript
+
 ```js
 const container = document.querySelector('#container')
 const hot = new Handsontable(container, {
@@ -95,9 +96,11 @@ const hot = new Handsontable(container, {
   }]
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   columns={[{
@@ -105,33 +108,37 @@ const hot = new Handsontable(container, {
   }]}
 />
 ```
+
 :::
 
 ## Full featured example
 
-Use the **validator**  method to easily validate synchronous or asynchronous changes to a cell. If you need more control, **beforeValidate** and **afterValidate** plugin hooks are available. In the below example, `email_validator_fn` is an async validator that resolves after 1000 ms.
+Use the validator method to easily validate synchronous or asynchronous changes to a cell. If you need more control, [`beforeValidate`](@/api/hooks.md#beforevalidate) and [`afterValidate`](@/api/hooks.md#aftervalidate) hooks are available. In the below example, `email_validator_fn` is an async validator that resolves after 1000 ms.
 
-Use the **allowInvalid** option to define if the grid should accept input that does not validate. If you need to modify the input (e.g., censor bad words, uppercase first letter), use the plugin hook **beforeChange**.
+Use the [`allowInvalid`](@/api/options.md#allowinvalid) option to define if the grid should accept input that does not validate. If you need to modify the input (e.g., censor bad words, uppercase first letter), use the plugin hook [`beforeChange`](@/api/hooks.md#beforechange).
 
 By default, all invalid cells are marked by `htInvalid` CSS class. If you want to change class to another you can basically add the `invalidCellClassName` option to Handsontable settings. For example:
 
 For the entire table
 
 ::: only-for javascript
+
 ```js
 invalidCellClassName: 'myInvalidClass'
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 invalidCellClassName="myInvalidClass"
 ```
-:::
 
 For specific columns
 
 ::: only-for javascript
+
 ```js
 columns: [
   { data: 'firstName', invalidCellClassName: 'myInvalidClass' },
@@ -139,9 +146,10 @@ columns: [
   { data: 'address' }
 ]
 ```
-:::
+
 
 ::: only-for react
+
 ```jsx
 columns={[
   { data: 'firstName', invalidCellClassName: 'myInvalidClass' },
@@ -149,12 +157,15 @@ columns={[
   { data: 'address' }
 ]}
 ```
+
 :::
 
 Callback console log:
 
 ::: only-for javascript
+
 ::: example #example1 --js 2 --html 1
+
 ```html
 <div id="example1"></div>
 <output class="console" id="output">Here you will see the log</output>
@@ -228,11 +239,15 @@ const hot = new Handsontable(container, {
   ]
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { useState } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -316,13 +331,14 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
 
 Edit the above grid to see the `changes` argument from the callback.
 
-**Note:** Please keep in mind that changes in table are applied after running **all validators** (both synchronous and and asynchronous) from **every** changed cells.
+Mind that changes in table are applied after running all validators (both synchronous and and asynchronous) from every changed cell.
 
 ## Related API reference
 

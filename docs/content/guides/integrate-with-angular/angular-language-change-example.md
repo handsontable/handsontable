@@ -21,6 +21,7 @@ The following example is an implementation of the `@handsontable/angular` compon
 Select a language from the selector above the table and open the Context Menu to see the result.
 
 ::: example :angular-languages --html 1 --js 2
+
 ```html
 <app-root></app-root>
 ```
@@ -123,6 +124,7 @@ platformBrowserDynamic()
   .catch(err => { console.error(err) });
 /* end:skip-in-preview */
 ```
+
 :::
 
 ## Related articles
