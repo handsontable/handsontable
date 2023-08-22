@@ -1,4 +1,5 @@
 import { sanitize } from '../string';
+import { objectEach } from '../object';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -272,6 +273,19 @@ export function removeClass(element, className) {
   if (className.length > 0) {
     element.classList.remove(...className);
   }
+}
+
+/**
+ * Set multiple attributes at once.
+ *
+ * @param {HTMLElement} domElement The HTML element to be modified.
+ * @param {object} attributesObject Object containing the attributes to be added. Object keys will be used as
+ * attribute names and their respective values as the attribute values.
+ */
+export function setAttributes(domElement, attributesObject) {
+  objectEach(attributesObject, (value, key) => {
+    domElement.setAttribute(key, value);
+  });
 }
 
 /**

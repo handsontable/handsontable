@@ -1,5 +1,6 @@
 import { SharedOrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
+import { setAttributes } from '../../../../helpers/dom/element';
 
 /**
  * Row headers renderer responsible for managing (inserting, tracking, rendering) TR elements belongs to TR.
@@ -29,6 +30,19 @@ export default class RowHeadersRenderer extends BaseRenderer {
      * @type {number}
      */
     this.sourceRowIndex = 0;
+  }
+
+  /**
+   * Get a set of accessibility-related attributes to be added to the table.
+   *
+   * @returns {object}
+   */
+  #getAccessibilityAttributes() {
+    return {
+      role: 'rowheader',
+      scope: 'row',
+      tabindex: -1,
+    };
   }
 
   /**
@@ -83,8 +97,7 @@ export default class RowHeadersRenderer extends BaseRenderer {
         TH.className = '';
         TH.removeAttribute('style');
 
-        TH.setAttribute('tabindex', '-1');
-        TH.setAttribute('role', 'rowheader');
+        setAttributes(TH, this.#getAccessibilityAttributes());
 
         rowHeaderFunctions[visibleColumnIndex](sourceRowIndex, TH, visibleColumnIndex);
       }

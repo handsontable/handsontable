@@ -2,6 +2,7 @@ import { warn } from './../../../../helpers/console';
 import { toSingleLine } from './../../../../helpers/templateLiteralTag';
 import { OrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
+import { setAttributes } from '../../../../helpers/dom/element';
 
 let performanceWarningAppeared = false;
 
@@ -33,6 +34,26 @@ export default class RowsRenderer extends BaseRenderer {
   }
 
   /**
+   * Get a set of accessibility-related attributes to be added to the table.
+   *
+   * @param {number|null} rowIndex Row index or `null` if used for the root element.
+   * @returns {object}
+   */
+  #getAccessibilityAttributes(rowIndex) {
+    // Root node
+    if (rowIndex === null) {
+      return {
+        role: 'rowgroup'
+      };
+    }
+
+    return {
+      role: 'row',
+      'aria-rowindex': rowIndex + 1
+    };
+  }
+
+  /**
    * Returns currently rendered node.
    *
    * @param {string} visualIndex Visual index of the rendered node (it always goeas from 0 to N).
@@ -54,6 +75,8 @@ export default class RowsRenderer extends BaseRenderer {
         the number of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.`);
     }
 
+    setAttributes(this.rootNode, this.#getAccessibilityAttributes(null));
+
     this.orderView
       .setSize(rowsToRender)
       .setOffset(this.table.renderedRowToSource(0))
@@ -61,6 +84,10 @@ export default class RowsRenderer extends BaseRenderer {
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       this.orderView.render();
+
+      const TR = this.orderView.getCurrentNode();
+
+      setAttributes(TR, this.#getAccessibilityAttributes(visibleRowIndex));
     }
 
     this.orderView.end();

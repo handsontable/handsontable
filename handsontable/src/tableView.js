@@ -9,6 +9,7 @@ import {
   isChildOf,
   isInput,
   isOutsideInput,
+  setAttributes,
 } from './helpers/dom/element';
 import EventManager from './eventManager';
 import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
@@ -144,6 +145,22 @@ class TableView {
   }
 
   /**
+   * Get a set of accessibility-related attributes to be added to the table.
+   *
+   * @param {number} rowcount The row count.
+   * @param {number} colcount The column count.
+   * @returns {object}
+   */
+  #getAccessibilityAttributes(rowcount, colcount) {
+    return {
+      role: 'treegrid',
+      'aria-rowcount': rowcount,
+      'aria-colcount': colcount,
+      'aria-multiselectable': true
+    };
+  }
+
+  /**
    * Renders WalkontableUI.
    */
   render() {
@@ -250,11 +267,11 @@ class TableView {
     priv.table = rootDocument.createElement('TABLE');
     addClass(priv.table, 'htCore');
 
-    priv.table.setAttribute('role', 'treegrid');
-
     if (this.instance.getSettings().tableClassName) {
       addClass(priv.table, this.instance.getSettings().tableClassName);
     }
+
+    setAttributes(rootElement, this.#getAccessibilityAttributes(this.instance.countRows(), this.instance.countCols()));
 
     this.THEAD = rootDocument.createElement('THEAD');
     priv.table.appendChild(this.THEAD);

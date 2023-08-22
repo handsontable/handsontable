@@ -1,5 +1,6 @@
 import {
   hasClass,
+  setAttributes,
 } from './../../../../helpers/dom/element';
 import { SharedOrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
@@ -32,6 +33,20 @@ export default class CellsRenderer extends BaseRenderer {
      * @type {number}
      */
     this.sourceRowIndex = 0;
+  }
+
+  /**
+   * Get a set of accessibility-related attributes to be added to the table.
+   *
+   * @param {number} columnIndex The column index.
+   * @returns {object}
+   */
+  #getAccessibilityAttributes(columnIndex) {
+    return {
+      role: 'gridcell',
+      tabindex: -1,
+      'aria-colindex': columnIndex + 1
+    };
   }
 
   /**
@@ -91,6 +106,8 @@ export default class CellsRenderer extends BaseRenderer {
         }
         TD.removeAttribute('style');
         TD.removeAttribute('dir');
+
+        setAttributes(TD, this.#getAccessibilityAttributes(visibleColumnIndex));
 
         this.table.cellRenderer(sourceRowIndex, sourceColumnIndex, TD);
       }

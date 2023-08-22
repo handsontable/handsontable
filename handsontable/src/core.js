@@ -38,7 +38,6 @@ import { installFocusCatcher } from './core/index';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
-import { AriaManager } from './ariaManager';
 
 let activeGuid = null;
 
@@ -1174,8 +1173,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
 
     focusManager = new FocusManager(instance);
-
-    ariaManager = new AriaManager(instance);
 
     if (isRootInstance(this)) {
       installFocusCatcher(instance);

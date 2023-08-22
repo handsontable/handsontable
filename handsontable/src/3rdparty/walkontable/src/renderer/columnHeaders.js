@@ -1,4 +1,8 @@
-import { empty } from './../../../../helpers/dom/element';
+import {
+  empty,
+  setAttributes
+} from './../../../../helpers/dom/element';
+import { extend } from './../../../../helpers/object';
 import BaseRenderer from './_base';
 
 /**
@@ -16,6 +20,39 @@ import BaseRenderer from './_base';
 export default class ColumnHeadersRenderer extends BaseRenderer {
   constructor(rootNode) {
     super(null, rootNode); // NodePool is not implemented for this renderer yet
+  }
+
+  /**
+   * Get a set of accessibility-related attributes to be added to the table.
+   *
+   * @param {number|null} columnIndex The column index or `null` if used for the root element.
+   * @returns {object}
+   */
+  #getAccessibilityAttributes(columnIndex) {
+    // Root node
+    if (columnIndex === null) {
+      return {
+        role: 'rowgroup'
+      };
+    }
+
+    const attributesObject = {
+      tabindex: -1
+    };
+
+    if (columnIndex < 0) {
+      extend(attributesObject, {
+        'aria-hidden': true
+      });
+
+    } else {
+      extend(attributesObject, {
+        role: 'columnheader',
+        scope: 'col'
+      });
+    }
+
+    return attributesObject;
   }
 
   /**
@@ -65,6 +102,8 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
   render() {
     const { columnHeadersCount } = this.table;
 
+    setAttributes(this.rootNode, this.#getAccessibilityAttributes(null));
+
     for (let rowHeaderIndex = 0; rowHeaderIndex < columnHeadersCount; rowHeaderIndex += 1) {
       const { columnHeaderFunctions, columnsToRender, rowHeadersCount } = this.table;
       const TR = this.rootNode.childNodes[rowHeaderIndex];
@@ -76,8 +115,7 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
         TH.className = '';
         TH.removeAttribute('style');
 
-        TH.setAttribute('tabindex', '-1');
-        TH.setAttribute('role', 'columnheader');
+        setAttributes(TH, this.#getAccessibilityAttributes(renderedColumnIndex));
 
         columnHeaderFunctions[rowHeaderIndex](sourceColumnIndex, TH, rowHeaderIndex);
       }
