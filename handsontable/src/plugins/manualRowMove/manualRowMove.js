@@ -2,6 +2,7 @@ import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
 import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, getTrimmingContainer } from '../../helpers/dom/element';
+import { offsetRelativeTo } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
 import EventManager from '../../eventManager';
 import BacklightUI from './ui/backlight';
@@ -560,6 +561,9 @@ export class ManualRowMove extends BasePlugin {
     if (coords.col < 0 && (coords.row >= start && coords.row <= end)) {
       controller.row = true;
       priv.pressed = true;
+
+      const eventOffsetY = TD.firstChild ? offsetRelativeTo(event, TD.firstChild).y : event.offsetY;
+
       priv.target.eventPageY = event.pageY;
       priv.target.coords = coords;
       priv.target.TD = TD;
@@ -569,7 +573,7 @@ export class ManualRowMove extends BasePlugin {
 
       this.backlight.setPosition(null, leftPos);
       this.backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end));
-      this.backlight.setOffset((this.getRowsHeight(start, coords.row - 1) + event.offsetY) * -1, null);
+      this.backlight.setOffset((this.getRowsHeight(start, coords.row - 1) + eventOffsetY) * -1, null);
 
       addClass(this.hot.rootElement, CSS_ON_MOVING);
 
