@@ -2,11 +2,11 @@
  * Copyright (c) HANDSONCODE sp. z o. o.
  *
  * HANDSONTABLE is a software distributed by HANDSONCODE sp. z o. o., a Polish corporation based in
- * Gdynia, Poland, at Aleja Zwycięstwa 96-98, registered by the District Court in Gdansk under number
+ * Gdynia, Poland, at Aleja Zwyciestwa 96-98, registered by the District Court in Gdansk under number
  * 538651, EU tax ID number: PL5862294002, share capital: PLN 62,800.00.
  *
  * This software is protected by applicable copyright laws, including international treaties, and dual-
- * licensed – depending on whether your use for commercial purposes, meaning intended for or
+ * licensed - depending on whether your use for commercial purposes, meaning intended for or
  * resulting in commercial advantage or monetary compensation, or not.
  *
  * If your use is strictly personal or solely for evaluation purposes, meaning for the purposes of testing
@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 13.1.0
- * Release date: 23/08/2023 (built at 21/08/2023 10:47:43)
+ * Release date: 29/08/2023 (built at 22/08/2023 09:34:15)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -105,7 +105,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "21/08/2023 10:47:43";
+Handsontable.buildDate = "22/08/2023 09:34:15";
 Handsontable.version = "13.1.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -8349,7 +8349,7 @@ function _injectProductInfo(key, element) {
   const schemaValidity = _checkKeySchema(key);
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      const releaseDate = (0, _moment.default)("23/08/2023", 'DD/MM/YYYY');
+      const releaseDate = (0, _moment.default)("29/08/2023", 'DD/MM/YYYY');
       const releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
       const keyValidityDays = _extractTime(key);
       keyValidityDate = (0, _moment.default)((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
