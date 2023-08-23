@@ -49,9 +49,9 @@ describe('CopyPaste', () => {
 
     it('should copy special characters to the clipboard', () => {
       handsontable({
-        colHeaders: ['!@#$%^&*()_+-={[', ']};:\'"\\|,<.>/?~'],
+        colHeaders: ['!@#$%^&*()_+-={[', ']};:\'"\\|,<.>/?~&LTE'],
         data: [
-          ['!@#$%^&*()_+-={[', ']};:\'"\\|,<.>/?~']
+          ['!@#$%^&*()_+-={[', ']};:\'"\\|,<.>/?~&LTE']
         ],
       });
 
@@ -64,13 +64,13 @@ describe('CopyPaste', () => {
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       expect(copyEvent.clipboardData.getData('text/plain'))
-        .toBe('!@#$%^&*()_+-={[\t]};:\'"\\|,<.>/?~\n!@#$%^&*()_+-={[\t]};:\'"\\|,<.>/?~');
+        .toBe('!@#$%^&*()_+-={[\t]};:\'"\\|,<.>/?~&LTE\n!@#$%^&*()_+-={[\t]};:\'"\\|,<.>/?~&LTE');
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
           '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table><tbody>',
-        '<tr><td>!@#$%^&*()_+-={[</td><td>]};:\'"\\|,&lt;.&gt;/?~</td></tr>',
-        '<tr><td>!@#$%^&*()_+-={[</td><td>]};:\'"\\|,&lt;.&gt;/?~</td></tr>',
+        '<tr><td>!@#$%^&amp;*()_+-={[</td><td>]};:\'"\\|,&lt;.&gt;/?~&amp;LTE</td></tr>',
+        '<tr><td>!@#$%^&amp;*()_+-={[</td><td>]};:\'"\\|,&lt;.&gt;/?~&amp;LTE</td></tr>',
         '</tbody></table>',
       ].join(''));
     });
