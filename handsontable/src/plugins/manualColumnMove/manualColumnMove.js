@@ -609,17 +609,6 @@ export class ManualColumnMove extends BasePlugin {
       return;
     }
 
-    // callback for browser which doesn't supports CSS pointer-event: none
-    if (event.target === this.backlight.element) {
-      const width = this.backlight.getSize().width;
-
-      this.backlight.setSize(0);
-
-      setTimeout(function() {
-        this.backlight.setPosition(width);
-      });
-    }
-
     priv.target.eventPageX = event.pageX;
     this.refreshPositions();
   }
