@@ -410,10 +410,10 @@ export class ManualColumnMove extends BasePlugin {
     const priv = privatePool.get(this);
     const firstVisible = this.hot.view.getFirstFullyVisibleColumn();
 
-    // if (this.isFixedColumnsStart(priv.hoveredColumn) && firstVisible > 0) {
-    //   this.hot.scrollViewportTo(
-    //     void 0, this.hot.columnIndexMapper.getNearestNotHiddenIndex(firstVisible - 1, -1));
-    // }
+    if (this.isFixedColumnsStart(priv.hoveredColumn) && firstVisible > 0) {
+      this.hot.scrollViewportTo(
+        void 0, this.hot.columnIndexMapper.getNearestNotHiddenIndex(firstVisible - 1, -1));
+    }
 
     const wtTable = this.hot.view._wt.wtTable;
     const scrollableElement = this.hot.view._wt.wtOverlays.scrollableElement;
@@ -474,14 +474,14 @@ export class ManualColumnMove extends BasePlugin {
     let backlightStart = mouseOffsetStart;
     let guidelineStart = tdOffsetStart;
 
-    // if (mouseOffsetStart + backlightElemWidth + backlightElemMarginStart >= hiderWidth) {
-    //   // prevent display backlight on the right side of the table
-    //   backlightStart = hiderWidth - backlightElemWidth - backlightElemMarginStart;
+    if (mouseOffsetStart + backlightElemWidth + backlightElemMarginStart >= hiderWidth) {
+      // prevent display backlight on the right side of the table
+      backlightStart = hiderWidth - backlightElemWidth - backlightElemMarginStart;
 
-    // } else if (mouseOffsetStart + backlightElemMarginStart < tbodyOffsetLeft + rowHeaderWidth) {
-    //   // prevent display backlight on the left side of the table
-    //   backlightStart = tbodyOffsetLeft + rowHeaderWidth + Math.abs(backlightElemMarginStart);
-    // }
+    } else if (mouseOffsetStart + backlightElemMarginStart < tbodyOffsetLeft + rowHeaderWidth) {
+      // prevent display backlight on the left side of the table
+      backlightStart = tbodyOffsetLeft + rowHeaderWidth + Math.abs(backlightElemMarginStart);
+    }
 
     if (tdOffsetStart >= hiderWidth - 1) {
       // prevent display guideline outside the table
@@ -574,17 +574,18 @@ export class ManualColumnMove extends BasePlugin {
       priv.fixedColumnsStart = this.hot.getSettings().fixedColumnsStart;
       priv.rootElementOffset = offset(this.hot.rootElement).left;
 
-      const countColumnsFrom = priv.hasRowHeaders ? 0 : 0;
+      const countColumnsFrom = priv.hasRowHeaders ? -1 : 0;
       const topPos = wtTable.holder.scrollTop + wtTable.getColumnHeaderHeight(0) + 1;
       const fixedColumnsStart = coords.col < priv.fixedColumnsStart;
-      const horizontalScrollPosition = Math.abs(this.hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition());
+      const horizontalScrollPosition = this.hot.view._wt.wtOverlays.inlineStartOverlay.getOverlayOffset();
       const offsetX = Math.abs(eventOffsetX - (this.hot.isRtl() ? event.target.offsetWidth : 0));
       const inlineOffset = this.getColumnsWidth(start, coords.col - 1) + offsetX;
-      const inlinePos = TD.getBoundingClientRect().left + hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition();
+      const inlinePos = this.getColumnsWidth(countColumnsFrom, start - 1) +
+        (fixedColumnsStart ? horizontalScrollPosition : 0) + inlineOffset;
 
       this.backlight.setPosition(topPos, inlinePos);
       this.backlight.setSize(this.getColumnsWidth(start, end), wtTable.hider.offsetHeight - topPos);
-      this.backlight.setOffset(null, offsetX);
+      this.backlight.setOffset(null, -inlineOffset);
 
       addClass(this.hot.rootElement, CSS_ON_MOVING);
 

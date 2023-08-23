@@ -2,7 +2,6 @@ import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
 import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, getTrimmingContainer } from '../../helpers/dom/element';
-import { offsetRelativeTo } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
 import EventManager from '../../eventManager';
 import BacklightUI from './ui/backlight';
@@ -441,15 +440,7 @@ export class ManualRowMove extends BasePlugin {
     const rootElementOffset = offset(rootElement);
     const trimmingContainer = getTrimmingContainer(rootElement);
     const tableScroll = wtTable.holder.scrollTop;
-    let trimmingContainerScroll;
-
-    // Trimming container is the `window` element.
-    if (this.hot.rootWindow === trimmingContainer) {
-      trimmingContainerScroll = trimmingContainer.scrollY;
-
-    } else {
-      trimmingContainerScroll = trimmingContainer.scrollTop;
-    }
+    const trimmingContainerScroll = this.hot.rootWindow !== trimmingContainer ? trimmingContainer.scrollTop : 0;
 
     const pixelsAbove = rootElementOffset.top - trimmingContainerScroll;
     const pixelsRelToTableStart = priv.target.eventPageY - pixelsAbove + tableScroll;
@@ -463,7 +454,7 @@ export class ManualRowMove extends BasePlugin {
     const isBelowTable = pixelsRelToTableStart >= tdStartPixel + tdMiddle;
 
     if (this.isFixedRowTop(coords.row)) {
-      tdStartPixel += wtTable.holder.scrollTop;
+      tdStartPixel += this.hot.view._wt.wtOverlays.topOverlay.getOverlayOffset();
     }
 
     if (coords.row < 0) {
@@ -562,18 +553,17 @@ export class ManualRowMove extends BasePlugin {
       controller.row = true;
       priv.pressed = true;
 
-      const eventOffsetY = TD.firstChild ? offsetRelativeTo(event, TD.firstChild).y : event.offsetY;
-
       priv.target.eventPageY = event.pageY;
       priv.target.coords = coords;
       priv.target.TD = TD;
       priv.rowsToMove = this.prepareRowsToMoving();
 
       const leftPos = wtTable.holder.scrollLeft + wtViewport.getRowHeaderWidth();
+      const topOffset = this.getRowsHeight(start, coords.row - 1) + event.offsetY;
 
       this.backlight.setPosition(null, leftPos);
       this.backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end));
-      this.backlight.setOffset((this.getRowsHeight(start, coords.row - 1) + eventOffsetY) * -1, null);
+      this.backlight.setOffset(-topOffset, null);
 
       addClass(this.hot.rootElement, CSS_ON_MOVING);
 
@@ -597,17 +587,6 @@ export class ManualRowMove extends BasePlugin {
 
     if (!priv.pressed) {
       return;
-    }
-
-    // callback for browser which doesn't supports CSS pointer-event: none
-    if (event.target === this.backlight.element) {
-      const height = this.backlight.getSize().height;
-
-      this.backlight.setSize(null, 0);
-
-      setTimeout(function() {
-        this.backlight.setPosition(null, height);
-      });
     }
 
     priv.target.eventPageY = event.pageY;

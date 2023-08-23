@@ -39,7 +39,7 @@ export function isLeftClick(event) {
 }
 
 /**
- * Gets the event offset values relative to the element.
+ * Calculates the event offset until reaching the element defined by `relativeElement` argument.
  *
  * @param {Event} event The mouse event object.
  * @param {HTMLElement|undefined} [relativeElement] The element to which the offset will be calculated.
