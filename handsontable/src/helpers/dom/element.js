@@ -1,5 +1,4 @@
 import { sanitize } from '../string';
-import { objectEach } from '../object';
 
 /**
  * Get the parent of the specified node in the DOM tree.
