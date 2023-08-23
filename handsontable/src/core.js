@@ -118,7 +118,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   let grid;
   let editorManager;
   let focusManager;
-  let ariaManager;
   let firstRun = true;
 
   if (hasValidParameter(rootInstanceSymbol)) {
@@ -4891,18 +4890,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getFocusManager = function() {
     return focusManager;
-  };
-
-  /**
-   * Return the Aria Manager responsible for managing the ARIA attributes added to the table.
-   *
-   * @memberof Core#
-   * @since 14.0.0
-   * @function getAriaManager
-   * @returns {AriaManager}
-   */
-  this.getAriaManager = function() {
-    return ariaManager;
   };
 
   getPluginsNames().forEach((pluginName) => {
