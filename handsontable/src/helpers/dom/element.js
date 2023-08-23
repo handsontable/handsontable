@@ -278,7 +278,7 @@ export function removeClass(element, className) {
  * Set multiple attributes at once.
  *
  * @param {HTMLElement} domElement The HTML element to be modified.
- * @param {Array[]} attributesObject Array containing the attributes to be added. Each element of the array should be
+ * @param {Array[]} attributeList Array containing the attributes to be added. Each element of the array should be
  * an array in a form of `[attributeName, attributeValue]`.
  */
 export function setAttributes(domElement, attributeList) {

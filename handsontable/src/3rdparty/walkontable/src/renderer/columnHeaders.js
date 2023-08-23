@@ -2,7 +2,6 @@ import {
   empty,
   setAttributes
 } from './../../../../helpers/dom/element';
-import { extend } from './../../../../helpers/object';
 import BaseRenderer from './_base';
 
 const ACCESSIBILITY_ATTR_ROWGROUP = ['role', 'rowgroup'];
