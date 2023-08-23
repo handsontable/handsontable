@@ -1,6 +1,7 @@
 import {
   addClass,
   removeClass,
+  setAttributes,
 } from '../../helpers/dom/element';
 import { isUndefined, isDefined } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
@@ -17,7 +18,11 @@ import {
   isFirstLevelColumnHeader,
   wasHeaderClickedProperly
 } from './utils';
-import { getClassesToRemove, getClassesToAdd } from './domHelpers';
+import {
+  getAccessibilityAttributes,
+  getClassesToRemove,
+  getClassesToAdd
+} from './domHelpers';
 import { rootComparator } from './rootComparator';
 import { registerRootComparator, sort } from './sortService';
 
@@ -717,6 +722,8 @@ export class ColumnSorting extends BasePlugin {
       showSortIndicator,
       headerActionEnabled
     );
+
+    this.updateAccessibilityAttributes(TH, column);
   }
 
   /**
@@ -732,6 +739,16 @@ export class ColumnSorting extends BasePlugin {
     if (this.enabled !== false) {
       addClass(headerSpanElement, getClassesToAdd(...args));
     }
+  }
+
+  /**
+   * Update the accessibility arguments in the provided element.
+   *
+   * @param {HTMLElement} TH Column header element.
+   * @param {number} columnIndex The column index.
+   */
+  updateAccessibilityAttributes(TH, columnIndex) {
+    setAttributes(TH, getAccessibilityAttributes(this.columnStatesManager.getSortOrderOfColumn(columnIndex)));
   }
 
   /**

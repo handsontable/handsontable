@@ -19,6 +19,8 @@ import {
 } from './utils';
 import { toSingleLine } from './../helpers/templateLiteralTag';
 
+const ACCESSIBILITY_ATTR_SELECTED = ['aria-selected', 'true'];
+
 /**
  * @class Selection
  * @util
@@ -85,6 +87,7 @@ class Selection {
       activeHeaderClassName: settings.activeHeaderClassName,
       rowClassName: settings.currentRowClassName,
       columnClassName: settings.currentColClassName,
+      accessibilityAttributes: [ACCESSIBILITY_ATTR_SELECTED],
       rowIndexMapper: this.tableProps.rowIndexMapper,
       columnIndexMapper: this.tableProps.columnIndexMapper,
       disabledCellSelection: (row, column) => this.tableProps.isDisabledCellSelection(row, column),

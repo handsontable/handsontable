@@ -4,6 +4,10 @@ import { OrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
 import { setAttributes } from '../../../../helpers/dom/element';
 
+const ACCESSIBILITY_ATTR_ROWGROUP = ['role', 'rowgroup'];
+const ACCESSIBILITY_ATTR_ROW = ['role', 'row'];
+const ACCESSIBILITY_ATTR_ROWINDEX = ['aria-rowindex'];
+
 let performanceWarningAppeared = false;
 
 /**
@@ -42,15 +46,13 @@ export default class RowsRenderer extends BaseRenderer {
   #getAccessibilityAttributes(rowIndex) {
     // Root node
     if (rowIndex === null) {
-      return {
-        role: 'rowgroup'
-      };
+      return [ACCESSIBILITY_ATTR_ROWGROUP];
     }
 
-    return {
-      role: 'row',
-      'aria-rowindex': rowIndex + 1
-    };
+    return [
+      ACCESSIBILITY_ATTR_ROW,
+      [ACCESSIBILITY_ATTR_ROWINDEX[0], rowIndex + 1]
+    ];
   }
 
   /**

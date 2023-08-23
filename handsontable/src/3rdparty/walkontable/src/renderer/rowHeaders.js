@@ -2,6 +2,10 @@ import { SharedOrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
 import { setAttributes } from '../../../../helpers/dom/element';
 
+const ACCESSIBILITY_ATTR_ROWHEADER = ['role', 'rowheader'];
+const ACCESSIBILITY_ATTR_SCOPE_ROW = ['scope', 'row'];
+const ACCESSIBILITY_ATTR_TABINDEX = ['tabindex', '-1'];
+
 /**
  * Row headers renderer responsible for managing (inserting, tracking, rendering) TR elements belongs to TR.
  *
@@ -38,11 +42,11 @@ export default class RowHeadersRenderer extends BaseRenderer {
    * @returns {object}
    */
   #getAccessibilityAttributes() {
-    return {
-      role: 'rowheader',
-      scope: 'row',
-      tabindex: -1,
-    };
+    return [
+      ACCESSIBILITY_ATTR_ROWHEADER,
+      ACCESSIBILITY_ATTR_SCOPE_ROW,
+      ACCESSIBILITY_ATTR_TABINDEX
+    ];
   }
 
   /**

@@ -17,6 +17,11 @@ import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
 
+const ACCESSIBILITY_ATTR_TREEGRID = ['role', 'treegrid'];
+const ACCESSIBILITY_ATTR_MULTISELECTABLE = ['aria-multiselectable', 'true'];
+const ACCESSIBILITY_ATTR_ROWCOUNT = ['aria-rowcount'];
+const ACCESSIBILITY_ATTR_COLCOUNT = ['aria-colcount'];
+
 const privatePool = new WeakMap();
 
 /**
@@ -152,12 +157,12 @@ class TableView {
    * @returns {object}
    */
   #getAccessibilityAttributes(rowcount, colcount) {
-    return {
-      role: 'treegrid',
-      'aria-rowcount': rowcount,
-      'aria-colcount': colcount,
-      'aria-multiselectable': true
-    };
+    return [
+      ACCESSIBILITY_ATTR_TREEGRID,
+      [ACCESSIBILITY_ATTR_ROWCOUNT[0], rowcount],
+      [ACCESSIBILITY_ATTR_COLCOUNT[0], colcount],
+      ACCESSIBILITY_ATTR_MULTISELECTABLE,
+    ];
   }
 
   /**

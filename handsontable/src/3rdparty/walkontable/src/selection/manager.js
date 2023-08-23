@@ -1,4 +1,9 @@
-import { removeClass, addClass } from '../../../../helpers/dom/element';
+import {
+  removeClass,
+  addClass,
+  setAttributes,
+  removeAttributes
+} from '../../../../helpers/dom/element';
 import { SelectionScanner } from './scanner';
 import Border from './border/border';
 
@@ -222,6 +227,10 @@ export class SelectionManager {
         .add(className));
 
       addClass(element, classNames);
+
+      if (element.nodeName === 'TD') {
+        setAttributes(element, this.#selections.options.accessibilityAttributes);
+      }
     });
   }
 
@@ -241,9 +250,12 @@ export class SelectionManager {
 
     appliedOverlaysClasses.forEach((className) => {
       const nodes = this.#activeOverlaysWot.wtTable.TABLE.querySelectorAll(`.${className}`);
+      const accessibilityAttributes = this.#selections.options.accessibilityAttributes.map(el => el[0]);
 
       for (let i = 0, len = nodes.length; i < len; i++) {
         removeClass(nodes[i], className);
+
+        removeAttributes(nodes[i], accessibilityAttributes);
       }
     });
 

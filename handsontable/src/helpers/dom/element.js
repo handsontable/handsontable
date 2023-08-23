@@ -279,12 +279,24 @@ export function removeClass(element, className) {
  * Set multiple attributes at once.
  *
  * @param {HTMLElement} domElement The HTML element to be modified.
- * @param {object} attributesObject Object containing the attributes to be added. Object keys will be used as
- * attribute names and their respective values as the attribute values.
+ * @param {Array[]} attributesObject Array containing the attributes to be added. Each element of the array should be
+ * an array in a form of `[attributeName, attributeValue]`.
  */
-export function setAttributes(domElement, attributesObject) {
-  objectEach(attributesObject, (value, key) => {
-    domElement.setAttribute(key, value);
+export function setAttributes(domElement, attributeList) {
+  attributeList.forEach((attributeInfo) => {
+    domElement.setAttribute(...attributeInfo);
+  });
+}
+
+/**
+ * Remove multiple attributes from the provided element at once.
+ *
+ * @param {HTMLElement} domElement The HTML element to be processed.
+ * @param {string[]} attributesToRemove Array of attribute names to be removed from the provided element.
+ */
+export function removeAttributes(domElement, attributesToRemove) {
+  attributesToRemove.forEach((attributeName) => {
+    domElement.removeAttribute(attributeName);
   });
 }
 

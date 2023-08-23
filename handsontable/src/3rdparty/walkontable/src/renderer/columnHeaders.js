@@ -5,6 +5,12 @@ import {
 import { extend } from './../../../../helpers/object';
 import BaseRenderer from './_base';
 
+const ACCESSIBILITY_ATTR_ROWGROUP = ['role', 'rowgroup'];
+const ACCESSIBILITY_ATTR_HIDDEN = ['aria-hidden', 'true'];
+const ACCESSIBILITY_ATTR_COLUMNHEADER = ['role', 'columnheader'];
+const ACCESSIBILITY_ATTR_SCOPE_COL = ['scope', 'col'];
+const ACCESSIBILITY_ATTR_TABINDEX = ['tabindex', '-1'];
+
 /**
  * Column headers renderer responsible for managing (inserting, tracking, rendering) TR and TH elements.
  *
@@ -31,28 +37,22 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
   #getAccessibilityAttributes(columnIndex) {
     // Root node
     if (columnIndex === null) {
-      return {
-        role: 'rowgroup'
-      };
+      return [ACCESSIBILITY_ATTR_ROWGROUP];
     }
 
-    const attributesObject = {
-      tabindex: -1
-    };
+    const attributesList = [ACCESSIBILITY_ATTR_TABINDEX];
 
     if (columnIndex < 0) {
-      extend(attributesObject, {
-        'aria-hidden': true
-      });
+      attributesList.push(ACCESSIBILITY_ATTR_HIDDEN);
 
     } else {
-      extend(attributesObject, {
-        role: 'columnheader',
-        scope: 'col'
-      });
+      attributesList.push(...[
+        ACCESSIBILITY_ATTR_COLUMNHEADER,
+        ACCESSIBILITY_ATTR_SCOPE_COL
+      ]);
     }
 
-    return attributesObject;
+    return attributesList;
   }
 
   /**

@@ -5,6 +5,10 @@ import {
 import { SharedOrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
 
+const ACCESSIBILITY_ATTR_GRIDCELL = ['role', 'gridcell'];
+const ACCESSIBILITY_ATTR_TABINDEX = ['tabindex', '-1'];
+const ACCESSIBILITY_ATTR_COLINDEX = ['aria-colindex'];
+
 /**
  * Cell renderer responsible for managing (inserting, tracking, rendering) TD elements.
  *
@@ -42,11 +46,11 @@ export default class CellsRenderer extends BaseRenderer {
    * @returns {object}
    */
   #getAccessibilityAttributes(columnIndex) {
-    return {
-      role: 'gridcell',
-      tabindex: -1,
-      'aria-colindex': columnIndex + 1
-    };
+    return [
+      ACCESSIBILITY_ATTR_GRIDCELL,
+      ACCESSIBILITY_ATTR_TABINDEX,
+      [ACCESSIBILITY_ATTR_COLINDEX[0], columnIndex + 1],
+    ];
   }
 
   /**
