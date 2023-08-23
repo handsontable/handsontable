@@ -578,7 +578,7 @@ export class ManualColumnMove extends BasePlugin {
       const topPos = wtTable.holder.scrollTop + wtTable.getColumnHeaderHeight(0) + 1;
       const fixedColumnsStart = coords.col < priv.fixedColumnsStart;
       const horizontalScrollPosition = this.hot.view._wt.wtOverlays.inlineStartOverlay.getOverlayOffset();
-      const offsetX = Math.abs(eventOffsetX - (this.hot.isRtl() ? event.target.offsetWidth : 0));
+      const offsetX = Math.abs(eventOffsetX - (this.hot.isRtl() ? TD.offsetWidth : 0));
       const inlineOffset = this.getColumnsWidth(start, coords.col - 1) + offsetX;
       const inlinePos = this.getColumnsWidth(countColumnsFrom, start - 1) +
         (fixedColumnsStart ? horizontalScrollPosition : 0) + inlineOffset;
