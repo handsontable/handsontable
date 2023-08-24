@@ -637,7 +637,8 @@ class Selection {
    * @param {object} [options] Additional object with options.
    * @param {{row: number, col: number} | boolean} [options.focusPosition] The argument allows changing the cell/header
    * focus position. The value takes an object with a `row` and `col` properties from -N to N, where
-   * negative values point to the headers and positive values point to the cell range.
+   * negative values point to the headers and positive values point to the cell range. If `false`, the focus
+   * position won't be changed.
    * @param {boolean} [options.disableHeadersHighlight] If `true`, disables highlighting the headers even when
    * the logical coordinates points on them.
    */
