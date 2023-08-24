@@ -6,7 +6,8 @@ import {
   addClass,
   hasClass,
   removeClass,
-  fastInnerText
+  fastInnerText,
+  removeAttributes
 } from '../../helpers/dom/element';
 import EventManager from '../../eventManager';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
@@ -29,6 +30,8 @@ const actionDictionary = new Map([
     afterHook: 'afterColumnExpand',
   }],
 ]);
+const ACCESSIBILITY_ATTR_EXPANDED = ['aria-expanded', 'true'];
+const ACCESSIBILITY_ATTR_COLLAPSED = ['aria-expanded', 'false'];
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -517,6 +520,11 @@ export class CollapsibleColumns extends BasePlugin {
     const isNodeCollapsible = collapsible && origColspan > 1 && column >= this.hot.getSettings().fixedColumnsStart;
     let collapsibleElement = TH.querySelector(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
+    removeAttributes(TH, [
+      ACCESSIBILITY_ATTR_EXPANDED[0],
+      ACCESSIBILITY_ATTR_COLLAPSED[0],
+    ]);
+
     if (isNodeCollapsible) {
       if (!collapsibleElement) {
         collapsibleElement = this.hot.rootDocument.createElement('div');
@@ -529,11 +537,17 @@ export class CollapsibleColumns extends BasePlugin {
 
       if (isCollapsed) {
         addClass(collapsibleElement, 'collapsed');
+
         fastInnerText(collapsibleElement, '+');
+
+        TH.setAttribute(...ACCESSIBILITY_ATTR_COLLAPSED);
 
       } else {
         addClass(collapsibleElement, 'expanded');
+
         fastInnerText(collapsibleElement, '-');
+
+        TH.setAttribute(...ACCESSIBILITY_ATTR_EXPANDED);
       }
     } else {
       collapsibleElement?.remove();
