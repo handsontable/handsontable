@@ -262,13 +262,13 @@ describe('HiddenColumns', () => {
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: -1,-1 to: 4,4']);
         expect(`
-        | * ║ * : * |
+        |   ║ - : - |
         |===:===:===|
-        | * ║ A : 0 |
-        | * ║ 0 : 0 |
-        | * ║ 0 : 0 |
-        | * ║ 0 : 0 |
-        | * ║ 0 : 0 |
+        | - ║ A : 0 |
+        | - ║ 0 : 0 |
+        | - ║ 0 : 0 |
+        | - ║ 0 : 0 |
+        | - ║ 0 : 0 |
         `).toBeMatchToSelectionPattern();
       });
 
@@ -291,13 +291,13 @@ describe('HiddenColumns', () => {
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 4,4']);
         expect(`
-        | * |
+        |   |
         |===|
-        | * |
-        | * |
-        | * |
-        | * |
-        | * |
+        | - |
+        | - |
+        | - |
+        | - |
+        | - |
         `).toBeMatchToSelectionPattern();
       });
     });

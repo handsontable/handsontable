@@ -541,7 +541,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             const startVisualRowIndex = instance.toVisualRow(startRowPhysicalIndex);
 
             if (selection.isSelectedByCorner()) {
-              instance.selectAll();
+              selection.selectAll(true, true, {
+                disableHeadersHighlight: true,
+              });
 
             } else if (isDefined(currentFromRow) && currentFromRow >= startVisualRowIndex) {
               // Moving the selection (if it exists) downward – it should be applied to the "old" row.
@@ -596,7 +598,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             const startVisualColumnIndex = instance.toVisualColumn(startColumnPhysicalIndex);
 
             if (selection.isSelectedByCorner()) {
-              instance.selectAll();
+              selection.selectAll(true, true, {
+                disableHeadersHighlight: true,
+              });
 
             } else if (isDefined(currentFromColumn) && currentFromColumn >= startVisualColumnIndex) {
               // Moving the selection (if it exists) rightward – it should be applied to the "old" column.
