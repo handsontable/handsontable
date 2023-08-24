@@ -126,6 +126,7 @@ export function _dataToHTML(input) {
       const parsedCellData = isEmpty(cellData) ?
         '' :
         cellData.toString()
+          .replace(/&/g, '&amp;')
           .replace(/</g, '&lt;')
           .replace(/>/g, '&gt;')
           .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
