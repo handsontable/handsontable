@@ -2,7 +2,7 @@ name: Docs Production Deployment
 
 env:
   GHA_DOCKER_TAG: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation
-  NODE_VERSION: 16
+  NODE_VERSION: 20
 
 on:
   push:
