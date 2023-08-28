@@ -68,17 +68,17 @@ describe('NestedRows', () => {
               label: 'Loma Vista Recordings',
             },
             {
-              title: "Don't Wanna Fight",
+              title: 'Don\'t Wanna Fight',
               artist: 'Alabama Shakes',
               label: 'ATO Records',
               __children: [
                 {
-                  title: "Don't Wanna Fight",
+                  title: 'Don\'t Wanna Fight',
                   artist: 'Alabama Shakes',
                   label: 'ATO Records',
                   __children: [
                     {
-                      title: "Don't Wanna Fight",
+                      title: 'Don\'t Wanna Fight',
                       artist: 'Alabama Shakes',
                       label: 'ATO Records',
                     },
