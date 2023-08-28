@@ -41,6 +41,33 @@ describe('manualColumnMove', () => {
         expect(backlight.offset().left).toBe(TH.offset().left);
       });
 
+      it('should draw backlight element properly when target element points to header\'s child element', () => {
+        handsontable({
+          layoutDirection,
+          data: createSpreadsheetData(5, 10),
+          manualColumnMove: true,
+          rowHeaders: true,
+          colHeaders: true,
+        });
+
+        const TH = $(getCell(-1, 3));
+
+        TH.find('.colHeader')
+          .simulate('mousedown')
+          .simulate('mouseup')
+          .simulate('mousedown', {
+            clientX: TH.offset().left + (TH.outerWidth() / 2)
+          })
+          .simulate('mousemove', {
+            clientX: TH.offset().left + (TH.outerWidth() / 2)
+          });
+
+        const backlight = spec().$container.find('.ht__manualColumnMove--backlight');
+
+        expect(backlight.outerWidth()).toBe(TH.outerWidth());
+        expect(backlight.offset().left).toBe(TH.offset().left);
+      });
+
       it('should move backlight and guideline element with the movement of the mouse (move left)', () => {
         handsontable({
           layoutDirection,

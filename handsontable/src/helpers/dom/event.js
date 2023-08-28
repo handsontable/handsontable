@@ -37,3 +37,32 @@ export function isRightClick(event) {
 export function isLeftClick(event) {
   return event.button === 0;
 }
+
+/**
+ * Calculates the event offset until reaching the element defined by `relativeElement` argument.
+ *
+ * @param {Event} event The mouse event object.
+ * @param {HTMLElement|undefined} [untilElement] The element to which the offset will be calculated.
+ * @returns {{ x: number, y: number }}
+ */
+export function offsetRelativeTo(event, untilElement) {
+  const offset = {
+    x: event.offsetX,
+    y: event.offsetY,
+  };
+  let element = event.target;
+
+  if (!(untilElement instanceof HTMLElement) ||
+      element !== untilElement && element.contains(untilElement)) {
+    return offset;
+  }
+
+  while (element !== untilElement) {
+    offset.x += element.offsetLeft;
+    offset.y += element.offsetTop;
+
+    element = element.offsetParent;
+  }
+
+  return offset;
+}
