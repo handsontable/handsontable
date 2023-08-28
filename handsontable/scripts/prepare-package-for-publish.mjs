@@ -1,5 +1,5 @@
-import fse from 'fs-extra';
 import path from 'path';
+import fse from 'fs-extra';
 import glob from 'glob';
 import { displayErrorMessage } from '../../scripts/utils/console.mjs';
 
