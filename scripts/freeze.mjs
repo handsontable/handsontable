@@ -119,7 +119,7 @@ displaySeparator();
   await spawnProcess('npm run all test');
 
   // Verify if the bundles have the same (and correct) version.
-  await spawnProcess('node --experimental-json-modules ./scripts/verify-bundles.mjs');
+  await spawnProcess('node ./scripts/verify-bundles.mjs');
 
   // Generate the CHANGELOG.md file.
   await spawnProcess('npm run changelog consume', { stdin: 'pipe' });
