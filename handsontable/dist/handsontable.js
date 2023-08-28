@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 13.1.0
- * Release date: 31/08/2023 (built at 25/08/2023 13:56:40)
+ * Release date: 31/08/2023 (built at 28/08/2023 11:12:50)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -105,7 +105,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "25/08/2023 13:56:40";
+Handsontable.buildDate = "28/08/2023 11:12:50";
 Handsontable.version = "13.1.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -4918,7 +4918,7 @@ module.exports = function (options, source) {
 "use strict";
 
 var check = function (it) {
-  return it && it.Math == Math && it;
+  return it && it.Math === Math && it;
 };
 
 // https://github.com/zloirock/core-js/issues/86#issuecomment-115759028
@@ -4974,7 +4974,7 @@ var fails = __webpack_require__(13);
 // Detect IE8's incomplete defineProperty implementation
 module.exports = !fails(function () {
   // eslint-disable-next-line es/no-object-defineproperty -- required for testing
-  return Object.defineProperty({}, 1, { get: function () { return 7; } })[1] != 7;
+  return Object.defineProperty({}, 1, { get: function () { return 7; } })[1] !== 7;
 });
 
 
@@ -5095,7 +5095,7 @@ module.exports = fails(function () {
   // eslint-disable-next-line no-prototype-builtins -- safe
   return !$Object('z').propertyIsEnumerable(0);
 }) ? function (it) {
-  return classof(it) == 'String' ? split(it, '') : $Object(it);
+  return classof(it) === 'String' ? split(it, '') : $Object(it);
 } : $Object;
 
 
@@ -5349,7 +5349,7 @@ var $String = global.String;
 
 // eslint-disable-next-line es/no-object-getownpropertysymbols -- required for testing
 module.exports = !!Object.getOwnPropertySymbols && !fails(function () {
-  var symbol = Symbol();
+  var symbol = Symbol('symbol detection');
   // Chrome 38 Symbol has incorrect toString conversion
   // `get-own-property-symbols` polyfill symbols converted to object are not Symbol instances
   // nb: Do not call `String` directly to avoid this being optimized out to `symbol+''` which will,
@@ -5517,10 +5517,10 @@ var store = __webpack_require__(43);
 (module.exports = function (key, value) {
   return store[key] || (store[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.32.0',
+  version: '3.32.1',
   mode: IS_PURE ? 'pure' : 'global',
   copyright: '© 2014-2023 Denis Pushkarev (zloirock.ru)',
-  license: 'https://github.com/zloirock/core-js/blob/v3.32.0/LICENSE',
+  license: 'https://github.com/zloirock/core-js/blob/v3.32.1/LICENSE',
   source: 'https://github.com/zloirock/core-js'
 });
 
@@ -5637,7 +5637,7 @@ module.exports = !DESCRIPTORS && !fails(function () {
   // eslint-disable-next-line es/no-object-defineproperty -- required for testing
   return Object.defineProperty(createElement('div'), 'a', {
     get: function () { return 7; }
-  }).a != 7;
+  }).a !== 7;
 });
 
 
@@ -5744,7 +5744,7 @@ module.exports = DESCRIPTORS && fails(function () {
   return Object.defineProperty(function () { /* empty */ }, 'prototype', {
     value: 42,
     writable: false
-  }).prototype != 42;
+  }).prototype !== 42;
 });
 
 
@@ -6139,10 +6139,10 @@ var createMethod = function (IS_INCLUDES) {
     var value;
     // Array#includes uses SameValueZero equality algorithm
     // eslint-disable-next-line no-self-compare -- NaN check
-    if (IS_INCLUDES && el != el) while (length > index) {
+    if (IS_INCLUDES && el !== el) while (length > index) {
       value = O[index++];
       // eslint-disable-next-line no-self-compare -- NaN check
-      if (value != value) return true;
+      if (value !== value) return true;
     // Array#indexOf ignores holes, Array#includes - not
     } else for (;length > index; index++) {
       if ((IS_INCLUDES || index in O) && O[index] === el) return IS_INCLUDES || index || 0;
@@ -6288,8 +6288,8 @@ var replacement = /#|\.prototype\./;
 
 var isForced = function (feature, detection) {
   var value = data[normalize(feature)];
-  return value == POLYFILL ? true
-    : value == NATIVE ? false
+  return value === POLYFILL ? true
+    : value === NATIVE ? false
     : isCallable(detection) ? fails(detection)
     : !!detection;
 };
@@ -6351,7 +6351,7 @@ var classof = __webpack_require__(21);
 // https://tc39.es/ecma262/#sec-isarray
 // eslint-disable-next-line es/no-array-isarray -- safe
 module.exports = Array.isArray || function isArray(argument) {
-  return classof(argument) == 'Array';
+  return classof(argument) === 'Array';
 };
 
 
@@ -6679,7 +6679,7 @@ var TO_STRING_TAG = wellKnownSymbol('toStringTag');
 var $Object = Object;
 
 // ES3 wrong here
-var CORRECT_ARGUMENTS = classofRaw(function () { return arguments; }()) == 'Arguments';
+var CORRECT_ARGUMENTS = classofRaw(function () { return arguments; }()) === 'Arguments';
 
 // fallback for IE11 Script Access Denied error
 var tryGet = function (it, key) {
@@ -6697,7 +6697,7 @@ module.exports = TO_STRING_TAG_SUPPORT ? classofRaw : function (it) {
     // builtinTag case
     : CORRECT_ARGUMENTS ? classofRaw(O)
     // ES3 arguments fallback
-    : (result = classofRaw(O)) == 'Object' && isCallable(O.callee) ? 'Arguments' : result;
+    : (result = classofRaw(O)) === 'Object' && isCallable(O.callee) ? 'Arguments' : result;
 };
 
 
@@ -7041,9 +7041,10 @@ module.exports = /(?:ipad|iphone|ipod).*applewebkit/i.test(userAgent);
 
 "use strict";
 
+var global = __webpack_require__(10);
 var classof = __webpack_require__(21);
 
-module.exports = typeof process != 'undefined' && classof(process) == 'process';
+module.exports = classof(global.process) === 'process';
 
 
 /***/ }),
@@ -7085,7 +7086,7 @@ var Function = global.Function;
 // dirty IE9- and Bun 0.3.0- checks
 var WRAP = /MSIE .\./.test(USER_AGENT) || ENGINE_IS_BUN && (function () {
   var version = global.Bun.version.split('.');
-  return version.length < 3 || version[0] == 0 && (version[1] < 3 || version[1] == 3 && version[2] == 0);
+  return version.length < 3 || version[0] === '0' && (version[1] < 3 || version[1] === '3' && version[2] === '0');
 })();
 
 // IE9- / Bun 0.3.0- setTimeout / setInterval / setImmediate additional parameters fix
@@ -9682,13 +9683,13 @@ var low = /^[\uD800-\uDBFF]$/;
 var hi = /^[\uDC00-\uDFFF]$/;
 
 var WRONG_SYMBOLS_CONVERSION = !NATIVE_SYMBOL || fails(function () {
-  var symbol = getBuiltIn('Symbol')();
+  var symbol = getBuiltIn('Symbol')('stringify detection');
   // MS Edge converts symbol values to JSON as {}
-  return $stringify([symbol]) != '[null]'
+  return $stringify([symbol]) !== '[null]'
     // WebKit converts symbol values to JSON as null
-    || $stringify({ a: symbol }) != '{}'
+    || $stringify({ a: symbol }) !== '{}'
     // V8 throws on boxed symbols
-    || $stringify(Object(symbol)) != '{}';
+    || $stringify(Object(symbol)) !== '{}';
 });
 
 // https://github.com/tc39/proposal-well-formed-stringify
@@ -9753,7 +9754,7 @@ module.exports = function (replacer) {
   for (var i = 0; i < rawLength; i++) {
     var element = replacer[i];
     if (typeof element == 'string') push(keys, element);
-    else if (typeof element == 'number' || classof(element) == 'Number' || classof(element) == 'String') push(keys, toString(element));
+    else if (typeof element == 'number' || classof(element) === 'Number' || classof(element) === 'String') push(keys, toString(element));
   }
   var keysLength = keys.length;
   var root = true;
@@ -15850,14 +15851,14 @@ module.exports = _toPropertyKey, module.exports.__esModule = true, module.export
 /* 138 */
 /***/ ((module) => {
 
-function _typeof(obj) {
+function _typeof(o) {
   "@babel/helpers - typeof";
 
-  return (module.exports = _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) {
-    return typeof obj;
-  } : function (obj) {
-    return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-  }, module.exports.__esModule = true, module.exports["default"] = module.exports), _typeof(obj);
+  return (module.exports = _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) {
+    return typeof o;
+  } : function (o) {
+    return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o;
+  }, module.exports.__esModule = true, module.exports["default"] = module.exports), _typeof(o);
 }
 module.exports = _typeof, module.exports.__esModule = true, module.exports["default"] = module.exports;
 
@@ -16316,7 +16317,7 @@ var ArrayPrototype = Array.prototype;
 
 // Array.prototype[@@unscopables]
 // https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
-if (ArrayPrototype[UNSCOPABLES] == undefined) {
+if (ArrayPrototype[UNSCOPABLES] === undefined) {
   defineProperty(ArrayPrototype, UNSCOPABLES, {
     configurable: true,
     value: create(null)
@@ -33842,7 +33843,7 @@ function extendByMetaType(metaObject, settings) {
     if (canBeOverwritten(property, settingsToCompareWith)) {
       var _metaObject$_automati2;
       expandedType[property] = value;
-      (_metaObject$_automati2 = metaObject._automaticallyAssignedMetaProps) === null || _metaObject$_automati2 === void 0 ? void 0 : _metaObject$_automati2.add(property);
+      (_metaObject$_automati2 = metaObject._automaticallyAssignedMetaProps) === null || _metaObject$_automati2 === void 0 || _metaObject$_automati2.add(property);
     }
   });
   (0, _object.extend)(metaObject, expandedType);
@@ -39284,7 +39285,7 @@ class CellMeta {
   setMeta(physicalRow, physicalColumn, key, value) {
     var _cellMeta$_automatica;
     const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
-    (_cellMeta$_automatica = cellMeta._automaticallyAssignedMetaProps) === null || _cellMeta$_automatica === void 0 ? void 0 : _cellMeta$_automatica.delete(key);
+    (_cellMeta$_automatica = cellMeta._automaticallyAssignedMetaProps) === null || _cellMeta$_automatica === void 0 || _cellMeta$_automatica.delete(key);
     cellMeta[key] = value;
   }
 
@@ -48886,7 +48887,7 @@ class CollapsibleColumns extends _base.BasePlugin {
       }
     } else {
       var _collapsibleElement;
-      (_collapsibleElement = collapsibleElement) === null || _collapsibleElement === void 0 ? void 0 : _collapsibleElement.remove();
+      (_collapsibleElement = collapsibleElement) === null || _collapsibleElement === void 0 || _collapsibleElement.remove();
     }
   }
 
@@ -49684,7 +49685,7 @@ class ColumnSorting extends _base.BasePlugin {
     var _this$columnStatesMan;
     // TODO: Probably not supported yet by ESLint: https://github.com/eslint/eslint/issues/11045
     // eslint-disable-next-line no-unused-expressions
-    (_this$columnStatesMan = this.columnStatesManager) === null || _this$columnStatesMan === void 0 ? void 0 : _this$columnStatesMan.destroy();
+    (_this$columnStatesMan = this.columnStatesManager) === null || _this$columnStatesMan === void 0 || _this$columnStatesMan.destroy();
     super.destroy();
   }
 }
@@ -60089,7 +60090,7 @@ class Filters extends _base.BasePlugin {
       const selectedColumn = this.getSelectedColumn();
       if (selectedColumn === null) {
         var _this$dropdownMenuPlu2;
-        (_this$dropdownMenuPlu2 = this.dropdownMenuPlugin) === null || _this$dropdownMenuPlu2 === void 0 ? void 0 : _this$dropdownMenuPlu2.close();
+        (_this$dropdownMenuPlu2 = this.dropdownMenuPlugin) === null || _this$dropdownMenuPlu2 === void 0 || _this$dropdownMenuPlu2.close();
         return;
       }
       const {
@@ -60119,7 +60120,7 @@ class Filters extends _base.BasePlugin {
       this.filtersRowsMap.clear();
       this.filter();
     }
-    (_this$dropdownMenuPlu3 = this.dropdownMenuPlugin) === null || _this$dropdownMenuPlu3 === void 0 ? void 0 : _this$dropdownMenuPlu3.close();
+    (_this$dropdownMenuPlu3 = this.dropdownMenuPlugin) === null || _this$dropdownMenuPlu3 === void 0 || _this$dropdownMenuPlu3.close();
   }
 
   /**
@@ -64549,7 +64550,7 @@ class Formulas extends _base.BasePlugin {
       if ((renderSelf || sheetId !== this.sheetId) && affectedSheetIds.has(sheetId)) {
         var _relatedHot$view;
         relatedHot.render();
-        (_relatedHot$view = relatedHot.view) === null || _relatedHot$view === void 0 ? void 0 : _relatedHot$view.adjustElementsSize();
+        (_relatedHot$view = relatedHot.view) === null || _relatedHot$view === void 0 || _relatedHot$view.adjustElementsSize();
       }
     });
   }
@@ -81378,7 +81379,7 @@ function removeExposedUndoRedoMethods(instance) {
 const hook = _pluginHooks.default.getSingleton();
 hook.add('afterUpdateSettings', function () {
   var _this$getPlugin;
-  (_this$getPlugin = this.getPlugin('undoRedo')) === null || _this$getPlugin === void 0 ? void 0 : _this$getPlugin.init();
+  (_this$getPlugin = this.getPlugin('undoRedo')) === null || _this$getPlugin === void 0 || _this$getPlugin.init();
 });
 hook.register('beforeUndo');
 hook.register('afterUndo');
