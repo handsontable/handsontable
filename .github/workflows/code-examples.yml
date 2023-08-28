@@ -42,7 +42,7 @@ on:
       - examples/next/**
 
 env:
-  NODE_VERSION: 16
+  NODE_VERSION: 20
 
 jobs:
   prepare-matrix:
@@ -411,8 +411,8 @@ jobs:
 
       # Setup symlinks for the needed packages
       - run: |
-          node --experimental-json-modules ./scripts/swap-package-links.mjs handsontable
-          node --experimental-json-modules ./scripts/swap-package-links.mjs @handsontable/${{ matrix.framework }}
+          node ./scripts/swap-package-links.mjs handsontable
+          node ./scripts/swap-package-links.mjs @handsontable/${{ matrix.framework }}
         if: matrix.version == 'next' && steps.path-check.outputs.n-a != 'true'
 
       # ---------------------------------------------------------

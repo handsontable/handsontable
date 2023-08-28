@@ -519,7 +519,6 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 - [Custom context menu in Angular](@/guides/integrate-with-angular/angular-custom-context-menu-example.md)
 - [Custom context menu in Vue 2](@/guides/integrate-with-vue/vue-custom-context-menu-example.md)
 - [Custom context menu in Vue 3](@/guides/integrate-with-vue3/vue3-custom-context-menu-example.md)
-
 :::
 
 ### Related blog articles
