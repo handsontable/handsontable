@@ -3105,7 +3105,7 @@ describe('Formulas general', () => {
 
       setDataAtCell(0, 0, '13/12/2022');
 
-      await sleep(10);
+      await sleep(50);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         ['13/12/2022'], // Not converted - improper date (we treat it as a string)

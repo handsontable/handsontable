@@ -2,6 +2,7 @@ import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { stopImmediatePropagation } from '../helpers/dom/event';
 import { createContext } from './context';
 import { useRecorder } from './recorder';
+import { toSingleLine } from '../helpers/templateLiteralTag';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -79,6 +80,11 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    * @param {string} contextName The name of the shortcut context
    */
   const setActiveContextName = (contextName) => {
+    if (!CONTEXTS.hasItem(contextName)) {
+      throw new Error(toSingleLine`You've tried to activate the "${contextName}" shortcut context\x20
+        that does not exist. Before activation, register the context using the "addContext" method.`);
+    }
+
     activeContextName = contextName;
   };
 

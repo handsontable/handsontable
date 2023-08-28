@@ -58,6 +58,7 @@ Handsontable.dom.isRightClick(domEvent);
 Handsontable.dom.isVisible(domElement);
 Handsontable.dom.matchesCSSRules(domElement, cssRule);
 Handsontable.dom.offset(domElement);
+Handsontable.dom.offsetRelativeTo(domEvent, domElement);
 Handsontable.dom.outerHeight(domElement);
 Handsontable.dom.outerWidth(domElement);
 Handsontable.dom.overlayContainsElement('top', domElement, domElement);
