@@ -524,7 +524,7 @@ describe('DomElement helper', () => {
 
     it('should return correct offset for elements inside a foreign object', () => {
       wrapper.innerHTML = `
-        <svg>
+        <svg xmlns="http://www.w3.org/2000/svg">
           <foreignObject width="50" height="50">
             <div xmlns="http://www.w3.org/1999/xhtml">test</div>
           </foreignObject>
@@ -535,8 +535,8 @@ describe('DomElement helper', () => {
 
       const elementOffset = offset(element);
 
-      expect(typeof elementOffset.top).toBe('number');
-      expect(typeof elementOffset.left).toBe('number');
+      expect(isFinite(elementOffset.top)).toBe(true);
+      expect(isFinite(elementOffset.left)).toBe(true);
     });
   })
 });
