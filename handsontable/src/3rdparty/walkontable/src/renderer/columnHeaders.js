@@ -31,7 +31,7 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
    * Get a set of accessibility-related attributes to be added to the table.
    *
    * @param {number|null} columnIndex The column index or `null` if used for the root element.
-   * @returns {object}
+   * @returns {Array[]}
    */
   #getAccessibilityAttributes(columnIndex) {
     // Root node
@@ -52,6 +52,18 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
     }
 
     return attributesList;
+  }
+
+  /**
+   * Get the list of all attributes to be added to the column headers.
+   *
+   * @param {number} columnIndex The column index.
+   * @returns {Array[]}
+   */
+  #getAttributes(columnIndex) {
+    return [
+      ...this.#getAccessibilityAttributes(columnIndex)
+    ];
   }
 
   /**
@@ -114,7 +126,7 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
         TH.className = '';
         TH.removeAttribute('style');
 
-        setAttributes(TH, this.#getAccessibilityAttributes(renderedColumnIndex));
+        setAttributes(TH, this.#getAttributes(renderedColumnIndex));
 
         columnHeaderFunctions[rowHeaderIndex](sourceColumnIndex, TH, rowHeaderIndex);
       }

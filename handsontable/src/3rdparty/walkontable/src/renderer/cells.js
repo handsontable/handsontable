@@ -43,13 +43,25 @@ export default class CellsRenderer extends BaseRenderer {
    * Get a set of accessibility-related attributes to be added to the table.
    *
    * @param {number} columnIndex The column index.
-   * @returns {object}
+   * @returns {Array[]}
    */
   #getAccessibilityAttributes(columnIndex) {
     return [
       ACCESSIBILITY_ATTR_GRIDCELL,
       ACCESSIBILITY_ATTR_TABINDEX,
       [ACCESSIBILITY_ATTR_COLINDEX[0], columnIndex + 1],
+    ];
+  }
+
+  /**
+   * Get the list of all attributes to be added to the table cells.
+   *
+   * @param {number} columnIndex The column index.
+   * @returns {Array[]}
+   */
+  #getAttributes(columnIndex) {
+    return [
+      ...this.#getAccessibilityAttributes(columnIndex)
     ];
   }
 
@@ -108,10 +120,11 @@ export default class CellsRenderer extends BaseRenderer {
         if (!hasClass(TD, 'hide')) { // Workaround for hidden columns plugin
           TD.className = '';
         }
+
         TD.removeAttribute('style');
         TD.removeAttribute('dir');
 
-        setAttributes(TD, this.#getAccessibilityAttributes(visibleColumnIndex));
+        setAttributes(TD, this.#getAttributes(visibleColumnIndex));
 
         this.table.cellRenderer(sourceRowIndex, sourceColumnIndex, TD);
       }

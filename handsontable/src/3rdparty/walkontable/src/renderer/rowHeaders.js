@@ -39,13 +39,24 @@ export default class RowHeadersRenderer extends BaseRenderer {
   /**
    * Get a set of accessibility-related attributes to be added to the table.
    *
-   * @returns {object}
+   * @returns {Array[]}
    */
   #getAccessibilityAttributes() {
     return [
       ACCESSIBILITY_ATTR_ROWHEADER,
       ACCESSIBILITY_ATTR_SCOPE_ROW,
       ACCESSIBILITY_ATTR_TABINDEX
+    ];
+  }
+
+  /**
+   * Get the list of all attributes to be added to the row headers.
+   *
+   * @returns {Array[]}
+   */
+  #getAttributes() {
+    return [
+      ...this.#getAccessibilityAttributes()
     ];
   }
 
@@ -101,7 +112,7 @@ export default class RowHeadersRenderer extends BaseRenderer {
         TH.className = '';
         TH.removeAttribute('style');
 
-        setAttributes(TH, this.#getAccessibilityAttributes());
+        setAttributes(TH, this.#getAttributes());
 
         rowHeaderFunctions[visibleColumnIndex](sourceRowIndex, TH, visibleColumnIndex);
       }

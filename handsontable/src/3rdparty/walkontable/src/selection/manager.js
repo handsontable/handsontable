@@ -228,8 +228,8 @@ export class SelectionManager {
 
       addClass(element, classNames);
 
-      if (element.nodeName === 'TD') {
-        setAttributes(element, this.#selections.options.accessibilityAttributes);
+      if (element.nodeName === 'TD' && this.#selections.options?.cellAttributes) {
+        setAttributes(element, this.#selections.options.cellAttributes);
       }
     });
   }
@@ -250,12 +250,16 @@ export class SelectionManager {
 
     appliedOverlaysClasses.forEach((className) => {
       const nodes = this.#activeOverlaysWot.wtTable.TABLE.querySelectorAll(`.${className}`);
-      const accessibilityAttributes = this.#selections.options.accessibilityAttributes.map(el => el[0]);
+      let cellAttributes = [];
+
+      if (this.#selections.options?.cellAttributes) {
+        cellAttributes = this.#selections.options.cellAttributes.map(el => el[0]);
+      }
 
       for (let i = 0, len = nodes.length; i < len; i++) {
         removeClass(nodes[i], className);
 
-        removeAttributes(nodes[i], accessibilityAttributes);
+        removeAttributes(nodes[i], cellAttributes);
       }
     });
 

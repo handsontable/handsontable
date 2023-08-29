@@ -723,7 +723,7 @@ export class ColumnSorting extends BasePlugin {
       headerActionEnabled
     );
 
-    this.updateAccessibilityAttributes(TH, column);
+    this.updateAttributes(TH, column);
   }
 
   /**
@@ -747,7 +747,7 @@ export class ColumnSorting extends BasePlugin {
    * @param {HTMLElement} TH Column header element.
    * @param {number} columnIndex The column index.
    */
-  updateAccessibilityAttributes(TH, columnIndex) {
+  updateAttributes(TH, columnIndex) {
     setAttributes(TH, getAccessibilityAttributes(this.columnStatesManager.getSortOrderOfColumn(columnIndex)));
   }
 

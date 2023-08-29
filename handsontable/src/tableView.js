@@ -154,7 +154,7 @@ class TableView {
    *
    * @param {number} rowcount The row count.
    * @param {number} colcount The column count.
-   * @returns {object}
+   * @returns {Array[]}
    */
   #getAccessibilityAttributes(rowcount, colcount) {
     return [
@@ -162,6 +162,19 @@ class TableView {
       [ACCESSIBILITY_ATTR_ROWCOUNT[0], rowcount],
       [ACCESSIBILITY_ATTR_COLCOUNT[0], colcount],
       ACCESSIBILITY_ATTR_MULTISELECTABLE,
+    ];
+  }
+
+  /**
+   * Get the list of all attributes to be added to the table element.
+   *
+   * @param {number} rowcount The row count.
+   * @param {number} colcount The column count.
+   * @returns {Array[]}
+   */
+  #getAttributes(rowcount, colcount) {
+    return [
+      ...this.#getAccessibilityAttributes(rowcount, colcount)
     ];
   }
 
@@ -276,7 +289,7 @@ class TableView {
       addClass(priv.table, this.instance.getSettings().tableClassName);
     }
 
-    setAttributes(rootElement, this.#getAccessibilityAttributes(this.instance.countRows(), this.instance.countCols()));
+    setAttributes(rootElement, this.#getAttributes(this.instance.countRows(), this.instance.countCols()));
 
     this.THEAD = rootDocument.createElement('THEAD');
     priv.table.appendChild(this.THEAD);

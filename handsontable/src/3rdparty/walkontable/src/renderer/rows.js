@@ -41,7 +41,7 @@ export default class RowsRenderer extends BaseRenderer {
    * Get a set of accessibility-related attributes to be added to the table.
    *
    * @param {number|null} rowIndex Row index or `null` if used for the root element.
-   * @returns {object}
+   * @returns {Array[]}
    */
   #getAccessibilityAttributes(rowIndex) {
     // Root node
@@ -52,6 +52,18 @@ export default class RowsRenderer extends BaseRenderer {
     return [
       ACCESSIBILITY_ATTR_ROW,
       [ACCESSIBILITY_ATTR_ROWINDEX[0], rowIndex + 1]
+    ];
+  }
+
+  /**
+   * Get the list of all attributes to be added to the row elements.
+   *
+   * @param {number} rowIndex The row index.
+   * @returns {Array[]}
+   */
+  #getAttributes(rowIndex) {
+    return [
+      ...this.#getAccessibilityAttributes(rowIndex)
     ];
   }
 
@@ -89,7 +101,7 @@ export default class RowsRenderer extends BaseRenderer {
 
       const TR = this.orderView.getCurrentNode();
 
-      setAttributes(TR, this.#getAccessibilityAttributes(visibleRowIndex));
+      setAttributes(TR, this.#getAttributes(visibleRowIndex));
     }
 
     this.orderView.end();
