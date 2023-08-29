@@ -2,6 +2,7 @@ import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
 import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, hasClass, outerWidth } from '../../helpers/dom/element';
+import { offsetRelativeTo } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
 import EventManager from '../../eventManager';
 import BacklightUI from './ui/backlight';
@@ -560,8 +561,10 @@ export class ManualColumnMove extends BasePlugin {
     if (coords.row < 0 && (coords.col >= start && coords.col <= end)) {
       controller.column = true;
       priv.pressed = true;
+
+      const eventOffsetX = TD.firstChild ? offsetRelativeTo(event, TD.firstChild).x : event.offsetX;
+
       priv.target.eventPageX = event.pageX;
-      priv.target.eventOffsetX = event.offsetX;
       priv.hoveredColumn = coords.col;
       priv.target.TD = TD;
       priv.target.col = coords.col;
@@ -574,8 +577,8 @@ export class ManualColumnMove extends BasePlugin {
       const countColumnsFrom = priv.hasRowHeaders ? -1 : 0;
       const topPos = wtTable.holder.scrollTop + wtTable.getColumnHeaderHeight(0) + 1;
       const fixedColumnsStart = coords.col < priv.fixedColumnsStart;
-      const horizontalScrollPosition = Math.abs(this.hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition());
-      const offsetX = Math.abs(event.offsetX - (this.hot.isRtl() ? event.target.offsetWidth : 0));
+      const horizontalScrollPosition = this.hot.view._wt.wtOverlays.inlineStartOverlay.getOverlayOffset();
+      const offsetX = Math.abs(eventOffsetX - (this.hot.isRtl() ? TD.offsetWidth : 0));
       const inlineOffset = this.getColumnsWidth(start, coords.col - 1) + offsetX;
       const inlinePos = this.getColumnsWidth(countColumnsFrom, start - 1) +
         (fixedColumnsStart ? horizontalScrollPosition : 0) + inlineOffset;
@@ -604,17 +607,6 @@ export class ManualColumnMove extends BasePlugin {
 
     if (!priv.pressed) {
       return;
-    }
-
-    // callback for browser which doesn't supports CSS pointer-event: none
-    if (event.target === this.backlight.element) {
-      const width = this.backlight.getSize().width;
-
-      this.backlight.setSize(0);
-
-      setTimeout(function() {
-        this.backlight.setPosition(width);
-      });
     }
 
     priv.target.eventPageX = event.pageX;

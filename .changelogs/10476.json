@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved DX by throwing an exception for developers who tries to active shortcut context that has been not yet registered.",
+  "type": "changed",
+  "issueOrPR": 10476,
+  "breaking": false,
+  "framework": "none"
+}
