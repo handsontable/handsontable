@@ -24,7 +24,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed the mobile selection handlers that disappeared below the table headers when multiple cells were selected. [#10447](https://github.com/handsontable/handsontable/pull/10447)
 - Fixed the Merge Cells plugin's problem with updating the cell meta after unmerging the previously-merged cells, which resulted in the Autofill plugin not working properly. [#10456](https://github.com/handsontable/handsontable/issues/10456)
 - Added the missing type definition for `BaseEditor`'s `getEditedCellRect` method. [#10459](https://github.com/handsontable/handsontable/issues/10459)
-- Fixed a problem with an error being thrown when hovering over the Handsontable-in-Handsontable editor's headers. [#9317](https://github.com/handsontable/handsontable/issues/9317)
 - Corrected the type definitions for the Context Menu. [#9566](https://github.com/handsontable/handsontable/issues/9566)
 - React: Mark an internal prop of the React wrapper's base editor component as optional. [#10429](https://github.com/handsontable/handsontable/issues/10429)
 

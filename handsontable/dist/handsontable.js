@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 13.1.0
- * Release date: 31/08/2023 (built at 28/08/2023 11:12:50)
+ * Release date: 31/08/2023 (built at 29/08/2023 11:15:36)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -105,7 +105,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "28/08/2023 11:12:50";
+Handsontable.buildDate = "29/08/2023 11:15:36";
 Handsontable.version = "13.1.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -69192,12 +69192,6 @@ class ManualColumnResize extends _base.BasePlugin {
       return;
     }
     this.currentTH = TH;
-    const hotRootElement = this.hot.rootElement;
-
-    // Handling elements placed only inside columns header of the main instance.
-    if ((0, _element.overlayContainsElement)('top_inline_start_corner', this.currentTH, hotRootElement) === false && (0, _element.overlayContainsElement)('top', this.currentTH, hotRootElement) === false) {
-      return;
-    }
     const {
       _wt: wt
     } = this.hot.view;
