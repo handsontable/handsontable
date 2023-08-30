@@ -34,11 +34,11 @@ For more information on this release, see:
 - [Documentation (13.1)](https://handsontable.com/docs/13.1)
 
 
-### Changed
+#### Changed
 - Optimized the transpilation process of the distribution files. [#10440](https://github.com/handsontable/handsontable/pull/10440)
 - Updated the internal monorepo scripts to utilize Node 20. [#10468](https://github.com/handsontable/handsontable/pull/10468)
 
-### Fixed
+#### Fixed
 - Fixed a problem with errors being thrown when pressing `delete` or `backspace` keys after deselecting cells. [#10272](https://github.com/handsontable/handsontable/issues/10272)
 - Fixed problems with [moving rows](@/api/manualRowMove.md) when there are [trimmed rows](@/api/trimRows.md) in the table. [#10399](https://github.com/handsontable/handsontable/pull/10399)
 - Fixed a problem with the [column resize](@/api/manualColumnResize.md) handle being stuck after the user clicked the right mouse button.  [#10416](https://github.com/handsontable/handsontable/pull/10416)
