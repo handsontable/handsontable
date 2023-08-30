@@ -528,7 +528,7 @@ export function getTrimmingContainer(base) {
       return el;
     }
 
-    const computedStyle = getComputedStyle(el, rootWindow);
+    const computedStyle = rootWindow.getComputedStyle(el);
     const allowedProperties = ['scroll', 'hidden', 'auto'];
     const property = computedStyle.getPropertyValue('overflow');
     const propertyY = computedStyle.getPropertyValue('overflow-y');
@@ -576,7 +576,7 @@ export function getStyle(element, prop, rootWindow = window) {
     return styleProp;
   }
 
-  const computedStyle = getComputedStyle(element, rootWindow);
+  const computedStyle = rootWindow.getComputedStyle(element);
 
   if (computedStyle[prop] !== '' && computedStyle[prop] !== void 0) {
     return computedStyle[prop];
@@ -604,18 +604,6 @@ export function matchesCSSRules(element, rule) {
   }
 
   return result;
-}
-
-/**
- * Returns a computed style object for the provided element. (Needed if style is declared in external stylesheet).
- *
- * @param {HTMLElement} element An element to get style from.
- * @param {Window} [rootWindow] The document window owner.
- * @returns {IEElementStyle|CssStyle} Elements computed style object.
- */
-// eslint-disable-next-line no-restricted-globals
-export function getComputedStyle(element, rootWindow = window) {
-  return element.currentStyle || rootWindow.getComputedStyle(element);
 }
 
 /**

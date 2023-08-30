@@ -1,7 +1,7 @@
 import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
 import { arrayReduce } from '../../helpers/array';
-import { addClass, removeClass, offset, hasClass, outerWidth } from '../../helpers/dom/element';
+import { addClass, removeClass, offset, hasClass } from '../../helpers/dom/element';
 import { offsetRelativeTo } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
 import EventManager from '../../eventManager';
@@ -424,21 +424,8 @@ export class ManualColumnMove extends BasePlugin {
     const tbodyOffsetLeft = wtTable.TBODY.offsetLeft;
     const backlightElemMarginStart = this.backlight.getOffset().start;
     const backlightElemWidth = this.backlight.getSize().width;
+    const mouseOffsetStart = priv.target.clickOffsetXRelativeToTable;
     let rowHeaderWidth = 0;
-    let mouseOffsetStart = 0;
-
-    if (this.hot.isRtl()) {
-      const rootWindow = this.hot.rootWindow;
-      const containerWidth = outerWidth(this.hot.rootElement);
-      const gridMostRightPos = rootWindow.innerWidth - priv.rootElementOffset - containerWidth;
-
-      mouseOffsetStart = rootWindow.innerWidth - priv.target.eventPageX - gridMostRightPos -
-        (scrollableElement.scrollX === void 0 ? scrollStart : 0);
-
-    } else {
-      mouseOffsetStart = priv.target.eventPageX -
-        (priv.rootElementOffset - (scrollableElement.scrollX === void 0 ? scrollStart : 0));
-    }
 
     if (priv.hasRowHeaders) {
       rowHeaderWidth = this.hot.view._wt.wtOverlays.inlineStartOverlay.clone.wtTable.getColumnHeader(-1).offsetWidth;
@@ -564,7 +551,7 @@ export class ManualColumnMove extends BasePlugin {
 
       const eventOffsetX = TD.firstChild ? offsetRelativeTo(event, TD.firstChild).x : event.offsetX;
 
-      priv.target.eventPageX = event.pageX;
+      priv.target.clickOffsetXRelativeToTable = offsetRelativeTo(event, this.hot.rootElement).x;
       priv.hoveredColumn = coords.col;
       priv.target.TD = TD;
       priv.target.col = coords.col;
@@ -578,8 +565,7 @@ export class ManualColumnMove extends BasePlugin {
       const topPos = wtTable.holder.scrollTop + wtTable.getColumnHeaderHeight(0) + 1;
       const fixedColumnsStart = coords.col < priv.fixedColumnsStart;
       const horizontalScrollPosition = this.hot.view._wt.wtOverlays.inlineStartOverlay.getOverlayOffset();
-      const offsetX = Math.abs(eventOffsetX - (this.hot.isRtl() ? TD.offsetWidth : 0));
-      const inlineOffset = this.getColumnsWidth(start, coords.col - 1) + offsetX;
+      const inlineOffset = this.getColumnsWidth(start, coords.col - 1) + eventOffsetX;
       const inlinePos = this.getColumnsWidth(countColumnsFrom, start - 1) +
         (fixedColumnsStart ? horizontalScrollPosition : 0) + inlineOffset;
 
@@ -609,7 +595,10 @@ export class ManualColumnMove extends BasePlugin {
       return;
     }
 
-    priv.target.eventPageX = event.pageX;
+    if (!event.target.contains(this.hot.rootElement)) {
+      priv.target.clickOffsetXRelativeToTable = offsetRelativeTo(event, this.hot.rootElement).x;
+    }
+
     this.refreshPositions();
   }
 

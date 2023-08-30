@@ -9,7 +9,6 @@ import {
   hasHorizontalScrollbar,
   outerWidth,
   outerHeight,
-  getComputedStyle,
 } from '../../helpers/dom/element';
 
 export const EDITOR_TYPE = 'base';
@@ -551,7 +550,7 @@ export class BaseEditor {
       cellStartOffset = TD.offsetLeft + firstColumnOffset - horizontalScrollPosition;
     }
 
-    const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);
+    const cellComputedStyle = this.hot.rootWindow.getComputedStyle(this.TD);
     const borderPhysicalWidthProp = this.hot.isRtl() ? 'borderRightWidth' : 'borderLeftWidth';
     const inlineStartBorderCompensation = parseInt(cellComputedStyle[borderPhysicalWidthProp], 10) > 0 ? 0 : 1;
     const topBorderCompensation = parseInt(cellComputedStyle.borderTopWidth, 10) > 0 ? 0 : 1;

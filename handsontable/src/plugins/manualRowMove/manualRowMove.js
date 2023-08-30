@@ -1,7 +1,8 @@
 import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
 import { arrayReduce } from '../../helpers/array';
-import { addClass, removeClass, offset, getTrimmingContainer } from '../../helpers/dom/element';
+import { addClass, removeClass } from '../../helpers/dom/element';
+import { offsetRelativeTo } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
 import EventManager from '../../eventManager';
 import BacklightUI from './ui/backlight';
@@ -436,14 +437,7 @@ export class ManualRowMove extends BasePlugin {
 
     const wtTable = this.hot.view._wt.wtTable;
     const TD = priv.target.TD;
-    const rootElement = this.hot.rootElement;
-    const rootElementOffset = offset(rootElement);
-    const trimmingContainer = getTrimmingContainer(rootElement);
-    const tableScroll = wtTable.holder.scrollTop;
-    const trimmingContainerScroll = this.hot.rootWindow !== trimmingContainer ? trimmingContainer.scrollTop : 0;
-
-    const pixelsAbove = rootElementOffset.top - trimmingContainerScroll;
-    const pixelsRelToTableStart = priv.target.eventPageY - pixelsAbove + tableScroll;
+    const pixelsRelToTableStart = priv.target.clickOffsetYRelativeToTable;
     const hiderHeight = wtTable.hider.offsetHeight;
     const tbodyOffsetTop = wtTable.TBODY.offsetTop;
     const backlightElemMarginTop = this.backlight.getOffset().top;
@@ -553,13 +547,15 @@ export class ManualRowMove extends BasePlugin {
       controller.row = true;
       priv.pressed = true;
 
-      priv.target.eventPageY = event.pageY;
+      const eventOffsetY = TD.firstChild ? offsetRelativeTo(event, TD.firstChild).y : event.offsetY;
+
+      priv.target.clickOffsetYRelativeToTable = offsetRelativeTo(event, this.hot.rootElement).y;
       priv.target.coords = coords;
       priv.target.TD = TD;
       priv.rowsToMove = this.prepareRowsToMoving();
 
       const leftPos = wtTable.holder.scrollLeft + wtViewport.getRowHeaderWidth();
-      const topOffset = this.getRowsHeight(start, coords.row - 1) + event.offsetY;
+      const topOffset = this.getRowsHeight(start, coords.row - 1) + eventOffsetY;
 
       this.backlight.setPosition(null, leftPos);
       this.backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end));
@@ -589,7 +585,10 @@ export class ManualRowMove extends BasePlugin {
       return;
     }
 
-    priv.target.eventPageY = event.pageY;
+    if (!event.target.contains(this.hot.rootElement)) {
+      priv.target.clickOffsetYRelativeToTable = offsetRelativeTo(event, this.hot.rootElement).y;
+    }
+
     this.refreshPositions();
   }
 

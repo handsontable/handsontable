@@ -46,11 +46,12 @@ export function isLeftClick(event) {
  * @returns {{ x: number, y: number }}
  */
 export function offsetRelativeTo(event, untilElement) {
+  let element = event.target;
+  const isRtl = window.getComputedStyle(element).direction === 'rtl'; // eslint-disable-line
   const offset = {
-    x: event.offsetX,
+    x: isRtl ? element.offsetWidth - event.offsetX : event.offsetX,
     y: event.offsetY,
   };
-  let element = event.target;
 
   if (!(untilElement instanceof HTMLElement) ||
       element !== untilElement && element.contains(untilElement)) {
@@ -58,10 +59,21 @@ export function offsetRelativeTo(event, untilElement) {
   }
 
   while (element !== untilElement) {
-    offset.x += element.offsetLeft;
-    offset.y += element.offsetTop;
+    if (isRtl) {
+      offset.x += (element.offsetParent.offsetWidth - element.offsetWidth - element.offsetLeft);
+    } else {
+      offset.x += element.offsetLeft;
+    }
 
+    offset.y += element.offsetTop;
     element = element.offsetParent;
+  }
+
+  if (offset.x < 0) {
+    offset.x = 0;
+  }
+  if (offset.y < 0) {
+    offset.y = 0;
   }
 
   return offset;
