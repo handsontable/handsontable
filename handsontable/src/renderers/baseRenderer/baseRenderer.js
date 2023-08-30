@@ -8,8 +8,8 @@ import {
   setAttributes
 } from '../../helpers/dom/element';
 
-const ACCESSIBILITY_ATTRIBUTE_READONLY = ['aria-readonly', 'true'];
-const ACCESSIBILITY_ATTRIBUTE_INVALID = ['aria-invalid', 'true'];
+const ACCESSIBILITY_ATTR_READONLY = ['aria-readonly', 'true'];
+const ACCESSIBILITY_ATTR_INVALID = ['aria-invalid', 'true'];
 
 export const RENDERER_TYPE = 'base';
 
@@ -35,21 +35,21 @@ export function baseRenderer(instance, TD, row, col, prop, value, cellProperties
   if (cellProperties.readOnly) {
     classesToAdd.push(cellProperties.readOnlyCellClassName);
 
-    attributesToAdd.push(ACCESSIBILITY_ATTRIBUTE_READONLY);
+    attributesToAdd.push(ACCESSIBILITY_ATTR_READONLY);
 
   } else {
-    attributesToRemove.push(ACCESSIBILITY_ATTRIBUTE_READONLY[0]);
+    attributesToRemove.push(ACCESSIBILITY_ATTR_READONLY[0]);
   }
 
   if (cellProperties.valid === false && cellProperties.invalidCellClassName) {
     classesToAdd.push(cellProperties.invalidCellClassName);
 
-    attributesToAdd.push(ACCESSIBILITY_ATTRIBUTE_INVALID);
+    attributesToAdd.push(ACCESSIBILITY_ATTR_INVALID);
 
   } else {
     classesToRemove.push(cellProperties.invalidCellClassName);
 
-    attributesToRemove.push(ACCESSIBILITY_ATTRIBUTE_INVALID[0]);
+    attributesToRemove.push(ACCESSIBILITY_ATTR_INVALID[0]);
   }
 
   if (cellProperties.wordWrap === false && cellProperties.noWordWrapClassName) {

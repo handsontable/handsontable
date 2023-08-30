@@ -13,8 +13,8 @@ const BAD_VALUE_CLASS = 'htBadValue';
 const ATTR_ROW = 'data-row';
 const ATTR_COLUMN = 'data-col';
 const SHORTCUTS_GROUP = 'checkboxRenderer';
-const ACCESSIBILITY_ATTRIBUTE_CHECKED = ['aria-checked', 'true'];
-const ACCESSIBILITY_ATTRIBUTE_UNCHECKED = ['aria-checked', 'false'];
+const ACCESSIBILITY_ATTR_CHECKED = ['aria-checked', 'true'];
+const ACCESSIBILITY_ATTR_UNCHECKED = ['aria-checked', 'false'];
 
 export const RENDERER_TYPE = 'checkbox';
 
@@ -80,14 +80,14 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
     stringify(cellProperties.checkedTemplate).toLocaleLowerCase(cellProperties.locale)) {
     input.checked = true;
 
-    TD.setAttribute(...ACCESSIBILITY_ATTRIBUTE_CHECKED);
+    TD.setAttribute(...ACCESSIBILITY_ATTR_CHECKED);
 
   } else if (value === cellProperties.uncheckedTemplate ||
     stringify(value).toLocaleLowerCase(cellProperties.locale) ===
     stringify(cellProperties.uncheckedTemplate).toLocaleLowerCase(cellProperties.locale)) {
     input.checked = false;
 
-    TD.setAttribute(...ACCESSIBILITY_ATTRIBUTE_UNCHECKED);
+    TD.setAttribute(...ACCESSIBILITY_ATTR_UNCHECKED);
 
   } else if (isEmpty(value)) { // default value
     addClass(input, 'noValue');

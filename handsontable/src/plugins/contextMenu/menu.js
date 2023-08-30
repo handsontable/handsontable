@@ -22,6 +22,7 @@ import {
   removeClass,
   getParentWindow,
   hasClass,
+  setAttributes,
 } from '../../helpers/dom/element';
 import { isRightClick } from '../../helpers/dom/event';
 import { debounce, isFunction } from '../../helpers/function';
@@ -32,6 +33,13 @@ import localHooks from '../../mixins/localHooks';
 const MIN_WIDTH = 215;
 const SHORTCUTS_CONTEXT = 'menu';
 const SHORTCUTS_GROUP = SHORTCUTS_CONTEXT;
+
+const ACCESSIBILITY_ATTR_MENU = ['role', 'menu'];
+const ACCESSIBILITY_ATTR_MENU_ITEM = ['role', 'menuitem'];
+const ACCESSIBILITY_ATTR_LABEL = ['aria-label'];
+const ACCESSIBILITY_ATTR_DISABLED = ['aria-disabled', 'true'];
+const ACCESSIBILITY_ATTR_EXPANDED = ['aria-expanded', 'true'];
+const ACCESSIBILITY_ATTR_COLLAPSED = ['aria-expanded', 'false'];
 
 /**
  * @typedef MenuOptions
@@ -444,6 +452,7 @@ class Menu {
     if (!cell || !hasSubMenu(cell)) {
       return false;
     }
+
     const dataItem = this.hotMenu.getSourceDataAtRow(row);
     const subMenu = new Menu(this.hot, {
       parent: this,
@@ -454,9 +463,15 @@ class Menu {
     });
 
     subMenu.setMenuItems(dataItem.submenu.items);
+
     subMenu.open();
+
     subMenu.setPosition(cell.getBoundingClientRect());
+
     this.hotSubMenus[dataItem.key] = subMenu;
+
+    // Update the accessibility tags on the cell being the base for the submenu.
+    cell.setAttribute(...ACCESSIBILITY_ATTR_EXPANDED);
 
     return subMenu;
   }
@@ -469,11 +484,15 @@ class Menu {
   closeSubMenu(row) {
     const dataItem = this.hotMenu.getSourceDataAtRow(row);
     const menus = this.hotSubMenus[dataItem.key];
+    const cell = this.hotMenu.getCell(row, 0);
 
     if (menus) {
       menus.destroy();
       delete this.hotSubMenus[dataItem.key];
     }
+
+    // Update the accessibility tags on the cell being the base for the submenu.
+    cell.setAttribute(...ACCESSIBILITY_ATTR_COLLAPSED);
   }
 
   /**
@@ -782,8 +801,13 @@ class Menu {
     if (typeof itemValue === 'function') {
       itemValue = itemValue.call(this.hot);
     }
+
     empty(TD);
+
     addClass(wrapper, 'htItemWrapper');
+
+    setAttributes(TD, this.#getMenuItemAttributes(itemValue, itemIsDisabled(item), isSubMenu(item)));
+
     TD.appendChild(wrapper);
 
     if (itemIsSeparator(item)) {
@@ -796,6 +820,7 @@ class Menu {
     } else {
       fastInnerHTML(wrapper, itemValue);
     }
+
     if (itemIsDisabled(item)) {
       addClass(TD, 'htDisabled');
       this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
@@ -891,6 +916,46 @@ class Menu {
   }
 
   /**
+   * Get a set of accessibility-related attributes to be added to the menu item element..
+   *
+   * @param {string} itemValue The menu item value.
+   * @param {boolean} isItemDisabled `true` if the menu item is disabled.
+   * @param {boolean} isItemSubMenu `true` if the menu item is a submenu.
+   * @returns {Array[]}
+   */
+  #getAccessibilityAttributes(itemValue, isItemDisabled, isItemSubMenu) {
+    const optionalAttrs = [];
+
+    if (isItemDisabled) {
+      optionalAttrs.push(ACCESSIBILITY_ATTR_DISABLED);
+    }
+
+    if (isItemSubMenu) {
+      optionalAttrs.push(ACCESSIBILITY_ATTR_COLLAPSED);
+    }
+
+    return [
+      ACCESSIBILITY_ATTR_MENU_ITEM,
+      [ACCESSIBILITY_ATTR_LABEL[0], itemValue],
+      ...optionalAttrs
+    ];
+  }
+
+  /**
+   * Get the list of all attributes to be added to the menu item element..
+   *
+   * @param {string} itemValue The menu item value.
+   * @param {boolean} isItemDisabled `true` if the menu item is disabled.
+   * @param {boolean} isSubMenu `true` if the menu item is a submenu.
+   * @returns {Array[]}
+   */
+  #getMenuItemAttributes(itemValue, isItemDisabled, isSubMenu) {
+    return [
+      ...this.#getAccessibilityAttributes(itemValue, isItemDisabled, isSubMenu)
+    ];
+  }
+
+  /**
    * On after init listener.
    *
    * @private
@@ -908,6 +973,9 @@ class Menu {
     holderStyle.width = `${currentHiderWidth + 3}px`;
     holderStyle.height = `${realHeight + 3}px`;
     hiderStyle.height = holderStyle.height;
+
+    // Replace the default accessibility tags with the context menu's
+    this.hotMenu.rootElement.setAttribute(...ACCESSIBILITY_ATTR_MENU);
   }
 
   /**

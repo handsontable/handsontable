@@ -5,7 +5,7 @@ import { addClass, hasClass } from '../../helpers/dom/element';
 
 import './autocompleteRenderer.scss';
 
-const ACCESSIBILITY_ATTRIBUTE_HASPOPUP = ['aria-haspopup', 'listbox'];
+const ACCESSIBILITY_ATTR_HASPOPUP = ['aria-haspopup', 'listbox'];
 
 export const RENDERER_TYPE = 'autocomplete';
 
@@ -41,7 +41,7 @@ export function autocompleteRenderer(instance, TD, row, col, prop, value, cellPr
 
   addClass(TD, 'htAutocomplete');
 
-  TD.setAttribute(...ACCESSIBILITY_ATTRIBUTE_HASPOPUP);
+  TD.setAttribute(...ACCESSIBILITY_ATTR_HASPOPUP);
 
   if (!instance.acArrowListener) {
     const eventManager = new EventManager(instance);
