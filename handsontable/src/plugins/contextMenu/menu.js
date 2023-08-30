@@ -491,8 +491,10 @@ class Menu {
       delete this.hotSubMenus[dataItem.key];
     }
 
-    // Update the accessibility tags on the cell being the base for the submenu.
-    cell.setAttribute(...ACCESSIBILITY_ATTR_COLLAPSED);
+    if (cell) {
+      // Update the accessibility tags on the cell being the base for the submenu.
+      cell.setAttribute(...ACCESSIBILITY_ATTR_COLLAPSED);
+    }
   }
 
   /**
