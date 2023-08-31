@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed row header width jumping after adding/deleting rows to the dataset.",
+  "type": "fixed",
+  "issueOrPR": 10479,
+  "breaking": false,
+  "framework": "none"
+}
