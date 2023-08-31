@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Error thrown after deselecting the table and triggering some keys won't occur anymore",
-  "type": "fixed",
-  "issueOrPR": 10272,
-  "breaking": false,
-  "framework": "none"
-}

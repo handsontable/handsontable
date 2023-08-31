@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Mark an internal prop of the React wrapper's base editor component as optional.",
-  "type": "fixed",
-  "issueOrPR": 10429,
-  "breaking": false,
-  "framework": "react"
-}
