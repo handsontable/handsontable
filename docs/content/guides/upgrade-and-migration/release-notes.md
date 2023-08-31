@@ -24,6 +24,32 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
+## 13.1.0
+
+Released on August 31, 2023.
+
+For more information on this release, see:
+
+- [Blog post (13.1.0)](https://handsontable.com/blog/handsontable-13-1-0-reduced-bundle-size-and-bug-fixes)
+- [Documentation (13.1)](https://handsontable.com/docs/13.1)
+
+
+#### Changed
+- Optimized the transpilation process of the distribution files. [#10440](https://github.com/handsontable/handsontable/pull/10440)
+- Updated the internal monorepo scripts to utilize Node 20. [#10468](https://github.com/handsontable/handsontable/pull/10468)
+
+#### Fixed
+- Fixed a problem with errors being thrown when pressing `delete` or `backspace` keys after deselecting cells. [#10272](https://github.com/handsontable/handsontable/issues/10272)
+- Fixed problems with [moving rows](@/api/manualRowMove.md) when there are [trimmed rows](@/api/trimRows.md) in the table. [#10399](https://github.com/handsontable/handsontable/pull/10399)
+- Fixed a problem with the [column resize](@/api/manualColumnResize.md) handle being stuck after the user clicked the right mouse button.  [#10416](https://github.com/handsontable/handsontable/pull/10416)
+- Extended the type definition of `CellChange` to match the actual implementation. [#10432](https://github.com/handsontable/handsontable/issues/10432)
+- Fixed a typo in the [`CopyPaste`](@/api/copyPaste.md) plugin's [`copy`](@/api/copyPaste.md#copy) method argument. [#10446](https://github.com/handsontable/handsontable/pull/10446)
+- Fixed the mobile selection handlers that disappeared below the table headers when multiple cells were selected. [#10447](https://github.com/handsontable/handsontable/pull/10447)
+- Fixed the [`MergeCells`](@/api/mergeCells.md) plugin's problem with updating the cell meta after unmerging the previously-merged cells, which resulted in the Autofill plugin not working properly. [#10456](https://github.com/handsontable/handsontable/issues/10456)
+- Added the missing type definition for [`BaseEditor`](@/api/baseEditor.md)'s [`getEditedCellRect`](@/api/baseEditor.md#geteditedcellrect) method. [#10459](https://github.com/handsontable/handsontable/issues/10459)
+- Corrected the type definitions for the [`ContextMenu`](@/api/contextMenu.md). [#9566](https://github.com/handsontable/handsontable/issues/9566)
+- React: Mark an internal prop of the React wrapper's base editor component as optional. [#10429](https://github.com/handsontable/handsontable/issues/10429)
+
 ## 13.0.0
 
 Released on June 22, 2023.

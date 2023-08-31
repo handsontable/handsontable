@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "fix ChangeSource Type Error with ContextMenufix ChangeSource Type Error with ContextMenu",
-  "type": "fixed",
-  "issueOrPR": 9566,
-  "breaking": false,
-  "framework": "none"
-}

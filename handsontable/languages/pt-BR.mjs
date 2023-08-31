@@ -1,18 +1,3 @@
-import "core-js/modules/es.symbol.to-primitive.js";
-import "core-js/modules/es.date.to-primitive.js";
-import "core-js/modules/es.symbol.js";
-import "core-js/modules/es.symbol.description.js";
-import "core-js/modules/es.object.to-string.js";
-import "core-js/modules/es.number.constructor.js";
-import "core-js/modules/es.symbol.iterator.js";
-import "core-js/modules/es.array.iterator.js";
-import "core-js/modules/es.string.iterator.js";
-import "core-js/modules/web.dom-collections.iterator.js";
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
-var _dictionary;
-function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
-function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 /**
  * @preserve
  * Authors: Júlio C. Zuppa
@@ -21,9 +6,81 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
  * Description: Definition file for Portuguese - Brazil language-country.
  */
 import Handsontable from "handsontable";
-var C = Handsontable.languages.dictionaryKeys;
-var dictionary = (_dictionary = {
-  languageCode: 'pt-BR'
-}, _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ROW_ABOVE, 'Inserir linha acima'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ROW_BELOW, 'Inserir linha abaixo'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_INSERT_LEFT, 'Inserir coluna esquerda'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_INSERT_RIGHT, 'Inserir coluna direita'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_REMOVE_ROW, ['Excluir linha', 'Excluir linhas']), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_REMOVE_COLUMN, ['Excluir coluna', 'Excluir colunas']), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_UNDO, 'Desfazer'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_REDO, 'Refazer'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_READ_ONLY, 'Somente leitura'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_CLEAR_COLUMN, 'Limpar coluna'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT, 'Alinhamento'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT, 'Esquerda'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER, 'Centralizado'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT, 'Direita'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY, 'Justificado'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP, 'Superior'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE, 'Meio'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM, 'Inferior'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_FREEZE_COLUMN, 'Congelar coluna'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN, 'Descongelar coluna'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_BORDERS, 'Bordas'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_BORDERS_TOP, 'Superior'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_BORDERS_RIGHT, 'Direita'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_BORDERS_BOTTOM, 'Inferior'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_BORDERS_LEFT, 'Esquerda'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_REMOVE_BORDERS, 'Excluir bordas(s)'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ADD_COMMENT, 'Incluir comentário'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_EDIT_COMMENT, 'Editar comentário'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_REMOVE_COMMENT, 'Remover comentário'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT, 'Comentário somente leitura'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_MERGE_CELLS, 'Mesclar células'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_UNMERGE_CELLS, 'Desfazer mesclagem de células'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_COPY, 'Copiar'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_CUT, 'Recortar'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD, 'Inserir linha filha'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD, 'Desanexar da linha pai'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_HIDE_COLUMN, ['Ocultar coluna', 'Ocultar colunas']), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_SHOW_COLUMN, ['Exibir coluna', 'Exibir colunas']), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_HIDE_ROW, ['Ocultar linha', 'Ocultar linhas']), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_SHOW_ROW, ['Exibir linha', 'Exibir linhas']), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_NONE, 'Nenhum'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_EMPTY, 'É vazio'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_NOT_EMPTY, 'Não é vazio'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_EQUAL, 'É igual a'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_NOT_EQUAL, 'É diferente de'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_BEGINS_WITH, 'Começa com'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_ENDS_WITH, 'Termina com'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_CONTAINS, 'Contém'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_NOT_CONTAIN, 'Não contém'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_GREATER_THAN, 'Maior que'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_GREATER_THAN_OR_EQUAL, 'Maior ou igual a'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_LESS_THAN, 'Menor que'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_LESS_THAN_OR_EQUAL, 'Maior ou igual a'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_BETWEEN, 'Está entre'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_NOT_BETWEEN, 'Não está entre'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_AFTER, 'Depois'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_BEFORE, 'Antes'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_TODAY, 'Hoje'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_TOMORROW, 'Amanhã'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_YESTERDAY, 'Ontem'), _defineProperty(_dictionary, C.FILTERS_VALUES_BLANK_CELLS, 'Células vazias'), _defineProperty(_dictionary, C.FILTERS_DIVS_FILTER_BY_CONDITION, 'Filtrar por condição'), _defineProperty(_dictionary, C.FILTERS_DIVS_FILTER_BY_VALUE, 'Filtrar por valor'), _defineProperty(_dictionary, C.FILTERS_LABELS_CONJUNCTION, 'E'), _defineProperty(_dictionary, C.FILTERS_LABELS_DISJUNCTION, 'Ou'), _defineProperty(_dictionary, C.FILTERS_BUTTONS_SELECT_ALL, 'Selecionar tudo'), _defineProperty(_dictionary, C.FILTERS_BUTTONS_CLEAR, 'Limpar'), _defineProperty(_dictionary, C.FILTERS_BUTTONS_OK, 'OK'), _defineProperty(_dictionary, C.FILTERS_BUTTONS_CANCEL, 'Cancelar'), _defineProperty(_dictionary, C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH, 'Localizar'), _defineProperty(_dictionary, C.FILTERS_BUTTONS_PLACEHOLDER_VALUE, 'Valor'), _defineProperty(_dictionary, C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE, 'Segundo valor'), _dictionary);
+const C = Handsontable.languages.dictionaryKeys;
+const dictionary = {
+  languageCode: 'pt-BR',
+  [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Inserir linha acima',
+  [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Inserir linha abaixo',
+  [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Inserir coluna esquerda',
+  [C.CONTEXTMENU_ITEMS_INSERT_RIGHT]: 'Inserir coluna direita',
+  [C.CONTEXTMENU_ITEMS_REMOVE_ROW]: ['Excluir linha', 'Excluir linhas'],
+  [C.CONTEXTMENU_ITEMS_REMOVE_COLUMN]: ['Excluir coluna', 'Excluir colunas'],
+  [C.CONTEXTMENU_ITEMS_UNDO]: 'Desfazer',
+  [C.CONTEXTMENU_ITEMS_REDO]: 'Refazer',
+  [C.CONTEXTMENU_ITEMS_READ_ONLY]: 'Somente leitura',
+  [C.CONTEXTMENU_ITEMS_CLEAR_COLUMN]: 'Limpar coluna',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT]: 'Alinhamento',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT]: 'Esquerda',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER]: 'Centralizado',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT]: 'Direita',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY]: 'Justificado',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP]: 'Superior',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE]: 'Meio',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM]: 'Inferior',
+  [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'Congelar coluna',
+  [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'Descongelar coluna',
+  [C.CONTEXTMENU_ITEMS_BORDERS]: 'Bordas',
+  [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: 'Superior',
+  [C.CONTEXTMENU_ITEMS_BORDERS_RIGHT]: 'Direita',
+  [C.CONTEXTMENU_ITEMS_BORDERS_BOTTOM]: 'Inferior',
+  [C.CONTEXTMENU_ITEMS_BORDERS_LEFT]: 'Esquerda',
+  [C.CONTEXTMENU_ITEMS_REMOVE_BORDERS]: 'Excluir bordas(s)',
+  [C.CONTEXTMENU_ITEMS_ADD_COMMENT]: 'Incluir comentário',
+  [C.CONTEXTMENU_ITEMS_EDIT_COMMENT]: 'Editar comentário',
+  [C.CONTEXTMENU_ITEMS_REMOVE_COMMENT]: 'Remover comentário',
+  [C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT]: 'Comentário somente leitura',
+  [C.CONTEXTMENU_ITEMS_MERGE_CELLS]: 'Mesclar células',
+  [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Desfazer mesclagem de células',
+  [C.CONTEXTMENU_ITEMS_COPY]: 'Copiar',
+  [C.CONTEXTMENU_ITEMS_CUT]: 'Recortar',
+  [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Inserir linha filha',
+  [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Desanexar da linha pai',
+  [C.CONTEXTMENU_ITEMS_HIDE_COLUMN]: ['Ocultar coluna', 'Ocultar colunas'],
+  [C.CONTEXTMENU_ITEMS_SHOW_COLUMN]: ['Exibir coluna', 'Exibir colunas'],
+  [C.CONTEXTMENU_ITEMS_HIDE_ROW]: ['Ocultar linha', 'Ocultar linhas'],
+  [C.CONTEXTMENU_ITEMS_SHOW_ROW]: ['Exibir linha', 'Exibir linhas'],
+  [C.FILTERS_CONDITIONS_NONE]: 'Nenhum',
+  [C.FILTERS_CONDITIONS_EMPTY]: 'É vazio',
+  [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'Não é vazio',
+  [C.FILTERS_CONDITIONS_EQUAL]: 'É igual a',
+  [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'É diferente de',
+  [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Começa com',
+  [C.FILTERS_CONDITIONS_ENDS_WITH]: 'Termina com',
+  [C.FILTERS_CONDITIONS_CONTAINS]: 'Contém',
+  [C.FILTERS_CONDITIONS_NOT_CONTAIN]: 'Não contém',
+  [C.FILTERS_CONDITIONS_GREATER_THAN]: 'Maior que',
+  [C.FILTERS_CONDITIONS_GREATER_THAN_OR_EQUAL]: 'Maior ou igual a',
+  [C.FILTERS_CONDITIONS_LESS_THAN]: 'Menor que',
+  [C.FILTERS_CONDITIONS_LESS_THAN_OR_EQUAL]: 'Maior ou igual a',
+  [C.FILTERS_CONDITIONS_BETWEEN]: 'Está entre',
+  [C.FILTERS_CONDITIONS_NOT_BETWEEN]: 'Não está entre',
+  [C.FILTERS_CONDITIONS_AFTER]: 'Depois',
+  [C.FILTERS_CONDITIONS_BEFORE]: 'Antes',
+  [C.FILTERS_CONDITIONS_TODAY]: 'Hoje',
+  [C.FILTERS_CONDITIONS_TOMORROW]: 'Amanhã',
+  [C.FILTERS_CONDITIONS_YESTERDAY]: 'Ontem',
+  [C.FILTERS_VALUES_BLANK_CELLS]: 'Células vazias',
+  [C.FILTERS_DIVS_FILTER_BY_CONDITION]: 'Filtrar por condição',
+  [C.FILTERS_DIVS_FILTER_BY_VALUE]: 'Filtrar por valor',
+  [C.FILTERS_LABELS_CONJUNCTION]: 'E',
+  [C.FILTERS_LABELS_DISJUNCTION]: 'Ou',
+  [C.FILTERS_BUTTONS_SELECT_ALL]: 'Selecionar tudo',
+  [C.FILTERS_BUTTONS_CLEAR]: 'Limpar',
+  [C.FILTERS_BUTTONS_OK]: 'OK',
+  [C.FILTERS_BUTTONS_CANCEL]: 'Cancelar',
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Localizar',
+  [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Valor',
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Segundo valor'
+};
 Handsontable.languages.registerLanguageDictionary(dictionary);
 export default dictionary;

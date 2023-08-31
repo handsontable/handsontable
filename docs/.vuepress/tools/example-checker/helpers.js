@@ -1,5 +1,5 @@
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
 const chalk = require('chalk');
 const replaceInFiles = require('replace-in-files');
 const puppeteer = require('puppeteer');
