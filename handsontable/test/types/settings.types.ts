@@ -386,7 +386,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterBeginEditing: (row, column) => {},
   afterCellMetaReset: () => {},
   afterChange: (changes, source) => {
-    const _changes = changes && changes.forEach(change => change[0].toFixed());
+    if (changes !== null) {
+      changes.forEach(change => change[0].toFixed());
+    }
 
     switch (source) {
       case 'auto':
