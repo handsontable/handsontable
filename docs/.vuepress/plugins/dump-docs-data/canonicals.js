@@ -1,16 +1,15 @@
 const { logger } = require('@vuepress/shared-utils');
-const {
-  getDocsHostname
-} = require('../../helpers');
 
-const BASE_URL = getDocsHostname(false);
+const buildMode = process.env.BUILD_MODE;
+const BASE_DOCS_URL = `https://${buildMode === 'staging' ? '_docs_dev.' : ''}handsontable.com/docs`;
+
 const fetchCommonHeaders = new Headers({
   'Accept': 'application/json', // eslint-disable-line quote-props
   'Content-Type': 'application/json',
   'User-Agent': 'HandsontableDocsBuilder'
 });
 
-logger.info(`Using "${BASE_URL}/docs/data/common.json" URL for fetching and building Docs data ` +
+logger.info(`Using "${BASE_DOCS_URL}/data/common.json" URL for fetching and building Docs data ` +
   '(fetch docs versions and build canonical URLs).');
 
 /**
@@ -21,7 +20,7 @@ logger.info(`Using "${BASE_URL}/docs/data/common.json" URL for fetching and buil
  */
 async function generateCommonCanonicalURLs(currentCanonicals) {
   const commonURLs = new Map();
-  const response = await fetch(`${BASE_URL}/docs/data/common.json`, {
+  const response = await fetch(`${BASE_DOCS_URL}/data/common.json`, {
     headers: fetchCommonHeaders
   });
   const docsData = await response.json();
@@ -41,7 +40,7 @@ async function generateCommonCanonicalURLs(currentCanonicals) {
       canonicalsURLs = currentCanonicals.urls;
     } else {
       /* eslint-disable no-await-in-loop */
-      const canonicalsResponse = await fetch(`${BASE_URL}/docs/${docsVersion}/data/canonicals-raw.json`, {
+      const canonicalsResponse = await fetch(`${BASE_DOCS_URL}/${docsVersion}/data/canonicals-raw.json`, {
         headers: fetchCommonHeaders
       });
 

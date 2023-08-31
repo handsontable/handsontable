@@ -5,8 +5,9 @@
  *  - handsontable.full.min.js
  *  - handsontable.full.min.css
  */
+const TerserPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const configFactory = require('./development');
 const { getClosest }  = require('./helper/path');
@@ -16,15 +17,23 @@ const PACKAGE_FILENAME = process.env.HOT_FILENAME;
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
 
-  // Add uglifyJs plugin for each configuration
+  // Enable minification for each configuration
   config.forEach(function(c) {
     const isFullBuild = /\.full\.js$/.test(c.output.filename);
     c.devtool = false;
     c.output.filename = c.output.filename.replace(/\.js$/, '.min.js');
 
+    c.mode = 'production';
     c.optimization = {
       minimize: true,
+      minimizer: [
+        new TerserPlugin({
+          extractComments: false,
+        }),
+        new CssMinimizerPlugin(),
+      ],
     };
+
     // Remove all 'MiniCssExtractPlugin' instances
     c.plugins = c.plugins.filter(function(plugin) {
       return !(plugin instanceof MiniCssExtractPlugin);
@@ -32,13 +41,8 @@ module.exports.create = function create(envArgs) {
 
     c.plugins.push(
       new MiniCssExtractPlugin({
-          filename: `${PACKAGE_FILENAME}${isFullBuild ? '.full' : ''}.min.css`,
-      }
-        ),
-      new OptimizeCssAssetsPlugin({
-        assetNameRegExp: isFullBuild ? /\.full\.min\.css$/ : /\.min\.css$/,
-        cssProcessorOptions: { zindex: false },
-      })
+        filename: `${PACKAGE_FILENAME}${isFullBuild ? '.full' : ''}.min.css`,
+      }),
     );
 
     if (isFullBuild) {
