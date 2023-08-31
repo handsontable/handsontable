@@ -1,32 +1,32 @@
 /*!
  * Copyright (c) HANDSONCODE sp. z o. o.
- * 
+ *
  * HANDSONTABLE is a software distributed by HANDSONCODE sp. z o. o., a Polish corporation based in
- * Gdynia, Poland, at Aleja Zwycięstwa 96-98, registered by the District Court in Gdansk under number
+ * Gdynia, Poland, at Aleja Zwyciestwa 96-98, registered by the District Court in Gdansk under number
  * 538651, EU tax ID number: PL5862294002, share capital: PLN 62,800.00.
- * 
+ *
  * This software is protected by applicable copyright laws, including international treaties, and dual-
- * licensed – depending on whether your use for commercial purposes, meaning intended for or
+ * licensed - depending on whether your use for commercial purposes, meaning intended for or
  * resulting in commercial advantage or monetary compensation, or not.
- * 
+ *
  * If your use is strictly personal or solely for evaluation purposes, meaning for the purposes of testing
  * the suitability, performance, and usefulness of this software outside the production environment,
  * you agree to be bound by the terms included in the "handsontable-non-commercial-license.pdf" file.
- * 
+ *
  * Your use of this software for commercial purposes is subject to the terms included in an applicable
  * license agreement.
- * 
+ *
  * In any case, you must not make any such use of this software as to develop software which may be
  * considered competitive with this software.
- * 
+ *
  * UNLESS EXPRESSLY AGREED OTHERWISE, HANDSONCODE PROVIDES THIS SOFTWARE ON AN "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, AND IN NO EVENT AND UNDER NO
  * LEGAL THEORY, SHALL HANDSONCODE BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY DIRECT,
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
- * 
- * Version: 13.0.0
- * Release date: 22/06/2023 (built at 22/06/2023 12:51:30)
+ *
+ * Version: 13.1.0
+ * Release date: 31/08/2023 (built at 31/08/2023 08:23:39)
  */
 /**
  * Fix for bootstrap styles
@@ -515,12 +515,12 @@ innerBorderBottom - Property controlled by bottom overlay
 
 .handsontable span.colHeader.columnSorting.ascending::before {
   /* arrow up; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
-  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFNJREFUeAHtzjkSgCAUBNHPgsoy97+ulGXRqJE5L+xkxoYt2UdsLb5bqFINz+aLuuLn5rIu2RkO3fZpWENimNgiw6iBYRTPMLJjGFxQZ1hxxb/xBI1qC8k39CdKAAAAAElFTkSuQmCC");
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFNJREFUeAHtzjkSgCAUBNHPgsoy97+ulGXRqJE5L+xkxoYt2UdsLb5bqFINz+aLuuLn5rIu2RkO3fZpWENimNgiw6iBYRTPMLJjGFxQZ1hxxb/xBI1qC8k39CdKAAAAAElFTkSuQmCC);
 }
 
 .handsontable span.colHeader.columnSorting.descending::before {
   /* arrow down; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
-  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFJJREFUeAHtzjkSgCAQRNFmQYUZ7n9dKUvru0TmvPAn3br0QfgdZ5xx6x+rQn23GqTYnq1FDcnuzZIO2WmedVqIRVxgGKEyjNgYRjKGkZ1hFIZ3I70LyM0VtU8AAAAASUVORK5CYII=");
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFJJREFUeAHtzjkSgCAQRNFmQYUZ7n9dKUvru0TmvPAn3br0QfgdZ5xx6x+rQn23GqTYnq1FDcnuzZIO2WmedVqIRVxgGKEyjNgYRjKGkZ1hFIZ3I70LyM0VtU8AAAAASUVORK5CYII=);
 }
 
 .htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::after {
@@ -832,11 +832,6 @@ TextRenderer placeholder value
   -webkit-appearance: none;
 }
 
-.topSelectionHandle:not(.ht_master .topSelectionHandle),
-.topSelectionHandle-HitArea:not(.ht_master .topSelectionHandle-HitArea) {
-  z-index: 9999;
-}
-
 /* Initial left/top coordinates - overwritten when actual position is set */
 .handsontable .topSelectionHandle,
 .handsontable .topSelectionHandle-HitArea,
@@ -845,6 +840,7 @@ TextRenderer placeholder value
   left: -10000px;
   right: unset;
   top: -10000px;
+  z-index: 9999;
 }
 
 [dir=rtl].handsontable .topSelectionHandle, [dir=rtl].handsontable .topSelectionHandle-HitArea, [dir=rtl].handsontable .bottomSelectionHandle, [dir=rtl].handsontable .bottomSelectionHandle-HitArea {

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Optimized the transpilation process of the distribution files.",
-  "type": "changed",
-  "issueOrPR": 10440,
-  "breaking": false,
-  "framework": "none"
-}
