@@ -53,7 +53,7 @@ if (conditionCollection) {
 
   const conditions: Condition[] = conditionCollection.getConditions(3);
   const filteredColumns = conditionCollection.getFilteredColumns();
-  const columnStackPosition: number | void = conditionCollection.getColumnStackPosition(3);
-  const operation: OperationType | void = conditionCollection.getOperation(3);
+  const columnStackPosition: Maybe<number> = conditionCollection.getColumnStackPosition(3);
+  const operation: Maybe<OperationType> = conditionCollection.getOperation(3);
   const exportAllConditions: ColumnConditions[] = conditionCollection.exportAllConditions();
 }
