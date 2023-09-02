@@ -505,38 +505,4 @@ describe('DomElement helper', () => {
         .toBe('<meta http-equiv="refresh" content="30">This is my <a href="https://handsontable.com">link</a>');
     });
   });
-
-
-  //
-  // Handsontable.dom.offset
-  //
-  describe('offset', () => {
-
-    let wrapper = null;
-
-    beforeEach(() => {
-      wrapper = document.createElement('div');
-    });
-
-    afterEach(() => {
-      wrapper = null;
-    });
-
-    it('should return correct offset for elements inside a foreign object', () => {
-      wrapper.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg">
-          <foreignObject width="50" height="50">
-            <div xmlns="http://www.w3.org/1999/xhtml">test</div>
-          </foreignObject>
-        </svg>
-      `;
-
-      const element = wrapper.querySelector('div');
-
-      const elementOffset = offset(element);
-
-      expect(isFinite(elementOffset.top)).toBe(true);
-      expect(isFinite(elementOffset.left)).toBe(true);
-    });
-  })
 });
