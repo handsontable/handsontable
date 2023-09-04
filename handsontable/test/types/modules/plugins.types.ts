@@ -73,7 +73,7 @@ registerPlugin(Search);
 registerPlugin(TouchScroll);
 registerPlugin(TrimRows);
 registerPlugin(UndoRedo);
-registerPlugin('custom', class CustomPugin extends BasePlugin {});
+registerPlugin('custom', class CustomPlugin extends BasePlugin {});
 
 const autoColumnSize: AutoColumnSize = getPlugin('autoColumnSize');
 const autofill: Autofill = getPlugin('autofill');
