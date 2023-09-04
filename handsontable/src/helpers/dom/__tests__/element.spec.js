@@ -26,6 +26,7 @@ describe('DOM helpers', () => {
   describe('offset', () => {
     it('should return correct offset for elements inside a foreign object', () => {
       const wrapper = document.createElement('div');
+
       wrapper.innerHTML = /* html */`
         <svg xmlns="http://www.w3.org/2000/svg">
           <foreignObject width="50" height="50">
@@ -44,5 +45,5 @@ describe('DOM helpers', () => {
 
       document.body.removeChild(wrapper);
     });
-  })
+  });
 });
