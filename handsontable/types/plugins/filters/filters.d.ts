@@ -1,14 +1,12 @@
 import Core from '../../core';
 import { BasePlugin } from '../base';
-import ConditionCollection from './conditionCollection';
+import ConditionCollection, {
+  ConditionName as _ConditionName,
+} from './conditionCollection';
 import ConditionUpdateObserver from './conditionUpdateObserver';
 
 type _OperationType = 'conjunction' | 'disjunction';
 export type OperationType = _OperationType;
-
-type _ConditionName = 'begins_with' | 'between' | 'by_value' | 'contains' | 'empty' |
-  'ends_with' | 'eq' | 'gt' | 'gte' | 'lt' | 'lte' | 'not_between' | 'not_contains' |
-  'not_empty' | 'neq';
 export type ConditionName = _ConditionName;
 
 export interface ColumnConditions {
