@@ -49,7 +49,7 @@ export interface RangeType {
 /**
  * The default sources for which the table triggers hooks.
  */
-export type ChangeSource = 'auto' | 'edit' | 'loadData' | 'populateFromArray' | 'spliceCol' |
+export type ChangeSource = 'auto' | 'edit' | 'loadData' | 'updateData' | 'populateFromArray' | 'spliceCol' |
                            'spliceRow' | 'timeValidate' | 'dateValidate' | 'validateCells' |
                            'Autofill.fill' | 'ContextMenu.clearColumn' | 'ContextMenu.columnLeft' |
                            'ContextMenu.columnRight' | 'ContextMenu.removeColumn' |
