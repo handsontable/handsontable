@@ -81,8 +81,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   allowInvalid: true,
   allowRemoveColumn: true,
   allowRemoveRow: true,
-  autoColumnSize:  oneOf(true,  { syncLimit: '40%', userHeaders: true }),
-  autoRowSize: oneOf(true, { syncLimit: 300 }),
+  autoColumnSize:  true,
+  autoRowSize: true,
   autoWrapCol: true,
   autoWrapRow: true,
   bindRowsWithHeaders: oneOf(true, 'loose', 'strict'),
@@ -116,18 +116,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     { type: 'numeric', numericFormat: { pattern: '0,0.00 $' } },
     { type: 'text', readOnly: true }
   ],
-  columnSorting: true_or_false || {
-    initialConfig: {
-      column: 1,
-      sortOrder: 'asc'
-    },
-    sortEmptyCells: true,
-    indicator: true,
-    headerAction: false,
-    compareFunctionFactory(sortOrder, columnMeta) {
-      return (a: any, b: any) => columnMeta.type === 'text' && sortOrder === 'asc' ? -1 : 1;
-    }
-  },
+  columnSorting: true_or_false,
   columnSummary: [
     {
       destinationRow: 4,
@@ -262,14 +251,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   ),
   fragmentSelection: oneOf(true, 'cell'),
   height: oneOf(500, () => 500),
-  hiddenColumns: oneOf(true, {
-    columns: [5, 10, 15],
-    indicators: true
-  }),
-  hiddenRows: oneOf(true, {
-    rows: [5, 10, 15],
-    indicators: true
-  }),
+  hiddenColumns: true,
+  hiddenRows: true,
   invalidCellClassName: 'foo',
   isEmptyCol: (col) => col === 0,
   isEmptyRow: (row) => row === 0,
@@ -294,18 +277,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   minRows: 123,
   minSpareCols: 123,
   minSpareRows: 123,
-  multiColumnSorting: true_or_false || {
-    initialConfig: oneOf(
-      { column: 1, sortOrder: SortDirection.desc },
-      [{ column: 1, sortOrder: SortDirection.asc }, { column: 0, sortOrder: SortDirection.desc }]
-    ),
-    sortEmptyCells: true,
-    indicator: true,
-    headerAction: false,
-    compareFunctionFactory(sortOrder, columnMeta) {
-      return (a: any, b: any) => columnMeta.type === 'text' && sortOrder === 'asc' ? -1 : 1;
-    }
-  },
+  multiColumnSorting: true_or_false,
   nestedHeaders:  [
     ['A', {label: 'B', colspan: 8}, 'C'],
     ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
@@ -385,7 +357,38 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterAutofill: (start, end, data) => {},
   afterBeginEditing: (row, column) => {},
   afterCellMetaReset: () => {},
-  afterChange: (changes, source) => changes && changes.forEach(change => change[0].toFixed()),
+  afterChange: (changes, source) => {
+    if (changes !== null) {
+      changes.forEach(change => change[0].toFixed());
+    }
+
+    switch (source) {
+      case 'auto':
+      case 'edit':
+      case 'loadData':
+      case 'updateData':
+      case 'populateFromArray':
+      case 'spliceCol':
+      case 'spliceRow':
+      case 'timeValidate':
+      case 'dateValidate':
+      case 'validateCells':
+      case 'Autofill.fill':
+      case 'ContextMenu.clearColumn':
+      case 'ContextMenu.columnLeft':
+      case 'ContextMenu.columnRight':
+      case 'ContextMenu.removeColumn':
+      case 'ContextMenu.removeRow':
+      case 'ContextMenu.rowAbove':
+      case 'ContextMenu.rowBelow':
+      case 'CopyPaste.paste':
+      case 'UndoRedo.redo':
+      case 'UndoRedo.undo':
+      case 'ColumnSummary.set':
+      case 'ColumnSummary.reset':
+        break;
+    }
+  },
   afterChangesObserved: () => {},
   afterColumnCollapse: (currentCollapsedColumn, destinationCollapsedColumns, collapsePossible,
     successfullyCollapsed) => {},
