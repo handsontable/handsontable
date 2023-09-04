@@ -116,18 +116,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     { type: 'numeric', numericFormat: { pattern: '0,0.00 $' } },
     { type: 'text', readOnly: true }
   ],
-  columnSorting: true_or_false || {
-    initialConfig: {
-      column: 1,
-      sortOrder: 'asc'
-    },
-    sortEmptyCells: true,
-    indicator: true,
-    headerAction: false,
-    compareFunctionFactory(sortOrder, columnMeta) {
-      return (a: any, b: any) => columnMeta.type === 'text' && sortOrder === 'asc' ? -1 : 1;
-    }
-  },
+  columnSorting: true_or_false,
   columnSummary: [
     {
       destinationRow: 4,
@@ -288,18 +277,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   minRows: 123,
   minSpareCols: 123,
   minSpareRows: 123,
-  multiColumnSorting: true_or_false || {
-    initialConfig: oneOf(
-      { column: 1, sortOrder: SortDirection.desc },
-      [{ column: 1, sortOrder: SortDirection.asc }, { column: 0, sortOrder: SortDirection.desc }]
-    ),
-    sortEmptyCells: true,
-    indicator: true,
-    headerAction: false,
-    compareFunctionFactory(sortOrder, columnMeta) {
-      return (a: any, b: any) => columnMeta.type === 'text' && sortOrder === 'asc' ? -1 : 1;
-    }
-  },
+  multiColumnSorting: true_or_false,
   nestedHeaders:  [
     ['A', {label: 'B', colspan: 8}, 'C'],
     ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
