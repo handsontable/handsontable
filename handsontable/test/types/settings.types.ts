@@ -379,7 +379,38 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterAutofill: (start, end, data) => {},
   afterBeginEditing: (row, column) => {},
   afterCellMetaReset: () => {},
-  afterChange: (changes, source) => changes && changes.forEach(change => change[0].toFixed()),
+  afterChange: (changes, source) => {
+    if (changes !== null) {
+      changes.forEach(change => change[0].toFixed());
+    }
+
+    switch (source) {
+      case 'auto':
+      case 'edit':
+      case 'loadData':
+      case 'updateData':
+      case 'populateFromArray':
+      case 'spliceCol':
+      case 'spliceRow':
+      case 'timeValidate':
+      case 'dateValidate':
+      case 'validateCells':
+      case 'Autofill.fill':
+      case 'ContextMenu.clearColumn':
+      case 'ContextMenu.columnLeft':
+      case 'ContextMenu.columnRight':
+      case 'ContextMenu.removeColumn':
+      case 'ContextMenu.removeRow':
+      case 'ContextMenu.rowAbove':
+      case 'ContextMenu.rowBelow':
+      case 'CopyPaste.paste':
+      case 'UndoRedo.redo':
+      case 'UndoRedo.undo':
+      case 'ColumnSummary.set':
+      case 'ColumnSummary.reset':
+        break;
+    }
+  },
   afterChangesObserved: () => {},
   afterColumnCollapse: (currentCollapsedColumn, destinationCollapsedColumns, collapsePossible,
     successfullyCollapsed) => {},
