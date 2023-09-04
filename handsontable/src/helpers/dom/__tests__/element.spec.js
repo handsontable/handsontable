@@ -37,7 +37,7 @@ describe('DOM helpers', () => {
       document.body.appendChild(wrapper);
 
       const element = wrapper.querySelector('div');
-      const elementOffset = offset(element);
+      const elementOffset = Handsontable.dom.offset(element);
 
       expect(Number.isFinite(elementOffset.top)).toBe(true);
       expect(Number.isFinite(elementOffset.left)).toBe(true);
