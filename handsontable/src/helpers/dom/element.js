@@ -392,6 +392,11 @@ export function offset(element) {
     if (elementToCheck === rootDocument.body) {
       break;
     }
+    // If the element is inside an SVG context, the `offsetParent` can be
+    // a <foreignObject> that does not have properties `offsetLeft` and `offsetTop` defined.
+    if (!('offsetLeft' in elementToCheck)) {
+      break;
+    }
     offsetLeft += elementToCheck.offsetLeft;
     offsetTop += elementToCheck.offsetTop;
     lastElem = elementToCheck;

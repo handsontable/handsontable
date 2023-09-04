@@ -22,4 +22,28 @@ describe('DOM helpers', () => {
       document.body.removeChild(element);
     });
   });
+
+  describe('offset', () => {
+    it('should return correct offset for elements inside a foreign object', () => {
+      const wrapper = document.createElement('div');
+
+      wrapper.innerHTML = /* html */`
+        <svg xmlns="http://www.w3.org/2000/svg">
+          <foreignObject width="50" height="50">
+            <div xmlns="http://www.w3.org/1999/xhtml">test</div>
+          </foreignObject>
+        </svg>
+      `;
+
+      document.body.appendChild(wrapper);
+
+      const element = wrapper.querySelector('div');
+      const elementOffset = Handsontable.dom.offset(element);
+
+      expect(Number.isFinite(elementOffset.top)).toBe(true);
+      expect(Number.isFinite(elementOffset.left)).toBe(true);
+
+      document.body.removeChild(wrapper);
+    });
+  });
 });
