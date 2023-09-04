@@ -8,6 +8,7 @@ import {
   removeClass,
   selectElementIfAllowed,
   fastInnerHTML,
+  offset,
 } from 'handsontable/helpers/dom/element';
 
 describe('DomElement helper', () => {
