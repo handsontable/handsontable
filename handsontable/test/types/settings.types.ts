@@ -251,14 +251,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   ),
   fragmentSelection: oneOf(true, 'cell'),
   height: oneOf(500, () => 500),
-  hiddenColumns: oneOf(true, {
-    columns: [5, 10, 15],
-    indicators: true
-  }),
-  hiddenRows: oneOf(true, {
-    rows: [5, 10, 15],
-    indicators: true
-  }),
+  hiddenColumns: true,
+  hiddenRows: true,
   invalidCellClassName: 'foo',
   isEmptyCol: (col) => col === 0,
   isEmptyRow: (row) => row === 0,
