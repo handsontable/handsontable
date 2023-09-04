@@ -116,7 +116,7 @@ function createRegister() {
   const getAbortSignal = () => {
     const controllers = Array.from(abortControllers);
 
-    return controllers[controllers.length - 1];
+    return controllers[controllers.length - 1].signal;
   };
 
   return {
