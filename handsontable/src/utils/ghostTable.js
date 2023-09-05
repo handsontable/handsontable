@@ -73,7 +73,7 @@ class GhostTable {
 
     this.samples = samples;
     this.table = this.createTable(this.hot.table.className);
-    this.table.colGroup.appendChild(this.createColGroupsCol());
+    this.table.colGroup.appendChild(this.createColGroupsCol(row));
     this.table.tr.appendChild(this.createRow(row));
     this.container.container.appendChild(this.table.fragment);
 
@@ -227,18 +227,19 @@ class GhostTable {
   /**
    * Create colgroup col elements.
    *
+   * @param {number} row Visual row index.
    * @returns {DocumentFragment}
    */
-  createColGroupsCol() {
+  createColGroupsCol(row) {
     const fragment = this.hot.rootDocument.createDocumentFragment();
 
     if (this.hot.hasRowHeaders()) {
-      fragment.appendChild(this.createColElement(-1));
+      fragment.appendChild(this.createColElement(-1, -1));
     }
 
     this.samples.forEach((sample) => {
       arrayEach(sample.strings, (string) => {
-        fragment.appendChild(this.createColElement(string.col));
+        fragment.appendChild(this.createColElement(string.col, row));
       });
     });
 
@@ -395,13 +396,27 @@ class GhostTable {
   /**
    * Create col element.
    *
-   * @param {number} column Column index.
+   * @param {number} column Visual column index.
+   * @param {number} row Visual row index.
    * @returns {HTMLElement}
    */
-  createColElement(column) {
+  createColElement(column, row) {
     const col = this.hot.rootDocument.createElement('col');
+    let colspan = 0;
 
-    col.style.width = `${this.hot.view._wt.wtTable.getStretchedColumnWidth(column)}px`;
+    if (row >= 0 && column >= 0) {
+      colspan = this.hot.getCellMeta(row, column).colspan;
+    }
+
+    let width = this.hot.view._wt.wtTable.getStretchedColumnWidth(column);
+
+    if (colspan > 1) {
+      for (let nextColumn = column + 1; nextColumn < column + colspan; nextColumn++) {
+        width += this.hot.view._wt.wtTable.getStretchedColumnWidth(nextColumn);
+      }
+    }
+
+    col.style.width = `${width}px`;
 
     return col;
   }

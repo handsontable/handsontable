@@ -138,8 +138,14 @@ class SamplesGenerator {
     const sampledValues = [];
 
     rangeEach(range.from, range.to, (index) => {
-      const { value, bundleSeed } = type === 'row' ?
+      const data = type === 'row' ?
         this.dataFactory(specifierValue, index) : this.dataFactory(index, specifierValue);
+
+      if (data === false) {
+        return;
+      }
+
+      const { value, bundleSeed } = data;
       const hasCustomBundleSeed = typeof bundleSeed === 'string' && bundleSeed.length > 0;
       let seed;
 
