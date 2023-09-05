@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved the performance of the table in cases when the table is hiding",
+  "type": "changed",
+  "issueOrPR": 10490,
+  "breaking": false,
+  "framework": "none"
+}
