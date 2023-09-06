@@ -89,6 +89,7 @@ export const getDataType = handsontableMethodFactory('getDataType');
 export const getInstance = handsontableMethodFactory('getInstance');
 export const getPlugin = handsontableMethodFactory('getPlugin');
 export const getRowHeader = handsontableMethodFactory('getRowHeader');
+export const getRowHeight = handsontableMethodFactory('getRowHeight');
 export const getSchema = handsontableMethodFactory('getSchema');
 export const getSelected = handsontableMethodFactory('getSelected');
 export const getSelectedLast = handsontableMethodFactory('getSelectedLast');

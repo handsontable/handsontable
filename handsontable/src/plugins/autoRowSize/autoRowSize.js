@@ -152,6 +152,7 @@ export class AutoRowSize extends BasePlugin {
         const cellMeta = this.hot.getCellMeta(row, column);
 
         if (cellMeta.hidden) {
+          // do not generate samples for cells that are covered by merged cell (null values)
           return false;
         }
       }
