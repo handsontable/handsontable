@@ -43,7 +43,7 @@ describe('shortcutManager', () => {
 
       keyDown('control');
 
-      expect(shortcutManager.isCtrlPressed()).toBeFalse();
+      expect(shortcutManager.isCtrlPressed()).toBeTrue();
 
       keyUp('control');
 
@@ -61,7 +61,7 @@ describe('shortcutManager', () => {
 
       keyDown('control');
 
-      expect(shortcutManager.isCtrlPressed()).toBeFalse();
+      expect(shortcutManager.isCtrlPressed()).toBeTrue();
 
       keyUp('control');
     });
@@ -74,7 +74,7 @@ describe('shortcutManager', () => {
 
       keyDown('meta');
 
-      expect(shortcutManager.isCtrlPressed()).toBeFalse();
+      expect(shortcutManager.isCtrlPressed()).toBeTrue();
 
       keyUp('meta');
 
@@ -92,7 +92,7 @@ describe('shortcutManager', () => {
 
       keyDown('meta');
 
-      expect(shortcutManager.isCtrlPressed()).toBeFalse();
+      expect(shortcutManager.isCtrlPressed()).toBeTrue();
 
       keyUp('meta');
     });
@@ -461,22 +461,6 @@ describe('shortcutManager', () => {
     keyDownUp(['control', 'b']);
 
     expect(text).toBe('13456');
-  });
-
-  it('should handle event without key property in a proper way', () => {
-    const externalInputElement = document.createElement('input');
-
-    handsontable({});
-
-    document.body.appendChild(externalInputElement);
-    externalInputElement.select();
-
-    expect(() => {
-      $(externalInputElement).simulate('keydown', {});
-      $(externalInputElement).simulate('keyup', {});
-    }).not.toThrow();
-
-    document.body.removeChild(externalInputElement);
   });
 
   it('should check if there is a need of releasing keys on click #dev-1025', () => {

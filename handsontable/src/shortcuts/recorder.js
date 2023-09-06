@@ -76,6 +76,12 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
    * @param {KeyboardEvent} event The event object
    */
   const onkeydown = (event) => {
+    const pressedKey = normalizeEventKey(event.key);
+
+    if (isModifierKey(pressedKey)) {
+      modifierKeysObserver.press(pressedKey);
+    }
+
     if (handleEvent(event) === false) {
       return;
     }
@@ -89,13 +95,9 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
       return;
     }
 
-    const pressedKey = normalizeEventKey(event.key);
     let extraModifierKeys = [];
 
-    if (isModifierKey(pressedKey)) {
-      modifierKeysObserver.press(pressedKey);
-
-    } else {
+    if (!isModifierKey(pressedKey)) {
       extraModifierKeys = getPressedModifierKeys(event);
     }
 
@@ -118,17 +120,11 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
    * @param {KeyboardEvent} event The event object
    */
   const onkeyup = (event) => {
-    if (handleEvent(event) === false) {
-      return;
-    }
-
     const pressedKey = normalizeEventKey(event.key);
 
-    if (isModifierKey(pressedKey) === false) {
-      return;
+    if (isModifierKey(pressedKey)) {
+      modifierKeysObserver.release(pressedKey);
     }
-
-    modifierKeysObserver.release(pressedKey);
   };
 
   /**
