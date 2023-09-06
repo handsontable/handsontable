@@ -5,53 +5,55 @@ import { arrayEach } from './../helpers/array';
  * @class GhostTable
  */
 class GhostTable {
+  /**
+   * Handsontable instance.
+   *
+   * @type {Core}
+   */
+  hot = null;
+  /**
+   * Container element where every table will be injected.
+   *
+   * @type {HTMLElement|null}
+   */
+  container = null;
+  /**
+   * Flag which determine is table was injected to DOM.
+   *
+   * @type {boolean}
+   */
+  injected = false;
+  /**
+   * Added rows collection.
+   *
+   * @type {Array}
+   */
+  rows = [];
+  /**
+   * Added columns collection.
+   *
+   * @type {Array}
+   */
+  columns = [];
+  /**
+   * Samples prepared for calculations.
+   *
+   * @type {Map}
+   * @default {null}
+   */
+  samples = null;
+  /**
+   * Ghost table settings.
+   *
+   * @type {object}
+   * @default {Object}
+   */
+  settings = {
+    useHeaders: true
+  };
+
   constructor(hotInstance) {
-    /**
-     * Handsontable instance.
-     *
-     * @type {Core}
-     */
     this.hot = hotInstance;
-    /**
-     * Container element where every table will be injected.
-     *
-     * @type {HTMLElement|null}
-     */
-    this.container = null;
-    /**
-     * Flag which determine is table was injected to DOM.
-     *
-     * @type {boolean}
-     */
-    this.injected = false;
-    /**
-     * Added rows collection.
-     *
-     * @type {Array}
-     */
-    this.rows = [];
-    /**
-     * Added columns collection.
-     *
-     * @type {Array}
-     */
-    this.columns = [];
-    /**
-     * Samples prepared for calculations.
-     *
-     * @type {Map}
-     * @default {null}
-     */
-    this.samples = null;
-    /**
-     * Ghost table settings.
-     *
-     * @type {object}
-     * @default {Object}
-     */
-    this.settings = {
-      useHeaders: true
-    };
   }
 
   /**
