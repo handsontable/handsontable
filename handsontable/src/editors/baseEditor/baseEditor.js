@@ -531,7 +531,21 @@ export class BaseEditor {
     const horizontalScrollPosition = Math.abs(wtOverlays.inlineStartOverlay.getScrollPosition());
     const verticalScrollPosition = wtOverlays.topOverlay.getScrollPosition();
     const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
-    const cellTopOffset = TD.offsetTop + firstRowOffset - verticalScrollPosition;
+    let cellTopOffset = TD.offsetTop;
+
+    if (['inline_start', 'master'].includes(overlayName)) {
+      cellTopOffset += firstRowOffset - verticalScrollPosition;
+    }
+
+    if (['bottom', 'bottom_inline_start_corner'].includes(overlayName)) {
+      const {
+        wtViewport: bottomWtViewport,
+        wtTable: bottomWtTable,
+      } = wtOverlays.bottomOverlay.clone;
+
+      cellTopOffset += bottomWtViewport.getWorkspaceHeight() - bottomWtTable.getHeight() - scrollbarWidth;
+    }
+
     let cellStartOffset = 0;
 
     if (this.hot.isRtl()) {
@@ -548,7 +562,11 @@ export class BaseEditor {
 
       cellStartOffset += firstColumnOffset - horizontalScrollPosition - cellWidth;
     } else {
-      cellStartOffset = TD.offsetLeft + firstColumnOffset - horizontalScrollPosition;
+      cellStartOffset = TD.offsetLeft;
+
+      if (['top', 'master', 'bottom'].includes(overlayName)) {
+        cellStartOffset += firstColumnOffset - horizontalScrollPosition;
+      }
     }
 
     const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);
