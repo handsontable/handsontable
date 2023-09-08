@@ -468,17 +468,13 @@ export class NestedRows extends BasePlugin {
    * @private
    */
   onAfterInit() {
-    const deepestLevel = Math.max(...this.dataManager.cache.levels);
-
-    if (deepestLevel > 0) {
-      this.headersUI.updateRowHeaderWidth(deepestLevel);
-    }
+    this.headersUI.updateRowHeaderWidth();
   }
 
   /**
    * `beforeViewRender` hook callback.
    *
-   * @param {boolean} force Indicates if the render call was trigered by a change of settings or data.
+   * @param {boolean} force Indicates if the render call was triggered by a change of settings or data.
    * @param {object} skipRender An object, holder for skipRender functionality.
    * @private
    */

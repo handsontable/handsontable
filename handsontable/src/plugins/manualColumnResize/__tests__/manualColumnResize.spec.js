@@ -22,35 +22,6 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 2)).toBe(180);
   });
 
-  it('should not throw an error while performing a mouse over on HOT in HOT header', () => {
-    handsontable({
-      colHeaders: true,
-      manualColumnResize: true,
-      columns: [
-        {
-          type: 'handsontable',
-          handsontable: {
-            colHeaders: true,
-            data: Handsontable.helper.createSpreadsheetData(5, 5),
-            manualColumnResize: true,
-          }
-        },
-      ],
-    });
-
-    selectCell(0, 0);
-    keyDownUp('enter');
-
-    const $editor = $('.handsontableEditor');
-
-    expect(() => {
-      $editor.find('thead tr:eq(0) th:eq(0)').simulate('mouseover');
-      $editor.find('thead tr:eq(0) th:eq(0)').simulate('mousedown');
-      $editor.find('thead tr:eq(0) th:eq(1)').simulate('mouseover');
-      $editor.find('thead tr:eq(0) th:eq(1)').simulate('mousemove');
-    }).not.toThrow();
-  });
-
   it('should be enabled after specifying it in updateSettings config', () => {
     handsontable({
       data: [

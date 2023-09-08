@@ -87,6 +87,37 @@ describe('Hook', () => {
       );
     });
 
+    it('should not be fired when the table\'s root element is hidden', async() => {
+      const beforeRefreshDimensions = jasmine.createSpy('beforeRefreshDimensions');
+      const hot = handsontable({
+        width: 120,
+        height: 100,
+        beforeRefreshDimensions,
+      });
+
+      hot.rootElement.style.display = 'none';
+      await sleep(50);
+
+      expect(beforeRefreshDimensions).not.toHaveBeenCalled();
+    });
+
+    it('should not be fired when the document body element is hidden', async() => {
+      const beforeRefreshDimensions = jasmine.createSpy('beforeRefreshDimensions');
+
+      handsontable({
+        width: 120,
+        height: 100,
+        beforeRefreshDimensions,
+      });
+
+      document.body.style.display = 'none';
+      await sleep(50);
+
+      expect(beforeRefreshDimensions).not.toHaveBeenCalled();
+
+      document.body.style.display = '';
+    });
+
     it('should be synced with `requestAnimationFrame` call', async() => {
       const beforeRefreshDimensions = jasmine.createSpy('beforeRefreshDimensions');
 

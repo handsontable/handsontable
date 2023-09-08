@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Add the missing type definition for `BaseEditor`'s `getEditedCellRect` method.",
-  "type": "fixed",
-  "issueOrPR": 10459,
-  "breaking": false,
-  "framework": "none"
-}
