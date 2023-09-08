@@ -23,8 +23,8 @@ export const RENDERER_TYPE = 'base';
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
 export function baseRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  const ariaEnabled = instance.getSettings().ariaTags;
-    const classesToAdd = [];
+  const ariaEnabled = cellProperties.ariaTags;
+  const classesToAdd = [];
   const classesToRemove = [];
   const attributesToRemove = [];
   const attributesToAdd = [];

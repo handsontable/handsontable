@@ -6,6 +6,10 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     renderedColumnToSource(visibleColumnIndex) {
       return visibleColumnIndex;
     }
+
+    isAriaEnabled() {
+      return true;
+    }
   }
 
   function createRenderer() {

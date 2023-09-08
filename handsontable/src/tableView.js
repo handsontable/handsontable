@@ -153,7 +153,8 @@ class TableView {
   /**
    * Get a set of accessibility-related attributes to be added to the table.
    *
-   * @param {string} elementDescription Only the attributes labeled with the `elementDescription` string will be returned from the function.
+   * @param {string} elementDescription Only the attributes labeled with the `elementDescription` string will be
+   *   returned from the function.
    * @param {number} [rowcount] The row count.
    * @param {number} [colcount] The column count.
    * @returns {Array[]}
@@ -185,7 +186,8 @@ class TableView {
   /**
    * Get the list of all attributes to be added to the table element.
    *
-   * @param {string} elementDescription Only the attributes labeled with the `elementDescription` string will be returned from the function.
+   * @param {string} elementDescription Only the attributes labeled with the `elementDescription` string will be
+   *   returned from the function.
    * @param {number} [rowcount] The row count.
    * @param {number} [colcount] The column count.
    * @returns {Array[]}
@@ -309,7 +311,10 @@ class TableView {
 
     setAttributes(priv.table, this.#getAttributes('table'));
 
-    setAttributes(rootElement, this.#getAttributes('rootElement', this.instance.countRows(), this.instance.countCols()));
+    setAttributes(
+      rootElement,
+      this.#getAttributes('rootElement', this.instance.countRows(), this.instance.countCols())
+    );
 
     this.THEAD = rootDocument.createElement('THEAD');
     priv.table.appendChild(this.THEAD);
