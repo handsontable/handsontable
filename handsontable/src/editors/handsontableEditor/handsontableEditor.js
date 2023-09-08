@@ -150,7 +150,7 @@ export class HandsontableEditor extends TextEditor {
     }
 
     if (this.htEditor && this.htEditor.getSelectedLast()) {
-      const value = this.htEditor.getInstance().getValue();
+      const value = this.htEditor.getValue();
 
       if (value !== void 0) { // if the value is undefined then it means we don't want to set the value
         this.setValue(value);
@@ -191,7 +191,7 @@ export class HandsontableEditor extends TextEditor {
     };
 
     const action = (rowToSelect, event) => {
-      const innerHOT = this.htEditor.getInstance();
+      const innerHOT = this.htEditor;
 
       if (rowToSelect !== void 0) {
         if (rowToSelect < 0 || (innerHOT.flipped && rowToSelect > innerHOT.countRows() - 1)) {
@@ -214,7 +214,7 @@ export class HandsontableEditor extends TextEditor {
     editorContext.addShortcuts([{
       keys: [['ArrowUp']],
       callback: (event) => {
-        const innerHOT = this.htEditor.getInstance();
+        const innerHOT = this.htEditor;
         let rowToSelect;
         let selectedRow;
 
@@ -237,7 +237,7 @@ export class HandsontableEditor extends TextEditor {
     }, {
       keys: [['ArrowDown']],
       callback: (event) => {
-        const innerHOT = this.htEditor.getInstance();
+        const innerHOT = this.htEditor;
         let rowToSelect;
         let selectedRow;
 
