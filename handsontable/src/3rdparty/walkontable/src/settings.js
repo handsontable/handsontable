@@ -5,6 +5,7 @@ import { objectEach } from '../../../helpers/object';
  * @typedef SettingsPure
  *
  * @property {Option} facade @todo desc.
+ * @property {Option} ariaTags Option `ariaTags`.
  * @property {Option} cellRenderer Option `cellRenderer`.
  * @property {Option} columnHeaders Option `columnHeaders`.
  * @property {Option} columnWidth Option `columnWidth`.
@@ -223,7 +224,8 @@ export default class Settings {
       rowHeaderWidth: null,
       columnHeaderHeight: null,
       headerClassName: null,
-      rtlMode: false
+      rtlMode: false,
+      ariaTags: true
     };
   }
 

@@ -18,6 +18,7 @@ import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
 
 const ACCESSIBILITY_ATTR_TREEGRID = ['role', 'treegrid'];
+const ACCESSIBILITY_ATTR_PRESENTATION = ['role', 'presentation'];
 const ACCESSIBILITY_ATTR_MULTISELECTABLE = ['aria-multiselectable', 'true'];
 const ACCESSIBILITY_ATTR_ROWCOUNT = ['aria-rowcount'];
 const ACCESSIBILITY_ATTR_COLCOUNT = ['aria-colcount'];
@@ -152,29 +153,46 @@ class TableView {
   /**
    * Get a set of accessibility-related attributes to be added to the table.
    *
-   * @param {number} rowcount The row count.
-   * @param {number} colcount The column count.
+   * @param {string} elementDescription Only the attributes labeled with the `elementDescription` string will be returned from the function.
+   * @param {number} [rowcount] The row count.
+   * @param {number} [colcount] The column count.
    * @returns {Array[]}
    */
-  #getAccessibilityAttributes(rowcount, colcount) {
-    return [
-      ACCESSIBILITY_ATTR_TREEGRID,
-      [ACCESSIBILITY_ATTR_ROWCOUNT[0], rowcount],
-      [ACCESSIBILITY_ATTR_COLCOUNT[0], colcount],
-      ACCESSIBILITY_ATTR_MULTISELECTABLE,
-    ];
+  #getAccessibilityAttributes(elementDescription, rowcount, colcount) {
+    if (!this.settings.ariaTags) {
+      return [];
+    }
+
+    switch (elementDescription) {
+      case 'rootElement':
+        return [
+          ACCESSIBILITY_ATTR_TREEGRID,
+          [ACCESSIBILITY_ATTR_ROWCOUNT[0], rowcount],
+          [ACCESSIBILITY_ATTR_COLCOUNT[0], colcount],
+          ACCESSIBILITY_ATTR_MULTISELECTABLE,
+        ];
+
+      case 'table':
+        return [
+          ACCESSIBILITY_ATTR_PRESENTATION
+        ];
+
+      default:
+        return [];
+    }
   }
 
   /**
    * Get the list of all attributes to be added to the table element.
    *
-   * @param {number} rowcount The row count.
-   * @param {number} colcount The column count.
+   * @param {string} elementDescription Only the attributes labeled with the `elementDescription` string will be returned from the function.
+   * @param {number} [rowcount] The row count.
+   * @param {number} [colcount] The column count.
    * @returns {Array[]}
    */
-  #getAttributes(rowcount, colcount) {
+  #getAttributes(elementDescription, rowcount, colcount) {
     return [
-      ...this.#getAccessibilityAttributes(rowcount, colcount)
+      ...this.#getAccessibilityAttributes(elementDescription, rowcount, colcount)
     ];
   }
 
@@ -289,7 +307,9 @@ class TableView {
       addClass(priv.table, this.instance.getSettings().tableClassName);
     }
 
-    setAttributes(rootElement, this.#getAttributes(this.instance.countRows(), this.instance.countCols()));
+    setAttributes(priv.table, this.#getAttributes('table'));
+
+    setAttributes(rootElement, this.#getAttributes('rootElement', this.instance.countRows(), this.instance.countCols()));
 
     this.THEAD = rootDocument.createElement('THEAD');
     priv.table.appendChild(this.THEAD);
@@ -673,6 +693,7 @@ class TableView {
   initializeWalkontable() {
     const priv = privatePool.get(this);
     const walkontableConfig = {
+      ariaTags: this.settings.ariaTags,
       rtlMode: this.instance.isRtl(),
       externalRowCalculator: this.instance.getPlugin('autoRowSize') &&
         this.instance.getPlugin('autoRowSize').isEnabled(),

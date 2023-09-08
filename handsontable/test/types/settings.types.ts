@@ -81,6 +81,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   allowInvalid: true,
   allowRemoveColumn: true,
   allowRemoveRow: true,
+  ariaTags: true,
   autoColumnSize:  oneOf(true,  { syncLimit: '40%', userHeaders: true }),
   autoRowSize: oneOf(true, { syncLimit: 300 }),
   autoWrapCol: true,

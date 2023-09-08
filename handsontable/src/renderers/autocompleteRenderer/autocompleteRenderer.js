@@ -6,6 +6,7 @@ import { addClass, hasClass } from '../../helpers/dom/element';
 import './autocompleteRenderer.scss';
 
 const ACCESSIBILITY_ATTR_HASPOPUP = ['aria-haspopup', 'listbox'];
+const ACCESSIBILITY_ATTR_HIDDEN = ['aria-hidden', 'true'];
 
 export const RENDERER_TYPE = 'autocomplete';
 
@@ -27,6 +28,9 @@ export function autocompleteRenderer(instance, TD, row, col, prop, value, cellPr
   const ARROW = rootDocument.createElement('DIV');
 
   ARROW.className = 'htAutocompleteArrow';
+
+  ARROW.setAttribute(...ACCESSIBILITY_ATTR_HIDDEN);
+
   ARROW.appendChild(rootDocument.createTextNode(String.fromCharCode(9660)));
 
   rendererFunc.apply(this, [instance, TD, row, col, prop, value, cellProperties]);

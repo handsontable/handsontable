@@ -516,8 +516,8 @@ export class CollapsibleColumns extends BasePlugin {
       origColspan,
       isCollapsed,
     } = this.headerStateManager.getHeaderSettings(headerLevel, column) ?? {};
-
     const isNodeCollapsible = collapsible && origColspan > 1 && column >= this.hot.getSettings().fixedColumnsStart;
+    const isAriaTagsEnabled = this.hot.getSettings().ariaTags;
     let collapsibleElement = TH.querySelector(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
     removeAttributes(TH, [
@@ -540,14 +540,20 @@ export class CollapsibleColumns extends BasePlugin {
 
         fastInnerText(collapsibleElement, '+');
 
-        TH.setAttribute(...ACCESSIBILITY_ATTR_COLLAPSED);
+        // Add ARIA tags
+        if (isAriaTagsEnabled) {
+          TH.setAttribute(...ACCESSIBILITY_ATTR_COLLAPSED);
+        }
 
       } else {
         addClass(collapsibleElement, 'expanded');
 
         fastInnerText(collapsibleElement, '-');
 
-        TH.setAttribute(...ACCESSIBILITY_ATTR_EXPANDED);
+        // Add ARIA tags
+        if (isAriaTagsEnabled) {
+          TH.setAttribute(...ACCESSIBILITY_ATTR_EXPANDED);
+        }
       }
     } else {
       collapsibleElement?.remove();

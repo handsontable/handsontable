@@ -46,11 +46,11 @@ export default class CellsRenderer extends BaseRenderer {
    * @returns {Array[]}
    */
   #getAccessibilityAttributes(columnIndex) {
-    return [
+    return this.table.isAriaEnabled() ? [
       ACCESSIBILITY_ATTR_GRIDCELL,
       ACCESSIBILITY_ATTR_TABINDEX,
       [ACCESSIBILITY_ATTR_COLINDEX[0], columnIndex + 1],
-    ];
+    ] : [];
   }
 
   /**

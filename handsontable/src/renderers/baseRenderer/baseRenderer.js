@@ -23,7 +23,8 @@ export const RENDERER_TYPE = 'base';
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
 export function baseRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  const classesToAdd = [];
+  const ariaEnabled = instance.getSettings().ariaTags;
+    const classesToAdd = [];
   const classesToRemove = [];
   const attributesToRemove = [];
   const attributesToAdd = [];
@@ -35,21 +36,27 @@ export function baseRenderer(instance, TD, row, col, prop, value, cellProperties
   if (cellProperties.readOnly) {
     classesToAdd.push(cellProperties.readOnlyCellClassName);
 
-    attributesToAdd.push(ACCESSIBILITY_ATTR_READONLY);
+    if (ariaEnabled) {
+      attributesToAdd.push(ACCESSIBILITY_ATTR_READONLY);
+    }
 
-  } else {
+  } else if (ariaEnabled) {
     attributesToRemove.push(ACCESSIBILITY_ATTR_READONLY[0]);
   }
 
   if (cellProperties.valid === false && cellProperties.invalidCellClassName) {
     classesToAdd.push(cellProperties.invalidCellClassName);
 
-    attributesToAdd.push(ACCESSIBILITY_ATTR_INVALID);
+    if (ariaEnabled) {
+      attributesToAdd.push(ACCESSIBILITY_ATTR_INVALID);
+    }
 
   } else {
     classesToRemove.push(cellProperties.invalidCellClassName);
 
-    attributesToRemove.push(ACCESSIBILITY_ATTR_INVALID[0]);
+    if (ariaEnabled) {
+      attributesToRemove.push(ACCESSIBILITY_ATTR_INVALID[0]);
+    }
   }
 
   if (cellProperties.wordWrap === false && cellProperties.noWordWrapClassName) {

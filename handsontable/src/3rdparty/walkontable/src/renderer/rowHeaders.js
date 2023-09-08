@@ -42,11 +42,11 @@ export default class RowHeadersRenderer extends BaseRenderer {
    * @returns {Array[]}
    */
   #getAccessibilityAttributes() {
-    return [
+    return this.table.isAriaEnabled() ? [
       ACCESSIBILITY_ATTR_ROWHEADER,
       ACCESSIBILITY_ATTR_SCOPE_ROW,
       ACCESSIBILITY_ATTR_TABINDEX
-    ];
+    ] : [];
   }
 
   /**

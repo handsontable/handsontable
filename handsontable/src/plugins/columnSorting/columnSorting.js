@@ -748,7 +748,9 @@ export class ColumnSorting extends BasePlugin {
    * @param {number} columnIndex The column index.
    */
   updateAttributes(TH, columnIndex) {
-    setAttributes(TH, getAccessibilityAttributes(this.columnStatesManager.getSortOrderOfColumn(columnIndex)));
+    if (this.hot.getSettings().ariaTags) {
+      setAttributes(TH, getAccessibilityAttributes(this.columnStatesManager.getSortOrderOfColumn(columnIndex)));
+    }
   }
 
   /**

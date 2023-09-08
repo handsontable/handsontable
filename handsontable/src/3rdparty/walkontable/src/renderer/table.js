@@ -246,6 +246,15 @@ export default class TableRenderer {
   }
 
   /**
+   * Returns `true` if the accessibility-related ARIA tags should be added to the table, `false` otherwise.
+   *
+   * @returns {boolean}
+   */
+  isAriaEnabled() {
+    return (this.rowUtils.wtSettings.getSetting('ariaTags'));
+  }
+
+  /**
    * Renders the table.
    */
   render() {
@@ -274,9 +283,6 @@ export default class TableRenderer {
       if (TR.firstChild) {
         const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
         const rowHeight = this.rowUtils.getHeight(sourceRowIndex);
-
-        TR.ariaRowIndex = sourceRowIndex;
-        TR.setAttribute('role', 'row');
 
         if (rowHeight) {
           // Decrease height. 1 pixel will be "replaced" by 1px border top

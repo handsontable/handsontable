@@ -34,6 +34,10 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
    * @returns {Array[]}
    */
   #getAccessibilityAttributes(columnIndex) {
+    if (!this.table.isAriaEnabled()) {
+      return [];
+    }
+
     // Root node
     if (columnIndex === null) {
       return [ACCESSIBILITY_ATTR_ROWGROUP];

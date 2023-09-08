@@ -215,6 +215,7 @@ class Menu {
       outsideClickDeselects: false,
       disableVisualSelection: 'area',
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
+      ariaTags: false,
       afterOnCellMouseOver: (event, coords) => {
         if (this.isAllSubMenusClosed()) {
           delayedOpenSubMenu(coords.row);
@@ -926,6 +927,10 @@ class Menu {
    * @returns {Array[]}
    */
   #getAccessibilityAttributes(itemValue, isItemDisabled, isItemSubMenu) {
+    if (!this.hot.getSettings().ariaTags) {
+      return [];
+    }
+
     const optionalAttrs = [];
 
     if (isItemDisabled) {

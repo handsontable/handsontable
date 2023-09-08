@@ -13,6 +13,7 @@ const BAD_VALUE_CLASS = 'htBadValue';
 const ATTR_ROW = 'data-row';
 const ATTR_COLUMN = 'data-col';
 const SHORTCUTS_GROUP = 'checkboxRenderer';
+const ACCESSIBILITY_ATTR_CHECKBOX = ['role', 'checkbox'];
 const ACCESSIBILITY_ATTR_CHECKED = ['aria-checked', 'true'];
 const ACCESSIBILITY_ATTR_UNCHECKED = ['aria-checked', 'false'];
 
@@ -74,6 +75,8 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
   }
 
   empty(TD); // TODO identify under what circumstances this line can be removed
+
+  TD.setAttribute(...ACCESSIBILITY_ATTR_CHECKBOX);
 
   if (value === cellProperties.checkedTemplate ||
     stringify(value).toLocaleLowerCase(cellProperties.locale) ===

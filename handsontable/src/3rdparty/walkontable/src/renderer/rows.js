@@ -44,6 +44,10 @@ export default class RowsRenderer extends BaseRenderer {
    * @returns {Array[]}
    */
   #getAccessibilityAttributes(rowIndex) {
+    if (!this.table.isAriaEnabled()) {
+      return [];
+    }
+
     // Root node
     if (rowIndex === null) {
       return [ACCESSIBILITY_ATTR_ROWGROUP];
@@ -89,7 +93,7 @@ export default class RowsRenderer extends BaseRenderer {
         the number of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.`);
     }
 
-    setAttributes(this.rootNode, this.#getAccessibilityAttributes(null));
+    setAttributes(this.rootNode, this.#getAttributes(null));
 
     this.orderView
       .setSize(rowsToRender)
