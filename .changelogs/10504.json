@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed editor incorrect width and height calculations.",
+  "type": "fixed",
+  "issueOrPR": 10504,
+  "breaking": false,
+  "framework": "none"
+}
