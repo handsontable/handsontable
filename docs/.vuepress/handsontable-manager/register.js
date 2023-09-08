@@ -104,10 +104,27 @@ function createRegister() {
     }
   };
 
+  const abortControllers = new Set();
+
+  const initPage = () => {
+    abortControllers.forEach(ctrl => ctrl.abort());
+    abortControllers.add(new AbortController());
+
+    destroyAll();
+  };
+
+  const getAbortSignal = () => {
+    const controllers = Array.from(abortControllers);
+
+    return controllers[controllers.length - 1].signal;
+  };
+
   return {
+    initPage,
     listen,
     destroyAll,
     destroyExample,
+    getAbortSignal,
   };
 }
 
