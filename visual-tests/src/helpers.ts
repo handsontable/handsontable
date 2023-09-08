@@ -11,6 +11,7 @@ export const helpers = {
     mainTableBody: '> .ht_master.handsontable table tbody',
     mainTableHead: '> .ht_clone_top.handsontable table thead',
     cloneInlineStartTable: '> .ht_clone_inline_start.handsontable table tbody',
+    cloneInlineStartCornerTable: '> .ht_clone_top_inline_start_corner.handsontable table thead',
     dropdownMenu: '.htMenu.htDropdownMenu.handsontable',
   },
 
