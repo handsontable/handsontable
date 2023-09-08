@@ -53,5 +53,46 @@ describe('NestedRows', () => {
       expect(getSettings().nestedRows).toBe(false);
       expect(getPlugin('nestedRows').enabled).toBe(false);
     });
+
+    it('should render the row header in correct width (based on the deepest dataset length)', () => {
+      handsontable({
+        data: [{
+          category: 'Best Rock Performance',
+          artist: null,
+          title: null,
+          label: null,
+          __children: [
+            {
+              title: 'Cirice',
+              artist: 'Ghost',
+              label: 'Loma Vista Recordings',
+            },
+            {
+              title: 'Don\'t Wanna Fight',
+              artist: 'Alabama Shakes',
+              label: 'ATO Records',
+              __children: [
+                {
+                  title: 'Don\'t Wanna Fight',
+                  artist: 'Alabama Shakes',
+                  label: 'ATO Records',
+                  __children: [
+                    {
+                      title: 'Don\'t Wanna Fight',
+                      artist: 'Alabama Shakes',
+                      label: 'ATO Records',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        }],
+        rowHeaders: true,
+        nestedRows: true,
+      });
+
+      expect(getCell(0, -1).offsetWidth).toBe(76);
+    });
   });
 });

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Updated TS definition for the HiddenRows and HiddenColumns plugins",
+  "type": "changed",
+  "issueOrPR": 10492,
+  "breaking": false,
+  "framework": "none"
+}

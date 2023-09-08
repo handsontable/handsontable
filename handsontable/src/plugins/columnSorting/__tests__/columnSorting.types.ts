@@ -1,32 +1,55 @@
 import Handsontable from 'handsontable';
 
-const hot = new Handsontable(document.createElement('div'), {});
-const columnSorting = hot.getPlugin('columnSorting');
+const hot = new Handsontable(document.createElement('div'), {
+  columnSorting: true,
+});
+new Handsontable(document.createElement('div'), {
+  columnSorting: {
+    sortEmptyCells: true,
+    indicator: true,
+    headerAction: true,
+    compareFunctionFactory(sortOrder, columnMeta) {
+      return (a: any, b: any) => columnMeta.type === 'text' && sortOrder === 'asc' ? -1 : 1;
+    },
+    initialConfig: {
+      column: 1,
+      sortOrder: 'asc'
+    }
+  }
+});
+new Handsontable(document.createElement('div'), {
+  columnSorting: {
+    initialConfig: {
+      column: 1,
+      sortOrder: 'desc'
+    }
+  }
+});
+const plugin = hot.getPlugin('columnSorting');
 
-columnSorting.clearSort();
+plugin.clearSort();
+plugin.getSortConfig();
+plugin.getSortConfig(0);
 
-columnSorting.getSortConfig();
-columnSorting.getSortConfig(0);
-
-const sortConfig0 = columnSorting.getSortConfig(0);
+const sortConfig0 = plugin.getSortConfig(0);
 
 if (typeof sortConfig0 !== 'undefined' && !Array.isArray(sortConfig0)) {
   sortConfig0.column;
   sortConfig0.sortOrder;
 }
 
-const sortConfigs = columnSorting.getSortConfig();
+const sortConfigs = plugin.getSortConfig();
 
 if (Array.isArray(sortConfigs)) {
   sortConfigs[0].column;
   sortConfigs[0].sortOrder;
 }
 
-columnSorting.setSortConfig({ column: 0, sortOrder: 'asc' });
-columnSorting.setSortConfig([{ column: 0, sortOrder: 'asc' }]);
-columnSorting.setSortConfig([]);
+plugin.setSortConfig({ column: 0, sortOrder: 'asc' });
+plugin.setSortConfig([{ column: 0, sortOrder: 'asc' }]);
+plugin.setSortConfig([]);
 
-columnSorting.isSorted();
+const isSorted: boolean = plugin.isSorted();
 
-columnSorting.sort({ column: 0, sortOrder: 'asc' });
-columnSorting.sort([{ column: 0, sortOrder: 'asc' }]);
+plugin.sort({ column: 0, sortOrder: 'asc' });
+plugin.sort([{ column: 0, sortOrder: 'asc' }]);

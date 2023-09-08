@@ -4,6 +4,8 @@ import { BasePlugin } from '../base';
 export interface DetailedSettings {
   syncLimit?: string | number;
   useHeaders?: boolean;
+  samplingRatio?: number;
+  allowSampleDuplicates?: boolean;
 }
 
 export type Settings = boolean | DetailedSettings;

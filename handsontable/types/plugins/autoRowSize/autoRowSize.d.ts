@@ -3,6 +3,8 @@ import { BasePlugin } from '../base';
 
 export interface DetailedSettings {
   syncLimit?: string | number;
+  samplingRatio?: number;
+  allowSampleDuplicates?: boolean;
 }
 
 export type Settings = boolean | DetailedSettings;
