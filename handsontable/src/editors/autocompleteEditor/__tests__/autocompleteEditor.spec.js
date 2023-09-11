@@ -573,6 +573,38 @@ describe('AutocompleteEditor', () => {
       expect(updateChoicesList.calls.count()).toEqual(1);
     });
 
+    it('should hide the list when there is no entries to choose (#dev-92)', async() => {
+      const hot = handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      const editor = hot.getActiveEditor();
+
+      keyDownUp('enter');
+
+      await sleep(200);
+
+      editor.TEXTAREA.value = 'none';
+
+      keyDownUp('e', {}, editor.TEXTAREA);
+
+      await sleep(100);
+
+      expect(editor.htEditor.rootElement.style.display).toBe('none');
+
+      // the editor's list should be visible for the next cell
+      keyDownUp('enter');
+      keyDownUp('enter');
+
+      expect(editor.htEditor.rootElement.style.display).toBe('');
+    });
+
     it('should not initialize the dropdown with unneeded scrollbars (scrollbar causing a scrollbar issue)', async() => {
       spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'updateChoicesList').and.callThrough();
       const updateChoicesList = Handsontable.editors.AutocompleteEditor.prototype.updateChoicesList;
