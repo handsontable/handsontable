@@ -887,11 +887,51 @@ class TableView {
       },
       beforeDraw: (force, skipRender) => this.beforeRender(force, skipRender),
       onDraw: force => this.afterRender(force),
-      onScrollVertically: () => {
+      onBeforeScrollVertically: (renderableRow) => {
+        const rowMapper = this.instance.rowIndexMapper;
+        const areColumnHeadersSelected = renderableRow < 0;
+        let visualRow = renderableRow;
+
+        if (!areColumnHeadersSelected) {
+          visualRow = rowMapper.getVisualFromRenderableIndex(renderableRow);
+        }
+
+        visualRow = this.instance.runHooks('beforeScrollVertically', visualRow);
+        this.instance.runHooks('beforeScroll');
+
+        console.log('visualRow', visualRow);
+
+        if (!areColumnHeadersSelected) {
+          return rowMapper.getRenderableFromVisualIndex(visualRow);
+        }
+
+        return visualRow;
+      },
+      onAfterScrollVertically: () => {
         this.instance.runHooks('afterScrollVertically');
         this.instance.runHooks('afterScroll');
       },
-      onScrollHorizontally: () => {
+      onBeforeScrollHorizontally: (renderableColumn) => {
+        const columnMapper = this.instance.rowIndexMapper;
+        const areColumnHeadersSelected = renderableColumn < 0;
+        let visualColumn = renderableColumn;
+
+        if (!areColumnHeadersSelected) {
+          visualColumn = columnMapper.getVisualFromRenderableIndex(renderableColumn);
+        }
+
+        visualColumn = this.instance.runHooks('beforeScrollVertically', visualColumn);
+        this.instance.runHooks('beforeScroll');
+
+        console.log('visualColumn', visualColumn);
+
+        if (!areColumnHeadersSelected) {
+          return columnMapper.getRenderableFromVisualIndex(visualColumn);
+        }
+
+        return visualColumn;
+      },
+      onAfterScrollHorizontally: () => {
         this.instance.runHooks('afterScrollHorizontally');
         this.instance.runHooks('afterScroll');
       },

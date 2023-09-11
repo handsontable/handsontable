@@ -136,6 +136,7 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
     this.addHook('modifyTransformStart', (...args) => this.onModifyTransformStart(...args));
     this.addHook('afterSelection', () => this.updateFocusHighlightPosition());
+    this.addHook('beforeScrollHorizontally', (...args) => this.onBeforeScrollHorizontally(...args));
     this.addHook('afterGetColumnHeaderRenderers', array => this.onAfterGetColumnHeaderRenderers(array));
     this.addHook('modifyColWidth', (...args) => this.onModifyColWidth(...args));
     this.addHook('modifyColumnHeaderValue', (...args) => this.onModifyColumnHeaderValue(...args));
@@ -413,6 +414,9 @@ export class NestedHeaders extends BasePlugin {
       focusHighlight.commit();
     }
   }
+
+  // onBeforeScrollHorizontally(cellCoords) {
+  // }
 
   /**
    * Allows to control which header DOM element will be used to highlight.

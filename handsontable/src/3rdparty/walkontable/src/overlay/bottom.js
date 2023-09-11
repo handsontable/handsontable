@@ -136,7 +136,7 @@ export class BottomOverlay extends Overlay {
    * Triggers onScroll hook callback.
    */
   onScroll() {
-    this.wtSettings.getSetting('onScrollHorizontally');
+    this.wtSettings.getSetting('onAfterScrollHorizontally');
   }
 
   /**
