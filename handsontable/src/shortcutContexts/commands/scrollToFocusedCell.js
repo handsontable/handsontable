@@ -16,7 +16,7 @@ export const command = {
       const offsetColumns = Math.floor(hot.countVisibleCols() / 2);
       const scrollX = Math.max(highlight.row - offsetRows, 0);
       const scrollY = Math.max(highlight.col - offsetColumns, 0);
-      const scrollCoords = [scrollX, scrollY];
+      const scrollCoords = [scrollX, scrollY, false, false];
 
       // for row header focus do not change the scroll Y position, leave as it is
       if (highlight.col < 0) {

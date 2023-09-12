@@ -872,7 +872,7 @@ describe('Selection using mouse interaction', () => {
     });
 
     hot.render();
-    hot.scrollViewportTo(void 0, hot.countCols() - 1);
+    hot.scrollViewportTo(void 0, hot.countCols() - 1, false, false);
 
     spec().$container.find('.ht_master thead th:eq(2)').simulate('mousedown');
     spec().$container.find('.ht_master thead th:eq(2)').simulate('mouseup');
@@ -891,7 +891,7 @@ describe('Selection using mouse interaction', () => {
   });
 
   it('should set the selection end to the first visible row, when dragging the selection from a cell to a column header', async() => {
-    const hot = handsontable({
+    handsontable({
       width: 200,
       height: 200,
       startRows: 20,
@@ -900,8 +900,8 @@ describe('Selection using mouse interaction', () => {
       rowHeaders: true
     });
 
-    hot.scrollViewportTo(10, 10);
-    hot.render();
+    scrollViewportTo(10, 10, false, false);
+    render();
 
     await sleep(30);
 
@@ -938,7 +938,7 @@ describe('Selection using mouse interaction', () => {
   });
 
   it('should set the selection end to the first visible column, when dragging the selection from a cell to a row header', async() => {
-    const hot = handsontable({
+    handsontable({
       width: 200,
       height: 200,
       startRows: 20,
@@ -947,8 +947,8 @@ describe('Selection using mouse interaction', () => {
       rowHeaders: true
     });
 
-    hot.scrollViewportTo(10, 10);
-    hot.render();
+    scrollViewportTo(10, 10, false, false);
+    render();
 
     await sleep(30);
 

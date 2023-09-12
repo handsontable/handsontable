@@ -159,7 +159,7 @@ describe('manualRowMove', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo(20, 0);
+      scrollViewportTo(20, 0, false, false);
 
       await sleep(100);
 
@@ -186,7 +186,7 @@ describe('manualRowMove', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo(20, 0);
+      scrollViewportTo(20, 0, false, false);
 
       await sleep(100);
 
@@ -223,7 +223,7 @@ describe('manualRowMove', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo(20, 0);
+      scrollViewportTo(20, 0, false, false);
 
       await sleep(100);
 
@@ -257,7 +257,7 @@ describe('manualRowMove', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo(20, 0);
+      scrollViewportTo(20, 0, false, false);
 
       await sleep(100);
 
@@ -282,7 +282,7 @@ describe('manualRowMove', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo(20, 0);
+      scrollViewportTo(20, 0, false, false);
 
       await sleep(100);
 
@@ -317,7 +317,7 @@ describe('manualRowMove', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo(20, 0);
+      scrollViewportTo(20, 0, false, false);
 
       await sleep(100);
 

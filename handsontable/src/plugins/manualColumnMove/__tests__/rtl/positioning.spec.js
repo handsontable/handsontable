@@ -147,7 +147,7 @@ describe('manualColumnMove (RTL mode)', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo(0, 20);
+        scrollViewportTo(0, 20, false, false);
 
         await sleep(100);
 
@@ -175,7 +175,7 @@ describe('manualColumnMove (RTL mode)', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo(0, 20);
+        scrollViewportTo(0, 20, false, false);
 
         await sleep(100);
 
@@ -213,7 +213,7 @@ describe('manualColumnMove (RTL mode)', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo(0, 20);
+        scrollViewportTo(0, 20, false, false);
 
         await sleep(100);
 
@@ -248,7 +248,7 @@ describe('manualColumnMove (RTL mode)', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo(0, 20);
+        scrollViewportTo(0, 20, false, false);
 
         await sleep(100);
 
@@ -274,7 +274,7 @@ describe('manualColumnMove (RTL mode)', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo(0, 20);
+        scrollViewportTo(0, 20, false, false);
 
         await sleep(100);
 
@@ -310,7 +310,7 @@ describe('manualColumnMove (RTL mode)', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo(0, 20);
+        scrollViewportTo(0, 20, false, false);
 
         await sleep(100);
 

@@ -103,7 +103,7 @@ describe('settings', () => {
         });
 
         setTimeout(() => {
-          hot.scrollViewportTo(30, 30);
+          hot.scrollViewportTo(30, 30, false, false);
         }, 100);
 
         setTimeout(() => {
@@ -287,7 +287,7 @@ describe('settings', () => {
         });
 
         setTimeout(() => {
-          hot.scrollViewportTo(30, 30);
+          hot.scrollViewportTo(30, 30, false, false);
         }, 100);
 
         setTimeout(() => {

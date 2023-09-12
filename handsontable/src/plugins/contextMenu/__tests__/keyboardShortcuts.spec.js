@@ -341,7 +341,7 @@ describe('ContextMenu keyboard shortcut', () => {
       });
 
       selectCell(400, 40);
-      scrollViewportTo(0, 0);
+      scrollViewportTo(0, 0, false, false);
 
       await sleep(10);
 

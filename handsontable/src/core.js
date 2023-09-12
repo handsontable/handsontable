@@ -356,18 +356,35 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       scrollToCell = !preventScrolling.value;
     }
 
+    const currentSelectedRange = this.selection.selectedRange.current();
+    const isSelectedByAnyHeader = this.selection.isSelectedByAnyHeader();
     const isSelectedByRowHeader = this.selection.isSelectedByRowHeader();
     const isSelectedByColumnHeader = this.selection.isSelectedByColumnHeader();
 
     if (scrollToCell !== false) {
-      if (isSelectedByRowHeader) {
+      if (!isSelectedByAnyHeader) {
+        if (currentSelectedRange && !this.selection.isMultiple()) {
+          const { row, col } = currentSelectedRange.from;
+
+          if (row < 0 && col >= 0) {
+            this.scrollViewportTo(undefined, col);
+
+          } else if (col < 0 && row >= 0) {
+            this.scrollViewportTo(row);
+
+          } else {
+            this.scrollViewportTo(row, col);
+          }
+
+        } else {
+          this.scrollViewportTo(cellCoords.row, cellCoords.col);
+        }
+
+      } else if (isSelectedByRowHeader) {
         this.scrollViewportTo(cellCoords.row);
 
       } else if (isSelectedByColumnHeader) {
         this.scrollViewportTo(undefined, cellCoords.col);
-
-      } else {
-        this.scrollViewportTo(cellCoords.row, cellCoords.col);
       }
     }
 
@@ -4368,11 +4385,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     const isRowInteger = Number.isInteger(renderableRow);
     const isColumnInteger = Number.isInteger(renderableColumn);
-    const cellCoords = instance._createCellCoords(renderableRow, renderableColumn);
 
     if (isRowInteger && renderableRow >= 0 && isColumnInteger && renderableColumn >= 0) {
       return instance.view.scrollViewport(
-        cellCoords,
+        instance._createCellCoords(renderableRow, renderableColumn),
         snapToTop,
         snapToRight,
         snapToBottom,
@@ -4381,11 +4397,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (isRowInteger && renderableRow >= 0 && (isColumnInteger && renderableColumn < 0 || !isColumnInteger)) {
-      return instance.view.scrollViewportVertically(cellCoords.row, snapToTop, snapToBottom);
+      return instance.view.scrollViewportVertically(renderableRow, snapToTop, snapToBottom);
     }
 
     if (isColumnInteger && renderableColumn >= 0 && (isRowInteger && renderableRow < 0 || !isRowInteger)) {
-      return instance.view.scrollViewportHorizontally(cellCoords.col, snapToRight, snapToLeft);
+      return instance.view.scrollViewportHorizontally(renderableColumn, snapToRight, snapToLeft);
     }
 
     return false;
@@ -4396,6 +4412,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @since 14.0.0
    * @memberof Core#
+   * @fires Hooks#afterScroll
    * @function scrollToFocusedCell
    * @param {Function} callback The callback function to call after the viewport is scrolled.
    */

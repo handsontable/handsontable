@@ -77,7 +77,7 @@ describe('Comments (RTL mode)', () => {
           comments: true,
         });
 
-        scrollViewportTo(countRows() - 1, countCols() - 1);
+        scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
@@ -125,7 +125,7 @@ describe('Comments (RTL mode)', () => {
           height: 200,
         });
 
-        scrollViewportTo(countRows() - 1, countCols() - 1);
+        scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
@@ -155,7 +155,7 @@ describe('Comments (RTL mode)', () => {
           comments: true,
         });
 
-        scrollViewportTo(countRows() - 1, countCols() - 1);
+        scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
@@ -185,7 +185,7 @@ describe('Comments (RTL mode)', () => {
           comments: true,
         });
 
-        scrollViewportTo(countRows() - 1, countCols() - 1);
+        scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
@@ -218,7 +218,7 @@ describe('Comments (RTL mode)', () => {
           comments: true,
         });
 
-        scrollViewportTo(countRows() - 1, 0);
+        scrollViewportTo(countRows() - 1, 0, false, false);
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());

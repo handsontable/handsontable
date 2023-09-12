@@ -887,19 +887,22 @@ class TableView {
       },
       beforeDraw: (force, skipRender) => this.beforeRender(force, skipRender),
       onDraw: force => this.afterRender(force),
-      onBeforeScrollVertically: (renderableRow) => {
+      onBeforeViewportScrollVertically: (renderableRow) => {
         const rowMapper = this.instance.rowIndexMapper;
         const areColumnHeadersSelected = renderableRow < 0;
         let visualRow = renderableRow;
 
         if (!areColumnHeadersSelected) {
           visualRow = rowMapper.getVisualFromRenderableIndex(renderableRow);
+
+          // for an empty data return index as is
+          if (visualRow === null) {
+            return renderableRow;
+          }
         }
 
-        visualRow = this.instance.runHooks('beforeScrollVertically', visualRow);
-        this.instance.runHooks('beforeScroll');
-
-        console.log('visualRow', visualRow);
+        visualRow = this.instance.runHooks('beforeViewportScrollVertically', visualRow);
+        this.instance.runHooks('beforeViewportScroll');
 
         if (!areColumnHeadersSelected) {
           return rowMapper.getRenderableFromVisualIndex(visualRow);
@@ -907,31 +910,34 @@ class TableView {
 
         return visualRow;
       },
-      onAfterScrollVertically: () => {
-        this.instance.runHooks('afterScrollVertically');
-        this.instance.runHooks('afterScroll');
-      },
-      onBeforeScrollHorizontally: (renderableColumn) => {
-        const columnMapper = this.instance.rowIndexMapper;
-        const areColumnHeadersSelected = renderableColumn < 0;
+      onBeforeViewportScrollHorizontally: (renderableColumn) => {
+        const columnMapper = this.instance.columnIndexMapper;
+        const areRowHeadersSelected = renderableColumn < 0;
         let visualColumn = renderableColumn;
 
-        if (!areColumnHeadersSelected) {
+        if (!areRowHeadersSelected) {
           visualColumn = columnMapper.getVisualFromRenderableIndex(renderableColumn);
+
+          // for an empty data return index as is
+          if (visualColumn === null) {
+            return renderableColumn;
+          }
         }
 
-        visualColumn = this.instance.runHooks('beforeScrollVertically', visualColumn);
-        this.instance.runHooks('beforeScroll');
+        visualColumn = this.instance.runHooks('beforeViewportScrollHorizontally', visualColumn);
+        this.instance.runHooks('beforeViewportScroll');
 
-        console.log('visualColumn', visualColumn);
-
-        if (!areColumnHeadersSelected) {
+        if (!areRowHeadersSelected) {
           return columnMapper.getRenderableFromVisualIndex(visualColumn);
         }
 
         return visualColumn;
       },
-      onAfterScrollHorizontally: () => {
+      onScrollVertically: () => {
+        this.instance.runHooks('afterScrollVertically');
+        this.instance.runHooks('afterScroll');
+      },
+      onScrollHorizontally: () => {
         this.instance.runHooks('afterScrollHorizontally');
         this.instance.runHooks('afterScroll');
       },

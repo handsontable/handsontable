@@ -582,6 +582,33 @@ const REGISTERED_HOOKS = [
   'afterRowSequenceChange',
 
   /**
+   * Fired before the vertical viewport scroll. Triggered by the [`scrollViewportTo()`](@/api/core.md#scrollviewportto)
+   * method or table internals.
+   *
+   * @since 14.0.0
+   * @event Hooks#beforeViewportScrollVertically
+   */
+  'beforeViewportScrollVertically',
+
+  /**
+   * Fired before the horizontal viewport scroll. Triggered by the [`scrollViewportTo()`](@/api/core.md#scrollviewportto)
+   * method or table internals.
+   *
+   * @since 14.0.0
+   * @event Hooks#beforeViewportScrollHorizontally
+   */
+  'beforeViewportScrollHorizontally',
+
+  /**
+   * Fired before the vertical and horizontal viewport scroll. Triggered by the [`scrollViewportTo()`](@/api/core.md#scrollviewportto)
+   * method or table internals.
+   *
+   * @since 14.0.0
+   * @event Hooks#afterScroll
+   */
+  'beforeViewportScroll',
+
+  /**
    * Fired after the horizontal scroll event.
    *
    * @event Hooks#afterScrollHorizontally

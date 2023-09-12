@@ -84,7 +84,7 @@ describe('BaseEditor API (RTL mode)', () => {
               fixedRowsTop: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
             selectCell(1, countRows() - 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
@@ -111,7 +111,7 @@ describe('BaseEditor API (RTL mode)', () => {
               fixedRowsTop: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
             selectCell(1, countCols() - 1);
 
             await sleep(100);
@@ -185,7 +185,7 @@ describe('BaseEditor API (RTL mode)', () => {
               fixedRowsTop: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
             selectCell(1, 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
@@ -207,7 +207,7 @@ describe('BaseEditor API (RTL mode)', () => {
               fixedRowsTop: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
             selectCell(1, 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
@@ -276,7 +276,7 @@ describe('BaseEditor API (RTL mode)', () => {
               fixedColumnsStart: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
             selectCell(countRows() - 1, 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
@@ -297,7 +297,7 @@ describe('BaseEditor API (RTL mode)', () => {
               fixedColumnsStart: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
             selectCell(countRows() - 1, 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
@@ -369,7 +369,7 @@ describe('BaseEditor API (RTL mode)', () => {
               fixedRowsBottom: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
             selectCell(countRows() - 2, 0);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
@@ -391,7 +391,7 @@ describe('BaseEditor API (RTL mode)', () => {
               fixedRowsBottom: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
             selectCell(countRows() - 2, 0);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
@@ -460,7 +460,7 @@ describe('BaseEditor API (RTL mode)', () => {
               fixedRowsBottom: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
             selectCell(countRows() - 1, countCols() - 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
@@ -490,7 +490,7 @@ describe('BaseEditor API (RTL mode)', () => {
               autoColumnSize: false
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
             selectCell(countRows() - 1, countCols() - 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({

@@ -19,7 +19,7 @@ describe('Core.scrollToFocusedCell', () => {
       colHeaders: true,
     });
 
-    scrollViewportTo(250, 25);
+    scrollViewportTo(250, 25, false, false);
     selectCell(255, 27, 255, 27, false);
 
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(1250);
@@ -98,7 +98,7 @@ describe('Core.scrollToFocusedCell', () => {
       colHeaders: true,
     });
 
-    scrollViewportTo(250, 49);
+    scrollViewportTo(250, 49, false, false);
     selectCell(255, 0, 255, 0, false);
 
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2265);
@@ -121,7 +121,7 @@ describe('Core.scrollToFocusedCell', () => {
       colHeaders: true,
     });
 
-    scrollViewportTo(250, 0);
+    scrollViewportTo(250, 0, false, false);
     selectCell(255, 49, 255, 49, false);
 
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(0);
@@ -144,7 +144,7 @@ describe('Core.scrollToFocusedCell', () => {
       colHeaders: true,
     });
 
-    scrollViewportTo(255, 25);
+    scrollViewportTo(255, 25, false, false);
     selectCell(0, 27, 0, 27, false);
 
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(1250);
@@ -167,7 +167,7 @@ describe('Core.scrollToFocusedCell', () => {
       colHeaders: true,
     });
 
-    scrollViewportTo(255, 25);
+    scrollViewportTo(255, 25, false, false);
     selectCell(499, 27, 499, 27, false);
 
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(1250);

@@ -134,11 +134,11 @@ describe('Core_view', () => {
     spec().$container[0].style.width = '400px';
 
     const hot1 = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(20, 20),
+      data: createSpreadsheetData(20, 20),
       height: 100
     });
 
-    hot1.scrollViewportTo(10, 10);
+    hot1.scrollViewportTo(10, 10, false, false);
 
     const wtHolder = spec().$container.find('.ht_master .wtHolder');
 
@@ -157,8 +157,11 @@ describe('Core_view', () => {
     });
 
     await sleep(700);
-    hot.scrollViewportTo(119, 199);
+
+    scrollViewportTo(119, 199, false, false);
+
     await sleep(700);
+
     expect(hot.view._wt.wtScroll.getLastVisibleColumn()).toEqual(199);
     expect(hot.view._wt.wtScroll.getLastVisibleRow()).toEqual(119);
   });
@@ -175,8 +178,8 @@ describe('Core_view', () => {
       }
     });
 
-    hot.scrollViewportTo(0, 15);
-    hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
+    scrollViewportTo(0, 15, false, false);
+    render(); // Renders synchronously so we don't have to put stuff in waits/runs.
 
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(15 - 3); // 3 hidden, not rendered elements.
   });
@@ -193,8 +196,8 @@ describe('Core_view', () => {
       }
     });
 
-    hot.scrollViewportTo(void 0, 15);
-    hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
+    scrollViewportTo(undefined, 15, false, false);
+    render(); // Renders synchronously so we don't have to put stuff in waits/runs.
 
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(15 - 3); // 3 hidden, not rendered elements before.
   });
@@ -210,30 +213,30 @@ describe('Core_view', () => {
       }
     });
 
-    const scrollResult1 = hot.scrollViewportTo(0, 7);
+    const scrollResult1 = scrollViewportTo(0, 7, false, false);
 
-    hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
+    render(); // Renders synchronously so we don't have to put stuff in waits/runs.
 
     expect(scrollResult1).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(8 - 4); // 4 hidden, not rendered elements before.
 
-    const scrollResult2 = hot.scrollViewportTo(0, 15);
+    const scrollResult2 = scrollViewportTo(0, 15, false, false);
 
-    hot.render();
+    render();
 
     expect(scrollResult2).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(16 - 5); // 5 hidden, not rendered elements before.
 
-    const scrollResult3 = hot.scrollViewportTo(0, 7);
+    const scrollResult3 = scrollViewportTo(0, 7, false, false);
 
-    hot.render();
+    render();
 
     expect(scrollResult3).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(8 - 4); // 4 hidden, not rendered elements before.
 
-    const scrollResult4 = hot.scrollViewportTo(0, 0);
+    const scrollResult4 = scrollViewportTo(0, 0, false, false);
 
-    hot.render();
+    render();
 
     expect(scrollResult4).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(3 - 3); // 3 hidden, not rendered elements before.
@@ -251,26 +254,26 @@ describe('Core_view', () => {
       }
     });
 
-    const scrollResult1 = hot.scrollViewportTo(0, 15);
+    const scrollResult1 = scrollViewportTo(0, 15, false, false);
 
-    hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
+    render(); // Renders synchronously so we don't have to put stuff in waits/runs.
 
     expect(scrollResult1).toBe(true);
     expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 4 hidden, not rendered elements before.
 
-    hot.scrollViewportTo(0, 19);
-    hot.render();
+    scrollViewportTo(0, 19, false, false);
+    render();
 
-    const scrollResult2 = hot.scrollViewportTo(0, 17);
+    const scrollResult2 = scrollViewportTo(0, 17, false, false);
 
-    hot.render();
+    render();
 
     expect(scrollResult2).toBe(true);
     expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 4 hidden, not rendered elements before.
 
-    const scrollResult3 = hot.scrollViewportTo(0, 19);
+    const scrollResult3 = scrollViewportTo(0, 19, false, false);
 
-    hot.render();
+    render();
 
     expect(scrollResult3).toBe(true);
     expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 4 hidden, not rendered elements before.
@@ -327,16 +330,16 @@ describe('Core_view', () => {
       }
     });
 
-    const scrollResult1 = hot.scrollViewportTo(0, 0);
+    const scrollResult1 = scrollViewportTo(0, 0, false, false);
 
-    hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
+    render(); // Renders synchronously so we don't have to put stuff in waits/runs.
 
     expect(scrollResult1).toBe(false);
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(-1);
 
-    const scrollResult2 = hot.scrollViewportTo(0, 5);
+    const scrollResult2 = scrollViewportTo(0, 5, false, false);
 
-    hot.render();
+    render();
 
     expect(scrollResult2).toBe(false);
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(-1);

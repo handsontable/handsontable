@@ -104,7 +104,7 @@ describe('settings', () => {
 
         await sleep(100);
 
-        hot.scrollViewportTo(30, 30);
+        hot.scrollViewportTo(30, 30, false, false);
 
         await sleep(100);
 

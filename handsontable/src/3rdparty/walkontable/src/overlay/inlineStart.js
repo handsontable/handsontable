@@ -114,7 +114,7 @@ export class InlineStartOverlay extends Overlay {
    * Triggers onScroll hook callback.
    */
   onScroll() {
-    this.wtSettings.getSetting('onAfterScrollVertically');
+    this.wtSettings.getSetting('onScrollVertically');
   }
 
   /**

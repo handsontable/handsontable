@@ -157,7 +157,7 @@ describe('manualRowMove', () => {
         manualRowMove: true,
       });
 
-      scrollViewportTo(countRows() - 1, 0, true);
+      scrollViewportTo(countRows() - 1, 0, true, false);
 
       await sleep(10);
 
@@ -195,7 +195,7 @@ describe('manualRowMove', () => {
         manualRowMove: true,
       });
 
-      scrollViewportTo(countRows() - 1, 0, true);
+      scrollViewportTo(countRows() - 1, 0, true, false);
 
       await sleep(10);
 
@@ -235,7 +235,7 @@ describe('manualRowMove', () => {
         }
       });
 
-      scrollViewportTo(countRows() - 1, 0, true);
+      scrollViewportTo(countRows() - 1, 0, true, false);
 
       await sleep(10);
 
@@ -272,7 +272,7 @@ describe('manualRowMove', () => {
         manualRowMove: true,
       });
 
-      scrollViewportTo(countRows() - 1, 0, true);
+      scrollViewportTo(countRows() - 1, 0, true, false);
 
       await sleep(10);
 

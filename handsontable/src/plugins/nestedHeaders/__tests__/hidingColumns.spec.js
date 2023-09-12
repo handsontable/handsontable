@@ -1099,7 +1099,7 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(45, true); // Hide column that contains cells AT{n}
       hot.render();
 
-      hot.scrollViewportTo(void 0, 40); // Scroll to column AP4
+      hot.scrollViewportTo(void 0, 40, false, false); // Scroll to column AP4
       hot.render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
@@ -1200,7 +1200,7 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(57, true); // Hide column that contains cells BF{n}
       hot.render();
 
-      hot.scrollViewportTo(void 0, 55); // Scroll to column BD4
+      hot.scrollViewportTo(void 0, 55, false, false); // Scroll to column BD4
       hot.render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
@@ -1769,7 +1769,7 @@ describe('NestedHeaders', () => {
 
       await sleep(200);
 
-      hot.scrollViewportTo(0, 7);
+      scrollViewportTo(0, 7, false, false);
 
       await sleep(200);
 
@@ -1791,7 +1791,7 @@ describe('NestedHeaders', () => {
 
       await sleep(200);
 
-      hot.scrollViewportTo(0, 15);
+      scrollViewportTo(0, 15, false, false);
 
       await sleep(300);
 

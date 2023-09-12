@@ -646,7 +646,7 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
 
-      hot.scrollViewportTo(void 0, 40);
+      hot.scrollViewportTo(void 0, 40, false, false);
       hot.render();
 
       // scrolled

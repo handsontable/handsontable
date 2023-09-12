@@ -150,7 +150,7 @@ describe('Comments', () => {
           comments: true,
         });
 
-        scrollViewportTo(countRows() - 1, countCols() - 1);
+        scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
@@ -196,7 +196,7 @@ describe('Comments', () => {
           height: 200,
         });
 
-        scrollViewportTo(countRows() - 1, countCols() - 1);
+        scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
@@ -225,7 +225,7 @@ describe('Comments', () => {
           comments: true,
         });
 
-        scrollViewportTo(countRows() - 1, countCols() - 1);
+        scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
@@ -256,7 +256,7 @@ describe('Comments', () => {
           comments: true,
         });
 
-        scrollViewportTo(countRows() - 1, countCols() - 1);
+        scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
@@ -289,7 +289,7 @@ describe('Comments', () => {
           comments: true,
         });
 
-        scrollViewportTo(countRows() - 1, 0);
+        scrollViewportTo(countRows() - 1, 0, false, false);
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
@@ -432,7 +432,7 @@ describe('Comments', () => {
       fixedColumnsStart: 5,
     });
 
-    hot.scrollViewportTo(0, 19);
+    scrollViewportTo(0, 19, false, false);
 
     await sleep(10);
 

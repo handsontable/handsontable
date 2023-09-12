@@ -118,12 +118,12 @@ describe('Selection', () => {
 
     mainHolder.scrollTop = 200;
 
-    const firstLastVisibleColumn = hot.view._wt.wtTable.getLastVisibleColumn();
-    const headerElement = hot.view._wt.wtTable.getColumnHeader(firstLastVisibleColumn + 1);
+    const lastVisibleColumn = hot.view._wt.wtTable.getLastVisibleColumn();
+    const headerElement = hot.view._wt.wtTable.getColumnHeader(lastVisibleColumn + 1);
 
     $(headerElement).simulate('mousedown');
 
-    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(firstLastVisibleColumn + 1);
+    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(lastVisibleColumn + 1);
     expect(mainHolder.scrollTop).toBe(200);
   });
 

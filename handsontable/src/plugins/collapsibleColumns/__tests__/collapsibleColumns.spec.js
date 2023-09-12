@@ -1645,7 +1645,7 @@ describe('CollapsibleColumns', () => {
       // Scrolling to viewport does not work precisely without delay.
       await sleep(50);
 
-      hot.scrollViewportTo(void 0, 37);
+      hot.scrollViewportTo(void 0, 37, false, false);
       hot.render();
 
       $(getCell(-2, 37).querySelector('.collapsibleIndicator')) // header "AL3"
@@ -1812,7 +1812,7 @@ describe('CollapsibleColumns', () => {
         collapsibleColumns: true,
       });
 
-      hot.scrollViewportTo(0, 10);
+      hot.scrollViewportTo(0, 10, false, false);
       hot.render();
 
       $(getCell(-2, 9).querySelector('.collapsibleIndicator')) // header "J"
@@ -1824,7 +1824,7 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      hot.scrollViewportTo(0, 20);
+      hot.scrollViewportTo(0, 20, false, false);
       hot.render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
@@ -2495,7 +2495,7 @@ describe('CollapsibleColumns', () => {
       // Scrolling to viewport does not work precisely without delay.
       await sleep(50);
 
-      hot.scrollViewportTo(void 0, 37);
+      hot.scrollViewportTo(void 0, 37, false, false);
       hot.render();
 
       // collapsing

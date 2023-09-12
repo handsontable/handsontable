@@ -57,10 +57,10 @@ import { objectEach } from '../../../helpers/object';
  * @property {?Option} onDraw Option `onDraw`.
  * @property {?Option} onModifyGetCellCoords Option `onModifyGetCellCoords`.
  * @property {?Option} onModifyRowHeaderWidth Option `onModifyRowHeaderWidth`.
- * @property {?Option} onBeforeScrollHorizontally Option `onBeforeScrollHorizontally`.
- * @property {?Option} onAfterScrollHorizontally Option `onAfterScrollHorizontally`.
- * @property {?Option} onBeforeScrollVertically Option `onBeforeScrollVertically`.
- * @property {?Option} onAfterScrollVertically Option `onAfterScrollVertically`.
+ * @property {?Option} onBeforeViewportScrollHorizontally Option `onBeforeViewportScrollHorizontally`.
+ * @property {?Option} onBeforeViewportScrollVertically Option `onBeforeViewportScrollVertically`.
+ * @property {?Option} onScrollHorizontally Option `onScrollHorizontally`.
+ * @property {?Option} onScrollVertically Option `onScrollVertically`.
  * @property {?Option} onWindowResize Option `onWindowResize`.
  * @property {?Option} rowHeaderWidth Option `rowHeaderWidth`.
  * @property {?Option} selections Option `selections`.
@@ -198,7 +198,7 @@ export default class Settings {
       onCellMouseOut: null,
       onCellMouseUp: null,
 
-      //    onCellMouseOut: null,
+      // onCellMouseOut: null,
       onCellDblClick: null,
       onCellCornerMouseDown: null,
       onCellCornerDblClick: null,
@@ -207,10 +207,13 @@ export default class Settings {
       onBeforeRemoveCellClassNames: null,
       onAfterDrawSelection: null,
       onBeforeDrawBorders: null,
-      onBeforeScrollHorizontally: column => column,
-      onAfterScrollHorizontally: null,
-      onBeforeScrollVertically: row => row,
-      onAfterScrollVertically: null,
+      // viewport scroll hooks
+      onBeforeViewportScrollHorizontally: column => column,
+      onBeforeViewportScrollVertically: row => row,
+      // native scroll hooks
+      onScrollHorizontally: null,
+      onScrollVertically: null,
+      //
       onBeforeTouchScroll: null,
       onAfterMomentumScroll: null,
       onBeforeStretchingColumnWidth: width => width,

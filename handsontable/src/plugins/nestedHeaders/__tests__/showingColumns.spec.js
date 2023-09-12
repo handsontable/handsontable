@@ -1016,8 +1016,8 @@ describe('NestedHeaders', () => {
         hidingMap.setValueAtIndex(i, i % 2 !== 0);
       }
 
-      hot.scrollViewportTo(void 0, 25); // Scroll to column AA4
-      hot.render();
+      scrollViewportTo(void 0, 25, false, false); // Scroll to column AA4
+      render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -1136,8 +1136,8 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(45, false); // Show column that contains cells AT{n}
       hot.render();
 
-      hot.scrollViewportTo(void 0, 38); // Scroll to column AM4
-      hot.render();
+      scrollViewportTo(void 0, 38, false, false); // Scroll to column AM4
+      render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
