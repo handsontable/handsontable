@@ -16,18 +16,25 @@ export const command = {
       const offsetColumns = Math.floor(hot.countVisibleCols() / 2);
       const scrollX = Math.max(highlight.row - offsetRows, 0);
       const scrollY = Math.max(highlight.col - offsetColumns, 0);
-      const scrollCoords = [scrollX, scrollY, false, false];
+      const scrollCoords = {
+        row: scrollY,
+        col: scrollX,
+      };
 
       // for row header focus do not change the scroll Y position, leave as it is
       if (highlight.col < 0) {
-        scrollCoords[1] = null;
+        scrollCoords.col = null;
 
       // for column header focus do not change the scroll X position, leave as it is
       } else if (highlight.row < 0) {
-        scrollCoords[0] = null;
+        scrollCoords.row = null;
       }
 
-      hot.scrollViewportTo(...scrollCoords);
+      hot.scrollViewportTo({
+        ...scrollCoords,
+        verticalSnap: 'top',
+        horizontalSnap: 'left',
+      });
     }
   },
 };

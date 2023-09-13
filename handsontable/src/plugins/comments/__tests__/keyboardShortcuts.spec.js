@@ -51,7 +51,12 @@ describe('Comments keyboard shortcut', () => {
       });
 
       selectCell(400, 40);
-      scrollViewportTo(0, 0, false, false);
+      scrollViewportTo({
+        row: 0,
+        col: 0,
+        verticalSnap: 'top',
+        horizontalSnap: 'left',
+      });
 
       await sleep(10);
 

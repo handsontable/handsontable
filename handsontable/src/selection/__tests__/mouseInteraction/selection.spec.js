@@ -871,8 +871,12 @@ describe('Selection using mouse interaction', () => {
       fixedColumnsStart: 2
     });
 
-    hot.render();
-    hot.scrollViewportTo(void 0, hot.countCols() - 1, false, false);
+    render();
+    scrollViewportTo({
+      col: countCols() - 1,
+      verticalSnap: 'top',
+      horizontalSnap: 'left',
+    });
 
     spec().$container.find('.ht_master thead th:eq(2)').simulate('mousedown');
     spec().$container.find('.ht_master thead th:eq(2)').simulate('mouseup');
@@ -900,7 +904,13 @@ describe('Selection using mouse interaction', () => {
       rowHeaders: true
     });
 
-    scrollViewportTo(10, 10, false, false);
+    scrollViewportTo({
+      row: 10,
+      col: 10,
+      verticalSnap: 'top',
+      horizontalSnap: 'left',
+    });
+
     render();
 
     await sleep(30);
@@ -947,7 +957,12 @@ describe('Selection using mouse interaction', () => {
       rowHeaders: true
     });
 
-    scrollViewportTo(10, 10, false, false);
+    scrollViewportTo({
+      row: 10,
+      col: 10,
+      verticalSnap: 'top',
+      horizontalSnap: 'left',
+    });
     render();
 
     await sleep(30);

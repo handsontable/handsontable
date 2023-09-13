@@ -405,7 +405,12 @@ describe('CollapsibleColumns API', () => {
         </tbody>
         `);
 
-      hot.scrollViewportTo(0, 63, false, false);
+      scrollViewportTo({
+        row: 0,
+        col: 63,
+        verticalSnap: 'top',
+        horizontalSnap: 'left',
+      });
 
       await sleep(20);
 

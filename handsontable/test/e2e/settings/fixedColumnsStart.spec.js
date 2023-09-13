@@ -103,7 +103,12 @@ describe('settings', () => {
         });
 
         setTimeout(() => {
-          hot.scrollViewportTo(30, 30, false, false);
+          hot.scrollViewportTo({
+            row: 30,
+            col: 30,
+            verticalSnap: 'top',
+            horizontalSnap: 'left',
+          });
         }, 100);
 
         setTimeout(() => {
@@ -287,7 +292,12 @@ describe('settings', () => {
         });
 
         setTimeout(() => {
-          hot.scrollViewportTo(30, 30, false, false);
+          hot.scrollViewportTo({
+            row: 30,
+            col: 30,
+            verticalSnap: 'top',
+            horizontalSnap: 'left',
+          });
         }, 100);
 
         setTimeout(() => {

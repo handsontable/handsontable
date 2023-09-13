@@ -150,7 +150,12 @@ describe('Comments', () => {
           comments: true,
         });
 
-        scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
+        scrollViewportTo({
+          row: countRows() - 1,
+          col: countCols() - 1,
+          verticalSnap: 'top',
+          horizontalSnap: 'left',
+        });
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
@@ -196,7 +201,12 @@ describe('Comments', () => {
           height: 200,
         });
 
-        scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
+        scrollViewportTo({
+          row: countRows() - 1,
+          col: countCols() - 1,
+          verticalSnap: 'top',
+          horizontalSnap: 'left',
+        });
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
@@ -225,7 +235,12 @@ describe('Comments', () => {
           comments: true,
         });
 
-        scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
+        scrollViewportTo({
+          row: countRows() - 1,
+          col: countCols() - 1,
+          verticalSnap: 'top',
+          horizontalSnap: 'left',
+        });
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
@@ -256,7 +271,12 @@ describe('Comments', () => {
           comments: true,
         });
 
-        scrollViewportTo(countRows() - 1, countCols() - 1, false, false);
+        scrollViewportTo({
+          row: countRows() - 1,
+          col: countCols() - 1,
+          verticalSnap: 'top',
+          horizontalSnap: 'left',
+        });
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
@@ -289,7 +309,12 @@ describe('Comments', () => {
           comments: true,
         });
 
-        scrollViewportTo(countRows() - 1, 0, false, false);
+        scrollViewportTo({
+          row: countRows() - 1,
+          col: 0,
+          verticalSnap: 'top',
+          horizontalSnap: 'left',
+        });
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
@@ -432,7 +457,12 @@ describe('Comments', () => {
       fixedColumnsStart: 5,
     });
 
-    scrollViewportTo(0, 19, false, false);
+    scrollViewportTo({
+      row: 0,
+      col: 19,
+      verticalSnap: 'top',
+      horizontalSnap: 'left',
+    });
 
     await sleep(10);
 

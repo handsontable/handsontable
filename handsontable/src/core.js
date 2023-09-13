@@ -367,24 +367,24 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           const { row, col } = currentSelectedRange.from;
 
           if (row < 0 && col >= 0) {
-            this.scrollViewportTo(undefined, col);
+            this.scrollViewportTo({ col });
 
           } else if (col < 0 && row >= 0) {
-            this.scrollViewportTo(row);
+            this.scrollViewportTo({ row });
 
           } else {
-            this.scrollViewportTo(row, col);
+            this.scrollViewportTo({ row, col });
           }
 
         } else {
-          this.scrollViewportTo(cellCoords.row, cellCoords.col);
+          this.scrollViewportTo(cellCoords.toObject());
         }
 
       } else if (isSelectedByRowHeader) {
-        this.scrollViewportTo(cellCoords.row);
+        this.scrollViewportTo({ row: cellCoords.row });
 
       } else if (isSelectedByColumnHeader) {
-        this.scrollViewportTo(undefined, cellCoords.col);
+        this.scrollViewportTo({ col: cellCoords.col });
       }
     }
 
@@ -4360,18 +4360,31 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
    * @returns {boolean} `true` if scroll was successful, `false` otherwise.
    */
-  this.scrollViewportTo = function(row, column, snapToBottom, snapToRight, considerHiddenIndexes = true) {
-    const snapToTop = typeof snapToBottom === 'boolean' ? !snapToBottom : void 0;
-    const snapToLeft = typeof snapToRight === 'boolean' ? !snapToRight : void 0;
-    let renderableRow = row;
-    let renderableColumn = column;
+  this.scrollViewportTo = function({ row, col, verticalSnap, horizontalSnap, considerHiddenIndexes } = {}) {
+    let snapToTop;
+    let snapToBottom;
+    let snapToLeft;
+    let snapToRight;
 
-    if (considerHiddenIndexes) {
+    if (verticalSnap !== undefined) {
+      snapToTop = verticalSnap === 'top' ? true : false;
+      snapToBottom = !snapToTop;
+    }
+
+    if (horizontalSnap !== undefined) {
+      snapToLeft = horizontalSnap === 'left' ? true : false;
+      snapToRight = !snapToLeft;
+    }
+
+    let renderableRow = row;
+    let renderableColumn = col;
+
+    if (considerHiddenIndexes === void 0 || considerHiddenIndexes) {
       const isValidRowGrid = Number.isInteger(row) && row >= 0;
-      const isValidColumnGrid = Number.isInteger(column) && column >= 0;
+      const isValidColumnGrid = Number.isInteger(col) && col >= 0;
 
       const visualRowToScroll = isValidRowGrid ? getIndexToScroll(this.rowIndexMapper, row) : void 0;
-      const visualColumnToScroll = isValidColumnGrid ? getIndexToScroll(this.columnIndexMapper, column) : void 0;
+      const visualColumnToScroll = isValidColumnGrid ? getIndexToScroll(this.columnIndexMapper, col) : void 0;
 
       if (visualRowToScroll === null || visualColumnToScroll === null) {
         return false;
@@ -4380,7 +4393,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       renderableRow = isValidRowGrid ?
         instance.rowIndexMapper.getRenderableFromVisualIndex(visualRowToScroll) : row;
       renderableColumn = isValidColumnGrid ?
-        instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumnToScroll) : column;
+        instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumnToScroll) : col;
     }
 
     const isRowInteger = Number.isInteger(renderableRow);
@@ -4424,7 +4437,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.addHookOnce('afterScroll', callback);
 
     const { highlight } = this.getSelectedRangeLast();
-    const isScrolled = this.scrollViewportTo(highlight.row, highlight.col);
+    const isScrolled = this.scrollViewportTo(highlight.toObject());
 
     if (isScrolled) {
       this.view.render();

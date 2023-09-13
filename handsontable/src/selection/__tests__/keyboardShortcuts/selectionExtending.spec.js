@@ -2688,7 +2688,12 @@ describe('Selection extending', () => {
 
       selectCell(95, 1);
       // scroll the viewport in that way the cell highlight is in the middle of the table viewport
-      scrollViewportTo(99, 1, false, false);
+      scrollViewportTo({
+        row: 99,
+        col: 1,
+        verticalSnap: 'top',
+        horizontalSnap: 'left',
+      });
 
       await sleep(20);
 

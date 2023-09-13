@@ -341,7 +341,7 @@ describe('TextEditor (RTL mode)', () => {
 
       keyDown('enter');
       keyUp('enter');
-      hot.scrollViewportTo(49);
+      scrollViewportTo({ row: 49 });
 
       await sleep(100);
 

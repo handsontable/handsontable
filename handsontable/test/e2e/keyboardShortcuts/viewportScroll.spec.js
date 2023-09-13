@@ -29,7 +29,12 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       selectCell(0, 0);
       // move the viewport to position that the focused cell is partially visible
-      scrollViewportTo(12, 7, true, true);
+      scrollViewportTo({
+        row: 12,
+        col: 7,
+        verticalSnap: 'bottom',
+        horizontalSnap: 'right',
+      });
 
       const scrollPosition = getCurrentScrollPosition();
 
@@ -49,7 +54,12 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       selectCell(0, 7);
       // move the viewport to position that the focused cell is partially visible
-      scrollViewportTo(0, 0, true, true);
+      scrollViewportTo({
+        row: 0,
+        col: 0,
+        verticalSnap: 'bottom',
+        horizontalSnap: 'right',
+      });
 
       const scrollPosition = getCurrentScrollPosition();
 
@@ -69,7 +79,12 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       selectCell(12, 7);
       // move the viewport to position that the focused cell is partially visible
-      scrollViewportTo(0, 0, true, true);
+      scrollViewportTo({
+        row: 0,
+        col: 0,
+        verticalSnap: 'bottom',
+        horizontalSnap: 'right',
+      });
 
       const scrollPosition = getCurrentScrollPosition();
 
@@ -89,7 +104,12 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       selectCell(12, 0);
       // move the viewport to position that the focused cell is partially visible
-      scrollViewportTo(0, 7, true, true);
+      scrollViewportTo({
+        row: 0,
+        col: 7,
+        verticalSnap: 'bottom',
+        horizontalSnap: 'right',
+      });
 
       const scrollPosition = getCurrentScrollPosition();
 
@@ -108,7 +128,12 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       });
 
       selectCell(90, 1);
-      scrollViewportTo(0, 0, true, true);
+      scrollViewportTo({
+        row: 0,
+        col: 0,
+        verticalSnap: 'bottom',
+        horizontalSnap: 'right',
+      });
 
       await sleep(100);
 
@@ -125,7 +150,12 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       });
 
       selectCell(1, 40);
-      scrollViewportTo(0, 0, true, true);
+      scrollViewportTo({
+        row: 0,
+        col: 0,
+        verticalSnap: 'bottom',
+        horizontalSnap: 'right',
+      });
 
       await sleep(100);
 
@@ -142,7 +172,12 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       });
 
       selectCell(1, 10);
-      scrollViewportTo(99, 49, true, true);
+      scrollViewportTo({
+        row: 99,
+        col: 49,
+        verticalSnap: 'bottom',
+        horizontalSnap: 'right',
+      });
 
       await sleep(100);
 
@@ -159,7 +194,12 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       });
 
       selectCell(10, 1);
-      scrollViewportTo(99, 0, true, true);
+      scrollViewportTo({
+        row: 99,
+        col: 0,
+        verticalSnap: 'bottom',
+        horizontalSnap: 'right',
+      });
 
       await sleep(100);
 
@@ -176,7 +216,12 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       });
 
       selectCell(50, 25);
-      scrollViewportTo(0, 0, true, true);
+      scrollViewportTo({
+        row: 0,
+        col: 0,
+        verticalSnap: 'bottom',
+        horizontalSnap: 'right',
+      });
 
       await sleep(100);
 
@@ -196,7 +241,12 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       });
 
       selectCell(-1, 25);
-      scrollViewportTo(90, 1, true, true);
+      scrollViewportTo({
+        row: 90,
+        col: 1,
+        verticalSnap: 'bottom',
+        horizontalSnap: 'right',
+      });
 
       await sleep(100);
 
@@ -260,7 +310,12 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       });
 
       selectCell(50, -1);
-      scrollViewportTo(1, 40, true, true);
+      scrollViewportTo({
+        row: 1,
+        col: 40,
+        verticalSnap: 'bottom',
+        horizontalSnap: 'right',
+      });
 
       await sleep(100);
 
@@ -324,7 +379,12 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       });
 
       selectCell(-1, -1);
-      scrollViewportTo(50, 25, true, true);
+      scrollViewportTo({
+        row: 50,
+        col: 25,
+        verticalSnap: 'bottom',
+        horizontalSnap: 'right',
+      });
 
       await sleep(100);
 
