@@ -93,17 +93,15 @@ class Scroll {
 
     let result = false;
 
+    column = this.dataAccessObject.wtSettings.getSetting('onBeforeViewportScrollHorizontally', column);
+
     // if there is no fully visible columns use the supporting variable (lastScrolledColumnPos) to
     // determine the snapping direction (left or right)
     if (firstVisibleColumn === -1) {
-      column = this.dataAccessObject.wtSettings.getSetting('onBeforeViewportScrollHorizontally', column);
-
       result = inlineStartOverlay
         .scrollTo(column, autoSnapping ? column > this.lastScrolledColumnPos : snapToRight);
 
     } else if (autoSnapping && (column < firstVisibleColumn || column > lastVisibleColumn) || !autoSnapping) {
-      column = this.dataAccessObject.wtSettings.getSetting('onBeforeViewportScrollHorizontally', column);
-
       // if there is at least one fully visible column determine the snapping direction based on
       // that columns or by snapToRight/snapToLeft flags, if provided.
       result = inlineStartOverlay
@@ -153,16 +151,14 @@ class Scroll {
 
     let result = false;
 
+    row = this.dataAccessObject.wtSettings.getSetting('onBeforeViewportScrollVertically', row);
+
     // if there is no fully visible rows use the supporting variable (lastScrolledRowPos) to
     // determine the snapping direction (top or bottom)
     if (firstVisibleRow === -1) {
-      row = this.dataAccessObject.wtSettings.getSetting('onBeforeViewportScrollVertically', row);
-
       result = topOverlay.scrollTo(row, autoSnapping ? row > this.lastScrolledRowPos : snapToBottom);
 
     } else if (autoSnapping && (row < firstVisibleRow || row > lastVisibleRow) || !autoSnapping) {
-      row = this.dataAccessObject.wtSettings.getSetting('onBeforeViewportScrollVertically', row);
-
       // if there is at least one fully visible row determine the snapping direction based on
       // that rows or by snapToTop/snapToBottom flags, if provided.
       result = topOverlay.scrollTo(row, autoSnapping ? row > lastVisibleRow : snapToBottom);

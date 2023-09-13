@@ -136,7 +136,7 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
     this.addHook('modifyTransformStart', (...args) => this.onModifyTransformStart(...args));
     this.addHook('afterSelection', () => this.updateFocusHighlightPosition());
-    // this.addHook('beforeScrollHorizontally', (...args) => this.onBeforeScrollHorizontally(...args));
+    this.addHook('beforeViewportScrollHorizontally', (...args) => this.onBeforeViewportScrollHorizontally(...args));
     this.addHook('afterGetColumnHeaderRenderers', array => this.onAfterGetColumnHeaderRenderers(array));
     this.addHook('modifyColWidth', (...args) => this.onModifyColWidth(...args));
     this.addHook('modifyColumnHeaderValue', (...args) => this.onModifyColumnHeaderValue(...args));
@@ -415,22 +415,40 @@ export class NestedHeaders extends BasePlugin {
     }
   }
 
-  onBeforeScrollHorizontally(visualColumn) {
+  /**
+   * Allows to control to which column index the viewport will be scrolled. To ensure that the viewport
+   * is scrolled to the correct column for the nested header the most left and the most right visual column
+   * indexes are used.
+   *
+   * @private
+   * @param {number} visualColumn A visual column index to which the viewport will be scrolled.
+   * @returns {number}
+   */
+  onBeforeViewportScrollHorizontally(visualColumn) {
     const selection = this.hot.getSelectedRangeLast();
 
     if (!selection) {
-      return;
+      return visualColumn;
     }
 
     const { highlight } = selection;
     const isNestedHeadersRange = highlight.isHeader() && highlight.col >= 0;
 
-    if (isNestedHeadersRange) {
-      // return this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
-      return this.#stateManager.findRightMostColumnIndex(highlight.row, highlight.col);
+    if (!isNestedHeadersRange) {
+      return visualColumn;
     }
 
-    return visualColumn;
+    const firstColumn = this.hot.view.getFirstFullyVisibleColumn();
+    const lastColumn = this.hot.view.getLastFullyVisibleColumn();
+    const mostLeftColumnIndex = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
+    const mostRightColumnIndex = this.#stateManager.findRightMostColumnIndex(highlight.row, highlight.col);
+
+    // do not scroll the viewport when the header is wider than the viewport
+    if (mostLeftColumnIndex < firstColumn && mostRightColumnIndex > lastColumn) {
+      return visualColumn;
+    }
+
+    return mostLeftColumnIndex < firstColumn ? mostLeftColumnIndex : mostRightColumnIndex;
   }
 
   /**

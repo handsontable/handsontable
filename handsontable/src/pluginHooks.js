@@ -587,6 +587,8 @@ const REGISTERED_HOOKS = [
    *
    * @since 14.0.0
    * @event Hooks#beforeViewportScrollVertically
+   * @param {number} visualRow Visual row index.
+   * @returns {number} Returns modified row index (or the same as passed in the method argument) to which the viewport will be scrolled.
    */
   'beforeViewportScrollVertically',
 
@@ -596,11 +598,13 @@ const REGISTERED_HOOKS = [
    *
    * @since 14.0.0
    * @event Hooks#beforeViewportScrollHorizontally
+   * @param {number} visualColumn Visual column index.
+   * @returns {number} Returns modified column index (or the same as passed in the method argument) to which the viewport will be scrolled.
    */
   'beforeViewportScrollHorizontally',
 
   /**
-   * Fired before the vertical and horizontal viewport scroll. Triggered by the [`scrollViewportTo()`](@/api/core.md#scrollviewportto)
+   * Fired before the vertical or horizontal viewport scroll. Triggered by the [`scrollViewportTo()`](@/api/core.md#scrollviewportto)
    * method or table internals.
    *
    * @since 14.0.0
