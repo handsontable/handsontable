@@ -662,7 +662,7 @@ describe('TextEditor', () => {
   });
 
   it('should hide editor when quick navigation by click scrollbar was triggered', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(50, 50),
       rowHeaders: true,
       colHeaders: true

@@ -861,7 +861,7 @@ describe('Selection using mouse interaction', () => {
   });
 
   it('should select the entire fixed column after column header is clicked, after scroll horizontally', () => {
-    const hot = handsontable({
+    handsontable({
       width: 200,
       height: 100,
       startRows: 10,

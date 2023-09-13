@@ -1634,7 +1634,7 @@ describe('CollapsibleColumns', () => {
     });
 
     it('should maintain the collapse functionality, when the table has been scrolled', async() => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 90),
         nestedHeaders: generateComplexSetup(4, 70, true),
         collapsibleColumns: true,
@@ -1801,7 +1801,7 @@ describe('CollapsibleColumns', () => {
 
       spec().$wrapper = spec().$container.wrap($wrapper).parent();
 
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(3, 40),
         colHeaders: true,
         nestedHeaders: [
@@ -2498,7 +2498,7 @@ describe('CollapsibleColumns', () => {
     });
 
     it('should maintain the expand functionality, when the table has been scrolled', async() => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 90),
         nestedHeaders: generateComplexSetup(4, 70, true),
         collapsibleColumns: true,

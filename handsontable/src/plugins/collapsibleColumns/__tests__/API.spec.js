@@ -292,7 +292,7 @@ describe('CollapsibleColumns API', () => {
 
       spec().$wrapper = spec().$container.wrap($wrapper).parent();
 
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 100),
         nestedHeaders: generateComplexSetup(5, 100, true),
         collapsibleColumns: true,

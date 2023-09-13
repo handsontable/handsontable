@@ -329,7 +329,7 @@ describe('TextEditor (RTL mode)', () => {
     });
 
     it('should hide editor when quick navigation by click scrollbar was triggered', async() => {
-      const hot = handsontable({
+      handsontable({
         layoutDirection,
         data: Handsontable.helper.createSpreadsheetData(50, 50),
         rowHeaders: true,
