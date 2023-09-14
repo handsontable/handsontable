@@ -154,7 +154,7 @@ describe('Comments', () => {
           row: countRows() - 1,
           col: countCols() - 1,
           verticalSnap: 'top',
-          horizontalSnap: 'left',
+          horizontalSnap: 'start',
         });
 
         const plugin = getPlugin('comments');
@@ -205,7 +205,7 @@ describe('Comments', () => {
           row: countRows() - 1,
           col: countCols() - 1,
           verticalSnap: 'top',
-          horizontalSnap: 'left',
+          horizontalSnap: 'start',
         });
 
         const plugin = getPlugin('comments');
@@ -239,7 +239,7 @@ describe('Comments', () => {
           row: countRows() - 1,
           col: countCols() - 1,
           verticalSnap: 'top',
-          horizontalSnap: 'left',
+          horizontalSnap: 'start',
         });
 
         const plugin = getPlugin('comments');
@@ -275,7 +275,7 @@ describe('Comments', () => {
           row: countRows() - 1,
           col: countCols() - 1,
           verticalSnap: 'top',
-          horizontalSnap: 'left',
+          horizontalSnap: 'start',
         });
 
         const plugin = getPlugin('comments');
@@ -313,7 +313,7 @@ describe('Comments', () => {
           row: countRows() - 1,
           col: 0,
           verticalSnap: 'top',
-          horizontalSnap: 'left',
+          horizontalSnap: 'start',
         });
 
         const plugin = getPlugin('comments');
@@ -461,7 +461,7 @@ describe('Comments', () => {
       row: 0,
       col: 19,
       verticalSnap: 'top',
-      horizontalSnap: 'left',
+      horizontalSnap: 'start',
     });
 
     await sleep(10);

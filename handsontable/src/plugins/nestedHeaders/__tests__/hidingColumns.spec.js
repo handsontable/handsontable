@@ -1102,7 +1102,7 @@ describe('NestedHeaders', () => {
       scrollViewportTo({ // Scroll to column AP4
         col: 40,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
       render();
 
@@ -1207,7 +1207,7 @@ describe('NestedHeaders', () => {
       scrollViewportTo({ // Scroll to column BD4
         col: 55,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
       render();
 
@@ -1781,7 +1781,7 @@ describe('NestedHeaders', () => {
         row: 0,
         col: 7,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
 
       await sleep(200);
@@ -1808,7 +1808,7 @@ describe('NestedHeaders', () => {
         row: 0,
         col: 15,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
 
       await sleep(300);

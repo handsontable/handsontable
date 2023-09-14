@@ -151,7 +151,7 @@ describe('manualColumnMove (RTL mode)', () => {
           row: 0,
           col: 20,
           verticalSnap: 'top',
-          horizontalSnap: 'left',
+          horizontalSnap: 'start',
         });
 
         await sleep(100);
@@ -184,7 +184,7 @@ describe('manualColumnMove (RTL mode)', () => {
           row: 0,
           col: 20,
           verticalSnap: 'top',
-          horizontalSnap: 'left',
+          horizontalSnap: 'start',
         });
 
         await sleep(100);
@@ -227,7 +227,7 @@ describe('manualColumnMove (RTL mode)', () => {
           row: 0,
           col: 20,
           verticalSnap: 'top',
-          horizontalSnap: 'left',
+          horizontalSnap: 'start',
         });
 
         await sleep(100);
@@ -267,7 +267,7 @@ describe('manualColumnMove (RTL mode)', () => {
           row: 0,
           col: 20,
           verticalSnap: 'top',
-          horizontalSnap: 'left',
+          horizontalSnap: 'start',
         });
 
         await sleep(100);
@@ -298,7 +298,7 @@ describe('manualColumnMove (RTL mode)', () => {
           row: 0,
           col: 20,
           verticalSnap: 'top',
-          horizontalSnap: 'left',
+          horizontalSnap: 'start',
         });
 
         await sleep(100);
@@ -339,7 +339,7 @@ describe('manualColumnMove (RTL mode)', () => {
           row: 0,
           col: 20,
           verticalSnap: 'top',
-          horizontalSnap: 'left',
+          horizontalSnap: 'start',
         });
 
         await sleep(100);

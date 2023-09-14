@@ -409,7 +409,7 @@ describe('CollapsibleColumns API', () => {
         row: 0,
         col: 63,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
 
       await sleep(20);

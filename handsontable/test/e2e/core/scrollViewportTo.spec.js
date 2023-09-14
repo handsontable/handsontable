@@ -10,119 +10,132 @@ describe('Core.scrollViewportTo', () => {
     }
   });
 
-  it('should scroll the viewport in such a way that the coordinates are glued to the bottom-right edge when ' +
-     ' the previous viewport position was on the top-left (auto-snapping)', async() => {
-    const hot = handsontable({
-      data: createSpreadsheetData(200, 100),
-      width: 300,
-      height: 300,
-      rowHeaders: true,
-      colHeaders: true,
+  using('configuration object', [
+    { htmlDir: 'rtl' },
+    { htmlDir: 'ltr' },
+  ], ({ htmlDir }) => {
+    beforeEach(() => {
+      $('html').attr('dir', htmlDir);
     });
 
-    const result = scrollViewportTo({
-      row: 150,
-      col: 50,
+    afterEach(() => {
+      $('html').attr('dir', 'ltr');
     });
 
-    await sleep(10);
+    it('should scroll the viewport in such a way that the coordinates are glued to the bottom-end edge when ' +
+        ' the previous viewport position was on the top-start (auto-snapping)', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(200, 100),
+        width: 300,
+        height: 300,
+        rowHeaders: true,
+        colHeaders: true,
+      });
 
-    expect(result).toBe(true);
-    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2315);
-    expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3215);
+      const result = scrollViewportTo({
+        row: 150,
+        col: 50,
+      });
+
+      render();
+
+      expect(result).toBe(true);
+      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2315);
+      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3215);
+    });
+
+    it('should scroll the viewport in such a way that the coordinates are glued to the bottom-start edge when ' +
+       'the previous viewport position was on the top-end (auto-snapping)', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(200, 100),
+        width: 300,
+        height: 300,
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      // move the table to the top-end viewport position
+      scrollViewportTo({
+        row: 0,
+        col: 99,
+      });
+
+      render();
+
+      const result = scrollViewportTo({
+        row: 150,
+        col: 50,
+      });
+
+      render();
+
+      expect(result).toBe(true);
+      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2502);
+      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3215);
+    });
+
+    it('should scroll the viewport in such a way that the coordinates are glued to the top-start edge when ' +
+       'the previous viewport position was on the bottom-end (auto-snapping)', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(200, 100),
+        width: 300,
+        height: 300,
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      // move the table to the bottom-end viewport position
+      scrollViewportTo({
+        row: 199,
+        col: 99,
+      });
+
+      render();
+
+      const result = scrollViewportTo({
+        row: 150,
+        col: 50,
+      });
+
+      render();
+
+      expect(result).toBe(true);
+      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2502);
+      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3450);
+    });
+
+    it('should scroll the viewport in such a way that the coordinates are glued to the top-end edge when ' +
+       'the previous viewport position was on the bottom-start (auto-snapping)', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(200, 100),
+        width: 300,
+        height: 300,
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      // move the table to the bottom-start viewport position
+      scrollViewportTo({
+        row: 199,
+        col: 0,
+      });
+
+      render();
+
+      const result = scrollViewportTo({
+        row: 150,
+        col: 50,
+      });
+
+      render();
+
+      expect(result).toBe(true);
+      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2315);
+      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3450);
+    });
   });
 
-  it('should scroll the viewport in such a way that the coordinates are glued to the bottom-left edge when ' +
-     'the previous viewport position was on the top-right (auto-snapping)', async() => {
-    const hot = handsontable({
-      data: createSpreadsheetData(200, 100),
-      width: 300,
-      height: 300,
-      rowHeaders: true,
-      colHeaders: true,
-    });
-
-    // move the table to the top-right viewport position
-    scrollViewportTo({
-      row: 0,
-      col: 99,
-    });
-
-    await sleep(10);
-
-    const result = scrollViewportTo({
-      row: 150,
-      col: 50,
-    });
-
-    await sleep(10);
-
-    expect(result).toBe(true);
-    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2502);
-    expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3215);
-  });
-
-  it('should scroll the viewport in such a way that the coordinates are glued to the top-left edge when ' +
-     'the previous viewport position was on the bottom-right (auto-snapping)', async() => {
-    const hot = handsontable({
-      data: createSpreadsheetData(200, 100),
-      width: 300,
-      height: 300,
-      rowHeaders: true,
-      colHeaders: true,
-    });
-
-    // move the table to the bottom-right viewport position
-    scrollViewportTo({
-      row: 199,
-      col: 99,
-    });
-
-    await sleep(10);
-
-    const result = scrollViewportTo({
-      row: 150,
-      col: 50,
-    });
-
-    await sleep(10);
-
-    expect(result).toBe(true);
-    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2502);
-    expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3450);
-  });
-
-  it('should scroll the viewport in such a way that the coordinates are glued to the top-right edge when ' +
-     'the previous viewport position was on the bottom-left (auto-snapping)', async() => {
-    const hot = handsontable({
-      data: createSpreadsheetData(200, 100),
-      width: 300,
-      height: 300,
-      rowHeaders: true,
-      colHeaders: true,
-    });
-
-    // move the table to the bottom-left viewport position
-    scrollViewportTo({
-      row: 199,
-      col: 0,
-    });
-
-    await sleep(10);
-
-    const result = scrollViewportTo({
-      row: 150,
-      col: 50,
-    });
-
-    await sleep(10);
-
-    expect(result).toBe(true);
-    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2317);
-    expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3450);
-  });
-
-  it('should scroll the viewport in such a way that the coordinates are glued to the bottom edge (manual snapping)', async() => {
+  it('should scroll the viewport in such a way that the coordinates are glued to the bottom edge (manual snapping)', () => {
     const hot = handsontable({
       data: createSpreadsheetData(200, 100),
       width: 300,
@@ -136,14 +149,14 @@ describe('Core.scrollViewportTo', () => {
       verticalSnap: 'bottom',
     });
 
-    await sleep(10);
+    render();
 
     expect(result).toBe(true);
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(0);
     expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3215);
   });
 
-  it('should scroll the viewport in such a way that the coordinates are glued to the top edge (manual snapping)', async() => {
+  it('should scroll the viewport in such a way that the coordinates are glued to the top edge (manual snapping)', () => {
     const hot = handsontable({
       data: createSpreadsheetData(200, 100),
       width: 300,
@@ -157,14 +170,14 @@ describe('Core.scrollViewportTo', () => {
       verticalSnap: 'top',
     });
 
-    await sleep(10);
+    render();
 
     expect(result).toBe(true);
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(0);
     expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3450);
   });
 
-  it('should scroll the viewport in such a way that the coordinates are glued to the right edge (manual snapping)', async() => {
+  it('should scroll the viewport in such a way that the coordinates are glued to the right edge (manual snapping)', () => {
     const hot = handsontable({
       data: createSpreadsheetData(200, 100),
       width: 300,
@@ -175,19 +188,19 @@ describe('Core.scrollViewportTo', () => {
 
     const result = scrollViewportTo({
       col: 50,
-      horizontalSnap: 'right',
+      horizontalSnap: 'end',
     });
 
-    await sleep(10);
+    render();
 
     expect(result).toBe(true);
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2315);
     expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
   });
 
-  it('should scroll the viewport in such a way that the coordinates are glued to the left edge (manual snapping)', async() => {
+  it('should scroll the viewport in such a way that the coordinates are glued to the left edge (manual snapping)', () => {
     const hot = handsontable({
-      data: createSpreadsheetData(200, 100),
+      data: createSpreadsheetData(100, 100),
       width: 300,
       height: 300,
       rowHeaders: true,
@@ -196,13 +209,683 @@ describe('Core.scrollViewportTo', () => {
 
     const result = scrollViewportTo({
       col: 50,
-      horizontalSnap: 'left',
+      horizontalSnap: 'start',
     });
 
-    await sleep(10);
+    render();
 
     expect(result).toBe(true);
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2500);
     expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
+  });
+
+  it('should scroll the viewport to the last cell in the last row', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(100, 100),
+      height: 300,
+      width: 300,
+      rowHeaders: true,
+      colHeaders: true
+    });
+
+    scrollViewportTo({
+      row: 99,
+      col: 99,
+    });
+
+    render();
+
+    expect(hot.view._wt.wtScroll.getLastVisibleColumn()).toBe(98);
+    expect(hot.view._wt.wtScroll.getLastVisibleRow()).toBe(99);
+  });
+
+  it('should scroll the viewport to the first cell in the first row', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(50, 50),
+      height: 300,
+      width: 300,
+      rowHeaders: true,
+      colHeaders: true
+    });
+
+    // move the table to the bottom-left viewport position
+    scrollViewportTo({
+      row: countRows() - 1,
+      col: countCols() - 1,
+    });
+
+    render();
+
+    scrollViewportTo({
+      row: 0,
+      col: 0,
+    });
+
+    render();
+
+    expect(hot.view._wt.wtScroll.getFirstVisibleColumn()).toBe(0);
+    expect(hot.view._wt.wtScroll.getFirstVisibleRow()).toBe(0);
+  });
+
+  it('should scroll the viewport only horizontally', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(100, 100),
+      height: 300,
+      width: 300,
+      rowHeaders: true,
+      colHeaders: true
+    });
+
+    scrollViewportTo({
+      row: 50,
+      col: 50,
+    });
+
+    render();
+
+    scrollViewportTo({
+      row: 80,
+    });
+
+    render();
+
+    expect(hot.view._wt.wtScroll.getFirstVisibleColumn()).toBe(47);
+    expect(hot.view._wt.wtScroll.getFirstVisibleRow()).toBe(70);
+  });
+
+  it('should scroll the viewport only vertically', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(100, 100),
+      height: 300,
+      width: 300,
+      rowHeaders: true,
+      colHeaders: true
+    });
+
+    scrollViewportTo({
+      row: 50,
+      col: 50,
+    });
+
+    render();
+
+    scrollViewportTo({
+      col: 80,
+    });
+
+    render();
+
+    expect(hot.view._wt.wtScroll.getFirstVisibleColumn()).toBe(77);
+    expect(hot.view._wt.wtScroll.getFirstVisibleRow()).toBe(40);
+  });
+
+  it('should scroll the viewport properly when there are hidden columns', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(50, 50),
+      width: 200,
+      height: 200,
+    });
+
+    const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(0, true);
+    hidingMap.setValueAtIndex(1, true);
+    hidingMap.setValueAtIndex(2, true);
+
+    render();
+
+    scrollViewportTo({
+      row: 0,
+      col: 15,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    render();
+
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(15 - 3); // 3 hidden, not rendered elements.
+  });
+
+  it('should scroll the viewport properly when there are hidden rows', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(50, 50),
+      width: 200,
+      height: 200,
+    });
+
+    const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(0, true);
+    hidingMap.setValueAtIndex(1, true);
+    hidingMap.setValueAtIndex(2, true);
+
+    render();
+
+    scrollViewportTo({
+      row: 15,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    render();
+
+    expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(15 - 3); // 3 hidden, not rendered elements.
+  });
+
+  it('should scroll viewport properly when there are hidden columns (row is not defined)', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(50, 50),
+      width: 200,
+      height: 200,
+    });
+
+    const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(0, true);
+    hidingMap.setValueAtIndex(1, true);
+    hidingMap.setValueAtIndex(2, true);
+
+    render();
+
+    scrollViewportTo({
+      col: 15,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    render();
+
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(15 - 3); // 3 hidden, not rendered elements before.
+  });
+
+  it('should scroll viewport properly when there are hidden rows (col is not defined)', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(50, 50),
+      width: 200,
+      height: 200,
+    });
+
+    const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(0, true);
+    hidingMap.setValueAtIndex(1, true);
+    hidingMap.setValueAtIndex(2, true);
+
+    render();
+
+    scrollViewportTo({
+      row: 15,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    render();
+
+    expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(15 - 3); // 3 hidden, not rendered elements before.
+  });
+
+  it('should scroll the viewport to the right side of the destination index when the column is hidden (based on visual indexes)', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(50, 50),
+      width: 200,
+      height: 200,
+    });
+
+    const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(0, true);
+    hidingMap.setValueAtIndex(1, true);
+    hidingMap.setValueAtIndex(2, true);
+    hidingMap.setValueAtIndex(7, true);
+    hidingMap.setValueAtIndex(15, true);
+
+    render();
+
+    const scrollResult1 = scrollViewportTo({
+      row: 0,
+      col: 7,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    render();
+
+    expect(scrollResult1).toBe(true);
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(8 - 4); // 4 hidden, not rendered elements before.
+
+    const scrollResult2 = scrollViewportTo({
+      row: 0,
+      col: 15,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    render();
+
+    expect(scrollResult2).toBe(true);
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(16 - 5); // 5 hidden, not rendered elements before.
+
+    const scrollResult3 = scrollViewportTo({
+      row: 0,
+      col: 7,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    render();
+
+    expect(scrollResult3).toBe(true);
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(8 - 4); // 4 hidden, not rendered elements before.
+
+    const scrollResult4 = scrollViewportTo({
+      row: 0,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    render();
+
+    expect(scrollResult4).toBe(true);
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(3 - 3); // 3 hidden, not rendered elements before.
+  });
+
+  it('should scroll the viewport to the bottom side of the destination index when the row is hidden (based on visual indexes)', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(50, 50),
+      width: 200,
+      height: 200,
+    });
+
+    const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(0, true);
+    hidingMap.setValueAtIndex(1, true);
+    hidingMap.setValueAtIndex(2, true);
+    hidingMap.setValueAtIndex(7, true);
+    hidingMap.setValueAtIndex(15, true);
+
+    render();
+
+    const scrollResult1 = scrollViewportTo({
+      row: 7,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    render();
+
+    expect(scrollResult1).toBe(true);
+    expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(8 - 4); // 4 hidden, not rendered elements before.
+
+    const scrollResult2 = scrollViewportTo({
+      row: 15,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    render();
+
+    expect(scrollResult2).toBe(true);
+    expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(16 - 5); // 5 hidden, not rendered elements before.
+
+    const scrollResult3 = scrollViewportTo({
+      row: 7,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    render();
+
+    expect(scrollResult3).toBe(true);
+    expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(8 - 4); // 4 hidden, not rendered elements before.
+
+    const scrollResult4 = scrollViewportTo({
+      row: 0,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    render();
+
+    expect(scrollResult4).toBe(true);
+    expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(3 - 3); // 3 hidden, not rendered elements before.
+  });
+
+  it('should scroll the viewport to the left side of the destination index when the column is hidden and there are ' +
+    'no visible indexes on the right (based on visual indexes)', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(50, 20),
+      width: 200,
+      height: 200,
+    });
+
+    const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(0, true);
+    hidingMap.setValueAtIndex(1, true);
+    hidingMap.setValueAtIndex(2, true);
+    hidingMap.setValueAtIndex(7, true);
+    hidingMap.setValueAtIndex(15, true);
+    hidingMap.setValueAtIndex(16, true);
+    hidingMap.setValueAtIndex(17, true);
+    hidingMap.setValueAtIndex(18, true);
+    hidingMap.setValueAtIndex(19, true);
+
+    render();
+    hot.view._wt.wtOverlays.adjustElementsSize();
+
+    const scrollResult1 = scrollViewportTo({
+      row: 0,
+      col: 15,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    render();
+
+    expect(scrollResult1).toBe(true);
+    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 5 hidden, not rendered elements before.
+
+    const scrollResult2 = scrollViewportTo({
+      row: 0,
+      col: 17,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    render();
+
+    expect(scrollResult2).toBe(true);
+    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 4 hidden, not rendered elements before.
+
+    const scrollResult3 = scrollViewportTo({
+      row: 0,
+      col: 19,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    render();
+
+    expect(scrollResult3).toBe(true);
+    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 4 hidden, not rendered elements before.
+  });
+
+  it('should scroll the viewport to the bottom side of the destination index when the row is hidden and there are ' +
+    'no visible indexes on the top (based on visual indexes)', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(25, 20),
+      width: 200,
+      height: 200,
+    });
+
+    const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(0, true);
+    hidingMap.setValueAtIndex(1, true);
+    hidingMap.setValueAtIndex(2, true);
+    hidingMap.setValueAtIndex(7, true);
+    hidingMap.setValueAtIndex(15, true);
+    hidingMap.setValueAtIndex(16, true);
+    hidingMap.setValueAtIndex(17, true);
+    hidingMap.setValueAtIndex(18, true);
+    hidingMap.setValueAtIndex(19, true);
+    hidingMap.setValueAtIndex(20, true);
+    hidingMap.setValueAtIndex(21, true);
+    hidingMap.setValueAtIndex(22, true);
+    hidingMap.setValueAtIndex(23, true);
+    hidingMap.setValueAtIndex(24, true);
+    hidingMap.setValueAtIndex(25, true);
+
+    render();
+    hot.view._wt.wtOverlays.adjustElementsSize();
+
+    const scrollResult1 = scrollViewportTo({
+      row: 15,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    render();
+
+    expect(scrollResult1).toBe(true);
+    expect(hot.view._wt.wtTable.getLastVisibleRow()).toBe(14 - 4); // 5 hidden, not rendered elements before.
+
+    const scrollResult2 = scrollViewportTo({
+      row: 17,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    render();
+
+    expect(scrollResult2).toBe(true);
+    expect(hot.view._wt.wtTable.getLastVisibleRow()).toBe(14 - 4); // 4 hidden, not rendered elements before.
+
+    const scrollResult3 = scrollViewportTo({
+      row: 19,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    render();
+
+    expect(scrollResult3).toBe(true);
+    expect(hot.view._wt.wtTable.getLastVisibleRow()).toBe(14 - 4); // 4 hidden, not rendered elements before.
+  });
+
+  it('should scroll the viewport to the the visual index destination when there are some hidden columns', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(50, 20),
+      width: 200,
+      height: 200,
+    });
+
+    const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(0, true);
+    hidingMap.setValueAtIndex(1, true);
+    hidingMap.setValueAtIndex(2, true);
+    hidingMap.setValueAtIndex(7, true);
+    hidingMap.setValueAtIndex(15, true);
+
+    render();
+
+    const scrollResult1 = scrollViewportTo({
+      row: 0,
+      col: 2,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+      considerHiddenIndexes: false,
+    });
+
+    render();
+
+    expect(scrollResult1).toBe(true);
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(2);
+
+    const scrollResult2 = scrollViewportTo({
+      row: 0,
+      col: 14,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+      considerHiddenIndexes: false,
+    });
+
+    render();
+
+    expect(scrollResult2).toBe(true);
+    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(14);
+
+    const scrollResult3 = scrollViewportTo({
+      row: 0,
+      col: 2,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+      considerHiddenIndexes: false,
+    });
+
+    render();
+
+    expect(scrollResult3).toBe(true);
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(2);
+
+    const scrollResult4 = scrollViewportTo({
+      row: 0,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+      considerHiddenIndexes: false,
+    });
+
+    render();
+
+    expect(scrollResult4).toBe(true);
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(0);
+  });
+
+  it('should scroll the viewport to the the visual index destination when there are some hidden rows', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(25, 20),
+      width: 200,
+      height: 200,
+    });
+
+    const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(0, true);
+    hidingMap.setValueAtIndex(1, true);
+    hidingMap.setValueAtIndex(2, true);
+    hidingMap.setValueAtIndex(7, true);
+    hidingMap.setValueAtIndex(15, true);
+
+    render();
+
+    const scrollResult1 = scrollViewportTo({
+      row: 2,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+      considerHiddenIndexes: false,
+    });
+
+    render();
+
+    expect(scrollResult1).toBe(true);
+    expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(2);
+
+    const scrollResult2 = scrollViewportTo({
+      row: 14,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+      considerHiddenIndexes: false,
+    });
+
+    render();
+
+    expect(scrollResult2).toBe(true);
+    expect(hot.view._wt.wtTable.getLastVisibleRow()).toBe(19);
+
+    const scrollResult3 = scrollViewportTo({
+      row: 2,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+      considerHiddenIndexes: false,
+    });
+
+    render();
+
+    expect(scrollResult3).toBe(true);
+    expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(2);
+
+    const scrollResult4 = scrollViewportTo({
+      row: 0,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+      considerHiddenIndexes: false,
+    });
+
+    render();
+
+    expect(scrollResult4).toBe(true);
+    expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(0);
+  });
+
+  it('should not scroll viewport when all columns are hidden (based on visual indexes)', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(10, 10),
+      width: 200,
+      height: 200,
+    });
+
+    columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+    render();
+
+    const scrollResult1 = scrollViewportTo({
+      row: 0,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    render();
+
+    expect(scrollResult1).toBe(false);
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(-1);
+
+    const scrollResult2 = scrollViewportTo({
+      row: 0,
+      col: 5,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    render();
+
+    expect(scrollResult2).toBe(false);
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(-1);
+  });
+
+  it('should not scroll viewport when all rows are hidden (based on visual indexes)', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(10, 10),
+      width: 200,
+      height: 200,
+    });
+
+    rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+    render();
+
+    const scrollResult1 = scrollViewportTo({
+      row: 0,
+      col: 0,
+    });
+
+    render();
+
+    expect(scrollResult1).toBe(false);
+    expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(-1);
+
+    const scrollResult2 = scrollViewportTo({
+      row: 5,
+      col: 0,
+    });
+
+    render();
+
+    expect(scrollResult2).toBe(false);
+    expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(-1);
   });
 });

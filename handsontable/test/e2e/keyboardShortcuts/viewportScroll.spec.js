@@ -33,7 +33,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         row: 12,
         col: 7,
         verticalSnap: 'bottom',
-        horizontalSnap: 'right',
+        horizontalSnap: 'end',
       });
 
       const scrollPosition = getCurrentScrollPosition();
@@ -58,7 +58,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         row: 0,
         col: 0,
         verticalSnap: 'bottom',
-        horizontalSnap: 'right',
+        horizontalSnap: 'end',
       });
 
       const scrollPosition = getCurrentScrollPosition();
@@ -83,7 +83,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         row: 0,
         col: 0,
         verticalSnap: 'bottom',
-        horizontalSnap: 'right',
+        horizontalSnap: 'end',
       });
 
       const scrollPosition = getCurrentScrollPosition();
@@ -108,7 +108,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         row: 0,
         col: 7,
         verticalSnap: 'bottom',
-        horizontalSnap: 'right',
+        horizontalSnap: 'end',
       });
 
       const scrollPosition = getCurrentScrollPosition();
@@ -132,7 +132,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         row: 0,
         col: 0,
         verticalSnap: 'bottom',
-        horizontalSnap: 'right',
+        horizontalSnap: 'end',
       });
 
       await sleep(100);
@@ -154,7 +154,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         row: 0,
         col: 0,
         verticalSnap: 'bottom',
-        horizontalSnap: 'right',
+        horizontalSnap: 'end',
       });
 
       await sleep(100);
@@ -176,7 +176,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         row: 99,
         col: 49,
         verticalSnap: 'bottom',
-        horizontalSnap: 'right',
+        horizontalSnap: 'end',
       });
 
       await sleep(100);
@@ -198,7 +198,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         row: 99,
         col: 0,
         verticalSnap: 'bottom',
-        horizontalSnap: 'right',
+        horizontalSnap: 'end',
       });
 
       await sleep(100);
@@ -220,7 +220,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         row: 0,
         col: 0,
         verticalSnap: 'bottom',
-        horizontalSnap: 'right',
+        horizontalSnap: 'end',
       });
 
       await sleep(100);
@@ -245,7 +245,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         row: 90,
         col: 1,
         verticalSnap: 'bottom',
-        horizontalSnap: 'right',
+        horizontalSnap: 'end',
       });
 
       await sleep(100);
@@ -314,7 +314,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         row: 1,
         col: 40,
         verticalSnap: 'bottom',
-        horizontalSnap: 'right',
+        horizontalSnap: 'end',
       });
 
       await sleep(100);
@@ -383,7 +383,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         row: 50,
         col: 25,
         verticalSnap: 'bottom',
-        horizontalSnap: 'right',
+        horizontalSnap: 'end',
       });
 
       await sleep(100);

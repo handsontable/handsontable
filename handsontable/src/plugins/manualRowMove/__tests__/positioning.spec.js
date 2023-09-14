@@ -163,7 +163,7 @@ describe('manualRowMove', () => {
         row: 20,
         col: 0,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
 
       await sleep(100);
@@ -195,7 +195,7 @@ describe('manualRowMove', () => {
         row: 20,
         col: 0,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
 
       await sleep(100);
@@ -237,7 +237,7 @@ describe('manualRowMove', () => {
         row: 20,
         col: 0,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
 
       await sleep(100);
@@ -276,7 +276,7 @@ describe('manualRowMove', () => {
         row: 20,
         col: 0,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
 
       await sleep(100);
@@ -306,7 +306,7 @@ describe('manualRowMove', () => {
         row: 20,
         col: 0,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
 
       await sleep(100);
@@ -346,7 +346,7 @@ describe('manualRowMove', () => {
         row: 20,
         col: 0,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
 
       await sleep(100);

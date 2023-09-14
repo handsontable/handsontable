@@ -161,7 +161,7 @@ describe('manualRowMove', () => {
         row: countRows() - 1,
         col: 0,
         verticalSnap: 'bottom',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
 
       await sleep(10);
@@ -204,7 +204,7 @@ describe('manualRowMove', () => {
         row: countRows() - 1,
         col: 0,
         verticalSnap: 'bottom',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
 
       await sleep(10);
@@ -249,7 +249,7 @@ describe('manualRowMove', () => {
         row: countRows() - 1,
         col: 0,
         verticalSnap: 'bottom',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
 
       await sleep(10);
@@ -291,7 +291,7 @@ describe('manualRowMove', () => {
         row: countRows() - 1,
         col: 0,
         verticalSnap: 'bottom',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
 
       await sleep(10);

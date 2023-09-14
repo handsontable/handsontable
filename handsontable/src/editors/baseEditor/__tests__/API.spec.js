@@ -88,7 +88,7 @@ describe('BaseEditor API', () => {
               row: countRows() - 1,
               col: countCols() - 1,
               verticalSnap: 'top',
-              horizontalSnap: 'left',
+              horizontalSnap: 'start',
             });
             selectCell(1, countRows() - 1);
 
@@ -120,7 +120,7 @@ describe('BaseEditor API', () => {
               row: countRows() - 1,
               col: countCols() - 1,
               verticalSnap: 'top',
-              horizontalSnap: 'left',
+              horizontalSnap: 'start',
             });
             selectCell(1, countCols() - 1);
 
@@ -197,7 +197,7 @@ describe('BaseEditor API', () => {
               row: countRows() - 1,
               col: countCols() - 1,
               verticalSnap: 'top',
-              horizontalSnap: 'left',
+              horizontalSnap: 'start',
             });
             selectCell(1, 1);
 
@@ -224,7 +224,7 @@ describe('BaseEditor API', () => {
               row: countRows() - 1,
               col: countCols() - 1,
               verticalSnap: 'top',
-              horizontalSnap: 'left',
+              horizontalSnap: 'start',
             });
             selectCell(1, 1);
 
@@ -298,7 +298,7 @@ describe('BaseEditor API', () => {
               row: countRows() - 1,
               col: countCols() - 1,
               verticalSnap: 'top',
-              horizontalSnap: 'left',
+              horizontalSnap: 'start',
             });
             selectCell(countRows() - 1, 1);
 
@@ -324,7 +324,7 @@ describe('BaseEditor API', () => {
               row: countRows() - 1,
               col: countCols() - 1,
               verticalSnap: 'top',
-              horizontalSnap: 'left',
+              horizontalSnap: 'start',
             });
             selectCell(countRows() - 1, 1);
 
@@ -401,7 +401,7 @@ describe('BaseEditor API', () => {
               row: countRows() - 1,
               col: countCols() - 1,
               verticalSnap: 'top',
-              horizontalSnap: 'left',
+              horizontalSnap: 'start',
             });
             selectCell(countRows() - 2, 0);
 
@@ -428,7 +428,7 @@ describe('BaseEditor API', () => {
               row: countRows() - 1,
               col: countCols() - 1,
               verticalSnap: 'top',
-              horizontalSnap: 'left',
+              horizontalSnap: 'start',
             });
             selectCell(countRows() - 2, 0);
 
@@ -502,7 +502,7 @@ describe('BaseEditor API', () => {
               row: countRows() - 1,
               col: countCols() - 1,
               verticalSnap: 'top',
-              horizontalSnap: 'left',
+              horizontalSnap: 'start',
             });
             selectCell(countRows() - 1, countCols() - 1);
 
@@ -537,7 +537,7 @@ describe('BaseEditor API', () => {
               row: countRows() - 1,
               col: countCols() - 1,
               verticalSnap: 'top',
-              horizontalSnap: 'left',
+              horizontalSnap: 'start',
             });
             selectCell(countRows() - 1, countCols() - 1);
 

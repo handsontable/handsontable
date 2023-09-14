@@ -717,7 +717,7 @@ class Menu {
         row: lastRow,
         col: 0,
         verticalSnap: 'bottom',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
     }
   }

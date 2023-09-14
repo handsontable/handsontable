@@ -14,7 +14,7 @@ export const command = {
       hot.scrollViewportTo({
         row: nextVerticalScroll,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
     }
   },

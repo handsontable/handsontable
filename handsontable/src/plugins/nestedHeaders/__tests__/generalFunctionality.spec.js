@@ -649,7 +649,7 @@ describe('NestedHeaders', () => {
       scrollViewportTo({
         col: 40,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
       render();
 

@@ -1019,7 +1019,7 @@ describe('NestedHeaders', () => {
       scrollViewportTo({ // Scroll to column AA4
         col: 25,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
       render();
 
@@ -1143,7 +1143,7 @@ describe('NestedHeaders', () => {
       scrollViewportTo({ // Scroll to column AM4
         col: 38,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
       render();
 

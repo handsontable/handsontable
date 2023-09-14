@@ -4364,8 +4364,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.scrollViewportTo = function({ row, col, verticalSnap, horizontalSnap, considerHiddenIndexes } = {}) {
     let snapToTop;
     let snapToBottom;
-    let snapToLeft;
-    let snapToRight;
+    let snapToInlineStart;
+    let snapToInlineEnd;
 
     if (verticalSnap !== undefined) {
       snapToTop = verticalSnap === 'top';
@@ -4373,19 +4373,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (horizontalSnap !== undefined) {
-      snapToLeft = horizontalSnap === 'left';
-      snapToRight = !snapToLeft;
+      snapToInlineStart = horizontalSnap === 'start';
+      snapToInlineEnd = !snapToInlineStart;
     }
 
     let renderableRow = row;
     let renderableColumn = col;
 
-    if (considerHiddenIndexes === void 0 || considerHiddenIndexes) {
+    if (considerHiddenIndexes === undefined || considerHiddenIndexes) {
       const isValidRowGrid = Number.isInteger(row) && row >= 0;
       const isValidColumnGrid = Number.isInteger(col) && col >= 0;
 
-      const visualRowToScroll = isValidRowGrid ? getIndexToScroll(this.rowIndexMapper, row) : void 0;
-      const visualColumnToScroll = isValidColumnGrid ? getIndexToScroll(this.columnIndexMapper, col) : void 0;
+      const visualRowToScroll = isValidRowGrid ? getIndexToScroll(this.rowIndexMapper, row) : undefined;
+      const visualColumnToScroll = isValidColumnGrid ? getIndexToScroll(this.columnIndexMapper, col) : undefined;
 
       if (visualRowToScroll === null || visualColumnToScroll === null) {
         return false;
@@ -4404,9 +4404,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       return instance.view.scrollViewport(
         instance._createCellCoords(renderableRow, renderableColumn),
         snapToTop,
-        snapToRight,
+        snapToInlineEnd,
         snapToBottom,
-        snapToLeft
+        snapToInlineStart
       );
     }
 
@@ -4415,7 +4415,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (isColumnInteger && renderableColumn >= 0 && (isRowInteger && renderableRow < 0 || !isRowInteger)) {
-      return instance.view.scrollViewportHorizontally(renderableColumn, snapToRight, snapToLeft);
+      return instance.view.scrollViewportHorizontally(renderableColumn, snapToInlineEnd, snapToInlineStart);
     }
 
     return false;

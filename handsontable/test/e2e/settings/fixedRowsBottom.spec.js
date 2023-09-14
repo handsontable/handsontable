@@ -108,7 +108,7 @@ describe('settings', () => {
           row: 30,
           col: 30,
           verticalSnap: 'top',
-          horizontalSnap: 'left',
+          horizontalSnap: 'start',
         });
 
         await sleep(100);

@@ -345,7 +345,7 @@ describe('ContextMenu keyboard shortcut', () => {
         row: 0,
         col: 0,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
 
       await sleep(10);

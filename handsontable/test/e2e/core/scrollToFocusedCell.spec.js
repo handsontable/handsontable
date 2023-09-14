@@ -23,7 +23,7 @@ describe('Core.scrollToFocusedCell', () => {
       row: 250,
       col: 25,
       verticalSnap: 'top',
-      horizontalSnap: 'left',
+      horizontalSnap: 'start',
     });
     selectCell(255, 27, 255, 27, false);
 
@@ -107,7 +107,7 @@ describe('Core.scrollToFocusedCell', () => {
       row: 250,
       col: 49,
       verticalSnap: 'top',
-      horizontalSnap: 'left',
+      horizontalSnap: 'start',
     });
     selectCell(255, 0, 255, 0, false);
 
@@ -135,7 +135,7 @@ describe('Core.scrollToFocusedCell', () => {
       row: 250,
       col: 0,
       verticalSnap: 'top',
-      horizontalSnap: 'left',
+      horizontalSnap: 'start',
     });
     selectCell(255, 49, 255, 49, false);
 
@@ -163,7 +163,7 @@ describe('Core.scrollToFocusedCell', () => {
       row: 255,
       col: 25,
       verticalSnap: 'top',
-      horizontalSnap: 'left',
+      horizontalSnap: 'start',
     });
     selectCell(0, 27, 0, 27, false);
 
@@ -191,7 +191,7 @@ describe('Core.scrollToFocusedCell', () => {
       row: 255,
       col: 25,
       verticalSnap: 'top',
-      horizontalSnap: 'left',
+      horizontalSnap: 'start',
     });
     selectCell(499, 27, 499, 27, false);
 

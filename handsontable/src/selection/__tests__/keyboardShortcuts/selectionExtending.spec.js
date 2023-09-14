@@ -2692,7 +2692,7 @@ describe('Selection extending', () => {
         row: 99,
         col: 1,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
 
       await sleep(20);

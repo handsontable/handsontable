@@ -64,7 +64,7 @@ describe('Core.getSelected', () => {
       row: 99,
       col: 99,
       verticalSnap: 'bottom',
-      horizontalSnap: 'right',
+      horizontalSnap: 'end',
     });
 
     await sleep(100);

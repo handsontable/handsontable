@@ -875,7 +875,7 @@ describe('Selection using mouse interaction', () => {
     scrollViewportTo({
       col: countCols() - 1,
       verticalSnap: 'top',
-      horizontalSnap: 'left',
+      horizontalSnap: 'start',
     });
 
     spec().$container.find('.ht_master thead th:eq(2)').simulate('mousedown');
@@ -908,7 +908,7 @@ describe('Selection using mouse interaction', () => {
       row: 10,
       col: 10,
       verticalSnap: 'top',
-      horizontalSnap: 'left',
+      horizontalSnap: 'start',
     });
 
     render();
@@ -961,7 +961,7 @@ describe('Selection using mouse interaction', () => {
       row: 10,
       col: 10,
       verticalSnap: 'top',
-      horizontalSnap: 'left',
+      horizontalSnap: 'start',
     });
     render();
 

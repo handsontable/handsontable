@@ -81,7 +81,7 @@ describe('Comments (RTL mode)', () => {
           row: countRows() - 1,
           col: countCols() - 1,
           verticalSnap: 'top',
-          horizontalSnap: 'left',
+          horizontalSnap: 'start',
         });
 
         const plugin = getPlugin('comments');
@@ -134,7 +134,7 @@ describe('Comments (RTL mode)', () => {
           row: countRows() - 1,
           col: countCols() - 1,
           verticalSnap: 'top',
-          horizontalSnap: 'left',
+          horizontalSnap: 'start',
         });
 
         const plugin = getPlugin('comments');
@@ -169,7 +169,7 @@ describe('Comments (RTL mode)', () => {
           row: countRows() - 1,
           col: countCols() - 1,
           verticalSnap: 'top',
-          horizontalSnap: 'left',
+          horizontalSnap: 'start',
         });
 
         const plugin = getPlugin('comments');
@@ -204,7 +204,7 @@ describe('Comments (RTL mode)', () => {
           row: countRows() - 1,
           col: countCols() - 1,
           verticalSnap: 'top',
-          horizontalSnap: 'left',
+          horizontalSnap: 'start',
         });
 
         const plugin = getPlugin('comments');
@@ -242,7 +242,7 @@ describe('Comments (RTL mode)', () => {
           row: countRows() - 1,
           col: 0,
           verticalSnap: 'top',
-          horizontalSnap: 'left',
+          horizontalSnap: 'start',
         });
 
         const plugin = getPlugin('comments');

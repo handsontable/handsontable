@@ -1648,7 +1648,7 @@ describe('CollapsibleColumns', () => {
       scrollViewportTo({
         col: 37,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
       render();
 
@@ -1820,7 +1820,7 @@ describe('CollapsibleColumns', () => {
         row: 0,
         col: 10,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
       render();
 
@@ -1837,7 +1837,7 @@ describe('CollapsibleColumns', () => {
         row: 0,
         col: 20,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
       render();
 
@@ -2512,7 +2512,7 @@ describe('CollapsibleColumns', () => {
       scrollViewportTo({
         col: 37,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
       render();
 

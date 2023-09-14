@@ -94,7 +94,7 @@ describe('manualColumnMove', () => {
         row: 0,
         col: countCols() - 1,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
 
       await sleep(10);
@@ -137,7 +137,7 @@ describe('manualColumnMove', () => {
         row: 0,
         col: countCols() - 1,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
 
       await sleep(10);
@@ -184,7 +184,7 @@ describe('manualColumnMove', () => {
         row: 0,
         col: countCols() - 1,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
 
       const columnHeader = $(getCell(-1, 8));
@@ -224,7 +224,7 @@ describe('manualColumnMove', () => {
         row: 0,
         col: countCols() - 1,
         verticalSnap: 'top',
-        horizontalSnap: 'left',
+        horizontalSnap: 'start',
       });
 
       await sleep(10);
