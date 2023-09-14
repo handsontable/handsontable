@@ -472,7 +472,10 @@ class Menu {
     this.hotSubMenus[dataItem.key] = subMenu;
 
     // Update the accessibility tags on the cell being the base for the submenu.
-    cell.setAttribute(...ACCESSIBILITY_ATTR_EXPANDED);
+    setAttributes(cell, this.#getAttributes({
+      elementIdentifier: 'item',
+      isItemExpanded: true
+    }));
 
     return subMenu;
   }
@@ -494,7 +497,10 @@ class Menu {
 
     if (cell) {
       // Update the accessibility tags on the cell being the base for the submenu.
-      cell.setAttribute(...ACCESSIBILITY_ATTR_COLLAPSED);
+      setAttributes(cell, this.#getAttributes({
+        elementIdentifier: 'item',
+        isItemCollapsed: true
+      }));
     }
   }
 
@@ -809,7 +815,12 @@ class Menu {
 
     addClass(wrapper, 'htItemWrapper');
 
-    setAttributes(TD, this.#getMenuItemAttributes(itemValue, itemIsDisabled(item), isSubMenu(item)));
+    setAttributes(TD, this.#getAttributes({
+      elementIdentifier: 'item',
+      itemValue,
+      isItemDisabled: itemIsDisabled(item),
+      isSubMenu: isSubMenu(item),
+    }));
 
     TD.appendChild(wrapper);
 
@@ -919,46 +930,81 @@ class Menu {
   }
 
   /**
-   * Get a set of accessibility-related attributes to be added to the menu item element..
+   * Get a set of accessibility-related attributes to be added to the menu item element.
    *
-   * @param {string} itemValue The menu item value.
-   * @param {boolean} isItemDisabled `true` if the menu item is disabled.
-   * @param {boolean} isItemSubMenu `true` if the menu item is a submenu.
+   * @param {object} settings Object containing additional settings used to determine how the attributes should be
+   * constructed.
+   * @param {string} settings.elementIdentifier String identifying the element to be processed.
+   * @param {number} [settings.itemValue] The menu item value.
+   * @param {number} [settings.isItemDisabled] `true` if the menu item is disabled.
+   * @param {number} [settings.isSubMenu] `true` if the menu item is a submenu.
+   * @param {number} [settings.isItemExpanded] `true` if the menu item is an expanded submenu.
+   * @param {number} [settings.isItemCollapsed] `true` if the menu item is a collapsed submenu.
    * @returns {Array[]}
    */
-  #getAccessibilityAttributes(itemValue, isItemDisabled, isItemSubMenu) {
+  #getAccessibilityAttributes(settings) {
     if (!this.hot.getSettings().ariaTags) {
       return [];
     }
 
+    const {
+      elementIdentifier,
+      itemValue,
+      isItemDisabled,
+      isSubMenu,
+      isItemExpanded,
+      isItemCollapsed,
+    } = settings;
     const optionalAttrs = [];
 
-    if (isItemDisabled) {
-      optionalAttrs.push(ACCESSIBILITY_ATTR_DISABLED);
-    }
+    switch (elementIdentifier) {
+      case 'item':
+        if (isItemDisabled) {
+          optionalAttrs.push(ACCESSIBILITY_ATTR_DISABLED);
+        }
 
-    if (isItemSubMenu) {
-      optionalAttrs.push(ACCESSIBILITY_ATTR_COLLAPSED);
-    }
+        if (isSubMenu) {
+          optionalAttrs.push(ACCESSIBILITY_ATTR_COLLAPSED);
+        }
 
-    return [
-      ACCESSIBILITY_ATTR_MENU_ITEM,
-      [ACCESSIBILITY_ATTR_LABEL[0], itemValue],
-      ...optionalAttrs
-    ];
+        if (isItemExpanded) {
+          optionalAttrs.push(ACCESSIBILITY_ATTR_EXPANDED);
+        }
+
+        if (isItemCollapsed) {
+          optionalAttrs.push(ACCESSIBILITY_ATTR_COLLAPSED);
+        }
+
+        return [
+          ACCESSIBILITY_ATTR_MENU_ITEM,
+          [ACCESSIBILITY_ATTR_LABEL[0], itemValue],
+          ...optionalAttrs
+        ];
+
+      case 'menu':
+        return [ACCESSIBILITY_ATTR_MENU];
+
+      default:
+        return [];
+    }
   }
 
   /**
-   * Get the list of all attributes to be added to the menu item element..
+   * Get the list of all attributes to be added to the menu item element.
    *
-   * @param {string} itemValue The menu item value.
-   * @param {boolean} isItemDisabled `true` if the menu item is disabled.
-   * @param {boolean} isSubMenu `true` if the menu item is a submenu.
+   * @param {object} settings Object containing additional settings used to determine how the attributes should be
+   * constructed.
+   * @param {string} settings.elementIdentifier String identifying the element to be processed.
+   * @param {number} [settings.itemValue] The menu item value.
+   * @param {number} [settings.isItemDisabled] `true` if the menu item is disabled.
+   * @param {number} [settings.isSubMenu] `true` if the menu item is a submenu.
+   * @param {number} [settings.isItemExpanded] `true` if the menu item is an expanded submenu.
+   * @param {number} [settings.isItemCollapsed] `true` if the menu item is a collapsed submenu.
    * @returns {Array[]}
    */
-  #getMenuItemAttributes(itemValue, isItemDisabled, isSubMenu) {
+  #getAttributes(settings) {
     return [
-      ...this.#getAccessibilityAttributes(itemValue, isItemDisabled, isSubMenu)
+      ...this.#getAccessibilityAttributes(settings)
     ];
   }
 
@@ -982,7 +1028,9 @@ class Menu {
     hiderStyle.height = holderStyle.height;
 
     // Replace the default accessibility tags with the context menu's
-    this.hotMenu.rootElement.setAttribute(...ACCESSIBILITY_ATTR_MENU);
+    setAttributes(this.hotMenu.rootElement, this.#getAttributes({
+      elementIdentifier: 'menu'
+    }));
   }
 
   /**

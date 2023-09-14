@@ -1,3 +1,7 @@
+import { setAttributes } from '../../helpers/dom/element';
+
+const ACCESSIBILITY_ATTR_PRESENTATION = ['role', 'presentation'];
+
 /**
  * Installs a focus detector module. The module appends two input elements into the DOM side by side.
  * When the first input is focused, then it means that a user entered to the component using the TAB key
@@ -9,10 +13,9 @@
  * @returns {{ activate: Function, deactivate: Function }}
  */
 export function installFocusDetector(hot, hooks = {}) {
-  const rootDocument = hot.rootDocument;
   const rootElement = hot.rootElement;
-  const inputTrapTop = createInputElement(rootDocument);
-  const inputTrapBottom = createInputElement(rootDocument);
+  const inputTrapTop = createInputElement(hot);
+  const inputTrapBottom = createInputElement(hot);
 
   inputTrapTop.addEventListener('focus', () => hooks?.onFocusFromTop());
   inputTrapBottom.addEventListener('focus', () => hooks?.onFocusFromBottom());
@@ -45,14 +48,43 @@ export function installFocusDetector(hot, hooks = {}) {
 /**
  * Creates a new HTML input element.
  *
- * @param {Document} rootDocument The owner document element.
+ * @param {Handsontable} hot The Handsontable instance.
  * @returns {HTMLInputElement}
  */
-function createInputElement(rootDocument) {
+function createInputElement(hot) {
+  const rootDocument = hot.rootDocument;
   const input = rootDocument.createElement('input');
 
   input.type = 'text';
   input.classList.add('htFocusCatcher');
 
+  setAttributes(input, getAttributes(hot));
+
   return input;
+}
+
+/**
+ * Get a set of accessibility-related attributes to be added to the focus catcher.
+ *
+ * @param {Handsontable} hot The Handsontable instance.
+ * @returns {Array[]}
+ */
+function getAccessibilityAttributes(hot) {
+  if (!hot.getSettings().ariaTags) {
+    return [];
+  }
+
+  return [ACCESSIBILITY_ATTR_PRESENTATION];
+}
+
+/**
+ * Get the list of all attributes to be added to the focus catcher.
+ *
+ * @param {Handsontable} hot The Handsontable instance.
+ * @returns {Array[]}
+ */
+function getAttributes(hot) {
+  return [
+    ...getAccessibilityAttributes(hot)
+  ];
 }

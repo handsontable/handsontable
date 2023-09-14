@@ -13,7 +13,6 @@ const BAD_VALUE_CLASS = 'htBadValue';
 const ATTR_ROW = 'data-row';
 const ATTR_COLUMN = 'data-col';
 const SHORTCUTS_GROUP = 'checkboxRenderer';
-const ACCESSIBILITY_ATTR_CHECKBOX = ['role', 'checkbox'];
 const ACCESSIBILITY_ATTR_CHECKED = ['aria-checked', 'true'];
 const ACCESSIBILITY_ATTR_UNCHECKED = ['aria-checked', 'false'];
 
@@ -59,6 +58,7 @@ Hooks.getSingleton().add('modifyAutoColumnSizeSeed', function(bundleSeed, cellMe
  */
 export function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   const { rootDocument } = instance;
+  const ariaEnabled = instance.getSettings().ariaTags;
 
   baseRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
   registerEvents(instance);
@@ -76,21 +76,15 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
 
   empty(TD); // TODO identify under what circumstances this line can be removed
 
-  TD.setAttribute(...ACCESSIBILITY_ATTR_CHECKBOX);
-
   if (value === cellProperties.checkedTemplate ||
     stringify(value).toLocaleLowerCase(cellProperties.locale) ===
     stringify(cellProperties.checkedTemplate).toLocaleLowerCase(cellProperties.locale)) {
     input.checked = true;
 
-    TD.setAttribute(...ACCESSIBILITY_ATTR_CHECKED);
-
   } else if (value === cellProperties.uncheckedTemplate ||
     stringify(value).toLocaleLowerCase(cellProperties.locale) ===
     stringify(cellProperties.uncheckedTemplate).toLocaleLowerCase(cellProperties.locale)) {
     input.checked = false;
-
-    TD.setAttribute(...ACCESSIBILITY_ATTR_UNCHECKED);
 
   } else if (isEmpty(value)) { // default value
     addClass(input, 'noValue');
@@ -103,6 +97,13 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
 
   input.setAttribute(ATTR_ROW, row);
   input.setAttribute(ATTR_COLUMN, col);
+
+  if (ariaEnabled) {
+    TD.setAttribute(
+      ACCESSIBILITY_ATTR_CHECKED[0],
+      (input.checked ? ACCESSIBILITY_ATTR_CHECKED[1] : ACCESSIBILITY_ATTR_UNCHECKED[1])
+    );
+  }
 
   if (!badValue && labelOptions) {
     let labelText = '';

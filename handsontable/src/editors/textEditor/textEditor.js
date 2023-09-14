@@ -8,6 +8,7 @@ import {
   setCaretPosition,
   hasClass,
   removeClass,
+  setAttributes,
 } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { KEY_CODES } from '../../helpers/unicode';
@@ -17,6 +18,8 @@ import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
 import { SHORTCUTS_GROUP_EDITOR } from '../baseEditor/baseEditor';
 import { updateCaretPosition } from './caretPositioner';
 
+const ACCESSIBILITY_ATTR_TABINDEX = ['tabindex', '-1'];
+const ACCESSIBILITY_ATTR_HIDDEN = ['aria-hidden', 'true'];
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
 const SHORTCUTS_GROUP = 'textEditor';
@@ -209,9 +212,7 @@ export class TextEditor extends BaseEditor {
     const { rootDocument } = this.hot;
 
     this.TEXTAREA = rootDocument.createElement('TEXTAREA');
-    this.TEXTAREA.setAttribute('data-hot-input', ''); // Makes the element recognizable by Hot as its own component's element.
-    this.TEXTAREA.setAttribute('aria-hidden', 'true');
-    this.TEXTAREA.tabIndex = -1;
+    setAttributes(this.TEXTAREA, this.#getAttributes());
 
     addClass(this.TEXTAREA, 'handsontableInput');
 
@@ -234,6 +235,34 @@ export class TextEditor extends BaseEditor {
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
 
     this.hot.rootElement.appendChild(this.TEXTAREA_PARENT);
+  }
+
+  /**
+   * Get a set of accessibility-related attributes to be added to the text editor.
+   *
+   * @returns {Array[]}
+   */
+  #getAccessibilityAttributes() {
+    if (!this.hot.getSettings().ariaTags) {
+      return [];
+    }
+
+    return [
+      ACCESSIBILITY_ATTR_HIDDEN,
+      ACCESSIBILITY_ATTR_TABINDEX,
+    ];
+  }
+
+  /**
+   * Get the list of all attributes to be added to the text editor element.
+   *
+   * @returns {Array[]}
+   */
+  #getAttributes() {
+    return [
+      ['data-hot-input', ''], // Makes the element recognizable by Hot as its own component's element.
+      ...this.#getAccessibilityAttributes()
+    ];
   }
 
   /**

@@ -4,7 +4,7 @@ import { OrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
 import { setAttributes } from '../../../../helpers/dom/element';
 
-const ACCESSIBILITY_ATTR_ROWGROUP = ['role', 'rowgroup'];
+const ACCESSIBILITY_ATTR_PRESENTATION = ['role', 'presentation'];
 const ACCESSIBILITY_ATTR_ROW = ['role', 'row'];
 const ACCESSIBILITY_ATTR_ROWINDEX = ['aria-rowindex'];
 
@@ -40,34 +40,50 @@ export default class RowsRenderer extends BaseRenderer {
   /**
    * Get a set of accessibility-related attributes to be added to the table.
    *
-   * @param {number|null} rowIndex Row index or `null` if used for the root element.
+   * @param {object} settings Object containing additional settings used to determine how the attributes should be
+   * constructed.
+   * @param {string} settings.elementIdentifier String identifying the element to be processed.
+   * @param {number} [settings.rowIndex] The row index.
    * @returns {Array[]}
    */
-  #getAccessibilityAttributes(rowIndex) {
+  #getAccessibilityAttributes(settings) {
     if (!this.table.isAriaEnabled()) {
       return [];
     }
 
-    // Root node
-    if (rowIndex === null) {
-      return [ACCESSIBILITY_ATTR_ROWGROUP];
-    }
+    const {
+      elementIdentifier,
+      rowIndex
+    } = settings;
 
-    return [
-      ACCESSIBILITY_ATTR_ROW,
-      [ACCESSIBILITY_ATTR_ROWINDEX[0], rowIndex + 1]
-    ];
+    switch (elementIdentifier) {
+      case 'rowgroup':
+        return [ACCESSIBILITY_ATTR_PRESENTATION];
+
+      case 'row':
+        return [
+          ACCESSIBILITY_ATTR_ROW,
+          // `aria-rowindex` is incremented by both tbody and thead rows.
+          [ACCESSIBILITY_ATTR_ROWINDEX[0], rowIndex + this.table.columnHeadersCount + 1]
+        ];
+
+      default:
+        return [];
+    }
   }
 
   /**
    * Get the list of all attributes to be added to the row elements.
    *
-   * @param {number} rowIndex The row index.
+   * @param {object} settings Object containing additional settings used to determine how the attributes should be
+   * constructed.
+   * @param {string} settings.elementIdentifier String identifying the element to be processed.
+   * @param {number} [settings.rowIndex] The row index.
    * @returns {Array[]}
    */
-  #getAttributes(rowIndex) {
+  #getAttributes(settings) {
     return [
-      ...this.#getAccessibilityAttributes(rowIndex)
+      ...this.#getAccessibilityAttributes(settings)
     ];
   }
 
@@ -93,7 +109,9 @@ export default class RowsRenderer extends BaseRenderer {
         the number of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.`);
     }
 
-    setAttributes(this.rootNode, this.#getAttributes(null));
+    setAttributes(this.rootNode, this.#getAttributes({
+      elementIdentifier: 'rowgroup'
+    }));
 
     this.orderView
       .setSize(rowsToRender)
@@ -104,8 +122,12 @@ export default class RowsRenderer extends BaseRenderer {
       this.orderView.render();
 
       const TR = this.orderView.getCurrentNode();
+      const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
 
-      setAttributes(TR, this.#getAttributes(visibleRowIndex));
+      setAttributes(TR, this.#getAttributes({
+        elementIdentifier: 'row',
+        rowIndex: sourceRowIndex
+      }));
     }
 
     this.orderView.end();

@@ -4,7 +4,7 @@ import { objectEach } from '../../helpers/object';
 import CommandExecutor from '../contextMenu/commandExecutor';
 import { getDocumentOffsetByElement } from '../contextMenu/utils';
 import EventManager from '../../eventManager';
-import { hasClass } from '../../helpers/dom/element';
+import { hasClass, setAttributes } from '../../helpers/dom/element';
 import ItemsFactory from '../contextMenu/itemsFactory';
 import Menu from '../contextMenu/menu';
 import Hooks from '../../pluginHooks';
@@ -30,6 +30,8 @@ export const PLUGIN_KEY = 'dropdownMenu';
 export const PLUGIN_PRIORITY = 230;
 const BUTTON_CLASS_NAME = 'changeType';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
+
+const ACCESSIBILITY_ATTR_HIDDEN = ['aria-hidden', 'true'];
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -243,6 +245,46 @@ export class DropdownMenu extends BasePlugin {
   }
 
   /**
+   * Get a set of accessibility-related attributes to be added to the specified DOM elements.
+   *
+   * @param {object} settings Object containing additional settings used to determine how the attributes should be
+   * constructed.
+   * @param {string} settings.elementIdentifier String identifying the element to be processed.
+   * @returns {Array[]}
+   */
+  #getAccessibilityAttributes(settings) {
+    if (!this.hot.getSettings().ariaTags) {
+      return [];
+    }
+
+    const { elementIdentifier } = settings;
+
+    switch (elementIdentifier) {
+      case 'button':
+        return [
+          ACCESSIBILITY_ATTR_HIDDEN
+        ];
+
+      default:
+        return [];
+    }
+  }
+
+  /**
+   * Get the list of all attributes to be added to the specified DOM elements.
+   *
+   * @param {object} settings Object containing additional settings used to determine how the attributes should be
+   * constructed.
+   * @param {string} settings.elementIdentifier String identifying the element to be processed.
+   * @returns {Array[]}
+   */
+  #getAttributes(settings) {
+    return [
+      ...this.#getAccessibilityAttributes(settings)
+    ];
+  }
+
+  /**
    * Register shortcuts responsible for toggling dropdown menu.
    *
    * @private
@@ -450,6 +492,8 @@ export class DropdownMenu extends BasePlugin {
     button.className = BUTTON_CLASS_NAME;
     button.type = 'button';
     button.tabIndex = -1;
+
+    setAttributes(button, this.#getAttributes('button'));
 
     // prevent page reload on button click
     button.onclick = function() {

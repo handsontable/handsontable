@@ -154,23 +154,30 @@ class TableView {
   /**
    * Get a set of accessibility-related attributes to be added to the table.
    *
-   * @param {string} elementDescription Only the attributes labeled with the `elementDescription` string will be
-   *   returned from the function.
-   * @param {number} [rowcount] The row count.
-   * @param {number} [colcount] The column count.
+   * @param {object} settings Object containing additional settings used to determine how the attributes should be
+   * constructed.
+   * @param {string} settings.elementIdentifier String identifying the element to be processed.
+   * @param {number} [settings.rowCount] The row count.
+   * @param {number} [settings.colCount] The column count.
    * @returns {Array[]}
    */
-  #getAccessibilityAttributes(elementDescription, rowcount, colcount) {
+  #getAccessibilityAttributes(settings) {
     if (!this.settings.ariaTags) {
       return [];
     }
 
-    switch (elementDescription) {
+    const {
+      elementIdentifier,
+      rowCount,
+      colCount,
+    } = settings;
+
+    switch (elementIdentifier) {
       case 'rootElement':
         return [
           ACCESSIBILITY_ATTR_TREEGRID,
-          [ACCESSIBILITY_ATTR_ROWCOUNT[0], rowcount],
-          [ACCESSIBILITY_ATTR_COLCOUNT[0], colcount],
+          [ACCESSIBILITY_ATTR_ROWCOUNT[0], rowCount],
+          [ACCESSIBILITY_ATTR_COLCOUNT[0], colCount],
           ACCESSIBILITY_ATTR_MULTISELECTABLE,
         ];
 
@@ -187,15 +194,16 @@ class TableView {
   /**
    * Get the list of all attributes to be added to the table element.
    *
-   * @param {string} elementDescription Only the attributes labeled with the `elementDescription` string will be
-   *   returned from the function.
-   * @param {number} [rowcount] The row count.
-   * @param {number} [colcount] The column count.
+   * @param {object} settings Object containing additional settings used to determine how the attributes should be
+   * constructed.
+   * @param {string} settings.elementIdentifier String identifying the element to be processed.
+   * @param {number} [settings.rowCount] The row count.
+   * @param {number} [settings.colCount] The column count.
    * @returns {Array[]}
    */
-  #getAttributes(elementDescription, rowcount, colcount) {
+  #getAttributes(settings) {
     return [
-      ...this.#getAccessibilityAttributes(elementDescription, rowcount, colcount)
+      ...this.#getAccessibilityAttributes(settings)
     ];
   }
 
@@ -310,12 +318,15 @@ class TableView {
       addClass(priv.table, this.instance.getSettings().tableClassName);
     }
 
-    setAttributes(priv.table, this.#getAttributes('table'));
+    setAttributes(priv.table, this.#getAttributes({
+      elementIdentifier: 'table',
+    }));
 
-    setAttributes(
-      rootElement,
-      this.#getAttributes('rootElement', this.instance.countRows(), this.instance.countCols())
-    );
+    setAttributes(rootElement, this.#getAttributes({
+      elementIdentifier: 'rootElement',
+      rowCount: this.instance.countRows(),
+      colCount: this.instance.countCols()
+    }));
 
     this.THEAD = rootDocument.createElement('THEAD');
     priv.table.appendChild(this.THEAD);

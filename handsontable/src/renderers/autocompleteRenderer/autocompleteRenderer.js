@@ -26,10 +26,13 @@ export function autocompleteRenderer(instance, TD, row, col, prop, value, cellPr
   const { rootDocument } = instance;
   const rendererFunc = cellProperties.allowHtml ? htmlRenderer : textRenderer;
   const ARROW = rootDocument.createElement('DIV');
+  const isAriaEnabled = instance.getSettings().ariaTags;
 
   ARROW.className = 'htAutocompleteArrow';
 
-  ARROW.setAttribute(...ACCESSIBILITY_ATTR_HIDDEN);
+  if (isAriaEnabled) {
+    ARROW.setAttribute(...ACCESSIBILITY_ATTR_HIDDEN);
+  }
 
   ARROW.appendChild(rootDocument.createTextNode(String.fromCharCode(9660)));
 
@@ -45,7 +48,9 @@ export function autocompleteRenderer(instance, TD, row, col, prop, value, cellPr
 
   addClass(TD, 'htAutocomplete');
 
-  TD.setAttribute(...ACCESSIBILITY_ATTR_HASPOPUP);
+  if (isAriaEnabled) {
+    TD.setAttribute(...ACCESSIBILITY_ATTR_HASPOPUP);
+  }
 
   if (!instance.acArrowListener) {
     const eventManager = new EventManager(instance);

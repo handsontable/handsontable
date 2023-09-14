@@ -2,6 +2,7 @@ import {
   getScrollableElement,
   getTrimmingContainer,
   getScrollbarWidth,
+  setAttributes,
 } from '../../../../helpers/dom/element';
 import { defineGetter } from '../../../../helpers/object';
 import { arrayEach } from '../../../../helpers/array';
@@ -13,6 +14,8 @@ import {
   CLONE_INLINE_START,
 } from './constants';
 import Clone from '../core/clone';
+
+const ACCESSIBILITY_ATTR_PRESENTATION = ['role', 'presentation'];
 
 /**
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
@@ -68,6 +71,46 @@ export class Overlay {
     this.updateStateOfRendering();
 
     this.clone = this.makeClone();
+  }
+
+  /**
+   * Get a set of accessibility-related attributes to be added to the clone element.
+   *
+   * @param {object} settings Object containing additional settings used to determine how the attributes should be
+   * constructed.
+   * @param {string} settings.elementIdentifier String identifying the element to be processed.
+   * @returns {Array[]}
+   */
+  #getAccessibilityAttributes(settings) {
+    if (!this.wot.wtSettings.getSetting('ariaTags')) {
+      return [];
+    }
+
+    const { elementIdentifier } = settings;
+
+    switch (elementIdentifier) {
+      case 'clone':
+        return [
+          ACCESSIBILITY_ATTR_PRESENTATION
+        ];
+
+      default:
+        return [];
+    }
+  }
+
+  /**
+   * Get the list of all attributes to be added to the clone element.
+   *
+   * @param {object} settings Object containing additional settings used to determine how the attributes should be
+   * constructed.
+   * @param {string} settings.elementIdentifier String identifying the element to be processed.
+   * @returns {Array[]}
+   */
+  #getAttributes(settings) {
+    return [
+      ...this.#getAccessibilityAttributes(settings)
+    ];
   }
 
   /**
@@ -290,8 +333,13 @@ export class Overlay {
       clone.style.left = 0;
     }
 
+    setAttributes(clone, this.#getAttributes({
+      elementIdentifier: 'clone'
+    }));
+
     clonedTable.className = wtTable.TABLE.className;
 
+    // Clone the main table's `role` attribute to the cloned table.
     clonedTable.setAttribute('role', wtTable.TABLE.getAttribute('role'));
 
     clone.appendChild(clonedTable);

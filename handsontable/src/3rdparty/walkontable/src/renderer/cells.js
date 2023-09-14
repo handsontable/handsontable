@@ -42,26 +42,48 @@ export default class CellsRenderer extends BaseRenderer {
   /**
    * Get a set of accessibility-related attributes to be added to the table.
    *
-   * @param {number} columnIndex The column index.
+   * @param {object} settings Object containing additional settings used to determine how the attributes should be
+   * constructed.
+   * @param {string} settings.elementIdentifier String identifying the element to be processed.
+   * @param {number} [settings.columnIndex] The column index.
    * @returns {Array[]}
    */
-  #getAccessibilityAttributes(columnIndex) {
-    return this.table.isAriaEnabled() ? [
-      ACCESSIBILITY_ATTR_GRIDCELL,
-      ACCESSIBILITY_ATTR_TABINDEX,
-      [ACCESSIBILITY_ATTR_COLINDEX[0], columnIndex + 1],
-    ] : [];
+  #getAccessibilityAttributes(settings) {
+    if (!this.table.isAriaEnabled()) {
+      return [];
+    }
+
+    const {
+      elementIdentifier,
+      columnIndex
+    } = settings;
+
+    switch (elementIdentifier) {
+      case 'cell':
+        return [
+          ACCESSIBILITY_ATTR_GRIDCELL,
+          ACCESSIBILITY_ATTR_TABINDEX,
+          // `aria-colindex` is incremented by both tbody and thead rows.
+          [ACCESSIBILITY_ATTR_COLINDEX[0], columnIndex + this.table.rowHeadersCount + 1],
+        ];
+
+      default:
+        return [];
+    }
   }
 
   /**
    * Get the list of all attributes to be added to the table cells.
    *
-   * @param {number} columnIndex The column index.
+   * @param {object} settings Object containing additional settings used to determine how the attributes should be
+   * constructed.
+   * @param {string} settings.elementIdentifier String identifying the element to be processed.
+   * @param {number} [settings.columnIndex] The column index.
    * @returns {Array[]}
    */
-  #getAttributes(columnIndex) {
+  #getAttributes(settings) {
     return [
-      ...this.#getAccessibilityAttributes(columnIndex)
+      ...this.#getAccessibilityAttributes(settings)
     ];
   }
 
@@ -124,7 +146,10 @@ export default class CellsRenderer extends BaseRenderer {
         TD.removeAttribute('style');
         TD.removeAttribute('dir');
 
-        setAttributes(TD, this.#getAttributes(visibleColumnIndex));
+        setAttributes(TD, this.#getAttributes({
+          elementIdentifier: 'cell',
+          columnIndex: sourceColumnIndex,
+        }));
 
         this.table.cellRenderer(sourceRowIndex, sourceColumnIndex, TD);
       }

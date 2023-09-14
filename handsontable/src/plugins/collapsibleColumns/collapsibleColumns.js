@@ -32,6 +32,7 @@ const actionDictionary = new Map([
 ]);
 const ACCESSIBILITY_ATTR_EXPANDED = ['aria-expanded', 'true'];
 const ACCESSIBILITY_ATTR_COLLAPSED = ['aria-expanded', 'false'];
+const ACCESSIBILITY_ATTR_PRESENTATION = ['role', 'presentation'];
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -555,6 +556,11 @@ export class CollapsibleColumns extends BasePlugin {
           TH.setAttribute(...ACCESSIBILITY_ATTR_EXPANDED);
         }
       }
+
+      if (isAriaTagsEnabled) {
+        collapsibleElement.setAttribute(...ACCESSIBILITY_ATTR_PRESENTATION);
+      }
+
     } else {
       collapsibleElement?.remove();
     }

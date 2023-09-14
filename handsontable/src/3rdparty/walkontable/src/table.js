@@ -9,6 +9,7 @@ import {
   outerWidth,
   innerHeight,
   isVisible,
+  setAttributes,
 } from '../../../helpers/dom/element';
 import { isFunction } from '../../../helpers/function';
 import ColumnFilter from './filter/column';
@@ -23,6 +24,8 @@ import {
   CLONE_TOP_INLINE_START_CORNER,
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from './overlay';
+
+const ACCESSIBILITY_ATTR_PRESENTATION = ['role', 'presentation'];
 
 /**
  * @todo These mixes are never added to the class Table, however their members are used here.
@@ -133,6 +136,46 @@ class Table {
   }
 
   /**
+   * Get a set of accessibility-related attributes to be added to the table.
+   *
+   * @param {object} settings Object containing additional settings used to determine how the attributes should be
+   * constructed.
+   * @param {string} settings.elementIdentifier String identifying the element to be processed.
+   * @returns {Array[]}
+   */
+  #getAccessibilityAttributes(settings) {
+    if (!this.wtSettings.getSetting('ariaTags')) {
+      return [];
+    }
+
+    const { elementIdentifier } = settings;
+
+    switch (elementIdentifier) {
+      case 'holder':
+      case 'hider':
+      case 'spreader':
+      default:
+        return [
+          ACCESSIBILITY_ATTR_PRESENTATION,
+        ];
+    }
+  }
+
+  /**
+   * Get the list of all attributes to be added to the table's elements.
+   *
+   * @param {object} settings Object containing additional settings used to determine how the attributes should be
+   * constructed.
+   * @param {string} settings.elementIdentifier String identifying the element to be processed.
+   * @returns {Array[]}
+   */
+  #getAttributes(settings) {
+    return [
+      ...this.#getAccessibilityAttributes(settings)
+    ];
+  }
+
+  /**
    * Returns a boolean that is true if this Table represents a specific overlay, identified by the overlay name.
    * For MasterTable, it returns false.
    *
@@ -187,7 +230,12 @@ class Table {
       }
       spreader.appendChild(table);
     }
+
     spreader.style.position = 'relative';
+
+    setAttributes(spreader, this.#getAttributes({
+      elementIdentifier: 'spreader'
+    }));
 
     return spreader;
   }
@@ -210,6 +258,10 @@ class Table {
       }
       hider.appendChild(spreader);
     }
+
+    setAttributes(hider, this.#getAttributes({
+      elementIdentifier: 'hider'
+    }));
 
     return hider;
   }
@@ -238,6 +290,10 @@ class Table {
       }
       holder.appendChild(hider);
     }
+
+    setAttributes(holder, this.#getAttributes({
+      elementIdentifier: 'holder'
+    }));
 
     return holder;
   }

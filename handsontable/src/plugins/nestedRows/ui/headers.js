@@ -1,7 +1,11 @@
 import { arrayEach } from '../../../helpers/array';
 import { rangeEach } from '../../../helpers/number';
-import { addClass } from '../../../helpers/dom/element';
+import { addClass, setAttributes } from '../../../helpers/dom/element';
 import BaseUI from './_base';
+
+const ACCESSIBILITY_ATTR_EXPANDED = ['aria-expanded', 'true'];
+const ACCESSIBILITY_ATTR_COLLAPSED = ['aria-expanded', 'false'];
+const ACCESSIBILITY_ATTR_HIDDEN = ['aria-hidden', 'true'];
 
 /**
  * Class responsible for the UI in the Nested Rows' row headers.
@@ -57,6 +61,62 @@ class HeadersUI extends BaseUI {
   }
 
   /**
+   * Get a set of accessibility-related attributes to be added to the table.
+   *
+   * @param {object} settings Object containing additional settings used to determine how the attributes should be
+   * constructed.
+   * @param {string} settings.elementIdentifier String identifying the element to be processed.
+   * @param {number} [settings.elementState] The state of the elemenet to be processed.
+   * @returns {Array[]}
+   */
+  #getAccessibilityAttributes(settings) {
+    if (!this.hot.getSettings().ariaTags) {
+      return [];
+    }
+
+    const {
+      elementIdentifier,
+      elementState,
+    } = settings;
+    const attributeList = [];
+
+    switch (elementIdentifier) {
+      case 'button':
+        attributeList.push(ACCESSIBILITY_ATTR_HIDDEN);
+
+        break;
+      case 'header':
+        if (elementState === 'collapsed') {
+          attributeList.push(ACCESSIBILITY_ATTR_COLLAPSED);
+
+        } else if (elementState === 'expanded') {
+          attributeList.push(ACCESSIBILITY_ATTR_EXPANDED);
+        }
+
+        break;
+
+      default:
+    }
+
+    return attributeList;
+  }
+
+  /**
+   * Get the list of all attributes to be added to the row headers.
+   *
+   * @param {object} settings Object containing additional settings used to determine how the attributes should be
+   * constructed.
+   * @param {string} settings.elementIdentifier String identifying the element to be processed.
+   * @param {number} [settings.elementState] The state of the elemenet to be processed.
+   * @returns {Array[]}
+   */
+  #getAttributes(settings) {
+    return [
+      ...this.#getAccessibilityAttributes(settings)
+    ];
+  }
+
+  /**
    * Append nesting indicators and buttons to the row headers.
    *
    * @private
@@ -98,13 +158,27 @@ class HeadersUI extends BaseUI {
     if (this.dataManager.hasChildren(rowObject)) {
       const buttonsContainer = this.hot.rootDocument.createElement('DIV');
 
+      setAttributes(buttonsContainer, this.#getAttributes({
+        elementIdentifier: 'button'
+      }));
+
       addClass(TH, HeadersUI.CSS_CLASSES.parent);
 
       if (this.collapsingUI.areChildrenCollapsed(rowIndex)) {
         addClass(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${HeadersUI.CSS_CLASSES.expandButton}`);
 
+        setAttributes(TH, this.#getAttributes({
+          elementIdentifier: 'header',
+          elementState: 'collapsed',
+        }));
+
       } else {
         addClass(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${HeadersUI.CSS_CLASSES.collapseButton}`);
+
+        setAttributes(TH, this.#getAttributes({
+          elementIdentifier: 'header',
+          elementState: 'expanded',
+        }));
       }
 
       innerDiv.appendChild(buttonsContainer);
