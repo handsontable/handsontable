@@ -4346,6 +4346,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Scroll viewport to coordinates specified by the `row` and/or `col` object properties.
    *
+   * ```js
+   * // scroll the viewport to the visual row index (leave the horizontal scroll untouched)
+   * hot.scrollViewportTo({ row: 50 });
+   *
+   * // scroll the viewport to the passed coordinates so that the cell at 50, 50 will be snapped to
+   * // the bottom-end table's edge.
+   * hot.scrollViewportTo({
+   *   row: 50,
+   *   col: 50,
+   *   verticalSnap: 'bottom',
+   *   horizontalSnap: 'end',
+   * });
+   * ```
+   *
    * @memberof Core#
    * @function scrollViewportTo
    * @param {object} options A dictionary containing the following parameters:
