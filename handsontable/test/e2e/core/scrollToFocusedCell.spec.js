@@ -11,7 +11,7 @@ describe('Core.scrollToFocusedCell', () => {
   });
 
   it('should not scroll the viewport when cell is visible', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(500, 50),
       width: 300,
       height: 300,
@@ -95,7 +95,7 @@ describe('Core.scrollToFocusedCell', () => {
   });
 
   it('should scroll the viewport to cell which is rendered outside the table on the left', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(500, 50),
       width: 300,
       height: 300,
@@ -123,7 +123,7 @@ describe('Core.scrollToFocusedCell', () => {
   });
 
   it('should scroll the viewport to cell which is rendered outside the table on the right', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(500, 50),
       width: 300,
       height: 300,
@@ -151,7 +151,7 @@ describe('Core.scrollToFocusedCell', () => {
   });
 
   it('should scroll the viewport to cell which is rendered outside the table at the very top', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(500, 50),
       width: 300,
       height: 300,
@@ -179,7 +179,7 @@ describe('Core.scrollToFocusedCell', () => {
   });
 
   it('should scroll the viewport to cell which is rendered outside the table at the very bottom', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(500, 50),
       width: 300,
       height: 300,

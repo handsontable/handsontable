@@ -86,7 +86,7 @@ describe('Hook', () => {
         .and
         .returnValue(40);
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(100, 50),
         width: 300,
         height: 300,
@@ -103,7 +103,8 @@ describe('Hook', () => {
 
     it('should be possible to change column to which the viewport is scrolled (case with hidden columns)', () => {
       const beforeViewportScrollHorizontally = jasmine.createSpy('beforeViewportScrollHorizontally');
-      const hot = handsontable({
+
+      handsontable({
         data: createSpreadsheetData(100, 50),
         width: 300,
         height: 300,
