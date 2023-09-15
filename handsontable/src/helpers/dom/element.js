@@ -291,7 +291,7 @@ export function addClass(element, className) {
  * Remove class name from an element.
  *
  * @param {HTMLElement} element An element to process.
- * @param {string|(string|RegExp)[]} className Class name as string or array of strings.
+ * @param {string|Array<string|RegExp>} className Class name as string or array of strings.
  */
 export function removeClass(element, className) {
   if (typeof className === 'string') {
@@ -348,7 +348,7 @@ export function setAttribute(domElement, attributes = [], attributeValue) {
  * Remove a single attribute or multiple attributes from the provided element at once.
  *
  * @param {HTMLElement} domElement The HTML element to be processed.
- * @param {(string|RegExp)[]|string} attributesToRemove If removing multiple attributes, `attributesToRemove`
+ * @param {Array<string|RegExp>|string} attributesToRemove If removing multiple attributes, `attributesToRemove`
  * holds an array of attribute names to be removed from the provided element. If removing a single attribute, it
  * holds the attribute name.
  */
@@ -397,7 +397,7 @@ export function removeTextNodes(element) {
 }
 
 /**
- * Remove childs function
+ * Remove children function
  * WARNING - this doesn't unload events and data attached by jQuery
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/11 - no siginificant improvement with Chrome remove() method.
@@ -416,7 +416,7 @@ export function empty(element) {
 export const HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
 
 /**
- * Insert content into element trying avoid innerHTML method.
+ * Insert content into element trying to avoid innerHTML method.
  *
  * @param {HTMLElement} element An element to write into.
  * @param {string} content The text to write.
