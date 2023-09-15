@@ -97,8 +97,8 @@ describe('Hook', () => {
 
       scrollViewportTo({ col: 10 });
 
-      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(1815);
-      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(1815);
+      expect(topOverlay().getScrollPosition()).toBe(0);
     });
 
     it('should be possible to change column to which the viewport is scrolled (case with hidden columns)', () => {
@@ -123,8 +123,8 @@ describe('Hook', () => {
       scrollViewportTo({ col: 20 });
 
       expect(beforeViewportScrollHorizontally).toHaveBeenCalledOnceWith(20);
-      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(665);
-      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(665);
+      expect(topOverlay().getScrollPosition()).toBe(0);
     });
   });
 });

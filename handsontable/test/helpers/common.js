@@ -186,6 +186,41 @@ export function columnIndexMapper() {
 }
 
 /**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function topOverlay() {
+  return hot().view._wt.wtOverlays.topOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function bottomOverlay() {
+  return hot().view._wt.wtOverlays.bottomOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function topInlineStartCornerOverlay() {
+  return hot().view._wt.wtOverlays.topInlineStartCornerOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function inlineStartOverlay() {
+  return hot().view._wt.wtOverlays.inlineStartOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function bottomInlineStartCornerOverlay() {
+  return hot().view._wt.wtOverlays.bottomInlineStartCornerOverlay;
+}
+
+/**
  * Creates the Handsontable instance.
  *
  * @param {object} options The Handsontable options.

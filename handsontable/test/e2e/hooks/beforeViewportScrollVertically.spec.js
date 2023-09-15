@@ -97,8 +97,8 @@ describe('Hook', () => {
 
       scrollViewportTo({ row: 10 });
 
-      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(0);
-      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(685);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(topOverlay().getScrollPosition()).toBe(685);
     });
 
     it('should be possible to change row to which the viewport is scrolled (case with hidden rows)', () => {
@@ -123,8 +123,8 @@ describe('Hook', () => {
       scrollViewportTo({ row: 20 });
 
       expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(20);
-      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(0);
-      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(156);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(topOverlay().getScrollPosition()).toBe(156);
     });
   });
 });
