@@ -7,7 +7,7 @@ import {
   hasClass,
   removeClass,
   fastInnerText,
-  removeAttributes
+  removeAttribute
 } from '../../helpers/dom/element';
 import EventManager from '../../eventManager';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
@@ -32,7 +32,7 @@ const actionDictionary = new Map([
 ]);
 const ACCESSIBILITY_ATTR_EXPANDED = ['aria-expanded', 'true'];
 const ACCESSIBILITY_ATTR_COLLAPSED = ['aria-expanded', 'false'];
-const ACCESSIBILITY_ATTR_PRESENTATION = ['role', 'presentation'];
+const ACCESSIBILITY_ATTR_HIDDEN = ['aria-hidden', 'true'];
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -521,7 +521,7 @@ export class CollapsibleColumns extends BasePlugin {
     const isAriaTagsEnabled = this.hot.getSettings().ariaTags;
     let collapsibleElement = TH.querySelector(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
-    removeAttributes(TH, [
+    removeAttribute(TH, [
       ACCESSIBILITY_ATTR_EXPANDED[0],
       ACCESSIBILITY_ATTR_COLLAPSED[0],
     ]);
@@ -558,7 +558,7 @@ export class CollapsibleColumns extends BasePlugin {
       }
 
       if (isAriaTagsEnabled) {
-        collapsibleElement.setAttribute(...ACCESSIBILITY_ATTR_PRESENTATION);
+        collapsibleElement.setAttribute(...ACCESSIBILITY_ATTR_HIDDEN);
       }
 
     } else {

@@ -1,7 +1,7 @@
 import {
   addClass,
   removeClass,
-  setAttributes,
+  setAttribute,
 } from '../../helpers/dom/element';
 import { isUndefined, isDefined } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
@@ -749,7 +749,7 @@ export class ColumnSorting extends BasePlugin {
    */
   updateAttributes(TH, columnIndex) {
     if (this.hot.getSettings().ariaTags) {
-      setAttributes(TH, getAccessibilityAttributes(this.columnStatesManager.getSortOrderOfColumn(columnIndex)));
+      setAttribute(TH, getAccessibilityAttributes(this.columnStatesManager.getSortOrderOfColumn(columnIndex)));
     }
   }
 

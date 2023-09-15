@@ -2,7 +2,7 @@ import { warn } from './../../../../helpers/console';
 import { toSingleLine } from './../../../../helpers/templateLiteralTag';
 import { OrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
-import { setAttributes } from '../../../../helpers/dom/element';
+import { setAttribute } from '../../../../helpers/dom/element';
 
 const ACCESSIBILITY_ATTR_PRESENTATION = ['role', 'presentation'];
 const ACCESSIBILITY_ATTR_ROW = ['role', 'row'];
@@ -109,7 +109,7 @@ export default class RowsRenderer extends BaseRenderer {
         the number of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.`);
     }
 
-    setAttributes(this.rootNode, this.#getAttributes({
+    setAttribute(this.rootNode, this.#getAttributes({
       elementIdentifier: 'rowgroup'
     }));
 
@@ -124,7 +124,7 @@ export default class RowsRenderer extends BaseRenderer {
       const TR = this.orderView.getCurrentNode();
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
 
-      setAttributes(TR, this.#getAttributes({
+      setAttribute(TR, this.#getAttributes({
         elementIdentifier: 'row',
         rowIndex: sourceRowIndex
       }));

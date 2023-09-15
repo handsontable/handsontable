@@ -1,8 +1,8 @@
 import {
   removeClass,
   addClass,
-  setAttributes,
-  removeAttributes
+  setAttribute,
+  removeAttribute
 } from '../../../../helpers/dom/element';
 import { SelectionScanner } from './scanner';
 import Border from './border/border';
@@ -229,7 +229,7 @@ export class SelectionManager {
       addClass(element, classNames);
 
       if (element.nodeName === 'TD' && this.#selections.options?.cellAttributes) {
-        setAttributes(element, this.#selections.options.cellAttributes);
+        setAttribute(element, this.#selections.options.cellAttributes);
       }
     });
   }
@@ -259,7 +259,7 @@ export class SelectionManager {
       for (let i = 0, len = nodes.length; i < len; i++) {
         removeClass(nodes[i], className);
 
-        removeAttributes(nodes[i], cellAttributes);
+        removeAttribute(nodes[i], cellAttributes);
       }
     });
 

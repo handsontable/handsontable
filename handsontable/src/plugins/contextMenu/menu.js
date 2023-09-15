@@ -22,7 +22,7 @@ import {
   removeClass,
   getParentWindow,
   hasClass,
-  setAttributes,
+  setAttribute,
 } from '../../helpers/dom/element';
 import { isRightClick } from '../../helpers/dom/event';
 import { debounce, isFunction } from '../../helpers/function';
@@ -472,7 +472,7 @@ class Menu {
     this.hotSubMenus[dataItem.key] = subMenu;
 
     // Update the accessibility tags on the cell being the base for the submenu.
-    setAttributes(cell, this.#getAttributes({
+    setAttribute(cell, this.#getAttributes({
       elementIdentifier: 'item',
       isItemExpanded: true
     }));
@@ -497,7 +497,7 @@ class Menu {
 
     if (cell) {
       // Update the accessibility tags on the cell being the base for the submenu.
-      setAttributes(cell, this.#getAttributes({
+      setAttribute(cell, this.#getAttributes({
         elementIdentifier: 'item',
         isItemCollapsed: true
       }));
@@ -815,7 +815,7 @@ class Menu {
 
     addClass(wrapper, 'htItemWrapper');
 
-    setAttributes(TD, this.#getAttributes({
+    setAttribute(TD, this.#getAttributes({
       elementIdentifier: 'item',
       itemValue,
       isItemDisabled: itemIsDisabled(item),
@@ -1028,7 +1028,7 @@ class Menu {
     hiderStyle.height = holderStyle.height;
 
     // Replace the default accessibility tags with the context menu's
-    setAttributes(this.hotMenu.rootElement, this.#getAttributes({
+    setAttribute(this.hotMenu.rootElement, this.#getAttributes({
       elementIdentifier: 'menu'
     }));
   }

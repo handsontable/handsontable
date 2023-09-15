@@ -1,4 +1,4 @@
-import { setAttributes } from '../../helpers/dom/element';
+import { setAttribute } from '../../helpers/dom/element';
 
 const ACCESSIBILITY_ATTR_PRESENTATION = ['role', 'presentation'];
 
@@ -58,7 +58,7 @@ function createInputElement(hot) {
   input.type = 'text';
   input.classList.add('htFocusCatcher');
 
-  setAttributes(input, getAttributes(hot));
+  setAttribute(input, getAttributes(hot));
 
   return input;
 }

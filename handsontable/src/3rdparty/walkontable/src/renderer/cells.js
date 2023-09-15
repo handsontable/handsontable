@@ -1,6 +1,6 @@
 import {
   hasClass,
-  setAttributes,
+  setAttribute,
 } from './../../../../helpers/dom/element';
 import { SharedOrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
@@ -146,7 +146,7 @@ export default class CellsRenderer extends BaseRenderer {
         TD.removeAttribute('style');
         TD.removeAttribute('dir');
 
-        setAttributes(TD, this.#getAttributes({
+        setAttribute(TD, this.#getAttributes({
           elementIdentifier: 'cell',
           columnIndex: sourceColumnIndex,
         }));

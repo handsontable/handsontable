@@ -1,6 +1,6 @@
 import { SharedOrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
-import { setAttributes } from '../../../../helpers/dom/element';
+import { setAttribute } from '../../../../helpers/dom/element';
 
 const ACCESSIBILITY_ATTR_ROWHEADER = ['role', 'rowheader'];
 const ACCESSIBILITY_ATTR_COLINDEX = ['aria-colindex'];
@@ -137,7 +137,7 @@ export default class RowHeadersRenderer extends BaseRenderer {
         TH.className = '';
         TH.removeAttribute('style');
 
-        setAttributes(TH, this.#getAttributes({
+        setAttribute(TH, this.#getAttributes({
           elementIdentifier: 'rowheader',
           columnIndex: visibleColumnIndex
         }));

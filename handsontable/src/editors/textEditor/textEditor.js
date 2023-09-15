@@ -8,7 +8,7 @@ import {
   setCaretPosition,
   hasClass,
   removeClass,
-  setAttributes,
+  setAttribute,
 } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { KEY_CODES } from '../../helpers/unicode';
@@ -212,7 +212,7 @@ export class TextEditor extends BaseEditor {
     const { rootDocument } = this.hot;
 
     this.TEXTAREA = rootDocument.createElement('TEXTAREA');
-    setAttributes(this.TEXTAREA, this.#getAttributes());
+    setAttribute(this.TEXTAREA, this.#getAttributes());
 
     addClass(this.TEXTAREA, 'handsontableInput');
 

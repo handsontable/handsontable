@@ -3,9 +3,9 @@
  */
 import {
   addClass,
-  removeAttributes,
+  removeAttribute,
   removeClass,
-  setAttributes
+  setAttribute
 } from '../../helpers/dom/element';
 
 const ACCESSIBILITY_ATTR_READONLY = ['aria-readonly', 'true'];
@@ -70,8 +70,14 @@ export function baseRenderer(instance, TD, row, col, prop, value, cellProperties
   removeClass(TD, classesToRemove);
   addClass(TD, classesToAdd);
 
-  removeAttributes(TD, attributesToRemove);
-  setAttributes(TD, attributesToAdd);
+  // Remove all accessibility-related attributes for the cell to start fresh.
+  removeAttribute(TD, [
+    new RegExp('aria-(.*)'),
+    new RegExp('role')
+  ]);
+
+  removeAttribute(TD, attributesToRemove);
+  setAttribute(TD, attributesToAdd);
 }
 
 baseRenderer.RENDERER_TYPE = RENDERER_TYPE;

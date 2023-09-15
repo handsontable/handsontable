@@ -10,7 +10,7 @@ import {
   isInput,
   isOutsideInput,
   isVisible,
-  setAttributes,
+  setAttribute,
 } from './helpers/dom/element';
 import EventManager from './eventManager';
 import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
@@ -318,11 +318,11 @@ class TableView {
       addClass(priv.table, this.instance.getSettings().tableClassName);
     }
 
-    setAttributes(priv.table, this.#getAttributes({
+    setAttribute(priv.table, this.#getAttributes({
       elementIdentifier: 'table',
     }));
 
-    setAttributes(rootElement, this.#getAttributes({
+    setAttribute(rootElement, this.#getAttributes({
       elementIdentifier: 'rootElement',
       rowCount: this.instance.countRows(),
       colCount: this.instance.countCols()

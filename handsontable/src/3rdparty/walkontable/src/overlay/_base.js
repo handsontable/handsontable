@@ -2,7 +2,7 @@ import {
   getScrollableElement,
   getTrimmingContainer,
   getScrollbarWidth,
-  setAttributes,
+  setAttribute,
 } from '../../../../helpers/dom/element';
 import { defineGetter } from '../../../../helpers/object';
 import { arrayEach } from '../../../../helpers/array';
@@ -333,7 +333,7 @@ export class Overlay {
       clone.style.left = 0;
     }
 
-    setAttributes(clone, this.#getAttributes({
+    setAttribute(clone, this.#getAttributes({
       elementIdentifier: 'clone'
     }));
 

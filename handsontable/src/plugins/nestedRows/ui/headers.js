@@ -1,6 +1,6 @@
 import { arrayEach } from '../../../helpers/array';
 import { rangeEach } from '../../../helpers/number';
-import { addClass, setAttributes } from '../../../helpers/dom/element';
+import { addClass, setAttribute } from '../../../helpers/dom/element';
 import BaseUI from './_base';
 
 const ACCESSIBILITY_ATTR_EXPANDED = ['aria-expanded', 'true'];
@@ -158,7 +158,7 @@ class HeadersUI extends BaseUI {
     if (this.dataManager.hasChildren(rowObject)) {
       const buttonsContainer = this.hot.rootDocument.createElement('DIV');
 
-      setAttributes(buttonsContainer, this.#getAttributes({
+      setAttribute(buttonsContainer, this.#getAttributes({
         elementIdentifier: 'button'
       }));
 
@@ -167,7 +167,7 @@ class HeadersUI extends BaseUI {
       if (this.collapsingUI.areChildrenCollapsed(rowIndex)) {
         addClass(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${HeadersUI.CSS_CLASSES.expandButton}`);
 
-        setAttributes(TH, this.#getAttributes({
+        setAttribute(TH, this.#getAttributes({
           elementIdentifier: 'header',
           elementState: 'collapsed',
         }));
@@ -175,7 +175,7 @@ class HeadersUI extends BaseUI {
       } else {
         addClass(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${HeadersUI.CSS_CLASSES.collapseButton}`);
 
-        setAttributes(TH, this.#getAttributes({
+        setAttribute(TH, this.#getAttributes({
           elementIdentifier: 'header',
           elementState: 'expanded',
         }));

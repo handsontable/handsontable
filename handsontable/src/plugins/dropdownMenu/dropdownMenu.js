@@ -4,7 +4,7 @@ import { objectEach } from '../../helpers/object';
 import CommandExecutor from '../contextMenu/commandExecutor';
 import { getDocumentOffsetByElement } from '../contextMenu/utils';
 import EventManager from '../../eventManager';
-import { hasClass, setAttributes } from '../../helpers/dom/element';
+import { hasClass, setAttribute } from '../../helpers/dom/element';
 import ItemsFactory from '../contextMenu/itemsFactory';
 import Menu from '../contextMenu/menu';
 import Hooks from '../../pluginHooks';
@@ -493,7 +493,9 @@ export class DropdownMenu extends BasePlugin {
     button.type = 'button';
     button.tabIndex = -1;
 
-    setAttributes(button, this.#getAttributes('button'));
+    setAttribute(button, this.#getAttributes({
+      elementIdentifier: 'button'
+    }));
 
     // prevent page reload on button click
     button.onclick = function() {

@@ -9,7 +9,7 @@ import {
   outerWidth,
   innerHeight,
   isVisible,
-  setAttributes,
+  setAttribute,
 } from '../../../helpers/dom/element';
 import { isFunction } from '../../../helpers/function';
 import ColumnFilter from './filter/column';
@@ -233,7 +233,7 @@ class Table {
 
     spreader.style.position = 'relative';
 
-    setAttributes(spreader, this.#getAttributes({
+    setAttribute(spreader, this.#getAttributes({
       elementIdentifier: 'spreader'
     }));
 
@@ -259,7 +259,7 @@ class Table {
       hider.appendChild(spreader);
     }
 
-    setAttributes(hider, this.#getAttributes({
+    setAttribute(hider, this.#getAttributes({
       elementIdentifier: 'hider'
     }));
 
@@ -291,7 +291,7 @@ class Table {
       holder.appendChild(hider);
     }
 
-    setAttributes(holder, this.#getAttributes({
+    setAttribute(holder, this.#getAttributes({
       elementIdentifier: 'holder'
     }));
 

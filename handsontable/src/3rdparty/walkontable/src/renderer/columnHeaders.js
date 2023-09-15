@@ -1,6 +1,6 @@
 import {
   empty,
-  setAttributes
+  setAttribute
 } from './../../../../helpers/dom/element';
 import BaseRenderer from './_base';
 
@@ -150,7 +150,7 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
   render() {
     const { columnHeadersCount } = this.table;
 
-    setAttributes(this.rootNode, this.#getAttributes({
+    setAttribute(this.rootNode, this.#getAttributes({
       elementIdentifier: 'rowgroup'
     }));
 
@@ -158,7 +158,7 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
       const { columnHeaderFunctions, columnsToRender, rowHeadersCount } = this.table;
       const TR = this.rootNode.childNodes[rowHeaderIndex];
 
-      setAttributes(TR, this.#getAttributes({
+      setAttribute(TR, this.#getAttributes({
         elementIdentifier: 'row',
         rowIndex: rowHeaderIndex
       }));
@@ -170,7 +170,7 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
         TH.className = '';
         TH.removeAttribute('style');
 
-        setAttributes(TH, this.#getAttributes({
+        setAttribute(TH, this.#getAttributes({
           elementIdentifier: 'cell',
           columnIndex: renderedColumnIndex,
         }));
