@@ -4344,22 +4344,28 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Scroll viewport to coordinates specified by the `row` and `col` object properties.
+   * Scroll viewport to coordinates specified by the `row` and/or `col` object properties.
    *
    * @memberof Core#
    * @function scrollViewportTo
-   * @param {object} options The object with coordinates and snapping options.
-   * @param {number} [options.row] Row index. If the last argument isn't defined we treat the index as a visual row index. Otherwise,
-   * we are using the index for numbering only this rows which may be rendered (we don't consider hidden rows).
-   * @param {number} [options.col] Column index. If the last argument isn't defined we treat the index as a visual column index.
-   * Otherwise, we are using the index for numbering only this columns which may be rendered (we don't consider hidden columns).
-   * @param {boolean} [options.verticalSnap] If `true`, the viewport is scrolled to show the cell at the bottom of the table.
-   * However, if the cell's height is greater than the table's viewport height, the cell is snapped to the top edge.
-   * @param {boolean} [options.horizontalSnap] If `true`, the viewport is scrolled to show the cell at the right side of the table.
-   * However, if the cell is wider than the table's viewport width, the cell is snapped to the left edge (or to the right edge, if the layout direction is set to `rtl`).
+   * @param {object} options A dictionary containing the following parameters:
+   * @param {number} [options.row] Specifies the number of visual rows along the Y axis to scroll the viewport.
+   * @param {number} [options.col] Specifies the number of visual columns along the X axis to scroll the viewport.
+   * @param {'top' | 'bottom'} [options.verticalSnap] Determines to which edge of the table the viewport will be scrolled based on the passed coordinates.
+   * This option is a string which must take one of the following values:
+   * - `top`: The viewport will be scrolled to a row in such a way that it will be positioned on the top of the viewport;
+   * - `bottom`: The viewport will be scrolled to a row in such a way that it will be positioned on the bottom of the viewport;
+   * - If the property is not defined the vertical auto-snapping is enabled. Depending on where the viewport is scrolled from, a row will
+   * be positioned at the top or bottom of the viewport.
+   * @param {'start' | 'end'} [options.horizontalSnap] Determines to which edge of the table the viewport will be scrolled based on the passed coordinates.
+   * This option is a string which must take one of the following values:
+   * - `start`: The viewport will be scrolled to a column in such a way that it will be positioned on the start (left edge or right, if the layout direction is set to `rtl`) of the viewport;
+   * - `end`: The viewport will be scrolled to a column in such a way that it will be positioned on the end (right edge or left, if the layout direction is set to `rtl`) of the viewport;
+   * - If the property is not defined the horizontal auto-snapping is enabled. Depending on where the viewport is scrolled from, a column will
+   * be positioned at the start or end of the viewport.
    * @param {boolean} [options.considerHiddenIndexes=true] If `true`, we handle visual indexes, otherwise we handle only indexes which
    * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
-   * @returns {boolean} `true` if scroll was successful, `false` otherwise.
+   * @returns {boolean} `true` if viewport was scrolled, `false` otherwise.
    */
   this.scrollViewportTo = function({ row, col, verticalSnap, horizontalSnap, considerHiddenIndexes } = {}) {
     let snapToTop;
