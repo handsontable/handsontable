@@ -96,7 +96,6 @@ export class NestedHeaders extends BasePlugin {
    */
   // @TODO This should be changed after refactor handsontable/utils/ghostTable.
   ghostTable = new GhostTable(this.hot, (row, column) => this.getHeaderSettings(row, column));
-
   /**
    * The flag which determines that the nested header settings contains overlapping headers
    * configuration.
@@ -597,7 +596,7 @@ export class NestedHeaders extends BasePlugin {
     const selectedRange = this.hot.getSelectedRangeLast();
     const topStartCoords = selectedRange.getTopStartCorner();
     const bottomEndCoords = selectedRange.getBottomEndCorner();
-    const { from } = selectedRange;
+    const { from, highlight } = selectedRange;
 
     // Block the Selection module in controlling how the columns and cells are selected.
     // From now on, the plugin is responsible for the selection.
@@ -607,13 +606,13 @@ export class NestedHeaders extends BasePlugin {
     const columnsToSelect = [];
 
     if (coords.col < from.col) {
-      columnsToSelect.push(bottomEndCoords.col, columnIndex, coords.row);
+      columnsToSelect.push(bottomEndCoords.col, columnIndex, highlight.row);
 
     } else if (coords.col > from.col) {
-      columnsToSelect.push(topStartCoords.col, columnIndex + origColspan - 1, coords.row);
+      columnsToSelect.push(topStartCoords.col, columnIndex + origColspan - 1, highlight.row);
 
     } else {
-      columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
+      columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, highlight.row);
     }
 
     this.hot.selection.selectColumns(...columnsToSelect);
