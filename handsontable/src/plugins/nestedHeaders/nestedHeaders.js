@@ -76,7 +76,6 @@ export class NestedHeaders extends BasePlugin {
   /**
    * The state manager for the nested headers.
    *
-   * @private
    * @type {StateManager}
    */
   #stateManager = new StateManager();
@@ -84,10 +83,13 @@ export class NestedHeaders extends BasePlugin {
    * The instance of the ChangesObservable class that allows track the changes that happens in the
    * column indexes.
    *
-   * @private
    * @type {ChangesObservable}
    */
   #hidingIndexMapObserver = null;
+  /**
+   * @type {number|null}
+   */
+  #focusLastRowPosition = null;
   /**
    * Custom helper for getting widths of the nested headers.
    *
@@ -534,6 +536,8 @@ export class NestedHeaders extends BasePlugin {
       return;
     }
 
+    this.#focusLastRowPosition = coords.row;
+
     const { selection } = this.hot;
     const currentSelection = selection.isSelected() ? selection.getSelectedRange().current() : null;
     const columnsToSelect = [];
@@ -596,7 +600,7 @@ export class NestedHeaders extends BasePlugin {
     const selectedRange = this.hot.getSelectedRangeLast();
     const topStartCoords = selectedRange.getTopStartCorner();
     const bottomEndCoords = selectedRange.getBottomEndCorner();
-    const { from, highlight } = selectedRange;
+    const { from } = selectedRange;
 
     // Block the Selection module in controlling how the columns and cells are selected.
     // From now on, the plugin is responsible for the selection.
@@ -606,13 +610,13 @@ export class NestedHeaders extends BasePlugin {
     const columnsToSelect = [];
 
     if (coords.col < from.col) {
-      columnsToSelect.push(bottomEndCoords.col, columnIndex, highlight.row);
+      columnsToSelect.push(bottomEndCoords.col, columnIndex, coords.row);
 
     } else if (coords.col > from.col) {
-      columnsToSelect.push(topStartCoords.col, columnIndex + origColspan - 1, highlight.row);
+      columnsToSelect.push(topStartCoords.col, columnIndex + origColspan - 1, coords.row);
 
     } else {
-      columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, highlight.row);
+      columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
     }
 
     this.hot.selection.selectColumns(...columnsToSelect);
@@ -669,10 +673,11 @@ export class NestedHeaders extends BasePlugin {
    * ensure that the whole nested column will be covered.
    *
    * @private
-   * @param {*} from The coords object where the selection starts.
-   * @param {*} to The coords object where the selection ends.
+   * @param {CellCoords} from The coords object where the selection starts.
+   * @param {CellCoords} to The coords object where the selection ends.
+   * @param {CellCoords} highlight The coords object for the focus position.
    */
-  onBeforeSelectColumns(from, to) {
+  onBeforeSelectColumns(from, to, highlight) {
     const headerLevel = from.row;
     const startNodeData = this._getHeaderTreeNodeDataByCoords({
       row: headerLevel,
@@ -682,6 +687,10 @@ export class NestedHeaders extends BasePlugin {
       row: headerLevel,
       col: to.col,
     });
+
+    if (this.#focusLastRowPosition !== null) {
+      highlight.row = this.#focusLastRowPosition;
+    }
 
     if (to.col < from.col) { // Column selection from right to left
       if (startNodeData) {
