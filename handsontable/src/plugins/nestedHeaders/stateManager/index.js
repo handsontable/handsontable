@@ -3,6 +3,7 @@ import SourceSettings from './sourceSettings';
 import HeadersTree from './headersTree';
 import { triggerNodeModification } from './nodeModifiers';
 import { generateMatrix } from './matrixGenerator';
+import { TRAVERSAL_DF_PRE } from '../../../utils/dataStructures/tree';
 
 /**
  * The state manager is a source of truth for nested headers configuration.
@@ -304,6 +305,25 @@ export default class StateManager {
    * @returns {object|null}
    */
   getHeaderTreeNodeData(headerLevel, columnIndex) {
+    const node = this.getHeaderTreeNode(headerLevel, columnIndex);
+
+    if (!node) {
+      return null;
+    }
+
+    return {
+      ...node.data,
+    };
+  }
+
+  /**
+   * Gets tree node that is connected to the column header.
+   *
+   * @param {number} headerLevel Header level (there is support for negative and positive values).
+   * @param {number} columnIndex A visual column index.
+   * @returns {TreeNode|null}
+   */
+  getHeaderTreeNode(headerLevel, columnIndex) {
     if (headerLevel < 0) {
       headerLevel = this.rowCoordsToLevel(headerLevel);
     }
@@ -318,9 +338,49 @@ export default class StateManager {
       return null;
     }
 
-    return {
-      ...node.data,
-    };
+    return node;
+  }
+
+  /**
+   * Finds the most furthest header level of the column header that is rendered entirety within
+   * the passed visual columns range.
+   *
+   * @param {number} columnIndexFrom A visual column index.
+   * @param {number} columnIndexTo A visual column index.
+   * @returns {number} Returns a header level in format -1 to -N.
+   */
+  findMostFurthestHeaderLevel(columnIndexFrom, columnIndexTo = columnIndexFrom) {
+    const columnFrom = Math.min(columnIndexFrom, columnIndexTo);
+    const columnTo = Math.max(columnIndexFrom, columnIndexTo);
+    const columnsWidth = (columnTo - columnFrom) + 1;
+
+    let headerLevel = -1;
+
+    for (let columnIndex = columnFrom; columnIndex <= columnTo; columnIndex++) {
+      const rootNode = this.#headersTree.getRootByColumn(columnIndex);
+
+      if (!rootNode) {
+        return;
+      }
+
+      // eslint-disable-next-line
+      rootNode.walkDown((node) => {
+        const {
+          columnIndex: nodeColumnIndex,
+          origColspan,
+          headerLevel: nodeHeaderLevel,
+        } = node.data;
+
+        // if the header fits entirely within the columns range get and save the node header level
+        if (origColspan <= columnsWidth &&
+            nodeColumnIndex >= columnFrom &&
+            nodeColumnIndex + origColspan - 1 <= columnTo) {
+          headerLevel = Math.min(this.levelToRowCoords(nodeHeaderLevel), headerLevel);
+        }
+      }, TRAVERSAL_DF_PRE);
+    }
+
+    return headerLevel;
   }
 
   /**

@@ -688,10 +688,6 @@ export class NestedHeaders extends BasePlugin {
       col: to.col,
     });
 
-    if (this.#focusLastRowPosition !== null) {
-      highlight.row = this.#focusLastRowPosition;
-    }
-
     if (to.col < from.col) { // Column selection from right to left
       if (startNodeData) {
         from.col = startNodeData.columnIndex + startNodeData.origColspan - 1;
@@ -709,6 +705,12 @@ export class NestedHeaders extends BasePlugin {
       if (endNodeData) {
         to.col = endNodeData.columnIndex + endNodeData.origColspan - 1;
       }
+    }
+
+    if (this.#focusLastRowPosition !== null) {
+      const level = this.#stateManager.findMostFurthestHeaderLevel(from.col, to.col);
+
+      highlight.row = Math.max(this.#focusLastRowPosition, level);
     }
   }
 
