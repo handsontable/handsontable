@@ -2,7 +2,7 @@ import {
   addClass,
   removeClass,
 } from '../../helpers/dom/element';
-import { isNumeric } from '../../helpers/number';
+import { isNumeric, clamp } from '../../helpers/number';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { isLeftClick, isRightClick } from '../../helpers/dom/event';
 import { warn } from '../../helpers/console';
@@ -89,7 +89,11 @@ export class NestedHeaders extends BasePlugin {
   /**
    * @type {number|null}
    */
-  #focusLastRowPosition = null;
+  #focusInitialCoords = null;
+  /**
+   * @type {boolean}
+   */
+  #isColumnsSelectionInProgress = false;
   /**
    * Custom helper for getting widths of the nested headers.
    *
@@ -135,6 +139,8 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
     this.addHook('afterOnCellMouseDown', (...args) => this.onAfterOnCellMouseDown(...args));
     this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
+    this.addHook('beforeOnCellMouseUp', (...args) => this.onBeforeOnCellMouseUp(...args));
+    this.addHook('selectionHighlightSet', (...args) => this.onSelectionHighlightSet(...args));
     this.addHook('modifyTransformStart', (...args) => this.onModifyTransformStart(...args));
     this.addHook('afterSelection', () => this.updateFocusHighlightPosition());
     this.addHook('afterGetColumnHeaderRenderers', array => this.onAfterGetColumnHeaderRenderers(array));
@@ -536,7 +542,8 @@ export class NestedHeaders extends BasePlugin {
       return;
     }
 
-    this.#focusLastRowPosition = coords.row;
+    this.#focusInitialCoords = coords.clone();
+    this.#isColumnsSelectionInProgress = true;
 
     const { selection } = this.hot;
     const currentSelection = selection.isSelected() ? selection.getSelectedRange().current() : null;
@@ -608,18 +615,55 @@ export class NestedHeaders extends BasePlugin {
     controller.cell = true;
 
     const columnsToSelect = [];
+    const headerLevel = clamp(coords.row, -Infinity, -1);
 
     if (coords.col < from.col) {
-      columnsToSelect.push(bottomEndCoords.col, columnIndex, coords.row);
+      columnsToSelect.push(bottomEndCoords.col, columnIndex, headerLevel);
 
     } else if (coords.col > from.col) {
-      columnsToSelect.push(topStartCoords.col, columnIndex + origColspan - 1, coords.row);
+      columnsToSelect.push(topStartCoords.col, columnIndex + origColspan - 1, headerLevel);
 
     } else {
-      columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
+      columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, headerLevel);
     }
 
     this.hot.selection.selectColumns(...columnsToSelect);
+  }
+
+  /**
+   * Switches internal flag about selection progress to `false`.
+   *
+   * @private
+   */
+  onBeforeOnCellMouseUp() {
+    this.#isColumnsSelectionInProgress = false;
+  }
+
+  /**
+   * @private
+   */
+  onSelectionHighlightSet() {
+    if (!this.hot.view.isMouseDown() || !this.#isColumnsSelectionInProgress) {
+      return;
+    }
+
+    const selectedRange = this.hot.getSelectedRangeLast();
+    const columnStart = selectedRange.getTopStartCorner().col;
+    const columnEnd = selectedRange.getBottomEndCorner().col;
+    const { highlight } = selectedRange;
+    const level = this.#stateManager.findTopMostEntireHeaderLevel(columnStart, columnEnd);
+
+    highlight.row = Math.max(this.#focusInitialCoords.row, level);
+    highlight.col = this.#focusInitialCoords.col;
+
+    const {
+      columnIndex,
+      origColspan,
+    } = this.#stateManager.getHeaderTreeNodeData(highlight.row, this.#focusInitialCoords.col);
+
+    if (columnIndex < columnStart || columnIndex + origColspan - 1 > columnEnd) {
+      highlight.row = -1;
+    }
   }
 
   /**
@@ -675,9 +719,8 @@ export class NestedHeaders extends BasePlugin {
    * @private
    * @param {CellCoords} from The coords object where the selection starts.
    * @param {CellCoords} to The coords object where the selection ends.
-   * @param {CellCoords} highlight The coords object for the focus position.
    */
-  onBeforeSelectColumns(from, to, highlight) {
+  onBeforeSelectColumns(from, to) {
     const headerLevel = from.row;
     const startNodeData = this._getHeaderTreeNodeDataByCoords({
       row: headerLevel,
@@ -705,12 +748,6 @@ export class NestedHeaders extends BasePlugin {
       if (endNodeData) {
         to.col = endNodeData.columnIndex + endNodeData.origColspan - 1;
       }
-    }
-
-    if (this.#focusLastRowPosition !== null) {
-      const level = this.#stateManager.findMostFurthestHeaderLevel(from.col, to.col);
-
-      highlight.row = Math.max(this.#focusLastRowPosition, level);
     }
   }
 

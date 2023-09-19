@@ -265,6 +265,8 @@ class Selection {
       }
     }
 
+    this.runLocalHooks('highlightSet');
+
     const focusHighlight = this.highlight.getFocus();
 
     focusHighlight.clear();

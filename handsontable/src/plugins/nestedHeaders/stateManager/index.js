@@ -342,25 +342,26 @@ export default class StateManager {
   }
 
   /**
-   * Finds the most furthest header level of the column header that is rendered entirety within
-   * the passed visual columns range.
+   * Finds the most top header level of the column header that is rendered entirely within
+   * the passed visual columns range. If multiple columns headers are found within the range the
+   * most top header level will be returned.
    *
    * @param {number} columnIndexFrom A visual column index.
-   * @param {number} columnIndexTo A visual column index.
+   * @param {number} [columnIndexTo] A visual column index.
    * @returns {number} Returns a header level in format -1 to -N.
    */
-  findMostFurthestHeaderLevel(columnIndexFrom, columnIndexTo = columnIndexFrom) {
+  findTopMostEntireHeaderLevel(columnIndexFrom, columnIndexTo = columnIndexFrom) {
     const columnFrom = Math.min(columnIndexFrom, columnIndexTo);
     const columnTo = Math.max(columnIndexFrom, columnIndexTo);
     const columnsWidth = (columnTo - columnFrom) + 1;
 
-    let headerLevel = -1;
+    let headerLevel = Infinity;
 
     for (let columnIndex = columnFrom; columnIndex <= columnTo; columnIndex++) {
       const rootNode = this.#headersTree.getRootByColumn(columnIndex);
 
       if (!rootNode) {
-        return;
+        break;
       }
 
       // eslint-disable-next-line
@@ -374,13 +375,14 @@ export default class StateManager {
         // if the header fits entirely within the columns range get and save the node header level
         if (origColspan <= columnsWidth &&
             nodeColumnIndex >= columnFrom &&
-            nodeColumnIndex + origColspan - 1 <= columnTo) {
-          headerLevel = Math.min(this.levelToRowCoords(nodeHeaderLevel), headerLevel);
+            nodeColumnIndex + origColspan - 1 <= columnTo &&
+            nodeHeaderLevel < headerLevel) {
+          headerLevel = nodeHeaderLevel;
         }
       }, TRAVERSAL_DF_PRE);
     }
 
-    return headerLevel;
+    return this.levelToRowCoords(headerLevel);
   }
 
   /**
