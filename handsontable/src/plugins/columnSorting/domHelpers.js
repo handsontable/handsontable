@@ -12,14 +12,6 @@ const orderToCssClass = new Map([
   [DESC_SORT_STATE, HEADER_CLASS_DESC_SORT]
 ]);
 
-const ACCESSIBILITY_ATTR_SORT = ['aria-sort'];
-const ACCESSIBILITY_ATTR_SORT_VALUES = {
-  NONE: 'none',
-  ASC: 'ascending',
-  DESC: 'descending',
-  OTHER: 'other'
-};
-
 /**
  * Get CSS classes which should be added to particular column header.
  *
@@ -59,16 +51,4 @@ export function getClassesToAdd(columnStatesManager, column, showSortIndicator, 
 export function getClassesToRemove() {
   return Array.from(orderToCssClass.values())
     .concat(HEADER_ACTION_CLASS, HEADER_CLASS_INDICATOR_DISABLED, HEADER_SORT_CLASS);
-}
-
-/**
- * Get the list of accessibility attributes to be applied to the column headers.
- *
- * @param {string} sortOrder The sorting order.
- * @returns {Array[]}
- */
-export function getAccessibilityAttributes(sortOrder) {
-  return [[
-    ACCESSIBILITY_ATTR_SORT, ACCESSIBILITY_ATTR_SORT_VALUES[sortOrder ? sortOrder.toUpperCase() : 'NONE'],
-  ]];
 }

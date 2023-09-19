@@ -7,9 +7,7 @@ import {
   removeClass,
   setAttribute
 } from '../../helpers/dom/element';
-
-const ACCESSIBILITY_ATTR_READONLY = ['aria-readonly', 'true'];
-const ACCESSIBILITY_ATTR_INVALID = ['aria-invalid', 'true'];
+import { A11Y_INVALID, A11Y_READONLY } from '../../helpers/a11y';
 
 export const RENDERER_TYPE = 'base';
 
@@ -37,25 +35,25 @@ export function baseRenderer(instance, TD, row, col, prop, value, cellProperties
     classesToAdd.push(cellProperties.readOnlyCellClassName);
 
     if (ariaEnabled) {
-      attributesToAdd.push(ACCESSIBILITY_ATTR_READONLY);
+      attributesToAdd.push(A11Y_READONLY());
     }
 
   } else if (ariaEnabled) {
-    attributesToRemove.push(ACCESSIBILITY_ATTR_READONLY[0]);
+    attributesToRemove.push(A11Y_READONLY()[0]);
   }
 
   if (cellProperties.valid === false && cellProperties.invalidCellClassName) {
     classesToAdd.push(cellProperties.invalidCellClassName);
 
     if (ariaEnabled) {
-      attributesToAdd.push(ACCESSIBILITY_ATTR_INVALID);
+      attributesToAdd.push(A11Y_INVALID());
     }
 
   } else {
     classesToRemove.push(cellProperties.invalidCellClassName);
 
     if (ariaEnabled) {
-      attributesToRemove.push(ACCESSIBILITY_ATTR_INVALID[0]);
+      attributesToRemove.push(A11Y_INVALID()[0]);
     }
   }
 

@@ -7,10 +7,15 @@ import {
   hasClass,
   removeClass,
   fastInnerText,
-  removeAttribute
+  removeAttribute,
+  setAttribute
 } from '../../helpers/dom/element';
 import EventManager from '../../eventManager';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
+import {
+  A11Y_EXPANDED,
+  A11Y_HIDDEN
+} from '../../helpers/a11y';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
@@ -30,9 +35,6 @@ const actionDictionary = new Map([
     afterHook: 'afterColumnExpand',
   }],
 ]);
-const ACCESSIBILITY_ATTR_EXPANDED = ['aria-expanded', 'true'];
-const ACCESSIBILITY_ATTR_COLLAPSED = ['aria-expanded', 'false'];
-const ACCESSIBILITY_ATTR_HIDDEN = ['aria-hidden', 'true'];
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -522,8 +524,7 @@ export class CollapsibleColumns extends BasePlugin {
     let collapsibleElement = TH.querySelector(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
     removeAttribute(TH, [
-      ACCESSIBILITY_ATTR_EXPANDED[0],
-      ACCESSIBILITY_ATTR_COLLAPSED[0],
+      A11Y_EXPANDED('')[0]
     ]);
 
     if (isNodeCollapsible) {
@@ -543,7 +544,7 @@ export class CollapsibleColumns extends BasePlugin {
 
         // Add ARIA tags
         if (isAriaTagsEnabled) {
-          TH.setAttribute(...ACCESSIBILITY_ATTR_COLLAPSED);
+          setAttribute(TH, ...A11Y_EXPANDED(false));
         }
 
       } else {
@@ -553,12 +554,12 @@ export class CollapsibleColumns extends BasePlugin {
 
         // Add ARIA tags
         if (isAriaTagsEnabled) {
-          TH.setAttribute(...ACCESSIBILITY_ATTR_EXPANDED);
+          setAttribute(TH, ...A11Y_EXPANDED(true));
         }
       }
 
       if (isAriaTagsEnabled) {
-        collapsibleElement.setAttribute(...ACCESSIBILITY_ATTR_HIDDEN);
+        setAttribute(collapsibleElement, ...A11Y_HIDDEN());
       }
 
     } else {

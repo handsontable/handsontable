@@ -3,10 +3,11 @@ import { toSingleLine } from './../../../../helpers/templateLiteralTag';
 import { OrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
 import { setAttribute } from '../../../../helpers/dom/element';
-
-const ACCESSIBILITY_ATTR_PRESENTATION = ['role', 'presentation'];
-const ACCESSIBILITY_ATTR_ROW = ['role', 'row'];
-const ACCESSIBILITY_ATTR_ROWINDEX = ['aria-rowindex'];
+import {
+  A11Y_PRESENTATION,
+  A11Y_ROW,
+  A11Y_ROWINDEX
+} from '../../../../helpers/a11y';
 
 let performanceWarningAppeared = false;
 
@@ -38,56 +39,6 @@ export default class RowsRenderer extends BaseRenderer {
   }
 
   /**
-   * Get a set of accessibility-related attributes to be added to the table.
-   *
-   * @param {object} settings Object containing additional settings used to determine how the attributes should be
-   * constructed.
-   * @param {string} settings.elementIdentifier String identifying the element to be processed.
-   * @param {number} [settings.rowIndex] The row index.
-   * @returns {Array[]}
-   */
-  #getAccessibilityAttributes(settings) {
-    if (!this.table.isAriaEnabled()) {
-      return [];
-    }
-
-    const {
-      elementIdentifier,
-      rowIndex
-    } = settings;
-
-    switch (elementIdentifier) {
-      case 'rowgroup':
-        return [ACCESSIBILITY_ATTR_PRESENTATION];
-
-      case 'row':
-        return [
-          ACCESSIBILITY_ATTR_ROW,
-          // `aria-rowindex` is incremented by both tbody and thead rows.
-          [ACCESSIBILITY_ATTR_ROWINDEX[0], rowIndex + this.table.columnHeadersCount + 1]
-        ];
-
-      default:
-        return [];
-    }
-  }
-
-  /**
-   * Get the list of all attributes to be added to the row elements.
-   *
-   * @param {object} settings Object containing additional settings used to determine how the attributes should be
-   * constructed.
-   * @param {string} settings.elementIdentifier String identifying the element to be processed.
-   * @param {number} [settings.rowIndex] The row index.
-   * @returns {Array[]}
-   */
-  #getAttributes(settings) {
-    return [
-      ...this.#getAccessibilityAttributes(settings)
-    ];
-  }
-
-  /**
    * Returns currently rendered node.
    *
    * @param {string} visualIndex Visual index of the rendered node (it always goeas from 0 to N).
@@ -109,9 +60,11 @@ export default class RowsRenderer extends BaseRenderer {
         the number of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.`);
     }
 
-    setAttribute(this.rootNode, this.#getAttributes({
-      elementIdentifier: 'rowgroup'
-    }));
+    if (this.table.isAriaEnabled()) {
+      setAttribute(this.rootNode, [
+        A11Y_PRESENTATION()
+      ]);
+    }
 
     this.orderView
       .setSize(rowsToRender)
@@ -124,10 +77,13 @@ export default class RowsRenderer extends BaseRenderer {
       const TR = this.orderView.getCurrentNode();
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
 
-      setAttribute(TR, this.#getAttributes({
-        elementIdentifier: 'row',
-        rowIndex: sourceRowIndex
-      }));
+      if (this.table.isAriaEnabled()) {
+        setAttribute(TR, [
+          A11Y_ROW(),
+          // `aria-rowindex` is incremented by both tbody and thead rows.
+          A11Y_ROWINDEX(sourceRowIndex + this.table.columnHeadersCount + 1)
+        ]);
+      }
     }
 
     this.orderView.end();

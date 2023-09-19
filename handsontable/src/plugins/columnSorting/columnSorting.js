@@ -19,12 +19,12 @@ import {
   wasHeaderClickedProperly
 } from './utils';
 import {
-  getAccessibilityAttributes,
   getClassesToRemove,
   getClassesToAdd
 } from './domHelpers';
 import { rootComparator } from './rootComparator';
 import { registerRootComparator, sort } from './sortService';
+import { A11Y_SORT } from '../../helpers/a11y';
 
 export const PLUGIN_KEY = 'columnSorting';
 export const PLUGIN_PRIORITY = 50;
@@ -749,7 +749,7 @@ export class ColumnSorting extends BasePlugin {
    */
   updateAttributes(TH, columnIndex) {
     if (this.hot.getSettings().ariaTags) {
-      setAttribute(TH, getAccessibilityAttributes(this.columnStatesManager.getSortOrderOfColumn(columnIndex)));
+      setAttribute(TH, A11Y_SORT(this.columnStatesManager.getSortOrderOfColumn(columnIndex) || 'NONE'));
     }
   }
 

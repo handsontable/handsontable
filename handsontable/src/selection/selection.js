@@ -18,8 +18,7 @@ import {
   SELECTION_TYPE_UNRECOGNIZED,
 } from './utils';
 import { toSingleLine } from './../helpers/templateLiteralTag';
-
-const ACCESSIBILITY_ATTR_SELECTED = ['aria-selected', 'true'];
+import { A11Y_SELECTED } from '../helpers/a11y';
 
 /**
  * @class Selection
@@ -93,7 +92,7 @@ class Selection {
       activeHeaderClassName: settings.activeHeaderClassName,
       rowClassName: settings.currentRowClassName,
       columnClassName: settings.currentColClassName,
-      cellAttributes: [ACCESSIBILITY_ATTR_SELECTED],
+      cellAttributes: [A11Y_SELECTED()],
       rowIndexMapper: this.tableProps.rowIndexMapper,
       columnIndexMapper: this.tableProps.columnIndexMapper,
       disabledCellSelection: (row, column) => this.tableProps.isDisabledCellSelection(row, column),

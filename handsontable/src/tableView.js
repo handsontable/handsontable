@@ -17,12 +17,13 @@ import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './help
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
-
-const ACCESSIBILITY_ATTR_TREEGRID = ['role', 'treegrid'];
-const ACCESSIBILITY_ATTR_PRESENTATION = ['role', 'presentation'];
-const ACCESSIBILITY_ATTR_MULTISELECTABLE = ['aria-multiselectable', 'true'];
-const ACCESSIBILITY_ATTR_ROWCOUNT = ['aria-rowcount'];
-const ACCESSIBILITY_ATTR_COLCOUNT = ['aria-colcount'];
+import {
+  A11Y_COLCOUNT,
+  A11Y_MULTISELECTABLE,
+  A11Y_PRESENTATION,
+  A11Y_ROWCOUNT,
+  A11Y_TREEGRID
+} from './helpers/a11y';
 
 const privatePool = new WeakMap();
 
@@ -152,62 +153,6 @@ class TableView {
   }
 
   /**
-   * Get a set of accessibility-related attributes to be added to the table.
-   *
-   * @param {object} settings Object containing additional settings used to determine how the attributes should be
-   * constructed.
-   * @param {string} settings.elementIdentifier String identifying the element to be processed.
-   * @param {number} [settings.rowCount] The row count.
-   * @param {number} [settings.colCount] The column count.
-   * @returns {Array[]}
-   */
-  #getAccessibilityAttributes(settings) {
-    if (!this.settings.ariaTags) {
-      return [];
-    }
-
-    const {
-      elementIdentifier,
-      rowCount,
-      colCount,
-    } = settings;
-
-    switch (elementIdentifier) {
-      case 'rootElement':
-        return [
-          ACCESSIBILITY_ATTR_TREEGRID,
-          [ACCESSIBILITY_ATTR_ROWCOUNT[0], rowCount],
-          [ACCESSIBILITY_ATTR_COLCOUNT[0], colCount],
-          ACCESSIBILITY_ATTR_MULTISELECTABLE,
-        ];
-
-      case 'table':
-        return [
-          ACCESSIBILITY_ATTR_PRESENTATION
-        ];
-
-      default:
-        return [];
-    }
-  }
-
-  /**
-   * Get the list of all attributes to be added to the table element.
-   *
-   * @param {object} settings Object containing additional settings used to determine how the attributes should be
-   * constructed.
-   * @param {string} settings.elementIdentifier String identifying the element to be processed.
-   * @param {number} [settings.rowCount] The row count.
-   * @param {number} [settings.colCount] The column count.
-   * @returns {Array[]}
-   */
-  #getAttributes(settings) {
-    return [
-      ...this.#getAccessibilityAttributes(settings)
-    ];
-  }
-
-  /**
    * Renders WalkontableUI.
    */
   render() {
@@ -318,15 +263,18 @@ class TableView {
       addClass(priv.table, this.instance.getSettings().tableClassName);
     }
 
-    setAttribute(priv.table, this.#getAttributes({
-      elementIdentifier: 'table',
-    }));
+    if (this.settings.ariaTags) {
+      setAttribute(priv.table, [
+        A11Y_PRESENTATION()
+      ]);
 
-    setAttribute(rootElement, this.#getAttributes({
-      elementIdentifier: 'rootElement',
-      rowCount: this.instance.countRows(),
-      colCount: this.instance.countCols()
-    }));
+      setAttribute(rootElement, [
+        A11Y_TREEGRID(),
+        A11Y_ROWCOUNT(this.instance.countRows()),
+        A11Y_COLCOUNT(this.instance.countCols()),
+        A11Y_MULTISELECTABLE(),
+      ]);
+    }
 
     this.THEAD = rootDocument.createElement('THEAD');
     priv.table.appendChild(this.THEAD);

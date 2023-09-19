@@ -1,6 +1,5 @@
 import { setAttribute } from '../../helpers/dom/element';
-
-const ACCESSIBILITY_ATTR_PRESENTATION = ['role', 'presentation'];
+import { A11Y_PRESENTATION } from '../../helpers/a11y';
 
 /**
  * Installs a focus detector module. The module appends two input elements into the DOM side by side.
@@ -58,33 +57,11 @@ function createInputElement(hot) {
   input.type = 'text';
   input.classList.add('htFocusCatcher');
 
-  setAttribute(input, getAttributes(hot));
-
-  return input;
-}
-
-/**
- * Get a set of accessibility-related attributes to be added to the focus catcher.
- *
- * @param {Handsontable} hot The Handsontable instance.
- * @returns {Array[]}
- */
-function getAccessibilityAttributes(hot) {
-  if (!hot.getSettings().ariaTags) {
-    return [];
+  if (hot.getSettings().ariaTags) {
+    setAttribute(input, [
+      A11Y_PRESENTATION()
+    ]);
   }
 
-  return [ACCESSIBILITY_ATTR_PRESENTATION];
-}
-
-/**
- * Get the list of all attributes to be added to the focus catcher.
- *
- * @param {Handsontable} hot The Handsontable instance.
- * @returns {Array[]}
- */
-function getAttributes(hot) {
-  return [
-    ...getAccessibilityAttributes(hot)
-  ];
+  return input;
 }

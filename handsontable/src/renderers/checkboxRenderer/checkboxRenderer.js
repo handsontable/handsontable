@@ -1,11 +1,12 @@
 import { baseRenderer } from '../baseRenderer';
 import EventManager from '../../eventManager';
-import { empty, addClass } from '../../helpers/dom/element';
+import { empty, addClass, setAttribute } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
 
 import './checkboxRenderer.css';
 import Hooks from '../../pluginHooks';
+import { A11Y_CHECKED } from '../../helpers/a11y';
 
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap();
@@ -13,8 +14,6 @@ const BAD_VALUE_CLASS = 'htBadValue';
 const ATTR_ROW = 'data-row';
 const ATTR_COLUMN = 'data-col';
 const SHORTCUTS_GROUP = 'checkboxRenderer';
-const ACCESSIBILITY_ATTR_CHECKED = ['aria-checked', 'true'];
-const ACCESSIBILITY_ATTR_UNCHECKED = ['aria-checked', 'false'];
 
 export const RENDERER_TYPE = 'checkbox';
 
@@ -99,10 +98,9 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
   input.setAttribute(ATTR_COLUMN, col);
 
   if (ariaEnabled) {
-    TD.setAttribute(
-      ACCESSIBILITY_ATTR_CHECKED[0],
-      (input.checked ? ACCESSIBILITY_ATTR_CHECKED[1] : ACCESSIBILITY_ATTR_UNCHECKED[1])
-    );
+    setAttribute(TD, [
+      A11Y_CHECKED(input.checked)
+    ]);
   }
 
   if (!badValue && labelOptions) {

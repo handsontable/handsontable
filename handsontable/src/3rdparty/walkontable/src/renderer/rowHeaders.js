@@ -1,11 +1,12 @@
 import { SharedOrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
 import { setAttribute } from '../../../../helpers/dom/element';
-
-const ACCESSIBILITY_ATTR_ROWHEADER = ['role', 'rowheader'];
-const ACCESSIBILITY_ATTR_COLINDEX = ['aria-colindex'];
-const ACCESSIBILITY_ATTR_SCOPE_ROW = ['scope', 'row'];
-const ACCESSIBILITY_ATTR_TABINDEX = ['tabindex', '-1'];
+import {
+  A11Y_COLINDEX,
+  A11Y_ROWHEADER,
+  A11Y_SCOPE_ROW,
+  A11Y_TABINDEX
+} from '../../../../helpers/a11y';
 
 /**
  * Row headers renderer responsible for managing (inserting, tracking, rendering) TR elements belongs to TR.
@@ -35,54 +36,6 @@ export default class RowHeadersRenderer extends BaseRenderer {
      * @type {number}
      */
     this.sourceRowIndex = 0;
-  }
-
-  /**
-   * Get a set of accessibility-related attributes to be added to the table.
-   *
-   * @param {object} settings Object containing additional settings used to determine how the attributes should be
-   * constructed.
-   * @param {string} settings.elementIdentifier String identifying the element to be processed.
-   * @param {number} [settings.columnIndex] The column index.
-   * @returns {Array[]}
-   */
-  #getAccessibilityAttributes(settings) {
-    if (!this.table.isAriaEnabled()) {
-      return [];
-    }
-
-    const {
-      elementIdentifier,
-      columnIndex,
-    } = settings;
-
-    switch (elementIdentifier) {
-      case 'rowheader':
-        return [
-          ACCESSIBILITY_ATTR_ROWHEADER,
-          ACCESSIBILITY_ATTR_SCOPE_ROW,
-          [ACCESSIBILITY_ATTR_COLINDEX[0], columnIndex + 1],
-          ACCESSIBILITY_ATTR_TABINDEX
-        ];
-
-      default:
-        return [];
-    }
-  }
-
-  /**
-   * Get the list of all attributes to be added to the row headers.
-   *
-   * @param {object} settings Object containing additional settings used to determine how the attributes should be
-   * constructed.
-   * @param {string} settings.elementIdentifier String identifying the element to be processed.
-   * @param {number} [settings.columnIndex] The column index.
-   * @returns {Array[]}
-   */
-  #getAttributes(settings) {
-    return [
-      ...this.#getAccessibilityAttributes(settings)
-    ];
   }
 
   /**
@@ -137,10 +90,14 @@ export default class RowHeadersRenderer extends BaseRenderer {
         TH.className = '';
         TH.removeAttribute('style');
 
-        setAttribute(TH, this.#getAttributes({
-          elementIdentifier: 'rowheader',
-          columnIndex: visibleColumnIndex
-        }));
+        if (this.table.isAriaEnabled()) {
+          setAttribute(TH, [
+            A11Y_ROWHEADER(),
+            A11Y_SCOPE_ROW(),
+            A11Y_COLINDEX(visibleColumnIndex + 1),
+            A11Y_TABINDEX(-1)
+          ]);
+        }
 
         rowHeaderFunctions[visibleColumnIndex](sourceRowIndex, TH, visibleColumnIndex);
       }

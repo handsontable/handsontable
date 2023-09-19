@@ -1,4 +1,5 @@
 import { sanitize } from '../string';
+import { A11Y_HIDDEN } from '../a11y';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -1092,10 +1093,10 @@ export function makeElementContentEditableAndSelectItsContent(element, invisible
   const range = ownerDocument.createRange();
   const sel = ownerDocument.defaultView.getSelection();
 
-  element.setAttribute('contenteditable', true);
+  setAttribute(element, 'contenteditable', true);
 
   if (ariaHidden) {
-    element.setAttribute('aria-hidden', true);
+    setAttribute(element, ...A11Y_HIDDEN());
   }
 
   if (invisibleSelection) {

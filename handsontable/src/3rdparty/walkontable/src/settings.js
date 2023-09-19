@@ -232,7 +232,7 @@ export default class Settings {
   /**
    * Update settings.
    *
-   * @param {object} settings The singular settings to update or if passed as object to merge with.
+   * @param {object|string} settings The singular settings to update or if passed as object to merge with.
    * @param {*} value The value to set if the first argument is passed as string.
    * @returns {Settings}
    */

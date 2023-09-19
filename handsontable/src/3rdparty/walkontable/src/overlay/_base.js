@@ -14,8 +14,7 @@ import {
   CLONE_INLINE_START,
 } from './constants';
 import Clone from '../core/clone';
-
-const ACCESSIBILITY_ATTR_PRESENTATION = ['role', 'presentation'];
+import { A11Y_PRESENTATION } from '../../../../helpers/a11y';
 
 /**
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
@@ -71,46 +70,6 @@ export class Overlay {
     this.updateStateOfRendering();
 
     this.clone = this.makeClone();
-  }
-
-  /**
-   * Get a set of accessibility-related attributes to be added to the clone element.
-   *
-   * @param {object} settings Object containing additional settings used to determine how the attributes should be
-   * constructed.
-   * @param {string} settings.elementIdentifier String identifying the element to be processed.
-   * @returns {Array[]}
-   */
-  #getAccessibilityAttributes(settings) {
-    if (!this.wot.wtSettings.getSetting('ariaTags')) {
-      return [];
-    }
-
-    const { elementIdentifier } = settings;
-
-    switch (elementIdentifier) {
-      case 'clone':
-        return [
-          ACCESSIBILITY_ATTR_PRESENTATION
-        ];
-
-      default:
-        return [];
-    }
-  }
-
-  /**
-   * Get the list of all attributes to be added to the clone element.
-   *
-   * @param {object} settings Object containing additional settings used to determine how the attributes should be
-   * constructed.
-   * @param {string} settings.elementIdentifier String identifying the element to be processed.
-   * @returns {Array[]}
-   */
-  #getAttributes(settings) {
-    return [
-      ...this.#getAccessibilityAttributes(settings)
-    ];
   }
 
   /**
@@ -315,7 +274,10 @@ export class Overlay {
     if (CLONE_TYPES.indexOf(this.type) === -1) {
       throw new Error(`Clone type "${this.type}" is not supported.`);
     }
-    const { wtTable } = this.wot;
+    const {
+      wtTable,
+      wtSettings
+    } = this.wot;
     const { rootDocument, rootWindow } = this.domBindings;
     const clone = rootDocument.createElement('DIV');
     const clonedTable = rootDocument.createElement('TABLE');
@@ -333,14 +295,20 @@ export class Overlay {
       clone.style.left = 0;
     }
 
-    setAttribute(clone, this.#getAttributes({
-      elementIdentifier: 'clone'
-    }));
+    if (wtSettings.getSetting('ariaTags')) {
+      setAttribute(clone, [
+        A11Y_PRESENTATION()
+      ]);
+    }
 
     clonedTable.className = wtTable.TABLE.className;
 
     // Clone the main table's `role` attribute to the cloned table.
-    clonedTable.setAttribute('role', wtTable.TABLE.getAttribute('role'));
+    const mainTableRole = wtTable.TABLE.getAttribute('role');
+
+    if (mainTableRole) {
+      clonedTable.setAttribute('role', wtTable.TABLE.getAttribute('role'));
+    }
 
     clone.appendChild(clonedTable);
 

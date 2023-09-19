@@ -4,10 +4,11 @@ import {
 } from './../../../../helpers/dom/element';
 import { SharedOrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
-
-const ACCESSIBILITY_ATTR_GRIDCELL = ['role', 'gridcell'];
-const ACCESSIBILITY_ATTR_TABINDEX = ['tabindex', '-1'];
-const ACCESSIBILITY_ATTR_COLINDEX = ['aria-colindex'];
+import {
+  A11Y_COLINDEX,
+  A11Y_GRIDCELL,
+  A11Y_TABINDEX
+} from '../../../../helpers/a11y';
 
 /**
  * Cell renderer responsible for managing (inserting, tracking, rendering) TD elements.
@@ -37,54 +38,6 @@ export default class CellsRenderer extends BaseRenderer {
      * @type {number}
      */
     this.sourceRowIndex = 0;
-  }
-
-  /**
-   * Get a set of accessibility-related attributes to be added to the table.
-   *
-   * @param {object} settings Object containing additional settings used to determine how the attributes should be
-   * constructed.
-   * @param {string} settings.elementIdentifier String identifying the element to be processed.
-   * @param {number} [settings.columnIndex] The column index.
-   * @returns {Array[]}
-   */
-  #getAccessibilityAttributes(settings) {
-    if (!this.table.isAriaEnabled()) {
-      return [];
-    }
-
-    const {
-      elementIdentifier,
-      columnIndex
-    } = settings;
-
-    switch (elementIdentifier) {
-      case 'cell':
-        return [
-          ACCESSIBILITY_ATTR_GRIDCELL,
-          ACCESSIBILITY_ATTR_TABINDEX,
-          // `aria-colindex` is incremented by both tbody and thead rows.
-          [ACCESSIBILITY_ATTR_COLINDEX[0], columnIndex + this.table.rowHeadersCount + 1],
-        ];
-
-      default:
-        return [];
-    }
-  }
-
-  /**
-   * Get the list of all attributes to be added to the table cells.
-   *
-   * @param {object} settings Object containing additional settings used to determine how the attributes should be
-   * constructed.
-   * @param {string} settings.elementIdentifier String identifying the element to be processed.
-   * @param {number} [settings.columnIndex] The column index.
-   * @returns {Array[]}
-   */
-  #getAttributes(settings) {
-    return [
-      ...this.#getAccessibilityAttributes(settings)
-    ];
   }
 
   /**
@@ -146,12 +99,16 @@ export default class CellsRenderer extends BaseRenderer {
         TD.removeAttribute('style');
         TD.removeAttribute('dir');
 
-        setAttribute(TD, this.#getAttributes({
-          elementIdentifier: 'cell',
-          columnIndex: sourceColumnIndex,
-        }));
-
         this.table.cellRenderer(sourceRowIndex, sourceColumnIndex, TD);
+
+        if (this.table.isAriaEnabled()) {
+          setAttribute(TD, [
+            A11Y_GRIDCELL(),
+            A11Y_TABINDEX(-1),
+            // `aria-colindex` is incremented by both tbody and thead rows.
+            A11Y_COLINDEX(sourceColumnIndex + this.table.rowHeadersCount + 1),
+          ]);
+        }
       }
 
       orderView.end();

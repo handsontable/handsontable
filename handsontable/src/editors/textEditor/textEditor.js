@@ -17,9 +17,11 @@ import { isDefined } from '../../helpers/mixed';
 import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
 import { SHORTCUTS_GROUP_EDITOR } from '../baseEditor/baseEditor';
 import { updateCaretPosition } from './caretPositioner';
+import {
+  A11Y_HIDDEN,
+  A11Y_TABINDEX
+} from '../../helpers/a11y';
 
-const ACCESSIBILITY_ATTR_TABINDEX = ['tabindex', '-1'];
-const ACCESSIBILITY_ATTR_HIDDEN = ['aria-hidden', 'true'];
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
 const SHORTCUTS_GROUP = 'textEditor';
@@ -212,7 +214,17 @@ export class TextEditor extends BaseEditor {
     const { rootDocument } = this.hot;
 
     this.TEXTAREA = rootDocument.createElement('TEXTAREA');
-    setAttribute(this.TEXTAREA, this.#getAttributes());
+
+    // Makes the element recognizable by Hot as its own
+    // component's element.);
+    setAttribute(this.TEXTAREA, 'data-hot-input', '');
+
+    if (this.hot.getSettings().ariaTags) {
+      setAttribute(this.TEXTAREA, [
+        A11Y_HIDDEN(),
+        A11Y_TABINDEX(-1),
+      ]);
+    }
 
     addClass(this.TEXTAREA, 'handsontableInput');
 
@@ -235,34 +247,6 @@ export class TextEditor extends BaseEditor {
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
 
     this.hot.rootElement.appendChild(this.TEXTAREA_PARENT);
-  }
-
-  /**
-   * Get a set of accessibility-related attributes to be added to the text editor.
-   *
-   * @returns {Array[]}
-   */
-  #getAccessibilityAttributes() {
-    if (!this.hot.getSettings().ariaTags) {
-      return [];
-    }
-
-    return [
-      ACCESSIBILITY_ATTR_HIDDEN,
-      ACCESSIBILITY_ATTR_TABINDEX,
-    ];
-  }
-
-  /**
-   * Get the list of all attributes to be added to the text editor element.
-   *
-   * @returns {Array[]}
-   */
-  #getAttributes() {
-    return [
-      ['data-hot-input', ''], // Makes the element recognizable by Hot as its own component's element.
-      ...this.#getAccessibilityAttributes()
-    ];
   }
 
   /**

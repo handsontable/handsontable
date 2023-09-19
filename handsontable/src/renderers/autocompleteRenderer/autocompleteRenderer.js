@@ -4,9 +4,7 @@ import EventManager from '../../eventManager';
 import { addClass, hasClass } from '../../helpers/dom/element';
 
 import './autocompleteRenderer.scss';
-
-const ACCESSIBILITY_ATTR_HASPOPUP = ['aria-haspopup', 'listbox'];
-const ACCESSIBILITY_ATTR_HIDDEN = ['aria-hidden', 'true'];
+import { A11Y_HASPOPUP, A11Y_HIDDEN } from '../../helpers/a11y';
 
 export const RENDERER_TYPE = 'autocomplete';
 
@@ -31,7 +29,7 @@ export function autocompleteRenderer(instance, TD, row, col, prop, value, cellPr
   ARROW.className = 'htAutocompleteArrow';
 
   if (isAriaEnabled) {
-    ARROW.setAttribute(...ACCESSIBILITY_ATTR_HIDDEN);
+    ARROW.setAttribute(...A11Y_HIDDEN());
   }
 
   ARROW.appendChild(rootDocument.createTextNode(String.fromCharCode(9660)));
@@ -49,7 +47,7 @@ export function autocompleteRenderer(instance, TD, row, col, prop, value, cellPr
   addClass(TD, 'htAutocomplete');
 
   if (isAriaEnabled) {
-    TD.setAttribute(...ACCESSIBILITY_ATTR_HASPOPUP);
+    TD.setAttribute(...A11Y_HASPOPUP());
   }
 
   if (!instance.acArrowListener) {
