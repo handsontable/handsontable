@@ -25,130 +25,252 @@ function isHTMLTable(element) {
  * @returns {string} OuterHTML of the HTMLTableElement.
  */
 export function instanceToHTML(instance) {
-  const hasColumnHeaders = instance.hasColHeaders();
-  const hasRowHeaders = instance.hasRowHeaders();
-  const coords = [
-    hasColumnHeaders ? -1 : 0,
-    hasRowHeaders ? -1 : 0,
-    instance.countRows() - 1,
-    instance.countCols() - 1,
-  ];
-  const data = instance.getData(...coords);
-  const countRows = data.length;
-  const countCols = countRows > 0 ? data[0].length : 0;
-  const TABLE = ['<table>', '</table>'];
-  const THEAD = hasColumnHeaders ? ['<thead>', '</thead>'] : [];
-  const TBODY = ['<tbody>', '</tbody>'];
-  const rowModifier = hasRowHeaders ? 1 : 0;
-  const columnModifier = hasColumnHeaders ? 1 : 0;
+  const startColumn = instance.hasRowHeaders() ? -1 : 0;
+  const startRow = instance.hasColHeaders() ? -1 : 0;
+  const rows = Array.from({ length: instance.countRows() + Math.abs(startRow) },
+    (_, i) => i + startRow);
+  const columns = Array.from({ length: instance.countCols() + Math.abs(startColumn) },
+    (_, i) => i + startColumn);
 
-  for (let row = 0; row < countRows; row += 1) {
-    const isColumnHeadersRow = hasColumnHeaders && row === 0;
-    const CELLS = [];
-
-    for (let column = 0; column < countCols; column += 1) {
-      const isRowHeadersColumn = !isColumnHeadersRow && hasRowHeaders && column === 0;
-      let cell = '';
-
-      if (isColumnHeadersRow) {
-        cell = `<th>${instance.getColHeader(column - rowModifier)}</th>`;
-
-      } else if (isRowHeadersColumn) {
-        cell = `<th>${instance.getRowHeader(row - columnModifier)}</th>`;
-
-      } else {
-        const cellData = data[row][column];
-        const { hidden, rowspan, colspan } = instance.getCellMeta(row - columnModifier, column - rowModifier);
-
-        if (!hidden) {
-          const attrs = [];
-
-          if (rowspan) {
-            attrs.push(`rowspan="${rowspan}"`);
-          }
-          if (colspan) {
-            attrs.push(`colspan="${colspan}"`);
-          }
-          if (isEmpty(cellData)) {
-            cell = `<td ${attrs.join(' ')}></td>`;
-          } else {
-            const value = cellData.toString()
-              .replace('<', '&lt;')
-              .replace('>', '&gt;')
-              .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
-              .replace(/\x20/gi, '&nbsp;')
-              .replace(/\t/gi, '&#9;');
-
-            cell = `<td ${attrs.join(' ')}>${value}</td>`;
-          }
-        }
-      }
-
-      CELLS.push(cell);
-    }
-
-    const TR = ['<tr>', ...CELLS, '</tr>'].join('');
-
-    if (isColumnHeadersRow) {
-      THEAD.splice(1, 0, TR);
-    } else {
-      TBODY.splice(-1, 0, TR);
-    }
-  }
-
-  TABLE.splice(1, 0, THEAD.join(''), TBODY.join(''));
-
-  return TABLE.join('');
+  return getHTMLFromHotCoords(instance, { rows, columns });
 }
 
 /**
- * Converts 2D array into HTMLTableElement.
+ * Converts Handsontable's coordinates into HTMLTableElement.
  *
- * @param {Array} input Input array which will be converted to HTMLTable.
+ * @param {Core} instance The Handsontable instance.
+ * @param {object} config Configuration for building HTMLTableElement.
+ * @param {Array<number>} config.rows List of row indexes which should be taken into account when creating the table.
+ * @param {Array<number>} config.columns List of column indexes which should be taken into account when creating the table.
  * @returns {string} OuterHTML of the HTMLTableElement.
  */
-// eslint-disable-next-line no-restricted-globals
-export function _dataToHTML(input) {
-  const inputLen = input.length;
-  const result = ['<table>'];
+export function getHTMLFromHotCoords(instance, config) {
+  return [
+    '<table>',
+    ...getHeadersHTMLByCoords(instance, config),
+    ...getBodyHTMLByCoords(instance, config),
+    '</table>',
+  ].join('');
+}
 
-  for (let row = 0; row < inputLen; row += 1) {
-    const rowData = input[row];
-    const columnsLen = rowData.length;
-    const columnsResult = [];
+/**
+ * Converts Handsontable's coordinates into list of cell values.
+ *
+ * @param {Core} instance The Handsontable instance.
+ * @param {object} config Configuration for building the cell value list.
+ * @param {Array<number>} config.rows List of row indexes which should be taken into account when creating the
+ * cell value list.
+ * @param {Array<number>} config.columns List of column indexes which should be taken into account when creating the
+ * cell value list.
+ * @returns {Array[]} List of displayed cell values.
+ */
+export function getDataFromHotCoords(instance, config) {
+  return [
+    ...getHeadersDataByCoords(instance, config),
+    ...getBodyDataByCoords(instance, config),
+  ];
+}
 
-    if (row === 0) {
-      result.push('<tbody>');
-    }
+/**
+ * Encode text to HTML.
+ *
+ * @param {string} text Text to prepare.
+ * @returns {string}
+ */
+function encodeHTMLEntities(text) {
+  return `${text}`
+    .replace(/&/g, '&amp;')
+    .replace('<', '&lt;')
+    .replace('>', '&gt;')
+    .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
+    .replace(/\x20{2,}/gi, (substring) => {
+      // The way how Excel serializes data with at least two spaces.
+      return `<span style="mso-spacerun: yes">${'&nbsp;'.repeat(substring.length - 1)} </span>`;
+    })
+    .replace(/\t/gi, '&#9;');
+}
 
-    for (let column = 0; column < columnsLen; column += 1) {
-      const cellData = rowData[column];
-      const parsedCellData = isEmpty(cellData) ?
-        '' :
-        cellData.toString()
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
-          .replace(/\x20{2,}/gi, (substring) => {
-            // The way how Excel serializes data with at least two spaces.
-            return `<span style="mso-spacerun: yes">${'&nbsp;'.repeat(substring.length - 1)} </span>`;
-          })
-          .replace(/\t/gi, '&#9;');
+/**
+ * Converts Handsontable's header coordinates into HTMLTableElement.tHead.
+ *
+ * @param {Core} instance The Handsontable instance.
+ * @param {object} config Configuration for building HTMLTableElement.tHead.
+ * @param {Array<number>} config.rows List of row indexes which should be taken into account when creating
+ * the HTMLTableElement.tHead.
+ * @param {Array<number>} config.columns List of column indexes which should be taken into account when creating
+ * the HTMLTableElement.tHead.
+ * @returns {Array<string>} List of HTMLElements stored as strings.
+ */
+function getHeadersHTMLByCoords(instance, config) {
+  const { rows, columns } = config;
+  const headers = rows.filter(rowIndex => rowIndex < 0);
+  const headersHTML = [];
 
-      columnsResult.push(`<td>${parsedCellData}</td>`);
-    }
-
-    result.push('<tr>', ...columnsResult, '</tr>');
-
-    if (row + 1 === inputLen) {
-      result.push('</tbody>');
-    }
+  if (headers.length === 0 || columns.length === 0) {
+    return [];
   }
 
-  result.push('</table>');
+  headers.forEach((rowIndex) => {
+    const tr = ['<tr>'];
 
-  return result.join('');
+    for (let i = 0; i < columns.length; i += 1) {
+      const columnIndex = columns[i];
+      const headerCell = instance.getCell(rowIndex, columnIndex);
+      const colspan = headerCell?.getAttribute('colspan');
+      let colspanAttribute = '';
+
+      if (colspan) {
+        const parsedColspan = parseInt(colspan, 10);
+
+        colspanAttribute = ` colspan=${parsedColspan}`;
+        i += parsedColspan - 1;
+      }
+
+      tr.push(`<th${colspanAttribute}>${encodeHTMLEntities(instance.getColHeader(columnIndex, rowIndex))}</th>`);
+    }
+
+    tr.push('</tr>');
+    headersHTML.push(...tr);
+  });
+
+  return ['<thead>', ...headersHTML, '</thead>'];
+}
+
+/**
+ * Converts Handsontable's coordinates into list of values for cells being headers.
+ *
+ * @param {Core} instance The Handsontable instance.
+ * @param {object} config Configuration for building the cell value list.
+ * @param {Array<number>} config.rows List of row indexes which should be taken into account when creating the
+ * cell value list.
+ * @param {Array<number>} config.columns List of column indexes which should be taken into account when creating the
+ * cell value list.
+ * @returns {Array[]} List of displayed cell values.
+ */
+function getHeadersDataByCoords(instance, config) {
+  const headersData = [];
+  const { columns, rows } = config;
+  const headers = rows.filter(rowIndex => rowIndex < 0);
+
+  headers.forEach((rowIndex) => {
+    const tr = [];
+
+    for (let i = 0; i < columns.length; i += 1) {
+      const columnIndex = columns[i];
+      const headerCell = instance.getCell(rowIndex, columnIndex);
+      const colspan = headerCell?.getAttribute('colspan');
+
+      tr.push(instance.getColHeader(columnIndex, rowIndex));
+
+      if (colspan) {
+        const parsedColspan = parseInt(colspan, 10);
+
+        tr.push(...new Array(parsedColspan - 1).fill(''));
+        i += parsedColspan - 1;
+      }
+    }
+
+    headersData.push(tr);
+  });
+
+  return headersData;
+}
+
+/**
+ * Converts Handsontable's header coordinates into HTMLTableElement.tBodies.
+ *
+ * @param {Core} instance The Handsontable instance.
+ * @param {object} config Configuration for building HTMLTableElement.
+ * @param {Array<number>} config.rows List of row indexes which should be taken into account when creating the table.
+ * @param {Array<number>} config.columns List of column indexes which should be taken into account when creating the table.
+ * @returns {Array<string>} List of HTMLElements stored as strings.
+ */
+function getBodyHTMLByCoords(instance, config) {
+  const { columns, rows } = config;
+  const bodyRows = rows.filter(rowIndex => rowIndex >= 0);
+  const cells = [];
+
+  if (bodyRows.length === 0 || columns.length === 0) {
+    return [];
+  }
+
+  bodyRows.forEach((rowIndex) => {
+    const tr = ['<tr>'];
+
+    columns.forEach((columnIndex) => {
+      if (columnIndex < 0) {
+        tr.push(`<th>${encodeHTMLEntities(instance.getRowHeader(rowIndex))}</th>`);
+
+        return;
+      }
+
+      const cellValue = instance.getCopyableData(rowIndex, columnIndex);
+      const cellValueParsed = isEmpty(cellValue) ? '' : encodeHTMLEntities(cellValue);
+      const countRows = instance.countRows();
+      const countColumns = instance.countCols();
+      const { hidden, rowspan, colspan } =
+        instance.getCellMeta(rowIndex, columnIndex);
+
+      if (!hidden) {
+        const attrs = [];
+
+        if (rowspan) {
+          const recalculatedRowSpan = Math.min(rowspan, countRows - rowIndex);
+
+          if (recalculatedRowSpan > 1) {
+            attrs.push(` rowspan="${recalculatedRowSpan}"`);
+          }
+        }
+
+        if (colspan) {
+          const recalculatedColumnSpan = Math.min(colspan, countColumns - columnIndex);
+
+          if (recalculatedColumnSpan > 1) {
+            attrs.push(` colspan="${recalculatedColumnSpan}"`);
+          }
+        }
+
+        tr.push(`<td${attrs.join('')}>${cellValueParsed}</td>`);
+      }
+    });
+
+    tr.push('</tr>');
+    cells.push(...tr);
+  });
+
+  return ['<tbody>', ...cells, '</tbody>'];
+}
+
+/**
+ * Converts Handsontable's coordinates into list of values for cells not being headers.
+ *
+ * @param {Core} instance The Handsontable instance.
+ * @param {object} config Configuration for building the cell value list.
+ * @param {Array<number>} config.rows List of row indexes which should be taken into account when creating the
+ * cell value list.
+ * @param {Array<number>} config.columns List of column indexes which should be taken into account when creating the
+ * cell value list.
+ * @returns {Array[]} List of displayed cell values.
+ */
+function getBodyDataByCoords(instance, config) {
+  const cells = [];
+  const { columns, rows } = config;
+  const bodyRows = rows.filter(rowIndex => rowIndex >= 0);
+
+  bodyRows.forEach((rowIndex) => {
+    const tr = [];
+
+    columns.forEach((columnIndex) => {
+      const cellValue = instance.getCopyableData(rowIndex, columnIndex);
+      const cellValueParsed = isEmpty(cellValue) ? '' : cellValue;
+
+      tr.push(cellValueParsed);
+    });
+
+    cells.push(tr);
+  });
+
+  return cells;
 }
 
 /**

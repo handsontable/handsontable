@@ -65,14 +65,20 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.clipboardData.getData('text/plain'))
         .toBe('!@#$%^&*()_+-={[\t]};:\'"\\|,<.>/?~&LTE\n!@#$%^&*()_+-={[\t]};:\'"\\|,<.>/?~&LTE');
+      /* eslint-disable indent */
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
-        '<meta name="generator" content="Handsontable"/>' +
-          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table><tbody>',
-        '<tr><td>!@#$%^&amp;*()_+-={[</td><td>]};:\'"\\|,&lt;.&gt;/?~&amp;LTE</td></tr>',
-        '<tr><td>!@#$%^&amp;*()_+-={[</td><td>]};:\'"\\|,&lt;.&gt;/?~&amp;LTE</td></tr>',
-        '</tbody></table>',
+        '<meta name="generator" content="Handsontable"/>',
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table>',
+          '<thead>',
+            '<tr><th>!@#$%^&amp;*()_+-={[</th><th>]};:\'"\\|,&lt;.&gt;/?~&amp;LTE</th></tr>',
+          '</thead>',
+          '<tbody>',
+            '<tr><td>!@#$%^&amp;*()_+-={[</td><td>]};:\'"\\|,&lt;.&gt;/?~&amp;LTE</td></tr>',
+          '</tbody>',
+        '</table>',
       ].join(''));
+      /* eslint-enable */
     });
 
     it('should copy text in quotes to the clipboard', () => {
@@ -95,16 +101,23 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.clipboardData.getData('text/plain'))
         .toBe('{"test": "value"}\n{"test": "value"}\n{"test2": {"testtest": ""}}\n{"test3": ""}');
+
+      /* eslint-disable indent */
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
-        '<meta name="generator" content="Handsontable"/>' +
-          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table><tbody>',
-        '<tr><td>{"test": "value"}</td></tr>',
-        '<tr><td>{"test": "value"}</td></tr>',
-        '<tr><td>{"test2": {"testtest": ""}}</td></tr>',
-        '<tr><td>{"test3": ""}</td></tr>',
-        '</tbody></table>',
+        '<meta name="generator" content="Handsontable"/>',
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table>',
+          '<thead>',
+            '<tr><th>{"test": "value"}</th></tr>',
+          '</thead>',
+          '<tbody>',
+            '<tr><td>{"test": "value"}</td></tr>',
+            '<tr><td>{"test2": {"testtest": ""}}</td></tr>',
+            '<tr><td>{"test3": ""}</td></tr>',
+          '</tbody>',
+        '</table>',
       ].join(''));
+      /* eslint-enable */
     });
 
     it('should copy 0 and false values to the clipboard', () => {
@@ -122,15 +135,21 @@ describe('CopyPaste', () => {
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       // Handsontable replaces undefined values with letters
+      /* eslint-disable indent */
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('\t0\tfalse\tD\t\n\t0\tfalse\t\t');
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
-        '<meta name="generator" content="Handsontable"/>' +
-          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table><tbody>',
-        '<tr><td></td><td>0</td><td>false</td><td>D</td><td></td></tr>',
-        '<tr><td></td><td>0</td><td>false</td><td></td><td></td></tr>',
-        '</tbody></table>',
+        '<meta name="generator" content="Handsontable"/>',
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table>',
+          '<thead>',
+            '<tr><th></th><th>0</th><th>false</th><th>D</th><th>null</th></tr>',
+          '</thead>',
+          '<tbody>',
+            '<tr><td></td><td>0</td><td>false</td><td></td><td></td></tr>',
+          '</tbody>',
+        '</table>',
       ].join(''));
+      /* eslint-enable */
     });
 
     it('should handle spaces properly (creates Excel compatible HTML)', () => {
@@ -151,18 +170,24 @@ describe('CopyPaste', () => {
       plugin.copyWithColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
+      /* eslint-disable indent */
       expect(copyEvent.clipboardData.getData('text/plain'))
         .toBe('a   b\nc d\ne  f\ng      h');
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table><tbody>',
-        '<tr><td>a<span style="mso-spacerun: yes">&nbsp;&nbsp; </span>b</td></tr>',
-        '<tr><td>c d</td></tr>',
-        '<tr><td>e<span style="mso-spacerun: yes">&nbsp; </span>f</td></tr>',
-        '<tr><td>g<span style="mso-spacerun: yes">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>h</td></tr>',
-        '</tbody></table>',
+        '<table>',
+          '<thead>',
+            '<tr><th>a<span style="mso-spacerun: yes">&nbsp;&nbsp; </span>b</th></tr>',
+          '</thead>',
+          '<tbody>',
+            '<tr><td>c d</td></tr>',
+            '<tr><td>e<span style="mso-spacerun: yes">&nbsp; </span>f</td></tr>',
+            '<tr><td>g<span style="mso-spacerun: yes">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>h</td></tr>',
+          '</tbody>',
+        '</table>',
       ].join(''));
+      /* eslint-enable */
     });
   });
 });

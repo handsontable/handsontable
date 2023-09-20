@@ -35,15 +35,37 @@ describe('CopyPaste', () => {
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       expect(beforeCopy.calls.count()).toBe(1);
+      /* eslint-disable indent */
       expect(beforeCopy).toHaveBeenCalledWith(
         [['C2', 'D2', 'E2'], ['C3', 'D3', 'E3'], ['C4', 'D4', 'E4']],
-        [{ startRow: 1, startCol: 2, endRow: 3, endCol: 4 }],
-        { columnHeadersCount: 0 },
+        '<meta name="generator" content="Handsontable"/>' +
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
+        '<table>' +
+          '<tbody>' +
+            '<tr>' +
+              '<td>C2</td>' +
+              '<td>D2</td>' +
+              '<td>E2</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td>C3</td>' +
+              '<td>D3</td>' +
+              '<td>E3</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td>C4</td>' +
+              '<td>D4</td>' +
+              '<td>E4</td>' +
+            '</tr>' +
+          '</tbody>' +
+        '</table>',
+        { rows: [1, 2, 3], columns: [2, 3, 4] }
       );
+      /* eslint-enable */
     });
 
     it('should be called with coords and dataset points to the cells and the first column headers ' +
-       'nearest the cells (single-line column headers configuration)', () => {
+      'nearest the cells (single-line column headers configuration)', () => {
       const beforeCopy = jasmine.createSpy('beforeCopy');
 
       handsontable({
@@ -62,18 +84,44 @@ describe('CopyPaste', () => {
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       expect(beforeCopy.calls.count()).toBe(1);
+      /* eslint-disable indent */
       expect(beforeCopy).toHaveBeenCalledWith(
         [['C', 'D', 'E'], ['C2', 'D2', 'E2'], ['C3', 'D3', 'E3'], ['C4', 'D4', 'E4']],
-        [
-          { startRow: -1, startCol: 2, endRow: -1, endCol: 4 },
-          { startRow: 1, startCol: 2, endRow: 3, endCol: 4 },
-        ],
-        { columnHeadersCount: 1 },
+        '<meta name="generator" content="Handsontable"/>' +
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
+        '<table>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>C</th>' +
+              '<th>D</th>' +
+              '<th>E</th>' +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+            '<tr>' +
+              '<td>C2</td>' +
+              '<td>D2</td>' +
+              '<td>E2</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td>C3</td>' +
+              '<td>D3</td>' +
+              '<td>E3</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td>C4</td>' +
+              '<td>D4</td>' +
+              '<td>E4</td>' +
+            '</tr>' +
+          '</tbody>' +
+        '</table>',
+        { rows: [-1, 1, 2, 3], columns: [2, 3, 4] }
       );
+      /* eslint-enable */
     });
 
     it('should be called with coords and dataset points to the cells and the first column headers ' +
-       'nearest the cells (multi-line column headers configuration)', () => {
+      'nearest the cells (multi-line column headers configuration)', () => {
       const beforeCopy = jasmine.createSpy('beforeCopy');
 
       handsontable({
@@ -103,11 +151,35 @@ describe('CopyPaste', () => {
       expect(beforeCopy.calls.count()).toBe(1);
       expect(beforeCopy).toHaveBeenCalledWith(
         [['C', 'D', 'E'], ['C2', 'D2', 'E2'], ['C3', 'D3', 'E3'], ['C4', 'D4', 'E4']],
-        [
-          { startRow: -1, startCol: 2, endRow: -1, endCol: 4 },
-          { startRow: 1, startCol: 2, endRow: 3, endCol: 4 },
-        ],
-        { columnHeadersCount: 1 },
+        '<meta name="generator" content="Handsontable"/>' +
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
+        '<table>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>C</th>' +
+              '<th>D</th>' +
+              '<th>E</th>' +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+            '<tr>' +
+              '<td>C2</td>' +
+              '<td>D2</td>' +
+              '<td>E2</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td>C3</td>' +
+              '<td>D3</td>' +
+              '<td>E3</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td>C4</td>' +
+              '<td>D4</td>' +
+              '<td>E4</td>' +
+            '</tr>' +
+          '</tbody>' +
+        '</table>',
+        { rows: [-1, 1, 2, 3], columns: [2, 3, 4] }
       );
     });
 
@@ -144,11 +216,39 @@ describe('CopyPaste', () => {
       expect(beforeCopy.calls.count()).toBe(1);
       expect(beforeCopy).toHaveBeenCalledWith(
         [['C', 'D'], ['C', 'D'], ['C', 'D'], ['C2', 'D2'], ['C3', 'D3'], ['C4', 'D4']],
-        [
-          { startRow: -3, startCol: 2, endRow: -1, endCol: 3 },
-          { startRow: 1, startCol: 2, endRow: 3, endCol: 3 },
-        ],
-        { columnHeadersCount: 3 },
+        '<meta name="generator" content="Handsontable"/>' +
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
+        '<table>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>C</th>' +
+              '<th>D</th>' +
+            '</tr>' +
+            '<tr>' +
+              '<th>C</th>' +
+              '<th>D</th>' +
+            '</tr>' +
+            '<tr>' +
+              '<th>C</th>' +
+              '<th>D</th>' +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+            '<tr>' +
+              '<td>C2</td>' +
+              '<td>D2</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td>C3</td>' +
+              '<td>D3</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td>C4</td>' +
+              '<td>D4</td>' +
+            '</tr>' +
+          '</tbody>' +
+        '</table>',
+        { rows: [-3, -2, -1, 1, 2, 3], columns: [2, 3] }
       );
     });
 
@@ -192,9 +292,11 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(2, 2),
         colHeaders: true,
         copyPaste: true,
-        beforeCopy(changes) {
-          changes.splice(2, 1); // remove the first selected cells
-          changes.splice(1, 1); // remove the most-bottom column header
+        beforeCopy(data, textHTML, copyConfig) {
+          copyConfig.rows = copyConfig.rows.filter((rowIndex) => {
+            // remove the first selected cells and the most-bottom column header
+            return rowIndex !== 0 && rowIndex !== -1;
+          });
         },
         modifyColumnHeaderValue(value, columnIndex, headerLevel) {
           if (headerLevel < 0) {
@@ -223,14 +325,20 @@ describe('CopyPaste', () => {
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('A-0-0\nA2');
+      /* eslint-disable indent */
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
-          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table><tbody>',
-        '<tr><td>A-0-0</td></tr>',
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table>',
+        '<thead>',
+        '<tr><th>A-0-0</th></tr>',
+        '</thead>',
+        '<tbody>',
         '<tr><td>A2</td></tr>',
-        '</tbody></table>'
+        '</tbody>',
+        '</table>'
       ].join(''));
+      /* eslint-enable */
     });
   });
 });

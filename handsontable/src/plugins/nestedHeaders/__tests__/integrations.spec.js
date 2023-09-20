@@ -115,17 +115,23 @@ describe('Integration with other plugins', () => {
         'A1\tB1\tC1\tD1',
         'A2\tB2\tC2\tD2',
       ].join('\n'));
+      /* eslint-disable indent */
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
-        '<meta name="generator" content="Handsontable"/>' +
-          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table><tbody>',
-        '<tr><td>a1</td><td></td><td></td><td>b1</td></tr>',
-        '<tr><td>a2</td><td></td><td>b2</td><td>c2</td></tr>',
-        '<tr><td>a3</td><td></td><td>b3</td><td>c3</td></tr>',
-        '<tr><td>A1</td><td>B1</td><td>C1</td><td>D1</td></tr>',
-        '<tr><td>A2</td><td>B2</td><td>C2</td><td>D2</td></tr>',
-        '</tbody></table>',
+        '<meta name="generator" content="Handsontable"/>',
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table>',
+          '<thead>',
+            '<tr><th colspan=3>a1</th><th>b1</th></tr>',
+            '<tr><th colspan=2>a2</th><th>b2</th><th>c2</th></tr>',
+            '<tr><th colspan=2>a3</th><th>b3</th><th>c3</th></tr>',
+          '</thead>',
+          '<tbody>',
+            '<tr><td>A1</td><td>B1</td><td>C1</td><td>D1</td></tr>',
+            '<tr><td>A2</td><td>B2</td><td>C2</td><td>D2</td></tr>',
+          '</tbody>',
+        '</table>',
       ].join(''));
+      /* eslint-enable */
     });
   });
 });
