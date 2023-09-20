@@ -323,8 +323,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.columnIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
   this.rowIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
 
-  this.selection.addLocalHook('highlightSet', () => {
-    this.runHooks('selectionHighlightSet');
+  this.selection.addLocalHook('beforeHighlightSet', () => {
+    this.runHooks('beforeSelectionHighlightSet');
   });
 
   this.selection.addLocalHook('beforeSetRangeStart', (cellCoords) => {

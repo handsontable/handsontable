@@ -209,6 +209,7 @@ export interface Events {
   beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean) => void;
   beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
   beforeSelectColumns?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
+  beforeSelectionHighlightSet?: () => void;
   beforeSelectRows?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
   beforeSetCellMeta?: (row: number, col: number, key: string, value: any) => boolean | void;
   beforeSetRangeEnd?: (coords: CellCoords) => void;

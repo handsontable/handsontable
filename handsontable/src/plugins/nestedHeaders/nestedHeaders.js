@@ -144,7 +144,7 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('afterOnCellMouseDown', (...args) => this.onAfterOnCellMouseDown(...args));
     this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
     this.addHook('beforeOnCellMouseUp', (...args) => this.onBeforeOnCellMouseUp(...args));
-    this.addHook('selectionHighlightSet', (...args) => this.onSelectionHighlightSet(...args));
+    this.addHook('beforeSelectionHighlightSet', (...args) => this.onBeforeSelectionHighlightSet(...args));
     this.addHook('modifyTransformStart', (...args) => this.onModifyTransformStart(...args));
     this.addHook('afterSelection', () => this.updateFocusHighlightPosition());
     this.addHook('afterGetColumnHeaderRenderers', array => this.onAfterGetColumnHeaderRenderers(array));
@@ -649,7 +649,7 @@ export class NestedHeaders extends BasePlugin {
    *
    * @private
    */
-  onSelectionHighlightSet() {
+  onBeforeSelectionHighlightSet() {
     const { navigableHeaders } = this.hot.getSettings();
 
     if (!this.hot.view.isMouseDown() || !this.#isColumnsSelectionInProgress || !navigableHeaders) {

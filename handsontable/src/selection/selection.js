@@ -265,7 +265,7 @@ class Selection {
       }
     }
 
-    this.runLocalHooks('highlightSet');
+    this.runLocalHooks('beforeHighlightSet');
 
     const focusHighlight = this.highlight.getFocus();
 
