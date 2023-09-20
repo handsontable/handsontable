@@ -344,21 +344,18 @@ export default class StateManager {
   /**
    * Finds the most top header level of the column header that is rendered entirely within
    * the passed visual columns range. If multiple columns headers are found within the range the
-   * most top header level will be returned.
+   * most top header level value will be returned.
    *
    * @param {number} columnIndexFrom A visual column index.
    * @param {number} [columnIndexTo] A visual column index.
-   * @returns {number} Returns a header level in format -1 to -N.
+   * @returns {number|null} Returns a header level in format -1 to -N.
    */
   findTopMostEntireHeaderLevel(columnIndexFrom, columnIndexTo = columnIndexFrom) {
-    const columnFrom = Math.min(columnIndexFrom, columnIndexTo);
-    const columnTo = Math.max(columnIndexFrom, columnIndexTo);
-    const columnsWidth = (columnTo - columnFrom) + 1;
+    const columnsWidth = (columnIndexTo - columnIndexFrom) + 1;
+    let headerLevel = this.getLayersCount() - 1;
 
-    let headerLevel = Infinity;
-
-    for (let columnIndex = columnFrom; columnIndex <= columnTo; columnIndex++) {
-      const rootNode = this.#headersTree.getRootByColumn(columnIndex);
+    for (let columnCursor = columnIndexFrom; columnCursor <= columnIndexTo; columnCursor++) {
+      const rootNode = this.#headersTree.getRootByColumn(columnCursor);
 
       if (!rootNode) {
         break;
@@ -374,8 +371,8 @@ export default class StateManager {
 
         // if the header fits entirely within the columns range get and save the node header level
         if (origColspan <= columnsWidth &&
-            nodeColumnIndex >= columnFrom &&
-            nodeColumnIndex + origColspan - 1 <= columnTo &&
+            nodeColumnIndex >= columnIndexFrom &&
+            nodeColumnIndex + origColspan - 1 <= columnIndexTo &&
             nodeHeaderLevel < headerLevel) {
           headerLevel = nodeHeaderLevel;
         }

@@ -87,10 +87,14 @@ export class NestedHeaders extends BasePlugin {
    */
   #hidingIndexMapObserver = null;
   /**
+   * Holds the coords that points to the place where the column selection starts.
+   *
    * @type {number|null}
    */
   #focusInitialCoords = null;
   /**
+   * Determines if there is performed the column selection.
+   *
    * @type {boolean}
    */
   #isColumnsSelectionInProgress = false;
@@ -640,29 +644,40 @@ export class NestedHeaders extends BasePlugin {
   }
 
   /**
+   * The hook checks and ensures that the focus position that depends on the selected columns
+   * range is always positioned within the range.
+   *
    * @private
    */
   onSelectionHighlightSet() {
-    if (!this.hot.view.isMouseDown() || !this.#isColumnsSelectionInProgress) {
+    const { navigableHeaders } = this.hot.getSettings();
+
+    if (!this.hot.view.isMouseDown() || !this.#isColumnsSelectionInProgress || !navigableHeaders) {
       return;
     }
 
     const selectedRange = this.hot.getSelectedRangeLast();
     const columnStart = selectedRange.getTopStartCorner().col;
     const columnEnd = selectedRange.getBottomEndCorner().col;
-    const { highlight } = selectedRange;
-    const level = this.#stateManager.findTopMostEntireHeaderLevel(columnStart, columnEnd);
-
-    highlight.row = Math.max(this.#focusInitialCoords.row, level);
-    highlight.col = this.#focusInitialCoords.col;
-
     const {
       columnIndex,
       origColspan,
-    } = this.#stateManager.getHeaderTreeNodeData(highlight.row, this.#focusInitialCoords.col);
+    } = this.#stateManager.getHeaderTreeNodeData(this.#focusInitialCoords.row, this.#focusInitialCoords.col);
 
-    if (columnIndex < columnStart || columnIndex + origColspan - 1 > columnEnd) {
-      highlight.row = -1;
+    selectedRange.setHighlight(this.#focusInitialCoords);
+
+    if (origColspan > selectedRange.getWidth() ||
+        columnIndex < columnStart ||
+        columnIndex + origColspan - 1 > columnEnd) {
+
+      const headerLevel = this.#stateManager
+        .findTopMostEntireHeaderLevel(
+          clamp(columnStart, columnIndex, columnIndex + origColspan - 1),
+          clamp(columnEnd, columnIndex, columnIndex + origColspan - 1),
+        );
+
+      selectedRange.highlight.row = headerLevel;
+      selectedRange.highlight.col = selectedRange.from.col;
     }
   }
 
