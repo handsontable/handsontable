@@ -348,18 +348,21 @@ export default class StateManager {
    *
    * @param {number} columnIndexFrom A visual column index.
    * @param {number} [columnIndexTo] A visual column index.
-   * @returns {number|null} Returns a header level in format -1 to -N.
+   * @returns {number} Returns a header level in format -1 to -N.
    */
   findTopMostEntireHeaderLevel(columnIndexFrom, columnIndexTo = columnIndexFrom) {
     const columnsWidth = (columnIndexTo - columnIndexFrom) + 1;
-    let headerLevel = this.getLayersCount() - 1;
+    let atLeastOneRootFound = false;
+    let headerLevel = null;
 
-    for (let columnCursor = columnIndexFrom; columnCursor <= columnIndexTo; columnCursor++) {
-      const rootNode = this.#headersTree.getRootByColumn(columnCursor);
+    for (let columnIndex = columnIndexFrom; columnIndex <= columnIndexTo; columnIndex++) {
+      const rootNode = this.#headersTree.getRootByColumn(columnIndex);
 
       if (!rootNode) {
         break;
       }
+
+      atLeastOneRootFound = true;
 
       // eslint-disable-next-line
       rootNode.walkDown((node) => {
@@ -373,13 +376,17 @@ export default class StateManager {
         if (origColspan <= columnsWidth &&
             nodeColumnIndex >= columnIndexFrom &&
             nodeColumnIndex + origColspan - 1 <= columnIndexTo &&
-            nodeHeaderLevel < headerLevel) {
+            (headerLevel === null || nodeHeaderLevel < headerLevel)) {
           headerLevel = nodeHeaderLevel;
         }
       }, TRAVERSAL_DF_PRE);
     }
 
-    return this.levelToRowCoords(headerLevel);
+    if (atLeastOneRootFound && headerLevel === null) {
+      return -1;
+    }
+
+    return this.levelToRowCoords(headerLevel ?? 0);
   }
 
   /**
