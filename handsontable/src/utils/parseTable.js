@@ -206,8 +206,6 @@ function getBodyHTMLByCoords(instance, config) {
 
       const cellValue = instance.getCopyableData(rowIndex, columnIndex);
       const cellValueParsed = isEmpty(cellValue) ? '' : encodeHTMLEntities(cellValue);
-      const countRows = instance.countRows();
-      const countColumns = instance.countCols();
       const { hidden, rowspan, colspan } =
         instance.getCellMeta(rowIndex, columnIndex);
 
@@ -215,7 +213,7 @@ function getBodyHTMLByCoords(instance, config) {
         const attrs = [];
 
         if (rowspan) {
-          const recalculatedRowSpan = Math.min(rowspan, countRows - rowIndex);
+          const recalculatedRowSpan = Math.min(rowspan, bodyRows.slice(rowIndex).length);
 
           if (recalculatedRowSpan > 1) {
             attrs.push(` rowspan="${recalculatedRowSpan}"`);
@@ -223,7 +221,7 @@ function getBodyHTMLByCoords(instance, config) {
         }
 
         if (colspan) {
-          const recalculatedColumnSpan = Math.min(colspan, countColumns - columnIndex);
+          const recalculatedColumnSpan = Math.min(colspan, columns.slice(columnIndex).length);
 
           if (recalculatedColumnSpan > 1) {
             attrs.push(` colspan="${recalculatedColumnSpan}"`);

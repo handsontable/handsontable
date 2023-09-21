@@ -36,10 +36,19 @@ describe('CopyPaste', () => {
       plugin.onCut(cutEvent);
 
       expect(cutEvent.clipboardData.getData('text/plain')).toBe('A2');
+      /* eslint-disable indent */
       expect(cutEvent.clipboardData.getData('text/html')).toEqual([
-        '<meta name="generator" content="Handsontable"/>' +
+        '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table><tbody><tr><td>A2</td></tr></tbody></table>'].join(''));
+        '<table>',
+          '<tbody>',
+            '<tr>',
+              '<td>A2</td>',
+            '</tr>',
+          '</tbody>',
+        '</table>',
+      ].join(''));
+      /* eslint-enable */
 
       expect(hot.getDataAtCell(1, 0)).toBe(null);
     });

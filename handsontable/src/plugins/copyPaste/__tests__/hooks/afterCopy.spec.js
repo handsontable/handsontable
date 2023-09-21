@@ -95,8 +95,8 @@ describe('CopyPaste', () => {
               '<th>D</th>' +
               '<th>E</th>' +
             '</tr>' +
-            '</thead>' +
-            '<tbody>' +
+          '</thead>' +
+          '<tbody>' +
             '<tr>' +
               '<td>C2</td>' +
               '<td>D2</td>' +
@@ -158,8 +158,8 @@ describe('CopyPaste', () => {
               '<th>D</th>' +
               '<th>E</th>' +
             '</tr>' +
-            '</thead>' +
-            '<tbody>' +
+          '</thead>' +
+          '<tbody>' +
             '<tr>' +
               '<td>C2</td>' +
               '<td>D2</td>' +
