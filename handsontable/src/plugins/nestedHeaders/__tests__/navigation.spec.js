@@ -1506,6 +1506,213 @@ describe('NestedHeaders', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: -3,4 from: -3,4 to: -3,4']);
     });
+
+    it('should scroll the viewport correctly while navigating horizontally using arrows (from left to right)', () => {
+      handsontable({
+        data: createSpreadsheetData(10, 40),
+        height: 200,
+        width: 300,
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          [
+            { label: 'A', colspan: 1 }, { label: 'B', colspan: 2 }, { label: 'C', colspan: 3 },
+            { label: 'D', colspan: 4 }, { label: 'E', colspan: 5 }, { label: 'F', colspan: 7 },
+            { label: 'G', colspan: 8 }, 'H'
+          ],
+          [],
+        ],
+      });
+
+      selectCell(-2, -1);
+      keyDownUp('arrowright'); // "A"
+      keyDownUp('arrowright'); // "B"
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+
+      keyDownUp('arrowright'); // "C"
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(65);
+
+      keyDownUp('arrowright'); // "D"
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(266);
+
+      keyDownUp('arrowright'); // "E"
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(516);
+
+      keyDownUp('arrowright'); // "F"
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(866);
+
+      keyDownUp('arrowright'); // "G"
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(1266);
+
+      keyDownUp('arrowright'); // "H"
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(1316);
+    });
+
+    it('should scroll the viewport correctly while navigating horizontally using arrows (from right to left)', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 40),
+        height: 200,
+        width: 300,
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          [
+            { label: 'A', colspan: 1 }, { label: 'B', colspan: 2 }, { label: 'C', colspan: 3 },
+            { label: 'D', colspan: 4 }, { label: 'E', colspan: 5 }, { label: 'F', colspan: 7 },
+            { label: 'G', colspan: 8 }, 'H'
+          ],
+          [],
+        ],
+      });
+
+      await sleep(10);
+
+      selectCell(-2, 30);
+      keyDownUp('arrowleft'); // "G"
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(1100);
+
+      keyDownUp('arrowleft'); // "F"
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(750);
+
+      keyDownUp('arrowleft'); // "E"
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(500);
+
+      keyDownUp('arrowleft'); // "D"
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(300);
+
+      keyDownUp('arrowleft'); // "C"
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(150);
+
+      keyDownUp('arrowleft'); // "B"
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
+
+      keyDownUp('arrowleft'); // "A"
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+    });
+
+    it('should scroll the viewport correctly while navigating vertically using arrows ' +
+       '(from cell visible in viewport to the right header that is partially visible)', () => {
+      handsontable({
+        data: createSpreadsheetData(2, 40),
+        height: 200,
+        width: 300,
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          [
+            { label: 'A', colspan: 1 }, { label: 'B', colspan: 2 }, { label: 'C', colspan: 3 },
+            { label: 'D', colspan: 4 }, { label: 'E', colspan: 5 }, { label: 'F', colspan: 7 },
+            { label: 'G', colspan: 8 }, 'H'
+          ],
+          [],
+        ],
+      });
+
+      selectCell(0, 4);
+      keyDownUp('arrowup');
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+
+      keyDownUp('arrowup'); // "C"
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
+    });
+
+    it('should scroll the viewport correctly while navigating vertically using arrows ' +
+        '(from cell visible in viewport to the left header that is partially visible)', () => {
+      handsontable({
+        data: createSpreadsheetData(2, 40),
+        height: 200,
+        width: 300,
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          [
+            { label: 'A', colspan: 1 }, { label: 'B', colspan: 2 }, { label: 'C', colspan: 3 },
+            { label: 'D', colspan: 4 }, { label: 'E', colspan: 5 }, { label: 'F', colspan: 7 },
+            { label: 'G', colspan: 8 }, 'H'
+          ],
+          [],
+        ],
+      });
+
+      selectCell(0, 6);
+      selectCell(0, 2);
+      keyDownUp('arrowup');
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(100);
+
+      keyDownUp('arrowup'); // "B"
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
+    });
+
+    it('should not scroll the viewport when the focus enter to the nested header that is wider than the viewport width', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 40),
+        height: 200,
+        width: 300,
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          [
+            { label: 'A', colspan: 1 }, { label: 'B', colspan: 2 }, { label: 'C', colspan: 3 },
+            { label: 'D', colspan: 4 }, { label: 'E', colspan: 5 }, { label: 'F', colspan: 7 },
+            { label: 'G', colspan: 8 }, 'H'
+          ],
+          [],
+        ],
+      });
+
+      await sleep(10);
+
+      selectCell(-1, 20);
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(800);
+
+      keyDownUp('arrowup'); // "F"
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(800);
+    });
   });
 
   describe('focusing table elements', () => {

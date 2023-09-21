@@ -148,14 +148,20 @@ describe('Renderer configuration using React components', () => {
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>value: A1</div>');
 
-    hotInstance.scrollViewportTo(99, 0);
+    hotInstance.scrollViewportTo({
+      row: 99,
+      col: 0,
+    });
     // For some reason it needs another render
     hotInstance.render();
     await sleep(100);
 
     expect(hotInstance.getCell(99, 1).innerHTML).toEqual('<div>value: B100</div>');
 
-    hotInstance.scrollViewportTo(99, 99);
+    hotInstance.scrollViewportTo({
+      row: 99,
+      col: 99,
+    });
     hotInstance.render();
     await sleep(100);
 
