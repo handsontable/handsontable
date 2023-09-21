@@ -1,5 +1,6 @@
-import Cursor from './cursor';
-import { SEPARATOR, NO_ITEMS, predefinedItems } from './predefinedItems';
+import { Positioner } from './positioner';
+import { Navigator } from './navigator';
+import { SEPARATOR, NO_ITEMS, predefinedItems } from './../predefinedItems';
 import {
   filterSeparators,
   hasSubMenu,
@@ -9,10 +10,9 @@ import {
   isSelectionDisabled,
   normalizeSelection
 } from './utils';
-import Core from '../../core';
-import EventManager from '../../eventManager';
-import { arrayEach, arrayFilter, arrayReduce } from '../../helpers/array';
-import { isWindowsOS, isMobileBrowser, isIpadOS } from '../../helpers/browser';
+import EventManager from '../../../eventManager';
+import { arrayEach, arrayFilter, arrayReduce } from '../../../helpers/array';
+import { isWindowsOS, isMobileBrowser, isIpadOS } from '../../../helpers/browser';
 import {
   addClass,
   empty,
@@ -22,12 +22,12 @@ import {
   removeClass,
   getParentWindow,
   hasClass,
-} from '../../helpers/dom/element';
-import { isRightClick } from '../../helpers/dom/event';
-import { debounce, isFunction } from '../../helpers/function';
-import { isUndefined, isDefined } from '../../helpers/mixed';
-import { mixin, hasOwnProperty } from '../../helpers/object';
-import localHooks from '../../mixins/localHooks';
+} from '../../../helpers/dom/element';
+import { isRightClick, stopImmediatePropagation } from '../../../helpers/dom/event';
+import { debounce, isFunction } from '../../../helpers/function';
+import { isUndefined, isDefined } from '../../../helpers/mixed';
+import { mixin, hasOwnProperty } from '../../../helpers/object';
+import localHooks from '../../../mixins/localHooks';
 
 const MIN_WIDTH = 215;
 const SHORTCUTS_CONTEXT = 'menu';
@@ -48,7 +48,7 @@ const SHORTCUTS_GROUP = SHORTCUTS_CONTEXT;
  * @private
  * @class Menu
  */
-class Menu {
+export class Menu {
   /**
    * @param {Core} hotInstance Handsontable instance.
    * @param {MenuOptions} [options] Menu options.
@@ -66,19 +66,13 @@ class Menu {
     };
     this.eventManager = new EventManager(this);
     this.container = this.createContainer(this.options.name);
+    this.positioner = new Positioner(this.options.keepInViewport);
+    this.navigator = new Navigator();
     this.hotMenu = null;
     this.hotSubMenus = {};
     this.parentMenu = this.options.parent || null;
     this.menuItems = null;
     this.origOutsideClickDeselects = null;
-    this.keyEvent = false;
-
-    this.offset = {
-      above: 0,
-      below: 0,
-      left: 0,
-      right: 0
-    };
     this._afterScrollCallback = null;
 
     this.registerEvents();
@@ -125,16 +119,6 @@ class Menu {
    */
   hasSelectedItem() {
     return Array.isArray(this.hotMenu.getSelectedLast());
-  }
-
-  /**
-   * Set offset menu position for specified area (`above`, `below`, `left` or `right`).
-   *
-   * @param {string} area Specified area name (`above`, `below`, `left` or `right`).
-   * @param {number} offset Offset value.
-   */
-  setOffset(area, offset = 0) {
-    this.offset[area] = offset;
   }
 
   /**
@@ -224,6 +208,9 @@ class Menu {
           this.close(true);
         }
       },
+      beforeOnCellMouseDown: (event) => {
+        stopImmediatePropagation(event);
+      },
       beforeOnCellMouseUp: (event) => {
         if (this.hasSelectedItem()) {
           shouldAutoCloseMenu = !this.isCommandPassive(this.getSelectedItem());
@@ -258,9 +245,8 @@ class Menu {
 
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
     this.hot.getSettings().outsideClickDeselects = false;
-    this.hotMenu = new Core(this.container, settings);
+    this.hotMenu = new this.hot.constructor(this.container, settings);
     this.hotMenu.addHook('afterInit', () => this.onAfterInit());
-    this.hotMenu.addHook('afterSelection', (...args) => this.onAfterSelection(...args));
     this.hotMenu.init();
     this.hotMenu.listen();
 
@@ -278,16 +264,12 @@ class Menu {
     menuContext.addShortcuts([{
       keys: [['Escape']],
       callback: () => {
-        this.keyEvent = true;
-        this.close();
-        this.keyEvent = false;
+        this.close(true);
       },
     }, {
       keys: [['ArrowDown']],
       callback: () => {
         const selection = this.hotMenu.getSelectedLast();
-
-        this.keyEvent = true;
 
         if (selection) {
           this.selectNextCell(selection[0], selection[1]);
@@ -295,15 +277,11 @@ class Menu {
         } else {
           this.selectFirstCell();
         }
-
-        this.keyEvent = false;
       },
     }, {
       keys: [['ArrowUp']],
       callback: () => {
         const selection = this.hotMenu.getSelectedLast();
-
-        this.keyEvent = true;
 
         if (selection) {
           this.selectPrevCell(selection[0], selection[1]);
@@ -311,15 +289,11 @@ class Menu {
         } else {
           this.selectLastCell();
         }
-
-        this.keyEvent = false;
       }
     }, {
       keys: [['ArrowRight']],
       callback: () => {
         const selection = this.hotMenu.getSelectedLast();
-
-        this.keyEvent = true;
 
         if (selection) {
           const menu = this.openSubMenu(selection[0]);
@@ -328,15 +302,11 @@ class Menu {
             menu.selectFirstCell();
           }
         }
-
-        this.keyEvent = false;
       }
     }, {
       keys: [['ArrowLeft']],
       callback: () => {
         const selection = this.hotMenu.getSelectedLast();
-
-        this.keyEvent = true;
 
         if (selection && this.isSubMenu()) {
           this.close();
@@ -345,29 +315,21 @@ class Menu {
             this.parentMenu.hotMenu.listen();
           }
         }
-
-        this.keyEvent = false;
       },
     }, {
       keys: [['Enter']],
       callback: (event) => {
         const selection = this.hotMenu.getSelectedLast();
 
-        this.keyEvent = true;
-
         if (!this.hotMenu.getSourceDataAtRow(selection[0]).submenu) {
           this.executeCommand(event);
           this.close(true);
         }
-
-        this.keyEvent = false;
       }
     }, {
       keys: [['PageUp']],
       callback: () => {
         const selection = this.hotMenu.getSelectedLast();
-
-        this.keyEvent = true;
 
         if (selection) {
           this.hotMenu.selection.transformStart(-this.hotMenu.countVisibleRows(), 0);
@@ -375,15 +337,11 @@ class Menu {
         } else {
           this.selectFirstCell();
         }
-
-        this.keyEvent = false;
       },
     }, {
       keys: [['PageDown']],
       callback: () => {
         const selection = this.hotMenu.getSelectedLast();
-
-        this.keyEvent = true;
 
         if (selection) {
           this.hotMenu.selection.transformStart(this.hotMenu.countVisibleRows(), 0);
@@ -391,8 +349,6 @@ class Menu {
         } else {
           this.selectLastCell();
         }
-
-        this.keyEvent = false;
       },
     }], menuContextConfig);
 
@@ -566,125 +522,28 @@ class Menu {
   }
 
   /**
+   * Set offset menu position for specified area (`above`, `below`, `left` or `right`).
+   *
+   * @param {string} area Specified area name (`above`, `below`, `left` or `right`).
+   * @param {number} offset Offset value.
+   */
+  setOffset(area, offset = 0) {
+    this.positioner.setOffset(area, offset);
+  }
+
+  /**
    * Set menu position based on dom event or based on literal object.
    *
    * @param {Event|object} coords Event or literal Object with coordinates.
    */
   setPosition(coords) {
-    const cursor = new Cursor(coords, this.container.ownerDocument.defaultView);
-
-    if (this.options.keepInViewport) {
-      if (cursor.fitsBelow(this.container)) {
-        this.setPositionBelowCursor(cursor);
-
-      } else if (cursor.fitsAbove(this.container)) {
-        this.setPositionAboveCursor(cursor);
-
-      } else {
-        this.setPositionBelowCursor(cursor);
-      }
-
-      if (this.hot.isLtr()) {
-        this.setHorizontalPositionForLtr(cursor);
-      } else {
-        this.setHorizontalPositionForRtl(cursor);
-      }
-    } else {
-      this.setPositionBelowCursor(cursor);
-      this.setPositionOnRightOfCursor(cursor);
-    }
-  }
-
-  /**
-   * Set menu horizontal position for RTL mode.
-   *
-   * @param {Cursor} cursor `Cursor` object.
-   */
-  setHorizontalPositionForRtl(cursor) {
-    if (cursor.fitsOnLeft(this.container)) {
-      this.setPositionOnLeftOfCursor(cursor);
-    } else {
-      this.setPositionOnRightOfCursor(cursor);
-    }
-  }
-
-  /**
-   * Set menu horizontal position for LTR mode.
-   *
-   * @param {Cursor} cursor `Cursor` object.
-   */
-  setHorizontalPositionForLtr(cursor) {
-    if (cursor.fitsOnRight(this.container)) {
-      this.setPositionOnRightOfCursor(cursor);
-    } else {
-      this.setPositionOnLeftOfCursor(cursor);
-    }
-  }
-
-  /**
-   * Set menu position above cursor object.
-   *
-   * @param {Cursor} cursor `Cursor` object.
-   */
-  setPositionAboveCursor(cursor) {
-    let top = this.offset.above + cursor.top - this.container.offsetHeight;
-
     if (this.isSubMenu()) {
-      top = cursor.top + cursor.cellHeight - this.container.offsetHeight + 3;
-    }
-    this.container.style.top = `${top}px`;
-  }
-
-  /**
-   * Set menu position below cursor object.
-   *
-   * @param {Cursor} cursor `Cursor` object.
-   */
-  setPositionBelowCursor(cursor) {
-    let top = this.offset.below + cursor.top + 1;
-
-    if (this.isSubMenu()) {
-      top = cursor.top - 1;
-    }
-    this.container.style.top = `${top}px`;
-  }
-
-  /**
-   * Set menu position on the right of cursor object.
-   *
-   * @param {Cursor} cursor `Cursor` object.
-   */
-  setPositionOnRightOfCursor(cursor) {
-    let left = cursor.left;
-
-    if (this.isSubMenu()) {
-      const { right: parentMenuRight } = this.parentMenu.container.getBoundingClientRect();
-
-      // move the sub menu by the width of the parent's border (usually by 1-2 pixels)
-      left += cursor.cellWidth + parentMenuRight - (cursor.left + cursor.cellWidth);
-    } else {
-      left += this.offset.right;
+      this.positioner.setParentContext(this.parentMenu.container);
     }
 
-    this.container.style.left = `${left}px`;
-  }
-
-  /**
-   * Set menu position on the left of cursor object.
-   *
-   * @param {Cursor} cursor `Cursor` object.
-   */
-  setPositionOnLeftOfCursor(cursor) {
-    let left = this.offset.left + cursor.left - this.container.offsetWidth;
-
-    if (this.isSubMenu()) {
-      const { left: parentMenuLeft } = this.parentMenu.container.getBoundingClientRect();
-
-      // move the sub menu by the width of the parent's border (usually by 1-2 pixels)
-      left -= cursor.left - parentMenuLeft;
-    }
-
-    this.container.style.left = `${left}px`;
+    this.positioner
+      .setContext(this.container)
+      .updatePosition(coords);
   }
 
   /**
@@ -741,20 +600,22 @@ class Menu {
    * Select previous cell in opened menu.
    *
    * @param {number} row Row index.
-   * @param {number} col Column index.
+   * @param {number} column Column index.
    */
-  selectPrevCell(row, col) {
+  selectPrevCell(row, column, autoWrap = false) {
     const prevRow = row - 1;
-    const cell = prevRow >= 0 ? this.hotMenu.getCell(prevRow, col) : null;
+    const nextRow = prevRow < 0 ? (autoWrap ? -1 : this.hotMenu.countRows() - 1) : prevRow;
+    const cell = nextRow === -1 ? null : this.hotMenu.getCell(nextRow, column);
 
-    if (!cell) {
-      return;
-    }
-    if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
-      this.selectPrevCell(prevRow, col);
-    } else {
-      this.hotMenu.selectCell(prevRow, col);
-    }
+
+    console.log('cell', cell, row, this.hotMenu.countRows() - 1);
+
+
+    // if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
+    //   this.selectPrevCell(prevRow, column);
+    // } else {
+    //   this.hotMenu.selectCell(prevRow, column);
+    // }
   }
 
   /**
@@ -911,21 +772,6 @@ class Menu {
   }
 
   /**
-   * On after selection listener.
-   *
-   * @param {number} r Selection start row index.
-   * @param {number} c Selection start column index.
-   * @param {number} r2 Selection end row index.
-   * @param {number} c2 Selection end column index.
-   * @param {object} preventScrolling Object with `value` property where its value change will be observed.
-   */
-  onAfterSelection(r, c, r2, c2, preventScrolling) {
-    if (this.keyEvent === false) {
-      preventScrolling.value = true;
-    }
-  }
-
-  /**
    * Document mouse down listener.
    *
    * @private
@@ -964,5 +810,3 @@ class Menu {
 }
 
 mixin(Menu, localHooks);
-
-export default Menu;

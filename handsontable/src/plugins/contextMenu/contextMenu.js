@@ -5,7 +5,9 @@ import { objectEach } from '../../helpers/object';
 import CommandExecutor from './commandExecutor';
 import EventManager from '../../eventManager';
 import ItemsFactory from './itemsFactory';
-import Menu from './menu';
+import {
+  Menu,
+} from './menu';
 import { getDocumentOffsetByElement } from './utils';
 import { hasClass } from '../../helpers/dom/element';
 import {
