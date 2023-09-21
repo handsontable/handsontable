@@ -368,15 +368,21 @@ export default class StateManager {
       rootNode.walkDown((node) => {
         const {
           columnIndex: nodeColumnIndex,
-          origColspan,
           headerLevel: nodeHeaderLevel,
+          origColspan,
+          isHidden,
         } = node.data;
+
+        if (isHidden) {
+          return;
+        }
 
         // if the header fits entirely within the columns range get and save the node header level
         if (origColspan <= columnsWidth &&
             nodeColumnIndex >= columnIndexFrom &&
             nodeColumnIndex + origColspan - 1 <= columnIndexTo &&
             (headerLevel === null || nodeHeaderLevel < headerLevel)) {
+
           headerLevel = nodeHeaderLevel;
         }
       }, TRAVERSAL_DF_PRE);
