@@ -1,4 +1,4 @@
-import { addClass, empty, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
+import { addClass, empty, observeVisibilityChangeOnce, removeClass, setAttribute } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
@@ -38,6 +38,7 @@ import { installFocusCatcher } from './core/index';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
+import { A11Y_COLCOUNT, A11Y_ROWCOUNT } from './helpers/a11y';
 
 let activeGuid = null;
 
@@ -2577,6 +2578,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     if (isFunction(height)) {
       height = height();
+    }
+
+    if (instance.getSettings().ariaTags) {
+      setAttribute(instance.rootElement, [
+        A11Y_ROWCOUNT(instance.countRows()),
+        A11Y_COLCOUNT(instance.countCols()),
+      ]);
     }
 
     if (init) {

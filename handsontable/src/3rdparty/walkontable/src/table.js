@@ -250,6 +250,12 @@ class Table {
       if (this.isMaster) {
         holder.parentNode.className += 'ht_master handsontable';
         holder.parentNode.setAttribute('dir', this.wtSettings.getSettingPure('rtlMode') ? 'rtl' : 'ltr');
+
+        if (this.wtSettings.getSetting('ariaTags')) {
+          setAttribute(holder.parentNode, [
+            A11Y_PRESENTATION()
+          ]);
+        }
       }
       holder.appendChild(hider);
     }

@@ -103,10 +103,10 @@ export default class CellsRenderer extends BaseRenderer {
 
         if (this.table.isAriaEnabled()) {
           setAttribute(TD, [
-            A11Y_GRIDCELL(),
+            ...(TD.hasAttribute('role') ? [] : [A11Y_GRIDCELL()]),
             A11Y_TABINDEX(-1),
             // `aria-colindex` is incremented by both tbody and thead rows.
-            A11Y_COLINDEX(sourceColumnIndex + this.table.rowHeadersCount + 1),
+            A11Y_COLINDEX(sourceColumnIndex + this.table.rowUtils.dataAccessObject.rowHeaders.length + 1),
           ]);
         }
       }

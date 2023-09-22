@@ -105,7 +105,7 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
           setAttribute(TH, [
             A11Y_COLINDEX(renderedColumnIndex + 1 + this.table.rowHeadersCount),
             A11Y_TABINDEX(-1),
-            ...(renderedColumnIndex < 0 ? A11Y_PRESENTATION() : [
+            ...(renderedColumnIndex < 0 ? [A11Y_PRESENTATION()] : [
               A11Y_COLUMNHEADER(),
               A11Y_SCOPE_COL()
             ]),
