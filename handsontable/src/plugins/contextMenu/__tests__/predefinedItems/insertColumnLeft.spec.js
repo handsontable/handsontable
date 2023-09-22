@@ -23,12 +23,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, 1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(2); // "Insert column left"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column left');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual(['A1', null, 'B1', 'C1', 'D1', 'E1']);
@@ -53,12 +48,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, 1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(2); // "Insert column left"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column left');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
@@ -83,12 +73,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(2); // "Insert column left"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column left');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
@@ -106,12 +91,7 @@ describe('ContextMenu', () => {
       selectCell(1, -1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(2); // "Insert column left"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column left');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
@@ -129,12 +109,7 @@ describe('ContextMenu', () => {
       selectCell(-1, -1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(2); // "Insert column left"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column left');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
@@ -152,12 +127,7 @@ describe('ContextMenu', () => {
       selectCell(-1, 1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(2); // "Insert column left"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column left');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual(['A1', null, 'B1', 'C1', 'D1', 'E1']);
@@ -173,12 +143,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(2); // "Insert column left"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column left');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual([null, 'A1', 'B1', 'C1', 'D1', 'E1']);
@@ -203,12 +168,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(2); // "Insert column left"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column left');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
@@ -234,12 +194,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(2); // "Insert column left"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column left');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getColHeader()).toEqual(['A', 1, 2, 3, 4, 5]);
@@ -260,12 +215,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(2); // "Insert column left"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column left');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
@@ -290,12 +240,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(2); // "Insert column left"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column left');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
@@ -314,12 +259,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(1, 1));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(2); // "Insert column left"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column left');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual(['A1', null, 'B1', 'C1', 'D1', 'E1']);
@@ -347,10 +287,7 @@ describe('ContextMenu', () => {
 
         contextMenu();
 
-        const item = $('.htContextMenu .ht_master .htCore tbody')
-          .find('td')
-          .not('.htSeparator')
-          .eq(2); // "Insert column left"
+        const item = selectContextMenuOption('Insert column left');
 
         expect(item.hasClass('htDisabled')).toBe(true);
       });

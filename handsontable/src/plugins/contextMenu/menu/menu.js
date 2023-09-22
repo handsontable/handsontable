@@ -4,10 +4,7 @@ import { SEPARATOR, NO_ITEMS, predefinedItems } from './../predefinedItems';
 import {
   filterSeparators,
   hasSubMenu,
-  isDisabled,
   isItemHidden,
-  isSeparator,
-  isSelectionDisabled,
   normalizeSelection
 } from './utils';
 import EventManager from '../../../eventManager';
@@ -250,6 +247,8 @@ export class Menu {
     this.hotMenu.init();
     this.hotMenu.listen();
 
+    this.navigator.setMenu(this.hotMenu);
+
     const shortcutManager = this.hotMenu.getShortcutManager();
     const menuContext = shortcutManager.addContext(SHORTCUTS_GROUP);
     const config = { group: SHORTCUTS_CONTEXT };
@@ -263,43 +262,23 @@ export class Menu {
 
     menuContext.addShortcuts([{
       keys: [['Escape']],
-      callback: () => {
-        this.close(true);
-      },
+      callback: () => this.close(true),
     }, {
       keys: [['ArrowDown']],
-      callback: () => {
-        const selection = this.hotMenu.getSelectedLast();
-
-        if (selection) {
-          this.selectNextCell(selection[0], selection[1]);
-
-        } else {
-          this.selectFirstCell();
-        }
-      },
+      callback: () => this.navigator.selectNext(),
     }, {
       keys: [['ArrowUp']],
-      callback: () => {
-        const selection = this.hotMenu.getSelectedLast();
-
-        if (selection) {
-          this.selectPrevCell(selection[0], selection[1]);
-
-        } else {
-          this.selectLastCell();
-        }
-      }
+      callback: () => this.navigator.selectPrev(),
     }, {
       keys: [['ArrowRight']],
       callback: () => {
         const selection = this.hotMenu.getSelectedLast();
 
         if (selection) {
-          const menu = this.openSubMenu(selection[0]);
+          const subMenu = this.openSubMenu(selection[0]);
 
-          if (menu) {
-            menu.selectFirstCell();
+          if (subMenu) {
+            subMenu.navigator.selectFirst();
           }
         }
       }
@@ -333,9 +312,8 @@ export class Menu {
 
         if (selection) {
           this.hotMenu.selection.transformStart(-this.hotMenu.countVisibleRows(), 0);
-
         } else {
-          this.selectFirstCell();
+          this.navigator.selectFirst();
         }
       },
     }, {
@@ -345,14 +323,12 @@ export class Menu {
 
         if (selection) {
           this.hotMenu.selection.transformStart(this.hotMenu.countVisibleRows(), 0);
-
         } else {
-          this.selectLastCell();
+          this.navigator.selectLast();
         }
       },
     }], menuContextConfig);
 
-    this.blockMainTableCallbacks();
     this.runLocalHooks('afterOpen');
   }
 
@@ -369,9 +345,9 @@ export class Menu {
     if (closeParent && this.parentMenu) {
       this.parentMenu.close();
     } else {
+      this.navigator.clear();
       this.closeAllSubMenus();
       this.container.style.display = 'none';
-      this.releaseMainTableCallbacks();
       this.hotMenu.destroy();
       this.hotMenu = null;
       this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
@@ -393,6 +369,7 @@ export class Menu {
     if (!this.hotMenu) {
       return false;
     }
+
     const cell = this.hotMenu.getCell(row, 0);
 
     this.closeAllSubMenus();
@@ -400,6 +377,7 @@ export class Menu {
     if (!cell || !hasSubMenu(cell)) {
       return false;
     }
+
     const dataItem = this.hotMenu.getSourceDataAtRow(row);
     const subMenu = new Menu(this.hot, {
       parent: this,
@@ -538,84 +516,12 @@ export class Menu {
    */
   setPosition(coords) {
     if (this.isSubMenu()) {
-      this.positioner.setParentContext(this.parentMenu.container);
+      this.positioner.setParentElement(this.parentMenu.container);
     }
 
     this.positioner
-      .setContext(this.container)
+      .setElement(this.container)
       .updatePosition(coords);
-  }
-
-  /**
-   * Select first cell in opened menu.
-   */
-  selectFirstCell() {
-    const cell = this.hotMenu.getCell(0, 0);
-
-    if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
-      this.selectNextCell(0, 0);
-    } else {
-      this.hotMenu.selectCell(0, 0);
-    }
-  }
-
-  /**
-   * Select last cell in opened menu.
-   */
-  selectLastCell() {
-    const lastRow = this.hotMenu.countRows() - 1;
-    const cell = this.hotMenu.getCell(lastRow, 0);
-
-    if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
-      this.selectPrevCell(lastRow, 0);
-    } else {
-      // disable default "scroll-to-cell" option and instead of that...
-      this.hotMenu.selectCell(lastRow, 0, undefined, undefined, false);
-      // ...scroll to the cell with "snap to the bottom" option
-      this.hotMenu.scrollViewportTo(lastRow, 0, true, false);
-    }
-  }
-
-  /**
-   * Select next cell in opened menu.
-   *
-   * @param {number} row Row index.
-   * @param {number} col Column index.
-   */
-  selectNextCell(row, col) {
-    const nextRow = row + 1;
-    const cell = nextRow < this.hotMenu.countRows() ? this.hotMenu.getCell(nextRow, col) : null;
-
-    if (!cell) {
-      return;
-    }
-    if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
-      this.selectNextCell(nextRow, col);
-    } else {
-      this.hotMenu.selectCell(nextRow, col);
-    }
-  }
-
-  /**
-   * Select previous cell in opened menu.
-   *
-   * @param {number} row Row index.
-   * @param {number} column Column index.
-   */
-  selectPrevCell(row, column, autoWrap = false) {
-    const prevRow = row - 1;
-    const nextRow = prevRow < 0 ? (autoWrap ? -1 : this.hotMenu.countRows() - 1) : prevRow;
-    const cell = nextRow === -1 ? null : this.hotMenu.getCell(nextRow, column);
-
-
-    console.log('cell', cell, row, this.hotMenu.countRows() - 1);
-
-
-    // if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
-    //   this.selectPrevCell(prevRow, column);
-    // } else {
-    //   this.hotMenu.selectCell(prevRow, column);
-    // }
   }
 
   /**
@@ -729,26 +635,6 @@ export class Menu {
     }
 
     return container;
-  }
-
-  /**
-   * @private
-   */
-  blockMainTableCallbacks() {
-    this._afterScrollCallback = function() {};
-    this.hot.addHook('afterScrollVertically', this._afterScrollCallback);
-    this.hot.addHook('afterScrollHorizontally', this._afterScrollCallback);
-  }
-
-  /**
-   * @private
-   */
-  releaseMainTableCallbacks() {
-    if (this._afterScrollCallback) {
-      this.hot.removeHook('afterScrollVertically', this._afterScrollCallback);
-      this.hot.removeHook('afterScrollHorizontally', this._afterScrollCallback);
-      this._afterScrollCallback = null;
-    }
   }
 
   /**

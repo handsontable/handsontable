@@ -1,4 +1,4 @@
-import Cursor from 'handsontable/plugins/contextMenu/cursor';
+import { Cursor } from '../../menu/cursor';
 
 describe('ContextMenu', () => {
   describe('Cursor', () => {

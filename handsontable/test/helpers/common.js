@@ -397,6 +397,24 @@ export function contextMenu(cell, instance) {
 }
 
 /**
+ * Opens and executes the menu item action and closes the menu.
+ *
+ * @param {string} optionName The context menu item name to click.
+ * @returns {HTMLElement}
+ */
+export function selectContextMenuOption(optionName) {
+  const item = $('.htContextMenu .ht_master .htCore')
+    .find(`tbody td:contains(${optionName})`);
+
+  item.simulate('mouseenter')
+    .simulate('mousedown')
+    .simulate('mouseup')
+    .simulate('click');
+
+  return item;
+}
+
+/**
  * Open (and not close) the sub menu of the context menu.
  *
  * @param {string} submenuName The context menu item name (it has to be a submenu) to hover.
@@ -407,7 +425,9 @@ export function openContextSubmenuOption(submenuName, cell) {
 
   const item = $(`.htContextMenu .ht_master .htCore tbody td:contains(${submenuName})`);
 
-  item.simulate('mouseover');
+  item
+    .simulate('mouseenter')
+    .simulate('mouseover');
 }
 
 /**
@@ -425,7 +445,11 @@ export async function selectContextSubmenuOption(submenuName, optionName, cell) 
   const contextSubMenu = $(`.htContextMenuSub_${submenuName}`);
   const button = contextSubMenu.find(`.ht_master .htCore tbody td:contains(${optionName})`);
 
-  button.simulate('mousedown').simulate('mouseup');
+  button
+    .simulate('mouseenter')
+    .simulate('mousedown')
+    .simulate('mouseup')
+    .simulate('click');
   closeContextMenu();
 }
 

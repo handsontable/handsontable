@@ -7,7 +7,7 @@ import { hasOwnProperty } from '../../helpers/object';
  * @private
  * @class CommandExecutor
  */
-class CommandExecutor {
+export class CommandExecutor {
   constructor(hotInstance) {
     this.hot = hotInstance;
     this.commands = {};
@@ -95,5 +95,3 @@ function findSubCommand(subCommandName, subCommands) {
 
   return command;
 }
-
-export default CommandExecutor;

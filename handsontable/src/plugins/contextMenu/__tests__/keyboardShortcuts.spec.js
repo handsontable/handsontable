@@ -21,7 +21,7 @@ describe('ContextMenu keyboard shortcut', () => {
   });
 
   describe('"PageDown"', () => {
-    it('should move the menu item selection to the last item that is visible in the browser viewport' +
+    it('should move the menu item selection to the last item that is visible in the browser viewport ' +
        'when there is no initial selection', () => {
       handsontable({
         contextMenu: generateRandomMenuItems(200),
@@ -33,17 +33,17 @@ describe('ContextMenu keyboard shortcut', () => {
       expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 200');
       // check if the viewport is scrolled to the bottom
       expect(document.documentElement.scrollHeight)
-        .toBe(window.scrollY + document.documentElement.clientHeight + 2); // 2px as menu bottom border
+        .toBe(window.scrollY + document.documentElement.clientHeight);
     });
 
-    it('should move the menu item selection to the last item when the menu fits within the browser viewport' +
+    it('should move the menu item selection to the last item when the menu fits within the browser viewport ' +
        'and there is initial selection', () => {
       handsontable({
         contextMenu: generateRandomMenuItems(10),
       });
 
       contextMenu();
-      getPlugin('contextMenu').menu.selectFirstCell();
+      getPlugin('contextMenu').menu.navigator.selectFirst();
       keyDownUp('pagedown');
 
       const hotMenu = getPlugin('contextMenu').menu.hotMenu;
@@ -58,7 +58,7 @@ describe('ContextMenu keyboard shortcut', () => {
       });
 
       contextMenu();
-      getPlugin('contextMenu').menu.selectFirstCell();
+      getPlugin('contextMenu').menu.navigator.selectFirst();
       keyDownUp('pagedown');
 
       let firstVisibleRow = 0;
@@ -145,7 +145,7 @@ describe('ContextMenu keyboard shortcut', () => {
       });
 
       contextMenu();
-      getPlugin('contextMenu').menu.selectLastCell();
+      getPlugin('contextMenu').menu.navigator.selectLast();
       keyDownUp('pageup');
 
       const hotMenu = getPlugin('contextMenu').menu.hotMenu;
@@ -160,7 +160,7 @@ describe('ContextMenu keyboard shortcut', () => {
       });
 
       contextMenu();
-      getPlugin('contextMenu').menu.selectLastCell();
+      getPlugin('contextMenu').menu.navigator.selectLast();
 
       window.scrollTo(0, document.documentElement.scrollHeight);
 

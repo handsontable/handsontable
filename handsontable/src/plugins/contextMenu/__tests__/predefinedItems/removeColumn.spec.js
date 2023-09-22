@@ -23,12 +23,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, 1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(5); // "Remove column"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual(['A1', 'C1', 'D1', 'E1']);
@@ -53,12 +48,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(5); // "Remove column"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
@@ -85,12 +75,7 @@ describe('ContextMenu', () => {
       selectCell(1, -1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(5); // "Remove column"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
@@ -108,12 +93,7 @@ describe('ContextMenu', () => {
       selectCell(-1, -1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(5); // "Remove column"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
@@ -131,12 +111,7 @@ describe('ContextMenu', () => {
       selectCell(-1, 1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(5); // "Remove column"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual(['A1', 'C1', 'D1', 'E1']);
@@ -152,12 +127,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(5); // "Remove column"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getData()).toEqual([]);
@@ -177,12 +147,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(5); // "Remove column"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
@@ -207,12 +172,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(5); // "Remove column"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getData()).toEqual([]);
@@ -233,12 +193,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(5); // "Remove column"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
@@ -263,12 +218,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(5); // "Remove column"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
@@ -287,12 +237,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(1, 1));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(5); // "Remove column"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual(['A1', 'C1', 'D1', 'E1']);
@@ -318,12 +263,7 @@ describe('ContextMenu', () => {
       selectCell(2, 2, 4, 4);
       contextMenu(getCell(2, 2));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(5); // "Remove column"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual(['A1', 'B1']);
@@ -385,12 +325,7 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(5); // "Remove column"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual(['F1', 'G1', 'H1']);

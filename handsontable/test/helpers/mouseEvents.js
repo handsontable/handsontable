@@ -55,7 +55,7 @@ export const contextMenuEvent = handsontableMouseTriggerFactory('contextmenu');
  *
  * @param {Element} element An element on which there will be performed mouse events.
  * @param {number} [buttonKey] Number representing mouse button key.
- * @param {object} [eventProps] Addional object with props to merge with the event.
+ * @param {object} [eventProps] Additional object with props to merge with the event.
  */
 export function simulateClick(element, buttonKey = 'LMB', eventProps = pressedModifierKeys) {
   const mouseButton = getMouseButton(buttonKey);
