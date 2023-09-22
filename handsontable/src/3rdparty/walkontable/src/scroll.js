@@ -93,6 +93,8 @@ class Scroll {
 
     let result = false;
 
+    column = this.dataAccessObject.wtSettings.getSetting('onBeforeViewportScrollHorizontally', column);
+
     // if there is no fully visible columns use the supporting variable (lastScrolledColumnPos) to
     // determine the snapping direction (left or right)
     if (firstVisibleColumn === -1) {
@@ -148,6 +150,8 @@ class Scroll {
     }
 
     let result = false;
+
+    row = this.dataAccessObject.wtSettings.getSetting('onBeforeViewportScrollVertically', row);
 
     // if there is no fully visible rows use the supporting variable (lastScrolledRowPos) to
     // determine the snapping direction (top or bottom)

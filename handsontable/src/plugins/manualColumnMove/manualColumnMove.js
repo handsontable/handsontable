@@ -411,8 +411,9 @@ export class ManualColumnMove extends BasePlugin {
     const firstVisible = this.hot.view.getFirstFullyVisibleColumn();
 
     if (this.isFixedColumnsStart(priv.hoveredColumn) && firstVisible > 0) {
-      this.hot.scrollViewportTo(
-        void 0, this.hot.columnIndexMapper.getNearestNotHiddenIndex(firstVisible - 1, -1));
+      this.hot.scrollViewportTo({
+        col: this.hot.columnIndexMapper.getNearestNotHiddenIndex(firstVisible - 1, -1)
+      });
     }
 
     const wtTable = this.hot.view._wt.wtTable;

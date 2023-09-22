@@ -525,7 +525,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should render the setup properly after the table being scrolled', async() => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 90),
         colHeaders: true,
         nestedHeaders: generateComplexSetup(4, 70, true),
@@ -646,8 +646,12 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
 
-      hot.scrollViewportTo(void 0, 40);
-      hot.render();
+      scrollViewportTo({
+        col: 40,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+      render();
 
       // scrolled
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
