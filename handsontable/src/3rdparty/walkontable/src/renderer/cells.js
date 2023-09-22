@@ -106,7 +106,7 @@ export default class CellsRenderer extends BaseRenderer {
             ...(TD.hasAttribute('role') ? [] : [A11Y_GRIDCELL()]),
             A11Y_TABINDEX(-1),
             // `aria-colindex` is incremented by both tbody and thead rows.
-            A11Y_COLINDEX(sourceColumnIndex + this.table.rowUtils.dataAccessObject.rowHeaders.length + 1),
+            A11Y_COLINDEX(sourceColumnIndex + (this.table.rowUtils?.dataAccessObject?.rowHeaders.length || 0) + 1),
           ]);
         }
       }
