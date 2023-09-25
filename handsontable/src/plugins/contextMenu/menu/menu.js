@@ -299,6 +299,12 @@ export class Menu {
         }
       },
     }, {
+      keys: [['Control/Meta', 'ArrowUp'], ['Home']],
+      callback: () => this.navigator.selectFirst(),
+    }, {
+      keys: [['Control/Meta', 'ArrowDown'], ['End']],
+      callback: () => this.navigator.selectLast(),
+    }, {
       keys: [['Enter']],
       callback: (event) => {
         const selection = this.hotMenu.getSelectedLast();

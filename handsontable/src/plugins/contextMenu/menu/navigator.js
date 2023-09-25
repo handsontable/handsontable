@@ -53,6 +53,7 @@ export class Navigator {
   selectFirst() {
     this.#visited.clear();
     this.#current = 0;
+    this.#prev = this.#current - 1;
     this.#updateMenuSelection();
   }
 
@@ -62,6 +63,7 @@ export class Navigator {
   selectLast() {
     this.#visited.clear();
     this.#current = this.#hotMenu.countRows() - 1;
+    this.#prev = this.#current + 1;
     this.#updateMenuSelection();
   }
 
