@@ -751,6 +751,42 @@ describe('ContextMenu', () => {
       expect(contextSubMenu.length).toEqual(1);
     });
 
+    it('should open subMenu and not highlight the first item (trigger by mouse)', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true,
+        height: 100
+      });
+
+      contextMenu();
+
+      const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+
+      item.simulate('mouseover');
+
+      await sleep(300);
+
+      expect(getPlugin('contextMenu').menu.hotSubMenus.alignment.hotMenu.getSelected()).toBeUndefined();
+    });
+
+    it('should open subMenu and not highlight the first item (trigger by keyboard shortcut)', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: ['alignment'],
+        height: 100
+      });
+
+      contextMenu();
+      keyDownUp('arrowdown');
+      keyDownUp('arrowright');
+
+      await sleep(300);
+
+      expect(getPlugin('contextMenu').menu.hotSubMenus.alignment.hotMenu.getSelected()).toEqual([
+        [0, 0, 0, 0]
+      ]);
+    });
+
     it('should NOT open subMenu if there is no subMenu for item', () => {
       handsontable({
         data: createSpreadsheetData(4, 4),

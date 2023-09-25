@@ -194,7 +194,7 @@ These keyboard shortcuts work in context menus. To activate them, enable the [`C
 | Arrow keys               | Arrow keys               | Move one available menu item up, down, left, or right         | &check; | &check; |
 | <kbd>**Page Up**</kbd>   | <kbd>**Page Up**</kbd>   | Move to the first visible item of the context menu or submenu | &check; | &cross; |
 | <kbd>**Page Down**</kbd> | <kbd>**Page Down**</kbd> | Move to the last visible item of the context menu or submenu  | &check; | &cross; |
-| <kbd>**Escape**</kbd>    | <kbd>**Escape**</kbd>    | Close the context menu or submenu                             | &check; | &check; |
+| <kbd>**Escape**</kbd>    | <kbd>**Escape**</kbd>    | Close the context menu and all submenus                       | &check; | &check; |
 | <kbd>**Enter**</kbd>     | <kbd>**Enter**</kbd>     | Run the action of the selected menu item                      | &check; | &cross; |
 
 ## Custom keyboard shortcuts

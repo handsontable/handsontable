@@ -20,7 +20,7 @@ import {
   getParentWindow,
   hasClass,
 } from '../../../helpers/dom/element';
-import { isRightClick, stopImmediatePropagation } from '../../../helpers/dom/event';
+import { isRightClick } from '../../../helpers/dom/event';
 import { debounce, isFunction } from '../../../helpers/function';
 import { isUndefined, isDefined } from '../../../helpers/mixed';
 import { mixin, hasOwnProperty } from '../../../helpers/object';
@@ -205,8 +205,11 @@ export class Menu {
           this.close(true);
         }
       },
-      beforeOnCellMouseDown: (event) => {
-        stopImmediatePropagation(event);
+      afterSelection: (row, column, row2, column2, preventScrolling) => {
+        // do not scroll the viewport when mouse clicks on partially visible menu item
+        if (this.hotMenu.view.isMouseDown()) {
+          preventScrolling.value = true;
+        }
       },
       beforeOnCellMouseUp: (event) => {
         if (this.hasSelectedItem()) {
@@ -225,7 +228,7 @@ export class Menu {
           // event hides the tapped element, the click event grabs the element below. As a result, the filter
           // by condition menu is closed and immediately open on tapping the "None" item.
           if (isMobileBrowser() || isIpadOS()) {
-            setTimeout(() => this.close(true), 325);
+            this.hot._registerTimeout(() => this.close(true), 325);
           } else {
             this.close(true);
           }

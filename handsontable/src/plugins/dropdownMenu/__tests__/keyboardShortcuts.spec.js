@@ -90,7 +90,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       ]);
     });
 
-    it('should highlight first item of the menu after open it', async() => {
+    it('should not highlight first item of the menu after open it', async() => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -104,7 +104,7 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       await sleep(100);
 
-      expect(getPlugin('dropdownMenu').menu.hotMenu.getSelected()).toEqual([[0, 0, 0, 0]]);
+      expect(getPlugin('dropdownMenu').menu.hotMenu.getSelected()).toBeUndefined();
     });
 
     it('should not be possible to close already opened the dropdown menu', () => {

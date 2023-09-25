@@ -1,4 +1,4 @@
-import Menu from '../../../plugins/contextMenu/menu';
+import { Menu } from '../../../plugins/contextMenu/menu';
 import { clone, extend } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
 import * as C from '../../../i18n/constants';

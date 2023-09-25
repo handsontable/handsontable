@@ -115,6 +115,10 @@ export class Navigator {
 
     const cell = this.#hotMenu.getCell(this.#current, 0);
 
+    if (!cell) {
+      return;
+    }
+
     this.#visited.add(this.#current);
 
     if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {

@@ -432,7 +432,7 @@ export function contextMenu(cell, instance) {
 }
 
 /**
- * Opens and executes the menu item action and closes the menu.
+ * Opens and executes the context menu item action and closes the menu.
  *
  * @param {string} optionName The context menu item name to click.
  * @returns {HTMLElement}
@@ -519,6 +519,25 @@ export function dropdownMenu(columnIndexOrCell) {
 }
 
 /**
+ * Opens and executes the dropdown menu item action and closes the menu.
+ *
+ * @param {string} optionName The dropdown menu item name to click.
+ * @returns {HTMLElement}
+ */
+export function selectDropdownMenuOption(optionName) {
+  const item = $('.htDropdownMenu .ht_master .htCore')
+    .find(`tbody td:contains(${optionName})`);
+
+  item
+    .simulate('mouseenter')
+    .simulate('mousedown')
+    .simulate('mouseup')
+    .simulate('click');
+
+  return item;
+}
+
+/**
  * Open (and not close) the sub menu of the dropdown menu.
  *
  * @param {string} submenuName The dropdown menu item name (it has to be a submenu) to hover.
@@ -529,7 +548,43 @@ export function openDropdownSubmenuOption(submenuName, cell) {
 
   const item = $(`.htDropdownMenu .ht_master .htCore tbody td:contains(${submenuName})`);
 
-  item.simulate('mouseover');
+  item
+    .simulate('mouseenter')
+    .simulate('mouseover');
+}
+
+/**
+ * Opens the condition menu of the dropdown menu.
+ *
+ * @param {'first' | 'second'} menuName The menu name to select.
+ */
+export function openDropdownByConditionMenu(menuName = 'first') {
+  $(conditionSelectRootElements()[menuName])
+    .simulate('mouseenter')
+    .simulate('mousedown')
+    .simulate('mouseup')
+    .simulate('click');
+}
+
+/**
+ * Selects and executes the action of the condition menu of the dropdown menu.
+ *
+ * @param {string} optionName The condition menu item name to click.
+ * @param {'first' | 'second'} menuName The menu name to select.
+ * @returns {HTMLElement}
+ */
+export function selectDropdownByConditionMenuOption(optionName, menuName = 'first') {
+  const item = $(conditionMenuRootElements()[menuName])
+    .find('tbody td')
+    .filter((index, element) => element.textContent === optionName);
+
+  item
+    .simulate('mouseenter')
+    .simulate('mousedown')
+    .simulate('mouseup')
+    .simulate('click');
+
+  return item;
 }
 
 /**

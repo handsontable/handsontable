@@ -308,7 +308,7 @@ describe('DropdownMenu', () => {
 
     it('should insert column on the left of selection', () => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         dropdownMenu: true,
         colHeaders: true,
         width: 400,
@@ -322,11 +322,7 @@ describe('DropdownMenu', () => {
       expect(countCols()).toEqual(4);
 
       dropdownMenu(2);
-
-      // Insert col left
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0)
-        .simulate('mousedown')
-        .simulate('mouseup');
+      selectDropdownMenuOption('Insert column left');
 
       expect(afterCreateColCallback)
         .toHaveBeenCalledWith(2, 1, 'ContextMenu.columnLeft');
@@ -335,7 +331,7 @@ describe('DropdownMenu', () => {
 
     it('should Insert column right of selection', () => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         dropdownMenu: true,
         colHeaders: true,
         height: 100
@@ -348,11 +344,7 @@ describe('DropdownMenu', () => {
       expect(countCols()).toEqual(4);
 
       dropdownMenu(2);
-
-      // Insert col right
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1)
-        .simulate('mousedown')
-        .simulate('mouseup');
+      selectDropdownMenuOption('Insert column right');
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(3, 1, 'ContextMenu.columnRight');
       expect(countCols()).toEqual(5);
@@ -360,7 +352,7 @@ describe('DropdownMenu', () => {
 
     it('should remove column', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         dropdownMenu: true,
         colHeaders: true,
         height: 100
@@ -369,29 +361,21 @@ describe('DropdownMenu', () => {
       expect(countCols()).toEqual(4);
 
       dropdownMenu(1);
-
-      // Clear column
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(2)
-        .simulate('mousedown')
-        .simulate('mouseup');
+      selectDropdownMenuOption('Remove column');
 
       expect(countCols()).toEqual(3);
     });
 
     it('should clear column data', () => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         dropdownMenu: true,
         colHeaders: true,
         height: 100
       });
 
       dropdownMenu(1);
-
-      // Clear column
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3)
-        .simulate('mousedown')
-        .simulate('mouseup');
+      selectDropdownMenuOption('Clear column');
 
       expect(hot.getDataAtCell(0, 0)).toBe('A1');
       expect(hot.getDataAtCell(1, 2)).toBe('C2');
@@ -404,7 +388,7 @@ describe('DropdownMenu', () => {
 
     it('should display only the specified actions', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         dropdownMenu: ['clear_column'],
         colHeaders: true,
         height: 100
@@ -445,17 +429,13 @@ describe('DropdownMenu', () => {
       expect($('.htDropdownMenu .ht_master .htCore').find('tbody td').text())
         .toEqual(['CustomItem1', 'CustomItem2'].join(''));
 
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(0)')
-        .simulate('mousedown')
-        .simulate('mouseup');
+      selectDropdownMenuOption('CustomItem1');
 
       expect(callback1.calls.count()).toEqual(1);
       expect(callback2.calls.count()).toEqual(0);
 
       dropdownMenu();
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(1)')
-        .simulate('mousedown')
-        .simulate('mouseup');
+      selectDropdownMenuOption('CustomItem2');
 
       expect(callback1.calls.count()).toEqual(1);
       expect(callback2.calls.count()).toEqual(1);
@@ -489,14 +469,14 @@ describe('DropdownMenu', () => {
 
       expect($('.htDropdownMenu .ht_master .htCore').find('tbody td').text()).toEqual('Enable my custom option');
 
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
+      selectDropdownMenuOption('Enable my custom option');
 
       enabled = true;
       dropdownMenu();
 
       expect($('.htDropdownMenu .ht_master .htCore').find('tbody td').text()).toEqual('Disable my custom option');
 
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
+      selectDropdownMenuOption('Disable my custom option');
     });
 
     it('should enable to define item options globally', () => {
@@ -520,12 +500,12 @@ describe('DropdownMenu', () => {
 
       dropdownMenu();
 
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
+      selectDropdownMenuOption('CustomItem1');
 
       expect(callback.calls.count()).toEqual(1);
 
       dropdownMenu();
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(1)').simulate('mousedown').simulate('mouseup');
+      selectDropdownMenuOption('CustomItem2');
 
       expect(callback.calls.count()).toEqual(2);
     });
@@ -554,7 +534,7 @@ describe('DropdownMenu', () => {
       expect($('.htDropdownMenu .ht_master .htCore').find('tbody td').text())
         .toEqual(['Remove column', 'CLEAR'].join(''));
 
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
+      selectDropdownMenuOption('Remove column');
 
       expect(callback.calls.count()).toEqual(1);
     });
@@ -579,7 +559,7 @@ describe('DropdownMenu', () => {
 
       dropdownMenu();
 
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
+      selectDropdownMenuOption('Custom item');
 
       expect(customItem.callback.calls.count()).toEqual(1);
       expect(customItem.callback.calls.argsFor(0)[0]).toEqual('customItemKey');
@@ -653,7 +633,7 @@ describe('DropdownMenu', () => {
       expect(options.items).toBeDefined();
       expect($menu.find('tbody td').text()).toContain('My custom item');
 
-      $menu.find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
+      selectDropdownMenuOption('My custom item');
 
       Handsontable.hooks.remove('afterDropdownMenuDefaultOptions', afterDropdownMenuDefaultOptions);
     });
@@ -717,7 +697,7 @@ describe('DropdownMenu', () => {
 
   it('should be possible undo the alignment process by calling the \'Undo\' action without contextMenu', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(9, 9),
+      data: createSpreadsheetData(9, 9),
       dropdownMenu: true
     });
 
@@ -808,7 +788,7 @@ describe('DropdownMenu', () => {
 
   it('should be possible redo the alignment process by calling the \'Redo\' action without contextMenu', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(9, 9),
+      data: createSpreadsheetData(9, 9),
       dropdownMenu: true
     });
 

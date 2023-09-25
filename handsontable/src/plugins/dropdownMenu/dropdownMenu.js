@@ -266,9 +266,6 @@ export class DropdownMenu extends BasePlugin {
         }, {
           left: rect.width,
         });
-        this.hot._registerTimeout(() => {
-          this.menu.selectFirstCell();
-        });
       }
     };
 
