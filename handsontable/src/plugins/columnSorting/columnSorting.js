@@ -749,7 +749,9 @@ export class ColumnSorting extends BasePlugin {
    */
   updateAttributes(TH, columnIndex) {
     if (this.hot.getSettings().ariaTags) {
-      setAttribute(TH, A11Y_SORT(this.columnStatesManager.getSortOrderOfColumn(columnIndex) || 'NONE'));
+      const currentSortState = this.columnStatesManager.getSortOrderOfColumn(columnIndex);
+
+      setAttribute(TH, ...A11Y_SORT(currentSortState ? `${currentSortState}ending` : 'none'));
     }
   }
 

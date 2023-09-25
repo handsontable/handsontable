@@ -230,6 +230,9 @@ export class SelectionManager {
 
       if (element.nodeName === 'TD' && this.#selections.options?.cellAttributes) {
         setAttribute(element, this.#selections.options.cellAttributes);
+
+      } else if (element.nodeName === 'TH' && this.#selections.options?.headerAttributes) {
+        setAttribute(element, this.#selections.options.headerAttributes);
       }
     });
   }
@@ -254,6 +257,10 @@ export class SelectionManager {
 
       if (this.#selections.options?.cellAttributes) {
         cellAttributes = this.#selections.options.cellAttributes.map(el => el[0]);
+      }
+
+      if (this.#selections.options?.headerAttributes) {
+        cellAttributes = [...cellAttributes, ...this.#selections.options.headerAttributes.map(el => el[0])];
       }
 
       for (let i = 0, len = nodes.length; i < len; i++) {

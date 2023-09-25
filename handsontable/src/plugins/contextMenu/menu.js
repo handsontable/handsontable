@@ -817,7 +817,7 @@ class Menu {
 
     addClass(wrapper, 'htItemWrapper');
 
-    if (!this.hot.getSettings().ariaTags) {
+    if (this.hot.getSettings().ariaTags) {
       setAttribute(TD, [
         A11Y_MENU_ITEM(),
         A11Y_LABEL(itemValue),

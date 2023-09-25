@@ -89,6 +89,7 @@ class Selection {
     this.tableProps = tableProps;
     this.highlight = new Highlight({
       headerClassName: settings.currentHeaderClassName,
+      headerAttributes: [A11Y_SELECTED()],
       activeHeaderClassName: settings.activeHeaderClassName,
       rowClassName: settings.currentRowClassName,
       columnClassName: settings.currentColClassName,
