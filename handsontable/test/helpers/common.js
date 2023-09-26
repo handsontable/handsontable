@@ -498,9 +498,9 @@ export function closeContextMenu() {
 /**
  * Shows dropdown menu.
  *
- * @param {number|HTMLTableCellElement} columnIndexOrCell The column index or TD element under which the dropdown menu is triggered.
+ * @param {number|HTMLTableCellElement} [columnIndexOrCell=0] The column index or TD element under which the dropdown menu is triggered.
  */
-export function dropdownMenu(columnIndexOrCell) {
+export function dropdownMenu(columnIndexOrCell = 0) {
   let th = columnIndexOrCell;
 
   if (!(columnIndexOrCell instanceof HTMLTableCellElement)) {

@@ -49,11 +49,40 @@ describe('ContextMenu keyboard shortcut', () => {
       expect(window.scrollY).toBe(1);
     });
 
-    it('should move the menu item selection to the next item (skipping disabled items)', () => {
+    it('should move the menu item selection to the next item (skipping `disabled` items)', () => {
       handsontable({
         contextMenu: generateRandomMenuItems(5, (i, item) => {
           if (i % 2) {
             item.disabled = true;
+          }
+
+          return item;
+        }),
+      });
+
+      contextMenu();
+      keyDownUp('arrowdown');
+
+      expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 1');
+
+      keyDownUp('arrowdown');
+
+      expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 3');
+
+      keyDownUp('arrowdown');
+
+      expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 5');
+
+      keyDownUp('arrowdown');
+
+      expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 1');
+    });
+
+    it('should move the menu item selection to the next item (skipping `disableSelection` items)', () => {
+      handsontable({
+        contextMenu: generateRandomMenuItems(5, (i, item) => {
+          if (i % 2) {
+            item.disableSelection = true;
           }
 
           return item;
@@ -83,6 +112,35 @@ describe('ContextMenu keyboard shortcut', () => {
         contextMenu: generateRandomMenuItems(5, (i, item) => {
           if (i % 2) {
             item.name = Handsontable.plugins.ContextMenu.SEPARATOR.name;
+          }
+
+          return item;
+        }),
+      });
+
+      contextMenu();
+      keyDownUp('arrowdown');
+
+      expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 1');
+
+      keyDownUp('arrowdown');
+
+      expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 3');
+
+      keyDownUp('arrowdown');
+
+      expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 5');
+
+      keyDownUp('arrowdown');
+
+      expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 1');
+    });
+
+    it('should move the menu item selection to the next item (skipping hidden items)', () => {
+      handsontable({
+        contextMenu: generateRandomMenuItems(5, (i, item) => {
+          if (i % 2) {
+            item.hidden = () => true;
           }
 
           return item;
@@ -195,7 +253,36 @@ describe('ContextMenu keyboard shortcut', () => {
         .toBe(window.scrollY + document.documentElement.clientHeight);
     });
 
-    it('should move the menu item selection to the previous item (skipping disabled items)', () => {
+    it('should move the menu item selection to the previous item (skipping `disableSelection` items)', () => {
+      handsontable({
+        contextMenu: generateRandomMenuItems(5, (i, item) => {
+          if (i % 2) {
+            item.disableSelection = true;
+          }
+
+          return item;
+        }),
+      });
+
+      contextMenu();
+      keyDownUp('arrowup');
+
+      expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 5');
+
+      keyDownUp('arrowup');
+
+      expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 3');
+
+      keyDownUp('arrowup');
+
+      expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 1');
+
+      keyDownUp('arrowup');
+
+      expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 5');
+    });
+
+    it('should move the menu item selection to the previous item (skipping `disabled` items)', () => {
       handsontable({
         contextMenu: generateRandomMenuItems(5, (i, item) => {
           if (i % 2) {
@@ -229,6 +316,35 @@ describe('ContextMenu keyboard shortcut', () => {
         contextMenu: generateRandomMenuItems(5, (i, item) => {
           if (i % 2) {
             item.name = Handsontable.plugins.ContextMenu.SEPARATOR.name;
+          }
+
+          return item;
+        }),
+      });
+
+      contextMenu();
+      keyDownUp('arrowup');
+
+      expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 5');
+
+      keyDownUp('arrowup');
+
+      expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 3');
+
+      keyDownUp('arrowup');
+
+      expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 1');
+
+      keyDownUp('arrowup');
+
+      expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 5');
+    });
+
+    it('should move the menu item selection to the next item (skipping hidden items)', () => {
+      handsontable({
+        contextMenu: generateRandomMenuItems(5, (i, item) => {
+          if (i % 2) {
+            item.hidden = () => true;
           }
 
           return item;
