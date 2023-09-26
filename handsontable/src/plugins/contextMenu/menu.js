@@ -496,7 +496,7 @@ class Menu {
       delete this.hotSubMenus[dataItem.key];
     }
 
-    if (cell) {
+    if (cell && this.#isItemSubMenu(dataItem)) {
       // Update the accessibility tags on the cell being the base for the submenu.
       if (this.hot.getSettings().ariaTags) {
         setAttribute(cell, [
@@ -801,8 +801,6 @@ class Menu {
   menuItemRenderer(hot, TD, row, col, prop, value) {
     const item = hot.getSourceDataAtRow(row);
     const wrapper = this.hot.rootDocument.createElement('div');
-
-    const isSubMenu = itemToTest => hasOwnProperty(itemToTest, 'submenu');
     const itemIsSeparator = itemToTest => new RegExp(SEPARATOR, 'i').test(itemToTest.name);
     const itemIsDisabled = itemToTest => itemToTest.disabled === true ||
       (typeof itemToTest.disabled === 'function' && itemToTest.disabled.call(this.hot) === true);
@@ -822,7 +820,7 @@ class Menu {
         A11Y_MENU_ITEM(),
         A11Y_LABEL(itemValue),
         ...(itemIsDisabled(item) ? [A11Y_DISABLED()] : []),
-        ...(isSubMenu(item) ? [A11Y_EXPANDED(false)] : []),
+        ...(this.#isItemSubMenu(item) ? [A11Y_EXPANDED(false)] : []),
       ]);
     }
 
@@ -847,7 +845,7 @@ class Menu {
       addClass(TD, 'htSelectionDisabled');
       this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
 
-    } else if (isSubMenu(item)) {
+    } else if (this.#isItemSubMenu(item)) {
       addClass(TD, 'htSubmenu');
 
       if (itemIsSelectionDisabled(item)) {
@@ -931,6 +929,16 @@ class Menu {
       this.hot.removeHook('afterScrollHorizontally', this._afterScrollCallback);
       this._afterScrollCallback = null;
     }
+  }
+
+  /**
+   * Check if the provided element is a submenu opener.
+   *
+   * @param {object} itemToTest Item element.
+   * @returns {boolean}
+   */
+  #isItemSubMenu(itemToTest) {
+    return hasOwnProperty(itemToTest, 'submenu');
   }
 
   /**
