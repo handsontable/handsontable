@@ -599,7 +599,7 @@ export class CopyPaste extends BasePlugin {
         const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
         const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
 
-        if (currentlySelectedCell && currentlySelectedCell.hasAttribute('contenteditable')) {
+        if (currentlySelectedCell?.hasAttribute('contenteditable')) {
           removeContentEditableFromElementAndDeselect(currentlySelectedCell);
         }
       }
