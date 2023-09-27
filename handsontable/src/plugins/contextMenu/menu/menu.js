@@ -305,11 +305,13 @@ export class Menu {
       keys: [['Control/Meta', 'ArrowDown'], ['End']],
       callback: () => this.navigator.selectLast(),
     }, {
-      keys: [['Enter']],
+      keys: [['Enter'], ['Space']],
       callback: (event) => {
         const selection = this.hotMenu.getSelectedLast();
 
-        if (!this.hotMenu.getSourceDataAtRow(selection[0]).submenu) {
+        if (this.hotMenu.getSourceDataAtRow(selection[0]).submenu) {
+          this.openSubMenu(selection[0]).navigator.selectFirst();
+        } else {
           this.executeCommand(event);
           this.close(true);
         }
