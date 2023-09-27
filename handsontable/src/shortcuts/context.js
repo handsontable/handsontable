@@ -2,8 +2,20 @@ import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { normalizeKeys, getKeysList } from './utils';
 import { isUndefined, isDefined } from '../helpers/mixed';
 import { isFunction } from '../helpers/function';
-import { objectEach } from '../helpers/object';
+import { objectEach, isObject } from '../helpers/object';
 import { toSingleLine } from '../helpers/templateLiteralTag';
+
+const __kindOf = Symbol('context');
+
+/**
+ * Checks if the provided object is a context object.
+ *
+ * @param {*} objectToCheck An object to check.
+ * @returns {boolean}
+ */
+export function isContextObject(objectToCheck) {
+  return isObject(objectToCheck) && objectToCheck.__kindOf === __kindOf;
+}
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -38,7 +50,7 @@ export const createContext = (name) => {
    * @param {object} [options.position='after'] The order in which the shortcut's action runs:
    * `'before'` or `'after'` the `relativeToGroup` group of actions
    * @param {object} [options.relativeToGroup] The name of a group of actions, used to determine an action's `position`
-   *
+   * @param {object} [options.forwardToContext] The context object where the event will be forwarded to.
    */
   const addShortcut = (
     {
@@ -51,6 +63,7 @@ export const createContext = (name) => {
       stopPropagation = false,
       relativeToGroup,
       position,
+      forwardToContext,
     } = {}) => {
 
     if (isUndefined(group)) {
@@ -78,6 +91,10 @@ export const createContext = (name) => {
 
     if (isDefined(relativeToGroup)) {
       [newShortcut.relativeToGroup, newShortcut.position] = [relativeToGroup, position];
+    }
+
+    if (isContextObject(forwardToContext)) {
+      newShortcut.forwardToContext = forwardToContext;
     }
 
     keys.forEach((keyCombination) => {
@@ -204,6 +221,7 @@ export const createContext = (name) => {
   };
 
   return {
+    __kindOf,
     addShortcut,
     addShortcuts,
     getShortcuts,

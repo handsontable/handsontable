@@ -257,7 +257,7 @@ export class Menu {
     const config = { group: SHORTCUTS_CONTEXT };
     const menuContextConfig = {
       ...config,
-      runOnlyIf: event => isInput(event.target) === false || this.container.contains(event.target) === false,
+      runOnlyIf: event => !isInput(event.target) || !this.container.contains(event.target),
     };
 
     // Default shortcuts for Handsontable should not be handled. Changing context will help with that.
@@ -337,6 +337,12 @@ export class Menu {
         } else {
           this.navigator.selectLast();
         }
+      },
+    }, {
+      keys: [['Tab'], ['Shift', 'Tab']],
+      forwardToContext: this.hot.getShortcutManager().getContext('grid'),
+      callback: () => {
+        this.close(true);
       },
     }], menuContextConfig);
 
