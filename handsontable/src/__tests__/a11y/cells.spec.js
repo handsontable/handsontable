@@ -158,7 +158,7 @@ describe('Cells-related a11y configuration', () => {
 
     it('should have the `aria-colindex` attribute set, taken the headers into account (headers and cells share the' +
       ' column indexes) - WITH VIRTUAL SCROLLING', async() => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(50, 50),
         rowHeaders: true,
         colHeaders: true,
@@ -187,10 +187,10 @@ describe('Cells-related a11y configuration', () => {
 
       gatherIndexes(getMaster().get(0), indexes);
 
-      expect(indexes.length).toBe(hot.countRenderedRows());
+      expect(indexes.length).toBe(countRenderedRows());
 
       indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(3, 3 + hot.countRenderedCols()));
+        expect(row).toEqual(consecutiveNumbers.slice(3, 3 + countRenderedCols()));
       });
 
       gatherIndexes(getTopClone().get(0), indexes);
@@ -198,7 +198,7 @@ describe('Cells-related a11y configuration', () => {
       expect(indexes.length).toBe(2);
 
       indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(3, 3 + hot.countRenderedCols()));
+        expect(row).toEqual(consecutiveNumbers.slice(3, 3 + countRenderedCols()));
       });
 
       gatherIndexes(getBottomClone().get(0), indexes);
@@ -206,12 +206,12 @@ describe('Cells-related a11y configuration', () => {
       expect(indexes.length).toBe(2);
 
       indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(3, 3 + hot.countRenderedCols()));
+        expect(row).toEqual(consecutiveNumbers.slice(3, 3 + countRenderedCols()));
       });
 
       gatherIndexes(getInlineStartClone().get(0), indexes);
 
-      expect(indexes.length).toBe(hot.countRenderedRows());
+      expect(indexes.length).toBe(countRenderedRows());
 
       indexes.forEach((row) => {
         expect(row).toEqual(consecutiveNumbers.slice(1, 3));
@@ -239,10 +239,10 @@ describe('Cells-related a11y configuration', () => {
 
       gatherIndexes(getMaster().get(0), indexes);
 
-      expect(indexes.length).toBe(hot.countRenderedRows());
+      expect(indexes.length).toBe(countRenderedRows());
 
       indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(51 - hot.countRenderedCols(), 51));
+        expect(row).toEqual(consecutiveNumbers.slice(51 - countRenderedCols(), 51));
       });
 
       gatherIndexes(getTopClone().get(0), indexes);
@@ -250,7 +250,7 @@ describe('Cells-related a11y configuration', () => {
       expect(indexes.length).toBe(2);
 
       indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(51 - hot.countRenderedCols(), 51));
+        expect(row).toEqual(consecutiveNumbers.slice(51 - countRenderedCols(), 51));
       });
 
       gatherIndexes(getBottomClone().get(0), indexes);
@@ -258,12 +258,12 @@ describe('Cells-related a11y configuration', () => {
       expect(indexes.length).toBe(2);
 
       indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(51 - hot.countRenderedCols(), 51));
+        expect(row).toEqual(consecutiveNumbers.slice(51 - countRenderedCols(), 51));
       });
 
       gatherIndexes(getInlineStartClone().get(0), indexes);
 
-      expect(indexes.length).toBe(hot.countRenderedRows());
+      expect(indexes.length).toBe(countRenderedRows());
 
       indexes.forEach((row) => {
         expect(row).toEqual(consecutiveNumbers.slice(1, 3));
@@ -342,7 +342,7 @@ describe('Cells-related a11y configuration', () => {
     });
 
     it('should clear the aria-tags every time a cell is re-rendered', async() => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(50, 50),
         rowHeaders: true,
         colHeaders: true,
@@ -362,7 +362,7 @@ describe('Cells-related a11y configuration', () => {
         'tbody td',
         'aria-readonly',
         'true'
-      ).length).toEqual(hot.countRenderedRows());
+      ).length).toEqual(countRenderedRows());
 
       scrollViewportTo(49, 49);
 
@@ -384,7 +384,7 @@ describe('Cells-related a11y configuration', () => {
         'tbody td',
         'aria-readonly',
         'true'
-      ).length).toEqual(hot.countRenderedRows());
+      ).length).toEqual(countRenderedRows());
     });
   });
 });
