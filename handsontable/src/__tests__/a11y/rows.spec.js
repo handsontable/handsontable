@@ -37,47 +37,26 @@ describe('Row-related a11y config', () => {
         viewportColumnRenderingOffset: Infinity
       });
 
-      expect(filterElementsByAttribute(
-        getMaster().get(0),
-        'tr',
-        'role',
-        'row'
-      ).length).toEqual(51);
+      const countElementsWithAriaRow = (overlay) => {
+        return filterElementsByAttribute(
+          overlay.get(0),
+          'tr',
+          'role',
+          'row'
+        ).length;
+      };
 
-      expect(filterElementsByAttribute(
-        getTopClone().get(0),
-        'tr',
-        'role',
-        'row'
-      ).length).toEqual(3);
+      expect(countElementsWithAriaRow(getMaster())).toEqual(51);
 
-      expect(filterElementsByAttribute(
-        getBottomClone().get(0),
-        'tr',
-        'role',
-        'row'
-      ).length).toEqual(2);
+      expect(countElementsWithAriaRow(getTopClone())).toEqual(3);
 
-      expect(filterElementsByAttribute(
-        getInlineStartClone().get(0),
-        'tr',
-        'role',
-        'row'
-      ).length).toEqual(51);
+      expect(countElementsWithAriaRow(getBottomClone())).toEqual(2);
 
-      expect(filterElementsByAttribute(
-        getTopInlineStartClone().get(0),
-        'tr',
-        'role',
-        'row'
-      ).length).toEqual(3);
+      expect(countElementsWithAriaRow(getInlineStartClone())).toEqual(51);
 
-      expect(filterElementsByAttribute(
-        getBottomInlineStartClone().get(0),
-        'tr',
-        'role',
-        'row'
-      ).length).toEqual(2);
+      expect(countElementsWithAriaRow(getTopInlineStartClone())).toEqual(3);
+
+      expect(countElementsWithAriaRow(getBottomInlineStartClone())).toEqual(2);
     });
 
     it('should have the `aria-rowindex` attribute set, taken the headers into account (headers and cells share the' +

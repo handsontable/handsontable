@@ -37,47 +37,26 @@ describe('Cells-related a11y configuration', () => {
         viewportColumnRenderingOffset: Infinity
       });
 
-      expect(filterElementsByAttribute(
-        getMaster().get(0),
-        'tbody td',
-        'role',
-        'gridcell'
-      ).length).toEqual(2500);
+      const countElementsWithGridcell = (overlay) => {
+        return filterElementsByAttribute(
+          overlay.get(0),
+          'tbody td',
+          'role',
+          'gridcell'
+        ).length;
+      };
 
-      expect(filterElementsByAttribute(
-        getTopClone().get(0),
-        'tbody td',
-        'role',
-        'gridcell'
-      ).length).toEqual(100);
+      expect(countElementsWithGridcell(getMaster())).toEqual(2500);
 
-      expect(filterElementsByAttribute(
-        getBottomClone().get(0),
-        'tbody td',
-        'role',
-        'gridcell'
-      ).length).toEqual(100);
+      expect(countElementsWithGridcell(getTopClone())).toEqual(100);
 
-      expect(filterElementsByAttribute(
-        getInlineStartClone().get(0),
-        'tbody td',
-        'role',
-        'gridcell'
-      ).length).toEqual(100);
+      expect(countElementsWithGridcell(getBottomClone())).toEqual(100);
 
-      expect(filterElementsByAttribute(
-        getTopInlineStartClone().get(0),
-        'tbody td',
-        'role',
-        'gridcell'
-      ).length).toEqual(4);
+      expect(countElementsWithGridcell(getInlineStartClone())).toEqual(100);
 
-      expect(filterElementsByAttribute(
-        getBottomInlineStartClone().get(0),
-        'tbody td',
-        'role',
-        'gridcell'
-      ).length).toEqual(4);
+      expect(countElementsWithGridcell(getTopInlineStartClone())).toEqual(4);
+
+      expect(countElementsWithGridcell(getBottomInlineStartClone())).toEqual(4);
     }, 'should add the `role=gridcell` aria tag to every cell in the table');
 
     it('should have the `aria-colindex` attribute set, taken the headers into account (headers and cells share the' +
@@ -105,55 +84,32 @@ describe('Cells-related a11y configuration', () => {
         });
       };
       const consecutiveNumbers = Array.from({ length: 51 }, (_, i) => `${i + 1}`);
+      const verifyGatheredIndexes = (indexes, rowCount, colRange) => {
+        expect(indexes.length).toBe(rowCount);
+
+        indexes.forEach((row) => {
+          expect(row).toEqual(consecutiveNumbers.slice(...colRange));
+        });
+      };
       const indexes = [];
 
       gatherIndexes(getMaster().get(0), indexes);
-
-      expect(indexes.length).toBe(50);
-
-      indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(1, 51));
-      });
+      verifyGatheredIndexes(indexes, 50, [1, 51]);
 
       gatherIndexes(getTopClone().get(0), indexes);
-
-      expect(indexes.length).toBe(2);
-
-      indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(1, 51));
-      });
+      verifyGatheredIndexes(indexes, 2, [1, 51]);
 
       gatherIndexes(getBottomClone().get(0), indexes);
-
-      expect(indexes.length).toBe(2);
-
-      indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(1, 51));
-      });
+      verifyGatheredIndexes(indexes, 2, [1, 51]);
 
       gatherIndexes(getInlineStartClone().get(0), indexes);
-
-      expect(indexes.length).toBe(50);
-
-      indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(1, 3));
-      });
+      verifyGatheredIndexes(indexes, 50, [1, 3]);
 
       gatherIndexes(getTopInlineStartClone().get(0), indexes);
-
-      expect(indexes.length).toBe(2);
-
-      indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(1, 3));
-      });
+      verifyGatheredIndexes(indexes, 2, [1, 3]);
 
       gatherIndexes(getBottomInlineStartClone().get(0), indexes);
-
-      expect(indexes.length).toBe(2);
-
-      indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(1, 3));
-      });
+      verifyGatheredIndexes(indexes, 2, [1, 3]);
     });
 
     it('should have the `aria-colindex` attribute set, taken the headers into account (headers and cells share the' +
@@ -183,107 +139,54 @@ describe('Cells-related a11y configuration', () => {
         });
       };
       const consecutiveNumbers = Array.from({ length: 51 }, (_, i) => `${i + 1}`);
+      const verifyGatheredIndexes = (indexes, rowCount, colRange) => {
+        expect(indexes.length).toBe(rowCount);
+
+        indexes.forEach((row) => {
+          expect(row).toEqual(consecutiveNumbers.slice(...colRange));
+        });
+      };
       const indexes = [];
 
       gatherIndexes(getMaster().get(0), indexes);
-
-      expect(indexes.length).toBe(countRenderedRows());
-
-      indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(3, 3 + countRenderedCols()));
-      });
+      verifyGatheredIndexes(indexes, countRenderedRows(), [3, 3 + countRenderedCols()]);
 
       gatherIndexes(getTopClone().get(0), indexes);
-
-      expect(indexes.length).toBe(2);
-
-      indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(3, 3 + countRenderedCols()));
-      });
+      verifyGatheredIndexes(indexes, 2, [3, 3 + countRenderedCols()]);
 
       gatherIndexes(getBottomClone().get(0), indexes);
-
-      expect(indexes.length).toBe(2);
-
-      indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(3, 3 + countRenderedCols()));
-      });
+      verifyGatheredIndexes(indexes, 2, [3, 3 + countRenderedCols()]);
 
       gatherIndexes(getInlineStartClone().get(0), indexes);
-
-      expect(indexes.length).toBe(countRenderedRows());
-
-      indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(1, 3));
-      });
+      verifyGatheredIndexes(indexes, countRenderedRows(), [1, 3]);
 
       gatherIndexes(getTopInlineStartClone().get(0), indexes);
-
-      expect(indexes.length).toBe(2);
-
-      indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(1, 3));
-      });
+      verifyGatheredIndexes(indexes, 2, [1, 3]);
 
       gatherIndexes(getBottomInlineStartClone().get(0), indexes);
-
-      expect(indexes.length).toBe(2);
-
-      indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(1, 3));
-      });
+      verifyGatheredIndexes(indexes, 2, [1, 3]);
 
       scrollViewportTo(49, 49);
 
-      await sleep(100);
+      await sleep(300);
 
       gatherIndexes(getMaster().get(0), indexes);
-
-      expect(indexes.length).toBe(countRenderedRows());
-
-      indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(51 - countRenderedCols(), 51));
-      });
+      verifyGatheredIndexes(indexes, countRenderedRows(), [51 - countRenderedCols(), 51]);
 
       gatherIndexes(getTopClone().get(0), indexes);
-
-      expect(indexes.length).toBe(2);
-
-      indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(51 - countRenderedCols(), 51));
-      });
+      verifyGatheredIndexes(indexes, 2, [51 - countRenderedCols(), 51]);
 
       gatherIndexes(getBottomClone().get(0), indexes);
-
-      expect(indexes.length).toBe(2);
-
-      indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(51 - countRenderedCols(), 51));
-      });
+      verifyGatheredIndexes(indexes, 2, [51 - countRenderedCols(), 51]);
 
       gatherIndexes(getInlineStartClone().get(0), indexes);
-
-      expect(indexes.length).toBe(countRenderedRows());
-
-      indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(1, 3));
-      });
+      verifyGatheredIndexes(indexes, countRenderedRows(), [1, 3]);
 
       gatherIndexes(getTopInlineStartClone().get(0), indexes);
-
-      expect(indexes.length).toBe(2);
-
-      indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(1, 3));
-      });
+      verifyGatheredIndexes(indexes, 2, [1, 3]);
 
       gatherIndexes(getBottomInlineStartClone().get(0), indexes);
-
-      expect(indexes.length).toBe(2);
-
-      indexes.forEach((row) => {
-        expect(row).toEqual(consecutiveNumbers.slice(1, 3));
-      });
+      verifyGatheredIndexes(indexes, 2, [1, 3]);
     });
 
     it('should add the `tabindex=-1` aria tag to every cell in the table', () => {
@@ -298,47 +201,26 @@ describe('Cells-related a11y configuration', () => {
         viewportColumnRenderingOffset: Infinity
       });
 
-      expect(filterElementsByAttribute(
-        getMaster().get(0),
-        'tbody td',
-        'tabindex',
-        '-1'
-      ).length).toEqual(2500);
+      const countElementsWithTabindex = (overlay) => {
+        return filterElementsByAttribute(
+          overlay.get(0),
+          'tbody td',
+          'tabindex',
+          '-1'
+        ).length;
+      };
 
-      expect(filterElementsByAttribute(
-        getTopClone().get(0),
-        'tbody td',
-        'tabindex',
-        '-1'
-      ).length).toEqual(100);
+      expect(countElementsWithTabindex(getMaster())).toEqual(2500);
 
-      expect(filterElementsByAttribute(
-        getBottomClone().get(0),
-        'tbody td',
-        'tabindex',
-        '-1'
-      ).length).toEqual(100);
+      expect(countElementsWithTabindex(getTopClone())).toEqual(100);
 
-      expect(filterElementsByAttribute(
-        getInlineStartClone().get(0),
-        'tbody td',
-        'tabindex',
-        '-1'
-      ).length).toEqual(100);
+      expect(countElementsWithTabindex(getBottomClone())).toEqual(100);
 
-      expect(filterElementsByAttribute(
-        getTopInlineStartClone().get(0),
-        'tbody td',
-        'tabindex',
-        '-1'
-      ).length).toEqual(4);
+      expect(countElementsWithTabindex(getInlineStartClone())).toEqual(100);
 
-      expect(filterElementsByAttribute(
-        getBottomInlineStartClone().get(0),
-        'tbody td',
-        'tabindex',
-        '-1'
-      ).length).toEqual(4);
+      expect(countElementsWithTabindex(getTopInlineStartClone())).toEqual(4);
+
+      expect(countElementsWithTabindex(getBottomInlineStartClone())).toEqual(4);
     });
 
     it('should clear the aria-tags every time a cell is re-rendered', async() => {
@@ -357,34 +239,28 @@ describe('Cells-related a11y configuration', () => {
         viewportColumnRenderingOffset: 2
       });
 
-      expect(filterElementsByAttribute(
-        getMaster().get(0),
-        'tbody td',
-        'aria-readonly',
-        'true'
-      ).length).toEqual(countRenderedRows());
+      const countElementsWithAriaReadOnly = (overlay) => {
+        return filterElementsByAttribute(
+          overlay.get(0),
+          'tbody td',
+          'aria-readonly',
+          'true'
+        ).length;
+      };
+
+      expect(countElementsWithAriaReadOnly(getMaster())).toEqual(countRenderedRows());
 
       scrollViewportTo(49, 49);
 
-      await sleep(100);
+      await sleep(300);
 
-      expect(filterElementsByAttribute(
-        getMaster().get(0),
-        'tbody td',
-        'aria-readonly',
-        'true'
-      ).length).toEqual(0);
+      expect(countElementsWithAriaReadOnly(getMaster())).toEqual(0);
 
       scrollViewportTo(49, 0);
 
-      await sleep(100);
+      await sleep(300);
 
-      expect(filterElementsByAttribute(
-        getMaster().get(0),
-        'tbody td',
-        'aria-readonly',
-        'true'
-      ).length).toEqual(countRenderedRows());
+      expect(countElementsWithAriaReadOnly(getMaster())).toEqual(countRenderedRows());
     });
   });
 });

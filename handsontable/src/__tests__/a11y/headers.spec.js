@@ -38,47 +38,26 @@ describe('header-related a11y config', () => {
           viewportColumnRenderingOffset: Infinity
         });
 
-        expect(filterElementsByAttribute(
-          getMaster().get(0),
-          'th',
-          'tabindex',
-          '-1'
-        ).length).toEqual(101);
+        const countElementsWithTabindex = (overlay) => {
+          return filterElementsByAttribute(
+            overlay.get(0),
+            'th',
+            'tabindex',
+            '-1'
+          ).length;
+        };
 
-        expect(filterElementsByAttribute(
-          getInlineStartClone().get(0),
-          'th',
-          'tabindex',
-          '-1'
-        ).length).toEqual(53);
+        expect(countElementsWithTabindex(getMaster())).toEqual(101);
 
-        expect(filterElementsByAttribute(
-          getTopClone().get(0),
-          'th',
-          'tabindex',
-          '-1'
-        ).length).toEqual(53);
+        expect(countElementsWithTabindex(getInlineStartClone())).toEqual(53);
 
-        expect(filterElementsByAttribute(
-          getTopInlineStartClone().get(0),
-          'th',
-          'tabindex',
-          '-1'
-        ).length).toEqual(5);
+        expect(countElementsWithTabindex(getTopClone())).toEqual(53);
 
-        expect(filterElementsByAttribute(
-          getBottomInlineStartClone().get(0),
-          'th',
-          'tabindex',
-          '-1'
-        ).length).toEqual(2);
+        expect(countElementsWithTabindex(getTopInlineStartClone())).toEqual(5);
 
-        expect(filterElementsByAttribute(
-          getBottomClone().get(0),
-          'th',
-          'tabindex',
-          '-1'
-        ).length).toEqual(2);
+        expect(countElementsWithTabindex(getBottomInlineStartClone())).toEqual(2);
+
+        expect(countElementsWithTabindex(getBottomClone())).toEqual(2);
       });
 
       describe('row headers', () => {
@@ -94,47 +73,26 @@ describe('header-related a11y config', () => {
             viewportColumnRenderingOffset: Infinity
           });
 
-          expect(filterElementsByAttribute(
-            getMaster().get(0),
-            'tbody th',
-            'role',
-            'rowheader'
-          ).length).toEqual(50);
+          const countElementsWithAriaRowHeader = (overlay) => {
+            return filterElementsByAttribute(
+              overlay.get(0),
+              'tbody th',
+              'role',
+              'rowheader'
+            ).length;
+          };
 
-          expect(filterElementsByAttribute(
-            getInlineStartClone().get(0),
-            'tbody th',
-            'role',
-            'rowheader'
-          ).length).toEqual(50);
+          expect(countElementsWithAriaRowHeader(getMaster())).toEqual(50);
 
-          expect(filterElementsByAttribute(
-            getTopClone().get(0),
-            'tbody th',
-            'role',
-            'rowheader'
-          ).length).toEqual(2);
+          expect(countElementsWithAriaRowHeader(getInlineStartClone())).toEqual(50);
 
-          expect(filterElementsByAttribute(
-            getTopInlineStartClone().get(0),
-            'tbody th',
-            'role',
-            'rowheader'
-          ).length).toEqual(2);
+          expect(countElementsWithAriaRowHeader(getTopClone())).toEqual(2);
 
-          expect(filterElementsByAttribute(
-            getBottomInlineStartClone().get(0),
-            'tbody th',
-            'role',
-            'rowheader'
-          ).length).toEqual(2);
+          expect(countElementsWithAriaRowHeader(getTopInlineStartClone())).toEqual(2);
 
-          expect(filterElementsByAttribute(
-            getBottomClone().get(0),
-            'tbody th',
-            'role',
-            'rowheader'
-          ).length).toEqual(2);
+          expect(countElementsWithAriaRowHeader(getBottomInlineStartClone())).toEqual(2);
+
+          expect(countElementsWithAriaRowHeader(getBottomClone())).toEqual(2);
         });
 
         it('should add the `scope=row` aria tag to every row headers in the table', () => {
@@ -149,47 +107,26 @@ describe('header-related a11y config', () => {
             viewportColumnRenderingOffset: Infinity
           });
 
-          expect(filterElementsByAttribute(
-            getMaster().get(0),
-            'tbody th',
-            'scope',
-            'row'
-          ).length).toEqual(50);
+          const countElementsWithAriaScopeRow = (overlay) => {
+            return filterElementsByAttribute(
+              overlay.get(0),
+              'tbody th',
+              'scope',
+              'row'
+            ).length;
+          };
 
-          expect(filterElementsByAttribute(
-            getInlineStartClone().get(0),
-            'tbody th',
-            'scope',
-            'row'
-          ).length).toEqual(50);
+          expect(countElementsWithAriaScopeRow(getMaster())).toEqual(50);
 
-          expect(filterElementsByAttribute(
-            getTopClone().get(0),
-            'tbody th',
-            'scope',
-            'row'
-          ).length).toEqual(2);
+          expect(countElementsWithAriaScopeRow(getInlineStartClone())).toEqual(50);
 
-          expect(filterElementsByAttribute(
-            getTopInlineStartClone().get(0),
-            'tbody th',
-            'scope',
-            'row'
-          ).length).toEqual(2);
+          expect(countElementsWithAriaScopeRow(getTopClone())).toEqual(2);
 
-          expect(filterElementsByAttribute(
-            getBottomInlineStartClone().get(0),
-            'tbody th',
-            'scope',
-            'row'
-          ).length).toEqual(2);
+          expect(countElementsWithAriaScopeRow(getTopInlineStartClone())).toEqual(2);
 
-          expect(filterElementsByAttribute(
-            getBottomClone().get(0),
-            'tbody th',
-            'scope',
-            'row'
-          ).length).toEqual(2);
+          expect(countElementsWithAriaScopeRow(getBottomInlineStartClone())).toEqual(2);
+
+          expect(countElementsWithAriaScopeRow(getBottomClone())).toEqual(2);
         });
       });
 
@@ -206,33 +143,22 @@ describe('header-related a11y config', () => {
             viewportColumnRenderingOffset: Infinity
           });
 
-          expect(filterElementsByAttribute(
-            getMaster().get(0),
-            'thead th',
-            'role',
-            'columnheader'
-          ).length).toEqual(50);
+          const countElementsWithAriaColumnHeader = (overlay) => {
+            return filterElementsByAttribute(
+              overlay.get(0),
+              'thead th',
+              'role',
+              'columnheader'
+            ).length;
+          };
 
-          expect(filterElementsByAttribute(
-            getInlineStartClone().get(0),
-            'thead th',
-            'role',
-            'columnheader'
-          ).length).toEqual(2);
+          expect(countElementsWithAriaColumnHeader(getMaster())).toEqual(50);
 
-          expect(filterElementsByAttribute(
-            getTopClone().get(0),
-            'thead th',
-            'role',
-            'columnheader'
-          ).length).toEqual(50);
+          expect(countElementsWithAriaColumnHeader(getInlineStartClone())).toEqual(2);
 
-          expect(filterElementsByAttribute(
-            getTopInlineStartClone().get(0),
-            'thead th',
-            'role',
-            'columnheader'
-          ).length).toEqual(2);
+          expect(countElementsWithAriaColumnHeader(getTopClone())).toEqual(50);
+
+          expect(countElementsWithAriaColumnHeader(getTopInlineStartClone())).toEqual(2);
         });
 
         it('should add the `scope=col` aria tag to every row headers in the table', () => {
@@ -247,33 +173,22 @@ describe('header-related a11y config', () => {
             viewportColumnRenderingOffset: Infinity
           });
 
-          expect(filterElementsByAttribute(
-            getMaster().get(0),
-            'thead th',
-            'scope',
-            'col'
-          ).length).toEqual(50);
+          const countElementsWithAriaScopeCol = (overlay) => {
+            return filterElementsByAttribute(
+              overlay.get(0),
+              'thead th',
+              'scope',
+              'col'
+            ).length;
+          };
 
-          expect(filterElementsByAttribute(
-            getInlineStartClone().get(0),
-            'thead th',
-            'scope',
-            'col'
-          ).length).toEqual(2);
+          expect(countElementsWithAriaScopeCol(getMaster())).toEqual(50);
 
-          expect(filterElementsByAttribute(
-            getTopClone().get(0),
-            'thead th',
-            'scope',
-            'col'
-          ).length).toEqual(50);
+          expect(countElementsWithAriaScopeCol(getInlineStartClone())).toEqual(2);
 
-          expect(filterElementsByAttribute(
-            getTopInlineStartClone().get(0),
-            'thead th',
-            'scope',
-            'col'
-          ).length).toEqual(2);
+          expect(countElementsWithAriaScopeCol(getTopClone())).toEqual(50);
+
+          expect(countElementsWithAriaScopeCol(getTopInlineStartClone())).toEqual(2);
         });
       });
 
