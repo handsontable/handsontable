@@ -251,7 +251,7 @@ export default class TableRenderer {
    * @returns {boolean}
    */
   isAriaEnabled() {
-    return (this.rowUtils.wtSettings.getSetting('ariaTags'));
+    return this.rowUtils.wtSettings.getSetting('ariaTags');
   }
 
   /**

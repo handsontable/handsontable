@@ -1,5 +1,6 @@
 import {
   hasClass,
+  removeAttribute,
   setAttribute,
 } from './../../../../helpers/dom/element';
 import { SharedOrderView } from './../utils/orderView';
@@ -99,6 +100,12 @@ export default class CellsRenderer extends BaseRenderer {
         TD.removeAttribute('style');
         TD.removeAttribute('dir');
 
+        // Remove all accessibility-related attributes for the cell to start fresh.
+        removeAttribute(TD, [
+          new RegExp('aria-(.*)'),
+          new RegExp('role')
+        ]);
+
         this.table.cellRenderer(sourceRowIndex, sourceColumnIndex, TD);
 
         if (this.table.isAriaEnabled()) {
@@ -106,7 +113,7 @@ export default class CellsRenderer extends BaseRenderer {
             ...(TD.hasAttribute('role') ? [] : [A11Y_GRIDCELL()]),
             A11Y_TABINDEX(-1),
             // `aria-colindex` is incremented by both tbody and thead rows.
-            A11Y_COLINDEX(sourceColumnIndex + (this.table.rowUtils?.dataAccessObject?.rowHeaders.length || 0) + 1),
+            A11Y_COLINDEX(sourceColumnIndex + (this.table.rowUtils?.dataAccessObject?.rowHeaders.length ?? 0) + 1),
           ]);
         }
       }

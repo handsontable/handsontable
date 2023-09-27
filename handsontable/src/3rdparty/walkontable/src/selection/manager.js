@@ -228,10 +228,10 @@ export class SelectionManager {
 
       addClass(element, classNames);
 
-      if (element.nodeName === 'TD' && this.#selections.options?.cellAttributes) {
+      if (element.nodeName === 'TD' && Array.isArray(this.#selections.options?.cellAttributes)) {
         setAttribute(element, this.#selections.options.cellAttributes);
 
-      } else if (element.nodeName === 'TH' && this.#selections.options?.headerAttributes) {
+      } else if (element.nodeName === 'TH' && Array.isArray(this.#selections.options?.headerAttributes)) {
         setAttribute(element, this.#selections.options.headerAttributes);
       }
     });
@@ -255,11 +255,11 @@ export class SelectionManager {
       const nodes = this.#activeOverlaysWot.wtTable.TABLE.querySelectorAll(`.${className}`);
       let cellAttributes = [];
 
-      if (this.#selections.options?.cellAttributes) {
+      if (Array.isArray(this.#selections.options?.cellAttributes)) {
         cellAttributes = this.#selections.options.cellAttributes.map(el => el[0]);
       }
 
-      if (this.#selections.options?.headerAttributes) {
+      if (Array.isArray(this.#selections.options?.headerAttributes)) {
         cellAttributes = [...cellAttributes, ...this.#selections.options.headerAttributes.map(el => el[0])];
       }
 

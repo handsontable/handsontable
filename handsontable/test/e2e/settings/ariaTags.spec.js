@@ -85,4 +85,18 @@ describe('`ariaTags` setting option', () => {
 
     expect(getAccessibilityEnabledElements(hot.rootElement).length).toBeGreaterThan(0);
   });
+
+  it('should not be possible to change the `ariaTags` option after the table is initialized', () => {
+    const hot = handsontable({
+      ariaTags: true
+    });
+
+    expect(() => {
+      updateSettings({
+        ariaTags: false
+      });
+    }).toThrowError();
+
+    expect(getAccessibilityEnabledElements(hot.rootElement).length).toBeGreaterThan(0);
+  });
 });

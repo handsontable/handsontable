@@ -723,7 +723,11 @@ export class ColumnSorting extends BasePlugin {
       headerActionEnabled
     );
 
-    this.updateAttributes(TH, column);
+    if (this.hot.getSettings().ariaTags) {
+      const currentSortState = this.columnStatesManager.getSortOrderOfColumn(column);
+
+      setAttribute(TH, ...A11Y_SORT(currentSortState ? `${currentSortState}ending` : 'none'));
+    }
   }
 
   /**
@@ -738,20 +742,6 @@ export class ColumnSorting extends BasePlugin {
 
     if (this.enabled !== false) {
       addClass(headerSpanElement, getClassesToAdd(...args));
-    }
-  }
-
-  /**
-   * Update the accessibility arguments in the provided element.
-   *
-   * @param {HTMLElement} TH Column header element.
-   * @param {number} columnIndex The column index.
-   */
-  updateAttributes(TH, columnIndex) {
-    if (this.hot.getSettings().ariaTags) {
-      const currentSortState = this.columnStatesManager.getSortOrderOfColumn(columnIndex);
-
-      setAttribute(TH, ...A11Y_SORT(currentSortState ? `${currentSortState}ending` : 'none'));
     }
   }
 

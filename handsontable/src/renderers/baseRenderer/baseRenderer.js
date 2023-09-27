@@ -68,12 +68,6 @@ export function baseRenderer(instance, TD, row, col, prop, value, cellProperties
   removeClass(TD, classesToRemove);
   addClass(TD, classesToAdd);
 
-  // Remove all accessibility-related attributes for the cell to start fresh.
-  removeAttribute(TD, [
-    new RegExp('aria-(.*)'),
-    new RegExp('role')
-  ]);
-
   removeAttribute(TD, attributesToRemove);
   setAttribute(TD, attributesToAdd);
 }

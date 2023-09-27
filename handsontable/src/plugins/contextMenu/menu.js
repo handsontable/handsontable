@@ -7,7 +7,8 @@ import {
   isItemHidden,
   isSeparator,
   isSelectionDisabled,
-  normalizeSelection
+  normalizeSelection,
+  isItemSubMenu,
 } from './utils';
 import Core from '../../core';
 import EventManager from '../../eventManager';
@@ -27,7 +28,7 @@ import {
 import { isRightClick } from '../../helpers/dom/event';
 import { debounce, isFunction } from '../../helpers/function';
 import { isUndefined, isDefined } from '../../helpers/mixed';
-import { mixin, hasOwnProperty } from '../../helpers/object';
+import { mixin } from '../../helpers/object';
 import localHooks from '../../mixins/localHooks';
 import {
   A11Y_DISABLED,
@@ -464,9 +465,7 @@ class Menu {
     });
 
     subMenu.setMenuItems(dataItem.submenu.items);
-
     subMenu.open();
-
     subMenu.setPosition(cell.getBoundingClientRect());
 
     this.hotSubMenus[dataItem.key] = subMenu;
@@ -496,7 +495,7 @@ class Menu {
       delete this.hotSubMenus[dataItem.key];
     }
 
-    if (cell && this.#isItemSubMenu(dataItem)) {
+    if (cell && isItemSubMenu(dataItem)) {
       // Update the accessibility tags on the cell being the base for the submenu.
       if (this.hot.getSettings().ariaTags) {
         setAttribute(cell, [
@@ -820,7 +819,7 @@ class Menu {
         A11Y_MENU_ITEM(),
         A11Y_LABEL(itemValue),
         ...(itemIsDisabled(item) ? [A11Y_DISABLED()] : []),
-        ...(this.#isItemSubMenu(item) ? [A11Y_EXPANDED(false)] : []),
+        ...(isItemSubMenu(item) ? [A11Y_EXPANDED(false)] : []),
       ]);
     }
 
@@ -845,7 +844,7 @@ class Menu {
       addClass(TD, 'htSelectionDisabled');
       this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
 
-    } else if (this.#isItemSubMenu(item)) {
+    } else if (isItemSubMenu(item)) {
       addClass(TD, 'htSubmenu');
 
       if (itemIsSelectionDisabled(item)) {
@@ -929,16 +928,6 @@ class Menu {
       this.hot.removeHook('afterScrollHorizontally', this._afterScrollCallback);
       this._afterScrollCallback = null;
     }
-  }
-
-  /**
-   * Check if the provided element is a submenu opener.
-   *
-   * @param {object} itemToTest Item element.
-   * @returns {boolean}
-   */
-  #isItemSubMenu(itemToTest) {
-    return hasOwnProperty(itemToTest, 'submenu');
   }
 
   /**

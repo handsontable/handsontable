@@ -216,13 +216,15 @@ export class TextEditor extends BaseEditor {
     this.TEXTAREA = rootDocument.createElement('TEXTAREA');
 
     // Makes the element recognizable by Hot as its own
-    // component's element.);
-    setAttribute(this.TEXTAREA, 'data-hot-input', '');
+    // component's element.
+    setAttribute(this.TEXTAREA, [
+      ['data-hot-input', ''],
+      A11Y_TABINDEX(-1),
+    ]);
 
     if (this.hot.getSettings().ariaTags) {
       setAttribute(this.TEXTAREA, [
         A11Y_HIDDEN(),
-        A11Y_TABINDEX(-1),
       ]);
     }
 
