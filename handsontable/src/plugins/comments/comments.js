@@ -492,7 +492,7 @@ export class Comments extends BasePlugin {
     const meta = this.hot.getCellMeta(this.range.from.row, this.range.from.col);
 
     this.#displaySwitch.cancelHiding();
-    this.#editor.setValue(meta[META_COMMENT] ? meta[META_COMMENT][META_COMMENT_VALUE] : null || '');
+    this.#editor.setValue((meta[META_COMMENT] ? meta[META_COMMENT][META_COMMENT_VALUE] : null) ?? '');
     this.#editor.show();
     this.refreshEditor(true);
 

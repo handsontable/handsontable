@@ -58,6 +58,8 @@ import { objectEach } from '../../../helpers/object';
  * @property {?Option} onDraw Option `onDraw`.
  * @property {?Option} onModifyGetCellCoords Option `onModifyGetCellCoords`.
  * @property {?Option} onModifyRowHeaderWidth Option `onModifyRowHeaderWidth`.
+ * @property {?Option} onBeforeViewportScrollHorizontally Option `onBeforeViewportScrollHorizontally`.
+ * @property {?Option} onBeforeViewportScrollVertically Option `onBeforeViewportScrollVertically`.
  * @property {?Option} onScrollHorizontally Option `onScrollHorizontally`.
  * @property {?Option} onScrollVertically Option `onScrollVertically`.
  * @property {?Option} onWindowResize Option `onWindowResize`.
@@ -197,7 +199,7 @@ export default class Settings {
       onCellMouseOut: null,
       onCellMouseUp: null,
 
-      //    onCellMouseOut: null,
+      // onCellMouseOut: null,
       onCellDblClick: null,
       onCellCornerMouseDown: null,
       onCellCornerDblClick: null,
@@ -206,8 +208,13 @@ export default class Settings {
       onBeforeRemoveCellClassNames: null,
       onAfterDrawSelection: null,
       onBeforeDrawBorders: null,
-      onScrollVertically: null,
+      // viewport scroll hooks
+      onBeforeViewportScrollHorizontally: column => column,
+      onBeforeViewportScrollVertically: row => row,
+      // native scroll hooks
       onScrollHorizontally: null,
+      onScrollVertically: null,
+      //
       onBeforeTouchScroll: null,
       onAfterMomentumScroll: null,
       onBeforeStretchingColumnWidth: width => width,

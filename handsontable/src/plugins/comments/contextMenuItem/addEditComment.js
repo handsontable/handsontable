@@ -10,7 +10,7 @@ export default function addEditCommentItem(plugin) {
     name() {
       const highlight = this.getSelectedRangeLast()?.highlight;
 
-      if (highlight && highlight.isCell() && plugin.getCommentAtCell(highlight.row, highlight.col)) {
+      if (highlight?.isCell() && plugin.getCommentAtCell(highlight.row, highlight.col)) {
         return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_EDIT_COMMENT);
       }
 

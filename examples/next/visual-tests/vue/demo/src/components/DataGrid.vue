@@ -33,6 +33,7 @@ export default {
         multiColumnSorting: true,
         filters: true,
         rowHeaders: true,
+        navigableHeaders: true,
         afterOnCellMouseDown: changeCheckboxCell,
         afterGetColHeader: alignHeaders,
         afterGetRowHeader: drawCheckboxInRowHeaders,

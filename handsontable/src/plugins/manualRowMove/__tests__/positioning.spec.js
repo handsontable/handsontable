@@ -159,7 +159,12 @@ describe('manualRowMove', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo(20, 0);
+      scrollViewportTo({
+        row: 20,
+        col: 0,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
 
       await sleep(100);
 
@@ -186,7 +191,12 @@ describe('manualRowMove', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo(20, 0);
+      scrollViewportTo({
+        row: 20,
+        col: 0,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
 
       await sleep(100);
 
@@ -223,7 +233,12 @@ describe('manualRowMove', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo(20, 0);
+      scrollViewportTo({
+        row: 20,
+        col: 0,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
 
       await sleep(100);
 
@@ -257,7 +272,12 @@ describe('manualRowMove', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo(20, 0);
+      scrollViewportTo({
+        row: 20,
+        col: 0,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
 
       await sleep(100);
 
@@ -282,7 +302,12 @@ describe('manualRowMove', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo(20, 0);
+      scrollViewportTo({
+        row: 20,
+        col: 0,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
 
       await sleep(100);
 
@@ -317,7 +342,12 @@ describe('manualRowMove', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo(20, 0);
+      scrollViewportTo({
+        row: 20,
+        col: 0,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
 
       await sleep(100);
 

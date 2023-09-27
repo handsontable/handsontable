@@ -346,9 +346,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.runHooks('afterSelectionByProp',
       from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), preventScrolling, selectionLayerLevel); // eslint-disable-line max-len
 
-    const isSelectedByAnyHeader = this.selection.isSelectedByAnyHeader();
-    const currentSelectedRange = this.selection.selectedRange.current();
-
     let scrollToCell = true;
 
     if (preventScrollingToCell) {
@@ -359,33 +356,35 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       scrollToCell = !preventScrolling.value;
     }
 
+    const currentSelectedRange = this.selection.selectedRange.current();
+    const isSelectedByAnyHeader = this.selection.isSelectedByAnyHeader();
     const isSelectedByRowHeader = this.selection.isSelectedByRowHeader();
     const isSelectedByColumnHeader = this.selection.isSelectedByColumnHeader();
 
     if (scrollToCell !== false) {
       if (!isSelectedByAnyHeader) {
         if (currentSelectedRange && !this.selection.isMultiple()) {
-          const renderableCoords = visualToRenderableCoords(currentSelectedRange.from);
+          const { row, col } = currentSelectedRange.from;
 
-          if (renderableCoords.row < 0 && renderableCoords.col >= 0) {
-            this.view.scrollViewportHorizontally(renderableCoords.col);
+          if (row < 0 && col >= 0) {
+            this.scrollViewportTo({ col });
 
-          } else if (renderableCoords.col < 0 && renderableCoords.row >= 0) {
-            this.view.scrollViewportVertically(renderableCoords.row);
+          } else if (col < 0 && row >= 0) {
+            this.scrollViewportTo({ row });
 
           } else {
-            this.view.scrollViewport(renderableCoords);
+            this.scrollViewportTo({ row, col });
           }
 
         } else {
-          this.view.scrollViewport(visualToRenderableCoords(cellCoords));
+          this.scrollViewportTo(cellCoords.toObject());
         }
 
       } else if (isSelectedByRowHeader) {
-        this.view.scrollViewportVertically(instance.rowIndexMapper.getRenderableFromVisualIndex(cellCoords.row));
+        this.scrollViewportTo({ row: cellCoords.row });
 
       } else if (isSelectedByColumnHeader) {
-        this.view.scrollViewportHorizontally(instance.columnIndexMapper.getRenderableFromVisualIndex(cellCoords.col));
+        this.scrollViewportTo({ col: cellCoords.col });
       }
     }
 
@@ -4345,65 +4344,98 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Scroll viewport to coordinates specified by the `row` and `column` arguments.
+   * Scroll viewport to coordinates specified by the `row` and/or `col` object properties.
+   *
+   * ```js
+   * // scroll the viewport to the visual row index (leave the horizontal scroll untouched)
+   * hot.scrollViewportTo({ row: 50 });
+   *
+   * // scroll the viewport to the passed coordinates so that the cell at 50, 50 will be snapped to
+   * // the bottom-end table's edge.
+   * hot.scrollViewportTo({
+   *   row: 50,
+   *   col: 50,
+   *   verticalSnap: 'bottom',
+   *   horizontalSnap: 'end',
+   * });
+   * ```
    *
    * @memberof Core#
    * @function scrollViewportTo
-   * @param {number} [row] Row index. If the last argument isn't defined we treat the index as a visual row index. Otherwise,
-   * we are using the index for numbering only this rows which may be rendered (we don't consider hidden rows).
-   * @param {number} [column] Column index. If the last argument isn't defined we treat the index as a visual column index.
-   * Otherwise, we are using the index for numbering only this columns which may be rendered (we don't consider hidden columns).
-   * @param {boolean} [snapToBottom=false] If `true`, the viewport is scrolled to show the cell at the bottom of the table.
-   * However, if the cell's height is greater than the table's viewport height, the cell is snapped to the top edge.
-   * @param {boolean} [snapToRight=false] If `true`, the viewport is scrolled to show the cell at the right side of the table.
-   * However, if the cell is wider than the table's viewport width, the cell is snapped to the left edge (or to the right edge, if the layout direction is set to `rtl`).
-   * @param {boolean} [considerHiddenIndexes=true] If `true`, we handle visual indexes, otherwise we handle only indexes which
+   * @param {object} options A dictionary containing the following parameters:
+   * @param {number} [options.row] Specifies the number of visual rows along the Y axis to scroll the viewport.
+   * @param {number} [options.col] Specifies the number of visual columns along the X axis to scroll the viewport.
+   * @param {'top' | 'bottom'} [options.verticalSnap] Determines to which edge of the table the viewport will be scrolled based on the passed coordinates.
+   * This option is a string which must take one of the following values:
+   * - `top`: The viewport will be scrolled to a row in such a way that it will be positioned on the top of the viewport;
+   * - `bottom`: The viewport will be scrolled to a row in such a way that it will be positioned on the bottom of the viewport;
+   * - If the property is not defined the vertical auto-snapping is enabled. Depending on where the viewport is scrolled from, a row will
+   * be positioned at the top or bottom of the viewport.
+   * @param {'start' | 'end'} [options.horizontalSnap] Determines to which edge of the table the viewport will be scrolled based on the passed coordinates.
+   * This option is a string which must take one of the following values:
+   * - `start`: The viewport will be scrolled to a column in such a way that it will be positioned on the start (left edge or right, if the layout direction is set to `rtl`) of the viewport;
+   * - `end`: The viewport will be scrolled to a column in such a way that it will be positioned on the end (right edge or left, if the layout direction is set to `rtl`) of the viewport;
+   * - If the property is not defined the horizontal auto-snapping is enabled. Depending on where the viewport is scrolled from, a column will
+   * be positioned at the start or end of the viewport.
+   * @param {boolean} [options.considerHiddenIndexes=true] If `true`, we handle visual indexes, otherwise we handle only indexes which
    * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
-   * @returns {boolean} `true` if scroll was successful, `false` otherwise.
+   * @returns {boolean} `true` if viewport was scrolled, `false` otherwise.
    */
-  this.scrollViewportTo = function(row, column, snapToBottom = false,
-                                   snapToRight = false, considerHiddenIndexes = true) {
-    const snapToTop = !snapToBottom;
-    const snapToLeft = !snapToRight;
+  this.scrollViewportTo = function({ row, col, verticalSnap, horizontalSnap, considerHiddenIndexes } = {}) {
+    let snapToTop;
+    let snapToBottom;
+    let snapToInlineStart;
+    let snapToInlineEnd;
+
+    if (verticalSnap !== undefined) {
+      snapToTop = verticalSnap === 'top';
+      snapToBottom = !snapToTop;
+    }
+
+    if (horizontalSnap !== undefined) {
+      snapToInlineStart = horizontalSnap === 'start';
+      snapToInlineEnd = !snapToInlineStart;
+    }
+
     let renderableRow = row;
-    let renderableColumn = column;
+    let renderableColumn = col;
 
-    if (considerHiddenIndexes) {
-      const isRowInteger = Number.isInteger(row);
-      const isColumnInteger = Number.isInteger(column);
+    if (considerHiddenIndexes === undefined || considerHiddenIndexes) {
+      const isValidRowGrid = Number.isInteger(row) && row >= 0;
+      const isValidColumnGrid = Number.isInteger(col) && col >= 0;
 
-      const visualRowToScroll = isRowInteger ? getIndexToScroll(this.rowIndexMapper, row) : void 0;
-      const visualColumnToScroll = isColumnInteger ? getIndexToScroll(this.columnIndexMapper, column) : void 0;
+      const visualRowToScroll = isValidRowGrid ? getIndexToScroll(this.rowIndexMapper, row) : undefined;
+      const visualColumnToScroll = isValidColumnGrid ? getIndexToScroll(this.columnIndexMapper, col) : undefined;
 
       if (visualRowToScroll === null || visualColumnToScroll === null) {
         return false;
       }
 
-      renderableRow = isRowInteger ?
-        instance.rowIndexMapper.getRenderableFromVisualIndex(visualRowToScroll) : void 0;
-      renderableColumn = isColumnInteger ?
-        instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumnToScroll) : void 0;
+      renderableRow = isValidRowGrid ?
+        instance.rowIndexMapper.getRenderableFromVisualIndex(visualRowToScroll) : row;
+      renderableColumn = isValidColumnGrid ?
+        instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumnToScroll) : col;
     }
 
     const isRowInteger = Number.isInteger(renderableRow);
     const isColumnInteger = Number.isInteger(renderableColumn);
 
-    if (isRowInteger && isColumnInteger) {
+    if (isRowInteger && renderableRow >= 0 && isColumnInteger && renderableColumn >= 0) {
       return instance.view.scrollViewport(
         instance._createCellCoords(renderableRow, renderableColumn),
         snapToTop,
-        snapToRight,
+        snapToInlineEnd,
         snapToBottom,
-        snapToLeft
+        snapToInlineStart
       );
     }
 
-    if (isRowInteger && isColumnInteger === false) {
+    if (isRowInteger && renderableRow >= 0 && (isColumnInteger && renderableColumn < 0 || !isColumnInteger)) {
       return instance.view.scrollViewportVertically(renderableRow, snapToTop, snapToBottom);
     }
 
-    if (isColumnInteger && isRowInteger === false) {
-      return instance.view.scrollViewportHorizontally(renderableColumn, snapToRight, snapToLeft);
+    if (isColumnInteger && renderableColumn >= 0 && (isRowInteger && renderableRow < 0 || !isRowInteger)) {
+      return instance.view.scrollViewportHorizontally(renderableColumn, snapToInlineEnd, snapToInlineStart);
     }
 
     return false;
@@ -4414,6 +4446,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @since 14.0.0
    * @memberof Core#
+   * @fires Hooks#afterScroll
    * @function scrollToFocusedCell
    * @param {Function} callback The callback function to call after the viewport is scrolled.
    */
@@ -4425,9 +4458,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.addHookOnce('afterScroll', callback);
 
     const { highlight } = this.getSelectedRangeLast();
-    const renderableRowIndex = this.rowIndexMapper.getRenderableFromVisualIndex(highlight.row);
-    const renderableColumnIndex = this.columnIndexMapper.getRenderableFromVisualIndex(highlight.col);
-    const isScrolled = this.view.scrollViewport(this._createCellCoords(renderableRowIndex, renderableColumnIndex));
+    const isScrolled = this.scrollViewportTo(highlight.toObject());
 
     if (isScrolled) {
       this.view.render();
@@ -4845,11 +4876,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   const shortcutManager = createShortcutManager({
-    handleEvent(event) {
-      const isListening = instance.isListening();
-      const isKeyboardEventWithKey = event?.key !== void 0;
-
-      return isListening && isKeyboardEventWithKey;
+    handleEvent() {
+      return instance.isListening();
     },
     beforeKeyDown: (event) => {
       return this.runHooks('beforeKeyDown', event);

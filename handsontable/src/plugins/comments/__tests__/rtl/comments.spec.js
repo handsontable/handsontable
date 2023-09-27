@@ -77,7 +77,12 @@ describe('Comments (RTL mode)', () => {
           comments: true,
         });
 
-        scrollViewportTo(countRows() - 1, countCols() - 1);
+        scrollViewportTo({
+          row: countRows() - 1,
+          col: countCols() - 1,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
@@ -125,7 +130,12 @@ describe('Comments (RTL mode)', () => {
           height: 200,
         });
 
-        scrollViewportTo(countRows() - 1, countCols() - 1);
+        scrollViewportTo({
+          row: countRows() - 1,
+          col: countCols() - 1,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
@@ -155,7 +165,12 @@ describe('Comments (RTL mode)', () => {
           comments: true,
         });
 
-        scrollViewportTo(countRows() - 1, countCols() - 1);
+        scrollViewportTo({
+          row: countRows() - 1,
+          col: countCols() - 1,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
@@ -185,7 +200,12 @@ describe('Comments (RTL mode)', () => {
           comments: true,
         });
 
-        scrollViewportTo(countRows() - 1, countCols() - 1);
+        scrollViewportTo({
+          row: countRows() - 1,
+          col: countCols() - 1,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
@@ -218,7 +238,12 @@ describe('Comments (RTL mode)', () => {
           comments: true,
         });
 
-        scrollViewportTo(countRows() - 1, 0);
+        scrollViewportTo({
+          row: countRows() - 1,
+          col: 0,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());

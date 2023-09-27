@@ -742,7 +742,12 @@ class Menu {
       // disable default "scroll-to-cell" option and instead of that...
       this.hotMenu.selectCell(lastRow, 0, undefined, undefined, false);
       // ...scroll to the cell with "snap to the bottom" option
-      this.hotMenu.scrollViewportTo(lastRow, 0, true, false);
+      this.hotMenu.scrollViewportTo({
+        row: lastRow,
+        col: 0,
+        verticalSnap: 'bottom',
+        horizontalSnap: 'start',
+      });
     }
   }
 

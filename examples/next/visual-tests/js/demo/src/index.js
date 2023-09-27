@@ -113,6 +113,7 @@ new Handsontable(example, {
   hiddenColumns: {
     indicators: true
   },
+  navigableHeaders: true,
   contextMenu: true,
   multiColumnSorting: true,
   filters: true,

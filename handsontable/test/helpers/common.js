@@ -93,6 +93,7 @@ export const getDataType = handsontableMethodFactory('getDataType');
 export const getInstance = handsontableMethodFactory('getInstance');
 export const getPlugin = handsontableMethodFactory('getPlugin');
 export const getRowHeader = handsontableMethodFactory('getRowHeader');
+export const getRowHeight = handsontableMethodFactory('getRowHeight');
 export const getSchema = handsontableMethodFactory('getSchema');
 export const getSelected = handsontableMethodFactory('getSelected');
 export const getSelectedLast = handsontableMethodFactory('getSelectedLast');
@@ -185,6 +186,41 @@ export function rowIndexMapper() {
  */
 export function columnIndexMapper() {
   return hot().columnIndexMapper;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function topOverlay() {
+  return hot().view._wt.wtOverlays.topOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function bottomOverlay() {
+  return hot().view._wt.wtOverlays.bottomOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function topInlineStartCornerOverlay() {
+  return hot().view._wt.wtOverlays.topInlineStartCornerOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function inlineStartOverlay() {
+  return hot().view._wt.wtOverlays.inlineStartOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function bottomInlineStartCornerOverlay() {
+  return hot().view._wt.wtOverlays.bottomInlineStartCornerOverlay;
 }
 
 /**

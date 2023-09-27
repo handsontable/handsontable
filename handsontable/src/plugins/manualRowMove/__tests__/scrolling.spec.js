@@ -157,7 +157,12 @@ describe('manualRowMove', () => {
         manualRowMove: true,
       });
 
-      scrollViewportTo(countRows() - 1, 0, true);
+      scrollViewportTo({
+        row: countRows() - 1,
+        col: 0,
+        verticalSnap: 'bottom',
+        horizontalSnap: 'start',
+      });
 
       await sleep(10);
 
@@ -195,7 +200,12 @@ describe('manualRowMove', () => {
         manualRowMove: true,
       });
 
-      scrollViewportTo(countRows() - 1, 0, true);
+      scrollViewportTo({
+        row: countRows() - 1,
+        col: 0,
+        verticalSnap: 'bottom',
+        horizontalSnap: 'start',
+      });
 
       await sleep(10);
 
@@ -235,7 +245,12 @@ describe('manualRowMove', () => {
         }
       });
 
-      scrollViewportTo(countRows() - 1, 0, true);
+      scrollViewportTo({
+        row: countRows() - 1,
+        col: 0,
+        verticalSnap: 'bottom',
+        horizontalSnap: 'start',
+      });
 
       await sleep(10);
 
@@ -272,7 +287,12 @@ describe('manualRowMove', () => {
         manualRowMove: true,
       });
 
-      scrollViewportTo(countRows() - 1, 0, true);
+      scrollViewportTo({
+        row: countRows() - 1,
+        col: 0,
+        verticalSnap: 'bottom',
+        horizontalSnap: 'start',
+      });
 
       await sleep(10);
 
