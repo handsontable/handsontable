@@ -9,6 +9,10 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     renderedColumnToSource(visibleColumnIndex) {
       return visibleColumnIndex;
     }
+
+    isAriaEnabled() {
+      return true;
+    }
   }
 
   function createRenderer() {

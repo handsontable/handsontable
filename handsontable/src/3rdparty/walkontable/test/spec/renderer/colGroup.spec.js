@@ -3,8 +3,13 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     constructor() {
       this.rootDocument = document;
     }
+
     renderedColumnToSource(visibleColumnIndex) {
       return visibleColumnIndex;
+    }
+
+    isAriaEnabled() {
+      return true;
     }
   }
 

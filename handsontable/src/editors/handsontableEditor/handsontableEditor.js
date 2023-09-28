@@ -87,6 +87,7 @@ export class HandsontableEditor extends TextEditor {
       fillHandle: false,
       autoWrapCol: false,
       autoWrapRow: false,
+      ariaTags: false,
       afterOnCellMouseDown(_, coords) {
         const sourceValue = this.getSourceData(coords.row, coords.col);
 
@@ -161,7 +162,7 @@ export class HandsontableEditor extends TextEditor {
   }
 
   /**
-   * Assings afterDestroy callback to prevent memory leaks.
+   * Assigns afterDestroy callback to prevent memory leaks.
    *
    * @private
    */

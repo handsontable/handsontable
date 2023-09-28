@@ -93,6 +93,7 @@ export interface GridSettings extends Events {
   allowInvalid?: boolean;
   allowRemoveColumn?: boolean;
   allowRemoveRow?: boolean;
+  ariaTags?: boolean;
   autoColumnSize?: AutoColumnSizeSettings;
   autoRowSize?: AutoRowSizeSettings;
   autoWrapCol?: boolean;

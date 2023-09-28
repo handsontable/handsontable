@@ -1,4 +1,5 @@
 import { arrayEach, arrayMap } from '../../../helpers/array';
+import { hasOwnProperty } from '../../../helpers/object';
 import { hasClass } from '../../../helpers/dom/element';
 import { SEPARATOR } from './../predefinedItems';
 
@@ -11,6 +12,48 @@ export function normalizeSelection(selRanges) {
     start: range.getTopStartCorner(),
     end: range.getBottomEndCorner(),
   }));
+}
+
+/**
+ * Check if the provided element is a submenu opener.
+ *
+ * @param {object} itemToTest Item element.
+ * @returns {boolean}
+ */
+export function isItemSubMenu(itemToTest) {
+  return hasOwnProperty(itemToTest, 'submenu');
+}
+
+/**
+ * Check if the provided element is a menu separator.
+ *
+ * @param {object} itemToTest Item element.
+ * @returns {boolean}
+ */
+export function isItemSeparator(itemToTest) {
+  return new RegExp(SEPARATOR, 'i').test(itemToTest.name);
+}
+
+/**
+ * Check if the provided element presents the disabled menu item.
+ *
+ * @param {object} itemToTest Item element.
+ * @param {object} hot The context for the item function.
+ * @returns {boolean}
+ */
+export function isItemDisabled(itemToTest, hot) {
+  return itemToTest.disabled === true ||
+         (typeof itemToTest.disabled === 'function' && itemToTest.disabled.call(hot) === true);
+}
+
+/**
+ * Check if the provided element presents the disabled selection menu item.
+ *
+ * @param {object} itemToTest Item element.
+ * @returns {boolean}
+ */
+export function isItemSelectionDisabled(itemToTest) {
+  return hasOwnProperty(itemToTest, 'disableSelection');
 }
 
 /**

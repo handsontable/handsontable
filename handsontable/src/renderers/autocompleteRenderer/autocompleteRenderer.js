@@ -4,6 +4,7 @@ import EventManager from '../../eventManager';
 import { addClass, hasClass } from '../../helpers/dom/element';
 
 import './autocompleteRenderer.scss';
+import { A11Y_HASPOPUP, A11Y_HIDDEN } from '../../helpers/a11y';
 
 export const RENDERER_TYPE = 'autocomplete';
 
@@ -23,8 +24,14 @@ export function autocompleteRenderer(instance, TD, row, col, prop, value, cellPr
   const { rootDocument } = instance;
   const rendererFunc = cellProperties.allowHtml ? htmlRenderer : textRenderer;
   const ARROW = rootDocument.createElement('DIV');
+  const isAriaEnabled = instance.getSettings().ariaTags;
 
   ARROW.className = 'htAutocompleteArrow';
+
+  if (isAriaEnabled) {
+    ARROW.setAttribute(...A11Y_HIDDEN());
+  }
+
   ARROW.appendChild(rootDocument.createTextNode(String.fromCharCode(9660)));
 
   rendererFunc.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
@@ -36,7 +43,12 @@ export function autocompleteRenderer(instance, TD, row, col, prop, value, cellPr
   }
 
   TD.insertBefore(ARROW, TD.firstChild);
+
   addClass(TD, 'htAutocomplete');
+
+  if (isAriaEnabled) {
+    TD.setAttribute(...A11Y_HASPOPUP());
+  }
 
   if (!instance.acArrowListener) {
     const eventManager = new EventManager(instance);

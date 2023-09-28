@@ -1,5 +1,12 @@
 import { SharedOrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
+import { setAttribute } from '../../../../helpers/dom/element';
+import {
+  A11Y_COLINDEX,
+  A11Y_ROWHEADER,
+  A11Y_SCOPE_ROW,
+  A11Y_TABINDEX
+} from '../../../../helpers/a11y';
 
 /**
  * Row headers renderer responsible for managing (inserting, tracking, rendering) TR elements belongs to TR.
@@ -83,8 +90,14 @@ export default class RowHeadersRenderer extends BaseRenderer {
         TH.className = '';
         TH.removeAttribute('style');
 
-        TH.setAttribute('tabindex', '-1');
-        TH.setAttribute('role', 'rowheader');
+        if (this.table.isAriaEnabled()) {
+          setAttribute(TH, [
+            A11Y_ROWHEADER(),
+            A11Y_SCOPE_ROW(),
+            A11Y_COLINDEX(visibleColumnIndex + 1),
+            A11Y_TABINDEX(-1)
+          ]);
+        }
 
         rowHeaderFunctions[visibleColumnIndex](sourceRowIndex, TH, visibleColumnIndex);
       }

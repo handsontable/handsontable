@@ -81,6 +81,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   allowInvalid: true,
   allowRemoveColumn: true,
   allowRemoveRow: true,
+  ariaTags: true,
   autoColumnSize:  true,
   autoRowSize: true,
   autoWrapCol: true,

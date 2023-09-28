@@ -2,6 +2,12 @@ import { warn } from './../../../../helpers/console';
 import { toSingleLine } from './../../../../helpers/templateLiteralTag';
 import { OrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
+import { setAttribute } from '../../../../helpers/dom/element';
+import {
+  A11Y_PRESENTATION,
+  A11Y_ROW,
+  A11Y_ROWINDEX
+} from '../../../../helpers/a11y';
 
 let performanceWarningAppeared = false;
 
@@ -54,6 +60,12 @@ export default class RowsRenderer extends BaseRenderer {
         the number of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.`);
     }
 
+    if (this.table.isAriaEnabled()) {
+      setAttribute(this.rootNode, [
+        A11Y_PRESENTATION()
+      ]);
+    }
+
     this.orderView
       .setSize(rowsToRender)
       .setOffset(this.table.renderedRowToSource(0))
@@ -61,6 +73,17 @@ export default class RowsRenderer extends BaseRenderer {
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       this.orderView.render();
+
+      const TR = this.orderView.getCurrentNode();
+      const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
+
+      if (this.table.isAriaEnabled()) {
+        setAttribute(TR, [
+          A11Y_ROW(),
+          // `aria-rowindex` is incremented by both tbody and thead rows.
+          A11Y_ROWINDEX(sourceRowIndex + (this.table.rowUtils?.dataAccessObject?.columnHeaders.length ?? 0) + 1)
+        ]);
+      }
     }
 
     this.orderView.end();

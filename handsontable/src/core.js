@@ -4916,7 +4916,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Return the Focus Manager responsible for managing the browser's focus in the table.
    *
    * @memberof Core#
-   * @since 13.0.0
+   * @since 14.0.0
    * @function getFocusManager
    * @returns {FocusManager}
    */

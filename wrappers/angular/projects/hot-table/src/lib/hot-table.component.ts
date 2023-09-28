@@ -40,6 +40,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() allowInvalid: Handsontable.GridSettings['allowInvalid'];
   @Input() allowRemoveColumn: Handsontable.GridSettings['allowRemoveColumn'];
   @Input() allowRemoveRow: Handsontable.GridSettings['allowRemoveRow'];
+  @Input() ariaTags: Handsontable.GridSettings['ariaTags'];
   @Input() autoColumnSize: Handsontable.GridSettings['autoColumnSize'];
   @Input() autoRowSize: Handsontable.GridSettings['autoRowSize'];
   @Input() autoWrapCol: Handsontable.GridSettings['autoWrapCol'];

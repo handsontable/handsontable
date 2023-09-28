@@ -1,6 +1,7 @@
 import {
   addClass,
   removeClass,
+  setAttribute,
 } from '../../helpers/dom/element';
 import { isUndefined, isDefined } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
@@ -17,9 +18,13 @@ import {
   isFirstLevelColumnHeader,
   wasHeaderClickedProperly
 } from './utils';
-import { getClassesToRemove, getClassesToAdd } from './domHelpers';
+import {
+  getClassesToRemove,
+  getClassesToAdd
+} from './domHelpers';
 import { rootComparator } from './rootComparator';
 import { registerRootComparator, sort } from './sortService';
+import { A11Y_SORT } from '../../helpers/a11y';
 
 export const PLUGIN_KEY = 'columnSorting';
 export const PLUGIN_PRIORITY = 50;
@@ -717,6 +722,12 @@ export class ColumnSorting extends BasePlugin {
       showSortIndicator,
       headerActionEnabled
     );
+
+    if (this.hot.getSettings().ariaTags) {
+      const currentSortState = this.columnStatesManager.getSortOrderOfColumn(column);
+
+      setAttribute(TH, ...A11Y_SORT(currentSortState ? `${currentSortState}ending` : 'none'));
+    }
   }
 
   /**
