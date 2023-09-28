@@ -5,7 +5,7 @@ import { isFunction } from '../helpers/function';
 import { objectEach, isObject } from '../helpers/object';
 import { toSingleLine } from '../helpers/templateLiteralTag';
 
-const __kindOf = Symbol('context');
+const __kindOf = Symbol('shortcut-context');
 
 /**
  * Checks if the provided object is a context object.
