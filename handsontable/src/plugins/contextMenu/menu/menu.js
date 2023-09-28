@@ -277,6 +277,10 @@ export class Menu {
     shortcutManager.setActiveContextName('menu');
 
     menuContext.addShortcuts([{
+      keys: [['Tab'], ['Shift', 'Tab'], ['Control/Meta', 'A']],
+      forwardToContext: this.hot.getShortcutManager().getContext('grid'),
+      callback: () => this.close(true),
+    }, {
       keys: [['Escape']],
       callback: () => this.close(true),
     }, {
@@ -350,12 +354,6 @@ export class Menu {
         } else {
           this.navigator.selectLast();
         }
-      },
-    }, {
-      keys: [['Tab'], ['Shift', 'Tab']],
-      forwardToContext: this.hot.getShortcutManager().getContext('grid'),
-      callback: () => {
-        this.close(true);
       },
     }], menuContextConfig);
 
