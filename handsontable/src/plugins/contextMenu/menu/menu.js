@@ -447,13 +447,11 @@ export class Menu {
       delete this.hotSubMenus[dataItem.key];
     }
 
-    if (cell && isItemSubMenu(dataItem)) {
-      // Update the accessibility tags on the cell being the base for the submenu.
-      if (this.hot.getSettings().ariaTags) {
-        setAttribute(cell, [
-          A11Y_EXPANDED(false),
-        ]);
-      }
+    // Update the accessibility tags on the cell being the base for the submenu.
+    if (cell && isItemSubMenu(dataItem) && this.hot.getSettings().ariaTags) {
+      setAttribute(cell, [
+        A11Y_EXPANDED(false),
+      ]);
     }
   }
 
@@ -539,13 +537,10 @@ export class Menu {
    * @returns {boolean}
    */
   isCommandPassive(commandDescriptor) {
-    const {
-      name: commandName,
-      isCommand,
-      submenu
-    } = commandDescriptor;
-
-    return !isCommand || commandName === SEPARATOR || isItemDisabled(commandDescriptor, this.hot) || submenu;
+    return commandDescriptor.isCommand === false ||
+           isItemSeparator(commandDescriptor) ||
+           isItemDisabled(commandDescriptor, this.hot) ||
+           isItemSubMenu(commandDescriptor);
   }
 
   /**
