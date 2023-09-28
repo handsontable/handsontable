@@ -310,7 +310,7 @@ export class Menu {
         if (selection && this.isSubMenu()) {
           this.close();
 
-          if (this.parentMenu) {
+          if (this.isSubMenu()) {
             this.parentMenu.hotMenu.listen();
           }
         }
@@ -370,7 +370,7 @@ export class Menu {
       return;
     }
 
-    if (closeParent && this.parentMenu) {
+    if (closeParent && this.isSubMenu()) {
       this.parentMenu.close();
     } else {
       this.navigator.clear();
@@ -381,7 +381,19 @@ export class Menu {
       this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
       this.runLocalHooks('afterClose');
 
-      if (this.parentMenu) {
+      if (this.isSubMenu()) {
+        if (this.hot.getSettings().ariaTags) {
+          const selection = this.parentMenu.hotMenu.getSelectedLast();
+
+          if (selection) {
+            const cell = this.parentMenu.hotMenu.getCell(selection[0], 0);
+
+            setAttribute(cell, [
+              A11Y_EXPANDED(false),
+            ]);
+          }
+        }
+
         this.parentMenu.hotMenu.listen();
       }
     }
@@ -438,18 +450,19 @@ export class Menu {
   closeSubMenu(row) {
     const dataItem = this.hotMenu.getSourceDataAtRow(row);
     const menus = this.hotSubMenus[dataItem.key];
-    const cell = this.hotMenu.getCell(row, 0);
 
     if (menus) {
       menus.destroy();
       delete this.hotSubMenus[dataItem.key];
-    }
 
-    // Update the accessibility tags on the cell being the base for the submenu.
-    if (cell && isItemSubMenu(dataItem) && this.hot.getSettings().ariaTags) {
-      setAttribute(cell, [
-        A11Y_EXPANDED(false),
-      ]);
+      const cell = this.hotMenu.getCell(row, 0);
+
+      // Update the accessibility tags on the cell being the base for the submenu.
+      if (this.hot.getSettings().ariaTags) {
+        setAttribute(cell, [
+          A11Y_EXPANDED(false),
+        ]);
+      }
     }
   }
 

@@ -62,21 +62,22 @@ describe('a11y DOM attributes (ARIA tags)', () => {
   });
 
   it('should assign the `aria-label` attribute to all the options of the dropdown menu', () => {
-    const hot = handsontable({
+    handsontable({
       dropdownMenu: true,
       colHeaders: true,
     });
 
     dropdownMenu(0);
 
-    const cMenu = hot.getPlugin('dropdownMenu').menu;
+    const cMenu = getPlugin('dropdownMenu').menu;
 
     expect(filterElementsByAttribute(
       cMenu.container,
       'td',
       'aria-label',
       el => (el.innerText === '' ? '---------' : el.innerText)
-    ).length).toEqual(cMenu.hotMenu.countRows());
+    ).length).toBe(cMenu.hotMenu.countRows());
+    expect(cMenu.hotMenu.getCell(0, 0).getAttribute('aria-label')).toBe('Insert column left');
   });
 
   it('should assign the `aria-disabled` attribute to all the disabled options of the dropdown menu', () => {
@@ -96,7 +97,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
   });
 
   it('should assign the `aria-expanded` attribute to all the expandable options of the dropdown menu and set it to' +
-    ' either `true` of `false`, depending on their state', async() => {
+    ' either `true` of `false`, depending on their state (via mouse movement)', async() => {
     const hot = handsontable({
       dropdownMenu: true,
       colHeaders: true,
@@ -129,5 +130,44 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     await sleep(50);
 
     expect($expandableItem.get(0).getAttribute('aria-expanded')).toEqual('false');
+  });
+
+  it('should assign the `aria-expanded` attribute to all the expandable options of the dropdown menu and set it to' +
+    ' either `true` of `false`, depending on their state (via keyboard navigation)', async() => {
+    handsontable({
+      colHeaders: true,
+      dropdownMenu: ['remove_col', 'alignment']
+    });
+
+    dropdownMenu();
+
+    const cMenu = getPlugin('dropdownMenu').menu;
+
+    expect(filterElementsByAttribute(
+      cMenu.container,
+      'td',
+      'aria-expanded',
+      'false'
+    ).length).toBe(1);
+
+    const $unExpandableItem = $(cMenu.hotMenu.getCell(0, 0));
+    const $expandableItem = $(cMenu.hotMenu.getCell(1, 0));
+
+    keyDownUp('arrowdown');
+    keyDownUp('arrowright');
+
+    expect($unExpandableItem.get(0).hasAttribute('aria-expanded')).toBe(false);
+
+    keyDownUp('arrowdown');
+
+    expect($expandableItem.get(0).getAttribute('aria-expanded')).toBe('false');
+
+    keyDownUp('arrowright');
+
+    expect($expandableItem.get(0).getAttribute('aria-expanded')).toBe('true');
+
+    keyDownUp('arrowleft');
+
+    expect($expandableItem.get(0).getAttribute('aria-expanded')).toBe('false');
   });
 });
