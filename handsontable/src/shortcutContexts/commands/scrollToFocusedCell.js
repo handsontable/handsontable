@@ -12,22 +12,25 @@ export const command = {
     const visibleRange = hot._createCellRange(visibleCoordsFrom, visibleCoordsFrom, visibleCoordsTo);
 
     if (!visibleRange.includes(highlight) && (highlight.row >= 0 || highlight.col >= 0)) {
-      const offsetRows = Math.floor(hot.countVisibleRows() / 2);
-      const offsetColumns = Math.floor(hot.countVisibleCols() / 2);
-      const scrollX = Math.max(highlight.row - offsetRows, 0);
-      const scrollY = Math.max(highlight.col - offsetColumns, 0);
-      const scrollCoords = [scrollX, scrollY];
+      const scrollCoords = {};
 
-      // for row header focus do not change the scroll Y position, leave as it is
-      if (highlight.col < 0) {
-        scrollCoords[1] = null;
+      if (highlight.col >= 0) {
+        const offsetColumns = Math.floor(hot.countVisibleCols() / 2);
 
-      // for column header focus do not change the scroll X position, leave as it is
-      } else if (highlight.row < 0) {
-        scrollCoords[0] = null;
+        scrollCoords.col = Math.max(highlight.col - offsetColumns, 0);
       }
 
-      hot.scrollViewportTo(...scrollCoords);
+      if (highlight.row >= 0) {
+        const offsetRows = Math.floor(hot.countVisibleRows() / 2);
+
+        scrollCoords.row = Math.max(highlight.row - offsetRows, 0);
+      }
+
+      hot.scrollViewportTo({
+        ...scrollCoords,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
     }
   },
 };

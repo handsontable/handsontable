@@ -662,7 +662,7 @@ describe('TextEditor', () => {
   });
 
   it('should hide editor when quick navigation by click scrollbar was triggered', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(50, 50),
       rowHeaders: true,
       colHeaders: true
@@ -673,7 +673,7 @@ describe('TextEditor', () => {
 
     keyDownUp('enter');
     keyUp(['enter']);
-    hot.scrollViewportTo(49);
+    scrollViewportTo({ row: 49 });
 
     await sleep(100);
 
@@ -1781,8 +1781,8 @@ describe('TextEditor', () => {
     expect($editorInput.outerWidth())
       .toEqual(hot.view._wt.wtTable.holder.clientWidth - $editedCell.position().left + 1);
 
-    hot.scrollViewportTo(void 0, 3);
-    hot.render();
+    scrollViewportTo({ col: 3 });
+    render();
 
     expect($editorInput.width() + $editorInput.offset().left)
       .toBeLessThan(hot.view._wt.wtTable.holder.clientWidth);

@@ -19,7 +19,7 @@ export const command = {
     hot.selection.transformStart(rowsStep, 0);
 
     if (hot.getSelectedRangeLast().highlight.row < 0) {
-      hot.scrollViewportTo(0);
+      hot.scrollViewportTo({ row: 0 });
     }
   },
 };

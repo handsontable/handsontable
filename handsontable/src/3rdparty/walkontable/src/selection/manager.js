@@ -1,4 +1,9 @@
-import { removeClass, addClass } from '../../../../helpers/dom/element';
+import {
+  removeClass,
+  addClass,
+  setAttribute,
+  removeAttribute
+} from '../../../../helpers/dom/element';
 import { SelectionScanner } from './scanner';
 import Border from './border/border';
 
@@ -222,6 +227,13 @@ export class SelectionManager {
         .add(className));
 
       addClass(element, classNames);
+
+      if (element.nodeName === 'TD' && Array.isArray(this.#selections.options?.cellAttributes)) {
+        setAttribute(element, this.#selections.options.cellAttributes);
+
+      } else if (element.nodeName === 'TH' && Array.isArray(this.#selections.options?.headerAttributes)) {
+        setAttribute(element, this.#selections.options.headerAttributes);
+      }
     });
   }
 
@@ -241,9 +253,20 @@ export class SelectionManager {
 
     appliedOverlaysClasses.forEach((className) => {
       const nodes = this.#activeOverlaysWot.wtTable.TABLE.querySelectorAll(`.${className}`);
+      let cellAttributes = [];
+
+      if (Array.isArray(this.#selections.options?.cellAttributes)) {
+        cellAttributes = this.#selections.options.cellAttributes.map(el => el[0]);
+      }
+
+      if (Array.isArray(this.#selections.options?.headerAttributes)) {
+        cellAttributes = [...cellAttributes, ...this.#selections.options.headerAttributes.map(el => el[0])];
+      }
 
       for (let i = 0, len = nodes.length; i < len; i++) {
         removeClass(nodes[i], className);
+
+        removeAttribute(nodes[i], cellAttributes);
       }
     });
 

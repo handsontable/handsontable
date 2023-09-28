@@ -227,6 +227,9 @@ export interface Events {
   beforeUpdateData?: (sourceData: CellValue[], initialLoad: boolean, source: string | undefined) => void;
   beforeValidate?: (value: CellValue, row: number, prop: string | number, source?: ChangeSource) => void;
   beforeValueRender?: (value: CellValue, cellProperties: CellProperties) => void;
+  beforeViewportScrollVertically?: (visualRow: number) => number;
+  beforeViewportScrollHorizontally?: (visualColumn: number) => number;
+  beforeViewportScroll?: () => void;
   beforeViewRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
   construct?: () => void;
   init?: () => void;

@@ -3,11 +3,17 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
     constructor() {
       this.rootDocument = document;
     }
+
     renderedRowToSource(visibleRowIndex) {
       return visibleRowIndex;
     }
+
     renderedColumnToSource(visibleColumnIndex) {
       return visibleColumnIndex;
+    }
+
+    isAriaEnabled() {
+      return true;
     }
   }
 

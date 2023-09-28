@@ -1,6 +1,7 @@
 import { arrayEach, arrayMap } from '../../helpers/array';
 import { hasClass } from '../../helpers/dom/element';
 import { KEY as SEPARATOR } from './predefinedItems/separator';
+import { hasOwnProperty } from '../../helpers/object';
 
 /**
  * @param {CellRange[]} selRanges An array of the cell ranges.
@@ -27,6 +28,16 @@ export function isSeparator(cell) {
  */
 export function hasSubMenu(cell) {
   return hasClass(cell, 'htSubmenu');
+}
+
+/**
+ * Check if the provided element is a submenu opener.
+ *
+ * @param {object} itemToTest Item element.
+ * @returns {boolean}
+ */
+export function isItemSubMenu(itemToTest) {
+  return hasOwnProperty(itemToTest, 'submenu');
 }
 
 /**

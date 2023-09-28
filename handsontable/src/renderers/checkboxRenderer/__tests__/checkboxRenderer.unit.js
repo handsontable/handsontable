@@ -47,7 +47,7 @@ describe('checkboxRenderer', () => {
       checkboxRenderer(instance, TD, 0, 0, void 0, null, cellMeta);
 
       expect(TD.outerHTML).toMatchHTML([
-        '<td tabindex="-1"><input class="htCheckboxRendererInput noValue" type="checkbox" ',
+        '<td><input class="htCheckboxRendererInput noValue" type="checkbox" ',
         'autocomplete="off" tabindex="-1" data-row="0" data-col="0"></td>'
       ].join(''), toMatchHTMLConfig);
     });
@@ -60,7 +60,7 @@ describe('checkboxRenderer', () => {
       checkboxRenderer(instance, TD, 100, 50, void 0, null, cellMeta);
 
       expect(TD.outerHTML).toMatchHTML([
-        '<td tabindex="-1"><input class="htCheckboxRendererInput noValue" type="checkbox" ',
+        '<td><input class="htCheckboxRendererInput noValue" type="checkbox" ',
         'autocomplete="off" tabindex="-1" data-row="100" data-col="50"></td>'
       ].join(''), toMatchHTMLConfig);
     });
@@ -73,7 +73,7 @@ describe('checkboxRenderer', () => {
       checkboxRenderer(instance, TD, 100, 50, void 0, 'yes', cellMeta);
 
       expect(TD.outerHTML).toMatchHTML([
-        '<td tabindex="-1"><input class="htCheckboxRendererInput htBadValue" type="checkbox" autocomplete="off" ',
+        '<td><input class="htCheckboxRendererInput htBadValue" type="checkbox" autocomplete="off" ',
         'tabindex="-1" style="display: none;" data-row="100" data-col="50">#bad-value#</td>'
       ].join(''), toMatchHTMLConfig);
     });

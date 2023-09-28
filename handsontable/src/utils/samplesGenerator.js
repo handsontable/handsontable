@@ -14,35 +14,36 @@ class SamplesGenerator {
   static get SAMPLE_COUNT() {
     return 3;
   }
+  /**
+   * Samples prepared for calculations.
+   *
+   * @type {Map}
+   * @default {null}
+   */
+  samples = null;
+  /**
+   * Function which give the data to collect samples.
+   *
+   * @type {Function}
+   */
+  dataFactory = null;
+  /**
+   * Custom number of samples to take of each value length.
+   *
+   * @type {number}
+   * @default {null}
+   */
+  customSampleCount = null;
+  /**
+   * `true` if duplicate samples collection should be allowed, `false` otherwise.
+   *
+   * @type {boolean}
+   * @default {false}
+   */
+  allowDuplicates = false;
 
   constructor(dataFactory) {
-    /**
-     * Samples prepared for calculations.
-     *
-     * @type {Map}
-     * @default {null}
-     */
-    this.samples = null;
-    /**
-     * Function which give the data to collect samples.
-     *
-     * @type {Function}
-     */
     this.dataFactory = dataFactory;
-    /**
-     * Custom number of samples to take of each value length.
-     *
-     * @type {number}
-     * @default {null}
-     */
-    this.customSampleCount = null;
-    /**
-     * `true` if duplicate samples collection should be allowed, `false` otherwise.
-     *
-     * @type {boolean}
-     * @default {false}
-     */
-    this.allowDuplicates = false;
   }
 
   /**
@@ -138,8 +139,14 @@ class SamplesGenerator {
     const sampledValues = [];
 
     rangeEach(range.from, range.to, (index) => {
-      const { value, bundleSeed } = type === 'row' ?
+      const data = type === 'row' ?
         this.dataFactory(specifierValue, index) : this.dataFactory(index, specifierValue);
+
+      if (data === false) {
+        return;
+      }
+
+      const { value, bundleSeed } = data;
       const hasCustomBundleSeed = typeof bundleSeed === 'string' && bundleSeed.length > 0;
       let seed;
 

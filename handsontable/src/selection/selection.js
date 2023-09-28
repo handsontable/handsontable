@@ -18,6 +18,7 @@ import {
   SELECTION_TYPE_UNRECOGNIZED,
 } from './utils';
 import { toSingleLine } from './../helpers/templateLiteralTag';
+import { A11Y_SELECTED } from '../helpers/a11y';
 
 /**
  * @class Selection
@@ -88,9 +89,11 @@ class Selection {
     this.tableProps = tableProps;
     this.highlight = new Highlight({
       headerClassName: settings.currentHeaderClassName,
+      headerAttributes: [A11Y_SELECTED()],
       activeHeaderClassName: settings.activeHeaderClassName,
       rowClassName: settings.currentRowClassName,
       columnClassName: settings.currentColClassName,
+      cellAttributes: [A11Y_SELECTED()],
       rowIndexMapper: this.tableProps.rowIndexMapper,
       columnIndexMapper: this.tableProps.columnIndexMapper,
       disabledCellSelection: (row, column) => this.tableProps.isDisabledCellSelection(row, column),

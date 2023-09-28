@@ -11,7 +11,7 @@ describe('Core.scrollToFocusedCell', () => {
   });
 
   it('should not scroll the viewport when cell is visible', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(500, 50),
       width: 300,
       height: 300,
@@ -19,18 +19,23 @@ describe('Core.scrollToFocusedCell', () => {
       colHeaders: true,
     });
 
-    scrollViewportTo(250, 25);
+    scrollViewportTo({
+      row: 250,
+      col: 25,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
     selectCell(255, 27, 255, 27, false);
 
-    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(1250);
-    expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(5750);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(1250);
+    expect(topOverlay().getScrollPosition()).toBe(5750);
 
     scrollToFocusedCell();
 
     await sleep(10);
 
-    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(1250);
-    expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(5750);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(1250);
+    expect(topOverlay().getScrollPosition()).toBe(5750);
   });
 
   it('should not call a callback when there is no selection', async() => {
@@ -90,7 +95,7 @@ describe('Core.scrollToFocusedCell', () => {
   });
 
   it('should scroll the viewport to cell which is rendered outside the table on the left', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(500, 50),
       width: 300,
       height: 300,
@@ -98,22 +103,27 @@ describe('Core.scrollToFocusedCell', () => {
       colHeaders: true,
     });
 
-    scrollViewportTo(250, 49);
+    scrollViewportTo({
+      row: 250,
+      col: 49,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
     selectCell(255, 0, 255, 0, false);
 
-    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2265);
-    expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(5750);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(2265);
+    expect(topOverlay().getScrollPosition()).toBe(5750);
 
     scrollToFocusedCell();
 
     await sleep(10);
 
-    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(0);
-    expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(5750);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+    expect(topOverlay().getScrollPosition()).toBe(5750);
   });
 
   it('should scroll the viewport to cell which is rendered outside the table on the right', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(500, 50),
       width: 300,
       height: 300,
@@ -121,22 +131,27 @@ describe('Core.scrollToFocusedCell', () => {
       colHeaders: true,
     });
 
-    scrollViewportTo(250, 0);
+    scrollViewportTo({
+      row: 250,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
     selectCell(255, 49, 255, 49, false);
 
-    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(0);
-    expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(5750);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+    expect(topOverlay().getScrollPosition()).toBe(5750);
 
     scrollToFocusedCell();
 
     await sleep(10);
 
-    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2265);
-    expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(5750);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(2265);
+    expect(topOverlay().getScrollPosition()).toBe(5750);
   });
 
   it('should scroll the viewport to cell which is rendered outside the table at the very top', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(500, 50),
       width: 300,
       height: 300,
@@ -144,22 +159,27 @@ describe('Core.scrollToFocusedCell', () => {
       colHeaders: true,
     });
 
-    scrollViewportTo(255, 25);
+    scrollViewportTo({
+      row: 255,
+      col: 25,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
     selectCell(0, 27, 0, 27, false);
 
-    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(1250);
-    expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(5865);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(1250);
+    expect(topOverlay().getScrollPosition()).toBe(5865);
 
     scrollToFocusedCell();
 
     await sleep(10);
 
-    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(1250);
-    expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(1250);
+    expect(topOverlay().getScrollPosition()).toBe(0);
   });
 
   it('should scroll the viewport to cell which is rendered outside the table at the very bottom', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(500, 50),
       width: 300,
       height: 300,
@@ -167,17 +187,22 @@ describe('Core.scrollToFocusedCell', () => {
       colHeaders: true,
     });
 
-    scrollViewportTo(255, 25);
+    scrollViewportTo({
+      row: 255,
+      col: 25,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
     selectCell(499, 27, 499, 27, false);
 
-    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(1250);
-    expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(5865);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(1250);
+    expect(topOverlay().getScrollPosition()).toBe(5865);
 
     scrollToFocusedCell();
 
     await sleep(10);
 
-    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(1250);
-    expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(11243);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(1250);
+    expect(topOverlay().getScrollPosition()).toBe(11243);
   });
 });
