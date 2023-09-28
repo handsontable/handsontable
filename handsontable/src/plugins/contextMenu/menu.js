@@ -7,7 +7,8 @@ import {
   isItemHidden,
   isSeparator,
   isSelectionDisabled,
-  normalizeSelection
+  normalizeSelection,
+  isItemSubMenu,
 } from './utils';
 import Core from '../../core';
 import EventManager from '../../eventManager';
@@ -22,12 +23,20 @@ import {
   removeClass,
   getParentWindow,
   hasClass,
+  setAttribute,
 } from '../../helpers/dom/element';
 import { isRightClick } from '../../helpers/dom/event';
 import { debounce, isFunction } from '../../helpers/function';
 import { isUndefined, isDefined } from '../../helpers/mixed';
-import { mixin, hasOwnProperty } from '../../helpers/object';
+import { mixin } from '../../helpers/object';
 import localHooks from '../../mixins/localHooks';
+import {
+  A11Y_DISABLED,
+  A11Y_EXPANDED,
+  A11Y_LABEL,
+  A11Y_MENU,
+  A11Y_MENU_ITEM
+} from '../../helpers/a11y';
 
 const MIN_WIDTH = 215;
 const SHORTCUTS_CONTEXT = 'menu';
@@ -207,6 +216,7 @@ class Menu {
       outsideClickDeselects: false,
       disableVisualSelection: 'area',
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
+      ariaTags: false,
       afterOnCellMouseOver: (event, coords) => {
         if (this.isAllSubMenusClosed()) {
           delayedOpenSubMenu(coords.row);
@@ -444,6 +454,7 @@ class Menu {
     if (!cell || !hasSubMenu(cell)) {
       return false;
     }
+
     const dataItem = this.hotMenu.getSourceDataAtRow(row);
     const subMenu = new Menu(this.hot, {
       parent: this,
@@ -456,7 +467,15 @@ class Menu {
     subMenu.setMenuItems(dataItem.submenu.items);
     subMenu.open();
     subMenu.setPosition(cell.getBoundingClientRect());
+
     this.hotSubMenus[dataItem.key] = subMenu;
+
+    // Update the accessibility tags on the cell being the base for the submenu.
+    if (this.hot.getSettings().ariaTags) {
+      setAttribute(cell, [
+        A11Y_EXPANDED(true)
+      ]);
+    }
 
     return subMenu;
   }
@@ -469,10 +488,20 @@ class Menu {
   closeSubMenu(row) {
     const dataItem = this.hotMenu.getSourceDataAtRow(row);
     const menus = this.hotSubMenus[dataItem.key];
+    const cell = this.hotMenu.getCell(row, 0);
 
     if (menus) {
       menus.destroy();
       delete this.hotSubMenus[dataItem.key];
+    }
+
+    if (cell && isItemSubMenu(dataItem)) {
+      // Update the accessibility tags on the cell being the base for the submenu.
+      if (this.hot.getSettings().ariaTags) {
+        setAttribute(cell, [
+          A11Y_EXPANDED(false),
+        ]);
+      }
     }
   }
 
@@ -776,8 +805,6 @@ class Menu {
   menuItemRenderer(hot, TD, row, col, prop, value) {
     const item = hot.getSourceDataAtRow(row);
     const wrapper = this.hot.rootDocument.createElement('div');
-
-    const isSubMenu = itemToTest => hasOwnProperty(itemToTest, 'submenu');
     const itemIsSeparator = itemToTest => new RegExp(SEPARATOR, 'i').test(itemToTest.name);
     const itemIsDisabled = itemToTest => itemToTest.disabled === true ||
       (typeof itemToTest.disabled === 'function' && itemToTest.disabled.call(this.hot) === true);
@@ -787,8 +814,20 @@ class Menu {
     if (typeof itemValue === 'function') {
       itemValue = itemValue.call(this.hot);
     }
+
     empty(TD);
+
     addClass(wrapper, 'htItemWrapper');
+
+    if (this.hot.getSettings().ariaTags) {
+      setAttribute(TD, [
+        A11Y_MENU_ITEM(),
+        A11Y_LABEL(itemValue),
+        ...(itemIsDisabled(item) ? [A11Y_DISABLED()] : []),
+        ...(isItemSubMenu(item) ? [A11Y_EXPANDED(false)] : []),
+      ]);
+    }
+
     TD.appendChild(wrapper);
 
     if (itemIsSeparator(item)) {
@@ -801,6 +840,7 @@ class Menu {
     } else {
       fastInnerHTML(wrapper, itemValue);
     }
+
     if (itemIsDisabled(item)) {
       addClass(TD, 'htDisabled');
       this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
@@ -809,7 +849,7 @@ class Menu {
       addClass(TD, 'htSelectionDisabled');
       this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
 
-    } else if (isSubMenu(item)) {
+    } else if (isItemSubMenu(item)) {
       addClass(TD, 'htSubmenu');
 
       if (itemIsSelectionDisabled(item)) {
@@ -913,6 +953,13 @@ class Menu {
     holderStyle.width = `${currentHiderWidth + 3}px`;
     holderStyle.height = `${realHeight + 3}px`;
     hiderStyle.height = holderStyle.height;
+
+    // Replace the default accessibility tags with the context menu's
+    if (this.hot.getSettings().ariaTags) {
+      setAttribute(this.hotMenu.rootElement, [
+        A11Y_MENU()
+      ]);
+    }
   }
 
   /**

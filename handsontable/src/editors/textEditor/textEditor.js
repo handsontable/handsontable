@@ -8,6 +8,7 @@ import {
   setCaretPosition,
   hasClass,
   removeClass,
+  setAttribute,
 } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { KEY_CODES } from '../../helpers/unicode';
@@ -16,6 +17,10 @@ import { isDefined } from '../../helpers/mixed';
 import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
 import { SHORTCUTS_GROUP_EDITOR } from '../baseEditor/baseEditor';
 import { updateCaretPosition } from './caretPositioner';
+import {
+  A11Y_HIDDEN,
+  A11Y_TABINDEX
+} from '../../helpers/a11y';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
@@ -209,9 +214,19 @@ export class TextEditor extends BaseEditor {
     const { rootDocument } = this.hot;
 
     this.TEXTAREA = rootDocument.createElement('TEXTAREA');
-    this.TEXTAREA.setAttribute('data-hot-input', ''); // Makes the element recognizable by Hot as its own component's element.
-    this.TEXTAREA.setAttribute('aria-hidden', 'true');
-    this.TEXTAREA.tabIndex = -1;
+
+    // Makes the element recognizable by Hot as its own
+    // component's element.
+    setAttribute(this.TEXTAREA, [
+      ['data-hot-input', ''],
+      A11Y_TABINDEX(-1),
+    ]);
+
+    if (this.hot.getSettings().ariaTags) {
+      setAttribute(this.TEXTAREA, [
+        A11Y_HIDDEN(),
+      ]);
+    }
 
     addClass(this.TEXTAREA, 'handsontableInput');
 

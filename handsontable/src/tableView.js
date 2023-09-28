@@ -10,12 +10,20 @@ import {
   isInput,
   isOutsideInput,
   isVisible,
+  setAttribute,
 } from './helpers/dom/element';
 import EventManager from './eventManager';
 import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
+import {
+  A11Y_COLCOUNT,
+  A11Y_MULTISELECTABLE,
+  A11Y_PRESENTATION,
+  A11Y_ROWCOUNT,
+  A11Y_TREEGRID
+} from './helpers/a11y';
 
 const privatePool = new WeakMap();
 
@@ -251,10 +259,21 @@ class TableView {
     priv.table = rootDocument.createElement('TABLE');
     addClass(priv.table, 'htCore');
 
-    priv.table.setAttribute('role', 'treegrid');
-
     if (this.instance.getSettings().tableClassName) {
       addClass(priv.table, this.instance.getSettings().tableClassName);
+    }
+
+    if (this.settings.ariaTags) {
+      setAttribute(priv.table, [
+        A11Y_PRESENTATION()
+      ]);
+
+      setAttribute(rootElement, [
+        A11Y_TREEGRID(),
+        A11Y_ROWCOUNT(this.instance.countRows()),
+        A11Y_COLCOUNT(this.instance.countCols()),
+        A11Y_MULTISELECTABLE(),
+      ]);
     }
 
     this.THEAD = rootDocument.createElement('THEAD');
@@ -639,6 +658,7 @@ class TableView {
   initializeWalkontable() {
     const priv = privatePool.get(this);
     const walkontableConfig = {
+      ariaTags: this.settings.ariaTags,
       rtlMode: this.instance.isRtl(),
       externalRowCalculator: this.instance.getPlugin('autoRowSize') &&
         this.instance.getPlugin('autoRowSize').isEnabled(),
@@ -756,6 +776,7 @@ class TableView {
           value,
           cellProperties
         );
+
         this.instance.runHooks('afterRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
       },
       selections: this.instance.selection.highlight,

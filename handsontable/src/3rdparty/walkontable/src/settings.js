@@ -5,6 +5,7 @@ import { objectEach } from '../../../helpers/object';
  * @typedef SettingsPure
  *
  * @property {Option} facade @todo desc.
+ * @property {Option} ariaTags Option `ariaTags`.
  * @property {Option} cellRenderer Option `cellRenderer`.
  * @property {Option} columnHeaders Option `columnHeaders`.
  * @property {Option} columnWidth Option `columnWidth`.
@@ -230,14 +231,15 @@ export default class Settings {
       rowHeaderWidth: null,
       columnHeaderHeight: null,
       headerClassName: null,
-      rtlMode: false
+      rtlMode: false,
+      ariaTags: true
     };
   }
 
   /**
    * Update settings.
    *
-   * @param {object} settings The singular settings to update or if passed as object to merge with.
+   * @param {object|string} settings The singular settings to update or if passed as object to merge with.
    * @param {*} value The value to set if the first argument is passed as string.
    * @returns {Settings}
    */

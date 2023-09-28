@@ -4,7 +4,7 @@ import { objectEach } from '../../helpers/object';
 import CommandExecutor from '../contextMenu/commandExecutor';
 import { getDocumentOffsetByElement } from '../contextMenu/utils';
 import EventManager from '../../eventManager';
-import { hasClass } from '../../helpers/dom/element';
+import { hasClass, setAttribute } from '../../helpers/dom/element';
 import ItemsFactory from '../contextMenu/itemsFactory';
 import Menu from '../contextMenu/menu';
 import Hooks from '../../pluginHooks';
@@ -19,6 +19,7 @@ import {
 } from '../contextMenu/predefinedItems';
 
 import './dropdownMenu.scss';
+import { A11Y_HIDDEN } from '../../helpers/a11y';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 Hooks.getSingleton().register('beforeDropdownMenuShow');
@@ -450,6 +451,12 @@ export class DropdownMenu extends BasePlugin {
     button.className = BUTTON_CLASS_NAME;
     button.type = 'button';
     button.tabIndex = -1;
+
+    if (this.hot.getSettings().ariaTags) {
+      setAttribute(button, [
+        A11Y_HIDDEN(),
+      ]);
+    }
 
     // prevent page reload on button click
     button.onclick = function() {

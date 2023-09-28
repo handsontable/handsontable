@@ -327,6 +327,19 @@ export default () => {
     allowRemoveRow: true,
 
     /**
+     * If set to `true`, the accessibility-related ARIA tags will be added to the table. If set to `false`, they
+     * will be omitted.
+     * Defaults to `true`.
+     *
+     * @memberof Options#
+     * @type {boolean}
+     * @default true
+     * @category Core
+     * @since 14.0.0
+     */
+    ariaTags: true,
+
+    /**
      * The `autoColumnSize` option configures the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin.
      *
      * You can set the `autoColumnSize` option to one of the following:
