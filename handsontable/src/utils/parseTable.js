@@ -171,6 +171,8 @@ function getSimpleHeadersHTML(columnHeaders, ignoredHeaders, ignoredColumns) {
 
   const filteredColumnHeaders = columnHeaders.filter((columnHeaderValue, columnIndex) =>
     ignoredColumns.includes(columnIndex) === false);
+  console.log(['<tr>', ...filteredColumnHeaders.map(columnHeader =>
+    `<th>${encodeHTMLEntities(columnHeader)}</th>`), '</tr>']);
 
   if (filteredColumnHeaders.length === 0) {
     return [];
@@ -329,6 +331,7 @@ function getHeadersHTMLByConfig(config) {
   }
 
   if (headersHTML.length > 0) {
+    console.log(headersHTML);
     return ['<thead>', ...headersHTML, '</thead>'];
   }
 
@@ -351,7 +354,7 @@ export function getDataWithHeadersByConfig(config) {
   const ignoredHeaders = ignoredRows.filter(rowIndex => rowIndex < 0);
 
   if (Array.isArray(nestedHeaders)) {
-    dataWithHeaders.push(getFilteredNestedHeaders(nestedHeaders, ignoredHeaders, ignoredColumns)
+    dataWithHeaders.push(...getFilteredNestedHeaders(nestedHeaders, ignoredHeaders, ignoredColumns)
       .map((listOfHeaders) => {
         return listOfHeaders.map((header) => {
           if (isObject(header)) {
@@ -365,7 +368,7 @@ export function getDataWithHeadersByConfig(config) {
 
   } else if (Array.isArray(colHeaders)) {
     dataWithHeaders.push([...colHeaders.filter((columnHeaderData, columnIndex) =>
-      ignoredHeaders.includes(columnIndex) === false)]);
+      ignoredColumns.includes(columnIndex) === false)]);
   }
 
   dataWithHeaders.push(...getFilteredCells(data, ignoredRows.filter(rowIndex => rowIndex >= 0),

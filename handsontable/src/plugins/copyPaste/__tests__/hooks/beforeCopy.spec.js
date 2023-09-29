@@ -330,12 +330,16 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
-        '<thead>',
-        '<tr><th>A-0-0</th></tr>',
-        '</thead>',
-        '<tbody>',
-        '<tr><td>A2</td></tr>',
-        '</tbody>',
+          '<thead>',
+            '<tr>' +
+              '<th>A-0-0</th>' +
+            '</tr>',
+          '</thead>',
+          '<tbody>',
+            '<tr>',
+              '<td>A2</td>',
+            '</tr>',
+          '</tbody>',
         '</table>'
       ].join(''));
       /* eslint-enable */

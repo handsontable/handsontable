@@ -226,7 +226,7 @@ describe('CopyPaste', () => {
       expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('A3');
     });
 
-    it('should call beforePaste and afterPaste during pasting operation', async() => {
+    it('should call beforePaste and afterPaste during pasting operation (copied simple text)', async() => {
       const beforePasteSpy = jasmine.createSpy('beforePaste');
       const afterPasteSpy = jasmine.createSpy('afterPaste');
 
@@ -249,6 +249,67 @@ describe('CopyPaste', () => {
       expect(afterPasteSpy).toHaveBeenCalledWith([['Kia']], 'Kia');
     });
 
+    it('should call beforePaste and afterPaste during pasting operation (copied HTML data)', () => {
+      const beforePasteSpy = jasmine.createSpy('beforePaste');
+      const afterPasteSpy = jasmine.createSpy('afterPaste');
+
+      handsontable({
+        beforePaste: beforePasteSpy,
+        afterPaste: afterPasteSpy,
+      });
+
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      clipboardEvent.clipboardData.setData('text/html', [
+        '<table><tbody><tr><td colspan="2" rowspan="2">A1</td><td>C1</td></tr><tr><td>C2</td></tr></tbody></table>'
+      ].join('\r\n'));
+
+      selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      expect(beforePasteSpy.calls.count()).toEqual(1);
+      expect(beforePasteSpy).toHaveBeenCalledWith(
+        [
+          ['A1', null, 'C1'],
+          [null, null, 'C2'],
+        ],
+        '<table>' +
+          '<tbody>' +
+            '<tr>' +
+              '<td rowspan="2" colspan="2">A1</td>' +
+              '<td>C1</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td>C2</td>' +
+            '</tr>' +
+          '</tbody>' +
+        '</table>',
+        { ignoredRows: [], ignoredColumns: [], }
+      );
+
+      expect(afterPasteSpy.calls.count()).toEqual(1);
+      expect(afterPasteSpy).toHaveBeenCalledWith(
+        [
+          ['A1', null, 'C1'],
+          [null, null, 'C2'],
+        ],
+        '<table>' +
+          '<tbody>' +
+            '<tr>' +
+              '<td rowspan="2" colspan="2">A1</td>' +
+              '<td>C1</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td>C2</td>' +
+            '</tr>' +
+          '</tbody>' +
+        '</table>',
+        { ignoredRows: [], ignoredColumns: [], }
+      );
+    });
+
     it('should be possible to block pasting', async() => {
       const afterPasteSpy = jasmine.createSpy('afterPaste');
 
@@ -269,22 +330,146 @@ describe('CopyPaste', () => {
       expect(afterPasteSpy.calls.count()).toEqual(0);
     });
 
-    it('should be possible modification of changes', async() => {
+    it('should be possible to modify data during paste operation (simple headers)', () => {
+      const afterPasteSpy = jasmine.createSpy('afterPaste');
+
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2),
-        beforePaste(changes) {
-          changes.splice(0, 1);
-        }
+        data: createSpreadsheetData(2, 2),
+        colHeaders: true,
+        copyPaste: true,
+        beforePaste(data, textHTML, pasteConfig) {
+          pasteConfig.ignoredRows.push(0);
+          pasteConfig.ignoredColumns.push(1);
+        },
+        afterPaste: afterPasteSpy,
       });
 
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      clipboardEvent.clipboardData.setData('text/html', [
+        '<table>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>A</th>' +
+              '<th>B</th>' +
+              '<th>C</th>' +
+              '<th>D</th>' +
+            '</tr>' +
+            '</thead>' +
+            '<tbody>' +
+            '<tr>' +
+              '<td>A1</td>' +
+              '<td>B1</td>' +
+              '<td>C1</td>' +
+              '<td>D1</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td>A2</td>' +
+              '<td>B2</td>' +
+              '<td>C2</td>' +
+              '<td>D2</td>' +
+            '</tr>' +
+          '</tbody>' +
+        '</table>'
+      ].join('\r\n'));
+
       selectCell(0, 0);
-      keyDownUp(['control/meta', 'v']);
-      triggerPaste('Kia\nToyota');
 
-      await sleep(60);
+      plugin.onPaste(clipboardEvent);
 
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('Toyota');
-      expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A2');
+      expect(afterPasteSpy.calls.count()).toEqual(1);
+      expect(afterPasteSpy).toHaveBeenCalledWith(
+        [
+          ['A', 'C', 'D'],
+          ['A2', 'C2', 'D2'],
+        ],
+        '<table>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>A</th>' +
+              '<th>C</th>' +
+              '<th>D</th>' +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+              '<tr>' +
+                '<td>A2</td>' +
+                '<td>C2</td>' +
+                '<td>D2</td>' +
+              '</tr>' +
+          '</tbody>' +
+        '</table>',
+        { ignoredRows: [0], ignoredColumns: [1], }
+      );
+    });
+
+    it('should be possible to modify data during paste operation (nested headers)', () => {
+      const afterPasteSpy = jasmine.createSpy('afterPaste');
+
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        colHeaders: true,
+        copyPaste: true,
+        beforePaste(data, textHTML, pasteConfig) {
+          pasteConfig.ignoredRows.push(-1, 0);
+          pasteConfig.ignoredColumns.push(0);
+        },
+        afterPaste: afterPasteSpy,
+      });
+
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      clipboardEvent.clipboardData.setData('text/html', [
+        '<table>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>A-0-0</th>' +
+              '<th>A-0-1</th>' +
+            '</tr>' +
+            '<tr>' +
+              '<th>B-1-0</th>' +
+              '<th>B-1-1</th>' +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+            '<tr>' +
+              '<td>A1</td>' +
+              '<td>B1</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td>A2</td>' +
+              '<td>B2</td>' +
+            '</tr>' +
+          '</tbody>' +
+        '</table>'
+      ].join('\r\n'));
+
+      selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      expect(afterPasteSpy.calls.count()).toEqual(1);
+      expect(afterPasteSpy).toHaveBeenCalledWith(
+        [
+          ['A-0-1'],
+          ['B2'],
+        ],
+        '<table>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>A-0-1</th>' +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+            '<tr>' +
+              '<td>B2</td>' +
+            '</tr>' +
+          '</tbody>' +
+        '</table>',
+        { ignoredRows: [-1, 0], ignoredColumns: [0], }
+      );
     });
 
     it('should be possible to paste copied data from the same instance', async() => {
