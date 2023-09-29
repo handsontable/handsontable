@@ -2,6 +2,7 @@ import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
 import { stringify, parse } from '../../3rdparty/SheetClip';
 import { sanitize } from '../../helpers/string';
+import { isObject } from '../../helpers/object';
 import { getSelectionText } from '../../helpers/dom/element';
 import copyItem from './contextMenuItem/copy';
 import copyColumnHeadersOnlyItem from './contextMenuItem/copyColumnHeadersOnly';
@@ -14,7 +15,12 @@ import {
   CopyableRangesFactory,
   normalizeRanges,
 } from './copyableRanges';
-import { htmlToGridSettings, getHTMLFromHotCoords, getDataFromHotCoords } from '../../utils/parseTable';
+import {
+  htmlToGridSettings,
+  getHTMLFromHotCoords,
+  getDataFromHotCoords,
+  getHTMLFromConfig, getDataWithHeadersByConfig
+} from '../../utils/parseTable';
 
 import './copyPaste.css';
 
@@ -622,17 +628,18 @@ export class CopyPaste extends BasePlugin {
     }
 
     let pastedData;
-
-    const textHTML = sanitize(event.clipboardData.getData('text/html'), {
+    let pasteConfig;
+    let parsedGridSettings;
+    let textHTML = sanitize(event.clipboardData.getData('text/html'), {
       ADD_TAGS: ['meta'],
       ADD_ATTR: ['content'],
       FORCE_BODY: true,
     });
 
     if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
-      const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument);
-
-      pastedData = parsedConfig.data;
+      parsedGridSettings = htmlToGridSettings(textHTML, this.hot.rootDocument);
+      pasteConfig = { ignoredRows: [], ignoredColumns: [] };
+      pastedData = getDataWithHeadersByConfig({ ...parsedGridSettings, ...pasteConfig });
 
     } else {
       pastedData = event.clipboardData.getData('text/plain');
@@ -646,11 +653,13 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
-    const { rows, columns } = normalizeRanges(this.copyableRanges);
-    const pasteConfig = { rows, columns };
-
     if (this.hot.runHooks('beforePaste', pastedData, textHTML, pasteConfig) === false) {
       return;
+    }
+
+    if (isObject(parsedGridSettings)) {
+      pastedData = getDataWithHeadersByConfig({ ...parsedGridSettings, ...pasteConfig });
+      textHTML = getHTMLFromConfig({ ...parsedGridSettings, ...pasteConfig });
     }
 
     const [startRow, startColumn, endRow, endColumn] = this.populateValues(pastedData);

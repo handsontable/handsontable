@@ -1,4 +1,6 @@
 import { isEmpty } from './../helpers/mixed';
+import { isObject } from './../helpers/object';
+import { rangeEach } from '../helpers/number';
 
 const ESCAPED_HTML_CHARS = {
   '&nbsp;': '\x20',
@@ -69,6 +71,307 @@ export function getDataFromHotCoords(instance, config) {
     ...getHeadersDataByCoords(instance, config),
     ...getBodyDataByCoords(instance, config),
   ];
+}
+
+/**
+ * Converts config into HTMLTableElement.
+ *
+ * @param {object} config Configuration for building HTMLTableElement.
+ * @param {Array<number>} config.ignoredRows List of row indexes which should be excluded when creating the table.
+ * @param {Array<number>} config.ignoredColumns List of column indexes which should be excluded when creating the table.
+ * @param {Array<Array<string>>} [config.data] List of cell data.
+ * @param {Array<object>} [config.mergeCells] List of merged cells.
+ * @param {Array<Array<string|object>>} [config.nestedHeaders] List of headers and corresponding information about some
+ * nested elements.
+ * @param {Array<string>} [config.colHeaders] List of first level header values.
+ * @returns {string} OuterHTML of the HTMLTableElement.
+ */
+export function getHTMLFromConfig(config) {
+  return [
+    '<table>',
+    ...getHeadersHTMLByConfig(config),
+    ...getBodyHTMLByConfig(config),
+    '</table>',
+  ].join('');
+}
+
+/**
+ * Get list of filtered nested headers.
+ *
+ * @param {Array<string>} nestedHeaders List of nested headers which will be filtered.
+ * @param {Array<number>} ignoredHeaders List of headers which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<number>} ignoredColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
+ * @returns {*}
+ */
+function getFilteredNestedHeaders(nestedHeaders, ignoredHeaders, ignoredColumns) {
+  return nestedHeaders.reduce((listOfHeaders, nestedHeader, rowIndex) => {
+    if (ignoredHeaders.includes(rowIndex - nestedHeaders.length)) {
+      return listOfHeaders;
+    }
+
+    const filteredNestedHeader = nestedHeader.filter((columnData, columnIndex) =>
+      ignoredColumns.includes(columnIndex) === false);
+
+    if (filteredNestedHeader.length > 0) {
+      return listOfHeaders.concat([filteredNestedHeader]);
+    }
+
+    return listOfHeaders;
+  }, []);
+}
+
+/**
+ * Get HTML for nested headers.
+ *
+ * @param {Array<string>} nestedHeaders List of nested headers which will be filtered.
+ * @param {Array<number>} ignoredHeaders List of headers which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<number>} ignoredColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
+ * @returns {*[]}
+ */
+function getNestedHeadersHTML(nestedHeaders, ignoredHeaders, ignoredColumns) {
+  const headersHTML = [];
+
+  getFilteredNestedHeaders(nestedHeaders, ignoredHeaders, ignoredColumns).forEach((listOfHeaders) => {
+    const tr = ['<tr>'];
+
+    for (let i = 0; i < listOfHeaders.length; i += 1) {
+      const header = listOfHeaders[i];
+      let headerValue = header;
+      let colspanAttribute = '';
+
+      if (isObject(header)) {
+        const { colspan, label } = header;
+
+        headerValue = label;
+        colspanAttribute = ` colspan=${colspan}`;
+      }
+
+      tr.push(`<th${colspanAttribute}>${encodeHTMLEntities(headerValue)}</th>`);
+    }
+
+    tr.push('</tr>');
+    headersHTML.push(...tr);
+  });
+
+  return headersHTML;
+}
+
+/**
+ * Get HTML for first level header.
+ *
+ * @param {Array<string>} columnHeaders List of header values which will be filtered.
+ * @param {Array<number>} ignoredHeaders List of headers which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<number>} ignoredColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
+ * @returns {*[]}
+ */
+function getSimpleHeadersHTML(columnHeaders, ignoredHeaders, ignoredColumns) {
+  if (ignoredHeaders.includes(-1)) {
+    return [];
+  }
+
+  const filteredColumnHeaders = columnHeaders.filter((columnHeaderValue, columnIndex) =>
+    ignoredColumns.includes(columnIndex) === false);
+
+  if (filteredColumnHeaders.length === 0) {
+    return [];
+  }
+
+  return ['<tr>', ...filteredColumnHeaders.map(columnHeader =>
+    `<th>${encodeHTMLEntities(columnHeader)}</th>`), '</tr>'];
+}
+
+/**
+ * Get list of cells filtered by list of ignored rows and columns.
+ *
+ * @private
+ * @param {Array<Array<string>>} data List of cells values which will be filtered.
+ * @param {Array<number>} ignoredRows List of row indexes which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<number>} ignoredColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
+ * @returns {Array<string>} List of cell values.
+ */
+function getFilteredCells(data, ignoredRows, ignoredColumns) {
+  return data.reduce((listOfCells, rowData, rowIndex) => {
+    if (ignoredRows.includes(rowIndex)) {
+      return listOfCells;
+    }
+
+    const filteredRowData = rowData.filter((cellData, columnIndex) =>
+      ignoredColumns.includes(columnIndex) === false);
+
+    if (filteredRowData.length > 0) {
+      return listOfCells.concat([filteredRowData]);
+    }
+
+    return listOfCells;
+  }, []);
+}
+
+/**
+ * Prepare information about merged areas to reduce complexity.
+ *
+ * @private
+ * @param {Array<object>} mergedCellsConfig List of merged cells.
+ * @returns {{mergedCellsMap: Map<any, any>, mergedArea: Set<any>}}
+ */
+function getMergedCellsInformation(mergedCellsConfig) {
+  const mergedCellsMap = new Map();
+  const mergedArea = new Set();
+  let mergedRows = 1;
+  let mergedColumns = 1;
+
+  mergedCellsConfig?.forEach((mergeArea) => {
+    const { row, col, rowspan, colspan } = mergeArea;
+
+    mergedCellsMap.set(`${row}x${col}`, { rowspan, colspan });
+
+    if (Number.isInteger(rowspan)) {
+      mergedRows = rowspan;
+    }
+
+    if (Number.isInteger(colspan)) {
+      mergedColumns = colspan;
+    }
+
+    rangeEach(row, row + mergedRows - 1, (rowIndex) => {
+      rangeEach(col, col + mergedColumns - 1, (columnIndex) => {
+        // Other than start point.
+        if (rowIndex !== row || columnIndex !== col) {
+          mergedArea.add(`${rowIndex}x${columnIndex}`);
+        }
+      });
+    });
+  });
+
+  return {
+    mergedCellsMap,
+    mergedArea,
+  };
+}
+
+/**
+ * Converts config with information about cells into HTMLTableElement.tBodies.
+ *
+ * @private
+ * @param {object} config Configuration for building HTMLTableElement.tBodies.
+ * @param {Array<number>} config.ignoredRows List of row indexes which should be excluded when creating the HTMLTableElement.tBodies.
+ * @param {Array<number>} config.ignoredColumns List of column indexes which should be excluded when creating the HTMLTableElement.tBodies.
+ * @param {Array<Array<string>>} config.data List of cell data.
+ * @param {Array<object>} [config.mergeCells] List of merged cells.
+ * @returns {Array<string>} List of HTMLElements stored as strings.
+ */
+function getBodyHTMLByConfig(config) {
+  const { ignoredColumns, data, mergeCells } = config;
+  const ignoredRows = config.ignoredRows.filter(rowIndex => rowIndex >= 0);
+  const filteredData = getFilteredCells(data, ignoredRows, ignoredColumns);
+  const cells = [];
+
+  if (filteredData.length === 0) {
+    return [];
+  }
+
+  const { mergedCellsMap, mergedArea } = getMergedCellsInformation(mergeCells);
+
+  filteredData.forEach((rowData, rowIndex) => {
+    const tr = ['<tr>'];
+
+    rowData.forEach((cellData, columnIndex) => {
+      const attrs = [];
+      const checkedMergeCoordinate = `${rowIndex}x${columnIndex}`;
+      const mergeParent = mergedCellsMap.get(checkedMergeCoordinate);
+
+      if (mergeParent !== undefined) {
+        const { rowspan, colspan } = mergeParent;
+
+        if (Number.isInteger(rowspan) && rowspan > 1) {
+          attrs.push(` rowspan="${rowspan}"`);
+        }
+
+        if (Number.isInteger(colspan) && colspan > 1) {
+          attrs.push(` colspan="${colspan}"`);
+        }
+
+      } else if (mergedArea.has(checkedMergeCoordinate)) {
+        return;
+      }
+
+      tr.push(`<td${attrs.join('')}>${encodeHTMLEntities(cellData)}</td>`);
+    });
+
+    tr.push('</tr>');
+    cells.push(...tr);
+  });
+
+  return ['<tbody>', ...cells, '</tbody>'];
+}
+
+/**
+ * Converts config with information about headers into HTMLTableElement.tHead.
+ *
+ * @private
+ * @param {object} config Configuration for building HTMLTableElement.tHead.
+ * @param {Array<number>} config.ignoredRows List of row indexes which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<number>} config.ignoredColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<Array<string|object>>} [config.nestedHeaders] List of headers and corresponding information about some
+ * nested elements.
+ * @param {Array<string>} [config.colHeaders] List of first level header values.
+ * @returns {Array<string>} List of HTMLElements stored as strings.
+ */
+function getHeadersHTMLByConfig(config) {
+  const headersHTML = [];
+  const { nestedHeaders, colHeaders, ignoredRows, ignoredColumns } = config;
+  const ignoredHeaders = ignoredRows.filter(rowIndex => rowIndex < 0);
+
+  if (Array.isArray(nestedHeaders)) {
+    headersHTML.push(...getNestedHeadersHTML(nestedHeaders, ignoredHeaders, ignoredColumns));
+
+  } else if (Array.isArray(colHeaders)) {
+    headersHTML.push(...getSimpleHeadersHTML(colHeaders, ignoredHeaders, ignoredColumns));
+  }
+
+  if (headersHTML.length > 0) {
+    return ['<thead>', ...headersHTML, '</thead>'];
+  }
+
+  return [];
+}
+
+/**
+ * Converts config with information about cells and headers into list of values.
+ *
+ * @param {object} config Configuration for building list of values.
+ * @param {Array<number>} config.ignoredRows List of row indexes which should be excluded when creating the value list.
+ * @param {Array<number>} config.ignoredColumns List of column indexes which should be excluded when creating the value list.
+ * @param {Array<Array<string|object>>} [config.nestedHeaders] List of headers and information about some nested elements.
+ * @param {Array<string>} [config.colHeaders] List of first level header values.
+ * @returns {Array<string>} List of values.
+ */
+export function getDataWithHeadersByConfig(config) {
+  const dataWithHeaders = [];
+  const { data, nestedHeaders, colHeaders, ignoredRows, ignoredColumns } = config;
+  const ignoredHeaders = ignoredRows.filter(rowIndex => rowIndex < 0);
+
+  if (Array.isArray(nestedHeaders)) {
+    dataWithHeaders.push(getFilteredNestedHeaders(nestedHeaders, ignoredHeaders, ignoredColumns)
+      .map((listOfHeaders) => {
+        return listOfHeaders.map((header) => {
+          if (isObject(header)) {
+            return header.label;
+          }
+
+          return header;
+        });
+      })
+    );
+
+  } else if (Array.isArray(colHeaders)) {
+    dataWithHeaders.push([...colHeaders.filter((columnHeaderData, columnIndex) =>
+      ignoredHeaders.includes(columnIndex) === false)]);
+  }
+
+  dataWithHeaders.push(...getFilteredCells(data, ignoredRows.filter(rowIndex => rowIndex >= 0),
+    ignoredColumns.filter(columnIndex => columnIndex >= 0)));
+
+  return dataWithHeaders;
 }
 
 /**

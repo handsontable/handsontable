@@ -403,7 +403,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterContextMenuDefaultOptions: (predefinedItems) => {},
   afterContextMenuHide: (context) => {},
   afterContextMenuShow: (context) => {},
-  afterCopy: (data, coords) => {},
+  afterCopy: (data, textHTML, copyConfig) => {},
   afterCopyLimit: (selectedRows, selectedColumnds, copyRowsLimit, copyColumnsLimit) => {},
   afterCreateCol: (index, amount, source) => {},
   afterCreateRow: (index, amount, source) => {},
@@ -443,7 +443,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterOnCellMouseOver: (event, coords, TD) => {},
   afterOnCellMouseOut: (event, coords, TD) => {},
   afterOnCellMouseUp: (event, coords, TD) => {},
-  afterPaste: (data, coords) => {},
+  afterPaste: (data, textHTML, pasteConfig) => {},
   afterPluginsInitialized: () => {},
   afterRedo: (action) => {},
   afterRedoStackChange: (undoneActionsBefore, undoneActionsAfter) => {},
@@ -498,7 +498,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeColumnUnfreeze: (columnIndex, isFreezingPerformed) => false,
   beforeContextMenuSetItems: (menuItems) => {},
   beforeContextMenuShow: (context) => {},
-  beforeCopy: (data, coords) => { data.splice(0, 1); return false; },
+  beforeCopy: (data, textHTML, copyConfig) => { copyConfig.rows = []; copyConfig.columns = []; },
   beforeCreateCol: (index, amount, source) => {},
   beforeCreateRow: (index, amount, source) => {},
   beforeCut: (data, coords) => { data.splice(0, 1); return false; },
@@ -523,7 +523,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeOnCellMouseOut: (event, coords, TD) => {},
   beforeOnCellMouseOver: (event, coords, TD, controller) => {},
   beforeOnCellMouseUp: (event, coords, TD) => {},
-  beforePaste: (data, coords) => { data.splice(0, 1); return false; },
+  beforePaste: (data, textHTML, pasteConfig) => {
+    pasteConfig?.ignoredRows.push(-1);
+    pasteConfig?.ignoredColumns.push(-1);
+  },
   beforeRedo: (action) => {},
   beforeRedoStackChange: (undoneActions) => {},
   beforeRefreshDimensions: (previousDimensions, currentDimensions, actionPossible) => {},

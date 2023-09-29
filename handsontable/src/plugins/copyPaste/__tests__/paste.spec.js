@@ -243,16 +243,10 @@ describe('CopyPaste', () => {
       await sleep(60);
 
       expect(beforePasteSpy.calls.count()).toEqual(1);
-      expect(beforePasteSpy).toHaveBeenCalledWith(
-        [['Kia']],
-        'Kia',
-        { rows: [0], columns: [0] });
+      expect(beforePasteSpy).toHaveBeenCalledWith([['Kia']], 'Kia');
 
       expect(afterPasteSpy.calls.count()).toEqual(1);
-      expect(afterPasteSpy).toHaveBeenCalledWith(
-        [['Kia']],
-        'Kia',
-        { rows: [0], columns: [0] });
+      expect(afterPasteSpy).toHaveBeenCalledWith([['Kia']], 'Kia');
     });
 
     it('should be possible to block pasting', async() => {
