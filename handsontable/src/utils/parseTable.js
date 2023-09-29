@@ -171,8 +171,6 @@ function getSimpleHeadersHTML(columnHeaders, ignoredHeaders, ignoredColumns) {
 
   const filteredColumnHeaders = columnHeaders.filter((columnHeaderValue, columnIndex) =>
     ignoredColumns.includes(columnIndex) === false);
-  console.log(['<tr>', ...filteredColumnHeaders.map(columnHeader =>
-    `<th>${encodeHTMLEntities(columnHeader)}</th>`), '</tr>']);
 
   if (filteredColumnHeaders.length === 0) {
     return [];
@@ -331,7 +329,6 @@ function getHeadersHTMLByConfig(config) {
   }
 
   if (headersHTML.length > 0) {
-    console.log(headersHTML);
     return ['<thead>', ...headersHTML, '</thead>'];
   }
 
