@@ -4,5 +4,5 @@
   "type": "fixed",
   "issueOrPR": 10523,
   "breaking": false,
-  "framework": ["react", "vue"]
+  "framework": "none"
 }
