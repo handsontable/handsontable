@@ -1616,7 +1616,7 @@ const REGISTERED_HOOKS = [
    *
    * ::: only-for react
    * ```jsx
-   * // To disregard a single row, remove it from array using data.splice(i, 1).
+   * // To disregard a single row/column, add it list of ignored rows/columns.
    * <HotTable
    *   beforePaste={(data, textHTML, pasteConfig) => {
    *     // data -> [[1, 2, 3], [4, 5, 6]]
