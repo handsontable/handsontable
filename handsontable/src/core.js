@@ -4713,11 +4713,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   const shortcutManager = createShortcutManager({
-    handleEvent(event) {
-      const isListening = instance.isListening();
-      const isKeyboardEventWithKey = event?.key !== void 0;
-
-      return isListening && isKeyboardEventWithKey;
+    handleEvent() {
+      return instance.isListening();
     },
     beforeKeyDown: (event) => {
       return this.runHooks('beforeKeyDown', event);

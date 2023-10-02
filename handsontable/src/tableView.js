@@ -9,6 +9,7 @@ import {
   isChildOf,
   isInput,
   isOutsideInput,
+  isVisible,
 } from './helpers/dom/element';
 import EventManager from './eventManager';
 import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
@@ -720,7 +721,7 @@ class TableView {
         }
       },
       onContainerElementResize: () => {
-        if (this.instance && !this.instance.isDestroyed) {
+        if (this.instance && !this.instance.isDestroyed && isVisible(this.instance.rootElement)) {
           this.instance.refreshDimensions();
         }
       },

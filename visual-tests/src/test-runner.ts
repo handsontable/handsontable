@@ -1,5 +1,5 @@
-import { test as _test, expect, Page } from '@playwright/test';
 import path from 'path';
+import { test as _test, expect, Page } from '@playwright/test';
 import { helpers } from './helpers';
 
 const stylesToAdd = [

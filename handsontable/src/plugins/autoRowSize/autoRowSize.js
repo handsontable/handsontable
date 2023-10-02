@@ -147,14 +147,23 @@ export class AutoRowSize extends BasePlugin {
      * @private
      * @type {SamplesGenerator}
      */
-    this.samplesGenerator = new SamplesGenerator((row, col) => {
+    this.samplesGenerator = new SamplesGenerator((row, column) => {
+      if (row >= 0 && column >= 0) {
+        const cellMeta = this.hot.getCellMeta(row, column);
+
+        if (cellMeta.hidden) {
+          // do not generate samples for cells that are covered by merged cell (null values)
+          return false;
+        }
+      }
+
       let cellValue;
 
       if (row >= 0) {
-        cellValue = this.hot.getDataAtCell(row, col);
+        cellValue = this.hot.getDataAtCell(row, column);
 
       } else if (row === -1) {
-        cellValue = this.hot.getColHeader(col);
+        cellValue = this.hot.getColHeader(column);
       }
 
       return { value: cellValue };
@@ -188,7 +197,7 @@ export class AutoRowSize extends BasePlugin {
     this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
 
     // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
-    // This is necesseary for height recalculation for resize handler doubleclick (ManualRowResize).
+    // This is necessary for height recalculation for resize handler doubleclick (ManualRowResize).
     this.addHook('beforeRowResize', (size, row, isDblClick) => this.onBeforeRowResize(size, row, isDblClick));
   }
 
@@ -571,11 +580,11 @@ export class AutoRowSize extends BasePlugin {
       this.recalculateAllRowsHeight();
     } else {
       // first load - initialization
-      setTimeout(() => {
+      this.hot._registerTimeout(() => {
         if (this.hot) {
           this.recalculateAllRowsHeight();
         }
-      }, 0);
+      });
     }
   }
 

@@ -93,7 +93,6 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     super.open();
 
-    const choicesListHot = this.htEditor.getInstance();
     const trimDropdown = this.cellProperties.trimDropdown === void 0 ? true : this.cellProperties.trimDropdown;
 
     this.showEditableElement();
@@ -106,7 +105,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
 
-    choicesListHot.updateSettings({
+    this.htEditor.updateSettings({
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
       width: trimDropdown ? outerWidth(this.TEXTAREA) + scrollbarWidth : void 0,
       renderer: (instance, TD, row, col, prop, value, cellProperties) => {
@@ -236,13 +235,21 @@ export class AutocompleteEditor extends HandsontableEditor {
     }
 
     this.strippedChoices = choices;
+
     this.htEditor.loadData(pivot([choices]));
 
-    this.updateDropdownHeight();
-    this.flipDropdownIfNeeded();
+    if (choices.length === 0) {
+      this.htEditor.rootElement.style.display = 'none';
 
-    if (this.cellProperties.strict === true) {
-      this.highlightBestMatchingChoice(highlightIndex);
+    } else {
+      this.htEditor.rootElement.style.display = '';
+
+      this.updateDropdownHeight();
+      this.flipDropdownIfNeeded();
+
+      if (this.cellProperties.strict === true) {
+        this.highlightBestMatchingChoice(highlightIndex);
+      }
     }
 
     this.hot.listen();
@@ -396,7 +403,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @returns {number}
    */
   getDropdownHeight() {
-    const firstRowHeight = this.htEditor.getInstance().getRowHeight(0) || 23;
+    const firstRowHeight = this.htEditor.getRowHeight(0) || 23;
     const visibleRows = this.cellProperties.visibleRows;
 
     return this.strippedChoices.length >= visibleRows ? (visibleRows * firstRowHeight) : (this.strippedChoices.length * firstRowHeight) + 8; // eslint-disable-line max-len

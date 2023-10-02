@@ -8,6 +8,7 @@ import {
   removeClass,
   selectElementIfAllowed,
   fastInnerHTML,
+  isVisible,
 } from 'handsontable/helpers/dom/element';
 
 describe('DomElement helper', () => {
@@ -444,7 +445,7 @@ describe('DomElement helper', () => {
   });
 
   //
-  // Handsontable.helper.sanitize
+  // Handsontable.helper.fastInnerHTML
   //
   describe('fastInnerHTML', () => {
     it('should be possible to sanitize the HTML (by default the content is sanitized)', () => {
@@ -502,6 +503,70 @@ describe('DomElement helper', () => {
 
       expect(elementMock.innerHTML)
         .toBe('<meta http-equiv="refresh" content="30">This is my <a href="https://handsontable.com">link</a>');
+    });
+  });
+
+  //
+  // Handsontable.helper.isVisible
+  //
+  describe('isVisible', () => {
+    it('should return `false` when the element is detached from the DOM', () => {
+      const element = document.createElement('div');
+
+      expect(isVisible(element)).toBe(false);
+    });
+
+    it('should return `true` when the element is attached to the DOM', () => {
+      const element = document.createElement('div');
+
+      document.body.appendChild(element);
+
+      expect(isVisible(element)).toBe(true);
+
+      element.remove();
+    });
+
+    it('should return `false` when the element has "display: none"', () => {
+      const element = document.createElement('div');
+
+      element.style.display = 'none';
+      document.body.appendChild(element);
+
+      expect(isVisible(element)).toBe(false);
+
+      element.remove();
+    });
+
+    it('should return `true` when the element has other value than "display: none"', () => {
+      const element = document.createElement('div');
+
+      document.body.appendChild(element);
+      element.style.display = 'static';
+
+      expect(isVisible(element)).toBe(true);
+
+      element.style.display = 'absolute';
+
+      expect(isVisible(element)).toBe(true);
+
+      element.style.display = '';
+
+      expect(isVisible(element)).toBe(true);
+
+      element.remove();
+    });
+
+    it('should return `false` when the parent element has "display: none"', () => {
+      const elementParent = document.createElement('div');
+      const elementChild = document.createElement('div');
+
+      elementParent.append(elementChild);
+      elementParent.style.display = 'none';
+      document.body.appendChild(elementParent);
+
+      expect(isVisible(elementParent)).toBe(false);
+
+      elementParent.remove();
     });
   });
 });

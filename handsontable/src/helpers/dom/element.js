@@ -350,7 +350,6 @@ export function isVisible(element) {
 
         } else if (next.host) { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features enabled
           return isVisible(next.host);
-
         }
         throw new Error('Lost in Web Components world');
 
@@ -358,7 +357,7 @@ export function isVisible(element) {
         return false; // this is a node detached from document in IE8
       }
 
-    } else if (next.style && next.style.display === 'none') {
+    } else if (getComputedStyle(next).display === 'none') {
       return false;
     }
 
@@ -391,6 +390,11 @@ export function offset(element) {
   while (elementToCheck = elementToCheck.offsetParent) {
     // from my observation, document.body always has scrollLeft/scrollTop == 0
     if (elementToCheck === rootDocument.body) {
+      break;
+    }
+    // If the element is inside an SVG context, the `offsetParent` can be
+    // a <foreignObject> that does not have properties `offsetLeft` and `offsetTop` defined.
+    if (!('offsetLeft' in elementToCheck)) {
       break;
     }
     offsetLeft += elementToCheck.offsetLeft;
