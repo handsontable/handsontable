@@ -1600,8 +1600,8 @@ const REGISTERED_HOOKS = [
    * new Handsontable(example, {
    *   beforePaste: (data, textHTML, pasteConfig) => {
    *     // data -> [[1, 2, 3], [4, 5, 6]]
-   *    data.ignoredRows = [0];
-   *    data.ignoredColumns = [0];
+   *    pasteConfig.ignoredRows = [0];
+   *    pasteConfig.ignoredColumns = [0];
    *     // copied data -> [[5, 6]]
    *   }
    * });
@@ -1620,8 +1620,8 @@ const REGISTERED_HOOKS = [
    * <HotTable
    *   beforePaste={(data, textHTML, pasteConfig) => {
    *     // data -> [[1, 2, 3], [4, 5, 6]]
-   *    data.ignoredRows = [0];
-   *    data.ignoredColumns = [0];
+   *    pasteConfig.ignoredRows = [0];
+   *    pasteConfig.ignoredColumns = [0];
    *     // copied data -> [[5, 6]]
    *   }}
    * />
