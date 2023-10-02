@@ -207,7 +207,7 @@ function getFilteredCells(data, ignoredRows, ignoredColumns) {
 }
 
 /**
- * Prepare information about merged areas to reduce complexity.
+ * Prepare information about merged areas to reduce complexity of calculations.
  *
  * @private
  * @param {Array<object>} mergedCellsConfig List of merged cells.
@@ -497,10 +497,10 @@ function getBodyHTMLByCoords(instance, config) {
     return [];
   }
 
-  bodyRows.forEach((rowIndex) => {
+  bodyRows.forEach((rowIndex, nthRow) => {
     const tr = ['<tr>'];
 
-    columns.forEach((columnIndex) => {
+    columns.forEach((columnIndex, nthColumn) => {
       if (columnIndex < 0) {
         tr.push(`<th>${encodeHTMLEntities(instance.getRowHeader(rowIndex))}</th>`);
 
@@ -516,7 +516,7 @@ function getBodyHTMLByCoords(instance, config) {
         const attrs = [];
 
         if (rowspan) {
-          const recalculatedRowSpan = Math.min(rowspan, bodyRows.slice(rowIndex).length);
+          const recalculatedRowSpan = Math.min(rowspan, bodyRows.slice(nthRow).length);
 
           if (recalculatedRowSpan > 1) {
             attrs.push(` rowspan="${recalculatedRowSpan}"`);
@@ -524,7 +524,7 @@ function getBodyHTMLByCoords(instance, config) {
         }
 
         if (colspan) {
-          const recalculatedColumnSpan = Math.min(colspan, columns.slice(columnIndex).length);
+          const recalculatedColumnSpan = Math.min(colspan, columns.slice(nthColumn).length);
 
           if (recalculatedColumnSpan > 1) {
             attrs.push(` colspan="${recalculatedColumnSpan}"`);

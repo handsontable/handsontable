@@ -113,7 +113,7 @@ export interface Events {
   afterOnCellMouseOver?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseOut?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseUp?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
-  afterPaste?: (data: string | CellValue[][], textHTML: undefined | string, copyConfig: undefined | { ignoredRows: number[], ignoredColumns: number[] }) => void;
+  afterPaste?: (data: string | CellValue[][], textHTML: undefined | string, pasteConfig: undefined | { ignoredRows: number[], ignoredColumns: number[] }) => void;
   afterPluginsInitialized?: () => void;
   afterRedo?: (action: UndoRedoAction) => void;
   afterRedoStackChange?: (undoneActionsBefore: UndoRedoAction[], undoneActionsAfter: UndoRedoAction[]) => void;
@@ -193,7 +193,7 @@ export interface Events {
   beforeOnCellMouseOut?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   beforeOnCellMouseOver?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
   beforeOnCellMouseUp?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
-  beforePaste?: (data: string | CellValue[][], textHTML: undefined | string, copyConfig: undefined | { ignoredRows: number[], ignoredColumns: number[] }) => boolean | void;
+  beforePaste?: (data: string | CellValue[][], textHTML: undefined | string, pasteConfig: undefined | { ignoredRows: number[], ignoredColumns: number[] }) => boolean | void;
   beforeRedo?: (action: UndoRedoAction) => void;
   beforeRedoStackChange?: (undoneActions: UndoRedoAction[]) => void;
   beforeRefreshDimensions?: (previousDimensions: object, currentDimensions: object, actionPossible: boolean) => boolean | void;

@@ -1428,19 +1428,25 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeCut
    * @param {Array[]} data An array of arrays which contains data to cut.
-   * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
-   *                       which will be cut out.
+   * @param {string} textHTML Data copied the clipboard of "text/html" type.
+   * @param {object} copyConfig Configuration object responsible for handling the copied data.
+   * @param {Array<number>} copyConfig.rows List of row indexes (relative to the instance of Handsontable) which
+   * has been included to the copied dataset.
+   * @param {Array<number>} copyConfig.columns List of column indexes (relative to the instance of Handsontable)
+   * which has been included to the copied dataset.
    * @returns {*} If returns `false` then operation of the cutting out is canceled.
    * @example
    * ::: only-for javascript
    * ```js
    * // To disregard a single row, remove it from the array using data.splice(i, 1).
    * new Handsontable(element, {
-   *   beforeCut: function(data, coords) {
+   *   beforeCut: function(data, textHTML, copyConfig) {
    *     // data -> [[1, 2, 3], [4, 5, 6]]
-   *     data.splice(0, 1);
-   *     // data -> [[4, 5, 6]]
-   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *     // rows -> [0, 1]
+   *     // columns -> [0, 1, 2]
+   *    copyConfig.rows.splice(0, 1);
+   *    copyConfig.columns.splice(0, 1);
+   *     // cut data -> [[5, 6]]
    *   }
    * });
    * // To cancel a cutting action, just return `false`.
@@ -1456,11 +1462,13 @@ const REGISTERED_HOOKS = [
    * ```jsx
    * // To disregard a single row, remove it from the array using data.splice(i, 1).
    * <HotTable
-   *   beforeCut={(data, coords) => {
+   *   beforeCut={(data, textHTML, copyConfig) => {
    *     // data -> [[1, 2, 3], [4, 5, 6]]
-   *     data.splice(0, 1);
-   *     // data -> [[4, 5, 6]]
-   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *     // rows -> [0, 1]
+   *     // columns -> [0, 1, 2]
+   *    copyConfig.rows.splice(0, 1);
+   *    copyConfig.columns.splice(0, 1);
+   *     // cut data -> [[5, 6]]
    *   }}
    * />
    * // To cancel a cutting action, just return `false`.
@@ -1480,8 +1488,13 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterCut
    * @param {Array[]} data An array of arrays with the cut data.
-   * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
-   *                       which was cut out.
+   * @param {string} textHTML Data copied the clipboard of "text/html" type.
+   * @param {object} copyConfig Configuration object responsible for handling the copied data.
+   * @param {Array<number>} copyConfig.rows List of row indexes (relative to the instance of Handsontable) which
+   * has been included to the copied dataset.
+   * @param {Array<number>} copyConfig.columns List of column indexes (relative to the instance of Handsontable)
+   * which has been included to the copied dataset.
+   * @returns {*} If returns `false` then copying is canceled.
    */
   'afterCut',
 
@@ -1490,9 +1503,12 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeCopy
    * @param {Array[]} data An array of arrays which contains data to copied.
-   * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
-   *                         which will copied.
-   * @param {{ columnHeadersCount: number }} copiedHeadersCount (Since 12.3.0) The number of copied column headers.
+   * @param {string} textHTML Data copied the clipboard of "text/html" type.
+   * @param {object} copyConfig Configuration object responsible for handling the copied data.
+   * @param {Array<number>} copyConfig.rows List of row indexes (relative to the instance of Handsontable) which
+   * has been included to the copied dataset.
+   * @param {Array<number>} copyConfig.columns List of column indexes (relative to the instance of Handsontable)
+   * which has been included to the copied dataset.
    * @returns {*} If returns `false` then copying is canceled.
    *
    * @example
@@ -1501,11 +1517,13 @@ const REGISTERED_HOOKS = [
    * // To disregard a single row, remove it from array using data.splice(i, 1).
    * ...
    * new Handsontable(document.getElementById('example'), {
-   *   beforeCopy: (data, coords) => {
+   *   beforeCopy: (data, textHTML, copyConfig) => {
    *     // data -> [[1, 2, 3], [4, 5, 6]]
-   *     data.splice(0, 1);
-   *     // data -> [[4, 5, 6]]
-   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *     // rows -> [0, 1]
+   *     // columns -> [0, 1, 2]
+   *    copyConfig.rows.splice(0, 1);
+   *    copyConfig.columns.splice(0, 1);
+   *     // copied data -> [[5, 6]]
    *   }
    * });
    * ...
@@ -1526,11 +1544,13 @@ const REGISTERED_HOOKS = [
    * // To disregard a single row, remove it from array using data.splice(i, 1).
    * ...
    * <HotTable
-   *   beforeCopy={(data, coords) => {
+   *   beforeCopy={(data, textHTML, copyConfig) => {
    *     // data -> [[1, 2, 3], [4, 5, 6]]
-   *     data.splice(0, 1);
-   *     // data -> [[4, 5, 6]]
-   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *     // rows -> [0, 1]
+   *     // columns -> [0, 1, 2]
+   *    copyConfig.rows.splice(0, 1);
+   *    copyConfig.columns.splice(0, 1);
+   *     // copied data -> [[5, 6]]
    *   }}
    * />
    * ...
@@ -1565,20 +1585,24 @@ const REGISTERED_HOOKS = [
    * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#beforePaste
-   * @param {Array[]} data An array of arrays which contains data to paste.
-   * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
-   *                       that correspond to the previously selected area.
+   * @param {Array[]} data An array of arrays with the pasted data.
+   * @param {string} textHTML Copied data of "text/html" type inside the clipboard.
+   * @param {object} pasteConfig Configuration object responsible for handling the pasted data.
+   * @param {Array<number>} pasteConfig.ignoredRows List of row indexes (relative to the pasted dataset) which should be
+   * excluded from pasting.
+   * @param {Array<number>} pasteConfig.ignoredColumns List of column indexes (relative to the pasted dataset) which
+   * should be excluded from pasting.
    * @returns {*} If returns `false` then pasting is canceled.
    * @example
    * ```js
    * ::: only-for javascript
-   * // To disregard a single row, remove it from array using data.splice(i, 1).
+   * // To disregard a single row/column, add it list of ignored rows/columns.
    * new Handsontable(example, {
-   *   beforePaste: (data, coords) => {
+   *   beforePaste: (data, textHTML, pasteConfig) => {
    *     // data -> [[1, 2, 3], [4, 5, 6]]
-   *     data.splice(0, 1);
-   *     // data -> [[4, 5, 6]]
-   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *    data.ignoredRows = [0];
+   *    data.ignoredColumns = [0];
+   *     // copied data -> [[5, 6]]
    *   }
    * });
    * // To cancel pasting, return false from the callback.
@@ -1594,11 +1618,11 @@ const REGISTERED_HOOKS = [
    * ```jsx
    * // To disregard a single row, remove it from array using data.splice(i, 1).
    * <HotTable
-   *   beforePaste={(data, coords) => {
+   *   beforePaste={(data, textHTML, pasteConfig) => {
    *     // data -> [[1, 2, 3], [4, 5, 6]]
-   *     data.splice(0, 1);
-   *     // data -> [[4, 5, 6]]
-   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *    data.ignoredRows = [0];
+   *    data.ignoredColumns = [0];
+   *     // copied data -> [[5, 6]]
    *   }}
    * />
    * // To cancel pasting, return false from the callback.
@@ -1618,8 +1642,12 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterPaste
    * @param {Array[]} data An array of arrays with the pasted data.
-   * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
-   *                       that correspond to the previously selected area.
+   * @param {string} textHTML Copied data of "text/html" type inside the clipboard.
+   * @param {object} pasteConfig Configuration object responsible for handling the pasted data.
+   * @param {Array<number>} pasteConfig.ignoredRows List of row indexes (relative to the pasted dataset) which have been
+   * excluded from pasting.
+   * @param {Array<number>} pasteConfig.ignoredColumns List of column indexes (relative to the pasted dataset) which
+   * have been excluded from pasting.
    */
   'afterPaste',
 
