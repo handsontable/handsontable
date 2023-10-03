@@ -40,7 +40,9 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(editorTextarea.getAttribute('aria-expanded')).toEqual('true');
     expect(editorTextarea.getAttribute('aria-activedescendant')).toEqual(
       `${hot.guid.slice(0, 9)}-listbox-0-0_${
-        editor.htEditor.getCell(...editor.htEditor.getSelectedLast()).innerText
+        editor.htEditor.getSelectedLast()[0]
+      }-${
+        editor.htEditor.getSelectedLast()[1]
       }`
     );
   });
@@ -70,7 +72,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     choices.forEach((option, index) => {
       expect(editorHot.getCell(index, 0).getAttribute('role')).toEqual('option');
-      expect(editorHot.getCell(index, 0).getAttribute('id')).toEqual(`${hot.guid.slice(0, 9)}-listbox-0-0_${option}`);
+      expect(editorHot.getCell(index, 0).getAttribute('id')).toEqual(`${hot.guid.slice(0, 9)}-listbox-0-0_${index}-0`);
       expect(editorHot.getCell(index, 0).getAttribute('aria-setsize')).toEqual(`${choices.length}`);
       expect(editorHot.getCell(index, 0).getAttribute('aria-posinset')).toEqual(`${index + 1}`);
     });
@@ -103,7 +105,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       option = option[0];
 
       expect(editorHot.getCell(index, 0).getAttribute('role')).toEqual('option');
-      expect(editorHot.getCell(index, 0).getAttribute('id')).toEqual(`${hot.guid.slice(0, 9)}-listbox-0-0_${option}`);
+      expect(editorHot.getCell(index, 0).getAttribute('id')).toEqual(`${hot.guid.slice(0, 9)}-listbox-0-0_${index}-0`);
       expect(editorHot.getCell(index, 0).getAttribute('aria-setsize')).toEqual(null);
       expect(editorHot.getCell(index, 0).getAttribute('aria-posinset')).toEqual(null);
     });
