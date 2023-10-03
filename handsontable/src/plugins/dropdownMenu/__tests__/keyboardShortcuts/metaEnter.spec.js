@@ -17,7 +17,7 @@ describe('DropdownMenu keyboard shortcut', () => {
     this.view.appendColHeader(visualColumnsIndex, TH);
   }
 
-  describe('"Shift" + "Enter"', () => {
+  describe('"Control/meta" + "Enter"', () => {
     it('should not be possible to open the dropdown menu (navigableHeaders off)', () => {
       handsontable({
         data: createSpreadsheetData(3, 8),
@@ -28,7 +28,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       });
 
       selectCell(0, 1);
-      keyDownUp(['shift', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
 
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
 
@@ -46,7 +46,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       });
 
       selectCell(-1, 1);
-      keyDownUp(['shift', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
 
       const cell = getCell(-1, 1, true);
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
@@ -71,7 +71,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       const lastColumn = countCols() - 1;
 
       selectCell(-1, lastColumn);
-      keyDownUp(['shift', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
 
       const cell = getCell(-1, lastColumn, true);
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
@@ -98,7 +98,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       });
 
       selectCell(-1, 1);
-      keyDownUp(['shift', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
 
       await sleep(100);
 
@@ -115,8 +115,8 @@ describe('DropdownMenu keyboard shortcut', () => {
       });
 
       selectCell(-1, 1);
-      keyDownUp(['shift', 'enter']);
-      keyDownUp(['shift', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
 
       const cell = getCell(-1, 1, true);
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
@@ -140,7 +140,7 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       selectColumns(1, 4, -1);
       listen();
-      keyDownUp(['shift', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
 
       const cell = getCell(-1, 1, true);
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
@@ -167,7 +167,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       });
 
       selectCell(-1, -1); // corner
-      keyDownUp(['shift', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
 
       {
         expect($(document.body).find('.htDropdownMenu:visible').length).toBe(0);
@@ -175,7 +175,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       }
 
       selectCell(1, -1); // row header
-      keyDownUp(['shift', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
 
       {
         expect($(document.body).find('.htDropdownMenu:visible').length).toBe(0);
@@ -183,7 +183,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       }
 
       selectCell(-3, 1); // the first (top) column header
-      keyDownUp(['shift', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
 
       {
         expect($(document.body).find('.htDropdownMenu:visible').length).toBe(0);
@@ -191,7 +191,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       }
 
       selectCell(-2, 1); // the second column header
-      keyDownUp(['shift', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
 
       {
         expect($(document.body).find('.htDropdownMenu:visible').length).toBe(0);
@@ -199,7 +199,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       }
 
       selectCell(-1, 1); // the third (bottom) column header
-      keyDownUp(['shift', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
 
       {
         expect($(document.body).find('.htDropdownMenu:visible').length).toBe(1);
@@ -217,7 +217,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       });
 
       selectCell(-1, 1);
-      keyDownUp(['shift', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
 
       expect(getActiveEditor()).toBeUndefined();
     });
@@ -236,7 +236,7 @@ describe('DropdownMenu keyboard shortcut', () => {
         });
 
         selectCell(-1, 2);
-        keyDownUp(['shift', 'enter']);
+        keyDownUp(['control/meta', 'enter']);
 
         const cell = getCell(-1, 1, true);
         const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
