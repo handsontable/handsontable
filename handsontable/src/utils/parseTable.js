@@ -64,7 +64,7 @@ export function getHTMLFromHotCoords(instance, config) {
  * cell value list.
  * @param {Array<number>} config.columns List of column indexes which should be taken into account when creating the
  * cell value list.
- * @returns {Array[]} List of displayed cell values.
+ * @returns {string[]} List of displayed cell values.
  */
 export function getDataFromHotCoords(instance, config) {
   return [
