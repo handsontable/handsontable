@@ -1574,9 +1574,12 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterCopy
    * @param {Array[]} data An array of arrays which contains the copied data.
-   * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
-   *                         which was copied.
-   * @param {{ columnHeadersCount: number }} copiedHeadersCount (Since 12.3.0) The number of copied column headers.
+   * @param {string} textHTML Data copied the clipboard of "text/html" type.
+   * @param {object} copyConfig Configuration object responsible for handling the copied data.
+   * @param {Array<number>} copyConfig.rows List of row indexes (relative to the instance of Handsontable) which
+   * has been included to the copied dataset.
+   * @param {Array<number>} copyConfig.columns List of column indexes (relative to the instance of Handsontable)
+   * which has been included to the copied dataset.
    */
   'afterCopy',
 
