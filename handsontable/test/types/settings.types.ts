@@ -543,6 +543,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeRowMove: (movedRows, finalIndex, dropIndex, movePossible) => {},
   beforeRowResize: (newSize, row, isDoubleClick) => {},
   beforeSelectColumns: (from, to, highlight) => {},
+  beforeSelectionHighlightSet: () => {},
   beforeSelectRows: (from, to, highlight) => {},
   beforeSetCellMeta: (row, col, key, value) => {},
   beforeSetRangeEnd: (coords) => {},

@@ -268,6 +268,8 @@ class Selection {
       }
     }
 
+    this.runLocalHooks('beforeHighlightSet');
+
     const focusHighlight = this.highlight.getFocus();
 
     focusHighlight.clear();

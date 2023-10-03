@@ -1326,6 +1326,14 @@ const REGISTERED_HOOKS = [
   'beforeSetRangeEnd',
 
   /**
+   * Fired before applying selection coordinates to the renderable coordinates for Walkontable (rendering engine).
+   *
+   * @since 14.0.0
+   * @event Hooks#beforeSelectionHighlightSet
+   */
+  'beforeSelectionHighlightSet',
+
+  /**
    * Fired before the logic of handling a touch scroll, when user started scrolling on a touch-enabled device.
    *
    * @event Hooks#beforeTouchScroll
