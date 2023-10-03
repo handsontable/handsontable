@@ -1,15 +1,13 @@
-import { getWindowScrollLeft, getWindowScrollTop } from '../../helpers/dom/element';
-
 /**
  * Helper class for checking if element will fit at the desired side of cursor.
  *
  * @private
  * @class Cursor
  */
-class Cursor {
+export class Cursor {
   constructor(object, rootWindow) {
-    const windowScrollTop = getWindowScrollTop(rootWindow);
-    const windowScrollLeft = getWindowScrollLeft(rootWindow);
+    const windowScrollTop = rootWindow.scrollY;
+    const windowScrollLeft = rootWindow.scrollX;
     let top;
     let topRelative;
     let left;
@@ -107,5 +105,3 @@ class Cursor {
     return this.leftRelative >= element.offsetWidth;
   }
 }
-
-export default Cursor;

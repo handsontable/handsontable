@@ -1,12 +1,12 @@
 import { BasePlugin } from '../base';
 import { arrayEach } from '../../helpers/array';
 import { objectEach } from '../../helpers/object';
-import CommandExecutor from '../contextMenu/commandExecutor';
+import { CommandExecutor } from '../contextMenu/commandExecutor';
 import { getDocumentOffsetByElement } from '../contextMenu/utils';
 import EventManager from '../../eventManager';
 import { hasClass, setAttribute } from '../../helpers/dom/element';
-import ItemsFactory from '../contextMenu/itemsFactory';
-import Menu from '../contextMenu/menu';
+import { ItemsFactory } from '../contextMenu/itemsFactory';
+import { Menu } from '../contextMenu/menu';
 import Hooks from '../../pluginHooks';
 import {
   COLUMN_LEFT,
@@ -266,9 +266,6 @@ export class DropdownMenu extends BasePlugin {
           top: rect.top + target.offsetHeight + offset.top,
         }, {
           left: rect.width,
-        });
-        this.hot._registerTimeout(() => {
-          this.menu.selectFirstCell();
         });
       }
     };

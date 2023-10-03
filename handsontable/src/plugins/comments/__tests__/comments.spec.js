@@ -685,6 +685,7 @@ describe('Comments', () => {
     const addCommentButton = $('.htContextMenu .ht_master .htCore tbody td:contains(Add comment)');
 
     $(addCommentButton)
+      .simulate('mouseenter')
       .simulate('mouseover', {
         clientX: addCommentButton.offset().left + 5,
         clientY: addCommentButton.offset().top + 5,
@@ -747,12 +748,7 @@ describe('Comments', () => {
 
       selectCell(1, 1);
       contextMenu();
-
-      const addCommentButton = $('.htItemWrapper').filter(function() {
-        return $(this).text() === 'Add comment';
-      })[0];
-
-      $(addCommentButton).simulate('mousedown').simulate('mouseup');
+      selectContextMenuOption('Add comment');
 
       const editor = hot.getPlugin('comments').getEditorInputElement();
 
@@ -773,12 +769,7 @@ describe('Comments', () => {
 
       selectCell(1, 1);
       contextMenu();
-
-      const deleteCommentButton = $('.htItemWrapper').filter(function() {
-        return $(this).text() === 'Delete comment';
-      })[0];
-
-      $(deleteCommentButton).simulate('mousedown').simulate('mouseup');
+      selectContextMenuOption('Delete comment');
 
       expect(getCellMeta(1, 1).comment).toEqual(void 0);
     });
@@ -797,12 +788,7 @@ describe('Comments', () => {
 
       selectCell(1, 1, 3, 3);
       contextMenu();
-
-      const deleteCommentButton = $('.htItemWrapper').filter(function() {
-        return $(this).text() === 'Delete comment';
-      })[0];
-
-      $(deleteCommentButton).simulate('mousedown').simulate('mouseup');
+      selectContextMenuOption('Delete comment');
 
       expect(getCellMeta(1, 1).comment).toEqual(void 0);
       expect(getCellMeta(2, 2).comment).toEqual(void 0);
@@ -823,12 +809,7 @@ describe('Comments', () => {
 
       selectCell(3, 3, 1, 1);
       contextMenu();
-
-      const deleteCommentButton = $('.htItemWrapper').filter(function() {
-        return $(this).text() === 'Delete comment';
-      })[0];
-
-      $(deleteCommentButton).simulate('mousedown').simulate('mouseup');
+      selectContextMenuOption('Delete comment');
 
       expect(getCellMeta(1, 1).comment).toEqual(void 0);
       expect(getCellMeta(2, 2).comment).toEqual(void 0);
@@ -852,9 +833,7 @@ describe('Comments', () => {
 
       expect(editor.readOnly).toBe(false);
 
-      $('.htContextMenu .ht_master .htCore tbody td:contains(Read-only comment)')
-        .simulate('mousedown')
-        .simulate('mouseup');
+      selectContextMenuOption('Read-only comment');
 
       $(getCell(1, 1)).simulate('mouseover', {
         clientX: Handsontable.dom.offset(getCell(1, 1)).left + 5,
@@ -886,11 +865,7 @@ describe('Comments', () => {
 
       expect($(editor)[0].readOnly).toBe(false);
 
-      const readOnlyComment = $('.htItemWrapper').filter(function() {
-        return $(this).text() === 'Read-only comment';
-      })[0];
-
-      $(readOnlyComment).simulate('mousedown').simulate('mouseup');
+      selectContextMenuOption('Read-only comment');
 
       expect(getCellMeta(1, 1).comment.readOnly).toBe(true);
       expect(getCellMeta(2, 2).comment.readOnly).toBe(true);
@@ -917,11 +892,7 @@ describe('Comments', () => {
 
       expect($(editor)[0].readOnly).toBe(false);
 
-      const readOnlyComment = $('.htItemWrapper').filter(function() {
-        return $(this).text() === 'Read-only comment';
-      })[0];
-
-      $(readOnlyComment).simulate('mousedown').simulate('mouseup');
+      selectContextMenuOption('Read-only comment');
 
       expect(getCellMeta(1, 1).comment.readOnly).toBe(true);
       expect(getCellMeta(2, 2).comment.readOnly).toBe(true);
@@ -953,12 +924,7 @@ describe('Comments', () => {
 
       selectCell(1, 1);
       contextMenu();
-
-      const deleteCommentButton = $('.htItemWrapper').filter(function() {
-        return $(this).text() === 'Delete comment';
-      })[0];
-
-      $(deleteCommentButton).simulate('mousedown').simulate('mouseup');
+      selectContextMenuOption('Delete comment');
 
       expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment');
     });
@@ -984,12 +950,7 @@ describe('Comments', () => {
 
       selectCell(1, 1);
       contextMenu();
-
-      const deleteCommentButton = $('.htItemWrapper').filter(function() {
-        return $(this).text() === 'Delete comment';
-      })[0];
-
-      $(deleteCommentButton).simulate('mousedown').simulate('mouseup');
+      selectContextMenuOption('Delete comment');
 
       expect(getCellMeta(1, 1).comment.value).toEqual('test');
     });
@@ -1015,13 +976,7 @@ describe('Comments', () => {
 
       selectCell(0, 0);
       contextMenu();
-
-      const editCommentButton = $('.htItemWrapper').filter(function() {
-        return $(this).text() === 'Edit comment';
-      })[0];
-
-      $(editCommentButton).simulate('mousedown');
-      $(editCommentButton).simulate('mouseup');
+      selectContextMenuOption('Edit comment');
 
       const textarea = spec().$container[0].parentNode.querySelector('.htCommentTextArea');
 
@@ -1059,13 +1014,7 @@ describe('Comments', () => {
 
       selectCell(0, 0);
       contextMenu();
-
-      const editCommentButton = $('.htItemWrapper').filter(function() {
-        return $(this).text() === 'Edit comment';
-      })[0];
-
-      $(editCommentButton).simulate('mousedown');
-      $(editCommentButton).simulate('mouseup');
+      selectContextMenuOption('Edit comment');
 
       const textarea = spec().$container[0].parentNode.querySelector('.htCommentTextArea');
 

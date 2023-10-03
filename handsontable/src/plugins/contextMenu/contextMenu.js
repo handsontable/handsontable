@@ -2,10 +2,12 @@ import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
 import { arrayEach } from '../../helpers/array';
 import { objectEach } from '../../helpers/object';
-import CommandExecutor from './commandExecutor';
+import { CommandExecutor } from './commandExecutor';
 import EventManager from '../../eventManager';
-import ItemsFactory from './itemsFactory';
-import Menu from './menu';
+import { ItemsFactory } from './itemsFactory';
+import {
+  Menu,
+} from './menu';
 import { getDocumentOffsetByElement } from './utils';
 import { hasClass } from '../../helpers/dom/element';
 import {
@@ -221,10 +223,6 @@ export class ContextMenu extends BasePlugin {
           }, {
             left: rect.width,
             above: -rect.height,
-          });
-
-          this.hot._registerTimeout(() => {
-            this.menu.selectFirstCell();
           });
         },
         runOnlyIf: () => this.hot.getSelectedRangeLast() && !this.menu.isOpened(),

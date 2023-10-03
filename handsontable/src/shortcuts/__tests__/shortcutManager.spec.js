@@ -1,8 +1,6 @@
 describe('shortcutManager', () => {
-  const id = 'testContainer';
-
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
   });
 
   afterEach(function() {
@@ -498,5 +496,102 @@ describe('shortcutManager', () => {
     simulateClick(getCell(0, 0));
 
     expect(releasePressedKeys).toHaveBeenCalled();
+  });
+
+  describe('`forwardToContext` option', () => {
+    it('should forward the event to the other context within the same HoT instance', () => {
+      handsontable();
+
+      const shortcutManager = getShortcutManager();
+      const firstContext = shortcutManager.addContext('first');
+      const secondContext = shortcutManager.addContext('second');
+      const firstSpy = jasmine.createSpy('first');
+      const secondSpy = jasmine.createSpy('second');
+
+      shortcutManager.setActiveContextName('second');
+      listen();
+
+      firstContext.addShortcut({
+        keys: [['enter']],
+        callback: firstSpy,
+        group: 'spy',
+      });
+      secondContext.addShortcut({
+        keys: [['enter']],
+        forwardToContext: firstContext,
+        callback: secondSpy,
+        group: 'spy',
+      });
+
+      keyDownUp('enter');
+
+      expect(firstSpy).toHaveBeenCalledTimes(1);
+      expect(secondSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should forward the event to the other context within another HoT instance', () => {
+      const container2 = $('<div id="testContainer2"></div>').appendTo('body');
+      const hot1 = handsontable();
+      const hot2 = new Handsontable(container2[0]);
+      const shortcutManager1 = hot1.getShortcutManager();
+      const shortcutManager2 = hot2.getShortcutManager();
+      const context1 = shortcutManager1.addContext('hot1');
+      const context2 = shortcutManager2.addContext('hot2');
+      const hot1Spy = jasmine.createSpy('hot1');
+      const hot2Spy = jasmine.createSpy('hot2');
+
+      shortcutManager2.setActiveContextName('hot2');
+      hot2.listen();
+
+      context1.addShortcut({
+        keys: [['enter']],
+        callback: hot1Spy,
+        group: 'spy',
+      });
+      context2.addShortcut({
+        keys: [['enter']],
+        forwardToContext: context1,
+        callback: hot2Spy,
+        group: 'spy',
+      });
+
+      keyDownUp('enter');
+
+      expect(hot2Spy).toHaveBeenCalledTimes(1);
+      expect(hot1Spy).toHaveBeenCalledTimes(1);
+
+      hot2.destroy();
+      container2.remove();
+    });
+
+    it('should not forward the event to the other context when in the first context the event was cancelled', () => {
+      handsontable();
+
+      const shortcutManager = getShortcutManager();
+      const firstContext = shortcutManager.addContext('first');
+      const secondContext = shortcutManager.addContext('second');
+      const firstSpy = jasmine.createSpy('first');
+
+      shortcutManager.setActiveContextName('second');
+      listen();
+
+      firstContext.addShortcut({
+        keys: [['enter']],
+        callback: firstSpy,
+        group: 'spy',
+      });
+      secondContext.addShortcut({
+        keys: [['enter']],
+        forwardToContext: firstContext,
+        callback: () => {
+          return false;
+        },
+        group: 'spy',
+      });
+
+      keyDownUp('enter');
+
+      expect(firstSpy).toHaveBeenCalledTimes(0);
+    });
   });
 });

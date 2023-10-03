@@ -1,19 +1,19 @@
-import Cursor from './cursor';
-import { SEPARATOR, NO_ITEMS, predefinedItems } from './predefinedItems';
+import { Positioner } from './positioner';
+import { Navigator } from './navigator';
+import { SEPARATOR, NO_ITEMS, predefinedItems } from './../predefinedItems';
 import {
   filterSeparators,
   hasSubMenu,
-  isDisabled,
   isItemHidden,
-  isSeparator,
-  isSelectionDisabled,
   normalizeSelection,
   isItemSubMenu,
+  isItemDisabled,
+  isItemSelectionDisabled,
+  isItemSeparator,
 } from './utils';
-import Core from '../../core';
-import EventManager from '../../eventManager';
-import { arrayEach, arrayFilter, arrayReduce } from '../../helpers/array';
-import { isWindowsOS, isMobileBrowser, isIpadOS } from '../../helpers/browser';
+import EventManager from '../../../eventManager';
+import { arrayEach, arrayFilter, arrayReduce } from '../../../helpers/array';
+import { isWindowsOS, isMobileBrowser, isIpadOS } from '../../../helpers/browser';
 import {
   addClass,
   empty,
@@ -24,19 +24,19 @@ import {
   getParentWindow,
   hasClass,
   setAttribute,
-} from '../../helpers/dom/element';
-import { isRightClick } from '../../helpers/dom/event';
-import { debounce, isFunction } from '../../helpers/function';
-import { isUndefined, isDefined } from '../../helpers/mixed';
-import { mixin } from '../../helpers/object';
-import localHooks from '../../mixins/localHooks';
+} from '../../../helpers/dom/element';
+import { isRightClick } from '../../../helpers/dom/event';
+import { debounce, isFunction } from '../../../helpers/function';
+import { isUndefined, isDefined } from '../../../helpers/mixed';
+import { mixin } from '../../../helpers/object';
+import localHooks from '../../../mixins/localHooks';
 import {
   A11Y_DISABLED,
   A11Y_EXPANDED,
   A11Y_LABEL,
   A11Y_MENU,
   A11Y_MENU_ITEM
-} from '../../helpers/a11y';
+} from '../../../helpers/a11y';
 
 const MIN_WIDTH = 215;
 const SHORTCUTS_CONTEXT = 'menu';
@@ -57,7 +57,7 @@ const SHORTCUTS_GROUP = SHORTCUTS_CONTEXT;
  * @private
  * @class Menu
  */
-class Menu {
+export class Menu {
   /**
    * @param {Core} hotInstance Handsontable instance.
    * @param {MenuOptions} [options] Menu options.
@@ -75,19 +75,13 @@ class Menu {
     };
     this.eventManager = new EventManager(this);
     this.container = this.createContainer(this.options.name);
+    this.positioner = new Positioner(this.options.keepInViewport);
+    this.navigator = new Navigator();
     this.hotMenu = null;
     this.hotSubMenus = {};
     this.parentMenu = this.options.parent || null;
     this.menuItems = null;
     this.origOutsideClickDeselects = null;
-    this.keyEvent = false;
-
-    this.offset = {
-      above: 0,
-      below: 0,
-      left: 0,
-      right: 0
-    };
     this._afterScrollCallback = null;
 
     this.registerEvents();
@@ -134,16 +128,6 @@ class Menu {
    */
   hasSelectedItem() {
     return Array.isArray(this.hotMenu.getSelectedLast());
-  }
-
-  /**
-   * Set offset menu position for specified area (`above`, `below`, `left` or `right`).
-   *
-   * @param {string} area Specified area name (`above`, `below`, `left` or `right`).
-   * @param {number} offset Offset value.
-   */
-  setOffset(area, offset = 0) {
-    this.offset[area] = offset;
   }
 
   /**
@@ -234,6 +218,12 @@ class Menu {
           this.close(true);
         }
       },
+      afterSelection: (row, column, row2, column2, preventScrolling) => {
+        // do not scroll the viewport when mouse clicks on partially visible menu item
+        if (this.hotMenu.view.isMouseDown()) {
+          preventScrolling.value = true;
+        }
+      },
       beforeOnCellMouseUp: (event) => {
         if (this.hasSelectedItem()) {
           shouldAutoCloseMenu = !this.isCommandPassive(this.getSelectedItem());
@@ -251,7 +241,7 @@ class Menu {
           // event hides the tapped element, the click event grabs the element below. As a result, the filter
           // by condition menu is closed and immediately open on tapping the "None" item.
           if (isMobileBrowser() || isIpadOS()) {
-            setTimeout(() => this.close(true), 325);
+            this.hot._registerTimeout(() => this.close(true), 325);
           } else {
             this.close(true);
           }
@@ -268,145 +258,105 @@ class Menu {
 
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
     this.hot.getSettings().outsideClickDeselects = false;
-    this.hotMenu = new Core(this.container, settings);
+    this.hotMenu = new this.hot.constructor(this.container, settings);
     this.hotMenu.addHook('afterInit', () => this.onAfterInit());
-    this.hotMenu.addHook('afterSelection', (...args) => this.onAfterSelection(...args));
     this.hotMenu.init();
     this.hotMenu.listen();
+
+    this.navigator.setMenu(this.hotMenu);
 
     const shortcutManager = this.hotMenu.getShortcutManager();
     const menuContext = shortcutManager.addContext(SHORTCUTS_GROUP);
     const config = { group: SHORTCUTS_CONTEXT };
     const menuContextConfig = {
       ...config,
-      runOnlyIf: event => isInput(event.target) === false || this.container.contains(event.target) === false,
+      runOnlyIf: event => !isInput(event.target) || !this.container.contains(event.target),
     };
 
     // Default shortcuts for Handsontable should not be handled. Changing context will help with that.
     shortcutManager.setActiveContextName('menu');
 
     menuContext.addShortcuts([{
+      keys: [['Tab'], ['Shift', 'Tab'], ['Control/Meta', 'A']],
+      forwardToContext: this.hot.getShortcutManager().getContext('grid'),
+      callback: () => this.close(true),
+    }, {
       keys: [['Escape']],
-      callback: () => {
-        this.keyEvent = true;
-        this.close();
-        this.keyEvent = false;
-      },
+      callback: () => this.close(true),
     }, {
       keys: [['ArrowDown']],
-      callback: () => {
-        const selection = this.hotMenu.getSelectedLast();
-
-        this.keyEvent = true;
-
-        if (selection) {
-          this.selectNextCell(selection[0], selection[1]);
-
-        } else {
-          this.selectFirstCell();
-        }
-
-        this.keyEvent = false;
-      },
+      callback: () => this.navigator.selectNext(),
     }, {
       keys: [['ArrowUp']],
-      callback: () => {
-        const selection = this.hotMenu.getSelectedLast();
-
-        this.keyEvent = true;
-
-        if (selection) {
-          this.selectPrevCell(selection[0], selection[1]);
-
-        } else {
-          this.selectLastCell();
-        }
-
-        this.keyEvent = false;
-      }
+      callback: () => this.navigator.selectPrev(),
     }, {
       keys: [['ArrowRight']],
       callback: () => {
         const selection = this.hotMenu.getSelectedLast();
 
-        this.keyEvent = true;
-
         if (selection) {
-          const menu = this.openSubMenu(selection[0]);
+          const subMenu = this.openSubMenu(selection[0]);
 
-          if (menu) {
-            menu.selectFirstCell();
+          if (subMenu) {
+            subMenu.navigator.selectFirst();
           }
         }
-
-        this.keyEvent = false;
       }
     }, {
       keys: [['ArrowLeft']],
       callback: () => {
         const selection = this.hotMenu.getSelectedLast();
 
-        this.keyEvent = true;
-
         if (selection && this.isSubMenu()) {
           this.close();
 
-          if (this.parentMenu) {
+          if (this.isSubMenu()) {
             this.parentMenu.hotMenu.listen();
           }
         }
-
-        this.keyEvent = false;
       },
     }, {
-      keys: [['Enter']],
+      keys: [['Control/Meta', 'ArrowUp'], ['Home']],
+      callback: () => this.navigator.selectFirst(),
+    }, {
+      keys: [['Control/Meta', 'ArrowDown'], ['End']],
+      callback: () => this.navigator.selectLast(),
+    }, {
+      keys: [['Enter'], ['Space']],
       callback: (event) => {
         const selection = this.hotMenu.getSelectedLast();
 
-        this.keyEvent = true;
-
-        if (!this.hotMenu.getSourceDataAtRow(selection[0]).submenu) {
+        if (this.hotMenu.getSourceDataAtRow(selection[0]).submenu) {
+          this.openSubMenu(selection[0]).navigator.selectFirst();
+        } else {
           this.executeCommand(event);
           this.close(true);
         }
-
-        this.keyEvent = false;
       }
     }, {
       keys: [['PageUp']],
       callback: () => {
         const selection = this.hotMenu.getSelectedLast();
 
-        this.keyEvent = true;
-
         if (selection) {
           this.hotMenu.selection.transformStart(-this.hotMenu.countVisibleRows(), 0);
-
         } else {
-          this.selectFirstCell();
+          this.navigator.selectFirst();
         }
-
-        this.keyEvent = false;
       },
     }, {
       keys: [['PageDown']],
       callback: () => {
         const selection = this.hotMenu.getSelectedLast();
 
-        this.keyEvent = true;
-
         if (selection) {
           this.hotMenu.selection.transformStart(this.hotMenu.countVisibleRows(), 0);
-
         } else {
-          this.selectLastCell();
+          this.navigator.selectLast();
         }
-
-        this.keyEvent = false;
       },
     }], menuContextConfig);
 
-    this.blockMainTableCallbacks();
     this.runLocalHooks('afterOpen');
   }
 
@@ -420,18 +370,30 @@ class Menu {
       return;
     }
 
-    if (closeParent && this.parentMenu) {
+    if (closeParent && this.isSubMenu()) {
       this.parentMenu.close();
     } else {
+      this.navigator.clear();
       this.closeAllSubMenus();
       this.container.style.display = 'none';
-      this.releaseMainTableCallbacks();
       this.hotMenu.destroy();
       this.hotMenu = null;
       this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
       this.runLocalHooks('afterClose');
 
-      if (this.parentMenu) {
+      if (this.isSubMenu()) {
+        if (this.hot.getSettings().ariaTags) {
+          const selection = this.parentMenu.hotMenu.getSelectedLast();
+
+          if (selection) {
+            const cell = this.parentMenu.hotMenu.getCell(selection[0], 0);
+
+            setAttribute(cell, [
+              A11Y_EXPANDED(false),
+            ]);
+          }
+        }
+
         this.parentMenu.hotMenu.listen();
       }
     }
@@ -447,6 +409,7 @@ class Menu {
     if (!this.hotMenu) {
       return false;
     }
+
     const cell = this.hotMenu.getCell(row, 0);
 
     this.closeAllSubMenus();
@@ -467,7 +430,6 @@ class Menu {
     subMenu.setMenuItems(dataItem.submenu.items);
     subMenu.open();
     subMenu.setPosition(cell.getBoundingClientRect());
-
     this.hotSubMenus[dataItem.key] = subMenu;
 
     // Update the accessibility tags on the cell being the base for the submenu.
@@ -488,14 +450,13 @@ class Menu {
   closeSubMenu(row) {
     const dataItem = this.hotMenu.getSourceDataAtRow(row);
     const menus = this.hotSubMenus[dataItem.key];
-    const cell = this.hotMenu.getCell(row, 0);
 
     if (menus) {
       menus.destroy();
       delete this.hotSubMenus[dataItem.key];
-    }
 
-    if (cell && isItemSubMenu(dataItem)) {
+      const cell = this.hotMenu.getCell(row, 0);
+
       // Update the accessibility tags on the cell being the base for the submenu.
       if (this.hot.getSettings().ariaTags) {
         setAttribute(cell, [
@@ -587,11 +548,20 @@ class Menu {
    * @returns {boolean}
    */
   isCommandPassive(commandDescriptor) {
-    const { isCommand, name: commandName, disabled, submenu } = commandDescriptor;
+    return commandDescriptor.isCommand === false ||
+           isItemSeparator(commandDescriptor) ||
+           isItemDisabled(commandDescriptor, this.hot) ||
+           isItemSubMenu(commandDescriptor);
+  }
 
-    const isItemDisabled = disabled === true || (typeof disabled === 'function' && disabled.call(this.hot) === true);
-
-    return isCommand === false || commandName === SEPARATOR || isItemDisabled === true || submenu;
+  /**
+   * Set offset menu position for specified area (`above`, `below`, `left` or `right`).
+   *
+   * @param {string} area Specified area name (`above`, `below`, `left` or `right`).
+   * @param {number} offset Offset value.
+   */
+  setOffset(area, offset = 0) {
+    this.positioner.setOffset(area, offset);
   }
 
   /**
@@ -600,195 +570,13 @@ class Menu {
    * @param {Event|object} coords Event or literal Object with coordinates.
    */
   setPosition(coords) {
-    const cursor = new Cursor(coords, this.container.ownerDocument.defaultView);
-
-    if (this.options.keepInViewport) {
-      if (cursor.fitsBelow(this.container)) {
-        this.setPositionBelowCursor(cursor);
-
-      } else if (cursor.fitsAbove(this.container)) {
-        this.setPositionAboveCursor(cursor);
-
-      } else {
-        this.setPositionBelowCursor(cursor);
-      }
-
-      if (this.hot.isLtr()) {
-        this.setHorizontalPositionForLtr(cursor);
-      } else {
-        this.setHorizontalPositionForRtl(cursor);
-      }
-    } else {
-      this.setPositionBelowCursor(cursor);
-      this.setPositionOnRightOfCursor(cursor);
-    }
-  }
-
-  /**
-   * Set menu horizontal position for RTL mode.
-   *
-   * @param {Cursor} cursor `Cursor` object.
-   */
-  setHorizontalPositionForRtl(cursor) {
-    if (cursor.fitsOnLeft(this.container)) {
-      this.setPositionOnLeftOfCursor(cursor);
-    } else {
-      this.setPositionOnRightOfCursor(cursor);
-    }
-  }
-
-  /**
-   * Set menu horizontal position for LTR mode.
-   *
-   * @param {Cursor} cursor `Cursor` object.
-   */
-  setHorizontalPositionForLtr(cursor) {
-    if (cursor.fitsOnRight(this.container)) {
-      this.setPositionOnRightOfCursor(cursor);
-    } else {
-      this.setPositionOnLeftOfCursor(cursor);
-    }
-  }
-
-  /**
-   * Set menu position above cursor object.
-   *
-   * @param {Cursor} cursor `Cursor` object.
-   */
-  setPositionAboveCursor(cursor) {
-    let top = this.offset.above + cursor.top - this.container.offsetHeight;
-
     if (this.isSubMenu()) {
-      top = cursor.top + cursor.cellHeight - this.container.offsetHeight + 3;
-    }
-    this.container.style.top = `${top}px`;
-  }
-
-  /**
-   * Set menu position below cursor object.
-   *
-   * @param {Cursor} cursor `Cursor` object.
-   */
-  setPositionBelowCursor(cursor) {
-    let top = this.offset.below + cursor.top + 1;
-
-    if (this.isSubMenu()) {
-      top = cursor.top - 1;
-    }
-    this.container.style.top = `${top}px`;
-  }
-
-  /**
-   * Set menu position on the right of cursor object.
-   *
-   * @param {Cursor} cursor `Cursor` object.
-   */
-  setPositionOnRightOfCursor(cursor) {
-    let left = cursor.left;
-
-    if (this.isSubMenu()) {
-      const { right: parentMenuRight } = this.parentMenu.container.getBoundingClientRect();
-
-      // move the sub menu by the width of the parent's border (usually by 1-2 pixels)
-      left += cursor.cellWidth + parentMenuRight - (cursor.left + cursor.cellWidth);
-    } else {
-      left += this.offset.right;
+      this.positioner.setParentElement(this.parentMenu.container);
     }
 
-    this.container.style.left = `${left}px`;
-  }
-
-  /**
-   * Set menu position on the left of cursor object.
-   *
-   * @param {Cursor} cursor `Cursor` object.
-   */
-  setPositionOnLeftOfCursor(cursor) {
-    let left = this.offset.left + cursor.left - this.container.offsetWidth;
-
-    if (this.isSubMenu()) {
-      const { left: parentMenuLeft } = this.parentMenu.container.getBoundingClientRect();
-
-      // move the sub menu by the width of the parent's border (usually by 1-2 pixels)
-      left -= cursor.left - parentMenuLeft;
-    }
-
-    this.container.style.left = `${left}px`;
-  }
-
-  /**
-   * Select first cell in opened menu.
-   */
-  selectFirstCell() {
-    const cell = this.hotMenu.getCell(0, 0);
-
-    if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
-      this.selectNextCell(0, 0);
-    } else {
-      this.hotMenu.selectCell(0, 0);
-    }
-  }
-
-  /**
-   * Select last cell in opened menu.
-   */
-  selectLastCell() {
-    const lastRow = this.hotMenu.countRows() - 1;
-    const cell = this.hotMenu.getCell(lastRow, 0);
-
-    if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
-      this.selectPrevCell(lastRow, 0);
-    } else {
-      // disable default "scroll-to-cell" option and instead of that...
-      this.hotMenu.selectCell(lastRow, 0, undefined, undefined, false);
-      // ...scroll to the cell with "snap to the bottom" option
-      this.hotMenu.scrollViewportTo({
-        row: lastRow,
-        col: 0,
-        verticalSnap: 'bottom',
-        horizontalSnap: 'start',
-      });
-    }
-  }
-
-  /**
-   * Select next cell in opened menu.
-   *
-   * @param {number} row Row index.
-   * @param {number} col Column index.
-   */
-  selectNextCell(row, col) {
-    const nextRow = row + 1;
-    const cell = nextRow < this.hotMenu.countRows() ? this.hotMenu.getCell(nextRow, col) : null;
-
-    if (!cell) {
-      return;
-    }
-    if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
-      this.selectNextCell(nextRow, col);
-    } else {
-      this.hotMenu.selectCell(nextRow, col);
-    }
-  }
-
-  /**
-   * Select previous cell in opened menu.
-   *
-   * @param {number} row Row index.
-   * @param {number} col Column index.
-   */
-  selectPrevCell(row, col) {
-    const prevRow = row - 1;
-    const cell = prevRow >= 0 ? this.hotMenu.getCell(prevRow, col) : null;
-
-    if (!cell) {
-      return;
-    }
-    if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
-      this.selectPrevCell(prevRow, col);
-    } else {
-      this.hotMenu.selectCell(prevRow, col);
-    }
+    this.positioner
+      .setElement(this.container)
+      .updatePosition(coords);
   }
 
   /**
@@ -805,10 +593,6 @@ class Menu {
   menuItemRenderer(hot, TD, row, col, prop, value) {
     const item = hot.getSourceDataAtRow(row);
     const wrapper = this.hot.rootDocument.createElement('div');
-    const itemIsSeparator = itemToTest => new RegExp(SEPARATOR, 'i').test(itemToTest.name);
-    const itemIsDisabled = itemToTest => itemToTest.disabled === true ||
-      (typeof itemToTest.disabled === 'function' && itemToTest.disabled.call(this.hot) === true);
-    const itemIsSelectionDisabled = itemToTest => itemToTest.disableSelection;
     let itemValue = value;
 
     if (typeof itemValue === 'function') {
@@ -816,21 +600,20 @@ class Menu {
     }
 
     empty(TD);
-
     addClass(wrapper, 'htItemWrapper');
 
     if (this.hot.getSettings().ariaTags) {
       setAttribute(TD, [
         A11Y_MENU_ITEM(),
         A11Y_LABEL(itemValue),
-        ...(itemIsDisabled(item) ? [A11Y_DISABLED()] : []),
+        ...(isItemDisabled(item, this.hot) ? [A11Y_DISABLED()] : []),
         ...(isItemSubMenu(item) ? [A11Y_EXPANDED(false)] : []),
       ]);
     }
 
     TD.appendChild(wrapper);
 
-    if (itemIsSeparator(item)) {
+    if (isItemSeparator(item)) {
       addClass(TD, 'htSeparator');
 
     } else if (typeof item.renderer === 'function') {
@@ -841,27 +624,28 @@ class Menu {
       fastInnerHTML(wrapper, itemValue);
     }
 
-    if (itemIsDisabled(item)) {
+    if (isItemDisabled(item, this.hot)) {
       addClass(TD, 'htDisabled');
       this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
 
-    } else if (itemIsSelectionDisabled(item)) {
+    } else if (isItemSelectionDisabled(item)) {
       addClass(TD, 'htSelectionDisabled');
       this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
 
     } else if (isItemSubMenu(item)) {
       addClass(TD, 'htSubmenu');
 
-      if (itemIsSelectionDisabled(item)) {
+      if (isItemSelectionDisabled(item)) {
         this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
       } else {
         this.eventManager
           .addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, false, false));
       }
+
     } else {
       removeClass(TD, ['htSubmenu', 'htDisabled']);
 
-      if (itemIsSelectionDisabled(item)) {
+      if (isItemSelectionDisabled(item)) {
         this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
       } else {
         this.eventManager
@@ -916,26 +700,6 @@ class Menu {
   }
 
   /**
-   * @private
-   */
-  blockMainTableCallbacks() {
-    this._afterScrollCallback = function() {};
-    this.hot.addHook('afterScrollVertically', this._afterScrollCallback);
-    this.hot.addHook('afterScrollHorizontally', this._afterScrollCallback);
-  }
-
-  /**
-   * @private
-   */
-  releaseMainTableCallbacks() {
-    if (this._afterScrollCallback) {
-      this.hot.removeHook('afterScrollVertically', this._afterScrollCallback);
-      this.hot.removeHook('afterScrollHorizontally', this._afterScrollCallback);
-      this._afterScrollCallback = null;
-    }
-  }
-
-  /**
    * On after init listener.
    *
    * @private
@@ -959,21 +723,6 @@ class Menu {
       setAttribute(this.hotMenu.rootElement, [
         A11Y_MENU()
       ]);
-    }
-  }
-
-  /**
-   * On after selection listener.
-   *
-   * @param {number} r Selection start row index.
-   * @param {number} c Selection start column index.
-   * @param {number} r2 Selection end row index.
-   * @param {number} c2 Selection end column index.
-   * @param {object} preventScrolling Object with `value` property where its value change will be observed.
-   */
-  onAfterSelection(r, c, r2, c2, preventScrolling) {
-    if (this.keyEvent === false) {
-      preventScrolling.value = true;
     }
   }
 
@@ -1016,5 +765,3 @@ class Menu {
 }
 
 mixin(Menu, localHooks);
-
-export default Menu;

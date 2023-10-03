@@ -23,12 +23,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, 1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(0); // "Insert row above"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert row above');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
@@ -44,12 +39,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(0); // "Insert row above"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert row above');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', null, 'A2', 'A3', 'A4', 'A5']);
@@ -75,12 +65,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(0); // "Insert row above"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert row above');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual([null, 'A1', 'A2', 'A3', 'A4', 'A5']);
@@ -108,12 +93,7 @@ describe('ContextMenu', () => {
       selectCell(1, -1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(0); // "Insert row above"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert row above');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', null, 'A2', 'A3', 'A4', 'A5']);
@@ -131,12 +111,7 @@ describe('ContextMenu', () => {
       selectCell(-1, -1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(0); // "Insert row above"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert row above');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
@@ -154,12 +129,7 @@ describe('ContextMenu', () => {
       selectCell(-1, 1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(0); // "Insert row above"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert row above');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
@@ -176,12 +146,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(0); // "Insert row above"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert row above');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
@@ -200,12 +165,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(0); // "Insert row above"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert row above');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       // Currently HoT doesn't support row headers shift as it support columns.
@@ -233,12 +193,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(0); // "Insert row above"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert row above');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
@@ -257,12 +212,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(1, 1));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(0); // "Insert row above"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert row above');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', null, 'A2', 'A3', 'A4', 'A5']);
@@ -291,10 +241,7 @@ describe('ContextMenu', () => {
 
         contextMenu();
 
-        const item = $('.htContextMenu .ht_master .htCore tbody')
-          .find('td')
-          .not('.htSeparator')
-          .eq(0); // "Insert row above"
+        const item = selectContextMenuOption('Insert row above');
 
         expect(item.hasClass('htDisabled')).toBe(true);
       });

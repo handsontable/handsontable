@@ -944,14 +944,7 @@ describe('HiddenRows', () => {
             const header = $('.ht_clone_top .htCore thead tr th').eq(1); // The first column
 
             simulateClick(header, 'RMB');
-            contextMenu(header);
-
-            $('.htContextMenu .ht_master .htCore')
-              .find('tbody td')
-              .not('.htSeparator')
-              .eq(2)
-              .simulate('mousedown')
-              .simulate('mouseup'); // Insert column left
+            selectContextMenuOption('Insert column left');
 
             expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: -1,1 to: 3,1']);
             expect(`
@@ -977,14 +970,7 @@ describe('HiddenRows', () => {
             const header = $('.ht_clone_top .htCore thead tr th').eq(1); // The first column
 
             simulateClick(header, 'RMB');
-            contextMenu(header);
-
-            $('.htContextMenu .ht_master .htCore')
-              .find('tbody td')
-              .not('.htSeparator')
-              .eq(2)
-              .simulate('mousedown')
-              .simulate('mouseup'); // Insert column left
+            selectContextMenuOption('Insert column left');
 
             expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -1,1 to: 3,1']);
             expect(`
@@ -1009,14 +995,7 @@ describe('HiddenRows', () => {
             const header = $('.ht_clone_top .htCore thead tr th').eq(1); // The first column
 
             simulateClick(header, 'RMB');
-            contextMenu(header);
-
-            $('.htContextMenu .ht_master .htCore')
-              .find('tbody td')
-              .not('.htSeparator')
-              .eq(3)
-              .simulate('mousedown')
-              .simulate('mouseup'); // Insert column right
+            selectContextMenuOption('Insert column right');
 
             expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: -1,0 to: 3,0']);
             expect(`
@@ -1042,14 +1021,7 @@ describe('HiddenRows', () => {
             const header = $('.ht_clone_top .htCore thead tr th').eq(1); // The first column
 
             simulateClick(header, 'RMB');
-            contextMenu(header);
-
-            $('.htContextMenu .ht_master .htCore')
-              .find('tbody td')
-              .not('.htSeparator')
-              .eq(3)
-              .simulate('mousedown')
-              .simulate('mouseup'); // Insert column right
+            selectContextMenuOption('Insert column right');
 
             expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,0 to: 3,0']);
             expect(`

@@ -26,12 +26,7 @@ describe('ContextMenu (RTL mode)', () => {
 
       contextMenu(getCell(-1, 1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(2); // "Insert column left"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column left');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', null, 'C1', 'D1', 'E1']);
@@ -56,12 +51,7 @@ describe('ContextMenu (RTL mode)', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(2); // "Insert column left"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column left');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', null]);
@@ -87,12 +77,7 @@ describe('ContextMenu (RTL mode)', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(2); // "Insert column left"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column left');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getColHeader()).toEqual([1, 2, 3, 4, 5, 'F']);
@@ -112,12 +97,7 @@ describe('ContextMenu (RTL mode)', () => {
 
       contextMenu(getCell(1, 1));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(2); // "Insert column left"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column left');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', null, 'C1', 'D1', 'E1']);

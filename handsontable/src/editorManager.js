@@ -269,8 +269,14 @@ class EditorManager {
    * @returns {boolean}
    */
   isCellEditable() {
+    const selection = this.instance.getSelectedRangeLast();
+
+    if (!selection) {
+      return false;
+    }
+
     const editorClass = this.instance.getCellEditor(this.cellProperties);
-    const { row, col } = this.instance.getSelectedRangeLast().highlight;
+    const { row, col } = selection.highlight;
     const {
       rowIndexMapper,
       columnIndexMapper
