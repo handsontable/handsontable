@@ -75,4 +75,37 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       expect(editorHot.getCell(index, 0).getAttribute('aria-posinset')).toEqual(`${index + 1}`);
     });
   });
+
+  it('should should not add `aria-setsize` and `aria-posinset` if the source is a function`', async() => {
+    const hot = handsontable({
+      columns: [
+        { editor: 'autocomplete', source: (quiery, callback) => callback(choices), strict: true }
+      ],
+    });
+
+    selectCell(0, 0);
+
+    keyDownUp('enter');
+
+    await sleep(50);
+
+    const editor = getActiveEditor();
+    const editorHot = editor.htEditor;
+    const choiceDropdownRoot = editorHot.rootElement;
+
+    expect(choiceDropdownRoot.getAttribute('role')).toEqual('listbox');
+    expect(choiceDropdownRoot.getAttribute('aria-live')).toEqual('polite');
+    expect(choiceDropdownRoot.getAttribute('aria-relevant')).toEqual('text');
+    expect(choiceDropdownRoot.getAttribute('id')).toEqual(`${hot.guid.slice(0, 9)}-listbox-0-0`);
+    expect(editorHot.getCell(...editorHot.getSelectedLast()).getAttribute('aria-selected')).toEqual('true');
+
+    editorHot.getSourceData().forEach((option, index) => {
+      option = option[0];
+
+      expect(editorHot.getCell(index, 0).getAttribute('role')).toEqual('option');
+      expect(editorHot.getCell(index, 0).getAttribute('id')).toEqual(`${hot.guid.slice(0, 9)}-listbox-0-0_${option}`);
+      expect(editorHot.getCell(index, 0).getAttribute('aria-setsize')).toEqual(null);
+      expect(editorHot.getCell(index, 0).getAttribute('aria-posinset')).toEqual(null);
+    });
+  });
 });

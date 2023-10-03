@@ -146,12 +146,8 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     const trimDropdown = this.cellProperties.trimDropdown === void 0 ? true : this.cellProperties.trimDropdown;
     const rootInstanceAriaTagsEnabled = this.hot.getSettings().ariaTags;
-    const sourceArray = (
-      typeof this.cellProperties.source === 'function' ?
-        this.cellProperties.source() :
-        this.cellProperties.source
-    );
-    const sourceSize = sourceArray.length;
+    const sourceArray = typeof this.cellProperties.source === 'function' ? null : this.cellProperties.source;
+    const sourceSize = sourceArray?.length;
     const { row: rowIndex, col: colIndex } = this;
 
     this.showEditableElement();
@@ -190,8 +186,9 @@ export class AutocompleteEditor extends HandsontableEditor {
         if (rootInstanceAriaTagsEnabled) {
           setAttribute(TD, [
             A11Y_OPTION(),
-            A11Y_SETSIZE(sourceSize),
-            A11Y_POSINSET(sourceArray.indexOf(value) + 1),
+            // Add `setsize` and `posinset` only if the source is an array.
+            ...(sourceArray ? [A11Y_SETSIZE(sourceSize)] : []),
+            ...(sourceArray ? [A11Y_POSINSET(sourceArray.indexOf(value) + 1)] : []),
             ['id', `${this.htEditor.rootElement.id}_${value}`],
           ]);
         }
