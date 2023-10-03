@@ -190,6 +190,10 @@ function getSimpleHeadersHTML(columnHeaders, ignoredHeaders, ignoredColumns) {
  * @returns {Array<string>} List of cell values.
  */
 function getFilteredCells(data, ignoredRows, ignoredColumns) {
+  if (Array.isArray(data) === false) {
+    return [];
+  }
+
   return data.reduce((listOfCells, rowData, rowIndex) => {
     if (ignoredRows.includes(rowIndex)) {
       return listOfCells;
