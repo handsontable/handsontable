@@ -64,7 +64,7 @@ export function getClassesToRemove() {
 }
 
 /**
- * TBP
+ * Get aria-sort attributes which should be added to particular column header.
  *
  * @param {object} columnStatesManager Instance of column state manager.
  * @param {number} column Visual column index.
@@ -81,7 +81,7 @@ export function getAriaSortAttrToAdd(columnStatesManager, column) {
 }
 
 /**
- * TBP
+ * Get aria-sort attributes which should be removed from column header.
  *
  * @returns {Array} Array of attribute keys.
  */

@@ -257,7 +257,7 @@ export class MultiColumnSorting extends ColumnSorting {
   }
 
   /**
-   * Update header classes.
+   * Update header classes and aria-sort attributes.
    *
    * @private
    * @param {HTMLElement} headerSpanElement Header span element.
