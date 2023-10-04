@@ -226,7 +226,31 @@ describe('CopyPaste', () => {
       expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('A3');
     });
 
-    it('should paste also copied column headers', () => {
+    it('should paste copied column headers', () => {
+      handsontable({
+        colHeaders: true,
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
+      });
+
+      const copyPasteEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectAll();
+
+      plugin.copyColumnHeadersOnly();
+      plugin.onCopy(copyPasteEvent); // emulate native "copy" event
+
+      selectCell(0, 0);
+
+      plugin.onPaste(copyPasteEvent);
+
+      expect(getData()).toEqual([
+        ['A', 'B'],
+        ['A2', 'B2'],
+      ]);
+    });
+
+    it('should paste data and copied column headers', () => {
       handsontable({
         colHeaders: true,
         data: Handsontable.helper.createSpreadsheetData(2, 2),

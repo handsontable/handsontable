@@ -34,7 +34,7 @@ export function instanceToHTML(instance) {
   const columns = Array.from({ length: instance.countCols() + Math.abs(startColumn) },
     (_, i) => i + startColumn);
 
-  return getHTMLFromHotCoords(instance, { rows, columns });
+  return getHTMLByCoords(instance, { rows, columns });
 }
 
 /**
@@ -46,7 +46,7 @@ export function instanceToHTML(instance) {
  * @param {Array<number>} config.columns List of column indexes which should be taken into account when creating the table.
  * @returns {string} OuterHTML of the HTMLTableElement.
  */
-export function getHTMLFromHotCoords(instance, config) {
+export function getHTMLByCoords(instance, config) {
   return [
     '<table>',
     ...getHeadersHTMLByCoords(instance, config),
@@ -66,7 +66,7 @@ export function getHTMLFromHotCoords(instance, config) {
  * cell value list.
  * @returns {string[]} List of displayed cell values.
  */
-export function getDataFromHotCoords(instance, config) {
+export function getDataByCoords(instance, config) {
   return [
     ...getHeadersDataByCoords(instance, config),
     ...getBodyDataByCoords(instance, config),
@@ -132,7 +132,7 @@ function getNestedHeadersHTML(nestedHeaders, ignoredHeaders, ignoredColumns) {
   const headersHTML = [];
 
   getFilteredNestedHeaders(nestedHeaders, ignoredHeaders, ignoredColumns).forEach((listOfHeaders) => {
-    const tr = ['<tr>'];
+    const rowHTML = ['<tr>'];
 
     for (let i = 0; i < listOfHeaders.length; i += 1) {
       const header = listOfHeaders[i];
@@ -146,11 +146,11 @@ function getNestedHeadersHTML(nestedHeaders, ignoredHeaders, ignoredColumns) {
         colspanAttribute = ` colspan=${colspan}`;
       }
 
-      tr.push(`<th${colspanAttribute}>${encodeHTMLEntities(headerValue)}</th>`);
+      rowHTML.push(`<th${colspanAttribute}>${encodeHTMLEntities(headerValue)}</th>`);
     }
 
-    tr.push('</tr>');
-    headersHTML.push(...tr);
+    rowHTML.push('</tr>');
+    headersHTML.push(...rowHTML);
   });
 
   return headersHTML;
@@ -276,7 +276,7 @@ function getBodyHTMLByConfig(config) {
   const { mergedCellsMap, mergedArea } = getMergedCellsInformation(mergeCells);
 
   filteredData.forEach((rowData, rowIndex) => {
-    const tr = ['<tr>'];
+    const rowHTML = ['<tr>'];
 
     rowData.forEach((cellData, columnIndex) => {
       const attrs = [];
@@ -298,11 +298,11 @@ function getBodyHTMLByConfig(config) {
         return;
       }
 
-      tr.push(`<td${attrs.join('')}>${encodeHTMLEntities(cellData)}</td>`);
+      rowHTML.push(`<td${attrs.join('')}>${encodeHTMLEntities(cellData)}</td>`);
     });
 
-    tr.push('</tr>');
-    cells.push(...tr);
+    rowHTML.push('</tr>');
+    cells.push(...rowHTML);
   });
 
   return ['<tbody>', ...cells, '</tbody>'];
@@ -357,13 +357,16 @@ export function getDataWithHeadersByConfig(config) {
   if (Array.isArray(nestedHeaders)) {
     dataWithHeaders.push(...getFilteredNestedHeaders(nestedHeaders, ignoredHeaders, ignoredColumns)
       .map((listOfHeaders) => {
-        return listOfHeaders.map((header) => {
+        return listOfHeaders.reduce((headers, header) => {
           if (isObject(header)) {
-            return header.label;
+            headers.push(header.label, ...new Array(header.colspan - 1).fill(''));
+
+          } else {
+            headers.push(header);
           }
 
-          return header;
-        });
+          return headers;
+        }, []);
       })
     );
 
@@ -418,7 +421,7 @@ function getHeadersHTMLByCoords(instance, config) {
   }
 
   headers.forEach((rowIndex) => {
-    const tr = ['<tr>'];
+    const rowHTML = ['<tr>'];
 
     for (let i = 0; i < columns.length; i += 1) {
       const columnIndex = columns[i];
@@ -433,11 +436,11 @@ function getHeadersHTMLByCoords(instance, config) {
         i += parsedColspan - 1;
       }
 
-      tr.push(`<th${colspanAttribute}>${encodeHTMLEntities(instance.getColHeader(columnIndex, rowIndex))}</th>`);
+      rowHTML.push(`<th${colspanAttribute}>${encodeHTMLEntities(instance.getColHeader(columnIndex, rowIndex))}</th>`);
     }
 
-    tr.push('</tr>');
-    headersHTML.push(...tr);
+    rowHTML.push('</tr>');
+    headersHTML.push(...rowHTML);
   });
 
   return ['<thead>', ...headersHTML, '</thead>'];
@@ -460,24 +463,24 @@ function getHeadersDataByCoords(instance, config) {
   const headers = rows.filter(rowIndex => rowIndex < 0);
 
   headers.forEach((rowIndex) => {
-    const tr = [];
+    const rowData = [];
 
     for (let i = 0; i < columns.length; i += 1) {
       const columnIndex = columns[i];
       const headerCell = instance.getCell(rowIndex, columnIndex);
       const colspan = headerCell?.getAttribute('colspan');
 
-      tr.push(instance.getColHeader(columnIndex, rowIndex));
+      rowData.push(instance.getColHeader(columnIndex, rowIndex));
 
       if (colspan) {
         const parsedColspan = parseInt(colspan, 10);
 
-        tr.push(...new Array(parsedColspan - 1).fill(''));
+        rowData.push(...new Array(parsedColspan - 1).fill(''));
         i += parsedColspan - 1;
       }
     }
 
-    headersData.push(tr);
+    headersData.push(rowData);
   });
 
   return headersData;
@@ -502,11 +505,11 @@ function getBodyHTMLByCoords(instance, config) {
   }
 
   bodyRows.forEach((rowIndex, nthRow) => {
-    const tr = ['<tr>'];
+    const rowHTML = ['<tr>'];
 
     columns.forEach((columnIndex, nthColumn) => {
       if (columnIndex < 0) {
-        tr.push(`<th>${encodeHTMLEntities(instance.getRowHeader(rowIndex))}</th>`);
+        rowHTML.push(`<th>${encodeHTMLEntities(instance.getRowHeader(rowIndex))}</th>`);
 
         return;
       }
@@ -535,12 +538,12 @@ function getBodyHTMLByCoords(instance, config) {
           }
         }
 
-        tr.push(`<td${attrs.join('')}>${cellValueParsed}</td>`);
+        rowHTML.push(`<td${attrs.join('')}>${cellValueParsed}</td>`);
       }
     });
 
-    tr.push('</tr>');
-    cells.push(...tr);
+    rowHTML.push('</tr>');
+    cells.push(...rowHTML);
   });
 
   return ['<tbody>', ...cells, '</tbody>'];
@@ -563,16 +566,16 @@ function getBodyDataByCoords(instance, config) {
   const bodyRows = rows.filter(rowIndex => rowIndex >= 0);
 
   bodyRows.forEach((rowIndex) => {
-    const tr = [];
+    const rowData = [];
 
     columns.forEach((columnIndex) => {
       const cellValue = instance.getCopyableData(rowIndex, columnIndex);
       const cellValueParsed = isEmpty(cellValue) ? '' : cellValue;
 
-      tr.push(cellValueParsed);
+      rowData.push(cellValueParsed);
     });
 
-    cells.push(tr);
+    cells.push(rowData);
   });
 
   return cells;

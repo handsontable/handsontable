@@ -17,9 +17,10 @@ import {
 } from './copyableRanges';
 import {
   htmlToGridSettings,
-  getHTMLFromHotCoords,
-  getDataFromHotCoords,
-  getHTMLFromConfig, getDataWithHeadersByConfig
+  getHTMLByCoords,
+  getDataByCoords,
+  getHTMLFromConfig,
+  getDataWithHeadersByConfig
 } from '../../utils/parseTable';
 
 import './copyPaste.css';
@@ -344,7 +345,7 @@ export class CopyPaste extends BasePlugin {
   getRangedData(ranges) {
     const { rows, columns } = normalizeRanges(ranges);
 
-    return getDataFromHotCoords(this.hot, { rows, columns });
+    return getDataByCoords(this.hot, { rows, columns });
   }
 
   /**
@@ -448,31 +449,6 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Counts how many column headers will be copied based on the passed range.
-   *
-   * @private
-   * @param {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>} ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
-   * @returns {{ columnHeadersCount: number }} Returns an object with keys that holds
-   *                                           information with the number of copied headers.
-   */
-  #countCopiedHeaders(ranges) {
-    const { rows } = normalizeRanges(ranges);
-    let columnHeadersCount = 0;
-
-    for (let row = 0; row < rows.length; row++) {
-      if (rows[row] >= 0) {
-        break;
-      }
-
-      columnHeadersCount += 1;
-    }
-
-    return {
-      columnHeadersCount,
-    };
-  }
-
-  /**
    * Prepares new values to populate them into datasource.
    *
    * @private
@@ -556,13 +532,13 @@ export class CopyPaste extends BasePlugin {
 
     const { rows, columns } = normalizeRanges(this.copyableRanges);
     const copyConfig = { rows, columns };
-    let data = getDataFromHotCoords(this.hot, copyConfig);
-    let textHTML = [META_HEAD, getHTMLFromHotCoords(this.hot, copyConfig)].join('');
+    let data = getDataByCoords(this.hot, copyConfig);
+    let textHTML = [META_HEAD, getHTMLByCoords(this.hot, copyConfig)].join('');
     const allowCopying = !!this.hot.runHooks('beforeCopy', data, textHTML, copyConfig);
 
     if (allowCopying) {
-      data = getDataFromHotCoords(this.hot, copyConfig);
-      textHTML = [META_HEAD, getHTMLFromHotCoords(this.hot, copyConfig)].join('');
+      data = getDataByCoords(this.hot, copyConfig);
+      textHTML = [META_HEAD, getHTMLByCoords(this.hot, copyConfig)].join('');
 
       const textPlain = stringify(data);
 
@@ -592,13 +568,13 @@ export class CopyPaste extends BasePlugin {
 
     const { rows, columns } = normalizeRanges(this.copyableRanges);
     const copyConfig = { rows, columns };
-    let data = getDataFromHotCoords(this.hot, copyConfig);
-    let textHTML = [META_HEAD, getHTMLFromHotCoords(this.hot, copyConfig)].join('');
+    let data = getDataByCoords(this.hot, copyConfig);
+    let textHTML = [META_HEAD, getHTMLByCoords(this.hot, copyConfig)].join('');
     const allowCuttingOut = !!this.hot.runHooks('beforeCut', data, textHTML, copyConfig);
 
     if (allowCuttingOut) {
-      data = getDataFromHotCoords(this.hot, copyConfig);
-      textHTML = [META_HEAD, getHTMLFromHotCoords(this.hot, copyConfig)].join('');
+      data = getDataByCoords(this.hot, copyConfig);
+      textHTML = [META_HEAD, getHTMLByCoords(this.hot, copyConfig)].join('');
 
       const textPlain = stringify(data);
 
