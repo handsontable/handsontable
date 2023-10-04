@@ -12,6 +12,16 @@ const orderToCssClass = new Map([
   [DESC_SORT_STATE, HEADER_CLASS_DESC_SORT]
 ]);
 
+const HEADER_ARIA_SORT_KEY = 'aria-sort';
+const HEADER_ARIA_SORT_ASC = 'ascending';
+const HEADER_ARIA_SORT_DESC = 'descending';
+const HEADER_ARIA_SORT_NONE = 'none';
+
+const orderToAriaSort = new Map([
+  [ASC_SORT_STATE, HEADER_ARIA_SORT_ASC],
+  [DESC_SORT_STATE, HEADER_ARIA_SORT_DESC]
+]);
+
 /**
  * Get CSS classes which should be added to particular column header.
  *
@@ -51,4 +61,30 @@ export function getClassesToAdd(columnStatesManager, column, showSortIndicator, 
 export function getClassesToRemove() {
   return Array.from(orderToCssClass.values())
     .concat(HEADER_ACTION_CLASS, HEADER_CLASS_INDICATOR_DISABLED, HEADER_SORT_CLASS);
+}
+
+/**
+ * TBP
+ *
+ * @param {object} columnStatesManager Instance of column state manager.
+ * @param {number} column Visual column index.
+ * @returns {Array} Array of pairs of strings (key and value).
+ */
+export function getAriaSortAttrToAdd(columnStatesManager, column) {
+  const columnOrder = columnStatesManager.getSortOrderOfColumn(column);
+
+  const ariaSortAttrValue = isDefined(columnOrder)
+    ? orderToAriaSort.get(columnOrder) ?? HEADER_ARIA_SORT_NONE
+    : HEADER_ARIA_SORT_NONE
+
+  return [[HEADER_ARIA_SORT_KEY, ariaSortAttrValue ]];
+}
+
+/**
+ * TBP
+ *
+ * @returns {Array} Array of attribute keys.
+ */
+export function getAriaSortAttrToRemove() {
+  return [ HEADER_ARIA_SORT_KEY ];
 }

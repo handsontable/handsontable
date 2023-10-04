@@ -4,12 +4,13 @@ import {
 } from '../columnSorting';
 import { registerRootComparator } from '../columnSorting/sortService';
 import { wasHeaderClickedProperly } from '../columnSorting/utils';
-import { addClass, removeClass } from '../../helpers/dom/element';
+import {addClass, removeAttribute, removeClass, setAttribute} from '../../helpers/dom/element';
 import { rootComparator } from './rootComparator';
 import { warnAboutPluginsConflict } from './utils';
 import { getClassesToAdd, getClassesToRemove } from './domHelpers';
 
 import './multiColumnSorting.scss';
+import {getAriaSortAttrToAdd, getAriaSortAttrToRemove} from "../columnSorting/domHelpers";
 
 export const PLUGIN_KEY = 'multiColumnSorting';
 export const PLUGIN_PRIORITY = 170;
@@ -262,13 +263,15 @@ export class MultiColumnSorting extends ColumnSorting {
    * @param {HTMLElement} headerSpanElement Header span element.
    * @param {...*} args Extra arguments for helpers.
    */
-  updateHeaderClasses(headerSpanElement, ...args) {
-    super.updateHeaderClasses(headerSpanElement, ...args);
+  updateHeaderClassesAndAriaSortAttributes(headerSpanElement, ...args) {
+    super.updateHeaderClassesAndAriaSortAttributes(headerSpanElement, ...args);
 
     removeClass(headerSpanElement, getClassesToRemove(headerSpanElement));
+    removeAttribute(headerSpanElement, getAriaSortAttrToRemove());
 
     if (this.enabled !== false) {
       addClass(headerSpanElement, getClassesToAdd(...args));
+      setAttribute(headerSpanElement, getAriaSortAttrToAdd(...args));
     }
   }
 

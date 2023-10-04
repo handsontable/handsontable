@@ -1,5 +1,5 @@
 import {
-  addClass,
+  addClass, removeAttribute,
   removeClass,
   setAttribute,
 } from '../../helpers/dom/element';
@@ -20,7 +20,7 @@ import {
 } from './utils';
 import {
   getClassesToRemove,
-  getClassesToAdd
+  getClassesToAdd, getAriaSortAttrToAdd, getAriaSortAttrToRemove
 } from './domHelpers';
 import { rootComparator } from './rootComparator';
 import { registerRootComparator, sort } from './sortService';
@@ -185,7 +185,7 @@ export class ColumnSorting extends BasePlugin {
         return;
       }
 
-      this.updateHeaderClasses(headerSpanElement);
+      this.updateHeaderClassesAndAriaSortAttributes(headerSpanElement);
     };
 
     // Changing header width and removing indicator.
@@ -715,7 +715,7 @@ export class ColumnSorting extends BasePlugin {
     const showSortIndicator = pluginSettingsForColumn.indicator;
     const headerActionEnabled = pluginSettingsForColumn.headerAction;
 
-    this.updateHeaderClasses(
+    this.updateHeaderClassesAndAriaSortAttributes(
       headerSpanElement,
       this.columnStatesManager,
       column,
@@ -731,17 +731,19 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Update header classes.
+   * Update header classes and aria-sort attributes.
    *
    * @private
    * @param {HTMLElement} headerSpanElement Header span element.
    * @param {...*} args Extra arguments for helpers.
    */
-  updateHeaderClasses(headerSpanElement, ...args) {
+  updateHeaderClassesAndAriaSortAttributes(headerSpanElement, ...args) {
     removeClass(headerSpanElement, getClassesToRemove(headerSpanElement));
-
+    removeAttribute(headerSpanElement, getAriaSortAttrToRemove());
+    
     if (this.enabled !== false) {
       addClass(headerSpanElement, getClassesToAdd(...args));
+      setAttribute(headerSpanElement, getAriaSortAttrToAdd(...args));
     }
   }
 
