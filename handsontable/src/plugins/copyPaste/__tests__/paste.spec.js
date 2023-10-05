@@ -277,13 +277,17 @@ describe('CopyPaste', () => {
     });
 
     it('should call beforePaste and afterPaste during pasting operation (copied simple text)', async() => {
-      const beforePasteSpy = jasmine.createSpy('beforePaste');
-      const afterPasteSpy = jasmine.createSpy('afterPaste');
+      let beforePasteArgument;
+      let afterPasteArgument;
 
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2),
-        beforePaste: beforePasteSpy,
-        afterPaste: afterPasteSpy
+        beforePaste(actionInfo) {
+          beforePasteArgument = actionInfo;
+        },
+        afterPaste(actionInfo) {
+          afterPasteArgument = actionInfo;
+        },
       });
 
       selectCell(0, 0);
@@ -292,20 +296,23 @@ describe('CopyPaste', () => {
 
       await sleep(60);
 
-      expect(beforePasteSpy.calls.count()).toEqual(1);
-      expect(beforePasteSpy).toHaveBeenCalledWith([['Kia']], 'Kia');
-
-      expect(afterPasteSpy.calls.count()).toEqual(1);
-      expect(afterPasteSpy).toHaveBeenCalledWith([['Kia']], 'Kia');
+      expect(beforePasteArgument.getHTML()).toEqual('Kia');
+      expect(beforePasteArgument.getData()).toEqual([['Kia']]);
+      expect(afterPasteArgument.getHTML()).toEqual('Kia');
+      expect(afterPasteArgument.getData()).toEqual([['Kia']]);
     });
 
     it('should call beforePaste and afterPaste during pasting operation (copied HTML data)', () => {
-      const beforePasteSpy = jasmine.createSpy('beforePaste');
-      const afterPasteSpy = jasmine.createSpy('afterPaste');
+      let beforePasteArgument;
+      let afterPasteArgument;
 
       handsontable({
-        beforePaste: beforePasteSpy,
-        afterPaste: afterPasteSpy,
+        beforePaste(actionInfo) {
+          beforePasteArgument = actionInfo;
+        },
+        afterPaste(actionInfo) {
+          afterPasteArgument = actionInfo;
+        },
       });
 
       const clipboardEvent = getClipboardEvent();
@@ -319,12 +326,7 @@ describe('CopyPaste', () => {
 
       plugin.onPaste(clipboardEvent);
 
-      expect(beforePasteSpy.calls.count()).toEqual(1);
-      expect(beforePasteSpy).toHaveBeenCalledWith(
-        [
-          ['A1', null, 'C1'],
-          [null, null, 'C2'],
-        ],
+      expect(beforePasteArgument.getHTML()).toBe(
         '<table>' +
           '<tbody>' +
             '<tr>' +
@@ -336,15 +338,13 @@ describe('CopyPaste', () => {
             '</tr>' +
           '</tbody>' +
         '</table>',
-        { ignoredRows: [], ignoredColumns: [], }
       );
+      expect(beforePasteArgument.getData()).toEqual([
+        ['A1', null, 'C1'],
+        [null, null, 'C2'],
+      ]);
 
-      expect(afterPasteSpy.calls.count()).toEqual(1);
-      expect(afterPasteSpy).toHaveBeenCalledWith(
-        [
-          ['A1', null, 'C1'],
-          [null, null, 'C2'],
-        ],
+      expect(afterPasteArgument.getHTML()).toBe(
         '<table>' +
           '<tbody>' +
             '<tr>' +
@@ -356,8 +356,11 @@ describe('CopyPaste', () => {
             '</tr>' +
           '</tbody>' +
         '</table>',
-        { ignoredRows: [], ignoredColumns: [], }
       );
+      expect(afterPasteArgument.getData()).toEqual([
+        ['A1', null, 'C1'],
+        [null, null, 'C2'],
+      ]);
     });
 
     it('should be possible to block pasting', async() => {
@@ -381,17 +384,19 @@ describe('CopyPaste', () => {
     });
 
     it('should be possible to modify data during paste operation (simple headers)', () => {
-      const afterPasteSpy = jasmine.createSpy('afterPaste');
+      let afterPasteArgument;
 
       handsontable({
         data: createSpreadsheetData(2, 2),
         colHeaders: true,
         copyPaste: true,
-        beforePaste(data, textHTML, pasteConfig) {
-          pasteConfig.ignoredRows.push(0);
-          pasteConfig.ignoredColumns.push(1);
+
+        beforePaste(actionInfo) {
+          actionInfo.remove({ rows: [0], columns: [1] });
         },
-        afterPaste: afterPasteSpy,
+        afterPaste(actionInfo) {
+          afterPasteArgument = actionInfo;
+        },
       });
 
       const clipboardEvent = getClipboardEvent();
@@ -428,12 +433,7 @@ describe('CopyPaste', () => {
 
       plugin.onPaste(clipboardEvent);
 
-      expect(afterPasteSpy.calls.count()).toEqual(1);
-      expect(afterPasteSpy).toHaveBeenCalledWith(
-        [
-          ['A', 'C', 'D'],
-          ['A2', 'C2', 'D2'],
-        ],
+      expect(afterPasteArgument.getHTML()).toBe(
         '<table>' +
           '<thead>' +
             '<tr>' +
@@ -450,22 +450,26 @@ describe('CopyPaste', () => {
               '</tr>' +
           '</tbody>' +
         '</table>',
-        { ignoredRows: [0], ignoredColumns: [1], }
       );
+      expect(afterPasteArgument.getData()).toEqual([
+        ['A', 'C', 'D'],
+        ['A2', 'C2', 'D2'],
+      ]);
     });
 
     it('should be possible to modify data during paste operation (nested headers)', () => {
-      const afterPasteSpy = jasmine.createSpy('afterPaste');
+      let afterPasteArgument;
 
       handsontable({
         data: createSpreadsheetData(2, 2),
         colHeaders: true,
         copyPaste: true,
-        beforePaste(data, textHTML, pasteConfig) {
-          pasteConfig.ignoredRows.push(-1, 0);
-          pasteConfig.ignoredColumns.push(0);
+        beforePaste(actionInfo) {
+          actionInfo.remove({ rows: [0, -1], columns: [0] });
         },
-        afterPaste: afterPasteSpy,
+        afterPaste(actionInfo) {
+          afterPasteArgument = actionInfo;
+        },
       });
 
       const clipboardEvent = getClipboardEvent();
@@ -500,12 +504,7 @@ describe('CopyPaste', () => {
 
       plugin.onPaste(clipboardEvent);
 
-      expect(afterPasteSpy.calls.count()).toEqual(1);
-      expect(afterPasteSpy).toHaveBeenCalledWith(
-        [
-          ['A-0-1'],
-          ['B2'],
-        ],
+      expect(afterPasteArgument.getHTML()).toBe(
         '<table>' +
           '<thead>' +
             '<tr>' +
@@ -518,8 +517,9 @@ describe('CopyPaste', () => {
             '</tr>' +
           '</tbody>' +
         '</table>',
-        { ignoredRows: [-1, 0], ignoredColumns: [0], }
       );
+
+      expect(afterPasteArgument.getData()).toEqual([['A-0-1'], ['B2']]);
     });
 
     it('should be possible to paste copied data from the same instance', async() => {

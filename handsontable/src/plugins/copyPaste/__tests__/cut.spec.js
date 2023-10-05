@@ -54,13 +54,17 @@ describe('CopyPaste', () => {
     });
 
     it('should call beforeCut and afterCut during cutting out operation', () => {
-      const beforeCutSpy = jasmine.createSpy('beforeCut');
-      const afterCutSpy = jasmine.createSpy('afterCut');
+      let beforeCutArgument;
+      let afterCutArgument;
 
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2),
-        beforeCut: beforeCutSpy,
-        afterCut: afterCutSpy
+        beforeCut(actionInfo) {
+          beforeCutArgument = actionInfo;
+        },
+        afterCut(actionInfo) {
+          afterCutArgument = actionInfo;
+        },
       });
       const cutEvent = getClipboardEvent();
       const plugin = hot.getPlugin('CopyPaste');
@@ -69,10 +73,8 @@ describe('CopyPaste', () => {
 
       plugin.onCut(cutEvent);
 
-      expect(beforeCutSpy.calls.count()).toEqual(1);
       /* eslint-disable indent */
-      expect(beforeCutSpy).toHaveBeenCalledWith(
-        [['A1']],
+      expect(beforeCutArgument.getHTML()).toBe(
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
         '<table>' +
@@ -81,21 +83,21 @@ describe('CopyPaste', () => {
               '<td>A1</td>' +
             '</tr>' +
           '</tbody>' +
-        '</table>',
-        { rows: [0], columns: [0] });
-      expect(afterCutSpy.calls.count()).toEqual(1);
-      expect(afterCutSpy).toHaveBeenCalledWith(
-        [['A1']],
+        '</table>'
+      );
+      expect(beforeCutArgument.getData()).toEqual([['A1']]);
+      expect(afterCutArgument.getHTML()).toBe(
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
         '<table>' +
           '<tbody>' +
-          '<tr>' +
-            '<td>A1</td>' +
-          '</tr>' +
+            '<tr>' +
+              '<td>A1</td>' +
+            '</tr>' +
           '</tbody>' +
-        '</table>',
-        { rows: [0], columns: [0] });
+        '</table>'
+      );
+      expect(afterCutArgument.getData()).toEqual([['A1']]);
       /* eslint-enable */
     });
   });

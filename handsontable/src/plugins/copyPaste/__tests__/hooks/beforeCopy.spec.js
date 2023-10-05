@@ -17,13 +17,15 @@ describe('CopyPaste', () => {
 
   describe('`beforeCopy` hook', () => {
     it('should be called with coords and dataset points to the cells only', () => {
-      const beforeCopy = jasmine.createSpy('beforeCopy');
+      let beforeCopyArgument;
 
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
         copyPaste: true,
-        beforeCopy,
+        beforeCopy(actionInfo) {
+          beforeCopyArgument = actionInfo;
+        },
       });
 
       const copyEvent = getClipboardEvent();
@@ -34,10 +36,8 @@ describe('CopyPaste', () => {
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
-      expect(beforeCopy.calls.count()).toBe(1);
       /* eslint-disable indent */
-      expect(beforeCopy).toHaveBeenCalledWith(
-        [['C2', 'D2', 'E2'], ['C3', 'D3', 'E3'], ['C4', 'D4', 'E4']],
+      expect(beforeCopyArgument.getHTML()).toBe(
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
         '<table>' +
@@ -59,20 +59,22 @@ describe('CopyPaste', () => {
             '</tr>' +
           '</tbody>' +
         '</table>',
-        { rows: [1, 2, 3], columns: [2, 3, 4] }
       );
       /* eslint-enable */
+      expect(beforeCopyArgument.getData()).toEqual([['C2', 'D2', 'E2'], ['C3', 'D3', 'E3'], ['C4', 'D4', 'E4']]);
     });
 
     it('should be called with coords and dataset points to the cells and the first column headers ' +
       'nearest the cells (single-line column headers configuration)', () => {
-      const beforeCopy = jasmine.createSpy('beforeCopy');
+      let beforeCopyArgument;
 
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
         copyPaste: true,
-        beforeCopy,
+        beforeCopy(actionInfo) {
+          beforeCopyArgument = actionInfo;
+        },
       });
 
       const copyEvent = getClipboardEvent();
@@ -83,10 +85,8 @@ describe('CopyPaste', () => {
       plugin.copyWithColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
-      expect(beforeCopy.calls.count()).toBe(1);
       /* eslint-disable indent */
-      expect(beforeCopy).toHaveBeenCalledWith(
-        [['C', 'D', 'E'], ['C2', 'D2', 'E2'], ['C3', 'D3', 'E3'], ['C4', 'D4', 'E4']],
+      expect(beforeCopyArgument.getHTML()).toBe(
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
         '<table>' +
@@ -115,14 +115,16 @@ describe('CopyPaste', () => {
             '</tr>' +
           '</tbody>' +
         '</table>',
-        { rows: [-1, 1, 2, 3], columns: [2, 3, 4] }
       );
       /* eslint-enable */
+      expect(beforeCopyArgument.getData()).toEqual([
+        ['C', 'D', 'E'], ['C2', 'D2', 'E2'], ['C3', 'D3', 'E3'], ['C4', 'D4', 'E4']]
+      );
     });
 
     it('should be called with coords and dataset points to the cells and the first column headers ' +
       'nearest the cells (multi-line column headers configuration)', () => {
-      const beforeCopy = jasmine.createSpy('beforeCopy');
+      let beforeCopyArgument;
 
       handsontable({
         data: createSpreadsheetData(5, 5),
@@ -137,7 +139,9 @@ describe('CopyPaste', () => {
             TH.innerText = this.getColHeader(renderedColumnIndex, 1);
           });
         },
-        beforeCopy,
+        beforeCopy(actionInfo) {
+          beforeCopyArgument = actionInfo;
+        },
       });
 
       const copyEvent = getClipboardEvent();
@@ -148,9 +152,7 @@ describe('CopyPaste', () => {
       plugin.copyWithColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
-      expect(beforeCopy.calls.count()).toBe(1);
-      expect(beforeCopy).toHaveBeenCalledWith(
-        [['C', 'D', 'E'], ['C2', 'D2', 'E2'], ['C3', 'D3', 'E3'], ['C4', 'D4', 'E4']],
+      expect(beforeCopyArgument.getHTML()).toBe(
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
         '<table>' +
@@ -179,12 +181,14 @@ describe('CopyPaste', () => {
             '</tr>' +
           '</tbody>' +
         '</table>',
-        { rows: [-1, 1, 2, 3], columns: [2, 3, 4] }
+      );
+      expect(beforeCopyArgument.getData()).toEqual([
+        ['C', 'D', 'E'], ['C2', 'D2', 'E2'], ['C3', 'D3', 'E3'], ['C4', 'D4', 'E4']]
       );
     });
 
     it('should be called with coords and dataset points to the cells and all column header layers', () => {
-      const beforeCopy = jasmine.createSpy('beforeCopy');
+      let beforeCopyArgument;
 
       handsontable({
         data: createSpreadsheetData(5, 5),
@@ -202,7 +206,9 @@ describe('CopyPaste', () => {
             TH.innerText = this.getColHeader(renderedColumnIndex, 2);
           });
         },
-        beforeCopy,
+        beforeCopy(actionInfo) {
+          beforeCopyArgument = actionInfo;
+        },
       });
 
       const copyEvent = getClipboardEvent();
@@ -213,9 +219,7 @@ describe('CopyPaste', () => {
       plugin.copyWithAllColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
-      expect(beforeCopy.calls.count()).toBe(1);
-      expect(beforeCopy).toHaveBeenCalledWith(
-        [['C', 'D'], ['C', 'D'], ['C', 'D'], ['C2', 'D2'], ['C3', 'D3'], ['C4', 'D4']],
+      expect(beforeCopyArgument.getHTML()).toBe(
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
         '<table>' +
@@ -248,8 +252,11 @@ describe('CopyPaste', () => {
             '</tr>' +
           '</tbody>' +
         '</table>',
-        { rows: [-3, -2, -1, 1, 2, 3], columns: [2, 3] }
       );
+
+      expect(beforeCopyArgument.getData()).toEqual([
+        ['C', 'D'], ['C', 'D'], ['C', 'D'], ['C2', 'D2'], ['C3', 'D3'], ['C4', 'D4']
+      ]);
     });
 
     it('should be possible to block copy operation', () => {
@@ -292,11 +299,8 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(2, 2),
         colHeaders: true,
         copyPaste: true,
-        beforeCopy(data, textHTML, copyConfig) {
-          copyConfig.rows = copyConfig.rows.filter((rowIndex) => {
-            // remove the first selected cells and the most-bottom column header
-            return rowIndex !== 0 && rowIndex !== -1;
-          });
+        beforeCopy(actionInfo) {
+          actionInfo.remove({ rows: [0, -1] });
         },
         modifyColumnHeaderValue(value, columnIndex, headerLevel) {
           if (headerLevel < 0) {
