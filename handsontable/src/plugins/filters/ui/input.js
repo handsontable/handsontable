@@ -38,14 +38,10 @@ class InputUI extends BaseUI {
   build() {
     super.build();
     const priv = privatePool.get(this);
-    const icon = this.hot.rootDocument.createElement('div');
 
     priv.input = this._element.firstChild;
 
     addClass(this._element, 'htUIInput');
-    addClass(icon, 'htUIInputIcon');
-
-    this._element.appendChild(icon);
 
     this.update();
   }
