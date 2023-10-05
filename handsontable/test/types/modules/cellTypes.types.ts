@@ -7,6 +7,7 @@ import {
   HandsontableCellType,
   NumericCellType,
   PasswordCellType,
+  SelectCellType,
   TextCellType,
   TimeCellType,
   getCellType,
@@ -23,6 +24,7 @@ registerCellType(DropdownCellType);
 registerCellType(HandsontableCellType);
 registerCellType(NumericCellType);
 registerCellType(PasswordCellType);
+registerCellType(SelectCellType);
 registerCellType(TimeCellType);
 registerCellType(TextCellType);
 
