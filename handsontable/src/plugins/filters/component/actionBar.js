@@ -68,10 +68,7 @@ class ActionBarComponent extends BaseComponent {
       hidden: () => this.isHidden(),
       renderer: (hot, wrapper) => {
         addClass(wrapper.parentNode, 'htFiltersMenuActionBar');
-
-        if (!wrapper.parentNode.hasAttribute('ghost-table')) {
-          arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
-        }
+        arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
 
         return wrapper;
       }

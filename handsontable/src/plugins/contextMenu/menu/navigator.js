@@ -48,6 +48,16 @@ export class Navigator {
   }
 
   /**
+   * Selects the specified menu item.
+   *
+   * @param {number} rowIndex The menu row index.
+   */
+  selectItem(rowIndex) {
+    this.#current = rowIndex;
+    this.#hotMenu.selectCell(this.#current, 0, this.#current, 0, false, false);
+  }
+
+  /**
    * Selects the first menu item in the menu.
    */
   selectFirst() {

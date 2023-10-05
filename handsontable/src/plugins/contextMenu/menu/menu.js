@@ -8,7 +8,6 @@ import {
   normalizeSelection,
   isItemSubMenu,
   isItemDisabled,
-  isItemSelectionDisabled,
   isItemSeparator,
 } from './utils';
 import EventManager from '../../../eventManager';
@@ -16,26 +15,21 @@ import { arrayEach, arrayFilter, arrayReduce } from '../../../helpers/array';
 import { isWindowsOS, isMobileBrowser, isIpadOS } from '../../../helpers/browser';
 import {
   addClass,
-  empty,
-  fastInnerHTML,
   isChildOf,
   isInput,
-  removeClass,
   getParentWindow,
   hasClass,
   setAttribute,
 } from '../../../helpers/dom/element';
-import { isRightClick } from '../../../helpers/dom/event';
+import { isRightClick, stopImmediatePropagation } from '../../../helpers/dom/event';
 import { debounce, isFunction } from '../../../helpers/function';
 import { isUndefined, isDefined } from '../../../helpers/mixed';
 import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
+import { createMenuItemRenderer } from './menuItemRenderer';
 import {
-  A11Y_DISABLED,
   A11Y_EXPANDED,
-  A11Y_LABEL,
   A11Y_MENU,
-  A11Y_MENU_ITEM
 } from '../../../helpers/a11y';
 
 const MIN_WIDTH = 215;
@@ -82,7 +76,7 @@ export class Menu {
     this.parentMenu = this.options.parent || null;
     this.menuItems = null;
     this.origOutsideClickDeselects = null;
-    this._afterScrollCallback = null;
+    this.selectedByMouse = false;
 
     this.registerEvents();
   }
@@ -190,10 +184,24 @@ export class Menu {
       readOnly: true,
       editor: false,
       copyPaste: false,
+      hiddenRows: true,
       maxCols: 1,
+      cells: (row) => {
+        if (this.hotMenu.view.isMouseDown() || this.selectedByMouse) {
+          return { className: '' };
+        }
+
+        if (row === this.hotMenu.getSelectedRangeLast()?.highlight.row) {
+          return {
+            className: 'currentByKeyboard'
+          };
+        }
+
+        return { className: '' };
+      },
       columns: [{
         data: 'name',
-        renderer: (hot, TD, row, col, prop, value) => this.menuItemRenderer(hot, TD, row, col, prop, value)
+        renderer: createMenuItemRenderer(this.hot),
       }],
       renderAllRows: true,
       fragmentSelection: false,
@@ -201,6 +209,11 @@ export class Menu {
       disableVisualSelection: 'area',
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       ariaTags: false,
+      beforeOnCellMouseOver: (event, coords) => {
+        this.selectedByMouse = true;
+        this.navigator.selectItem(coords.row);
+        this.selectedByMouse = false;
+      },
       afterOnCellMouseOver: (event, coords) => {
         if (this.isAllSubMenusClosed()) {
           delayedOpenSubMenu(coords.row);
@@ -267,9 +280,8 @@ export class Menu {
 
     const shortcutManager = this.hotMenu.getShortcutManager();
     const menuContext = shortcutManager.addContext(SHORTCUTS_GROUP);
-    const config = { group: SHORTCUTS_CONTEXT };
     const menuContextConfig = {
-      ...config,
+      group: SHORTCUTS_CONTEXT,
       runOnlyIf: event => !isInput(event.target) || !this.container.contains(event.target),
     };
 
@@ -577,81 +589,6 @@ export class Menu {
     this.positioner
       .setElement(this.container)
       .updatePosition(coords);
-  }
-
-  /**
-   * Menu item renderer.
-   *
-   * @private
-   * @param {Core} hot The Handsontable instance.
-   * @param {HTMLCellElement} TD The rendered cell element.
-   * @param {number} row The visual index.
-   * @param {number} col The visual index.
-   * @param {string} prop The column property if used.
-   * @param {string} value The cell value.
-   */
-  menuItemRenderer(hot, TD, row, col, prop, value) {
-    const item = hot.getSourceDataAtRow(row);
-    const wrapper = this.hot.rootDocument.createElement('div');
-    let itemValue = value;
-
-    if (typeof itemValue === 'function') {
-      itemValue = itemValue.call(this.hot);
-    }
-
-    empty(TD);
-    addClass(wrapper, 'htItemWrapper');
-
-    if (this.hot.getSettings().ariaTags) {
-      setAttribute(TD, [
-        A11Y_MENU_ITEM(),
-        A11Y_LABEL(itemValue),
-        ...(isItemDisabled(item, this.hot) ? [A11Y_DISABLED()] : []),
-        ...(isItemSubMenu(item) ? [A11Y_EXPANDED(false)] : []),
-      ]);
-    }
-
-    TD.appendChild(wrapper);
-
-    if (isItemSeparator(item)) {
-      addClass(TD, 'htSeparator');
-
-    } else if (typeof item.renderer === 'function') {
-      addClass(TD, 'htCustomMenuRenderer');
-      TD.appendChild(item.renderer(hot, wrapper, row, col, prop, itemValue));
-
-    } else {
-      fastInnerHTML(wrapper, itemValue);
-    }
-
-    if (isItemDisabled(item, this.hot)) {
-      addClass(TD, 'htDisabled');
-      this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
-
-    } else if (isItemSelectionDisabled(item)) {
-      addClass(TD, 'htSelectionDisabled');
-      this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
-
-    } else if (isItemSubMenu(item)) {
-      addClass(TD, 'htSubmenu');
-
-      if (isItemSelectionDisabled(item)) {
-        this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
-      } else {
-        this.eventManager
-          .addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, false, false));
-      }
-
-    } else {
-      removeClass(TD, ['htSubmenu', 'htDisabled']);
-
-      if (isItemSelectionDisabled(item)) {
-        this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
-      } else {
-        this.eventManager
-          .addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, false, false));
-      }
-    }
   }
 
   /**

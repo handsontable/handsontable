@@ -159,7 +159,6 @@ class ConditionComponent extends BaseComponent {
       key: this.id,
       name: this.name,
       isCommand: false,
-      disableSelection: true,
       hidden: () => this.isHidden(),
       renderer: (hot, wrapper, row, col, prop, value) => {
         addClass(wrapper.parentNode, 'htFiltersMenuCondition');
@@ -176,9 +175,7 @@ class ConditionComponent extends BaseComponent {
 
         wrapper.appendChild(label);
 
-        if (!wrapper.parentNode.hasAttribute('ghost-table')) {
-          arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
-        }
+        arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
 
         return wrapper;
       }

@@ -234,7 +234,6 @@ export class Filters extends BasePlugin {
 
     this.components.forEach(component => component.show());
 
-    this.addHook('beforeDropdownMenuSetItems', items => this.onBeforeDropdownMenuSetItems(items));
     this.addHook('afterDropdownMenuDefaultOptions',
       defaultOptions => this.onAfterDropdownMenuDefaultOptions(defaultOptions));
     this.addHook('afterDropdownMenuShow', () => this.onAfterDropdownMenuShow());
@@ -615,19 +614,6 @@ export class Filters extends BasePlugin {
   onAfterDropdownMenuHide() {
     this.components.get('filter_by_condition').getSelectElement().closeOptions();
     this.components.get('filter_by_condition2').getSelectElement().closeOptions();
-  }
-
-  /**
-   * Before dropdown menu set menu items listener.
-   *
-   * @private
-   */
-  onBeforeDropdownMenuSetItems() {
-    if (this.dropdownMenuPlugin) {
-      this.dropdownMenuPlugin.menu.addLocalHook('afterOpen', () => {
-        this.dropdownMenuPlugin.menu.hotMenu.updateSettings({ hiddenRows: true });
-      });
-    }
   }
 
   /**
