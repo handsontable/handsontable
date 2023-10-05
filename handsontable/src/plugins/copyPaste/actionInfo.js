@@ -172,20 +172,21 @@ export class ActionInfo {
     changes.forEach((singleChange) => {
       const { row, column, value } = singleChange;
 
-      if (row < 0 && Array.isArray(nestedHeaders)) {
-        const headerRelative = row + nestedHeaders.length;
+      if (row < 0) {
+        if (Array.isArray(nestedHeaders)) {
+          const headerRelative = row + nestedHeaders.length;
 
-        if (Array.isArray(nestedHeaders[headerRelative]) && isDefined(nestedHeaders[headerRelative][column])) {
-          nestedHeaders[headerRelative][column] = value;
+          if (Array.isArray(nestedHeaders[headerRelative]) && isDefined(nestedHeaders[headerRelative][column])) {
+            nestedHeaders[headerRelative][column] = value;
+          }
+
+        } else if (Array.isArray(colHeaders)) {
+          const headerRelative = row + colHeaders.length;
+
+          if (Array.isArray(colHeaders[headerRelative]) && isDefined(colHeaders[headerRelative][column])) {
+            colHeaders[headerRelative][column] = value;
+          }
         }
-
-      } else if (row < 0 && Array.isArray(colHeaders)) {
-        const headerRelative = row + colHeaders.length;
-
-        if (Array.isArray(colHeaders[headerRelative]) && isDefined(colHeaders[headerRelative][column])) {
-          colHeaders[headerRelative][column] = value;
-        }
-
       } else if (row >= 0 && Array.isArray(data) && Array.isArray(data[row]) && isDefined(data[row][column])) {
         data[row][column] = value;
       }
