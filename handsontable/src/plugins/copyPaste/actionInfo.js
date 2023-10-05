@@ -46,7 +46,7 @@ export class ActionInfo {
   #data;
   /**
    * @param {object} config Configuration object for the action.
-   * @param {'copy'|'paste'} config.type Type of action - copying (and cutting) or pasting the data.
+   * @param {'copy'|'paste'} config.type Type of the action - copying (and cutting) or pasting the data.
    * @param {string} config.html Sanitized data of "text/html" type inside the clipboard.
    * @param {Core} [config.instance] Handsontable instance (used only while copying data).
    * @param {CellRange[]} [config.copyableRanges] Cell ranges related to instance of Handsontable (used only while copying data).
@@ -65,11 +65,7 @@ export class ActionInfo {
       this.#html = html;
 
       if (this.isTable()) {
-        this.#data = getDataWithHeadersByConfig({
-          ...this.getGridSettings(),
-          ignoredRows: [],
-          ignoredColumns: [],
-        });
+        this.#data = getDataWithHeadersByConfig(this.getGridSettings());
 
       } else {
         this.#data = parse(this.#html);
@@ -147,8 +143,8 @@ export class ActionInfo {
   remove({ rows, columns }) {
     const config = {
       ...this.getGridSettings(),
-      ignoredRows: rows || [],
-      ignoredColumns: columns || [],
+      excludedRows: rows || [],
+      excludedColumns: columns || [],
     };
 
     this.overWriteInfo(config);
@@ -192,10 +188,6 @@ export class ActionInfo {
       }
     });
 
-    this.overWriteInfo({
-      ...config,
-      ignoredRows: [],
-      ignoredColumns: [],
-    });
+    this.overWriteInfo(config);
   }
 }

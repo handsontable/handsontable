@@ -77,8 +77,8 @@ export function getDataByCoords(instance, config) {
  * Converts config into HTMLTableElement.
  *
  * @param {object} config Configuration for building HTMLTableElement.
- * @param {Array<number>} config.ignoredRows List of row indexes which should be excluded when creating the table.
- * @param {Array<number>} config.ignoredColumns List of column indexes which should be excluded when creating the table.
+ * @param {Array<number>} [config.excludedRows] List of row indexes which should be excluded when creating the table.
+ * @param {Array<number>} [config.excludedColumns] List of column indexes which should be excluded when creating the table.
  * @param {Array<Array<string>>} [config.data] List of cell data.
  * @param {Array<object>} [config.mergeCells] List of merged cells.
  * @param {Array<Array<string|object>>} [config.nestedHeaders] List of headers and corresponding information about some
@@ -99,18 +99,18 @@ export function getHTMLFromConfig(config) {
  * Get list of filtered nested headers.
  *
  * @param {Array<string>} nestedHeaders List of nested headers which will be filtered.
- * @param {Array<number>} ignoredHeaders List of headers which should be excluded when creating the HTMLTableElement.tHead.
- * @param {Array<number>} ignoredColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<number>} excludedHeaders List of headers which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<number>} excludedColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
  * @returns {*}
  */
-function getFilteredNestedHeaders(nestedHeaders, ignoredHeaders, ignoredColumns) {
+function getFilteredNestedHeaders(nestedHeaders, excludedHeaders, excludedColumns) {
   return nestedHeaders.reduce((listOfHeaders, nestedHeader, rowIndex) => {
-    if (ignoredHeaders.includes(rowIndex - nestedHeaders.length)) {
+    if (excludedHeaders.includes(rowIndex - nestedHeaders.length)) {
       return listOfHeaders;
     }
 
     const filteredNestedHeader = nestedHeader.filter((columnData, columnIndex) =>
-      ignoredColumns.includes(columnIndex) === false);
+      excludedColumns.includes(columnIndex) === false);
 
     if (filteredNestedHeader.length > 0) {
       return listOfHeaders.concat([filteredNestedHeader]);
@@ -124,14 +124,14 @@ function getFilteredNestedHeaders(nestedHeaders, ignoredHeaders, ignoredColumns)
  * Get HTML for nested headers.
  *
  * @param {Array<string>} nestedHeaders List of nested headers which will be filtered.
- * @param {Array<number>} ignoredHeaders List of headers which should be excluded when creating the HTMLTableElement.tHead.
- * @param {Array<number>} ignoredColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<number>} excludedHeaders List of headers which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<number>} excludedColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
  * @returns {*[]}
  */
-function getNestedHeadersHTML(nestedHeaders, ignoredHeaders, ignoredColumns) {
+function getNestedHeadersHTML(nestedHeaders, excludedHeaders, excludedColumns) {
   const headersHTML = [];
 
-  getFilteredNestedHeaders(nestedHeaders, ignoredHeaders, ignoredColumns).forEach((listOfHeaders) => {
+  getFilteredNestedHeaders(nestedHeaders, excludedHeaders, excludedColumns).forEach((listOfHeaders) => {
     const rowHTML = ['<tr>'];
 
     for (let i = 0; i < listOfHeaders.length; i += 1) {
@@ -160,17 +160,17 @@ function getNestedHeadersHTML(nestedHeaders, ignoredHeaders, ignoredColumns) {
  * Get HTML for first level header.
  *
  * @param {Array<string>} columnHeaders List of header values which will be filtered.
- * @param {Array<number>} ignoredHeaders List of headers which should be excluded when creating the HTMLTableElement.tHead.
- * @param {Array<number>} ignoredColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<number>} excludedHeaders List of headers which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<number>} excludedColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
  * @returns {*[]}
  */
-function getSimpleHeadersHTML(columnHeaders, ignoredHeaders, ignoredColumns) {
-  if (ignoredHeaders.includes(-1)) {
+function getSimpleHeadersHTML(columnHeaders, excludedHeaders, excludedColumns) {
+  if (excludedHeaders.includes(-1)) {
     return [];
   }
 
   const filteredColumnHeaders = columnHeaders.filter((columnHeaderValue, columnIndex) =>
-    ignoredColumns.includes(columnIndex) === false);
+    excludedColumns.includes(columnIndex) === false);
 
   if (filteredColumnHeaders.length === 0) {
     return [];
@@ -185,22 +185,22 @@ function getSimpleHeadersHTML(columnHeaders, ignoredHeaders, ignoredColumns) {
  *
  * @private
  * @param {Array<Array<string>>} data List of cells values which will be filtered.
- * @param {Array<number>} ignoredRows List of row indexes which should be excluded when creating the HTMLTableElement.tHead.
- * @param {Array<number>} ignoredColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<number>} excludedRows List of row indexes which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<number>} excludedColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
  * @returns {Array<string>} List of cell values.
  */
-function getFilteredCells(data, ignoredRows, ignoredColumns) {
+function getFilteredCells(data, excludedRows, excludedColumns) {
   if (Array.isArray(data) === false) {
     return [];
   }
 
   return data.reduce((listOfCells, rowData, rowIndex) => {
-    if (ignoredRows.includes(rowIndex)) {
+    if (excludedRows.includes(rowIndex)) {
       return listOfCells;
     }
 
     const filteredRowData = rowData.filter((cellData, columnIndex) =>
-      ignoredColumns.includes(columnIndex) === false);
+      excludedColumns.includes(columnIndex) === false);
 
     if (filteredRowData.length > 0) {
       return listOfCells.concat([filteredRowData]);
@@ -257,16 +257,18 @@ function getMergedCellsInformation(mergedCellsConfig) {
  *
  * @private
  * @param {object} config Configuration for building HTMLTableElement.tBodies.
- * @param {Array<number>} config.ignoredRows List of row indexes which should be excluded when creating the HTMLTableElement.tBodies.
- * @param {Array<number>} config.ignoredColumns List of column indexes which should be excluded when creating the HTMLTableElement.tBodies.
  * @param {Array<Array<string>>} config.data List of cell data.
+ * @param {Array<number>} [config.excludedRows] List of row indexes which should be excluded when creating the HTMLTableElement.tBodies.
+ * @param {Array<number>} [config.excludedColumns] List of column indexes which should be excluded when creating the HTMLTableElement.tBodies.
  * @param {Array<object>} [config.mergeCells] List of merged cells.
  * @returns {Array<string>} List of HTMLElements stored as strings.
  */
 function getBodyHTMLByConfig(config) {
-  const { ignoredColumns, data, mergeCells } = config;
-  const ignoredRows = config.ignoredRows.filter(rowIndex => rowIndex >= 0);
-  const filteredData = getFilteredCells(data, ignoredRows, ignoredColumns);
+  const excludedColumns = config.excludedColumns || [];
+  const excludedRows = config.excludedRows || [];
+  const { data, mergeCells } = config;
+  const ignoredCellRows = excludedRows.filter(rowIndex => rowIndex >= 0);
+  const filteredData = getFilteredCells(data, ignoredCellRows, excludedColumns);
   const cells = [];
 
   if (filteredData.length === 0) {
@@ -313,23 +315,25 @@ function getBodyHTMLByConfig(config) {
  *
  * @private
  * @param {object} config Configuration for building HTMLTableElement.tHead.
- * @param {Array<number>} config.ignoredRows List of row indexes which should be excluded when creating the HTMLTableElement.tHead.
- * @param {Array<number>} config.ignoredColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
  * @param {Array<Array<string|object>>} [config.nestedHeaders] List of headers and corresponding information about some
  * nested elements.
  * @param {Array<string>} [config.colHeaders] List of first level header values.
+ * @param {Array<number>} [config.excludedRows] List of row indexes which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<number>} [config.excludedColumns] List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
  * @returns {Array<string>} List of HTMLElements stored as strings.
  */
 function getHeadersHTMLByConfig(config) {
   const headersHTML = [];
-  const { nestedHeaders, colHeaders, ignoredRows, ignoredColumns } = config;
-  const ignoredHeaders = ignoredRows.filter(rowIndex => rowIndex < 0);
+  const excludedColumns = config.excludedColumns || [];
+  const excludedRows = config.excludedRows || [];
+  const { nestedHeaders, colHeaders } = config;
+  const excludedHeaders = excludedRows.filter(rowIndex => rowIndex < 0);
 
   if (Array.isArray(nestedHeaders)) {
-    headersHTML.push(...getNestedHeadersHTML(nestedHeaders, ignoredHeaders, ignoredColumns));
+    headersHTML.push(...getNestedHeadersHTML(nestedHeaders, excludedHeaders, excludedColumns));
 
   } else if (Array.isArray(colHeaders)) {
-    headersHTML.push(...getSimpleHeadersHTML(colHeaders, ignoredHeaders, ignoredColumns));
+    headersHTML.push(...getSimpleHeadersHTML(colHeaders, excludedHeaders, excludedColumns));
   }
 
   if (headersHTML.length > 0) {
@@ -343,19 +347,21 @@ function getHeadersHTMLByConfig(config) {
  * Converts config with information about cells and headers into list of values.
  *
  * @param {object} config Configuration for building list of values.
- * @param {Array<number>} config.ignoredRows List of row indexes which should be excluded when creating the value list.
- * @param {Array<number>} config.ignoredColumns List of column indexes which should be excluded when creating the value list.
+ * @param {Array<number>} [config.excludedRows] List of row indexes which should be excluded when creating the value list.
+ * @param {Array<number>} [config.excludedColumns] List of column indexes which should be excluded when creating the value list.
  * @param {Array<Array<string|object>>} [config.nestedHeaders] List of headers and information about some nested elements.
  * @param {Array<string>} [config.colHeaders] List of first level header values.
  * @returns {Array<string>} List of values.
  */
 export function getDataWithHeadersByConfig(config) {
   const dataWithHeaders = [];
-  const { data, nestedHeaders, colHeaders, ignoredRows, ignoredColumns } = config;
-  const ignoredHeaders = ignoredRows.filter(rowIndex => rowIndex < 0);
+  const excludedColumns = config.excludedColumns || [];
+  const excludedRows = config.excludedRows || [];
+  const { data, nestedHeaders, colHeaders } = config;
+  const excludedHeaders = excludedRows.filter(rowIndex => rowIndex < 0);
 
   if (Array.isArray(nestedHeaders)) {
-    dataWithHeaders.push(...getFilteredNestedHeaders(nestedHeaders, ignoredHeaders, ignoredColumns)
+    dataWithHeaders.push(...getFilteredNestedHeaders(nestedHeaders, excludedHeaders, excludedColumns)
       .map((listOfHeaders) => {
         return listOfHeaders.reduce((headers, header) => {
           if (isObject(header)) {
@@ -372,11 +378,11 @@ export function getDataWithHeadersByConfig(config) {
 
   } else if (Array.isArray(colHeaders)) {
     dataWithHeaders.push([...colHeaders.filter((columnHeaderData, columnIndex) =>
-      ignoredColumns.includes(columnIndex) === false)]);
+      excludedColumns.includes(columnIndex) === false)]);
   }
 
-  dataWithHeaders.push(...getFilteredCells(data, ignoredRows.filter(rowIndex => rowIndex >= 0),
-    ignoredColumns.filter(columnIndex => columnIndex >= 0)));
+  dataWithHeaders.push(...getFilteredCells(data, excludedRows.filter(rowIndex => rowIndex >= 0),
+    excludedColumns.filter(columnIndex => columnIndex >= 0)));
 
   return dataWithHeaders;
 }
