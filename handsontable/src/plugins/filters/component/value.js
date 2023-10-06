@@ -164,6 +164,7 @@ class ValueComponent extends BaseComponent {
       key: this.id,
       name: this.name,
       isCommand: false,
+      disableSelection: true,
       hidden: () => this.isHidden(),
       renderer: (hot, wrapper, row, col, prop, value) => {
         addClass(wrapper.parentNode, 'htFiltersMenuValue');

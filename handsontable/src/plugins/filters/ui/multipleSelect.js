@@ -11,7 +11,6 @@ import InputUI from './input';
 import LinkUI from './link';
 import { createArrayAssertion } from '../utils';
 
-const privatePool = new WeakMap();
 const SHORTCUTS_GROUP = 'multipleSelect.itemBox';
 
 /**
@@ -26,49 +25,53 @@ class MultipleSelectUI extends BaseUI {
     });
   }
 
+  /**
+   * List of available select options.
+   *
+   * @type {Array}
+   */
+  #items = [];
+  /**
+   * Handsontable instance used as items list element.
+   *
+   * @type {Handsontable}
+   */
+  #itemsBox;
+  #locale;
+  /**
+   * Input element.
+   *
+   * @type {InputUI}
+   */
+  #searchInput;
+  /**
+   * "Select all" UI element.
+   *
+   * @type {BaseUI}
+   */
+  #selectAllUI;
+  /**
+   * "Clear" UI element.
+   *
+   * @type {BaseUI}
+   */
+  #clearAllUI;
+
   constructor(hotInstance, options) {
     super(hotInstance, extend(MultipleSelectUI.DEFAULTS, options));
 
-    privatePool.set(this, {});
-    /**
-     * Input element.
-     *
-     * @type {InputUI}
-     */
-    this.searchInput = new InputUI(this.hot, {
+    this.#searchInput = new InputUI(this.hot, {
       placeholder: C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH,
-      className: 'htUIMultipleSelectSearch'
+      className: 'htUIMultipleSelectSearch',
     });
-    /**
-     * "Select all" UI element.
-     *
-     * @type {BaseUI}
-     */
-    this.selectAllUI = new LinkUI(this.hot, {
+    this.#selectAllUI = new LinkUI(this.hot, {
       textContent: C.FILTERS_BUTTONS_SELECT_ALL,
       className: 'htUISelectAll',
     });
-    /**
-     * "Clear" UI element.
-     *
-     * @type {BaseUI}
-     */
-    this.clearAllUI = new LinkUI(this.hot, {
+    this.#clearAllUI = new LinkUI(this.hot, {
       textContent: C.FILTERS_BUTTONS_CLEAR,
       className: 'htUIClearAll',
     });
-    /**
-     * List of available select options.
-     *
-     * @type {Array}
-     */
-    this.items = [];
-    /**
-     * Handsontable instance used as items list element.
-     *
-     * @type {Handsontable}
-     */
-    this.itemsBox = null;
 
     this.registerHooks();
   }
@@ -77,10 +80,10 @@ class MultipleSelectUI extends BaseUI {
    * Register all necessary hooks.
    */
   registerHooks() {
-    this.searchInput.addLocalHook('keydown', event => this.onInputKeyDown(event));
-    this.searchInput.addLocalHook('input', event => this.onInput(event));
-    this.selectAllUI.addLocalHook('click', event => this.onSelectAllClick(event));
-    this.clearAllUI.addLocalHook('click', event => this.onClearAllClick(event));
+    this.#searchInput.addLocalHook('keydown', event => this.#onInputKeyDown(event));
+    this.#searchInput.addLocalHook('input', event => this.#onInput(event));
+    this.#selectAllUI.addLocalHook('click', event => this.#onSelectAllClick(event));
+    this.#clearAllUI.addLocalHook('click', event => this.#onClearAllClick(event));
   }
 
   /**
@@ -89,10 +92,10 @@ class MultipleSelectUI extends BaseUI {
    * @param {Array} items Array of objects with `checked` and `label` property.
    */
   setItems(items) {
-    this.items = items;
+    this.#items = items;
 
-    if (this.itemsBox) {
-      this.itemsBox.loadData(this.items);
+    if (this.#itemsBox) {
+      this.#itemsBox.loadData(this.#items);
     }
   }
 
@@ -102,7 +105,7 @@ class MultipleSelectUI extends BaseUI {
    * @param {string} locale Locale used for filter actions performed on data, ie. `en-US`.
    */
   setLocale(locale) {
-    this.locale = locale;
+    this.#locale = locale;
   }
 
   /**
@@ -111,7 +114,7 @@ class MultipleSelectUI extends BaseUI {
    * @returns {string}
    */
   getLocale() {
-    return this.locale;
+    return this.#locale;
   }
 
   /**
@@ -120,7 +123,7 @@ class MultipleSelectUI extends BaseUI {
    * @returns {Array}
    */
   getItems() {
-    return [...this.items];
+    return [...this.#items];
   }
 
   /**
@@ -129,7 +132,19 @@ class MultipleSelectUI extends BaseUI {
    * @returns {Array} Array of selected values.
    */
   getValue() {
-    return itemsToValue(this.items);
+    return itemsToValue(this.#items);
+  }
+
+  getSearchInputElement() {
+    return this.#searchInput;
+  }
+
+  getSelectAllElement() {
+    return this.#selectAllUI;
+  }
+
+  getClearAllElement() {
+    return this.#clearAllUI;
   }
 
   /**
@@ -138,7 +153,7 @@ class MultipleSelectUI extends BaseUI {
    * @returns {boolean}
    */
   isSelectedAllValues() {
-    return this.items.length === this.getValue().length;
+    return this.#items.length === this.getValue().length;
   }
 
   /**
@@ -151,10 +166,10 @@ class MultipleSelectUI extends BaseUI {
     const itemsBoxWrapper = rootDocument.createElement('div');
     const selectionControl = new BaseUI(this.hot, {
       className: 'htUISelectionControls',
-      children: [this.selectAllUI, this.clearAllUI],
+      children: [this.#selectAllUI, this.#clearAllUI],
     });
 
-    this._element.appendChild(this.searchInput.element);
+    this._element.appendChild(this.#searchInput.element);
     this._element.appendChild(selectionControl.element);
     this._element.appendChild(itemsBoxWrapper);
 
@@ -162,14 +177,14 @@ class MultipleSelectUI extends BaseUI {
       if (!this._element) {
         return;
       }
-      if (this.itemsBox) {
-        this.itemsBox.destroy();
+      if (this.#itemsBox) {
+        this.#itemsBox.destroy();
       }
 
       addClass(wrapper, 'htUIMultipleSelectHot');
       // Constructs and initializes a new Handsontable instance
-      this.itemsBox = new this.hot.constructor(wrapper, {
-        data: this.items,
+      this.#itemsBox = new this.hot.constructor(wrapper, {
+        data: this.#items,
         columns: [
           { data: 'checked', type: 'checkbox', label: { property: 'visualValue', position: 'after' } }
         ],
@@ -180,22 +195,29 @@ class MultipleSelectUI extends BaseUI {
         autoWrapCol: true,
         height: 110,
         // Workaround for #151.
-        colWidths: () => this.itemsBox.container.scrollWidth - getScrollbarWidth(rootDocument),
+        colWidths: () => this.#itemsBox.container.scrollWidth - getScrollbarWidth(rootDocument),
         copyPaste: false,
         disableVisualSelection: 'area',
         fillHandle: false,
         fragmentSelection: 'cell',
-        tabMoves: { row: 1, col: 0 },
+        // tabMoves: { row: 1, col: 0 },
         layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       });
-      this.itemsBox.init();
+      this.#itemsBox.init();
 
-      const shortcutManager = this.itemsBox.getShortcutManager();
+      const shortcutManager = this.#itemsBox.getShortcutManager();
       const gridContext = shortcutManager.getContext('grid');
 
       gridContext.addShortcut({
         // TODO: Is this shortcut really needed? We have one test for that case, but focus is performed programmatically.
         keys: [['Escape']],
+        callback: (event) => {
+          this.runLocalHooks('keydown', event, this);
+        },
+        group: SHORTCUTS_GROUP
+      });
+      gridContext.addShortcut({
+        keys: [['Tab']],
         callback: (event) => {
           this.runLocalHooks('keydown', event, this);
         },
@@ -211,9 +233,9 @@ class MultipleSelectUI extends BaseUI {
    * Reset DOM structure.
    */
   reset() {
-    this.searchInput.reset();
-    this.selectAllUI.reset();
-    this.clearAllUI.reset();
+    this.#searchInput.reset();
+    this.#selectAllUI.reset();
+    this.#clearAllUI.reset();
   }
 
   /**
@@ -224,7 +246,7 @@ class MultipleSelectUI extends BaseUI {
       return;
     }
 
-    this.itemsBox.loadData(valueToItems(this.items, this.options.value));
+    this.#itemsBox.loadData(valueToItems(this.#items, this.options.value));
     super.update();
   }
 
@@ -232,18 +254,18 @@ class MultipleSelectUI extends BaseUI {
    * Destroy instance.
    */
   destroy() {
-    if (this.itemsBox) {
-      this.itemsBox.destroy();
+    if (this.#itemsBox) {
+      this.#itemsBox.destroy();
     }
-    this.searchInput.destroy();
-    this.clearAllUI.destroy();
-    this.selectAllUI.destroy();
+    this.#searchInput.destroy();
+    this.#clearAllUI.destroy();
+    this.#selectAllUI.destroy();
 
-    this.searchInput = null;
-    this.clearAllUI = null;
-    this.selectAllUI = null;
-    this.itemsBox = null;
-    this.items = null;
+    this.#searchInput = null;
+    this.#clearAllUI = null;
+    this.#selectAllUI = null;
+    this.#itemsBox = null;
+    this.#items = null;
     super.destroy();
   }
 
@@ -253,73 +275,71 @@ class MultipleSelectUI extends BaseUI {
    * @private
    * @param {Event} event DOM event.
    */
-  onInput(event) {
+  #onInput(event) {
     const value = event.target.value.toLocaleLowerCase(this.getLocale());
     let filteredItems;
 
     if (value === '') {
-      filteredItems = [...this.items];
+      filteredItems = [...this.#items];
     } else {
-      filteredItems = arrayFilter(this.items,
+      filteredItems = arrayFilter(this.#items,
         item => (`${item.value}`).toLocaleLowerCase(this.getLocale()).indexOf(value) >= 0);
     }
-    this.itemsBox.loadData(filteredItems);
+
+    this.#itemsBox.loadData(filteredItems);
   }
 
   /**
    * 'keydown' event listener for input element.
    *
-   * @private
    * @param {Event} event DOM event.
    */
-  onInputKeyDown(event) {
+  #onInputKeyDown(event) {
     this.runLocalHooks('keydown', event, this);
 
     const isKeyCode = partial(isKey, event.keyCode);
 
-    if (isKeyCode('ARROW_DOWN|TAB') && !this.itemsBox.isListening()) {
+    if (isKeyCode('ARROW_DOWN') && !this.#itemsBox.isListening()) {
       stopImmediatePropagation(event);
-      this.itemsBox.listen();
-      this.itemsBox.selectCell(0, 0);
+      this.#itemsBox.listen();
+      this.#itemsBox.selectCell(0, 0);
     }
   }
 
   /**
    * On click listener for "Select all" link.
    *
-   * @private
    * @param {DOMEvent} event The mouse event object.
    */
-  onSelectAllClick(event) {
+  #onSelectAllClick(event) {
     const changes = [];
 
     event.preventDefault();
-    arrayEach(this.itemsBox.getSourceData(), (row, rowIndex) => {
+    arrayEach(this.#itemsBox.getSourceData(), (row, rowIndex) => {
       row.checked = true;
 
       changes.push(dataRowToChangesArray(row, rowIndex)[0]);
     });
 
-    this.itemsBox.setSourceDataAtCell(changes);
+    this.#itemsBox.setSourceDataAtCell(changes);
   }
 
   /**
    * On click listener for "Clear" link.
    *
-   * @private
    * @param {DOMEvent} event The mouse event object.
    */
-  onClearAllClick(event) {
+  #onClearAllClick(event) {
     const changes = [];
 
     event.preventDefault();
-    arrayEach(this.itemsBox.getSourceData(), (row, rowIndex) => {
+    arrayEach(this.#itemsBox.getSourceData(), (row, rowIndex) => {
       row.checked = false;
 
       changes.push(dataRowToChangesArray(row, rowIndex)[0]);
     });
 
-    this.itemsBox.setSourceDataAtCell(changes);
+    this.#itemsBox.setSourceDataAtCell(changes);
   }
 }
 

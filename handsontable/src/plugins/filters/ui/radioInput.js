@@ -1,8 +1,6 @@
 import { clone, extend } from '../../../helpers/object';
 import BaseUI from './_base';
 
-const privatePool = new WeakMap();
-
 /**
  * @private
  * @class RadioInputUI
@@ -17,10 +15,11 @@ class RadioInputUI extends BaseUI {
     });
   }
 
+  #input;
+  #label;
+
   constructor(hotInstance, options) {
     super(hotInstance, extend(RadioInputUI.DEFAULTS, options));
-
-    privatePool.set(this, {});
   }
 
   /**
@@ -28,15 +27,13 @@ class RadioInputUI extends BaseUI {
    */
   build() {
     super.build();
-    const priv = privatePool.get(this);
-
-    priv.input = this._element.firstChild;
 
     const label = this.hot.rootDocument.createElement('label');
 
     label.textContent = this.translateIfPossible(this.options.label.textContent);
     label.htmlFor = this.translateIfPossible(this.options.label.htmlFor);
-    priv.label = label;
+    this.#label = label;
+    this.#input = this._element.firstChild;
 
     this._element.appendChild(label);
 
@@ -51,10 +48,8 @@ class RadioInputUI extends BaseUI {
       return;
     }
 
-    const priv = privatePool.get(this);
-
-    priv.input.checked = this.options.checked;
-    priv.label.textContent = this.translateIfPossible(this.options.label.textContent);
+    this.#input.checked = this.options.checked;
+    this.#label.textContent = this.translateIfPossible(this.options.label.textContent);
   }
 
   /**
@@ -81,10 +76,9 @@ class RadioInputUI extends BaseUI {
    */
   focus() {
     if (this.isBuilt()) {
-      privatePool.get(this).input.focus();
+      this.#input.focus();
     }
   }
-
 }
 
 export default RadioInputUI;

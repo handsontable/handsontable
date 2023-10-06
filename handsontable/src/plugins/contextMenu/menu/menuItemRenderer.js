@@ -18,6 +18,14 @@ import {
 } from '../../../helpers/a11y';
 
 /**
+ * Creates the menu renderer function.
+ *
+ * @private
+ * @param {Core} mainTableHot The main table Handsontable instance.
+ * @returns {Function}
+ */
+export function createMenuItemRenderer(mainTableHot) {
+  /**
    * Menu item renderer.
    *
    * @private
@@ -27,8 +35,8 @@ import {
    * @param {number} col The visual index.
    * @param {string} prop The column property if used.
    * @param {string} value The cell value.
+   * @param {object} cellMeta The cell meta object.
    */
-export function createMenuItemRenderer(mainTableHot) {
   return (menuHot, TD, row, col, prop, value, cellMeta) => {
     if (TD.hasAttribute('ghost-table')) {
       return;
@@ -57,12 +65,8 @@ export function createMenuItemRenderer(mainTableHot) {
       addClass(TD, 'htSeparator');
 
     } else if (typeof item.renderer === 'function') {
-
-      if (!cellMeta.__rendered) {
-        // cellMeta.__rendered = true;
-        addClass(TD, 'htCustomMenuRenderer');
-        TD.appendChild(item.renderer(menuHot, wrapper, row, col, prop, itemValue));
-      }
+      addClass(TD, 'htCustomMenuRenderer');
+      TD.appendChild(item.renderer(menuHot, wrapper, row, col, prop, itemValue));
 
     } else {
       fastInnerHTML(wrapper, itemValue);
@@ -79,5 +83,5 @@ export function createMenuItemRenderer(mainTableHot) {
     }
 
     addClass(TD, cellMeta.className);
-  }
+  };
 }

@@ -33,7 +33,7 @@ describe('ContextMenu keyboard shortcut', () => {
       });
 
       contextMenu();
-      getPlugin('contextMenu').menu.navigator.selectFirst();
+      getPlugin('contextMenu').menu.paginator.toFirstPage();
       keyDownUp('pagedown');
 
       const hotMenu = getPlugin('contextMenu').menu.hotMenu;
@@ -48,7 +48,7 @@ describe('ContextMenu keyboard shortcut', () => {
       });
 
       contextMenu();
-      getPlugin('contextMenu').menu.navigator.selectFirst();
+      getPlugin('contextMenu').menu.paginator.toFirstPage();
       keyDownUp('pagedown');
 
       let firstVisibleRow = 0;

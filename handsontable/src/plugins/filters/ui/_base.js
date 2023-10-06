@@ -23,38 +23,42 @@ class BaseUI {
     });
   }
 
+  /**
+   * Instance of Handsontable.
+   *
+   * @type {Core}
+   */
+  hot;
+  /**
+   * Instance of EventManager.
+   *
+   * @type {EventManager}
+   */
+  eventManager = new EventManager(this);
+  /**
+   * List of element options.
+   *
+   * @type {object}
+   */
+  options;
+  /**
+   * Build root DOM element.
+   *
+   * @type {Element}
+   * @private
+   */
+  _element;
+  /**
+   * Flag which determines build state of element.
+   *
+   * @type {string}
+   */
+  buildState;
+
   constructor(hotInstance, options) {
-    /**
-     * Instance of Handsontable.
-     *
-     * @type {Core}
-     */
     this.hot = hotInstance;
-    /**
-     * Instance of EventManager.
-     *
-     * @type {EventManager}
-     */
-    this.eventManager = new EventManager(this);
-    /**
-     * List of element options.
-     *
-     * @type {object}
-     */
     this.options = extend(BaseUI.DEFAULTS, options);
-    /**
-     * Build root DOM element.
-     *
-     * @type {Element}
-     * @private
-     */
     this._element = this.hot.rootDocument.createElement(this.options.wrapIt ? 'div' : this.options.tagName);
-    /**
-     * Flag which determines build state of element.
-     *
-     * @type {string}
-     */
-    this.buildState = null;
   }
 
   /**
@@ -131,9 +135,14 @@ class BaseUI {
     if (!this.buildState) {
       this.buildState = STATE_BUILDING;
     }
+
+    if (this.options.tabIndex !== undefined) {
+      this._element.setAttribute('tabindex', this.options.tabIndex);
+    }
     if (this.options.className) {
       addClass(this._element, this.options.className);
     }
+
     if (this.options.children.length) {
       arrayEach(this.options.children, element => this._element.appendChild(element.element));
 

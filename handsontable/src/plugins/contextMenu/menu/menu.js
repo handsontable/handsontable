@@ -1,5 +1,5 @@
 import { Positioner } from './positioner';
-import { Navigator } from './navigator';
+import { createMenuPaginator } from './paginator';
 import { SEPARATOR, NO_ITEMS, predefinedItems } from './../predefinedItems';
 import {
   filterSeparators,
@@ -21,7 +21,7 @@ import {
   hasClass,
   setAttribute,
 } from '../../../helpers/dom/element';
-import { isRightClick, stopImmediatePropagation } from '../../../helpers/dom/event';
+import { isRightClick } from '../../../helpers/dom/event';
 import { debounce, isFunction } from '../../../helpers/function';
 import { isUndefined, isDefined } from '../../../helpers/mixed';
 import { mixin } from '../../../helpers/object';
@@ -70,7 +70,7 @@ export class Menu {
     this.eventManager = new EventManager(this);
     this.container = this.createContainer(this.options.name);
     this.positioner = new Positioner(this.options.keepInViewport);
-    this.navigator = new Navigator();
+    this.paginator = null;
     this.hotMenu = null;
     this.hotSubMenus = {};
     this.parentMenu = this.options.parent || null;
@@ -134,6 +134,25 @@ export class Menu {
   }
 
   /**
+   * Adds keyboard shortcuts to the menu.
+   *
+   * @param {KeyboardShortcut[]} shortcuts Keyboard shortcuts to add.
+   */
+  addShortcuts(shortcuts) {
+    const shortcutManager = this.hotMenu.getShortcutManager();
+    const menuContext = shortcutManager.getContext(SHORTCUTS_GROUP) ?? shortcutManager.addContext(SHORTCUTS_GROUP);
+
+    shortcuts.forEach(({ keys }) => {
+      keys.forEach(k => menuContext.removeShortcutsByKeys(k));
+    });
+
+    menuContext.addShortcuts(shortcuts, {
+      group: SHORTCUTS_CONTEXT,
+      runOnlyIf: event => !isInput(event.target) || !this.container.contains(event.target),
+    });
+  }
+
+  /**
    * Open menu.
    *
    * @fires Hooks#beforeContextMenuShow
@@ -186,19 +205,6 @@ export class Menu {
       copyPaste: false,
       hiddenRows: true,
       maxCols: 1,
-      cells: (row) => {
-        if (this.hotMenu.view.isMouseDown() || this.selectedByMouse) {
-          return { className: '' };
-        }
-
-        if (row === this.hotMenu.getSelectedRangeLast()?.highlight.row) {
-          return {
-            className: 'currentByKeyboard'
-          };
-        }
-
-        return { className: '' };
-      },
       columns: [{
         data: 'name',
         renderer: createMenuItemRenderer(this.hot),
@@ -210,9 +216,7 @@ export class Menu {
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       ariaTags: false,
       beforeOnCellMouseOver: (event, coords) => {
-        this.selectedByMouse = true;
-        this.navigator.selectItem(coords.row);
-        this.selectedByMouse = false;
+        this.paginator.setCurrentPage(coords.row);
       },
       afterOnCellMouseOver: (event, coords) => {
         if (this.isAllSubMenusClosed()) {
@@ -276,19 +280,9 @@ export class Menu {
     this.hotMenu.init();
     this.hotMenu.listen();
 
-    this.navigator.setMenu(this.hotMenu);
+    this.paginator = createMenuPaginator(this.hotMenu);
 
-    const shortcutManager = this.hotMenu.getShortcutManager();
-    const menuContext = shortcutManager.addContext(SHORTCUTS_GROUP);
-    const menuContextConfig = {
-      group: SHORTCUTS_CONTEXT,
-      runOnlyIf: event => !isInput(event.target) || !this.container.contains(event.target),
-    };
-
-    // Default shortcuts for Handsontable should not be handled. Changing context will help with that.
-    shortcutManager.setActiveContextName('menu');
-
-    menuContext.addShortcuts([{
+    this.addShortcuts([{
       keys: [['Tab'], ['Shift', 'Tab'], ['Control/Meta', 'A']],
       forwardToContext: this.hot.getShortcutManager().getContext('grid'),
       callback: () => this.close(true),
@@ -297,10 +291,10 @@ export class Menu {
       callback: () => this.close(true),
     }, {
       keys: [['ArrowDown']],
-      callback: () => this.navigator.selectNext(),
+      callback: () => this.paginator.toNextPage(),
     }, {
       keys: [['ArrowUp']],
-      callback: () => this.navigator.selectPrev(),
+      callback: () => this.paginator.toPreviousPage(),
     }, {
       keys: [['ArrowRight']],
       callback: () => {
@@ -310,7 +304,7 @@ export class Menu {
           const subMenu = this.openSubMenu(selection[0]);
 
           if (subMenu) {
-            subMenu.navigator.selectFirst();
+            subMenu.paginator.toFirstPage();
           }
         }
       }
@@ -329,17 +323,17 @@ export class Menu {
       },
     }, {
       keys: [['Control/Meta', 'ArrowUp'], ['Home']],
-      callback: () => this.navigator.selectFirst(),
+      callback: () => this.paginator.toFirstPage(),
     }, {
       keys: [['Control/Meta', 'ArrowDown'], ['End']],
-      callback: () => this.navigator.selectLast(),
+      callback: () => this.paginator.toLastPage(),
     }, {
       keys: [['Enter'], ['Space']],
       callback: (event) => {
         const selection = this.hotMenu.getSelectedLast();
 
         if (this.hotMenu.getSourceDataAtRow(selection[0]).submenu) {
-          this.openSubMenu(selection[0]).navigator.selectFirst();
+          this.openSubMenu(selection[0]).paginator.toFirstPage();
         } else {
           this.executeCommand(event);
           this.close(true);
@@ -353,7 +347,7 @@ export class Menu {
         if (selection) {
           this.hotMenu.selection.transformStart(-this.hotMenu.countVisibleRows(), 0);
         } else {
-          this.navigator.selectFirst();
+          this.paginator.toFirstPage();
         }
       },
     }, {
@@ -364,11 +358,12 @@ export class Menu {
         if (selection) {
           this.hotMenu.selection.transformStart(this.hotMenu.countVisibleRows(), 0);
         } else {
-          this.navigator.selectLast();
+          this.paginator.toLastPage();
         }
       },
-    }], menuContextConfig);
+    }]);
 
+    this.hotMenu.getShortcutManager().setActiveContextName('menu');
     this.runLocalHooks('afterOpen');
   }
 
@@ -385,7 +380,7 @@ export class Menu {
     if (closeParent && this.isSubMenu()) {
       this.parentMenu.close();
     } else {
-      this.navigator.clear();
+      this.paginator.clear();
       this.closeAllSubMenus();
       this.container.style.display = 'none';
       this.hotMenu.destroy();

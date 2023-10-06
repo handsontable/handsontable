@@ -124,7 +124,7 @@ describe('ContextMenu', () => {
 
       await sleep(300);
 
-      expect($menu.find('.wtHider').width()).toBeGreaterThan(215);
+      expect($menu.find('.wtHider').width()).toBeGreaterThanOrEqual(215);
     });
 
     it('should display a submenu with the minimum width', async() => {

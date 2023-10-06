@@ -3,7 +3,6 @@ import { arrayEach, arrayMap } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';
-import EventManager from '../../eventManager';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import * as constants from '../../i18n/constants';
@@ -15,6 +14,7 @@ import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
 import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
+import { createMenuPaginator } from './paginator';
 import {
   CONDITION_NONE,
   CONDITION_BY_VALUE,
@@ -82,57 +82,51 @@ export class Filters extends BasePlugin {
     ];
   }
 
+  /**
+   * Instance of {@link DropdownMenu}.
+   *
+   * @private
+   * @type {DropdownMenu}
+   */
+  dropdownMenuPlugin = null;
+  /**
+   * Instance of {@link ConditionCollection}.
+   *
+   * @private
+   * @type {ConditionCollection}
+   */
+  conditionCollection = null;
+  /**
+   * Instance of {@link ConditionUpdateObserver}.
+   *
+   * @private
+   * @type {ConditionUpdateObserver}
+   */
+  conditionUpdateObserver = null;
+  /**
+   * Map, where key is component identifier and value represent `BaseComponent` element or it derivatives.
+   *
+   * @private
+   * @type {Map}
+   */
+  components = new Map([
+    ['filter_by_condition', null],
+    ['filter_operators', null],
+    ['filter_by_condition2', null],
+    ['filter_by_value', null],
+    ['filter_action_bar', null]
+  ]);
+  /**
+   * Map of skipped rows by plugin.
+   *
+   * @private
+   * @type {null|TrimmingMap}
+   */
+  filtersRowsMap = null;
+  #paginator;
+
   constructor(hotInstance) {
     super(hotInstance);
-    /**
-     * Instance of {@link EventManager}.
-     *
-     * @private
-     * @type {EventManager}
-     */
-    this.eventManager = new EventManager(this);
-    /**
-     * Instance of {@link DropdownMenu}.
-     *
-     * @private
-     * @type {DropdownMenu}
-     */
-    this.dropdownMenuPlugin = null;
-    /**
-     * Instance of {@link ConditionCollection}.
-     *
-     * @private
-     * @type {ConditionCollection}
-     */
-    this.conditionCollection = null;
-    /**
-     * Instance of {@link ConditionUpdateObserver}.
-     *
-     * @private
-     * @type {ConditionUpdateObserver}
-     */
-    this.conditionUpdateObserver = null;
-    /**
-     * Map, where key is component identifier and value represent `BaseComponent` element or it derivatives.
-     *
-     * @private
-     * @type {Map}
-     */
-    this.components = new Map([
-      ['filter_by_condition', null],
-      ['filter_operators', null],
-      ['filter_by_condition2', null],
-      ['filter_by_value', null],
-      ['filter_action_bar', null]
-    ]);
-    /**
-     * Map of skipped rows by plugin.
-     *
-     * @private
-     * @type {null|TrimmingMap}
-     */
-    this.filtersRowsMap = null;
-
     // One listener for the enable/disable functionality
     this.hot.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
   }
@@ -233,6 +227,7 @@ export class Filters extends BasePlugin {
     }
 
     this.components.forEach(component => component.show());
+    this.#paginator = createMenuPaginator(this);
 
     this.addHook('afterDropdownMenuDefaultOptions',
       defaultOptions => this.onAfterDropdownMenuDefaultOptions(defaultOptions));
@@ -603,6 +598,14 @@ export class Filters extends BasePlugin {
    * @private
    */
   onAfterDropdownMenuShow() {
+    this.dropdownMenuPlugin.menu.addShortcuts([{
+      keys: [['Tab']],
+      // preventDefault: false,
+      callback: () => {
+        this.#paginator.toNextPage();
+      },
+    }]);
+
     this.restoreComponents(Array.from(this.components.values()));
   }
 

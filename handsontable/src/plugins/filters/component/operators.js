@@ -36,6 +36,7 @@ class OperatorsComponent extends BaseComponent {
       key: this.id,
       name: this.name,
       isCommand: false,
+      disableSelection: true,
       hidden: () => this.isHidden(),
       renderer: (hot, wrapper) => {
         addClass(wrapper.parentNode, 'htFiltersMenuOperators');
