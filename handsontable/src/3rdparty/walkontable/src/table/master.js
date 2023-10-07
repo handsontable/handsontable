@@ -1,6 +1,5 @@
 import {
   getStyle,
-  getComputedStyle,
   getTrimmingContainer,
   isVisible,
 } from './../../../../helpers/dom/element';
@@ -64,7 +63,7 @@ class MasterTable extends Table {
           trimmingElementParent.appendChild(cloneNode);
         }
 
-        const cloneHeight = parseInt(getComputedStyle(cloneNode, rootWindow).height, 10);
+        const cloneHeight = parseInt(rootWindow.getComputedStyle(cloneNode).height, 10);
 
         trimmingElementParent.removeChild(cloneNode);
 

@@ -45,10 +45,10 @@ describe('manualRowMove', () => {
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('mousedown', {
-          clientX: TH.offset().top + (TH.outerHeight() / 2)
+          clientY: TH.offset().top + (TH.outerHeight() / 2)
         })
         .simulate('mousemove', {
-          clientX: TH.offset().top + (TH.outerHeight() / 2)
+          clientY: TH.offset().top + (TH.outerHeight() / 2)
         });
 
       const backlight = spec().$container.find('.ht__manualRowMove--backlight');
