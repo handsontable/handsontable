@@ -1,5 +1,6 @@
 import { normalizeRanges } from './copyableRanges';
 import { isDefined } from '../../helpers/mixed';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import {
   getDataByCoords,
@@ -132,32 +133,24 @@ export class ActionInfo {
   }
 
   /**
-   * Removes rows/columns from the copied/pasted dataset.
+   * Adjust information about merged cells after removing some elements.
    *
-   * Note: Used indexes refers to processed data, not to the instance of Handsontable. Please keep in mind that headers
-   * are handled separately from cells and they are recognised using negative indexes.
-   *
+   * @private
    * @param {object} removedElements Configuration object describing removed rows/columns.
    * @param {number[]} [removedElements.rows] List of row indexes which should be excluded when creating copy/cut/paste data.
    * @param {number[]} [removedElements.columns] List of column indexes which should be excluded when creating copy/cut/paste data.
    */
-  remove(removedElements) {
+  adjustMergedCells(removedElements) {
     const rows = removedElements.rows || [];
     const columns = removedElements.columns || [];
     const gridSettings = this.getGridSettings();
-    const { mergeCells: mergedCells, nestedHeaders, colHeaders } = gridSettings;
+    const mergedCells = gridSettings.mergedCells;
 
-    if (Array.isArray(nestedHeaders) && columns.length > 0) {
-      warn('It\'s not possible to modify copied dataset containing nested headers.');
-
+    if (isDefined(mergedCells) === false) {
       return;
     }
 
-    if (Array.isArray(colHeaders) && columns.length > 0) {
-      gridSettings.colHeaders = colHeaders.filter(columnIndex => columns.includes(columnIndex) === false);
-    }
-
-    gridSettings.mergedCells = mergedCells?.reduce((filteredNestedCells, mergeArea) => {
+    gridSettings.mergedCells = mergedCells.reduce((filteredNestedCells, mergeArea) => {
       const { row: mergeStartRow, col: mergeStartColumn, rowspan, colspan } = mergeArea;
       const removedRows = rows.filter(row => row >= mergeStartRow && row < mergeStartRow + rowspan);
       const removedColumns =
@@ -186,9 +179,38 @@ export class ActionInfo {
       return filteredNestedCells;
     }, []);
 
-    if (gridSettings?.mergedCells?.length === 0) {
+    if (gridSettings.mergedCells.length === 0) {
       delete gridSettings.mergedCells;
     }
+  }
+
+  /**
+   * Removes rows/columns from the copied/pasted dataset.
+   *
+   * Note: Used indexes refers to processed data, not to the instance of Handsontable. Please keep in mind that headers
+   * are handled separately from cells and they are recognised using negative indexes.
+   *
+   * @param {object} removedElements Configuration object describing removed rows/columns.
+   * @param {number[]} [removedElements.rows] List of row indexes which should be excluded when creating copy/cut/paste data.
+   * @param {number[]} [removedElements.columns] List of column indexes which should be excluded when creating copy/cut/paste data.
+   */
+  remove(removedElements) {
+    const rows = removedElements.rows || [];
+    const columns = removedElements.columns || [];
+    const gridSettings = this.getGridSettings();
+    const { nestedHeaders, colHeaders } = gridSettings;
+
+    if (Array.isArray(nestedHeaders) && columns.length > 0) {
+      warn('It\'s not possible to modify copied dataset containing nested headers.');
+
+      return;
+    }
+
+    if (Array.isArray(colHeaders) && columns.length > 0) {
+      gridSettings.colHeaders = colHeaders.filter(columnIndex => columns.includes(columnIndex) === false);
+    }
+
+    this.adjustMergedCells(removedElements);
 
     const config = {
       ...gridSettings,
@@ -197,6 +219,34 @@ export class ActionInfo {
     };
 
     this.overWriteInfo(config);
+  }
+
+  /**
+   * Get warning message when there is some problem with row insertion or undefined otherwise.
+   *
+   * @private
+   * @param {number} rowIndex An index of the row at which the new values will be inserted or removed.
+   * @param {string[]} values List of values.
+   * @returns {undefined|string}
+   */
+  getRowInsertionWarn(rowIndex, values) {
+    const data = this.getGridSettings().data;
+
+    if (Array.isArray(data) === false) {
+      return 'There is no possibility to expand an empty dataset.';
+    }
+
+    const numberOfRows = data.length;
+    const numberOfColumns = data[0].length;
+
+    if (rowIndex > numberOfRows) {
+      return 'Please provide an valid row index for row data insertion.';
+    }
+
+    if (numberOfColumns !== values.length) {
+      return toSingleLine`Please provide proper number of elements (corresponding to size of the dataset in other\x20
+        rows) for inserted rows.`;
+    }
   }
 
   /**
@@ -210,22 +260,10 @@ export class ActionInfo {
   insertAtRow(rowIndex, values) {
     const gridSettings = this.getGridSettings();
     const { mergeCells: mergedCells, data } = gridSettings;
+    const rowInsertionWarn = this.getRowInsertionWarn(rowIndex, values);
 
-    if (Array.isArray(data) === false) {
-      return;
-    }
-
-    const numberOfRows = data.length;
-    const numberOfColumns = data[0].length;
-
-    if (rowIndex > numberOfRows) {
-      warn('to high row index');
-
-      return;
-    }
-
-    if (numberOfColumns !== values.length) {
-      warn('wrong row data');
+    if (isDefined(rowInsertionWarn)) {
+      warn(rowInsertionWarn);
 
       return;
     }
@@ -248,6 +286,40 @@ export class ActionInfo {
   }
 
   /**
+   * Get warning message when there is some problem with row insertion or undefined otherwise.
+   *
+   * @private
+   * @param {number} columnIndex An index of the column at which the new values will be inserted or removed.
+   * @param {string[]} values List of values.
+   * @returns {undefined|string}
+   */
+  getColumnInsertionWarn(columnIndex, values) {
+    const { nestedHeaders, data, colHeaders } = this.getGridSettings();
+    const headerLevels = isDefined(colHeaders) ? 1 : 0;
+
+    if (Array.isArray(nestedHeaders)) {
+      return 'It\'s not possible to modify copied dataset containing nested headers.';
+    }
+
+    if (Array.isArray(data) === false) {
+      return;
+    }
+
+    const numberOfRows = data.length + headerLevels;
+    const numberOfColumns = data[0].length;
+
+    if (columnIndex > numberOfColumns) {
+      return 'Please provide an valid column index for column data insertion.';
+    }
+
+    if (values.length !== numberOfRows) {
+
+      return toSingleLine`Please provide proper number of elements (corresponding to size of the dataset in other\x20
+        columns, including headers) for inserted columns.`;
+    }
+  }
+
+  /**
    * Insert values at column index.
    *
    * Note: Used index refers to processed data, not to the instance of Handsontable.
@@ -257,30 +329,12 @@ export class ActionInfo {
    */
   insertAtColumn(columnIndex, values) {
     const gridSettings = this.getGridSettings();
-    const { nestedHeaders, mergeCells: mergedCells, data, colHeaders } = gridSettings;
-
-    if (Array.isArray(nestedHeaders)) {
-      warn('It\'s not possible to modify copied dataset containing nested headers.');
-
-      return;
-    }
-
-    if (Array.isArray(data) === false) {
-      return;
-    }
-
+    const { mergeCells: mergedCells, data, colHeaders } = gridSettings;
     const headerLevels = isDefined(colHeaders) ? 1 : 0;
-    const numberOfRows = data.length + headerLevels;
-    const numberOfColumns = data[0].length;
+    const columnInsertionWarn = this.getColumnInsertionWarn(columnIndex, values);
 
-    if (columnIndex > numberOfColumns) {
-      warn('to high column index');
-
-      return;
-    }
-
-    if (values.length !== numberOfRows) {
-      warn('wrong column data');
+    if (isDefined(columnInsertionWarn)) {
+      warn(columnInsertionWarn);
 
       return;
     }
