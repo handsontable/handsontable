@@ -1,5 +1,5 @@
 import { Positioner } from './positioner';
-import { createMenuPaginator } from './paginator';
+import { createMenuNavigator } from './navigator';
 import { SEPARATOR, NO_ITEMS, predefinedItems } from './../predefinedItems';
 import {
   filterSeparators,
@@ -53,6 +53,13 @@ const SHORTCUTS_GROUP = SHORTCUTS_CONTEXT;
  */
 export class Menu {
   /**
+   * The controller module that allows modifying the menu item selection positions.
+   *
+   * @type {Paginator}
+   */
+  #navigator;
+
+  /**
    * @param {Core} hotInstance Handsontable instance.
    * @param {MenuOptions} [options] Menu options.
    */
@@ -70,7 +77,6 @@ export class Menu {
     this.eventManager = new EventManager(this);
     this.container = this.createContainer(this.options.name);
     this.positioner = new Positioner(this.options.keepInViewport);
-    this.paginator = null;
     this.hotMenu = null;
     this.hotSubMenus = {};
     this.parentMenu = this.options.parent || null;
@@ -104,6 +110,15 @@ export class Menu {
    */
   setMenuItems(menuItems) {
     this.menuItems = menuItems;
+  }
+
+  /**
+   * Gets the controller object that allows modifying the the menu item selection.
+   *
+   * @returns {Paginator | undefined}
+   */
+  getNavigator() {
+    return this.#navigator;
   }
 
   /**
@@ -216,7 +231,7 @@ export class Menu {
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       ariaTags: false,
       beforeOnCellMouseOver: (event, coords) => {
-        this.paginator.setCurrentPage(coords.row);
+        this.#navigator.setCurrentItem(coords.row);
       },
       afterOnCellMouseOver: (event, coords) => {
         if (this.isAllSubMenusClosed()) {
@@ -240,6 +255,8 @@ export class Menu {
         if (this.hotMenu.view.isMouseDown()) {
           preventScrolling.value = true;
         }
+
+        this.runLocalHooks('afterSelectionChange');
       },
       beforeOnCellMouseUp: (event) => {
         if (this.hasSelectedItem()) {
@@ -280,7 +297,7 @@ export class Menu {
     this.hotMenu.init();
     this.hotMenu.listen();
 
-    this.paginator = createMenuPaginator(this.hotMenu);
+    this.#navigator = createMenuNavigator(this.hotMenu);
 
     this.addShortcuts([{
       keys: [['Tab'], ['Shift', 'Tab'], ['Control/Meta', 'A']],
@@ -291,10 +308,10 @@ export class Menu {
       callback: () => this.close(true),
     }, {
       keys: [['ArrowDown']],
-      callback: () => this.paginator.toNextPage(),
+      callback: () => this.#navigator.toNextItem(),
     }, {
       keys: [['ArrowUp']],
-      callback: () => this.paginator.toPreviousPage(),
+      callback: () => this.#navigator.toPreviousItem(),
     }, {
       keys: [['ArrowRight']],
       callback: () => {
@@ -304,7 +321,7 @@ export class Menu {
           const subMenu = this.openSubMenu(selection[0]);
 
           if (subMenu) {
-            subMenu.paginator.toFirstPage();
+            subMenu.getNavigator().toFirstItem();
           }
         }
       }
@@ -323,17 +340,17 @@ export class Menu {
       },
     }, {
       keys: [['Control/Meta', 'ArrowUp'], ['Home']],
-      callback: () => this.paginator.toFirstPage(),
+      callback: () => this.#navigator.toFirstItem(),
     }, {
       keys: [['Control/Meta', 'ArrowDown'], ['End']],
-      callback: () => this.paginator.toLastPage(),
+      callback: () => this.#navigator.toLastItem(),
     }, {
       keys: [['Enter'], ['Space']],
       callback: (event) => {
         const selection = this.hotMenu.getSelectedLast();
 
         if (this.hotMenu.getSourceDataAtRow(selection[0]).submenu) {
-          this.openSubMenu(selection[0]).paginator.toFirstPage();
+          this.openSubMenu(selection[0]).getNavigator().toFirstItem();
         } else {
           this.executeCommand(event);
           this.close(true);
@@ -347,7 +364,7 @@ export class Menu {
         if (selection) {
           this.hotMenu.selection.transformStart(-this.hotMenu.countVisibleRows(), 0);
         } else {
-          this.paginator.toFirstPage();
+          this.#navigator.toFirstItem();
         }
       },
     }, {
@@ -358,7 +375,7 @@ export class Menu {
         if (selection) {
           this.hotMenu.selection.transformStart(this.hotMenu.countVisibleRows(), 0);
         } else {
-          this.paginator.toLastPage();
+          this.#navigator.toLastItem();
         }
       },
     }]);
@@ -380,7 +397,7 @@ export class Menu {
     if (closeParent && this.isSubMenu()) {
       this.parentMenu.close();
     } else {
-      this.paginator.clear();
+      this.#navigator.clear();
       this.closeAllSubMenus();
       this.container.style.display = 'none';
       this.hotMenu.destroy();

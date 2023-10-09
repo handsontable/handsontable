@@ -14,7 +14,8 @@ import {
   A11Y_DISABLED,
   A11Y_EXPANDED,
   A11Y_LABEL,
-  A11Y_MENU_ITEM
+  A11Y_MENU_ITEM,
+  A11Y_TABINDEX,
 } from '../../../helpers/a11y';
 
 /**
@@ -50,9 +51,14 @@ export function createMenuItemRenderer(mainTableHot) {
     addClass(wrapper, 'htItemWrapper');
 
     if (mainTableHot.getSettings().ariaTags) {
+      const isFocusable = !isItemDisabled(item, mainTableHot) &&
+        !isItemSelectionDisabled(item) &&
+        !isItemSeparator(item);
+
       setAttribute(TD, [
         A11Y_MENU_ITEM(),
         A11Y_LABEL(itemValue),
+        ...(isFocusable ? [A11Y_TABINDEX(-1)] : []),
         ...(isItemDisabled(item, mainTableHot) ? [A11Y_DISABLED()] : []),
         ...(isItemSubMenu(item) ? [A11Y_EXPANDED(false)] : []),
       ]);

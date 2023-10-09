@@ -14,7 +14,7 @@ import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
 import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
-import { createMenuPaginator } from './paginator';
+import { createMenuNavigator } from './menu/navigator';
 import {
   CONDITION_NONE,
   CONDITION_BY_VALUE,
@@ -123,7 +123,7 @@ export class Filters extends BasePlugin {
    * @type {null|TrimmingMap}
    */
   filtersRowsMap = null;
-  #paginator;
+  #navigator;
 
   constructor(hotInstance) {
     super(hotInstance);
@@ -226,8 +226,11 @@ export class Filters extends BasePlugin {
       this.conditionUpdateObserver.addLocalHook('update', conditionState => this.updateComponents(conditionState));
     }
 
+    if (!this.#navigator) {
+      this.#navigator = createMenuNavigator(this);
+    }
+
     this.components.forEach(component => component.show());
-    this.#paginator = createMenuPaginator(this);
 
     this.addHook('afterDropdownMenuDefaultOptions',
       defaultOptions => this.onAfterDropdownMenuDefaultOptions(defaultOptions));
@@ -240,6 +243,8 @@ export class Filters extends BasePlugin {
       this.dropdownMenuPlugin.disablePlugin();
       this.dropdownMenuPlugin.enablePlugin();
     }
+
+    this.dropdownMenuPlugin.menu.addLocalHook('afterSelectionChange', () => this.onAfterMenuSelectionChange());
 
     this.registerShortcuts();
     super.enablePlugin();
@@ -593,16 +598,30 @@ export class Filters extends BasePlugin {
   }
 
   /**
+   * Resets the state of the last focused element of the navigation module.
+   *
+   * @private
+   */
+  onAfterMenuSelectionChange() {
+    this.#navigator.clear();
+  }
+
+  /**
    * After dropdown menu show listener.
    *
    * @private
    */
   onAfterDropdownMenuShow() {
     this.dropdownMenuPlugin.menu.addShortcuts([{
-      keys: [['Tab']],
-      // preventDefault: false,
-      callback: () => {
-        this.#paginator.toNextPage();
+      keys: [['Tab'], ['Shift', 'Tab']],
+      callback: (event) => {
+        this.dropdownMenuPlugin.menu.getNavigator().clear();
+
+        if (event.shiftKey) {
+          this.#navigator.toPreviousItem();
+        } else {
+          this.#navigator.toNextItem();
+        }
       },
     }]);
 

@@ -129,7 +129,8 @@ class BaseUI {
    */
   build() {
     const registerEvent = (element, eventName) => {
-      this.eventManager.addEventListener(element, eventName, event => this.runLocalHooks(eventName, event, this));
+      this.eventManager
+        .addEventListener(element, eventName, event => this.runLocalHooks(eventName, event, this));
     };
 
     if (!this.buildState) {

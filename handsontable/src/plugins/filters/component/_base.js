@@ -8,43 +8,52 @@ import { LinkedPhysicalIndexToValueMap as IndexToValueMap } from '../../../trans
  * @class BaseComponent
  */
 class BaseComponent {
+  /**
+   * The Handsontable instance.
+   *
+   * @type {Core}
+   */
+  hot;
+  /**
+   * The component uniq id.
+   *
+   * @type {string}
+   */
+  id;
+  /**
+   * List of registered component UI elements.
+   *
+   * @type {Array}
+   */
+  elements = [];
+  /**
+   * Flag which determines if element is hidden.
+   *
+   * @type {boolean}
+   */
+  hidden = false;
+  /**
+   * The component states id.
+   *
+   * @type {string}
+   */
+  stateId = '';
+  /**
+   * Index map which stores component states for each column.
+   *
+   * @type {LinkedPhysicalIndexToValueMap|null}
+   */
+  state;
+
   constructor(hotInstance, { id, stateless = true }) {
-    /**
-     * The Handsontable instance.
-     *
-     * @type {Core}
-     */
     this.hot = hotInstance;
-    /**
-     * The component uniq id.
-     *
-     * @type {string}
-     */
     this.id = id;
-    /**
-     * List of registered component UI elements.
-     *
-     * @type {Array}
-     */
-    this.elements = [];
-    /**
-     * Flag which determines if element is hidden.
-     *
-     * @type {boolean}
-     */
-    this.hidden = false;
-    /**
-     * The component states id.
-     *
-     * @type {string}
-     */
     this.stateId = `Filters.component.${this.id}`;
-    /**
-     * Index map which stores component states for each column.
-     *
-     * @type {LinkedPhysicalIndexToValueMap|null}
-     */
     this.state = stateless ? null : this.hot.columnIndexMapper.registerMap(this.stateId, new IndexToValueMap());
+  }
+
+  getElements() {
+    return this.elements;
   }
 
   /**

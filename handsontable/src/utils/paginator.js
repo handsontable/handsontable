@@ -1,54 +1,55 @@
 /**
  * @typedef Paginator
- * @property {function(number): void} setCurrentPage Sets the current index to the specific page.
- * @property {function(): number} getCurrentPage Gets the current page.
- * @property {function(): void} toFirstPage Move the index to the first page.
- * @property {function(): void} toLastPage Move the index to the last page.
- * @property {function(): void} toNextPage Move the index to the next page.
- * @property {function(): void} toPreviousPage Move the index to the previous page.
+ * @property {function(number): void} setCurrentItem Sets the current index to the specific page.
+ * @property {function(): number} getCurrentItem Gets the current page.
+ * @property {function(): void} toFirstItem Move the index to the first page.
+ * @property {function(): void} toLastItem Move the index to the last page.
+ * @property {function(): void} toNextItem Move the index to the next page.
+ * @property {function(): void} toPreviousItem Move the index to the previous page.
  * @property {function(): void} clear Clear the internal state of the paginator.
  */
 /**
  * @param {object} options Paginator options.
  * @param {function(): number} [options.size] Sets the max size of the pages.
- * @param {function(number): boolean | void} [options.onPageChange] Fires the function on each page change.
+ * @param {function(number): boolean | void} [options.onItemSelect] Fires the function on each page change.
+ * @param {function(): void} [options.onClear] Fires the function after clearing the state.
  * @returns {Paginator}
  */
-export function createPaginator({ size = () => 0, onPageChange = () => {} }) {
+export function createPaginator({ size = () => 0, onItemSelect = () => {}, onClear = () => {} }) {
   const visitedPages = new Set();
   const maxSize = size;
-  let currentPage = -1;
-  let previousPage = -1;
+  let currentIndex = -1;
+  let previousIndex = -1;
 
   /**
    * Updates the internal state of the paginator.
    */
   function _updateState() {
-    const lastPage = maxSize() - 1;
+    const lastIndex = maxSize() - 1;
 
-    if (currentPage < 0) {
-      currentPage = lastPage;
-      previousPage = lastPage;
+    if (currentIndex < 0) {
+      currentIndex = lastIndex;
+      previousIndex = lastIndex;
     }
-    if (currentPage > lastPage) {
-      currentPage = 0;
-      previousPage = -1;
+    if (currentIndex > lastIndex) {
+      currentIndex = 0;
+      previousIndex = -1;
     }
 
-    if (visitedPages.has(currentPage)) {
+    if (visitedPages.has(currentIndex)) {
       return;
     }
 
-    visitedPages.add(currentPage);
+    visitedPages.add(currentIndex);
 
-    const changeProceed = onPageChange(currentPage, false);
+    const changeProceed = onItemSelect(currentIndex, false);
 
     if (changeProceed === false) {
-      currentPage += currentPage > previousPage ? 1 : -1;
+      currentIndex += currentIndex > previousIndex ? 1 : -1;
       _updateState();
     }
 
-    previousPage = currentPage;
+    previousIndex = currentIndex;
   }
 
   /**
@@ -56,9 +57,9 @@ export function createPaginator({ size = () => 0, onPageChange = () => {} }) {
    *
    * @param {number} page The index to set.
    */
-  function setCurrentPage(page) {
-    currentPage = page;
-    onPageChange(currentPage, true);
+  function setCurrentItem(page) {
+    currentIndex = page;
+    onItemSelect(currentIndex, true);
   }
 
   /**
@@ -66,45 +67,45 @@ export function createPaginator({ size = () => 0, onPageChange = () => {} }) {
    *
    * @returns {number}
    */
-  function getCurrentPage() {
-    return currentPage;
+  function getCurrentItem() {
+    return currentIndex;
   }
 
   /**
    * Moves the index to the first page.
    */
-  function toFirstPage() {
+  function toFirstItem() {
     visitedPages.clear();
-    currentPage = 0;
-    previousPage = currentPage - 1;
+    currentIndex = 0;
+    previousIndex = currentIndex - 1;
     _updateState();
   }
 
   /**
    * Moves the index to the last page.
    */
-  function toLastPage() {
+  function toLastItem() {
     visitedPages.clear();
-    currentPage = maxSize() - 1;
-    previousPage = currentPage + 1;
+    currentIndex = maxSize() - 1;
+    previousIndex = currentIndex + 1;
     _updateState();
   }
 
   /**
    * Moves the index to the next page.
    */
-  function toNextPage() {
+  function toNextItem() {
     visitedPages.clear();
-    currentPage += 1;
+    currentIndex += 1;
     _updateState();
   }
 
   /**
    * Moves the index to the previous page.
    */
-  function toPreviousPage() {
+  function toPreviousItem() {
     visitedPages.clear();
-    currentPage -= 1;
+    currentIndex -= 1;
     _updateState();
   }
 
@@ -113,17 +114,18 @@ export function createPaginator({ size = () => 0, onPageChange = () => {} }) {
    */
   function clear() {
     visitedPages.clear();
-    currentPage = -1;
-    previousPage = -1;
+    currentIndex = -1;
+    previousIndex = -1;
+    onClear();
   }
 
   return {
-    setCurrentPage,
-    getCurrentPage,
-    toFirstPage,
-    toLastPage,
-    toNextPage,
-    toPreviousPage,
+    setCurrentItem,
+    getCurrentItem,
+    toFirstItem,
+    toLastItem,
+    toNextItem,
+    toPreviousItem,
     clear,
   };
 }

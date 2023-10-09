@@ -37,6 +37,11 @@ class MultipleSelectUI extends BaseUI {
    * @type {Handsontable}
    */
   #itemsBox;
+  /**
+   * A locale for the component used to compare filtered values.
+   *
+   * @type {string}
+   */
   #locale;
   /**
    * Input element.
@@ -47,13 +52,13 @@ class MultipleSelectUI extends BaseUI {
   /**
    * "Select all" UI element.
    *
-   * @type {BaseUI}
+   * @type {LinkUI}
    */
   #selectAllUI;
   /**
    * "Clear" UI element.
    *
-   * @type {BaseUI}
+   * @type {LinkUI}
    */
   #clearAllUI;
 
@@ -135,14 +140,29 @@ class MultipleSelectUI extends BaseUI {
     return itemsToValue(this.#items);
   }
 
+  /**
+   * Gets the instance of the search input element.
+   *
+   * @returns {InputUI}
+   */
   getSearchInputElement() {
     return this.#searchInput;
   }
 
+  /**
+   * Gets the instance of the "select all" link element.
+   *
+   * @returns {LinkUI}
+   */
   getSelectAllElement() {
     return this.#selectAllUI;
   }
 
+  /**
+   * Gets the instance of the "clear" link element.
+   *
+   * @returns {LinkUI}
+   */
   getClearAllElement() {
     return this.#clearAllUI;
   }

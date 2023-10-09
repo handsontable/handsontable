@@ -6,26 +6,25 @@ import {
 } from './utils';
 
 /**
- * Creates paginator for menus and submenus.
+ * Creates navigator for menus and submenus.
  *
  * @param {Handsontable} hotMenu The Handsontable instance of the menu.
  * @returns {Paginator}
  */
-export function createMenuPaginator(hotMenu) {
+export function createMenuNavigator(hotMenu) {
   return createPaginator({
     size: () => hotMenu.countRows(),
-    onPageChange: (currentPage, directPageChange) => {
-      const cell = hotMenu.getCell(currentPage, 0);
+    onItemSelect(currentItem, directItemChange) {
+      const cell = hotMenu.getCell(currentItem, 0);
 
       if (!cell || isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
         return false;
       }
 
-      if (directPageChange) {
-        hotMenu.selectCell(currentPage, 0, currentPage, 0, false, false);
-      } else {
-        hotMenu.selectCell(currentPage, 0);
-      }
+      hotMenu.selectCell(currentItem, 0, ...(directItemChange ? [currentItem, 0, false, false] : []));
+    },
+    onClear() {
+      hotMenu.deselectCell();
     }
   });
 }
