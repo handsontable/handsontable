@@ -50,7 +50,7 @@ class ActionBarComponent extends BaseComponent {
    */
   registerHooks() {
     arrayEach(this.elements, (element) => {
-      element.addLocalHook('click', (event, button) => this.onButtonClick(event, button));
+      element.addLocalHook('click', (event, button) => this.#onButtonClick(event, button));
     });
   }
 
@@ -92,11 +92,10 @@ class ActionBarComponent extends BaseComponent {
   /**
    * On button click listener.
    *
-   * @private
    * @param {Event} event DOM event.
    * @param {InputUI} button InputUI object.
    */
-  onButtonClick(event, button) {
+  #onButtonClick(event, button) {
     if (button.options.identifier === ActionBarComponent.BUTTON_OK) {
       this.accept();
     } else {

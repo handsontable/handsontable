@@ -1,7 +1,7 @@
 /**
  * @typedef Paginator
- * @property {function(number): void} setCurrentItem Sets the current index to the specific page.
- * @property {function(): number} getCurrentItem Gets the current page.
+ * @property {function(number): void} setCurrentPage Sets the current index to the specific page.
+ * @property {function(): number} getCurrentPage Gets the current page.
  * @property {function(): void} toFirstItem Move the index to the first page.
  * @property {function(): void} toLastItem Move the index to the last page.
  * @property {function(): void} toNextItem Move the index to the next page.
@@ -55,10 +55,11 @@ export function createPaginator({ size = () => 0, onItemSelect = () => {}, onCle
   /**
    * Sets the page index as current one.
    *
-   * @param {number} page The index to set.
+   * @param {number} index The index to set.
    */
-  function setCurrentItem(page) {
-    currentIndex = page;
+  function setCurrentPage(index) {
+    currentIndex = index;
+    previousIndex = index;
     onItemSelect(currentIndex, true);
   }
 
@@ -67,7 +68,7 @@ export function createPaginator({ size = () => 0, onItemSelect = () => {}, onCle
    *
    * @returns {number}
    */
-  function getCurrentItem() {
+  function getCurrentPage() {
     return currentIndex;
   }
 
@@ -120,8 +121,8 @@ export function createPaginator({ size = () => 0, onItemSelect = () => {}, onCle
   }
 
   return {
-    setCurrentItem,
-    getCurrentItem,
+    setCurrentPage,
+    getCurrentPage,
     toFirstItem,
     toLastItem,
     toNextItem,

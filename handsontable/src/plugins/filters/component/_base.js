@@ -52,6 +52,11 @@ class BaseComponent {
     this.state = stateless ? null : this.hot.columnIndexMapper.registerMap(this.stateId, new IndexToValueMap());
   }
 
+  /**
+   * Gets the list of elements from which the component is built.
+   *
+   * @returns {BaseUI[]}
+   */
   getElements() {
     return this.elements;
   }

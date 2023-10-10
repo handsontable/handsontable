@@ -16,6 +16,11 @@ class InputUI extends BaseUI {
     });
   }
 
+  /**
+   * The reference to the input element.
+   *
+   * @type {HTMLInputElement}
+   */
   #input;
 
   constructor(hotInstance, options) {

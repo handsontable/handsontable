@@ -14,6 +14,11 @@ class LinkUI extends BaseUI {
     });
   }
 
+  /**
+   * The reference to the link element.
+   *
+   * @type {HTMLLinkElement}
+   */
   #link;
 
   constructor(hotInstance, options) {

@@ -1,30 +1,13 @@
 import { createPaginator } from '../../../utils/paginator';
 import { isVisible } from '../../../helpers/dom/element';
-import { isKey } from '../../../helpers/unicode';
 
 /**
- * Creates paginator for menus and submenus.
+ * Creates navigator for between filter's subcomponents.
  *
- * @param {Handsontable} filtersPlugin The Handsontable instance of the menu.
+ * @param {Array[]} elements The elements to paginate to.
  * @returns {Paginator}
  */
-export function createMenuNavigator(filtersPlugin) {
-  const byCond = filtersPlugin.components.get('filter_by_condition');
-  const operators = filtersPlugin.components.get('filter_operators');
-  const byCond2 = filtersPlugin.components.get('filter_by_condition2');
-  const byValue = filtersPlugin.components.get('filter_by_value');
-  const actionBar = filtersPlugin.components.get('filter_action_bar');
-
-  const elements = [
-    ...byCond.getElements(),
-    ...operators.getElements(),
-    ...byCond2.getElements(),
-    byValue.getMultipleSelectElement().getSearchInputElement(),
-    byValue.getMultipleSelectElement().getSelectAllElement(),
-    byValue.getMultipleSelectElement().getClearAllElement(),
-    ...actionBar.getElements(),
-  ];
-
+export function createMenuNavigator(elements) {
   const navigator = createPaginator({
     size: () => elements.length,
     onItemSelect: (currentIndex) => {
@@ -34,24 +17,6 @@ export function createMenuNavigator(filtersPlugin) {
 
       elements[currentIndex].focus();
     }
-  });
-
-  elements.forEach((element) => {
-    element.addLocalHook('keydown', (event) => {
-      if (event.target.tagName !== 'INPUT') {
-        return;
-      }
-
-      if (isKey(event.keyCode, 'TAB')) {
-        event.preventDefault();
-
-        if (event.shiftKey) {
-          navigator.toPreviousItem();
-        } else {
-          navigator.toNextItem();
-        }
-      }
-    });
   });
 
   return navigator;

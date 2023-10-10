@@ -33,7 +33,22 @@ class ValueComponent extends BaseComponent {
    * @private
    */
   registerHooks() {
-    this.getMultipleSelectElement().addLocalHook('keydown', event => this.onInputKeyDown(event));
+    this.getMultipleSelectElement().addLocalHook('keydown', event => this.#onInputKeyDown(event));
+  }
+
+  /**
+   * Gets the list of elements from which the component is built.
+   *
+   * @returns {BaseUI[]}
+   */
+  getElements() {
+    const selectElement = this.getMultipleSelectElement();
+
+    return [
+      selectElement.getSearchInputElement(),
+      selectElement.getSelectAllElement(),
+      selectElement.getClearAllElement(),
+    ];
   }
 
   /**
@@ -205,10 +220,9 @@ class ValueComponent extends BaseComponent {
   /**
    * Key down listener.
    *
-   * @private
    * @param {Event} event The DOM event object.
    */
-  onInputKeyDown(event) {
+  #onInputKeyDown(event) {
     if (isKey(event.keyCode, 'ESCAPE')) {
       this.runLocalHooks('cancel');
       stopImmediatePropagation(event);

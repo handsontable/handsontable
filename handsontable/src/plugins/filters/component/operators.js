@@ -67,7 +67,7 @@ class OperatorsComponent extends BaseComponent {
         id: operation
       });
 
-      radioInput.addLocalHook('change', event => this.onRadioInputChange(event));
+      radioInput.addLocalHook('change', event => this.#onRadioInputChange(event));
       this.elements.push(radioInput);
     });
   }
@@ -152,10 +152,9 @@ class OperatorsComponent extends BaseComponent {
   /**
    * OnChange listener.
    *
-   * @private
    * @param {Event} event The DOM event object.
    */
-  onRadioInputChange(event) {
+  #onRadioInputChange(event) {
     this.setState(event.target.value);
   }
 }

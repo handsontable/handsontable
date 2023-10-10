@@ -15,11 +15,31 @@ class RadioInputUI extends BaseUI {
     });
   }
 
+  /**
+   * The reference to the input element.
+   *
+   * @type {HTMLInputElement}
+   */
   #input;
+  /**
+   * The reference to the label element.
+   *
+   * @type {HTMLLabelElement}
+   */
   #label;
 
   constructor(hotInstance, options) {
     super(hotInstance, extend(RadioInputUI.DEFAULTS, options));
+    this.registerHooks();
+  }
+
+  /**
+   * Register all necessary hooks.
+   */
+  registerHooks() {
+    this.addLocalHook('change', () => {
+
+    });
   }
 
   /**

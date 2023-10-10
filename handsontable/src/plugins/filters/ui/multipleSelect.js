@@ -292,7 +292,6 @@ class MultipleSelectUI extends BaseUI {
   /**
    * 'input' event listener for input element.
    *
-   * @private
    * @param {Event} event DOM event.
    */
   #onInput(event) {

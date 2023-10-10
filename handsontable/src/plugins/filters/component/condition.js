@@ -36,11 +36,12 @@ class ConditionComponent extends BaseComponent {
    * @private
    */
   registerHooks() {
-    this.getSelectElement().addLocalHook('select', command => this.onConditionSelect(command));
-    this.getSelectElement().addLocalHook('afterClose', () => this.onSelectUIClosed());
+    this.getSelectElement()
+      .addLocalHook('select', command => this.#onConditionSelect(command))
+      .addLocalHook('afterClose', () => this.#onSelectUIClosed());
 
     arrayEach(this.getInputElements(), (input) => {
-      input.addLocalHook('keydown', event => this.onInputKeyDown(event));
+      input.addLocalHook('keydown', event => this.#onInputKeyDown(event));
     });
   }
 
@@ -206,10 +207,9 @@ class ConditionComponent extends BaseComponent {
   /**
    * On condition select listener.
    *
-   * @private
    * @param {object} command Menu item object (command).
    */
-  onConditionSelect(command) {
+  #onConditionSelect(command) {
     arrayEach(this.getInputElements(), (element, index) => {
       element[command.inputsCount > index ? 'show' : 'hide']();
 
@@ -223,20 +223,17 @@ class ConditionComponent extends BaseComponent {
 
   /**
    * On component SelectUI closed listener.
-   *
-   * @private
    */
-  onSelectUIClosed() {
+  #onSelectUIClosed() {
     this.runLocalHooks('afterClose');
   }
 
   /**
    * Key down listener.
    *
-   * @private
    * @param {Event} event The DOM event object.
    */
-  onInputKeyDown(event) {
+  #onInputKeyDown(event) {
     if (isKey(event.keyCode, 'ENTER')) {
       this.runLocalHooks('accept');
       stopImmediatePropagation(event);

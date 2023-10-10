@@ -23,17 +23,31 @@ class SelectUI extends BaseUI {
    *
    * @type {Menu}
    */
-  menu = null;
+  #menu = null;
   /**
    * List of available select options.
    *
    * @type {Array}
    */
-  items = [];
-
-  #caption
+  #items = [];
+  /**
+   * The reference to the BaseUI instance of the caption.
+   *
+   * @type {BaseUI}
+   */
+  #caption;
+  /**
+   * The reference to the table caption element.
+   *
+   * @type {HTMLTableCaptionElement}
+   */
   #captionElement;
-  #dropdown
+  /**
+   * The reference to the BaseUI instance of the dropdown.
+   *
+   * @type {BaseUI}
+   */
+  #dropdown;
 
   constructor(hotInstance, options) {
     super(hotInstance, extend(SelectUI.DEFAULTS, options));
@@ -53,10 +67,10 @@ class SelectUI extends BaseUI {
    * @param {Array} items Array of objects with required keys `key` and `name`.
    */
   setItems(items) {
-    this.items = this.translateNames(items);
+    this.#items = this.translateNames(items);
 
-    if (this.menu) {
-      this.menu.setMenuItems(this.items);
+    if (this.#menu) {
+      this.#menu.setMenuItems(this.#items);
     }
   }
 
@@ -79,13 +93,13 @@ class SelectUI extends BaseUI {
    */
   build() {
     super.build();
-    this.menu = new Menu(this.hot, {
+    this.#menu = new Menu(this.hot, {
       className: 'htSelectUI htFiltersConditionsMenu',
       keepInViewport: false,
       standalone: true,
       container: this.options.menuContainer,
     });
-    this.menu.setMenuItems(this.items);
+    this.#menu.setMenuItems(this.#items);
 
     const caption = new BaseUI(this.hot, {
       className: 'htUISelectCaption'
@@ -100,8 +114,8 @@ class SelectUI extends BaseUI {
 
     arrayEach([caption, dropdown], element => this._element.appendChild(element.element));
 
-    this.menu.addLocalHook('select', command => this.#onMenuSelect(command));
-    this.menu.addLocalHook('afterClose', () => this.#onMenuClosed());
+    this.#menu.addLocalHook('select', command => this.#onMenuSelect(command));
+    this.#menu.addLocalHook('afterClose', () => this.#onMenuClosed());
     this.update();
   }
 
@@ -119,7 +133,7 @@ class SelectUI extends BaseUI {
       conditionName = this.options.value.name;
 
     } else {
-      conditionName = this.menu.hot.getTranslatedPhrase(C.FILTERS_CONDITIONS_NONE);
+      conditionName = this.#menu.hot.getTranslatedPhrase(C.FILTERS_CONDITIONS_NONE);
     }
 
     this.#captionElement.textContent = conditionName;
@@ -132,14 +146,15 @@ class SelectUI extends BaseUI {
   openOptions() {
     const rect = this.element.getBoundingClientRect();
 
-    if (this.menu) {
-      this.menu.open();
-      this.menu.setPosition({
+    if (this.#menu) {
+      this.#menu.open();
+      this.#menu.setPosition({
         left: this.hot.isLtr() ? rect.left - 5 : rect.left - 31,
         top: rect.top - 1,
         width: rect.width,
-        height: rect.height
+        height: rect.height,
       });
+      this.#menu.getNavigator().toFirstItem();
     }
   }
 
@@ -147,8 +162,8 @@ class SelectUI extends BaseUI {
    * Close select dropdown menu.
    */
   closeOptions() {
-    if (this.menu) {
-      this.menu.close();
+    if (this.#menu) {
+      this.#menu.close();
     }
   }
 
@@ -194,9 +209,9 @@ class SelectUI extends BaseUI {
    * Destroy instance.
    */
   destroy() {
-    if (this.menu) {
-      this.menu.destroy();
-      this.menu = null;
+    if (this.#menu) {
+      this.#menu.destroy();
+      this.#menu = null;
     }
 
     if (this.#caption) {

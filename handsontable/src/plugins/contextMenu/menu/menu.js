@@ -152,10 +152,11 @@ export class Menu {
    * Adds keyboard shortcuts to the menu.
    *
    * @param {KeyboardShortcut[]} shortcuts Keyboard shortcuts to add.
+   * @param {string} contextName The context name to create or use.
    */
-  addShortcuts(shortcuts) {
+  addShortcuts(shortcuts, contextName = SHORTCUTS_GROUP) {
     const shortcutManager = this.hotMenu.getShortcutManager();
-    const menuContext = shortcutManager.getContext(SHORTCUTS_GROUP) ?? shortcutManager.addContext(SHORTCUTS_GROUP);
+    const menuContext = shortcutManager.getContext(contextName) ?? shortcutManager.addContext(contextName);
 
     shortcuts.forEach(({ keys }) => {
       keys.forEach(k => menuContext.removeShortcutsByKeys(k));
@@ -163,8 +164,12 @@ export class Menu {
 
     menuContext.addShortcuts(shortcuts, {
       group: SHORTCUTS_CONTEXT,
-      runOnlyIf: event => !isInput(event.target) || !this.container.contains(event.target),
+      // runOnlyIf: event => !isInput(event.target) || !this.container.contains(event.target),
     });
+  }
+
+  getShortcutManager() {
+    return this.hotMenu.getShortcutManager();
   }
 
   /**
@@ -231,7 +236,7 @@ export class Menu {
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       ariaTags: false,
       beforeOnCellMouseOver: (event, coords) => {
-        this.#navigator.setCurrentItem(coords.row);
+        this.#navigator.setCurrentPage(coords.row);
       },
       afterOnCellMouseOver: (event, coords) => {
         if (this.isAllSubMenusClosed()) {
@@ -256,7 +261,7 @@ export class Menu {
           preventScrolling.value = true;
         }
 
-        this.runLocalHooks('afterSelectionChange');
+        this.runLocalHooks('afterSelectionChange', this.getSelectedItem());
       },
       beforeOnCellMouseUp: (event) => {
         if (this.hasSelectedItem()) {
