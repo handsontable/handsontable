@@ -141,14 +141,20 @@ export class ActionInfo {
       const removedMergedRowsLength = removedMergedRows.length;
       const removedMergedColumnsLength = removedMergedColumns.length;
 
-      if (removedMergedRowsLength === rowspan || rowspan - removedMergedRowsLength === 1) {
+      if (removedMergedRowsLength === rowspan) {
+        return filteredNestedCells;
+
+      } else if (rowspan - removedMergedRowsLength === 1) {
         delete mergeArea.rowspan;
 
       } else if (removedMergedRowsLength > 0) {
         mergeArea.rowspan = rowspan - removedMergedRowsLength;
       }
 
-      if (removedMergedColumnsLength === colspan || colspan - removedMergedColumnsLength === 1) {
+      if (removedMergedColumnsLength === colspan) {
+        return filteredNestedCells;
+
+      } else if (colspan - removedMergedColumnsLength === 1) {
         delete mergeArea.colspan;
 
       } else if (removedMergedColumnsLength > 0) {
