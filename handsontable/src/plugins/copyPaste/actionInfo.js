@@ -124,7 +124,7 @@ export class ActionInfo {
    * @param {number[]} [removedElements.rows] List of row indexes which should be excluded when creating copy/cut/paste data.
    * @param {number[]} [removedElements.columns] List of column indexes which should be excluded when creating copy/cut/paste data.
    */
-  adjustMergedCells(gridSettings, removedElements) {
+  adjustAfterRemoval(gridSettings, removedElements) {
     const rows = removedElements.rows || [];
     const columns = removedElements.columns || [];
     const mergedCells = gridSettings.mergeCells;
@@ -209,7 +209,7 @@ export class ActionInfo {
       gridSettings.colHeaders = colHeaders.filter(columnIndex => columns.includes(columnIndex) === false);
     }
 
-    this.adjustMergedCells(gridSettings, removedElements);
+    this.adjustAfterRemoval(gridSettings, removedElements);
 
     const config = {
       ...gridSettings,
@@ -224,7 +224,7 @@ export class ActionInfo {
    * Get warning message when there is some problem with row insertion or undefined otherwise.
    *
    * @private
-   * @param {number} rowIndex An index of the row at which the new values will be inserted or removed.
+   * @param {number} rowIndex An index of the row at which the new values will be inserted.
    * @param {string[]} values List of values.
    * @returns {undefined|string}
    */
@@ -249,25 +249,17 @@ export class ActionInfo {
   }
 
   /**
-   * Insert values at row index.
+   * Adjust information about merged cells after row insertion.
    *
    * Note: Used index refers to processed data, not to the instance of Handsontable.
    *
-   * @param {number} rowIndex An index of the row at which the new values will be inserted or removed.
-   * @param {string[]} values List of values.
+   * @private
+   * @param {object} gridSettings Object containing `data`, `colHeaders`, `rowHeaders`, `nestedHeaders`, `mergeCells`
+   * keys and the corresponding values, which will be changed by the reference.
+   * @param {number} rowIndex An index of the row at which the new values have been inserted.
    */
-  insertAtRow(rowIndex, values) {
-    const gridSettings = this.getGridSettings();
+  adjustAfterRowInsertion(gridSettings, rowIndex) {
     const { mergeCells: mergedCells, data } = gridSettings;
-    const rowInsertionWarn = this.getRowInsertionWarn(rowIndex, values);
-
-    if (isDefined(rowInsertionWarn)) {
-      warn(rowInsertionWarn);
-
-      return;
-    }
-
-    data.splice(rowIndex, 0, values);
 
     mergedCells?.forEach((mergeArea) => {
       const { row: mergeStartRow, col: mergeStartColumn, rowspan, colspan } = mergeArea;
@@ -286,7 +278,30 @@ export class ActionInfo {
         mergeArea.row += 1;
       }
     });
+  }
 
+  /**
+   * Insert values at row index.
+   *
+   * Note: Used index refers to processed data, not to the instance of Handsontable.
+   *
+   * @param {number} rowIndex An index of the row at which the new values will be inserted.
+   * @param {string[]} values List of values.
+   */
+  insertAtRow(rowIndex, values) {
+    const gridSettings = this.getGridSettings();
+    const { data } = gridSettings;
+    const rowInsertionWarn = this.getRowInsertionWarn(rowIndex, values);
+
+    if (isDefined(rowInsertionWarn)) {
+      warn(rowInsertionWarn);
+
+      return;
+    }
+
+    data.splice(rowIndex, 0, values);
+
+    this.adjustAfterRowInsertion(gridSettings, rowIndex);
     this.overWriteInfo(gridSettings);
   }
 
@@ -325,32 +340,17 @@ export class ActionInfo {
   }
 
   /**
-   * Insert values at column index.
+   * Adjust information about merged cells after column insertion.
    *
    * Note: Used index refers to processed data, not to the instance of Handsontable.
    *
-   * @param {number} columnIndex An index of the column at which the new values will be inserted or removed.
-   * @param {string[]} values List of values.
+   * @private
+   * @param {object} gridSettings Object containing `data`, `colHeaders`, `rowHeaders`, `nestedHeaders`, `mergeCells`
+   * keys and the corresponding values, which will be changed by the reference.
+   * @param {number} columnIndex An index of the column at which the new values have been inserted.
    */
-  insertAtColumn(columnIndex, values) {
-    const gridSettings = this.getGridSettings();
-    const { mergeCells: mergedCells, data, colHeaders } = gridSettings;
-    const headerLevels = isDefined(colHeaders) ? 1 : 0;
-    const columnInsertionWarn = this.getColumnInsertionWarn(columnIndex, values);
-
-    if (isDefined(columnInsertionWarn)) {
-      warn(columnInsertionWarn);
-
-      return;
-    }
-
-    if (headerLevels > 0) {
-      colHeaders.splice(columnIndex, 0, values[0]);
-    }
-
-    data.forEach((rowData, rowIndex) => {
-      rowData.splice(columnIndex, 0, values[rowIndex]);
-    });
+  adjustAfterColumnInsertion(gridSettings, columnIndex) {
+    const { mergeCells: mergedCells, data } = gridSettings;
 
     mergedCells?.forEach((mergeArea) => {
       const { row: mergeStartRow, col: mergeStartColumn, colspan, rowspan } = mergeArea;
@@ -369,7 +369,37 @@ export class ActionInfo {
         mergeArea.col += 1;
       }
     });
+  }
 
+  /**
+   * Insert values at column index.
+   *
+   * Note: Used index refers to processed data, not to the instance of Handsontable.
+   *
+   * @param {number} columnIndex An index of the column at which the new values will be inserted or removed.
+   * @param {string[]} values List of values.
+   */
+  insertAtColumn(columnIndex, values) {
+    const gridSettings = this.getGridSettings();
+    const { data, colHeaders } = gridSettings;
+    const headerLevels = isDefined(colHeaders) ? 1 : 0;
+    const columnInsertionWarn = this.getColumnInsertionWarn(columnIndex, values);
+
+    if (isDefined(columnInsertionWarn)) {
+      warn(columnInsertionWarn);
+
+      return;
+    }
+
+    if (headerLevels > 0) {
+      colHeaders.splice(columnIndex, 0, values[0]);
+    }
+
+    data.forEach((rowData, rowIndex) => {
+      rowData.splice(columnIndex, 0, values[rowIndex + headerLevels]);
+    });
+
+    this.adjustAfterColumnInsertion(gridSettings, columnIndex);
     this.overWriteInfo(gridSettings);
   }
 
