@@ -281,6 +281,12 @@ export class ActionInfo {
       }
     });
 
+    mergedCells?.forEach((mergeArea) => {
+      if (rowIndex <= mergeArea.row) {
+        mergeArea.row += 1;
+      }
+    });
+
     this.overWriteInfo(gridSettings);
   }
 
@@ -343,7 +349,7 @@ export class ActionInfo {
     }
 
     data.forEach((rowData, rowIndex) => {
-      rowData.splice(columnIndex, 0, ...values.slice(headerLevels)[rowIndex]);
+      rowData.splice(columnIndex, 0, values[rowIndex]);
     });
 
     mergedCells?.forEach((mergeArea) => {
@@ -355,6 +361,12 @@ export class ActionInfo {
         for (let i = 0; i < rowspan; i += 1) {
           data[mergeStartRow + i][columnIndex] = '';
         }
+      }
+    });
+
+    mergedCells?.forEach((mergeArea) => {
+      if (columnIndex <= mergeArea.col) {
+        mergeArea.col += 1;
       }
     });
 

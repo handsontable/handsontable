@@ -387,4 +387,224 @@ describe('MergeCells copy and paste', () => {
     ].join(''));
     /* eslint-enable */
   });
+
+  it('should properly change copied values using `beforeCopy` hook (inserting row to a merge area)', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(8, 8),
+      rowHeaders: true,
+      colHeaders: true,
+      mergeCells: [
+        { row: 1, col: 1, rowspan: 2, colspan: 2 },
+        { row: 3, col: 3, rowspan: 3, colspan: 3 }
+      ],
+      beforeCopy(actionInfo) {
+        actionInfo.insertAtRow(2, ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']);
+      }
+    });
+
+    const copyEvent = getClipboardEvent();
+    const plugin = getPlugin('CopyPaste');
+
+    selectAll();
+
+    plugin.copy();
+    plugin.onCopy(copyEvent); // emulate native "copy" event
+
+    /* eslint-disable indent */
+    expect(copyEvent.clipboardData.getData('text/html')).toEqual([
+      '<meta name="generator" content="Handsontable"/>',
+      '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+      '<table>',
+        '<tbody>',
+          '<tr>',
+            '<td>A1</td>',
+            '<td>B1</td>',
+            '<td>C1</td>',
+            '<td>D1</td>',
+            '<td>E1</td>',
+            '<td>F1</td>',
+            '<td>G1</td>',
+            '<td>H1</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A2</td>',
+            '<td rowspan="3" colspan="2">B2</td>',
+            '<td>D2</td>',
+            '<td>E2</td>',
+            '<td>F2</td>',
+            '<td>G2</td>',
+            '<td>H2</td>',
+          '</tr>',
+          '<tr>',
+            '<td>a</td>',
+            '<td>d</td>',
+            '<td>e</td>',
+            '<td>f</td>',
+            '<td>g</td>',
+            '<td>h</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A3</td>',
+            '<td>D3</td>',
+            '<td>E3</td>',
+            '<td>F3</td>',
+            '<td>G3</td>',
+            '<td>H3</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A4</td>',
+            '<td>B4</td>',
+            '<td>C4</td>',
+            '<td rowspan="3" colspan="3">D4</td>',
+            '<td>G4</td>',
+            '<td>H4</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A5</td>',
+            '<td>B5</td>',
+            '<td>C5</td>',
+            '<td>G5</td>',
+            '<td>H5</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A6</td>',
+            '<td>B6</td>',
+            '<td>C6</td>',
+            '<td>G6</td>',
+            '<td>H6</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A7</td>',
+            '<td>B7</td>',
+            '<td>C7</td>',
+            '<td>D7</td>',
+            '<td>E7</td>',
+            '<td>F7</td>',
+            '<td>G7</td>',
+            '<td>H7</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A8</td>',
+            '<td>B8</td>',
+            '<td>C8</td>',
+            '<td>D8</td>',
+            '<td>E8</td>',
+            '<td>F8</td>',
+            '<td>G8</td>',
+            '<td>H8</td>',
+          '</tr>',
+        '</tbody>',
+      '</table>',
+    ].join(''));
+    /* eslint-enable */
+  });
+
+  it('should properly change copied values using `beforeCopy` hook (inserting column to a merge area)', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(8, 8),
+      rowHeaders: true,
+      colHeaders: true,
+      mergeCells: [
+        { row: 1, col: 1, rowspan: 2, colspan: 2 },
+        { row: 3, col: 3, rowspan: 3, colspan: 3 }
+      ],
+      beforeCopy(actionInfo) {
+        actionInfo.insertAtColumn(2, [1, 2, 3, 4, 5, 6, 7, 8]);
+      }
+    });
+
+    const copyEvent = getClipboardEvent();
+    const plugin = getPlugin('CopyPaste');
+
+    selectAll();
+
+    plugin.copy();
+    plugin.onCopy(copyEvent); // emulate native "copy" event
+
+    /* eslint-disable indent */
+    expect(copyEvent.clipboardData.getData('text/html')).toEqual([
+      '<meta name="generator" content="Handsontable"/>',
+      '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+      '<table>',
+        '<tbody>',
+          '<tr>',
+            '<td>A1</td>',
+            '<td>B1</td>',
+            '<td>1</td>',
+            '<td>C1</td>',
+            '<td>D1</td>',
+            '<td>E1</td>',
+            '<td>F1</td>',
+            '<td>G1</td>',
+            '<td>H1</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A2</td>',
+            '<td rowspan="2" colspan="3">B2</td>',
+            '<td>D2</td>',
+            '<td>E2</td>',
+            '<td>F2</td>',
+            '<td>G2</td>',
+            '<td>H2</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A3</td>',
+            '<td>D3</td>',
+            '<td>E3</td>',
+            '<td>F3</td>',
+            '<td>G3</td>',
+            '<td>H3</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A4</td>',
+            '<td>B4</td>',
+            '<td>4</td>',
+            '<td>C4</td>',
+            '<td rowspan="3" colspan="3">D4</td>',
+            '<td>G4</td>',
+            '<td>H4</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A5</td>',
+            '<td>B5</td>',
+            '<td>5</td>',
+            '<td>C5</td>',
+            '<td>G5</td>',
+            '<td>H5</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A6</td>',
+            '<td>B6</td>',
+            '<td>6</td>',
+            '<td>C6</td>',
+            '<td>G6</td>',
+            '<td>H6</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A7</td>',
+            '<td>B7</td>',
+            '<td>7</td>',
+            '<td>C7</td>',
+            '<td>D7</td>',
+            '<td>E7</td>',
+            '<td>F7</td>',
+            '<td>G7</td>',
+            '<td>H7</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A8</td>',
+            '<td>B8</td>',
+            '<td>8</td>',
+            '<td>C8</td>',
+            '<td>D8</td>',
+            '<td>E8</td>',
+            '<td>F8</td>',
+            '<td>G8</td>',
+            '<td>H8</td>',
+          '</tr>',
+        '</tbody>',
+      '</table>',
+    ].join(''));
+    /* eslint-enable */
+  });
 });
