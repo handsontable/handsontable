@@ -64,7 +64,7 @@ export function getHTMLByCoords(instance, config) {
  * cell value list.
  * @param {Array<number>} config.columns List of column indexes which should be taken into account when creating the
  * cell value list.
- * @returns {string[]} List of displayed cell values.
+ * @returns {Array<Array<string>>} List of displayed cell values.
  */
 export function getDataByCoords(instance, config) {
   return [
@@ -98,18 +98,18 @@ export function getHTMLFromConfig(config) {
 /**
  * Get list of filtered nested headers.
  *
- * @param {Array<string>} nestedHeaders List of nested headers which will be filtered.
+ * @param {Array<Array<string|object>>} nestedHeaders List of nested headers which will be filtered.
  * @param {Array<number>} excludedHeaders List of headers which should be excluded when creating the HTMLTableElement.tHead.
  * @param {Array<number>} excludedColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
  * @returns {*}
  */
 function getFilteredNestedHeaders(nestedHeaders, excludedHeaders, excludedColumns) {
-  return nestedHeaders.reduce((listOfHeaders, nestedHeader, rowIndex) => {
+  return nestedHeaders.reduce((listOfHeaders, headerValues, rowIndex) => {
     if (excludedHeaders.includes(rowIndex - nestedHeaders.length)) {
       return listOfHeaders;
     }
 
-    const filteredNestedHeader = nestedHeader.filter((columnData, columnIndex) =>
+    const filteredNestedHeader = headerValues.filter((columnData, columnIndex) =>
       excludedColumns.includes(columnIndex) === false);
 
     if (filteredNestedHeader.length > 0) {
@@ -123,10 +123,10 @@ function getFilteredNestedHeaders(nestedHeaders, excludedHeaders, excludedColumn
 /**
  * Get HTML for nested headers.
  *
- * @param {Array<string>} nestedHeaders List of nested headers which will be filtered.
+ * @param {Array<Array<string|object>>} nestedHeaders List of nested headers which will be filtered.
  * @param {Array<number>} excludedHeaders List of headers which should be excluded when creating the HTMLTableElement.tHead.
  * @param {Array<number>} excludedColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
- * @returns {*[]}
+ * @returns {Array<string>}
  */
 function getNestedHeadersHTML(nestedHeaders, excludedHeaders, excludedColumns) {
   const headersHTML = [];
@@ -181,7 +181,7 @@ function getSimpleHeadersHTML(columnHeaders, excludedHeaders, excludedColumns) {
 }
 
 /**
- * Get list of cells filtered by list of ignored rows and columns.
+ * Get list of cells filtered by list of excluded rows and columns.
  *
  * @private
  * @param {Array<Array<string>>} data List of cells values which will be filtered.
@@ -351,7 +351,7 @@ function getHeadersHTMLByConfig(config) {
  * @param {Array<number>} [config.excludedColumns] List of column indexes which should be excluded when creating the value list.
  * @param {Array<Array<string|object>>} [config.nestedHeaders] List of headers and information about some nested elements.
  * @param {Array<string>} [config.colHeaders] List of first level header values.
- * @returns {Array<string>} List of values.
+ * @returns {string[][]} List of values.
  */
 export function getDataWithHeadersByConfig(config) {
   const dataWithHeaders = [];

@@ -17,28 +17,11 @@ const META_HEAD = [
 ].join('');
 
 /**
- * Creates an object containing information about performed action: copy, cut (performing also copying) or paste action.
+ * Creates an object containing information about performed action: copy, cut (performing also copying) or paste.
  *
  * @private
  */
 export class ActionInfo {
-  /**
-   * Cell ranges related to instance of Handsontable (used only while copying data).
-   *
-   * @type {CellRange[]}
-   */
-  #copyableRanges;
-  /**
-   * Handsontable instance (used only while copying data).
-   *
-   * @type {Core}
-   */
-  #instance;
-  /**
-   * Sanitized data of "text/html" type inside the clipboard.
-   *
-   * @type {string}
-   */
   #html;
   /**
    * Copied data stored as array of arrays.
@@ -55,13 +38,10 @@ export class ActionInfo {
    */
   constructor({ type, html, instance, copyableRanges }) {
     if (type === 'copy') {
-      this.#instance = instance;
-      this.#copyableRanges = copyableRanges;
+      const { rows, columns } = normalizeRanges(copyableRanges);
 
-      const { rows, columns } = normalizeRanges(this.#copyableRanges);
-
-      this.#html = [META_HEAD, getHTMLByCoords(this.#instance, { rows, columns })].join('');
-      this.#data = getDataByCoords(this.#instance, { rows, columns });
+      this.#html = [META_HEAD, getHTMLByCoords(instance, { rows, columns })].join('');
+      this.#data = getDataByCoords(instance, { rows, columns });
 
     } else {
       this.#html = html;
@@ -135,41 +115,44 @@ export class ActionInfo {
   /**
    * Adjust information about merged cells after removing some elements.
    *
+   * Note: Used indexes refers to processed data, not to the instance of Handsontable.
+   *
    * @private
+   * @param {object} gridSettings Object containing `data`, `colHeaders`, `rowHeaders`, `nestedHeaders`, `mergeCells`
+   * keys and the corresponding values, which will be changed by the reference.
    * @param {object} removedElements Configuration object describing removed rows/columns.
    * @param {number[]} [removedElements.rows] List of row indexes which should be excluded when creating copy/cut/paste data.
    * @param {number[]} [removedElements.columns] List of column indexes which should be excluded when creating copy/cut/paste data.
    */
-  adjustMergedCells(removedElements) {
+  adjustMergedCells(gridSettings, removedElements) {
     const rows = removedElements.rows || [];
     const columns = removedElements.columns || [];
-    const gridSettings = this.getGridSettings();
-    const mergedCells = gridSettings.mergedCells;
+    const mergedCells = gridSettings.mergeCells;
 
     if (isDefined(mergedCells) === false) {
       return;
     }
 
-    gridSettings.mergedCells = mergedCells.reduce((filteredNestedCells, mergeArea) => {
+    gridSettings.mergeCells = mergedCells.reduce((filteredNestedCells, mergeArea) => {
       const { row: mergeStartRow, col: mergeStartColumn, rowspan, colspan } = mergeArea;
-      const removedRows = rows.filter(row => row >= mergeStartRow && row < mergeStartRow + rowspan);
-      const removedColumns =
+      const removedMergedRows = rows.filter(row => row >= mergeStartRow && row < mergeStartRow + rowspan);
+      const removedMergedColumns =
         columns.filter(column => column >= mergeStartColumn && column < mergeStartColumn + colspan);
-      const removedRowsLength = removedRows.length;
-      const removedColumnsLength = removedColumns.length;
+      const removedMergedRowsLength = removedMergedRows.length;
+      const removedMergedColumnsLength = removedMergedColumns.length;
 
-      if (removedRowsLength === rowspan || rowspan - removedRowsLength === 1) {
+      if (removedMergedRowsLength === rowspan || rowspan - removedMergedRowsLength === 1) {
         delete mergeArea.rowspan;
 
-      } else if (removedRowsLength > 0) {
-        mergeArea.rowspan = rowspan - removedRowsLength;
+      } else if (removedMergedRowsLength > 0) {
+        mergeArea.rowspan = rowspan - removedMergedRowsLength;
       }
 
-      if (removedColumnsLength === colspan || colspan - removedColumnsLength === 1) {
+      if (removedMergedColumnsLength === colspan || colspan - removedMergedColumnsLength === 1) {
         delete mergeArea.colspan;
 
-      } else if (removedColumnsLength > 0) {
-        mergeArea.colspan = colspan - removedColumnsLength;
+      } else if (removedMergedColumnsLength > 0) {
+        mergeArea.colspan = colspan - removedMergedColumnsLength;
       }
 
       if (Number.isInteger(mergeArea.rowspan) || Number.isInteger(mergeArea.colspan)) {
@@ -179,8 +162,18 @@ export class ActionInfo {
       return filteredNestedCells;
     }, []);
 
-    if (gridSettings.mergedCells.length === 0) {
-      delete gridSettings.mergedCells;
+    gridSettings.mergeCells.forEach((mergeArea) => {
+      const shiftedRows = rows.filter(row => row < mergeArea.row);
+      const shiftedColumns = columns.filter(column => column < mergeArea.col);
+      const shifterRowsLength = shiftedRows.length;
+      const shifterColumnsLength = shiftedColumns.length;
+
+      mergeArea.row = mergeArea.row - shifterRowsLength;
+      mergeArea.col = mergeArea.col - shifterColumnsLength;
+    });
+
+    if (gridSettings.mergeCells.length === 0) {
+      delete gridSettings.mergeCells;
     }
   }
 
@@ -210,7 +203,7 @@ export class ActionInfo {
       gridSettings.colHeaders = colHeaders.filter(columnIndex => columns.includes(columnIndex) === false);
     }
 
-    this.adjustMergedCells(removedElements);
+    this.adjustMergedCells(gridSettings, removedElements);
 
     const config = {
       ...gridSettings,
@@ -277,7 +270,7 @@ export class ActionInfo {
         mergeArea.rowspan += 1;
 
         for (let i = 0; i < colspan; i += 1) {
-          data[rowIndex][mergeStartColumn + i] = null;
+          data[rowIndex][mergeStartColumn + i] = '';
         }
       }
     });
@@ -354,7 +347,7 @@ export class ActionInfo {
         mergeArea.colspan += 1;
 
         for (let i = 0; i < rowspan; i += 1) {
-          data[mergeStartRow + i][columnIndex] = null;
+          data[mergeStartRow + i][columnIndex] = '';
         }
       }
     });
