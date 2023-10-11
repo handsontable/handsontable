@@ -13,6 +13,8 @@ import { applySpanProperties } from './utils';
 import './mergeCells.css';
 import { getStyle } from '../../helpers/dom/element';
 import { isChrome } from '../../helpers/browser';
+import { htmlToGridSettings } from '../../utils/parseTable';
+import { isDefined } from '../../helpers/mixed';
 
 Hooks.getSingleton().register('beforeMergeCells');
 Hooks.getSingleton().register('afterMergeCells');
@@ -98,13 +100,6 @@ export class MergeCells extends BasePlugin {
      * @type {SelectionCalculations}
      */
     this.selectionCalculations = null;
-    /**
-     * An array of objects with ranges of the visual indexes (startRow, startCol, endRow, endCol) which was copied.
-     *
-     * @private
-     * @type {Array<object>}
-     */
-    this.copiedRanges = [];
   }
 
   /**
@@ -160,8 +155,6 @@ export class MergeCells extends BasePlugin {
       }
     });
     this.addHook('beforePaste', (...args) => this.onBeforePaste(...args));
-    this.addHook('afterCopy', (...args) => this.onAfterCopy(...args));
-    this.addHook('afterCut', (...args) => this.onAfterCopy(...args));
 
     this.registerShortcuts();
 
@@ -1337,109 +1330,74 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * `afterCopy` hook callback. Used for storing information about copied ranges.
-   *
-   * @private
-   * @param {Array<Array>} data An array of arrays which contains the copied data.
-   * @param {Array<object>} copiedRanges An array of objects with ranges of the visual indexes (startRow, startCol, endRow, endCol) which was copied.
-   */
-  onAfterCopy(data, copiedRanges) {
-    this.copiedRanges = copiedRanges;
-  }
-
-  /**
-   * Checks if we copy data from single merged cell.
-   *
-   * @private
-   * @returns {boolean}
-   */
-  isCopyingFromMergedCell() {
-    if (this.copiedRanges.length === 1) {
-      const copiedRange = this.copiedRanges[0];
-      const { startRow, startCol, endRow, endCol } = copiedRange;
-      const copiedCellRange = this.getCellRange(startRow, startCol, endRow - startRow + 1,
-        endCol - startCol + 1);
-
-      return this.mergedCellsCollection.getByRange(copiedCellRange) !== false;
-    }
-
-    return false;
-  }
-
-  /**
    * Checks if unmerge should be performed.
    *
    * @private
-   * @param {object} selectionCoords Object with ranges of the visual indexes (startRow, startCol,
-   * endRow, endCol) that correspond to the previously selected area.
-   * @param {number} selectedRows Number of selected rows.
-   * @param {number} selectedColumns Number of selected columns.
+   * @param {Array<object>} mergedCells List of merged cells.
    * @param {number} pastedRows Number of pasted data rows.
    * @param {number} pastedColumns Number of pasted data columns.
    * @returns {boolean}
    */
-  shouldUnmerge(selectionCoords, selectedRows, selectedColumns, pastedRows, pastedColumns) {
-    const selectionRange = this.getCellRange(selectionCoords.startRow, selectionCoords.startCol, selectedRows,
-      selectedColumns);
-    const pastingToMergedCell = this.mergedCellsCollection.getByRange(selectionRange) !== false;
+  shouldUnmerge(mergedCells, pastedRows, pastedColumns) {
+    const isCopiedWithMergedCell = isDefined(mergedCells);
+    const copiedOnlyMergedCell = isCopiedWithMergedCell
+      && mergedCells.length === 1 && mergedCells[0].rowspan === pastedRows
+      && mergedCells[0].colspan === pastedColumns;
+    const selectedRangeLast = this.hot.getSelectedRangeLast();
+    const pastingToMergedCell = this.mergedCellsCollection.getByRange(selectedRangeLast) !== false;
 
-    if (this.isCopyingFromMergedCell() && pastingToMergedCell) {
+    if (pastedRows === 1 && pastedColumns === 1 && pastingToMergedCell === true) {
       return false;
     }
 
-    // Doesn't perform unmerge while pasting single cell's data to single merged cell.
-    return pastedColumns > 1 || pastedRows > 1 || pastingToMergedCell === false;
+    return copiedOnlyMergedCell === false || pastingToMergedCell === false;
   }
 
   /**
    * `beforePaste` hook callback. Used for manipulating with area of paste (by changing selection) and unmerging cells.
    *
    * @private
-   * @param {Array<Array>} pastedData An array of arrays which contains data to paste.
-   * @param {Array<object>} listOfCoords An array of objects with ranges of the visual indexes (startRow, startCol,
-   * endRow, endCol) that correspond to the previously selected area.
+   * @param {Array[]} data An array of arrays with the cut data.
+   * @param {string} textHTML Copied data of "text/html" type inside the clipboard.
    */
-  onBeforePaste(pastedData, listOfCoords) {
-    const pastedColumns = pastedData[0].length;
-    const pastedRows = pastedData.length;
+  onBeforePaste(data, textHTML) {
+    const selectedRangeLast = this.hot.getSelectedRangeLast();
+    const pastedRows = data.length;
+    const pastedColumns = data[0].length;
+    const { row: selectionFromRow, col: selectionFromColumn } = selectedRangeLast.from;
+    const selectedRows = selectedRangeLast.getHeight();
+    const selectedColumns = selectedRangeLast.getWidth();
 
-    listOfCoords.forEach((selectionCoords) => {
-      const selectedRows = selectionCoords.endRow - selectionCoords.startRow + 1;
-      const selectedColumns = selectionCoords.endCol - selectionCoords.startCol + 1;
-      const pasteRange = this.getCellRange(selectionCoords.startRow, selectionCoords.startCol, pastedRows,
-        pastedColumns);
-      const populationRange = this.getCellRange(selectionCoords.startRow, selectionCoords.startCol,
-        Math.max(pastedRows, selectedRows), Math.max(pastedColumns, selectedColumns));
+    if (this.shouldUnmerge(htmlToGridSettings(textHTML)?.mergeCells, pastedRows, pastedColumns) === false) {
+      return;
+    }
 
-      if (this.shouldUnmerge(selectionCoords, selectedRows, selectedColumns, pastedRows, pastedColumns) === false) {
-        return;
-      }
+    const pasteRange = this.getCellRange(selectionFromRow, selectionFromColumn, pastedRows, pastedColumns);
+    const populationRange = this.getCellRange(selectionFromRow, selectionFromColumn,
+      Math.max(pastedRows, selectedRows), Math.max(pastedColumns, selectedColumns));
 
-      let rangeToUnmerge = pasteRange;
-      const mergedCellsWithinPopulation = this.mergedCellsCollection.getWithinRange(populationRange, true);
+    let rangeToUnmerge = pasteRange;
+    const mergedCellsWithinPopulation = this.mergedCellsCollection.getWithinRange(populationRange, true);
 
-      // Nothing to unmerge.
-      if (mergedCellsWithinPopulation.length === 0) {
-        return;
-      }
+    // Nothing to unmerge.
+    if (mergedCellsWithinPopulation.length === 0) {
+      return;
+    }
 
-      if (mergedCellsWithinPopulation.length === 1) {
-        rangeToUnmerge = populationRange;
-      }
+    if (mergedCellsWithinPopulation.length === 1) {
+      rangeToUnmerge = populationRange;
+    }
 
-      // Checking merged cells on unmerge range right before performing the unmerge.
-      const listOfUnmergedCells = this.mergedCellsCollection.getWithinRange(rangeToUnmerge, true);
+    // Checking merged cells on unmerge range right before performing the unmerge.
+    const listOfUnmergedCells = this.mergedCellsCollection.getWithinRange(rangeToUnmerge, true);
 
-      this.unmergeRange(rangeToUnmerge, false, true);
+    this.unmergeRange(rangeToUnmerge, false, true);
 
-      // Changing selection (place where the data is populated) only for greater range (at least two merged cells).
-      if (rangeToUnmerge === pasteRange) {
-        this.hot.selectCell(selectionCoords.startRow, selectionCoords.startCol, pasteRange.endRow, pasteRange.endCol);
-      }
+    // Changing selection (place where the data is populated) only for greater range (at least two merged cells).
+    if (rangeToUnmerge === pasteRange) {
+      this.hot.selectCell(selectionFromRow, selectionFromColumn, pasteRange.endRow, pasteRange.endCol);
+    }
 
-      this.adjustSelectionAfterPasting(listOfUnmergedCells, rangeToUnmerge);
-
-      this.copiedRanges = [];
-    });
+    this.adjustSelectionAfterPasting(listOfUnmergedCells, rangeToUnmerge);
   }
 }
