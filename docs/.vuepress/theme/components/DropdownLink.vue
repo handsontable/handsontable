@@ -10,10 +10,12 @@
       @click="handleDropdown"
     >
       <span class="title">{{ item.text }}</span>
-      <span
-        class="arrow down"
+      <i
+        class="ico i-arrow down"
       />
     </button>
+
+    <!--
     <button
       class="mobile-dropdown-title"
       type="button"
@@ -21,11 +23,12 @@
       @click="setOpen(!open)"
     >
       <span class="title">{{ item.text }}</span>
-      <span
-        class="arrow"
+      <i
+        class="ico i-arrow"
         :class="open ? 'down' : 'right'"
       />
     </button>
+    -->
 
     <DropdownTransition>
       <ul
@@ -142,6 +145,7 @@ export default {
 </script>
 
 <style lang="stylus">
+/*
 .dropdown-wrapper
   cursor pointer
   .dropdown-title
@@ -258,4 +262,6 @@ export default {
       border-radius 0.25rem
       white-space nowrap
       margin 0
+
+*/
 </style>

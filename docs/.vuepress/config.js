@@ -244,7 +244,7 @@ module.exports = {
     smoothScroll: false,
     nav: [
       // Guide & API Reference has been defined in theme/components/NavLinks.vue
-      { text: 'GitHub', link: 'https://github.com/handsontable/handsontable' },
+      //{ text: 'GitHub', link: 'https://github.com/handsontable/handsontable' },
       { text: 'Support',
         items: [
           { text: 'Contact support', link: 'https://handsontable.com/contact?category=technical_support' },

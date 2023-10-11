@@ -10,7 +10,6 @@
 </template>
 
 <script>
-import { ensureExt } from '@vuepress/theme-default/util';
 
 export default {
   name: 'NavLink',
@@ -48,8 +47,7 @@ export default {
   methods: {
     focusoutAction() {
       this.$emit('focusout');
-    },
-
+    }
   }
 };
 </script>

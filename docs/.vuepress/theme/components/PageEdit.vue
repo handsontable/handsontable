@@ -1,23 +1,36 @@
 <template>
-  <footer class="page-edit">
-    <div
-      v-if="editLink"
-      class="edit-link"
-    >
-      <a
-        :href="editLink"
-        target="_blank"
-        rel="noopener noreferrer"
-      >{{ editLinkText }}</a>
-      <OutboundLink />
-    </div>
+  <footer class="footer">
+    <div class="footer-support">
+      <div
+        v-if="lastUpdated"
+        class="last-updated"
+      >
+        <span class="prefix">{{ lastUpdatedText }}:</span>
+        <span class="time">{{ lastUpdated }}</span>
+      </div>
 
-    <div
-      v-if="lastUpdated"
-      class="last-updated"
-    >
-      <span class="prefix">{{ lastUpdatedText }}:</span>
-      <span class="time">{{ lastUpdated }}</span>
+      <div
+        v-if="editLink"
+        class="edit-link"
+      >
+        <a
+          :href="editLink"
+          target="_blank"
+          rel="noopener noreferrer"
+        >{{ editLinkText }} <i class="ico i-github"></i></a>
+      </div>
+    </div>
+    
+    <div class="footer-links">
+      <p>2012 - 2023 © Handsoncode </p>
+      <div>
+        <a href="#">About us</a>
+        <a href="#">Our customers</a>
+        <a href="#">Privacy policy </a>
+        <a href="#">Terms</a>
+        <a href="#">Blog</a>
+        <a href="#">Contact us</a>
+      </div>
     </div>
   </footer>
 </template>
@@ -120,6 +133,7 @@ export default {
 </script>
 
 <style lang="stylus">
+/*
 .page-edit
   max-width $contentWidth
   margin 0 auto
@@ -150,5 +164,5 @@ export default {
       font-size 0.8em
       float none
       text-align left
-
+*/
 </style>

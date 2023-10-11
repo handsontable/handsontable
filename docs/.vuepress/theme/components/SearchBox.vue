@@ -1,5 +1,6 @@
 <template>
   <div class="search-box">
+    <i class="ico i-search"></i>
     <input
       ref="input"
       aria-label="Search"
@@ -19,6 +20,7 @@
       <kbd @click="focusInput()">/</kbd>
       <kbd @click="focusInput()">S</kbd>
     </span>
+    
     <ul
       v-if="showSuggestions"
       class="suggestions"
@@ -42,7 +44,7 @@
             <span
               v-if="s.header"
               class="header"
-            >&gt; {{ s.header.title }}</span>
+            ><i class="ico i-arrow"></i> {{ s.header.title }}</span>
           </a>
         </li>
       </template>
@@ -314,6 +316,7 @@ export default {
 };
 </script>
 
+<!--
 <style lang="stylus">
 .search-box.search-box
   display inline-block
@@ -416,3 +419,4 @@ export default {
   input
     right 0!important
 </style>
+-->

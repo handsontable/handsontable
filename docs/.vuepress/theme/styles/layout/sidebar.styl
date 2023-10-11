@@ -1,0 +1,593 @@
+.sidebar { 
+    position fixed
+    top: 0
+    left: 0
+    width: 320px; 
+    background: $sideColor
+    top:0
+    border:0
+    z-index: 100
+
+    .home-link { 
+        display: block;
+        padding: 24px
+
+        .Logo { 
+            height: 22px 
+            width: 145px
+            display: block
+            background-repeat: no-repeat
+            background-size: 100%
+        }
+    }
+
+    .info-box { 
+        position relative
+        padding: 8px
+        margin:0 24px 8px
+        background: $bgColor
+        border-radius: $radius
+        display: flex
+        gap: 8px
+
+        span { 
+            background-color: $borderColor
+            border-radius: $radius
+            padding: 12px
+            
+            i { 
+                filter:none 
+            }
+        }
+
+        div {
+            padding-top: 4px
+            width: -webkit-fill-available;
+
+            p { 
+                display: block
+                font-size: $font-size-xs
+                line-height: $line-height-xs
+            }
+            > a { 
+                cursor: pointer
+                display: block
+                font-size: $font-size-xxs
+                line-height: $line-height-xxs
+                color:$text2Color
+
+                &:before { 
+                    content: ''
+                    display: bottom 
+                    position absolute
+                    inset: 0 
+                    border-radius: $radius
+                    box-shadow: 0 0 0 1px $accentColor
+                    opacity 0
+                    transition all $t ease
+                }
+
+                @media (hover: hover) {
+                    &:hover:before { 
+                        opacity:1
+                    }
+                }
+            }
+        }
+        > .close {
+            cursor:pointer
+            opacity .5
+            transition all $t ease
+
+            @media (hover: hover) {
+                &:hover { 
+                    opacity 1
+                }
+            }
+        }
+    }
+
+    > .sidebar-links {
+        > li { 
+            display: block;
+
+            a { 
+                display: flex
+                gap: 8px
+                align-items: center
+                padding: 16px 24px
+                font-size: $font-size-s
+                line-height: $line-height-s
+                font-weight: 400
+                color: $text2Color
+                transition all $t ease
+                cursor: pointer
+                border: none
+
+                span {
+                    width: 100%
+                }
+
+                i {
+                    opacity .7
+                    transition all $t ease
+                }
+                
+                .i-arrow { 
+                    opacity: .5    
+                }
+
+                &.active { 
+                    color: $textColor
+                    i { opacity: 1}
+                    .i-arrow { 
+                        transform: rotate(180deg)
+                    }
+                }
+                @media (hover: hover) {
+                    &:hover { 
+                        color: $textColor
+                    }
+                }
+            }
+            > .sidebar-group {
+                p, a { 
+                    display: flex
+                    gap: 8px
+                    align-items: center
+                    padding: 16px 24px
+                    font-size: $font-size-s
+                    line-height: $line-height-s
+                    font-weight: 400
+                    color: $text2Color
+                    transition all $t ease
+                    cursor: pointer
+
+                    span {
+                        width: 100%
+                    }
+
+                    i {
+                        opacity .7
+                        transition all $t ease
+                    }
+                    
+                    .i-arrow { 
+                        opacity: .5    
+                    }
+
+                    &.open { 
+                        color: $textColor
+                        i { opacity: 1}
+                        .i-arrow { 
+                            transform: rotate(180deg)
+                        }
+                    }
+                    @media (hover: hover) {
+                        &:hover { 
+                            color: $textColor
+                        }
+                    }
+                }
+            
+                > .sidebar-links {
+                    a { 
+                        color: $text2Color
+                        font-size: $font-size-xs
+                        line-height: $line-height-xs
+                        padding: 8px 32px 8px 48px
+                        border:0
+                        position: relative
+                        transition all $t ease
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+
+                        &:before { 
+                            content: ''
+                            display: block
+                            position absolute
+                            inset: 0 24px
+                            background: $borderColor
+                            z-index -1
+                            border-radius: $radius
+                            opacity: 0
+                            transition all $t ease
+                        }
+
+                        &:after { 
+                            content: ''
+                            display: block
+                            position absolute
+                            top 0    
+                            left: 32px
+                            bottom: 0
+                            border-left: 1px solid $borderColor
+                            transition all $t ease
+                        }
+
+                        @media (hover: hover) {
+                            &:hover { 
+                                color: $textColor
+
+                                &:after {
+                                    top: 8px
+                                    bottom: 8px
+                                }
+                            }
+                        }
+                        
+                        &.active { 
+                            color: $textColor
+                            font-weight: 400
+                            
+                            &:before { 
+                                opacity: 1    
+                            }
+
+                            &:after { 
+                                top: 8px
+                                bottom: 8px
+                                border-color: $accentColor
+                            }
+                        }  
+                        .tag-update, .tag-new  { 
+                            font-size: $font-size-xxs
+                            line-height: $line-height-xxs
+                            display: block;
+                            border-radius: $radius-s
+                            padding: 2px 8px;
+                            background-color: $accentColor
+                            color: $bgColor
+                            margin:-1px 0;
+                            width:auto
+                        }
+                        .tag-new { 
+                            background-color: $successColor
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .mobile-show {
+        
+        .nav-links {
+            display: flex
+            flex-direction: column
+
+            .nav-item {
+                a, button { 
+                    font-size:14px
+                    line-height: 20px
+                    color: $text2Color
+                    padding: 16px 32px
+                    display: block
+                    display: flex
+                    white-space: nowrap
+                    gap:8px
+                    font-weight: 400
+
+                    &.router-link-active { 
+                        color: $textColor
+                    }
+                }
+
+                button { 
+                    background:none
+                    border: none
+                    display: flex
+                    color: $text2Color
+                    align-items: center
+                }
+
+                .nav-dropdown {
+                    a { padding: 4px 8px}    
+                }
+            }
+        }
+
+        .framework-and-version { 
+            display: flex
+
+            > nav > i {
+                margin-right -16px
+                z-index 1
+                position relative
+            } 
+            
+            .nav-frameworks { 
+                padding-left: 24px
+                display: flex
+                align-items: center
+                flex-direction: row
+                gap: 8px
+
+                .dropdown-wrapper > button { 
+                    display: flex
+                    gap: 8px
+                    padding-left: 48px
+                    margin-left:-32px
+
+                    + .nav-dropdown { 
+                        left: -16px
+                    }
+                }
+            }
+        }
+
+        .dropdown-wrapper { 
+            position: relative
+            height: auto
+
+            > button { 
+                display: flex
+                padding: 24px 16px
+                display: flex
+                gap: 8px
+                background: none
+                border:0
+                cursor pointer
+                transition all $t ease
+                text-transform: capitalize
+
+                .title {
+                    display: flex; gap: 8px
+                }
+
+                i { 
+                    transition all $t ease
+                }
+            }
+
+            &.open { 
+                > button { 
+                        i { 
+                            transform:rotate(-180deg)
+                        }
+
+                        & + .nav-dropdown {
+                            visibility: visible
+                            opacity 1
+                        }
+                    }
+            }
+            @media (hover: hover) {
+                &:hover { 
+                    > button { 
+                        i { 
+                            transform:rotate(-180deg)
+                        }
+
+                        & + .nav-dropdown {
+                            visibility: visible
+                            opacity 1
+                        }
+                    }
+                }
+            }
+
+            .nav-dropdown { 
+                transition all $t ease
+                display:block !important
+                visibility: hidden
+                opacity 0
+                position absolute
+                top: 48px
+                left: 0
+                background: $sideColor
+                padding: 8px 8px
+                border-radius: $radius
+                //right: 0
+                min-width: 96px
+
+                a { 
+                    color: $text2Color
+                    font-size: $font-size-xs
+                    line-height: $line-height-xs
+                    padding: 4px 8px 
+                    border:0
+                    position: relative
+                    transition all $t ease
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    z-index 1
+
+                    &:before { 
+                        content: ''
+                        display: block
+                        position absolute
+                        inset: 0 0
+                        background: $bgColor
+                        z-index -1
+                        border-radius: $radius
+                        opacity: 0
+                        transition all $t ease
+                    }
+
+                    @media (hover: hover) {
+                        &:hover { 
+                            color: $textColor
+
+                            &:before {
+                                opacity: 1
+                            }
+                        }
+                    }
+                    
+                    &.active { 
+                        color: $textColor
+                        font-weight: 400
+                        
+                        &:before { 
+                            opacity: 1    
+                        }
+                    }  
+                }
+            }
+        } 
+
+        //Icons
+        .icons-nav {
+            display: flex
+            padding: 12px
+            
+            a {
+                display: block
+                padding: 12px
+            }
+
+            button { 
+                cursor pointer
+                background: none
+                border: none
+                padding: 12px
+            }
+
+            a, button, label {
+                border-radius: $radius*4
+
+                @media (hover: hover) {
+                    &:hover { 
+                        background: $borderColor
+                    }
+                }
+            }
+        }   
+
+        //Search
+        .search-box { 
+            position: relative
+            display: flex
+            padding: 16px
+
+            > i { 
+                position: absolute
+                top: 24px
+                left: 24px
+            }
+
+            input { 
+                width:160px
+                border-radius: 4px
+                background: none
+                border: none
+                padding: 4px 8px 4px 32px
+                font-size: $font-size-s
+                line-height: $line-height-s
+                color: $text2Color
+                font-family: $font
+
+                &:focus { 
+                    + .kbd-hint { 
+                        opacity 0 
+                    }
+                }
+            }
+
+            .kbd-hint { 
+                transition all $t ease
+                position:absolute
+                display: 
+                flex; gap:4px
+                right: 22px
+                top:22px
+
+                kbd { 
+                    display: block
+                    line-height: 20px
+                    width: 20px
+                    border-radius: 4px
+                    text-align: center
+                    background: $borderColor
+                    color: $text2Color
+                    font-size: $font-size-xs
+                }
+            }
+
+            .suggestions { 
+                position absolute
+                top 52px
+                right:12px;
+                min-width:320px
+                background: $sideColor
+                padding: 8px 8px
+                border-radius: $radius
+                list-style: none
+
+                li { color: $text2Color
+                    font-size: $font-size-s
+                    line-height: $line-height-s
+                    padding: 2px 8px 
+                    
+
+                    &:not(.suggestion) {
+                        padding: 16px 8px 12px
+                        border-bottom: 1px solid $borderColor
+                        margin-bottom: 8px
+                    }
+
+                    a { 
+                        color: $text2Color
+                        font-size: $font-size-xs
+                        line-height: $line-height-xs
+                        padding: 4px 8px 
+                        margin: 0 -8px
+                        border:0
+                        position: relative
+                        transition all $t ease
+                        display: block;
+                        z-index 1
+                        font-weight: 400
+                        border-radius: $radius
+                        display: flex;
+
+                        i {
+                            //padding: 2px
+                            opacity .8
+                            transform:rotate(-90deg)
+                            display: inline-block
+                        }
+
+                        span { 
+                            display: inline-block
+                            white-space: pre
+                        }
+
+                        .header { 
+                            font-size: $font-size-xs
+                            line-height: $line-height-xs
+                            display: inline-flex;
+                        }
+
+                        @media (hover: hover) {
+                            &:hover { 
+                                background: $borderColor
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+    }
+
+    
+    @media (max-width: $medium) {
+        padding-top: 0
+        width 100%
+        top: 0;
+        transform: translateX(-100%);
+        
+        .home-link {
+            visibility: hidden
+        }
+    }
+}
+@media (max-width: $medium) {
+    .theme-container.sidebar-open .sidebar { 
+        transform: translateX(0);
+    }
+}

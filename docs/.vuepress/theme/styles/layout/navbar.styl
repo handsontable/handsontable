@@ -1,0 +1,436 @@
+.navbar {  
+    position: sticky
+    top: 0
+    margin: 0 0 0 320px
+    background: none
+    border: none
+
+
+    .tag  { 
+        font-size: $font-size-xxs
+        line-height: $line-height-xxs
+        display: block;
+        border-radius: $radius-s
+        padding: 2px 8px;
+        background-color: $accentColor
+        color: $bgColor
+        margin: -2px 0;
+    }
+
+    .navbar-wrapper {
+        display: flex
+        justify-content: space-between;
+        backdrop-filter: blur(8px);
+        background: rgba(255,255,255,.75)
+
+        .Logo { 
+            display: none
+        }
+
+        .menu {
+            display: flex
+
+            .nav-links {
+                display: flex
+
+                .nav-item {
+                    a, button { 
+                        font-size:14px
+                        line-height: 20px
+                        color: $text2Color
+                        padding: 22px 16px
+                        display: block
+                        display: flex
+                        white-space: nowrap
+                        gap:8px
+                        font-weight: 400
+
+                        &.router-link-active { 
+                            color: $textColor
+                        }
+                    }
+
+                    button { 
+                        background:none
+                        border: none
+                        display: flex
+                        color: $text2Color
+                        align-items: center
+                    }
+
+                    .nav-dropdown {
+                        a { padding: 4px 8px}    
+                    }
+                }
+            }
+        }
+
+        .framework-and-version { 
+            display: flex
+
+            > nav > i {
+                margin-right -16px
+                z-index 1
+                position relative
+            } 
+            
+            .nav-frameworks { 
+                padding-left: 24px
+                display: flex
+                align-items: center
+                gap: 8px
+
+                .dropdown-wrapper > button { 
+                    display: flex
+                    gap: 8px
+                    padding-left: 48px
+                    margin-left:-32px
+
+                    + .nav-dropdown { 
+                        left: -16px
+                    }
+                }
+            }
+        }
+
+        .dropdown-wrapper { 
+            position: relative
+            height: 64px
+
+            > button { 
+                display: flex
+                padding: 24px 16px
+                display: flex
+                gap: 8px
+                background: none
+                border:0
+                cursor pointer
+                transition all $t ease
+                text-transform: capitalize
+
+                .title {
+                    display: flex; gap: 8px
+                }
+
+                i { 
+                    transition all $t ease
+                }
+            }
+
+            &.open { 
+                > button { 
+                        i { 
+                            transform:rotate(-180deg)
+                        }
+
+                        & + .nav-dropdown {
+                            visibility: visible
+                            opacity 1
+                        }
+                    }
+            }
+            @media (hover: hover) {
+                &:hover { 
+                    > button { 
+                        i { 
+                            transform:rotate(-180deg)
+                        }
+
+                        & + .nav-dropdown {
+                            visibility: visible
+                            opacity 1
+                        }
+                    }
+                }
+            }
+
+            .nav-dropdown { 
+                transition all $t ease
+                display:block !important
+                visibility: hidden
+                opacity 0
+                position absolute
+                top: 48px
+                left: 0
+                background: $sideColor
+                padding: 8px 8px
+                border-radius: $radius
+                //right: 0
+                min-width: 96px
+
+                a { 
+                    color: $text2Color
+                    font-size: $font-size-xs
+                    line-height: $line-height-xs
+                    padding: 4px 8px 
+                    border:0
+                    position: relative
+                    transition all $t ease
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    z-index 1
+
+                    &:before { 
+                        content: ''
+                        display: block
+                        position absolute
+                        inset: 0 0
+                        background: $bgColor
+                        z-index -1
+                        border-radius: $radius
+                        opacity: 0
+                        transition all $t ease
+                    }
+
+                    @media (hover: hover) {
+                        &:hover { 
+                            color: $textColor
+
+                            &:before {
+                                opacity: 1
+                            }
+                        }
+                    }
+                    
+                    &.active { 
+                        color: $textColor
+                        font-weight: 400
+                        
+                        &:before { 
+                            opacity: 1    
+                        }
+                    }  
+                }
+            }
+        } 
+
+        //Icons
+        .icons-nav {
+            display: flex
+            padding: 12px
+            
+            a {
+                display: block
+                padding: 12px
+            }
+
+            button { 
+                cursor pointer
+                background: none
+                border: none
+                padding: 12px
+            }
+
+            a, button, label {
+                border-radius: $radius*4
+
+                @media (hover: hover) {
+                    &:hover { 
+                        background: $borderColor
+                    }
+                }
+            }
+
+            .menuButton { 
+                display: none
+            }
+        }   
+
+        //Search
+        .search-box { 
+            position: relative
+            display: flex
+            padding: 16px
+
+            > i { 
+                position: absolute
+                top: 24px
+                left: 24px
+            }
+
+            input { 
+                width:160px
+                border-radius: 4px
+                background: none
+                border: none
+                padding: 4px 8px 4px 32px
+                font-size: $font-size-s
+                line-height: $line-height-s
+                color: $text2Color
+                font-family: $font
+
+                &:focus { 
+                    + .kbd-hint { 
+                        opacity 0 
+                    }
+                }
+            }
+
+            .kbd-hint { 
+                transition all $t ease
+                position:absolute
+                display: 
+                flex; gap:4px
+                right: 22px
+                top:22px
+
+                kbd { 
+                    display: block
+                    line-height: 20px
+                    width: 20px
+                    border-radius: 4px
+                    text-align: center
+                    background: $borderColor
+                    color: $text2Color
+                    font-size: $font-size-xs
+                }
+            }
+
+            .suggestions { 
+                position absolute
+                top 52px
+                right:12px;
+                min-width:320px
+                background: $sideColor
+                padding: 8px 8px
+                border-radius: $radius
+                list-style: none
+
+                li { color: $text2Color
+                    font-size: $font-size-s
+                    line-height: $line-height-s
+                    padding: 2px 8px 
+                    
+
+                    &:not(.suggestion) {
+                        padding: 16px 8px 12px
+                        border-bottom: 1px solid $borderColor
+                        margin-bottom: 8px
+                    }
+
+                    a { 
+                        color: $text2Color
+                        font-size: $font-size-xs
+                        line-height: $line-height-xs
+                        padding: 4px 8px 
+                        margin: 0 -8px
+                        border:0
+                        position: relative
+                        transition all $t ease
+                        display: block;
+                        z-index 1
+                        font-weight: 400
+                        border-radius: $radius
+                        display: flex;
+
+                        i {
+                            //padding: 2px
+                            opacity .8
+                            transform:rotate(-90deg)
+                            display: inline-block
+                        }
+
+                        span { 
+                            display: inline-block
+                            white-space: pre
+                        }
+
+                        .header { 
+                            font-size: $font-size-xs
+                            line-height: $line-height-xs
+                            display: inline-flex;
+                        }
+
+                        @media (hover: hover) {
+                            &:hover { 
+                                background: $borderColor
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+    }
+    
+    @media (max-width: $extraLarge) {
+        .navbar-wrapper .menu .nav-links .nav-item a,
+        .navbar-wrapper .menu .nav-links .nav-item button {
+            padding: 22px 12px
+        }
+    }
+
+    @media (max-width: 1380px) {
+        .navbar-wrapper .menu .nav-links{ 
+            display: none
+        }
+    }
+    @media (max-width: $large) {
+        .navbar-wrapper {
+            .search-box { 
+                display: none
+            }
+        }
+    }
+
+    @media (max-width: $medium) {
+        margin: 0
+        z-index: 200
+
+        .navbar-wrapper {
+            
+            .framework-and-version,
+            .search-box { 
+                display: none
+            }
+
+            .icons-nav {
+                button:not(.menuButton), a {
+                    display: none
+                }
+            }
+
+            .icons-nav .menuButton {
+                display: flex;
+
+                i:nth-child(1) { display: block}
+                i:nth-child(2) { display: none}
+            }
+
+            .Logo { 
+                margin: 24px
+                height: 22px 
+                width: 145px
+                display: block
+                background-repeat: no-repeat
+                background-size: 100%
+            }
+        }
+    }
+}
+
+.dark-mode { 
+    cursor pointer
+
+    .inner { 
+        display:block
+        padding: 12px
+        input { 
+            display none 
+        }
+    }
+}
+
+.sidebar-open .navbar {
+     @media (max-width: $medium) {
+        .navbar-wrapper {
+            background: none !important
+
+            .menuButton {
+                i:nth-child(2) { display: block}
+                i:nth-child(1) { display: none}
+            }
+        }
+     }
+}

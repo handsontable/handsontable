@@ -7,6 +7,12 @@
     <div class="nav-item">
       <NavLink :item="apiLink"/>
     </div>
+    <div class="nav-item">
+      <NavLink :item="changelogLink"/>
+    </div>
+    <div class="nav-item">
+      <NavLink :item="pricingLink"/>
+    </div>
   </nav>
 </template>
 
@@ -26,13 +32,25 @@ export default {
     guideLink() {
       return {
         link: `${this.frameworkUrlPrefix}/`,
-        text: 'Guides'
+        text: 'Docs'
       };
     },
     apiLink() {
       return {
         link: `${this.frameworkUrlPrefix}/api/`,
-        text: 'API reference'
+        text: 'API'
+      };
+    },
+    changelogLink() {
+      return {
+        link: `${this.frameworkUrlPrefix}/release-notes/`,
+        text: 'Changelog'
+      };
+    },
+    pricingLink() {
+      return {
+        link: `https://handsontable.com/pricing/`,
+        text: 'Pricing'
       };
     }
   }
