@@ -13,7 +13,6 @@ import { applySpanProperties } from './utils';
 import './mergeCells.css';
 import { getStyle } from '../../helpers/dom/element';
 import { isChrome } from '../../helpers/browser';
-import { htmlToGridSettings } from '../../utils/parseTable';
 import { isDefined } from '../../helpers/mixed';
 
 Hooks.getSingleton().register('beforeMergeCells');
