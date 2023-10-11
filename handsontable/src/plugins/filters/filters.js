@@ -4,12 +4,13 @@ import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';
 import { addClass, removeClass } from '../../helpers/dom/element';
+import { isKey } from '../../helpers/unicode';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import * as constants from '../../i18n/constants';
-import ConditionComponent from './component/condition';
-import OperatorsComponent from './component/operators';
-import ValueComponent from './component/value';
-import ActionBarComponent from './component/actionBar';
+import { ConditionComponent } from './component/condition';
+import { OperatorsComponent } from './component/operators';
+import { ValueComponent } from './component/value';
+import { ActionBarComponent } from './component/actionBar';
 import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
@@ -241,7 +242,21 @@ export class Filters extends BasePlugin {
     }
 
     if (!this.#menuNavigatorCtrl) {
-      this.#menuNavigatorCtrl = createMenuNavigatorCtrl(this);
+      this.#menuNavigatorCtrl = createMenuNavigatorCtrl(this.dropdownMenuPlugin.menu, this.components);
+      this.components.get('filter_by_value')
+        .getMultipleSelectElement()
+        .addLocalHook('listTab', (event) => {
+          this.dropdownMenuPlugin.menu.focus();
+          event.preventDefault();
+
+          if (isKey(event.keyCode, 'TAB')) {
+            if (event.shiftKey) {
+              this.#menuNavigatorCtrl.toPreviousItem();
+            } else {
+              this.#menuNavigatorCtrl.toNextItem();
+            }
+          }
+        });
     }
 
     this.registerShortcuts();

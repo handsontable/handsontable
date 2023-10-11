@@ -1,12 +1,12 @@
 import { addClass } from '../../../helpers/dom/element';
 import { arrayEach } from '../../../helpers/array';
 import { toSingleLine } from '../../../helpers/templateLiteralTag';
-import BaseComponent from './_base';
+import { BaseComponent } from './_base';
 import { getOperationName } from '../logicalOperationRegisterer';
 import { OPERATION_ID as OPERATION_AND } from '../logicalOperations/conjunction';
 import { OPERATION_ID as OPERATION_OR } from '../logicalOperations/disjunction';
 import { OPERATION_ID as OPERATION_OR_THEN_VARIABLE } from '../logicalOperations/disjunctionWithExtraCondition';
-import RadioInputUI from '../ui/radioInput';
+import { RadioInputUI } from '../ui/radioInput';
 
 const SELECTED_AT_START_ELEMENT_INDEX = 0;
 
@@ -14,7 +14,7 @@ const SELECTED_AT_START_ELEMENT_INDEX = 0;
  * @private
  * @class OperatorsComponent
  */
-class OperatorsComponent extends BaseComponent {
+export class OperatorsComponent extends BaseComponent {
   constructor(hotInstance, options) {
     super(hotInstance, {
       id: options.id,
@@ -158,5 +158,3 @@ class OperatorsComponent extends BaseComponent {
     this.setState(event.target.value);
   }
 }
-
-export default OperatorsComponent;

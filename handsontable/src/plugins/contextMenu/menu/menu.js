@@ -152,17 +152,18 @@ export class Menu {
    * Adds keyboard shortcuts to the menu.
    *
    * @param {KeyboardShortcut[]} shortcuts Keyboard shortcuts to add.
-   * @param {string} contextName The context name to create or use.
+   * @param {string} [contextName] The context name to create or use.
    */
-  addShortcuts(shortcuts, contextName = SHORTCUTS_GROUP) {
-    const shortcutManager = this.hotMenu.getShortcutManager();
-    const menuContext = shortcutManager.getContext(contextName) ?? shortcutManager.addContext(contextName);
+  addShortcuts(shortcuts, contextName) {
+    const manager = this.hotMenu.getShortcutManager();
+    const createContext = name => manager.getContext(name) ?? manager.addContext(name);
+    const context = createContext(contextName ? `${SHORTCUTS_GROUP}:${contextName}` : SHORTCUTS_GROUP);
 
     shortcuts.forEach(({ keys }) => {
-      keys.forEach(k => menuContext.removeShortcutsByKeys(k));
+      keys.forEach(k => context.removeShortcutsByKeys(k));
     });
 
-    menuContext.addShortcuts(shortcuts, {
+    context.addShortcuts(shortcuts, {
       group: SHORTCUTS_CONTEXT,
       // runOnlyIf: event => !isInput(event.target) || !this.container.contains(event.target),
     });
@@ -509,6 +510,14 @@ export class Menu {
    */
   isAllSubMenusClosed() {
     return Object.keys(this.hotSubMenus).length === 0;
+  }
+
+  /**
+   * Focus the menu so all keyboard shortcuts become active.
+   */
+  focus() {
+    this.hotMenu.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT);
+    this.hotMenu.listen();
   }
 
   /**

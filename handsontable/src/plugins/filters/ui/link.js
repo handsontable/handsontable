@@ -1,11 +1,11 @@
 import { clone, extend } from '../../../helpers/object';
-import BaseUI from './_base';
+import { BaseUI } from './_base';
 
 /**
  * @private
  * @class LinkUI
  */
-class LinkUI extends BaseUI {
+export class LinkUI extends BaseUI {
   static get DEFAULTS() {
     return clone({
       href: '#',
@@ -54,5 +54,3 @@ class LinkUI extends BaseUI {
     }
   }
 }
-
-export default LinkUI;

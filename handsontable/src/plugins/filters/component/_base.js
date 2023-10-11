@@ -7,7 +7,7 @@ import { LinkedPhysicalIndexToValueMap as IndexToValueMap } from '../../../trans
  * @private
  * @class BaseComponent
  */
-class BaseComponent {
+export class BaseComponent {
   /**
    * The Handsontable instance.
    *
@@ -145,5 +145,3 @@ class BaseComponent {
 }
 
 mixin(BaseComponent, localHooks);
-
-export default BaseComponent;

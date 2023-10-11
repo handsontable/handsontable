@@ -4,8 +4,8 @@ import { arrayEach, arrayFilter, arrayMap } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import * as C from '../../../i18n/constants';
 import { unifyColumnValues, intersectValues, toEmptyString } from '../utils';
-import BaseComponent from './_base';
-import MultipleSelectUI from '../ui/multipleSelect';
+import { BaseComponent } from './_base';
+import { MultipleSelectUI } from '../ui/multipleSelect';
 import { CONDITION_BY_VALUE, CONDITION_NONE } from '../constants';
 import { getConditionDescriptor } from '../conditionRegisterer';
 
@@ -13,7 +13,7 @@ import { getConditionDescriptor } from '../conditionRegisterer';
  * @private
  * @class ValueComponent
  */
-class ValueComponent extends BaseComponent {
+export class ValueComponent extends BaseComponent {
   constructor(hotInstance, options) {
     super(hotInstance, {
       id: options.id,
@@ -48,6 +48,7 @@ class ValueComponent extends BaseComponent {
       selectElement.getSearchInputElement(),
       selectElement.getSelectAllElement(),
       selectElement.getClearAllElement(),
+      this.getMultipleSelectElement(),
     ];
   }
 
@@ -245,5 +246,3 @@ class ValueComponent extends BaseComponent {
     return arrayMap(this.hot.getDataAtCol(selectedColumn.visualIndex), v => toEmptyString(v));
   }
 }
-
-export default ValueComponent;

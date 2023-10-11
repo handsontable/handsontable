@@ -1,11 +1,11 @@
 import { clone, extend } from '../../../helpers/object';
-import BaseUI from './_base';
+import { BaseUI } from './_base';
 
 /**
  * @private
  * @class RadioInputUI
  */
-class RadioInputUI extends BaseUI {
+export class RadioInputUI extends BaseUI {
   static get DEFAULTS() {
     return clone({
       type: 'radio',
@@ -30,16 +30,6 @@ class RadioInputUI extends BaseUI {
 
   constructor(hotInstance, options) {
     super(hotInstance, extend(RadioInputUI.DEFAULTS, options));
-    this.registerHooks();
-  }
-
-  /**
-   * Register all necessary hooks.
-   */
-  registerHooks() {
-    this.addLocalHook('change', () => {
-
-    });
   }
 
   /**
@@ -54,6 +44,7 @@ class RadioInputUI extends BaseUI {
     label.htmlFor = this.translateIfPossible(this.options.label.htmlFor);
     this.#label = label;
     this.#input = this._element.firstChild;
+    this.#input.checked = this.options.checked;
 
     this._element.appendChild(label);
 
@@ -68,7 +59,6 @@ class RadioInputUI extends BaseUI {
       return;
     }
 
-    this.#input.checked = this.options.checked;
     this.#label.textContent = this.translateIfPossible(this.options.label.textContent);
   }
 
@@ -78,7 +68,7 @@ class RadioInputUI extends BaseUI {
    * @returns {boolean}
    */
   isChecked() {
-    return this.options.checked;
+    return this.#input.checked;
   }
 
   /**
@@ -87,8 +77,9 @@ class RadioInputUI extends BaseUI {
    * @param {boolean} value Set the component state.
    */
   setChecked(value = true) {
-    this.options.checked = value;
-    this.update();
+    if (this.isBuilt()) {
+      this.#input.checked = value;
+    }
   }
 
   /**
@@ -100,5 +91,3 @@ class RadioInputUI extends BaseUI {
     }
   }
 }
-
-export default RadioInputUI;

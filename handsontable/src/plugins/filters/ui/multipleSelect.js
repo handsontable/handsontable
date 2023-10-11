@@ -6,9 +6,9 @@ import { partial } from '../../../helpers/function';
 import { dataRowToChangesArray } from '../../../helpers/data';
 import * as C from '../../../i18n/constants';
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
-import BaseUI from './_base';
-import InputUI from './input';
-import LinkUI from './link';
+import { BaseUI } from './_base';
+import { InputUI } from './input';
+import { LinkUI } from './link';
 import { createArrayAssertion } from '../utils';
 
 const SHORTCUTS_GROUP = 'multipleSelect.itemBox';
@@ -17,7 +17,7 @@ const SHORTCUTS_GROUP = 'multipleSelect.itemBox';
  * @private
  * @class MultipleSelectUI
  */
-class MultipleSelectUI extends BaseUI {
+export class MultipleSelectUI extends BaseUI {
   static get DEFAULTS() {
     return clone({
       className: 'htUIMultipleSelect',
@@ -205,11 +205,22 @@ class MultipleSelectUI extends BaseUI {
       // Constructs and initializes a new Handsontable instance
       this.#itemsBox = new this.hot.constructor(wrapper, {
         data: this.#items,
-        columns: [
-          { data: 'checked', type: 'checkbox', label: { property: 'visualValue', position: 'after' } }
-        ],
+        columns: [{
+          data: 'checked',
+          type: 'checkbox',
+          label: {
+            property: 'visualValue',
+            position: 'after'
+          },
+        }],
         beforeRenderer: (TD, row, col, prop, value, cellProperties) => {
           TD.title = cellProperties.instance.getDataAtRowProp(row, cellProperties.label.property);
+        },
+        afterListen: () => {
+          this.runLocalHooks('focus', this);
+        },
+        beforeOnCellMouseUp: () => {
+          this.#itemsBox.listen();
         },
         maxCols: 1,
         autoWrapCol: true,
@@ -220,7 +231,7 @@ class MultipleSelectUI extends BaseUI {
         disableVisualSelection: 'area',
         fillHandle: false,
         fragmentSelection: 'cell',
-        // tabMoves: { row: 1, col: 0 },
+        tabMoves: { row: 1, col: 0 },
         layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       });
       this.#itemsBox.init();
@@ -228,8 +239,9 @@ class MultipleSelectUI extends BaseUI {
       const shortcutManager = this.#itemsBox.getShortcutManager();
       const gridContext = shortcutManager.getContext('grid');
 
+      gridContext.removeShortcutsByKeys(['Tab']);
+      gridContext.removeShortcutsByKeys(['Shift', 'Tab']);
       gridContext.addShortcut({
-        // TODO: Is this shortcut really needed? We have one test for that case, but focus is performed programmatically.
         keys: [['Escape']],
         callback: (event) => {
           this.runLocalHooks('keydown', event, this);
@@ -237,9 +249,12 @@ class MultipleSelectUI extends BaseUI {
         group: SHORTCUTS_GROUP
       });
       gridContext.addShortcut({
-        keys: [['Tab']],
+        keys: [['Tab'], ['Shift', 'Tab']],
         callback: (event) => {
+          this.#itemsBox.deselectCell();
+
           this.runLocalHooks('keydown', event, this);
+          this.runLocalHooks('listTab', event, this);
         },
         group: SHORTCUTS_GROUP
       });
@@ -318,7 +333,8 @@ class MultipleSelectUI extends BaseUI {
 
     const isKeyCode = partial(isKey, event.keyCode);
 
-    if (isKeyCode('ARROW_DOWN') && !this.#itemsBox.isListening()) {
+    if (isKeyCode('ARROW_DOWN')) {
+      event.preventDefault();
       stopImmediatePropagation(event);
       this.#itemsBox.listen();
       this.#itemsBox.selectCell(0, 0);

@@ -12,7 +12,7 @@ const EVENTS_TO_REGISTER = ['click', 'input', 'keydown', 'keypress', 'keyup', 'f
 /**
  * @private
  */
-class BaseUI {
+export class BaseUI {
   static get DEFAULTS() {
     return clone({
       className: '',
@@ -214,5 +214,3 @@ class BaseUI {
 }
 
 mixin(BaseUI, localHooks);
-
-export default BaseUI;

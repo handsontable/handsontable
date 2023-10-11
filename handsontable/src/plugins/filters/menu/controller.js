@@ -1,39 +1,32 @@
 import { createMenuNavigator } from './navigator';
-import SelectUI from '../ui/select';
+import { SelectUI } from '../ui/select';
 
-const SHORTCUTS_CONTEXT = 'menu_filters';
+const SHORTCUTS_MENU_CONTEXT = 'filters';
+const SHORTCUTS_CONTEXT = `menu:${SHORTCUTS_MENU_CONTEXT}`;
 
 /**
- * Creates paginator for menus and submenus.
+ * Creates navigator controller for filter subcomponents in the menu.
  *
- * @param {Handsontable} filtersPlugin The Handsontable instance of the menu.
+ * @param {Menu} menu The Menu instance.
+ * @param {Map<string, object>} filterComponents The list of the subcomponents of the filters plugin to paginate to.
  * @returns {Paginator}
  */
-export function createMenuNavigatorCtrl(filtersPlugin) {
-  const menu = filtersPlugin.dropdownMenuPlugin.menu;
-  const byCond = filtersPlugin.components.get('filter_by_condition');
-  const operators = filtersPlugin.components.get('filter_operators');
-  const byCond2 = filtersPlugin.components.get('filter_by_condition2');
-  const byValue = filtersPlugin.components.get('filter_by_value');
-  const actionBar = filtersPlugin.components.get('filter_action_bar');
-  const elements = [
-    ...byCond.getElements(),
-    ...operators.getElements(),
-    ...byCond2.getElements(),
-    ...byValue.getElements(),
-    ...actionBar.getElements(),
-  ];
-  const componentIds = Array.from(filtersPlugin.components).map(([, component]) => component.id);
-  const updateNavigatorPosition = element => () => navigator.setCurrentPage(elements.indexOf(element));
+export function createMenuNavigatorCtrl(menu, filterComponents) {
+  const componentElements = Array.from(filterComponents)
+    .map(([, component]) => component.getElements())
+    .flat();
+  const componentIds = Array.from(filterComponents)
+    .map(([, component]) => component.id);
+  const navigator = createMenuNavigator(componentElements);
+  const updateNavigatorPosition = element => () => navigator.setCurrentPage(componentElements.indexOf(element));
+  let lastSelectedMenuIndex;
 
   // update navigator position to element that was recently clicked or focused
-  elements.forEach((element) => {
+  componentElements.forEach((element) => {
     element.addLocalHook('focus', updateNavigatorPosition(element));
     element.addLocalHook('click', updateNavigatorPosition(element));
     element.addLocalHook('afterClose', updateNavigatorPosition(element));
   });
-
-  const navigator = createMenuNavigator(elements);
 
   menu.addLocalHook('afterSelectionChange', (selectedItem) => {
     if (!componentIds.includes(selectedItem.key)) {
@@ -57,19 +50,31 @@ export function createMenuNavigatorCtrl(filtersPlugin) {
       keys: [['Enter'], ['Space']],
       preventDefault: false,
       callback: (event) => {
-        const element = elements[navigator.getCurrentPage()];
+        const element = componentElements[navigator.getCurrentPage()];
 
         if (element instanceof SelectUI) {
           element.openOptions();
           event.preventDefault();
         }
       }
-    }], SHORTCUTS_CONTEXT);
+    }, {
+      keys: [['Escape']],
+      callback: () => {
+        if (Number.isInteger(lastSelectedMenuIndex) && lastSelectedMenuIndex !== -1) {
+          menu.getNavigator().setCurrentPage(lastSelectedMenuIndex);
+        } else {
+          menu.getNavigator().toFirstItem();
+        }
+
+        menu.focus();
+      }
+    }], SHORTCUTS_MENU_CONTEXT);
 
     menu.addShortcuts([{
       keys: [['Tab'], ['Shift', 'Tab']],
       forwardToContext: menu.getShortcutManager().getContext(SHORTCUTS_CONTEXT),
       callback: () => {
+        lastSelectedMenuIndex = menu.getNavigator().getCurrentPage();
         menu.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT);
       },
     }]);

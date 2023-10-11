@@ -1,12 +1,12 @@
 import { addClass } from '../../../helpers/dom/element';
 import { clone, extend } from '../../../helpers/object';
-import BaseUI from './_base';
+import { BaseUI } from './_base';
 
 /**
  * @private
  * @class InputUI
  */
-class InputUI extends BaseUI {
+export class InputUI extends BaseUI {
   static get DEFAULTS() {
     return clone({
       placeholder: '',
@@ -83,5 +83,3 @@ class InputUI extends BaseUI {
     this.options.value = event.target.value;
   }
 }
-
-export default InputUI;

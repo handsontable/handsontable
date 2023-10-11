@@ -3,13 +3,13 @@ import { clone, extend } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
 import * as C from '../../../i18n/constants';
 import { SEPARATOR } from '../../../plugins/contextMenu/predefinedItems';
-import BaseUI from './_base';
+import { BaseUI } from './_base';
 
 /**
  * @private
  * @class SelectUI
  */
-class SelectUI extends BaseUI {
+export class SelectUI extends BaseUI {
   static get DEFAULTS() {
     return clone({
       className: 'htUISelect',
@@ -224,5 +224,3 @@ class SelectUI extends BaseUI {
     super.destroy();
   }
 }
-
-export default SelectUI;

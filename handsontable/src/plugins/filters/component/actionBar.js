@@ -1,14 +1,14 @@
 import { addClass } from '../../../helpers/dom/element';
 import { arrayEach } from '../../../helpers/array';
 import * as C from '../../../i18n/constants';
-import BaseComponent from './_base';
-import InputUI from '../ui/input';
+import { BaseComponent } from './_base';
+import { InputUI } from '../ui/input';
 
 /**
  * @private
  * @class ActionBarComponent
  */
-class ActionBarComponent extends BaseComponent {
+export class ActionBarComponent extends BaseComponent {
   static get BUTTON_OK() {
     return 'ok';
   }
@@ -103,5 +103,3 @@ class ActionBarComponent extends BaseComponent {
     }
   }
 }
-
-export default ActionBarComponent;

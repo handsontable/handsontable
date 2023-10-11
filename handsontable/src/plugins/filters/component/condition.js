@@ -4,17 +4,17 @@ import { arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import { clone } from '../../../helpers/object';
 import * as C from '../../../i18n/constants';
-import BaseComponent from './_base';
+import { BaseComponent } from './_base';
 import getOptionsList, { CONDITION_NONE } from '../constants';
-import InputUI from '../ui/input';
-import SelectUI from '../ui/select';
+import { InputUI } from '../ui/input';
+import { SelectUI } from '../ui/select';
 import { getConditionDescriptor } from '../conditionRegisterer';
 
 /**
  * @private
  * @class ConditionComponent
  */
-class ConditionComponent extends BaseComponent {
+export class ConditionComponent extends BaseComponent {
   constructor(hotInstance, options) {
     super(hotInstance, {
       id: options.id,
@@ -244,5 +244,3 @@ class ConditionComponent extends BaseComponent {
     }
   }
 }
-
-export default ConditionComponent;
