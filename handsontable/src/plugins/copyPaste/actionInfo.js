@@ -184,7 +184,7 @@ export class ActionInfo {
   }
 
   /**
-   * Removes rows/columns from the copied/pasted dataset.
+   * Remove rows/columns from the copied/pasted dataset.
    *
    * Note: Used indexes refers to processed data, not to the instance of Handsontable. Please keep in mind that headers
    * are handled separately from cells and they are recognised using negative indexes.
