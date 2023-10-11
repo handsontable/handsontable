@@ -142,7 +142,7 @@ describe('CopyPaste', () => {
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
           '<thead>',
-            '<tr><th></th><th>0</th><th>false</th><th>D</th><th>null</th></tr>',
+            '<tr><th></th><th>0</th><th>false</th><th>D</th><th></th></tr>',
           '</thead>',
           '<tbody>',
             '<tr><td></td><td>0</td><td>false</td><td></td><td></td></tr>',

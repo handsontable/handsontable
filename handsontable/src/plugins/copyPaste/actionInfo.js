@@ -70,7 +70,7 @@ export class ActionInfo {
    * @returns {boolean}
    */
   isHandsontable() {
-    return this.isTable() && this.#html.includes(META_HEAD);
+    return this.isTable() && /<meta (.*?)content="Handsontable"/.test(this.#html);
   }
 
   /**
@@ -395,7 +395,7 @@ export class ActionInfo {
       colHeaders.splice(columnIndex, 0, values[0]);
     }
 
-    data.forEach((rowData, rowIndex) => {
+    data?.forEach((rowData, rowIndex) => {
       rowData.splice(columnIndex, 0, values[rowIndex + headerLevels]);
     });
 

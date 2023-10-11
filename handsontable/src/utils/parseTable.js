@@ -21,6 +21,21 @@ function isHTMLTable(element) {
 }
 
 /**
+ * Parses empty values to an empty string or leave them untouched otherwise.
+ *
+ * @private
+ * @param {string} cellValue Parsed cell value.
+ * @returns {string}
+ */
+function parseEmptyValues(cellValue) {
+  if (isEmpty(cellValue)) {
+    return '';
+  }
+
+  return cellValue;
+}
+
+/**
  * Converts Handsontable into HTMLTableElement.
  *
  * @param {Core} instance The Handsontable instance.
@@ -442,7 +457,8 @@ function getHeadersHTMLByCoords(instance, config) {
         i += parsedColspan - 1;
       }
 
-      rowHTML.push(`<th${colspanAttribute}>${encodeHTMLEntities(instance.getColHeader(columnIndex, rowIndex))}</th>`);
+      rowHTML.push(`<th${colspanAttribute}>${
+        encodeHTMLEntities(parseEmptyValues(instance.getColHeader(columnIndex, rowIndex)))}</th>`);
     }
 
     rowHTML.push('</tr>');
@@ -515,15 +531,14 @@ function getBodyHTMLByCoords(instance, config) {
 
     columns.forEach((columnIndex, nthColumn) => {
       if (columnIndex < 0) {
-        rowHTML.push(`<th>${encodeHTMLEntities(instance.getRowHeader(rowIndex))}</th>`);
+        rowHTML.push(`<th>${encodeHTMLEntities(parseEmptyValues(instance.getRowHeader(rowIndex)))}</th>`);
 
         return;
       }
 
       const cellValue = instance.getCopyableData(rowIndex, columnIndex);
-      const cellValueParsed = isEmpty(cellValue) ? '' : encodeHTMLEntities(cellValue);
-      const { hidden, rowspan, colspan } =
-        instance.getCellMeta(rowIndex, columnIndex);
+      const cellValueParsed = encodeHTMLEntities(parseEmptyValues((cellValue)));
+      const { hidden, rowspan, colspan } = instance.getCellMeta(rowIndex, columnIndex);
 
       if (!hidden) {
         const attrs = [];

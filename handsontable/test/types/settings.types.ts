@@ -403,11 +403,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterContextMenuDefaultOptions: (predefinedItems) => {},
   afterContextMenuHide: (context) => {},
   afterContextMenuShow: (context) => {},
-  afterCopy: (data, textHTML, copyConfig) => {},
+  afterCopy: (actionInfo) => {},
   afterCopyLimit: (selectedRows, selectedColumnds, copyRowsLimit, copyColumnsLimit) => {},
   afterCreateCol: (index, amount, source) => {},
   afterCreateRow: (index, amount, source) => {},
-  afterCut: (data, coords) => {},
+  afterCut: (actionInfo) => {},
   afterDeselect: () => {},
   afterDestroy: () => {},
   afterDetachChild: (parent, element) => {},
@@ -443,7 +443,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterOnCellMouseOver: (event, coords, TD) => {},
   afterOnCellMouseOut: (event, coords, TD) => {},
   afterOnCellMouseUp: (event, coords, TD) => {},
-  afterPaste: (data, textHTML, pasteConfig) => {},
+  afterPaste: (actionInfo) => {},
   afterPluginsInitialized: () => {},
   afterRedo: (action) => {},
   afterRedoStackChange: (undoneActionsBefore, undoneActionsAfter) => {},
@@ -498,10 +498,30 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeColumnUnfreeze: (columnIndex, isFreezingPerformed) => false,
   beforeContextMenuSetItems: (menuItems) => {},
   beforeContextMenuShow: (context) => {},
-  beforeCopy: (data, textHTML, copyConfig) => { copyConfig.rows = []; copyConfig.columns = []; },
+  beforeCopy: (actionInfo) => {
+    actionInfo.remove({ rows: [0], columns: [0] });
+    actionInfo.insertAtRow(0, ['A', 'B', 'C']);
+    actionInfo.insertAtColumn(0, ['A', 'B', 'C']);
+    actionInfo.change([{ row: 0, column: 0, value: '' }]);
+    actionInfo.isTable();
+    actionInfo.isHandsontable();
+    actionInfo.getData();
+    actionInfo.getHTML();
+    actionInfo.getGridSettings();
+  },
   beforeCreateCol: (index, amount, source) => {},
   beforeCreateRow: (index, amount, source) => {},
-  beforeCut: (data, coords) => { data.splice(0, 1); return false; },
+  beforeCut: (actionInfo) => {
+    actionInfo.remove({ rows: [0], columns: [0] });
+    actionInfo.insertAtRow(0, ['A', 'B', 'C']);
+    actionInfo.insertAtColumn(0, ['A', 'B', 'C']);
+    actionInfo.change([{ row: 0, column: 0, value: '' }]);
+    actionInfo.isTable();
+    actionInfo.isHandsontable();
+    actionInfo.getData();
+    actionInfo.getHTML();
+    actionInfo.getGridSettings();
+  },
   beforeDetachChild: (parent, element) => {},
   beforeDrawBorders: (corners, borderClassName) => {},
   beforeDropdownMenuSetItems: (menuItems) => {},
@@ -523,9 +543,16 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeOnCellMouseOut: (event, coords, TD) => {},
   beforeOnCellMouseOver: (event, coords, TD, controller) => {},
   beforeOnCellMouseUp: (event, coords, TD) => {},
-  beforePaste: (data, textHTML, pasteConfig) => {
-    pasteConfig?.ignoredRows.push(-1);
-    pasteConfig?.ignoredColumns.push(-1);
+  beforePaste: (actionInfo) => {
+    actionInfo.remove({ rows: [0], columns: [0] });
+    actionInfo.insertAtRow(0, ['A', 'B', 'C']);
+    actionInfo.insertAtColumn(0, ['A', 'B', 'C']);
+    actionInfo.change([{ row: 0, column: 0, value: '' }]);
+    actionInfo.isTable();
+    actionInfo.isHandsontable();
+    actionInfo.getData();
+    actionInfo.getHTML();
+    actionInfo.getGridSettings();
   },
   beforeRedo: (action) => {},
   beforeRedoStackChange: (undoneActions) => {},

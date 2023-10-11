@@ -1440,18 +1440,15 @@ const REGISTERED_HOOKS = [
    * ```js
    * // To disregard a single row, remove it from the array using data.splice(i, 1).
    * new Handsontable(element, {
-   *   beforeCut: function(data, textHTML, copyConfig) {
-   *     // data -> [[1, 2, 3], [4, 5, 6]]
-   *     // rows -> [0, 1]
-   *     // columns -> [0, 1, 2]
-   *    copyConfig.rows.splice(0, 1);
-   *    copyConfig.columns.splice(0, 1);
-   *     // cut data -> [[5, 6]]
+   *   beforeCut: function(actionInfo) {
+   *     // actionInfo.getData() -> [[1, 2, 3], [4, 5, 6]]
+   *    actionInfo.remove({ rows: [0], columns: [0] });
+   *     // actionInfo.getData() -> [[5, 6]]
    *   }
    * });
    * // To cancel a cutting action, just return `false`.
    * new Handsontable(element, {
-   *   beforeCut: function(data, coords) {
+   *   beforeCut: function(actionInfo) {
    *     return false;
    *   }
    * });
@@ -1462,18 +1459,15 @@ const REGISTERED_HOOKS = [
    * ```jsx
    * // To disregard a single row, remove it from the array using data.splice(i, 1).
    * <HotTable
-   *   beforeCut={(data, textHTML, copyConfig) => {
-   *     // data -> [[1, 2, 3], [4, 5, 6]]
-   *     // rows -> [0, 1]
-   *     // columns -> [0, 1, 2]
-   *    copyConfig.rows.splice(0, 1);
-   *    copyConfig.columns.splice(0, 1);
-   *     // cut data -> [[5, 6]]
+   *   beforeCut={(actionInfo) => {
+   *     // actionInfo.getData() -> [[1, 2, 3], [4, 5, 6]]
+   *    actionInfo.remove({ rows: [0], columns: [0] });
+   *     // actionInfo.getData() -> [[5, 6]]
    *   }}
    * />
    * // To cancel a cutting action, just return `false`.
    * <HotTable
-   *   beforeCut={(data, coords) => {
+   *   beforeCut={(actionInfo) => {
    *     return false;
    *   }}
    * />
@@ -1517,13 +1511,10 @@ const REGISTERED_HOOKS = [
    * // To disregard a single row, remove it from array using data.splice(i, 1).
    * ...
    * new Handsontable(document.getElementById('example'), {
-   *   beforeCopy: (data, textHTML, copyConfig) => {
-   *     // data -> [[1, 2, 3], [4, 5, 6]]
-   *     // rows -> [0, 1]
-   *     // columns -> [0, 1, 2]
-   *    copyConfig.rows.splice(0, 1);
-   *    copyConfig.columns.splice(0, 1);
-   *     // copied data -> [[5, 6]]
+   *   beforeCopy: (actionInfo) => {
+   *     // actionInfo.getData() -> [[1, 2, 3], [4, 5, 6]]
+   *    actionInfo.remove({ rows: [0], columns: [0] });
+   *     // actionInfo.getData() -> [[5, 6]]
    *   }
    * });
    * ...
@@ -1531,7 +1522,7 @@ const REGISTERED_HOOKS = [
    * // To cancel copying, return false from the callback.
    * ...
    * new Handsontable(document.getElementById('example'), {
-   *   beforeCopy: (data, coords) => {
+   *   beforeCopy: (actionInfo) => {
    *     return false;
    *   }
    * });
@@ -1544,13 +1535,10 @@ const REGISTERED_HOOKS = [
    * // To disregard a single row, remove it from array using data.splice(i, 1).
    * ...
    * <HotTable
-   *   beforeCopy={(data, textHTML, copyConfig) => {
-   *     // data -> [[1, 2, 3], [4, 5, 6]]
-   *     // rows -> [0, 1]
-   *     // columns -> [0, 1, 2]
-   *    copyConfig.rows.splice(0, 1);
-   *    copyConfig.columns.splice(0, 1);
-   *     // copied data -> [[5, 6]]
+   *   beforeCopy={(actionInfo) => {
+   *     // actionInfo.getData() -> [[1, 2, 3], [4, 5, 6]]
+   *    actionInfo.remove({ rows: [0], columns: [0] });
+   *     // actionInfo.getData() -> [[5, 6]]
    *   }}
    * />
    * ...
@@ -1558,7 +1546,7 @@ const REGISTERED_HOOKS = [
    * // To cancel copying, return false from the callback.
    * ...
    * <HotTable
-   *   beforeCopy={(data, coords) => {
+   *   beforeCopy={(actionInfo) => {
    *     return false;
    *   }}
    * />
@@ -1601,16 +1589,15 @@ const REGISTERED_HOOKS = [
    * ::: only-for javascript
    * // To disregard a single row/column, add it list of ignored rows/columns.
    * new Handsontable(example, {
-   *   beforePaste: (data, textHTML, pasteConfig) => {
-   *     // data -> [[1, 2, 3], [4, 5, 6]]
-   *    pasteConfig.ignoredRows = [0];
-   *    pasteConfig.ignoredColumns = [0];
-   *     // copied data -> [[5, 6]]
+   *   beforePaste: (actionInfo) => {
+   *     // actionInfo.getData() -> [[1, 2, 3], [4, 5, 6]]
+   *    actionInfo.remove({ rows: [0], columns: [0] });
+   *     // actionInfo.getData() -> [[5, 6]]
    *   }
    * });
    * // To cancel pasting, return false from the callback.
    * new Handsontable(example, {
-   *   beforePaste: (data, coords) => {
+   *   beforePaste: (actionInfo) => {
    *     return false;
    *   }
    * });
@@ -1621,16 +1608,15 @@ const REGISTERED_HOOKS = [
    * ```jsx
    * // To disregard a single row/column, add it list of ignored rows/columns.
    * <HotTable
-   *   beforePaste={(data, textHTML, pasteConfig) => {
-   *     // data -> [[1, 2, 3], [4, 5, 6]]
-   *    pasteConfig.ignoredRows = [0];
-   *    pasteConfig.ignoredColumns = [0];
-   *     // copied data -> [[5, 6]]
+   *   beforePaste={(actionInfo) => {
+   *     // actionInfo.getData() -> [[1, 2, 3], [4, 5, 6]]
+   *    actionInfo.remove({ rows: [0], columns: [0] });
+   *     // actionInfo.getData() -> [[5, 6]]
    *   }}
    * />
    * // To cancel pasting, return false from the callback.
    * <HotTable
-   *   beforePaste={(data, coords) => {
+   *   beforePaste={(actionInfo) => {
    *     return false;
    *   }}
    * />

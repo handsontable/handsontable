@@ -33,6 +33,7 @@ describe('MergeCells copy and paste', () => {
     plugin.copy();
     plugin.onCopy(copyEvent); // emulate native "copy" event
 
+    expect(copyEvent.clipboardData.getData('text/plain')).toEqual('B2\t\n\t');
     /* eslint-disable indent */
     expect(copyEvent.clipboardData.getData('text/html')).toEqual([
       '<meta name="generator" content="Handsontable"/>',
@@ -48,6 +49,166 @@ describe('MergeCells copy and paste', () => {
       '</table>',
     ].join(''));
     /* eslint-enable */
+  });
+
+  it('should call `afterCopy` hook with proper object when some elements are removed from the copied data', () => {
+    let afterCopyArgument;
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      rowHeaders: true,
+      colHeaders: true,
+      mergeCells: [
+        { row: 1, col: 1, rowspan: 2, colspan: 2 },
+      ],
+      beforeCopy(actionInfo) {
+        actionInfo.remove({ columns: [2] });
+      },
+      afterCopy(actionInfo) {
+        afterCopyArgument = actionInfo;
+      }
+    });
+
+    const copyEvent = getClipboardEvent();
+    const plugin = getPlugin('CopyPaste');
+
+    selectAll();
+
+    plugin.copyWithColumnHeaders();
+    plugin.onCopy(copyEvent); // emulate native "copy" event
+
+    expect(afterCopyArgument.getData()).toEqual([
+      ['A', 'B', 'D'],
+      ['A1', 'B1', 'D1'],
+      ['A2', 'B2', 'D2'],
+      ['A3', null, 'D3'],
+      ['A4', 'B4', 'D4']
+    ]);
+    /* eslint-disable indent */
+    expect(afterCopyArgument.getHTML()).toEqual([
+      '<meta name="generator" content="Handsontable"/>',
+      '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+      '<table>',
+        '<thead>',
+          '<tr>',
+            '<th>A</th>',
+            '<th>B</th>',
+            '<th>D</th>',
+          '</tr>',
+        '</thead>',
+        '<tbody>',
+          '<tr>',
+            '<td>A1</td>',
+            '<td>B1</td>',
+            '<td>D1</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A2</td>',
+            '<td rowspan="2">B2</td>',
+            '<td>D2</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A3</td>',
+            '<td>D3</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A4</td>',
+            '<td>B4</td>',
+            '<td>D4</td>',
+          '</tr>',
+        '</tbody>',
+      '</table>'
+    ].join(''));
+    /* eslint-enable */
+    expect(afterCopyArgument.getGridSettings()).toEqual({
+      colHeaders: ['A', 'B', 'D'],
+      mergeCells: [{ col: 1, row: 1, rowspan: 2, colspan: 1 }],
+      data: [['A1', 'B1', 'D1'], ['A2', 'B2', 'D2'], ['A3', null, 'D3'], ['A4', 'B4', 'D4']],
+    });
+    expect(afterCopyArgument.isTable()).toBe(true);
+    expect(afterCopyArgument.isHandsontable()).toBe(true);
+  });
+
+  it('should call `afterPaste` hook with proper object when some elements are removed from the pasted data', () => {
+    let afterPasteArgument;
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      rowHeaders: true,
+      colHeaders: true,
+      mergeCells: [
+        { row: 1, col: 1, rowspan: 2, colspan: 2 },
+      ],
+      beforePaste(actionInfo) {
+        actionInfo.remove({ columns: [2] });
+      },
+      afterPaste(actionInfo) {
+        afterPasteArgument = actionInfo;
+      }
+    });
+
+    const copyEvent = getClipboardEvent();
+    const plugin = getPlugin('CopyPaste');
+
+    selectAll();
+
+    plugin.copyWithColumnHeaders();
+    plugin.onCopy(copyEvent); // emulate native "copy" event
+
+    selectCell(0, 0);
+
+    plugin.onPaste(copyEvent);
+
+    expect(afterPasteArgument.getData()).toEqual([
+      ['A', 'B', 'D'],
+      ['A1', 'B1', 'D1'],
+      ['A2', 'B2', 'D2'],
+      ['A3', null, 'D3'],
+      ['A4', 'B4', 'D4']
+    ]);
+    /* eslint-disable indent */
+    expect(afterPasteArgument.getHTML()).toEqual([
+      '<meta name="generator" content="Handsontable"/>',
+      '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+      '<table>',
+        '<thead>',
+          '<tr>',
+            '<th>A</th>',
+            '<th>B</th>',
+            '<th>D</th>',
+          '</tr>',
+        '</thead>',
+        '<tbody>',
+          '<tr>',
+            '<td>A1</td>',
+            '<td>B1</td>',
+            '<td>D1</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A2</td>',
+            '<td rowspan="2">B2</td>',
+            '<td>D2</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A3</td>',
+            '<td>D3</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A4</td>',
+            '<td>B4</td>',
+            '<td>D4</td>',
+          '</tr>',
+        '</tbody>',
+      '</table>'
+    ].join(''));
+    /* eslint-enable */
+    expect(afterPasteArgument.getGridSettings()).toEqual({
+      colHeaders: ['A', 'B', 'D'],
+      mergeCells: [{ col: 1, row: 1, rowspan: 2, colspan: 1 }],
+      data: [['A1', 'B1', 'D1'], ['A2', 'B2', 'D2'], ['A3', null, 'D3'], ['A4', 'B4', 'D4']],
+    });
+    expect(afterPasteArgument.isTable()).toBe(true);
+    expect(afterPasteArgument.isHandsontable()).toBe(true);
   });
 
   it('should properly change copied values using `beforeCopy` hook (removing a part of merge areas one by one)', () => {
@@ -73,6 +234,16 @@ describe('MergeCells copy and paste', () => {
     plugin.copy();
     plugin.onCopy(copyEvent); // emulate native "copy" event
 
+    /* eslint-disable no-tabs */
+    expect(copyEvent.clipboardData.getData('text/plain')).toEqual('A1	B1	C1	D1	F1	G1	H1\n' +
+      'A2	B2		D2	F2	G2	H2\n' +
+      'A4	B4	C4	D4		G4	H4\n' +
+      'A5	B5	C5			G5	H5\n' +
+      'A6	B6	C6			G6	H6\n' +
+      'A7	B7	C7	D7	F7	G7	H7\n' +
+      'A8	B8	C8	D8	F8	G8	H8'
+    );
+    /* eslint-enable */
     /* eslint-disable indent */
     expect(copyEvent.clipboardData.getData('text/html')).toEqual([
       '<meta name="generator" content="Handsontable"/>',
@@ -164,6 +335,16 @@ describe('MergeCells copy and paste', () => {
     plugin.copy();
     plugin.onCopy(copyEvent); // emulate native "copy" event
 
+    /* eslint-disable no-tabs */
+    expect(copyEvent.clipboardData.getData('text/plain')).toEqual('A1	B1	C1	D1	F1	G1	H1\n' +
+      'A2	B2		D2	F2	G2	H2\n' +
+      'A4	B4	C4	D4		G4	H4\n' +
+      'A5	B5	C5			G5	H5\n' +
+      'A6	B6	C6			G6	H6\n' +
+      'A7	B7	C7	D7	F7	G7	H7\n' +
+      'A8	B8	C8	D8	F8	G8	H8'
+    );
+    /* eslint-enable */
     /* eslint-disable indent */
     expect(copyEvent.clipboardData.getData('text/html')).toEqual([
       '<meta name="generator" content="Handsontable"/>',
@@ -258,6 +439,16 @@ describe('MergeCells copy and paste', () => {
     plugin.copy();
     plugin.onCopy(copyEvent); // emulate native "copy" event
 
+    /* eslint-disable no-tabs */
+    expect(copyEvent.clipboardData.getData('text/plain')).toEqual(
+      'A1	B1	C1	G1	H1\n' +
+      'A4	B4	C4	G4	H4\n' +
+      'A5	B5	C5	G5	H5\n' +
+      'A6	B6	C6	G6	H6\n' +
+      'A7	B7	C7	G7	H7\n' +
+      'A8	B8	C8	G8	H8'
+    );
+    /* eslint-enable */
     /* eslint-disable indent */
     expect(copyEvent.clipboardData.getData('text/html')).toEqual([
       '<meta name="generator" content="Handsontable"/>',
@@ -334,6 +525,16 @@ describe('MergeCells copy and paste', () => {
     plugin.copy();
     plugin.onCopy(copyEvent); // emulate native "copy" event
 
+    /* eslint-disable no-tabs */
+    expect(copyEvent.clipboardData.getData('text/plain')).toEqual(
+      'A1	B1	C1	G1	H1\n' +
+      'A4	B4	C4	G4	H4\n' +
+      'A5	B5	C5	G5	H5\n' +
+      'A6	B6	C6	G6	H6\n' +
+      'A7	B7	C7	G7	H7\n' +
+      'A8	B8	C8	G8	H8'
+    );
+    /* eslint-enable */
     /* eslint-disable indent */
     expect(copyEvent.clipboardData.getData('text/html')).toEqual([
       '<meta name="generator" content="Handsontable"/>',
@@ -410,6 +611,19 @@ describe('MergeCells copy and paste', () => {
     plugin.copy();
     plugin.onCopy(copyEvent); // emulate native "copy" event
 
+    /* eslint-disable no-tabs */
+    expect(copyEvent.clipboardData.getData('text/plain')).toEqual(
+      'A1	B1	C1	D1	E1	F1	G1	H1\n' +
+      'A2	B2		D2	E2	F2	G2	H2\n' +
+      'a			d	e	f	g	h\n' +
+      'A3			D3	E3	F3	G3	H3\n' +
+      'A4	B4	C4	D4			G4	H4\n' +
+      'A5	B5	C5				G5	H5\n' +
+      'A6	B6	C6				G6	H6\n' +
+      'A7	B7	C7	D7	E7	F7	G7	H7\n' +
+      'A8	B8	C8	D8	E8	F8	G8	H8'
+    );
+    /* eslint-enable */
     /* eslint-disable indent */
     expect(copyEvent.clipboardData.getData('text/html')).toEqual([
       '<meta name="generator" content="Handsontable"/>',
@@ -521,6 +735,18 @@ describe('MergeCells copy and paste', () => {
     plugin.copy();
     plugin.onCopy(copyEvent); // emulate native "copy" event
 
+    /* eslint-disable no-tabs */
+    expect(copyEvent.clipboardData.getData('text/plain')).toEqual(
+      'A1	B1	1	C1	D1	E1	F1	G1	H1\n' +
+      'A2	B2			D2	E2	F2	G2	H2\n' +
+      'A3				D3	E3	F3	G3	H3\n' +
+      'A4	B4	4	C4	D4			G4	H4\n' +
+      'A5	B5	5	C5				G5	H5\n' +
+      'A6	B6	6	C6				G6	H6\n' +
+      'A7	B7	7	C7	D7	E7	F7	G7	H7\n' +
+      'A8	B8	8	C8	D8	E8	F8	G8	H8'
+    );
+    /* eslint-enable */
     /* eslint-disable indent */
     expect(copyEvent.clipboardData.getData('text/html')).toEqual([
       '<meta name="generator" content="Handsontable"/>',
@@ -630,6 +856,19 @@ describe('MergeCells copy and paste', () => {
     plugin.copyWithColumnHeaders();
     plugin.onCopy(copyEvent); // emulate native "copy" event
 
+    /* eslint-disable no-tabs */
+    expect(copyEvent.clipboardData.getData('text/plain')).toEqual(
+      'A	B	header	C	D	E	F	G	H\n' +
+      'A1	B1	1	C1	D1	E1	F1	G1	H1\n' +
+      'A2	B2			D2	E2	F2	G2	H2\n' +
+      'A3				D3	E3	F3	G3	H3\n' +
+      'A4	B4	4	C4	D4			G4	H4\n' +
+      'A5	B5	5	C5				G5	H5\n' +
+      'A6	B6	6	C6				G6	H6\n' +
+      'A7	B7	7	C7	D7	E7	F7	G7	H7\n' +
+      'A8	B8	8	C8	D8	E8	F8	G8	H8'
+    );
+    /* eslint-enable */
     /* eslint-disable indent */
     expect(copyEvent.clipboardData.getData('text/html')).toEqual([
       '<meta name="generator" content="Handsontable"/>',
@@ -725,6 +964,54 @@ describe('MergeCells copy and paste', () => {
             '<td>H8</td>',
           '</tr>',
         '</tbody>',
+      '</table>',
+    ].join(''));
+    /* eslint-enable */
+  });
+
+  it('should properly change copied values using `beforeCopy` hook (inserting column to a merge area) - only headers', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(8, 8),
+      rowHeaders: true,
+      colHeaders: true,
+      mergeCells: [
+        { row: 1, col: 1, rowspan: 2, colspan: 2 },
+        { row: 3, col: 3, rowspan: 3, colspan: 3 }
+      ],
+      beforeCopy(actionInfo) {
+        actionInfo.insertAtColumn(2, ['header']);
+      }
+    });
+
+    const copyEvent = getClipboardEvent();
+    const plugin = getPlugin('CopyPaste');
+
+    selectAll();
+
+    plugin.copyColumnHeadersOnly();
+    plugin.onCopy(copyEvent); // emulate native "copy" event
+
+    /* eslint-disable no-tabs */
+    expect(copyEvent.clipboardData.getData('text/plain')).toEqual('A	B	header	C	D	E	F	G	H');
+    /* eslint-enable */
+    /* eslint-disable indent */
+    expect(copyEvent.clipboardData.getData('text/html')).toEqual([
+      '<meta name="generator" content="Handsontable"/>',
+      '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+      '<table>',
+        '<thead>',
+          '<tr>',
+            '<th>A</th>',
+            '<th>B</th>',
+            '<th>header</th>',
+            '<th>C</th>',
+            '<th>D</th>',
+            '<th>E</th>',
+            '<th>F</th>',
+            '<th>G</th>',
+            '<th>H</th>',
+          '</tr>',
+        '</thead>',
       '</table>',
     ].join(''));
     /* eslint-enable */
