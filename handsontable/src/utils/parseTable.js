@@ -21,6 +21,21 @@ function isHTMLTable(element) {
 }
 
 /**
+ * Parses empty values to an empty string or leave them untouched otherwise.
+ *
+ * @private
+ * @param {string} cellValue Parsed cell value.
+ * @returns {string}
+ */
+function parseEmptyValues(cellValue) {
+  if (isEmpty(cellValue)) {
+    return '';
+  }
+
+  return cellValue;
+}
+
+/**
  * Converts Handsontable into HTMLTableElement.
  *
  * @param {Core} instance The Handsontable instance.
@@ -34,7 +49,7 @@ export function instanceToHTML(instance) {
   const columns = Array.from({ length: instance.countCols() + Math.abs(startColumn) },
     (_, i) => i + startColumn);
 
-  return getHTMLFromHotCoords(instance, { rows, columns });
+  return getHTMLByCoords(instance, { rows, columns });
 }
 
 /**
@@ -46,7 +61,7 @@ export function instanceToHTML(instance) {
  * @param {Array<number>} config.columns List of column indexes which should be taken into account when creating the table.
  * @returns {string} OuterHTML of the HTMLTableElement.
  */
-export function getHTMLFromHotCoords(instance, config) {
+export function getHTMLByCoords(instance, config) {
   return [
     '<table>',
     ...getHeadersHTMLByCoords(instance, config),
@@ -64,9 +79,9 @@ export function getHTMLFromHotCoords(instance, config) {
  * cell value list.
  * @param {Array<number>} config.columns List of column indexes which should be taken into account when creating the
  * cell value list.
- * @returns {Array[]} List of displayed cell values.
+ * @returns {Array<Array<string>>} List of displayed cell values.
  */
-export function getDataFromHotCoords(instance, config) {
+export function getDataByCoords(instance, config) {
   return [
     ...getHeadersDataByCoords(instance, config),
     ...getBodyDataByCoords(instance, config),
@@ -77,8 +92,8 @@ export function getDataFromHotCoords(instance, config) {
  * Converts config into HTMLTableElement.
  *
  * @param {object} config Configuration for building HTMLTableElement.
- * @param {Array<number>} config.ignoredRows List of row indexes which should be excluded when creating the table.
- * @param {Array<number>} config.ignoredColumns List of column indexes which should be excluded when creating the table.
+ * @param {Array<number>} [config.excludedRows] List of row indexes which should be excluded when creating the table.
+ * @param {Array<number>} [config.excludedColumns] List of column indexes which should be excluded when creating the table.
  * @param {Array<Array<string>>} [config.data] List of cell data.
  * @param {Array<object>} [config.mergeCells] List of merged cells.
  * @param {Array<Array<string|object>>} [config.nestedHeaders] List of headers and corresponding information about some
@@ -98,19 +113,19 @@ export function getHTMLFromConfig(config) {
 /**
  * Get list of filtered nested headers.
  *
- * @param {Array<string>} nestedHeaders List of nested headers which will be filtered.
- * @param {Array<number>} ignoredHeaders List of headers which should be excluded when creating the HTMLTableElement.tHead.
- * @param {Array<number>} ignoredColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<Array<string|object>>} nestedHeaders List of nested headers which will be filtered.
+ * @param {Array<number>} excludedHeaders List of headers which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<number>} excludedColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
  * @returns {*}
  */
-function getFilteredNestedHeaders(nestedHeaders, ignoredHeaders, ignoredColumns) {
-  return nestedHeaders.reduce((listOfHeaders, nestedHeader, rowIndex) => {
-    if (ignoredHeaders.includes(rowIndex - nestedHeaders.length)) {
+function getFilteredNestedHeaders(nestedHeaders, excludedHeaders, excludedColumns) {
+  return nestedHeaders.reduce((listOfHeaders, headerValues, rowIndex) => {
+    if (excludedHeaders.includes(rowIndex - nestedHeaders.length)) {
       return listOfHeaders;
     }
 
-    const filteredNestedHeader = nestedHeader.filter((columnData, columnIndex) =>
-      ignoredColumns.includes(columnIndex) === false);
+    const filteredNestedHeader = headerValues.filter((columnData, columnIndex) =>
+      excludedColumns.includes(columnIndex) === false);
 
     if (filteredNestedHeader.length > 0) {
       return listOfHeaders.concat([filteredNestedHeader]);
@@ -123,16 +138,16 @@ function getFilteredNestedHeaders(nestedHeaders, ignoredHeaders, ignoredColumns)
 /**
  * Get HTML for nested headers.
  *
- * @param {Array<string>} nestedHeaders List of nested headers which will be filtered.
- * @param {Array<number>} ignoredHeaders List of headers which should be excluded when creating the HTMLTableElement.tHead.
- * @param {Array<number>} ignoredColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
- * @returns {*[]}
+ * @param {Array<Array<string|object>>} nestedHeaders List of nested headers which will be filtered.
+ * @param {Array<number>} excludedHeaders List of headers which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<number>} excludedColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
+ * @returns {Array<string>}
  */
-function getNestedHeadersHTML(nestedHeaders, ignoredHeaders, ignoredColumns) {
+function getNestedHeadersHTML(nestedHeaders, excludedHeaders, excludedColumns) {
   const headersHTML = [];
 
-  getFilteredNestedHeaders(nestedHeaders, ignoredHeaders, ignoredColumns).forEach((listOfHeaders) => {
-    const tr = ['<tr>'];
+  getFilteredNestedHeaders(nestedHeaders, excludedHeaders, excludedColumns).forEach((listOfHeaders) => {
+    const rowHTML = ['<tr>'];
 
     for (let i = 0; i < listOfHeaders.length; i += 1) {
       const header = listOfHeaders[i];
@@ -146,11 +161,11 @@ function getNestedHeadersHTML(nestedHeaders, ignoredHeaders, ignoredColumns) {
         colspanAttribute = ` colspan=${colspan}`;
       }
 
-      tr.push(`<th${colspanAttribute}>${encodeHTMLEntities(headerValue)}</th>`);
+      rowHTML.push(`<th${colspanAttribute}>${encodeHTMLEntities(headerValue)}</th>`);
     }
 
-    tr.push('</tr>');
-    headersHTML.push(...tr);
+    rowHTML.push('</tr>');
+    headersHTML.push(...rowHTML);
   });
 
   return headersHTML;
@@ -160,17 +175,17 @@ function getNestedHeadersHTML(nestedHeaders, ignoredHeaders, ignoredColumns) {
  * Get HTML for first level header.
  *
  * @param {Array<string>} columnHeaders List of header values which will be filtered.
- * @param {Array<number>} ignoredHeaders List of headers which should be excluded when creating the HTMLTableElement.tHead.
- * @param {Array<number>} ignoredColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<number>} excludedHeaders List of headers which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<number>} excludedColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
  * @returns {*[]}
  */
-function getSimpleHeadersHTML(columnHeaders, ignoredHeaders, ignoredColumns) {
-  if (ignoredHeaders.includes(-1)) {
+function getSimpleHeadersHTML(columnHeaders, excludedHeaders, excludedColumns) {
+  if (excludedHeaders.includes(-1)) {
     return [];
   }
 
   const filteredColumnHeaders = columnHeaders.filter((columnHeaderValue, columnIndex) =>
-    ignoredColumns.includes(columnIndex) === false);
+    excludedColumns.includes(columnIndex) === false);
 
   if (filteredColumnHeaders.length === 0) {
     return [];
@@ -181,22 +196,26 @@ function getSimpleHeadersHTML(columnHeaders, ignoredHeaders, ignoredColumns) {
 }
 
 /**
- * Get list of cells filtered by list of ignored rows and columns.
+ * Get list of cells filtered by list of excluded rows and columns.
  *
  * @private
  * @param {Array<Array<string>>} data List of cells values which will be filtered.
- * @param {Array<number>} ignoredRows List of row indexes which should be excluded when creating the HTMLTableElement.tHead.
- * @param {Array<number>} ignoredColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<number>} excludedRows List of row indexes which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<number>} excludedColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
  * @returns {Array<string>} List of cell values.
  */
-function getFilteredCells(data, ignoredRows, ignoredColumns) {
+function getFilteredCells(data, excludedRows, excludedColumns) {
+  if (Array.isArray(data) === false) {
+    return [];
+  }
+
   return data.reduce((listOfCells, rowData, rowIndex) => {
-    if (ignoredRows.includes(rowIndex)) {
+    if (excludedRows.includes(rowIndex)) {
       return listOfCells;
     }
 
     const filteredRowData = rowData.filter((cellData, columnIndex) =>
-      ignoredColumns.includes(columnIndex) === false);
+      excludedColumns.includes(columnIndex) === false);
 
     if (filteredRowData.length > 0) {
       return listOfCells.concat([filteredRowData]);
@@ -207,7 +226,7 @@ function getFilteredCells(data, ignoredRows, ignoredColumns) {
 }
 
 /**
- * Prepare information about merged areas to reduce complexity.
+ * Prepare information about merged areas to reduce complexity of calculations.
  *
  * @private
  * @param {Array<object>} mergedCellsConfig List of merged cells.
@@ -253,16 +272,18 @@ function getMergedCellsInformation(mergedCellsConfig) {
  *
  * @private
  * @param {object} config Configuration for building HTMLTableElement.tBodies.
- * @param {Array<number>} config.ignoredRows List of row indexes which should be excluded when creating the HTMLTableElement.tBodies.
- * @param {Array<number>} config.ignoredColumns List of column indexes which should be excluded when creating the HTMLTableElement.tBodies.
  * @param {Array<Array<string>>} config.data List of cell data.
+ * @param {Array<number>} [config.excludedRows] List of row indexes which should be excluded when creating the HTMLTableElement.tBodies.
+ * @param {Array<number>} [config.excludedColumns] List of column indexes which should be excluded when creating the HTMLTableElement.tBodies.
  * @param {Array<object>} [config.mergeCells] List of merged cells.
  * @returns {Array<string>} List of HTMLElements stored as strings.
  */
 function getBodyHTMLByConfig(config) {
-  const { ignoredColumns, data, mergeCells } = config;
-  const ignoredRows = config.ignoredRows.filter(rowIndex => rowIndex >= 0);
-  const filteredData = getFilteredCells(data, ignoredRows, ignoredColumns);
+  const excludedColumns = config.excludedColumns || [];
+  const excludedRows = config.excludedRows || [];
+  const { data, mergeCells } = config;
+  const ignoredCellRows = excludedRows.filter(rowIndex => rowIndex >= 0);
+  const filteredData = getFilteredCells(data, ignoredCellRows, excludedColumns);
   const cells = [];
 
   if (filteredData.length === 0) {
@@ -272,7 +293,7 @@ function getBodyHTMLByConfig(config) {
   const { mergedCellsMap, mergedArea } = getMergedCellsInformation(mergeCells);
 
   filteredData.forEach((rowData, rowIndex) => {
-    const tr = ['<tr>'];
+    const rowHTML = ['<tr>'];
 
     rowData.forEach((cellData, columnIndex) => {
       const attrs = [];
@@ -294,11 +315,11 @@ function getBodyHTMLByConfig(config) {
         return;
       }
 
-      tr.push(`<td${attrs.join('')}>${encodeHTMLEntities(cellData)}</td>`);
+      rowHTML.push(`<td${attrs.join('')}>${encodeHTMLEntities(cellData)}</td>`);
     });
 
-    tr.push('</tr>');
-    cells.push(...tr);
+    rowHTML.push('</tr>');
+    cells.push(...rowHTML);
   });
 
   return ['<tbody>', ...cells, '</tbody>'];
@@ -309,23 +330,25 @@ function getBodyHTMLByConfig(config) {
  *
  * @private
  * @param {object} config Configuration for building HTMLTableElement.tHead.
- * @param {Array<number>} config.ignoredRows List of row indexes which should be excluded when creating the HTMLTableElement.tHead.
- * @param {Array<number>} config.ignoredColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
  * @param {Array<Array<string|object>>} [config.nestedHeaders] List of headers and corresponding information about some
  * nested elements.
  * @param {Array<string>} [config.colHeaders] List of first level header values.
+ * @param {Array<number>} [config.excludedRows] List of row indexes which should be excluded when creating the HTMLTableElement.tHead.
+ * @param {Array<number>} [config.excludedColumns] List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
  * @returns {Array<string>} List of HTMLElements stored as strings.
  */
 function getHeadersHTMLByConfig(config) {
   const headersHTML = [];
-  const { nestedHeaders, colHeaders, ignoredRows, ignoredColumns } = config;
-  const ignoredHeaders = ignoredRows.filter(rowIndex => rowIndex < 0);
+  const excludedColumns = config.excludedColumns || [];
+  const excludedRows = config.excludedRows || [];
+  const { nestedHeaders, colHeaders } = config;
+  const excludedHeaders = excludedRows.filter(rowIndex => rowIndex < 0);
 
   if (Array.isArray(nestedHeaders)) {
-    headersHTML.push(...getNestedHeadersHTML(nestedHeaders, ignoredHeaders, ignoredColumns));
+    headersHTML.push(...getNestedHeadersHTML(nestedHeaders, excludedHeaders, excludedColumns));
 
   } else if (Array.isArray(colHeaders)) {
-    headersHTML.push(...getSimpleHeadersHTML(colHeaders, ignoredHeaders, ignoredColumns));
+    headersHTML.push(...getSimpleHeadersHTML(colHeaders, excludedHeaders, excludedColumns));
   }
 
   if (headersHTML.length > 0) {
@@ -339,37 +362,42 @@ function getHeadersHTMLByConfig(config) {
  * Converts config with information about cells and headers into list of values.
  *
  * @param {object} config Configuration for building list of values.
- * @param {Array<number>} config.ignoredRows List of row indexes which should be excluded when creating the value list.
- * @param {Array<number>} config.ignoredColumns List of column indexes which should be excluded when creating the value list.
+ * @param {Array<number>} [config.excludedRows] List of row indexes which should be excluded when creating the value list.
+ * @param {Array<number>} [config.excludedColumns] List of column indexes which should be excluded when creating the value list.
  * @param {Array<Array<string|object>>} [config.nestedHeaders] List of headers and information about some nested elements.
  * @param {Array<string>} [config.colHeaders] List of first level header values.
- * @returns {Array<string>} List of values.
+ * @returns {string[][]} List of values.
  */
 export function getDataWithHeadersByConfig(config) {
   const dataWithHeaders = [];
-  const { data, nestedHeaders, colHeaders, ignoredRows, ignoredColumns } = config;
-  const ignoredHeaders = ignoredRows.filter(rowIndex => rowIndex < 0);
+  const excludedColumns = config.excludedColumns || [];
+  const excludedRows = config.excludedRows || [];
+  const { data, nestedHeaders, colHeaders } = config;
+  const excludedHeaders = excludedRows.filter(rowIndex => rowIndex < 0);
 
   if (Array.isArray(nestedHeaders)) {
-    dataWithHeaders.push(...getFilteredNestedHeaders(nestedHeaders, ignoredHeaders, ignoredColumns)
+    dataWithHeaders.push(...getFilteredNestedHeaders(nestedHeaders, excludedHeaders, excludedColumns)
       .map((listOfHeaders) => {
-        return listOfHeaders.map((header) => {
+        return listOfHeaders.reduce((headers, header) => {
           if (isObject(header)) {
-            return header.label;
+            headers.push(header.label, ...new Array(header.colspan - 1).fill(''));
+
+          } else {
+            headers.push(header);
           }
 
-          return header;
-        });
+          return headers;
+        }, []);
       })
     );
 
   } else if (Array.isArray(colHeaders)) {
     dataWithHeaders.push([...colHeaders.filter((columnHeaderData, columnIndex) =>
-      ignoredColumns.includes(columnIndex) === false)]);
+      excludedColumns.includes(columnIndex) === false)]);
   }
 
-  dataWithHeaders.push(...getFilteredCells(data, ignoredRows.filter(rowIndex => rowIndex >= 0),
-    ignoredColumns.filter(columnIndex => columnIndex >= 0)));
+  dataWithHeaders.push(...getFilteredCells(data, excludedRows.filter(rowIndex => rowIndex >= 0),
+    excludedColumns.filter(columnIndex => columnIndex >= 0)));
 
   return dataWithHeaders;
 }
@@ -414,7 +442,7 @@ function getHeadersHTMLByCoords(instance, config) {
   }
 
   headers.forEach((rowIndex) => {
-    const tr = ['<tr>'];
+    const rowHTML = ['<tr>'];
 
     for (let i = 0; i < columns.length; i += 1) {
       const columnIndex = columns[i];
@@ -429,11 +457,12 @@ function getHeadersHTMLByCoords(instance, config) {
         i += parsedColspan - 1;
       }
 
-      tr.push(`<th${colspanAttribute}>${encodeHTMLEntities(instance.getColHeader(columnIndex, rowIndex))}</th>`);
+      rowHTML.push(`<th${colspanAttribute}>${
+        encodeHTMLEntities(parseEmptyValues(instance.getColHeader(columnIndex, rowIndex)))}</th>`);
     }
 
-    tr.push('</tr>');
-    headersHTML.push(...tr);
+    rowHTML.push('</tr>');
+    headersHTML.push(...rowHTML);
   });
 
   return ['<thead>', ...headersHTML, '</thead>'];
@@ -456,24 +485,24 @@ function getHeadersDataByCoords(instance, config) {
   const headers = rows.filter(rowIndex => rowIndex < 0);
 
   headers.forEach((rowIndex) => {
-    const tr = [];
+    const rowData = [];
 
     for (let i = 0; i < columns.length; i += 1) {
       const columnIndex = columns[i];
       const headerCell = instance.getCell(rowIndex, columnIndex);
       const colspan = headerCell?.getAttribute('colspan');
 
-      tr.push(instance.getColHeader(columnIndex, rowIndex));
+      rowData.push(instance.getColHeader(columnIndex, rowIndex));
 
       if (colspan) {
         const parsedColspan = parseInt(colspan, 10);
 
-        tr.push(...new Array(parsedColspan - 1).fill(''));
+        rowData.push(...new Array(parsedColspan - 1).fill(''));
         i += parsedColspan - 1;
       }
     }
 
-    headersData.push(tr);
+    headersData.push(rowData);
   });
 
   return headersData;
@@ -497,26 +526,25 @@ function getBodyHTMLByCoords(instance, config) {
     return [];
   }
 
-  bodyRows.forEach((rowIndex) => {
-    const tr = ['<tr>'];
+  bodyRows.forEach((rowIndex, nthRow) => {
+    const rowHTML = ['<tr>'];
 
-    columns.forEach((columnIndex) => {
+    columns.forEach((columnIndex, nthColumn) => {
       if (columnIndex < 0) {
-        tr.push(`<th>${encodeHTMLEntities(instance.getRowHeader(rowIndex))}</th>`);
+        rowHTML.push(`<th>${encodeHTMLEntities(parseEmptyValues(instance.getRowHeader(rowIndex)))}</th>`);
 
         return;
       }
 
       const cellValue = instance.getCopyableData(rowIndex, columnIndex);
-      const cellValueParsed = isEmpty(cellValue) ? '' : encodeHTMLEntities(cellValue);
-      const { hidden, rowspan, colspan } =
-        instance.getCellMeta(rowIndex, columnIndex);
+      const cellValueParsed = encodeHTMLEntities(parseEmptyValues((cellValue)));
+      const { hidden, rowspan, colspan } = instance.getCellMeta(rowIndex, columnIndex);
 
       if (!hidden) {
         const attrs = [];
 
         if (rowspan) {
-          const recalculatedRowSpan = Math.min(rowspan, bodyRows.slice(rowIndex).length);
+          const recalculatedRowSpan = Math.min(rowspan, bodyRows.slice(nthRow).length);
 
           if (recalculatedRowSpan > 1) {
             attrs.push(` rowspan="${recalculatedRowSpan}"`);
@@ -524,19 +552,19 @@ function getBodyHTMLByCoords(instance, config) {
         }
 
         if (colspan) {
-          const recalculatedColumnSpan = Math.min(colspan, columns.slice(columnIndex).length);
+          const recalculatedColumnSpan = Math.min(colspan, columns.slice(nthColumn).length);
 
           if (recalculatedColumnSpan > 1) {
             attrs.push(` colspan="${recalculatedColumnSpan}"`);
           }
         }
 
-        tr.push(`<td${attrs.join('')}>${cellValueParsed}</td>`);
+        rowHTML.push(`<td${attrs.join('')}>${cellValueParsed}</td>`);
       }
     });
 
-    tr.push('</tr>');
-    cells.push(...tr);
+    rowHTML.push('</tr>');
+    cells.push(...rowHTML);
   });
 
   return ['<tbody>', ...cells, '</tbody>'];
@@ -559,16 +587,16 @@ function getBodyDataByCoords(instance, config) {
   const bodyRows = rows.filter(rowIndex => rowIndex >= 0);
 
   bodyRows.forEach((rowIndex) => {
-    const tr = [];
+    const rowData = [];
 
     columns.forEach((columnIndex) => {
       const cellValue = instance.getCopyableData(rowIndex, columnIndex);
       const cellValueParsed = isEmpty(cellValue) ? '' : cellValue;
 
-      tr.push(cellValueParsed);
+      rowData.push(cellValueParsed);
     });
 
-    cells.push(tr);
+    cells.push(rowData);
   });
 
   return cells;

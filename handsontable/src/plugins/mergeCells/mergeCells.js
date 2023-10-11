@@ -1357,18 +1357,27 @@ export class MergeCells extends BasePlugin {
    * `beforePaste` hook callback. Used for manipulating with area of paste (by changing selection) and unmerging cells.
    *
    * @private
-   * @param {Array[]} data An array of arrays with the cut data.
-   * @param {string} textHTML Copied data of "text/html" type inside the clipboard.
+   * @param {object} actionInfo Information about already performed cut action.
+   * @param {Function} actionInfo.isTable Checks whether copied data is an array.
+   * @param {Function} actionInfo.isHandsontable Checks whether copied data is a Handsontable.
+   * @param {Function} actionInfo.remove Remove rows/columns from the copied/pasted dataset.
+   * @param {Function} actionInfo.insertAtRow Insert values at row index.
+   * @param {Function} actionInfo.insertAtColumn Insert values at column index.
+   * @param {Function} actionInfo.change  Change headers or cells in the copied/pasted dataset.
+   * @param {Function} actionInfo.getData Gets copied data stored as array of arrays.
+   * @param {Function} actionInfo.getHTML Gets sanitized data of "text/html" type inside the clipboard.
+   * @param {Function} actionInfo.getGridSettings Gets grid settings for copied data.
    */
-  onBeforePaste(data, textHTML) {
+  onBeforePaste(actionInfo) {
     const selectedRangeLast = this.hot.getSelectedRangeLast();
+    const data = actionInfo.getData();
     const pastedRows = data.length;
     const pastedColumns = data[0].length;
     const { row: selectionFromRow, col: selectionFromColumn } = selectedRangeLast.from;
     const selectedRows = selectedRangeLast.getHeight();
     const selectedColumns = selectedRangeLast.getWidth();
 
-    if (this.shouldUnmerge(htmlToGridSettings(textHTML)?.mergeCells, pastedRows, pastedColumns) === false) {
+    if (this.shouldUnmerge(actionInfo.getGridSettings().mergeCells, pastedRows, pastedColumns) === false) {
       return;
     }
 

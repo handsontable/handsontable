@@ -1,8 +1,7 @@
 import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
-import { stringify, parse } from '../../3rdparty/SheetClip';
+import { stringify } from '../../3rdparty/SheetClip';
 import { sanitize } from '../../helpers/string';
-import { isObject } from '../../helpers/object';
 import { getSelectionText } from '../../helpers/dom/element';
 import copyItem from './contextMenuItem/copy';
 import copyColumnHeadersOnlyItem from './contextMenuItem/copyColumnHeadersOnly';
@@ -16,13 +15,11 @@ import {
   normalizeRanges,
 } from './copyableRanges';
 import {
-  htmlToGridSettings,
-  getHTMLFromHotCoords,
-  getDataFromHotCoords,
-  getHTMLFromConfig, getDataWithHeadersByConfig
+  getDataByCoords,
 } from '../../utils/parseTable';
 
 import './copyPaste.css';
+import { ActionInfo } from './actionInfo';
 
 Hooks.getSingleton().register('afterCopyLimit');
 Hooks.getSingleton().register('modifyCopyableRange');
@@ -36,10 +33,6 @@ Hooks.getSingleton().register('afterCopy');
 export const PLUGIN_KEY = 'copyPaste';
 export const PLUGIN_PRIORITY = 80;
 const SETTING_KEYS = ['fragmentSelection'];
-const META_HEAD = [
-  '<meta name="generator" content="Handsontable"/>',
-  '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-].join('');
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -344,7 +337,7 @@ export class CopyPaste extends BasePlugin {
   getRangedData(ranges) {
     const { rows, columns } = normalizeRanges(ranges);
 
-    return getDataFromHotCoords(this.hot, { rows, columns });
+    return getDataByCoords(this.hot, { rows, columns });
   }
 
   /**
@@ -448,31 +441,6 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Counts how many column headers will be copied based on the passed range.
-   *
-   * @private
-   * @param {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>} ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
-   * @returns {{ columnHeadersCount: number }} Returns an object with keys that holds
-   *                                           information with the number of copied headers.
-   */
-  #countCopiedHeaders(ranges) {
-    const { rows } = normalizeRanges(ranges);
-    let columnHeadersCount = 0;
-
-    for (let row = 0; row < rows.length; row++) {
-      if (rows[row] >= 0) {
-        break;
-      }
-
-      columnHeadersCount += 1;
-    }
-
-    return {
-      columnHeadersCount,
-    };
-  }
-
-  /**
    * Prepares new values to populate them into datasource.
    *
    * @private
@@ -554,22 +522,18 @@ export class CopyPaste extends BasePlugin {
     this.setCopyableText();
     this.#isTriggeredByCopy = false;
 
-    const { rows, columns } = normalizeRanges(this.copyableRanges);
-    const copyConfig = { rows, columns };
-    let data = getDataFromHotCoords(this.hot, copyConfig);
-    let textHTML = [META_HEAD, getHTMLFromHotCoords(this.hot, copyConfig)].join('');
-    const allowCopying = !!this.hot.runHooks('beforeCopy', data, textHTML, copyConfig);
+    const actionInfo = new ActionInfo({
+      type: 'copy',
+      instance: this.hot,
+      copyableRanges: this.copyableRanges
+    });
+    const allowCopying = !!this.hot.runHooks('beforeCopy', actionInfo);
 
     if (allowCopying) {
-      data = getDataFromHotCoords(this.hot, copyConfig);
-      textHTML = [META_HEAD, getHTMLFromHotCoords(this.hot, copyConfig)].join('');
+      event.clipboardData.setData('text/plain', stringify(actionInfo.getData()));
+      event.clipboardData.setData('text/html', actionInfo.getHTML());
 
-      const textPlain = stringify(data);
-
-      event.clipboardData.setData('text/plain', textPlain);
-      event.clipboardData.setData('text/html', textHTML);
-
-      this.hot.runHooks('afterCopy', data, textHTML, copyConfig);
+      this.hot.runHooks('afterCopy', actionInfo);
     }
 
     this.#copyMode = 'cells-only';
@@ -590,23 +554,19 @@ export class CopyPaste extends BasePlugin {
     this.setCopyableText();
     this.#isTriggeredByCut = false;
 
-    const { rows, columns } = normalizeRanges(this.copyableRanges);
-    const copyConfig = { rows, columns };
-    let data = getDataFromHotCoords(this.hot, copyConfig);
-    let textHTML = [META_HEAD, getHTMLFromHotCoords(this.hot, copyConfig)].join('');
-    const allowCuttingOut = !!this.hot.runHooks('beforeCut', data, textHTML, copyConfig);
+    const actionInfo = new ActionInfo({
+      type: 'copy',
+      instance: this.hot,
+      copyableRanges: this.copyableRanges
+    });
+    const allowCuttingOut = !!this.hot.runHooks('beforeCut', actionInfo);
 
     if (allowCuttingOut) {
-      data = getDataFromHotCoords(this.hot, copyConfig);
-      textHTML = [META_HEAD, getHTMLFromHotCoords(this.hot, copyConfig)].join('');
-
-      const textPlain = stringify(data);
-
-      event.clipboardData.setData('text/plain', textPlain);
-      event.clipboardData.setData('text/html', textHTML);
+      event.clipboardData.setData('text/plain', stringify(actionInfo.getData()));
+      event.clipboardData.setData('text/html', actionInfo.getHTML());
 
       this.hot.emptySelectedCells('CopyPaste.cut');
-      this.hot.runHooks('afterCut', data, textHTML, copyConfig);
+      this.hot.runHooks('afterCut', actionInfo);
     }
 
     event.preventDefault();
@@ -627,42 +587,28 @@ export class CopyPaste extends BasePlugin {
       event.preventDefault();
     }
 
-    let pastedData;
-    let pasteConfig;
-    let parsedGridSettings;
-    let textHTML = sanitize(event.clipboardData.getData('text/html'), {
+    const html = sanitize(event.clipboardData.getData('text/html'), {
       ADD_TAGS: ['meta'],
       ADD_ATTR: ['content'],
       FORCE_BODY: true,
     });
 
-    if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
-      parsedGridSettings = htmlToGridSettings(textHTML, this.hot.rootDocument);
-      pasteConfig = { ignoredRows: [], ignoredColumns: [] };
-      pastedData = getDataWithHeadersByConfig({ ...parsedGridSettings, ...pasteConfig });
+    const actionInfo = new ActionInfo({
+      type: 'paste',
+      html,
+    });
 
-    } else {
-      pastedData = event.clipboardData.getData('text/plain');
-    }
-
-    if (typeof pastedData === 'string') {
-      pastedData = parse(pastedData);
-    }
-
-    if (pastedData && pastedData.length === 0) {
+    if (this.hot.runHooks('beforePaste', actionInfo) === false) {
       return;
     }
 
-    if (this.hot.runHooks('beforePaste', pastedData, textHTML, pasteConfig) === false) {
+    const pastedTable = actionInfo.getData();
+
+    if (pastedTable.length === 0) {
       return;
     }
 
-    if (isObject(parsedGridSettings)) {
-      pastedData = getDataWithHeadersByConfig({ ...parsedGridSettings, ...pasteConfig });
-      textHTML = getHTMLFromConfig({ ...parsedGridSettings, ...pasteConfig });
-    }
-
-    const [startRow, startColumn, endRow, endColumn] = this.populateValues(pastedData);
+    const [startRow, startColumn, endRow, endColumn] = this.populateValues(pastedTable);
 
     this.hot.selectCell(
       startRow,
@@ -671,7 +617,7 @@ export class CopyPaste extends BasePlugin {
       Math.min(this.hot.countCols() - 1, endColumn),
     );
 
-    this.hot.runHooks('afterPaste', pastedData, textHTML, pasteConfig);
+    this.hot.runHooks('afterPaste', actionInfo);
   }
 
   /**

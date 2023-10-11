@@ -1427,25 +1427,31 @@ const REGISTERED_HOOKS = [
    * the selected cells. This hook is fired when {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#beforeCut
-   * @param {Array[]} data An array of arrays which contains data to cut.
-   * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
-   *                       which will be cut out.
+   * @param {object} actionInfo Information about already performed cut action.
+   * @param {Function} actionInfo.isTable Checks whether copied data is an array.
+   * @param {Function} actionInfo.isHandsontable Checks whether copied data is a Handsontable.
+   * @param {Function} actionInfo.remove Remove rows/columns from the copied/pasted dataset.
+   * @param {Function} actionInfo.insertAtRow Insert values at row index.
+   * @param {Function} actionInfo.insertAtColumn Insert values at column index.
+   * @param {Function} actionInfo.change  Change headers or cells in the copied/pasted dataset.
+   * @param {Function} actionInfo.getData Gets copied data stored as array of arrays.
+   * @param {Function} actionInfo.getHTML Gets sanitized data of "text/html" type inside the clipboard.
+   * @param {Function} actionInfo.getGridSettings Gets grid settings for copied data.
    * @returns {*} If returns `false` then operation of the cutting out is canceled.
    * @example
    * ::: only-for javascript
    * ```js
-   * // To disregard a single row, remove it from the array using data.splice(i, 1).
+   * // To disregard a single row or column, remove it from copied dataset using `remove` method on the object from the first callback argument.
    * new Handsontable(element, {
-   *   beforeCut: function(data, coords) {
-   *     // data -> [[1, 2, 3], [4, 5, 6]]
-   *     data.splice(0, 1);
-   *     // data -> [[4, 5, 6]]
-   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *   beforeCut: function(actionInfo) {
+   *     // actionInfo.getData() -> [[1, 2, 3], [4, 5, 6]]
+   *    actionInfo.remove({ rows: [0], columns: [0] });
+   *     // actionInfo.getData() -> [[5, 6]]
    *   }
    * });
    * // To cancel a cutting action, just return `false`.
    * new Handsontable(element, {
-   *   beforeCut: function(data, coords) {
+   *   beforeCut: function(actionInfo) {
    *     return false;
    *   }
    * });
@@ -1454,18 +1460,17 @@ const REGISTERED_HOOKS = [
    *
    * ::: only-for react
    * ```jsx
-   * // To disregard a single row, remove it from the array using data.splice(i, 1).
+   * // To disregard a single row or column, remove it from copied dataset using `remove` method on the object from the first callback argument.
    * <HotTable
-   *   beforeCut={(data, coords) => {
-   *     // data -> [[1, 2, 3], [4, 5, 6]]
-   *     data.splice(0, 1);
-   *     // data -> [[4, 5, 6]]
-   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *   beforeCut={(actionInfo) => {
+   *     // actionInfo.getData() -> [[1, 2, 3], [4, 5, 6]]
+   *    actionInfo.remove({ rows: [0], columns: [0] });
+   *     // actionInfo.getData() -> [[5, 6]]
    *   }}
    * />
    * // To cancel a cutting action, just return `false`.
    * <HotTable
-   *   beforeCut={(data, coords) => {
+   *   beforeCut={(actionInfo) => {
    *     return false;
    *   }}
    * />
@@ -1479,9 +1484,16 @@ const REGISTERED_HOOKS = [
    * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#afterCut
-   * @param {Array[]} data An array of arrays with the cut data.
-   * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
-   *                       which was cut out.
+   * @param {object} actionInfo Information about already performed cut action.
+   * @param {Function} actionInfo.isTable Checks whether copied data is an array.
+   * @param {Function} actionInfo.isHandsontable Checks whether copied data is a Handsontable.
+   * @param {Function} actionInfo.remove Remove rows/columns from the copied/pasted dataset.
+   * @param {Function} actionInfo.insertAtRow Insert values at row index.
+   * @param {Function} actionInfo.insertAtColumn Insert values at column index.
+   * @param {Function} actionInfo.change  Change headers or cells in the copied/pasted dataset.
+   * @param {Function} actionInfo.getData Gets copied data stored as array of arrays.
+   * @param {Function} actionInfo.getHTML Gets sanitized data of "text/html" type inside the clipboard.
+   * @param {Function} actionInfo.getGridSettings Gets grid settings for copied data.
    */
   'afterCut',
 
@@ -1489,23 +1501,28 @@ const REGISTERED_HOOKS = [
    * Fired before values are copied to the clipboard.
    *
    * @event Hooks#beforeCopy
-   * @param {Array[]} data An array of arrays which contains data to copied.
-   * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
-   *                         which will copied.
-   * @param {{ columnHeadersCount: number }} copiedHeadersCount (Since 12.3.0) The number of copied column headers.
+   * @param {object} actionInfo Information about already performed cut action.
+   * @param {Function} actionInfo.isTable Checks whether copied data is an array.
+   * @param {Function} actionInfo.isHandsontable Checks whether copied data is a Handsontable.
+   * @param {Function} actionInfo.remove Remove rows/columns from the copied/pasted dataset.
+   * @param {Function} actionInfo.insertAtRow Insert values at row index.
+   * @param {Function} actionInfo.insertAtColumn Insert values at column index.
+   * @param {Function} actionInfo.change  Change headers or cells in the copied/pasted dataset.
+   * @param {Function} actionInfo.getData Gets copied data stored as array of arrays.
+   * @param {Function} actionInfo.getHTML Gets sanitized data of "text/html" type inside the clipboard.
+   * @param {Function} actionInfo.getGridSettings Gets grid settings for copied data.
    * @returns {*} If returns `false` then copying is canceled.
    *
    * @example
    * ::: only-for javascript
    * ```js
-   * // To disregard a single row, remove it from array using data.splice(i, 1).
+   * // To disregard a single row or column, remove it from copied dataset using `remove` method on the object from the first callback argument.
    * ...
    * new Handsontable(document.getElementById('example'), {
-   *   beforeCopy: (data, coords) => {
-   *     // data -> [[1, 2, 3], [4, 5, 6]]
-   *     data.splice(0, 1);
-   *     // data -> [[4, 5, 6]]
-   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *   beforeCopy: (actionInfo) => {
+   *     // actionInfo.getData() -> [[1, 2, 3], [4, 5, 6]]
+   *    actionInfo.remove({ rows: [0], columns: [0] });
+   *     // actionInfo.getData() -> [[5, 6]]
    *   }
    * });
    * ...
@@ -1513,7 +1530,7 @@ const REGISTERED_HOOKS = [
    * // To cancel copying, return false from the callback.
    * ...
    * new Handsontable(document.getElementById('example'), {
-   *   beforeCopy: (data, coords) => {
+   *   beforeCopy: (actionInfo) => {
    *     return false;
    *   }
    * });
@@ -1523,14 +1540,13 @@ const REGISTERED_HOOKS = [
    *
    * ::: only-for react
    * ```jsx
-   * // To disregard a single row, remove it from array using data.splice(i, 1).
+   * // To disregard a single row or column, remove it from copied dataset using `remove` method on the object from the first callback argument.
    * ...
    * <HotTable
-   *   beforeCopy={(data, coords) => {
-   *     // data -> [[1, 2, 3], [4, 5, 6]]
-   *     data.splice(0, 1);
-   *     // data -> [[4, 5, 6]]
-   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *   beforeCopy={(actionInfo) => {
+   *     // actionInfo.getData() -> [[1, 2, 3], [4, 5, 6]]
+   *    actionInfo.remove({ rows: [0], columns: [0] });
+   *     // actionInfo.getData() -> [[5, 6]]
    *   }}
    * />
    * ...
@@ -1538,7 +1554,7 @@ const REGISTERED_HOOKS = [
    * // To cancel copying, return false from the callback.
    * ...
    * <HotTable
-   *   beforeCopy={(data, coords) => {
+   *   beforeCopy={(actionInfo) => {
    *     return false;
    *   }}
    * />
@@ -1553,10 +1569,16 @@ const REGISTERED_HOOKS = [
    * option is enabled.
    *
    * @event Hooks#afterCopy
-   * @param {Array[]} data An array of arrays which contains the copied data.
-   * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
-   *                         which was copied.
-   * @param {{ columnHeadersCount: number }} copiedHeadersCount (Since 12.3.0) The number of copied column headers.
+   * @param {object} actionInfo Information about already performed cut action.
+   * @param {Function} actionInfo.isTable Checks whether copied data is an array.
+   * @param {Function} actionInfo.isHandsontable Checks whether copied data is a Handsontable.
+   * @param {Function} actionInfo.remove Remove rows/columns from the copied/pasted dataset.
+   * @param {Function} actionInfo.insertAtRow Insert values at row index.
+   * @param {Function} actionInfo.insertAtColumn Insert values at column index.
+   * @param {Function} actionInfo.change  Change headers or cells in the copied/pasted dataset.
+   * @param {Function} actionInfo.getData Gets copied data stored as array of arrays.
+   * @param {Function} actionInfo.getHTML Gets sanitized data of "text/html" type inside the clipboard.
+   * @param {Function} actionInfo.getGridSettings Gets grid settings for copied data.
    */
   'afterCopy',
 
@@ -1565,25 +1587,31 @@ const REGISTERED_HOOKS = [
    * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#beforePaste
-   * @param {Array[]} data An array of arrays which contains data to paste.
-   * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
-   *                       that correspond to the previously selected area.
+   * @param {object} actionInfo Information about already performed cut action.
+   * @param {Function} actionInfo.isTable Checks whether copied data is an array.
+   * @param {Function} actionInfo.isHandsontable Checks whether copied data is a Handsontable.
+   * @param {Function} actionInfo.remove Remove rows/columns from the copied/pasted dataset.
+   * @param {Function} actionInfo.insertAtRow Insert values at row index.
+   * @param {Function} actionInfo.insertAtColumn Insert values at column index.
+   * @param {Function} actionInfo.change  Change headers or cells in the copied/pasted dataset.
+   * @param {Function} actionInfo.getData Gets copied data stored as array of arrays.
+   * @param {Function} actionInfo.getHTML Gets sanitized data of "text/html" type inside the clipboard.
+   * @param {Function} actionInfo.getGridSettings Gets grid settings for copied data.
    * @returns {*} If returns `false` then pasting is canceled.
    * @example
    * ```js
    * ::: only-for javascript
-   * // To disregard a single row, remove it from array using data.splice(i, 1).
+   * // To disregard a single row or column, remove it from copied dataset using `remove` method on the object from the first callback argument.
    * new Handsontable(example, {
-   *   beforePaste: (data, coords) => {
-   *     // data -> [[1, 2, 3], [4, 5, 6]]
-   *     data.splice(0, 1);
-   *     // data -> [[4, 5, 6]]
-   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *   beforePaste: (actionInfo) => {
+   *     // actionInfo.getData() -> [[1, 2, 3], [4, 5, 6]]
+   *    actionInfo.remove({ rows: [0], columns: [0] });
+   *     // actionInfo.getData() -> [[5, 6]]
    *   }
    * });
    * // To cancel pasting, return false from the callback.
    * new Handsontable(example, {
-   *   beforePaste: (data, coords) => {
+   *   beforePaste: (actionInfo) => {
    *     return false;
    *   }
    * });
@@ -1592,18 +1620,17 @@ const REGISTERED_HOOKS = [
    *
    * ::: only-for react
    * ```jsx
-   * // To disregard a single row, remove it from array using data.splice(i, 1).
+   * // To disregard a single row or column, remove it from copied dataset using `remove` method on the object from the first callback argument.
    * <HotTable
-   *   beforePaste={(data, coords) => {
-   *     // data -> [[1, 2, 3], [4, 5, 6]]
-   *     data.splice(0, 1);
-   *     // data -> [[4, 5, 6]]
-   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *   beforePaste={(actionInfo) => {
+   *     // actionInfo.getData() -> [[1, 2, 3], [4, 5, 6]]
+   *    actionInfo.remove({ rows: [0], columns: [0] });
+   *     // actionInfo.getData() -> [[5, 6]]
    *   }}
    * />
    * // To cancel pasting, return false from the callback.
    * <HotTable
-   *   beforePaste={(data, coords) => {
+   *   beforePaste={(actionInfo) => {
    *     return false;
    *   }}
    * />
@@ -1617,9 +1644,16 @@ const REGISTERED_HOOKS = [
    * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#afterPaste
-   * @param {Array[]} data An array of arrays with the pasted data.
-   * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
-   *                       that correspond to the previously selected area.
+   * @param {object} actionInfo Information about already performed cut action.
+   * @param {Function} actionInfo.isTable Checks whether copied data is an array.
+   * @param {Function} actionInfo.isHandsontable Checks whether copied data is a Handsontable.
+   * @param {Function} actionInfo.remove Remove rows/columns from the copied/pasted dataset.
+   * @param {Function} actionInfo.insertAtRow Insert values at row index.
+   * @param {Function} actionInfo.insertAtColumn Insert values at column index.
+   * @param {Function} actionInfo.change  Change headers or cells in the copied/pasted dataset.
+   * @param {Function} actionInfo.getData Gets copied data stored as array of arrays.
+   * @param {Function} actionInfo.getHTML Gets sanitized data of "text/html" type inside the clipboard.
+   * @param {Function} actionInfo.getGridSettings Gets grid settings for copied data.
    */
   'afterPaste',
 
