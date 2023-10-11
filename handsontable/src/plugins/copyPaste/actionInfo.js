@@ -239,7 +239,7 @@ export class ActionInfo {
     const numberOfColumns = data[0].length;
 
     if (rowIndex > numberOfRows) {
-      return 'Please provide an valid row index for row data insertion.';
+      return 'Please provide an valid row index (not too high) for row data insertion.';
     }
 
     if (numberOfColumns !== values.length) {
@@ -329,7 +329,7 @@ export class ActionInfo {
     const numberOfColumns = data[0].length;
 
     if (columnIndex > numberOfColumns) {
-      return 'Please provide an valid column index for column data insertion.';
+      return 'Please provide an valid column index (not too high) for column data insertion.';
     }
 
     if (values.length !== numberOfRows) {

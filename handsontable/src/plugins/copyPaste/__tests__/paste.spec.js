@@ -540,6 +540,172 @@ describe('CopyPaste', () => {
       ]);
     });
 
+    it('should not be possible to modify data during paste operation (wrong number of inserted rows)', () => {
+      const warnSpy = spyOn(console, 'warn');
+      let afterPasteArgument;
+
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        colHeaders: true,
+        copyPaste: true,
+        beforePaste(actionInfo) {
+          actionInfo.insertAtRow(0, ['single cell']);
+        },
+        afterPaste(actionInfo) {
+          afterPasteArgument = actionInfo;
+        },
+      });
+
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      clipboardEvent.clipboardData.setData('text/html', [
+        '<table>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>A-0-0</th>' +
+              '<th>A-0-1</th>' +
+            '</tr>' +
+            '<tr>' +
+              '<th>B-1-0</th>' +
+              '<th>B-1-1</th>' +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+            '<tr>' +
+              '<td>A1</td>' +
+              '<td>B1</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td>A2</td>' +
+              '<td>B2</td>' +
+            '</tr>' +
+          '</tbody>' +
+        '</table>'
+      ].join('\r\n'));
+
+      selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      expect(warnSpy).toHaveBeenCalled();
+
+      expect(afterPasteArgument.getHTML()).toBe(
+        '<table>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>A-0-0</th>' +
+              '<th>A-0-1</th>' +
+            '</tr>' +
+            '<tr>' +
+              '<th>B-1-0</th>' +
+              '<th>B-1-1</th>' +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+            '<tr>' +
+              '<td>A1</td>' +
+              '<td>B1</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td>A2</td>' +
+              '<td>B2</td>' +
+            '</tr>' +
+          '</tbody>' +
+        '</table>'
+      );
+
+      expect(afterPasteArgument.getData()).toEqual([
+        ['A-0-0', 'A-0-1'],
+        ['B-1-0', 'B-1-1'],
+        ['A1', 'B1'],
+        ['A2', 'B2']
+      ]);
+    });
+
+    it('should not be possible to modify data during paste operation (wrong row index)', () => {
+      const warnSpy = spyOn(console, 'warn');
+      let afterPasteArgument;
+
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        colHeaders: true,
+        copyPaste: true,
+        beforePaste(actionInfo) {
+          actionInfo.insertAtRow(3, ['first cell', 'next cell']);
+        },
+        afterPaste(actionInfo) {
+          afterPasteArgument = actionInfo;
+        },
+      });
+
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      clipboardEvent.clipboardData.setData('text/html', [
+        '<table>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>A-0-0</th>' +
+              '<th>A-0-1</th>' +
+            '</tr>' +
+            '<tr>' +
+              '<th>B-1-0</th>' +
+              '<th>B-1-1</th>' +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+            '<tr>' +
+            '<td>A1</td>' +
+            '<td>B1</td>' +
+            '</tr>' +
+            '<tr>' +
+            '<td>A2</td>' +
+            '<td>B2</td>' +
+            '</tr>' +
+          '</tbody>' +
+        '</table>'
+      ].join('\r\n'));
+
+      selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      expect(warnSpy).toHaveBeenCalled();
+
+      expect(afterPasteArgument.getHTML()).toBe(
+        '<table>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>A-0-0</th>' +
+              '<th>A-0-1</th>' +
+            '</tr>' +
+            '<tr>' +
+              '<th>B-1-0</th>' +
+              '<th>B-1-1</th>' +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+            '<tr>' +
+              '<td>A1</td>' +
+              '<td>B1</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td>A2</td>' +
+              '<td>B2</td>' +
+            '</tr>' +
+          '</tbody>' +
+        '</table>'
+      );
+
+      expect(afterPasteArgument.getData()).toEqual([
+        ['A-0-0', 'A-0-1'],
+        ['B-1-0', 'B-1-1'],
+        ['A1', 'B1'],
+        ['A2', 'B2']
+      ]);
+    });
+
     it('should be possible to paste copied data from the same instance', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
