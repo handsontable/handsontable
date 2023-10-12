@@ -2,7 +2,8 @@ import moment from 'moment';
 import Pikaday from 'pikaday';
 import { TextEditor } from '../textEditor';
 import EventManager from '../../eventManager';
-import { addClass, outerHeight, outerWidth } from '../../helpers/dom/element';
+import { addClass, hasClass, outerHeight, outerWidth, setAttribute } from '../../helpers/dom/element';
+import { A11Y_EXPANDED } from '../../helpers/a11y';
 import { deepExtend } from '../../helpers/object';
 import { isFunctionKey } from '../../helpers/unicode';
 
@@ -43,7 +44,7 @@ export class DateEditor extends TextEditor {
       throw new Error('You need to include Pikaday to your project.');
     }
     super.init();
-    this.instance.addHook('afterDestroy', () => {
+    this.hot.addHook('afterDestroy', () => {
       this.parentDestroyed = true;
       this.destroyElements();
     });
@@ -72,7 +73,13 @@ export class DateEditor extends TextEditor {
     /**
      * Prevent recognizing clicking on datepicker as clicking outside of table.
      */
-    eventManager.addEventListener(this.datePicker, 'mousedown', event => event.stopPropagation());
+    eventManager.addEventListener(this.datePicker, 'mousedown', (event) => {
+      if (hasClass(event.target, 'pika-day')) {
+        this.hideDatepicker();
+      }
+
+      event.stopPropagation();
+    });
   }
 
   /**
@@ -116,6 +123,12 @@ export class DateEditor extends TextEditor {
     super.open();
     this.showDatepicker(event);
 
+    if (this.hot.getSettings().ariaTags) {
+      setAttribute(this.TD, [
+        A11Y_EXPANDED('true'),
+      ]);
+    }
+
     editorContext.addShortcut({
       keys: [['Enter']],
       callback: (keyboardEvent) => {
@@ -138,9 +151,15 @@ export class DateEditor extends TextEditor {
       this.$datePicker.destroy();
     }
 
-    this.instance._registerTimeout(() => {
-      this.instance._refreshBorders();
+    this.hot._registerTimeout(() => {
+      this.hot._refreshBorders();
     });
+
+    if (this.TD && this.hot.getSettings().ariaTags) {
+      setAttribute(this.TD, [
+        A11Y_EXPANDED('false'),
+      ]);
+    }
 
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
@@ -158,7 +177,6 @@ export class DateEditor extends TextEditor {
    */
   finishEditing(restoreOriginalValue = false, ctrlDown = false) {
     if (restoreOriginalValue) { // pressed ESC, restore original value
-      // var value = this.instance.getDataAtCell(this.row, this.col);
       const value = this.originalValue;
 
       if (value !== void 0) {
@@ -177,7 +195,7 @@ export class DateEditor extends TextEditor {
   showDatepicker(event) {
     const offset = this.TD.getBoundingClientRect();
     const dateFormat = this.cellProperties.dateFormat || this.defaultDateFormat;
-    const isMouseDown = this.instance.view.isMouseDown();
+    const isMouseDown = this.hot.view.isMouseDown();
     const isMeta = event ? isFunctionKey(event.keyCode) : false;
     let dateStr;
 
@@ -270,8 +288,8 @@ export class DateEditor extends TextEditor {
       if (!isNaN(dateStr.getTime())) {
         dateStr = moment(dateStr).format(this.cellProperties.dateFormat || this.defaultDateFormat);
       }
+
       this.setValue(dateStr);
-      this.hideDatepicker();
 
       if (origOnSelect) {
         origOnSelect();

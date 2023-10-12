@@ -145,7 +145,7 @@ describe('Public API', () => {
       expect(Handsontable.cellTypes.checkbox.validator).not.toBeDefined();
 
       expect(Handsontable.cellTypes.date.editor).toBe(Handsontable.editors.DateEditor);
-      expect(Handsontable.cellTypes.date.renderer).toBe(Handsontable.renderers.AutocompleteRenderer);
+      expect(Handsontable.cellTypes.date.renderer).toBe(Handsontable.renderers.DateRenderer);
       expect(Handsontable.cellTypes.date.validator).toBe(Handsontable.validators.DateValidator);
 
       expect(Handsontable.cellTypes.dropdown.editor).toBe(Handsontable.editors.DropdownEditor);
@@ -153,7 +153,7 @@ describe('Public API', () => {
       expect(Handsontable.cellTypes.dropdown.validator).toBe(Handsontable.validators.AutocompleteValidator);
 
       expect(Handsontable.cellTypes.handsontable.editor).toBe(Handsontable.editors.HandsontableEditor);
-      expect(Handsontable.cellTypes.handsontable.renderer).toBe(Handsontable.renderers.AutocompleteRenderer);
+      expect(Handsontable.cellTypes.handsontable.renderer).toBe(Handsontable.renderers.HandsontableRenderer);
       expect(Handsontable.cellTypes.handsontable.validator).not.toBeDefined();
 
       expect(Handsontable.cellTypes.numeric.editor).toBe(Handsontable.editors.NumericEditor);
@@ -163,6 +163,10 @@ describe('Public API', () => {
       expect(Handsontable.cellTypes.password.editor).toBe(Handsontable.editors.PasswordEditor);
       expect(Handsontable.cellTypes.password.renderer).toBe(Handsontable.renderers.PasswordRenderer);
       expect(Handsontable.cellTypes.password.validator).not.toBeDefined();
+
+      expect(Handsontable.cellTypes.select.editor).toBe(Handsontable.editors.SelectEditor);
+      expect(Handsontable.cellTypes.select.renderer).toBe(Handsontable.renderers.SelectRenderer);
+      expect(Handsontable.cellTypes.select.validator).not.toBeDefined();
 
       expect(Handsontable.cellTypes.text.editor).toBe(Handsontable.editors.TextEditor);
       expect(Handsontable.cellTypes.text.renderer).toBe(Handsontable.renderers.TextRenderer);
