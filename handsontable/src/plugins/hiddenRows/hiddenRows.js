@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { addClass } from '../../helpers/dom/element';
+import {addClass, setAttribute} from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
@@ -474,13 +474,17 @@ export class HiddenRows extends BasePlugin {
     }
 
     const classList = [];
+    const THAriaDescription = TH.getAttribute('aria-description') ? `${TH.getAttribute('aria-description')} ` : '';
 
     if (row >= 1 && this.isHidden(row - 1)) {
       classList.push('afterHiddenRow');
+      // TODO: prevent messages stacking up.
+      setAttribute(TH, 'aria-description', `${THAriaDescription}The previous row is hidden.`);
     }
 
     if (row < this.hot.countRows() - 1 && this.isHidden(row + 1)) {
       classList.push('beforeHiddenRow');
+      setAttribute(TH, 'aria-description', `${THAriaDescription}The next row is hidden.`);
     }
 
     addClass(TH, classList);

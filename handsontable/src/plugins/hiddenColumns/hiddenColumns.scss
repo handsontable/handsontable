@@ -20,22 +20,22 @@
 
 .handsontable th.beforeHiddenColumn::after {
   right: 1px;
-  content: '\25C0'; /* left arrow */
+  content: '\25C0'; // left-pointing triangle
 }
 
 [dir=rtl].handsontable th.beforeHiddenColumn::after {
   right: initial;
   left: 1px;
-  content: '\25B6'; /* right arrow */
+  content: '\25B6'; // right-pointing triangle
 }
 
 .handsontable th.afterHiddenColumn::before {
   left: 1px;
-  content: '\25B6'; /* right arrow */
+  content: '\25B6'; // right-pointing triangle
 }
 
 [dir=rtl].handsontable th.afterHiddenColumn::before {
   right: 1px;
   left: initial;
-  content: '\25C0'; /* left arrow */
+  content: '\25C0'; // left-pointing triangle
 }

@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { addClass } from '../../helpers/dom/element';
+import {addClass, setAttribute} from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
@@ -485,13 +485,16 @@ export class HiddenColumns extends BasePlugin {
     }
 
     const classList = [];
+    const THAriaDescription = TH.getAttribute('aria-description') ? `${TH.getAttribute('aria-description')} ` : '';
 
     if (column >= 1 && this.isHidden(column - 1)) {
       classList.push('afterHiddenColumn');
+      setAttribute(TH, 'aria-description', `${THAriaDescription}The previous column is hidden.`);
     }
 
     if (column < this.hot.countCols() - 1 && this.isHidden(column + 1)) {
       classList.push('beforeHiddenColumn');
+      setAttribute(TH, 'aria-description', `${THAriaDescription}The next column is hidden.`);
     }
 
     addClass(TH, classList);

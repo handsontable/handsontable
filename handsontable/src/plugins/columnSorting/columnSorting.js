@@ -727,6 +727,9 @@ export class ColumnSorting extends BasePlugin {
       const currentSortState = this.columnStatesManager.getSortOrderOfColumn(column);
 
       setAttribute(TH, ...A11Y_SORT(currentSortState ? `${currentSortState}ending` : 'none'));
+      setAttribute(TH, [
+        ['aria-description', 'Press ENTER to change sorting.'],
+      ]);
     }
   }
 

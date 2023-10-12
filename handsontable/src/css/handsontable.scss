@@ -304,7 +304,7 @@ TextRenderer readOnly cell
 }
 
 .handsontable .htSubmenu :after {
-  content: '\25B6';
+  content: '\25B6'; // right-pointing triangle
   color: #777;
   position: absolute;
   right: 5px;
@@ -316,7 +316,7 @@ TextRenderer readOnly cell
 }
 
 [dir=rtl].handsontable .htSubmenu :before {
-  content: '\25C0';
+  content: '\25C0'; // left-pointing triangle
   color: #777;
   position: absolute;
   left: 5px;

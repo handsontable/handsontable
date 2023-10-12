@@ -450,8 +450,10 @@ export class DropdownMenu extends BasePlugin {
     button.tabIndex = -1;
 
     if (this.hot.getSettings().ariaTags) {
+      // TODO: ASK JANEK: TAB does not focus this button
       setAttribute(button, [
-        A11Y_HIDDEN(),
+        //A11Y_HIDDEN(),
+        ['aria-label', 'Press ENTER to open menu.'],
       ]);
     }
 

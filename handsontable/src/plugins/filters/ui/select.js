@@ -1,6 +1,7 @@
 import { Menu } from '../../../plugins/contextMenu/menu';
 import { clone, extend } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
+import { setAttribute } from '../../../helpers/dom/element';
 import * as C from '../../../i18n/constants';
 import { SEPARATOR } from '../../../plugins/contextMenu/predefinedItems';
 import BaseUI from './_base';
@@ -89,9 +90,13 @@ class SelectUI extends BaseUI {
     const caption = new BaseUI(this.hot, {
       className: 'htUISelectCaption'
     });
+    
     const dropdown = new BaseUI(this.hot, {
       className: 'htUISelectDropdown'
     });
+
+    setAttribute(dropdown.element, [['aria-hidden', 'true']]);
+    
     const priv = privatePool.get(this);
 
     priv.caption = caption;
@@ -99,6 +104,8 @@ class SelectUI extends BaseUI {
     priv.dropdown = dropdown;
 
     arrayEach([caption, dropdown], element => this._element.appendChild(element.element));
+
+    setAttribute(this._element, [['role', 'listbox']]);
 
     this.menu.addLocalHook('select', command => this.onMenuSelect(command));
     this.menu.addLocalHook('afterClose', () => this.onMenuClosed());

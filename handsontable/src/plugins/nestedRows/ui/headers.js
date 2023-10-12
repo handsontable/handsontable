@@ -21,7 +21,6 @@ class HeadersUI extends BaseUI {
     return {
       indicatorContainer: 'ht_nestingLevels',
       parent: 'ht_nestingParent',
-      indicator: 'ht_nestingLevel',
       emptyIndicator: 'ht_nestingLevel_empty',
       button: 'ht_nestingButton',
       expandButton: 'ht_nestingExpand',
@@ -100,18 +99,17 @@ class HeadersUI extends BaseUI {
     if (this.dataManager.hasChildren(rowObject)) {
       const buttonsContainer = this.hot.rootDocument.createElement('DIV');
 
-      if (ariaEnabled) {
-        setAttribute(buttonsContainer, [
-          A11Y_HIDDEN(),
-        ]);
-      }
-
       addClass(TH, HeadersUI.CSS_CLASSES.parent);
 
       if (this.collapsingUI.areChildrenCollapsed(rowIndex)) {
         addClass(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${HeadersUI.CSS_CLASSES.expandButton}`);
 
         if (ariaEnabled) {
+          setAttribute(buttonsContainer, [
+            ['role', 'button'],
+            ['aria-label', 'Expand row'],
+          ]);
+          
           setAttribute(TH, [
             A11Y_EXPANDED(false)
           ]);
@@ -121,6 +119,11 @@ class HeadersUI extends BaseUI {
         addClass(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${HeadersUI.CSS_CLASSES.collapseButton}`);
 
         if (ariaEnabled) {
+          setAttribute(buttonsContainer, [
+            ['role', 'button'],
+            ['aria-label', 'Collapse row'],
+          ]);
+          
           setAttribute(TH, [
             A11Y_EXPANDED(true)
           ]);

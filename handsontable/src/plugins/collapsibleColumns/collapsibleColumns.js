@@ -545,6 +545,9 @@ export class CollapsibleColumns extends BasePlugin {
         // Add ARIA tags
         if (isAriaTagsEnabled) {
           setAttribute(TH, ...A11Y_EXPANDED(false));
+          setAttribute(TH, [
+            ['aria-description', 'Press ENTER to expand the column.']
+          ]);
         }
 
       } else {
@@ -555,6 +558,9 @@ export class CollapsibleColumns extends BasePlugin {
         // Add ARIA tags
         if (isAriaTagsEnabled) {
           setAttribute(TH, ...A11Y_EXPANDED(true));
+          setAttribute(TH, [
+            ['aria-description', 'Press ENTER to collapse the column.']
+          ]);
         }
       }
 
