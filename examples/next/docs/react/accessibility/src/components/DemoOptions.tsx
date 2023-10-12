@@ -45,17 +45,21 @@ function DemoOptions({
       case "enableArrowRLFirstLastColumn":
         changeToggleOptions((existing) => ({
           ...existing,
-          autoWrapRow: !autoWrapCol,
+          autoWrapRow: !autoWrapRow,
         }));
         break;
       case "enableArrowTDFirstLastColumn":
         changeToggleOptions((existing) => ({
           ...existing,
-          enterMoves:
-            enterMoves.row !== 1 ? { col: 0, row: 1 } : { col: 0, row: 0 },
+          autoWrapCol: !autoWrapCol,
         }));
         break;
       case "enableEnterFocusEditing":
+        changeToggleOptions((existing) => ({
+          ...existing,
+          enterMoves:
+            enterMoves.row !== 1 ? { col: 0, row: 1 } : { col: 0, row: 0 },
+        }));
         break;
       default:
         break;
@@ -259,7 +263,7 @@ function DemoOptions({
               id="enterFocusEditingLabel"
             >
               <input
-                checked={enterMoves.row === 0}
+                checked={enterMoves.row !== 0}
                 type="checkbox"
                 id="enableEnterFocusEditing"
                 name="enableEnterFocusEditing"
