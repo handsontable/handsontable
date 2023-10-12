@@ -1,3 +1,8 @@
+#root {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
 
 body {
   display: flex;
@@ -6,14 +11,17 @@ body {
 }
 
 html {
-  font-family: Inter var, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+  font-family: Inter var, ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans,
+    sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol,
+    Noto Color Emoji;
 }
 
 /*
   A stylesheet customizing app (custom renderers)
 */
 
-table.htCore td.star {
+table.htCore div.star {
   color: #fcb515;
 }
 
@@ -81,6 +89,7 @@ table.htCore tr.selected td {
 }
 
 .checkboxGroup > div > label {
+  padding: 2px;
   display: flex;
   gap: 0.2rem;
 }
@@ -93,12 +102,12 @@ table.htCore tr.selected td {
 }
 
 .externalLink:hover {
-  color: #0000EE;
+  color: #0000ee;
 }
 
 input {
   max-width: 20rem;
-  font-size: .875rem;
+  font-size: 0.875rem;
   line-height: 1.25rem;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
@@ -109,13 +118,4 @@ input {
   border-style: solid;
   border-radius: 6px;
   border-width: 1px;
-}
-
-.optionLabel > input:focus {
-  outline: none;
-}
-
-.optionLabel:focus-within {
-    outline: 5px auto Highlight;
-    outline: 5px auto -webkit-focus-ring-color;
 }
