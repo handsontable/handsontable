@@ -61,7 +61,7 @@ export function instanceToHTML(instance) {
  * @param {Array<number>} config.columns List of column indexes which should be taken into account when creating the table.
  * @returns {string} OuterHTML of the HTMLTableElement.
  */
-export function getHTMLByCoords(instance, config) {
+export function getHTMLByCoords(hotInstance, config) {
   return [
     '<table>',
     ...getHeadersHTMLByCoords(instance, config),
