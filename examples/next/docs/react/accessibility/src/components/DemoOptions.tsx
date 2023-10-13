@@ -1,6 +1,13 @@
 import { ToggleableOptions } from "../App";
 
-type OptionCheckboxName = 'enableTabNavigation' | 'enableHeaderNavigation' | 'enableCellVirtualization' | 'enableCellEnterEditing' | 'enableArrowRLFirstLastColumn' | 'enableArrowTDFirstLastColumn' | 'enableEnterFocusEditing'
+type OptionCheckboxName =
+  | "enableTabNavigation"
+  | "enableHeaderNavigation"
+  | "enableCellVirtualization"
+  | "enableCellEnterEditing"
+  | "enableArrowRLFirstLastColumn"
+  | "enableArrowTDFirstLastColumn"
+  | "enableEnterFocusEditing";
 
 interface DemoOptions extends ToggleableOptions {
   changeToggleOptions: React.Dispatch<React.SetStateAction<ToggleableOptions>>;
@@ -34,6 +41,7 @@ function DemoOptions({
         changeToggleOptions((existing) => ({
           ...existing,
           renderAllRows: !renderAllRows,
+          viewportColumnRenderingOffset: renderAllRows ? "auto" : 9,
         }));
         break;
       case "enableCellEnterEditing":

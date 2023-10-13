@@ -123,6 +123,7 @@ setupCheckbox(
     hotInstance = new Handsontable(document.getElementById("handsontable"), {
       ...hotOptions,
       renderAllRows: !checked,
+      viewportColumnRenderingOffset: checked ? 'auto' : 9,
     });
     console.log(
       `Updated setting: renderAllRows to`,
