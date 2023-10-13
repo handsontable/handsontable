@@ -339,8 +339,8 @@ function getBodyHTMLByConfig(config) {
  */
 function getHeadersHTMLByConfig(config) {
   const headersHTML = [];
-  const excludedColumns = config.excludedColumns || [];
-  const excludedRows = config.excludedRows || [];
+  const excludedColumns = Array.isArray(config?.excludedColumns) ? config.excludedColumns : [];
+  const excludedRows = Array.isArray(config?.excludedRows) ? config.excludedRows : [];
   const { nestedHeaders, colHeaders } = config;
   const excludedHeaders = excludedRows.filter(rowIndex => rowIndex < 0);
 
