@@ -1,4 +1,5 @@
-import puppeteer from 'puppeteer'
+/* eslint-disable */
+const puppeteer = require('puppeteer');
 
 describe('Smoke check', () => {
   let browser = null;
