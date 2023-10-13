@@ -213,8 +213,8 @@ export class ActionInfo {
 
     const config = {
       ...gridSettings,
-      excludedRows: rows || [],
-      excludedColumns: columns || [],
+      excludedRows: rows,
+      excludedColumns: columns,
     };
 
     this.overWriteInfo(config);
