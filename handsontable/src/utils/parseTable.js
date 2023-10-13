@@ -370,8 +370,8 @@ function getHeadersHTMLByConfig(config) {
  */
 export function getDataWithHeadersByConfig(config) {
   const dataWithHeaders = [];
-  const excludedColumns = config.excludedColumns || [];
-  const excludedRows = config.excludedRows || [];
+  const excludedColumns = Array.isArray(config?.excludedColumns) ? config.excludedColumns : [];
+  const excludedRows = Array.isArray(config?.excludedRows) ? config.excludedRows : [];
   const { data, nestedHeaders, colHeaders } = config;
   const excludedHeaders = excludedRows.filter(rowIndex => rowIndex < 0);
 
