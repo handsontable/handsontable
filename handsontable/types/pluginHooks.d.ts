@@ -209,6 +209,7 @@ export interface Events {
   beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean) => void;
   beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
   beforeSelectColumns?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
+  beforeSelectionHighlightSet?: () => void;
   beforeSelectRows?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
   beforeSetCellMeta?: (row: number, col: number, key: string, value: any) => boolean | void;
   beforeSetRangeEnd?: (coords: CellCoords) => void;
@@ -226,6 +227,9 @@ export interface Events {
   beforeUpdateData?: (sourceData: CellValue[], initialLoad: boolean, source: string | undefined) => void;
   beforeValidate?: (value: CellValue, row: number, prop: string | number, source?: ChangeSource) => void;
   beforeValueRender?: (value: CellValue, cellProperties: CellProperties) => void;
+  beforeViewportScrollVertically?: (visualRow: number) => number;
+  beforeViewportScrollHorizontally?: (visualColumn: number) => number;
+  beforeViewportScroll?: () => void;
   beforeViewRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
   construct?: () => void;
   init?: () => void;
@@ -236,6 +240,7 @@ export interface Events {
   modifyColumnHeaderValue?: (headerValue: string, visualColumnIndex: number, headerLevel: number) => void | string;
   modifyColWidth?: (width: number, column: number) => void;
   modifyCopyableRange?: (copyableRanges: RangeType[]) => void;
+  modifyFocusedElement?: (row: number, column: number, focusedElement: HTMLElement) => void | HTMLElement;
   modifyData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
   modifyFocusOnTabNavigation?: (tabActivationDir: 'from_above' | 'from_below', visualCoords: CellCoords) => void;
   modifyGetCellCoords?: (row: number, column: number, topmost: boolean) => void | [number, number] | [number, number, number, number];

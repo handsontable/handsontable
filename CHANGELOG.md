@@ -9,6 +9,30 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [13.1.0] - 2023-08-31
+
+### Changed
+- Optimized the transpilation process of the distribution files. [#10440](https://github.com/handsontable/handsontable/pull/10440)
+- Updated the internal monorepo scripts to utilize Node 20. [#10468](https://github.com/handsontable/handsontable/pull/10468)
+
+### Fixed
+- Fixed a problem with errors being thrown when pressing `delete` or `backspace` keys after deselecting cells. [#10272](https://github.com/handsontable/handsontable/issues/10272)
+- Fixed problems with moving rows when there are trimmed rows in the table. [#10399](https://github.com/handsontable/handsontable/pull/10399)
+- Fixed a problem with the column resize handle being stuck after the user clicked the right mouse button.  [#10416](https://github.com/handsontable/handsontable/pull/10416)
+- Extended the type definition of `CellChange` to match the actual implementation. [#10432](https://github.com/handsontable/handsontable/issues/10432)
+- Fixed a typo in the `CopyPaste` plugin's `copy` method argument. [#10446](https://github.com/handsontable/handsontable/pull/10446)
+- Fixed the mobile selection handlers that disappeared below the table headers when multiple cells were selected. [#10447](https://github.com/handsontable/handsontable/pull/10447)
+- Fixed the Merge Cells plugin's problem with updating the cell meta after unmerging the previously-merged cells, which resulted in the Autofill plugin not working properly. [#10456](https://github.com/handsontable/handsontable/issues/10456)
+- Added the missing type definition for `BaseEditor`'s `getEditedCellRect` method. [#10459](https://github.com/handsontable/handsontable/issues/10459)
+- Corrected the type definitions for the Context Menu. [#9566](https://github.com/handsontable/handsontable/issues/9566)
+- React: Mark an internal prop of the React wrapper's base editor component as optional. [#10429](https://github.com/handsontable/handsontable/issues/10429)
+
+For more information on Handsontable 13.1.0, see:
+
+- [Blog post (13.1.0)](https://handsontable.com/blog/handsontable-13-1-0-reduced-bundle-size-and-bug-fixes)
+- [Documentation (13.1)](https://handsontable.com/docs/13.1)
+- [Release notes (13.1.0)](https://handsontable.com/docs/release-notes/#_13-1-0)
+
 ## [13.0.0] - 2023-06-22
 
 ### Added

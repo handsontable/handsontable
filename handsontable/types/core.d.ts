@@ -17,6 +17,7 @@ import { BaseValidator } from './validators/base';
 import { Plugins } from './plugins';
 import { CellType } from './cellTypes';
 import { ShortcutManager } from './shortcuts';
+import { FocusManager } from './focusManager';
 
 type AlterActions = 'insert_row_above' | 'insert_row_below' |
                     'insert_col_start' | 'insert_col_end' |
@@ -77,6 +78,7 @@ export default class Core {
   getDataAtRowProp(row: number, prop: string): CellValue;
   getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): CellType | 'mixed';
   getDirectionFactor(): 1 | -1;
+  getFocusManager(): FocusManager;
   getInstance(): Core;
   getPlugin<T extends keyof Plugins>(pluginName: T): Plugins[T];
   getPlugin(pluginName: string): Plugins['basePlugin'];
@@ -116,7 +118,7 @@ export default class Core {
   loadData(data: CellValue[][] | RowObject[], source?: string): void;
   populateFromArray(row: number, col: number, input: CellValue[][], endRow?: number,
     endCol?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite'): void;
-  propToCol(prop: string | number): number;
+  propToCol(prop: string | number): string | number;
   redo(): void;
   refreshDimensions(): void;
   removeCellMeta(row: number, col: number, key: (keyof CellMeta) | string): void;
@@ -130,7 +132,7 @@ export default class Core {
   rootWindow: Window;
   rowIndexMapper: IndexMapper;
   runHooks(key: keyof Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
-  scrollViewportTo(row?: number, column?: number, snapToBottom?: boolean, snapToRight?: boolean, considerHiddenIndexes?: boolean): boolean;
+  scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: 'top' | 'bottom', horizontalSnap?: 'start' | 'end', considerHiddenIndexes?: boolean }): boolean;
   scrollToFocusedCell(callback?: () => void): void;
   selectAll(includeRowHeaders?: boolean, includeColumnHeaders?: boolean, focusPosition?: { row?: number, col?: number }): void;
   selectCell(row: number, col: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean): boolean;

@@ -1,10 +1,10 @@
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { stopImmediatePropagation } from '../helpers/dom/event';
-import { createContext } from './context';
+import { createContext, isContextObject } from './context';
 import { useRecorder } from './recorder';
+import { toSingleLine } from '../helpers/templateLiteralTag';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * The `ShortcutManager` API lets you store and manage [keyboard shortcut contexts](@/guides/navigation/keyboard-shortcuts.md#keyboard-shortcut-contexts) ([`ShortcutContext`](@/api/shortcutContext.md)).
  *
@@ -79,6 +79,11 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    * @param {string} contextName The name of the shortcut context
    */
   const setActiveContextName = (contextName) => {
+    if (!CONTEXTS.hasItem(contextName)) {
+      throw new Error(toSingleLine`You've tried to activate the "${contextName}" shortcut context\x20
+        that does not exist. Before activation, register the context using the "addContext" method.`);
+    }
+
     activeContextName = contextName;
   };
 
@@ -92,12 +97,17 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
   let isCtrlKeySilenced = false;
 
   /**
-   * Internal key recorder.
+   * A callback function for listening events from the recorder.
    *
-   * @private
+   * @param {KeyboardEvent} event The keyboard event.
+   * @param {string[]} keys Names of the shortcut's keys,
+   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
+   * in lowercase or uppercase, unified across browsers.
+   * @param {object | string} context The context object or name.
+   * @returns {boolean}
    */
-  const keyRecorder = useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDown, (event, keys) => {
-    const activeContext = getContext(getActiveContextName());
+  const recorderCallback = (event, keys, context = getActiveContextName()) => {
+    const activeContext = isContextObject(context) ? context : getContext(context);
     let isExecutionCancelled = false;
 
     if (!activeContext.hasShortcut(keys)) {
@@ -108,7 +118,14 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
     const shortcuts = activeContext.getShortcuts(keys);
 
     for (let index = 0; index < shortcuts.length; index++) {
-      const { callback, runOnlyIf, preventDefault, stopPropagation, captureCtrl } = shortcuts[index];
+      const {
+        callback,
+        runOnlyIf,
+        preventDefault,
+        stopPropagation,
+        captureCtrl,
+        forwardToContext,
+      } = shortcuts[index];
 
       if (runOnlyIf(event) !== false) {
         isCtrlKeySilenced = captureCtrl;
@@ -127,11 +144,28 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
         if (isExecutionCancelled) {
           break;
         }
+
+        if (forwardToContext) {
+          recorderCallback(event, keys, forwardToContext);
+        }
       }
     }
 
     return isExecutionCancelled;
-  });
+  };
+
+  /**
+   * Internal key recorder.
+   *
+   * @private
+   */
+  const keyRecorder = useRecorder(
+    ownerWindow,
+    handleEvent,
+    beforeKeyDown,
+    afterKeyDown,
+    recorderCallback,
+  );
 
   keyRecorder.mount();
 

@@ -4,6 +4,7 @@ import { checkboxRenderer, RENDERER_TYPE as CHECKBOX_RENDERER } from './checkbox
 import { htmlRenderer, RENDERER_TYPE as HTML_RENDERER } from './htmlRenderer';
 import { numericRenderer, RENDERER_TYPE as NUMERIC_RENDERER } from './numericRenderer';
 import { passwordRenderer, RENDERER_TYPE as PASSWORD_RENDERER } from './passwordRenderer';
+import { selectRenderer, RENDERER_TYPE as SELECT_RENDERER } from './selectRenderer';
 import { textRenderer, RENDERER_TYPE as TEXT_RENDERER } from './textRenderer';
 import { timeRenderer, RENDERER_TYPE as TIME_RENDERER } from './timeRenderer';
 
@@ -16,6 +17,7 @@ export interface Renderers {
   html: typeof htmlRenderer;
   numeric: typeof numericRenderer;
   password: typeof passwordRenderer;
+  select: typeof selectRenderer;
   text: typeof textRenderer;
   time: typeof timeRenderer;
 }
@@ -32,6 +34,7 @@ export {
   htmlRenderer, HTML_RENDERER,
   numericRenderer, NUMERIC_RENDERER,
   passwordRenderer, PASSWORD_RENDERER,
+  selectRenderer, SELECT_RENDERER,
   textRenderer, TEXT_RENDERER,
   timeRenderer, TIME_RENDERER
 };

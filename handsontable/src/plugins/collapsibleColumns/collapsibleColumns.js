@@ -6,10 +6,16 @@ import {
   addClass,
   hasClass,
   removeClass,
-  fastInnerText
+  fastInnerText,
+  removeAttribute,
+  setAttribute
 } from '../../helpers/dom/element';
 import EventManager from '../../eventManager';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
+import {
+  A11Y_EXPANDED,
+  A11Y_HIDDEN
+} from '../../helpers/a11y';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
@@ -513,9 +519,13 @@ export class CollapsibleColumns extends BasePlugin {
       origColspan,
       isCollapsed,
     } = this.headerStateManager.getHeaderSettings(headerLevel, column) ?? {};
-
     const isNodeCollapsible = collapsible && origColspan > 1 && column >= this.hot.getSettings().fixedColumnsStart;
+    const isAriaTagsEnabled = this.hot.getSettings().ariaTags;
     let collapsibleElement = TH.querySelector(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
+
+    removeAttribute(TH, [
+      A11Y_EXPANDED('')[0]
+    ]);
 
     if (isNodeCollapsible) {
       if (!collapsibleElement) {
@@ -529,12 +539,29 @@ export class CollapsibleColumns extends BasePlugin {
 
       if (isCollapsed) {
         addClass(collapsibleElement, 'collapsed');
+
         fastInnerText(collapsibleElement, '+');
+
+        // Add ARIA tags
+        if (isAriaTagsEnabled) {
+          setAttribute(TH, ...A11Y_EXPANDED(false));
+        }
 
       } else {
         addClass(collapsibleElement, 'expanded');
+
         fastInnerText(collapsibleElement, '-');
+
+        // Add ARIA tags
+        if (isAriaTagsEnabled) {
+          setAttribute(TH, ...A11Y_EXPANDED(true));
+        }
       }
+
+      if (isAriaTagsEnabled) {
+        setAttribute(collapsibleElement, ...A11Y_HIDDEN());
+      }
+
     } else {
       collapsibleElement?.remove();
     }

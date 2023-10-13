@@ -11,7 +11,11 @@ export const command = {
       const nextVerticalScroll = Math.max(coords.row - scrollPadding, 0);
 
       hot.selection.setRangeEnd(coords);
-      hot.scrollViewportTo(nextVerticalScroll);
+      hot.scrollViewportTo({
+        row: nextVerticalScroll,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
     }
   },
 };

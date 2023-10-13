@@ -551,17 +551,4 @@ describe('SelectEditor', () => {
 
     expect(editableElement.getAttribute('dir')).toBeNull();
   });
-
-  describe('IME support', () => {
-    it('should focus editable element (from copyPaste plugin) after selecting the cell', async() => {
-      handsontable({
-        editor: false,
-      });
-      selectCell(0, 0, 0, 0, true, false);
-
-      await sleep(10);
-
-      expect(document.activeElement).toBe(document.querySelector('.HandsontableCopyPaste'));
-    });
-  });
 });

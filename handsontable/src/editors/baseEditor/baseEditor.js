@@ -531,24 +531,37 @@ export class BaseEditor {
     const horizontalScrollPosition = Math.abs(wtOverlays.inlineStartOverlay.getScrollPosition());
     const verticalScrollPosition = wtOverlays.topOverlay.getScrollPosition();
     const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
-    const cellTopOffset = TD.offsetTop + firstRowOffset - verticalScrollPosition;
-    let cellStartOffset = 0;
+    let cellTopOffset = TD.offsetTop;
+
+    if (['inline_start', 'master'].includes(overlayName)) {
+      cellTopOffset += firstRowOffset - verticalScrollPosition;
+    }
+
+    if (['bottom', 'bottom_inline_start_corner'].includes(overlayName)) {
+      const {
+        wtViewport: bottomWtViewport,
+        wtTable: bottomWtTable,
+      } = wtOverlays.bottomOverlay.clone;
+
+      cellTopOffset += bottomWtViewport.getWorkspaceHeight() - bottomWtTable.getHeight() - scrollbarWidth;
+    }
+
+    let cellStartOffset = TD.offsetLeft;
 
     if (this.hot.isRtl()) {
-      const cellOffset = TD.offsetLeft;
-
-      if (cellOffset >= 0) {
+      if (cellStartOffset >= 0) {
         cellStartOffset = overlayTable.getWidth() - TD.offsetLeft;
       } else {
         // The `offsetLeft` returns negative values when the parent offset element has position relative
         // (it happens when on the cell the selection is applied - the `area` CSS class).
         // When it happens the `offsetLeft` value is calculated from the right edge of the parent element.
-        cellStartOffset = Math.abs(cellOffset);
+        cellStartOffset = Math.abs(cellStartOffset);
       }
 
       cellStartOffset += firstColumnOffset - horizontalScrollPosition - cellWidth;
-    } else {
-      cellStartOffset = TD.offsetLeft + firstColumnOffset - horizontalScrollPosition;
+
+    } else if (['top', 'master', 'bottom'].includes(overlayName)) {
+      cellStartOffset += firstColumnOffset - horizontalScrollPosition;
     }
 
     const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);

@@ -1,4 +1,13 @@
 describe('CollapsibleColumns API', () => {
+  beforeEach(function() {
+    // Matchers configuration.
+    this.matchersConfig = {
+      toMatchHTML: {
+        keepAttributes: ['class', 'colspan']
+      }
+    };
+  });
+
   const id = 'testContainer';
 
   function extractDOMStructure(overlayTHead, overlayTBody) {
@@ -283,7 +292,7 @@ describe('CollapsibleColumns API', () => {
 
       spec().$wrapper = spec().$container.wrap($wrapper).parent();
 
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 100),
         nestedHeaders: generateComplexSetup(5, 100, true),
         collapsibleColumns: true,
@@ -396,7 +405,12 @@ describe('CollapsibleColumns API', () => {
         </tbody>
         `);
 
-      hot.scrollViewportTo(0, 63);
+      scrollViewportTo({
+        row: 0,
+        col: 63,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
 
       await sleep(20);
 

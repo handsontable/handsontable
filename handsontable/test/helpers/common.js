@@ -62,6 +62,8 @@ export const countEmptyRows = handsontableMethodFactory('countEmptyRows');
 export const countRows = handsontableMethodFactory('countRows');
 export const countSourceCols = handsontableMethodFactory('countSourceCols');
 export const countSourceRows = handsontableMethodFactory('countSourceRows');
+export const countRenderedRows = handsontableMethodFactory('countRenderedRows');
+export const countRenderedCols = handsontableMethodFactory('countRenderedCols');
 export const countRowHeaders = handsontableMethodFactory('countRowHeaders');
 export const countColHeaders = handsontableMethodFactory('countColHeaders');
 export const countVisibleCols = handsontableMethodFactory('countVisibleCols');
@@ -91,6 +93,7 @@ export const getDataType = handsontableMethodFactory('getDataType');
 export const getInstance = handsontableMethodFactory('getInstance');
 export const getPlugin = handsontableMethodFactory('getPlugin');
 export const getRowHeader = handsontableMethodFactory('getRowHeader');
+export const getRowHeight = handsontableMethodFactory('getRowHeight');
 export const getSchema = handsontableMethodFactory('getSchema');
 export const getSelected = handsontableMethodFactory('getSelected');
 export const getSelectedLast = handsontableMethodFactory('getSelectedLast');
@@ -183,6 +186,41 @@ export function rowIndexMapper() {
  */
 export function columnIndexMapper() {
   return hot().columnIndexMapper;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function topOverlay() {
+  return hot().view._wt.wtOverlays.topOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function bottomOverlay() {
+  return hot().view._wt.wtOverlays.bottomOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function topInlineStartCornerOverlay() {
+  return hot().view._wt.wtOverlays.topInlineStartCornerOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function inlineStartOverlay() {
+  return hot().view._wt.wtOverlays.inlineStartOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function bottomInlineStartCornerOverlay() {
+  return hot().view._wt.wtOverlays.bottomInlineStartCornerOverlay;
 }
 
 /**
@@ -397,6 +435,24 @@ export function contextMenu(cell, instance) {
 }
 
 /**
+ * Opens and executes the context menu item action and closes the menu.
+ *
+ * @param {string} optionName The context menu item name to click.
+ * @returns {HTMLElement}
+ */
+export function selectContextMenuOption(optionName) {
+  const item = $('.htContextMenu .ht_master .htCore')
+    .find(`tbody td:contains(${optionName})`);
+
+  item.simulate('mouseenter')
+    .simulate('mousedown')
+    .simulate('mouseup')
+    .simulate('click');
+
+  return item;
+}
+
+/**
  * Open (and not close) the sub menu of the context menu.
  *
  * @param {string} submenuName The context menu item name (it has to be a submenu) to hover.
@@ -407,7 +463,9 @@ export function openContextSubmenuOption(submenuName, cell) {
 
   const item = $(`.htContextMenu .ht_master .htCore tbody td:contains(${submenuName})`);
 
-  item.simulate('mouseover');
+  item
+    .simulate('mouseenter')
+    .simulate('mouseover');
 }
 
 /**
@@ -425,7 +483,11 @@ export async function selectContextSubmenuOption(submenuName, optionName, cell) 
   const contextSubMenu = $(`.htContextMenuSub_${submenuName}`);
   const button = contextSubMenu.find(`.ht_master .htCore tbody td:contains(${optionName})`);
 
-  button.simulate('mousedown').simulate('mouseup');
+  button
+    .simulate('mouseenter')
+    .simulate('mousedown')
+    .simulate('mouseup')
+    .simulate('click');
   closeContextMenu();
 }
 
@@ -439,9 +501,9 @@ export function closeContextMenu() {
 /**
  * Shows dropdown menu.
  *
- * @param {number|HTMLTableCellElement} columnIndexOrCell The column index or TD element under which the dropdown menu is triggered.
+ * @param {number|HTMLTableCellElement} [columnIndexOrCell=0] The column index or TD element under which the dropdown menu is triggered.
  */
-export function dropdownMenu(columnIndexOrCell) {
+export function dropdownMenu(columnIndexOrCell = 0) {
   let th = columnIndexOrCell;
 
   if (!(columnIndexOrCell instanceof HTMLTableCellElement)) {
@@ -460,6 +522,25 @@ export function dropdownMenu(columnIndexOrCell) {
 }
 
 /**
+ * Opens and executes the dropdown menu item action and closes the menu.
+ *
+ * @param {string} optionName The dropdown menu item name to click.
+ * @returns {HTMLElement}
+ */
+export function selectDropdownMenuOption(optionName) {
+  const item = $('.htDropdownMenu .ht_master .htCore')
+    .find(`tbody td:contains(${optionName})`);
+
+  item
+    .simulate('mouseenter')
+    .simulate('mousedown')
+    .simulate('mouseup')
+    .simulate('click');
+
+  return item;
+}
+
+/**
  * Open (and not close) the sub menu of the dropdown menu.
  *
  * @param {string} submenuName The dropdown menu item name (it has to be a submenu) to hover.
@@ -470,7 +551,43 @@ export function openDropdownSubmenuOption(submenuName, cell) {
 
   const item = $(`.htDropdownMenu .ht_master .htCore tbody td:contains(${submenuName})`);
 
-  item.simulate('mouseover');
+  item
+    .simulate('mouseenter')
+    .simulate('mouseover');
+}
+
+/**
+ * Opens the condition menu of the dropdown menu.
+ *
+ * @param {'first' | 'second'} menuName The menu name to select.
+ */
+export function openDropdownByConditionMenu(menuName = 'first') {
+  $(conditionSelectRootElements()[menuName])
+    .simulate('mouseenter')
+    .simulate('mousedown')
+    .simulate('mouseup')
+    .simulate('click');
+}
+
+/**
+ * Selects and executes the action of the condition menu of the dropdown menu.
+ *
+ * @param {string} optionName The condition menu item name to click.
+ * @param {'first' | 'second'} menuName The menu name to select.
+ * @returns {HTMLElement}
+ */
+export function selectDropdownByConditionMenuOption(optionName, menuName = 'first') {
+  const item = $(conditionMenuRootElements()[menuName])
+    .find('tbody td')
+    .filter((index, element) => element.textContent === optionName);
+
+  item
+    .simulate('mouseenter')
+    .simulate('mousedown')
+    .simulate('mouseup')
+    .simulate('click');
+
+  return item;
 }
 
 /**

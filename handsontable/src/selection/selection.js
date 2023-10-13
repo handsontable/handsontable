@@ -18,6 +18,7 @@ import {
   SELECTION_TYPE_UNRECOGNIZED,
 } from './utils';
 import { toSingleLine } from './../helpers/templateLiteralTag';
+import { A11Y_SELECTED } from '../helpers/a11y';
 
 /**
  * @class Selection
@@ -76,15 +77,23 @@ class Selection {
    * @type {Set<number>}
    */
   selectedByColumnHeader = new Set();
+  /**
+   * When sets disable highlighting the headers even when the logical coordinates points on them.
+   *
+   * @type {boolean}
+   */
+  #disableHeadersHighlight = false;
 
   constructor(settings, tableProps) {
     this.settings = settings;
     this.tableProps = tableProps;
     this.highlight = new Highlight({
       headerClassName: settings.currentHeaderClassName,
+      headerAttributes: [A11Y_SELECTED()],
       activeHeaderClassName: settings.activeHeaderClassName,
       rowClassName: settings.currentRowClassName,
       columnClassName: settings.currentColClassName,
+      cellAttributes: [A11Y_SELECTED()],
       rowIndexMapper: this.tableProps.rowIndexMapper,
       columnIndexMapper: this.tableProps.columnIndexMapper,
       disabledCellSelection: (row, column) => this.tableProps.isDisabledCellSelection(row, column),
@@ -259,6 +268,8 @@ class Selection {
       }
     }
 
+    this.runLocalHooks('beforeHighlightSet');
+
     const focusHighlight = this.highlight.getFocus();
 
     focusHighlight.clear();
@@ -375,12 +386,12 @@ class Selection {
         }
       }
 
-      const highlightRowHeaders = this.isEntireRowSelected() &&
+      const highlightRowHeaders = !this.#disableHeadersHighlight && (this.isEntireRowSelected() &&
         (countCols > 0 && countCols === cellRange.getWidth() ||
-        countCols === 0 && (this.isSelectedByRowHeader() || this.isSelectedByCorner()));
-      const highlightColumnHeaders = this.isEntireColumnSelected() &&
+        countCols === 0 && this.isSelectedByRowHeader()));
+      const highlightColumnHeaders = !this.#disableHeadersHighlight && (this.isEntireColumnSelected() &&
         (countRows > 0 && countRows === cellRange.getHeight() ||
-        countRows === 0 && (this.isSelectedByColumnHeader() || this.isSelectedByCorner()));
+        countRows === 0 && this.isSelectedByColumnHeader()));
 
       if (highlightRowHeaders) {
         activeRowHeaderHighlight
@@ -628,13 +639,17 @@ class Selection {
    * `false` otherwise.
    * @param {boolean} [includeColumnHeaders=false] `true` If the selection should include the column
    * headers, `false` otherwise.
-   * @param {{row: number, col: number}} [focusPosition] The argument allows changing the cell/header
+   * @param {object} [options] Additional object with options.
+   * @param {{row: number, col: number} | boolean} [options.focusPosition] The argument allows changing the cell/header
    * focus position. The value takes an object with a `row` and `col` properties from -N to N, where
-   * negative values point to the headers and positive values point to the cell range.
+   * negative values point to the headers and positive values point to the cell range. If `false`, the focus
+   * position won't be changed.
+   * @param {boolean} [options.disableHeadersHighlight] If `true`, disables highlighting the headers even when
+   * the logical coordinates points on them.
    */
-  selectAll(includeRowHeaders = false, includeColumnHeaders = false, focusPosition = {
-    row: this.tableProps.countColHeaders() > 0 ? -this.tableProps.countColHeaders() : 0,
-    col: this.tableProps.countRowHeaders() > 0 ? -this.tableProps.countRowHeaders() : 0,
+  selectAll(includeRowHeaders = false, includeColumnHeaders = false, options = {
+    focusPosition: false,
+    disableHeadersHighlight: false,
   }) {
     const nrOfRows = this.tableProps.countRows();
     const nrOfColumns = this.tableProps.countCols();
@@ -649,14 +664,23 @@ class Selection {
       return;
     }
 
-    const highlightRow = Number.isInteger(focusPosition.row) ? focusPosition.row : 0;
-    const highlightColumn = Number.isInteger(focusPosition.col) ? focusPosition.col : 0;
+    let highlight = this.getSelectedRange().current()?.highlight;
+    const {
+      focusPosition,
+      disableHeadersHighlight
+    } = options;
+
+    this.#disableHeadersHighlight = disableHeadersHighlight;
+
+    if (focusPosition && Number.isInteger(focusPosition?.row) && Number.isInteger(focusPosition?.col)) {
+      highlight = this.tableProps
+        .createCellCoords(
+          clamp(focusPosition.row, rowFrom, nrOfRows - 1),
+          clamp(focusPosition.col, columnFrom, nrOfColumns - 1)
+        );
+    }
+
     const startCoords = this.tableProps.createCellCoords(rowFrom, columnFrom);
-    const highlight = this.tableProps
-      .createCellCoords(
-        clamp(highlightRow, rowFrom, nrOfRows - 1),
-        clamp(highlightColumn, columnFrom, nrOfColumns - 1)
-      );
     const endCoords = this.tableProps.createCellCoords(nrOfRows - 1, nrOfColumns - 1);
 
     this.clear();
@@ -671,6 +695,8 @@ class Selection {
 
     this.setRangeEnd(endCoords);
     this.finish();
+
+    this.#disableHeadersHighlight = false;
   }
 
   /**

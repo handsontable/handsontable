@@ -3,6 +3,13 @@ describe('NestedHeaders', () => {
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+
+    // Matchers configuration.
+    this.matchersConfig = {
+      toMatchHTML: {
+        keepAttributes: ['class', 'colspan']
+      }
+    };
   });
 
   afterEach(function() {
@@ -436,6 +443,479 @@ describe('NestedHeaders', () => {
       `).toBeMatchToSelectionPattern();
     });
 
+    it('should not move the focus initial position while expanding the selection up in the tree (all nodes with the same colspan width)', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 10),
+        colHeaders: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 }, 'M'],
+          ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+        ]
+      });
+
+      getTopClone().find('thead tr:eq(2) th:eq(0)') // "H"
+        .simulate('mousedown');
+      getTopClone().find('thead tr:eq(1) th:eq(0)') // "D"
+        .simulate('mouseover')
+        .simulate('mouseup');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,0 from: -3,0 to: 2,0']);
+      expect(`
+        | * :                               :   |
+        | * :               :               :   |
+        | # :       :       :       :       :   |
+        | * :   :   :   :   :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        | 0 :   :   :   :   :   :   :   :   :   |
+        | 0 :   :   :   :   :   :   :   :   :   |
+        | 0 :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+      getTopClone().find('thead tr:eq(2) th:eq(0)') // "H"
+        .simulate('mousedown');
+      getTopClone().find('thead tr:eq(3) th:eq(0)') // "N"
+        .simulate('mouseover')
+        .simulate('mouseup');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,0 from: -1,0 to: 2,0']);
+      expect(`
+        | * :                               :   |
+        | * :               :               :   |
+        | # :       :       :       :       :   |
+        | * :   :   :   :   :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        | 0 :   :   :   :   :   :   :   :   :   |
+        | 0 :   :   :   :   :   :   :   :   :   |
+        | 0 :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should not move the focus initial position while expanding the selection up in the tree', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 10),
+        colHeaders: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 }, 'M'],
+          ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+        ]
+      });
+
+      getTopClone().find('thead tr:eq(2) th:eq(2)') // "I"
+        .simulate('mousedown');
+      getTopClone().find('thead tr:eq(1) th:eq(3)') // "E"
+        .simulate('mouseover');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,2 from: -3,1 to: 2,4']);
+      expect(`
+        |   :                               :   |
+        |   : *   *   *   * :               :   |
+        |   : #   # : *   * :       :       :   |
+        |   : * : * : * : * :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        |   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        |   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+      getTopClone().find('thead tr:eq(0) th:eq(7)') // "B"
+        .simulate('mouseover')
+        .simulate('mouseup');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,2 from: -4,1 to: 2,8']);
+      expect(`
+        |   : *   *   *   *   *   *   *   * :   |
+        |   : *   *   *   * : *   *   *   * :   |
+        |   : #   # : *   * : *   * : *   * :   |
+        |   : * : * : * : * : * : * : * : * :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   |
+        |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   |
+        |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+
+      getTopClone().find('thead tr:eq(2) th:eq(3)') // "J"
+        .simulate('mousedown');
+      getTopClone().find('thead tr:eq(1) th:eq(3)') // "E"
+        .simulate('mouseover');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,3 from: -3,1 to: 2,4']);
+      expect(`
+        |   :                               :   |
+        |   : *   *   *   * :               :   |
+        |   : *   * : #   # :       :       :   |
+        |   : * : * : * : * :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        |   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        |   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+      getTopClone().find('thead tr:eq(0) th:eq(7)') // "B"
+        .simulate('mouseover')
+        .simulate('mouseup');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,3 from: -4,1 to: 2,8']);
+      expect(`
+        |   : *   *   *   *   *   *   *   * :   |
+        |   : *   *   *   * : *   *   *   * :   |
+        |   : *   * : #   # : *   * : *   * :   |
+        |   : * : * : * : * : * : * : * : * :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   |
+        |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   |
+        |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+
+      getTopClone().find('thead tr:eq(2) th:eq(5)') // "K"
+        .simulate('mousedown');
+      getTopClone().find('thead tr:eq(1) th:eq(5)') // "F"
+        .simulate('mouseover');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,5 from: -3,5 to: 2,8']);
+      expect(`
+        |   :                               :   |
+        |   :               : *   *   *   * :   |
+        |   :       :       : #   # : *   * :   |
+        |   :   :   :   :   : * : * : * : * :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   :   :   :   :   : 0 : 0 : 0 : 0 :   |
+        |   :   :   :   :   : 0 : 0 : 0 : 0 :   |
+        |   :   :   :   :   : 0 : 0 : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+
+      getTopClone().find('thead tr:eq(0) th:eq(7)') // "B"
+        .simulate('mouseover')
+        .simulate('mouseup');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,5 from: -4,1 to: 2,8']);
+      expect(`
+        |   : *   *   *   *   *   *   *   * :   |
+        |   : *   *   *   * : *   *   *   * :   |
+        |   : *   * : *   * : #   # : *   * :   |
+        |   : * : * : * : * : * : * : * : * :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   |
+        |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   |
+        |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+
+      getTopClone().find('thead tr:eq(2) th:eq(7)') // "L"
+        .simulate('mousedown');
+      getTopClone().find('thead tr:eq(1) th:eq(5)') // "F"
+        .simulate('mouseover');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,7 from: -3,8 to: 2,5']);
+      expect(`
+        |   :                               :   |
+        |   :               : *   *   *   * :   |
+        |   :       :       : *   * : #   # :   |
+        |   :   :   :   :   : * : * : * : * :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   :   :   :   :   : 0 : 0 : 0 : 0 :   |
+        |   :   :   :   :   : 0 : 0 : 0 : 0 :   |
+        |   :   :   :   :   : 0 : 0 : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+
+      getTopClone().find('thead tr:eq(0) th:eq(7)') // "B"
+        .simulate('mouseover')
+        .simulate('mouseup');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,7 from: -4,8 to: 2,1']);
+      expect(`
+        |   : *   *   *   *   *   *   *   * :   |
+        |   : *   *   *   * : *   *   *   * :   |
+        |   : *   * : *   * : *   * : #   # :   |
+        |   : * : * : * : * : * : * : * : * :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   |
+        |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   |
+        |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should update the focus initial position while changing the selection from right to the left', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 10),
+        colHeaders: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 }, 'M'],
+          ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+        ]
+      });
+
+      getTopClone().find('thead tr:eq(0) th:eq(1)') // "B"
+        .simulate('mousedown');
+      getTopClone().find('thead tr:eq(1) th:eq(1)') // "E"
+        .simulate('mouseover');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -3,1 from: -3,1 to: 2,4']);
+      expect(`
+        |   :                               :   |
+        |   : #   #   #   # :               :   |
+        |   : *   * : *   * :       :       :   |
+        |   : * : * : * : * :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        |   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        |   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+      getTopClone().find('thead tr:eq(2) th:eq(3)') // "J"
+        .simulate('mouseover');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -3,1 from: -2,1 to: 2,4']);
+      expect(`
+        |   :                               :   |
+        |   : #   #   #   # :               :   |
+        |   : *   * : *   * :       :       :   |
+        |   : * : * : * : * :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        |   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        |   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+      getTopClone().find('thead tr:eq(3) th:eq(3)') // "Q"
+        .simulate('mouseover');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,1 from: -1,1 to: 2,3']);
+      expect(`
+        |   :                               :   |
+        |   :               :               :   |
+        |   : #   # :       :       :       :   |
+        |   : * : * : * :   :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   : 0 : 0 : 0 :   :   :   :   :   :   |
+        |   : 0 : 0 : 0 :   :   :   :   :   :   |
+        |   : 0 : 0 : 0 :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+      getTopClone().find('thead tr:eq(3) th:eq(2)') // "P"
+        .simulate('mouseover');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,1 from: -1,1 to: 2,2']);
+      expect(`
+        |   :                               :   |
+        |   :               :               :   |
+        |   : #   # :       :       :       :   |
+        |   : * : * :   :   :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   : 0 : 0 :   :   :   :   :   :   :   |
+        |   : 0 : 0 :   :   :   :   :   :   :   |
+        |   : 0 : 0 :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+      getTopClone().find('thead tr:eq(3) th:eq(1)') // "O"
+        .simulate('mouseover');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
+      expect(`
+        |   :                               :   |
+        |   :               :               :   |
+        |   :       :       :       :       :   |
+        |   : # :   :   :   :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   : 0 :   :   :   :   :   :   :   :   |
+        |   : 0 :   :   :   :   :   :   :   :   |
+        |   : 0 :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+      getTopClone().find('thead tr:eq(3) th:eq(0)') // "N"
+        .simulate('mouseover');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,0']);
+      expect(`
+        | * :                               :   |
+        | * :               :               :   |
+        | * :       :       :       :       :   |
+        | * : # :   :   :   :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        | 0 : 0 :   :   :   :   :   :   :   :   |
+        | 0 : 0 :   :   :   :   :   :   :   :   |
+        | 0 : 0 :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+      getTopClone().find('thead tr:eq(3) th:eq(1)') // "O"
+        .simulate('mouseover');
+      getTopClone().find('thead tr:eq(2) th:eq(1)') // "I"
+        .simulate('mouseover');
+      getTopClone().find('thead tr:eq(1) th:eq(1)') // "E"
+        .simulate('mouseover');
+      getTopClone().find('thead tr:eq(0) th:eq(1)') // "B"
+        .simulate('mouseover');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -4,1 from: -4,1 to: 2,8']);
+      expect(`
+        |   : #   #   #   #   #   #   #   # :   |
+        |   : *   *   *   * : *   *   *   * :   |
+        |   : *   * : *   * : *   * : *   * :   |
+        |   : * : * : * : * : * : * : * : * :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   |
+        |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   |
+        |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should update the focus initial position while changing the selection from left to the right', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 10),
+        colHeaders: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 }, 'M'],
+          ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+        ]
+      });
+
+      getTopClone().find('thead tr:eq(0) th:eq(1)') // "B"
+        .simulate('mousedown');
+      // select header "A" and back to "B" to trigger the internals that changes the selection to go from left to right
+      getTopClone().find('thead tr:eq(0) th:eq(0)') // "A"
+        .simulate('mouseover');
+      getTopClone().find('thead tr:eq(0) th:eq(1)') // "B"
+        .simulate('mouseover');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -4,1 from: -4,8 to: 2,1']);
+      expect(`
+        |   : #   #   #   #   #   #   #   # :   |
+        |   : *   *   *   * : *   *   *   * :   |
+        |   : *   * : *   * : *   * : *   * :   |
+        |   : * : * : * : * : * : * : * : * :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   |
+        |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   |
+        |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+
+      getTopClone().find('thead tr:eq(1) th:eq(5)') // "F"
+        .simulate('mouseover');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -3,8 from: -3,8 to: 2,5']);
+      expect(`
+        |   :                               :   |
+        |   :               : #   #   #   # :   |
+        |   :       :       : *   * : *   * :   |
+        |   :   :   :   :   : * : * : * : * :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   :   :   :   :   : 0 : 0 : 0 : 0 :   |
+        |   :   :   :   :   : 0 : 0 : 0 : 0 :   |
+        |   :   :   :   :   : 0 : 0 : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+
+      getTopClone().find('thead tr:eq(2) th:eq(5)') // "K"
+        .simulate('mouseover');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -3,8 from: -2,8 to: 2,5']);
+      expect(`
+        |   :                               :   |
+        |   :               : #   #   #   # :   |
+        |   :       :       : *   * : *   * :   |
+        |   :   :   :   :   : * : * : * : * :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   :   :   :   :   : 0 : 0 : 0 : 0 :   |
+        |   :   :   :   :   : 0 : 0 : 0 : 0 :   |
+        |   :   :   :   :   : 0 : 0 : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+
+      getTopClone().find('thead tr:eq(3) th:eq(6)') // "T"
+        .simulate('mouseover');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,8 from: -1,8 to: 2,6']);
+      expect(`
+        |   :                               :   |
+        |   :               :               :   |
+        |   :       :       :       : #   # :   |
+        |   :   :   :   :   :   : * : * : * :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   :   :   :   :   :   : 0 : 0 : 0 :   |
+        |   :   :   :   :   :   : 0 : 0 : 0 :   |
+        |   :   :   :   :   :   : 0 : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+
+      getTopClone().find('thead tr:eq(3) th:eq(7)') // "U"
+        .simulate('mouseover');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,8 from: -1,8 to: 2,7']);
+      expect(`
+        |   :                               :   |
+        |   :               :               :   |
+        |   :       :       :       : #   # :   |
+        |   :   :   :   :   :   :   : * : * :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   :   :   :   :   :   :   : 0 : 0 :   |
+        |   :   :   :   :   :   :   : 0 : 0 :   |
+        |   :   :   :   :   :   :   : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+
+      getTopClone().find('thead tr:eq(3) th:eq(8)') // "V"
+        .simulate('mouseover');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,8 from: -1,8 to: 2,8']);
+      expect(`
+        |   :                               :   |
+        |   :               :               :   |
+        |   :       :       :       :       :   |
+        |   :   :   :   :   :   :   :   : # :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   :   :   :   :   :   :   :   : 0 :   |
+        |   :   :   :   :   :   :   :   : 0 :   |
+        |   :   :   :   :   :   :   :   : 0 :   |
+      `).toBeMatchToSelectionPattern();
+
+      getTopClone().find('thead tr:eq(3) th:eq(9)') // "W"
+        .simulate('mouseover');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,8 from: -1,8 to: 2,9']);
+      expect(`
+        |   :                               : * |
+        |   :               :               : * |
+        |   :       :       :       :       : * |
+        |   :   :   :   :   :   :   :   : # : * |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   :   :   :   :   :   :   :   : 0 : 0 |
+        |   :   :   :   :   :   :   :   : 0 : 0 |
+        |   :   :   :   :   :   :   :   : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+
+      // back to the initial selection
+      getTopClone().find('thead tr:eq(3) th:eq(8)') // "V"
+        .simulate('mouseover');
+      getTopClone().find('thead tr:eq(2) th:eq(8)') // "L"
+        .simulate('mouseover');
+      getTopClone().find('thead tr:eq(1) th:eq(8)') // "F"
+        .simulate('mouseover');
+      getTopClone().find('thead tr:eq(0) th:eq(8)') // "B"
+        .simulate('mouseover');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -4,1 from: -4,1 to: 2,8']);
+      expect(`
+        |   : #   #   #   #   #   #   #   # :   |
+        |   : *   *   *   * : *   *   *   * :   |
+        |   : *   * : *   * : *   * : *   * :   |
+        |   : * : * : * : * : * : * : * : * :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   |
+        |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   |
+        |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
     it('should select all column headers (on all levels) after clicking the corner header', function() {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(3, 10),
@@ -457,14 +937,14 @@ describe('NestedHeaders', () => {
       $cornerHeader.simulate('mouseup');
 
       expect(`
-        | * ║ * : *   *   *   *   *   *   *   * : * |
-        | * ║ * : *   *   *   * : *   *   *   * : * |
-        | * ║ * : *   * : *   * : *   * : *   * : * |
-        | * ║ * : * : * : * : * : * : * : * : * : * |
+        |   ║   :                               :   |
+        |   ║   :               :               :   |
+        |   ║   :       :       :       :       :   |
+        |   ║ - : - : - : - : - : - : - : - : - : - |
         |===:===:===:===:===:===:===:===:===:===:===|
-        | * ║ A : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+        | - ║ A : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
     });
 

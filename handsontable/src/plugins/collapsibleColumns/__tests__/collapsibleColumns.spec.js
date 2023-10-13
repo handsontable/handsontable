@@ -1,4 +1,13 @@
 describe('CollapsibleColumns', () => {
+  beforeEach(function() {
+    // Matchers configuration.
+    this.matchersConfig = {
+      toMatchHTML: {
+        keepAttributes: ['class', 'colspan']
+      }
+    };
+  });
+
   const id = 'testContainer';
 
   function extractDOMStructure(overlayTHead, overlayTBody) {
@@ -72,6 +81,13 @@ describe('CollapsibleColumns', () => {
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+
+    // Matchers configuration.
+    this.matchersConfig = {
+      toMatchHTML: {
+        keepAttributes: ['class', 'colspan']
+      }
+    };
   });
 
   afterEach(function() {
@@ -1618,7 +1634,7 @@ describe('CollapsibleColumns', () => {
     });
 
     it('should maintain the collapse functionality, when the table has been scrolled', async() => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 90),
         nestedHeaders: generateComplexSetup(4, 70, true),
         collapsibleColumns: true,
@@ -1629,8 +1645,12 @@ describe('CollapsibleColumns', () => {
       // Scrolling to viewport does not work precisely without delay.
       await sleep(50);
 
-      hot.scrollViewportTo(void 0, 37);
-      hot.render();
+      scrollViewportTo({
+        col: 37,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+      render();
 
       $(getCell(-2, 37).querySelector('.collapsibleIndicator')) // header "AL3"
         .simulate('mousedown')
@@ -1781,7 +1801,7 @@ describe('CollapsibleColumns', () => {
 
       spec().$wrapper = spec().$container.wrap($wrapper).parent();
 
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(3, 40),
         colHeaders: true,
         nestedHeaders: [
@@ -1796,8 +1816,13 @@ describe('CollapsibleColumns', () => {
         collapsibleColumns: true,
       });
 
-      hot.scrollViewportTo(0, 10);
-      hot.render();
+      scrollViewportTo({
+        row: 0,
+        col: 10,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+      render();
 
       $(getCell(-2, 9).querySelector('.collapsibleIndicator')) // header "J"
         .simulate('mousedown')
@@ -1808,8 +1833,13 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      hot.scrollViewportTo(0, 20);
-      hot.render();
+      scrollViewportTo({
+        row: 0,
+        col: 20,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+      render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -2468,7 +2498,7 @@ describe('CollapsibleColumns', () => {
     });
 
     it('should maintain the expand functionality, when the table has been scrolled', async() => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 90),
         nestedHeaders: generateComplexSetup(4, 70, true),
         collapsibleColumns: true,
@@ -2479,8 +2509,12 @@ describe('CollapsibleColumns', () => {
       // Scrolling to viewport does not work precisely without delay.
       await sleep(50);
 
-      hot.scrollViewportTo(void 0, 37);
-      hot.render();
+      scrollViewportTo({
+        col: 37,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+      render();
 
       // collapsing
       $(getCell(-2, 37).querySelector('.collapsibleIndicator')) // header "AL3"

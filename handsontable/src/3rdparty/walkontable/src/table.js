@@ -9,6 +9,7 @@ import {
   outerWidth,
   innerHeight,
   isVisible,
+  setAttribute,
 } from '../../../helpers/dom/element';
 import { isFunction } from '../../../helpers/function';
 import ColumnFilter from './filter/column';
@@ -23,6 +24,7 @@ import {
   CLONE_TOP_INLINE_START_CORNER,
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from './overlay';
+import { A11Y_PRESENTATION } from '../../../helpers/a11y';
 
 /**
  * @todo These mixes are never added to the class Table, however their members are used here.
@@ -187,7 +189,14 @@ class Table {
       }
       spreader.appendChild(table);
     }
+
     spreader.style.position = 'relative';
+
+    if (this.wtSettings.getSetting('ariaTags')) {
+      setAttribute(spreader, [
+        A11Y_PRESENTATION()
+      ]);
+    }
 
     return spreader;
   }
@@ -209,6 +218,12 @@ class Table {
         parent.insertBefore(hider, spreader);
       }
       hider.appendChild(spreader);
+    }
+
+    if (this.wtSettings.getSetting('ariaTags')) {
+      setAttribute(hider, [
+        A11Y_PRESENTATION()
+      ]);
     }
 
     return hider;
@@ -235,8 +250,20 @@ class Table {
       if (this.isMaster) {
         holder.parentNode.className += 'ht_master handsontable';
         holder.parentNode.setAttribute('dir', this.wtSettings.getSettingPure('rtlMode') ? 'rtl' : 'ltr');
+
+        if (this.wtSettings.getSetting('ariaTags')) {
+          setAttribute(holder.parentNode, [
+            A11Y_PRESENTATION()
+          ]);
+        }
       }
       holder.appendChild(hider);
+    }
+
+    if (this.wtSettings.getSetting('ariaTags')) {
+      setAttribute(holder, [
+        A11Y_PRESENTATION()
+      ]);
     }
 
     return holder;

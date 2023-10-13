@@ -2688,7 +2688,12 @@ describe('Selection extending', () => {
 
       selectCell(95, 1);
       // scroll the viewport in that way the cell highlight is in the middle of the table viewport
-      scrollViewportTo(99, 1);
+      scrollViewportTo({
+        row: 99,
+        col: 1,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
 
       await sleep(20);
 
@@ -2852,15 +2857,15 @@ describe('Selection extending', () => {
       keyDownUp(['control/meta', 'a']);
 
       expect(`
-        | * ║ * : * : * : * : * |
+        |   ║ - : - : - : - : - |
         |===:===:===:===:===:===|
-        | * ║ A : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : A : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 4,4']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: -1,-1 to: 4,4']);
     });
   });
 
@@ -2877,15 +2882,15 @@ describe('Selection extending', () => {
       keyDownUp(['control/meta', 'shift', 'space']);
 
       expect(`
-        | * ║ * : * : * : * : * |
+        |   ║ - : - : - : - : - |
         |===:===:===:===:===:===|
-        | * ║ A : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : A : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 4,4']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: -1,-1 to: 4,4']);
     });
   });
 

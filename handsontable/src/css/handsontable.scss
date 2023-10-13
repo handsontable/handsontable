@@ -19,11 +19,21 @@
 
 .handsontable td.htInvalid {
   /*gives priority over td.area selection background*/
-  background-color: #ff4c42 !important;
+  background-color: #ffbeba !important;
 }
 
 .handsontable td.htNoWrap {
   white-space: nowrap;
+}
+
+.handsontable td.invisibleSelection,
+.handsontable th.invisibleSelection {
+  outline: none;
+}
+
+.handsontable td.invisibleSelection::selection,
+.handsontable th.invisibleSelection::selection {
+  background: rgb(255 255 255 / 0%);
 }
 
 .hot-display-license-info {
@@ -229,7 +239,7 @@
 
 .handsontable tbody th.current,
 .handsontable thead th.current {
-  box-shadow: inset 0 0 0 2px #5292f7;
+  box-shadow: inset 0 0 0 2px #4b89ff;
 }
 
 .handsontable tbody th.ht__highlight,

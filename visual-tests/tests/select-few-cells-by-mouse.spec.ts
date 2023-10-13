@@ -7,7 +7,7 @@ test(__filename, async({ page }) => {
   await table.waitFor();
 
   const tbody = table.locator(helpers.selectors.mainTableBody);
-  const cell = tbody.locator(helpers.findCell({ row: 2, cell: 2, cellType: 'td' }));
+  const cell = tbody.locator(helpers.findCell({ row: 1, column: 0, cellType: 'td' }));
   const cellCoordinates = await cell.boundingBox();
 
   await page.mouse.move(

@@ -1,12 +1,12 @@
 import { BasePlugin } from '../base';
 import { arrayEach } from '../../helpers/array';
 import { objectEach } from '../../helpers/object';
-import CommandExecutor from '../contextMenu/commandExecutor';
+import { CommandExecutor } from '../contextMenu/commandExecutor';
 import { getDocumentOffsetByElement } from '../contextMenu/utils';
 import EventManager from '../../eventManager';
-import { hasClass } from '../../helpers/dom/element';
-import ItemsFactory from '../contextMenu/itemsFactory';
-import Menu from '../contextMenu/menu';
+import { hasClass, setAttribute } from '../../helpers/dom/element';
+import { ItemsFactory } from '../contextMenu/itemsFactory';
+import { Menu } from '../contextMenu/menu';
 import Hooks from '../../pluginHooks';
 import {
   COLUMN_LEFT,
@@ -19,6 +19,7 @@ import {
 } from '../contextMenu/predefinedItems';
 
 import './dropdownMenu.scss';
+import { A11Y_HIDDEN } from '../../helpers/a11y';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 Hooks.getSingleton().register('beforeDropdownMenuShow');
@@ -266,16 +267,14 @@ export class DropdownMenu extends BasePlugin {
         }, {
           left: rect.width,
         });
-        this.hot._registerTimeout(() => {
-          this.menu.selectFirstCell();
-        });
       }
     };
 
     context.addShortcuts([{
-      keys: [['Shift', 'Alt', 'ArrowDown'], ['Shift', 'Enter']],
+      keys: [['Shift', 'Alt', 'ArrowDown'], ['Control/Meta', 'Enter']],
       callback,
       runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isHeader() && !this.menu.isOpened(),
+      captureCtrl: true,
       group: SHORTCUTS_GROUP,
     }, {
       keys: [['Shift', 'Alt', 'ArrowDown']],
@@ -450,6 +449,12 @@ export class DropdownMenu extends BasePlugin {
     button.className = BUTTON_CLASS_NAME;
     button.type = 'button';
     button.tabIndex = -1;
+
+    if (this.hot.getSettings().ariaTags) {
+      setAttribute(button, [
+        A11Y_HIDDEN(),
+      ]);
+    }
 
     // prevent page reload on button click
     button.onclick = function() {

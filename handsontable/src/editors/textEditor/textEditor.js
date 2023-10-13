@@ -1,12 +1,14 @@
 import { BaseEditor, EDITOR_STATE } from '../baseEditor';
 import EventManager from '../../eventManager';
-import { isMobileBrowser, isEdge, isIOS } from '../../helpers/browser';
+import { isEdge, isIOS } from '../../helpers/browser';
 import {
   addClass,
   getComputedStyle,
+  isThisHotChild,
   setCaretPosition,
   hasClass,
   removeClass,
+  setAttribute,
 } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { KEY_CODES } from '../../helpers/unicode';
@@ -15,6 +17,10 @@ import { isDefined } from '../../helpers/mixed';
 import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
 import { SHORTCUTS_GROUP_EDITOR } from '../baseEditor/baseEditor';
 import { updateCaretPosition } from './caretPositioner';
+import {
+  A11Y_HIDDEN,
+  A11Y_TABINDEX
+} from '../../helpers/a11y';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
@@ -132,7 +138,7 @@ export class TextEditor extends BaseEditor {
   close() {
     this.autoResize.unObserve();
 
-    if (this.hot.rootDocument.activeElement === this.TEXTAREA) {
+    if (isThisHotChild(this.hot.rootDocument.activeElement, this.hot.rootElement)) {
       this.hot.listen(); // don't refocus the table if user focused some cell outside of HT on purpose
     }
 
@@ -161,7 +167,6 @@ export class TextEditor extends BaseEditor {
 
       const {
         allowInvalid,
-        fragmentSelection,
       } = cellProperties;
 
       if (allowInvalid) {
@@ -172,14 +177,6 @@ export class TextEditor extends BaseEditor {
 
       if (previousState !== EDITOR_STATE.FINISHED) {
         this.hideEditableElement();
-      }
-
-      // @TODO: The fragmentSelection functionality is conflicted with IME. For this feature
-      // refocus has to be disabled (to make IME working).
-      const restoreFocus = !fragmentSelection;
-
-      if (restoreFocus && !isMobileBrowser()) {
-        this.focus();
       }
     }
   }
@@ -217,8 +214,19 @@ export class TextEditor extends BaseEditor {
     const { rootDocument } = this.hot;
 
     this.TEXTAREA = rootDocument.createElement('TEXTAREA');
-    this.TEXTAREA.setAttribute('data-hot-input', ''); // Makes the element recognizable by Hot as its own component's element.
-    this.TEXTAREA.tabIndex = -1;
+
+    // Makes the element recognizable by Hot as its own
+    // component's element.
+    setAttribute(this.TEXTAREA, [
+      ['data-hot-input', ''],
+      A11Y_TABINDEX(-1),
+    ]);
+
+    if (this.hot.getSettings().ariaTags) {
+      setAttribute(this.TEXTAREA, [
+        A11Y_HIDDEN(),
+      ]);
+    }
 
     addClass(this.TEXTAREA, 'handsontableInput');
 
@@ -387,9 +395,6 @@ export class TextEditor extends BaseEditor {
    * @private
    */
   bindEvents() {
-    this.eventManager.addEventListener(this.TEXTAREA, 'cut', event => event.stopPropagation());
-    this.eventManager.addEventListener(this.TEXTAREA, 'paste', event => event.stopPropagation());
-
     if (isIOS()) {
       // on iOS after click "Done" the edit isn't hidden by default, so we need to handle it manually.
       this.eventManager.addEventListener(this.TEXTAREA, 'focusout', () => this.finishEditing(false));
@@ -400,12 +405,18 @@ export class TextEditor extends BaseEditor {
 
     this.addHook('afterColumnResize', () => {
       this.refreshDimensions();
-      this.focus();
+
+      if (this.state === EDITOR_STATE.EDITING) {
+        this.focus();
+      }
     });
 
     this.addHook('afterRowResize', () => {
       this.refreshDimensions();
-      this.focus();
+
+      if (this.state === EDITOR_STATE.EDITING) {
+        this.focus();
+      }
     });
   }
 

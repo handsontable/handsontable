@@ -454,7 +454,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should select the row and column headers after clicking the corner header, when all rows are trimmed', () => {
+  it('should select row and column headers after clicking the corner header, when all rows are trimmed', () => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeaders: true,
@@ -466,7 +466,7 @@ describe('Selection using mouse interaction', () => {
 
     expect(getSelected()).toEqual([[-1, -1, -1, 4]]);
     expect(`
-      | * ║ * : * : * : * : * |
+      |   ║ - : - : - : - : - |
       |===:===:===:===:===:===|
     `).toBeMatchToSelectionPattern();
   });
@@ -721,7 +721,7 @@ describe('Selection using mouse interaction', () => {
     handsontable();
     selectCell(0, 0);
 
-    expect(document.activeElement.nodeName).toBeInArray(['TEXTAREA', 'BODY', 'HTML']);
+    expect(document.activeElement.nodeName).toBeInArray(['TEXTAREA', 'BODY', 'HTML', 'TD', 'TH']);
 
     $input.focus();
     expect(document.activeElement.nodeName).toBe('INPUT');
@@ -861,7 +861,7 @@ describe('Selection using mouse interaction', () => {
   });
 
   it('should select the entire fixed column after column header is clicked, after scroll horizontally', () => {
-    const hot = handsontable({
+    handsontable({
       width: 200,
       height: 100,
       startRows: 10,
@@ -871,8 +871,12 @@ describe('Selection using mouse interaction', () => {
       fixedColumnsStart: 2
     });
 
-    hot.render();
-    hot.scrollViewportTo(void 0, hot.countCols() - 1);
+    render();
+    scrollViewportTo({
+      col: countCols() - 1,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
 
     spec().$container.find('.ht_master thead th:eq(2)').simulate('mousedown');
     spec().$container.find('.ht_master thead th:eq(2)').simulate('mouseup');
@@ -891,7 +895,7 @@ describe('Selection using mouse interaction', () => {
   });
 
   it('should set the selection end to the first visible row, when dragging the selection from a cell to a column header', async() => {
-    const hot = handsontable({
+    handsontable({
       width: 200,
       height: 200,
       startRows: 20,
@@ -900,8 +904,14 @@ describe('Selection using mouse interaction', () => {
       rowHeaders: true
     });
 
-    hot.scrollViewportTo(10, 10);
-    hot.render();
+    scrollViewportTo({
+      row: 10,
+      col: 10,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    render();
 
     await sleep(30);
 
@@ -938,7 +948,7 @@ describe('Selection using mouse interaction', () => {
   });
 
   it('should set the selection end to the first visible column, when dragging the selection from a cell to a row header', async() => {
-    const hot = handsontable({
+    handsontable({
       width: 200,
       height: 200,
       startRows: 20,
@@ -947,8 +957,13 @@ describe('Selection using mouse interaction', () => {
       rowHeaders: true
     });
 
-    hot.scrollViewportTo(10, 10);
-    hot.render();
+    scrollViewportTo({
+      row: 10,
+      col: 10,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+    render();
 
     await sleep(30);
 
@@ -1059,13 +1074,13 @@ describe('Selection using mouse interaction', () => {
 
     expect(getSelected()).toEqual([[-1, -1, 4, 4]]);
     expect(`
-      | * ║ * : * : * : * : * |
+      |   ║ - : - : - : - : - |
       |===:===:===:===:===:===|
-      | * ║ A : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 |
+      | - ║ A : 0 : 0 : 0 : 0 |
+      | - ║ 0 : 0 : 0 : 0 : 0 |
+      | - ║ 0 : 0 : 0 : 0 : 0 |
+      | - ║ 0 : 0 : 0 : 0 : 0 |
+      | - ║ 0 : 0 : 0 : 0 : 0 |
     `).toBeMatchToSelectionPattern();
   });
 

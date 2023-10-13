@@ -9,12 +9,21 @@ import {
   isChildOf,
   isInput,
   isOutsideInput,
+  isVisible,
+  setAttribute,
 } from './helpers/dom/element';
 import EventManager from './eventManager';
 import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
+import {
+  A11Y_COLCOUNT,
+  A11Y_MULTISELECTABLE,
+  A11Y_PRESENTATION,
+  A11Y_ROWCOUNT,
+  A11Y_TREEGRID
+} from './helpers/a11y';
 
 const privatePool = new WeakMap();
 
@@ -252,6 +261,19 @@ class TableView {
 
     if (this.instance.getSettings().tableClassName) {
       addClass(priv.table, this.instance.getSettings().tableClassName);
+    }
+
+    if (this.settings.ariaTags) {
+      setAttribute(priv.table, [
+        A11Y_PRESENTATION()
+      ]);
+
+      setAttribute(rootElement, [
+        A11Y_TREEGRID(),
+        A11Y_ROWCOUNT(this.instance.countRows()),
+        A11Y_COLCOUNT(this.instance.countCols()),
+        A11Y_MULTISELECTABLE(),
+      ]);
     }
 
     this.THEAD = rootDocument.createElement('THEAD');
@@ -636,6 +658,7 @@ class TableView {
   initializeWalkontable() {
     const priv = privatePool.get(this);
     const walkontableConfig = {
+      ariaTags: this.settings.ariaTags,
       rtlMode: this.instance.isRtl(),
       externalRowCalculator: this.instance.getPlugin('autoRowSize') &&
         this.instance.getPlugin('autoRowSize').isEnabled(),
@@ -753,6 +776,7 @@ class TableView {
           value,
           cellProperties
         );
+
         this.instance.runHooks('afterRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
       },
       selections: this.instance.selection.highlight,
@@ -763,7 +787,7 @@ class TableView {
         }
       },
       onContainerElementResize: () => {
-        if (this.instance && !this.instance.isDestroyed) {
+        if (this.instance && !this.instance.isDestroyed && isVisible(this.instance.rootElement)) {
           this.instance.refreshDimensions();
         }
       },
@@ -884,6 +908,52 @@ class TableView {
       },
       beforeDraw: (force, skipRender) => this.beforeRender(force, skipRender),
       onDraw: force => this.afterRender(force),
+      onBeforeViewportScrollVertically: (renderableRow) => {
+        const rowMapper = this.instance.rowIndexMapper;
+        const areColumnHeadersSelected = renderableRow < 0;
+        let visualRow = renderableRow;
+
+        if (!areColumnHeadersSelected) {
+          visualRow = rowMapper.getVisualFromRenderableIndex(renderableRow);
+
+          // for an empty data return index as is
+          if (visualRow === null) {
+            return renderableRow;
+          }
+        }
+
+        visualRow = this.instance.runHooks('beforeViewportScrollVertically', visualRow);
+        this.instance.runHooks('beforeViewportScroll');
+
+        if (!areColumnHeadersSelected) {
+          return rowMapper.getRenderableFromVisualIndex(visualRow);
+        }
+
+        return visualRow;
+      },
+      onBeforeViewportScrollHorizontally: (renderableColumn) => {
+        const columnMapper = this.instance.columnIndexMapper;
+        const areRowHeadersSelected = renderableColumn < 0;
+        let visualColumn = renderableColumn;
+
+        if (!areRowHeadersSelected) {
+          visualColumn = columnMapper.getVisualFromRenderableIndex(renderableColumn);
+
+          // for an empty data return index as is
+          if (visualColumn === null) {
+            return renderableColumn;
+          }
+        }
+
+        visualColumn = this.instance.runHooks('beforeViewportScrollHorizontally', visualColumn);
+        this.instance.runHooks('beforeViewportScroll');
+
+        if (!areRowHeadersSelected) {
+          return columnMapper.getRenderableFromVisualIndex(visualColumn);
+        }
+
+        return visualColumn;
+      },
       onScrollVertically: () => {
         this.instance.runHooks('afterScrollVertically');
         this.instance.runHooks('afterScroll');
