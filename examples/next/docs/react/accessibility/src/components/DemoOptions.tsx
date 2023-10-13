@@ -148,7 +148,7 @@ function DemoOptions({
               The Enter key begins cell editing
             </label>
             <a
-              href="api/options/#enterbeginsediting"
+              href="https://handsontable.com/docs/react-data-grid/api/options/#enterbeginsediting"
               target="_blank"
               className="externalLink"
               rel="noopener noreferrer"
@@ -195,7 +195,7 @@ function DemoOptions({
               The right/left arrow keys move the focus to the first/last column
             </label>
             <a
-              href="api/options/#autowrapcol"
+              href="https://handsontable.com/docs/react-data-grid/api/options/#autowrapcol"
               target="_blank"
               className="externalLink"
               rel="noopener noreferrer"
@@ -239,7 +239,7 @@ function DemoOptions({
               The up/down arrow keys move the focus to the first/last row
             </label>
             <a
-              href="api/options/#autowraprow"
+              href="https://handsontable.com/docs/react-data-grid/api/options/#autowraprow"
               target="_blank"
               className="externalLink"
               rel="noopener noreferrer"
@@ -281,7 +281,7 @@ function DemoOptions({
               The Enter key moves the focus after cell edition
             </label>
             <a
-              href="api/options/#entermoves"
+              href="https://handsontable.com/docs/react-data-grid/api/options/#entermoves"
               target="_blank"
               className="externalLink"
               rel="noopener noreferrer"
