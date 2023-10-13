@@ -125,8 +125,8 @@ export class ActionInfo {
    * @param {number[]} [removedElements.columns] List of column indexes which should be excluded when creating copy/cut/paste data.
    */
   adjustAfterRemoval(gridSettings, removedElements) {
-    const rows = removedElements.rows || [];
-    const columns = removedElements.columns || [];
+    const rows = Array.isArray(removedElements?.rows) ? removedElements.rows : [];
+    const columns = Array.isArray(removedElements?.columns) ? removedElements.columns : [];
     const mergedCells = gridSettings.mergeCells;
 
     if (isDefined(mergedCells) === false) {
