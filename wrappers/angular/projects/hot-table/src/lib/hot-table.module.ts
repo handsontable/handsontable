@@ -14,7 +14,7 @@ import { HotTableRegisterer } from './hot-table-registerer.service';
   ]
 })
 export class HotTableModule {
-  static version = '0.0.0-VERSION';
+  static version = '13.1.0';
 
   public static forRoot(): ModuleWithProviders<HotTableModule> {
     return {

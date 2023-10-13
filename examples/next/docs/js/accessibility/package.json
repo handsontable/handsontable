@@ -4,15 +4,19 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "start": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node spec/support/jasmine.config.js"
   },
   "dependencies": {
     "@ngneat/falso": "^7.1.1",
     "handsontable": "0.0.0-next-ff8465d-20231006"
   },
   "devDependencies": {
-    "vite": "^4.4.5"
+    "vite": "^4.4.5",
+    "jasmine": "5.1.0",
+    "jasmine-console-reporter": "3.1.0",
+    "puppeteer": "14.3.0"
   }
 }

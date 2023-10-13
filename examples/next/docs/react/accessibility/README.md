@@ -11,7 +11,7 @@ Call `npm install` to install all necessary dependencies.
 
 ### Development
 
-To start local development server call `npm run dev`. Now you can visit http://localhost:5173 to view this project.
+To start local development server call `npm run start`. Now you can visit http://localhost:5173 to view this project.
 ## License
 
 Handsontable is a commercial software with two licenses available:
