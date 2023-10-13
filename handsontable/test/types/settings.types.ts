@@ -417,7 +417,17 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterCopyLimit: (selectedRows, selectedColumnds, copyRowsLimit, copyColumnsLimit) => {},
   afterCreateCol: (index, amount, source) => {},
   afterCreateRow: (index, amount, source) => {},
-  afterCut: (actionInfo) => {},
+  afterCut: (actionInfo) => {
+    actionInfo.remove({ rows: [0], columns: [0] });
+    actionInfo.insertAtRow(0, ['A', 'B', 'C']);
+    actionInfo.insertAtColumn(0, ['A', 'B', 'C']);
+    actionInfo.change([{ row: 0, column: 0, value: '' }]);
+    actionInfo.isTable();
+    actionInfo.isHandsontable();
+    actionInfo.getData();
+    actionInfo.getHTML();
+    actionInfo.getGridSettings();
+  },
   afterDeselect: () => {},
   afterDestroy: () => {},
   afterDetachChild: (parent, element) => {},
