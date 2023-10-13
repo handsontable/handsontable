@@ -107,7 +107,7 @@ export class ActionInfo {
    * @private
    * @param {object} config Configuration.
    */
-  overWriteInfo(config) {
+  overwriteInfo(config) {
     this.#html = [this.isHandsontable() ? META_HEAD : '', getHTMLFromConfig(config)].join('');
     this.#data = getDataWithHeadersByConfig(config);
   }
