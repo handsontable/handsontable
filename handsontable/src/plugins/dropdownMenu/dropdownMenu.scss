@@ -46,6 +46,10 @@
   border-inline-end-width: 2px;
 }
 
+.htDropdownMenu .wtHider:focus {
+  outline: none;
+}
+
 .htDropdownMenu .wtBorder {
   visibility: hidden;
 }

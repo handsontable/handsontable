@@ -302,6 +302,7 @@ export class Menu {
     this.hotMenu.addHook('afterInit', () => this.onAfterInit());
     this.hotMenu.init();
     this.hotMenu.listen();
+    this.hotMenu.view._wt.wtTable.hider.setAttribute('tabindex', -1);
 
     this.#navigator = createMenuNavigator(this.hotMenu);
 
@@ -311,7 +312,7 @@ export class Menu {
       callback: () => this.close(true),
     }, {
       keys: [['Escape']],
-      callback: () => this.close(true),
+      callback: () => this.close(),
     }, {
       keys: [['ArrowDown']],
       callback: () => this.#navigator.toNextItem(),
@@ -354,6 +355,10 @@ export class Menu {
       keys: [['Enter'], ['Space']],
       callback: (event) => {
         const selection = this.hotMenu.getSelectedLast();
+
+        if (!selection) {
+          return;
+        }
 
         if (this.hotMenu.getSourceDataAtRow(selection[0]).submenu) {
           this.openSubMenu(selection[0]).getNavigator().toFirstItem();
@@ -516,8 +521,11 @@ export class Menu {
    * Focus the menu so all keyboard shortcuts become active.
    */
   focus() {
-    this.hotMenu.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT);
-    this.hotMenu.listen();
+    if (this.isOpened()) {
+      this.hotMenu.view._wt.wtTable.hider.focus();
+      this.hotMenu.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT);
+      this.hotMenu.listen();
+    }
   }
 
   /**

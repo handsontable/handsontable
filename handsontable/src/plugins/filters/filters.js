@@ -15,7 +15,7 @@ import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
 import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
-import { createMenuNavigatorCtrl } from './menu/controller';
+import { createMenuFocusController } from './menu/focusController';
 import {
   CONDITION_NONE,
   CONDITION_BY_VALUE,
@@ -242,11 +242,25 @@ export class Filters extends BasePlugin {
     }
 
     if (!this.#menuNavigatorCtrl) {
-      this.#menuNavigatorCtrl = createMenuNavigatorCtrl(this.dropdownMenuPlugin.menu, this.components);
+      const menu = this.dropdownMenuPlugin.menu;
+      const menuItems = [
+        ...Array.from(this.components)
+          .map(([, component]) => component.getElements())
+          .flat(),
+        // Push in the last position a fake menu item that allows back to the navigation throughout
+        // regular dropdown menu items using arrow keys
+        {
+          focus: () => {
+            menu.focus();
+          }
+        },
+      ];
+
+      this.#menuNavigatorCtrl = createMenuFocusController(menu, menuItems);
       this.components.get('filter_by_value')
         .getMultipleSelectElement()
         .addLocalHook('listTab', (event) => {
-          this.dropdownMenuPlugin.menu.focus();
+          menu.focus();
           event.preventDefault();
 
           if (isKey(event.keyCode, 'TAB')) {

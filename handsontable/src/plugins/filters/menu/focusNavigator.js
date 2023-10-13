@@ -3,24 +3,26 @@ import { isVisible } from '../../../helpers/dom/element';
 import { MultipleSelectUI } from '../ui/multipleSelect';
 
 /**
- * Creates navigator for between filter's subcomponents.
+ * Creates navigator for switching the focus of the filter's elements.
  *
- * @param {Array[]} elements The elements to paginate to.
+ * @param {BaseUI[]} elements The elements to paginate to.
  * @returns {Paginator}
  */
-export function createMenuNavigator(elements) {
+export function createFocusNavigator(elements) {
   const navigator = createPaginator({
     size: () => elements.length,
     onItemSelect: (currentIndex) => {
-      if (elements[currentIndex] instanceof MultipleSelectUI) {
+      const element = elements[currentIndex];
+
+      if (element instanceof MultipleSelectUI) {
         return false;
       }
 
-      if (!isVisible(elements[currentIndex].element)) {
+      if (element.element && !isVisible(element.element)) {
         return false;
       }
 
-      elements[currentIndex].focus();
+      element.focus();
     }
   });
 

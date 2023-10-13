@@ -26,6 +26,10 @@
   border-inline-end-width: 2px;
 }
 
+.htContextMenu .wtHider:focus {
+  outline: none;
+}
+
 .htContextMenu .wtBorder {
   visibility: hidden;
 }

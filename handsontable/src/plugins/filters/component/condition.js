@@ -234,11 +234,7 @@ export class ConditionComponent extends BaseComponent {
    * @param {Event} event The DOM event object.
    */
   #onInputKeyDown(event) {
-    if (isKey(event.keyCode, 'ENTER')) {
-      this.runLocalHooks('accept');
-      stopImmediatePropagation(event);
-
-    } else if (isKey(event.keyCode, 'ESCAPE')) {
+    if (isKey(event.keyCode, 'ESCAPE')) {
       this.runLocalHooks('cancel');
       stopImmediatePropagation(event);
     }

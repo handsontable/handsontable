@@ -27,7 +27,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       expect($('.htDropdownMenu').is(':visible')).toBe(false);
     });
 
-    it('should close the submenu and its parent', async() => {
+    it('should close only the submenu leaving the parent open', async() => {
       handsontable({
         colHeaders: true,
         dropdownMenu: true,
@@ -45,7 +45,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       keyDownUp('escape');
 
       expect($('.htDropdownMenuSub_Alignment').is(':visible')).toBe(false);
-      expect($('.htDropdownMenu').is(':visible')).toBe(false);
+      expect($('.htDropdownMenu').is(':visible')).toBe(true);
     });
   });
 });
