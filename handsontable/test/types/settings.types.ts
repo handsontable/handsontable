@@ -443,7 +443,17 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterOnCellMouseOver: (event, coords, TD) => {},
   afterOnCellMouseOut: (event, coords, TD) => {},
   afterOnCellMouseUp: (event, coords, TD) => {},
-  afterPaste: (actionInfo) => {},
+  afterPaste: (actionInfo) => {
+    actionInfo.remove({ rows: [0], columns: [0] });
+    actionInfo.insertAtRow(0, ['A', 'B', 'C']);
+    actionInfo.insertAtColumn(0, ['A', 'B', 'C']);
+    actionInfo.change([{ row: 0, column: 0, value: '' }]);
+    actionInfo.isTable();
+    actionInfo.isHandsontable();
+    actionInfo.getData();
+    actionInfo.getHTML();
+    actionInfo.getGridSettings();
+  },
   afterPluginsInitialized: () => {},
   afterRedo: (action) => {},
   afterRedoStackChange: (undoneActionsBefore, undoneActionsAfter) => {},
