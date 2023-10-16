@@ -595,6 +595,7 @@ export class CopyPaste extends BasePlugin {
 
     const actionInfo = new ActionInfo({
       type: 'paste',
+      data: event.clipboardData.getData('text/plain'),
       html,
     });
 

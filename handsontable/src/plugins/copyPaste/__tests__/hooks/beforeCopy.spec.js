@@ -343,7 +343,7 @@ describe('CopyPaste', () => {
       /* eslint-enable */
     });
 
-    it('should be possible to change data during copy operation', () => {
+    it('should be possible to change data during copy operation (LTR)', () => {
       handsontable({
         data: createSpreadsheetData(2, 2),
         colHeaders: true,
@@ -407,6 +407,77 @@ describe('CopyPaste', () => {
           '<tr>',
             '<td>A2</td>',
             '<td>hello world2</td>',
+          '</tr>',
+          '</tbody>',
+        '</table>'
+      ].join(''));
+      /* eslint-enable */
+    });
+
+    it('should be possible to change data during copy operation (RTL)', () => {
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        colHeaders: true,
+        copyPaste: true,
+        beforeCopy(actionInfo) {
+          actionInfo.change([
+            { row: -2, column: 0, value: 'hello world' },
+            { row: 1, column: 1, value: 'hello world2' },
+          ], true);
+        },
+        modifyColumnHeaderValue(value, columnIndex, headerLevel) {
+          if (headerLevel < 0) {
+            headerLevel = headerLevel + this.view.getColumnHeadersCount();
+          }
+
+          return `${value}-${columnIndex}-${headerLevel}`;
+        },
+        afterGetColumnHeaderRenderers(renderers) {
+          renderers.length = 0;
+          renderers.push((renderedColumnIndex, TH) => {
+            TH.innerText = this.getColHeader(renderedColumnIndex, 0);
+          });
+          renderers.push((renderedColumnIndex, TH) => {
+            TH.innerText = this.getColHeader(renderedColumnIndex, 1);
+          });
+        },
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectAll();
+
+      plugin.copyWithAllColumnHeaders();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('A-0-0\thello world\n' +
+        'A-0-1\tB-1-1\n' +
+        'A1\tB1\n' +
+        'hello world2\tB2');
+      /* eslint-disable indent */
+      expect(copyEvent.clipboardData.getData('text/html')).toBe([
+        '<meta name="generator" content="Handsontable"/>' +
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table>',
+          '<thead>',
+            '<tr>' +
+              '<th>A-0-0</th>' +
+              '<th>hello world</th>' +
+            '</tr>',
+            '<tr>' +
+              '<th>A-0-1</th>' +
+              '<th>B-1-1</th>' +
+            '</tr>',
+          '</thead>',
+          '<tbody>',
+            '<tr>',
+              '<td>A1</td>',
+              '<td>B1</td>',
+            '</tr>',
+          '<tr>',
+            '<td>hello world2</td>',
+            '<td>B2</td>',
           '</tr>',
           '</tbody>',
         '</table>'

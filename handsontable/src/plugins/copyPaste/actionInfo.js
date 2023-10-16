@@ -37,12 +37,13 @@ export class ActionInfo {
   /**
    * @param {object} config Configuration object for the action.
    * @param {'copy'|'paste'} config.type Type of the action - copying (and cutting) or pasting the data.
+   * @param {string} config.data Data of "text/plain" type inside the clipboard.
    * @param {string} config.html Sanitized data of "text/html" type inside the clipboard.
    * @param {Core} [config.instance] Handsontable instance (used only while copying data).
    * @param {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>} [config.copyableRanges] Cell
    * ranges related to instance of Handsontable (used only while copying data).
    */
-  constructor({ type, html, instance, copyableRanges }) {
+  constructor({ type, data, html, instance, copyableRanges }) {
     if (type === 'copy') {
       const { rows, columns } = normalizeRanges(copyableRanges);
 
@@ -56,7 +57,7 @@ export class ActionInfo {
         this.#data = getDataWithHeadersByConfig(this.getGridSettings());
 
       } else {
-        this.#data = parse(this.#html);
+        this.#data = parse(data);
       }
     }
   }
@@ -237,20 +238,22 @@ export class ActionInfo {
   getRowInsertionWarn(rowIndex, values) {
     const data = this.getGridSettings().data;
 
-    if (Array.isArray(data) === false) {
-      return 'There is no possibility to expand an empty dataset.';
+    if (Array.isArray(data) === false && rowIndex > 0) {
+      return toSingleLine`Invalid row insertion done inside some \`CopyPaste\` hook. There is no possibility to\x20
+      expand an empty dataset at position higher than zero.`;
     }
 
     const numberOfRows = data.length;
     const numberOfColumns = data[0].length;
 
     if (rowIndex > numberOfRows) {
-      return 'Please provide an valid row index (not too high) for row data insertion.';
+      return toSingleLine`Invalid row insertion done inside some \`CopyPaste\` hook. Please provide an valid row\x20
+      index (not too high) for row data insertion.`;
     }
 
     if (numberOfColumns !== values.length) {
-      return toSingleLine`Please provide proper number of elements (corresponding to size of the dataset in other\x20
-        rows) for inserted rows.`;
+      return toSingleLine`Invalid row insertion done inside some \`CopyPaste\` hook. Please provide proper number of\x20
+      elements (corresponding to size of the dataset in other rows) for inserted rows.`;
     }
   }
 
@@ -296,7 +299,7 @@ export class ActionInfo {
    */
   insertAtRow(rowIndex, values) {
     const gridSettings = this.getGridSettings();
-    const { data } = gridSettings;
+    const data = gridSettings.data || [];
     const rowInsertionWarn = this.getRowInsertionWarn(rowIndex, values);
 
     if (isDefined(rowInsertionWarn)) {
@@ -305,7 +308,7 @@ export class ActionInfo {
       return;
     }
 
-    data.splice(rowIndex, 0, values);
+    gridSettings.data = [...data.slice(0, rowIndex), values, ...data.slice(rowIndex)];
 
     this.adjustAfterRowInsertion(gridSettings, rowIndex);
     this.overwriteInfo(gridSettings);
@@ -324,7 +327,8 @@ export class ActionInfo {
     const headerLevels = isDefined(colHeaders) ? 1 : 0;
 
     if (Array.isArray(nestedHeaders)) {
-      return 'It\'s not possible to modify copied dataset containing nested headers.';
+      return toSingleLine`Invalid column insertion done inside some \`CopyPaste\` hook. It's not possible to modify\x20
+      copied dataset containing nested headers`;
     }
 
     if (Array.isArray(data) === false) {
@@ -335,13 +339,13 @@ export class ActionInfo {
     const numberOfColumns = data[0].length;
 
     if (columnIndex > numberOfColumns) {
-      return 'Please provide an valid column index (not too high) for column data insertion.';
+      return toSingleLine`Invalid column insertion done inside some \`CopyPaste\` hook. Please provide an valid\x20
+      column index (not too high) for column data insertion.`;
     }
 
     if (values.length !== numberOfRows) {
-
-      return toSingleLine`Please provide proper number of elements (corresponding to size of the dataset in other\x20
-        columns, including headers) for inserted columns.`;
+      return toSingleLine`Invalid column insertion done inside some \`CopyPaste\` hook. Please provide proper number\x20
+      of elements (corresponding to size of the dataset in other columns, including headers) for inserted columns.`;
     }
   }
 
@@ -419,8 +423,9 @@ export class ActionInfo {
    * @param {number} changes.row Row index of cell which should be changed.
    * @param {number} changes.column Column index of cell which should be changed.
    * @param {string} changes.value Value for particular indexes.
+   * @param {boolean} isRtl Grid is rendered using the right-to-left layout direction.
    */
-  change(changes) {
+  change(changes, isRtl = false) {
     const config = this.getGridSettings();
     const { data, nestedHeaders, colHeaders } = config;
 
@@ -429,21 +434,24 @@ export class ActionInfo {
 
       if (row < 0) {
         if (Array.isArray(nestedHeaders)) {
-          const headerRelative = row + nestedHeaders.length;
+          const rowRelative = row + nestedHeaders.length;
+          const columnRelative = isRtl ? nestedHeaders.length - column - 1 : column;
 
-          if (Array.isArray(nestedHeaders[headerRelative]) && isDefined(nestedHeaders[headerRelative][column])) {
-            nestedHeaders[headerRelative][column] = value;
+          if (Array.isArray(nestedHeaders[rowRelative]) && isDefined(nestedHeaders[rowRelative][columnRelative])) {
+            nestedHeaders[rowRelative][columnRelative] = value;
           }
 
         } else if (Array.isArray(colHeaders)) {
-          const headerRelative = row + colHeaders.length;
+          const columnRelative = isRtl ? colHeaders.length - column - 1 : column;
 
-          if (Array.isArray(colHeaders[headerRelative]) && isDefined(colHeaders[headerRelative][column])) {
-            colHeaders[headerRelative][column] = value;
+          if (isDefined(colHeaders[columnRelative])) {
+            colHeaders[columnRelative] = value;
           }
         }
       } else if (row >= 0 && Array.isArray(data) && Array.isArray(data[row]) && isDefined(data[row][column])) {
-        data[row][column] = value;
+        const columnRelative = isRtl ? data[0].length - column - 1 : column;
+
+        data[row][columnRelative] = value;
       }
     });
 

@@ -298,6 +298,34 @@ describe('CopyPaste', () => {
       expect(afterPasteSpy.calls.argsFor(0)[0].getData()).toEqual([['Kia']]);
     });
 
+    it('should paste simple text after <span> element has been copied', () => {
+      const beforePasteSpy = jasmine.createSpy('beforePaste');
+      const afterPasteSpy = jasmine.createSpy('afterPaste');
+
+      handsontable({
+        beforePaste: beforePasteSpy,
+        afterPaste: afterPasteSpy,
+      });
+
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      clipboardEvent.clipboardData.setData('text/html', '<span>hello world</span>');
+      clipboardEvent.clipboardData.setData('text/plain', 'hello world',);
+
+      selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      expect(getData()).toEqual([
+        ['hello world', null, null, null, null],
+        [null, null, null, null, null],
+        [null, null, null, null, null],
+        [null, null, null, null, null],
+        [null, null, null, null, null],
+      ]);
+    });
+
     it('should call beforePaste and afterPaste during pasting operation (copied HTML data)', () => {
       const beforePasteSpy = jasmine.createSpy('beforePaste');
       const afterPasteSpy = jasmine.createSpy('afterPaste');
