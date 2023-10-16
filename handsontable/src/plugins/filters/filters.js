@@ -247,8 +247,8 @@ export class Filters extends BasePlugin {
         ...Array.from(this.components)
           .map(([, component]) => component.getElements())
           .flat(),
-        // Push in the last position a fake menu item that allows back to the navigation throughout
-        // regular dropdown menu items using arrow keys
+        // Insert a fake menu item in the last place that allows restore navigation through
+        // dropdown menu items using arrow keys.
         {
           focus: () => {
             menu.focus();
@@ -260,7 +260,7 @@ export class Filters extends BasePlugin {
       this.components.get('filter_by_value')
         .getMultipleSelectElement()
         .addLocalHook('listTab', (event) => {
-          menu.focus();
+          this.#menuNavigatorCtrl.listen();
           event.preventDefault();
 
           if (isKey(event.keyCode, 'TAB')) {

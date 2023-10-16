@@ -1,5 +1,6 @@
 import { Positioner } from './positioner';
 import { createMenuNavigator } from './navigator';
+import { createKeyboardShortcutsCtrl } from './shortcuts';
 import { SEPARATOR, NO_ITEMS, predefinedItems } from './../predefinedItems';
 import {
   filterSeparators,
@@ -33,8 +34,6 @@ import {
 } from '../../../helpers/a11y';
 
 const MIN_WIDTH = 215;
-const SHORTCUTS_CONTEXT = 'menu';
-const SHORTCUTS_GROUP = SHORTCUTS_CONTEXT;
 
 /**
  * @typedef MenuOptions
@@ -58,6 +57,12 @@ export class Menu {
    * @type {Paginator}
    */
   #navigator;
+  /**
+   * The controller module that allows extending the keyboard shortcuts for the menu.
+   *
+   * @type {KeyboardShortcutsMenuController}
+   */
+  #shortcutsCtrl;
 
   /**
    * @param {Core} hotInstance Handsontable instance.
@@ -85,6 +90,11 @@ export class Menu {
     this.selectedByMouse = false;
 
     this.registerEvents();
+
+    if (this.isSubMenu()) {
+      this.addLocalHook('afterSelectionChange',
+        (...args) => this.parentMenu.runLocalHooks('afterSelectionChange', ...args));
+    }
   }
 
   /**
@@ -122,6 +132,15 @@ export class Menu {
   }
 
   /**
+   * Gets the controller object that allows extending the keyboard shortcuts of the menu.
+   *
+   * @returns {KeyboardShortcutsMenuController | undefined}
+   */
+  getKeyboardShortcutsCtrl() {
+    return this.#shortcutsCtrl;
+  }
+
+  /**
    * Returns currently selected menu item. Returns `null` if no item was selected.
    *
    * @returns {object|null}
@@ -146,31 +165,6 @@ export class Menu {
    */
   isSubMenu() {
     return this.parentMenu !== null;
-  }
-
-  /**
-   * Adds keyboard shortcuts to the menu.
-   *
-   * @param {KeyboardShortcut[]} shortcuts Keyboard shortcuts to add.
-   * @param {string} [contextName] The context name to create or use.
-   */
-  addShortcuts(shortcuts, contextName) {
-    const manager = this.hotMenu.getShortcutManager();
-    const createContext = name => manager.getContext(name) ?? manager.addContext(name);
-    const context = createContext(contextName ? `${SHORTCUTS_GROUP}:${contextName}` : SHORTCUTS_GROUP);
-
-    shortcuts.forEach(({ keys }) => {
-      keys.forEach(k => context.removeShortcutsByKeys(k));
-    });
-
-    context.addShortcuts(shortcuts, {
-      group: SHORTCUTS_CONTEXT,
-      // runOnlyIf: event => !isInput(event.target) || !this.container.contains(event.target),
-    });
-  }
-
-  getShortcutManager() {
-    return this.hotMenu.getShortcutManager();
   }
 
   /**
@@ -305,94 +299,14 @@ export class Menu {
     this.hotMenu.view._wt.wtTable.hider.setAttribute('tabindex', -1);
 
     this.#navigator = createMenuNavigator(this.hotMenu);
+    this.#shortcutsCtrl = createKeyboardShortcutsCtrl(this);
+    this.#shortcutsCtrl.listen();
 
-    this.addShortcuts([{
-      keys: [['Tab'], ['Shift', 'Tab'], ['Control/Meta', 'A']],
-      forwardToContext: this.hot.getShortcutManager().getContext('grid'),
-      callback: () => this.close(true),
-    }, {
-      keys: [['Escape']],
-      callback: () => this.close(),
-    }, {
-      keys: [['ArrowDown']],
-      callback: () => this.#navigator.toNextItem(),
-    }, {
-      keys: [['ArrowUp']],
-      callback: () => this.#navigator.toPreviousItem(),
-    }, {
-      keys: [['ArrowRight']],
-      callback: () => {
-        const selection = this.hotMenu.getSelectedLast();
+    if (this.isSubMenu()) {
+      this.addLocalHook('afterOpen', () => this.parentMenu.runLocalHooks('afterSubmenuOpen', this));
+    }
 
-        if (selection) {
-          const subMenu = this.openSubMenu(selection[0]);
-
-          if (subMenu) {
-            subMenu.getNavigator().toFirstItem();
-          }
-        }
-      }
-    }, {
-      keys: [['ArrowLeft']],
-      callback: () => {
-        const selection = this.hotMenu.getSelectedLast();
-
-        if (selection && this.isSubMenu()) {
-          this.close();
-
-          if (this.isSubMenu()) {
-            this.parentMenu.hotMenu.listen();
-          }
-        }
-      },
-    }, {
-      keys: [['Control/Meta', 'ArrowUp'], ['Home']],
-      callback: () => this.#navigator.toFirstItem(),
-    }, {
-      keys: [['Control/Meta', 'ArrowDown'], ['End']],
-      callback: () => this.#navigator.toLastItem(),
-    }, {
-      keys: [['Enter'], ['Space']],
-      callback: (event) => {
-        const selection = this.hotMenu.getSelectedLast();
-
-        if (!selection) {
-          return;
-        }
-
-        if (this.hotMenu.getSourceDataAtRow(selection[0]).submenu) {
-          this.openSubMenu(selection[0]).getNavigator().toFirstItem();
-        } else {
-          this.executeCommand(event);
-          this.close(true);
-        }
-      }
-    }, {
-      keys: [['PageUp']],
-      callback: () => {
-        const selection = this.hotMenu.getSelectedLast();
-
-        if (selection) {
-          this.hotMenu.selection.transformStart(-this.hotMenu.countVisibleRows(), 0);
-        } else {
-          this.#navigator.toFirstItem();
-        }
-      },
-    }, {
-      keys: [['PageDown']],
-      callback: () => {
-        const selection = this.hotMenu.getSelectedLast();
-
-        if (selection) {
-          this.hotMenu.selection.transformStart(this.hotMenu.countVisibleRows(), 0);
-        } else {
-          this.#navigator.toLastItem();
-        }
-      },
-    }]);
-
-    this.hotMenu.getShortcutManager().setActiveContextName('menu');
-    this.runLocalHooks('afterOpen');
+    this.runLocalHooks('afterOpen', this);
   }
 
   /**
@@ -523,7 +437,7 @@ export class Menu {
   focus() {
     if (this.isOpened()) {
       this.hotMenu.view._wt.wtTable.hider.focus();
-      this.hotMenu.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT);
+      this.getKeyboardShortcutsCtrl().listen();
       this.hotMenu.listen();
     }
   }
