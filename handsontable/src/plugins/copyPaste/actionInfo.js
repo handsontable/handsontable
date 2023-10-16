@@ -22,6 +22,11 @@ const META_HEAD = [
  * @private
  */
 export class ActionInfo {
+  /**
+   * Sanitized data of "text/html" type inside the clipboard.
+   *
+   * @type {string}
+   */
   #html;
   /**
    * Copied data stored as array of arrays.
@@ -34,7 +39,8 @@ export class ActionInfo {
    * @param {'copy'|'paste'} config.type Type of the action - copying (and cutting) or pasting the data.
    * @param {string} config.html Sanitized data of "text/html" type inside the clipboard.
    * @param {Core} [config.instance] Handsontable instance (used only while copying data).
-   * @param {{Array<{startRow: number, startCol: number, endRow: number, endCol: number}>}} [config.copyableRanges] Cell ranges related to instance of Handsontable (used only while copying data).
+   * @param {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>} [config.copyableRanges] Cell
+   * ranges related to instance of Handsontable (used only while copying data).
    */
   constructor({ type, html, instance, copyableRanges }) {
     if (type === 'copy') {
@@ -194,7 +200,7 @@ export class ActionInfo {
    * @param {number[]} [removedElements.columns] List of column indexes which should be excluded when creating copy/cut/paste data.
    */
   remove(removedElements) {
-    const rows = Array.isArray(removedElements?.rows) ? removedElements.rows : [];;
+    const rows = Array.isArray(removedElements?.rows) ? removedElements.rows : [];
     const columns = Array.isArray(removedElements?.columns) ? removedElements.columns : [];
     const gridSettings = this.getGridSettings();
     const { nestedHeaders, colHeaders } = gridSettings;
@@ -217,7 +223,7 @@ export class ActionInfo {
       excludedColumns: columns,
     };
 
-    this.overWriteInfo(config);
+    this.overwriteInfo(config);
   }
 
   /**
@@ -302,7 +308,7 @@ export class ActionInfo {
     data.splice(rowIndex, 0, values);
 
     this.adjustAfterRowInsertion(gridSettings, rowIndex);
-    this.overWriteInfo(gridSettings);
+    this.overwriteInfo(gridSettings);
   }
 
   /**
@@ -400,7 +406,7 @@ export class ActionInfo {
     });
 
     this.adjustAfterColumnInsertion(gridSettings, columnIndex);
-    this.overWriteInfo(gridSettings);
+    this.overwriteInfo(gridSettings);
   }
 
   /**
@@ -441,6 +447,6 @@ export class ActionInfo {
       }
     });
 
-    this.overWriteInfo(config);
+    this.overwriteInfo(config);
   }
 }

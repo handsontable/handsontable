@@ -52,7 +52,7 @@ describe('MergeCells copy and paste', () => {
   });
 
   it('should call `afterCopy` hook with proper object when some elements are removed from the copied data', () => {
-    let afterCopyArgument;
+    const afterCopySpy = jasmine.createSpy('afterCopy');
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
@@ -64,9 +64,7 @@ describe('MergeCells copy and paste', () => {
       beforeCopy(actionInfo) {
         actionInfo.remove({ columns: [2] });
       },
-      afterCopy(actionInfo) {
-        afterCopyArgument = actionInfo;
-      }
+      afterCopy: afterCopySpy
     });
 
     const copyEvent = getClipboardEvent();
@@ -77,7 +75,7 @@ describe('MergeCells copy and paste', () => {
     plugin.copyWithColumnHeaders();
     plugin.onCopy(copyEvent); // emulate native "copy" event
 
-    expect(afterCopyArgument.getData()).toEqual([
+    expect(afterCopySpy.calls.argsFor(0)[0].getData()).toEqual([
       ['A', 'B', 'D'],
       ['A1', 'B1', 'D1'],
       ['A2', 'B2', 'D2'],
@@ -85,7 +83,7 @@ describe('MergeCells copy and paste', () => {
       ['A4', 'B4', 'D4']
     ]);
     /* eslint-disable indent */
-    expect(afterCopyArgument.getHTML()).toEqual([
+    expect(afterCopySpy.calls.argsFor(0)[0].getHTML()).toEqual([
       '<meta name="generator" content="Handsontable"/>',
       '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
       '<table>',
@@ -120,17 +118,17 @@ describe('MergeCells copy and paste', () => {
       '</table>'
     ].join(''));
     /* eslint-enable */
-    expect(afterCopyArgument.getGridSettings()).toEqual({
+    expect(afterCopySpy.calls.argsFor(0)[0].getGridSettings()).toEqual({
       colHeaders: ['A', 'B', 'D'],
       mergeCells: [{ col: 1, row: 1, rowspan: 2, colspan: 1 }],
       data: [['A1', 'B1', 'D1'], ['A2', 'B2', 'D2'], ['A3', null, 'D3'], ['A4', 'B4', 'D4']],
     });
-    expect(afterCopyArgument.isTable()).toBe(true);
-    expect(afterCopyArgument.isHandsontable()).toBe(true);
+    expect(afterCopySpy.calls.argsFor(0)[0].isTable()).toBe(true);
+    expect(afterCopySpy.calls.argsFor(0)[0].isHandsontable()).toBe(true);
   });
 
   it('should call `afterPaste` hook with proper object when some elements are removed from the pasted data', () => {
-    let afterPasteArgument;
+    const afterPasteSpy = jasmine.createSpy('afterPaste');
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
@@ -142,9 +140,7 @@ describe('MergeCells copy and paste', () => {
       beforePaste(actionInfo) {
         actionInfo.remove({ columns: [2] });
       },
-      afterPaste(actionInfo) {
-        afterPasteArgument = actionInfo;
-      }
+      afterPaste: afterPasteSpy
     });
 
     const copyEvent = getClipboardEvent();
@@ -159,7 +155,7 @@ describe('MergeCells copy and paste', () => {
 
     plugin.onPaste(copyEvent);
 
-    expect(afterPasteArgument.getData()).toEqual([
+    expect(afterPasteSpy.calls.argsFor(0)[0].getData()).toEqual([
       ['A', 'B', 'D'],
       ['A1', 'B1', 'D1'],
       ['A2', 'B2', 'D2'],
@@ -167,7 +163,7 @@ describe('MergeCells copy and paste', () => {
       ['A4', 'B4', 'D4']
     ]);
     /* eslint-disable indent */
-    expect(afterPasteArgument.getHTML()).toEqual([
+    expect(afterPasteSpy.calls.argsFor(0)[0].getHTML()).toEqual([
       '<meta name="generator" content="Handsontable"/>',
       '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
       '<table>',
@@ -202,13 +198,13 @@ describe('MergeCells copy and paste', () => {
       '</table>'
     ].join(''));
     /* eslint-enable */
-    expect(afterPasteArgument.getGridSettings()).toEqual({
+    expect(afterPasteSpy.calls.argsFor(0)[0].getGridSettings()).toEqual({
       colHeaders: ['A', 'B', 'D'],
       mergeCells: [{ col: 1, row: 1, rowspan: 2, colspan: 1 }],
       data: [['A1', 'B1', 'D1'], ['A2', 'B2', 'D2'], ['A3', null, 'D3'], ['A4', 'B4', 'D4']],
     });
-    expect(afterPasteArgument.isTable()).toBe(true);
-    expect(afterPasteArgument.isHandsontable()).toBe(true);
+    expect(afterPasteSpy.calls.argsFor(0)[0].isTable()).toBe(true);
+    expect(afterPasteSpy.calls.argsFor(0)[0].isHandsontable()).toBe(true);
   });
 
   it('should properly change copied values using `beforeCopy` hook (removing a part of merge areas one by one)', () => {

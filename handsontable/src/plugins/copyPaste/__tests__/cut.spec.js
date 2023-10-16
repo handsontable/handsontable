@@ -54,17 +54,13 @@ describe('CopyPaste', () => {
     });
 
     it('should call beforeCut and afterCut during cutting out operation', () => {
-      let beforeCutArgument;
-      let afterCutArgument;
+      const beforeCutSpy = jasmine.createSpy('beforeCut');
+      const afterCutSpy = jasmine.createSpy('afterCut');
 
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2),
-        beforeCut(actionInfo) {
-          beforeCutArgument = actionInfo;
-        },
-        afterCut(actionInfo) {
-          afterCutArgument = actionInfo;
-        },
+        beforeCut: beforeCutSpy,
+        afterCut: afterCutSpy,
       });
       const cutEvent = getClipboardEvent();
       const plugin = hot.getPlugin('CopyPaste');
@@ -74,7 +70,7 @@ describe('CopyPaste', () => {
       plugin.onCut(cutEvent);
 
       /* eslint-disable indent */
-      expect(beforeCutArgument.getHTML()).toBe(
+      expect(beforeCutSpy.calls.argsFor(0)[0].getHTML()).toBe(
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
         '<table>' +
@@ -85,8 +81,8 @@ describe('CopyPaste', () => {
           '</tbody>' +
         '</table>'
       );
-      expect(beforeCutArgument.getData()).toEqual([['A1']]);
-      expect(afterCutArgument.getHTML()).toBe(
+      expect(beforeCutSpy.calls.argsFor(0)[0].getData()).toEqual([['A1']]);
+      expect(afterCutSpy.calls.argsFor(0)[0].getHTML()).toBe(
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
         '<table>' +
@@ -97,7 +93,7 @@ describe('CopyPaste', () => {
           '</tbody>' +
         '</table>'
       );
-      expect(afterCutArgument.getData()).toEqual([['A1']]);
+      expect(afterCutSpy.calls.argsFor(0)[0].getData()).toEqual([['A1']]);
       /* eslint-enable */
     });
   });
