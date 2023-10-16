@@ -1,4 +1,4 @@
-describe('a11y navigation', () => {
+describe('keyboard navigation', () => {
   const id = 'testContainer';
 
   beforeEach(function() {

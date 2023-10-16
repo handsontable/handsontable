@@ -80,6 +80,15 @@ export class DateEditor extends TextEditor {
 
       event.stopPropagation();
     });
+
+    /**
+     * Prevent caret movement in the TEXTAREA when navigating over the date picker.
+     */
+    eventManager.addEventListener(this.TEXTAREA, 'keydown', (event) => {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) {
+        event.preventDefault();
+      }
+    });
   }
 
   /**
