@@ -160,7 +160,7 @@
 }
 
 .htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::after {
-  content: '*';
+  content: '*'; // TODO
   display: inline-block;
   position: relative;
   /* The multi-line header and header with longer text need more padding to not hide arrow,
