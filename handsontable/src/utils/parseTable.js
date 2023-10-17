@@ -659,10 +659,12 @@ export function htmlToGridSettings(element, rootDocument = document) {
       return !isDataRow;
     });
 
+    const isAnyNested = thRows.find(tr => tr.querySelector('th[colspan]') !== null) !== undefined;
+
     thRowsLen = thRows.length;
     hasColHeaders = thRowsLen > 0;
 
-    if (thRowsLen > 1) {
+    if (thRowsLen > 1 || isAnyNested) {
       settingsObj.nestedHeaders = Array.from(thRows).reduce((rows, row) => {
         const headersRow = Array.from(row.cells).reduce((headers, header, currentIndex) => {
           if (hasRowHeaders && currentIndex === 0) {

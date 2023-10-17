@@ -556,7 +556,7 @@ describe('CopyPaste', () => {
       ]);
     });
 
-    it('should not be possible to modify data during paste operation (wrong number of inserted rows)', () => {
+    it('should not be possible to modify data during paste operation - data with headers (wrong number of inserted columns)', () => {
       const warnSpy = spyOn(console, 'warn');
       const afterPasteSpy = jasmine.createSpy('afterPaste');
 
@@ -634,6 +634,140 @@ describe('CopyPaste', () => {
         ['B-1-0', 'B-1-1'],
         ['A1', 'B1'],
         ['A2', 'B2']
+      ]);
+    });
+
+    it('should not be possible to modify data during paste operation - data with headers (wrong index for inserted row)', () => {
+      const warnSpy = spyOn(console, 'warn');
+      const afterPasteSpy = jasmine.createSpy('afterPaste');
+
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        colHeaders: true,
+        copyPaste: true,
+        beforePaste(actionInfo) {
+          actionInfo.insertAtRow(3, ['first cell', 'next cell']);
+        },
+        afterPaste: afterPasteSpy,
+      });
+
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      clipboardEvent.clipboardData.setData('text/html', [
+        '<table>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>A-0-0</th>' +
+              '<th>A-0-1</th>' +
+            '</tr>' +
+            '<tr>' +
+              '<th>B-1-0</th>' +
+              '<th>B-1-1</th>' +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+            '<tr>' +
+              '<td>A1</td>' +
+              '<td>B1</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td>A2</td>' +
+              '<td>B2</td>' +
+            '</tr>' +
+          '</tbody>' +
+        '</table>'
+      ].join('\r\n'));
+
+      selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      expect(warnSpy).toHaveBeenCalled();
+
+      expect(afterPasteSpy.calls.argsFor(0)[0].getHTML()).toBe(
+        '<table>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>A-0-0</th>' +
+              '<th>A-0-1</th>' +
+            '</tr>' +
+            '<tr>' +
+              '<th>B-1-0</th>' +
+              '<th>B-1-1</th>' +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+            '<tr>' +
+              '<td>A1</td>' +
+              '<td>B1</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td>A2</td>' +
+              '<td>B2</td>' +
+            '</tr>' +
+          '</tbody>' +
+        '</table>'
+      );
+
+      expect(afterPasteSpy.calls.argsFor(0)[0].getData()).toEqual([
+        ['A-0-0', 'A-0-1'],
+        ['B-1-0', 'B-1-1'],
+        ['A1', 'B1'],
+        ['A2', 'B2']
+      ]);
+    });
+
+    it('should not be possible to modify data during paste operation - only headers (wrong number of inserted columns)', () => {
+      const warnSpy = spyOn(console, 'warn');
+      const afterPasteSpy = jasmine.createSpy('afterPaste');
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
+        rowHeaders: true,
+        colHeaders: true,
+        trimRows: true,
+        beforePaste(actionInfo) {
+          actionInfo.insertAtRow(0, ['single cell']);
+        },
+        afterPaste: afterPasteSpy,
+      });
+
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      clipboardEvent.clipboardData.setData('text/html', [
+        '<table>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>A-0-0</th>' +
+              '<th>A-0-1</th>' +
+            '</tr>' +
+          '</thead>' +
+        '</table>'
+      ].join('\r\n'));
+
+      const corner = $('.ht_clone_top_inline_start_corner .htCore').find('thead').find('th').eq(0);
+
+      simulateClick(corner, 'LMB');
+
+      plugin.onPaste(clipboardEvent);
+
+      expect(warnSpy).toHaveBeenCalled();
+
+      expect(afterPasteSpy.calls.argsFor(0)[0].getHTML()).toBe(
+        '<table>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>A-0-0</th>' +
+              '<th>A-0-1</th>' +
+            '</tr>' +
+          '</thead>' +
+        '</table>'
+      );
+
+      expect(afterPasteSpy.calls.argsFor(0)[0].getData()).toEqual([
+        ['A-0-0', 'A-0-1'],
       ]);
     });
 

@@ -236,11 +236,25 @@ export class ActionInfo {
    * @returns {undefined|string}
    */
   getRowInsertionWarn(rowIndex, values) {
-    const data = this.getGridSettings().data;
+    const gridSettings = this.getGridSettings();
+    const data = gridSettings.data;
+    const insertedElementsCount = values.length;
 
-    if (Array.isArray(data) === false && rowIndex > 0) {
-      return toSingleLine`Invalid row insertion done inside some \`CopyPaste\` hook. There is no possibility to\x20
+    if (Array.isArray(data) === false) {
+      const { nestedHeaders, colHeaders } = gridSettings;
+
+      if (rowIndex > 0) {
+        return toSingleLine`Invalid row insertion done inside some \`CopyPaste\` hook. There is no possibility to\x20
       expand an empty dataset at position higher than zero.`;
+      }
+
+      if ((Array.isArray(nestedHeaders) && nestedHeaders[0].length !== insertedElementsCount) ||
+        (Array.isArray(colHeaders) && colHeaders.length !== insertedElementsCount)) {
+        return toSingleLine`Invalid row insertion done inside some \`CopyPaste\` hook. Please provide proper number\x20
+        of elements (corresponding to size of the dataset in other rows) for inserted rows.`;
+      }
+
+      return;
     }
 
     const numberOfRows = data.length;
@@ -251,7 +265,7 @@ export class ActionInfo {
       index (not too high) for row data insertion.`;
     }
 
-    if (numberOfColumns !== values.length) {
+    if (numberOfColumns !== insertedElementsCount) {
       return toSingleLine`Invalid row insertion done inside some \`CopyPaste\` hook. Please provide proper number of\x20
       elements (corresponding to size of the dataset in other rows) for inserted rows.`;
     }
