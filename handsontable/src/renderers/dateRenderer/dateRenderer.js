@@ -1,10 +1,12 @@
-import { textRenderer } from '../textRenderer';
-import { A11Y_HASPOPUP } from '../../helpers/a11y';
+import { autocompleteRenderer } from '../autocompleteRenderer';
+import { A11Y_EXPANDED, A11Y_HASPOPUP } from '../../helpers/a11y';
 import { setAttribute } from '../../helpers/dom/element';
 
-export const RENDERER_TYPE = 'select';
+export const RENDERER_TYPE = 'date';
 
 /**
+ * Handsontable renderer.
+ *
  * @private
  * @param {Core} instance The Handsontable instance.
  * @param {HTMLTableCellElement} TD The rendered cell element.
@@ -14,12 +16,15 @@ export const RENDERER_TYPE = 'select';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-export function selectRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  textRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
+export function dateRenderer(instance, TD, row, col, prop, value, cellProperties) {
+  autocompleteRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
 
   if (instance.getSettings().ariaTags) {
-    setAttribute(TD, ...A11Y_HASPOPUP('listbox'));
+    setAttribute(TD, [
+      A11Y_HASPOPUP('dialog'),
+      A11Y_EXPANDED('false'),
+    ]);
   }
 }
 
-selectRenderer.RENDERER_TYPE = RENDERER_TYPE;
+dateRenderer.RENDERER_TYPE = RENDERER_TYPE;

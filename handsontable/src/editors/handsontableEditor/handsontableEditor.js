@@ -1,10 +1,11 @@
 import { TextEditor } from '../textEditor';
-import { setCaretPosition } from '../../helpers/dom/element';
+import { setAttribute, setCaretPosition } from '../../helpers/dom/element';
 import {
   stopImmediatePropagation,
 } from '../../helpers/dom/event';
 import { extend } from '../../helpers/object';
 import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
+import { A11Y_EXPANDED } from '../../helpers/a11y';
 
 const SHORTCUTS_GROUP = 'handsontableEditor';
 
@@ -46,6 +47,12 @@ export class HandsontableEditor extends TextEditor {
 
     setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
     this.refreshDimensions();
+
+    if (this.hot.getSettings().ariaTags) {
+      setAttribute(this.TD, [
+        A11Y_EXPANDED('true'),
+      ]);
+    }
   }
 
   /**
@@ -58,6 +65,12 @@ export class HandsontableEditor extends TextEditor {
 
     this.removeHooksByKey('beforeKeyDown');
     super.close();
+
+    if (this.hot.getSettings().ariaTags) {
+      setAttribute(this.TD, [
+        A11Y_EXPANDED('false'),
+      ]);
+    }
   }
 
   /**
