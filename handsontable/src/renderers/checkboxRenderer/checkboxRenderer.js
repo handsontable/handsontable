@@ -3,10 +3,10 @@ import EventManager from '../../eventManager';
 import { empty, addClass, setAttribute } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
+import Hooks from '../../pluginHooks';
+import { A11Y_CHECKBOX, A11Y_CHECKED } from '../../helpers/a11y';
 
 import './checkboxRenderer.css';
-import Hooks from '../../pluginHooks';
-import { A11Y_CHECKED } from '../../helpers/a11y';
 
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap();
@@ -100,6 +100,11 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
   if (ariaEnabled) {
     setAttribute(TD, [
       A11Y_CHECKED(input.checked)
+    ]);
+
+    setAttribute(input, [
+      A11Y_CHECKED(input.checked),
+      A11Y_CHECKBOX(),
     ]);
   }
 

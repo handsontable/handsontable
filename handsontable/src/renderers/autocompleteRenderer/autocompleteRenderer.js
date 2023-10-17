@@ -47,7 +47,7 @@ export function autocompleteRenderer(instance, TD, row, col, prop, value, cellPr
   addClass(TD, 'htAutocomplete');
 
   if (isAriaEnabled) {
-    TD.setAttribute(...A11Y_HASPOPUP());
+    TD.setAttribute(...A11Y_HASPOPUP('listbox'));
   }
 
   if (!instance.acArrowListener) {

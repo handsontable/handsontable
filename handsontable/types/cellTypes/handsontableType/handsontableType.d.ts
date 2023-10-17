@@ -1,14 +1,14 @@
 import { CellTypeObject } from '../base';
 import { HandsontableEditor } from '../../editors/handsontableEditor';
-import { autocompleteRenderer } from '../../renderers/autocompleteRenderer';
+import { handsontableRenderer } from '../../renderers/handsontableRenderer';
 
 export const CELL_TYPE: 'handsontable';
 export interface HandsontableCellType extends CellTypeObject {
   editor: typeof HandsontableEditor;
-  renderer: typeof autocompleteRenderer;
+  renderer: typeof handsontableRenderer;
 }
 
 export namespace HandsontableCellType {
   export { HandsontableEditor as editor };
-  export { autocompleteRenderer as renderer };
+  export { handsontableRenderer as renderer };
 }
