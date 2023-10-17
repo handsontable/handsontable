@@ -16,6 +16,40 @@ describe('CopyPaste', () => {
   });
 
   describe('`beforeCopy` hook', () => {
+    it('should be not possible to modify copied data by the reference', () => {
+      const beforeCopySpy = jasmine.createSpy('beforeCopy');
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        copyPaste: true,
+        beforeCopy: beforeCopySpy,
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectCell(1, 1);
+
+      plugin.copyCellsOnly();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      beforeCopySpy.calls.argsFor(0)[0].getData()[0][0] = 'AAA';
+
+      expect(beforeCopySpy.calls.argsFor(0)[0].getData()).toEqual([['B2']]);
+      expect(beforeCopySpy.calls.argsFor(0)[0].getHTML()).toEqual(
+        '<meta name="generator" content="Handsontable"/>' +
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
+          '<table>' +
+          '<tbody>' +
+            '<tr>' +
+              '<td>B2</td>' +
+            '</tr>' +
+          '</tbody>' +
+        '</table>'
+      );
+    });
+
     it('should be called with coords and dataset points to the cells only', () => {
       const beforeCopySpy = jasmine.createSpy('beforeCopy');
 
@@ -59,6 +93,9 @@ describe('CopyPaste', () => {
         '</table>',
       );
       /* eslint-enable */
+      expect(beforeCopySpy.calls.argsFor(0)[0].getData()).toEqual([
+        ['C2', 'D2', 'E2'], ['C3', 'D3', 'E3'], ['C4', 'D4', 'E4']
+      ]);
       expect(beforeCopySpy.calls.argsFor(0)[0].getData()).toEqual([
         ['C2', 'D2', 'E2'], ['C3', 'D3', 'E3'], ['C4', 'D4', 'E4']
       ]);

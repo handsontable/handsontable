@@ -1,5 +1,6 @@
 import { normalizeRanges } from './copyableRanges';
 import { isDefined } from '../../helpers/mixed';
+import { deepClone } from '../../helpers/object';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import {
@@ -95,7 +96,7 @@ export class ActionInfo {
    * @returns {string[][]}
    */
   getData() {
-    return this.#data;
+    return deepClone(this.#data);
   }
 
   /**
