@@ -210,7 +210,7 @@ export class HiddenRows extends BasePlugin {
   disablePlugin() {
     this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     this.#settings = {};
-
+    
     super.disablePlugin();
     this.resetCellsMeta();
   }
@@ -469,22 +469,44 @@ export class HiddenRows extends BasePlugin {
    * @param {HTMLElement} TH Header's TH element.
    */
   onAfterGetRowHeader(row, TH) {
+    // TODO: refactor
+    let beforeHiddenRowIndicatorElement = TH.querySelector('.beforeHiddenRowIndicator');
+    let afterHiddenRowIndicatorElement = TH.querySelector('.afterHiddenRowIndicator');
+
     if (!this.#settings.indicators || row < 0) {
+      if (beforeHiddenRowIndicatorElement) {
+        TH.removeChild(beforeHiddenRowIndicatorElement);
+      }
+
+      if (afterHiddenRowIndicatorElement) {
+        TH.removeChild(afterHiddenRowIndicatorElement);
+      }
+      
       return;
     }
-
+    
     const classList = [];
-    const THAriaDescription = TH.getAttribute('aria-description') ? `${TH.getAttribute('aria-description')} ` : '';
 
     if (row >= 1 && this.isHidden(row - 1)) {
+      if (!afterHiddenRowIndicatorElement) {
+        afterHiddenRowIndicatorElement = this.hot.rootDocument.createElement('div');
+        addClass(afterHiddenRowIndicatorElement, 'afterHiddenRowIndicator');
+        TH.appendChild(afterHiddenRowIndicatorElement);
+      }
+      
       classList.push('afterHiddenRow');
-      // TODO: prevent messages stacking up.
-      setAttribute(TH, 'aria-description', `${THAriaDescription}The previous row is hidden.`);
+      setAttribute(afterHiddenRowIndicatorElement, 'aria-label', 'The previous row is hidden');
     }
 
     if (row < this.hot.countRows() - 1 && this.isHidden(row + 1)) {
+      if (!beforeHiddenRowIndicatorElement) {
+        beforeHiddenRowIndicatorElement = this.hot.rootDocument.createElement('div');
+        addClass(beforeHiddenRowIndicatorElement, 'beforeHiddenRowIndicator');
+        TH.appendChild(beforeHiddenRowIndicatorElement);
+      }
+      
       classList.push('beforeHiddenRow');
-      setAttribute(TH, 'aria-description', `${THAriaDescription}The next row is hidden.`);
+      setAttribute(beforeHiddenRowIndicatorElement, 'aria-label', 'The next row is hidden');
     }
 
     addClass(TH, classList);
