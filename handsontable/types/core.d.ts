@@ -134,7 +134,7 @@ export default class Core {
   runHooks(key: keyof Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
   scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: 'top' | 'bottom', horizontalSnap?: 'start' | 'end', considerHiddenIndexes?: boolean }): boolean;
   scrollToFocusedCell(callback?: () => void): void;
-  selectAll(includeRowHeaders?: boolean, includeColumnHeaders?: boolean, focusPosition?: { row?: number, col?: number }): void;
+  selectAll(includeRowHeaders?: boolean, includeColumnHeaders?: boolean, options?: { focusPosition?: { row: number, col: number }, disableHeadersHighlight?: boolean }): void;
   selectCell(row: number, col: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean): boolean;
   selectCellByProp(row: number, prop: string, endRow?: number, endProp?: string, scrollToCell?: boolean): boolean;
   selectCells(coords: Array<[number, number | string, number, number | string]> | CellRange[], scrollToCell?: boolean, changeListener?: boolean): boolean;

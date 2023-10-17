@@ -34,9 +34,9 @@ describe('Core.selectAll', () => {
     expect(hot.selection.selectAll).toHaveBeenCalledTimes(1);
 
     hot.selection.selectAll.calls.reset();
-    selectAll(true, true, { row: 1, col: 1 });
+    selectAll(true, true, { focusPosition: { row: 1, col: 1 } });
 
-    expect(hot.selection.selectAll).toHaveBeenCalledWith(true, true, { row: 1, col: 1 });
+    expect(hot.selection.selectAll).toHaveBeenCalledWith(true, true, { focusPosition: { row: 1, col: 1 } });
     expect(hot.selection.selectAll).toHaveBeenCalledTimes(1);
   });
 

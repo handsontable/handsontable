@@ -158,7 +158,7 @@ describe('Selection', () => {
 
       expect(hot.selection.isEntireColumnSelected()).toBe(false);
 
-      hot.selection.selectAll(false, true);
+      hot.selection.selectAll(true, false);
 
       expect(hot.selection.isEntireColumnSelected()).toBe(false);
 
