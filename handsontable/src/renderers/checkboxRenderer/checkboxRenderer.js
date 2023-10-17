@@ -95,14 +95,12 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
     badValue = true;
   }
 
-  input.setAttribute(ATTR_ROW, row);
-  input.setAttribute(ATTR_COLUMN, col);
+  setAttribute(input, [
+    [ATTR_ROW, row],
+    [ATTR_COLUMN, col],
+  ]);
 
   if (ariaEnabled) {
-    setAttribute(TD, [
-      A11Y_CHECKED(input.checked)
-    ]);
-
     setAttribute(input, [
       A11Y_LABEL(input.checked ?
         instance.getTranslatedPhrase(CHECKBOX_CHECKED) :
