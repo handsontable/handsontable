@@ -6,7 +6,8 @@ import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutConte
 
 import './checkboxRenderer.css';
 import Hooks from '../../pluginHooks';
-import { A11Y_CHECKED } from '../../helpers/a11y';
+import { A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
+import { CHECKBOX_CHECKED, CHECKBOX_UNCHECKED } from '../../i18n/constants';
 
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap();
@@ -100,6 +101,13 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
   if (ariaEnabled) {
     setAttribute(TD, [
       A11Y_CHECKED(input.checked)
+    ]);
+
+    setAttribute(input, [
+      A11Y_LABEL(input.checked ?
+        instance.getTranslatedPhrase(CHECKBOX_CHECKED) :
+        instance.getTranslatedPhrase(CHECKBOX_UNCHECKED)
+      )
     ]);
   }
 
