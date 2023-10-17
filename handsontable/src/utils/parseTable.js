@@ -161,7 +161,7 @@ function getNestedHeadersHTML(nestedHeaders, excludedHeaders, excludedColumns) {
         colspanAttribute = ` colspan=${colspan}`;
       }
 
-      rowHTML.push(`<th${colspanAttribute}>${encodeHTMLEntities(headerValue)}</th>`);
+      rowHTML.push(`<th${colspanAttribute}>${encodeHTMLEntities(parseEmptyValues(headerValue))}</th>`);
     }
 
     rowHTML.push('</tr>');
@@ -192,7 +192,7 @@ function getSimpleHeadersHTML(columnHeaders, excludedHeaders, excludedColumns) {
   }
 
   return ['<tr>', ...filteredColumnHeaders.map(columnHeader =>
-    `<th>${encodeHTMLEntities(columnHeader)}</th>`), '</tr>'];
+    `<th>${encodeHTMLEntities(parseEmptyValues(columnHeader))}</th>`), '</tr>'];
 }
 
 /**
@@ -315,7 +315,7 @@ function getBodyHTMLByConfig(config) {
         return;
       }
 
-      rowHTML.push(`<td${attrs.join('')}>${encodeHTMLEntities(cellData)}</td>`);
+      rowHTML.push(`<td${attrs.join('')}>${encodeHTMLEntities(parseEmptyValues(cellData))}</td>`);
     });
 
     rowHTML.push('</tr>');

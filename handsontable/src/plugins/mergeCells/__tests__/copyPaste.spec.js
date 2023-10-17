@@ -207,6 +207,111 @@ describe('MergeCells copy and paste', () => {
     expect(afterPasteSpy.calls.argsFor(0)[0].isHandsontable()).toBe(true);
   });
 
+  it('should properly change copied values using `beforeCopy` hook (removing first row of merged area)', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(8, 8),
+      rowHeaders: true,
+      colHeaders: true,
+      mergeCells: [
+        { row: 1, col: 1, rowspan: 2, colspan: 2 },
+        { row: 3, col: 3, rowspan: 3, colspan: 3 }
+      ],
+      beforeCopy(actionInfo) {
+        actionInfo.remove({ rows: [1] });
+      }
+    });
+
+    const copyEvent = getClipboardEvent();
+    const plugin = getPlugin('CopyPaste');
+
+    selectAll();
+
+    plugin.copy();
+    plugin.onCopy(copyEvent); // emulate native "copy" event
+
+    /* eslint-disable no-tabs */
+    expect(copyEvent.clipboardData.getData('text/plain')).toEqual('A1	B1	C1	D1	E1	F1	G1	H1\n' +
+      'A3			D3	E3	F3	G3	H3\n' +
+      'A4	B4	C4	D4			G4	H4\n' +
+      'A5	B5	C5				G5	H5\n' +
+      'A6	B6	C6				G6	H6\n' +
+      'A7	B7	C7	D7	E7	F7	G7	H7\n' +
+      'A8	B8	C8	D8	E8	F8	G8	H8'
+    );
+    /* eslint-enable */
+    /* eslint-disable indent */
+    expect(copyEvent.clipboardData.getData('text/html')).toEqual([
+      '<meta name="generator" content="Handsontable"/>',
+      '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+      '<table>',
+        '<tbody>',
+          '<tr>',
+            '<td>A1</td>',
+            '<td>B1</td>',
+            '<td>C1</td>',
+            '<td>D1</td>',
+            '<td>E1</td>',
+            '<td>F1</td>',
+            '<td>G1</td>',
+            '<td>H1</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A3</td>',
+            '<td colspan="2"></td>',
+            '<td>D3</td>',
+            '<td>E3</td>',
+            '<td>F3</td>',
+            '<td>G3</td>',
+            '<td>H3</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A4</td>',
+            '<td>B4</td>',
+            '<td>C4</td>',
+            '<td rowspan="3" colspan="3">D4</td>',
+            '<td>G4</td>',
+            '<td>H4</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A5</td>',
+            '<td>B5</td>',
+            '<td>C5</td>',
+            '<td>G5</td>',
+            '<td>H5</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A6</td>',
+            '<td>B6</td>',
+            '<td>C6</td>',
+            '<td>G6</td>',
+            '<td>H6</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A7</td>',
+            '<td>B7</td>',
+            '<td>C7</td>',
+            '<td>D7</td>',
+            '<td>E7</td>',
+            '<td>F7</td>',
+            '<td>G7</td>',
+            '<td>H7</td>',
+          '</tr>',
+          '<tr>',
+            '<td>A8</td>',
+            '<td>B8</td>',
+            '<td>C8</td>',
+            '<td>D8</td>',
+            '<td>E8</td>',
+            '<td>F8</td>',
+            '<td>G8</td>',
+            '<td>H8</td>',
+          '</tr>',
+        '</tbody>',
+      '</table>',
+    ].join(''));
+    /* eslint-enable */
+  });
+
   it('should properly change copied values using `beforeCopy` hook (removing a part of merge areas one by one)', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(8, 8),
