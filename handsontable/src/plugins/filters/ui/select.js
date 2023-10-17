@@ -54,6 +54,10 @@ export class SelectUI extends BaseUI {
     this.registerHooks();
   }
 
+  getMenu() {
+    return this.#menu;
+  }
+
   /**
    * Register all necessary hooks.
    */
@@ -155,6 +159,13 @@ export class SelectUI extends BaseUI {
         height: rect.height,
       });
       this.#menu.getNavigator().toFirstItem();
+      this.#menu.getKeyboardShortcutsCtrl().addCustomShortcuts([{
+        keys: [['Tab'], ['Shift', 'Tab']],
+        callback: (event) => {
+          this.closeOptions();
+          this.runLocalHooks('tabKeydown', event);
+        },
+      }]);
     }
   }
 

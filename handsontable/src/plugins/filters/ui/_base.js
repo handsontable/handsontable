@@ -140,6 +140,9 @@ export class BaseUI {
     if (this.options.tabIndex !== undefined) {
       this._element.setAttribute('tabindex', this.options.tabIndex);
     }
+    if (this.options.role !== undefined) {
+      this._element.setAttribute('role', this.options.role);
+    }
     if (this.options.className) {
       addClass(this._element, this.options.className);
     }

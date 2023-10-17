@@ -2,10 +2,6 @@ import { createDefaultShortcutsList } from './defaultShortcutsList';
 
 const SHORTCUTS_CONTEXT = 'menu';
 const SHORTCUTS_GROUP = SHORTCUTS_CONTEXT;
-const contextConfig = {
-  group: SHORTCUTS_CONTEXT,
-  // runOnlyIf: event => !isInput(event.target) || !this.container.contains(event.target),
-};
 
 /**
  * @typedef KeyboardShortcutsMenuController
@@ -36,7 +32,9 @@ export function createKeyboardShortcutsCtrl(menu, customKeyboardShortcuts = []) 
    * @param {string} [contextName] The context name to create or use.
    */
   function _addShortcuts(shortcuts, contextName) {
-    getContext(contextName).addShortcuts(shortcuts, contextConfig);
+    getContext(contextName).addShortcuts(shortcuts, {
+      group: SHORTCUTS_CONTEXT,
+    });
   }
 
   /**

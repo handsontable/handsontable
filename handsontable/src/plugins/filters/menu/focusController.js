@@ -5,6 +5,17 @@ import { BaseUI } from '../ui/_base';
 const SHORTCUTS_MENU_CONTEXT = 'filters';
 
 /**
+ * @typedef MenuFocusNavigator
+ * @property {function(number): void} setCurrentPage Sets the current index of the selected focus.
+ * @property {function(): number} getCurrentPage Gets the index of currently focus element.
+ * @property {function(): void} toFirstItem Move the focus index to the first element in the list.
+ * @property {function(): void} toLastItem Move the focus index to the last element in the list.
+ * @property {function(): void} toNextItem Move the focus index to the next element in the list.
+ * @property {function(): void} toPreviousItem Move the focus index to the previous element in the list.
+ * @property {function(): void} clear Clear the internal state of the navigator.
+ * @property {function(): void} listen Activate the navigator by listening the keyboard shortcuts.
+ */
+/**
  * Creates navigator controller for filter subcomponents in the menu.
  *
  * @param {Menu} mainMenu The main Menu instance.

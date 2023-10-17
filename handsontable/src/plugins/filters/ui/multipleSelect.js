@@ -81,6 +81,10 @@ export class MultipleSelectUI extends BaseUI {
     this.registerHooks();
   }
 
+  getItemsBox() {
+    return this.#itemsBox;
+  }
+
   /**
    * Register all necessary hooks.
    */
@@ -254,14 +258,23 @@ export class MultipleSelectUI extends BaseUI {
           this.#itemsBox.deselectCell();
 
           this.runLocalHooks('keydown', event, this);
-          this.runLocalHooks('listTab', event, this);
+          this.runLocalHooks('listTabKeydown', event, this);
         },
         group: SHORTCUTS_GROUP
       });
     };
 
     hotInitializer(itemsBoxWrapper);
-    setTimeout(() => hotInitializer(itemsBoxWrapper), 100);
+    this.hot._registerTimeout(() => hotInitializer(itemsBoxWrapper), 100);
+  }
+
+  /**
+   * Focus element.
+   */
+  focus() {
+    if (this.isBuilt()) {
+      this.#itemsBox.listen();
+    }
   }
 
   /**

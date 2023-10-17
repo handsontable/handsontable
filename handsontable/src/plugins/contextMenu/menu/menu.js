@@ -31,6 +31,7 @@ import { createMenuItemRenderer } from './menuItemRenderer';
 import {
   A11Y_EXPANDED,
   A11Y_MENU,
+  A11Y_TABINDEX,
 } from '../../../helpers/a11y';
 
 const MIN_WIDTH = 215;
@@ -295,12 +296,12 @@ export class Menu {
     this.hotMenu = new this.hot.constructor(this.container, settings);
     this.hotMenu.addHook('afterInit', () => this.onAfterInit());
     this.hotMenu.init();
-    this.hotMenu.listen();
-    this.hotMenu.view._wt.wtTable.hider.setAttribute('tabindex', -1);
 
     this.#navigator = createMenuNavigator(this.hotMenu);
     this.#shortcutsCtrl = createKeyboardShortcutsCtrl(this);
     this.#shortcutsCtrl.listen();
+
+    this.focus();
 
     if (this.isSubMenu()) {
       this.addLocalHook('afterOpen', () => this.parentMenu.runLocalHooks('afterSubmenuOpen', this));
@@ -436,7 +437,9 @@ export class Menu {
    */
   focus() {
     if (this.isOpened()) {
-      this.hotMenu.view._wt.wtTable.hider.focus();
+      this.hotMenu.rootElement.focus({
+        preventScroll: true,
+      });
       this.getKeyboardShortcutsCtrl().listen();
       this.hotMenu.listen();
     }
@@ -606,7 +609,8 @@ export class Menu {
     // Replace the default accessibility tags with the context menu's
     if (this.hot.getSettings().ariaTags) {
       setAttribute(this.hotMenu.rootElement, [
-        A11Y_MENU()
+        A11Y_MENU(),
+        A11Y_TABINDEX(-1),
       ]);
     }
   }

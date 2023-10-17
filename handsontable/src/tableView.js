@@ -344,7 +344,7 @@ class TableView {
 
       if (isOutsideInputElement || (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
           !rootElement.contains(event.target) && !isRightClick(event))) {
-        // this.instance.unlisten();
+        this.instance.unlisten();
       }
     });
 

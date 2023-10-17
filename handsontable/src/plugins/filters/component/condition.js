@@ -38,7 +38,8 @@ export class ConditionComponent extends BaseComponent {
   registerHooks() {
     this.getSelectElement()
       .addLocalHook('select', command => this.#onConditionSelect(command))
-      .addLocalHook('afterClose', () => this.#onSelectUIClosed());
+      .addLocalHook('afterClose', () => this.runLocalHooks('afterClose'))
+      .addLocalHook('tabKeydown', event => this.runLocalHooks('selectTabKeydown', event));
 
     arrayEach(this.getInputElements(), (input) => {
       input.addLocalHook('keydown', event => this.#onInputKeyDown(event));
@@ -75,7 +76,7 @@ export class ConditionComponent extends BaseComponent {
       element[copyOfCommand.inputsCount > index ? 'show' : 'hide']();
 
       if (!index) {
-        setTimeout(() => element.focus(), 10);
+        this.hot._registerTimeout(() => element.focus(), 10);
       }
     });
   }
@@ -214,18 +215,11 @@ export class ConditionComponent extends BaseComponent {
       element[command.inputsCount > index ? 'show' : 'hide']();
 
       if (index === 0) {
-        setTimeout(() => element.focus(), 10);
+        this.hot._registerTimeout(() => element.focus(), 10);
       }
     });
 
     this.runLocalHooks('change', command);
-  }
-
-  /**
-   * On component SelectUI closed listener.
-   */
-  #onSelectUIClosed() {
-    this.runLocalHooks('afterClose');
   }
 
   /**

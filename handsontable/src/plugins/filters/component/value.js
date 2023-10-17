@@ -33,7 +33,9 @@ export class ValueComponent extends BaseComponent {
    * @private
    */
   registerHooks() {
-    this.getMultipleSelectElement().addLocalHook('keydown', event => this.#onInputKeyDown(event));
+    this.getMultipleSelectElement()
+      .addLocalHook('keydown', event => this.#onInputKeyDown(event))
+      .addLocalHook('listTabKeydown', event => this.runLocalHooks('listTabKeydown', event));
   }
 
   /**

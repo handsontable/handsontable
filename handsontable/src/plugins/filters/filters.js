@@ -124,7 +124,12 @@ export class Filters extends BasePlugin {
    * @type {null|TrimmingMap}
    */
   filtersRowsMap = null;
-  #menuNavigatorCtrl;
+  /**
+   * Menu focus navigator allows switching the focus position through Tab and Shift Tab keys.
+   *
+   * @type {MenuFocusNavigator|undefined}
+   */
+  #menuFocusNavigator;
 
   constructor(hotInstance) {
     super(hotInstance);
@@ -241,9 +246,9 @@ export class Filters extends BasePlugin {
       this.dropdownMenuPlugin.enablePlugin();
     }
 
-    if (!this.#menuNavigatorCtrl) {
-      const menu = this.dropdownMenuPlugin.menu;
-      const menuItems = [
+    if (!this.#menuFocusNavigator && this.dropdownMenuPlugin.enabled) {
+      const mainMenu = this.dropdownMenuPlugin.menu;
+      const focusableItems = [
         ...Array.from(this.components)
           .map(([, component]) => component.getElements())
           .flat(),
@@ -251,26 +256,30 @@ export class Filters extends BasePlugin {
         // dropdown menu items using arrow keys.
         {
           focus: () => {
-            menu.focus();
+            mainMenu.focus();
           }
         },
       ];
 
-      this.#menuNavigatorCtrl = createMenuFocusController(menu, menuItems);
-      this.components.get('filter_by_value')
-        .getMultipleSelectElement()
-        .addLocalHook('listTab', (event) => {
-          this.#menuNavigatorCtrl.listen();
-          event.preventDefault();
+      this.#menuFocusNavigator = createMenuFocusController(mainMenu, focusableItems);
 
-          if (isKey(event.keyCode, 'TAB')) {
-            if (event.shiftKey) {
-              this.#menuNavigatorCtrl.toPreviousItem();
-            } else {
-              this.#menuNavigatorCtrl.toNextItem();
-            }
+      const forwardToFocusNavigation = (event) => {
+        this.#menuFocusNavigator.listen();
+        event.preventDefault();
+
+        if (isKey(event.keyCode, 'TAB')) {
+          if (event.shiftKey) {
+            this.#menuFocusNavigator.toPreviousItem();
+          } else {
+            this.#menuFocusNavigator.toNextItem();
           }
-        });
+        }
+      };
+
+      this.components.get('filter_by_value')
+        .addLocalHook('listTabKeydown', forwardToFocusNavigation);
+      this.components.get('filter_by_condition')
+        .addLocalHook('selectTabKeydown', forwardToFocusNavigation);
     }
 
     this.registerShortcuts();
