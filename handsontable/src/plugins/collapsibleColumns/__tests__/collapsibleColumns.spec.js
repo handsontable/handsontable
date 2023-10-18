@@ -72,6 +72,8 @@ describe('CollapsibleColumns', () => {
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+
+    spyOn(document, 'execCommand');
   });
 
   afterEach(function() {

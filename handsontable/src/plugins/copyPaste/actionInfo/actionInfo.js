@@ -32,6 +32,12 @@ export class ActionInfo {
    */
   data;
 
+  constructor() {
+    if (this.constructor === ActionInfo) {
+      throw new Error('The `ActionInfo` is an abstract class and it can\'t be instantiated. Please use `CopyInfo` or' +
+        'PasteInfo` classes instead.');
+    }
+  }
   /**
    * Checks whether copied data is an array.
    *
