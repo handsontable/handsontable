@@ -22,4 +22,4 @@ Handsontable is a commercial software with two licenses available:
 
 If you have a commercial license and your support plan is active, contact our [Technical Support Team](https://handsontable.com/contact?category=technical_support).
 
-We also support free-tier users through [GitHub issues](https://github.com/handsontable/handsontable/issues).
+We also provide support for free-tier users through [GitHub issues](https://github.com/handsontable/handsontable/issues).
