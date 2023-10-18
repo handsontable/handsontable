@@ -2,6 +2,7 @@
  * @typedef Paginator
  * @property {function(number): void} setCurrentPage Sets the current index to the specific page.
  * @property {function(): number} getCurrentPage Gets the current page.
+ * @property {function(): number} getSize Gets the total number of pages.
  * @property {function(): void} toFirstItem Move the index to the first page.
  * @property {function(): void} toLastItem Move the index to the last page.
  * @property {function(): void} toNextItem Move the index to the next page.
@@ -15,41 +16,47 @@
  * @param {function(): void} [options.onClear] Fires the function after clearing the state.
  * @returns {Paginator}
  */
-export function createPaginator({ size = () => 0, onItemSelect = () => {}, onClear = () => {} }) {
+export function createPaginator({
+  size = () => 0,
+  onItemSelect = () => {},
+  onClear = () => {},
+}) {
   const visitedPages = new Set();
-  const maxSize = size;
   let currentIndex = -1;
-  let previousIndex = -1;
 
   /**
    * Updates the internal state of the paginator.
+   *
+   * @param {number} newIndex The page index to switch.
+   * @param {-1|1} direction The direction of traversing the pages in case when they are disabled.
+   * @returns {number} Returns the final index of the page.
    */
-  function _updateState() {
-    const lastIndex = maxSize() - 1;
+  function _updateState(newIndex, direction) {
+    const lastIndex = getSize() - 1;
 
-    if (currentIndex < 0) {
-      currentIndex = lastIndex;
-      previousIndex = lastIndex;
+    if (newIndex < 0) {
+      newIndex = lastIndex;
     }
-    if (currentIndex > lastIndex) {
-      currentIndex = 0;
-      previousIndex = -1;
+    if (newIndex > lastIndex) {
+      newIndex = 0;
     }
 
-    if (visitedPages.has(currentIndex)) {
-      return;
+    if (visitedPages.has(newIndex)) {
+      return -1;
     }
 
-    visitedPages.add(currentIndex);
+    visitedPages.add(newIndex);
 
-    const changeProceed = onItemSelect(currentIndex, false);
+    const changeProceed = onItemSelect(newIndex, false);
 
     if (changeProceed === false) {
-      currentIndex += currentIndex > previousIndex ? 1 : -1;
-      _updateState();
+      newIndex = _updateState(
+        direction === 1 ? ++newIndex : --newIndex, // eslint-disable-line no-plusplus
+        direction
+      );
     }
 
-    previousIndex = currentIndex;
+    return newIndex;
   }
 
   /**
@@ -58,9 +65,13 @@ export function createPaginator({ size = () => 0, onItemSelect = () => {}, onCle
    * @param {number} index The index to set.
    */
   function setCurrentPage(index) {
-    currentIndex = index;
-    previousIndex = index;
-    onItemSelect(currentIndex, true);
+    if (
+      index > -1 &&
+      index < getSize() &&
+      onItemSelect(index, true) !== false
+    ) {
+      currentIndex = index;
+    }
   }
 
   /**
@@ -76,38 +87,49 @@ export function createPaginator({ size = () => 0, onItemSelect = () => {}, onCle
    * Moves the index to the first page.
    */
   function toFirstItem() {
-    visitedPages.clear();
-    currentIndex = 0;
-    previousIndex = currentIndex - 1;
-    _updateState();
+    if (getSize() > 0) {
+      visitedPages.clear();
+      currentIndex = _updateState(0, 1);
+    }
   }
 
   /**
    * Moves the index to the last page.
    */
   function toLastItem() {
-    visitedPages.clear();
-    currentIndex = maxSize() - 1;
-    previousIndex = currentIndex + 1;
-    _updateState();
+    if (getSize() > 0) {
+      visitedPages.clear();
+      currentIndex = _updateState(getSize() - 1, -1);
+    }
   }
 
   /**
    * Moves the index to the next page.
    */
   function toNextItem() {
-    visitedPages.clear();
-    currentIndex += 1;
-    _updateState();
+    if (getSize() > 0) {
+      visitedPages.clear();
+      currentIndex = _updateState(++currentIndex, 1); // eslint-disable-line no-plusplus
+    }
   }
 
   /**
    * Moves the index to the previous page.
    */
   function toPreviousItem() {
-    visitedPages.clear();
-    currentIndex -= 1;
-    _updateState();
+    if (getSize() > 0) {
+      visitedPages.clear();
+      currentIndex = _updateState(--currentIndex, -1); // eslint-disable-line no-plusplus
+    }
+  }
+
+  /**
+   * Gets the total number of pages.
+   *
+   * @returns {number}
+   */
+  function getSize() {
+    return Math.max(size(), 0);
   }
 
   /**
@@ -116,7 +138,6 @@ export function createPaginator({ size = () => 0, onItemSelect = () => {}, onCle
   function clear() {
     visitedPages.clear();
     currentIndex = -1;
-    previousIndex = -1;
     onClear();
   }
 
@@ -127,6 +148,7 @@ export function createPaginator({ size = () => 0, onItemSelect = () => {}, onCle
     toLastItem,
     toNextItem,
     toPreviousItem,
+    getSize,
     clear,
   };
 }
