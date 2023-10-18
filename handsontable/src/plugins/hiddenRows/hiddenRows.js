@@ -11,6 +11,7 @@ import showRowItem from './contextMenuItem/showRow';
 import { HidingMap } from '../../translations';
 
 import './hiddenRows.css';
+import {A11Y_LABEL} from "../../helpers/a11y";
 
 Hooks.getSingleton().register('beforeHideRows');
 Hooks.getSingleton().register('afterHideRows');
@@ -469,19 +470,12 @@ export class HiddenRows extends BasePlugin {
    * @param {HTMLElement} TH Header's TH element.
    */
   onAfterGetRowHeader(row, TH) {
-    // TODO: refactor
-    let beforeHiddenRowIndicatorElement = TH.querySelector('.beforeHiddenRowIndicator');
-    let afterHiddenRowIndicatorElement = TH.querySelector('.afterHiddenRowIndicator');
+    const beforeHiddenRowIndicatorElement = TH.querySelector('.beforeHiddenRowIndicator');
+    const afterHiddenRowIndicatorElement = TH.querySelector('.afterHiddenRowIndicator');
 
     if (!this.#settings.indicators || row < 0) {
-      if (beforeHiddenRowIndicatorElement) {
-        TH.removeChild(beforeHiddenRowIndicatorElement);
-      }
-
-      if (afterHiddenRowIndicatorElement) {
-        TH.removeChild(afterHiddenRowIndicatorElement);
-      }
-      
+      this._removeChildIfExists(TH, beforeHiddenRowIndicatorElement);
+      this._removeChildIfExists(TH, afterHiddenRowIndicatorElement);
       return;
     }
     
@@ -489,29 +483,23 @@ export class HiddenRows extends BasePlugin {
 
     if (row >= 1 && this.isHidden(row - 1)) {
       if (!afterHiddenRowIndicatorElement) {
-        afterHiddenRowIndicatorElement = this.hot.rootDocument.createElement('div');
-        addClass(afterHiddenRowIndicatorElement, 'afterHiddenRowIndicator');
-        TH.appendChild(afterHiddenRowIndicatorElement);
+        this._appendDiv(TH, 'afterHiddenRowIndicator', 'The previous row is hidden');
       }
       
       classList.push('afterHiddenRow');
-      setAttribute(afterHiddenRowIndicatorElement, 'aria-label', 'The previous row is hidden');
     }
 
     if (row < this.hot.countRows() - 1 && this.isHidden(row + 1)) {
       if (!beforeHiddenRowIndicatorElement) {
-        beforeHiddenRowIndicatorElement = this.hot.rootDocument.createElement('div');
-        addClass(beforeHiddenRowIndicatorElement, 'beforeHiddenRowIndicator');
-        TH.appendChild(beforeHiddenRowIndicatorElement);
+        this._appendDiv(TH, 'beforeHiddenRowIndicator', 'The next row is hidden');
       }
       
       classList.push('beforeHiddenRow');
-      setAttribute(beforeHiddenRowIndicatorElement, 'aria-label', 'The next row is hidden');
     }
 
     addClass(TH, classList);
   }
-
+  
   /**
    * Add Show-hide rows to context menu.
    *
@@ -547,5 +535,35 @@ export class HiddenRows extends BasePlugin {
     this.#hiddenRowsMap = null;
 
     super.destroy();
+  }
+
+  /**
+   * Removes a child HTML element from the parent element.
+   *
+   * @private
+   * @param {HTMLElement | null} parentElement The parent element
+   * @param {HTMLElement | null} childElement The parent element
+   */
+  _removeChildIfExists(parentElement, childElement) {
+    if (!parentElement || !childElement) {
+      return
+    }
+
+    parentElement.removeChild(childElement);
+  }
+
+  /**
+   * Creates a div element and appends it to the parent element with the provided class name and aria-label value.
+   *
+   * @private
+   * @param {HTMLElement | null} parentElement The parent element
+   * @param {string} className The class name
+   * @param {string} ariaLabelValue The aria-label value
+   */
+  _appendDiv(parentElement, className, ariaLabelValue) {
+    const element = this.hot.rootDocument.createElement('div');
+    addClass(element, className);
+    setAttribute(element, [ A11Y_LABEL(ariaLabelValue) ]);
+    parentElement.appendChild(element);
   }
 }
