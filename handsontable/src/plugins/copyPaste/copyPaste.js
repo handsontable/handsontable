@@ -19,7 +19,7 @@ import {
 } from '../../utils/parseTable';
 
 import './copyPaste.css';
-import { ActionInfo } from './actionInfo';
+import { CopyInfo, PasteInfo } from './actionInfo';
 
 Hooks.getSingleton().register('afterCopyLimit');
 Hooks.getSingleton().register('modifyCopyableRange');
@@ -522,18 +522,14 @@ export class CopyPaste extends BasePlugin {
     this.setCopyableText();
     this.#isTriggeredByCopy = false;
 
-    const actionInfo = new ActionInfo({
-      type: 'copy',
-      instance: this.hot,
-      copyableRanges: this.copyableRanges
-    });
-    const allowCopying = !!this.hot.runHooks('beforeCopy', actionInfo);
+    const copyInfo = new CopyInfo(this.hot, this.copyableRanges);
+    const allowCopying = !!this.hot.runHooks('beforeCopy', copyInfo);
 
     if (allowCopying) {
-      event.clipboardData.setData('text/plain', stringify(actionInfo.getData()));
-      event.clipboardData.setData('text/html', actionInfo.getHTML());
+      event.clipboardData.setData('text/plain', stringify(copyInfo.getData()));
+      event.clipboardData.setData('text/html', copyInfo.getHTML());
 
-      this.hot.runHooks('afterCopy', actionInfo);
+      this.hot.runHooks('afterCopy', copyInfo);
     }
 
     this.#copyMode = 'cells-only';
@@ -554,19 +550,15 @@ export class CopyPaste extends BasePlugin {
     this.setCopyableText();
     this.#isTriggeredByCut = false;
 
-    const actionInfo = new ActionInfo({
-      type: 'copy',
-      instance: this.hot,
-      copyableRanges: this.copyableRanges
-    });
-    const allowCuttingOut = !!this.hot.runHooks('beforeCut', actionInfo);
+    const cutInfo = new CopyInfo(this.hot, this.copyableRanges);
+    const allowCuttingOut = !!this.hot.runHooks('beforeCut', cutInfo);
 
     if (allowCuttingOut) {
-      event.clipboardData.setData('text/plain', stringify(actionInfo.getData()));
-      event.clipboardData.setData('text/html', actionInfo.getHTML());
+      event.clipboardData.setData('text/plain', stringify(cutInfo.getData()));
+      event.clipboardData.setData('text/html', cutInfo.getHTML());
 
       this.hot.emptySelectedCells('CopyPaste.cut');
-      this.hot.runHooks('afterCut', actionInfo);
+      this.hot.runHooks('afterCut', cutInfo);
     }
 
     event.preventDefault();
@@ -593,17 +585,13 @@ export class CopyPaste extends BasePlugin {
       FORCE_BODY: true,
     });
 
-    const actionInfo = new ActionInfo({
-      type: 'paste',
-      data: event.clipboardData.getData('text/plain'),
-      html,
-    });
+    const pasteInfo = new PasteInfo(event.clipboardData.getData('text/plain'), html);
 
-    if (this.hot.runHooks('beforePaste', actionInfo) === false) {
+    if (this.hot.runHooks('beforePaste', pasteInfo) === false) {
       return;
     }
 
-    const pastedTable = actionInfo.getData();
+    const pastedTable = pasteInfo.getData();
 
     if (pastedTable.length === 0) {
       return;
@@ -618,7 +606,7 @@ export class CopyPaste extends BasePlugin {
       Math.min(this.hot.countCols() - 1, endColumn),
     );
 
-    this.hot.runHooks('afterPaste', actionInfo);
+    this.hot.runHooks('afterPaste', pasteInfo);
   }
 
   /**

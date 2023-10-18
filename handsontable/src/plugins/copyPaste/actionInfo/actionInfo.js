@@ -1,18 +1,14 @@
-import { normalizeRanges } from './copyableRanges';
-import { isDefined } from '../../helpers/mixed';
-import { deepClone } from '../../helpers/object';
-import { toSingleLine } from '../../helpers/templateLiteralTag';
-import { warn } from '../../helpers/console';
+import { isDefined } from '../../../helpers/mixed';
+import { deepClone } from '../../../helpers/object';
+import { toSingleLine } from '../../../helpers/templateLiteralTag';
+import { warn } from '../../../helpers/console';
 import {
-  getDataByCoords,
   getDataWithHeadersByConfig,
-  getHTMLByCoords,
   getHTMLFromConfig,
   htmlToGridSettings,
-} from '../../utils/parseTable';
-import { parse } from '../../3rdparty/SheetClip';
+} from '../../../utils/parseTable';
 
-const META_HEAD = [
+export const META_HEAD = [
   '<meta name="generator" content="Handsontable"/>',
   '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
 ].join('');
@@ -28,40 +24,13 @@ export class ActionInfo {
    *
    * @type {string}
    */
-  #html;
+  html;
   /**
    * Copied data stored as array of arrays.
    *
    * @type {string[][]}
    */
-  #data;
-  /**
-   * @param {object} config Configuration object for the action.
-   * @param {'copy'|'paste'} config.type Type of the action - copying (and cutting) or pasting the data.
-   * @param {string} config.data Data of "text/plain" type inside the clipboard.
-   * @param {string} config.html Sanitized data of "text/html" type inside the clipboard.
-   * @param {Core} [config.instance] Handsontable instance (used only while copying data).
-   * @param {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>} [config.copyableRanges] Cell
-   * ranges related to instance of Handsontable (used only while copying data).
-   */
-  constructor({ type, data, html, instance, copyableRanges }) {
-    if (type === 'copy') {
-      const { rows, columns } = normalizeRanges(copyableRanges);
-
-      this.#html = [META_HEAD, getHTMLByCoords(instance, { rows, columns })].join('');
-      this.#data = getDataByCoords(instance, { rows, columns });
-
-    } else {
-      this.#html = html;
-
-      if (this.isTable()) {
-        this.#data = getDataWithHeadersByConfig(this.getGridSettings());
-
-      } else {
-        this.#data = parse(data);
-      }
-    }
-  }
+  data;
 
   /**
    * Checks whether copied data is an array.
@@ -69,7 +38,7 @@ export class ActionInfo {
    * @returns {boolean}
    */
   isTable() {
-    return isDefined(this.#html) && /(<table)|(<TABLE)/g.test(this.#html);
+    return isDefined(this.html) && /(<table)|(<TABLE)/g.test(this.html);
   }
 
   /**
@@ -78,7 +47,7 @@ export class ActionInfo {
    * @returns {boolean}
    */
   isHandsontable() {
-    return this.isTable() && /<meta (.*?)content="Handsontable"/.test(this.#html);
+    return this.isTable() && /<meta (.*?)content="Handsontable"/.test(this.html);
   }
 
   /**
@@ -87,7 +56,7 @@ export class ActionInfo {
    * @returns {string}
    */
   getHTML() {
-    return this.#html;
+    return this.html;
   }
 
   /**
@@ -96,7 +65,7 @@ export class ActionInfo {
    * @returns {string[][]}
    */
   getData() {
-    return deepClone(this.#data);
+    return deepClone(this.data);
   }
 
   /**
@@ -106,7 +75,7 @@ export class ActionInfo {
    * the corresponding values.
    */
   getGridSettings() {
-    return htmlToGridSettings(this.#html);
+    return htmlToGridSettings(this.html);
   }
 
   /**
@@ -116,8 +85,8 @@ export class ActionInfo {
    * @param {object} config Configuration.
    */
   overwriteInfo(config) {
-    this.#html = [this.isHandsontable() ? META_HEAD : '', getHTMLFromConfig(config)].join('');
-    this.#data = getDataWithHeadersByConfig(config);
+    this.html = [this.isHandsontable() ? META_HEAD : '', getHTMLFromConfig(config)].join('');
+    this.data = getDataWithHeadersByConfig(config);
   }
 
   /**
