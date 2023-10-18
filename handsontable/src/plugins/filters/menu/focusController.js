@@ -24,13 +24,19 @@ const SHORTCUTS_MENU_CONTEXT = 'filters';
  */
 export function createMenuFocusController(mainMenu, menuItems) {
   const navigator = createFocusNavigator(menuItems);
-  const updateNavigatorPosition = element => () => navigator.setCurrentPage(menuItems.indexOf(element));
+  const updateNavigatorPosition = element => () => {
+    if (mainMenu.isOpened()) {
+      mainMenu.getKeyboardShortcutsCtrl().listen(SHORTCUTS_MENU_CONTEXT);
+    }
+
+    navigator.setCurrentPage(menuItems.indexOf(element));
+  };
 
   // update navigator position (internal state) to element that was recently clicked or focused
   menuItems.forEach((element) => {
     if (element instanceof BaseUI) {
-      element.addLocalHook('focus', updateNavigatorPosition(element));
       element.addLocalHook('click', updateNavigatorPosition(element));
+      element.addLocalHook('focus', updateNavigatorPosition(element));
       element.addLocalHook('afterClose', updateNavigatorPosition(element));
     }
   });

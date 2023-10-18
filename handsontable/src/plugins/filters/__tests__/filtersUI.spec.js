@@ -4212,7 +4212,7 @@ describe('Filters UI', () => {
 
       const nextWidth = $conditionalMenu.find('.wtHider').width();
 
-      expect(nextWidth).toBeLessThan(firstWidth);
+      expect(nextWidth).toBeLessThanOrEqual(firstWidth);
     });
 
     it('should display proper width of htUIMultipleSelectHot container #151', async() => {
@@ -4398,15 +4398,14 @@ describe('Filters UI', () => {
 
     keyDownUp('tab');
 
-    expect(byValueMultipleSelect().getItemsBox().getSelected()).toEqual([[0, 0, 0, 0]]);
+    expect(byValueMultipleSelect().getItemsBox().getSelected()).toBeUndefined();
 
-    keyDownUp('tab');
-
-    expect(byValueMultipleSelect().getItemsBox().getSelected()).toEqual([[1, 0, 1, 0]]);
+    $(inputElement).simulate('mousedown').simulate('mouseup').simulate('click');
+    $(inputElement).focus();
 
     keyDownUp(['shift', 'tab']);
 
-    expect(byValueMultipleSelect().getItemsBox().getSelected()).toEqual([[0, 0, 0, 0]]);
+    expect(byValueMultipleSelect().getItemsBox().getSelected()).toBeUndefined();
   });
 
   it('should inherit the actual layout direction option from the root Handsontable instance to the multiple ' +

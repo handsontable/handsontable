@@ -17,7 +17,6 @@ import { isWindowsOS, isMobileBrowser, isIpadOS } from '../../../helpers/browser
 import {
   addClass,
   isChildOf,
-  isInput,
   getParentWindow,
   hasClass,
   setAttribute,
