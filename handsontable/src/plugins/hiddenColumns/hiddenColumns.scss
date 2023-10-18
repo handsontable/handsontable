@@ -1,12 +1,13 @@
 /*
  * Handsontable HiddenColumns
  */
-.handsontable th.beforeHiddenColumn {
+.handsontable th.beforeHiddenColumn,
+.handsontable th.afterHiddenColumn {
   position: relative;
 }
 
-.handsontable th.beforeHiddenColumn::after,
-.handsontable th.afterHiddenColumn::before {
+.handsontable th.beforeHiddenColumn .beforeHiddenColumnIndicator::after,
+.handsontable th.afterHiddenColumn .afterHiddenColumnIndicator::before {
   color: #bbb;
   position: absolute;
   top: 50%;
@@ -14,27 +15,23 @@
   transform: translateY(-50%);
 }
 
-.handsontable th.afterHiddenColumn {
-  position: relative;
-}
-
-.handsontable th.beforeHiddenColumn::after {
+.handsontable th.beforeHiddenColumn .beforeHiddenColumnIndicator::after {
   right: 1px;
   content: '\25C0'; // left-pointing triangle
 }
 
-[dir=rtl].handsontable th.beforeHiddenColumn::after {
+[dir=rtl].handsontable th.beforeHiddenColumn .beforeHiddenColumnIndicator::after {
   right: initial;
   left: 1px;
   content: '\25B6'; // right-pointing triangle
 }
 
-.handsontable th.afterHiddenColumn::before {
+.handsontable th.afterHiddenColumn .afterHiddenColumnIndicator::before {
   left: 1px;
   content: '\25B6'; // right-pointing triangle
 }
 
-[dir=rtl].handsontable th.afterHiddenColumn::before {
+[dir=rtl].handsontable th.afterHiddenColumn .afterHiddenColumnIndicator::before {
   right: 1px;
   left: initial;
   content: '\25C0'; // left-pointing triangle

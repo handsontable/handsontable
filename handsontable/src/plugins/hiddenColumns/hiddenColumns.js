@@ -9,6 +9,8 @@ import Hooks from '../../pluginHooks';
 import hideColumnItem from './contextMenuItem/hideColumn';
 import showColumnItem from './contextMenuItem/showColumn';
 import { HidingMap } from '../../translations';
+import {A11Y_LABEL} from "../../helpers/a11y";
+
 
 import './hiddenColumns.scss';
 
@@ -480,21 +482,31 @@ export class HiddenColumns extends BasePlugin {
    * @param {HTMLElement} TH Header's TH element.
    */
   onAfterGetColHeader(column, TH) {
+    const beforeHiddenColumnIndicatorElement = TH.querySelector('.beforeHiddenColumnIndicator');
+    const afterHiddenColumnIndicatorElement = TH.querySelector('.afterHiddenColumnIndicator');
+    
     if (!this.#settings.indicators || column < 0) {
+      this._removeChildIfExists(TH, beforeHiddenColumnIndicatorElement);
+      this._removeChildIfExists(TH, afterHiddenColumnIndicatorElement);
       return;
     }
 
     const classList = [];
-    const THAriaDescription = TH.getAttribute('aria-description') ? `${TH.getAttribute('aria-description')} ` : '';
 
     if (column >= 1 && this.isHidden(column - 1)) {
+      if (!afterHiddenColumnIndicatorElement) {
+        this._appendDiv(TH, 'afterHiddenColumnIndicator', 'The previous column is hidden');
+      }
+      
       classList.push('afterHiddenColumn');
-      setAttribute(TH, 'aria-description', `${THAriaDescription}The previous column is hidden.`);
     }
 
     if (column < this.hot.countCols() - 1 && this.isHidden(column + 1)) {
+      if (!beforeHiddenColumnIndicatorElement) {
+        this._appendDiv(TH, 'beforeHiddenColumnIndicator', 'The next column is hidden');
+      }
+      
       classList.push('beforeHiddenColumn');
-      setAttribute(TH, 'aria-description', `${THAriaDescription}The next column is hidden.`);
     }
 
     addClass(TH, classList);
@@ -535,5 +547,35 @@ export class HiddenColumns extends BasePlugin {
     this.#hiddenColumnsMap = null;
 
     super.destroy();
+  }
+
+  /**
+   * Removes a child HTML element from the parent element.
+   *
+   * @private
+   * @param {HTMLElement | null} parentElement The parent element
+   * @param {HTMLElement | null} childElement The parent element
+   */
+  _removeChildIfExists(parentElement, childElement) {
+    if (!parentElement || !childElement) {
+      return
+    }
+
+    parentElement.removeChild(childElement);
+  }
+
+  /**
+   * Creates a div element and appends it to the parent element with the provided class name and aria-label value.
+   *
+   * @private
+   * @param {HTMLElement | null} parentElement The parent element
+   * @param {string} className The class name
+   * @param {string} ariaLabelValue The aria-label value
+   */
+  _appendDiv(parentElement, className, ariaLabelValue) {
+    const element = this.hot.rootDocument.createElement('div');
+    addClass(element, className);
+    setAttribute(element, [ A11Y_LABEL(ariaLabelValue) ]);
+    parentElement.appendChild(element);
   }
 }
