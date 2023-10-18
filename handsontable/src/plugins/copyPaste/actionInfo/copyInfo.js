@@ -1,6 +1,6 @@
 import { META_HEAD, ActionInfo } from './actionInfo';
 import { normalizeRanges } from '../copyableRanges';
-import { getDataByCoords, getHTMLByCoords} from '../../../utils/parseTable';
+import { getDataByCoords, getHTMLByCoords } from '../../../utils/parseTable';
 
 /**
  * Creates an object containing information about copy/cut action.
@@ -39,5 +39,14 @@ export class CopyInfo extends ActionInfo {
     this.html = [META_HEAD, getHTMLByCoords(instance, { rows, columns })].join('');
     this.data = getDataByCoords(instance, { rows, columns });
     this.copyableRanges = copyableRanges;
+  }
+
+  /**
+   * Gets ranges related to copied part of Handsontable.
+   *
+   * @returns {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>}
+   */
+  getHotRanges() {
+    return this.copyableRanges;
   }
 }

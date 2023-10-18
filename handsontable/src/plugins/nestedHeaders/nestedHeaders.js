@@ -138,6 +138,7 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('modifyColWidth', (...args) => this.onModifyColWidth(...args));
     this.addHook('modifyColumnHeaderValue', (...args) => this.onModifyColumnHeaderValue(...args));
     this.addHook('beforeHighlightingColumnHeader', (...args) => this.onBeforeHighlightingColumnHeader(...args));
+    this.addHook('beforeCopy', (...args) => this.onBeforeCopy(...args));
     this.addHook(
       'afterViewportColumnCalculatorOverride',
       (...args) => this.onAfterViewportColumnCalculatorOverride(...args)
@@ -419,6 +420,55 @@ export class NestedHeaders extends BasePlugin {
     }
 
     return visualColumn;
+  }
+
+  /**
+   * Listens the `beforeCopy` hook that allows processing the copied column headers so that the
+   * merged column headers do not propagate the value for each column but only once at the beginning
+   * of the column.
+   *
+   * @private
+   * @param {object} copyInfo Information about already performed copy action.
+   * @param {Function} copyInfo.isTable Checks whether copied data is an array.
+   * @param {Function} copyInfo.isHandsontable Checks whether copied data is a Handsontable.
+   * @param {Function} copyInfo.getHotRanges Returns ranges related to copied part of Handsontable.
+   * @param {Function} copyInfo.remove Remove rows/columns from the copied/pasted dataset.
+   * @param {Function} copyInfo.insertAtRow Insert values at row index.
+   * @param {Function} copyInfo.insertAtColumn Insert values at column index.
+   * @param {Function} copyInfo.change  Change headers or cells in the copied/pasted dataset.
+   * @param {Function} copyInfo.getData Gets copied data stored as array of arrays.
+   * @param {Function} copyInfo.getHTML Gets sanitized data of "text/html" type inside the clipboard.
+   * @param {Function} copyInfo.getGridSettings Gets grid settings for copied data.
+   */
+  onBeforeCopy(copyInfo) {
+    const copyableRanges = copyInfo.getHotRanges();
+
+    for (let rangeIndex = 0; rangeIndex < copyableRanges.length; rangeIndex += 1) {
+      const { startRow, startCol, endRow, endCol } = copyableRanges[rangeIndex];
+      const columnsCount = startCol - endCol + 1;
+
+      // do not process dataset ranges and column headers where only one column is copied
+      if (startRow >= 0 || columnsCount === 1) {
+        break;
+      }
+
+      for (let column = startCol; column <= endCol; column += 1) {
+        for (let row = startRow; row <= endRow; row += 1) {
+          const zeroBasedColumnIndex = column - startCol;
+
+          if (zeroBasedColumnIndex === 0) {
+            continue; // eslint-disable-line no-continue
+          }
+
+          const isRoot = this.#stateManager.getHeaderTreeNodeData(row, column)?.isRoot;
+          const collapsible = this.#stateManager.getHeaderTreeNodeData(row, column)?.collapsible;
+
+          if (collapsible === true && isRoot === false) {
+            copyInfo.change([{ row, column: zeroBasedColumnIndex, value: '' }]);
+          }
+        }
+      }
+    }
   }
 
   /**
