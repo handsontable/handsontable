@@ -266,8 +266,8 @@ export class Menu {
     this.navigator.setMenu(this.hotMenu);
 
     const shortcutManager = this.hotMenu.getShortcutManager();
-    const menuContext = shortcutManager.addContext(SHORTCUTS_GROUP);
-    const config = { group: SHORTCUTS_CONTEXT };
+    const menuContext = shortcutManager.addContext(SHORTCUTS_CONTEXT);
+    const config = { group: SHORTCUTS_GROUP };
     const menuContextConfig = {
       ...config,
       runOnlyIf: event => !isInput(event.target) || !this.container.contains(event.target),
@@ -369,6 +369,8 @@ export class Menu {
     if (!this.isOpened()) {
       return;
     }
+
+    this.runLocalHooks('beforeClose');
 
     if (closeParent && this.isSubMenu()) {
       this.parentMenu.close();

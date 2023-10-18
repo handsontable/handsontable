@@ -19,7 +19,7 @@ import {
 } from '../contextMenu/predefinedItems';
 
 import './dropdownMenu.scss';
-import { A11Y_HIDDEN } from '../../helpers/a11y';
+import { A11Y_HASPOPUP, A11Y_HIDDEN } from '../../helpers/a11y';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 Hooks.getSingleton().register('beforeDropdownMenuShow');
@@ -209,6 +209,7 @@ export class DropdownMenu extends BasePlugin {
 
       this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());
       this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
+      this.menu.addLocalHook('beforeClose', () => this.onMenuBeforeClose());
       this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
       this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
 
@@ -249,7 +250,7 @@ export class DropdownMenu extends BasePlugin {
    * @private
    */
   registerShortcuts() {
-    const context = this.hot.getShortcutManager().getContext('grid');
+    const gridContext = this.hot.getShortcutManager().getContext('grid');
     const callback = () => {
       const { highlight } = this.hot.getSelectedRangeLast();
 
@@ -270,7 +271,7 @@ export class DropdownMenu extends BasePlugin {
       }
     };
 
-    context.addShortcuts([{
+    gridContext.addShortcuts([{
       keys: [['Shift', 'Alt', 'ArrowDown'], ['Control/Meta', 'Enter']],
       callback,
       runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isHeader() && !this.menu.isOpened(),
@@ -285,6 +286,24 @@ export class DropdownMenu extends BasePlugin {
   }
 
   /**
+   * Register shortcuts added to the menu's Handsontable instance.
+   *
+   * @private
+   */
+  registerMenuShortcuts() {
+    const menuContext = this.menu.hotMenu.getShortcutManager().getContext('menu');
+
+    // Prevent the Context Menu's default `cmd/ctrl + a` behavior.
+    menuContext.addShortcuts([{
+      keys: [['Control/Meta', 'A']],
+      callback: () => false,
+      group: SHORTCUTS_GROUP,
+      relativeToGroup: 'menu',
+      position: 'before',
+    }]);
+  }
+
+  /**
    * Unregister shortcuts responsible for toggling dropdown menu.
    *
    * @private
@@ -292,6 +311,17 @@ export class DropdownMenu extends BasePlugin {
   unregisterShortcuts() {
     this.hot.getShortcutManager()
       .getContext('grid')
+      .removeShortcutsByGroup(SHORTCUTS_GROUP);
+  }
+
+  /**
+   * Unregister shortcuts assigned to the menu's Handsontable instance.
+   *
+   * @private
+   */
+  unregisterMenuShortcuts() {
+    this.menu.hotMenu.getShortcutManager()
+      .getContext('menu')
       .removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
@@ -454,6 +484,10 @@ export class DropdownMenu extends BasePlugin {
       setAttribute(button, [
         A11Y_HIDDEN(),
       ]);
+
+      setAttribute(TH, [
+        A11Y_HASPOPUP('menu'),
+      ]);
     }
 
     // prevent page reload on button click
@@ -482,6 +516,18 @@ export class DropdownMenu extends BasePlugin {
    */
   onMenuAfterOpen() {
     this.hot.runHooks('afterDropdownMenuShow', this);
+
+    this.registerMenuShortcuts();
+  }
+
+  /**
+   * On menu before close listener.
+   *
+   * @private
+   * @fires Hooks#afterDropdownMenuHide
+   */
+  onMenuBeforeClose() {
+    this.unregisterMenuShortcuts();
   }
 
   /**
