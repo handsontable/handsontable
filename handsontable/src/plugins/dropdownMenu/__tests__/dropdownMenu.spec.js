@@ -304,7 +304,7 @@ describe('DropdownMenu', () => {
       expect(getPlugin('dropdownMenu').menu.getNavigator().getCurrentPage()).toBe(5);
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().key).toBe('clear_column');
     });
-  })
+  });
 
   describe('default context menu actions', () => {
     it('should display the default set of actions', () => {
