@@ -1685,6 +1685,26 @@ describe('ContextMenu', () => {
       // The selection of the ContextMenu should be active and pointed to "alignment" item
       expect(getPlugin('contextMenu').menu.getSelectedItem().key).toBe('alignment');
     });
+
+    it('should highlight menu items after hovering them', () => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true,
+        height: 400
+      });
+
+      selectCell(1, 0, 3, 0);
+      contextMenu();
+
+      $('.htContextMenu .ht_master .htCore tbody td')
+        .not('.htSeparator')
+        .eq(2) // "Insert column left"
+        .simulate('mousemove')
+        .simulate('mouseenter')
+        .simulate('mouseover');
+
+      expect(getPlugin('contextMenu').menu.getSelectedItem().key).toBe('col_left');
+    });
   });
 
   describe('disabling actions', () => {
@@ -2449,6 +2469,32 @@ describe('ContextMenu', () => {
 
       expect(getSelected()).toEqual([[1, -1, 1, 1]]);
       expect(hot.selection.isEntireRowSelected()).toBe(true);
+    });
+
+    it('should continue menu navigation from the position of the last highlighted by mouse menu item', () => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true,
+        height: 400
+      });
+
+      selectCell(1, 0, 3, 0);
+      contextMenu();
+
+      $('.htContextMenu .ht_master .htCore tbody td')
+        .not('.htSeparator')
+        .eq(2) // "Insert column left"
+        .simulate('mousemove')
+        .simulate('mouseenter')
+        .simulate('mouseover');
+
+      expect(getPlugin('contextMenu').menu.getNavigator().getCurrentPage()).toBe(3);
+      expect(getPlugin('contextMenu').menu.getSelectedItem().key).toBe('col_left');
+
+      keyDownUp('arrowDown');
+
+      expect(getPlugin('contextMenu').menu.getNavigator().getCurrentPage()).toBe(4);
+      expect(getPlugin('contextMenu').menu.getSelectedItem().key).toBe('col_right');
     });
   });
 
