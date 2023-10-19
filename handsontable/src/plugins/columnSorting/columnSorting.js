@@ -716,15 +716,6 @@ export class ColumnSorting extends BasePlugin {
     const showSortIndicator = pluginSettingsForColumn.indicator;
     const headerActionEnabled = pluginSettingsForColumn.headerAction;
     const currentSortState = this.columnStatesManager.getSortOrderOfColumn(column);
-    const indicatorElement = headerSpanElement.querySelector('.columnSortingIndicator');
-
-    if (showSortIndicator && currentSortState) {
-      if (!indicatorElement) {
-        this._appendDiv(headerSpanElement, 'columnSortingIndicator', ariaTags ? [ A11Y_HIDDEN() ] : []);
-      }
-    } else {
-      this._removeChildIfExists(headerSpanElement, indicatorElement);
-    }
     
     this.updateHeaderClasses(
       headerSpanElement,
@@ -733,6 +724,8 @@ export class ColumnSorting extends BasePlugin {
       showSortIndicator,
       headerActionEnabled
     );
+    
+    this.updateSortingIndicator(column, headerSpanElement);
 
     if (ariaTags) {
       setAttribute(TH, [
@@ -754,6 +747,29 @@ export class ColumnSorting extends BasePlugin {
 
     if (this.enabled !== false) {
       addClass(headerSpanElement, getClassesToAdd(...args));
+    }
+  }
+  
+  /**
+   * Update sorting indicator.
+   *
+   * @private
+   * @param {number} column Visual column index.
+   * @param {HTMLElement} headerSpanElement Header span element.
+   */
+  updateSortingIndicator(column, headerSpanElement) {
+    const pluginSettingsForColumn = this.getFirstCellSettings(column)[this.pluginKey];
+    const ariaTags = this.hot.getSettings().ariaTags;
+    const showSortIndicator = pluginSettingsForColumn.indicator;
+    const isColumnSorted = this.columnStatesManager.isColumnSorted(column);
+    const indicatorElement = headerSpanElement.querySelector('.columnSortingIndicator');
+
+    if (showSortIndicator && isColumnSorted) {
+      if (!indicatorElement) {
+        this._appendDiv(headerSpanElement, 'columnSortingIndicator', ariaTags ? [ A11Y_HIDDEN() ] : []);
+      }
+    } else {
+      this._removeChildIfExists(headerSpanElement, indicatorElement);
     }
   }
 

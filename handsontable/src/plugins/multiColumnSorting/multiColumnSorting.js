@@ -4,12 +4,13 @@ import {
 } from '../columnSorting';
 import { registerRootComparator } from '../columnSorting/sortService';
 import { wasHeaderClickedProperly } from '../columnSorting/utils';
-import { addClass, removeClass } from '../../helpers/dom/element';
+import { addClass, removeClass, setAttribute, removeAttribute } from '../../helpers/dom/element';
 import { rootComparator } from './rootComparator';
 import { warnAboutPluginsConflict } from './utils';
 import { getClassesToAdd, getClassesToRemove } from './domHelpers';
 
 import './multiColumnSorting.scss';
+import { A11Y_HIDDEN, A11Y_LABEL } from "../../helpers/a11y";
 
 export const PLUGIN_KEY = 'multiColumnSorting';
 export const PLUGIN_PRIORITY = 170;
@@ -270,6 +271,31 @@ export class MultiColumnSorting extends ColumnSorting {
     if (this.enabled !== false) {
       addClass(headerSpanElement, getClassesToAdd(...args));
     }
+  }
+
+  /**
+   * Update sorting indicator.
+   *
+   * @private
+   * @param {number} column Visual column index.
+   * @param {HTMLElement} headerSpanElement Header span element.
+   */
+  updateSortingIndicator(column, headerSpanElement) {
+    super.updateSortingIndicator(column, headerSpanElement);
+    const indicatorElement = headerSpanElement.querySelector('.columnSortingIndicator');
+
+    if (
+      !indicatorElement
+      || !this.hot.getSettings().ariaTags
+      || !this.columnStatesManager.isColumnSorted(column)
+      || this.columnStatesManager.getNumberOfSortedColumns() <= 1
+    ) {
+      return;
+    }
+    
+    const multiColumnSortingOrder = this.columnStatesManager.getIndexOfColumnInSortQueue(column) + 1;
+    removeAttribute(indicatorElement, A11Y_HIDDEN()[0]);
+    setAttribute(indicatorElement, ...A11Y_LABEL(`Multi-column sorting order: ${multiColumnSortingOrder}.`));
   }
 
   /**
