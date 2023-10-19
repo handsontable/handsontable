@@ -2,6 +2,11 @@ import { Page } from '@playwright/test';
 import { test } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
 
+/**
+ * Triggers the arrow keys events.
+ *
+ * @param {Page} page The instance of the Page.
+ */
 async function tryToEscapeFromTheComponentsFocus(page: Page) {
   // try to select another menu item using arrow keys (it should not be possible)
   await page.keyboard.press('ArrowDown');
