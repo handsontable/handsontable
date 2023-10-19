@@ -137,6 +137,10 @@ export class BaseUI {
       this.buildState = STATE_BUILDING;
     }
 
+    // prevents "hot.unlisten()" call when clicked
+    // (https://github.com/handsontable/handsontable/blob/master/handsontable/src/tableView.js#L317-L321)
+    this._element.setAttribute('data-hot-input', true);
+
     if (this.options.tabIndex !== undefined) {
       this._element.setAttribute('tabindex', this.options.tabIndex);
     }
@@ -152,6 +156,10 @@ export class BaseUI {
 
     } else if (this.options.wrapIt) {
       const element = this.hot.rootDocument.createElement(this.options.tagName);
+
+      // prevents "hot.unlisten()" call when clicked
+      // (https://github.com/handsontable/handsontable/blob/master/handsontable/src/tableView.js#L317-L321)
+      element.setAttribute('data-hot-input', true);
 
       objectEach(this.options, (value, key) => {
         if (element[key] !== void 0 && key !== 'className' && key !== 'tagName' && key !== 'children') {
