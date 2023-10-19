@@ -305,7 +305,7 @@ TextRenderer readOnly cell
   position: relative;
 }
 
-.handsontable .htSubmenu :after {
+.handsontable .htSubmenu .submenuIndicator::after {
   content: '\25B6'; // right-pointing triangle
   color: #777;
   position: absolute;
@@ -313,11 +313,11 @@ TextRenderer readOnly cell
   font-size: 9px;
 }
 
-[dir=rtl].handsontable .htSubmenu :after {
+[dir=rtl].handsontable .htSubmenu .submenuIndicator::after {
   content: '';
 }
 
-[dir=rtl].handsontable .htSubmenu :before {
+[dir=rtl].handsontable .htSubmenu .submenuIndicator::before {
   content: '\25C0'; // left-pointing triangle
   color: #777;
   position: absolute;

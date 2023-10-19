@@ -32,7 +32,7 @@ import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
 import {
   A11Y_DISABLED,
-  A11Y_EXPANDED,
+  A11Y_EXPANDED, A11Y_HIDDEN,
   A11Y_LABEL,
   A11Y_MENU,
   A11Y_MENU_ITEM
@@ -591,6 +591,7 @@ export class Menu {
    * @param {string} value The cell value.
    */
   menuItemRenderer(hot, TD, row, col, prop, value) {
+    const ariaTags = this.hot.getSettings().ariaTags;
     const item = hot.getSourceDataAtRow(row);
     const wrapper = this.hot.rootDocument.createElement('div');
     let itemValue = value;
@@ -602,7 +603,7 @@ export class Menu {
     empty(TD);
     addClass(wrapper, 'htItemWrapper');
 
-    if (this.hot.getSettings().ariaTags) {
+    if (ariaTags) {
       setAttribute(TD, [
         A11Y_MENU_ITEM(),
         A11Y_LABEL(itemValue),
@@ -611,6 +612,14 @@ export class Menu {
       ]);
     }
 
+    if (isItemSubMenu(item)) {
+      const submenuIndicatorElement = TD.querySelector('.submenuIndicator');
+    
+      if (!submenuIndicatorElement) {
+        this._appendDiv(TD, 'submenuIndicator', ariaTags ? [A11Y_HIDDEN()] : []);
+      }
+    }
+    
     TD.appendChild(wrapper);
 
     if (isItemSeparator(item)) {
@@ -761,6 +770,26 @@ export class Menu {
     if (hasClass(event.target, 'htCore') && isChildOf(event.target, this.hotMenu.rootElement)) {
       event.preventDefault();
     }
+  }
+
+  /**
+   * Creates a div element and appends it to the parent element with the provided class name.
+   *
+   * @private
+   * @param {HTMLElement | null} parentElement The parent element
+   * @param {string} className The class name
+   * @param {Array[] | undefined} attributes An array containing the attributes to be added. Each element of the array
+   * should be an array in a form of `[attributeName, attributeValue]`.
+   */
+  _appendDiv(parentElement, className, attributes = []) {
+    const element = this.hot.rootDocument.createElement('div');
+    addClass(element, className);
+
+    if (attributes && attributes.length) {
+      setAttribute(element, attributes);
+    }
+
+    parentElement.appendChild(element);
   }
 }
 
