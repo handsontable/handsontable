@@ -23,7 +23,7 @@ import {
   removeClass,
   getParentWindow,
   hasClass,
-  setAttribute,
+  setAttribute, appendDiv,
 } from '../../../helpers/dom/element';
 import { isRightClick } from '../../../helpers/dom/event';
 import { debounce, isFunction } from '../../../helpers/function';
@@ -616,7 +616,7 @@ export class Menu {
       const submenuIndicatorElement = TD.querySelector('.submenuIndicator');
     
       if (!submenuIndicatorElement) {
-        this._appendDiv(TD, 'submenuIndicator', ariaTags ? [A11Y_HIDDEN()] : []);
+        appendDiv(TD, 'submenuIndicator', ariaTags ? [A11Y_HIDDEN()] : []);
       }
     }
     
@@ -770,26 +770,6 @@ export class Menu {
     if (hasClass(event.target, 'htCore') && isChildOf(event.target, this.hotMenu.rootElement)) {
       event.preventDefault();
     }
-  }
-
-  /**
-   * Creates a div element and appends it to the parent element with the provided class name.
-   *
-   * @private
-   * @param {HTMLElement | null} parentElement The parent element
-   * @param {string} className The class name
-   * @param {Array[] | undefined} attributes An array containing the attributes to be added. Each element of the array
-   * should be an array in a form of `[attributeName, attributeValue]`.
-   */
-  _appendDiv(parentElement, className, attributes = []) {
-    const element = this.hot.rootDocument.createElement('div');
-    addClass(element, className);
-
-    if (attributes && attributes.length) {
-      setAttribute(element, attributes);
-    }
-
-    parentElement.appendChild(element);
   }
 }
 

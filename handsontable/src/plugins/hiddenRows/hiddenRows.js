@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import {addClass, setAttribute} from '../../helpers/dom/element';
+import {addClass, appendDiv, removeChildIfExists, setAttribute} from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
@@ -474,8 +474,8 @@ export class HiddenRows extends BasePlugin {
     const afterHiddenRowIndicatorElement = TH.querySelector('.afterHiddenRowIndicator');
 
     if (!this.#settings.indicators || row < 0) {
-      this._removeChildIfExists(TH, beforeHiddenRowIndicatorElement);
-      this._removeChildIfExists(TH, afterHiddenRowIndicatorElement);
+      removeChildIfExists(TH, beforeHiddenRowIndicatorElement);
+      removeChildIfExists(TH, afterHiddenRowIndicatorElement);
       return;
     }
     
@@ -483,7 +483,7 @@ export class HiddenRows extends BasePlugin {
 
     if (row >= 1 && this.isHidden(row - 1)) {
       if (!afterHiddenRowIndicatorElement) {
-        this._appendDiv(TH, 'afterHiddenRowIndicator', 'The previous row is hidden');
+        appendDiv(TH, 'afterHiddenRowIndicator', [A11Y_LABEL('The previous row is hidden')]);
       }
       
       classList.push('afterHiddenRow');
@@ -491,7 +491,7 @@ export class HiddenRows extends BasePlugin {
 
     if (row < this.hot.countRows() - 1 && this.isHidden(row + 1)) {
       if (!beforeHiddenRowIndicatorElement) {
-        this._appendDiv(TH, 'beforeHiddenRowIndicator', 'The next row is hidden');
+        appendDiv(TH, 'beforeHiddenRowIndicator', [A11Y_LABEL('The next row is hidden')]);
       }
       
       classList.push('beforeHiddenRow');
@@ -535,35 +535,5 @@ export class HiddenRows extends BasePlugin {
     this.#hiddenRowsMap = null;
 
     super.destroy();
-  }
-
-  /**
-   * Removes a child HTML element from the parent element.
-   *
-   * @private
-   * @param {HTMLElement | null} parentElement The parent element
-   * @param {HTMLElement | null} childElement The parent element
-   */
-  _removeChildIfExists(parentElement, childElement) {
-    if (!parentElement || !childElement) {
-      return
-    }
-
-    parentElement.removeChild(childElement);
-  }
-
-  /**
-   * Creates a div element and appends it to the parent element with the provided class name and aria-label value.
-   *
-   * @private
-   * @param {HTMLElement | null} parentElement The parent element
-   * @param {string} className The class name
-   * @param {string} ariaLabelValue The aria-label value
-   */
-  _appendDiv(parentElement, className, ariaLabelValue) {
-    const element = this.hot.rootDocument.createElement('div');
-    addClass(element, className);
-    setAttribute(element, [ A11Y_LABEL(ariaLabelValue) ]);
-    parentElement.appendChild(element);
   }
 }

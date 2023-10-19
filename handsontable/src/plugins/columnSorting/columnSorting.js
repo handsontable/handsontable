@@ -1,5 +1,5 @@
 import {
-  addClass,
+  addClass, appendDiv, removeChildIfExists,
   removeClass,
   setAttribute,
 } from '../../helpers/dom/element';
@@ -766,10 +766,10 @@ export class ColumnSorting extends BasePlugin {
 
     if (showSortIndicator && isColumnSorted) {
       if (!indicatorElement) {
-        this._appendDiv(headerSpanElement, 'columnSortingIndicator', ariaTags ? [ A11Y_HIDDEN() ] : []);
+        appendDiv(headerSpanElement, 'columnSortingIndicator', ariaTags ? [ A11Y_HIDDEN() ] : []);
       }
     } else {
-      this._removeChildIfExists(headerSpanElement, indicatorElement);
+      removeChildIfExists(headerSpanElement, indicatorElement);
     }
   }
 
@@ -874,40 +874,5 @@ export class ColumnSorting extends BasePlugin {
     this.columnStatesManager?.destroy();
 
     super.destroy();
-  }
-
-  /**
-   * Removes a child HTML element from the parent element.
-   *
-   * @private
-   * @param {HTMLElement | null} parentElement The parent element
-   * @param {HTMLElement | null} childElement The parent element
-   */
-  _removeChildIfExists(parentElement, childElement) {
-    if (!parentElement || !childElement) {
-      return
-    }
-
-    parentElement.removeChild(childElement);
-  }
-
-  /**
-   * Creates a div element and appends it to the parent element with the provided class name.
-   *
-   * @private
-   * @param {HTMLElement | null} parentElement The parent element
-   * @param {string} className The class name
-   * @param {Array[] | undefined} attributes An array containing the attributes to be added. Each element of the array
-   * should be an array in a form of `[attributeName, attributeValue]`.
-   */
-  _appendDiv(parentElement, className, attributes = []) {
-    const element = this.hot.rootDocument.createElement('div');
-    addClass(element, className);
-    
-    if (attributes && attributes.length) {
-      setAttribute(element, attributes);
-    }
-    
-    parentElement.appendChild(element);
   }
 }
