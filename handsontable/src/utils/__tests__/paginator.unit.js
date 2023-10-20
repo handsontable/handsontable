@@ -1,6 +1,62 @@
 import { createPaginator } from '../paginator';
 
 describe('Paginator', () => {
+  describe('with `initialPage` option', () => {
+    it('should create paginator that starts pagination from specified index', () => {
+      const p = createPaginator({
+        initialPage: 4,
+        size: () => 10,
+      });
+
+      expect(p.getCurrentPage()).toBe(4);
+
+      p.toNextItem();
+
+      expect(p.getCurrentPage()).toBe(5);
+
+      p.toPreviousItem();
+
+      expect(p.getCurrentPage()).toBe(4);
+    });
+
+    it('should create paginator that starts pagination from -1 (aka. inactive paginator mode)', () => {
+      const p = createPaginator({
+        initialPage: -1,
+        size: () => 10,
+      });
+
+      expect(p.getCurrentPage()).toBe(-1);
+
+      // activates the paginator
+      p.toNextItem();
+
+      expect(p.getCurrentPage()).toBe(0);
+
+      // once activated there is no possible to go back to the page at -1 index
+      p.toPreviousItem();
+
+      expect(p.getCurrentPage()).toBe(9);
+    });
+
+    it('should not create paginator with incorrect values', () => {
+      const p = createPaginator({
+        initialPage: -2,
+        size: () => 10,
+      });
+
+      expect(p.getCurrentPage()).toBe(-1);
+    });
+
+    it('should not create paginator with incorrect values', () => {
+      const p = createPaginator({
+        initialPage: 10,
+        size: () => 10,
+      });
+
+      expect(p.getCurrentPage()).toBe(9);
+    });
+  });
+
   describe('with `size` option', () => {
     it('should create paginator with a proper size', () => {
       const p = createPaginator({

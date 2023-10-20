@@ -2,7 +2,7 @@ import { test } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
 
 /**
- * Checks whether pressing the Tab key moves the focus to the filter's components.
+ * Checks whether pressing the Tab moves the focus to the filter's components.
  */
 test(__filename, async({ page }) => {
   const table = page.locator(helpers.selectors.mainTable);

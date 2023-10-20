@@ -10,6 +10,7 @@ import { MultipleSelectUI } from '../ui/multipleSelect';
  */
 export function createFocusNavigator(elements) {
   const navigator = createPaginator({
+    initialPage: 0,
     size: () => elements.length,
     onItemSelect: (currentIndex, directItemChange) => {
       const element = elements[currentIndex];

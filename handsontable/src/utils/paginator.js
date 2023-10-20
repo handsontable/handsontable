@@ -1,3 +1,5 @@
+import { clamp } from '../helpers/number';
+
 /**
  * @typedef Paginator
  * @property {function(number): void} setCurrentPage Sets the current index to the specific page.
@@ -11,18 +13,21 @@
  */
 /**
  * @param {object} options Paginator options.
+ * @param {number} [options.initialPage] Initial index from which paging starts. Also, after clearing the paginator
+ * the page is cleared to the initial page.
  * @param {function(): number} [options.size] Sets the max size of the pages.
  * @param {function(number): boolean | void} [options.onItemSelect] Fires the function on each page change.
  * @param {function(): void} [options.onClear] Fires the function after clearing the state.
  * @returns {Paginator}
  */
 export function createPaginator({
+  initialPage = -1,
   size = () => 0,
   onItemSelect = () => {},
   onClear = () => {},
 }) {
   const visitedPages = new Set();
-  let currentIndex = -1;
+  let currentIndex = clamp(initialPage, -1, getSize() - 1);
 
   /**
    * Updates the internal state of the paginator.
@@ -65,11 +70,7 @@ export function createPaginator({
    * @param {number} index The index to set.
    */
   function setCurrentPage(index) {
-    if (
-      index > -1 &&
-      index < getSize() &&
-      onItemSelect(index, true) !== false
-    ) {
+    if (index > -1 && index < getSize() && onItemSelect(index, true) !== false) {
       currentIndex = index;
     }
   }
@@ -137,7 +138,7 @@ export function createPaginator({
    */
   function clear() {
     visitedPages.clear();
-    currentIndex = -1;
+    currentIndex = initialPage;
     onClear();
   }
 

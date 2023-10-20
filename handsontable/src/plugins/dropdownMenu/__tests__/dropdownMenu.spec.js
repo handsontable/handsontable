@@ -279,7 +279,7 @@ describe('DropdownMenu', () => {
   });
 
   describe('selection', () => {
-    it('should continue menu navigation from the position of the last highlighted by mouse menu item', () => {
+    it('should continue menu navigation from the position of the lastly highlighted item by mouse', () => {
       handsontable({
         data: createSpreadsheetData(4, 4),
         colHeaders: true,

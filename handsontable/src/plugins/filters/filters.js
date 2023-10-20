@@ -249,16 +249,14 @@ export class Filters extends BasePlugin {
     if (!this.#menuFocusNavigator && this.dropdownMenuPlugin.enabled) {
       const mainMenu = this.dropdownMenuPlugin.menu;
       const focusableItems = [
+        // A fake menu item that once focused allows escaping from the focus navigation (using Tab keys)
+        // to the menu navigation using arrow keys.
+        {
+          focus: () => mainMenu.focus(),
+        },
         ...Array.from(this.components)
           .map(([, component]) => component.getElements())
           .flat(),
-        // Insert a fake menu item in the last place that allows restore navigation through
-        // dropdown menu items using arrow keys.
-        {
-          focus: () => {
-            mainMenu.focus();
-          }
-        },
       ];
 
       this.#menuFocusNavigator = createMenuFocusController(mainMenu, focusableItems);

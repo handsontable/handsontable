@@ -16,7 +16,7 @@ async function tryToEscapeFromTheComponentsFocus(page: Page) {
 }
 
 /**
- * Checks whether pressing the Tab key switches the focus through all the filters components.
+ * Checks whether pressing the Tab moves the focus forward within the filter's components.
  */
 test(__filename, async({ page }) => {
   const table = page.locator(helpers.selectors.mainTable);
@@ -123,6 +123,6 @@ test(__filename, async({ page }) => {
   await page.keyboard.press('Tab');
   await tryToEscapeFromTheComponentsFocus(page);
 
-  // take a screenshot of the dropdown menu where the first filter's component is focused (tab order loops here)
+  // take a screenshot of the dropdown menu where the first filter's component is focused (tab order starts looping from here)
   await page.screenshot({ path: helpers.screenshotPath() });
 });

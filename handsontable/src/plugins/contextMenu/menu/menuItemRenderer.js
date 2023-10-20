@@ -87,7 +87,5 @@ export function createMenuItemRenderer(mainTableHot) {
     } else if (isItemSubMenu(item)) {
       addClass(TD, 'htSubmenu');
     }
-
-    addClass(TD, cellMeta.className);
   };
 }

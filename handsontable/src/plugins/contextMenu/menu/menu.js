@@ -87,7 +87,6 @@ export class Menu {
     this.parentMenu = this.options.parent || null;
     this.menuItems = null;
     this.origOutsideClickDeselects = null;
-    this.selectedByMouse = false;
 
     this.registerEvents();
 
