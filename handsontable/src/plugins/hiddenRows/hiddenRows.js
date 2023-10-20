@@ -12,6 +12,10 @@ import { HidingMap } from '../../translations';
 
 import './hiddenRows.css';
 import { A11Y_LABEL } from "../../helpers/a11y";
+import {
+  ROW_HEADER_LABEL_AFTER_HIDDEN_ROW,
+  ROW_HEADER_LABEL_BEFORE_HIDDEN_ROW
+} from "../../i18n/constants";
 
 Hooks.getSingleton().register('beforeHideRows');
 Hooks.getSingleton().register('afterHideRows');
@@ -484,7 +488,8 @@ export class HiddenRows extends BasePlugin {
 
     if (row >= 1 && this.isHidden(row - 1)) {
       if (!afterHiddenRowIndicatorElement) {
-        appendDiv(TH, 'afterHiddenRowIndicator', areAriaTagsEnabled ? [A11Y_LABEL('The previous row is hidden')] : []);
+        const attributesToAdd = areAriaTagsEnabled ? [A11Y_LABEL(this.hot.getTranslatedPhrase(ROW_HEADER_LABEL_AFTER_HIDDEN_ROW))] : [];
+        appendDiv(TH, 'afterHiddenRowIndicator', attributesToAdd);
       }
 
       classList.push('afterHiddenRow');
@@ -492,7 +497,8 @@ export class HiddenRows extends BasePlugin {
 
     if (row < this.hot.countRows() - 1 && this.isHidden(row + 1)) {
       if (!beforeHiddenRowIndicatorElement) {
-        appendDiv(TH, 'beforeHiddenRowIndicator', areAriaTagsEnabled ? [A11Y_LABEL('The next row is hidden')] : []);
+        const attributesToAdd = areAriaTagsEnabled ? [A11Y_LABEL(this.hot.getTranslatedPhrase(ROW_HEADER_LABEL_BEFORE_HIDDEN_ROW))] : [];
+        appendDiv(TH, 'beforeHiddenRowIndicator', attributesToAdd);
       }
 
       classList.push('beforeHiddenRow');

@@ -116,6 +116,8 @@ const dictionary = {
 
   [C.ROW_HEADER_DESCRIPTION_EXPAND_ROW]: 'Naciśnij ENTER aby rozwinąć wiersz.',
   [C.ROW_HEADER_DESCRIPTION_COLLAPSE_ROW]: 'Naciśnij ENTER aby zwinąć wiersz.',
+  [C.ROW_HEADER_LABEL_BEFORE_HIDDEN_ROW]: 'Następny wiersz jest ukryty.',
+  [C.ROW_HEADER_LABEL_AFTER_HIDDEN_ROW]: 'Poprzedni wiersz jest ukryty.',
 };
 
 export default dictionary;

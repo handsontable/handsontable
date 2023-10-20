@@ -2,9 +2,8 @@ import { arrayEach } from '../../../helpers/array';
 import { rangeEach } from '../../../helpers/number';
 import { addClass, setAttribute } from '../../../helpers/dom/element';
 import BaseUI from './_base';
-import {A11Y_BUTTON, A11Y_DESCRIPTION, A11Y_EXPANDED, A11Y_HIDDEN, A11Y_LABEL} from '../../../helpers/a11y';
+import { A11Y_DESCRIPTION, A11Y_EXPANDED, A11Y_HIDDEN } from '../../../helpers/a11y';
 import {
-  COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN,
   ROW_HEADER_DESCRIPTION_COLLAPSE_ROW,
   ROW_HEADER_DESCRIPTION_EXPAND_ROW
 } from "../../../i18n/constants";
