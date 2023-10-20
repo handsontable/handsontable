@@ -19,7 +19,7 @@ import {
 } from '../contextMenu/predefinedItems';
 
 import './dropdownMenu.scss';
-import { A11Y_HIDDEN } from '../../helpers/a11y';
+import {A11Y_HIDDEN, A11Y_LABEL} from '../../helpers/a11y';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 Hooks.getSingleton().register('beforeDropdownMenuShow');
@@ -450,10 +450,7 @@ export class DropdownMenu extends BasePlugin {
     button.tabIndex = -1;
 
     if (this.hot.getSettings().ariaTags) {
-      // TODO: ASK JANEK: TAB does not focus this button
-      setAttribute(button, [
-        ['aria-label', 'Press ENTER to open menu.'], // TODO: translate
-      ]);
+      setAttribute(button, [A11Y_LABEL('Press ENTER to open menu.')]);
     }
 
     // prevent page reload on button click
