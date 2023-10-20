@@ -2,7 +2,12 @@ import { arrayEach } from '../../../helpers/array';
 import { rangeEach } from '../../../helpers/number';
 import { addClass, setAttribute } from '../../../helpers/dom/element';
 import BaseUI from './_base';
-import { A11Y_BUTTON, A11Y_EXPANDED, A11Y_HIDDEN, A11Y_LABEL } from '../../../helpers/a11y';
+import {A11Y_BUTTON, A11Y_DESCRIPTION, A11Y_EXPANDED, A11Y_HIDDEN, A11Y_LABEL} from '../../../helpers/a11y';
+import {
+  COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN,
+  ROW_HEADER_DESCRIPTION_COLLAPSE_ROW,
+  ROW_HEADER_DESCRIPTION_EXPAND_ROW
+} from "../../../i18n/constants";
 
 /**
  * Class responsible for the UI in the Nested Rows' row headers.
@@ -99,19 +104,21 @@ class HeadersUI extends BaseUI {
     if (this.dataManager.hasChildren(rowObject)) {
       const buttonsContainer = this.hot.rootDocument.createElement('DIV');
 
+      if (ariaEnabled) {
+        setAttribute(buttonsContainer, [
+          A11Y_HIDDEN(),
+        ]);
+      }
+
       addClass(TH, HeadersUI.CSS_CLASSES.parent);
 
       if (this.collapsingUI.areChildrenCollapsed(rowIndex)) {
         addClass(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${HeadersUI.CSS_CLASSES.expandButton}`);
 
         if (ariaEnabled) {
-          setAttribute(buttonsContainer, [
-            A11Y_BUTTON(),
-            A11Y_LABEL('Expand row'),
-          ]);
-
           setAttribute(TH, [
-            A11Y_EXPANDED(false)
+            A11Y_EXPANDED(false),
+            A11Y_DESCRIPTION(this.hot.getTranslatedPhrase(ROW_HEADER_DESCRIPTION_EXPAND_ROW)),
           ]);
         }
 
@@ -119,13 +126,9 @@ class HeadersUI extends BaseUI {
         addClass(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${HeadersUI.CSS_CLASSES.collapseButton}`);
 
         if (ariaEnabled) {
-          setAttribute(buttonsContainer, [
-            A11Y_BUTTON(),
-            A11Y_LABEL('Collapse row'),
-          ]);
-
           setAttribute(TH, [
-            A11Y_EXPANDED(true)
+            A11Y_EXPANDED(true),
+            A11Y_DESCRIPTION(this.hot.getTranslatedPhrase(ROW_HEADER_DESCRIPTION_COLLAPSE_ROW)),
           ]);
         }
       }

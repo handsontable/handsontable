@@ -113,6 +113,9 @@ const dictionary = {
   [C.COLUMN_HEADER_LABEL_OPEN_MENU]: 'Naciśnij ENTER aby otworzyć menu kontekstowe.',
   [C.COLUMN_HEADER_LABEL_BEFORE_HIDDEN_COLUMN]: 'Następna kolumna jest ukryta.',
   [C.COLUMN_HEADER_LABEL_AFTER_HIDDEN_COLUMN]: 'Poprzednia kolumna jest ukryta.',
+
+  [C.ROW_HEADER_DESCRIPTION_EXPAND_ROW]: 'Naciśnij ENTER aby rozwinąć wiersz.',
+  [C.ROW_HEADER_DESCRIPTION_COLLAPSE_ROW]: 'Naciśnij ENTER aby zwinąć wiersz.',
 };
 
 export default dictionary;
