@@ -5,7 +5,7 @@ import { setAttribute } from '../../../helpers/dom/element';
 import * as C from '../../../i18n/constants';
 import { SEPARATOR } from '../../../plugins/contextMenu/predefinedItems';
 import BaseUI from './_base';
-import { A11Y_HIDDEN, A11Y_LISTBOX } from "../../../helpers/a11y";
+import { A11Y_HIDDEN, A11Y_LISTBOX } from '../../../helpers/a11y';
 
 const privatePool = new WeakMap();
 

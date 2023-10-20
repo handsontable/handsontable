@@ -20,7 +20,7 @@ import {
 import {
   COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN,
   COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN
-} from "../../i18n/constants";
+} from '../../i18n/constants';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
