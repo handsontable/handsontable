@@ -470,6 +470,7 @@ export class HiddenRows extends BasePlugin {
    * @param {HTMLElement} TH Header's TH element.
    */
   onAfterGetRowHeader(row, TH) {
+    const areAriaTagsEnabled = this.hot.getSettings().ariaTags;
     const beforeHiddenRowIndicatorElement = TH.querySelector('.beforeHiddenRowIndicator');
     const afterHiddenRowIndicatorElement = TH.querySelector('.afterHiddenRowIndicator');
 
@@ -483,7 +484,7 @@ export class HiddenRows extends BasePlugin {
 
     if (row >= 1 && this.isHidden(row - 1)) {
       if (!afterHiddenRowIndicatorElement) {
-        appendDiv(TH, 'afterHiddenRowIndicator', [A11Y_LABEL('The previous row is hidden')]);
+        appendDiv(TH, 'afterHiddenRowIndicator', areAriaTagsEnabled ? [A11Y_LABEL('The previous row is hidden')] : []);
       }
 
       classList.push('afterHiddenRow');
@@ -491,7 +492,7 @@ export class HiddenRows extends BasePlugin {
 
     if (row < this.hot.countRows() - 1 && this.isHidden(row + 1)) {
       if (!beforeHiddenRowIndicatorElement) {
-        appendDiv(TH, 'beforeHiddenRowIndicator', [A11Y_LABEL('The next row is hidden')]);
+        appendDiv(TH, 'beforeHiddenRowIndicator', areAriaTagsEnabled ? [A11Y_LABEL('The next row is hidden')] : []);
       }
 
       classList.push('beforeHiddenRow');

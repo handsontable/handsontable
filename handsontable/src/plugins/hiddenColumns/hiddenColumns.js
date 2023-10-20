@@ -481,6 +481,7 @@ export class HiddenColumns extends BasePlugin {
    * @param {HTMLElement} TH Header's TH element.
    */
   onAfterGetColHeader(column, TH) {
+    const areAriaTagsEnabled = this.hot.getSettings().ariaTags;
     const beforeHiddenColumnIndicatorElement = TH.querySelector('.beforeHiddenColumnIndicator');
     const afterHiddenColumnIndicatorElement = TH.querySelector('.afterHiddenColumnIndicator');
 
@@ -494,7 +495,7 @@ export class HiddenColumns extends BasePlugin {
 
     if (column >= 1 && this.isHidden(column - 1)) {
       if (!afterHiddenColumnIndicatorElement) {
-        appendDiv(TH, 'afterHiddenColumnIndicator', [A11Y_LABEL('The previous column is hidden')]);
+        appendDiv(TH, 'afterHiddenColumnIndicator', areAriaTagsEnabled ? [A11Y_LABEL('The previous column is hidden')] : []);
       }
 
       classList.push('afterHiddenColumn');
@@ -502,7 +503,7 @@ export class HiddenColumns extends BasePlugin {
 
     if (column < this.hot.countCols() - 1 && this.isHidden(column + 1)) {
       if (!beforeHiddenColumnIndicatorElement) {
-        appendDiv(TH, 'beforeHiddenColumnIndicator', [A11Y_LABEL('The next column is hidden')]);
+        appendDiv(TH, 'beforeHiddenColumnIndicator', areAriaTagsEnabled ? [A11Y_LABEL('The next column is hidden')] : []);
       }
 
       classList.push('beforeHiddenColumn');

@@ -95,17 +95,23 @@ class SelectUI extends BaseUI {
       className: 'htUISelectDropdown'
     });
 
-    setAttribute(dropdown.element,[A11Y_HIDDEN()]);
-    
     const priv = privatePool.get(this);
 
     priv.caption = caption;
     priv.captionElement = caption.element;
     priv.dropdown = dropdown;
 
-    arrayEach([caption, dropdown], element => this._element.appendChild(element.element));
+    if (this.hot.getSettings().ariaTags) {
+      setAttribute(dropdown.element, [
+        A11Y_HIDDEN()
+      ]);
 
-    setAttribute(this._element, [A11Y_LISTBOX()]);
+      setAttribute(this._element, [
+        A11Y_LISTBOX()
+      ]);
+    }
+  
+    arrayEach([caption, dropdown], element => this._element.appendChild(element.element));
 
     this.menu.addLocalHook('select', command => this.onMenuSelect(command));
     this.menu.addLocalHook('afterClose', () => this.onMenuClosed());

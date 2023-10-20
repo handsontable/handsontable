@@ -109,7 +109,7 @@ function applyAlignClassName(row, col, type, alignment, cellDescriptor, property
  */
 export function markLabelAsSelected(label) {
   // workaround for https://github.com/handsontable/handsontable/issues/1946
-  return `<span class="selected" aria-selected="true">${String.fromCharCode(10003)}</span>${label}`;
+  return `<span class="selected">${String.fromCharCode(10003)}</span>${label}`;
 }
 
 /**

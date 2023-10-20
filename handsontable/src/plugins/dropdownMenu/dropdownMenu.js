@@ -451,7 +451,9 @@ export class DropdownMenu extends BasePlugin {
     button.tabIndex = -1;
 
     if (this.hot.getSettings().ariaTags) {
-      setAttribute(button, [A11Y_LABEL('Press ENTER to open menu.')]);
+      setAttribute(button, [
+        A11Y_LABEL('Press ENTER to open menu.')
+      ]);
     }
 
     // prevent page reload on button click
