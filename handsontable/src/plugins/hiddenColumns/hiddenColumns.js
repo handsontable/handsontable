@@ -492,7 +492,7 @@ export class HiddenColumns extends BasePlugin {
     if (!this.#settings.indicators || column < 0) {
       removeChildIfExists(TH, beforeHiddenColumnIndicatorElement);
       removeChildIfExists(TH, afterHiddenColumnIndicatorElement);
-      
+
       return;
     }
 
@@ -503,7 +503,7 @@ export class HiddenColumns extends BasePlugin {
         const attributesToAdd = areAriaTagsEnabled
           ? [A11Y_LABEL(this.hot.getTranslatedPhrase(COLUMN_HEADER_LABEL_AFTER_HIDDEN_COLUMN))]
           : [];
-        
+
         appendDiv(TH, 'afterHiddenColumnIndicator', attributesToAdd);
       }
 
@@ -515,7 +515,7 @@ export class HiddenColumns extends BasePlugin {
         const attributesToAdd = areAriaTagsEnabled
           ? [A11Y_LABEL(this.hot.getTranslatedPhrase(COLUMN_HEADER_LABEL_BEFORE_HIDDEN_COLUMN))]
           : [];
-        
+
         appendDiv(TH, 'beforeHiddenColumnIndicator', attributesToAdd);
       }
 

@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import {addClass, appendDiv, removeChildIfExists, setAttribute} from '../../helpers/dom/element';
+import { addClass, appendDiv, removeChildIfExists } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
@@ -9,13 +9,13 @@ import Hooks from '../../pluginHooks';
 import hideRowItem from './contextMenuItem/hideRow';
 import showRowItem from './contextMenuItem/showRow';
 import { HidingMap } from '../../translations';
-
-import './hiddenRows.css';
-import { A11Y_LABEL } from "../../helpers/a11y";
+import { A11Y_LABEL } from '../../helpers/a11y';
 import {
   ROW_HEADER_LABEL_AFTER_HIDDEN_ROW,
-  ROW_HEADER_LABEL_BEFORE_HIDDEN_ROW
-} from "../../i18n/constants";
+  ROW_HEADER_LABEL_BEFORE_HIDDEN_ROW,
+} from '../../i18n/constants';
+
+import './hiddenRows.css';
 
 Hooks.getSingleton().register('beforeHideRows');
 Hooks.getSingleton().register('afterHideRows');
@@ -481,6 +481,7 @@ export class HiddenRows extends BasePlugin {
     if (!this.#settings.indicators || row < 0) {
       removeChildIfExists(TH, beforeHiddenRowIndicatorElement);
       removeChildIfExists(TH, afterHiddenRowIndicatorElement);
+
       return;
     }
 
@@ -488,7 +489,10 @@ export class HiddenRows extends BasePlugin {
 
     if (row >= 1 && this.isHidden(row - 1)) {
       if (!afterHiddenRowIndicatorElement) {
-        const attributesToAdd = areAriaTagsEnabled ? [A11Y_LABEL(this.hot.getTranslatedPhrase(ROW_HEADER_LABEL_AFTER_HIDDEN_ROW))] : [];
+        const attributesToAdd = areAriaTagsEnabled
+          ? [A11Y_LABEL(this.hot.getTranslatedPhrase(ROW_HEADER_LABEL_AFTER_HIDDEN_ROW))]
+          : [];
+
         appendDiv(TH, 'afterHiddenRowIndicator', attributesToAdd);
       }
 
@@ -497,7 +501,10 @@ export class HiddenRows extends BasePlugin {
 
     if (row < this.hot.countRows() - 1 && this.isHidden(row + 1)) {
       if (!beforeHiddenRowIndicatorElement) {
-        const attributesToAdd = areAriaTagsEnabled ? [A11Y_LABEL(this.hot.getTranslatedPhrase(ROW_HEADER_LABEL_BEFORE_HIDDEN_ROW))] : [];
+        const attributesToAdd = areAriaTagsEnabled
+          ? [A11Y_LABEL(this.hot.getTranslatedPhrase(ROW_HEADER_LABEL_BEFORE_HIDDEN_ROW))]
+          : [];
+
         appendDiv(TH, 'beforeHiddenRowIndicator', attributesToAdd);
       }
 

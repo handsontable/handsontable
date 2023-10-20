@@ -108,7 +108,7 @@ const dictionary = {
   [C.COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN]: 'Press ENTER to collapse column.',
   [C.COLUMN_HEADER_DESCRIPTION_SORT_ROWS]: 'Press ENTER to change sorting.',
   [C.COLUMN_HEADER_LABEL_MULTI_COLUMN_SORT_ORDER]: 'Multi-column sorting order: ',
-  [C.COLUMN_HEADER_LABEL_OPEN_MENU]: 'Press ENTER to open menu.',
+  [C.COLUMN_HEADER_LABEL_OPEN_MENU]: 'Press CTRL+ENTER to open menu.',
   [C.COLUMN_HEADER_LABEL_BEFORE_HIDDEN_COLUMN]: 'The next column is hidden.',
   [C.COLUMN_HEADER_LABEL_AFTER_HIDDEN_COLUMN]: 'The previous column is hidden.',
 
