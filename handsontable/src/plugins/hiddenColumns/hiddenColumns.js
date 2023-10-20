@@ -12,6 +12,7 @@ import { HidingMap } from '../../translations';
 import { A11Y_LABEL } from '../../helpers/a11y';
 
 import './hiddenColumns.scss';
+import {COLUMN_HEADER_LABEL_AFTER_HIDDEN_COLUMN, COLUMN_HEADER_LABEL_BEFORE_HIDDEN_COLUMN} from "../../i18n/constants";
 
 Hooks.getSingleton().register('beforeHideColumns');
 Hooks.getSingleton().register('afterHideColumns');
@@ -495,7 +496,8 @@ export class HiddenColumns extends BasePlugin {
 
     if (column >= 1 && this.isHidden(column - 1)) {
       if (!afterHiddenColumnIndicatorElement) {
-        appendDiv(TH, 'afterHiddenColumnIndicator', areAriaTagsEnabled ? [A11Y_LABEL('The previous column is hidden')] : []);
+        const attributesToAdd = areAriaTagsEnabled ? [A11Y_LABEL(this.hot.getTranslatedPhrase(COLUMN_HEADER_LABEL_AFTER_HIDDEN_COLUMN))] : [];
+        appendDiv(TH, 'afterHiddenColumnIndicator', attributesToAdd);
       }
 
       classList.push('afterHiddenColumn');
@@ -503,7 +505,8 @@ export class HiddenColumns extends BasePlugin {
 
     if (column < this.hot.countCols() - 1 && this.isHidden(column + 1)) {
       if (!beforeHiddenColumnIndicatorElement) {
-        appendDiv(TH, 'beforeHiddenColumnIndicator', areAriaTagsEnabled ? [A11Y_LABEL('The next column is hidden')] : []);
+        const attributesToAdd = areAriaTagsEnabled ? [A11Y_LABEL(this.hot.getTranslatedPhrase(COLUMN_HEADER_LABEL_BEFORE_HIDDEN_COLUMN))] : [];
+        appendDiv(TH, 'beforeHiddenColumnIndicator', attributesToAdd);
       }
 
       classList.push('beforeHiddenColumn');

@@ -6,7 +6,11 @@
  * Description: Definition file for English - United States language-country.
  */
 import * as C from '../constants';
-import {COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN} from "../constants";
+import {
+  COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN,
+  COLUMN_HEADER_LABEL_AFTER_HIDDEN_COLUMN,
+  COLUMN_HEADER_LABEL_BEFORE_HIDDEN_COLUMN
+} from "../constants";
 
 const dictionary = {
   languageCode: 'en-US',
@@ -108,7 +112,9 @@ const dictionary = {
   [C.COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN]: 'Press ENTER to expand column.',
   [C.COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN]: 'Press ENTER to collapse column.',
   [C.COLUMN_HEADER_DESCRIPTION_SORT_ROWS]: 'Press ENTER to change sorting.',
-  [C.COLUMN_HEADER_DESCRIPTION_OPEN_MENU]: 'Press ENTER to open menu.',
+  [C.COLUMN_HEADER_LABEL_OPEN_MENU]: 'Press ENTER to open menu.',
+  [C.COLUMN_HEADER_LABEL_BEFORE_HIDDEN_COLUMN]: 'The next column is hidden.',
+  [C.COLUMN_HEADER_LABEL_AFTER_HIDDEN_COLUMN]: 'The previous column is hidden.',
 };
 
 export default dictionary;

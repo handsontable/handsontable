@@ -20,7 +20,7 @@ import {
 
 import './dropdownMenu.scss';
 import { A11Y_LABEL } from '../../helpers/a11y';
-import {COLUMN_HEADER_DESCRIPTION_OPEN_MENU} from "../../i18n/constants";
+import {COLUMN_HEADER_LABEL_OPEN_MENU} from "../../i18n/constants";
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 Hooks.getSingleton().register('beforeDropdownMenuShow');
@@ -453,7 +453,7 @@ export class DropdownMenu extends BasePlugin {
 
     if (this.hot.getSettings().ariaTags) {
       setAttribute(button, [
-        A11Y_LABEL(this.hot.getTranslatedPhrase(COLUMN_HEADER_DESCRIPTION_OPEN_MENU)),
+        A11Y_LABEL(this.hot.getTranslatedPhrase(COLUMN_HEADER_LABEL_OPEN_MENU)),
       ]);
     }
 
