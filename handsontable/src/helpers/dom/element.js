@@ -1153,15 +1153,15 @@ export function runWithSelectedContendEditableElement(element, callback, invisib
  * Creates a div element and appends it to the parent element with the provided class name(s) and attributes.
  *
  * @private
- * @param {HTMLElement | null} parentElement The parent element
+ * @param {HTMLElement | null} parentElement The parent element.
  * @param {string|Array} className Class name as string or array of strings.
  * @param {Array[] | undefined} attributes An array containing the attributes to be added. Each element of the array
  * should be an array in a form of `[attributeName, attributeValue]`.
  * @returns {HTMLElement} The created div element.
  */
-export function appendDiv(parentElement, className = [], attributes = [] = []) {
+export function appendDiv(parentElement, className = [], attributes = []) {
   const element = this.hot.rootDocument.createElement('div');
-  
+
   if (className) {
     addClass(element, className);
   }
@@ -1171,6 +1171,7 @@ export function appendDiv(parentElement, className = [], attributes = [] = []) {
   }
 
   parentElement.appendChild(element);
+
   return element;
 }
 
@@ -1178,12 +1179,12 @@ export function appendDiv(parentElement, className = [], attributes = [] = []) {
  * Removes a child HTML element from the parent element. If the child element does not exist, nothing happens.
  *
  * @private
- * @param {HTMLElement | null} parentElement The parent element
- * @param {HTMLElement | null} childElement The parent element
+ * @param {HTMLElement | null} parentElement The parent element.
+ * @param {HTMLElement | null} childElement The parent element.
  */
 export function removeChildIfExists(parentElement, childElement) {
   if (!parentElement || !childElement) {
-    return
+    return;
   }
 
   parentElement.removeChild(childElement);

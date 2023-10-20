@@ -9,8 +9,7 @@ import Hooks from '../../pluginHooks';
 import hideColumnItem from './contextMenuItem/hideColumn';
 import showColumnItem from './contextMenuItem/showColumn';
 import { HidingMap } from '../../translations';
-import {A11Y_LABEL} from "../../helpers/a11y";
-
+import { A11Y_LABEL } from "../../helpers/a11y";
 
 import './hiddenColumns.scss';
 
@@ -484,7 +483,7 @@ export class HiddenColumns extends BasePlugin {
   onAfterGetColHeader(column, TH) {
     const beforeHiddenColumnIndicatorElement = TH.querySelector('.beforeHiddenColumnIndicator');
     const afterHiddenColumnIndicatorElement = TH.querySelector('.afterHiddenColumnIndicator');
-    
+
     if (!this.#settings.indicators || column < 0) {
       removeChildIfExists(TH, beforeHiddenColumnIndicatorElement);
       removeChildIfExists(TH, afterHiddenColumnIndicatorElement);
@@ -497,7 +496,7 @@ export class HiddenColumns extends BasePlugin {
       if (!afterHiddenColumnIndicatorElement) {
         appendDiv(TH, 'afterHiddenColumnIndicator', [A11Y_LABEL('The previous column is hidden')]);
       }
-      
+
       classList.push('afterHiddenColumn');
     }
 
@@ -505,7 +504,7 @@ export class HiddenColumns extends BasePlugin {
       if (!beforeHiddenColumnIndicatorElement) {
         appendDiv(TH, 'beforeHiddenColumnIndicator', [A11Y_LABEL('The next column is hidden')]);
       }
-      
+
       classList.push('beforeHiddenColumn');
     }
 

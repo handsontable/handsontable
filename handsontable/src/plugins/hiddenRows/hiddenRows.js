@@ -11,7 +11,7 @@ import showRowItem from './contextMenuItem/showRow';
 import { HidingMap } from '../../translations';
 
 import './hiddenRows.css';
-import {A11Y_LABEL} from "../../helpers/a11y";
+import { A11Y_LABEL } from "../../helpers/a11y";
 
 Hooks.getSingleton().register('beforeHideRows');
 Hooks.getSingleton().register('afterHideRows');
@@ -211,7 +211,7 @@ export class HiddenRows extends BasePlugin {
   disablePlugin() {
     this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     this.#settings = {};
-    
+
     super.disablePlugin();
     this.resetCellsMeta();
   }
@@ -478,14 +478,14 @@ export class HiddenRows extends BasePlugin {
       removeChildIfExists(TH, afterHiddenRowIndicatorElement);
       return;
     }
-    
+
     const classList = [];
 
     if (row >= 1 && this.isHidden(row - 1)) {
       if (!afterHiddenRowIndicatorElement) {
         appendDiv(TH, 'afterHiddenRowIndicator', [A11Y_LABEL('The previous row is hidden')]);
       }
-      
+
       classList.push('afterHiddenRow');
     }
 
@@ -493,13 +493,13 @@ export class HiddenRows extends BasePlugin {
       if (!beforeHiddenRowIndicatorElement) {
         appendDiv(TH, 'beforeHiddenRowIndicator', [A11Y_LABEL('The next row is hidden')]);
       }
-      
+
       classList.push('beforeHiddenRow');
     }
 
     addClass(TH, classList);
   }
-  
+
   /**
    * Add Show-hide rows to context menu.
    *

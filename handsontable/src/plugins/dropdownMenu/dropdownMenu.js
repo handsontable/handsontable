@@ -19,7 +19,7 @@ import {
 } from '../contextMenu/predefinedItems';
 
 import './dropdownMenu.scss';
-import {A11Y_HIDDEN, A11Y_LABEL} from '../../helpers/a11y';
+import { A11Y_LABEL } from '../../helpers/a11y';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 Hooks.getSingleton().register('beforeDropdownMenuShow');

@@ -614,12 +614,12 @@ export class Menu {
 
     if (isItemSubMenu(item)) {
       const submenuIndicatorElement = TD.querySelector('.submenuIndicator');
-    
+
       if (!submenuIndicatorElement) {
         appendDiv(TD, 'submenuIndicator', ariaTags ? [A11Y_HIDDEN()] : []);
       }
     }
-    
+
     TD.appendChild(wrapper);
 
     if (isItemSeparator(item)) {
