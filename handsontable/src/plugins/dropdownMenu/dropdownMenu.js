@@ -271,9 +271,10 @@ export class DropdownMenu extends BasePlugin {
     };
 
     context.addShortcuts([{
-      keys: [['Shift', 'Alt', 'ArrowDown'], ['Shift', 'Enter']],
+      keys: [['Shift', 'Alt', 'ArrowDown'], ['Control/Meta', 'Enter']],
       callback,
       runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isHeader() && !this.menu.isOpened(),
+      captureCtrl: true,
       group: SHORTCUTS_GROUP,
     }, {
       keys: [['Shift', 'Alt', 'ArrowDown']],

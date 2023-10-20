@@ -129,7 +129,7 @@ export class MultiColumnSorting extends ColumnSorting {
     this.hot.getShortcutManager()
       .getContext('grid')
       .addShortcut({
-        keys: [['Control/Meta', 'Enter']],
+        keys: [['Shift', 'Enter']],
         callback: () => {
           const { highlight } = this.hot.getSelectedRangeLast();
 

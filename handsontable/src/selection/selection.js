@@ -656,8 +656,8 @@ class Selection {
     const countRowHeaders = this.tableProps.countRowHeaders();
     const countColHeaders = this.tableProps.countColHeaders();
 
-    const rowFrom = includeRowHeaders ? -countColHeaders : 0;
-    const columnFrom = includeColumnHeaders ? -countRowHeaders : 0;
+    const rowFrom = includeColumnHeaders ? -countColHeaders : 0;
+    const columnFrom = includeRowHeaders ? -countRowHeaders : 0;
 
     // We can't select cells when there is no data.
     if (rowFrom === 0 && columnFrom === 0 && (nrOfRows === 0 || nrOfColumns === 0)) {

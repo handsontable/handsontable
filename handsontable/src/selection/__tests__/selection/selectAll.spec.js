@@ -92,7 +92,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,3 from: -1,-1 to: 3,5']);
     });
 
-    it('should select all cells without row headers', () => {
+    it('should select all cells without column headers', () => {
       const hot = handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -100,7 +100,7 @@ describe('Selection', () => {
       });
 
       selectCells([[1, 1, 2, 2]]);
-      hot.selection.selectAll(false, true);
+      hot.selection.selectAll(true, false);
 
       expect(`
         |   ║ - : - : - : - : - : - |
@@ -113,7 +113,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 0,-1 to: 3,5']);
     });
 
-    it('should select all cells without column headers', () => {
+    it('should select all cells without row headers', () => {
       const hot = handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -121,7 +121,7 @@ describe('Selection', () => {
       });
 
       selectCells([[1, 1, 2, 2]]);
-      hot.selection.selectAll(true, false);
+      hot.selection.selectAll(false, true);
 
       expect(`
         |   ║ * : * : * : * : * : * |
@@ -365,38 +365,6 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: -3,0 to: 3,5']);
     });
 
-    it('should select all cells without row headers (multiple headers, navigableHeaders on)', () => {
-      const hot = handsontable({
-        data: createSpreadsheetObjectData(4, 6),
-        colHeaders: true,
-        rowHeaders: true,
-        navigableHeaders: true,
-        afterGetColumnHeaderRenderers(headerRenderers) {
-          headerRenderers.push(columnHeader.bind(this));
-          headerRenderers.push(columnHeader.bind(this));
-        },
-        afterGetRowHeaderRenderers(headerRenderers) {
-          headerRenderers.push(rowHeader.bind(this));
-          headerRenderers.push(rowHeader.bind(this));
-        },
-      });
-
-      selectCells([[1, 1, 2, 2]]);
-      hot.selection.selectAll(false, true);
-
-      expect(`
-        |   :   :   ║   :   :   :   :   :   |
-        |   :   :   ║   :   :   :   :   :   |
-        |   :   :   ║ - : - : - : - : - : - |
-        |===:===:===:===:===:===:===:===:===|
-        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-        | * : * : * ║ 0 : A : 0 : 0 : 0 : 0 |
-        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 0,-3 to: 3,5']);
-    });
-
     it('should select all cells without column headers (multiple headers, navigableHeaders on)', () => {
       const hot = handsontable({
         data: createSpreadsheetObjectData(4, 6),
@@ -415,6 +383,38 @@ describe('Selection', () => {
 
       selectCells([[1, 1, 2, 2]]);
       hot.selection.selectAll(true, false);
+
+      expect(`
+        |   :   :   ║   :   :   :   :   :   |
+        |   :   :   ║   :   :   :   :   :   |
+        |   :   :   ║ - : - : - : - : - : - |
+        |===:===:===:===:===:===:===:===:===|
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : A : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * : * : * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 0,-3 to: 3,5']);
+    });
+
+    it('should select all cells without row headers (multiple headers, navigableHeaders on)', () => {
+      const hot = handsontable({
+        data: createSpreadsheetObjectData(4, 6),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        afterGetColumnHeaderRenderers(headerRenderers) {
+          headerRenderers.push(columnHeader.bind(this));
+          headerRenderers.push(columnHeader.bind(this));
+        },
+        afterGetRowHeaderRenderers(headerRenderers) {
+          headerRenderers.push(rowHeader.bind(this));
+          headerRenderers.push(rowHeader.bind(this));
+        },
+      });
+
+      selectCells([[1, 1, 2, 2]]);
+      hot.selection.selectAll(false, true);
 
       expect(`
         |   :   :   ║ * : * : * : * : * : * |

@@ -19,7 +19,7 @@ describe('MultiColumnSorting keyboard shortcut', () => {
     this.view.appendColHeader(visualColumnsIndex, TH);
   }
 
-  describe('"Control/Meta" + "Enter"', () => {
+  describe('"Shift" + "Enter"', () => {
     it('should be possible to sort columns with correct sort order', () => {
       handsontable({
         data: createSpreadsheetData(3, 8),
@@ -30,25 +30,25 @@ describe('MultiColumnSorting keyboard shortcut', () => {
       });
 
       selectCell(-1, 1);
-      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
         column: 1,
         sortOrder: 'asc',
       }]);
 
-      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
         column: 1,
         sortOrder: 'desc',
       }]);
 
-      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([]);
 
-      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
         column: 1,
@@ -66,7 +66,7 @@ describe('MultiColumnSorting keyboard shortcut', () => {
       });
 
       selectCell(-1, 1);
-      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
         column: 1,
@@ -74,7 +74,7 @@ describe('MultiColumnSorting keyboard shortcut', () => {
       }]);
 
       selectCell(-1, 3);
-      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([
         {
@@ -87,7 +87,7 @@ describe('MultiColumnSorting keyboard shortcut', () => {
         }
       ]);
 
-      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([
         {
@@ -100,7 +100,7 @@ describe('MultiColumnSorting keyboard shortcut', () => {
         }
       ]);
 
-      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
         column: 1,
@@ -108,7 +108,7 @@ describe('MultiColumnSorting keyboard shortcut', () => {
       }]);
 
       selectCell(-1, 5);
-      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([
         {
@@ -122,7 +122,7 @@ describe('MultiColumnSorting keyboard shortcut', () => {
       ]);
 
       selectCell(-1, 1);
-      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([
         {
@@ -147,7 +147,7 @@ describe('MultiColumnSorting keyboard shortcut', () => {
 
       selectColumns(1, 4, -1);
       listen();
-      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
         column: 1,
@@ -169,27 +169,27 @@ describe('MultiColumnSorting keyboard shortcut', () => {
       });
 
       selectCell(-1, -1); // corner
-      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([]);
 
       selectCell(1, -1); // row header
-      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([]);
 
       selectCell(-3, 1); // the first (top) column header
-      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([]);
 
       selectCell(-2, 1); // the second column header
-      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([]);
 
       selectCell(-1, 1); // the third (bottom) column header
-      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
         column: 1,
@@ -207,7 +207,7 @@ describe('MultiColumnSorting keyboard shortcut', () => {
       });
 
       selectCell(-1, 1);
-      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(getActiveEditor()).toBeUndefined();
     });
