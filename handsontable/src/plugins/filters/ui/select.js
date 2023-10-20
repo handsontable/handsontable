@@ -95,7 +95,7 @@ class SelectUI extends BaseUI {
       className: 'htUISelectDropdown'
     });
 
-    setAttribute(dropdown.element, [['aria-hidden', 'true']]);
+    setAttribute(dropdown.element,[A11Y_HIDDEN()]);
     
     const priv = privatePool.get(this);
 
@@ -105,7 +105,7 @@ class SelectUI extends BaseUI {
 
     arrayEach([caption, dropdown], element => this._element.appendChild(element.element));
 
-    setAttribute(this._element, [['role', 'listbox']]);
+    setAttribute(this._element, [A11Y_LISTBOX()]);
 
     this.menu.addLocalHook('select', command => this.onMenuSelect(command));
     this.menu.addLocalHook('afterClose', () => this.onMenuClosed());

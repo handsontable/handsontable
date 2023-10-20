@@ -2,7 +2,7 @@ import { arrayEach } from '../../../helpers/array';
 import { rangeEach } from '../../../helpers/number';
 import { addClass, setAttribute } from '../../../helpers/dom/element';
 import BaseUI from './_base';
-import { A11Y_EXPANDED, A11Y_HIDDEN } from '../../../helpers/a11y';
+import {A11Y_BUTTON, A11Y_EXPANDED, A11Y_HIDDEN, A11Y_LABEL} from '../../../helpers/a11y';
 
 /**
  * Class responsible for the UI in the Nested Rows' row headers.
@@ -106,13 +106,11 @@ class HeadersUI extends BaseUI {
 
         if (ariaEnabled) {
           setAttribute(buttonsContainer, [
-            ['role', 'button'],
-            ['aria-label', 'Expand row'],
+            A11Y_BUTTON(),
+            A11Y_LABEL('Expand row'),
           ]);
           
-          setAttribute(TH, [
-            A11Y_EXPANDED(false)
-          ]);
+          setAttribute(TH, [A11Y_EXPANDED(false)]);
         }
 
       } else {
@@ -120,13 +118,11 @@ class HeadersUI extends BaseUI {
 
         if (ariaEnabled) {
           setAttribute(buttonsContainer, [
-            ['role', 'button'],
-            ['aria-label', 'Collapse row'],
+            A11Y_BUTTON(),
+            A11Y_LABEL('Collapse row'),
           ]);
           
-          setAttribute(TH, [
-            A11Y_EXPANDED(true)
-          ]);
+          setAttribute(TH, [A11Y_EXPANDED(true)]);
         }
       }
 
