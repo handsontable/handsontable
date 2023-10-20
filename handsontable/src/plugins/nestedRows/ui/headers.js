@@ -5,8 +5,8 @@ import BaseUI from './_base';
 import { A11Y_DESCRIPTION, A11Y_EXPANDED, A11Y_HIDDEN } from '../../../helpers/a11y';
 import {
   ROW_HEADER_DESCRIPTION_COLLAPSE_ROW,
-  ROW_HEADER_DESCRIPTION_EXPAND_ROW
-} from "../../../i18n/constants";
+  ROW_HEADER_DESCRIPTION_EXPAND_ROW,
+} from '../../../i18n/constants';
 
 /**
  * Class responsible for the UI in the Nested Rows' row headers.
