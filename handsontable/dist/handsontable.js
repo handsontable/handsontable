@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 13.1.0
- * Release date: 31/08/2023 (built at 19/10/2023 18:08:36)
+ * Release date: 31/08/2023 (built at 20/10/2023 10:21:24)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -105,7 +105,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "19/10/2023 18:08:36";
+Handsontable.buildDate = "20/10/2023 10:21:24";
 Handsontable.version = "13.1.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -7078,6 +7078,7 @@ module.exports = typeof Bun == 'function' && Bun && typeof Bun.version == 'strin
 exports.__esModule = true;
 exports.addClass = addClass;
 exports.addEvent = addEvent;
+exports.appendDiv = appendDiv;
 exports.clearTextSelection = clearTextSelection;
 exports.closest = closest;
 exports.closestDown = closestDown;
@@ -7121,6 +7122,7 @@ exports.outerHeight = outerHeight;
 exports.outerWidth = outerWidth;
 exports.overlayContainsElement = overlayContainsElement;
 exports.removeAttribute = removeAttribute;
+exports.removeChildIfExists = removeChildIfExists;
 exports.removeClass = removeClass;
 exports.removeContentEditableFromElementAndDeselect = removeContentEditableFromElementAndDeselect;
 exports.removeEvent = removeEvent;
@@ -8213,6 +8215,44 @@ function runWithSelectedContendEditableElement(element, callback) {
   removeContentEditableFromElementAndDeselect(element, invisibleSelection);
 }
 
+/**
+ * Creates a div element and appends it to the parent element with the provided class name(s) and attributes.
+ *
+ * @private
+ * @param {HTMLElement | null} parentElement The parent element
+ * @param {string|Array} className Class name as string or array of strings.
+ * @param {Array[] | undefined} attributes An array containing the attributes to be added. Each element of the array
+ * should be an array in a form of `[attributeName, attributeValue]`.
+ * @returns {HTMLElement} The created div element.
+ */
+function appendDiv(parentElement) {
+  let className = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+  let attributes = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [] = [];
+  const element = this.hot.rootDocument.createElement('div');
+  if (className) {
+    addClass(element, className);
+  }
+  if (attributes && attributes.length) {
+    setAttribute(element, attributes);
+  }
+  parentElement.appendChild(element);
+  return element;
+}
+
+/**
+ * Removes a child HTML element from the parent element. If the child element does not exist, nothing happens.
+ *
+ * @private
+ * @param {HTMLElement | null} parentElement The parent element
+ * @param {HTMLElement | null} childElement The parent element
+ */
+function removeChildIfExists(parentElement, childElement) {
+  if (!parentElement || !childElement) {
+    return;
+  }
+  parentElement.removeChild(childElement);
+}
+
 /***/ }),
 /* 108 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
@@ -8958,6 +8998,8 @@ const A11Y_TEXT = () => ['type', 'text'];
 exports.A11Y_TEXT = A11Y_TEXT;
 const A11Y_LABEL = val => ['aria-label', val];
 exports.A11Y_LABEL = A11Y_LABEL;
+const A11Y_DESCRIPTION = val => ['aria-description', val];
+exports.A11Y_DESCRIPTION = A11Y_DESCRIPTION;
 const A11Y_HIDDEN = () => ['aria-hidden', 'true'];
 exports.A11Y_HIDDEN = A11Y_HIDDEN;
 const A11Y_DISABLED = () => ['aria-disabled', 'true'];
@@ -52613,8 +52655,7 @@ class CollapsibleColumns extends _base.BasePlugin {
 
         // Add ARIA tags
         if (isAriaTagsEnabled) {
-          (0, _element.setAttribute)(TH, ...(0, _a11y.A11Y_EXPANDED)(false));
-          (0, _element.setAttribute)(TH, [['aria-description', 'Press ENTER to expand the column.']]);
+          (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_EXPANDED)(false), (0, _a11y.A11Y_DESCRIPTION)('Press ENTER to expand the column.')]);
         }
       } else {
         (0, _element.addClass)(collapsibleElement, 'expanded');
@@ -52622,8 +52663,7 @@ class CollapsibleColumns extends _base.BasePlugin {
 
         // Add ARIA tags
         if (isAriaTagsEnabled) {
-          (0, _element.setAttribute)(TH, ...(0, _a11y.A11Y_EXPANDED)(true));
-          (0, _element.setAttribute)(TH, [['aria-description', 'Press ENTER to collapse the column.']]);
+          (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_EXPANDED)(true), (0, _a11y.A11Y_DESCRIPTION)('Press ENTER to collapse the column.')]);
         }
       }
       if (isAriaTagsEnabled) {
@@ -53362,7 +53402,7 @@ class ColumnSorting extends _base.BasePlugin {
     this.updateHeaderClasses(headerSpanElement, this.columnStatesManager, column, showSortIndicator, headerActionEnabled);
     this.updateSortingIndicator(column, headerSpanElement);
     if (ariaTags) {
-      (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_SORT)(currentSortState ? `${currentSortState}ending` : 'none'), ['aria-description', 'Press ENTER to change sorting.']]);
+      (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_SORT)(currentSortState ? `${currentSortState}ending` : 'none'), (0, _a11y.A11Y_DESCRIPTION)('Press ENTER to change sorting.')]);
     }
   }
 
@@ -53398,10 +53438,10 @@ class ColumnSorting extends _base.BasePlugin {
     const indicatorElement = headerSpanElement.querySelector('.columnSortingIndicator');
     if (showSortIndicator && isColumnSorted) {
       if (!indicatorElement) {
-        this._appendDiv(headerSpanElement, 'columnSortingIndicator', ariaTags ? [(0, _a11y.A11Y_HIDDEN)()] : []);
+        (0, _element.appendDiv)(headerSpanElement, 'columnSortingIndicator', ariaTags ? [(0, _a11y.A11Y_HIDDEN)()] : []);
       }
     } else {
-      this._removeChildIfExists(headerSpanElement, indicatorElement);
+      (0, _element.removeChildIfExists)(headerSpanElement, indicatorElement);
     }
   }
 
@@ -53500,39 +53540,6 @@ class ColumnSorting extends _base.BasePlugin {
     // eslint-disable-next-line no-unused-expressions
     (_this$columnStatesMan = this.columnStatesManager) === null || _this$columnStatesMan === void 0 ? void 0 : _this$columnStatesMan.destroy();
     super.destroy();
-  }
-
-  /**
-   * Removes a child HTML element from the parent element.
-   *
-   * @private
-   * @param {HTMLElement | null} parentElement The parent element
-   * @param {HTMLElement | null} childElement The parent element
-   */
-  _removeChildIfExists(parentElement, childElement) {
-    if (!parentElement || !childElement) {
-      return;
-    }
-    parentElement.removeChild(childElement);
-  }
-
-  /**
-   * Creates a div element and appends it to the parent element with the provided class name.
-   *
-   * @private
-   * @param {HTMLElement | null} parentElement The parent element
-   * @param {string} className The class name
-   * @param {Array[] | undefined} attributes An array containing the attributes to be added. Each element of the array
-   * should be an array in a form of `[attributeName, attributeValue]`.
-   */
-  _appendDiv(parentElement, className) {
-    let attributes = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
-    const element = this.hot.rootDocument.createElement('div');
-    (0, _element.addClass)(element, className);
-    if (attributes && attributes.length) {
-      (0, _element.setAttribute)(element, attributes);
-    }
-    parentElement.appendChild(element);
   }
 }
 exports.ColumnSorting = ColumnSorting;
@@ -58959,6 +58966,7 @@ class Menu {
    * @param {string} value The cell value.
    */
   menuItemRenderer(hot, TD, row, col, prop, value) {
+    const ariaTags = this.hot.getSettings().ariaTags;
     const item = hot.getSourceDataAtRow(row);
     const wrapper = this.hot.rootDocument.createElement('div');
     let itemValue = value;
@@ -58967,8 +58975,14 @@ class Menu {
     }
     (0, _element.empty)(TD);
     (0, _element.addClass)(wrapper, 'htItemWrapper');
-    if (this.hot.getSettings().ariaTags) {
+    if (ariaTags) {
       (0, _element.setAttribute)(TD, [(0, _a11y.A11Y_MENU_ITEM)(), (0, _a11y.A11Y_LABEL)(itemValue), ...((0, _utils.isItemDisabled)(item, this.hot) ? [(0, _a11y.A11Y_DISABLED)()] : []), ...((0, _utils.isItemSubMenu)(item) ? [(0, _a11y.A11Y_EXPANDED)(false)] : [])]);
+    }
+    if ((0, _utils.isItemSubMenu)(item)) {
+      const submenuIndicatorElement = TD.querySelector('.submenuIndicator');
+      if (!submenuIndicatorElement) {
+        (0, _element.appendDiv)(TD, 'submenuIndicator', ariaTags ? [(0, _a11y.A11Y_HIDDEN)()] : []);
+      }
     }
     TD.appendChild(wrapper);
     if ((0, _utils.isItemSeparator)(item)) {
@@ -71105,20 +71119,20 @@ class HiddenColumns extends _base.BasePlugin {
     const beforeHiddenColumnIndicatorElement = TH.querySelector('.beforeHiddenColumnIndicator');
     const afterHiddenColumnIndicatorElement = TH.querySelector('.afterHiddenColumnIndicator');
     if (!(0, _classPrivateFieldGet2.default)(this, _settings).indicators || column < 0) {
-      this._removeChildIfExists(TH, beforeHiddenColumnIndicatorElement);
-      this._removeChildIfExists(TH, afterHiddenColumnIndicatorElement);
+      (0, _element.removeChildIfExists)(TH, beforeHiddenColumnIndicatorElement);
+      (0, _element.removeChildIfExists)(TH, afterHiddenColumnIndicatorElement);
       return;
     }
     const classList = [];
     if (column >= 1 && this.isHidden(column - 1)) {
       if (!afterHiddenColumnIndicatorElement) {
-        this._appendDiv(TH, 'afterHiddenColumnIndicator', 'The previous column is hidden');
+        (0, _element.appendDiv)(TH, 'afterHiddenColumnIndicator', [(0, _a11y.A11Y_LABEL)('The previous column is hidden')]);
       }
       classList.push('afterHiddenColumn');
     }
     if (column < this.hot.countCols() - 1 && this.isHidden(column + 1)) {
       if (!beforeHiddenColumnIndicatorElement) {
-        this._appendDiv(TH, 'beforeHiddenColumnIndicator', 'The next column is hidden');
+        (0, _element.appendDiv)(TH, 'beforeHiddenColumnIndicator', [(0, _a11y.A11Y_LABEL)('The next column is hidden')]);
       }
       classList.push('beforeHiddenColumn');
     }
@@ -71155,35 +71169,6 @@ class HiddenColumns extends _base.BasePlugin {
     (0, _classPrivateFieldSet2.default)(this, _settings, null);
     (0, _classPrivateFieldSet2.default)(this, _hiddenColumnsMap, null);
     super.destroy();
-  }
-
-  /**
-   * Removes a child HTML element from the parent element.
-   *
-   * @private
-   * @param {HTMLElement | null} parentElement The parent element
-   * @param {HTMLElement | null} childElement The parent element
-   */
-  _removeChildIfExists(parentElement, childElement) {
-    if (!parentElement || !childElement) {
-      return;
-    }
-    parentElement.removeChild(childElement);
-  }
-
-  /**
-   * Creates a div element and appends it to the parent element with the provided class name and aria-label value.
-   *
-   * @private
-   * @param {HTMLElement | null} parentElement The parent element
-   * @param {string} className The class name
-   * @param {string} ariaLabelValue The aria-label value
-   */
-  _appendDiv(parentElement, className, ariaLabelValue) {
-    const element = this.hot.rootDocument.createElement('div');
-    (0, _element.addClass)(element, className);
-    (0, _element.setAttribute)(element, [(0, _a11y.A11Y_LABEL)(ariaLabelValue)]);
-    parentElement.appendChild(element);
   }
 }
 exports.HiddenColumns = HiddenColumns;
@@ -71849,20 +71834,20 @@ class HiddenRows extends _base.BasePlugin {
     const beforeHiddenRowIndicatorElement = TH.querySelector('.beforeHiddenRowIndicator');
     const afterHiddenRowIndicatorElement = TH.querySelector('.afterHiddenRowIndicator');
     if (!(0, _classPrivateFieldGet2.default)(this, _settings).indicators || row < 0) {
-      this._removeChildIfExists(TH, beforeHiddenRowIndicatorElement);
-      this._removeChildIfExists(TH, afterHiddenRowIndicatorElement);
+      (0, _element.removeChildIfExists)(TH, beforeHiddenRowIndicatorElement);
+      (0, _element.removeChildIfExists)(TH, afterHiddenRowIndicatorElement);
       return;
     }
     const classList = [];
     if (row >= 1 && this.isHidden(row - 1)) {
       if (!afterHiddenRowIndicatorElement) {
-        this._appendDiv(TH, 'afterHiddenRowIndicator', 'The previous row is hidden');
+        (0, _element.appendDiv)(TH, 'afterHiddenRowIndicator', [(0, _a11y.A11Y_LABEL)('The previous row is hidden')]);
       }
       classList.push('afterHiddenRow');
     }
     if (row < this.hot.countRows() - 1 && this.isHidden(row + 1)) {
       if (!beforeHiddenRowIndicatorElement) {
-        this._appendDiv(TH, 'beforeHiddenRowIndicator', 'The next row is hidden');
+        (0, _element.appendDiv)(TH, 'beforeHiddenRowIndicator', [(0, _a11y.A11Y_LABEL)('The next row is hidden')]);
       }
       classList.push('beforeHiddenRow');
     }
@@ -71899,35 +71884,6 @@ class HiddenRows extends _base.BasePlugin {
     (0, _classPrivateFieldSet2.default)(this, _settings, null);
     (0, _classPrivateFieldSet2.default)(this, _hiddenRowsMap, null);
     super.destroy();
-  }
-
-  /**
-   * Removes a child HTML element from the parent element.
-   *
-   * @private
-   * @param {HTMLElement | null} parentElement The parent element
-   * @param {HTMLElement | null} childElement The parent element
-   */
-  _removeChildIfExists(parentElement, childElement) {
-    if (!parentElement || !childElement) {
-      return;
-    }
-    parentElement.removeChild(childElement);
-  }
-
-  /**
-   * Creates a div element and appends it to the parent element with the provided class name and aria-label value.
-   *
-   * @private
-   * @param {HTMLElement | null} parentElement The parent element
-   * @param {string} className The class name
-   * @param {string} ariaLabelValue The aria-label value
-   */
-  _appendDiv(parentElement, className, ariaLabelValue) {
-    const element = this.hot.rootDocument.createElement('div');
-    (0, _element.addClass)(element, className);
-    (0, _element.setAttribute)(element, [(0, _a11y.A11Y_LABEL)(ariaLabelValue)]);
-    parentElement.appendChild(element);
   }
 }
 exports.HiddenRows = HiddenRows;
@@ -78300,9 +78256,8 @@ class MultiColumnSorting extends _columnSorting.ColumnSorting {
    */
   updateSortingIndicator(column, headerSpanElement) {
     super.updateSortingIndicator(column, headerSpanElement);
-    const ariaTags = this.hot.getSettings().ariaTags;
     const indicatorElement = headerSpanElement.querySelector('.columnSortingIndicator');
-    if (!indicatorElement || !ariaTags || !this.columnStatesManager.isColumnSorted(column) || this.columnStatesManager.getNumberOfSortedColumns() <= 1) {
+    if (!indicatorElement || !this.hot.getSettings().ariaTags || !this.columnStatesManager.isColumnSorted(column) || this.columnStatesManager.getNumberOfSortedColumns() <= 1) {
       return;
     }
     const multiColumnSortingOrder = this.columnStatesManager.getIndexOfColumnInSortQueue(column) + 1;

@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 13.1.0
- * Release date: 31/08/2023 (built at 19/10/2023 18:08:36)
+ * Release date: 31/08/2023 (built at 20/10/2023 10:21:24)
  */
 /**
  * Fix for bootstrap styles
@@ -696,7 +696,7 @@ TextRenderer readOnly cell
   position: relative;
 }
 
-.handsontable .htSubmenu :after {
+.handsontable .htSubmenu .submenuIndicator::after {
   content: "▶";
   color: #777;
   position: absolute;
@@ -704,11 +704,11 @@ TextRenderer readOnly cell
   font-size: 9px;
 }
 
-[dir=rtl].handsontable .htSubmenu :after {
+[dir=rtl].handsontable .htSubmenu .submenuIndicator::after {
   content: "";
 }
 
-[dir=rtl].handsontable .htSubmenu :before {
+[dir=rtl].handsontable .htSubmenu .submenuIndicator::before {
   content: "◀";
   color: #777;
   position: absolute;

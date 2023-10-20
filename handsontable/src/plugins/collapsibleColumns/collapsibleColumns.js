@@ -13,6 +13,7 @@ import {
 import EventManager from '../../eventManager';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import {
+  A11Y_DESCRIPTION,
   A11Y_EXPANDED,
   A11Y_HIDDEN
 } from '../../helpers/a11y';
@@ -544,9 +545,9 @@ export class CollapsibleColumns extends BasePlugin {
 
         // Add ARIA tags
         if (isAriaTagsEnabled) {
-          setAttribute(TH, ...A11Y_EXPANDED(false));
           setAttribute(TH, [
-            ['aria-description', 'Press ENTER to expand the column.']
+            A11Y_EXPANDED(false),
+            A11Y_DESCRIPTION('Press ENTER to expand the column.'),
           ]);
         }
 
@@ -557,9 +558,9 @@ export class CollapsibleColumns extends BasePlugin {
 
         // Add ARIA tags
         if (isAriaTagsEnabled) {
-          setAttribute(TH, ...A11Y_EXPANDED(true));
           setAttribute(TH, [
-            ['aria-description', 'Press ENTER to collapse the column.']
+            A11Y_EXPANDED(true),
+            A11Y_DESCRIPTION('Press ENTER to collapse the column.'),
           ]);
         }
       }

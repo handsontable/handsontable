@@ -14,6 +14,7 @@ export const A11Y_SCOPE_COL = () => ['scope', 'col'];
 export const A11Y_SCOPE_ROW = () => ['scope', 'row'];
 export const A11Y_TEXT = () => ['type', 'text'];
 export const A11Y_LABEL = val => ['aria-label', val];
+export const A11Y_DESCRIPTION = val => ['aria-description', val];
 export const A11Y_HIDDEN = () => ['aria-hidden', 'true'];
 export const A11Y_DISABLED = () => ['aria-disabled', 'true'];
 export const A11Y_MULTISELECTABLE = () => ['aria-multiselectable', 'true'];
