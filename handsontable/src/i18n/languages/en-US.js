@@ -107,6 +107,7 @@ const dictionary = {
 
   [C.COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN]: 'Press ENTER to expand column.',
   [C.COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN]: 'Press ENTER to collapse column.',
+  [C.COLUMN_HEADER_DESCRIPTION_SORT_ROWS]: 'Press ENTER to change sorting.',
 };
 
 export default dictionary;

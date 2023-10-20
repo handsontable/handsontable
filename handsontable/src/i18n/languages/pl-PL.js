@@ -109,6 +109,7 @@ const dictionary = {
 
   [C.COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN]: 'Naciśnij ENTER aby rozwinąć kolumnę.',
   [C.COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN]: 'Naciśnij ENTER aby zwinąć kolumnę.',
+  [C.COLUMN_HEADER_DESCRIPTION_SORT_ROWS]: 'Naciśnij ENTER zmienić sortowanie.',
 };
 
 export default dictionary;

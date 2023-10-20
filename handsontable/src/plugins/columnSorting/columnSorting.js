@@ -25,6 +25,7 @@ import {
 import { rootComparator } from './rootComparator';
 import { registerRootComparator, sort } from './sortService';
 import { A11Y_DESCRIPTION, A11Y_HIDDEN, A11Y_SORT } from '../../helpers/a11y';
+import {COLUMN_HEADER_DESCRIPTION_SORT_ROWS} from "../../i18n/constants";
 
 export const PLUGIN_KEY = 'columnSorting';
 export const PLUGIN_PRIORITY = 50;
@@ -730,7 +731,7 @@ export class ColumnSorting extends BasePlugin {
     if (ariaTags) {
       setAttribute(TH, [
         A11Y_SORT(currentSortState ? `${currentSortState}ending` : 'none'),
-        A11Y_DESCRIPTION('Press ENTER to change sorting.'),
+        A11Y_DESCRIPTION(this.hot.getTranslatedPhrase(COLUMN_HEADER_DESCRIPTION_SORT_ROWS)),
       ]);
     }
   }

@@ -1160,7 +1160,7 @@ export function runWithSelectedContendEditableElement(element, callback, invisib
  * @returns {HTMLElement} The created div element.
  */
 export function appendDiv(parentElement, className = [], attributes = []) {
-  const element = this.hot.rootDocument.createElement('div');
+  const element = parentElement.ownerDocument.createElement('div');
 
   if (className) {
     addClass(element, className);
