@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import {addClass, appendDiv, removeChildIfExists, setAttribute} from '../../helpers/dom/element';
+import { addClass, appendDiv, removeChildIfExists } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
@@ -9,7 +9,7 @@ import Hooks from '../../pluginHooks';
 import hideColumnItem from './contextMenuItem/hideColumn';
 import showColumnItem from './contextMenuItem/showColumn';
 import { HidingMap } from '../../translations';
-import { A11Y_LABEL } from "../../helpers/a11y";
+import { A11Y_LABEL } from '../../helpers/a11y';
 
 import './hiddenColumns.scss';
 

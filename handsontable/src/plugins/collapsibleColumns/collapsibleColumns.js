@@ -17,6 +17,11 @@ import {
   A11Y_EXPANDED,
   A11Y_HIDDEN
 } from '../../helpers/a11y';
+import {
+  CHECKBOX_CHECKED,
+  COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN,
+  COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN
+} from "../../i18n/constants";
 
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
@@ -547,7 +552,7 @@ export class CollapsibleColumns extends BasePlugin {
         if (isAriaTagsEnabled) {
           setAttribute(TH, [
             A11Y_EXPANDED(false),
-            A11Y_DESCRIPTION('Press ENTER to expand the column.'),
+            A11Y_DESCRIPTION(this.hot.getTranslatedPhrase(COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN)),
           ]);
         }
 
@@ -560,7 +565,7 @@ export class CollapsibleColumns extends BasePlugin {
         if (isAriaTagsEnabled) {
           setAttribute(TH, [
             A11Y_EXPANDED(true),
-            A11Y_DESCRIPTION('Press ENTER to collapse the column.'),
+            A11Y_DESCRIPTION(this.hot.getTranslatedPhrase(COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN)),
           ]);
         }
       }

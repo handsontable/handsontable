@@ -106,6 +106,9 @@ const dictionary = {
 
   [C.CHECKBOX_CHECKED]: 'Zaznaczony',
   [C.CHECKBOX_UNCHECKED]: 'Odznaczony',
+
+  [C.COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN]: 'Naciśnij ENTER aby rozwinąć kolumnę.',
+  [C.COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN]: 'Naciśnij ENTER aby zwinąć kolumnę.',
 };
 
 export default dictionary;

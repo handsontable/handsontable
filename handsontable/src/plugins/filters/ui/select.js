@@ -5,6 +5,7 @@ import { setAttribute } from '../../../helpers/dom/element';
 import * as C from '../../../i18n/constants';
 import { SEPARATOR } from '../../../plugins/contextMenu/predefinedItems';
 import BaseUI from './_base';
+import { A11Y_HIDDEN, A11Y_LISTBOX } from "../../../helpers/a11y";
 
 const privatePool = new WeakMap();
 
@@ -90,7 +91,7 @@ class SelectUI extends BaseUI {
     const caption = new BaseUI(this.hot, {
       className: 'htUISelectCaption'
     });
-    
+
     const dropdown = new BaseUI(this.hot, {
       className: 'htUISelectDropdown'
     });
@@ -110,7 +111,7 @@ class SelectUI extends BaseUI {
         A11Y_LISTBOX()
       ]);
     }
-  
+
     arrayEach([caption, dropdown], element => this._element.appendChild(element.element));
 
     this.menu.addLocalHook('select', command => this.onMenuSelect(command));

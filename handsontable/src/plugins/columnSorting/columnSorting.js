@@ -766,7 +766,7 @@ export class ColumnSorting extends BasePlugin {
 
     if (showSortIndicator && isColumnSorted) {
       if (!indicatorElement) {
-        appendDiv(headerSpanElement, 'columnSortingIndicator', ariaTags ? [ A11Y_HIDDEN() ] : []);
+        appendDiv(headerSpanElement, 'columnSortingIndicator', ariaTags ? [A11Y_HIDDEN()] : []);
       }
     } else {
       removeChildIfExists(headerSpanElement, indicatorElement);
