@@ -10,9 +10,9 @@ import hideColumnItem from './contextMenuItem/hideColumn';
 import showColumnItem from './contextMenuItem/showColumn';
 import { HidingMap } from '../../translations';
 import { A11Y_LABEL } from '../../helpers/a11y';
+import { COLUMN_HEADER_LABEL_AFTER_HIDDEN_COLUMN, COLUMN_HEADER_LABEL_BEFORE_HIDDEN_COLUMN } from "../../i18n/constants";
 
 import './hiddenColumns.scss';
-import {COLUMN_HEADER_LABEL_AFTER_HIDDEN_COLUMN, COLUMN_HEADER_LABEL_BEFORE_HIDDEN_COLUMN} from "../../i18n/constants";
 
 Hooks.getSingleton().register('beforeHideColumns');
 Hooks.getSingleton().register('afterHideColumns');

@@ -18,7 +18,6 @@ import {
   A11Y_HIDDEN
 } from '../../helpers/a11y';
 import {
-  CHECKBOX_CHECKED,
   COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN,
   COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN
 } from "../../i18n/constants";

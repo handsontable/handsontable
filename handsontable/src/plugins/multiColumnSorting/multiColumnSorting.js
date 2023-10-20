@@ -8,9 +8,10 @@ import { addClass, removeClass, setAttribute, removeAttribute } from '../../help
 import { rootComparator } from './rootComparator';
 import { warnAboutPluginsConflict } from './utils';
 import { getClassesToAdd, getClassesToRemove } from './domHelpers';
+import { A11Y_HIDDEN, A11Y_LABEL } from "../../helpers/a11y";
+import { COLUMN_HEADER_LABEL_MULTI_COLUMN_SORT_ORDER } from "../../i18n/constants";
 
 import './multiColumnSorting.scss';
-import { A11Y_HIDDEN, A11Y_LABEL } from "../../helpers/a11y";
 
 export const PLUGIN_KEY = 'multiColumnSorting';
 export const PLUGIN_PRIORITY = 170;
@@ -294,8 +295,11 @@ export class MultiColumnSorting extends ColumnSorting {
     }
 
     const multiColumnSortingOrder = this.columnStatesManager.getIndexOfColumnInSortQueue(column) + 1;
+    const a11yLabelAttribute = A11Y_LABEL(
+      `${this.hot.getTranslatedPhrase(COLUMN_HEADER_LABEL_MULTI_COLUMN_SORT_ORDER)}${multiColumnSortingOrder}.`
+    );
     removeAttribute(indicatorElement, A11Y_HIDDEN()[0]);
-    setAttribute(indicatorElement, ...A11Y_LABEL(`Multi-column sorting order: ${multiColumnSortingOrder}.`));
+    setAttribute(indicatorElement, ...a11yLabelAttribute);
   }
 
   /**
