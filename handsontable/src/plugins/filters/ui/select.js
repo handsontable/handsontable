@@ -54,6 +54,11 @@ export class SelectUI extends BaseUI {
     this.registerHooks();
   }
 
+  /**
+   * Gets the instance of the Menu.
+   *
+   * @returns {Menu}
+   */
   getMenu() {
     return this.#menu;
   }

@@ -36,9 +36,8 @@ export function createMenuItemRenderer(mainTableHot) {
    * @param {number} col The visual index.
    * @param {string} prop The column property if used.
    * @param {string} value The cell value.
-   * @param {object} cellMeta The cell meta object.
    */
-  return (menuHot, TD, row, col, prop, value, cellMeta) => {
+  return (menuHot, TD, row, col, prop, value) => {
     if (TD.hasAttribute('ghost-table')) {
       return;
     }

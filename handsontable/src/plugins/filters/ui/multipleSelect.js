@@ -81,6 +81,11 @@ export class MultipleSelectUI extends BaseUI {
     this.registerHooks();
   }
 
+  /**
+   * Gets the instance of the internal Handsontable that acts here as a listbox component.
+   *
+   * @returns {Handsontable}
+   */
   getItemsBox() {
     return this.#itemsBox;
   }
