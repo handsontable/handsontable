@@ -1546,7 +1546,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       changes.push([
         input[i][0],
         prop,
-        dataSource.getCellAt(this.toPhysicalRow(input[i][0]), input[i][1]),
+        dataSource.getAtCell(this.toPhysicalRow(input[i][0]), input[i][1]),
         input[i][2],
       ]);
     }
@@ -1587,7 +1587,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       changes.push([
         input[i][0],
         input[i][1],
-        dataSource.getCellAt(this.toPhysicalRow(input[i][0]), input[i][1]),
+        dataSource.getAtCell(this.toPhysicalRow(input[i][0]), input[i][1]),
         input[i][2],
       ]);
     }
@@ -3045,14 +3045,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         changesForHook.push([
           changeRow,
           changeProp,
-          dataSource.getCellAt(changeRow, changeProp), // The previous value.
+          dataSource.getAtCell(changeRow, changeProp), // The previous value.
           changeValue,
         ]);
       });
     }
 
     arrayEach(input, ([changeRow, changeProp, changeValue]) => {
-      dataSource.setCellAt(changeRow, changeProp, changeValue);
+      dataSource.setAtCell(changeRow, changeProp, changeValue);
     });
 
     if (isThereAnySetSourceListener) {
@@ -3094,7 +3094,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   // TODO: Getting data from `sourceData` should work always on physical indexes.
   this.getSourceDataAtCell = function(row, column) {
-    return dataSource.getCellAt(row, column);
+    return dataSource.getAtCell(row, column);
   };
 
   /**
