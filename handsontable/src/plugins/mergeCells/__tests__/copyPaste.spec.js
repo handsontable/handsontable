@@ -123,8 +123,6 @@ describe('MergeCells copy and paste', () => {
       mergeCells: [{ col: 1, row: 1, rowspan: 2, colspan: 1 }],
       data: [['A1', 'B1', 'D1'], ['A2', 'B2', 'D2'], ['A3', null, 'D3'], ['A4', 'B4', 'D4']],
     });
-    expect(afterCopySpy.calls.argsFor(0)[0].isTable()).toBe(true);
-    expect(afterCopySpy.calls.argsFor(0)[0].isHandsontable()).toBe(true);
   });
 
   it('should call `afterPaste` hook with proper object when some elements are removed from the pasted data', () => {
@@ -203,8 +201,6 @@ describe('MergeCells copy and paste', () => {
       mergeCells: [{ col: 1, row: 1, rowspan: 2, colspan: 1 }],
       data: [['A1', 'B1', 'D1'], ['A2', 'B2', 'D2'], ['A3', null, 'D3'], ['A4', 'B4', 'D4']],
     });
-    expect(afterPasteSpy.calls.argsFor(0)[0].isTable()).toBe(true);
-    expect(afterPasteSpy.calls.argsFor(0)[0].isHandsontable()).toBe(true);
   });
 
   it('should properly change copied values using `beforeCopy` hook (removing first row of merged area)', () => {

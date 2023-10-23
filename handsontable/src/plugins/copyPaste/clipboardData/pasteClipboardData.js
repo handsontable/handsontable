@@ -29,7 +29,7 @@ export class PasteClipboardData extends ClipboardData {
     super();
     this.html = html;
 
-    if (this.isTable()) {
+    if (this.isSerializedTable()) {
       this.data = getDataWithHeadersByConfig(this.getMetaInfo());
 
     } else {
@@ -43,7 +43,7 @@ export class PasteClipboardData extends ClipboardData {
    * @private
    * @returns {boolean}
    */
-  isTable() {
+  isSerializedTable() {
     return isDefined(this.html) && /(<table)|(<TABLE)/g.test(this.html);
   }
 
@@ -53,8 +53,8 @@ export class PasteClipboardData extends ClipboardData {
    * @private
    * @returns {boolean}
    */
-  isHandsontable() {
-    return this.isTable() && /<meta (.*?)content="Handsontable"/.test(this.html);
+  isSerializedHandsontable() {
+    return this.isSerializedTable() && /<meta (.*?)content="Handsontable"/.test(this.html);
   }
 
   /**
@@ -63,11 +63,11 @@ export class PasteClipboardData extends ClipboardData {
    * @returns {string}
    */
   getSource() {
-    if (this.isHandsontable()) {
+    if (this.isSerializedHandsontable()) {
       return 'Handsontable';
     }
 
-    if (this.isTable()) {
+    if (this.isSerializedTable()) {
       return 'table';
     }
 

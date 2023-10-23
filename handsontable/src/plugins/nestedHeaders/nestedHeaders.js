@@ -429,9 +429,6 @@ export class NestedHeaders extends BasePlugin {
    *
    * @private
    * @param {object} clipboardData Information about already performed copy action.
-   * @param {Function} clipboardData.isTable Checks whether copied data is an array.
-   * @param {Function} clipboardData.isHandsontable Checks whether copied data is a Handsontable.
-   * @param {Function} clipboardData.getHotRanges Returns ranges related to copied part of Handsontable.
    * @param {Function} clipboardData.removeRow Remove row from the copied/pasted dataset.
    * @param {Function} clipboardData.removeColumn Remove column from the copied/pasted dataset.
    * @param {Function} clipboardData.insertAtRow Insert values at row index.
@@ -441,6 +438,7 @@ export class NestedHeaders extends BasePlugin {
    * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
    * @param {Function} clipboardData.getHTML Gets sanitized data of "text/html" type inside the clipboard.
    * @param {Function} clipboardData.getMetaInfo Gets grid settings for copied data.
+   * @param {Function} clipboardData.getHotRanges Returns ranges related to copied part of Handsontable.
    */
   onBeforeCopy(clipboardData) {
     const copyableRanges = clipboardData.getHotRanges();

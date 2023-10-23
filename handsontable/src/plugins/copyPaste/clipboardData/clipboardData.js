@@ -74,7 +74,7 @@ export class ClipboardData {
    * @param {object} config Configuration.
    */
   overwriteInfo(config) {
-    this.html = [this.isHandsontable() ? META_HEAD : '', getHTMLFromConfig(config)].join('');
+    this.html = [this.isSerializedHandsontable() ? META_HEAD : '', getHTMLFromConfig(config)].join('');
     this.data = getDataWithHeadersByConfig(config);
   }
 
@@ -182,7 +182,7 @@ export class ClipboardData {
   }
 
   /**
-   * Remove rows from the copied/pasted dataset.
+   * Remove rows from the serialized dataset.
    *
    * Note: Used indexes refers to processed data, not to the instance of Handsontable. Please keep in mind that headers
    * are handled separately from cells and they are recognised using negative indexes.
@@ -190,7 +190,7 @@ export class ClipboardData {
    * @param {number[]} rows List of row indexes which should be excluded when creating copy/cut/paste data.
    */
   removeRows(rows) {
-    if (this.isTable() === false) {
+    if (this.isSerializedTable() === false) {
       return;
     }
 
@@ -207,7 +207,7 @@ export class ClipboardData {
   }
 
   /**
-   * Remove columns from the copied/pasted dataset.
+   * Remove columns from the serialized dataset.
    *
    * Note: Used indexes refers to processed data, not to the instance of Handsontable. Please keep in mind that headers
    * are handled separately from cells and they are recognised using negative indexes.
@@ -215,7 +215,7 @@ export class ClipboardData {
    * @param {number[]} columns List of column indexes which should be excluded when creating copy/cut/paste data.
    */
   removeColumns(columns) {
-    if (this.isTable() === false) {
+    if (this.isSerializedTable() === false) {
       return;
     }
 
@@ -327,7 +327,7 @@ export class ClipboardData {
    * @param {string[]} values List of values.
    */
   insertAtRow(rowIndex, values) {
-    if (this.isTable() === false) {
+    if (this.isSerializedTable() === false) {
       return;
     }
 
@@ -423,7 +423,7 @@ export class ClipboardData {
    * @param {string[]} values List of values.
    */
   insertAtColumn(columnIndex, values) {
-    if (this.isTable() === false) {
+    if (this.isSerializedTable() === false) {
       return;
     }
 
@@ -451,7 +451,7 @@ export class ClipboardData {
   }
 
   /**
-   * Change headers or cells in the copied/pasted dataset.
+   * Change headers or cells in the serialized dataset.
    *
    * Note: Used indexes refers to processed data, not to the instance of Handsontable. Please keep in mind that headers
    * are handled separately from cells and they are recognised using negative indexes.
@@ -462,6 +462,10 @@ export class ClipboardData {
    * @param {boolean} isRtl Grid is rendered using the right-to-left layout direction.
    */
   setCellAt(row, column, value, isRtl = false) {
+    if (this.isSerializedTable() === false) {
+      return;
+    }
+
     const config = this.getMetaInfo();
     const { data, nestedHeaders, colHeaders } = config;
 
@@ -491,7 +495,7 @@ export class ClipboardData {
   }
 
   /**
-   * Gets header or cell values from the copied/pasted dataset.
+   * Gets header or cell values from the serialized dataset.
    *
    * Note: Used indexes refers to processed data, not to the instance of Handsontable. Please keep in mind that headers
    * are handled separately from cells and they are recognised using negative indexes.
@@ -499,9 +503,13 @@ export class ClipboardData {
    * @param {number} row Row index of cell which should be get.
    * @param {number} column Column index of cell which should be get.
    * @param {boolean} isRtl Grid is rendered using the right-to-left layout direction.
-   * @returns {string}
+   * @returns {undefined|string}
    */
   getCellAt(row, column, isRtl = false) {
+    if (this.isSerializedTable() === false) {
+      return;
+    }
+
     const config = this.getMetaInfo();
     const { data, nestedHeaders, colHeaders } = config;
 
@@ -529,22 +537,22 @@ export class ClipboardData {
   }
 
   /**
-   * Checks whether copied data is an array.
+   * Checks whether serialized data is an array.
    *
    * @private
    * @returns {boolean}
    */
-  isTable() {
+  isSerializedTable() {
     return true;
   }
 
   /**
-   * Checks whether copied data is a Handsontable.
+   * Checks whether serialized data is a Handsontable.
    *
    * @private
    * @returns {boolean}
    */
-  isHandsontable() {
+  isSerializedHandsontable() {
     return true;
   }
 
