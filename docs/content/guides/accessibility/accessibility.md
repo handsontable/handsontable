@@ -32,7 +32,7 @@ Handsontable has complete accessibility support, incorporating built-in keyboard
 
 ## Overview
 
-We advocate for a universally accessible web. With this vision, we've designed Handsontable to be fully accessible to individuals with disabilities, emphasizing our commitment to inclusive design and ensuring that web applications cater to all users. 
+We advocate for a universally accessible web. With this vision, we have designed Handsontable to be fully accessible to individuals with disabilities, emphasizing our commitment to inclusive design and ensuring that web applications cater to all users. 
 
 ## Conformance with Standards
 Standard regulations laid out by different jurisdictions such as European Union or the US, are inline with WCAG. WCAG is a guidelines set maintained by World Wide Web Consortium (W3C). By meeting the requirements of [WCAG 2.1](https://www.w3.org/WAI/WCAG21/quickref/) at level AA, Handsontable provides conformance with W3C standards. A list of policies related to web accessibility under different jurisdictions is available [here](https://www.w3.org/WAI/policies/).
@@ -49,9 +49,9 @@ Standard regulations laid out by different jurisdictions such as European Union 
   - [Standard on Web Accessibility](https://www.tbs-sct.canada.ca/pol/doc-eng.aspx?id=23601)
 
 ## Accessibility Statement and VPAT
-When developers work on making websites easy for everyone to use, they often see two important terms: "Accessibility Statement" and "VPAT." The Accessibility Statement is like a promise from a company, saying how well their product works for people with disabilities. VPAT, on the other hand, is a form that gives more details about how a product meets certain rules for being user-friendly, like the Web Content Accessibility Guidelines (WCAG).
+When developers work on making websites easy for everyone to use, they often see two important terms: *Accessibility Statement* and *VPAT*. The *Accessibility Statement* is like a promise from a company, saying how well their product works for people with disabilities. *VPAT*, on the other hand, is a form that gives more details about how a product meets certain rules for being user-friendly, like the Web Content Accessibility Guidelines (WCAG).
 
-So, why do companies care about these documents? Let's take Handsontable as an example. When other companies use Handsontable in their apps, they want to make sure it's easy for everyone to use. If those apps already follow certain rules (like WCAG 2.1 AA), they don't want Handsontable to make things worse. By sharing an Accessibility Statement and VPAT, Handsontable shows companies that it's serious about making sure everyone can use their product easily.
+So, why do companies care about these documents? Let's take Handsontable as an example. When other companies use Handsontable in their apps, they want to make sure it's easy for everyone to use. If those apps already follow certain rules (like WCAG 2.1 AA), they don't want Handsontable to make things worse. By sharing an *Accessibility Statement* and *VPAT*, Handsontable shows companies that it's serious about making sure everyone can use their product easily.
 
 ## Keyboard Navigation
 The principle of accessible web components is that users who cannot use a mouse can still navigate the product with a keyboard or other assistive technology.
@@ -88,23 +88,24 @@ Like many grid applications, we understand that there are a variety of screen re
 ## Customizable Demo
 **Handsontable demo optimized for Accessibility** can look differently depending on the application you build. In this demo below you enable or disable multiple options that change the level of support for disabled users.
 
-- **navigableHeaders:** [click](https://handsontable.com/docs/javascript-data-grid/api/options/#navigableHeaders)
-- **tabMoves:** [click](https://handsontable.com/docs/javascript-data-grid/api/options/#tabMoves)
-- **enterMoves:** [click](https://handsontable.com/docs/javascript-data-grid/api/options/#entermoves)
-- **enterBeginsEditing:** [click](https://handsontable.com/docs/javascript-data-grid/api/options/#enterbeginsediting)
-- **autoWrapCol:** [click](https://handsontable.com/docs/javascript-data-grid/api/options/#autowrapcol)
-- **autoWrapRow:** [click](https://handsontable.com/docs/javascript-data-grid/api/options/#autowraprow)
+- **navigableHeaders:** [more info](https://handsontable.com/docs/javascript-data-grid/api/options/#navigableHeaders)
+- **tabMoves:** [more info](https://handsontable.com/docs/javascript-data-grid/api/options/#tabMoves)
+- **enterMoves:** [more info](https://handsontable.com/docs/javascript-data-grid/api/options/#entermoves)
+- **enterBeginsEditing:** [more info](https://handsontable.com/docs/javascript-data-grid/api/options/#enterbeginsediting)
+- **autoWrapCol:** [more info](https://handsontable.com/docs/javascript-data-grid/api/options/#autowrapcol)
+- **autoWrapRow:** [more info](https://handsontable.com/docs/javascript-data-grid/api/options/#autowraprow)
 - **renderAllRows + viewportColumnRenderingOffset:** (describe briefly)
 
 ## High-contrast Theme
-The minimum recommended contrast between images and text, or a background and text,  is [4.5:1.](https://www.w3.org/WAI/WCAG21/quickref/#contrast-minimum) To meet this requirement we recommend either:
+Ensuring that content is easily readable and distinguishable is important for users, especially those with visual impairments. Proper contrast between elements not only enhances readability but also ensures that users can comfortably interact with the content for extended periods. The minimum recommended contrast between images and text, or a background and text, is [4.5:1](https://www.w3.org/WAI/WCAG21/quickref/#contrast-minimum). To meet this requirement we recommend either:
 
-- Overriding the default Handsontable theme with custom CSS values
-- Use the special software, like High Contrast plugin maintaned by Google for the Chrome users
+- Overriding the default Handsontable theme with custom CSS values.
+- Use the special software, like the [High Contrast](https://chrome.google.com/webstore/detail/high-contrast/djcfdncoelnlbldjfhinnjlhdjlikmph) plugin maintained by Google for Chrome users.
+
 
 ## Requirements for the Developers
 
-When you customize Handsontable, it's you who is responsible for ensuring the accessibility of your solution. Especially when it comes to creating custom cell type or custom plugin, it’s important to remember about making them accessible to everyone, best if they meet **WCAG 2.1 AA guidelines** at minimum.
+When you customize Handsontable, it's you who is responsible for ensuring the accessibility of your solution. Especially when it comes to creating [custom cell type](https://handsontable.com/docs/javascript-data-grid/cell-function/) or [custom plugin](https://handsontable.com/docs/javascript-data-grid/custom-plugins/), it’s important to remember about making them accessible to everyone, best if they meet **WCAG 2.1 AA guidelines** at minimum.
 
 Recommendations for Customizations:
 
@@ -118,17 +119,8 @@ Recommendations for Customizations:
 
 ## Known Limitations
 
-1. **ARIA Labels:** ARIA labels are currently unavailable due to the lack of translations. This is something we will address in the future.
+1. **ARIA Labels:** We are actively working towards providing comprehensive translations. We appreciate your patience and will keep our users updated on the progress.
 2. **Screen Readers with Frozen Rows/Columns:** Some screen readers may incorrectly read the number of rows and columns or their indices when frozen rows and columns are enabled.
 3. **Dynamic ARIA Attributes:** Dynamic ARIA attributes, such as sorting order or filters set, are often not announced at all, depending on the screen reader used.
 4. **Access to Actions:** Access to certain actions may require custom menu items, e.g., sorting data (in spreadsheet mode where headers are non-navigable), moving a column/row, resizing a column/row, and renaming a header name.
 5. **Testing Limitations:** We test our data grid with only some of screen readers on the market - the most popular ones. It’s because there are no ways to automate those tests; they all are conducted manually.
-## Troubleshooting
-
-Didn't find what you need? Try this:
-
-- [View related topics](https://github.com/handsontable/handsontable/labels/Accessibility) on GitHub
-- [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
-- [Ask a question](https://stackoverflow.com/questions/tagged/handsontable) on Stack Overflow
-- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
-- [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
