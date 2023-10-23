@@ -278,6 +278,34 @@ describe('DropdownMenu', () => {
     });
   });
 
+  describe('selection', () => {
+    it('should continue menu navigation from the position of the lastly highlighted item by mouse', () => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        colHeaders: true,
+        dropdownMenu: true,
+        height: 400
+      });
+
+      dropdownMenu(1);
+
+      $('.htDropdownMenu .ht_master .htCore tbody td')
+        .not('.htSeparator')
+        .eq(2) // "Insert column left"
+        .simulate('mousemove')
+        .simulate('mouseenter')
+        .simulate('mouseover');
+
+      expect(getPlugin('dropdownMenu').menu.getNavigator().getCurrentPage()).toBe(3);
+      expect(getPlugin('dropdownMenu').menu.getSelectedItem().key).toBe('remove_col');
+
+      keyDownUp('arrowDown');
+
+      expect(getPlugin('dropdownMenu').menu.getNavigator().getCurrentPage()).toBe(5);
+      expect(getPlugin('dropdownMenu').menu.getSelectedItem().key).toBe('clear_column');
+    });
+  });
+
   describe('default context menu actions', () => {
     it('should display the default set of actions', () => {
       handsontable({
@@ -397,6 +425,26 @@ describe('DropdownMenu', () => {
       dropdownMenu(1);
 
       expect($('.htDropdownMenu .ht_master .htCore').find('tbody td').length).toEqual(1);
+    });
+
+    it('should highlight menu items after hovering them', () => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        colHeaders: true,
+        dropdownMenu: true,
+        height: 400
+      });
+
+      dropdownMenu(1);
+
+      $('.htDropdownMenu .ht_master .htCore tbody td')
+        .not('.htSeparator')
+        .eq(2) // "Insert column left"
+        .simulate('mousemove')
+        .simulate('mouseenter')
+        .simulate('mouseover');
+
+      expect(getPlugin('dropdownMenu').menu.getSelectedItem().key).toBe('remove_col');
     });
   });
 

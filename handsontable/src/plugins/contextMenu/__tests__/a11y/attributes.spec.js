@@ -77,6 +77,23 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(cMenu.hotMenu.getCell(0, 0).getAttribute('aria-label')).toBe('Insert row above');
   });
 
+  it('should assign the `tabindex` attribute to all the options of the context menu', () => {
+    handsontable({
+      contextMenu: true
+    });
+
+    contextMenu();
+
+    const cMenu = getPlugin('contextMenu').menu;
+
+    expect(filterElementsByAttribute(
+      cMenu.container,
+      'td',
+      'tabindex',
+      '-1',
+    ).length).toBe(10);
+  });
+
   it('should assign the `aria-disabled` attribute to all the disabled options of the context menu', () => {
     const hot = handsontable({
       contextMenu: true

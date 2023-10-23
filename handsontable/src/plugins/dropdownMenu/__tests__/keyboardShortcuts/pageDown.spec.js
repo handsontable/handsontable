@@ -35,7 +35,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       });
 
       dropdownMenu();
-      getPlugin('dropdownMenu').menu.navigator.selectFirst();
+      getPlugin('dropdownMenu').menu.getNavigator().toFirstItem();
       keyDownUp('pagedown');
 
       const hotMenu = getPlugin('dropdownMenu').menu.hotMenu;
@@ -51,7 +51,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       });
 
       dropdownMenu();
-      getPlugin('dropdownMenu').menu.navigator.selectFirst();
+      getPlugin('dropdownMenu').menu.getNavigator().toFirstItem();
       keyDownUp('pagedown');
 
       let firstVisibleRow = 0;
