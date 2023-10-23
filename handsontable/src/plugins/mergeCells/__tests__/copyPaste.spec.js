@@ -61,8 +61,8 @@ describe('MergeCells copy and paste', () => {
       mergeCells: [
         { row: 1, col: 1, rowspan: 2, colspan: 2 },
       ],
-      beforeCopy(actionInfo) {
-        actionInfo.removeColumns([2]);
+      beforeCopy(clipboardData) {
+        clipboardData.removeColumns([2]);
       },
       afterCopy: afterCopySpy
     });
@@ -137,8 +137,8 @@ describe('MergeCells copy and paste', () => {
       mergeCells: [
         { row: 1, col: 1, rowspan: 2, colspan: 2 },
       ],
-      beforePaste(actionInfo) {
-        actionInfo.removeColumns([2]);
+      beforePaste(clipboardData) {
+        clipboardData.removeColumns([2]);
       },
       afterPaste: afterPasteSpy
     });
@@ -216,8 +216,8 @@ describe('MergeCells copy and paste', () => {
         { row: 1, col: 1, rowspan: 2, colspan: 2 },
         { row: 3, col: 3, rowspan: 3, colspan: 3 }
       ],
-      beforeCopy(actionInfo) {
-        actionInfo.removeRows([1]);
+      beforeCopy(clipboardData) {
+        clipboardData.removeRows([1]);
       }
     });
 
@@ -321,9 +321,9 @@ describe('MergeCells copy and paste', () => {
         { row: 1, col: 1, rowspan: 2, colspan: 2 },
         { row: 3, col: 3, rowspan: 3, colspan: 3 }
       ],
-      beforeCopy(actionInfo) {
-        actionInfo.removeRows([2]);
-        actionInfo.removeColumns([4]);
+      beforeCopy(clipboardData) {
+        clipboardData.removeRows([2]);
+        clipboardData.removeColumns([4]);
       }
     });
 
@@ -423,9 +423,9 @@ describe('MergeCells copy and paste', () => {
         { row: 1, col: 1, rowspan: 2, colspan: 2 },
         { row: 3, col: 3, rowspan: 3, colspan: 3 }
       ],
-      beforeCopy(actionInfo) {
-        actionInfo.removeRows([2]);
-        actionInfo.removeColumns([4]);
+      beforeCopy(clipboardData) {
+        clipboardData.removeRows([2]);
+        clipboardData.removeColumns([4]);
       }
     });
 
@@ -525,11 +525,11 @@ describe('MergeCells copy and paste', () => {
         { row: 1, col: 1, rowspan: 2, colspan: 2 },
         { row: 3, col: 3, rowspan: 3, colspan: 3 }
       ],
-      beforeCopy(actionInfo) {
-        actionInfo.removeRows([1]);
-        actionInfo.removeRows([1]);
-        actionInfo.removeColumns([3, 4]);
-        actionInfo.removeColumns([3]);
+      beforeCopy(clipboardData) {
+        clipboardData.removeRows([1]);
+        clipboardData.removeRows([1]);
+        clipboardData.removeColumns([3, 4]);
+        clipboardData.removeColumns([3]);
       }
     });
 
@@ -614,9 +614,9 @@ describe('MergeCells copy and paste', () => {
         { row: 1, col: 1, rowspan: 2, colspan: 2 },
         { row: 3, col: 3, rowspan: 3, colspan: 3 }
       ],
-      beforeCopy(actionInfo) {
-        actionInfo.removeRows([1, 2]);
-        actionInfo.removeColumns([3, 4, 5]);
+      beforeCopy(clipboardData) {
+        clipboardData.removeRows([1, 2]);
+        clipboardData.removeColumns([3, 4, 5]);
       }
     });
 
@@ -701,8 +701,8 @@ describe('MergeCells copy and paste', () => {
         { row: 1, col: 1, rowspan: 2, colspan: 2 },
         { row: 3, col: 3, rowspan: 3, colspan: 3 }
       ],
-      beforeCopy(actionInfo) {
-        actionInfo.insertAtRow(2, ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']);
+      beforeCopy(clipboardData) {
+        clipboardData.insertAtRow(2, ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']);
       }
     });
 
@@ -825,8 +825,8 @@ describe('MergeCells copy and paste', () => {
         { row: 1, col: 1, rowspan: 2, colspan: 2 },
         { row: 3, col: 3, rowspan: 3, colspan: 3 }
       ],
-      beforeCopy(actionInfo) {
-        actionInfo.insertAtColumn(2, [1, 2, 3, 4, 5, 6, 7, 8]);
+      beforeCopy(clipboardData) {
+        clipboardData.insertAtColumn(2, [1, 2, 3, 4, 5, 6, 7, 8]);
       }
     });
 
@@ -946,8 +946,8 @@ describe('MergeCells copy and paste', () => {
         { row: 1, col: 1, rowspan: 2, colspan: 2 },
         { row: 3, col: 3, rowspan: 3, colspan: 3 }
       ],
-      beforeCopy(actionInfo) {
-        actionInfo.insertAtColumn(2, ['header', 1, 2, 3, 4, 5, 6, 7, 8]);
+      beforeCopy(clipboardData) {
+        clipboardData.insertAtColumn(2, ['header', 1, 2, 3, 4, 5, 6, 7, 8]);
       }
     });
 
@@ -1081,8 +1081,8 @@ describe('MergeCells copy and paste', () => {
         { row: 1, col: 1, rowspan: 2, colspan: 2 },
         { row: 3, col: 3, rowspan: 3, colspan: 3 }
       ],
-      beforeCopy(actionInfo) {
-        actionInfo.insertAtColumn(2, ['header']);
+      beforeCopy(clipboardData) {
+        clipboardData.insertAtColumn(2, ['header']);
       }
     });
 

@@ -61,19 +61,19 @@ interface ClipboardData {
   remove: (removedElements: { rows: number[], columns: number[] }) => void;
   insertAtRow: (rowIndex: number, values: any[]) => void;
   insertAtColumn: (columnIndex: number, values: any[]) => void;
-  getCellAt: (change: { row: number, col: number, value: any, isRtl?: boolean }) => 'string';
-  setCellAt: (change: { row: number, col: number, value: any, isRtl?: boolean }) => void;
+  getCellAt: (row: number, col: number, isRtl?: boolean) => 'string';
+  setCellAt: (row: number, col: number, value: any, isRtl?: boolean) => void;
   getData: () => any[][];
   getHTML: () => string;
   getMetaInfo: () => GridSettings;
   getSource: () => 'Handsontable';
 }
 
-interface PasteInfo extends ClipboardData {
+interface PasteClipboardData extends ClipboardData {
   getSource: () => 'Handsontable' | 'table' | 'string';
 }
 
-interface CopyInfo extends ClipboardData {
+interface CopyClipboardData extends ClipboardData {
   getHotRanges: () => RangeType[];
 }
 
@@ -95,11 +95,11 @@ export interface Events {
   afterContextMenuDefaultOptions?: (predefinedItems: Array<ContextMenuPredefinedMenuItemKey | ContextMenuMenuItemConfig>) => void;
   afterContextMenuHide?: (context: ContextMenu) => void;
   afterContextMenuShow?: (context: ContextMenu) => void;
-  afterCopy?: (clipboardData: CopyInfo) => void;
+  afterCopy?: (clipboardData: CopyClipboardData) => void;
   afterCopyLimit?: (selectedRows: number, selectedColumns: number, copyRowsLimit: number, copyColumnsLimit: number) => void;
   afterCreateCol?: (index: number, amount: number, source?: ChangeSource) => void;
   afterCreateRow?: (index: number, amount: number, source?: ChangeSource) => void;
-  afterCut?: (clipboardData: CopyInfo) => void;
+  afterCut?: (clipboardData: CopyClipboardData) => void;
   afterDeselect?: () => void;
   afterDestroy?: () => void;
   afterDetachChild?: (parent: RowObject, element: RowObject) => void;
@@ -134,7 +134,7 @@ export interface Events {
   afterOnCellMouseOver?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseOut?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseUp?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
-  afterPaste?: (clipboardData: PasteInfo) => void;
+  afterPaste?: (clipboardData: PasteClipboardData) => void;
   afterPluginsInitialized?: () => void;
   afterRedo?: (action: UndoRedoAction) => void;
   afterRedoStackChange?: (undoneActionsBefore: UndoRedoAction[], undoneActionsAfter: UndoRedoAction[]) => void;
@@ -189,10 +189,10 @@ export interface Events {
   beforeColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean) => void | boolean;
   beforeContextMenuSetItems?: (menuItems: ContextMenuMenuItemConfig[]) => void;
   beforeContextMenuShow?: (context: ContextMenu) => void;
-  beforeCopy?: (clipboardData: CopyInfo) => void | boolean;
+  beforeCopy?: (clipboardData: CopyClipboardData) => void | boolean;
   beforeCreateCol?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
   beforeCreateRow?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
-  beforeCut?: (clipboardData: CopyInfo) => void | boolean;
+  beforeCut?: (clipboardData: CopyClipboardData) => void | boolean;
   beforeDetachChild?: (parent: RowObject, element: RowObject) => void;
   beforeDrawBorders?: (corners: number[], borderClassName: 'current' | 'area' | 'highlight' | undefined) => void;
   beforeDropdownMenuSetItems?: (menuItems: ContextMenuMenuItemConfig[]) => void;
@@ -214,7 +214,7 @@ export interface Events {
   beforeOnCellMouseOut?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   beforeOnCellMouseOver?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
   beforeOnCellMouseUp?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
-  beforePaste?: (clipboardData: PasteInfo) => boolean | void;
+  beforePaste?: (clipboardData: PasteClipboardData) => boolean | void;
   beforeRedo?: (action: UndoRedoAction) => void;
   beforeRedoStackChange?: (undoneActions: UndoRedoAction[]) => void;
   beforeRefreshDimensions?: (previousDimensions: object, currentDimensions: object, actionPossible: boolean) => boolean | void;

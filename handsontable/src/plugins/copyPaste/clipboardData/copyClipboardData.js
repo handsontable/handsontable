@@ -1,4 +1,4 @@
-import { META_HEAD, ActionInfo } from './actionInfo';
+import { META_HEAD, ClipboardData } from './clipboardData';
 import { normalizeRanges } from '../copyableRanges';
 import { getDataByCoords, getHTMLByCoords } from '../../../utils/parseTable';
 
@@ -7,7 +7,7 @@ import { getDataByCoords, getHTMLByCoords } from '../../../utils/parseTable';
  *
  * @private
  */
-export class CopyInfo extends ActionInfo {
+export class CopyClipboardData extends ClipboardData {
   /**
    * Sanitized data of "text/html" type inside the clipboard.
    *

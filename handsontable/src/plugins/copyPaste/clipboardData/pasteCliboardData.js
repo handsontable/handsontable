@@ -1,4 +1,4 @@
-import { ActionInfo } from './actionInfo';
+import { ClipboardData } from './clipboardData';
 import { getDataWithHeadersByConfig } from '../../../utils/parseTable';
 import { parse } from '../../../3rdparty/SheetClip';
 import { isDefined } from '../../../helpers/mixed';
@@ -8,7 +8,7 @@ import { isDefined } from '../../../helpers/mixed';
  *
  * @private
  */
-export class PasteInfo extends ActionInfo {
+export class PasteCliboardData extends ClipboardData {
   /**
    * Sanitized data of "text/html" type inside the clipboard.
    *

@@ -18,7 +18,7 @@ export const META_HEAD = [
  *
  * @private
  */
-export class ActionInfo {
+export class ClipboardData {
   /**
    * Sanitized data of "text/html" type inside the clipboard.
    *
@@ -33,9 +33,9 @@ export class ActionInfo {
   data;
 
   constructor() {
-    if (this.constructor === ActionInfo) {
-      throw new Error('The `ActionInfo` is an abstract class and it can\'t be instantiated. Please use `CopyInfo` or' +
-        'PasteInfo` classes instead.');
+    if (this.constructor === ClipboardData) {
+      throw new Error('The `ClipboardData` is an abstract class and it can\'t be instantiated. Please use ' +
+        '`CopyClipboardData` or `PasteClipboardData` classes instead.');
     }
   }
 
@@ -456,13 +456,12 @@ export class ActionInfo {
    * Note: Used indexes refers to processed data, not to the instance of Handsontable. Please keep in mind that headers
    * are handled separately from cells and they are recognised using negative indexes.
    *
-   * @param {object[]} change Configuration object describing changed cells.
-   * @param {number} change.row Row index of cell which should be changed.
-   * @param {number} change.column Column index of cell which should be changed.
-   * @param {string} change.value Value for particular indexes.
-   * @param {boolean} change.isRtl Grid is rendered using the right-to-left layout direction.
+   * @param {number} row Row index of cell which should be changed.
+   * @param {number} column Column index of cell which should be changed.
+   * @param {string} value Value for particular indexes.
+   * @param {boolean} isRtl Grid is rendered using the right-to-left layout direction.
    */
-  setCellAt({ row, column, value, isRtl = false }) {
+  setCellAt(row, column, value, isRtl = false) {
     const config = this.getMetaInfo();
     const { data, nestedHeaders, colHeaders } = config;
 

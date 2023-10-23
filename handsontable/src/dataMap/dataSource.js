@@ -95,7 +95,7 @@ class DataSource {
     const result = [];
 
     arrayEach(this.data, (row, rowIndex) => {
-      const value = this.getAtCell(rowIndex, column);
+      const value = this.getCellAt(rowIndex, column);
 
       result.push(value);
     });
@@ -178,7 +178,7 @@ class DataSource {
    * @param {number|string} column Property name / physical column index.
    * @param {*} value The value to be set at the provided coordinates.
    */
-  setAtCell(row, column, value) {
+  setCellAt(row, column, value) {
     if (row >= this.countRows() || column >= this.countFirstRowKeys()) {
       // Not enough rows and/or columns.
       return;
@@ -247,7 +247,7 @@ class DataSource {
    * @param {number} columnOrProp Visual column index or property.
    * @returns {*}
    */
-  getAtCell(row, columnOrProp) {
+  getCellAt(row, columnOrProp) {
     const dataRow = this.modifyRowData(row);
 
     return this.getAtPhysicalCell(row, this.colToProp(columnOrProp), dataRow);

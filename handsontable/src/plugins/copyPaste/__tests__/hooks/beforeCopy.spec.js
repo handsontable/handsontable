@@ -386,8 +386,8 @@ describe('CopyPaste', () => {
         colHeaders: true,
         copyPaste: true,
         beforeCopy(clipboardData) {
-          clipboardData.setCellAt({ row: -2, column: 0, value: 'hello world' });
-          clipboardData.setCellAt({ row: 1, column: 1, value: 'hello world2' });
+          clipboardData.setCellAt(-2, 0, 'hello world');
+          clipboardData.setCellAt(1, 1, 'hello world2');
         },
         modifyColumnHeaderValue(value, columnIndex, headerLevel) {
           if (headerLevel < 0) {
@@ -455,8 +455,8 @@ describe('CopyPaste', () => {
         colHeaders: true,
         copyPaste: true,
         beforeCopy(clipboardData) {
-          clipboardData.setCellAt({ row: -2, column: 0, value: 'hello world', isRtl: true });
-          clipboardData.setCellAt({ row: 1, column: 1, value: 'hello world2', isRtl: true });
+          clipboardData.setCellAt(-2, 0, 'hello world', true);
+          clipboardData.setCellAt(1, 1, 'hello world2', true);
         },
         modifyColumnHeaderValue(value, columnIndex, headerLevel) {
           if (headerLevel < 0) {

@@ -428,20 +428,22 @@ export class NestedHeaders extends BasePlugin {
    * of the column.
    *
    * @private
-   * @param {object} copyInfo Information about already performed copy action.
-   * @param {Function} copyInfo.isTable Checks whether copied data is an array.
-   * @param {Function} copyInfo.isHandsontable Checks whether copied data is a Handsontable.
-   * @param {Function} copyInfo.getHotRanges Returns ranges related to copied part of Handsontable.
-   * @param {Function} copyInfo.remove Remove rows/columns from the copied/pasted dataset.
-   * @param {Function} copyInfo.insertAtRow Insert values at row index.
-   * @param {Function} copyInfo.insertAtColumn Insert values at column index.
-   * @param {Function} copyInfo.change  Change headers or cells in the copied/pasted dataset.
-   * @param {Function} copyInfo.getData Gets copied data stored as array of arrays.
-   * @param {Function} copyInfo.getHTML Gets sanitized data of "text/html" type inside the clipboard.
-   * @param {Function} copyInfo.getMetaInfo Gets grid settings for copied data.
+   * @param {object} clipboardData Information about already performed copy action.
+   * @param {Function} clipboardData.isTable Checks whether copied data is an array.
+   * @param {Function} clipboardData.isHandsontable Checks whether copied data is a Handsontable.
+   * @param {Function} clipboardData.getHotRanges Returns ranges related to copied part of Handsontable.
+   * @param {Function} clipboardData.removeRow Remove row from the copied/pasted dataset.
+   * @param {Function} clipboardData.removeColumn Remove column from the copied/pasted dataset.
+   * @param {Function} clipboardData.insertAtRow Insert values at row index.
+   * @param {Function} clipboardData.insertAtColumn Insert values at column index.
+   * @param {Function} clipboardData.setCellAt Change headers or cells in the copied/pasted dataset.
+   * @param {Function} clipboardData.getCellAt Get headers or cells from the copied/pasted dataset.
+   * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
+   * @param {Function} clipboardData.getHTML Gets sanitized data of "text/html" type inside the clipboard.
+   * @param {Function} clipboardData.getMetaInfo Gets grid settings for copied data.
    */
-  onBeforeCopy(copyInfo) {
-    const copyableRanges = copyInfo.getHotRanges();
+  onBeforeCopy(clipboardData) {
+    const copyableRanges = clipboardData.getHotRanges();
 
     for (let rangeIndex = 0; rangeIndex < copyableRanges.length; rangeIndex += 1) {
       const { startRow, startCol, endRow, endCol } = copyableRanges[rangeIndex];
@@ -464,7 +466,7 @@ export class NestedHeaders extends BasePlugin {
           const collapsible = this.#stateManager.getHeaderTreeNodeData(row, column)?.collapsible;
 
           if (collapsible === true && isRoot === false) {
-            copyInfo.setCellAt({ row, column: zeroBasedColumnIndex, value: '' });
+            clipboardData.setCellAt(row, zeroBasedColumnIndex, '');
           }
         }
       }
