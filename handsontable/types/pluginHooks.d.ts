@@ -66,7 +66,7 @@ interface ClipboardData {
   getData: () => any[][];
   getHTML: () => string;
   getMetaInfo: () => GridSettings;
-  getSource: () => 'Handsontable';
+  getSource: () => string;
 }
 
 interface PasteClipboardData extends ClipboardData {
@@ -75,6 +75,7 @@ interface PasteClipboardData extends ClipboardData {
 
 interface CopyClipboardData extends ClipboardData {
   getHotRanges: () => RangeType[];
+  getSource: () => 'Handsontable';
 }
 
 export interface Events {
