@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the colors of the invalid cells and the arrow buttons of the autocomplete-typed cells.",
+  "type": "changed",
+  "issueOrPR": 10520,
+  "breaking": true,
+  "framework": "none"
+}
