@@ -1,26 +1,30 @@
 import { addClass } from '../../../helpers/dom/element';
 import { clone, extend } from '../../../helpers/object';
-import BaseUI from './_base';
-
-const privatePool = new WeakMap();
+import { BaseUI } from './_base';
 
 /**
  * @private
  * @class InputUI
  */
-class InputUI extends BaseUI {
+export class InputUI extends BaseUI {
   static get DEFAULTS() {
     return clone({
       placeholder: '',
       type: 'text',
       tagName: 'input',
+      tabIndex: -1,
     });
   }
 
+  /**
+   * The reference to the input element.
+   *
+   * @type {HTMLInputElement}
+   */
+  #input;
+
   constructor(hotInstance, options) {
     super(hotInstance, extend(InputUI.DEFAULTS, options));
-
-    privatePool.set(this, {});
     this.registerHooks();
   }
 
@@ -28,8 +32,7 @@ class InputUI extends BaseUI {
    * Register all necessary hooks.
    */
   registerHooks() {
-    this.addLocalHook('click', () => this.onClick());
-    this.addLocalHook('keyup', event => this.onKeyup(event));
+    this.addLocalHook('keyup', event => this.#onKeyup(event));
   }
 
   /**
@@ -37,10 +40,9 @@ class InputUI extends BaseUI {
    */
   build() {
     super.build();
-    const priv = privatePool.get(this);
     const icon = this.hot.rootDocument.createElement('div');
 
-    priv.input = this._element.firstChild;
+    this.#input = this._element.firstChild;
 
     addClass(this._element, 'htUIInput');
     addClass(icon, 'htUIInputIcon');
@@ -58,11 +60,9 @@ class InputUI extends BaseUI {
       return;
     }
 
-    const input = privatePool.get(this).input;
-
-    input.type = this.options.type;
-    input.placeholder = this.translateIfPossible(this.options.placeholder);
-    input.value = this.translateIfPossible(this.options.value);
+    this.#input.type = this.options.type;
+    this.#input.placeholder = this.translateIfPossible(this.options.placeholder);
+    this.#input.value = this.translateIfPossible(this.options.value);
   }
 
   /**
@@ -70,15 +70,8 @@ class InputUI extends BaseUI {
    */
   focus() {
     if (this.isBuilt()) {
-      privatePool.get(this).input.focus();
+      this.#input.focus();
     }
-  }
-
-  /**
-   * OnClick listener.
-   */
-  onClick() {
-
   }
 
   /**
@@ -86,9 +79,7 @@ class InputUI extends BaseUI {
    *
    * @param {Event} event The mouse event object.
    */
-  onKeyup(event) {
+  #onKeyup(event) {
     this.options.value = event.target.value;
   }
 }
-
-export default InputUI;

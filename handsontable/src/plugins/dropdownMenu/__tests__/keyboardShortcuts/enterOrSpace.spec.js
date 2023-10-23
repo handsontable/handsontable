@@ -47,6 +47,29 @@ describe('DropdownMenu keyboard shortcut', () => {
       expect($(getPlugin('dropdownMenu').menu).is(':visible')).toBe(false);
     });
 
+    it('should not throw an error when any of the menu item is not selected', () => {
+      const spy = jasmine.createSpyObj('error', ['test']);
+      const prevError = window.onerror;
+
+      window.onerror = function() {
+        spy.test();
+
+        return true;
+      };
+
+      handsontable({
+        colHeaders: true,
+        dropdownMenu: true,
+      });
+
+      contextMenu();
+      keyDownUp('enter');
+
+      expect(spy.test.calls.count()).toBe(0);
+
+      window.onerror = prevError;
+    });
+
     it('should trigger the submenu to be opened', () => {
       handsontable({
         colHeaders: true,

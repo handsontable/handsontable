@@ -44,7 +44,7 @@ export const createContext = (name) => {
    * @param {Function} options.callback The shortcut's action
    * @param {object} options.group A group of shortcuts to which the shortcut belongs
    * @param {object} [options.runOnlyIf] A condition on which the shortcut's action runs
-   * @param {object} [options.stopPropagation=true] If set to `true`: stops the event's propagation
+   * @param {object} [options.stopPropagation=false] If set to `true`: stops the event's propagation
    * @param {object} [options.captureCtrl=false] If set to `true`: captures the state of the Control/Meta modifier key
    * @param {object} [options.preventDefault=true] If set to `true`: prevents the default behavior
    * @param {object} [options.position='after'] The order in which the shortcut's action runs:
@@ -134,11 +134,12 @@ export const createContext = (name) => {
    * @param {Function} [options.callback] A shortcut's action
    * @param {object} [options.group] A group of shortcuts to which a shortcut belongs
    * @param {object} [options.runOnlyIf] A condition on which a shortcut's action runs
-   * @param {object} [options.stopPropagation=true] If set to `true`: stops the event's propagation
+   * @param {object} [options.stopPropagation=false] If set to `true`: stops the event's propagation
    * @param {object} [options.preventDefault=true] If set to `true`: prevents the default behavior
    * @param {object} [options.position='after'] The order in which a shortcut's action runs:
    * `'before'` or `'after'` a `relativeToGroup` group of actions
    * @param {object} [options.relativeToGroup] The name of a group of actions, used to determine an action's `position`
+   * @param {object} [options.forwardToContext] The context object where the event will be forwarded to.
    */
   const addShortcuts = (shortcuts, options = {}) => {
     shortcuts.forEach((shortcut) => {
