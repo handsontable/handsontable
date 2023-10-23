@@ -411,8 +411,9 @@ describe('CopyPaste', () => {
         colHeaders: true,
         copyPaste: true,
 
-        beforePaste(actionInfo) {
-          actionInfo.remove({ rows: [0], columns: [1] });
+        beforePaste(clipboardData) {
+          clipboardData.removeRows([0]);
+          clipboardData.removeColumns([1]);
         },
         afterPaste: afterPasteSpy,
       });
@@ -469,13 +470,14 @@ describe('CopyPaste', () => {
           '</tbody>' +
         '</table>',
       );
-      expect(afterPasteSpy.calls.argsFor(0)[0].getData()).toEqual([
-        ['A', 'C', 'D'],
-        ['A2', 'C2', 'D2'],
-      ]);
+
+      expect(afterPasteSpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
+        colHeaders: ['A', 'C', 'D'],
+        data: [['A2', 'C2', 'D2']]
+      });
     });
 
-    it('should not be possible to modify data during paste operation (nested headers)', () => {
+    it('should not be possible to remove columns during paste operation (nested headers)', () => {
       const warnSpy = spyOn(console, 'warn');
       const afterPasteSpy = jasmine.createSpy('afterPaste');
 
@@ -483,8 +485,8 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(2, 2),
         colHeaders: true,
         copyPaste: true,
-        beforePaste(actionInfo) {
-          actionInfo.remove({ rows: [0, -1], columns: [0] });
+        beforePaste(clipboardData) {
+          clipboardData.removeColumns([0]);
         },
         afterPaste: afterPasteSpy,
       });
@@ -564,8 +566,8 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(2, 2),
         colHeaders: true,
         copyPaste: true,
-        beforePaste(actionInfo) {
-          actionInfo.insertAtRow(0, ['single cell']);
+        beforePaste(clipboardData) {
+          clipboardData.insertAtRow(0, ['single cell']);
         },
         afterPaste: afterPasteSpy,
       });
@@ -645,8 +647,8 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(2, 2),
         colHeaders: true,
         copyPaste: true,
-        beforePaste(actionInfo) {
-          actionInfo.insertAtRow(3, ['first cell', 'next cell']);
+        beforePaste(clipboardData) {
+          clipboardData.insertAtRow(3, ['first cell', 'next cell']);
         },
         afterPaste: afterPasteSpy,
       });
@@ -727,8 +729,8 @@ describe('CopyPaste', () => {
         rowHeaders: true,
         colHeaders: true,
         trimRows: true,
-        beforePaste(actionInfo) {
-          actionInfo.insertAtRow(0, ['single cell']);
+        beforePaste(clipboardData) {
+          clipboardData.insertAtRow(0, ['single cell']);
         },
         afterPaste: afterPasteSpy,
       });
@@ -779,8 +781,8 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(2, 2),
         colHeaders: true,
         copyPaste: true,
-        beforePaste(actionInfo) {
-          actionInfo.insertAtRow(3, ['first cell', 'next cell']);
+        beforePaste(clipboardData) {
+          clipboardData.insertAtRow(3, ['first cell', 'next cell']);
         },
         afterPaste: afterPasteSpy,
       });

@@ -1427,32 +1427,32 @@ const REGISTERED_HOOKS = [
    * the selected cells. This hook is fired when {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#beforeCut
-   * @param {object} cutInfo Information about already performed cut action.
-   * @param {Function} cutInfo.isTable Checks whether copied data is an array.
-   * @param {Function} cutInfo.isHandsontable Checks whether copied data is a Handsontable.
-   * @param {Function} cutInfo.getHotRanges Returns ranges related to copied part of Handsontable.
-   * @param {Function} cutInfo.remove Remove rows/columns from the copied/pasted dataset.
-   * @param {Function} cutInfo.insertAtRow Insert values at row index.
-   * @param {Function} cutInfo.insertAtColumn Insert values at column index.
-   * @param {Function} cutInfo.change  Change headers or cells in the copied/pasted dataset.
-   * @param {Function} cutInfo.getData Gets copied data stored as array of arrays.
-   * @param {Function} cutInfo.getHTML Gets sanitized data of "text/html" type inside the clipboard.
-   * @param {Function} cutInfo.getGridSettings Gets grid settings for copied data.
+   * @param {object} clipboardData Information about already performed cut action.
+   * @param {Function} clipboardData.isTable Checks whether copied data is an array.
+   * @param {Function} clipboardData.isHandsontable Checks whether copied data is a Handsontable.
+   * @param {Function} clipboardData.getHotRanges Returns ranges related to copied part of Handsontable.
+   * @param {Function} clipboardData.remove Remove rows/columns from the copied/pasted dataset.
+   * @param {Function} clipboardData.insertAtRow Insert values at row index.
+   * @param {Function} clipboardData.insertAtColumn Insert values at column index.
+   * @param {Function} clipboardData.change  Change headers or cells in the copied/pasted dataset.
+   * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
+   * @param {Function} clipboardData.getHTML Gets sanitized data of "text/html" type inside the clipboard.
+   * @param {Function} clipboardData.getMetaInfo Gets grid settings for copied data.
    * @returns {*} If returns `false` then operation of the cutting out is canceled.
    * @example
    * ::: only-for javascript
    * ```js
    * // To disregard a single row or column, remove it from copied dataset using `remove` method on the object from the first callback argument.
    * new Handsontable(element, {
-   *   beforeCut: function(cutInfo) {
-   *     // cutInfo.getData() -> [[1, 2, 3], [4, 5, 6]]
-   *    cutInfo.remove({ rows: [0], columns: [0] });
-   *     // cutInfo.getData() -> [[5, 6]]
+   *   beforeCut: function(clipboardData) {
+   *     // clipboardData.getData() -> [[1, 2, 3], [4, 5, 6]]
+   *    clipboardData.remove({ rows: [0], columns: [0] });
+   *     // clipboardData.getData() -> [[5, 6]]
    *   }
    * });
    * // To cancel a cutting action, just return `false`.
    * new Handsontable(element, {
-   *   beforeCut: function(cutInfo) {
+   *   beforeCut: function(clipboardData) {
    *     return false;
    *   }
    * });
@@ -1463,15 +1463,15 @@ const REGISTERED_HOOKS = [
    * ```jsx
    * // To disregard a single row or column, remove it from copied dataset using `remove` method on the object from the first callback argument.
    * <HotTable
-   *   beforeCut={(cutInfo) => {
-   *     // cutInfo.getData() -> [[1, 2, 3], [4, 5, 6]]
-   *    cutInfo.remove({ rows: [0], columns: [0] });
-   *     // cutInfo.getData() -> [[5, 6]]
+   *   beforeCut={(clipboardData) => {
+   *     // clipboardData.getData() -> [[1, 2, 3], [4, 5, 6]]
+   *    clipboardData.remove({ rows: [0], columns: [0] });
+   *     // clipboardData.getData() -> [[5, 6]]
    *   }}
    * />
    * // To cancel a cutting action, just return `false`.
    * <HotTable
-   *   beforeCut={(cutInfo) => {
+   *   beforeCut={(clipboardData) => {
    *     return false;
    *   }}
    * />
@@ -1485,17 +1485,17 @@ const REGISTERED_HOOKS = [
    * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#afterCut
-   * @param {object} cutInfo Information about already performed cut action.
-   * @param {Function} cutInfo.isTable Checks whether copied data is an array.
-   * @param {Function} cutInfo.isHandsontable Checks whether copied data is a Handsontable.
-   * @param {Function} cutInfo.getHotRanges Returns ranges related to copied part of Handsontable.
-   * @param {Function} cutInfo.remove Remove rows/columns from the copied/pasted dataset.
-   * @param {Function} cutInfo.insertAtRow Insert values at row index.
-   * @param {Function} cutInfo.insertAtColumn Insert values at column index.
-   * @param {Function} cutInfo.change  Change headers or cells in the copied/pasted dataset.
-   * @param {Function} cutInfo.getData Gets copied data stored as array of arrays.
-   * @param {Function} cutInfo.getHTML Gets sanitized data of "text/html" type inside the clipboard.
-   * @param {Function} cutInfo.getGridSettings Gets grid settings for copied data.
+   * @param {object} clipboardData Information about already performed cut action.
+   * @param {Function} clipboardData.isTable Checks whether copied data is an array.
+   * @param {Function} clipboardData.isHandsontable Checks whether copied data is a Handsontable.
+   * @param {Function} clipboardData.getHotRanges Returns ranges related to copied part of Handsontable.
+   * @param {Function} clipboardData.remove Remove rows/columns from the copied/pasted dataset.
+   * @param {Function} clipboardData.insertAtRow Insert values at row index.
+   * @param {Function} clipboardData.insertAtColumn Insert values at column index.
+   * @param {Function} clipboardData.change  Change headers or cells in the copied/pasted dataset.
+   * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
+   * @param {Function} clipboardData.getHTML Gets sanitized data of "text/html" type inside the clipboard.
+   * @param {Function} clipboardData.getMetaInfo Gets grid settings for copied data.
    */
   'afterCut',
 
@@ -1503,17 +1503,17 @@ const REGISTERED_HOOKS = [
    * Fired before values are copied to the clipboard.
    *
    * @event Hooks#beforeCopy
-   * @param {object} copyInfo Information about already performed cut action.
-   * @param {Function} copyInfo.isTable Checks whether copied data is an array.
-   * @param {Function} copyInfo.isHandsontable Checks whether copied data is a Handsontable.
-   * @param {Function} copyInfo.getHotRanges Returns ranges related to copied part of Handsontable.
-   * @param {Function} copyInfo.remove Remove rows/columns from the copied/pasted dataset.
-   * @param {Function} copyInfo.insertAtRow Insert values at row index.
-   * @param {Function} copyInfo.insertAtColumn Insert values at column index.
-   * @param {Function} copyInfo.change  Change headers or cells in the copied/pasted dataset.
-   * @param {Function} copyInfo.getData Gets copied data stored as array of arrays.
-   * @param {Function} copyInfo.getHTML Gets sanitized data of "text/html" type inside the clipboard.
-   * @param {Function} copyInfo.getGridSettings Gets grid settings for copied data.
+   * @param {object} clipboardData Information about already performed cut action.
+   * @param {Function} clipboardData.isTable Checks whether copied data is an array.
+   * @param {Function} clipboardData.isHandsontable Checks whether copied data is a Handsontable.
+   * @param {Function} clipboardData.getHotRanges Returns ranges related to copied part of Handsontable.
+   * @param {Function} clipboardData.remove Remove rows/columns from the copied/pasted dataset.
+   * @param {Function} clipboardData.insertAtRow Insert values at row index.
+   * @param {Function} clipboardData.insertAtColumn Insert values at column index.
+   * @param {Function} clipboardData.change  Change headers or cells in the copied/pasted dataset.
+   * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
+   * @param {Function} clipboardData.getHTML Gets sanitized data of "text/html" type inside the clipboard.
+   * @param {Function} clipboardData.getMetaInfo Gets grid settings for copied data.
    * @returns {*} If returns `false` then copying is canceled.
    *
    * @example
@@ -1522,10 +1522,10 @@ const REGISTERED_HOOKS = [
    * // To disregard a single row or column, remove it from copied dataset using `remove` method on the object from the first callback argument.
    * ...
    * new Handsontable(document.getElementById('example'), {
-   *   beforeCopy: (copyInfo) => {
-   *     // copyInfo.getData() -> [[1, 2, 3], [4, 5, 6]]
-   *    copyInfo.remove({ rows: [0], columns: [0] });
-   *     // copyInfo.getData() -> [[5, 6]]
+   *   beforeCopy: (clipboardData) => {
+   *     // clipboardData.getData() -> [[1, 2, 3], [4, 5, 6]]
+   *    clipboardData.remove({ rows: [0], columns: [0] });
+   *     // clipboardData.getData() -> [[5, 6]]
    *   }
    * });
    * ...
@@ -1533,7 +1533,7 @@ const REGISTERED_HOOKS = [
    * // To cancel copying, return false from the callback.
    * ...
    * new Handsontable(document.getElementById('example'), {
-   *   beforeCopy: (copyInfo) => {
+   *   beforeCopy: (clipboardData) => {
    *     return false;
    *   }
    * });
@@ -1546,10 +1546,10 @@ const REGISTERED_HOOKS = [
    * // To disregard a single row or column, remove it from copied dataset using `remove` method on the object from the first callback argument.
    * ...
    * <HotTable
-   *   beforeCopy={(copyInfo) => {
-   *     // copyInfo.getData() -> [[1, 2, 3], [4, 5, 6]]
-   *    copyInfo.remove({ rows: [0], columns: [0] });
-   *     // copyInfo.getData() -> [[5, 6]]
+   *   beforeCopy={(clipboardData) => {
+   *     // clipboardData.getData() -> [[1, 2, 3], [4, 5, 6]]
+   *    clipboardData.remove({ rows: [0], columns: [0] });
+   *     // clipboardData.getData() -> [[5, 6]]
    *   }}
    * />
    * ...
@@ -1557,7 +1557,7 @@ const REGISTERED_HOOKS = [
    * // To cancel copying, return false from the callback.
    * ...
    * <HotTable
-   *   beforeCopy={(copyInfo) => {
+   *   beforeCopy={(clipboardData) => {
    *     return false;
    *   }}
    * />
@@ -1572,17 +1572,17 @@ const REGISTERED_HOOKS = [
    * option is enabled.
    *
    * @event Hooks#afterCopy
-   * @param {object} copyInfo Information about already performed cut action.
-   * @param {Function} copyInfo.isTable Checks whether copied data is an array.
-   * @param {Function} copyInfo.isHandsontable Checks whether copied data is a Handsontable.
-   * @param {Function} copyInfo.getHotRanges Returns ranges related to copied part of Handsontable.
-   * @param {Function} copyInfo.remove Remove rows/columns from the copied/pasted dataset.
-   * @param {Function} copyInfo.insertAtRow Insert values at row index.
-   * @param {Function} copyInfo.insertAtColumn Insert values at column index.
-   * @param {Function} copyInfo.change  Change headers or cells in the copied/pasted dataset.
-   * @param {Function} copyInfo.getData Gets copied data stored as array of arrays.
-   * @param {Function} copyInfo.getHTML Gets sanitized data of "text/html" type inside the clipboard.
-   * @param {Function} copyInfo.getGridSettings Gets grid settings for copied data.
+   * @param {object} clipboardData Information about already performed cut action.
+   * @param {Function} clipboardData.isTable Checks whether copied data is an array.
+   * @param {Function} clipboardData.isHandsontable Checks whether copied data is a Handsontable.
+   * @param {Function} clipboardData.getHotRanges Returns ranges related to copied part of Handsontable.
+   * @param {Function} clipboardData.remove Remove rows/columns from the copied/pasted dataset.
+   * @param {Function} clipboardData.insertAtRow Insert values at row index.
+   * @param {Function} clipboardData.insertAtColumn Insert values at column index.
+   * @param {Function} clipboardData.change  Change headers or cells in the copied/pasted dataset.
+   * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
+   * @param {Function} clipboardData.getHTML Gets sanitized data of "text/html" type inside the clipboard.
+   * @param {Function} clipboardData.getMetaInfo Gets grid settings for copied data.
    */
   'afterCopy',
 
@@ -1591,31 +1591,31 @@ const REGISTERED_HOOKS = [
    * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#beforePaste
-   * @param {object} pasteInfo Information about already performed cut action.
-   * @param {Function} pasteInfo.isTable Checks whether copied data is an array.
-   * @param {Function} pasteInfo.isHandsontable Checks whether copied data is a Handsontable.
-   * @param {Function} pasteInfo.remove Remove rows/columns from the copied/pasted dataset.
-   * @param {Function} pasteInfo.insertAtRow Insert values at row index.
-   * @param {Function} pasteInfo.insertAtColumn Insert values at column index.
-   * @param {Function} pasteInfo.change  Change headers or cells in the copied/pasted dataset.
-   * @param {Function} pasteInfo.getData Gets copied data stored as array of arrays.
-   * @param {Function} pasteInfo.getHTML Gets sanitized data of "text/html" type inside the clipboard.
-   * @param {Function} pasteInfo.getGridSettings Gets grid settings for copied data.
+   * @param {object} clipboardData Information about already performed cut action.
+   * @param {Function} clipboardData.isTable Checks whether copied data is an array.
+   * @param {Function} clipboardData.isHandsontable Checks whether copied data is a Handsontable.
+   * @param {Function} clipboardData.remove Remove rows/columns from the copied/pasted dataset.
+   * @param {Function} clipboardData.insertAtRow Insert values at row index.
+   * @param {Function} clipboardData.insertAtColumn Insert values at column index.
+   * @param {Function} clipboardData.change  Change headers or cells in the copied/pasted dataset.
+   * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
+   * @param {Function} clipboardData.getHTML Gets sanitized data of "text/html" type inside the clipboard.
+   * @param {Function} clipboardData.getMetaInfo Gets grid settings for copied data.
    * @returns {*} If returns `false` then pasting is canceled.
    * @example
    * ```js
    * ::: only-for javascript
    * // To disregard a single row or column, remove it from copied dataset using `remove` method on the object from the first callback argument.
    * new Handsontable(example, {
-   *   beforePaste: (pasteInfo) => {
-   *     // pasteInfo.getData() -> [[1, 2, 3], [4, 5, 6]]
-   *    pasteInfo.remove({ rows: [0], columns: [0] });
-   *     // pasteInfo.getData() -> [[5, 6]]
+   *   beforePaste: (clipboardData) => {
+   *     // clipboardData.getData() -> [[1, 2, 3], [4, 5, 6]]
+   *    clipboardData.remove({ rows: [0], columns: [0] });
+   *     // clipboardData.getData() -> [[5, 6]]
    *   }
    * });
    * // To cancel pasting, return false from the callback.
    * new Handsontable(example, {
-   *   beforePaste: (pasteInfo) => {
+   *   beforePaste: (clipboardData) => {
    *     return false;
    *   }
    * });
@@ -1626,15 +1626,15 @@ const REGISTERED_HOOKS = [
    * ```jsx
    * // To disregard a single row or column, remove it from copied dataset using `remove` method on the object from the first callback argument.
    * <HotTable
-   *   beforePaste={(pasteInfo) => {
-   *     // pasteInfo.getData() -> [[1, 2, 3], [4, 5, 6]]
-   *    pasteInfo.remove({ rows: [0], columns: [0] });
-   *     // pasteInfo.getData() -> [[5, 6]]
+   *   beforePaste={(clipboardData) => {
+   *     // clipboardData.getData() -> [[1, 2, 3], [4, 5, 6]]
+   *    clipboardData.remove({ rows: [0], columns: [0] });
+   *     // clipboardData.getData() -> [[5, 6]]
    *   }}
    * />
    * // To cancel pasting, return false from the callback.
    * <HotTable
-   *   beforePaste={(pasteInfo) => {
+   *   beforePaste={(clipboardData) => {
    *     return false;
    *   }}
    * />
@@ -1648,16 +1648,16 @@ const REGISTERED_HOOKS = [
    * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#afterPaste
-   * @param {object} pasteInfo Information about already performed cut action.
-   * @param {Function} pasteInfo.isTable Checks whether copied data is an array.
-   * @param {Function} pasteInfo.isHandsontable Checks whether copied data is a Handsontable.
-   * @param {Function} pasteInfo.remove Remove rows/columns from the copied/pasted dataset.
-   * @param {Function} pasteInfo.insertAtRow Insert values at row index.
-   * @param {Function} pasteInfo.insertAtColumn Insert values at column index.
-   * @param {Function} pasteInfo.change  Change headers or cells in the copied/pasted dataset.
-   * @param {Function} pasteInfo.getData Gets copied data stored as array of arrays.
-   * @param {Function} pasteInfo.getHTML Gets sanitized data of "text/html" type inside the clipboard.
-   * @param {Function} pasteInfo.getGridSettings Gets grid settings for copied data.
+   * @param {object} clipboardData Information about already performed cut action.
+   * @param {Function} clipboardData.isTable Checks whether copied data is an array.
+   * @param {Function} clipboardData.isHandsontable Checks whether copied data is a Handsontable.
+   * @param {Function} clipboardData.remove Remove rows/columns from the copied/pasted dataset.
+   * @param {Function} clipboardData.insertAtRow Insert values at row index.
+   * @param {Function} clipboardData.insertAtColumn Insert values at column index.
+   * @param {Function} clipboardData.change  Change headers or cells in the copied/pasted dataset.
+   * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
+   * @param {Function} clipboardData.getHTML Gets sanitized data of "text/html" type inside the clipboard.
+   * @param {Function} clipboardData.getMetaInfo Gets grid settings for copied data.
    */
   'afterPaste',
 

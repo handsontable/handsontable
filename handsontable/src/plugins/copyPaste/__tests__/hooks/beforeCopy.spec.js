@@ -330,8 +330,8 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(2, 2),
         colHeaders: true,
         copyPaste: true,
-        beforeCopy(actionInfo) {
-          actionInfo.remove({ rows: [0, -1] });
+        beforeCopy(clipboardData) {
+          clipboardData.removeRows([0, -1]);
         },
         modifyColumnHeaderValue(value, columnIndex, headerLevel) {
           if (headerLevel < 0) {
@@ -385,11 +385,9 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(2, 2),
         colHeaders: true,
         copyPaste: true,
-        beforeCopy(actionInfo) {
-          actionInfo.change([
-            { row: -2, column: 0, value: 'hello world' },
-            { row: 1, column: 1, value: 'hello world2' },
-          ]);
+        beforeCopy(clipboardData) {
+          clipboardData.setCellAt({ row: -2, column: 0, value: 'hello world' });
+          clipboardData.setCellAt({ row: 1, column: 1, value: 'hello world2' });
         },
         modifyColumnHeaderValue(value, columnIndex, headerLevel) {
           if (headerLevel < 0) {
@@ -456,11 +454,9 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(2, 2),
         colHeaders: true,
         copyPaste: true,
-        beforeCopy(actionInfo) {
-          actionInfo.change([
-            { row: -2, column: 0, value: 'hello world' },
-            { row: 1, column: 1, value: 'hello world2' },
-          ], true);
+        beforeCopy(clipboardData) {
+          clipboardData.setCellAt({ row: -2, column: 0, value: 'hello world', isRtl: true });
+          clipboardData.setCellAt({ row: 1, column: 1, value: 'hello world2', isRtl: true });
         },
         modifyColumnHeaderValue(value, columnIndex, headerLevel) {
           if (headerLevel < 0) {

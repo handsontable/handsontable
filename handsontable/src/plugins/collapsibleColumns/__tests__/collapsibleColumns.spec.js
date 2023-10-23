@@ -4125,7 +4125,7 @@ describe('CollapsibleColumns', () => {
             <td class="">J1</td>
           </tr>
         </tbody>
-        `);
+      `);
     });
   });
 

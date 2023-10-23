@@ -61,12 +61,11 @@ interface CopyPasteActionInfo {
   remove: (removedElements: { rows: number[], columns: number[] }) => void;
   insertAtRow: (rowIndex: number, values: any[]) => void;
   insertAtColumn: (columnIndex: number, values: any[]) => void;
-  change: (changes: Array<{ row: number, column: number, value: any }>) => void;
-  isTable: () => boolean;
-  isHandsontable: () => boolean;
+  setAtCell: (change: { row: number, column: number, value: any, isRtl?: boolean }) => void;
   getData: () => any[][];
   getHTML: () => string;
-  getGridSettings: () => GridSettings;
+  getMetaInfo: () => GridSettings;
+  getSource: () => 'Handsontable' | 'table' | 'string';
 }
 
 export interface Events {

@@ -62,7 +62,7 @@ describe('MergeCells copy and paste', () => {
         { row: 1, col: 1, rowspan: 2, colspan: 2 },
       ],
       beforeCopy(actionInfo) {
-        actionInfo.remove({ columns: [2] });
+        actionInfo.removeColumns([2]);
       },
       afterCopy: afterCopySpy
     });
@@ -118,7 +118,7 @@ describe('MergeCells copy and paste', () => {
       '</table>'
     ].join(''));
     /* eslint-enable */
-    expect(afterCopySpy.calls.argsFor(0)[0].getGridSettings()).toEqual({
+    expect(afterCopySpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
       colHeaders: ['A', 'B', 'D'],
       mergeCells: [{ col: 1, row: 1, rowspan: 2, colspan: 1 }],
       data: [['A1', 'B1', 'D1'], ['A2', 'B2', 'D2'], ['A3', null, 'D3'], ['A4', 'B4', 'D4']],
@@ -138,7 +138,7 @@ describe('MergeCells copy and paste', () => {
         { row: 1, col: 1, rowspan: 2, colspan: 2 },
       ],
       beforePaste(actionInfo) {
-        actionInfo.remove({ columns: [2] });
+        actionInfo.removeColumns([2]);
       },
       afterPaste: afterPasteSpy
     });
@@ -198,7 +198,7 @@ describe('MergeCells copy and paste', () => {
       '</table>'
     ].join(''));
     /* eslint-enable */
-    expect(afterPasteSpy.calls.argsFor(0)[0].getGridSettings()).toEqual({
+    expect(afterPasteSpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
       colHeaders: ['A', 'B', 'D'],
       mergeCells: [{ col: 1, row: 1, rowspan: 2, colspan: 1 }],
       data: [['A1', 'B1', 'D1'], ['A2', 'B2', 'D2'], ['A3', null, 'D3'], ['A4', 'B4', 'D4']],
@@ -217,7 +217,7 @@ describe('MergeCells copy and paste', () => {
         { row: 3, col: 3, rowspan: 3, colspan: 3 }
       ],
       beforeCopy(actionInfo) {
-        actionInfo.remove({ rows: [1] });
+        actionInfo.removeRows([1]);
       }
     });
 
@@ -322,8 +322,8 @@ describe('MergeCells copy and paste', () => {
         { row: 3, col: 3, rowspan: 3, colspan: 3 }
       ],
       beforeCopy(actionInfo) {
-        actionInfo.remove({ rows: [2] });
-        actionInfo.remove({ columns: [4] });
+        actionInfo.removeRows([2]);
+        actionInfo.removeColumns([4]);
       }
     });
 
@@ -424,7 +424,8 @@ describe('MergeCells copy and paste', () => {
         { row: 3, col: 3, rowspan: 3, colspan: 3 }
       ],
       beforeCopy(actionInfo) {
-        actionInfo.remove({ rows: [2], columns: [4] });
+        actionInfo.removeRows([2]);
+        actionInfo.removeColumns([4]);
       }
     });
 
@@ -525,10 +526,10 @@ describe('MergeCells copy and paste', () => {
         { row: 3, col: 3, rowspan: 3, colspan: 3 }
       ],
       beforeCopy(actionInfo) {
-        actionInfo.remove({ rows: [1] });
-        actionInfo.remove({ rows: [1] });
-        actionInfo.remove({ columns: [3, 4] });
-        actionInfo.remove({ columns: [3] });
+        actionInfo.removeRows([1]);
+        actionInfo.removeRows([1]);
+        actionInfo.removeColumns([3, 4]);
+        actionInfo.removeColumns([3]);
       }
     });
 
@@ -614,7 +615,8 @@ describe('MergeCells copy and paste', () => {
         { row: 3, col: 3, rowspan: 3, colspan: 3 }
       ],
       beforeCopy(actionInfo) {
-        actionInfo.remove({ rows: [1, 2], columns: [3, 4, 5] });
+        actionInfo.removeRows([1, 2]);
+        actionInfo.removeColumns([3, 4, 5]);
       }
     });
 

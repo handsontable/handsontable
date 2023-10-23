@@ -403,30 +403,26 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterContextMenuDefaultOptions: (predefinedItems) => {},
   afterContextMenuHide: (context) => {},
   afterContextMenuShow: (context) => {},
-  afterCopy: (actionInfo) => {
-    actionInfo.remove({ rows: [0], columns: [0] });
-    actionInfo.insertAtRow(0, ['A', 'B', 'C']);
-    actionInfo.insertAtColumn(0, ['A', 'B', 'C']);
-    actionInfo.change([{ row: 0, column: 0, value: '' }]);
-    actionInfo.isTable();
-    actionInfo.isHandsontable();
-    actionInfo.getData();
-    actionInfo.getHTML();
-    actionInfo.getGridSettings();
+  afterCopy: (clipboardData) => {
+    clipboardData.remove({ rows: [0], columns: [0] });
+    clipboardData.insertAtRow(0, ['A', 'B', 'C']);
+    clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
+    clipboardData.setAtCell({ row: 0, column: 0, value: '' });
+    clipboardData.getData();
+    clipboardData.getMetaInfo();
+    clipboardData.getSource();
   },
   afterCopyLimit: (selectedRows, selectedColumnds, copyRowsLimit, copyColumnsLimit) => {},
   afterCreateCol: (index, amount, source) => {},
   afterCreateRow: (index, amount, source) => {},
-  afterCut: (actionInfo) => {
-    actionInfo.remove({ rows: [0], columns: [0] });
-    actionInfo.insertAtRow(0, ['A', 'B', 'C']);
-    actionInfo.insertAtColumn(0, ['A', 'B', 'C']);
-    actionInfo.change([{ row: 0, column: 0, value: '' }]);
-    actionInfo.isTable();
-    actionInfo.isHandsontable();
-    actionInfo.getData();
-    actionInfo.getHTML();
-    actionInfo.getGridSettings();
+  afterCut: (clipboardData) => {
+    clipboardData.remove({ rows: [0], columns: [0] });
+    clipboardData.insertAtRow(0, ['A', 'B', 'C']);
+    clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
+    clipboardData.setAtCell({ row: 0, column: 0, value: '' });
+    clipboardData.getData();
+    clipboardData.getMetaInfo();
+    clipboardData.getSource();
   },
   afterDeselect: () => {},
   afterDestroy: () => {},
@@ -463,16 +459,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterOnCellMouseOver: (event, coords, TD) => {},
   afterOnCellMouseOut: (event, coords, TD) => {},
   afterOnCellMouseUp: (event, coords, TD) => {},
-  afterPaste: (actionInfo) => {
-    actionInfo.remove({ rows: [0], columns: [0] });
-    actionInfo.insertAtRow(0, ['A', 'B', 'C']);
-    actionInfo.insertAtColumn(0, ['A', 'B', 'C']);
-    actionInfo.change([{ row: 0, column: 0, value: '' }]);
-    actionInfo.isTable();
-    actionInfo.isHandsontable();
-    actionInfo.getData();
-    actionInfo.getHTML();
-    actionInfo.getGridSettings();
+  afterPaste: (clipboardData) => {
+    clipboardData.remove({ rows: [0], columns: [0] });
+    clipboardData.insertAtRow(0, ['A', 'B', 'C']);
+    clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
+    clipboardData.setAtCell({ row: 0, column: 0, value: '' });
+    clipboardData.getData();
+    clipboardData.getMetaInfo();
+    clipboardData.getSource();
   },
   afterPluginsInitialized: () => {},
   afterRedo: (action) => {},
@@ -528,29 +522,25 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeColumnUnfreeze: (columnIndex, isFreezingPerformed) => false,
   beforeContextMenuSetItems: (menuItems) => {},
   beforeContextMenuShow: (context) => {},
-  beforeCopy: (actionInfo) => {
-    actionInfo.remove({ rows: [0], columns: [0] });
-    actionInfo.insertAtRow(0, ['A', 'B', 'C']);
-    actionInfo.insertAtColumn(0, ['A', 'B', 'C']);
-    actionInfo.change([{ row: 0, column: 0, value: '' }]);
-    actionInfo.isTable();
-    actionInfo.isHandsontable();
-    actionInfo.getData();
-    actionInfo.getHTML();
-    actionInfo.getGridSettings();
+  beforeCopy: (clipboardData) => {
+    clipboardData.remove({ rows: [0], columns: [0] });
+    clipboardData.insertAtRow(0, ['A', 'B', 'C']);
+    clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
+    clipboardData.setAtCell({ row: 0, column: 0, value: '' });
+    clipboardData.getData();
+    clipboardData.getMetaInfo();
+    clipboardData.getSource();
   },
   beforeCreateCol: (index, amount, source) => {},
   beforeCreateRow: (index, amount, source) => {},
-  beforeCut: (actionInfo) => {
-    actionInfo.remove({ rows: [0], columns: [0] });
-    actionInfo.insertAtRow(0, ['A', 'B', 'C']);
-    actionInfo.insertAtColumn(0, ['A', 'B', 'C']);
-    actionInfo.change([{ row: 0, column: 0, value: '' }]);
-    actionInfo.isTable();
-    actionInfo.isHandsontable();
-    actionInfo.getData();
-    actionInfo.getHTML();
-    actionInfo.getGridSettings();
+  beforeCut: (clipboardData) => {
+    clipboardData.remove({ rows: [0], columns: [0] });
+    clipboardData.insertAtRow(0, ['A', 'B', 'C']);
+    clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
+    clipboardData.setAtCell({ row: 0, column: 0, value: '' });
+    clipboardData.getData();
+    clipboardData.getMetaInfo();
+    clipboardData.getSource();
   },
   beforeDetachChild: (parent, element) => {},
   beforeDrawBorders: (corners, borderClassName) => {},
@@ -573,16 +563,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeOnCellMouseOut: (event, coords, TD) => {},
   beforeOnCellMouseOver: (event, coords, TD, controller) => {},
   beforeOnCellMouseUp: (event, coords, TD) => {},
-  beforePaste: (actionInfo) => {
-    actionInfo.remove({ rows: [0], columns: [0] });
-    actionInfo.insertAtRow(0, ['A', 'B', 'C']);
-    actionInfo.insertAtColumn(0, ['A', 'B', 'C']);
-    actionInfo.change([{ row: 0, column: 0, value: '' }]);
-    actionInfo.isTable();
-    actionInfo.isHandsontable();
-    actionInfo.getData();
-    actionInfo.getHTML();
-    actionInfo.getGridSettings();
+  beforePaste: (clipboardData) => {
+    clipboardData.remove({ rows: [0], columns: [0] });
+    clipboardData.insertAtRow(0, ['A', 'B', 'C']);
+    clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
+    clipboardData.setAtCell({ row: 0, column: 0, value: '' });
+    clipboardData.getData();
+    clipboardData.getMetaInfo();
+    clipboardData.getSource();
   },
   beforeRedo: (action) => {},
   beforeRedoStackChange: (undoneActions) => {},

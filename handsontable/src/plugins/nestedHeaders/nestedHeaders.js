@@ -438,7 +438,7 @@ export class NestedHeaders extends BasePlugin {
    * @param {Function} copyInfo.change  Change headers or cells in the copied/pasted dataset.
    * @param {Function} copyInfo.getData Gets copied data stored as array of arrays.
    * @param {Function} copyInfo.getHTML Gets sanitized data of "text/html" type inside the clipboard.
-   * @param {Function} copyInfo.getGridSettings Gets grid settings for copied data.
+   * @param {Function} copyInfo.getMetaInfo Gets grid settings for copied data.
    */
   onBeforeCopy(copyInfo) {
     const copyableRanges = copyInfo.getHotRanges();
@@ -464,7 +464,7 @@ export class NestedHeaders extends BasePlugin {
           const collapsible = this.#stateManager.getHeaderTreeNodeData(row, column)?.collapsible;
 
           if (collapsible === true && isRoot === false) {
-            copyInfo.change([{ row, column: zeroBasedColumnIndex, value: '' }]);
+            copyInfo.setCellAt({ row, column: zeroBasedColumnIndex, value: '' });
           }
         }
       }

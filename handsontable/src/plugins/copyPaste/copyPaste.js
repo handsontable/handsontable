@@ -8,7 +8,6 @@ import copyColumnHeadersOnlyItem from './contextMenuItem/copyColumnHeadersOnly';
 import copyWithColumnGroupHeadersItem from './contextMenuItem/copyWithColumnGroupHeaders';
 import copyWithColumnHeadersItem from './contextMenuItem/copyWithColumnHeaders';
 import cutItem from './contextMenuItem/cut';
-import PasteEvent from './pasteEvent';
 import { createElement, destroyElement } from './focusableElement';
 import {
   CopyableRangesFactory,
@@ -353,11 +352,22 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
-    const pasteData = new PasteEvent();
+    const pasteData = {
+      clipboardData: {
+        data: {},
+        setData(type, value) {
+          this.data[type] = value;
+        },
+        getData(type) {
+          return this.data[type];
+        }
+      }
+    };
 
     if (pastableText) {
       pasteData.clipboardData.setData('text/plain', pastableText);
     }
+
     if (pastableHtml) {
       pasteData.clipboardData.setData('text/html', pastableHtml);
     }
