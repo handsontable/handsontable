@@ -8,7 +8,7 @@ import { isDefined } from '../../../helpers/mixed';
  *
  * @private
  */
-export class PasteCliboardData extends ClipboardData {
+export class PasteClipboardData extends ClipboardData {
   /**
    * Sanitized data of "text/html" type inside the clipboard.
    *

@@ -18,7 +18,7 @@ import {
 } from '../../utils/parseTable';
 
 import './copyPaste.css';
-import { CopyClipboardData, PasteCliboardData } from './clipboardData';
+import { CopyClipboardData, PasteClipboardData } from './clipboardData';
 
 Hooks.getSingleton().register('afterCopyLimit');
 Hooks.getSingleton().register('modifyCopyableRange');
@@ -595,7 +595,7 @@ export class CopyPaste extends BasePlugin {
       FORCE_BODY: true,
     });
 
-    const pasteClipboardData = new PasteCliboardData(event.clipboardData.getData('text/plain'), html);
+    const pasteClipboardData = new PasteClipboardData(event.clipboardData.getData('text/plain'), html);
 
     if (this.hot.runHooks('beforePaste', pasteClipboardData) === false) {
       return;

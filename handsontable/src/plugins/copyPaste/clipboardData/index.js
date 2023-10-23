@@ -1,7 +1,7 @@
 import { CopyClipboardData } from './copyClipboardData';
-import { PasteCliboardData } from './pasteCliboardData';
+import { PasteClipboardData } from './pasteClipboardData';
 
 export {
   CopyClipboardData,
-  PasteCliboardData
+  PasteClipboardData
 };
