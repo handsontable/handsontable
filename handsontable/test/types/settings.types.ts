@@ -407,10 +407,13 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.remove({ rows: [0], columns: [0] });
     clipboardData.insertAtRow(0, ['A', 'B', 'C']);
     clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
-    clipboardData.setAtCell({ row: 0, column: 0, value: '' });
+    clipboardData.setCellAt(0, 0, '');
+    clipboardData.getCellAt(0, 0, true);
+    clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
     clipboardData.getSource();
+    clipboardData.getHotRanges();
   },
   afterCopyLimit: (selectedRows, selectedColumnds, copyRowsLimit, copyColumnsLimit) => {},
   afterCreateCol: (index, amount, source) => {},
@@ -419,10 +422,13 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.remove({ rows: [0], columns: [0] });
     clipboardData.insertAtRow(0, ['A', 'B', 'C']);
     clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
-    clipboardData.setAtCell({ row: 0, column: 0, value: '' });
+    clipboardData.setCellAt(0, 0, '');
+    clipboardData.getCellAt(0, 0, true);
+    clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
     clipboardData.getSource();
+    clipboardData.getHotRanges();
   },
   afterDeselect: () => {},
   afterDestroy: () => {},
@@ -463,7 +469,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.remove({ rows: [0], columns: [0] });
     clipboardData.insertAtRow(0, ['A', 'B', 'C']);
     clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
-    clipboardData.setAtCell({ row: 0, column: 0, value: '' });
+    clipboardData.setCellAt(0, 0, '');
+    clipboardData.getCellAt(0, 0, true);
+    clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
     clipboardData.getSource();
@@ -526,10 +534,13 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.remove({ rows: [0], columns: [0] });
     clipboardData.insertAtRow(0, ['A', 'B', 'C']);
     clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
-    clipboardData.setAtCell({ row: 0, column: 0, value: '' });
+    clipboardData.setCellAt(0, 0, '');
+    clipboardData.getCellAt(0, 0, true);
+    clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
     clipboardData.getSource();
+    clipboardData.getHotRanges();
   },
   beforeCreateCol: (index, amount, source) => {},
   beforeCreateRow: (index, amount, source) => {},
@@ -537,10 +548,13 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.remove({ rows: [0], columns: [0] });
     clipboardData.insertAtRow(0, ['A', 'B', 'C']);
     clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
-    clipboardData.setAtCell({ row: 0, column: 0, value: '' });
+    clipboardData.setCellAt(0, 0, '');
+    clipboardData.getCellAt(0, 0, true);
+    clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
     clipboardData.getSource();
+    clipboardData.getHotRanges();
   },
   beforeDetachChild: (parent, element) => {},
   beforeDrawBorders: (corners, borderClassName) => {},
@@ -567,7 +581,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.remove({ rows: [0], columns: [0] });
     clipboardData.insertAtRow(0, ['A', 'B', 'C']);
     clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
-    clipboardData.setAtCell({ row: 0, column: 0, value: '' });
+    clipboardData.setCellAt(0, 0, '');
+    clipboardData.getCellAt(0, 0, true);
+    clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
     clipboardData.getSource();
