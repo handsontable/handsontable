@@ -1,7 +1,7 @@
 import { ActionInfo } from './actionInfo';
 import { getDataWithHeadersByConfig } from '../../../utils/parseTable';
 import { parse } from '../../../3rdparty/SheetClip';
-import {isDefined} from "../../../helpers/mixed";
+import { isDefined } from '../../../helpers/mixed';
 
 /**
  * Creates an object containing information about paste action.

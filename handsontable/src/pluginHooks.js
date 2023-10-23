@@ -1427,7 +1427,7 @@ const REGISTERED_HOOKS = [
    * the selected cells. This hook is fired when {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#beforeCut
-   * @param {object} clipboardData Information about already performed cut action.
+   * @param {object} clipboardData Information about cut action which is going to happen.
    * @param {Function} clipboardData.isTable Checks whether copied data is an array.
    * @param {Function} clipboardData.isHandsontable Checks whether copied data is a Handsontable.
    * @param {Function} clipboardData.getHotRanges Returns ranges related to copied part of Handsontable.
@@ -1503,7 +1503,7 @@ const REGISTERED_HOOKS = [
    * Fired before values are copied to the clipboard.
    *
    * @event Hooks#beforeCopy
-   * @param {object} clipboardData Information about already performed cut action.
+   * @param {object} clipboardData Information about copy action which is going to happen.
    * @param {Function} clipboardData.isTable Checks whether copied data is an array.
    * @param {Function} clipboardData.isHandsontable Checks whether copied data is a Handsontable.
    * @param {Function} clipboardData.getHotRanges Returns ranges related to copied part of Handsontable.
@@ -1572,7 +1572,7 @@ const REGISTERED_HOOKS = [
    * option is enabled.
    *
    * @event Hooks#afterCopy
-   * @param {object} clipboardData Information about already performed cut action.
+   * @param {object} clipboardData Information about already performed copy action.
    * @param {Function} clipboardData.isTable Checks whether copied data is an array.
    * @param {Function} clipboardData.isHandsontable Checks whether copied data is a Handsontable.
    * @param {Function} clipboardData.getHotRanges Returns ranges related to copied part of Handsontable.
@@ -1591,7 +1591,7 @@ const REGISTERED_HOOKS = [
    * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#beforePaste
-   * @param {object} clipboardData Information about already performed cut action.
+   * @param {object} clipboardData Information about paste action which is going to happen.
    * @param {Function} clipboardData.isTable Checks whether copied data is an array.
    * @param {Function} clipboardData.isHandsontable Checks whether copied data is a Handsontable.
    * @param {Function} clipboardData.remove Remove rows/columns from the copied/pasted dataset.
@@ -1648,7 +1648,7 @@ const REGISTERED_HOOKS = [
    * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#afterPaste
-   * @param {object} clipboardData Information about already performed cut action.
+   * @param {object} clipboardData Information about already performed paste action.
    * @param {Function} clipboardData.isTable Checks whether copied data is an array.
    * @param {Function} clipboardData.isHandsontable Checks whether copied data is a Handsontable.
    * @param {Function} clipboardData.remove Remove rows/columns from the copied/pasted dataset.
