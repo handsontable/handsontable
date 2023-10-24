@@ -170,6 +170,9 @@ export class SelectUI extends BaseUI {
           this.closeOptions();
           this.runLocalHooks('tabKeydown', event);
         },
+      }, {
+        keys: [['Control/Meta', 'A']],
+        callback: () => false,
       }]);
     }
   }
