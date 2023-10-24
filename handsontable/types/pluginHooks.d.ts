@@ -58,7 +58,8 @@ interface HookHighlightColumnHeaderMeta {
 }
 
 interface ClipboardData {
-  remove: (removedElements: { rows: number[], columns: number[] }) => void;
+  removeRows: (rows: number[]) => void;
+  removeColumns: (columns: number[]) => void;
   insertAtRow: (rowIndex: number, values: any[]) => void;
   insertAtColumn: (columnIndex: number, values: any[]) => void;
   getCellAt: (row: number, col: number, isRtl?: boolean) => 'string';

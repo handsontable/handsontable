@@ -1445,7 +1445,8 @@ const REGISTERED_HOOKS = [
    * new Handsontable(element, {
    *   beforeCut: function(clipboardData) {
    *     // clipboardData.getData() -> [[1, 2, 3], [4, 5, 6]]
-   *    clipboardData.remove({ rows: [0], columns: [0] });
+   *    clipboardData.removeRows([0]);
+   *    clipboardData.removeColumns([0]);
    *     // clipboardData.getData() -> [[5, 6]]
    *   }
    * });
@@ -1464,7 +1465,8 @@ const REGISTERED_HOOKS = [
    * <HotTable
    *   beforeCut={(clipboardData) => {
    *     // clipboardData.getData() -> [[1, 2, 3], [4, 5, 6]]
-   *    clipboardData.remove({ rows: [0], columns: [0] });
+   *    clipboardData.removeRows([0]);
+   *    clipboardData.removeColumns([0]);
    *     // clipboardData.getData() -> [[5, 6]]
    *   }}
    * />
@@ -1521,7 +1523,8 @@ const REGISTERED_HOOKS = [
    * new Handsontable(document.getElementById('example'), {
    *   beforeCopy: (clipboardData) => {
    *     // clipboardData.getData() -> [[1, 2, 3], [4, 5, 6]]
-   *    clipboardData.remove({ rows: [0], columns: [0] });
+   *    clipboardData.removeRows([0]);
+   *    clipboardData.removeColumns([0]);
    *     // clipboardData.getData() -> [[5, 6]]
    *   }
    * });
@@ -1545,7 +1548,8 @@ const REGISTERED_HOOKS = [
    * <HotTable
    *   beforeCopy={(clipboardData) => {
    *     // clipboardData.getData() -> [[1, 2, 3], [4, 5, 6]]
-   *    clipboardData.remove({ rows: [0], columns: [0] });
+   *    clipboardData.removeRows([0]);
+   *    clipboardData.removeColumns([0]);
    *     // clipboardData.getData() -> [[5, 6]]
    *   }}
    * />
@@ -1606,7 +1610,8 @@ const REGISTERED_HOOKS = [
    * new Handsontable(example, {
    *   beforePaste: (clipboardData) => {
    *     // clipboardData.getData() -> [[1, 2, 3], [4, 5, 6]]
-   *    clipboardData.remove({ rows: [0], columns: [0] });
+   *    clipboardData.removeRows([0]);
+   *    clipboardData.removeColumns([0]);
    *     // clipboardData.getData() -> [[5, 6]]
    *   }
    * });
@@ -1625,7 +1630,8 @@ const REGISTERED_HOOKS = [
    * <HotTable
    *   beforePaste={(clipboardData) => {
    *     // clipboardData.getData() -> [[1, 2, 3], [4, 5, 6]]
-   *    clipboardData.remove({ rows: [0], columns: [0] });
+   *    clipboardData.removeRows([0]);
+   *    clipboardData.removeColumns([0]);
    *     // clipboardData.getData() -> [[5, 6]]
    *   }}
    * />

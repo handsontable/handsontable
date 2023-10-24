@@ -404,7 +404,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterContextMenuHide: (context) => {},
   afterContextMenuShow: (context) => {},
   afterCopy: (clipboardData) => {
-    clipboardData.remove({ rows: [0], columns: [0] });
+    clipboardData.removeRows([0]);
+    clipboardData.removeColumns([0]);
     clipboardData.insertAtRow(0, ['A', 'B', 'C']);
     clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
     clipboardData.setCellAt(0, 0, '');
@@ -419,7 +420,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterCreateCol: (index, amount, source) => {},
   afterCreateRow: (index, amount, source) => {},
   afterCut: (clipboardData) => {
-    clipboardData.remove({ rows: [0], columns: [0] });
+    clipboardData.removeRows([0]);
+    clipboardData.removeColumns([0]);
     clipboardData.insertAtRow(0, ['A', 'B', 'C']);
     clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
     clipboardData.setCellAt(0, 0, '');
@@ -466,7 +468,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterOnCellMouseOut: (event, coords, TD) => {},
   afterOnCellMouseUp: (event, coords, TD) => {},
   afterPaste: (clipboardData) => {
-    clipboardData.remove({ rows: [0], columns: [0] });
+    clipboardData.removeRows([0]);
+    clipboardData.removeColumns([0]);
     clipboardData.insertAtRow(0, ['A', 'B', 'C']);
     clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
     clipboardData.setCellAt(0, 0, '');
@@ -531,7 +534,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeContextMenuSetItems: (menuItems) => {},
   beforeContextMenuShow: (context) => {},
   beforeCopy: (clipboardData) => {
-    clipboardData.remove({ rows: [0], columns: [0] });
+    clipboardData.removeRows([0]);
+    clipboardData.removeColumns([0]);
     clipboardData.insertAtRow(0, ['A', 'B', 'C']);
     clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
     clipboardData.setCellAt(0, 0, '');
@@ -545,7 +549,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeCreateCol: (index, amount, source) => {},
   beforeCreateRow: (index, amount, source) => {},
   beforeCut: (clipboardData) => {
-    clipboardData.remove({ rows: [0], columns: [0] });
+    clipboardData.removeRows([0]);
+    clipboardData.removeColumns([0]);
     clipboardData.insertAtRow(0, ['A', 'B', 'C']);
     clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
     clipboardData.setCellAt(0, 0, '');
@@ -578,7 +583,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeOnCellMouseOver: (event, coords, TD, controller) => {},
   beforeOnCellMouseUp: (event, coords, TD) => {},
   beforePaste: (clipboardData) => {
-    clipboardData.remove({ rows: [0], columns: [0] });
+    clipboardData.removeRows([0]);
+    clipboardData.removeColumns([0]);
     clipboardData.insertAtRow(0, ['A', 'B', 'C']);
     clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
     clipboardData.setCellAt(0, 0, '');
