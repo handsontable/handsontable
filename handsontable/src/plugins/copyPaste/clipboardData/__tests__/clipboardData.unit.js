@@ -106,4 +106,23 @@ describe('ClipboardData', () => {
     expect(handsontableData.getSource()).toBe('Handsontable');
     expect(simpleText.getSource()).toBe('string');
   });
+
+  it('should return proper values after using `getCellAt` and `setCellAt` methods', () => {
+    const clipboardData = new PasteClipboardData('A-1\tB-1\nA-0\tB-0\nA1\tB1', simpleWithNestedHeaders);
+
+    expect(clipboardData.getCellAt(0, 0)).toEqual('A1');
+    expect(clipboardData.getCellAt(0, 0, true)).toEqual('B1');
+    expect(clipboardData.getCellAt(-1, 0)).toEqual('A-0');
+    expect(clipboardData.getCellAt(-1, 0, true)).toEqual('B-0');
+
+    clipboardData.setCellAt(-1, 0, 'A-0-modified');
+    clipboardData.setCellAt(-1, 0, 'B-0-modified', true);
+    clipboardData.setCellAt(0, 0, 'A1-modified');
+    clipboardData.setCellAt(0, 0, 'B1-modified', true);
+
+    expect(clipboardData.getCellAt(0, 0)).toEqual('A1-modified');
+    expect(clipboardData.getCellAt(0, 0, true)).toEqual('B1-modified');
+    expect(clipboardData.getCellAt(-1, 0)).toEqual('A-0-modified');
+    expect(clipboardData.getCellAt(-1, 0, true)).toEqual('B-0-modified');
+  });
 });
