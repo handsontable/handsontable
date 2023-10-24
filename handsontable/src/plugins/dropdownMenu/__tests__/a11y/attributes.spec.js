@@ -80,6 +80,24 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(cMenu.hotMenu.getCell(0, 0).getAttribute('aria-label')).toBe('Insert column left');
   });
 
+  it('should assign the `tabindex` attribute to all the options of the dropdown menu', () => {
+    handsontable({
+      dropdownMenu: true,
+      colHeaders: true,
+    });
+
+    dropdownMenu(0);
+
+    const cMenu = getPlugin('dropdownMenu').menu;
+
+    expect(filterElementsByAttribute(
+      cMenu.container,
+      'td',
+      'tabindex',
+      '-1',
+    ).length).toBe(6);
+  });
+
   it('should assign the `aria-disabled` attribute to all the disabled options of the dropdown menu', () => {
     const hot = handsontable({
       data: [{ a: 1 }],

@@ -63,5 +63,5 @@ export const helpers = {
 
     // eslint-disable-next-line max-len
     return `${this.screenshotsDirectory}/${this.hotWrapper}/${this.browser}/${this.screenshotDirName}/${this.screenshotsCount}.${this.screenshotsExtension}`;
-  }
+  },
 };

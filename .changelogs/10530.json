@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved the navigation and accessibility of the Dropdown Menu with filtering",
+  "type": "changed",
+  "issueOrPR": 10530,
+  "breaking": true,
+  "framework": "none"
+}

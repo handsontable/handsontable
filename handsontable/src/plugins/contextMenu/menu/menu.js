@@ -1,5 +1,6 @@
 import { Positioner } from './positioner';
-import { Navigator } from './navigator';
+import { createMenuNavigator } from './navigator';
+import { createKeyboardShortcutsCtrl } from './shortcuts';
 import { SEPARATOR, NO_ITEMS, predefinedItems } from './../predefinedItems';
 import {
   filterSeparators,
@@ -8,7 +9,6 @@ import {
   normalizeSelection,
   isItemSubMenu,
   isItemDisabled,
-  isItemSelectionDisabled,
   isItemSeparator,
 } from './utils';
 import EventManager from '../../../eventManager';
@@ -16,11 +16,7 @@ import { arrayEach, arrayFilter, arrayReduce } from '../../../helpers/array';
 import { isWindowsOS, isMobileBrowser, isIpadOS } from '../../../helpers/browser';
 import {
   addClass,
-  empty,
-  fastInnerHTML,
   isChildOf,
-  isInput,
-  removeClass,
   getParentWindow,
   hasClass,
   setAttribute,
@@ -31,18 +27,16 @@ import { debounce, isFunction } from '../../../helpers/function';
 import { isUndefined, isDefined } from '../../../helpers/mixed';
 import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
+import { createMenuItemRenderer } from './menuItemRenderer';
 import {
-  A11Y_DISABLED,
   A11Y_EXPANDED,
   A11Y_HIDDEN,
   A11Y_LABEL,
   A11Y_MENU,
-  A11Y_MENU_ITEM
+  A11Y_TABINDEX,
 } from '../../../helpers/a11y';
 
 const MIN_WIDTH = 215;
-const SHORTCUTS_CONTEXT = 'menu';
-const SHORTCUTS_GROUP = SHORTCUTS_CONTEXT;
 
 /**
  * @typedef MenuOptions
@@ -61,6 +55,19 @@ const SHORTCUTS_GROUP = SHORTCUTS_CONTEXT;
  */
 export class Menu {
   /**
+   * The controller module that allows modifying the menu item selection positions.
+   *
+   * @type {Paginator}
+   */
+  #navigator;
+  /**
+   * The controller module that allows extending the keyboard shortcuts for the menu.
+   *
+   * @type {KeyboardShortcutsMenuController}
+   */
+  #shortcutsCtrl;
+
+  /**
    * @param {Core} hotInstance Handsontable instance.
    * @param {MenuOptions} [options] Menu options.
    */
@@ -78,15 +85,18 @@ export class Menu {
     this.eventManager = new EventManager(this);
     this.container = this.createContainer(this.options.name);
     this.positioner = new Positioner(this.options.keepInViewport);
-    this.navigator = new Navigator();
     this.hotMenu = null;
     this.hotSubMenus = {};
     this.parentMenu = this.options.parent || null;
     this.menuItems = null;
     this.origOutsideClickDeselects = null;
-    this._afterScrollCallback = null;
 
     this.registerEvents();
+
+    if (this.isSubMenu()) {
+      this.addLocalHook('afterSelectionChange',
+        (...args) => this.parentMenu.runLocalHooks('afterSelectionChange', ...args));
+    }
   }
 
   /**
@@ -112,6 +122,24 @@ export class Menu {
    */
   setMenuItems(menuItems) {
     this.menuItems = menuItems;
+  }
+
+  /**
+   * Gets the controller object that allows modifying the the menu item selection.
+   *
+   * @returns {Paginator | undefined}
+   */
+  getNavigator() {
+    return this.#navigator;
+  }
+
+  /**
+   * Gets the controller object that allows extending the keyboard shortcuts of the menu.
+   *
+   * @returns {KeyboardShortcutsMenuController | undefined}
+   */
+  getKeyboardShortcutsCtrl() {
+    return this.#shortcutsCtrl;
   }
 
   /**
@@ -192,10 +220,11 @@ export class Menu {
       readOnly: true,
       editor: false,
       copyPaste: false,
+      hiddenRows: true,
       maxCols: 1,
       columns: [{
         data: 'name',
-        renderer: (hot, TD, row, col, prop, value) => this.menuItemRenderer(hot, TD, row, col, prop, value)
+        renderer: createMenuItemRenderer(this.hot),
       }],
       renderAllRows: true,
       fragmentSelection: false,
@@ -203,6 +232,9 @@ export class Menu {
       disableVisualSelection: 'area',
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       ariaTags: false,
+      beforeOnCellMouseOver: (event, coords) => {
+        this.#navigator.setCurrentPage(coords.row);
+      },
       afterOnCellMouseOver: (event, coords) => {
         if (this.isAllSubMenusClosed()) {
           delayedOpenSubMenu(coords.row);
@@ -225,6 +257,8 @@ export class Menu {
         if (this.hotMenu.view.isMouseDown()) {
           preventScrolling.value = true;
         }
+
+        this.runLocalHooks('afterSelectionChange', this.getSelectedItem());
       },
       beforeOnCellMouseUp: (event) => {
         if (this.hasSelectedItem()) {
@@ -263,103 +297,18 @@ export class Menu {
     this.hotMenu = new this.hot.constructor(this.container, settings);
     this.hotMenu.addHook('afterInit', () => this.onAfterInit());
     this.hotMenu.init();
-    this.hotMenu.listen();
 
-    this.navigator.setMenu(this.hotMenu);
+    this.#navigator = createMenuNavigator(this.hotMenu);
+    this.#shortcutsCtrl = createKeyboardShortcutsCtrl(this);
+    this.#shortcutsCtrl.listen();
 
-    const shortcutManager = this.hotMenu.getShortcutManager();
-    const menuContext = shortcutManager.addContext(SHORTCUTS_GROUP);
-    const config = { group: SHORTCUTS_CONTEXT };
-    const menuContextConfig = {
-      ...config,
-      runOnlyIf: event => !isInput(event.target) || !this.container.contains(event.target),
-    };
+    this.focus();
 
-    // Default shortcuts for Handsontable should not be handled. Changing context will help with that.
-    shortcutManager.setActiveContextName('menu');
+    if (this.isSubMenu()) {
+      this.addLocalHook('afterOpen', () => this.parentMenu.runLocalHooks('afterSubmenuOpen', this));
+    }
 
-    menuContext.addShortcuts([{
-      keys: [['Tab'], ['Shift', 'Tab'], ['Control/Meta', 'A']],
-      forwardToContext: this.hot.getShortcutManager().getContext('grid'),
-      callback: () => this.close(true),
-    }, {
-      keys: [['Escape']],
-      callback: () => this.close(true),
-    }, {
-      keys: [['ArrowDown']],
-      callback: () => this.navigator.selectNext(),
-    }, {
-      keys: [['ArrowUp']],
-      callback: () => this.navigator.selectPrev(),
-    }, {
-      keys: [['ArrowRight']],
-      callback: () => {
-        const selection = this.hotMenu.getSelectedLast();
-
-        if (selection) {
-          const subMenu = this.openSubMenu(selection[0]);
-
-          if (subMenu) {
-            subMenu.navigator.selectFirst();
-          }
-        }
-      }
-    }, {
-      keys: [['ArrowLeft']],
-      callback: () => {
-        const selection = this.hotMenu.getSelectedLast();
-
-        if (selection && this.isSubMenu()) {
-          this.close();
-
-          if (this.isSubMenu()) {
-            this.parentMenu.hotMenu.listen();
-          }
-        }
-      },
-    }, {
-      keys: [['Control/Meta', 'ArrowUp'], ['Home']],
-      callback: () => this.navigator.selectFirst(),
-    }, {
-      keys: [['Control/Meta', 'ArrowDown'], ['End']],
-      callback: () => this.navigator.selectLast(),
-    }, {
-      keys: [['Enter'], ['Space']],
-      callback: (event) => {
-        const selection = this.hotMenu.getSelectedLast();
-
-        if (this.hotMenu.getSourceDataAtRow(selection[0]).submenu) {
-          this.openSubMenu(selection[0]).navigator.selectFirst();
-        } else {
-          this.executeCommand(event);
-          this.close(true);
-        }
-      }
-    }, {
-      keys: [['PageUp']],
-      callback: () => {
-        const selection = this.hotMenu.getSelectedLast();
-
-        if (selection) {
-          this.hotMenu.selection.transformStart(-this.hotMenu.countVisibleRows(), 0);
-        } else {
-          this.navigator.selectFirst();
-        }
-      },
-    }, {
-      keys: [['PageDown']],
-      callback: () => {
-        const selection = this.hotMenu.getSelectedLast();
-
-        if (selection) {
-          this.hotMenu.selection.transformStart(this.hotMenu.countVisibleRows(), 0);
-        } else {
-          this.navigator.selectLast();
-        }
-      },
-    }], menuContextConfig);
-
-    this.runLocalHooks('afterOpen');
+    this.runLocalHooks('afterOpen', this);
   }
 
   /**
@@ -375,7 +324,7 @@ export class Menu {
     if (closeParent && this.isSubMenu()) {
       this.parentMenu.close();
     } else {
-      this.navigator.clear();
+      this.#navigator.clear();
       this.closeAllSubMenus();
       this.container.style.display = 'none';
       this.hotMenu.destroy();
@@ -485,6 +434,19 @@ export class Menu {
   }
 
   /**
+   * Focus the menu so all keyboard shortcuts become active.
+   */
+  focus() {
+    if (this.isOpened()) {
+      this.hotMenu.rootElement.focus({
+        preventScroll: true,
+      });
+      this.getKeyboardShortcutsCtrl().listen();
+      this.hotMenu.listen();
+    }
+  }
+
+  /**
    * Destroy instance.
    */
   destroy() {
@@ -582,90 +544,6 @@ export class Menu {
   }
 
   /**
-   * Menu item renderer.
-   *
-   * @private
-   * @param {Core} hot The Handsontable instance.
-   * @param {HTMLCellElement} TD The rendered cell element.
-   * @param {number} row The visual index.
-   * @param {number} col The visual index.
-   * @param {string} prop The column property if used.
-   * @param {string} value The cell value.
-   */
-  menuItemRenderer(hot, TD, row, col, prop, value) {
-    const ariaTags = this.hot.getSettings().ariaTags;
-    const item = hot.getSourceDataAtRow(row);
-    const wrapper = this.hot.rootDocument.createElement('div');
-    let itemValue = value;
-
-    if (typeof itemValue === 'function') {
-      itemValue = itemValue.call(this.hot);
-    }
-
-    empty(TD);
-    addClass(wrapper, 'htItemWrapper');
-
-    if (ariaTags) {
-      setAttribute(TD, [
-        A11Y_MENU_ITEM(),
-        A11Y_LABEL(itemValue),
-        ...(isItemDisabled(item, this.hot) ? [A11Y_DISABLED()] : []),
-        ...(isItemSubMenu(item) ? [A11Y_EXPANDED(false)] : []),
-      ]);
-    }
-
-    if (isItemSubMenu(item)) {
-      const submenuIndicatorElement = TD.querySelector('.submenuIndicator');
-
-      if (!submenuIndicatorElement) {
-        appendDiv(TD, 'submenuIndicator', ariaTags ? [A11Y_HIDDEN()] : []);
-      }
-    }
-
-    TD.appendChild(wrapper);
-
-    if (isItemSeparator(item)) {
-      addClass(TD, 'htSeparator');
-
-    } else if (typeof item.renderer === 'function') {
-      addClass(TD, 'htCustomMenuRenderer');
-      TD.appendChild(item.renderer(hot, wrapper, row, col, prop, itemValue));
-
-    } else {
-      fastInnerHTML(wrapper, itemValue);
-    }
-
-    if (isItemDisabled(item, this.hot)) {
-      addClass(TD, 'htDisabled');
-      this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
-
-    } else if (isItemSelectionDisabled(item)) {
-      addClass(TD, 'htSelectionDisabled');
-      this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
-
-    } else if (isItemSubMenu(item)) {
-      addClass(TD, 'htSubmenu');
-
-      if (isItemSelectionDisabled(item)) {
-        this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
-      } else {
-        this.eventManager
-          .addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, false, false));
-      }
-
-    } else {
-      removeClass(TD, ['htSubmenu', 'htDisabled']);
-
-      if (isItemSelectionDisabled(item)) {
-        this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
-      } else {
-        this.eventManager
-          .addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, false, false));
-      }
-    }
-  }
-
-  /**
    * Create container/wrapper for handsontable.
    *
    * @private
@@ -732,7 +610,8 @@ export class Menu {
     // Replace the default accessibility tags with the context menu's
     if (this.hot.getSettings().ariaTags) {
       setAttribute(this.hotMenu.rootElement, [
-        A11Y_MENU()
+        A11Y_MENU(),
+        A11Y_TABINDEX(-1),
       ]);
     }
   }

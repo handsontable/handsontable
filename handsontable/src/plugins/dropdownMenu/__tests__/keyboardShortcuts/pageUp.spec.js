@@ -37,7 +37,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       });
 
       dropdownMenu();
-      getPlugin('dropdownMenu').menu.navigator.selectLast();
+      getPlugin('dropdownMenu').menu.getNavigator().toLastItem();
       keyDownUp('pageup');
 
       const hotMenu = getPlugin('dropdownMenu').menu.hotMenu;
@@ -53,7 +53,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       });
 
       dropdownMenu();
-      getPlugin('dropdownMenu').menu.navigator.selectLast();
+      getPlugin('dropdownMenu').menu.getNavigator().toLastItem();
 
       window.scrollTo(0, document.documentElement.scrollHeight);
 

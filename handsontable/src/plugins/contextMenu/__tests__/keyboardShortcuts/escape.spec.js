@@ -26,7 +26,7 @@ describe('ContextMenu keyboard shortcut', () => {
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
 
-    it('should close the submenu and its parent', async() => {
+    it('should close only the submenu leaving the parent open', async() => {
       handsontable({
         contextMenu: true,
         height: 100
@@ -43,7 +43,7 @@ describe('ContextMenu keyboard shortcut', () => {
       keyDownUp('escape');
 
       expect($('.htContextMenuSub_Alignment').is(':visible')).toBe(false);
-      expect($('.htContextMenu').is(':visible')).toBe(false);
+      expect($('.htContextMenu').is(':visible')).toBe(true);
     });
   });
 });
