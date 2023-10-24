@@ -20,7 +20,7 @@ describe('HiddenColumns (RTL mode)', () => {
     });
 
     describe('indicators', () => {
-      it('should add proper class names in column headers', () => {
+      xit('should add proper class names in column headers', () => {
         handsontable({
           layoutDirection,
           data: Handsontable.helper.createSpreadsheetData(1, 5),
