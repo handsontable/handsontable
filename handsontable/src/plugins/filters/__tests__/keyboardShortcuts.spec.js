@@ -132,6 +132,34 @@ describe('Filters keyboard shortcut', () => {
     });
   });
 
+  describe('"Control/Meta" + "A"', () => {
+    it('should not close the dropdown menu, nor select all cells in the main table when pressing cmd/ctrl + a on an' +
+      ' opened select component', async() => {
+      handsontable({
+        data: getDataForFilters().splice(0, 10),
+        rowHeaders: true,
+        colHeaders: true,
+        filters: true,
+        dropdownMenu: true,
+        navigableHeaders: true,
+      });
+
+      dropdownMenu(1);
+      const initialSelectionState = getSelectedRange();
+
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+
+      await sleep(10);
+
+      keyDownUp(['Control/Meta', 'A']);
+
+      expect(getPlugin('dropdownMenu').menu.isOpened()).toBe(true);
+      expect(getPlugin('filters').components.get('filter_by_condition').elements[0].getMenu().isOpened()).toBe(true);
+      expect(getSelectedRange()).toEqual(initialSelectionState);
+      expect(isListening()).toBe(false);
+    });
+  });
+
   describe('LinkUI buttons', () => {
     it('should react to both `Enter` and `Space`', async() => {
       const countCheckedCheckboxes = () => {

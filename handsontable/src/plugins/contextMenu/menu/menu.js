@@ -320,6 +320,7 @@ export class Menu {
 
     if (closeParent && this.isSubMenu()) {
       this.parentMenu.close();
+
     } else {
       this.#navigator.clear();
       this.closeAllSubMenus();
