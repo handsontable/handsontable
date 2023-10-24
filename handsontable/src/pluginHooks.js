@@ -1441,7 +1441,7 @@ const REGISTERED_HOOKS = [
    * @example
    * ::: only-for javascript
    * ```js
-   * // To disregard a single row or column, remove it from copied dataset using `remove` method on the object from the first callback argument.
+   * // To disregard a single row or column, remove it from copied dataset using `removeRows`/`removeColumns` method on the object from the first callback argument.
    * new Handsontable(element, {
    *   beforeCut: function(clipboardData) {
    *     // clipboardData.getData() -> [[1, 2, 3], [4, 5, 6]]
@@ -1461,7 +1461,7 @@ const REGISTERED_HOOKS = [
    *
    * ::: only-for react
    * ```jsx
-   * // To disregard a single row or column, remove it from copied dataset using `remove` method on the object from the first callback argument.
+   * // To disregard a single row or column, remove it from copied dataset using `removeRows`/`removeColumns` method on the object from the first callback argument.
    * <HotTable
    *   beforeCut={(clipboardData) => {
    *     // clipboardData.getData() -> [[1, 2, 3], [4, 5, 6]]
@@ -1518,7 +1518,7 @@ const REGISTERED_HOOKS = [
    * @example
    * ::: only-for javascript
    * ```js
-   * // To disregard a single row or column, remove it from copied dataset using `remove` method on the object from the first callback argument.
+   * // To disregard a single row or column, remove it from copied dataset using `removeRows`/`removeColumns` method on the object from the first callback argument.
    * ...
    * new Handsontable(document.getElementById('example'), {
    *   beforeCopy: (clipboardData) => {
@@ -1543,7 +1543,7 @@ const REGISTERED_HOOKS = [
    *
    * ::: only-for react
    * ```jsx
-   * // To disregard a single row or column, remove it from copied dataset using `remove` method on the object from the first callback argument.
+   * // To disregard a single row or column, remove it from copied dataset using `removeRows`/`removeColumns` method on the object from the first callback argument.
    * ...
    * <HotTable
    *   beforeCopy={(clipboardData) => {
@@ -1606,7 +1606,7 @@ const REGISTERED_HOOKS = [
    * @example
    * ```js
    * ::: only-for javascript
-   * // To disregard a single row or column, remove it from copied dataset using `remove` method on the object from the first callback argument.
+   * // To disregard a single row or column, remove it from copied dataset using `removeRows`/`removeColumns` method on the object from the first callback argument.
    * new Handsontable(example, {
    *   beforePaste: (clipboardData) => {
    *     // clipboardData.getData() -> [[1, 2, 3], [4, 5, 6]]
@@ -1626,7 +1626,7 @@ const REGISTERED_HOOKS = [
    *
    * ::: only-for react
    * ```jsx
-   * // To disregard a single row or column, remove it from copied dataset using `remove` method on the object from the first callback argument.
+   * // To disregard a single row or column, remove it from copied dataset using `removeRows`/`removeColumns` method on the object from the first callback argument.
    * <HotTable
    *   beforePaste={(clipboardData) => {
    *     // clipboardData.getData() -> [[1, 2, 3], [4, 5, 6]]
