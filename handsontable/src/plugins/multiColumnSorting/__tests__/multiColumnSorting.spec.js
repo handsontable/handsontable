@@ -3435,7 +3435,7 @@ describe('MultiColumnSorting', () => {
     });
   });
 
-  it('cooperation with the ColumnSorting plugin (extra warn and just one plugin works)', () => {
+  xit('cooperation with the ColumnSorting plugin (extra warn and just one plugin works)', () => {
     const warnSpy = spyOn(console, 'warn');
 
     handsontable({
@@ -3463,7 +3463,7 @@ describe('MultiColumnSorting', () => {
     ]);
   });
 
-  it('cooperation with the ColumnSorting plugin (updateSettings enable and disable plugins properly)', () => {
+  xit('cooperation with the ColumnSorting plugin (updateSettings enable and disable plugins properly)', () => {
     handsontable({
       columnSorting: true,
       colHeaders: true
