@@ -13,6 +13,59 @@ export const simpleWithMergedCell =
       </tbody>
     </table>`;
 
+export const simpleWithHeaders =
+  toSingleLine`${META_HEAD}
+    <table>
+      <thead>
+        <tr>
+          <th>A</th>
+          <th>B</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>A1</td>
+          <td>B1</td>
+        </tr>
+      </tbody>
+    </table>`;
+
+export const simpleWithNestedHeaders =
+  toSingleLine`
+    <table>
+     <thead>
+       <tr>
+         <th>A-1</th>
+         <th>B-1</th>
+       </tr>
+       <tr>
+         <th>A-0</th>
+         <th>B-0</th>
+       </tr>
+     </thead>
+     <tbody>
+       <tr>
+         <td>A1</td> 
+         <td>B1</td> 
+       </tr>
+     </tbody>
+   </table>`;
+
+export const simpleWithOnlyNestedHeaders =
+  toSingleLine`
+    <table>
+     <thead>
+       <tr>
+         <th>A-1</th>
+         <th>B-1</th>
+       </tr>
+       <tr>
+         <th>A-0</th>
+         <th>B-0</th>
+       </tr>
+     </thead>
+   </table>`;
+
 export const simpleTableWithOnlyHeaders =
   toSingleLine`
     <table>

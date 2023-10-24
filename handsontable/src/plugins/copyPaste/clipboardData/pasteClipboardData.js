@@ -12,12 +12,14 @@ export class PasteClipboardData extends ClipboardData {
   /**
    * Sanitized data of "text/html" type inside the clipboard.
    *
+   * @private
    * @type {string}
    */
   html;
   /**
    * Copied data stored as array of arrays.
    *
+   * @private
    * @type {string[][]}
    */
   data;
