@@ -318,10 +318,9 @@ export class Menu {
       return;
     }
 
-    this.runLocalHooks('beforeClose');
-
     if (closeParent && this.isSubMenu()) {
       this.parentMenu.close();
+
     } else {
       this.#navigator.clear();
       this.closeAllSubMenus();

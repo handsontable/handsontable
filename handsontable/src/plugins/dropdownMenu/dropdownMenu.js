@@ -209,7 +209,7 @@ export class DropdownMenu extends BasePlugin {
 
       this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());
       this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
-      this.menu.addLocalHook('beforeClose', () => this.onMenuBeforeClose());
+      this.menu.addLocalHook('afterSubmenuOpen', subMenuInstance => this.onSubMenuAfterOpen(subMenuInstance));
       this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
       this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
 
@@ -286,24 +286,6 @@ export class DropdownMenu extends BasePlugin {
   }
 
   /**
-   * Register shortcuts added to the menu's Handsontable instance.
-   *
-   * @private
-   */
-  registerMenuShortcuts() {
-    const menuContext = this.menu.hotMenu.getShortcutManager().getContext('menu');
-
-    // Prevent the Context Menu's default `cmd/ctrl + a` behavior.
-    menuContext.addShortcuts([{
-      keys: [['Control/Meta', 'A']],
-      callback: () => false,
-      group: SHORTCUTS_GROUP,
-      relativeToGroup: 'menu',
-      position: 'before',
-    }]);
-  }
-
-  /**
    * Unregister shortcuts responsible for toggling dropdown menu.
    *
    * @private
@@ -311,17 +293,6 @@ export class DropdownMenu extends BasePlugin {
   unregisterShortcuts() {
     this.hot.getShortcutManager()
       .getContext('grid')
-      .removeShortcutsByGroup(SHORTCUTS_GROUP);
-  }
-
-  /**
-   * Unregister shortcuts assigned to the menu's Handsontable instance.
-   *
-   * @private
-   */
-  unregisterMenuShortcuts() {
-    this.menu.hotMenu.getShortcutManager()
-      .getContext('menu')
       .removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
@@ -414,6 +385,24 @@ export class DropdownMenu extends BasePlugin {
         this.menu.hotMenu.unlisten();
       }
     }
+  }
+
+  /**
+   * Add custom shortcuts to the provided menu instance.
+   *
+   * @private
+   * @param {Menu} menuInstance The menu instance.
+   */
+  #addCustomShortcuts(menuInstance) {
+    const menuShortcutsCtrl = menuInstance.getKeyboardShortcutsCtrl();
+
+    menuShortcutsCtrl.addCustomShortcuts([{
+      keys: [['Control/Meta', 'A']],
+      callback: () => false,
+      group: SHORTCUTS_GROUP,
+      relativeToGroup: 'menu',
+      position: 'before',
+    }]);
   }
 
   /**
@@ -517,17 +506,17 @@ export class DropdownMenu extends BasePlugin {
   onMenuAfterOpen() {
     this.hot.runHooks('afterDropdownMenuShow', this);
 
-    this.registerMenuShortcuts();
+    this.#addCustomShortcuts(this.menu);
   }
 
   /**
-   * On menu before close listener.
+   * Listener for the `afterSubmenuOpen` hook.
    *
    * @private
-   * @fires Hooks#afterDropdownMenuHide
+   * @param {Menu} subMenuInstance The opened sub menu instance.
    */
-  onMenuBeforeClose() {
-    this.unregisterMenuShortcuts();
+  onSubMenuAfterOpen(subMenuInstance) {
+    this.#addCustomShortcuts(subMenuInstance);
   }
 
   /**
