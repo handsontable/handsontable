@@ -119,7 +119,7 @@ export class SelectUI extends BaseUI {
     const dropdown = new BaseUI(this.hot, {
       className: 'htUISelectDropdown'
     });
-    
+
     this.#caption = caption;
     this.#captionElement = caption.element;
     this.#dropdown = dropdown;
