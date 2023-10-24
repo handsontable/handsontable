@@ -430,7 +430,7 @@ function encodeHTMLEntities(text) {
 function decodeHTMLEntities(html) {
   return html.replace(regEscapedChars, match => ESCAPED_HTML_CHARS[match])
     // The way how Excel serializes data with at least two spaces.
-    .replace(/<span style="mso-spacerun: yes">(((&nbsp;)*)? +)<\/span>/, '$1')
+    .replace(/<span style="mso-spacerun: yes">(.+?)<\/span>/, '$1')
     .replaceAll('&nbsp;', ' ');
 }
 
