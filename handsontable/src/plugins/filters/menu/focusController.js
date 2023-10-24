@@ -1,6 +1,7 @@
 import { createFocusNavigator } from './focusNavigator';
 import { SelectUI } from '../ui/select';
 import { BaseUI } from '../ui/_base';
+import { LinkUI } from '../ui/link';
 
 const SHORTCUTS_MENU_CONTEXT = 'filters';
 
@@ -100,6 +101,12 @@ export function createMenuFocusController(mainMenu, menuItems) {
           element.openOptions();
           event.preventDefault();
         }
+
+        if (element instanceof LinkUI) {
+          element.activate();
+          event.preventDefault();
+        }
+
         if (!(element instanceof BaseUI)) {
           event.preventDefault();
         }

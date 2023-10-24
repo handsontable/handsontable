@@ -19,8 +19,8 @@ import {
 } from '../contextMenu/predefinedItems';
 
 import './dropdownMenu.scss';
-import { A11Y_LABEL } from '../../helpers/a11y';
 import { COLUMN_HEADER_LABEL_OPEN_MENU } from '../../i18n/constants';
+import { A11Y_LABEL, A11Y_HASPOPUP, A11Y_HIDDEN } from '../../helpers/a11y';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 Hooks.getSingleton().register('beforeDropdownMenuShow');
@@ -210,6 +210,7 @@ export class DropdownMenu extends BasePlugin {
 
       this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());
       this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
+      this.menu.addLocalHook('afterSubmenuOpen', subMenuInstance => this.onSubMenuAfterOpen(subMenuInstance));
       this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
       this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
 
@@ -250,7 +251,7 @@ export class DropdownMenu extends BasePlugin {
    * @private
    */
   registerShortcuts() {
-    const context = this.hot.getShortcutManager().getContext('grid');
+    const gridContext = this.hot.getShortcutManager().getContext('grid');
     const callback = () => {
       const { highlight } = this.hot.getSelectedRangeLast();
 
@@ -270,8 +271,8 @@ export class DropdownMenu extends BasePlugin {
         });
       }
     };
-
-    context.addShortcuts([{
+  
+    gridContext.addShortcuts([{
       keys: [['Shift', 'Alt', 'ArrowDown'], ['Control/Meta', 'Enter']],
       callback,
       runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isHeader() && !this.menu.isOpened(),
@@ -388,6 +389,20 @@ export class DropdownMenu extends BasePlugin {
   }
 
   /**
+   * Add custom shortcuts to the provided menu instance.
+   *
+   * @param {Menu} menuInstance The menu instance.
+   */
+  #addCustomShortcuts(menuInstance) {
+    menuInstance
+      .getKeyboardShortcutsCtrl()
+      .addCustomShortcuts([{
+        keys: [['Control/Meta', 'A']],
+        callback: () => false,
+      }]);
+  }
+
+  /**
    * Table click listener.
    *
    * @private
@@ -455,6 +470,10 @@ export class DropdownMenu extends BasePlugin {
       setAttribute(button, [
         A11Y_LABEL(this.hot.getTranslatedPhrase(COLUMN_HEADER_LABEL_OPEN_MENU)),
       ]);
+
+      setAttribute(TH, [
+        A11Y_HASPOPUP('menu'),
+      ]);
     }
 
     // prevent page reload on button click
@@ -483,6 +502,18 @@ export class DropdownMenu extends BasePlugin {
    */
   onMenuAfterOpen() {
     this.hot.runHooks('afterDropdownMenuShow', this);
+
+    this.#addCustomShortcuts(this.menu);
+  }
+
+  /**
+   * Listener for the `afterSubmenuOpen` hook.
+   *
+   * @private
+   * @param {Menu} subMenuInstance The opened sub menu instance.
+   */
+  onSubMenuAfterOpen(subMenuInstance) {
+    this.#addCustomShortcuts(subMenuInstance);
   }
 
   /**
