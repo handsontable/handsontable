@@ -4,7 +4,12 @@ export default class CellCoords {
   row: number;
   col: number;
 
-  isValid(wot: any): boolean;
+  isValid(tableParams: {
+    countRows?: number;
+    countCols?: number;
+    countRowHeaders?: number;
+    countColHeaders?: number;
+  }): boolean;
   isEqual(cellCoords: CellCoords): boolean;
   isSouthEastOf(testedCoords: any): boolean;
   isNorthWestOf(testedCoords: any): boolean;

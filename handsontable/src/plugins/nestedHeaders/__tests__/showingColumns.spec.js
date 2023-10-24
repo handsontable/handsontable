@@ -3,6 +3,13 @@ describe('NestedHeaders', () => {
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+
+    // Matchers configuration.
+    this.matchersConfig = {
+      toMatchHTML: {
+        keepAttributes: ['class', 'colspan']
+      }
+    };
   });
 
   afterEach(function() {
@@ -1009,8 +1016,12 @@ describe('NestedHeaders', () => {
         hidingMap.setValueAtIndex(i, i % 2 !== 0);
       }
 
-      hot.scrollViewportTo(void 0, 25); // Scroll to column AA4
-      hot.render();
+      scrollViewportTo({ // Scroll to column AA4
+        col: 25,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+      render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -1129,8 +1140,12 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(45, false); // Show column that contains cells AT{n}
       hot.render();
 
-      hot.scrollViewportTo(void 0, 38); // Scroll to column AM4
-      hot.render();
+      scrollViewportTo({ // Scroll to column AM4
+        col: 38,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+      render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>

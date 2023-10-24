@@ -397,7 +397,7 @@ describe('PasswordEditor', () => {
   });
 
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
-  it('should not lose the focus on input element while inserting new characters (#839)', async() => {
+  it('should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)', async() => {
     const hot = handsontable({
       data: [
         ['Joe'],
@@ -408,9 +408,13 @@ describe('PasswordEditor', () => {
       columns: [
         { data: 'id', type: 'password' },
       ],
+      imeFastEdit: true,
     });
 
     selectCell(0, 0);
+
+    // The `imeFastEdit` timeout is set to 50ms.
+    await sleep(55);
 
     const activeElement = hot.getActiveEditor().TEXTAREA;
 
@@ -456,13 +460,16 @@ describe('PasswordEditor', () => {
   });
 
   describe('IME support', () => {
-    it('should focus editable element after selecting the cell', async() => {
+    it('should focus editable element after a timeout when selecting the cell if `imeFastEdit` is enabled', async() => {
       handsontable({
         type: 'password',
+        imeFastEdit: true,
       });
+
       selectCell(0, 0, 0, 0, true, false);
 
-      await sleep(10);
+      // The `imeFastEdit` timeout is set to 50ms.
+      await sleep(55);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });

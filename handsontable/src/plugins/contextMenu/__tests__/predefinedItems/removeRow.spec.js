@@ -23,12 +23,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, 1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(4); // "Remove row"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
@@ -44,12 +39,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(4); // "Remove row"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A3', 'A4', 'A5']);
@@ -63,6 +53,60 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
+    it('should remove row when the menu is triggered by focused row header', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(1, -1);
+      getPlugin('contextMenu').open({ top: 0, left: 0 });
+
+      const item = selectContextMenuOption('Remove row');
+
+      expect(item.hasClass('htDisabled')).toBe(false);
+      expect(getDataAtCol(0)).toEqual(['A1', 'A3', 'A4', 'A5']);
+    });
+
+    it('should not remove row when the menu is triggered by focused corner', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, -1);
+      getPlugin('contextMenu').open({ top: 0, left: 0 });
+
+      const item = selectContextMenuOption('Remove row');
+
+      expect(item.hasClass('htDisabled')).toBe(true);
+      expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
+    });
+
+    it('should not remove row when the menu is triggered by focused column header', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, 1);
+      getPlugin('contextMenu').open({ top: 0, left: 0 });
+
+      const item = selectContextMenuOption('Remove row');
+
+      expect(item.hasClass('htDisabled')).toBe(true);
+      expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
+    });
+
     it('should remove all rows when the menu is triggered by corner', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
@@ -73,12 +117,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(4); // "Remove row"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getData()).toEqual([]);
@@ -99,16 +138,11 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(4); // "Remove row"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
-        |   ║ * : * : * : * : * |
+        |   ║ - : - : - : - : - |
         |===:===:===:===:===:===|
         `).toBeMatchToSelectionPattern();
     });
@@ -123,12 +157,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(4); // "Remove row"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getData()).toEqual([]);
@@ -148,12 +177,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(4); // "Remove row"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
@@ -172,12 +196,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(1, 1));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(4); // "Remove row"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A3', 'A4', 'A5']);
@@ -202,12 +221,7 @@ describe('ContextMenu', () => {
       selectCell(2, 2, 4, 4);
       contextMenu(getCell(2, 2));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(4); // "Remove row"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2']);
@@ -266,12 +280,7 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(4); // "Remove row"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A7']);
@@ -310,13 +319,7 @@ describe('ContextMenu', () => {
 
       selectCell(1, 1);
       contextMenu();
-
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(4); // "Remove row"
-
-      simulateClick(item);
+      selectContextMenuOption('Remove row');
 
       expect($(hot.getCell(2, 1)).hasClass('htInvalid')).toBeTruthy();
     });

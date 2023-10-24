@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { hasOwnProperty, objectEach, deepClone } from '../../helpers/object';
+import { hasOwnProperty, deepClone } from '../../helpers/object';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayReduce, arrayMap } from '../../helpers/array';
 import * as C from '../../i18n/constants';
@@ -182,15 +182,11 @@ export class CustomBorders extends BasePlugin {
     const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType);
 
     arrayEach(selectionRanges, (selection) => {
-      const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
-
-      for (let row = rowStart; row <= rowEnd; row += 1) {
-        for (let col = columnStart; col <= columnEnd; col += 1) {
-          arrayEach(borderKeys, (borderKey) => {
-            this.prepareBorderFromCustomAdded(row, col, normBorder, toInlinePropName(borderKey));
-          });
-        }
-      }
+      selectionSchemaNormalizer(selection).forAll((row, col) => {
+        arrayEach(borderKeys, (borderKey) => {
+          this.prepareBorderFromCustomAdded(row, col, normBorder, toInlinePropName(borderKey));
+        });
+      });
     });
 
     /*
@@ -234,17 +230,13 @@ export class CustomBorders extends BasePlugin {
     const selectedBorders = [];
 
     arrayEach(selectionRanges, (selection) => {
-      const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
-
-      for (let row = rowStart; row <= rowEnd; row += 1) {
-        for (let col = columnStart; col <= columnEnd; col += 1) {
-          arrayEach(this.savedBorders, (border) => {
-            if (border.row === row && border.col === col) {
-              selectedBorders.push(denormalizeBorder(border));
-            }
-          });
-        }
-      }
+      selectionSchemaNormalizer(selection).forAll((row, col) => {
+        arrayEach(this.savedBorders, (border) => {
+          if (border.row === row && border.col === col) {
+            selectedBorders.push(denormalizeBorder(border));
+          }
+        });
+      });
     });
 
     return selectedBorders;
@@ -674,7 +666,9 @@ export class CustomBorders extends BasePlugin {
 
     arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
       if (border.id === customSelection.settings.id) {
-        objectEach(customSelection.instanceBorders, (borderObject) => {
+        const borders = this.hot.view._wt.selectionManager.getBorderInstances(customSelection);
+
+        arrayEach(borders, (borderObject) => {
           borderObject.toggleHiddenClass(place, remove); // TODO this also bad?
         });
 
@@ -712,7 +706,9 @@ export class CustomBorders extends BasePlugin {
           customSelection.commit();
 
           if (place) {
-            objectEach(customSelection.instanceBorders, (borderObject) => {
+            const borders = this.hot.view._wt.selectionManager.getBorderInstances(customSelection);
+
+            arrayEach(borders, (borderObject) => {
               borderObject.changeBorderStyle(place, border);
             });
           }
@@ -791,6 +787,16 @@ export class CustomBorders extends BasePlugin {
         return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS);
       },
       disabled() {
+        const range = this.getSelectedRangeLast();
+
+        if (!range) {
+          return true;
+        }
+
+        if (range.isSingleHeader()) {
+          return true;
+        }
+
         return this.selection.isSelectedByCorner();
       },
       submenu: {

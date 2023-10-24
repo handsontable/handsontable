@@ -90,7 +90,7 @@ These keyboard shortcuts help you select cells. They come from Handsontable's [`
 
 | Windows                                                       | macOS                                                        | Action                                                                           |  Excel  | Sheets  |
 | ------------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------- | :-----: | :-----: |
-| <kbd>**Ctrl**</kbd> + <kbd>**A**</kbd>                        | <kbd>**Cmd**</kbd> + <kbd>**A**</kbd>                        | Select all cells and headers                                                     | &check; | &check; |
+| <kbd>**Ctrl**</kbd> + <kbd>**A**</kbd> or <kbd>**Ctrl**</kbd> + <kbd>**Shift**</kbd> + <kbd>**Space**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**A**</kbd> or <kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**Space**</kbd>                        | Select all cells and headers                                                     | &check; | &check; |
 | <kbd>**Ctrl**</kbd> + <kbd>**Shift**</kbd> + <kbd>**↑**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**↑**</kbd> | Extend the selection to the first cell of the current column<sup>**</sup>        | &check; | &check; |
 | <kbd>**Ctrl**</kbd> + <kbd>**Shift**</kbd> + <kbd>**↓**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**↓**</kbd> | Extend the selection to the last cell of the current column<sup>**</sup>         | &check; | &check; |
 | <kbd>**Ctrl**</kbd> + <kbd>**Shift**</kbd> + <kbd>**←**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**←**</kbd> | Extend the selection to the leftmost cell of the current row<sup>**</sup>        | &check; | &check; |
@@ -194,7 +194,7 @@ These keyboard shortcuts work in context menus. To activate them, enable the [`C
 | Arrow keys               | Arrow keys               | Move one available menu item up, down, left, or right         | &check; | &check; |
 | <kbd>**Page Up**</kbd>   | <kbd>**Page Up**</kbd>   | Move to the first visible item of the context menu or submenu | &check; | &cross; |
 | <kbd>**Page Down**</kbd> | <kbd>**Page Down**</kbd> | Move to the last visible item of the context menu or submenu  | &check; | &cross; |
-| <kbd>**Escape**</kbd>    | <kbd>**Escape**</kbd>    | Close the context menu or submenu                             | &check; | &check; |
+| <kbd>**Escape**</kbd>    | <kbd>**Escape**</kbd>    | Close the context menu and all submenus                       | &check; | &check; |
 | <kbd>**Enter**</kbd>     | <kbd>**Enter**</kbd>     | Run the action of the selected menu item                      | &check; | &cross; |
 
 ## Custom keyboard shortcuts
@@ -282,14 +282,6 @@ To add a custom keyboard shortcut:
     - Accepts key names in both lowercase and uppercase (e.g., both `Enter` and `enter` work)
     - Handles key-name discrepancies between browsers (e.g., both `'Spacebar'` and `' '` work)
     - Accepts key names in any order (e.g., both `[['control', 'a']]` and `[['a', 'control']]`) work)
-    ::: tip
-    **Using the <kbd>**Alt**</kbd> (<kbd>**Option ⌥**</kbd>) modifier key**
-
-    <kbd>**Alt**</kbd> (<kbd>**Option ⌥**</kbd>) is often used for typing special characters (e.g., letters wich diacritical marks),
-    and its behavior may vary depending on the user's language and keyboard settings.
-
-    To properly use <kbd>**Alt**</kbd> (<kbd>**Option ⌥**</kbd>) in your shortcut, you may need to pass language-specific signs (such as `à` or `ś`) to the [`keys`](@/api/shortcutContext.md#addshortcut) parameter.
-    :::
 
 #### Add a conditional keyboard action
 

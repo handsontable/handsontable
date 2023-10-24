@@ -28,8 +28,8 @@ describe('CellRange', () => {
       const to = new CellCoords(5, 6);
       const range = new CellRange(highlight, from, to);
 
-      expect(range.highlight.row).toBe(0);
-      expect(range.highlight.col).toBe(0);
+      expect(range.highlight.row).toBe(-1);
+      expect(range.highlight.col).toBe(-2);
       expect(range.highlight).not.toBe(highlight);
       expect(range.from.row).toBe(from.row);
       expect(range.from.col).toBe(from.col);
@@ -40,6 +40,49 @@ describe('CellRange', () => {
     });
   });
 
+  describe('isValid()', () => {
+    it('should return values returned by the `isValid` method of the CellCoords object', () => {
+      const highlight = new CellCoords(-1, -2);
+      const from = new CellCoords(3, 4);
+      const to = new CellCoords(5, 6);
+      const range = new CellRange(highlight, from, to);
+      const tableParamsMock = {};
+
+      spyOn(range.from, 'isValid').and.returnValue(true);
+      spyOn(range.to, 'isValid').and.returnValue(true);
+
+      expect(range.isValid(tableParamsMock)).toBe(true);
+      expect(range.from.isValid).toHaveBeenCalledWith(tableParamsMock);
+      expect(range.from.isValid).toHaveBeenCalledTimes(1);
+      expect(range.to.isValid).toHaveBeenCalledWith(tableParamsMock);
+      expect(range.to.isValid).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return `false` when one of the CellCoords `isValid` method returns `false`', () => {
+      const highlight = new CellCoords(-1, -2);
+      const from = new CellCoords(3, 4);
+      const to = new CellCoords(5, 6);
+      const range = new CellRange(highlight, from, to);
+
+      spyOn(range.from, 'isValid').and.returnValue(false);
+      spyOn(range.to, 'isValid').and.returnValue(true);
+
+      expect(range.isValid()).toBe(false);
+    });
+
+    it('should return `false` when all of the CellCoords `isValid` method returns `false`', () => {
+      const highlight = new CellCoords(-1, -2);
+      const from = new CellCoords(3, 4);
+      const to = new CellCoords(5, 6);
+      const range = new CellRange(highlight, from, to);
+
+      spyOn(range.from, 'isValid').and.returnValue(false);
+      spyOn(range.to, 'isValid').and.returnValue(false);
+
+      expect(range.isValid()).toBe(false);
+    });
+  });
+
   describe('setHighlight()', () => {
     it('should clone the coordinates object while assigning', () => {
       const highlight = new CellCoords(-1, 6);
@@ -47,7 +90,7 @@ describe('CellRange', () => {
 
       range.setHighlight(highlight);
 
-      expect(range.highlight.row).toBe(0);
+      expect(range.highlight.row).toBe(-1);
       expect(range.highlight.col).toBe(6);
       expect(range.highlight).not.toBe(highlight);
     });
@@ -822,34 +865,61 @@ describe('CellRange', () => {
   });
 
   describe('isSingle()', () => {
-    it('should return `true` when `from` and `to` are equals and there is no header selected', () => {
+    it('should return `true` when the range is a single cell', () => {
+      const range = createRange(1, 2, 1, 2, 1, 2);
+
+      expect(range.isSingle()).toBe(true);
+    });
+
+    it('should return `true` when the range is a single header', () => {
+      const range = createRange(-1, -2, -1, -2, -1, -2);
+
+      expect(range.isSingle()).toBe(true);
+    });
+
+    it('should return `false` when the range is not a single cell or header', () => {
+      {
+        const range = createRange(-1, 2, -1, 2, -1, 3);
+
+        expect(range.isSingle()).toBe(false);
+      }
+      {
+        const range = createRange(0, 2, 0, 2, 0, 3);
+
+        expect(range.isSingle()).toBe(false);
+      }
+    });
+  });
+
+  describe('isSingleCell()', () => {
+    it('should return `true` when `from` and `to` are equals and there are no headers selected', () => {
       {
         const range = createRange(0, 0, 4, 5, 4, 5);
 
-        expect(range.isSingle()).toBe(true);
+        expect(range.isSingleCell()).toBe(true);
       }
       {
         const range = createRange(0, 0, 0, 0, 0, 0);
 
-        expect(range.isSingle()).toBe(true);
+        expect(range.isSingleCell()).toBe(true);
       }
     });
 
-    it('should return `false` when `from` and `to` are equals and there is header selected', () => {
+    it('should return `false` when `from` and `to` are equals and there are some headers selected', () => {
       {
         const range = createRange(0, 0, -1, 0, -1, 0);
 
-        expect(range.isSingle()).toBe(false);
+        expect(range.isSingleCell()).toBe(false);
       }
       {
         const range = createRange(0, 0, 0, -1, 0, -1);
 
-        expect(range.isSingle()).toBe(false);
+        expect(range.isSingleCell()).toBe(false);
       }
       {
         const range = createRange(0, 0, 0, -1, -1, 0);
 
-        expect(range.isSingle()).toBe(false);
+        expect(range.isSingleCell()).toBe(false);
       }
     });
 
@@ -857,42 +927,194 @@ describe('CellRange', () => {
       {
         const range = createRange(0, 0, 0, 0, -1, 0);
 
-        expect(range.isSingle()).toBe(false);
+        expect(range.isSingleCell()).toBe(false);
       }
       {
         const range = createRange(0, 0, 0, 0, 0, 1);
 
-        expect(range.isSingle()).toBe(false);
+        expect(range.isSingleCell()).toBe(false);
       }
       {
         const range = createRange(0, 0, 0, 0, 1, 0);
 
-        expect(range.isSingle()).toBe(false);
+        expect(range.isSingleCell()).toBe(false);
       }
       {
         const range = createRange(0, 0, 0, 0, 1, 1);
 
-        expect(range.isSingle()).toBe(false);
+        expect(range.isSingleCell()).toBe(false);
       }
       {
         const range = createRange(0, 0, -1, 0, 0, 0);
 
-        expect(range.isSingle()).toBe(false);
+        expect(range.isSingleCell()).toBe(false);
       }
       {
         const range = createRange(0, 0, 0, 1, 0, 0);
 
-        expect(range.isSingle()).toBe(false);
+        expect(range.isSingleCell()).toBe(false);
       }
       {
         const range = createRange(0, 0, 1, 0, 0, 0);
 
-        expect(range.isSingle()).toBe(false);
+        expect(range.isSingleCell()).toBe(false);
       }
       {
         const range = createRange(0, 0, 1, 1, 0, 0);
 
-        expect(range.isSingle()).toBe(false);
+        expect(range.isSingleCell()).toBe(false);
+      }
+    });
+  });
+
+  describe('isSingleHeader()', () => {
+    it('should return `false` when `from` and `to` are equals and there are no headers selected', () => {
+      {
+        const range = createRange(0, 0, 4, 5, 4, 5);
+
+        expect(range.isSingleHeader()).toBe(false);
+      }
+      {
+        const range = createRange(0, 0, 0, 0, 0, 0);
+
+        expect(range.isSingleHeader()).toBe(false);
+      }
+    });
+
+    it('should return `true` when `from` and `to` are equals and there are some headers selected', () => {
+      {
+        const range = createRange(0, 0, -1, 0, -1, 0);
+
+        expect(range.isSingleHeader()).toBe(true);
+      }
+      {
+        const range = createRange(0, 0, 0, -1, 0, -1);
+
+        expect(range.isSingleHeader()).toBe(true);
+      }
+      {
+        const range = createRange(0, 0, 2, -1, 2, -1);
+
+        expect(range.isSingleHeader()).toBe(true);
+      }
+      {
+        const range = createRange(0, 0, -2, -1, -2, -1);
+
+        expect(range.isSingleHeader()).toBe(true);
+      }
+    });
+
+    it('should return `false` when `from` and `to` are not equal', () => {
+      {
+        const range = createRange(0, 0, 0, 0, -1, 0);
+
+        expect(range.isSingleHeader()).toBe(false);
+      }
+      {
+        const range = createRange(0, 0, -1, -2, -1, -3);
+
+        expect(range.isSingleHeader()).toBe(false);
+      }
+      {
+        const range = createRange(0, 0, 0, 0, 0, 1);
+
+        expect(range.isSingleHeader()).toBe(false);
+      }
+      {
+        const range = createRange(0, 0, 0, 0, 1, 0);
+
+        expect(range.isSingleHeader()).toBe(false);
+      }
+      {
+        const range = createRange(0, 0, 0, 0, 1, 1);
+
+        expect(range.isSingleHeader()).toBe(false);
+      }
+      {
+        const range = createRange(0, 0, -1, 0, 0, 0);
+
+        expect(range.isSingleHeader()).toBe(false);
+      }
+      {
+        const range = createRange(0, 0, 0, 1, 0, 0);
+
+        expect(range.isSingleHeader()).toBe(false);
+      }
+      {
+        const range = createRange(0, 0, 1, 0, 0, 0);
+
+        expect(range.isSingleHeader()).toBe(false);
+      }
+      {
+        const range = createRange(0, 0, 1, 1, 0, 0);
+
+        expect(range.isSingleHeader()).toBe(false);
+      }
+    });
+  });
+
+  describe('containsHeaders()', () => {
+    it('should return `false` when `from` and `to` are not overlaps the header range', () => {
+      {
+        const range = createRange(0, 0, 4, 5, 4, 5);
+
+        expect(range.containsHeaders()).toBe(false);
+      }
+      {
+        const range = createRange(0, 0, 0, 0, 0, 0);
+
+        expect(range.containsHeaders()).toBe(false);
+      }
+      {
+        const range = createRange(-1, 0, 0, 0, 0, 0);
+
+        expect(range.containsHeaders()).toBe(false);
+      }
+      {
+        const range = createRange(0, -1, 0, 0, 0, 0);
+
+        expect(range.containsHeaders()).toBe(false);
+      }
+    });
+
+    it('should return `true` when one of the coords (from or to) overlaps the header range', () => {
+      {
+        const range = createRange(0, 0, -1, 0, 0, 0);
+
+        expect(range.containsHeaders()).toBe(true);
+      }
+      {
+        const range = createRange(0, 0, 0, -1, 0, 0);
+
+        expect(range.containsHeaders()).toBe(true);
+      }
+      {
+        const range = createRange(0, 0, 0, 0, -1, 0);
+
+        expect(range.containsHeaders()).toBe(true);
+      }
+      {
+        const range = createRange(0, 0, 0, 0, 0, -1);
+
+        expect(range.containsHeaders()).toBe(true);
+      }
+    });
+
+    it('should return `true` when all coords (from and to) overlaps the header range', () => {
+      {
+        const range = createRange(0, 0, -1, 0, -1, 0);
+
+        expect(range.containsHeaders()).toBe(true);
+      }
+      {
+        const range = createRange(0, 0, 0, -1, 0, -1);
+
+        expect(range.containsHeaders()).toBe(true);
+      }
+      {
+        const range = createRange(0, 0, -1, -1, -1, -1);
+
+        expect(range.containsHeaders()).toBe(true);
       }
     });
   });

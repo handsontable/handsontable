@@ -2,6 +2,8 @@ import { toUpperCaseFirst } from '../helpers/string';
 import { isFunction } from '../helpers/function';
 import DataMap from './dataMap';
 import { deepClone } from '../helpers/object';
+import { setAttribute } from '../helpers/dom/element';
+import { A11Y_COLCOUNT, A11Y_ROWCOUNT } from '../helpers/a11y';
 
 /**
  * Loads new data to Handsontable.
@@ -119,6 +121,13 @@ function replaceData(data, setDataMapFunction, callbackFunction, config) {
   if (!firstRun) {
     hotInstance.runHooks('afterChange', null, internalSource);
     hotInstance.render();
+  }
+
+  if (hotInstance.getSettings().ariaTags) {
+    setAttribute(hotInstance.rootElement, [
+      A11Y_ROWCOUNT(hotInstance.countRows()),
+      A11Y_COLCOUNT(hotInstance.countCols()),
+    ]);
   }
 }
 

@@ -18,7 +18,20 @@ const cellRangeRTL = new CellRange(cellCoords, cellCoords, cellCoords, true);
   const thisCellRange: CellRange = cellRange.setTo(cellCoords);
 }
 
-const isSingle: boolean = cellRange.isSingle();
+{
+  const isValid: boolean = cellRange.isValid({
+    countRows: 10,
+    countCols: 20,
+    countRowHeaders: 1,
+    countColHeaders: 2,
+  });
+}
+{
+  const isValid: boolean = cellRange.isValid({});
+}
+const isSingleCell: boolean = cellRange.isSingleCell();
+const isSingleHeader: boolean = cellRange.isSingleHeader();
+const containsHeaders: boolean = cellRange.containsHeaders();
 const getOuterHeight: number = cellRange.getOuterHeight();
 const getOuterWidth: number = cellRange.getOuterWidth();
 const getHeight: number = cellRange.getHeight();

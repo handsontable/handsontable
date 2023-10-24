@@ -327,6 +327,19 @@ export default () => {
     allowRemoveRow: true,
 
     /**
+     * If set to `true`, the accessibility-related ARIA tags will be added to the table. If set to `false`, they
+     * will be omitted.
+     * Defaults to `true`.
+     *
+     * @memberof Options#
+     * @type {boolean}
+     * @default true
+     * @category Core
+     * @since 14.0.0
+     */
+    ariaTags: true,
+
+    /**
      * The `autoColumnSize` option configures the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin.
      *
      * You can set the `autoColumnSize` option to one of the following:
@@ -2487,6 +2500,19 @@ export default () => {
     invalidCellClassName: 'htInvalid',
 
     /**
+     * The `imeFastEdit` option allows using the "fast edit" feature for the IME users. It's disabled by default
+     * because of its incompatibility with some of the accessibility features.
+     *
+     * Enabling this option can make a negative impact on how some screen readers handle reading the table cells.
+     *
+     * @since 14.0.0
+     * @memberof Options#
+     * @type {boolean}
+     * @category Core
+     */
+    imeFastEdit: false,
+
+    /**
      * The `isEmptyCol` option lets you define your own custom method
      * for checking if a column at a given visual index is empty.
      *
@@ -3186,6 +3212,49 @@ export default () => {
      * ```
      */
     multiColumnSorting: void 0,
+
+    /**
+     * When set to `true`, the `navigableHeaders` option lets you navigate [row headers](@/guides/rows/row-header.md) and [column headers](@/guides/columns/column-header.md), using the arrow keys or the <kbd>**Tab**</kbd> key (if the [`disableTabNavigation`](#disabletabnavigation) option is set to `false`).
+     *
+     * @since 14.0.0
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // you can navigate row and column headers with the keyboard
+     * navigableHeaders: true,
+     *
+     * // default behavior: you can't navigate row and column headers with the keyboard
+     * navigableHeaders: false,
+     * ```
+     */
+    navigableHeaders: false,
+
+    /**
+     * When set to `true`, the `disableTabNavigation` option changes the behavior of the
+     * <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts. The Handsontable
+     * no more captures that shortcuts to make the grid navigation available (`disableTabNavigation: false`)
+     * but returns control to the browser so the native page navigation is possible.
+     *
+     * @since 14.0.0
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // you can't navigate row and column headers using <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts
+     * disableTabNavigation: true,
+     *
+     * // default behavior: you can navigate row and column headers using <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts
+     * disableTabNavigation: false,
+     * ```
+     */
+    disableTabNavigation: false,
 
     /**
      * @description

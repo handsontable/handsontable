@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the behavior of selecting all cells feature.",
+  "type": "changed",
+  "issueOrPR": 10461,
+  "breaking": true,
+  "framework": "none"
+}
