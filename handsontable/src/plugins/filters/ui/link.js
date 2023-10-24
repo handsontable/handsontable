@@ -11,6 +11,7 @@ export class LinkUI extends BaseUI {
       href: '#',
       tagName: 'a',
       tabIndex: -1,
+      role: 'button',
     });
   }
 
@@ -52,5 +53,12 @@ export class LinkUI extends BaseUI {
     if (this.isBuilt()) {
       this.#link.focus();
     }
+  }
+
+  /**
+   * Activate the element.
+   */
+  activate() {
+    this.#link.click();
   }
 }
