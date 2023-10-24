@@ -6,6 +6,7 @@ import {
 } from './utils';
 import {
   addClass,
+  appendDiv,
   empty,
   fastInnerHTML,
   setAttribute,

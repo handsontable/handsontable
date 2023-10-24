@@ -20,7 +20,6 @@ import {
   getParentWindow,
   hasClass,
   setAttribute,
-  appendDiv,
 } from '../../../helpers/dom/element';
 import { isRightClick } from '../../../helpers/dom/event';
 import { debounce, isFunction } from '../../../helpers/function';
@@ -30,8 +29,6 @@ import localHooks from '../../../mixins/localHooks';
 import { createMenuItemRenderer } from './menuItemRenderer';
 import {
   A11Y_EXPANDED,
-  A11Y_HIDDEN,
-  A11Y_LABEL,
   A11Y_MENU,
   A11Y_TABINDEX,
 } from '../../../helpers/a11y';
