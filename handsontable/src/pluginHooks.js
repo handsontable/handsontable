@@ -1426,6 +1426,8 @@ const REGISTERED_HOOKS = [
    * Fired by {@link CopyPaste} plugin before copying the values to the clipboard and before clearing values of
    * the selected cells. This hook is fired when {@link Options#copyPaste} option is enabled.
    *
+   * Note: Please keep in mind since @14.0.0 the method arguments has been changed.
+   *
    * @event Hooks#beforeCut
    * @param {object} clipboardData Information about cut action which is going to happen.
    * @param {Function} clipboardData.removeRow Remove row from the copied dataset.
@@ -1485,6 +1487,8 @@ const REGISTERED_HOOKS = [
    * Fired by {@link CopyPaste} plugin after data was cut out from the table. This hook is fired when
    * {@link Options#copyPaste} option is enabled.
    *
+   * Note: Please keep in mind since @14.0.0 the method arguments has been changed.
+   *
    * @event Hooks#afterCut
    * @param {object} clipboardData Information about already performed cut action.
    * @param {Function} clipboardData.removeRow Remove row from the copied dataset.
@@ -1501,6 +1505,8 @@ const REGISTERED_HOOKS = [
 
   /**
    * Fired before values are copied to the clipboard.
+   *
+   * Note: Please keep in mind since @14.0.0 the method arguments has been changed.
    *
    * @event Hooks#beforeCopy
    * @param {object} clipboardData Information about copy action which is going to happen.
@@ -1572,6 +1578,8 @@ const REGISTERED_HOOKS = [
    * Fired by {@link CopyPaste} plugin after data are pasted into table. This hook is fired when {@link Options#copyPaste}
    * option is enabled.
    *
+   * Note: Please keep in mind since @14.0.0 the method arguments has been changed.
+   *
    * @event Hooks#afterCopy
    * @param {object} clipboardData Information about already performed copy action.
    * @param {Function} clipboardData.removeRow Remove row from the copied dataset.
@@ -1589,6 +1597,8 @@ const REGISTERED_HOOKS = [
   /**
    * Fired by {@link CopyPaste} plugin before values are pasted into table. This hook is fired when
    * {@link Options#copyPaste} option is enabled.
+   *
+   * Note: Please keep in mind since @14.0.0 the method arguments has been changed.
    *
    * @event Hooks#beforePaste
    * @param {object} clipboardData Information about paste action which is going to happen.
@@ -1649,6 +1659,8 @@ const REGISTERED_HOOKS = [
   /**
    * Fired by {@link CopyPaste} plugin after values are pasted into table. This hook is fired when
    * {@link Options#copyPaste} option is enabled.
+   *
+   * Note: Please keep in mind since @14.0.0 the method arguments has been changed.
    *
    * @event Hooks#afterPaste
    * @param {object} clipboardData Information about already performed paste action.
