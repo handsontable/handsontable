@@ -1,5 +1,7 @@
 import {
-  addClass, appendDiv, removeChildIfExists,
+  addClass,
+  appendDiv,
+  removeChildIfExists,
   removeClass,
   setAttribute,
 } from '../../helpers/dom/element';

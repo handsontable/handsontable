@@ -23,7 +23,8 @@ import {
   removeClass,
   getParentWindow,
   hasClass,
-  setAttribute, appendDiv,
+  setAttribute,
+  appendDiv,
 } from '../../../helpers/dom/element';
 import { isRightClick } from '../../../helpers/dom/event';
 import { debounce, isFunction } from '../../../helpers/function';
@@ -32,7 +33,8 @@ import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
 import {
   A11Y_DISABLED,
-  A11Y_EXPANDED, A11Y_HIDDEN,
+  A11Y_EXPANDED,
+  A11Y_HIDDEN,
   A11Y_LABEL,
   A11Y_MENU,
   A11Y_MENU_ITEM
