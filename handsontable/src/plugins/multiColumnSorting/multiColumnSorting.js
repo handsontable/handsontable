@@ -296,7 +296,7 @@ export class MultiColumnSorting extends ColumnSorting {
 
     const multiColumnSortingOrder = this.columnStatesManager.getIndexOfColumnInSortQueue(column) + 1;
     const a11yLabelAttribute = A11Y_LABEL(
-      `${this.hot.getTranslatedPhrase(COLUMN_HEADER_LABEL_MULTI_COLUMN_SORT_ORDER)}${multiColumnSortingOrder}.`
+      `${this.hot.getTranslatedPhrase(COLUMN_HEADER_LABEL_MULTI_COLUMN_SORT_ORDER)} ${multiColumnSortingOrder}.`
     );
 
     removeAttribute(indicatorElement, A11Y_HIDDEN()[0]);
