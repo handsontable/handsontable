@@ -386,14 +386,16 @@ describe('CopyPaste', () => {
       /* eslint-enable */
     });
 
-    it('should be possible to change data during copy operation (RTL)', () => {
+    it('should store data during copy operation in RTL mode as LTR table (the same as `getData` and similar methods' +
+      'work - the direction is only for visualization)', () => {
       handsontable({
         data: createSpreadsheetData(2, 2),
         colHeaders: true,
         copyPaste: true,
+        layoutDirection: 'rtl',
         beforeCopy(clipboardData) {
-          clipboardData.setCellAt(-2, 0, 'hello world', true);
-          clipboardData.setCellAt(1, 1, 'hello world2', true);
+          clipboardData.setCellAt(-2, 0, 'hello world');
+          clipboardData.setCellAt(1, 1, 'hello world2');
         },
         modifyColumnHeaderValue(value, columnIndex, headerLevel) {
           if (headerLevel < 0) {
@@ -421,10 +423,10 @@ describe('CopyPaste', () => {
       plugin.copyWithAllColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
-      expect(copyEvent.clipboardData.getData('text/plain')).toBe('A-0-0\thello world\n' +
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('hello world\tB-1-0\n' +
         'A-0-1\tB-1-1\n' +
         'A1\tB1\n' +
-        'hello world2\tB2');
+        'A2\thello world2');
       /* eslint-disable indent */
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
@@ -432,8 +434,8 @@ describe('CopyPaste', () => {
         '<table>',
           '<thead>',
             '<tr>' +
-              '<th>A-0-0</th>' +
               '<th>hello world</th>' +
+              '<th>B-1-0</th>' +
             '</tr>',
             '<tr>' +
               '<th>A-0-1</th>' +
@@ -446,8 +448,8 @@ describe('CopyPaste', () => {
               '<td>B1</td>',
             '</tr>',
           '<tr>',
+            '<td>A2</td>',
             '<td>hello world2</td>',
-            '<td>B2</td>',
           '</tr>',
           '</tbody>',
         '</table>'

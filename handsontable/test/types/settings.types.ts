@@ -409,7 +409,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.insertAtRow(0, ['A', 'B', 'C']);
     clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
     clipboardData.setCellAt(0, 0, '');
-    clipboardData.getCellAt(0, 0, true);
     clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
@@ -425,7 +424,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.insertAtRow(0, ['A', 'B', 'C']);
     clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
     clipboardData.setCellAt(0, 0, '');
-    clipboardData.getCellAt(0, 0, true);
     clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
@@ -473,7 +471,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.insertAtRow(0, ['A', 'B', 'C']);
     clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
     clipboardData.setCellAt(0, 0, '');
-    clipboardData.getCellAt(0, 0, true);
     clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
@@ -539,7 +536,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.insertAtRow(0, ['A', 'B', 'C']);
     clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
     clipboardData.setCellAt(0, 0, '');
-    clipboardData.getCellAt(0, 0, true);
     clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
@@ -554,7 +550,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.insertAtRow(0, ['A', 'B', 'C']);
     clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
     clipboardData.setCellAt(0, 0, '');
-    clipboardData.getCellAt(0, 0, true);
     clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
@@ -588,7 +583,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.insertAtRow(0, ['A', 'B', 'C']);
     clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
     clipboardData.setCellAt(0, 0, '');
-    clipboardData.getCellAt(0, 0, true);
     clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();

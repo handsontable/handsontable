@@ -450,9 +450,8 @@ export class ClipboardData {
    * @param {number} row Row index of cell which should be changed.
    * @param {number} column Column index of cell which should be changed.
    * @param {string} value Value for particular indexes.
-   * @param {boolean} isRtl Grid is rendered using the right-to-left layout direction.
    */
-  setCellAt(row, column, value, isRtl = false) {
+  setCellAt(row, column, value) {
     if (this.isSerializedTable() === false) {
       return;
     }
@@ -463,23 +462,18 @@ export class ClipboardData {
     if (row < 0) {
       if (Array.isArray(nestedHeaders)) {
         const rowRelative = row + nestedHeaders.length;
-        const columnRelative = isRtl ? nestedHeaders.length - column - 1 : column;
 
-        if (Array.isArray(nestedHeaders[rowRelative]) && isDefined(nestedHeaders[rowRelative][columnRelative])) {
-          nestedHeaders[rowRelative][columnRelative] = value;
+        if (Array.isArray(nestedHeaders[rowRelative]) && isDefined(nestedHeaders[rowRelative][column])) {
+          nestedHeaders[rowRelative][column] = value;
         }
 
       } else if (Array.isArray(colHeaders)) {
-        const columnRelative = isRtl ? colHeaders.length - column - 1 : column;
-
-        if (isDefined(colHeaders[columnRelative])) {
-          colHeaders[columnRelative] = value;
+        if (isDefined(colHeaders[column])) {
+          colHeaders[column] = value;
         }
       }
     } else if (row >= 0 && Array.isArray(data) && Array.isArray(data[row]) && isDefined(data[row][column])) {
-      const columnRelative = isRtl ? data[0].length - column - 1 : column;
-
-      data[row][columnRelative] = value;
+      data[row][column] = value;
     }
 
     this.overwriteInfo(config);
@@ -493,10 +487,9 @@ export class ClipboardData {
    *
    * @param {number} row Row index of cell which should be get.
    * @param {number} column Column index of cell which should be get.
-   * @param {boolean} isRtl Grid is rendered using the right-to-left layout direction.
    * @returns {undefined|string}
    */
-  getCellAt(row, column, isRtl = false) {
+  getCellAt(row, column) {
     if (this.isSerializedTable() === false) {
       return;
     }
@@ -507,23 +500,18 @@ export class ClipboardData {
     if (row < 0) {
       if (Array.isArray(nestedHeaders)) {
         const rowRelative = row + nestedHeaders.length;
-        const columnRelative = isRtl ? nestedHeaders.length - column - 1 : column;
 
-        if (Array.isArray(nestedHeaders[rowRelative]) && isDefined(nestedHeaders[rowRelative][columnRelative])) {
-          return nestedHeaders[rowRelative][columnRelative];
+        if (Array.isArray(nestedHeaders[rowRelative]) && isDefined(nestedHeaders[rowRelative][column])) {
+          return nestedHeaders[rowRelative][column];
         }
 
       } else if (Array.isArray(colHeaders)) {
-        const columnRelative = isRtl ? colHeaders.length - column - 1 : column;
-
-        if (isDefined(colHeaders[columnRelative])) {
-          return colHeaders[columnRelative];
+        if (isDefined(colHeaders[column])) {
+          return colHeaders[column];
         }
       }
     } else if (row >= 0 && Array.isArray(data) && Array.isArray(data[row]) && isDefined(data[row][column])) {
-      const columnRelative = isRtl ? data[0].length - column - 1 : column;
-
-      return data[row][columnRelative];
+      return data[row][column];
     }
   }
 
