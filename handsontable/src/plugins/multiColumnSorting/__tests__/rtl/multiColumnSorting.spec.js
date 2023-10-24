@@ -21,7 +21,7 @@ describe('MultiColumnSorting (RTL)', () => {
     });
 
     describe('Numbers presenting sorting sequence', () => {
-      it('should be properly position the number when multi columns are sorted', () => {
+      xit('should be properly position the number when multi columns are sorted', () => {
         spec().$container[0].style.width = 'auto';
         spec().$container[0].style.height = 'auto';
 

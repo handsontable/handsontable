@@ -72,7 +72,7 @@ export function createMenuItemRenderer(mainTableHot) {
         appendDiv(TD, 'submenuIndicator', mainTableHot.getSettings().ariaTags ? [A11Y_HIDDEN()] : []);
       }
     }
-    
+
     TD.className = '';
     TD.appendChild(wrapper);
 

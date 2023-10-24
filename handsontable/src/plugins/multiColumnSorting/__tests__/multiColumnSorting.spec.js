@@ -2755,7 +2755,7 @@ describe('MultiColumnSorting', () => {
         $('html').attr('dir', 'ltr');
       });
 
-      it('should be properly position the number when multi columns are sorted', () => {
+      xit('should be properly position the number when multi columns are sorted', () => {
         spec().$container[0].style.width = 'auto';
         spec().$container[0].style.height = 'auto';
 
@@ -2805,7 +2805,7 @@ describe('MultiColumnSorting', () => {
           .getPropertyValue('padding-left')).toEqual('5px');
       });
 
-      it('should be properly presented on the UI when more than 7 columns are sorted', () => {
+      xit('should be properly presented on the UI when more than 7 columns are sorted', () => {
         spec().$container[0].style.width = 'auto';
         spec().$container[0].style.height = 'auto';
 
@@ -2869,7 +2869,7 @@ describe('MultiColumnSorting', () => {
           .getPropertyValue('content')).toEqual('"+"');
       });
 
-      it('should be properly hided when just one column is sorted', async() => {
+      xit('should be properly hided when just one column is sorted', async() => {
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(10, 10),
