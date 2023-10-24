@@ -40,15 +40,6 @@ export class ClipboardData {
   }
 
   /**
-   * Gets sanitized data of "text/html" type inside the clipboard.
-   *
-   * @returns {string}
-   */
-  getHTML() {
-    return this.html;
-  }
-
-  /**
    * Gets copied data stored as array of arrays.
    *
    * @returns {string[][]}

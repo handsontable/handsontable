@@ -14,11 +14,11 @@ import {
   normalizeRanges,
 } from './copyableRanges';
 import {
-  getDataByCoords,
+  getDataByCoords, getHTMLFromConfig,
 } from '../../utils/parseTable';
 
 import './copyPaste.css';
-import { CopyClipboardData, PasteClipboardData } from './clipboardData';
+import { CopyClipboardData, PasteClipboardData, META_HEAD } from './clipboardData';
 
 Hooks.getSingleton().register('afterCopyLimit');
 Hooks.getSingleton().register('modifyCopyableRange');
@@ -537,7 +537,8 @@ export class CopyPaste extends BasePlugin {
 
     if (allowCopying) {
       event.clipboardData.setData('text/plain', stringify(copyClipboardData.getData()));
-      event.clipboardData.setData('text/html', copyClipboardData.getHTML());
+      event.clipboardData.setData('text/html', [copyClipboardData.getSource() === 'Handsontable' ? META_HEAD : '',
+        getHTMLFromConfig(copyClipboardData.getMetaInfo())].join(''));
 
       this.hot.runHooks('afterCopy', copyClipboardData);
     }
@@ -565,7 +566,8 @@ export class CopyPaste extends BasePlugin {
 
     if (allowCuttingOut) {
       event.clipboardData.setData('text/plain', stringify(copyClipboardData.getData()));
-      event.clipboardData.setData('text/html', copyClipboardData.getHTML());
+      event.clipboardData.setData('text/html', [copyClipboardData.getSource() === 'Handsontable' ? META_HEAD : '',
+        getHTMLFromConfig(copyClipboardData.getMetaInfo())].join(''));
 
       this.hot.emptySelectedCells('CopyPaste.cut');
       this.hot.runHooks('afterCut', copyClipboardData);

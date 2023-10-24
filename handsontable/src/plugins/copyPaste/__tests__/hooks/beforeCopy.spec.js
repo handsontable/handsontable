@@ -37,17 +37,9 @@ describe('CopyPaste', () => {
       beforeCopySpy.calls.argsFor(0)[0].getData()[0][0] = 'AAA';
 
       expect(beforeCopySpy.calls.argsFor(0)[0].getData()).toEqual([['B2']]);
-      expect(beforeCopySpy.calls.argsFor(0)[0].getHTML()).toEqual(
-        '<meta name="generator" content="Handsontable"/>' +
-        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
-          '<table>' +
-          '<tbody>' +
-            '<tr>' +
-              '<td>B2</td>' +
-            '</tr>' +
-          '</tbody>' +
-        '</table>'
-      );
+      expect(beforeCopySpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
+        data: [['B2']],
+      });
     });
 
     it('should be called with coords and dataset points to the cells only', () => {
@@ -69,7 +61,7 @@ describe('CopyPaste', () => {
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       /* eslint-disable indent */
-      expect(beforeCopySpy.calls.argsFor(0)[0].getHTML()).toBe(
+      expect(copyEvent.clipboardData.getData('text/html')).toBe(
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
         '<table>' +
@@ -93,12 +85,9 @@ describe('CopyPaste', () => {
         '</table>',
       );
       /* eslint-enable */
-      expect(beforeCopySpy.calls.argsFor(0)[0].getData()).toEqual([
-        ['C2', 'D2', 'E2'], ['C3', 'D3', 'E3'], ['C4', 'D4', 'E4']
-      ]);
-      expect(beforeCopySpy.calls.argsFor(0)[0].getData()).toEqual([
-        ['C2', 'D2', 'E2'], ['C3', 'D3', 'E3'], ['C4', 'D4', 'E4']
-      ]);
+      expect(beforeCopySpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
+        data: [['C2', 'D2', 'E2'], ['C3', 'D3', 'E3'], ['C4', 'D4', 'E4']]
+      });
     });
 
     it('should be called with coords and dataset points to the cells and the first column headers ' +
@@ -120,41 +109,14 @@ describe('CopyPaste', () => {
       plugin.copyWithColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
-      /* eslint-disable indent */
-      expect(beforeCopySpy.calls.argsFor(0)[0].getHTML()).toBe(
-        '<meta name="generator" content="Handsontable"/>' +
-        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
-        '<table>' +
-          '<thead>' +
-            '<tr>' +
-              '<th>C</th>' +
-              '<th>D</th>' +
-              '<th>E</th>' +
-            '</tr>' +
-          '</thead>' +
-          '<tbody>' +
-            '<tr>' +
-              '<td>C2</td>' +
-              '<td>D2</td>' +
-              '<td>E2</td>' +
-            '</tr>' +
-            '<tr>' +
-              '<td>C3</td>' +
-              '<td>D3</td>' +
-              '<td>E3</td>' +
-            '</tr>' +
-            '<tr>' +
-              '<td>C4</td>' +
-              '<td>D4</td>' +
-              '<td>E4</td>' +
-            '</tr>' +
-          '</tbody>' +
-        '</table>',
-      );
-      /* eslint-enable */
-      expect(beforeCopySpy.calls.argsFor(0)[0].getData()).toEqual([
-        ['C', 'D', 'E'], ['C2', 'D2', 'E2'], ['C3', 'D3', 'E3'], ['C4', 'D4', 'E4']]
-      );
+      expect(beforeCopySpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
+        colHeaders: ['C', 'D', 'E'],
+        data: [
+          ['C2', 'D2', 'E2'],
+          ['C3', 'D3', 'E3'],
+          ['C4', 'D4', 'E4']
+        ]
+      });
     });
 
     it('should be called with coords and dataset points to the cells and the first column headers ' +
@@ -185,7 +147,7 @@ describe('CopyPaste', () => {
       plugin.copyWithColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
-      expect(beforeCopySpy.calls.argsFor(0)[0].getHTML()).toBe(
+      expect(copyEvent.clipboardData.getData('text/html')).toBe(
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
         '<table>' +
@@ -215,9 +177,10 @@ describe('CopyPaste', () => {
           '</tbody>' +
         '</table>',
       );
-      expect(beforeCopySpy.calls.argsFor(0)[0].getData()).toEqual([
-        ['C', 'D', 'E'], ['C2', 'D2', 'E2'], ['C3', 'D3', 'E3'], ['C4', 'D4', 'E4']]
-      );
+      expect(beforeCopySpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
+        colHeaders: ['C', 'D', 'E'],
+        data: [['C2', 'D2', 'E2'], ['C3', 'D3', 'E3'], ['C4', 'D4', 'E4']]
+      });
     });
 
     it('should be called with coords and dataset points to the cells and all column header layers', () => {
@@ -250,44 +213,18 @@ describe('CopyPaste', () => {
       plugin.copyWithAllColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
-      expect(beforeCopySpy.calls.argsFor(0)[0].getHTML()).toBe(
-        '<meta name="generator" content="Handsontable"/>' +
-        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
-        '<table>' +
-          '<thead>' +
-            '<tr>' +
-              '<th>C</th>' +
-              '<th>D</th>' +
-            '</tr>' +
-            '<tr>' +
-              '<th>C</th>' +
-              '<th>D</th>' +
-            '</tr>' +
-            '<tr>' +
-              '<th>C</th>' +
-              '<th>D</th>' +
-            '</tr>' +
-          '</thead>' +
-          '<tbody>' +
-            '<tr>' +
-              '<td>C2</td>' +
-              '<td>D2</td>' +
-            '</tr>' +
-            '<tr>' +
-              '<td>C3</td>' +
-              '<td>D3</td>' +
-            '</tr>' +
-            '<tr>' +
-              '<td>C4</td>' +
-              '<td>D4</td>' +
-            '</tr>' +
-          '</tbody>' +
-        '</table>',
-      );
-
-      expect(beforeCopySpy.calls.argsFor(0)[0].getData()).toEqual([
-        ['C', 'D'], ['C', 'D'], ['C', 'D'], ['C2', 'D2'], ['C3', 'D3'], ['C4', 'D4']
-      ]);
+      expect(beforeCopySpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
+        nestedHeaders: [
+          ['C', 'D'],
+          ['C', 'D'],
+          ['C', 'D']
+        ],
+        data: [
+          ['C2', 'D2'],
+          ['C3', 'D3'],
+          ['C4', 'D4']
+        ]
+      });
     });
 
     it('should be possible to block copy operation', () => {

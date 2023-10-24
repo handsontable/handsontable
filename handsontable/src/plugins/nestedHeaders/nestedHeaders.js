@@ -436,7 +436,6 @@ export class NestedHeaders extends BasePlugin {
    * @param {Function} clipboardData.setCellAt Change headers or cells in the copied/pasted dataset.
    * @param {Function} clipboardData.getCellAt Get headers or cells from the copied/pasted dataset.
    * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
-   * @param {Function} clipboardData.getHTML Gets sanitized data of "text/html" type inside the clipboard.
    * @param {Function} clipboardData.getMetaInfo Gets grid settings for copied data.
    * @param {Function} clipboardData.getHotRanges Returns ranges related to copied part of Handsontable.
    */

@@ -83,7 +83,7 @@ describe('MergeCells copy and paste', () => {
       ['A4', 'B4', 'D4']
     ]);
     /* eslint-disable indent */
-    expect(afterCopySpy.calls.argsFor(0)[0].getHTML()).toEqual([
+    expect(copyEvent.clipboardData.getData('text/html')).toBe([
       '<meta name="generator" content="Handsontable"/>',
       '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
       '<table>',
@@ -160,42 +160,6 @@ describe('MergeCells copy and paste', () => {
       ['A3', null, 'D3'],
       ['A4', 'B4', 'D4']
     ]);
-    /* eslint-disable indent */
-    expect(afterPasteSpy.calls.argsFor(0)[0].getHTML()).toEqual([
-      '<meta name="generator" content="Handsontable"/>',
-      '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-      '<table>',
-        '<thead>',
-          '<tr>',
-            '<th>A</th>',
-            '<th>B</th>',
-            '<th>D</th>',
-          '</tr>',
-        '</thead>',
-        '<tbody>',
-          '<tr>',
-            '<td>A1</td>',
-            '<td>B1</td>',
-            '<td>D1</td>',
-          '</tr>',
-          '<tr>',
-            '<td>A2</td>',
-            '<td rowspan="2">B2</td>',
-            '<td>D2</td>',
-          '</tr>',
-          '<tr>',
-            '<td>A3</td>',
-            '<td>D3</td>',
-          '</tr>',
-          '<tr>',
-            '<td>A4</td>',
-            '<td>B4</td>',
-            '<td>D4</td>',
-          '</tr>',
-        '</tbody>',
-      '</table>'
-    ].join(''));
-    /* eslint-enable */
     expect(afterPasteSpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
       colHeaders: ['A', 'B', 'D'],
       mergeCells: [{ col: 1, row: 1, rowspan: 2, colspan: 1 }],

@@ -64,7 +64,6 @@ interface ClipboardData {
   getCellAt: (row: number, col: number, isRtl?: boolean) => 'string';
   setCellAt: (row: number, col: number, value: any, isRtl?: boolean) => void;
   getData: () => any[][];
-  getHTML: () => string;
   getMetaInfo: () => GridSettings;
   getSource: () => string;
 }

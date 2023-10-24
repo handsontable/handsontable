@@ -292,9 +292,7 @@ describe('CopyPaste', () => {
 
       await sleep(60);
 
-      expect(beforePasteSpy.calls.argsFor(0)[0].getHTML()).toEqual('Kia');
       expect(beforePasteSpy.calls.argsFor(0)[0].getData()).toEqual([['Kia']]);
-      expect(afterPasteSpy.calls.argsFor(0)[0].getHTML()).toEqual('Kia');
       expect(afterPasteSpy.calls.argsFor(0)[0].getData()).toEqual([['Kia']]);
     });
 
@@ -346,41 +344,21 @@ describe('CopyPaste', () => {
 
       plugin.onPaste(clipboardEvent);
 
-      expect(beforePasteSpy.calls.argsFor(0)[0].getHTML()).toBe(
-        '<table>' +
-          '<tbody>' +
-            '<tr>' +
-              '<td rowspan="2" colspan="2">A1</td>' +
-              '<td>C1</td>' +
-            '</tr>' +
-            '<tr>' +
-              '<td>C2</td>' +
-            '</tr>' +
-          '</tbody>' +
-        '</table>',
-      );
-      expect(beforePasteSpy.calls.argsFor(0)[0].getData()).toEqual([
-        ['A1', null, 'C1'],
-        [null, null, 'C2'],
-      ]);
+      expect(beforePasteSpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
+        data: [
+          ['A1', null, 'C1'],
+          [null, null, 'C2'],
+        ],
+        mergeCells: [{ col: 0, row: 0, rowspan: 2, colspan: 2 }]
+      });
 
-      expect(afterPasteSpy.calls.argsFor(0)[0].getHTML()).toBe(
-        '<table>' +
-          '<tbody>' +
-            '<tr>' +
-              '<td rowspan="2" colspan="2">A1</td>' +
-              '<td>C1</td>' +
-            '</tr>' +
-            '<tr>' +
-              '<td>C2</td>' +
-            '</tr>' +
-          '</tbody>' +
-        '</table>',
-      );
-      expect(afterPasteSpy.calls.argsFor(0)[0].getData()).toEqual([
-        ['A1', null, 'C1'],
-        [null, null, 'C2'],
-      ]);
+      expect(afterPasteSpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
+        data: [
+          ['A1', null, 'C1'],
+          [null, null, 'C2'],
+        ],
+        mergeCells: [{ col: 0, row: 0, rowspan: 2, colspan: 2 }]
+      });
     });
 
     it('should be possible to block pasting', async() => {
@@ -452,25 +430,6 @@ describe('CopyPaste', () => {
 
       plugin.onPaste(clipboardEvent);
 
-      expect(afterPasteSpy.calls.argsFor(0)[0].getHTML()).toBe(
-        '<table>' +
-          '<thead>' +
-            '<tr>' +
-              '<th>A</th>' +
-              '<th>C</th>' +
-              '<th>D</th>' +
-            '</tr>' +
-          '</thead>' +
-          '<tbody>' +
-              '<tr>' +
-                '<td>A2</td>' +
-                '<td>C2</td>' +
-                '<td>D2</td>' +
-              '</tr>' +
-          '</tbody>' +
-        '</table>',
-      );
-
       expect(afterPasteSpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
         colHeaders: ['A', 'C', 'D'],
         data: [['A2', 'C2', 'D2']]
@@ -525,37 +484,16 @@ describe('CopyPaste', () => {
 
       expect(warnSpy).toHaveBeenCalled();
 
-      expect(afterPasteSpy.calls.argsFor(0)[0].getHTML()).toBe(
-        '<table>' +
-          '<thead>' +
-              '<tr>' +
-                '<th>A-0-0</th>' +
-                '<th>A-0-1</th>' +
-              '</tr>' +
-              '<tr>' +
-                '<th>B-1-0</th>' +
-                '<th>B-1-1</th>' +
-              '</tr>' +
-            '</thead>' +
-            '<tbody>' +
-            '<tr>' +
-              '<td>A1</td>' +
-              '<td>B1</td>' +
-            '</tr>' +
-            '<tr>' +
-              '<td>A2</td>' +
-              '<td>B2</td>' +
-            '</tr>' +
-          '</tbody>' +
-        '</table>'
-      );
-
-      expect(afterPasteSpy.calls.argsFor(0)[0].getData()).toEqual([
-        ['A-0-0', 'A-0-1'],
-        ['B-1-0', 'B-1-1'],
-        ['A1', 'B1'],
-        ['A2', 'B2']
-      ]);
+      expect(afterPasteSpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
+        nestedHeaders: [
+          ['A-0-0', 'A-0-1'],
+          ['B-1-0', 'B-1-1'],
+        ],
+        data: [
+          ['A1', 'B1'],
+          ['A2', 'B2']
+        ]
+      });
     });
 
     it('should not be possible to modify data during paste operation - data with headers (wrong number of inserted columns)', () => {
@@ -606,37 +544,16 @@ describe('CopyPaste', () => {
 
       expect(warnSpy).toHaveBeenCalled();
 
-      expect(afterPasteSpy.calls.argsFor(0)[0].getHTML()).toBe(
-        '<table>' +
-          '<thead>' +
-            '<tr>' +
-              '<th>A-0-0</th>' +
-              '<th>A-0-1</th>' +
-            '</tr>' +
-            '<tr>' +
-              '<th>B-1-0</th>' +
-              '<th>B-1-1</th>' +
-            '</tr>' +
-          '</thead>' +
-          '<tbody>' +
-            '<tr>' +
-              '<td>A1</td>' +
-              '<td>B1</td>' +
-            '</tr>' +
-            '<tr>' +
-              '<td>A2</td>' +
-              '<td>B2</td>' +
-            '</tr>' +
-          '</tbody>' +
-        '</table>'
-      );
-
-      expect(afterPasteSpy.calls.argsFor(0)[0].getData()).toEqual([
-        ['A-0-0', 'A-0-1'],
-        ['B-1-0', 'B-1-1'],
-        ['A1', 'B1'],
-        ['A2', 'B2']
-      ]);
+      expect(afterPasteSpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
+        nestedHeaders: [
+          ['A-0-0', 'A-0-1'],
+          ['B-1-0', 'B-1-1'],
+        ],
+        data: [
+          ['A1', 'B1'],
+          ['A2', 'B2'],
+        ],
+      });
     });
 
     it('should not be possible to modify data during paste operation - data with headers (wrong index for inserted row)', () => {
@@ -687,37 +604,16 @@ describe('CopyPaste', () => {
 
       expect(warnSpy).toHaveBeenCalled();
 
-      expect(afterPasteSpy.calls.argsFor(0)[0].getHTML()).toBe(
-        '<table>' +
-          '<thead>' +
-            '<tr>' +
-              '<th>A-0-0</th>' +
-              '<th>A-0-1</th>' +
-            '</tr>' +
-            '<tr>' +
-              '<th>B-1-0</th>' +
-              '<th>B-1-1</th>' +
-            '</tr>' +
-          '</thead>' +
-          '<tbody>' +
-            '<tr>' +
-              '<td>A1</td>' +
-              '<td>B1</td>' +
-            '</tr>' +
-            '<tr>' +
-              '<td>A2</td>' +
-              '<td>B2</td>' +
-            '</tr>' +
-          '</tbody>' +
-        '</table>'
-      );
-
-      expect(afterPasteSpy.calls.argsFor(0)[0].getData()).toEqual([
-        ['A-0-0', 'A-0-1'],
-        ['B-1-0', 'B-1-1'],
-        ['A1', 'B1'],
-        ['A2', 'B2']
-      ]);
+      expect(afterPasteSpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
+        nestedHeaders: [
+          ['A-0-0', 'A-0-1'],
+          ['B-1-0', 'B-1-1'],
+        ],
+        data: [
+          ['A1', 'B1'],
+          ['A2', 'B2']
+        ],
+      });
     });
 
     it('should not be possible to modify data during paste operation - only headers (wrong number of inserted columns)', () => {
@@ -757,20 +653,9 @@ describe('CopyPaste', () => {
 
       expect(warnSpy).toHaveBeenCalled();
 
-      expect(afterPasteSpy.calls.argsFor(0)[0].getHTML()).toBe(
-        '<table>' +
-          '<thead>' +
-            '<tr>' +
-              '<th>A-0-0</th>' +
-              '<th>A-0-1</th>' +
-            '</tr>' +
-          '</thead>' +
-        '</table>'
-      );
-
-      expect(afterPasteSpy.calls.argsFor(0)[0].getData()).toEqual([
-        ['A-0-0', 'A-0-1'],
-      ]);
+      expect(afterPasteSpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
+        colHeaders: ['A-0-0', 'A-0-1'],
+      });
     });
 
     it('should not be possible to modify data during paste operation (wrong row index)', () => {
@@ -821,37 +706,16 @@ describe('CopyPaste', () => {
 
       expect(warnSpy).toHaveBeenCalled();
 
-      expect(afterPasteSpy.calls.argsFor(0)[0].getHTML()).toBe(
-        '<table>' +
-          '<thead>' +
-            '<tr>' +
-              '<th>A-0-0</th>' +
-              '<th>A-0-1</th>' +
-            '</tr>' +
-            '<tr>' +
-              '<th>B-1-0</th>' +
-              '<th>B-1-1</th>' +
-            '</tr>' +
-          '</thead>' +
-          '<tbody>' +
-            '<tr>' +
-              '<td>A1</td>' +
-              '<td>B1</td>' +
-            '</tr>' +
-            '<tr>' +
-              '<td>A2</td>' +
-              '<td>B2</td>' +
-            '</tr>' +
-          '</tbody>' +
-        '</table>'
-      );
-
-      expect(afterPasteSpy.calls.argsFor(0)[0].getData()).toEqual([
-        ['A-0-0', 'A-0-1'],
-        ['B-1-0', 'B-1-1'],
-        ['A1', 'B1'],
-        ['A2', 'B2']
-      ]);
+      expect(afterPasteSpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
+        nestedHeaders: [
+          ['A-0-0', 'A-0-1'],
+          ['B-1-0', 'B-1-1'],
+        ],
+        data: [
+          ['A1', 'B1'],
+          ['A2', 'B2'],
+        ],
+      });
     });
 
     it('should be possible to paste copied data from the same instance', async() => {

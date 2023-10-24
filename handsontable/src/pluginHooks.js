@@ -1435,7 +1435,6 @@ const REGISTERED_HOOKS = [
    * @param {Function} clipboardData.setCellAt Change headers or cells in the copied dataset.
    * @param {Function} clipboardData.getCellAt Get headers or cells from the copied dataset.
    * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
-   * @param {Function} clipboardData.getHTML Gets sanitized data of "text/html" type inside the clipboard.
    * @param {Function} clipboardData.getMetaInfo Gets meta information for the copied data.
    * @param {Function} clipboardData.getHotRanges Returns ranges related to copied part of Handsontable.
    * @returns {*} If returns `false` then operation of the cutting out is canceled.
@@ -1493,7 +1492,6 @@ const REGISTERED_HOOKS = [
    * @param {Function} clipboardData.setCellAt Change headers or cells in the copied dataset.
    * @param {Function} clipboardData.getCellAt Get headers or cells from the copied dataset.
    * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
-   * @param {Function} clipboardData.getHTML Gets sanitized data of "text/html" type inside the clipboard.
    * @param {Function} clipboardData.getMetaInfo Gets meta information for the copied data.
    * @param {Function} clipboardData.getHotRanges Returns ranges related to copied part of Handsontable.
    */
@@ -1511,7 +1509,6 @@ const REGISTERED_HOOKS = [
    * @param {Function} clipboardData.setCellAt Change headers or cells in the copied dataset.
    * @param {Function} clipboardData.getCellAt Get headers or cells from the copied dataset.
    * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
-   * @param {Function} clipboardData.getHTML Gets sanitized data of "text/html" type inside the clipboard.
    * @param {Function} clipboardData.getMetaInfo Gets meta information for the copied data.
    * @param {Function} clipboardData.getHotRanges Returns ranges related to copied part of Handsontable.
    * @returns {*} If returns `false` then copying is canceled.
@@ -1580,7 +1577,6 @@ const REGISTERED_HOOKS = [
    * @param {Function} clipboardData.setCellAt Change headers or cells in the copied dataset.
    * @param {Function} clipboardData.getCellAt Get headers or cells from the copied dataset.
    * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
-   * @param {Function} clipboardData.getHTML Gets sanitized data of "text/html" type inside the clipboard.
    * @param {Function} clipboardData.getMetaInfo Gets meta information for the copied data.
    * @param {Function} clipboardData.getHotRanges Returns ranges related to copied part of Handsontable.
    */
@@ -1599,7 +1595,6 @@ const REGISTERED_HOOKS = [
    * @param {Function} clipboardData.setCellAt Change headers or cells in the pasted dataset.
    * @param {Function} clipboardData.getCellAt Get headers or cells from the pasted dataset.
    * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
-   * @param {Function} clipboardData.getHTML Gets sanitized data of "text/html" type inside the clipboard.
    * @param {Function} clipboardData.getMetaInfo Gets meta information for the copied data.
    * @param {Function} clipboardData.getSource Gets information about source of the copied data
    * (Handsontable, table or string).
@@ -1658,7 +1653,6 @@ const REGISTERED_HOOKS = [
    * @param {Function} clipboardData.setCellAt Change headers or cells in the pasted dataset.
    * @param {Function} clipboardData.getCellAt Get headers or cells from the pasted dataset.
    * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
-   * @param {Function} clipboardData.getHTML Gets sanitized data of "text/html" type inside the clipboard.
    * @param {Function} clipboardData.getMetaInfo Gets meta information for the copied data.
    * @param {Function} clipboardData.getSource Gets information about source of the copied data
    * (Handsontable, table or string).

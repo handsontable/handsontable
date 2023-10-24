@@ -422,6 +422,19 @@ function encodeHTMLEntities(text) {
 }
 
 /**
+ * Decode HTML to simple text.
+ *
+ * @param {string} html HTML for handling.
+ * @returns {string}
+ */
+function decodeHTMLEntities(html) {
+  return html.replace(regEscapedChars, match => ESCAPED_HTML_CHARS[match])
+    // The way how Excel serializes data with at least two spaces.
+    .replace(/<span style="mso-spacerun: yes">(((&nbsp;)*)? +)<\/span>/, '$1')
+    .replaceAll('&nbsp;', ' ');
+}
+
+/**
  * Converts Handsontable's header coordinates into HTMLTableElement.tHead.
  *
  * @param {Core} hotInstance The Handsontable instance.
@@ -671,10 +684,9 @@ export function htmlToGridSettings(element, rootDocument = document) {
             return headers;
           }
 
-          const {
-            colSpan: colspan,
-            innerHTML,
-          } = header;
+          const { colSpan: colspan } = header;
+          const innerHTML = decodeHTMLEntities(header.innerHTML);
+
           const nextHeader = colspan > 1 ? { label: innerHTML, colspan } : innerHTML;
 
           headers.push(nextHeader);
@@ -693,7 +705,7 @@ export function htmlToGridSettings(element, rootDocument = document) {
           return headers;
         }
 
-        headers.push(header.innerHTML);
+        headers.push(decodeHTMLEntities(header.innerHTML));
 
         return headers;
       }, []);
@@ -770,7 +782,7 @@ export function htmlToGridSettings(element, rootDocument = document) {
           cellValue = innerHTML.replace(/<br(\s*|\/)>[\r\n]?/gim, '\r\n');
         }
 
-        dataArr[row][col] = cellValue.replace(regEscapedChars, match => ESCAPED_HTML_CHARS[match]);
+        dataArr[row][col] = decodeHTMLEntities(cellValue);
 
       } else {
         rowHeaders.push(innerHTML);
