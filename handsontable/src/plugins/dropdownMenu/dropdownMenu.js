@@ -390,19 +390,15 @@ export class DropdownMenu extends BasePlugin {
   /**
    * Add custom shortcuts to the provided menu instance.
    *
-   * @private
    * @param {Menu} menuInstance The menu instance.
    */
   #addCustomShortcuts(menuInstance) {
-    const menuShortcutsCtrl = menuInstance.getKeyboardShortcutsCtrl();
-
-    menuShortcutsCtrl.addCustomShortcuts([{
-      keys: [['Control/Meta', 'A']],
-      callback: () => false,
-      group: SHORTCUTS_GROUP,
-      relativeToGroup: 'menu',
-      position: 'before',
-    }]);
+    menuInstance
+      .getKeyboardShortcutsCtrl()
+      .addCustomShortcuts([{
+        keys: [['Control/Meta', 'A']],
+        callback: () => false,
+      }]);
   }
 
   /**
