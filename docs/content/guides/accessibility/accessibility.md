@@ -1,6 +1,6 @@
 ---
 id: o4qhm1bg
-title: Accessibility
+title: Handsontable - Accessibility
 metaTitle: Accessibility - JavaScript Data Grid | Handsontable
 description: Learn about Handsontable's accessibility features.
 permalink: /accessibility
@@ -23,19 +23,25 @@ react:
   metaTitle: Accessibility - React Data Grid | Handsontable
 searchCategory: Guides
 ---
-
-# Accessibility
-
-Handsontable has complete accessibility support, incorporating built-in keyboard navigation that aligns with international standards.
-
 [[toc]]
 
 ## Overview
 
-We advocate for a universally accessible web. With this vision, we have designed Handsontable to be fully accessible to individuals with disabilities, emphasizing our commitment to inclusive design and ensuring that web applications cater to all users. 
+Handsontable offers comprehensive accessibility support, including built-in keyboard navigation in line with international standards. Our design ensures that individuals with disabilities can fully engage with Handsontable.
+
+Features of Handsontable include:
+
+- Intuitive [keyboard navigation](@/guides/navigation/keyboard-navigation.md) that lets you access any feature without using a mouse.
+- Transparent HTML structure following best accessibility practices.
+- [WAI-ARIA](#wai-aria) roles and attributes that complement HTML where needed.
+- Support for the most popular [screen readers](#supported-screen-readers).
+- Compliance with the most important accessibility [standards and regulations](#accessibility-compliance).
+- A set of configurable [accessibility options](#accessibility-configuration).
 
 ## Conformance with Standards
-Standard regulations laid out by different jurisdictions such as European Union or the US, are inline with WCAG. WCAG is a guidelines set maintained by World Wide Web Consortium (W3C). By meeting the requirements of [WCAG 2.1](https://www.w3.org/WAI/WCAG21/quickref/) at level AA, Handsontable provides conformance with W3C standards. A list of policies related to web accessibility under different jurisdictions is available [here](https://www.w3.org/WAI/policies/).
+Several regulatory standards were established by the governing bodies, for instance the European Union or the United States, which align with the Web Content Accessibility Guidelines (WCAG). They consist of a number of guidelines maintained by the World Wide Web Consortium (W3C). <br>
+Handsontable delivers conformance to W3C standards by meeting the requirements of [WCAG 2.1](https://www.w3.org/WAI/WCAG21/quickref/) at level AA.<br> 
+You may find a comprehensive list of policies appertaining to web accessibility in various jurisdictions [here](https://www.w3.org/WAI/policies/).
 
 - **Europe / EU:**
   - [European Accessibility Act (EAA)](https://ec.europa.eu/social/main.jsp?catId=1202)
@@ -49,14 +55,31 @@ Standard regulations laid out by different jurisdictions such as European Union 
   - [Standard on Web Accessibility](https://www.tbs-sct.canada.ca/pol/doc-eng.aspx?id=23601)
 
 ## Accessibility Statement and VPAT
-When developers work on making websites easy for everyone to use, they often see two important terms: *Accessibility Statement* and *VPAT*. The *Accessibility Statement* is like a promise from a company, saying how well their product works for people with disabilities. *VPAT*, on the other hand, is a form that gives more details about how a product meets certain rules for being user-friendly, like the Web Content Accessibility Guidelines (WCAG).
+Developers often encounter two crucial terms when ensuring websites are user-friendly for everyone: **Accessibility Statement** and **VPAT**.
 
-So, why do companies care about these documents? Let's take Handsontable as an example. When other companies use Handsontable in their apps, they want to make sure it's easy for everyone to use. If those apps already follow certain rules (like WCAG 2.1 AA), they don't want Handsontable to make things worse. By sharing an *Accessibility Statement* and *VPAT*, Handsontable shows companies that it's serious about making sure everyone can use their product easily.
+The **Accessibility Statement** is a company's commitment, indicating how well their product caters to individuals with disabilities. **VPAT**, meanwhile, provides detailed insights into how a product aligns with user-friendly standards, such as the Web Content Accessibility Guidelines (WCAG).
+
+Why do these documents matter? Consider Handsontable. Companies integrating Handsontable into their applications aim for optimal user accessibility. If their apps adhere to standards like WCAG 2.1 AA, they expect Handsontable not to compromise that. By offering an **Accessibility Statement** and **VPAT**, Handsontable assures its commitment to universal usability.
+
+## Accessibility testing
+
+Before releasing a new version of Handsontable, we carefully test it for accessibility, using a combination of different approaches:
+
+- We cover the most common use cases with automated unit and end-to-end tests.
+- We manually test all of Handsontable's features with the most popular screen readers.
+- We use automated visual regression testing.
+- We check Handsontable's accessibility score with a range of the most popular accessibility testing tools, such as Lighthouse, Axe-core, or Accessibility Insights for Web.
 
 ## Keyboard Navigation
 The principle of accessible web components is that users who cannot use a mouse can still navigate the product with a keyboard or other assistive technology.
 
 Handsontable provides intuitive navigation that allows access to all focusable elements in a predictable way. It also identifies elements currently holding focus across cells, headers, and subcomponents such as menus, fly-out editors, and more.
+<br><br>Learn more in the following sections:
+
+- [Keyboard navigation](@/guides/navigation/keyboard-navigation.md)
+- [Configure keyboard navigation options](@/guides/navigation/keyboard-navigation.md#configure-keyboard-navigation-options)
+- [Default keyboard shortcuts](@/guides/navigation/keyboard-shortcuts.md)
+- [Custom shortcuts](@/guides/navigation/custom-shortcuts.md)
 
 ## Navigation Models
 Handsontable is mainly used either as a spreadsheet-like application or as a data grid. At first glance, the differences may not be significant, but this entirely changes the user experience by altering the keyboard navigation within the grid. See the table below for a better context.
@@ -80,21 +103,33 @@ Handsontable provides an extensive amount of [built-in shortcut keys](https://ha
 | Invoke context menu              | macOS: Cmd + Shift + \ <br> macOS: Shift + F10 <br> <br> Windows: Ctrl + Shift + \ <br> Windows: Shift + F10 | macOS: Cmd + Shift + \ <br> macOS: Shift + F10 <br> <br> Windows: Ctrl + Shift + \ <br> Windows: Shift + F10|
 
 ## Screen Readers
-Handsontable is a leading grid-based application designed with accessibility in mind. Recognized as a composite widget, it adopts the ARIA role of treegrid, ensuring that it adheres to established standards. To enhance the experience for visually impaired users, Handsontable employs ARIA attributes, which provide screen readers with a clearer understanding of the data's structure and content.
+Recognized as a composite widget, Handsontable adopts the ARIA role of treegrid, ensuring that it adheres to established standards. To enhance the experience for visually impaired users, Handsontable employs ARIA attributes, which provide screen readers with a clearer understanding of the data's structure and content.
 
-Like many grid applications, we understand that there are a variety of screen readers available to users. Some of the most popular ones include JAWS (Windows), VoiceOver (macOS), NVDA (Windows), and ChromeVox (Chrome Screen Reader). At Handsontable, we prioritize these screen readers in our testing to ensure optimal compatibility.
+There are a variety of screen readers available to users. At Handsontable, we prioritize the following screen readers in our testing to ensure optimal compatibility:
+- JAWS (Windows)
+- VoiceOver (macOS)
+- NVDA (Windows)
+- ChromeVox (Chrome Screen Reader)
 
 
 ## Customizable Demo
 **Handsontable demo optimized for Accessibility** can look differently depending on the application you build. In this demo below you enable or disable multiple options that change the level of support for disabled users.
 
-- **navigableHeaders:** [more info](https://handsontable.com/docs/javascript-data-grid/api/options/#navigableHeaders)
-- **tabMoves:** [more info](https://handsontable.com/docs/javascript-data-grid/api/options/#tabMoves)
-- **enterMoves:** [more info](https://handsontable.com/docs/javascript-data-grid/api/options/#entermoves)
-- **enterBeginsEditing:** [more info](https://handsontable.com/docs/javascript-data-grid/api/options/#enterbeginsediting)
-- **autoWrapCol:** [more info](https://handsontable.com/docs/javascript-data-grid/api/options/#autowrapcol)
-- **autoWrapRow:** [more info](https://handsontable.com/docs/javascript-data-grid/api/options/#autowraprow)
-- **renderAllRows + viewportColumnRenderingOffset:** (describe briefly)
+- [**navigableHeaders**](https://handsontable.com/docs/javascript-data-grid/api/options/#navigableHeaders)
+- [**tabMoves**](https://handsontable.com/docs/javascript-data-grid/api/options/#tabMoves)
+- [**enterMoves**](https://handsontable.com/docs/javascript-data-grid/api/options/#entermoves)
+- [**enterBeginsEditing**](https://handsontable.com/docs/javascript-data-grid/api/options/#enterbeginsediting)
+- [**autoWrapCol**](https://handsontable.com/docs/javascript-data-grid/api/options/#autowrapcol)
+- [**autoWrapRow**](https://handsontable.com/docs/javascript-data-grid/api/options/#autowraprow)
+- *[**renderAllRows**](https://handsontable.com/docs/javascript-data-grid/api/options/#renderallrows) + [**viewportColumnRenderingOffset**](https://handsontable.com/docs/javascript-data-grid/api/options/#viewportcolumnrenderingoffset): There are two methods to disable virtual rendering in Handsontable.
+
+Method 1: 
+- Disable virtualization of rows with a shorthand option (renderAllRows: true)
+- Disable virtualization of columns by setting viewportColumnRenderingOffset to ZERO.
+
+Method 2
+- Disable virtualization of rows by setting viewportRowRenderingOffset to ZERO.
+- Disable virtualization of columns by setting viewportColumnRenderingOffset to ZERO.
 
 ## High-contrast Theme
 Ensuring that content is easily readable and distinguishable is important for users, especially those with visual impairments. Proper contrast between elements not only enhances readability but also ensures that users can comfortably interact with the content for extended periods. The minimum recommended contrast between images and text, or a background and text, is [4.5:1](https://www.w3.org/WAI/WCAG21/quickref/#contrast-minimum). To meet this requirement we recommend either:
@@ -119,8 +154,33 @@ Recommendations for Customizations:
 
 ## Known Limitations
 
-1. **ARIA Labels:** We are actively working towards providing comprehensive translations. We appreciate your patience and will keep our users updated on the progress.
-2. **Screen Readers with Frozen Rows/Columns:** Some screen readers may incorrectly read the number of rows and columns or their indices when frozen rows and columns are enabled.
-3. **Dynamic ARIA Attributes:** Dynamic ARIA attributes, such as sorting order or filters set, are often not announced at all, depending on the screen reader used.
-4. **Access to Actions:** Access to certain actions may require custom menu items, e.g., sorting data (in spreadsheet mode where headers are non-navigable), moving a column/row, resizing a column/row, and renaming a header name.
-5. **Testing Limitations:** We test our data grid with only some of screen readers on the market - the most popular ones. It’s because there are no ways to automate those tests; they all are conducted manually.
+   - **ARIA Labels:** We are actively working towards providing comprehensive translations. We appreciate your patience and will keep our users updated on the progress.
+   - **Screen Readers with Frozen Rows/Columns:** Some screen readers may incorrectly read the number of rows and columns or their indices when frozen rows and columns are enabled.
+   - **Dynamic ARIA Attributes:** Dynamic ARIA attributes, such as sorting order or filters set, are often not announced at all, depending on the screen reader used.
+  - **Access to Actions:** Access to certain actions may require custom menu items, e.g., sorting data (in spreadsheet mode where headers are non-navigable), moving a column/row, resizing a column/row, and renaming a header name.
+   - **Testing Limitations:** We test our data grid with only some of screen readers on the market - the most popular ones. It’s because there are no ways to automate those tests; they all are conducted manually.
+
+## API reference
+
+For the list of [options](@/guides/getting-started/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks.md)
+related to accessibility, see the following API reference pages:
+
+- [`autoWrapCol`](@/api/options.md#autowrapcol)
+- [`autoWrapRow`](@/api/options.md#autowraprow)
+- [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
+- [`enterMoves`](@/api/options.md#entermoves)
+- [`disableTabNavigation`](@/api/options.md#disabletabnavigation)
+- [`navigableHeaders`](@/api/options.md#navigableheaders)
+- [`renderAllRows`](@/api/options.md#renderallrows)
+- [`tabMoves`](@/api/options.md#tabmoves)
+- [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
+- [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
+
+## Troubleshooting
+
+Try the following links if you didn't find what you need:
+- [View related topics](https://github.com/handsontable/handsontable/labels/Accessibility) on GitHub
+- [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
+- [Ask a question](https://stackoverflow.com/questions/tagged/handsontable) on Stack Overflow
+- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
+- [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
