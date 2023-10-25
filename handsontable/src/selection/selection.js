@@ -134,6 +134,10 @@ class Selection {
       (...args) => this.runLocalHooks('insertRowRequire', ...args));
     this.transformation.addLocalHook('insertColRequire',
       (...args) => this.runLocalHooks('insertColRequire', ...args));
+    this.transformation.addLocalHook('beforeRowWrap',
+      (...args) => this.runLocalHooks('beforeRowWrap', ...args));
+    this.transformation.addLocalHook('beforeColumnWrap',
+      (...args) => this.runLocalHooks('beforeColumnWrap', ...args));
   }
 
   /**

@@ -34,11 +34,30 @@ export function installFocusCatcher(hot) {
     },
   });
 
+  const rowWrapState = {
+    wrapped: false,
+    flipped: false,
+  };
+
   hot.addHook('afterListen', () => deactivate());
   hot.addHook('afterUnlisten', () => activate());
   hot.addHook('afterSelection', () => {
     recentlyAddedFocusCoords = hot.getSelectedRangeLast()?.highlight;
   });
+  hot.addHook('beforeRowWrap', (isWrappingEnabled, newCoords, rowFlipped) => {
+    rowWrapState.wrapped = true;
+    rowWrapState.flipped = rowFlipped;
+  });
+
+  /**
+   * Unselects the cell and deactivates the table.
+   */
+  function deactivateTable() {
+    rowWrapState.wrapped = false;
+    rowWrapState.flipped = false;
+    hot.deselectCell();
+    hot.unlisten();
+  }
 
   hot.getShortcutManager()
     .getContext('grid')
@@ -47,38 +66,29 @@ export function installFocusCatcher(hot) {
       callback: (event) => {
         const { disableTabNavigation, autoWrapRow } = hot.getSettings();
 
-        if (disableTabNavigation) {
-          hot.deselectCell();
-          hot.unlisten();
+        if (
+          disableTabNavigation ||
+          !hot.selection.isSelected() ||
+          autoWrapRow && rowWrapState.wrapped && rowWrapState.flipped ||
+          !autoWrapRow && rowWrapState.wrapped
+        ) {
+          if (autoWrapRow && rowWrapState.wrapped && rowWrapState.flipped) {
+            recentlyAddedFocusCoords = event.shiftKey
+              ? getMostTopStartPosition(hot) : getMostBottomEndPosition(hot);
+          }
+
+          deactivateTable();
 
           return false;
         }
 
-        const isSelected = hot.selection.isSelected();
-        const highlight = hot.getSelectedRangeLast()?.highlight;
-        const mostTopStartCoords = getMostTopStartPosition(hot);
-        const mostBottomEndCoords = getMostBottomEndPosition(hot);
-
-        // For disabled `autoWrapRow` option set the row to the same position as the currently selected row.
-        if (!autoWrapRow) {
-          mostTopStartCoords.row = highlight.row;
-          mostBottomEndCoords.row = highlight.row;
-        }
-
-        if (event.shiftKey && (!isSelected || highlight.isEqual(mostTopStartCoords)) ||
-            !event.shiftKey && (!isSelected || highlight.isEqual(mostBottomEndCoords))) {
-          hot.deselectCell();
-          hot.unlisten();
-
-          return false;
-        }
-
-        return true;
+        // if the selection is still within the table's range then prevent default action
+        event.preventDefault();
       },
       runOnlyIf: () => !hot.getSettings().minSpareCols,
       preventDefault: false,
       stopPropagation: false,
-      position: 'before',
+      position: 'after',
       relativeToGroup: GRID_GROUP,
       group: 'focusCatcher',
     });

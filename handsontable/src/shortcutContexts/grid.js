@@ -151,9 +151,11 @@ export function shortcutsGridContext(hot) {
     callback: () => commandsPool.extendCellsSelectionDownByViewportHeight(),
   }, {
     keys: [['Tab']],
+    // The property value is controlled by focusCatcher module (https://github.com/handsontable/handsontable/blob/master/handsontable/src/core/focusCatcher/index.js)
     callback: () => commandsPool.moveCellSelectionInlineStart(),
   }, {
     keys: [['Shift', 'Tab']],
+    // The property value is controlled by focusCatcher module (https://github.com/handsontable/handsontable/blob/master/handsontable/src/core/focusCatcher/index.js)
     callback: () => commandsPool.moveCellSelectionInlineEnd(),
   }, {
     keys: [['Control/Meta', 'Backspace']],
