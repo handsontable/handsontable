@@ -1,5 +1,4 @@
 export const A11Y_TABINDEX = val => ['tabindex', val];
-export const A11Y_BUTTON = () => ['role', 'button'];
 export const A11Y_TREEGRID = () => ['role', 'treegrid'];
 export const A11Y_PRESENTATION = () => ['role', 'presentation'];
 export const A11Y_GRIDCELL = () => ['role', 'gridcell'];

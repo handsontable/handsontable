@@ -4,6 +4,10 @@ describe('HiddenColumns', () => {
     { htmlDir: 'rtl', layoutDirection: 'ltr' },
   ], ({ htmlDir, layoutDirection }) => {
     const id = 'testContainer';
+    const getIndicator = (parentEl, direction) =>
+      direction === 'after' ?
+        parentEl.querySelector('.afterHiddenColumnIndicator')
+        : parentEl.querySelector('.beforeHiddenColumnIndicator');
 
     beforeEach(function() {
       $('html').attr('dir', htmlDir);
@@ -20,7 +24,7 @@ describe('HiddenColumns', () => {
     });
 
     describe('indicators', () => {
-      xit('should add proper class names in column headers', () => {
+      it('should add proper class names in column headers', () => {
         handsontable({
           layoutDirection,
           data: Handsontable.helper.createSpreadsheetData(1, 5),
@@ -32,17 +36,17 @@ describe('HiddenColumns', () => {
         });
 
         expect(getCell(-1, 0)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
-        expect(getComputedStyle(getCell(-1, 0), ':before').content).toBe('none');
-        expect(getComputedStyle(getCell(-1, 0), ':after').content).toBe('"◀"');
+        expect(getIndicator(getCell(-1, 0), 'after')).toBe(null);
+        expect(getComputedStyle(getIndicator(getCell(-1, 0), 'before'), ':after').content).toBe('"◀"');
         expect(getCell(-1, 1)).toBe(null);
         expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
         expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_COLUMN);
-        expect(getComputedStyle(getCell(-1, 2), ':before').content).toBe('"▶"');
-        expect(getComputedStyle(getCell(-1, 2), ':after').content).toBe('"◀"');
+        expect(getComputedStyle(getIndicator(getCell(-1, 2), 'after'), ':before').content).toBe('"▶"');
+        expect(getComputedStyle(getIndicator(getCell(-1, 2), 'before'), ':after').content).toBe('"◀"');
         expect(getCell(-1, 3)).toBe(null);
         expect(getCell(-1, 4)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_COLUMN);
-        expect(getComputedStyle(getCell(-1, 4), ':before').content).toBe('"▶"');
-        expect(getComputedStyle(getCell(-1, 4), ':after').content).toBe('none');
+        expect(getComputedStyle(getIndicator(getCell(-1, 4), 'after'), ':before').content).toBe('"▶"');
+        expect(getIndicator(getCell(-1, 4), 'before')).toBe(null);
       });
 
       it('should render indicators after enabling them in updateSettings', () => {

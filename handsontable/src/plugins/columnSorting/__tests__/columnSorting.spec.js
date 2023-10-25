@@ -1,5 +1,6 @@
 describe('ColumnSorting', () => {
   const id = 'testContainer';
+  const getIndicator = parentEl => parentEl.querySelector('.columnSortingIndicator');
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="overflow: auto; width: 300px; height: 200px;"></div>`).appendTo('body');
@@ -200,7 +201,7 @@ describe('ColumnSorting', () => {
       $('html').attr('dir', 'ltr');
     });
 
-    xit('should display indicator properly after changing sorted column sequence', () => {
+    it('should display indicator properly after changing sorted column sequence', () => {
       const hot = handsontable({
         layoutDirection,
         data: [
@@ -223,8 +224,10 @@ describe('ColumnSorting', () => {
 
       const sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
-      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
-      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('right')).toEqual('-9px');
+      expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image'))
+        .toMatch(/url/);
+      expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('right'))
+        .toEqual('-9px');
     });
   });
 
@@ -245,7 +248,7 @@ describe('ColumnSorting', () => {
 
     const sortedColumn = spec().$container.find('th span')[0];
 
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
+    expect(getIndicator(sortedColumn)).toBe(null);
   });
 
   it('should render a correct number of TD elements after sorting', async() => {
@@ -2178,7 +2181,7 @@ describe('ColumnSorting', () => {
 
   });
 
-  xit('should add a sorting indicator to the column header after it\'s been sorted, if `indicator` property is set to `true` (by default)', () => {
+  it('should add a sorting indicator to the column header after it\'s been sorted, if `indicator` property is set to `true` (by default)', () => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2208,34 +2211,36 @@ describe('ColumnSorting', () => {
     let sortedColumn = spec().$container.find('th span.columnSorting')[2];
 
     // not sorted
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
+    expect(getIndicator(sortedColumn)).toBe(null);
 
     spec().sortByClickOnColumnHeader(2);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
     // not sorted
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
+    expect(getIndicator(sortedColumn)).toBe(null);
 
     spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // ascending
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image'))
+      .toMatch(/url/);
 
     spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // descending
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image'))
+      .toMatch(/url/);
 
     spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // not sorted
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
+    expect(getIndicator(sortedColumn)).toBe(null);
   });
 
-  xit('should change sorting indicator state on every plugin API method (calling for different columns)', () => {
+  it('should change sorting indicator state on every plugin API method (calling for different columns)', () => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2255,40 +2260,40 @@ describe('ColumnSorting', () => {
     // ascending
     let sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' });
 
     // descending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' });
 
     // descending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image')).toMatch(/url/);
   });
 
-  xit('should change sorting indicator state when initial column sorting was provided', () => {
+  it('should change sorting indicator state when initial column sorting was provided', () => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2310,31 +2315,31 @@ describe('ColumnSorting', () => {
     // descending
     let sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort();
 
     // default
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
+    expect(getIndicator(sortedColumn)).toBe(null);
 
     getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
 
     // descending
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort();
 
     // default
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
+    expect(getIndicator(sortedColumn)).toBe(null);
   });
 
   it('should properly sort the table, when it\'s scrolled to the far right', () => {
@@ -2858,7 +2863,7 @@ describe('ColumnSorting', () => {
   });
 
   describe('rendering headers', () => {
-    xit('should change width of multi-line headers when plugin is enabled / disabled by `updateSettings` and sort indicator is enabled', () => {
+    it('should change width of multi-line headers when plugin is enabled / disabled by `updateSettings` and sort indicator is enabled', () => {
       handsontable({
         colHeaders: ['AAA<br>BB']
       });
@@ -2884,7 +2889,7 @@ describe('ColumnSorting', () => {
       expect(headerWidthAtStart).toBeLessThan(newHeaderWidth);
     });
 
-    xit('should work properly also when `rowHeaders` option is set to `true`', () => {
+    it('should work properly also when `rowHeaders` option is set to `true`', () => {
       handsontable({
         colHeaders: ['AAA<br>BB'],
         rowHeaders: true

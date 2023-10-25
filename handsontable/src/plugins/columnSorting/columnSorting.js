@@ -1,7 +1,6 @@
 import {
   addClass,
   appendDiv,
-  removeChildIfExists,
   removeClass,
   setAttribute,
 } from '../../helpers/dom/element';
@@ -34,6 +33,7 @@ export const PLUGIN_PRIORITY = 50;
 export const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 export const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
+const SORTING_INDICATOR_CLASS = 'columnSortingIndicator';
 
 registerRootComparator(PLUGIN_KEY, rootComparator);
 
@@ -765,14 +765,10 @@ export class ColumnSorting extends BasePlugin {
     const ariaTags = this.hot.getSettings().ariaTags;
     const showSortIndicator = pluginSettingsForColumn.indicator;
     const isColumnSorted = this.columnStatesManager.isColumnSorted(column);
-    const indicatorElement = headerSpanElement.querySelector('.columnSortingIndicator');
+    const indicatorElement = headerSpanElement.querySelector(`.${SORTING_INDICATOR_CLASS}`);
 
-    if (showSortIndicator && isColumnSorted) {
-      if (!indicatorElement) {
-        appendDiv(headerSpanElement, 'columnSortingIndicator', ariaTags ? [A11Y_HIDDEN()] : []);
-      }
-    } else {
-      removeChildIfExists(headerSpanElement, indicatorElement);
+    if (showSortIndicator && isColumnSorted && !indicatorElement) {
+      appendDiv(headerSpanElement, SORTING_INDICATOR_CLASS, ariaTags ? [A11Y_HIDDEN()] : []);
     }
   }
 

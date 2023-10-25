@@ -4,6 +4,7 @@ describe('ColumnSorting (RTL)', () => {
     { htmlDir: 'ltr', layoutDirection: 'rtl' },
   ], ({ htmlDir, layoutDirection }) => {
     const id = 'testContainer';
+    const getIndicator = parentEl => parentEl.querySelector('.columnSortingIndicator');
 
     beforeEach(function() {
       $('html').attr('dir', htmlDir);
@@ -21,7 +22,7 @@ describe('ColumnSorting (RTL)', () => {
       }
     });
 
-    xit('should display indicator properly after changing sorted column sequence', () => {
+    it('should display indicator properly after changing sorted column sequence', () => {
       const hot = handsontable({
         layoutDirection,
         data: [
@@ -44,8 +45,8 @@ describe('ColumnSorting (RTL)', () => {
 
       const sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
-      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
-      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('left')).toEqual('-9px');
+      expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image')).toMatch(/url/);
+      expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('left')).toEqual('-9px');
     });
   });
 });
