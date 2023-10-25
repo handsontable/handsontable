@@ -4,10 +4,11 @@ describe('HiddenColumns (RTL mode)', () => {
     { htmlDir: 'ltr', layoutDirection: 'rtl' },
   ], ({ htmlDir, layoutDirection }) => {
     const id = 'testContainer';
-    const getIndicator = (parentEl, direction) =>
-      direction === 'after' ?
+    const getIndicator = (parentEl, direction) => {
+      return direction === 'after' ?
         parentEl.querySelector('.afterHiddenColumnIndicator')
         : parentEl.querySelector('.beforeHiddenColumnIndicator');
+    };
 
     beforeEach(function() {
       $('html').attr('dir', htmlDir);

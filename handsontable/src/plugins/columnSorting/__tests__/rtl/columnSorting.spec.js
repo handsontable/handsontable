@@ -45,8 +45,10 @@ describe('ColumnSorting (RTL)', () => {
 
       const sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
-      expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image')).toMatch(/url/);
-      expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('left')).toEqual('-9px');
+      expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image'))
+        .toMatch(/url/);
+      expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('left'))
+        .toEqual('-9px');
     });
   });
 });
