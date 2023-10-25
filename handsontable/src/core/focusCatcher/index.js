@@ -44,9 +44,9 @@ export function installFocusCatcher(hot) {
   hot.addHook('afterSelection', () => {
     recentlyAddedFocusCoords = hot.getSelectedRangeLast()?.highlight;
   });
-  hot.addHook('beforeRowWrap', (isWrappingEnabled, newCoords, rowFlipped) => {
+  hot.addHook('beforeRowWrap', (isWrapEnabled, newCoords, isFlipped) => {
     rowWrapState.wrapped = true;
-    rowWrapState.flipped = rowFlipped;
+    rowWrapState.flipped = isFlipped;
   });
 
   /**

@@ -269,6 +269,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() beforeColumnMove: Handsontable.GridSettings['beforeColumnMove'];
   @Input() beforeColumnResize: Handsontable.GridSettings['beforeColumnResize'];
   @Input() beforeColumnSort: Handsontable.GridSettings['beforeColumnSort'];
+  @Input() beforeColumnWrap: Handsontable.GridSettings['beforeColumnWrap'];
   @Input() beforeColumnUnfreeze: Handsontable.GridSettings['beforeColumnUnfreeze'];
   @Input() beforeContextMenuSetItems: Handsontable.GridSettings['beforeContextMenuSetItems'];
   @Input() beforeContextMenuShow: Handsontable.GridSettings['beforeContextMenuShow'];
@@ -309,6 +310,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() beforeRenderer: Handsontable.GridSettings['beforeRenderer'];
   @Input() beforeRowMove: Handsontable.GridSettings['beforeRowMove'];
   @Input() beforeRowResize: Handsontable.GridSettings['beforeRowResize'];
+  @Input() beforeRowWrap: Handsontable.GridSettings['beforeRowWrap'];
   @Input() beforeSelectColumns: Handsontable.GridSettings['beforeSelectColumns'];
   @Input() beforeSelectionHighlightSet: Handsontable.GridSettings['beforeSelectionHighlightSet'];
   @Input() beforeSelectRows: Handsontable.GridSettings['beforeSelectRows'];
