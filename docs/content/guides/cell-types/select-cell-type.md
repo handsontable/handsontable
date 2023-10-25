@@ -45,7 +45,7 @@ const hot = new Handsontable(container, {
   columns: [
     {},
     {
-      editor: 'select',
+      type: 'select',
       selectOptions: ['Kia', 'Nissan', 'Toyota', 'Honda']
     },
     {}
@@ -83,7 +83,7 @@ export const ExampleComponent = () => {
       columns={[
         {},
         {
-          editor: 'select',
+          type: 'select',
           selectOptions: ['Kia', 'Nissan', 'Toyota', 'Honda']
         },
         {}

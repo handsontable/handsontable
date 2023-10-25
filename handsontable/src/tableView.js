@@ -10,12 +10,20 @@ import {
   isInput,
   isOutsideInput,
   isVisible,
+  setAttribute,
 } from './helpers/dom/element';
 import EventManager from './eventManager';
 import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
+import {
+  A11Y_COLCOUNT,
+  A11Y_MULTISELECTABLE,
+  A11Y_PRESENTATION,
+  A11Y_ROWCOUNT,
+  A11Y_TREEGRID
+} from './helpers/a11y';
 
 const privatePool = new WeakMap();
 
@@ -255,6 +263,19 @@ class TableView {
       addClass(priv.table, this.instance.getSettings().tableClassName);
     }
 
+    if (this.settings.ariaTags) {
+      setAttribute(priv.table, [
+        A11Y_PRESENTATION()
+      ]);
+
+      setAttribute(rootElement, [
+        A11Y_TREEGRID(),
+        A11Y_ROWCOUNT(this.instance.countRows()),
+        A11Y_COLCOUNT(this.instance.countCols()),
+        A11Y_MULTISELECTABLE(),
+      ]);
+    }
+
     this.THEAD = rootDocument.createElement('THEAD');
     priv.table.appendChild(this.THEAD);
 
@@ -309,14 +330,19 @@ class TableView {
     });
 
     this.eventManager.addEventListener(documentElement, 'mouseup', (event) => {
-      if (selection.isInProgress() && isLeftClick(event)) { // is left mouse button
+      if (selection.isInProgress() && isLeftClick(event)) {
         selection.finish();
       }
 
       priv.mouseDown = false;
 
-      if (isOutsideInput(rootDocument.activeElement) ||
-         (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
+      const isOutsideInputElement = isOutsideInput(rootDocument.activeElement);
+
+      if (!isOutsideInputElement) {
+        return;
+      }
+
+      if (isOutsideInputElement || (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
           !rootElement.contains(event.target) && !isRightClick(event))) {
         this.instance.unlisten();
       }
@@ -574,6 +600,44 @@ class TableView {
   }
 
   /**
+   * The function returns the number of renderable column indexes within the passed range of the visual indexes.
+   *
+   * @param {number} columnStart The column visual start index.
+   * @param {number} columnEnd The column visual end index.
+   * @returns {number}
+   */
+  countRenderableColumnsInRange(columnStart, columnEnd) {
+    let count = 0;
+
+    for (let column = columnStart; column <= columnEnd; column++) {
+      if (this.instance.columnIndexMapper.getRenderableFromVisualIndex(column) !== null) {
+        count += 1;
+      }
+    }
+
+    return count;
+  }
+
+  /**
+   * The function returns the number of renderable row indexes within the passed range of the visual indexes.
+   *
+   * @param {number} rowStart The row visual start index.
+   * @param {number} rowEnd The row visual end index.
+   * @returns {number}
+   */
+  countRenderableRowsInRange(rowStart, rowEnd) {
+    let count = 0;
+
+    for (let row = rowStart; row <= rowEnd; row++) {
+      if (this.instance.rowIndexMapper.getRenderableFromVisualIndex(row) !== null) {
+        count += 1;
+      }
+    }
+
+    return count;
+  }
+
+  /**
    * Checks if at least one cell than belongs to the main table is not covered by the top, left or
    * bottom overlay.
    *
@@ -594,6 +658,7 @@ class TableView {
   initializeWalkontable() {
     const priv = privatePool.get(this);
     const walkontableConfig = {
+      ariaTags: this.settings.ariaTags,
       rtlMode: this.instance.isRtl(),
       externalRowCalculator: this.instance.getPlugin('autoRowSize') &&
         this.instance.getPlugin('autoRowSize').isEnabled(),
@@ -711,6 +776,7 @@ class TableView {
           value,
           cellProperties
         );
+
         this.instance.runHooks('afterRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
       },
       selections: this.instance.selection.highlight,
@@ -842,26 +908,96 @@ class TableView {
       },
       beforeDraw: (force, skipRender) => this.beforeRender(force, skipRender),
       onDraw: force => this.afterRender(force),
-      onScrollVertically: () => this.instance.runHooks('afterScrollVertically'),
-      onScrollHorizontally: () => this.instance.runHooks('afterScrollHorizontally'),
+      onBeforeViewportScrollVertically: (renderableRow) => {
+        const rowMapper = this.instance.rowIndexMapper;
+        const areColumnHeadersSelected = renderableRow < 0;
+        let visualRow = renderableRow;
+
+        if (!areColumnHeadersSelected) {
+          visualRow = rowMapper.getVisualFromRenderableIndex(renderableRow);
+
+          // for an empty data return index as is
+          if (visualRow === null) {
+            return renderableRow;
+          }
+        }
+
+        visualRow = this.instance.runHooks('beforeViewportScrollVertically', visualRow);
+        this.instance.runHooks('beforeViewportScroll');
+
+        if (!areColumnHeadersSelected) {
+          return rowMapper.getRenderableFromVisualIndex(visualRow);
+        }
+
+        return visualRow;
+      },
+      onBeforeViewportScrollHorizontally: (renderableColumn) => {
+        const columnMapper = this.instance.columnIndexMapper;
+        const areRowHeadersSelected = renderableColumn < 0;
+        let visualColumn = renderableColumn;
+
+        if (!areRowHeadersSelected) {
+          visualColumn = columnMapper.getVisualFromRenderableIndex(renderableColumn);
+
+          // for an empty data return index as is
+          if (visualColumn === null) {
+            return renderableColumn;
+          }
+        }
+
+        visualColumn = this.instance.runHooks('beforeViewportScrollHorizontally', visualColumn);
+        this.instance.runHooks('beforeViewportScroll');
+
+        if (!areRowHeadersSelected) {
+          return columnMapper.getRenderableFromVisualIndex(visualColumn);
+        }
+
+        return visualColumn;
+      },
+      onScrollVertically: () => {
+        this.instance.runHooks('afterScrollVertically');
+        this.instance.runHooks('afterScroll');
+      },
+      onScrollHorizontally: () => {
+        this.instance.runHooks('afterScrollHorizontally');
+        this.instance.runHooks('afterScroll');
+      },
       onBeforeRemoveCellClassNames: () => this.instance.runHooks('beforeRemoveCellClassNames'),
       onBeforeHighlightingRowHeader: (renderableRow, headerLevel, highlightMeta) => {
         const rowMapper = this.instance.rowIndexMapper;
-        const visualRow = rowMapper.getVisualFromRenderableIndex(renderableRow);
+        const areColumnHeadersSelected = renderableRow < 0;
+        let visualRow = renderableRow;
+
+        if (!areColumnHeadersSelected) {
+          visualRow = rowMapper.getVisualFromRenderableIndex(renderableRow);
+        }
 
         const newVisualRow = this.instance
           .runHooks('beforeHighlightingRowHeader', visualRow, headerLevel, highlightMeta);
 
-        return rowMapper.getRenderableFromVisualIndex(rowMapper.getNearestNotHiddenIndex(newVisualRow, 1));
+        if (!areColumnHeadersSelected) {
+          return rowMapper.getRenderableFromVisualIndex(rowMapper.getNearestNotHiddenIndex(newVisualRow, 1));
+        }
+
+        return newVisualRow;
       },
       onBeforeHighlightingColumnHeader: (renderableColumn, headerLevel, highlightMeta) => {
         const columnMapper = this.instance.columnIndexMapper;
-        const visualColumn = columnMapper.getVisualFromRenderableIndex(renderableColumn);
+        const areRowHeadersSelected = renderableColumn < 0;
+        let visualColumn = renderableColumn;
+
+        if (!areRowHeadersSelected) {
+          visualColumn = columnMapper.getVisualFromRenderableIndex(renderableColumn);
+        }
 
         const newVisualColumn = this.instance
           .runHooks('beforeHighlightingColumnHeader', visualColumn, headerLevel, highlightMeta);
 
-        return columnMapper.getRenderableFromVisualIndex(columnMapper.getNearestNotHiddenIndex(newVisualColumn, 1));
+        if (!areRowHeadersSelected) {
+          return columnMapper.getRenderableFromVisualIndex(columnMapper.getNearestNotHiddenIndex(newVisualColumn, 1));
+        }
+
+        return newVisualColumn;
       },
       onAfterDrawSelection: (currentRow, currentColumn, layerLevel) => {
         let cornersOfSelection;
@@ -871,10 +1007,7 @@ class TableView {
         const selectionRangeSize = selectedRange.size();
 
         if (selectionRangeSize > 0) {
-          // Selection layers are stored from the "oldest" to the "newest". We should calculate the offset.
-          // Please look at the `SelectedRange` class and it's method for getting selection's layer for more information.
-          const selectionOffset = (layerLevel ?? 0) + 1 - selectionRangeSize;
-          const selectionForLayer = selectedRange.peekByIndex(selectionOffset);
+          const selectionForLayer = selectedRange.peekByIndex(layerLevel ?? 0);
 
           cornersOfSelection = [
             selectionForLayer.from.row, selectionForLayer.from.col, selectionForLayer.to.row, selectionForLayer.to.col
@@ -1067,7 +1200,7 @@ class TableView {
    * @returns {boolean}
    */
   isSelectedOnlyCell() {
-    return this.instance.getSelectedRangeLast()?.isSingle() ?? false;
+    return this.instance.getSelectedRangeLast()?.isSingleCell() ?? false;
   }
 
   /**

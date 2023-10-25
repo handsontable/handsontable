@@ -379,7 +379,7 @@ describe('HiddenRows', () => {
 
       // Second and third rows are not displayed (CSS - display: none).
       expect(getSelected()).toEqual([[1, 0, 4, 0]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(1);
+      expect(getSelectedRangeLast().highlight.row).toBe(3);
       expect(getSelectedRangeLast().highlight.col).toBe(0);
       expect(getSelectedRangeLast().from.row).toBe(1);
       expect(getSelectedRangeLast().from.col).toBe(0);
@@ -506,8 +506,7 @@ describe('HiddenRows', () => {
       expect(getSelectedRangeLast().to.col).toBe(0);
       expect($mergeArea.hasClass('area')).toBeTrue();
       expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
-      // TODO: Probably it should return `false`.
-      expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeTrue();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       // Probably it should return `true`, changed since 8.0.0.
       expect($mergeArea.hasClass('fullySelectedMergedCell-0')).toBeTrue();
       expect($mergeArea.hasClass('fullySelectedMergedCell-1')).toBeFalse();
@@ -1630,7 +1629,7 @@ describe('HiddenRows', () => {
     });
 
     it('should select cells properly when there is a merged area within the selection' +
-      '(selecting from the merged cell to non-merged cell; from the bottom to the top', () => {
+      '(selecting from the merged cell to non-merged cell; from the bottom to the top)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1660,7 +1659,7 @@ describe('HiddenRows', () => {
       |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
       expect(getSelected()).toEqual([[3, 1, 0, 1]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(3);
+      expect(getSelectedRangeLast().highlight.row).toBe(2);
       expect(getSelectedRangeLast().highlight.col).toBe(1);
       expect(getSelectedRangeLast().from.row).toBe(3);
       expect(getSelectedRangeLast().from.col).toBe(1);

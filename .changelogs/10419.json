@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added support for new keyboard shortcut that allows scrolling the viewport",
+  "type": "added",
+  "issueOrPR": 10419,
+  "breaking": false,
+  "framework": "none"
+}

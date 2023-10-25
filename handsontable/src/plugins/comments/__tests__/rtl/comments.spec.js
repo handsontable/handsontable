@@ -52,7 +52,7 @@ describe('Comments (RTL mode)', () => {
         });
 
         const plugin = getPlugin('comments');
-        const $editor = $(plugin.editor.getInputElement());
+        const $editor = $(plugin.getEditorInputElement());
 
         plugin.showAtCell(0, 1);
 
@@ -77,10 +77,15 @@ describe('Comments (RTL mode)', () => {
           comments: true,
         });
 
-        scrollViewportTo(countRows() - 1, countCols() - 1);
+        scrollViewportTo({
+          row: countRows() - 1,
+          col: countCols() - 1,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
 
         const plugin = getPlugin('comments');
-        const $editor = $(plugin.editor.getInputElement());
+        const $editor = $(plugin.getEditorInputElement());
 
         await sleep(10);
 
@@ -104,7 +109,7 @@ describe('Comments (RTL mode)', () => {
         });
 
         const plugin = getPlugin('comments');
-        const $editor = $(plugin.editor.getInputElement());
+        const $editor = $(plugin.getEditorInputElement());
 
         plugin.showAtCell(0, 1);
 
@@ -125,10 +130,15 @@ describe('Comments (RTL mode)', () => {
           height: 200,
         });
 
-        scrollViewportTo(countRows() - 1, countCols() - 1);
+        scrollViewportTo({
+          row: countRows() - 1,
+          col: countCols() - 1,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
 
         const plugin = getPlugin('comments');
-        const $editor = $(plugin.editor.getInputElement());
+        const $editor = $(plugin.getEditorInputElement());
 
         await sleep(10);
 
@@ -155,10 +165,15 @@ describe('Comments (RTL mode)', () => {
           comments: true,
         });
 
-        scrollViewportTo(countRows() - 1, countCols() - 1);
+        scrollViewportTo({
+          row: countRows() - 1,
+          col: countCols() - 1,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
 
         const plugin = getPlugin('comments');
-        const $editor = $(plugin.editor.getInputElement());
+        const $editor = $(plugin.getEditorInputElement());
 
         await sleep(10);
 
@@ -185,10 +200,15 @@ describe('Comments (RTL mode)', () => {
           comments: true,
         });
 
-        scrollViewportTo(countRows() - 1, countCols() - 1);
+        scrollViewportTo({
+          row: countRows() - 1,
+          col: countCols() - 1,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
 
         const plugin = getPlugin('comments');
-        const $editor = $(plugin.editor.getInputElement());
+        const $editor = $(plugin.getEditorInputElement());
 
         await sleep(10);
 
@@ -218,10 +238,15 @@ describe('Comments (RTL mode)', () => {
           comments: true,
         });
 
-        scrollViewportTo(countRows() - 1, 0);
+        scrollViewportTo({
+          row: countRows() - 1,
+          col: 0,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
 
         const plugin = getPlugin('comments');
-        const $editor = $(plugin.editor.getInputElement());
+        const $editor = $(plugin.getEditorInputElement());
 
         await sleep(10);
 
@@ -277,7 +302,7 @@ describe('Comments (RTL mode)', () => {
 
         await sleep(10);
 
-        const commentEditor = $(hot.getPlugin('comments').editor.getInputElement());
+        const commentEditor = $(hot.getPlugin('comments').getEditorInputElement());
         const commentEditorOffset = commentEditor.offset();
         const commentEditorWidth = commentEditor.outerWidth();
 

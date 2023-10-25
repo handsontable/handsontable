@@ -21,14 +21,14 @@ class Event {
    * @param {Settings} wtSettings The walkontable settings.
    * @param {EventManager} eventManager The walkontable event manager.
    * @param {Table} wtTable The table.
-   * @param {Selections} selections Selections.
+   * @param {SelectionManager} selectionManager Selections.
    * @param {Event} [parent=null] The main Event instance.
    */
-  constructor(facadeGetter, domBindings, wtSettings, eventManager, wtTable, selections, parent = null) {
+  constructor(facadeGetter, domBindings, wtSettings, eventManager, wtTable, selectionManager, parent = null) {
     this.wtSettings = wtSettings;
     this.domBindings = domBindings;
     this.wtTable = wtTable;
-    this.selections = selections;
+    this.selectionManager = selectionManager;
     this.parent = parent;
 
     /**
@@ -43,7 +43,8 @@ class Event {
      * Should be use only for passing face called external origin methods, like registered event listeners.
      * It provides backward compatibility by getting instance facade.
      *
-     * @todo Consider about removing this from Event class, because it make relationship into facade (implicit circular dependency).
+     * @todo Consider about removing this from Event class, because it make relationship into facade (implicit circular
+     *   dependency).
      * @todo Con. Maybe passing listener caller as an ioc from faced resolves this issue. To rethink later.
      *
      * @type {FacadeGetter}
@@ -151,12 +152,12 @@ class Event {
       cell.TD = TD;
 
     } else if (hasClass(elem, 'wtBorder') && hasClass(elem, 'current')) {
-      cell.coords = this.selections.getCell().cellRange.highlight;
+      cell.coords = this.selectionManager.getFocusSelection().cellRange.highlight;
       cell.TD = this.wtTable.getCell(cell.coords);
 
     } else if (hasClass(elem, 'wtBorder') && hasClass(elem, 'area')) {
-      if (this.selections.createOrGetArea().cellRange) {
-        cell.coords = this.selections.createOrGetArea().cellRange.to;
+      if (this.selectionManager.getAreaSelection().cellRange) {
+        cell.coords = this.selectionManager.getAreaSelection().cellRange.to;
         cell.TD = this.wtTable.getCell(cell.coords);
       }
     }
@@ -176,10 +177,15 @@ class Event {
     const getParentNode = partial(getParent, event.target);
     const realTarget = event.target;
 
-    // ignore focusable element from mouse down processing (https://github.com/handsontable/handsontable/issues/3555)
-    if (realTarget === activeElement ||
+    // ignore non-TD focusable elements from mouse down processing
+    // (https://github.com/handsontable/handsontable/issues/3555)
+    if (!['TD', 'TH'].includes(activeElement.nodeName) &&
+      (
+        realTarget === activeElement ||
         getParentNode(0) === activeElement ||
-        getParentNode(1) === activeElement) {
+        getParentNode(1) === activeElement
+      )
+    ) {
       return;
     }
 
@@ -315,7 +321,7 @@ class Event {
   onTouchStart(event) {
     const priv = privatePool.get(this);
 
-    priv.selectedCellBeforeTouchEnd = this.selections.getCell().cellRange;
+    priv.selectedCellBeforeTouchEnd = this.selectionManager.getFocusSelection().cellRange;
     this.touchApplied = true;
 
     this.onMouseDown(event);

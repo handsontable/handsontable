@@ -5,6 +5,7 @@ import { objectEach } from '../../../helpers/object';
  * @typedef SettingsPure
  *
  * @property {Option} facade @todo desc.
+ * @property {Option} ariaTags Option `ariaTags`.
  * @property {Option} cellRenderer Option `cellRenderer`.
  * @property {Option} columnHeaders Option `columnHeaders`.
  * @property {Option} columnWidth Option `columnWidth`.
@@ -57,6 +58,8 @@ import { objectEach } from '../../../helpers/object';
  * @property {?Option} onDraw Option `onDraw`.
  * @property {?Option} onModifyGetCellCoords Option `onModifyGetCellCoords`.
  * @property {?Option} onModifyRowHeaderWidth Option `onModifyRowHeaderWidth`.
+ * @property {?Option} onBeforeViewportScrollHorizontally Option `onBeforeViewportScrollHorizontally`.
+ * @property {?Option} onBeforeViewportScrollVertically Option `onBeforeViewportScrollVertically`.
  * @property {?Option} onScrollHorizontally Option `onScrollHorizontally`.
  * @property {?Option} onScrollVertically Option `onScrollVertically`.
  * @property {?Option} onWindowResize Option `onWindowResize`.
@@ -196,7 +199,7 @@ export default class Settings {
       onCellMouseOut: null,
       onCellMouseUp: null,
 
-      //    onCellMouseOut: null,
+      // onCellMouseOut: null,
       onCellDblClick: null,
       onCellCornerMouseDown: null,
       onCellCornerDblClick: null,
@@ -205,8 +208,13 @@ export default class Settings {
       onBeforeRemoveCellClassNames: null,
       onAfterDrawSelection: null,
       onBeforeDrawBorders: null,
-      onScrollVertically: null,
+      // viewport scroll hooks
+      onBeforeViewportScrollHorizontally: column => column,
+      onBeforeViewportScrollVertically: row => row,
+      // native scroll hooks
       onScrollHorizontally: null,
+      onScrollVertically: null,
+      //
       onBeforeTouchScroll: null,
       onAfterMomentumScroll: null,
       onBeforeStretchingColumnWidth: width => width,
@@ -223,14 +231,15 @@ export default class Settings {
       rowHeaderWidth: null,
       columnHeaderHeight: null,
       headerClassName: null,
-      rtlMode: false
+      rtlMode: false,
+      ariaTags: true
     };
   }
 
   /**
    * Update settings.
    *
-   * @param {object} settings The singular settings to update or if passed as object to merge with.
+   * @param {object|string} settings The singular settings to update or if passed as object to merge with.
    * @param {*} value The value to set if the first argument is passed as string.
    * @returns {Settings}
    */

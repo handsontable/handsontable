@@ -9,12 +9,30 @@ import {
   offset,
   outerHeight,
   outerWidth,
+  setAttribute,
   setCaretPosition,
 } from '../../helpers/dom/element';
 import { isDefined, stringify } from '../../helpers/mixed';
 import { stripTags } from '../../helpers/string';
 import { KEY_CODES, isPrintableChar } from '../../helpers/unicode';
 import { textRenderer } from '../../renderers/textRenderer';
+import {
+  A11Y_ACTIVEDESCENDANT,
+  A11Y_AUTOCOMPLETE,
+  A11Y_COMBOBOX,
+  A11Y_CONTROLS,
+  A11Y_EXPANDED,
+  A11Y_HASPOPUP,
+  A11Y_LISTBOX,
+  A11Y_LIVE,
+  A11Y_OPTION,
+  A11Y_POSINSET,
+  A11Y_PRESENTATION,
+  A11Y_RELEVANT,
+  A11Y_SELECTED,
+  A11Y_SETSIZE,
+  A11Y_TEXT
+} from '../../helpers/a11y';
 
 const privatePool = new WeakMap();
 
@@ -53,6 +71,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     privatePool.set(this, {
       skipOne: false,
       isMacOS: this.hot.rootWindow.navigator.platform.indexOf('Mac') > -1,
+      idPrefix: instance.guid.slice(0, 9),
     });
   }
 
@@ -83,6 +102,38 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     addClass(this.htContainer, 'autocompleteEditor');
     addClass(this.htContainer, this.hot.rootWindow.navigator.platform.indexOf('Mac') === -1 ? '' : 'htMacScroll');
+
+    if (this.hot.getSettings().ariaTags) {
+      setAttribute(this.TEXTAREA, [
+        A11Y_TEXT(),
+        A11Y_COMBOBOX(),
+        A11Y_HASPOPUP('listbox'),
+        A11Y_AUTOCOMPLETE(),
+      ]);
+    }
+  }
+
+  /**
+   * Prepares editor's metadata and configuration of the internal Handsontable's instance.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {number|string} prop The column property (passed when datasource is an array of objects).
+   * @param {HTMLTableCellElement} td The rendered cell element.
+   * @param {*} value The rendered value.
+   * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
+   */
+  prepare(row, col, prop, td, value, cellProperties) {
+    const priv = privatePool.get(this);
+
+    super.prepare(row, col, prop, td, value, cellProperties);
+
+    if (this.hot.getSettings().ariaTags) {
+      setAttribute(this.TEXTAREA, [
+        A11Y_EXPANDED('false'),
+        A11Y_CONTROLS(`${priv.idPrefix}-listbox-${row}-${col}`),
+      ]);
+    }
   }
 
   /**
@@ -94,6 +145,10 @@ export class AutocompleteEditor extends HandsontableEditor {
     super.open();
 
     const trimDropdown = this.cellProperties.trimDropdown === void 0 ? true : this.cellProperties.trimDropdown;
+    const rootInstanceAriaTagsEnabled = this.hot.getSettings().ariaTags;
+    const sourceArray = Array.isArray(this.cellProperties.source) ? this.cellProperties.source : null;
+    const sourceSize = sourceArray?.length;
+    const { row: rowIndex, col: colIndex } = this;
 
     this.showEditableElement();
     this.focus();
@@ -108,6 +163,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     this.htEditor.updateSettings({
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
       width: trimDropdown ? outerWidth(this.TEXTAREA) + scrollbarWidth : void 0,
+      autoColumnSize: true,
       renderer: (instance, TD, row, col, prop, value, cellProperties) => {
         textRenderer(instance, TD, row, col, prop, value, cellProperties);
 
@@ -127,10 +183,44 @@ export class AutocompleteEditor extends HandsontableEditor {
           }
         }
 
+        if (rootInstanceAriaTagsEnabled) {
+          setAttribute(TD, [
+            A11Y_OPTION(),
+            // Add `setsize` and `posinset` only if the source is an array.
+            ...(sourceArray ? [A11Y_SETSIZE(sourceSize)] : []),
+            ...(sourceArray ? [A11Y_POSINSET(sourceArray.indexOf(value) + 1)] : []),
+            ['id', `${this.htEditor.rootElement.id}_${row}-${col}`],
+          ]);
+        }
+
         TD.innerHTML = cellValue;
       },
-      autoColumnSize: true,
+      afterSelection: (startRow, startCol) => {
+        if (rootInstanceAriaTagsEnabled) {
+          const TD = this.htEditor.getCell(startRow, startCol, true);
+
+          setAttribute(TD, [
+            A11Y_SELECTED(),
+          ]);
+
+          setAttribute(this.TEXTAREA, ...A11Y_ACTIVEDESCENDANT(TD.id));
+        }
+      },
     });
+
+    if (rootInstanceAriaTagsEnabled) {
+      // Add `role=presentation` to the main table to prevent the readers from treating the option list as a table.
+      setAttribute(this.htEditor.view._wt.wtOverlays.wtTable.TABLE, ...A11Y_PRESENTATION());
+
+      setAttribute(this.htEditor.rootElement, [
+        A11Y_LISTBOX(),
+        A11Y_LIVE('polite'),
+        A11Y_RELEVANT('text'),
+        ['id', `${priv.idPrefix}-listbox-${rowIndex}-${colIndex}`],
+      ]);
+
+      setAttribute(this.TEXTAREA, ...A11Y_EXPANDED('true'));
+    }
 
     if (priv.skipOne) {
       priv.skipOne = false;
@@ -147,6 +237,12 @@ export class AutocompleteEditor extends HandsontableEditor {
   close() {
     this.removeHooksByKey('beforeKeyDown');
     super.close();
+
+    if (this.hot.getSettings().ariaTags) {
+      setAttribute(this.TEXTAREA, [
+        A11Y_EXPANDED('false'),
+      ]);
+    }
   }
 
   /**

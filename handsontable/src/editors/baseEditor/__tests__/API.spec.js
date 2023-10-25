@@ -84,7 +84,12 @@ describe('BaseEditor API', () => {
               fixedRowsTop: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo({
+              row: countRows() - 1,
+              col: countCols() - 1,
+              verticalSnap: 'top',
+              horizontalSnap: 'start',
+            });
             selectCell(1, countRows() - 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
@@ -111,7 +116,12 @@ describe('BaseEditor API', () => {
               fixedRowsTop: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo({
+              row: countRows() - 1,
+              col: countCols() - 1,
+              verticalSnap: 'top',
+              horizontalSnap: 'start',
+            });
             selectCell(1, countCols() - 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
@@ -183,7 +193,12 @@ describe('BaseEditor API', () => {
               fixedRowsTop: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo({
+              row: countRows() - 1,
+              col: countCols() - 1,
+              verticalSnap: 'top',
+              horizontalSnap: 'start',
+            });
             selectCell(1, 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
@@ -205,7 +220,12 @@ describe('BaseEditor API', () => {
               fixedRowsTop: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo({
+              row: countRows() - 1,
+              col: countCols() - 1,
+              verticalSnap: 'top',
+              horizontalSnap: 'start',
+            });
             selectCell(1, 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
@@ -274,7 +294,12 @@ describe('BaseEditor API', () => {
               fixedColumnsStart: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo({
+              row: countRows() - 1,
+              col: countCols() - 1,
+              verticalSnap: 'top',
+              horizontalSnap: 'start',
+            });
             selectCell(countRows() - 1, 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
@@ -295,7 +320,12 @@ describe('BaseEditor API', () => {
               fixedColumnsStart: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo({
+              row: countRows() - 1,
+              col: countCols() - 1,
+              verticalSnap: 'top',
+              horizontalSnap: 'start',
+            });
             selectCell(countRows() - 1, 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
@@ -367,7 +397,12 @@ describe('BaseEditor API', () => {
               fixedRowsBottom: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo({
+              row: countRows() - 1,
+              col: countCols() - 1,
+              verticalSnap: 'top',
+              horizontalSnap: 'start',
+            });
             selectCell(countRows() - 2, 0);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
@@ -389,7 +424,12 @@ describe('BaseEditor API', () => {
               fixedRowsBottom: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo({
+              row: countRows() - 1,
+              col: countCols() - 1,
+              verticalSnap: 'top',
+              horizontalSnap: 'start',
+            });
             selectCell(countRows() - 2, 0);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
@@ -458,7 +498,12 @@ describe('BaseEditor API', () => {
               fixedRowsBottom: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo({
+              row: countRows() - 1,
+              col: countCols() - 1,
+              verticalSnap: 'top',
+              horizontalSnap: 'start',
+            });
             selectCell(countRows() - 1, countCols() - 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
@@ -488,7 +533,12 @@ describe('BaseEditor API', () => {
               autoColumnSize: false
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo({
+              row: countRows() - 1,
+              col: countCols() - 1,
+              verticalSnap: 'top',
+              horizontalSnap: 'start',
+            });
             selectCell(countRows() - 1, countCols() - 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({

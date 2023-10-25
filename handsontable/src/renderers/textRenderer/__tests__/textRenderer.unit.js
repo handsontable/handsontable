@@ -39,7 +39,7 @@ describe('textRenderer', () => {
 
       textRenderer(instance, TD, void 0, void 0, void 0, '', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td>Placeholder</td>');
+      expect(TD.outerHTML).toMatchHTML('<td>Placeholder</td>');
     });
 
     it('should replace white spaces with nbsp entity', () => {
@@ -52,7 +52,7 @@ describe('textRenderer', () => {
 
       textRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td>Long   text </td>');
+      expect(TD.outerHTML).toMatchHTML('<td>Long   text </td>');
     });
 
     it('should trim whitespaces if trimWhitespace is set as true', () => {
@@ -64,7 +64,7 @@ describe('textRenderer', () => {
 
       textRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td>Long   text</td>');
+      expect(TD.outerHTML).toMatchHTML('<td>Long   text</td>');
     });
 
     it('should trim whitespaces if wordWrap is set as true and trimWhitespace is set as true', () => {
@@ -77,7 +77,7 @@ describe('textRenderer', () => {
 
       textRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td>Long   text</td>');
+      expect(TD.outerHTML).toMatchHTML('<td>Long   text</td>');
     });
 
     it('should insert stringified value', () => {
@@ -88,7 +88,7 @@ describe('textRenderer', () => {
 
       textRenderer(instance, TD, void 0, void 0, void 0, value, cellMeta);
 
-      expect(TD.outerHTML).toBe('<td>1,2,3</td>');
+      expect(TD.outerHTML).toMatchHTML('<td>1,2,3</td>');
     });
   });
 });

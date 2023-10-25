@@ -15,6 +15,16 @@ export class ExtendMetaPropertiesMod {
      * @type {Map}
      */
     this.propDescriptors = new Map([
+      [
+        'ariaTags', {
+          onChange(propName, value, isInitialChange) {
+            if (!isInitialChange) {
+              throw new Error(
+                `The \`${propName}\` option can not be updated after the Handsontable instance was initialized.`
+              );
+            }
+          }
+        }],
       ['fixedColumnsLeft', {
         target: 'fixedColumnsStart',
         onChange(propName) {
