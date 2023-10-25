@@ -99,7 +99,7 @@ For instance, one great example would be opening the menus. The user gets access
 | Clear filters                    | macOS: <kbd>Alt</kbd> + <kbd>A</kbd><br>Windows: <kbd>Option</kbd> + <kbd>A</kbd>                    | macOS: <kbd>Alt</kbd> + <kbd>A</kbd><br>Windows: <kbd>Option</kbd> + <kbd>A</kbd>           |
 | Select the entire column         | <kbd>Ctrl</kbd> + <kbd>space</kbd>                                          | <kbd>Ctrl</kbd> + <kbd>space</kbd>                                                           |
 | Select the entire row            | <kbd>Shift</kbd> + <kbd>space</kbd>                                         | <kbd>Shift</kbd> + <kbd>space</kbd>                                                          |
-| Invoke context menu              | macOS: <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> <br> <br> Windows: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> | macOS: <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>\</kbd> <br>Windows: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> |
+| Invoke context menu              | macOS: <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> <br> <br> Windows: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> | macOS: <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br>Windows: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> |
 
 
 This is the exerpt from [this]((https://handsontable.com/docs/javascript-data-grid/keyboard-shortcuts/)) page. 
