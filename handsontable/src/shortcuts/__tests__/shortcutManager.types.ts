@@ -22,6 +22,7 @@ const shortcut2 = {
   stopPropagation: false,
   relativeToGroup: 'group2',
   position: 'before' as const,
+  forwardToContext: context,
 };
 
 context.addShortcut(shortcut);
