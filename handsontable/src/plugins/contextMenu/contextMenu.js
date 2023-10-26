@@ -181,8 +181,6 @@ export class ContextMenu extends BasePlugin {
   updatePlugin() {
     this.disablePlugin();
     this.enablePlugin();
-
-    this.unregisterShortcuts();
     super.updatePlugin();
   }
 
@@ -196,6 +194,8 @@ export class ContextMenu extends BasePlugin {
       this.menu.destroy();
       this.menu = null;
     }
+
+    this.unregisterShortcuts();
     super.disablePlugin();
   }
 

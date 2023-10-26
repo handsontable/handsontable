@@ -534,6 +534,12 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeColumnMove: (columns, target) => {},
   beforeColumnResize: (newSize, column, isDoubleClick) => {},
   beforeColumnSort: (currentSortConfig, destinationSortConfigs) => {},
+  beforeColumnWrap: (isAutoWrapEnabled, newCoords, isColumnFlipped) => {
+    const _isAutoWrapEnabled: boolean = isAutoWrapEnabled;
+    const _isColumnFlipped: boolean = isColumnFlipped;
+
+    newCoords.clone();
+  },
   beforeColumnUnfreeze: (columnIndex, isFreezingPerformed) => false,
   beforeContextMenuSetItems: (menuItems) => {},
   beforeContextMenuShow: (context) => {},
@@ -606,6 +612,12 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeRenderer: (TD, row, col, prop, value, cellProperties) => {},
   beforeRowMove: (movedRows, finalIndex, dropIndex, movePossible) => {},
   beforeRowResize: (newSize, row, isDoubleClick) => {},
+  beforeRowWrap: (isAutoWrapEnabled, newCoords, isRowFlipped) => {
+    const _isAutoWrapEnabled: boolean = isAutoWrapEnabled;
+    const _isRowFlipped: boolean = isRowFlipped;
+
+    newCoords.clone();
+  },
   beforeSelectColumns: (from, to, highlight) => {},
   beforeSelectionHighlightSet: () => {},
   beforeSelectRows: (from, to, highlight) => {},

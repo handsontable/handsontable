@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added new `beforeColumnWrap` and `beforeRowWrap` hooks.",
+  "type": "added",
+  "issueOrPR": 10550,
+  "breaking": false,
+  "framework": "none"
+}
