@@ -1037,6 +1037,245 @@ describe('Transformation class', () => {
         }
       });
     });
+
+    describe('`beforeColumnWrap` hook', () => {
+      it('should be fired when the new row index exceeds the last row of the dataset range', () => {
+        const hookListener = { beforeColumnWrap() {} };
+
+        spyOn(hookListener, 'beforeColumnWrap');
+
+        const transform = createTransformation({
+          range: createSelectionRange(4, 4),
+          autoWrapCol: true,
+        });
+
+        transform.addLocalHook('beforeColumnWrap', hookListener.beforeColumnWrap);
+        transform.transformStart(6, 0);
+
+        expect(hookListener.beforeColumnWrap).toHaveBeenCalledWith(true, new CellCoords(0, 5), false);
+      });
+
+      it('should be fired when the new row index exceeds the first row of the headers', () => {
+        const hookListener = { beforeColumnWrap() {} };
+
+        spyOn(hookListener, 'beforeColumnWrap');
+
+        const transform = createTransformation({
+          range: createSelectionRange(5, 5),
+          autoWrapCol: true,
+        });
+
+        transform.addLocalHook('beforeColumnWrap', hookListener.beforeColumnWrap);
+        transform.transformStart(-6, 0);
+
+        expect(hookListener.beforeColumnWrap).toHaveBeenCalledWith(true, new CellCoords(9, 4), false);
+      });
+
+      it('should be fired with 3rd argument as `true` when the coords are flipped (flip from bottom-right to top-left)', () => {
+        const hookListener = { beforeColumnWrap() {} };
+
+        spyOn(hookListener, 'beforeColumnWrap');
+
+        const transform = createTransformation({
+          range: createSelectionRange(9, 9),
+          autoWrapCol: true,
+        });
+
+        transform.addLocalHook('beforeColumnWrap', hookListener.beforeColumnWrap);
+        transform.transformStart(1, 0);
+
+        expect(hookListener.beforeColumnWrap).toHaveBeenCalledWith(true, new CellCoords(0, 0), true);
+      });
+
+      it('should be fired with 3rd argument as `true` when the coords are flipped (flip from top-left to bottom-right)', () => {
+        const hookListener = { beforeColumnWrap() {} };
+
+        spyOn(hookListener, 'beforeColumnWrap');
+
+        const transform = createTransformation({
+          range: createSelectionRange(0, 0),
+          autoWrapCol: true,
+        });
+
+        transform.addLocalHook('beforeColumnWrap', hookListener.beforeColumnWrap);
+        transform.transformStart(-1, 0);
+
+        expect(hookListener.beforeColumnWrap).toHaveBeenCalledWith(true, new CellCoords(9, 9), true);
+      });
+
+      it('should not be fired when the new row index not exceed dataset range', () => {
+        const hookListener = { beforeColumnWrap() {} };
+
+        spyOn(hookListener, 'beforeColumnWrap');
+
+        const transform = createTransformation({
+          range: createSelectionRange(5, 5),
+        });
+
+        transform.addLocalHook('beforeColumnWrap', hookListener.beforeColumnWrap);
+        transform.transformStart(1, 0);
+
+        expect(hookListener.beforeColumnWrap).not.toHaveBeenCalled();
+      });
+
+      it('should be fired with first argument as `true` when wrapping is enabled', () => {
+        const hookListener = { beforeColumnWrap() {} };
+
+        spyOn(hookListener, 'beforeColumnWrap');
+
+        const transform = createTransformation({
+          range: createSelectionRange(4, 4),
+          autoWrapCol: false,
+        });
+
+        transform.addLocalHook('beforeColumnWrap', hookListener.beforeColumnWrap);
+        transform.transformStart(6, 0);
+
+        expect(hookListener.beforeColumnWrap).toHaveBeenCalledWith(false, new CellCoords(0, 5), false);
+
+        hookListener.beforeColumnWrap.calls.reset();
+        transform.transformStart(-6, 0);
+
+        expect(hookListener.beforeColumnWrap).toHaveBeenCalledWith(false, new CellCoords(8, 3), false);
+      });
+
+      it('should be fired with first argument as `false` when wrapping is interrupted', () => {
+        const hookListener = { beforeColumnWrap() {} };
+
+        spyOn(hookListener, 'beforeColumnWrap');
+
+        const transform = createTransformation({
+          range: createSelectionRange(4, 4),
+          autoWrapCol: true,
+          minSpareRows: 2, // reason for interruption
+          fixedRowsBottom: 0, // reason for interruption
+        });
+
+        transform.addLocalHook('beforeColumnWrap', hookListener.beforeColumnWrap);
+        transform.transformStart(6, 0, true);
+
+        expect(hookListener.beforeColumnWrap).toHaveBeenCalledWith(false, new CellCoords(0, 5), false);
+      });
+    });
+
+    describe('`beforeRowWrap` hook', () => {
+      it('should be fired when the new column index exceeds the last column of the dataset range', () => {
+        const hookListener = { beforeRowWrap() {} };
+
+        spyOn(hookListener, 'beforeRowWrap');
+
+        const transform = createTransformation({
+          range: createSelectionRange(4, 4),
+          autoWrapRow: true,
+        });
+
+        transform.addLocalHook('beforeRowWrap', hookListener.beforeRowWrap);
+        transform.transformStart(0, 6);
+
+        expect(hookListener.beforeRowWrap).toHaveBeenCalledWith(true, new CellCoords(5, 0), false);
+      });
+
+      it('should be fired when the new column index exceeds the first column of the headers', () => {
+        const hookListener = { beforeRowWrap() {} };
+
+        spyOn(hookListener, 'beforeRowWrap');
+
+        const transform = createTransformation({
+          range: createSelectionRange(5, 5),
+          autoWrapRow: true,
+        });
+
+        transform.addLocalHook('beforeRowWrap', hookListener.beforeRowWrap);
+        transform.transformStart(0, -6);
+
+        expect(hookListener.beforeRowWrap).toHaveBeenCalledWith(true, new CellCoords(4, 9), false);
+      });
+
+      it('should be fired with 3rd argument as `true` when the coords are flipped (flip from bottom-right to top-left)', () => {
+        const hookListener = { beforeRowWrap() {} };
+
+        spyOn(hookListener, 'beforeRowWrap');
+
+        const transform = createTransformation({
+          range: createSelectionRange(9, 9),
+          autoWrapRow: true,
+        });
+
+        transform.addLocalHook('beforeRowWrap', hookListener.beforeRowWrap);
+        transform.transformStart(0, 1);
+
+        expect(hookListener.beforeRowWrap).toHaveBeenCalledWith(true, new CellCoords(0, 0), true);
+      });
+
+      it('should be fired with 3rd argument as `true` when the coords are flipped (flip from top-left to bottom-right)', () => {
+        const hookListener = { beforeRowWrap() {} };
+
+        spyOn(hookListener, 'beforeRowWrap');
+
+        const transform = createTransformation({
+          range: createSelectionRange(0, 0),
+          autoWrapRow: true,
+        });
+
+        transform.addLocalHook('beforeRowWrap', hookListener.beforeRowWrap);
+        transform.transformStart(0, -1);
+
+        expect(hookListener.beforeRowWrap).toHaveBeenCalledWith(true, new CellCoords(9, 9), true);
+      });
+
+      it('should not be fired when the new column index not exceed dataset range', () => {
+        const hookListener = { beforeRowWrap() {} };
+
+        spyOn(hookListener, 'beforeRowWrap');
+
+        const transform = createTransformation({
+          range: createSelectionRange(5, 5),
+        });
+
+        transform.addLocalHook('beforeRowWrap', hookListener.beforeRowWrap);
+        transform.transformStart(0, 1);
+
+        expect(hookListener.beforeRowWrap).not.toHaveBeenCalled();
+      });
+
+      it('should be fired with first argument as `true` when wrapping is enabled', () => {
+        const hookListener = { beforeRowWrap() {} };
+
+        spyOn(hookListener, 'beforeRowWrap');
+
+        const transform = createTransformation({
+          range: createSelectionRange(4, 4),
+          autoWrapRow: false,
+        });
+
+        transform.addLocalHook('beforeRowWrap', hookListener.beforeRowWrap);
+        transform.transformStart(0, 6);
+
+        expect(hookListener.beforeRowWrap).toHaveBeenCalledWith(false, new CellCoords(5, 0), false);
+
+        hookListener.beforeRowWrap.calls.reset();
+        transform.transformStart(0, -6);
+
+        expect(hookListener.beforeRowWrap).toHaveBeenCalledWith(false, new CellCoords(3, 8), false);
+      });
+
+      it('should be fired with first argument as `false` when wrapping is interrupted', () => {
+        const hookListener = { beforeRowWrap() {} };
+
+        spyOn(hookListener, 'beforeRowWrap');
+
+        const transform = createTransformation({
+          range: createSelectionRange(4, 4),
+          autoWrapRow: true,
+          minSpareCols: 2, // reason for interruption
+        });
+
+        transform.addLocalHook('beforeRowWrap', hookListener.beforeRowWrap);
+        transform.transformStart(0, 6, true);
+
+        expect(hookListener.beforeRowWrap).toHaveBeenCalledWith(false, new CellCoords(5, 0), false);
+      });
+    });
   });
 
   describe('transformEnd()', () => {
