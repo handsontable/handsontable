@@ -27,7 +27,7 @@ searchCategory: Guides
 
 ## Overview
 
-Handsontable offers comprehensive accessibility support in line with international standards. Due to our deep belief in the principle of "design for all," web applications should be as inclusive as possible.
+Handsontable offers comprehensive accessibility support in line with international standards. Due to our deep belief in the principle of "design for all", web applications should be as inclusive as possible.
 
 Accessibility features of Handsontable include:
 
@@ -102,7 +102,7 @@ For instance, one great example would be opening the menus. The user gets access
 | Invoke context menu              | macOS: <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> <br> <br> Windows: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> | macOS: <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br>Windows: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> |
 
 
-This is the exerpt from [this]((https://handsontable.com/docs/javascript-data-grid/keyboard-shortcuts/)) page. 
+This is the exerpt from [this](https://handsontable.com/docs/javascript-data-grid/keyboard-shortcuts/) page. 
 
 ## Screen Readers
 Recognized by WAI-ARIA as a composite widget, Handsontable adopts the ARIA role of treegrid, ensuring that it adheres to established standards. To enhance the experience for visually impaired users, Handsontable employs ARIA attributes, which provide screen readers with a clearer understanding of the data's structure and content.
