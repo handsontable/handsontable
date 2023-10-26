@@ -102,9 +102,9 @@ describe('ClipboardData', () => {
     const simpleText = new PasteClipboardData('hello world',
       '<span style="color: rgb(55, 55, 55);">hello world</span>');
 
-    expect(tableData.getSource()).toBe('table');
-    expect(handsontableData.getSource()).toBe('Handsontable');
-    expect(simpleText.getSource()).toBe('string');
+    expect(tableData.getType()).toBe('table');
+    expect(handsontableData.getType()).toBe('handsontable');
+    expect(simpleText.getType()).toBe('string');
   });
 
   it('should return proper values after using `getCellAt` and `setCellAt` methods', () => {

@@ -537,7 +537,7 @@ export class CopyPaste extends BasePlugin {
 
     if (allowCopying) {
       event.clipboardData.setData('text/plain', stringify(copyClipboardData.getData()));
-      event.clipboardData.setData('text/html', [copyClipboardData.getSource() === 'Handsontable' ? META_HEAD : '',
+      event.clipboardData.setData('text/html', [copyClipboardData.getType() === 'handsontable' ? META_HEAD : '',
         getHTMLFromConfig(copyClipboardData.getMetaInfo())].join(''));
 
       this.hot.runHooks('afterCopy', copyClipboardData);
@@ -566,7 +566,7 @@ export class CopyPaste extends BasePlugin {
 
     if (allowCuttingOut) {
       event.clipboardData.setData('text/plain', stringify(copyClipboardData.getData()));
-      event.clipboardData.setData('text/html', [copyClipboardData.getSource() === 'Handsontable' ? META_HEAD : '',
+      event.clipboardData.setData('text/html', [copyClipboardData.getType() === 'handsontable' ? META_HEAD : '',
         getHTMLFromConfig(copyClipboardData.getMetaInfo())].join(''));
 
       this.hot.emptySelectedCells('CopyPaste.cut');

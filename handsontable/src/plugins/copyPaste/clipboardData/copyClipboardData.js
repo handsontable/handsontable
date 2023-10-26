@@ -48,7 +48,7 @@ export class CopyClipboardData extends ClipboardData {
    *
    * @returns {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>}
    */
-  getHotRanges() {
+  getRanges() {
     return this.copyableRanges;
   }
 }

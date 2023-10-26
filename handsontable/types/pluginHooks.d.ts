@@ -66,16 +66,16 @@ interface ClipboardData {
   setCellAt: (row: number, col: number, value: any) => void;
   getData: () => any[][];
   getMetaInfo: () => GridSettings;
-  getSource: () => string;
+  getType: () => string;
 }
 
 interface PasteClipboardData extends ClipboardData {
-  getSource: () => 'Handsontable' | 'table' | 'string';
+  getType: () => 'handsontable' | 'table' | 'string';
 }
 
 interface CopyClipboardData extends ClipboardData {
-  getHotRanges: () => RangeType[];
-  getSource: () => 'Handsontable';
+  getRanges: () => RangeType[];
+  getType: () => 'handsontable';
 }
 
 export interface Events {

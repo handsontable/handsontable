@@ -1438,7 +1438,7 @@ const REGISTERED_HOOKS = [
    * @param {Function} clipboardData.getCellAt Get headers or cells from the copied dataset.
    * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
    * @param {Function} clipboardData.getMetaInfo Gets meta information for the copied data.
-   * @param {Function} clipboardData.getHotRanges Returns ranges related to copied part of Handsontable.
+   * @param {Function} clipboardData.getRanges Returns ranges related to copied part of Handsontable.
    * @returns {*} If returns `false` then operation of the cutting out is canceled.
    * @example
    * ::: only-for javascript
@@ -1499,7 +1499,7 @@ const REGISTERED_HOOKS = [
    * @param {Function} clipboardData.getCellAt Get headers or cells from the copied dataset.
    * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
    * @param {Function} clipboardData.getMetaInfo Gets meta information for the copied data.
-   * @param {Function} clipboardData.getHotRanges Returns ranges related to copied part of Handsontable.
+   * @param {Function} clipboardData.getRanges Returns ranges related to copied part of Handsontable.
    */
   'afterCut',
 
@@ -1518,7 +1518,7 @@ const REGISTERED_HOOKS = [
    * @param {Function} clipboardData.getCellAt Get headers or cells from the copied dataset.
    * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
    * @param {Function} clipboardData.getMetaInfo Gets meta information for the copied data.
-   * @param {Function} clipboardData.getHotRanges Returns ranges related to copied part of Handsontable.
+   * @param {Function} clipboardData.getRanges Returns ranges related to copied part of Handsontable.
    * @returns {*} If returns `false` then copying is canceled.
    *
    * @example
@@ -1590,7 +1590,7 @@ const REGISTERED_HOOKS = [
    * @param {Function} clipboardData.getCellAt Get headers or cells from the copied dataset.
    * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
    * @param {Function} clipboardData.getMetaInfo Gets meta information for the copied data.
-   * @param {Function} clipboardData.getHotRanges Returns ranges related to copied part of Handsontable.
+   * @param {Function} clipboardData.getRanges Returns ranges related to copied part of Handsontable.
    */
   'afterCopy',
 

@@ -412,8 +412,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
-    clipboardData.getSource();
-    clipboardData.getHotRanges();
+    clipboardData.getType();
+    clipboardData.getRanges();
   },
   afterCopyLimit: (selectedRows, selectedColumnds, copyRowsLimit, copyColumnsLimit) => {},
   afterCreateCol: (index, amount, source) => {},
@@ -427,8 +427,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
-    clipboardData.getSource();
-    clipboardData.getHotRanges();
+    clipboardData.getType();
+    clipboardData.getRanges();
   },
   afterDeselect: () => {},
   afterDestroy: () => {},
@@ -474,7 +474,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
-    clipboardData.getSource();
+    clipboardData.getType();
   },
   afterPluginsInitialized: () => {},
   afterRedo: (action) => {},
@@ -539,8 +539,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
-    clipboardData.getSource();
-    clipboardData.getHotRanges();
+    clipboardData.getType();
+    clipboardData.getRanges();
   },
   beforeCreateCol: (index, amount, source) => {},
   beforeCreateRow: (index, amount, source) => {},
@@ -553,8 +553,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
-    clipboardData.getSource();
-    clipboardData.getHotRanges();
+    clipboardData.getType();
+    clipboardData.getRanges();
   },
   beforeDetachChild: (parent, element) => {},
   beforeDrawBorders: (corners, borderClassName) => {},
@@ -586,7 +586,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
-    clipboardData.getSource();
+    clipboardData.getType();
   },
   beforeRedo: (action) => {},
   beforeRedoStackChange: (undoneActions) => {},

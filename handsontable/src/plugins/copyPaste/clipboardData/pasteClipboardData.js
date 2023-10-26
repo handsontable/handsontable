@@ -60,13 +60,13 @@ export class PasteClipboardData extends ClipboardData {
   }
 
   /**
-   * Gets source of the copied data.
+   * Gets type of the copied data.
    *
    * @returns {string}
    */
-  getSource() {
+  getType() {
     if (this.isSerializedHandsontable()) {
-      return 'Handsontable';
+      return 'handsontable';
     }
 
     if (this.isSerializedTable()) {

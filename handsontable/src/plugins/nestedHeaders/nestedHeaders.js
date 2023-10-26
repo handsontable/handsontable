@@ -437,10 +437,10 @@ export class NestedHeaders extends BasePlugin {
    * @param {Function} clipboardData.getCellAt Get headers or cells from the copied/pasted dataset.
    * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
    * @param {Function} clipboardData.getMetaInfo Gets grid settings for copied data.
-   * @param {Function} clipboardData.getHotRanges Returns ranges related to copied part of Handsontable.
+   * @param {Function} clipboardData.getRanges Returns ranges related to copied part of Handsontable.
    */
   onBeforeCopy(clipboardData) {
-    const copyableRanges = clipboardData.getHotRanges();
+    const copyableRanges = clipboardData.getRanges();
 
     for (let rangeIndex = 0; rangeIndex < copyableRanges.length; rangeIndex += 1) {
       const { startRow, startCol, endRow, endCol } = copyableRanges[rangeIndex];

@@ -540,7 +540,7 @@ export class ClipboardData {
    *
    * @returns {string}
    */
-  getSource() {
-    return 'Handsontable';
+  getType() {
+    return 'handsontable';
   }
 }
