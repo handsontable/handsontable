@@ -6,7 +6,7 @@ import {
 } from './utils';
 import {
   addClass,
-  appendDiv,
+  appendElement,
   empty,
   fastInnerHTML,
   setAttribute,
@@ -19,6 +19,8 @@ import {
   A11Y_MENU_ITEM,
   A11Y_TABINDEX,
 } from '../../../helpers/a11y';
+
+const SUBMENU_INDICATOR_CLASSNAME = 'submenuIndicator';
 
 /**
  * Creates the menu renderer function.
@@ -69,7 +71,11 @@ export function createMenuItemRenderer(mainTableHot) {
       const submenuIndicatorElement = TD.querySelector('.submenuIndicator');
 
       if (!submenuIndicatorElement) {
-        appendDiv(TD, 'submenuIndicator', mainTableHot.getSettings().ariaTags ? [A11Y_HIDDEN()] : []);
+        appendElement(
+          TD,
+          'div',
+          mainTableHot.getSettings().ariaTags ? [A11Y_HIDDEN()] : [], SUBMENU_INDICATOR_CLASSNAME
+        );
       }
     }
 

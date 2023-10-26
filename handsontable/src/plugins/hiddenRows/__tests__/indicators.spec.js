@@ -53,5 +53,26 @@ describe('HiddenRows', () => {
       expect(getCell(1, -1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_ROW);
       expect(getCell(1, -1)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_ROW);
     });
+
+    it('should remove the indicator elements when the plugin was disabled', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 1),
+        hiddenRows: {
+          rows: [0, 2],
+          indicators: true
+        },
+        rowHeaders: true,
+      });
+
+      expect(spec().$container.find('.afterHiddenRowIndicator').size()).toEqual(2);
+      expect(spec().$container.find('.beforeHiddenRowIndicator').size()).toEqual(2);
+
+      updateSettings({
+        hiddenRows: false
+      });
+
+      expect(spec().$container.find('.afterHiddenRowIndicator').size()).toEqual(0);
+      expect(spec().$container.find('.beforeHiddenRowIndicator').size()).toEqual(0);
+    });
   });
 });

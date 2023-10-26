@@ -1179,13 +1179,14 @@ export function runWithSelectedContendEditableElement(element, callback, invisib
  *
  * @private
  * @param {HTMLElement | null} parentElement The parent element.
- * @param {string|Array} className Class name as string or array of strings.
+ * @param {string} elementType The type of the new element.
  * @param {Array[] | undefined} attributes An array containing the attributes to be added. Each element of the array
  * should be an array in a form of `[attributeName, attributeValue]`.
+ * @param {string|Array} className Class name as string or array of strings.
  * @returns {HTMLElement} The created div element.
  */
-export function appendDiv(parentElement, className = [], attributes = []) {
-  const element = parentElement.ownerDocument.createElement('div');
+export function appendElement(parentElement, elementType, attributes = [], className = []) {
+  const element = parentElement.ownerDocument.createElement(elementType);
 
   if (className) {
     addClass(element, className);

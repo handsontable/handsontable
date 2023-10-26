@@ -1,6 +1,6 @@
 import {
   addClass,
-  appendDiv,
+  appendElement,
   removeClass,
   updateAttributes,
 } from '../../helpers/dom/element';
@@ -773,7 +773,7 @@ export class ColumnSorting extends BasePlugin {
     const indicatorElement = headerSpanElement.querySelector(`.${SORTING_INDICATOR_CLASS}`);
 
     if (showSortIndicator && isColumnSorted && !indicatorElement) {
-      appendDiv(headerSpanElement, SORTING_INDICATOR_CLASS, ariaTags ? [A11Y_HIDDEN()] : []);
+      appendElement(headerSpanElement, 'div', ariaTags ? [A11Y_HIDDEN()] : [], SORTING_INDICATOR_CLASS);
     }
   }
 

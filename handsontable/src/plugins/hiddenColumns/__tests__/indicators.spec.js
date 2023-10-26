@@ -72,6 +72,27 @@ describe('HiddenColumns', () => {
         expect(getCell(-1, 1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
         expect(getCell(-1, 1)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_COLUMN);
       });
+
+      it('should remove the indicator elements when the plugin was disabled', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(1, 3),
+          hiddenColumns: {
+            columns: [0, 2],
+            indicators: true
+          },
+          colHeaders: true,
+        });
+
+        expect(spec().$container.find('.afterHiddenColumnIndicator').size()).toEqual(2);
+        expect(spec().$container.find('.beforeHiddenColumnIndicator').size()).toEqual(2);
+
+        updateSettings({
+          hiddenColumns: false
+        });
+
+        expect(spec().$container.find('.afterHiddenColumnIndicator').size()).toEqual(0);
+        expect(spec().$container.find('.beforeHiddenColumnIndicator').size()).toEqual(0);
+      });
     });
   });
 });
