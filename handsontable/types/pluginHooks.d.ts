@@ -66,7 +66,7 @@ interface ClipboardData {
   setCellAt: (row: number, column: number, value: any) => void;
   getData: () => any[][];
   getMetaInfo: () => GridSettings;
-  getType: () => string;
+  getType: () => 'handsontable' | 'table' | 'unrecognizable';
 }
 
 interface PasteClipboardData extends ClipboardData {
