@@ -153,7 +153,7 @@ Recommendations for Customizations:
 
 ## Known Limitations
 
-   - **ARIA Labels:** We are actively working towards providing comprehensive translations. We appreciate your patience and will keep our users updated on the progress.
+   - **ARIA Labels:** We are actively working towards providing comprehensive translations (see [here](https://handsontable.com/docs/javascript-data-grid/language/)). We appreciate your patience and will keep our users updated on the progress.
    - **Screen Readers with Frozen Rows/Columns:** Some screen readers may incorrectly read the number of rows and columns or their indices when frozen rows and columns are enabled.
    - **Dynamic ARIA Attributes:** Dynamic ARIA attributes, such as sorting order or filters set, are often not announced at all, depending on the screen reader used.
   - **Access to Actions:** Access to certain actions may require custom menu items, e.g., sorting data (in spreadsheet mode where headers are non-navigable), moving a column/row, resizing a column/row, and renaming a header name.
