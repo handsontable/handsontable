@@ -11,18 +11,32 @@ describe('DropdownMenu keyboard shortcut', () => {
   });
 
   describe('"Control/Meta" + "A"', () => {
-    it('should close the menu and move the selection of the main table to the previous cell', () => {
+    it('should not close the dropdown menu, nor select all cells in the main table', async() => {
       handsontable({
         colHeaders: true,
-        dropdownMenu: generateRandomDropdownMenuItems(10),
+        dropdownMenu: true,
       });
 
-      dropdownMenu(1);
+      dropdownMenu(0);
+
+      const initialSelectionState = getSelectedRange();
+
       keyDownUp(['Control/Meta', 'A']);
 
-      expect(getPlugin('dropdownMenu').menu.isOpened()).toBe(false);
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -1,0 to: 4,4']);
-      expect(isListening()).toBe(true);
+      expect(getPlugin('dropdownMenu').menu.isOpened()).toBe(true);
+      expect(getSelectedRange()).toEqual(initialSelectionState);
+      expect(isListening()).toBe(false);
+
+      openDropdownSubmenuOption('Alignment');
+
+      await sleep(300);
+
+      keyDownUp(['Control/Meta', 'A']);
+
+      expect(getPlugin('dropdownMenu').menu.hotSubMenus.alignment.isOpened()).toBe(true);
+      expect(getPlugin('dropdownMenu').menu.isOpened()).toBe(true);
+      expect(getSelectedRange()).toEqual(initialSelectionState);
+      expect(isListening()).toBe(false);
     });
   });
 });

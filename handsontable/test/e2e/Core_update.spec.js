@@ -397,7 +397,7 @@ describe('Core_updateSettings', () => {
     });
 
     expect(getCellMeta(0, 0).type).toEqual('date');
-    expect(getCellRenderer(0, 0)).toBe(Handsontable.renderers.AutocompleteRenderer);
+    expect(getCellRenderer(0, 0)).toBe(Handsontable.renderers.DateRenderer);
     expect(getCellEditor(0, 0)).toEqual(Handsontable.editors.DateEditor);
   });
 

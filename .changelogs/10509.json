@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fix typescript types",
+  "type": "changed",
+  "issueOrPR": 10509,
+  "breaking": false,
+  "framework": "none"
+}

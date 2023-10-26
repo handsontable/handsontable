@@ -158,7 +158,7 @@ describe('Selection', () => {
 
       expect(hot.selection.isEntireRowSelected()).toBe(false);
 
-      hot.selection.selectAll(true, false);
+      hot.selection.selectAll(false, true);
 
       expect(hot.selection.isEntireRowSelected()).toBe(false);
 

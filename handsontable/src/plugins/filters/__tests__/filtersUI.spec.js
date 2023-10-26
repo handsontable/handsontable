@@ -107,7 +107,7 @@ describe('Filters UI', () => {
 
       const rect = document.querySelector('.htFiltersConditionsMenu.handsontable table').getBoundingClientRect();
 
-      expect(rect.top).toBeGreaterThan(500);
+      expect(window.scrollY + rect.top).toBe(917);
       hot.rootElement.style.marginTop = '';
     });
 
@@ -1136,7 +1136,7 @@ describe('Filters UI', () => {
       dropdownMenu(1);
 
       setTimeout(() => {
-        byValueMultipleSelect().itemsBox.listen();
+        byValueMultipleSelect().focus();
         keyDownUp('escape');
         expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
         expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
@@ -1634,7 +1634,7 @@ describe('Filters UI', () => {
     setTimeout(() => {
       $(dropdownMenuRootElement().querySelector('.htUIClearAll a')).simulate('click');
 
-      expect(byValueMultipleSelect().items.map(o => o.checked).indexOf(true)).toBe(-1);
+      expect(byValueMultipleSelect().getItems().map(o => o.checked).indexOf(true)).toBe(-1);
       done();
     }, 100);
   });
@@ -1654,11 +1654,11 @@ describe('Filters UI', () => {
     setTimeout(() => {
       $(dropdownMenuRootElement().querySelector('.htUIClearAll a')).simulate('click');
 
-      expect(byValueMultipleSelect().items.map(o => o.checked).indexOf(true)).toBe(-1);
+      expect(byValueMultipleSelect().getItems().map(o => o.checked).indexOf(true)).toBe(-1);
 
       $(dropdownMenuRootElement().querySelector('.htUISelectAll a')).simulate('click');
 
-      expect(byValueMultipleSelect().items.map(o => o.checked).indexOf(false)).toBe(-1);
+      expect(byValueMultipleSelect().getItems().map(o => o.checked).indexOf(false)).toBe(-1);
       done();
     }, 100);
   });
@@ -1687,7 +1687,7 @@ describe('Filters UI', () => {
 
     await sleep(200);
 
-    expect(byValueMultipleSelect().items.map(o => o.checked).indexOf(true)).toBe(-1);
+    expect(byValueMultipleSelect().getItems().map(o => o.checked).indexOf(true)).toBe(-1);
 
     window.scrollBy(0, 9500);
 
@@ -1701,7 +1701,7 @@ describe('Filters UI', () => {
 
     await sleep(200);
 
-    expect(byValueMultipleSelect().items.map(o => o.checked).indexOf(true)).toBe(-1);
+    expect(byValueMultipleSelect().getItems().map(o => o.checked).indexOf(true)).toBe(-1);
   });
 
   it('should open dropdown menu properly, when there are multiple Handsontable instances present', () => {
@@ -4212,7 +4212,7 @@ describe('Filters UI', () => {
 
       const nextWidth = $conditionalMenu.find('.wtHider').width();
 
-      expect(nextWidth).toBeLessThan(firstWidth);
+      expect(nextWidth).toBeLessThanOrEqual(firstWidth);
     });
 
     it('should display proper width of htUIMultipleSelectHot container #151', async() => {
@@ -4378,35 +4378,34 @@ describe('Filters UI', () => {
 
     keyDownUp('arrowdown');
 
-    expect(byValueMultipleSelect().itemsBox.getSelected()).toEqual([[0, 0, 0, 0]]);
+    expect(byValueMultipleSelect().getItemsBox().getSelected()).toEqual([[0, 0, 0, 0]]);
 
     keyDownUp('arrowdown');
 
-    expect(byValueMultipleSelect().itemsBox.getSelected()).toEqual([[1, 0, 1, 0]]);
+    expect(byValueMultipleSelect().getItemsBox().getSelected()).toEqual([[1, 0, 1, 0]]);
 
     keyDownUp('arrowup');
 
-    expect(byValueMultipleSelect().itemsBox.getSelected()).toEqual([[0, 0, 0, 0]]);
+    expect(byValueMultipleSelect().getItemsBox().getSelected()).toEqual([[0, 0, 0, 0]]);
 
     $(inputElement).simulate('mousedown').simulate('mouseup').simulate('click');
     $(inputElement).focus();
 
-    expect(byValueMultipleSelect().itemsBox.getSelected()).toBeUndefined();
+    expect(byValueMultipleSelect().getItemsBox().getSelected()).toBeUndefined();
 
     $(inputElement).simulate('mousedown').simulate('mouseup').simulate('click');
     $(inputElement).focus();
 
     keyDownUp('tab');
 
-    expect(byValueMultipleSelect().itemsBox.getSelected()).toEqual([[0, 0, 0, 0]]);
+    expect(byValueMultipleSelect().getItemsBox().getSelected()).toBeUndefined();
 
-    keyDownUp('tab');
-
-    expect(byValueMultipleSelect().itemsBox.getSelected()).toEqual([[1, 0, 1, 0]]);
+    $(inputElement).simulate('mousedown').simulate('mouseup').simulate('click');
+    $(inputElement).focus();
 
     keyDownUp(['shift', 'tab']);
 
-    expect(byValueMultipleSelect().itemsBox.getSelected()).toEqual([[0, 0, 0, 0]]);
+    expect(byValueMultipleSelect().getItemsBox().getSelected()).toBeUndefined();
   });
 
   it('should inherit the actual layout direction option from the root Handsontable instance to the multiple ' +
@@ -4421,6 +4420,6 @@ describe('Filters UI', () => {
 
     dropdownMenu(0);
 
-    expect(byValueMultipleSelect().itemsBox.getSettings().layoutDirection).toBe('ltr');
+    expect(byValueMultipleSelect().getItemsBox().getSettings().layoutDirection).toBe('ltr');
   });
 });

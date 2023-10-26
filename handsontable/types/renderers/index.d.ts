@@ -1,6 +1,8 @@
 import { autocompleteRenderer, RENDERER_TYPE as AUTOCOMPLETE_RENDERER } from './autocompleteRenderer';
 import { baseRenderer, RENDERER_TYPE as BASE_RENDERER } from './baseRenderer';
+import { dateRenderer, RENDERER_TYPE as DATE_RENDERER } from './dateRenderer';
 import { checkboxRenderer, RENDERER_TYPE as CHECKBOX_RENDERER } from './checkboxRenderer';
+import { handsontableRenderer, RENDERER_TYPE as HANDSONTABLE_RENDERER } from "./handsontableRenderer";
 import { htmlRenderer, RENDERER_TYPE as HTML_RENDERER } from './htmlRenderer';
 import { numericRenderer, RENDERER_TYPE as NUMERIC_RENDERER } from './numericRenderer';
 import { passwordRenderer, RENDERER_TYPE as PASSWORD_RENDERER } from './passwordRenderer';
@@ -14,6 +16,8 @@ export interface Renderers {
   autocomplete: typeof autocompleteRenderer;
   base: typeof baseRenderer;
   checkbox: typeof checkboxRenderer;
+  date: typeof dateRenderer;
+  handsontable: typeof handsontableRenderer;
   html: typeof htmlRenderer;
   numeric: typeof numericRenderer;
   password: typeof passwordRenderer;
@@ -31,6 +35,8 @@ export {
   autocompleteRenderer, AUTOCOMPLETE_RENDERER,
   baseRenderer, BASE_RENDERER,
   checkboxRenderer, CHECKBOX_RENDERER,
+  dateRenderer, DATE_RENDERER,
+  handsontableRenderer, HANDSONTABLE_RENDERER,
   htmlRenderer, HTML_RENDERER,
   numericRenderer, NUMERIC_RENDERER,
   passwordRenderer, PASSWORD_RENDERER,

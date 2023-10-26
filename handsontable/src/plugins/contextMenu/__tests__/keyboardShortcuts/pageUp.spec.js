@@ -35,7 +35,7 @@ describe('ContextMenu keyboard shortcut', () => {
       });
 
       contextMenu();
-      getPlugin('contextMenu').menu.navigator.selectLast();
+      getPlugin('contextMenu').menu.getNavigator().toLastItem();
       keyDownUp('pageup');
 
       const hotMenu = getPlugin('contextMenu').menu.hotMenu;
@@ -50,7 +50,7 @@ describe('ContextMenu keyboard shortcut', () => {
       });
 
       contextMenu();
-      getPlugin('contextMenu').menu.navigator.selectLast();
+      getPlugin('contextMenu').menu.getNavigator().toLastItem();
 
       window.scrollTo(0, document.documentElement.scrollHeight);
 

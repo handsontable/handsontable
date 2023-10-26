@@ -18,6 +18,26 @@ describe('DropdownMenu keyboard shortcut', () => {
   }
 
   describe('"Shift" + "Alt/Option" + "ArrowDown"', () => {
+    it('should open a menu after `updateSettings` call', () => {
+      handsontable({
+        colHeaders: true,
+        dropdownMenu: true,
+      });
+
+      selectCell(1, 1);
+
+      updateSettings({
+        dropdownMenu: true,
+      });
+
+      const plugin = getPlugin('dropdownMenu');
+
+      spyOn(plugin, 'open').and.callThrough();
+      keyDownUp(['shift', 'alt', 'arrowdown']);
+
+      expect(plugin.open).toHaveBeenCalledTimes(1);
+    });
+
     it('should be possible to open the dropdown menu in the correct position triggered from the single cell', () => {
       handsontable({
         data: createSpreadsheetData(3, 8),

@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 describe('Filters', () => {
   const id = 'testContainer';
 

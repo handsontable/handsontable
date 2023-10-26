@@ -130,11 +130,11 @@ describe('Selection', () => {
         rowHeaders: true,
       });
 
-      hot.selection.selectAll(true, false);
+      hot.selection.selectAll(false, true);
 
       expect(hot.selection.isSelectedByRowHeader()).toBe(false);
 
-      hot.selection.selectAll(false, true);
+      hot.selection.selectAll(true, false);
 
       expect(hot.selection.isSelectedByRowHeader()).toBe(true);
 

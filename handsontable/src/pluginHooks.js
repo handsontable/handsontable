@@ -608,7 +608,7 @@ const REGISTERED_HOOKS = [
    * method or table internals.
    *
    * @since 14.0.0
-   * @event Hooks#afterScroll
+   * @event Hooks#beforeViewportScroll
    */
   'beforeViewportScroll',
 

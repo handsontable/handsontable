@@ -107,7 +107,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       setAttribute(this.TEXTAREA, [
         A11Y_TEXT(),
         A11Y_COMBOBOX(),
-        A11Y_HASPOPUP(),
+        A11Y_HASPOPUP('listbox'),
         A11Y_AUTOCOMPLETE(),
       ]);
     }
