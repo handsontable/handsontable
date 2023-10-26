@@ -382,6 +382,31 @@ export function removeAttribute(domElement, attributesToRemove = []) {
 }
 
 /**
+ * Update the attributes in the provided element.
+ *
+ * @param {HTMLElement} element The element to be processed.
+ * @param {Array} attributeList Array of the attributes that need to be changed in form of either an array of
+ * arrays of `[attributeName, attributeValue]`, array of strings being attribute names to be removed, or a mix of
+ * both.
+ */
+export function updateAttributes(element, attributeList) {
+  const attributesToBeRemoved = [];
+  const attributesToBeAdded = attributeList.filter((attrEntry) => {
+    if (typeof attrEntry === 'string') {
+      attributesToBeRemoved.push(attrEntry);
+
+      return false;
+
+    }
+
+    return true;
+  });
+
+  removeAttribute(element, attributesToBeRemoved);
+  setAttribute(element, attributesToBeAdded);
+}
+
+/**
  * @param {HTMLElement} element An element from the text is removed.
  */
 export function removeTextNodes(element) {

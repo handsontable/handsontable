@@ -41,4 +41,37 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(getCell(-1, 1).getAttribute('aria-sort')).toEqual('none');
     expect(getCell(-1, 2).getAttribute('aria-sort')).toEqual('ascending');
   });
+
+  it('should remove the `aria-hidden` attribute and add `aria-label` to the sorting indicator elements', () => {
+    const getIndicator = parentEl => parentEl.querySelector('.columnSortingIndicator');
+    const dictionaryKeys = Handsontable.languages.dictionaryKeys;
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      colHeaders: true,
+      columnSorting: true,
+      multiColumnSorting: true,
+    });
+
+    hot.getPlugin('multiColumnSorting').sort([{
+      column: 1, sortOrder: 'desc'
+    }]);
+
+    expect(getIndicator(getCell(-1, 1)).getAttribute('aria-hidden')).toEqual('true');
+
+    hot.getPlugin('multiColumnSorting').sort([{
+      column: 1, sortOrder: 'asc'
+    }, {
+      column: 0, sortOrder: 'desc'
+    }]);
+
+    expect(getIndicator(getCell(-1, 1)).getAttribute('aria-hidden')).toEqual(null);
+    expect(getIndicator(getCell(-1, 0)).getAttribute('aria-hidden')).toEqual(null);
+
+    expect(getIndicator(getCell(-1, 1)).getAttribute('aria-label')).toEqual(
+      `${hot.getTranslatedPhrase(dictionaryKeys.COLUMN_HEADER_LABEL_MULTI_COLUMN_SORT_ORDER)} 1.`
+    );
+    expect(getIndicator(getCell(-1, 0)).getAttribute('aria-label')).toEqual(
+      `${hot.getTranslatedPhrase(dictionaryKeys.COLUMN_HEADER_LABEL_MULTI_COLUMN_SORT_ORDER)} 2.`
+    );
+  });
 });

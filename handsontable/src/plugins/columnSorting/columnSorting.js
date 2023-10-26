@@ -2,7 +2,7 @@ import {
   addClass,
   appendDiv,
   removeClass,
-  setAttribute,
+  updateAttributes,
 } from '../../helpers/dom/element';
 import { isUndefined, isDefined } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
@@ -189,6 +189,11 @@ export class ColumnSorting extends BasePlugin {
       }
 
       this.updateHeaderClasses(headerSpanElement);
+
+      updateAttributes(TH, [
+        A11Y_SORT()[0],
+        A11Y_DESCRIPTION()[0],
+      ]);
     };
 
     // Changing header width and removing indicator.
@@ -731,7 +736,7 @@ export class ColumnSorting extends BasePlugin {
     this.updateSortingIndicator(column, headerSpanElement);
 
     if (ariaTags) {
-      setAttribute(TH, [
+      updateAttributes(TH, [
         A11Y_SORT(currentSortState ? `${currentSortState}ending` : 'none'),
         A11Y_DESCRIPTION(this.hot.getTranslatedPhrase(COLUMN_HEADER_DESCRIPTION_SORT_ROWS)),
       ]);

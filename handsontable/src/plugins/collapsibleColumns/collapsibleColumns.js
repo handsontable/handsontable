@@ -8,7 +8,7 @@ import {
   removeClass,
   fastInnerText,
   removeAttribute,
-  setAttribute
+  setAttribute, updateAttributes
 } from '../../helpers/dom/element';
 import EventManager from '../../eventManager';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
@@ -241,9 +241,18 @@ export class CollapsibleColumns extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    const clearColHeader = (column, TH) => updateAttributes(
+      TH, [A11Y_DESCRIPTION()[0], A11Y_EXPANDED()[0], A11Y_HIDDEN()[0]]
+    );
+
     this.hot.columnIndexMapper.unregisterMap(this.pluginName);
     this.#collapsedColumnsMap = null;
     this.nestedHeadersPlugin = null;
+
+    this.hot.addHook('afterGetColHeader', clearColHeader);
+    this.hot.addHookOnce('afterViewRender', () => {
+      this.hot.removeHook('afterGetColHeader', clearColHeader);
+    });
 
     this.unregisterShortcuts();
     this.clearButtons();

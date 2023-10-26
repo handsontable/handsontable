@@ -1,6 +1,6 @@
 import { arrayEach } from '../../../helpers/array';
 import { rangeEach } from '../../../helpers/number';
-import { addClass, setAttribute } from '../../../helpers/dom/element';
+import { addClass, setAttribute, updateAttributes } from '../../../helpers/dom/element';
 import BaseUI from './_base';
 import { A11Y_DESCRIPTION, A11Y_EXPANDED, A11Y_HIDDEN } from '../../../helpers/a11y';
 import {
@@ -152,6 +152,17 @@ class HeadersUI extends BaseUI {
     this.rowHeaderWidthCache = Math.max(50, 11 + (10 * deepestLevelIndex) + 25);
 
     this.hot.render();
+  }
+
+  /**
+   * Clean the previously-added attributes.
+   *
+   * @param {HTMLElement} headerElement The header element.
+   */
+  cleanAttributes(headerElement) {
+    updateAttributes(headerElement, [
+      A11Y_DESCRIPTION()[0], A11Y_EXPANDED()[0], A11Y_HIDDEN()[0]
+    ]);
   }
 }
 
