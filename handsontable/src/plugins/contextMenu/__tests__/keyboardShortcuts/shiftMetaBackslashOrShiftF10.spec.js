@@ -14,6 +14,25 @@ describe('ContextMenu keyboard shortcut', () => {
     ['Shift', 'Control/Meta', '\\'],
     ['Shift', 'F10'],
   ], (keyboardShortcut) => {
+    it('should open a menu after `updateSettings` call', () => {
+      handsontable({
+        contextMenu: true,
+      });
+
+      selectCell(1, 1);
+
+      updateSettings({
+        contextMenu: true,
+      });
+
+      const plugin = getPlugin('contextMenu');
+
+      spyOn(plugin, 'open').and.callThrough();
+      keyDownUp(keyboardShortcut);
+
+      expect(plugin.open).toHaveBeenCalledTimes(1);
+    });
+
     it('should internally call `open()` method with correct cell coordinates', () => {
       handsontable({
         contextMenu: true,
