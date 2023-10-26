@@ -1,12 +1,10 @@
 import { isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
-import { stopImmediatePropagation } from './helpers/dom/event';
-import { isOutsideInput } from './helpers/dom/element';
+import { isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors/registry';
 import EventManager from './eventManager';
 import { isDefined } from './helpers/mixed';
 
 export const SHORTCUTS_GROUP_NAVIGATION = 'editorManager.navigation';
-export const SHORTCUTS_GROUP_EDITOR = 'editorManager.handlingEditor';
 
 class EditorManager {
   /**
@@ -71,12 +69,6 @@ class EditorManager {
      */
     this.cellProperties = void 0;
 
-    const shortcutManager = this.instance.getShortcutManager();
-
-    shortcutManager.addContext('editor');
-
-    this.registerShortcuts();
-
     this.instance.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
 
     // Open editor when text composition is started (IME editor)
@@ -87,65 +79,6 @@ class EditorManager {
     });
 
     this.instance.view._wt.update('onCellDblClick', (event, coords, elem) => this.onCellDblClick(event, coords, elem));
-  }
-
-  /**
-   * Register shortcuts responsible for handling some actions related to an editor.
-   *
-   * @private
-   */
-  registerShortcuts() {
-    const shortcutManager = this.instance.getShortcutManager();
-    const gridContext = shortcutManager.getContext('grid');
-    const editorContext = shortcutManager.getContext('editor');
-    const config = { group: SHORTCUTS_GROUP_EDITOR };
-
-    editorContext.addShortcuts([{
-      keys: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control/Meta'], ['Enter', 'Control/Meta', 'Shift']],
-      callback: (event, keys) => {
-        this.closeEditorAndSaveChanges(shortcutManager.isCtrlPressed());
-        this.moveSelectionAfterEnter(keys.includes('shift'));
-      }
-    }, {
-      keys: [['Escape'], ['Escape', 'Control/Meta']],
-      callback: () => {
-        this.closeEditorAndRestoreOriginalValue(shortcutManager.isCtrlPressed());
-        this.activeEditor.focus();
-      },
-    }], config);
-
-    gridContext.addShortcuts([{
-      keys: [['F2']],
-      callback: (event) => {
-        this.openEditor(null, event, true);
-      },
-    }, {
-      keys: [['Backspace'], ['Delete']],
-      callback: () => {
-        this.instance.emptySelectedCells();
-        this.prepareEditor();
-      },
-    }, {
-      keys: [['Enter'], ['Enter', 'Shift']],
-      callback: (event, keys) => {
-        if (this.instance.getSettings().enterBeginsEditing) {
-          if (this.cellProperties.readOnly) {
-            this.moveSelectionAfterEnter();
-
-          } else {
-            this.openEditor(null, event, true);
-          }
-
-        } else {
-          this.moveSelectionAfterEnter(keys.includes('shift'));
-        }
-
-        stopImmediatePropagation(event); // required by HandsontableEditor
-      },
-    }], {
-      ...config,
-      runOnlyIf: () => isDefined(this.instance.getSelected()),
-    });
   }
 
   /**
@@ -203,7 +136,13 @@ class EditorManager {
       return;
     }
 
-    const { row, col } = this.instance.getSelectedRangeLast().highlight;
+    const { highlight } = this.instance.getSelectedRangeLast();
+
+    if (highlight.isHeader()) {
+      return;
+    }
+
+    const { row, col } = highlight;
     const modifiedCellCoords = this.instance.runHooks('modifyGetCellCoords', row, col);
     let visualRowToCheck = row;
     let visualColumnToCheck = col;
@@ -214,16 +153,6 @@ class EditorManager {
 
     // Getting values using the modified coordinates.
     this.cellProperties = this.instance.getCellMeta(visualRowToCheck, visualColumnToCheck);
-
-    const { activeElement } = this.instance.rootDocument;
-
-    // Blurring the `activeElement` removes the unwanted border around the focusable element (#6877)
-    // and resets the `document.activeElement` property. The blurring should happen only when the
-    // previously selected input element has not belonged to the Handsontable editor. If blurring is
-    // triggered for all elements, there is a problem with the disappearing IME editor (#9672).
-    if (activeElement && isOutsideInput(activeElement)) {
-      activeElement.blur();
-    }
 
     if (!this.isCellEditable()) {
       this.clearActiveEditor();
@@ -273,12 +202,7 @@ class EditorManager {
     }
 
     if (!this.activeEditor) {
-      const { row, col } = this.instance.getSelectedRangeLast().highlight;
-      const renderableRowIndex = this.instance.rowIndexMapper.getRenderableFromVisualIndex(row);
-      const renderableColumnIndex = this.instance.columnIndexMapper.getRenderableFromVisualIndex(col);
-
-      this.instance.view.scrollViewport(this.instance._createCellCoords(renderableRowIndex, renderableColumnIndex));
-      this.instance.view.render();
+      this.instance.scrollToFocusedCell();
       this.prepareEditor();
     }
 
@@ -345,8 +269,14 @@ class EditorManager {
    * @returns {boolean}
    */
   isCellEditable() {
+    const selection = this.instance.getSelectedRangeLast();
+
+    if (!selection) {
+      return false;
+    }
+
     const editorClass = this.instance.getCellEditor(this.cellProperties);
-    const { row, col } = this.instance.getSelectedRangeLast().highlight;
+    const { row, col } = selection.highlight;
     const {
       rowIndexMapper,
       columnIndexMapper
@@ -387,15 +317,14 @@ class EditorManager {
    * @param {KeyboardEvent} event The keyboard event object.
    */
   onAfterDocumentKeyDown(event) {
-    if (!this.instance.isListening()) {
+    const selection = this.instance.getSelectedRangeLast();
+
+    if (!this.instance.isListening() || !selection || selection.highlight.isHeader() ||
+        isImmediatePropagationStopped(event)) {
       return;
     }
 
     const { keyCode } = event;
-
-    if (!this.selection.isSelected()) {
-      return;
-    }
 
     // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     const isCtrlPressed = (event.ctrlKey || event.metaKey) && !event.altKey;

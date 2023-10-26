@@ -52,11 +52,21 @@ export const getKeysList = (normalizedKeys) => {
 };
 
 /**
- * Normalize a `KeyboardEvent.key` property, to use it for keyboard shortcuts.
+ * The regex tests if the event.code matches to the pattern and it's used to extract letters and digits from
+ * the string.
+ */
+const codeToKeyRegExp = new RegExp('^(?:Key|Digit)([A-Z0-9])$');
+
+/**
+ * Normalizes a keyboard event key value to a key before its modification. When the keyboard event
+ * is triggered with Alt, Control or Shift keys the `key` property contains modified key e.g. for Alt+L
+ * it will be `ł`. But that value is only valid for polish keyboard layout. To fix that limitations, for
+ * letters and digits the value is taken from the `code` property which holds original value before
+ * transformation.
  *
- * @param {string} key KeyboardEvent's key property.
+ * @param {Event} event The KeyboardEvent object.
  * @returns {string}
  */
-export const normalizeEventKey = (key) => {
-  return key.toLowerCase();
+export const normalizeEventKey = ({ key, code }) => {
+  return (codeToKeyRegExp.test(code) ? code.replace(codeToKeyRegExp, '$1') : key).toLowerCase();
 };

@@ -246,6 +246,15 @@ export default class TableRenderer {
   }
 
   /**
+   * Returns `true` if the accessibility-related ARIA tags should be added to the table, `false` otherwise.
+   *
+   * @returns {boolean}
+   */
+  isAriaEnabled() {
+    return this.rowUtils.wtSettings.getSetting('ariaTags');
+  }
+
+  /**
    * Renders the table.
    */
   render() {

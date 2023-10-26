@@ -1,11 +1,13 @@
 import { baseRenderer } from '../baseRenderer';
 import EventManager from '../../eventManager';
-import { empty, addClass } from '../../helpers/dom/element';
+import { empty, addClass, setAttribute } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
-import { SHORTCUTS_GROUP_EDITOR } from '../../editorManager';
+import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
+import Hooks from '../../pluginHooks';
+import { A11Y_CHECKBOX, A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
+import { CHECKBOX_CHECKED, CHECKBOX_UNCHECKED } from '../../i18n/constants';
 
 import './checkboxRenderer.css';
-import Hooks from '../../pluginHooks';
 
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap();
@@ -56,6 +58,7 @@ Hooks.getSingleton().add('modifyAutoColumnSizeSeed', function(bundleSeed, cellMe
  */
 export function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   const { rootDocument } = instance;
+  const ariaEnabled = instance.getSettings().ariaTags;
 
   baseRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
   registerEvents(instance);
@@ -92,8 +95,21 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
     badValue = true;
   }
 
-  input.setAttribute(ATTR_ROW, row);
-  input.setAttribute(ATTR_COLUMN, col);
+  setAttribute(input, [
+    [ATTR_ROW, row],
+    [ATTR_COLUMN, col],
+  ]);
+
+  if (ariaEnabled) {
+    setAttribute(input, [
+      A11Y_LABEL(input.checked ?
+        instance.getTranslatedPhrase(CHECKBOX_CHECKED) :
+        instance.getTranslatedPhrase(CHECKBOX_UNCHECKED)
+      ),
+      A11Y_CHECKED(input.checked),
+      A11Y_CHECKBOX(),
+    ]);
+  }
 
   if (!badValue && labelOptions) {
     let labelText = '';

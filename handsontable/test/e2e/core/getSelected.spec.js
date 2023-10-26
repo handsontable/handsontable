@@ -53,14 +53,19 @@ describe('Core.getSelected', () => {
   });
 
   it('should return valid coordinates with fixedRowsBottom', async() => {
-    const hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(100, 100),
       fixedRowsBottom: 2,
       height: 200,
       width: 300
     });
 
-    hot.scrollViewportTo(99, 99, true, true);
+    scrollViewportTo({
+      row: 99,
+      col: 99,
+      verticalSnap: 'bottom',
+      horizontalSnap: 'end',
+    });
 
     await sleep(100);
 
@@ -68,7 +73,7 @@ describe('Core.getSelected', () => {
 
     bottomClone.find('tbody tr:eq(1) td:last-child').simulate('mousedown');
     bottomClone.find('tbody tr:eq(1) td:last-child').simulate('mouseup');
-    hot.render(true);
+    render(true);
 
     expect(getSelected()).toEqual([[99, 99, 99, 99]]);
   });

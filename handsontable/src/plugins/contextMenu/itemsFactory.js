@@ -12,7 +12,7 @@ import {
  * @private
  * @class ItemsFactory
  */
-class ItemsFactory {
+export class ItemsFactory {
   constructor(hotInstance, orderPattern = null) {
     this.hot = hotInstance;
     this.predefinedItems = predefinedItems();
@@ -120,5 +120,3 @@ function getItems(itemsPattern = null, defaultPattern = [], items = {}) {
 
   return result;
 }
-
-export default ItemsFactory;

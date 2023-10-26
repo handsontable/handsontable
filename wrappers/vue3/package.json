@@ -14,6 +14,7 @@
     "./dist/vue-handsontable.js": "./dist/vue-handsontable.js",
     "./dist/vue-handsontable.min.js": "./dist/vue-handsontable.min.js",
     ".": {
+      "types": "./index.d.ts",
       "import": "./es/vue-handsontable.mjs",
       "require": "./commonjs/vue-handsontable.js"
     }

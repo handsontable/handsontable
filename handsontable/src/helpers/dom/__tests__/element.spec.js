@@ -23,6 +23,71 @@ describe('DOM helpers', () => {
     });
   });
 
+  describe('isThisHotChild', () => {
+    it('should recognize if the provided element is a child of the container of the Handsontable container provided' +
+      ' as the second argument', () => {
+      const createDivWithId = (id) => {
+        const element = document.createElement('DIV');
+
+        element.id = id;
+
+        return element;
+      };
+      const hotContainer = createDivWithId('hot');
+
+      document.body.appendChild(hotContainer);
+
+      const hot = new Handsontable(hotContainer, {
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        colHeaders: true,
+        rowHeaders: true,
+        fixedRowsTop: 3,
+        fixedColumnsStart: 3
+      });
+      const { rootElement } = hot;
+      const isThisHotChild = Handsontable.dom.isThisHotChild;
+
+      hot.selectCell(0, 0);
+
+      keyDownUp('enter');
+
+      rootElement.parentNode.appendChild(createDivWithId('rootSibling'));
+      rootElement.appendChild(createDivWithId('rootChild'));
+
+      // Overlay elements
+      const topOverlayTableElement = hot.view._wt.wtOverlays.topOverlay.clone.wtTable.TABLE;
+
+      expect(isThisHotChild(topOverlayTableElement, rootElement)).toBe(true);
+      expect(isThisHotChild(topOverlayTableElement.parentNode, rootElement)).toBe(true);
+      expect(isThisHotChild(topOverlayTableElement.parentNode.parentNode, rootElement)).toBe(true);
+      expect(isThisHotChild(topOverlayTableElement.parentNode.parentNode.parentNode, rootElement)).toBe(true);
+
+      const mainOverlayTableElement = hot.view._wt.wtOverlays.wtTable.TABLE;
+
+      expect(isThisHotChild(mainOverlayTableElement, rootElement)).toBe(true);
+      expect(isThisHotChild(mainOverlayTableElement.parentNode, rootElement)).toBe(true);
+      expect(isThisHotChild(mainOverlayTableElement.parentNode.parentNode, rootElement)).toBe(true);
+      expect(isThisHotChild(mainOverlayTableElement.parentNode.parentNode.parentNode, rootElement)).toBe(true);
+
+      // Cell elements
+      expect(isThisHotChild(hot.getCell(0, 0, true), rootElement)).toBe(true);
+      expect(isThisHotChild(hot.getCell(3, 3, true), rootElement)).toBe(true);
+      expect(isThisHotChild(hot.getCell(9, 9, true), rootElement)).toBe(true);
+
+      // Misc
+      expect(isThisHotChild(document.querySelector('.htFocusCatcher'), rootElement)).toBe(true);
+      expect(isThisHotChild(document.querySelector('.handsontableInputHolder'), rootElement)).toBe(true);
+      expect(isThisHotChild(document.querySelector('#rootChild'), rootElement)).toBe(true);
+
+      expect(isThisHotChild(document.querySelector('#rootSibling'), rootElement)).toBe(false);
+      expect(isThisHotChild(document.body, rootElement)).toBe(false);
+
+      hot.destroy();
+      document.body.removeChild(document.querySelector('#rootSibling'));
+      document.body.removeChild(hotContainer);
+    });
+  });
+
   describe('offset', () => {
     it('should return correct offset for elements inside a foreign object', () => {
       const wrapper = document.createElement('div');

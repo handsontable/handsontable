@@ -16,6 +16,8 @@ import {
 registerCellType(TextCellType);
 
 describe('autocompleteRenderer', () => {
+  const toMatchHTMLConfig = ['class'];
+
   describe('registering', () => {
     it('should throw an error if renderer is not registered', () => {
       expect(getRegisteredRendererNames()).toEqual(['text']);
@@ -44,7 +46,10 @@ describe('autocompleteRenderer', () => {
 
       autocompleteRenderer(instance, TD, void 0, void 0, void 0, void 0, cellMeta);
 
-      expect(TD.outerHTML).toBe('<td class="htAutocomplete"><div class="htAutocompleteArrow">▼</div></td>');
+      expect(TD.outerHTML).toMatchHTML(
+        '<td class="htAutocomplete"><div class="htAutocompleteArrow">▼</div></td>',
+        toMatchHTMLConfig
+      );
     });
   });
 });

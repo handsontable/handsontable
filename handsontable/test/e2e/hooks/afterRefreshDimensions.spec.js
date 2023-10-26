@@ -122,7 +122,7 @@ describe('Hook', () => {
         doc.write(`
           <!doctype html>
           <head>
-            <link type="text/css" rel="stylesheet" href="../dist/handsontable.full.min.css">
+            <link type="text/css" rel="stylesheet" href="../dist/handsontable.css">
           </head>`);
         doc.close();
 

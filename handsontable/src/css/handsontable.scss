@@ -19,11 +19,21 @@
 
 .handsontable td.htInvalid {
   /*gives priority over td.area selection background*/
-  background-color: #ff4c42 !important;
+  background-color: #ffbeba !important;
 }
 
 .handsontable td.htNoWrap {
   white-space: nowrap;
+}
+
+.handsontable td.invisibleSelection,
+.handsontable th.invisibleSelection {
+  outline: none;
+}
+
+.handsontable td.invisibleSelection::selection,
+.handsontable th.invisibleSelection::selection {
+  background: rgb(255 255 255 / 0%);
 }
 
 .hot-display-license-info {
@@ -38,6 +48,17 @@
 .hot-display-license-info a {
   color: #104acc;
   font-size: 10px;
+}
+
+.handsontable .htFocusCatcher {
+  position: absolute;
+  z-index: -1;
+  opacity: 0;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  width: 0;
+  height: 0;
 }
 
 /* plugins */
@@ -214,6 +235,11 @@
 }
 .handsontable td.area-7:before {
   opacity: 0.58;
+}
+
+.handsontable tbody th.current,
+.handsontable thead th.current {
+  box-shadow: inset 0 0 0 2px #4b89ff;
 }
 
 .handsontable tbody th.ht__highlight,
@@ -405,7 +431,7 @@ TextRenderer placeholder value
   cursor: pointer;
   -webkit-box-shadow: 0 0 0 6px rgba(238,238,238,1);
   -moz-box-shadow: 0 0 0 6px rgba(238,238,238,1);
-  box-shadow: 0 0 0 6px rgba(238,238,238,1);
+  box-shadow: 0 0 0 3px rgba(238,238,238,1);
   background: #eee;
   text-align: center;
 }
