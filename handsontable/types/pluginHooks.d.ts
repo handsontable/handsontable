@@ -62,8 +62,8 @@ interface ClipboardData {
   removeColumns: (columns: number[]) => void;
   insertAtRow: (rowIndex: number, values: any[]) => void;
   insertAtColumn: (columnIndex: number, values: any[]) => void;
-  getCellAt: (row: number, col: number) => 'string';
-  setCellAt: (row: number, col: number, value: any) => void;
+  getCellAt: (row: number, col: number) => string;
+  setCellAt: (row: number, column: number, value: any) => void;
   getData: () => any[][];
   getMetaInfo: () => GridSettings;
   getType: () => string;

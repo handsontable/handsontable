@@ -25,6 +25,7 @@ export class CopyClipboardData extends ClipboardData {
   /**
    * Copied cell ranges related to instance of Handsontable.
    *
+   * @private
    * @type {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>}
    */
   copyableRanges;
