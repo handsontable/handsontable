@@ -91,7 +91,7 @@ Handsontable is mainly used either as a spreadsheet-like application or as a dat
 | Complex shortcut keys            | No                                                                             | Yes                                                                                                                  |
 ### Shortcut Keys Configuration
 Handsontable provides an extensive amount of [built-in shortcut keys](https://handsontable.com/docs/javascript-data-grid/keyboard-shortcuts/) and the ability to customize them, but some of them stand out. <br><br>
-For instance, one great example would be opening the menus. The user gets access to variety of actions. With navigable headres enabled it gets easier for disabled users to navigate across the grid with simple shortcut keys.
+For instance, one great example would be opening the menus. The user gets access to variety of actions. With navigable headers enabled it gets easier for disabled users to navigate across the grid with simple shortcut keys.
 | Action/Setting                   | Data grid mode (Navigable headers)                                           | Spreadsheet mode (Non-navigable headers)                                                    |
 |----------------------------------|------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
 | Open column menu                 | macOS: <kbd>Cmd</kbd> + <kbd>Enter</kbd><br>Windows: <kbd>Ctrl</kbd> + <kbd>Enter</kbd>                | macOS: <kbd>Shift</kbd> + <kbd>Option</kbd> + <kbd>i</kbd><br>Windows: <kbd>Shift</kbd> + <kbd>Alt</kbd> + <kbd>i</kbd> |
