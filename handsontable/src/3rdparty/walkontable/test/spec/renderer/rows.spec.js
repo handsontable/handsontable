@@ -6,6 +6,10 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
     renderedRowToSource(visibleRowIndex) {
       return visibleRowIndex;
     }
+
+    isAriaEnabled() {
+      return true;
+    }
   }
 
   function createRenderer() {

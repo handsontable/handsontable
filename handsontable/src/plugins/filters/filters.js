@@ -3,18 +3,19 @@ import { arrayEach, arrayMap } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';
-import EventManager from '../../eventManager';
 import { addClass, removeClass } from '../../helpers/dom/element';
+import { isKey } from '../../helpers/unicode';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import * as constants from '../../i18n/constants';
-import ConditionComponent from './component/condition';
-import OperatorsComponent from './component/operators';
-import ValueComponent from './component/value';
-import ActionBarComponent from './component/actionBar';
+import { ConditionComponent } from './component/condition';
+import { OperatorsComponent } from './component/operators';
+import { ValueComponent } from './component/value';
+import { ActionBarComponent } from './component/actionBar';
 import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
 import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
+import { createMenuFocusController } from './menu/focusController';
 import {
   CONDITION_NONE,
   CONDITION_BY_VALUE,
@@ -28,6 +29,7 @@ import './filters.scss';
 
 export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
+const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 /**
  * @plugin Filters
@@ -81,57 +83,56 @@ export class Filters extends BasePlugin {
     ];
   }
 
+  /**
+   * Instance of {@link DropdownMenu}.
+   *
+   * @private
+   * @type {DropdownMenu}
+   */
+  dropdownMenuPlugin = null;
+  /**
+   * Instance of {@link ConditionCollection}.
+   *
+   * @private
+   * @type {ConditionCollection}
+   */
+  conditionCollection = null;
+  /**
+   * Instance of {@link ConditionUpdateObserver}.
+   *
+   * @private
+   * @type {ConditionUpdateObserver}
+   */
+  conditionUpdateObserver = null;
+  /**
+   * Map, where key is component identifier and value represent `BaseComponent` element or it derivatives.
+   *
+   * @private
+   * @type {Map}
+   */
+  components = new Map([
+    ['filter_by_condition', null],
+    ['filter_operators', null],
+    ['filter_by_condition2', null],
+    ['filter_by_value', null],
+    ['filter_action_bar', null]
+  ]);
+  /**
+   * Map of skipped rows by plugin.
+   *
+   * @private
+   * @type {null|TrimmingMap}
+   */
+  filtersRowsMap = null;
+  /**
+   * Menu focus navigator allows switching the focus position through Tab and Shift Tab keys.
+   *
+   * @type {MenuFocusNavigator|undefined}
+   */
+  #menuFocusNavigator;
+
   constructor(hotInstance) {
     super(hotInstance);
-    /**
-     * Instance of {@link EventManager}.
-     *
-     * @private
-     * @type {EventManager}
-     */
-    this.eventManager = new EventManager(this);
-    /**
-     * Instance of {@link DropdownMenu}.
-     *
-     * @private
-     * @type {DropdownMenu}
-     */
-    this.dropdownMenuPlugin = null;
-    /**
-     * Instance of {@link ConditionCollection}.
-     *
-     * @private
-     * @type {ConditionCollection}
-     */
-    this.conditionCollection = null;
-    /**
-     * Instance of {@link ConditionUpdateObserver}.
-     *
-     * @private
-     * @type {ConditionUpdateObserver}
-     */
-    this.conditionUpdateObserver = null;
-    /**
-     * Map, where key is component identifier and value represent `BaseComponent` element or it derivatives.
-     *
-     * @private
-     * @type {Map}
-     */
-    this.components = new Map([
-      ['filter_by_condition', null],
-      ['filter_operators', null],
-      ['filter_by_condition2', null],
-      ['filter_by_value', null],
-      ['filter_action_bar', null]
-    ]);
-    /**
-     * Map of skipped rows by plugin.
-     *
-     * @private
-     * @type {null|TrimmingMap}
-     */
-    this.filtersRowsMap = null;
-
     // One listener for the enable/disable functionality
     this.hot.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
   }
@@ -233,7 +234,6 @@ export class Filters extends BasePlugin {
 
     this.components.forEach(component => component.show());
 
-    this.addHook('beforeDropdownMenuSetItems', items => this.onBeforeDropdownMenuSetItems(items));
     this.addHook('afterDropdownMenuDefaultOptions',
       defaultOptions => this.onAfterDropdownMenuDefaultOptions(defaultOptions));
     this.addHook('afterDropdownMenuShow', () => this.onAfterDropdownMenuShow());
@@ -246,6 +246,41 @@ export class Filters extends BasePlugin {
       this.dropdownMenuPlugin.enablePlugin();
     }
 
+    if (!this.#menuFocusNavigator && this.dropdownMenuPlugin.enabled) {
+      const mainMenu = this.dropdownMenuPlugin.menu;
+      const focusableItems = [
+        // A fake menu item that once focused allows escaping from the focus navigation (using Tab keys)
+        // to the menu navigation using arrow keys.
+        {
+          focus: () => mainMenu.focus(),
+        },
+        ...Array.from(this.components)
+          .map(([, component]) => component.getElements())
+          .flat(),
+      ];
+
+      this.#menuFocusNavigator = createMenuFocusController(mainMenu, focusableItems);
+
+      const forwardToFocusNavigation = (event) => {
+        this.#menuFocusNavigator.listen();
+        event.preventDefault();
+
+        if (isKey(event.keyCode, 'TAB')) {
+          if (event.shiftKey) {
+            this.#menuFocusNavigator.toPreviousItem();
+          } else {
+            this.#menuFocusNavigator.toNextItem();
+          }
+        }
+      };
+
+      this.components.get('filter_by_value')
+        .addLocalHook('listTabKeydown', forwardToFocusNavigation);
+      this.components.get('filter_by_condition')
+        .addLocalHook('selectTabKeydown', forwardToFocusNavigation);
+    }
+
+    this.registerShortcuts();
     super.enablePlugin();
   }
 
@@ -267,7 +302,38 @@ export class Filters extends BasePlugin {
       this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     }
 
+    this.unregisterShortcuts();
     super.disablePlugin();
+  }
+
+  /**
+   * Register shortcuts responsible for clearing the filters.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .addShortcut({
+        keys: [['Alt', 'A']],
+        stopPropagation: true,
+        callback: () => {
+          this.clearConditions();
+          this.filter();
+        },
+        group: SHORTCUTS_GROUP,
+      });
+  }
+
+  /**
+   * Unregister shortcuts responsible for clearing the filters.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -467,7 +533,6 @@ export class Filters extends BasePlugin {
 
     this.hot.view.adjustElementsSize(true);
     this.hot.render();
-    this.clearColumnSelection();
   }
 
   /**
@@ -488,19 +553,6 @@ export class Filters extends BasePlugin {
       visualIndex: highlight.col,
       physicalIndex: this.hot.toPhysicalColumn(highlight.col),
     };
-  }
-
-  /**
-   * Clears column selection.
-   *
-   * @private
-   */
-  clearColumnSelection() {
-    const selectedColumn = this.getSelectedColumn();
-
-    if (selectedColumn !== null) {
-      this.hot.selectCell(0, selectedColumn.visualIndex);
-    }
   }
 
   /**
@@ -599,19 +651,6 @@ export class Filters extends BasePlugin {
   }
 
   /**
-   * Before dropdown menu set menu items listener.
-   *
-   * @private
-   */
-  onBeforeDropdownMenuSetItems() {
-    if (this.dropdownMenuPlugin) {
-      this.dropdownMenuPlugin.menu.addLocalHook('afterOpen', () => {
-        this.dropdownMenuPlugin.menu.hotMenu.updateSettings({ hiddenRows: true });
-      });
-    }
-  }
-
-  /**
    * After dropdown menu default options listener.
    *
    * @private
@@ -705,6 +744,7 @@ export class Filters extends BasePlugin {
       this.components.forEach(component => component.saveState(physicalIndex));
       this.filtersRowsMap.clear();
       this.filter();
+      this.hot.selectCell(0, selectedColumn.visualIndex);
     }
 
     this.dropdownMenuPlugin?.close();

@@ -8,22 +8,22 @@ test(__filename, async({ page }) => {
 
   const tbody = table.locator(helpers.selectors.mainTableBody);
 
-  let cell = tbody.locator(helpers.findCell({ row: 3, cell: 3, cellType: 'td' }));
+  let cell = tbody.locator(helpers.findCell({ row: 2, column: 1, cellType: 'td' }));
 
   await cell.click();
   await page.screenshot({ path: helpers.screenshotPath() });
   await page.keyboard.press(`${helpers.modifier}+c`);
   await cell.press('Delete');
 
-  cell = tbody.locator(helpers.findCell({ row: 3, cell: 3, cellType: 'td' }));
+  cell = tbody.locator(helpers.findCell({ row: 2, column: 1, cellType: 'td' }));
   await cell.dblclick();
-  await cell.type('-test');
+  await table.type('-test');
 
-  cell = tbody.locator(helpers.findCell({ row: 4, cell: 3, cellType: 'td' }));
+  cell = tbody.locator(helpers.findCell({ row: 3, column: 1, cellType: 'td' }));
   await cell.click();
   await page.keyboard.press('Delete');
 
-  cell = tbody.locator(helpers.findCell({ row: 3, cell: 3, cellType: 'td' }));
+  cell = tbody.locator(helpers.findCell({ row: 2, column: 1, cellType: 'td' }));
   await cell.click();
 
   await page.screenshot({ path: helpers.screenshotPath() });

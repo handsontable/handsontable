@@ -11,6 +11,7 @@ export const helpers = {
     mainTableBody: '> .ht_master.handsontable table tbody',
     mainTableHead: '> .ht_clone_top.handsontable table thead',
     cloneInlineStartTable: '> .ht_clone_inline_start.handsontable table tbody',
+    cloneInlineStartCornerTable: '> .ht_clone_top_inline_start_corner.handsontable table thead',
     dropdownMenu: '.htMenu.htDropdownMenu.handsontable',
   },
 
@@ -43,12 +44,12 @@ export const helpers = {
     this.browser = workerInfo.project.name;
   },
 
-  findCell(options = { row: 1, cell: 1, cellType: 'td' }) {
-    return `> tr:nth-child(${options.row}) > ${options.cellType}:nth-child(${options.cell})`;
+  findCell(options = { row: 0, column: 0, cellType: 'td' }) {
+    return `> tr:nth-of-type(${options.row + 1}) > ${options.cellType}:nth-of-type(${options.column + 1})`;
   },
 
   findDropdownMenuExpander(options = { col: 1 }) {
-    return `${this.selectors.mainTableHead} > tr > th:nth-child(${options.col + 1}) button.changeType`;
+    return `${this.selectors.mainTableHead} > tr > th:nth-of-type(${options.col + 1}) button.changeType`;
   },
 
   testTitle(filename: string) {
@@ -62,5 +63,5 @@ export const helpers = {
 
     // eslint-disable-next-line max-len
     return `${this.screenshotsDirectory}/${this.hotWrapper}/${this.browser}/${this.screenshotDirName}/${this.screenshotsCount}.${this.screenshotsExtension}`;
-  }
+  },
 };

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added support for keyboard shortcuts that allow open column menu.",
+  "type": "added",
+  "issueOrPR": 10413,
+  "breaking": false,
+  "framework": "none"
+}

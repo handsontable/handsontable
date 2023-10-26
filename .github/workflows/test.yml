@@ -472,23 +472,22 @@ jobs:
             tar -zxf handsontable-build-es-cjs/tmp.tar.gz ./handsontable/tmp
             rm -r handsontable-build-es-cjs
           else
-            cd handsontable
-            npm run build:es
-            npm run build:commonjs
-            npm run build:languages.es
-            npm run postbuild
+            npm run in handsontable build:es
+            npm run in handsontable build:commonjs
+            npm run in handsontable build:languages.es
           fi
+          npm run in handsontable postbuild
       - run: |
           if test -f "handsontable-build-umd/dist.tar.gz"; then
             tar -zxf handsontable-build-umd/dist.tar.gz ./handsontable/dist
             rm -r handsontable-build-umd
           else
-            cd handsontable
-            npm run build:umd
-            npm run build:umd.min
-            npm run build:languages
-            npm run build:languages.min
+            npm run in handsontable build:umd
+            npm run in handsontable build:umd.min
+            npm run in handsontable build:languages
+            npm run in handsontable build:languages.min
           fi
+          npm run in handsontable postbuild
 
       - name: Build wrappers and test examples
         run: npm run build -- -e handsontable

@@ -1,5 +1,5 @@
 import Handsontable from "handsontable/base";
-import "handsontable/dist/handsontable.min.css";
+import "handsontable/dist/handsontable.css";
 import "pikaday/css/pikaday.css";
 
 import { generateExampleData, isArabicDemoEnabled } from "./utils";
@@ -113,6 +113,7 @@ new Handsontable(example, {
   hiddenColumns: {
     indicators: true
   },
+  navigableHeaders: true,
   contextMenu: true,
   multiColumnSorting: true,
   filters: true,

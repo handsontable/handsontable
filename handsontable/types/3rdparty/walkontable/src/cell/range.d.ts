@@ -12,8 +12,15 @@ export default class CellRange {
   setHighlight(coords: CellCoords): CellRange;
   setFrom(coords: CellCoords): CellRange;
   setTo(coords: CellCoords): CellRange;
-  isValid(wot: any): boolean;
-  isSingle(): boolean;
+  isValid(tableParams: {
+    countRows?: number;
+    countCols?: number;
+    countRowHeaders?: number;
+    countColHeaders?: number;
+  }): boolean;
+  isSingleCell(): boolean;
+  isSingleHeader(): boolean;
+  containsHeaders(): boolean;
   getOuterHeight(): number;
   getOuterWidth(): number;
   getHeight(): number;

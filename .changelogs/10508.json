@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Extend the Core `scrollViewportTo` method for ability to disabling cell autosnapping",
+  "type": "changed",
+  "issueOrPR": 10508,
+  "breaking": true,
+  "framework": "none"
+}

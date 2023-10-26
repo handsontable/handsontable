@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added a keyboard shortcut that allows managing the cell comments.",
+  "type": "added",
+  "issueOrPR": 10421,
+  "breaking": false,
+  "framework": "none"
+}
