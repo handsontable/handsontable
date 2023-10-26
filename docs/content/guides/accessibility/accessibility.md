@@ -27,9 +27,9 @@ searchCategory: Guides
 
 ## Overview
 
-Handsontable offers comprehensive accessibility support, including built-in keyboard navigation in line with international standards. Our design ensures that individuals with disabilities can fully engage with Handsontable.
+Handsontable offers comprehensive accessibility support in line with international standards. Due to our deep belief in the principle of "design for all," web applications should be as inclusive as possible.
 
-Features of Handsontable include:
+Accessibility features of Handsontable include:
 
 - Intuitive [keyboard navigation](@/guides/navigation/keyboard-navigation.md) that lets you access any feature without using a mouse.
 - Transparent HTML structure following best accessibility practices.
@@ -105,7 +105,7 @@ For instance, one great example would be opening the menus. The user gets access
 This is the exerpt from [this]((https://handsontable.com/docs/javascript-data-grid/keyboard-shortcuts/)) page. 
 
 ## Screen Readers
-Recognized as a composite widget, Handsontable adopts the ARIA role of treegrid, ensuring that it adheres to established standards. To enhance the experience for visually impaired users, Handsontable employs ARIA attributes, which provide screen readers with a clearer understanding of the data's structure and content.
+Recognized by WAI-ARIA as a composite widget, Handsontable adopts the ARIA role of treegrid, ensuring that it adheres to established standards. To enhance the experience for visually impaired users, Handsontable employs ARIA attributes, which provide screen readers with a clearer understanding of the data's structure and content.
 
 There are a variety of screen readers available to users. At Handsontable, we prioritize the following screen readers in our testing to ensure optimal compatibility:
 - JAWS (Windows)
