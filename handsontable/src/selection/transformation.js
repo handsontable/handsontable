@@ -82,7 +82,7 @@ class Transformation {
 
       if (zeroBasedCoords.row >= height) {
         const autoInsertingMode = createMissingRecords && minSpareRows > 0 && fixedRowsBottom === 0;
-        const isAutoWrapEnabled = !autoInsertingMode && autoWrapCol;
+        const isWrapEnabled = !autoInsertingMode && autoWrapCol;
 
         const nextColumn = zeroBasedCoords.col + 1;
         const newCoords = this.#options.createCellCoords(
@@ -91,12 +91,12 @@ class Transformation {
         );
 
         this.runLocalHooks('beforeColumnWrap',
-          isAutoWrapEnabled, this.#zeroBasedToVisualCoords(newCoords), nextColumn >= width);
+          isWrapEnabled, this.#zeroBasedToVisualCoords(newCoords), nextColumn >= width);
 
         if (autoInsertingMode) {
           this.runLocalHooks('insertRowRequire', this.#options.countRenderableRows());
 
-        } else if (isAutoWrapEnabled) {
+        } else if (isWrapEnabled) {
           zeroBasedCoords.assign(newCoords);
         }
 
@@ -117,7 +117,7 @@ class Transformation {
 
       if (zeroBasedCoords.col >= width) {
         const autoInsertingMode = createMissingRecords && minSpareCols > 0;
-        const isAutoWrapEnabled = !autoInsertingMode && autoWrapRow;
+        const isWrapEnabled = !autoInsertingMode && autoWrapRow;
 
         const nextRow = zeroBasedCoords.row + 1;
         const newCoords = this.#options.createCellCoords(
@@ -126,12 +126,12 @@ class Transformation {
         );
 
         this.runLocalHooks('beforeRowWrap',
-          isAutoWrapEnabled, this.#zeroBasedToVisualCoords(newCoords), nextRow >= height);
+          isWrapEnabled, this.#zeroBasedToVisualCoords(newCoords), nextRow >= height);
 
         if (autoInsertingMode) {
           this.runLocalHooks('insertColRequire', this.#options.countRenderableColumns());
 
-        } else if (isAutoWrapEnabled) {
+        } else if (isWrapEnabled) {
           zeroBasedCoords.assign(newCoords);
         }
 
