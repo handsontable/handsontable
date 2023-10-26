@@ -216,8 +216,17 @@ export class HiddenRows extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    const clearRowHeader = (columnIndex, TH) => {
+      this.#clearIndicatorElements(TH);
+    };
+
     this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     this.#settings = {};
+
+    this.hot.addHook('afterGetRowHeader', clearRowHeader);
+    this.hot.addHookOnce('afterViewRender', () => {
+      this.hot.removeHook('afterGetRowHeader', clearRowHeader);
+    });
 
     super.disablePlugin();
     this.resetCellsMeta();

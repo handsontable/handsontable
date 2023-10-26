@@ -216,8 +216,17 @@ export class HiddenColumns extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    const clearColHeader = (columnIndex, TH) => {
+      this.#clearIndicatorElements(TH);
+    };
+
     this.hot.columnIndexMapper.unregisterMap(this.pluginName);
     this.#settings = {};
+
+    this.hot.addHook('afterGetColHeader', clearColHeader);
+    this.hot.addHookOnce('afterViewRender', () => {
+      this.hot.removeHook('afterGetColHeader', clearColHeader);
+    });
 
     super.disablePlugin();
     this.resetCellsMeta();
