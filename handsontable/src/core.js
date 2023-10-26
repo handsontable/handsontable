@@ -323,22 +323,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.columnIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
   this.rowIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
 
-  this.selection.addLocalHook('beforeHighlightSet', () => {
-    this.runHooks('beforeSelectionHighlightSet');
-  });
-
-  this.selection.addLocalHook('beforeSetRangeStart', (cellCoords) => {
-    this.runHooks('beforeSetRangeStart', cellCoords);
-  });
-
-  this.selection.addLocalHook('beforeSetRangeStartOnly', (cellCoords) => {
-    this.runHooks('beforeSetRangeStartOnly', cellCoords);
-  });
-
-  this.selection.addLocalHook('beforeSetRangeEnd', (cellCoords) => {
-    this.runHooks('beforeSetRangeEnd', cellCoords);
-  });
-
   this.selection.addLocalHook('afterSetRangeEnd', (cellCoords) => {
     const preventScrolling = createObjectPropListener(false);
     const selectionRange = this.selection.getSelectedRange();
@@ -431,23 +415,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
   });
 
-  this.selection.addLocalHook('beforeSelectColumns', (...args) => this.runHooks('beforeSelectColumns', ...args));
-  this.selection.addLocalHook('afterSelectColumns', (...args) => this.runHooks('afterSelectColumns', ...args));
-  this.selection.addLocalHook('beforeSelectRows', (...args) => this.runHooks('beforeSelectRows', ...args));
-  this.selection.addLocalHook('afterSelectRows', (...args) => this.runHooks('afterSelectRows', ...args));
-
-  this.selection.addLocalHook('beforeModifyTransformStart', (cellCoordsDelta) => {
-    this.runHooks('modifyTransformStart', cellCoordsDelta);
-  });
-  this.selection.addLocalHook('afterModifyTransformStart', (coords, rowTransformDir, colTransformDir) => {
-    this.runHooks('afterModifyTransformStart', coords, rowTransformDir, colTransformDir);
-  });
-  this.selection.addLocalHook('beforeModifyTransformEnd', (cellCoordsDelta) => {
-    this.runHooks('modifyTransformEnd', cellCoordsDelta);
-  });
-  this.selection.addLocalHook('afterModifyTransformEnd', (coords, rowTransformDir, colTransformDir) => {
-    this.runHooks('afterModifyTransformEnd', coords, rowTransformDir, colTransformDir);
-  });
   this.selection.addLocalHook('afterDeselect', () => {
     editorManager.destroyEditor();
 
@@ -456,12 +423,24 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     this.runHooks('afterDeselect');
   });
-  this.selection.addLocalHook('insertRowRequire', (totalRows) => {
-    this.alter('insert_row_above', totalRows, 1, 'auto');
-  });
-  this.selection.addLocalHook('insertColRequire', (totalCols) => {
-    this.alter('insert_col_start', totalCols, 1, 'auto');
-  });
+
+  this.selection
+    .addLocalHook('beforeHighlightSet', () => this.runHooks('beforeSelectionHighlightSet'))
+    .addLocalHook('beforeSetRangeStart', (...args) => this.runHooks('beforeSetRangeStart', ...args))
+    .addLocalHook('beforeSetRangeStartOnly', (...args) => this.runHooks('beforeSetRangeStartOnly', ...args))
+    .addLocalHook('beforeSetRangeEnd', (...args) => this.runHooks('beforeSetRangeEnd', ...args))
+    .addLocalHook('beforeSelectColumns', (...args) => this.runHooks('beforeSelectColumns', ...args))
+    .addLocalHook('afterSelectColumns', (...args) => this.runHooks('afterSelectColumns', ...args))
+    .addLocalHook('beforeSelectRows', (...args) => this.runHooks('beforeSelectRows', ...args))
+    .addLocalHook('afterSelectRows', (...args) => this.runHooks('afterSelectRows', ...args))
+    .addLocalHook('beforeModifyTransformStart', (...args) => this.runHooks('modifyTransformStart', ...args))
+    .addLocalHook('afterModifyTransformStart', (...args) => this.runHooks('afterModifyTransformStart', ...args))
+    .addLocalHook('beforeModifyTransformEnd', (...args) => this.runHooks('modifyTransformEnd', ...args))
+    .addLocalHook('afterModifyTransformEnd', (...args) => this.runHooks('afterModifyTransformEnd', ...args))
+    .addLocalHook('beforeRowWrap', (...args) => this.runHooks('beforeRowWrap', ...args))
+    .addLocalHook('beforeColumnWrap', (...args) => this.runHooks('beforeColumnWrap', ...args))
+    .addLocalHook('insertRowRequire', totalRows => this.alter('insert_row_above', totalRows, 1, 'auto'))
+    .addLocalHook('insertColRequire', totalCols => this.alter('insert_col_start', totalCols, 1, 'auto'));
 
   grid = {
     /**
