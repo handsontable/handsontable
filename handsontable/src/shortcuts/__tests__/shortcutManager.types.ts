@@ -12,7 +12,7 @@ shortcutManager.isCtrlPressed();
 shortcutManager.destroy();
 
 const shortcut = { group: 'group', keys: [['control/meta', 'a']], callback: () => {} };
-const shortcut2 = {
+const withAllOptions = {
   group: 'group2',
   keys: [['control/meta', 'a']],
   callback: () => {},
@@ -22,12 +22,20 @@ const shortcut2 = {
   stopPropagation: false,
   relativeToGroup: 'group2',
   position: 'before' as const,
+  forwardToContext: context,
+};
+const minimalSetup = {
+  group: 'group3',
+  keys: [['control/meta', 'z']],
+  callback: () => {},
 };
 
 context.addShortcut(shortcut);
-context.addShortcut(shortcut2);
+context.addShortcut(withAllOptions);
+context.addShortcut(minimalSetup);
 context.addShortcuts([shortcut]);
-context.addShortcuts([shortcut2]);
+context.addShortcuts([withAllOptions]);
+context.addShortcuts([minimalSetup]);
 context.getShortcuts();
 context.hasShortcut(['control/meta', 'a']);
 context.removeShortcutsByKeys(['control/meta', 'a']);
