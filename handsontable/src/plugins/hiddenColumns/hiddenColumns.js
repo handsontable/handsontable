@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { addClass, appendElement, removeChildIfExists } from '../../helpers/dom/element';
+import { addClass, appendElement } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
@@ -216,17 +216,8 @@ export class HiddenColumns extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    const clearColHeader = (columnIndex, TH) => {
-      this.#clearIndicatorElements(TH);
-    };
-
     this.hot.columnIndexMapper.unregisterMap(this.pluginName);
     this.#settings = {};
-
-    this.hot.addHook('afterGetColHeader', clearColHeader);
-    this.hot.addHookOnce('afterViewRender', () => {
-      this.hot.removeHook('afterGetColHeader', clearColHeader);
-    });
 
     super.disablePlugin();
     this.resetCellsMeta();
@@ -391,7 +382,7 @@ export class HiddenColumns extends BasePlugin {
     Array.from(TH.querySelectorAll(
       `.${AFTER_INDICATOR_CLASSNAME}, .${BEFORE_INDICATOR_CLASSNAME}`
     )).forEach((element) => {
-      removeChildIfExists(TH, element);
+      element.remove();
     });
   }
 
@@ -515,8 +506,8 @@ export class HiddenColumns extends BasePlugin {
     const afterHiddenColumnIndicatorElement = TH.querySelector('.afterHiddenColumnIndicator');
 
     if (!this.#settings.indicators || column < 0) {
-      removeChildIfExists(TH, beforeHiddenColumnIndicatorElement);
-      removeChildIfExists(TH, afterHiddenColumnIndicatorElement);
+      beforeHiddenColumnIndicatorElement?.remove();
+      afterHiddenColumnIndicatorElement?.remove();
 
       return;
     }
@@ -529,7 +520,11 @@ export class HiddenColumns extends BasePlugin {
           ? [A11Y_LABEL(this.hot.getTranslatedPhrase(COLUMN_HEADER_LABEL_AFTER_HIDDEN_COLUMN))]
           : [];
 
-        appendElement(TH, 'div', attributesToAdd, AFTER_INDICATOR_CLASSNAME);
+        appendElement(TH, {
+          tagName: 'div',
+          attributes: attributesToAdd,
+          className: AFTER_INDICATOR_CLASSNAME,
+        });
       }
 
       classList.push('afterHiddenColumn');
@@ -541,7 +536,11 @@ export class HiddenColumns extends BasePlugin {
           ? [A11Y_LABEL(this.hot.getTranslatedPhrase(COLUMN_HEADER_LABEL_BEFORE_HIDDEN_COLUMN))]
           : [];
 
-        appendElement(TH, 'div', attributesToAdd, BEFORE_INDICATOR_CLASSNAME);
+        appendElement(TH, {
+          tagName: 'div',
+          attributes: attributesToAdd,
+          className: BEFORE_INDICATOR_CLASSNAME,
+        });
       }
 
       classList.push('beforeHiddenColumn');

@@ -127,14 +127,7 @@ export class NestedRows extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    const clearRowHeader = (row, TH) => this.headersUI.cleanAttributes(TH);
-
     this.hot.rowIndexMapper.unregisterMap('nestedRows');
-
-    this.hot.addHook('afterGetRowHeader', clearRowHeader);
-    this.hot.addHookOnce('afterViewRender', () => {
-      this.hot.removeHook('afterGetRowHeader', clearRowHeader);
-    });
 
     this.unregisterShortcuts();
     super.disablePlugin();

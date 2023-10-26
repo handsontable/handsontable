@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { addClass, appendElement, removeChildIfExists } from '../../helpers/dom/element';
+import { addClass, appendElement } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
@@ -216,17 +216,8 @@ export class HiddenRows extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    const clearRowHeader = (columnIndex, TH) => {
-      this.#clearIndicatorElements(TH);
-    };
-
     this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     this.#settings = {};
-
-    this.hot.addHook('afterGetRowHeader', clearRowHeader);
-    this.hot.addHookOnce('afterViewRender', () => {
-      this.hot.removeHook('afterGetRowHeader', clearRowHeader);
-    });
 
     super.disablePlugin();
     this.resetCellsMeta();
@@ -386,7 +377,7 @@ export class HiddenRows extends BasePlugin {
     Array.from(TH.querySelectorAll(
       `.${AFTER_INDICATOR_CLASSNAME}, .${BEFORE_INDICATOR_CLASSNAME}`
     )).forEach((element) => {
-      removeChildIfExists(TH, element);
+      element.remove();
     });
   }
 
@@ -504,8 +495,8 @@ export class HiddenRows extends BasePlugin {
     const afterHiddenRowIndicatorElement = TH.querySelector('.afterHiddenRowIndicator');
 
     if (!this.#settings.indicators || row < 0) {
-      removeChildIfExists(TH, beforeHiddenRowIndicatorElement);
-      removeChildIfExists(TH, afterHiddenRowIndicatorElement);
+      beforeHiddenRowIndicatorElement?.remove();
+      afterHiddenRowIndicatorElement?.remove();
 
       return;
     }
@@ -518,7 +509,11 @@ export class HiddenRows extends BasePlugin {
           ? [A11Y_LABEL(this.hot.getTranslatedPhrase(ROW_HEADER_LABEL_AFTER_HIDDEN_ROW))]
           : [];
 
-        appendElement(TH, 'div', attributesToAdd, AFTER_INDICATOR_CLASSNAME);
+        appendElement(TH, {
+          tagName: 'div',
+          attributes: attributesToAdd,
+          className: AFTER_INDICATOR_CLASSNAME,
+        });
       }
 
       classList.push('afterHiddenRow');
@@ -530,7 +525,11 @@ export class HiddenRows extends BasePlugin {
           ? [A11Y_LABEL(this.hot.getTranslatedPhrase(ROW_HEADER_LABEL_BEFORE_HIDDEN_ROW))]
           : [];
 
-        appendElement(TH, 'div', attributesToAdd, BEFORE_INDICATOR_CLASSNAME);
+        appendElement(TH, {
+          tagName: 'div',
+          attributes: attributesToAdd,
+          className: BEFORE_INDICATOR_CLASSNAME,
+        });
       }
 
       classList.push('beforeHiddenRow');

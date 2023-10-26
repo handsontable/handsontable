@@ -71,11 +71,11 @@ export function createMenuItemRenderer(mainTableHot) {
       const submenuIndicatorElement = TD.querySelector('.submenuIndicator');
 
       if (!submenuIndicatorElement) {
-        appendElement(
-          TD,
-          'div',
-          mainTableHot.getSettings().ariaTags ? [A11Y_HIDDEN()] : [], SUBMENU_INDICATOR_CLASSNAME
-        );
+        appendElement(TD, {
+          tagName: 'div',
+          attributes: (mainTableHot.getSettings().ariaTags ? [A11Y_HIDDEN()] : []),
+          className: SUBMENU_INDICATOR_CLASSNAME,
+        });
       }
     }
 

@@ -4,7 +4,7 @@ import { objectEach } from '../../helpers/object';
 import { CommandExecutor } from '../contextMenu/commandExecutor';
 import { getDocumentOffsetByElement } from '../contextMenu/utils';
 import EventManager from '../../eventManager';
-import { hasClass, setAttribute, updateAttributes } from '../../helpers/dom/element';
+import { hasClass, setAttribute } from '../../helpers/dom/element';
 import { ItemsFactory } from '../contextMenu/itemsFactory';
 import { Menu } from '../contextMenu/menu';
 import Hooks from '../../pluginHooks';
@@ -235,20 +235,11 @@ export class DropdownMenu extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    const clearColHeader = (column, TH) => updateAttributes(
-      TH, [A11Y_LABEL()[0], A11Y_HASPOPUP()[0]]
-    );
-
     this.close();
 
     if (this.menu) {
       this.menu.destroy();
     }
-
-    this.hot.addHook('afterGetColHeader', clearColHeader);
-    this.hot.addHookOnce('afterViewRender', () => {
-      this.hot.removeHook('afterGetColHeader', clearColHeader);
-    });
 
     this.unregisterShortcuts();
     super.disablePlugin();

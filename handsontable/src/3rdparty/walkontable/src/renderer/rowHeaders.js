@@ -1,6 +1,6 @@
 import { SharedOrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
-import { setAttribute } from '../../../../helpers/dom/element';
+import { setAttribute, removeAttribute } from '../../../../helpers/dom/element';
 import {
   A11Y_COLINDEX,
   A11Y_ROWHEADER,
@@ -89,6 +89,12 @@ export default class RowHeadersRenderer extends BaseRenderer {
 
         TH.className = '';
         TH.removeAttribute('style');
+
+        // Remove all accessibility-related attributes for the header to start fresh.
+        removeAttribute(TH, [
+          new RegExp('aria-(.*)'),
+          new RegExp('role')
+        ]);
 
         if (this.table.isAriaEnabled()) {
           setAttribute(TH, [

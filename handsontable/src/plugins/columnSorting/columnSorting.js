@@ -2,7 +2,7 @@ import {
   addClass,
   appendElement,
   removeClass,
-  updateAttributes,
+  setAttribute,
 } from '../../helpers/dom/element';
 import { isUndefined, isDefined } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
@@ -189,11 +189,6 @@ export class ColumnSorting extends BasePlugin {
       }
 
       this.updateHeaderClasses(headerSpanElement);
-
-      updateAttributes(TH, [
-        A11Y_SORT()[0],
-        A11Y_DESCRIPTION()[0],
-      ]);
     };
 
     // Changing header width and removing indicator.
@@ -736,7 +731,7 @@ export class ColumnSorting extends BasePlugin {
     this.updateSortingIndicator(column, headerSpanElement);
 
     if (ariaTags) {
-      updateAttributes(TH, [
+      setAttribute(TH, [
         A11Y_SORT(currentSortState ? `${currentSortState}ending` : 'none'),
         A11Y_DESCRIPTION(this.hot.getTranslatedPhrase(COLUMN_HEADER_DESCRIPTION_SORT_ROWS)),
       ]);
@@ -773,7 +768,11 @@ export class ColumnSorting extends BasePlugin {
     const indicatorElement = headerSpanElement.querySelector(`.${SORTING_INDICATOR_CLASS}`);
 
     if (showSortIndicator && isColumnSorted && !indicatorElement) {
-      appendElement(headerSpanElement, 'div', ariaTags ? [A11Y_HIDDEN()] : [], SORTING_INDICATOR_CLASS);
+      appendElement(headerSpanElement, {
+        tagName: 'div',
+        className: SORTING_INDICATOR_CLASS,
+        attributes: (ariaTags ? [A11Y_HIDDEN()] : []),
+      });
     }
   }
 

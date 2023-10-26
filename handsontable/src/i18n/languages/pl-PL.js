@@ -109,9 +109,9 @@ const dictionary = {
 
   [C.COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN]: 'Naciśnij ENTER aby rozwinąć kolumnę.',
   [C.COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN]: 'Naciśnij ENTER aby zwinąć kolumnę.',
-  [C.COLUMN_HEADER_DESCRIPTION_SORT_ROWS]: 'Naciśnij ENTER zmienić sortowanie.',
+  [C.COLUMN_HEADER_DESCRIPTION_SORT_ROWS]: 'Naciśnij ENTER aby zmienić sortowanie.',
   [C.COLUMN_HEADER_LABEL_MULTI_COLUMN_SORT_ORDER]: 'Kolejność w sortowaniu po wielu kolumnach:',
-  [C.COLUMN_HEADER_LABEL_OPEN_MENU]: 'Naciśnij CTRL+ENTER aby otworzyć menu kontekstowe.',
+  [C.COLUMN_HEADER_LABEL_OPEN_MENU]: 'Naciśnij CTRL/CMD+ENTER aby otworzyć menu kontekstowe.',
   [C.COLUMN_HEADER_LABEL_BEFORE_HIDDEN_COLUMN]: 'Następna kolumna jest ukryta.',
   [C.COLUMN_HEADER_LABEL_AFTER_HIDDEN_COLUMN]: 'Poprzednia kolumna jest ukryta.',
 

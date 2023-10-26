@@ -382,31 +382,6 @@ export function removeAttribute(domElement, attributesToRemove = []) {
 }
 
 /**
- * Update the attributes in the provided element.
- *
- * @param {HTMLElement} element The element to be processed.
- * @param {Array} attributeList Array of the attributes that need to be changed in form of either an array of
- * arrays of `[attributeName, attributeValue]`, array of strings being attribute names to be removed, or a mix of
- * both.
- */
-export function updateAttributes(element, attributeList) {
-  const attributesToBeRemoved = [];
-  const attributesToBeAdded = attributeList.filter((attrEntry) => {
-    if (typeof attrEntry === 'string') {
-      attributesToBeRemoved.push(attrEntry);
-
-      return false;
-
-    }
-
-    return true;
-  });
-
-  removeAttribute(element, attributesToBeRemoved);
-  setAttribute(element, attributesToBeAdded);
-}
-
-/**
  * @param {HTMLElement} element An element from the text is removed.
  */
 export function removeTextNodes(element) {
@@ -1175,18 +1150,18 @@ export function runWithSelectedContendEditableElement(element, callback, invisib
 }
 
 /**
- * Creates a div element and appends it to the parent element with the provided class name(s) and attributes.
+ * Creates a new DOM element and appends it to the parent element with the provided class name(s) and attributes.
  *
- * @private
- * @param {HTMLElement | null} parentElement The parent element.
- * @param {string} elementType The type of the new element.
- * @param {Array[] | undefined} attributes An array containing the attributes to be added. Each element of the array
+ * @param {HTMLElement} parentElement The parent element.
+ * @param {object} properties The properties object.
+ * @param {string} properties.tagName The type of the new element.
+ * @param {string} properties.className Class name as string or array of strings.
+ * @param {Array[]} properties.attributes An array containing the attributes to be added. Each element of the array
  * should be an array in a form of `[attributeName, attributeValue]`.
- * @param {string|Array} className Class name as string or array of strings.
  * @returns {HTMLElement} The created div element.
  */
-export function appendElement(parentElement, elementType, attributes = [], className = []) {
-  const element = parentElement.ownerDocument.createElement(elementType);
+export function appendElement(parentElement, { tagName, className, attributes }) {
+  const element = parentElement.ownerDocument.createElement(tagName);
 
   if (className) {
     addClass(element, className);
@@ -1199,19 +1174,4 @@ export function appendElement(parentElement, elementType, attributes = [], class
   parentElement.appendChild(element);
 
   return element;
-}
-
-/**
- * Removes a child HTML element from the parent element. If the child element does not exist, nothing happens.
- *
- * @private
- * @param {HTMLElement | null} parentElement The parent element.
- * @param {HTMLElement | null} childElement The parent element.
- */
-export function removeChildIfExists(parentElement, childElement) {
-  if (!parentElement || !childElement) {
-    return;
-  }
-
-  parentElement.removeChild(childElement);
 }

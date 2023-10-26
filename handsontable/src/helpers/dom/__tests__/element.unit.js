@@ -12,6 +12,7 @@ import {
   fastInnerHTML,
   isVisible,
 } from 'handsontable/helpers/dom/element';
+import { appendElement } from '../element';
 
 describe('DomElement helper', () => {
   //
@@ -740,6 +741,38 @@ describe('DomElement helper', () => {
       expect(isVisible(elementParent)).toBe(false);
 
       elementParent.remove();
+    });
+  });
+
+  //
+  // Handsontable.helper.appendElement
+  //
+  describe('appendElement', () => {
+    it('should create a new element of the provided type, className and attributes and append it to the provided parent element', () => {
+      const elementParent = document.createElement('div');
+
+      appendElement(elementParent, {
+        tagName: 'div',
+        className: 'classOne classTwo',
+        attributes: [['role', 'menu'], ['aria-hidden', 'true']],
+      });
+
+      expect(elementParent.childNodes.length).toEqual(1);
+      expect(elementParent.childNodes[0].tagName).toEqual('DIV');
+      expect(elementParent.childNodes[0].className).toEqual('classOne classTwo');
+      expect(elementParent.childNodes[0].getAttribute('role')).toEqual('menu');
+      expect(elementParent.childNodes[0].getAttribute('aria-hidden')).toEqual('true');
+
+      appendElement(elementParent, {
+        tagName: 'footer',
+        className: 'classOne',
+        attributes: [['sampleAttribute', 'sampleValue']],
+      });
+
+      expect(elementParent.childNodes.length).toEqual(2);
+      expect(elementParent.childNodes[1].tagName).toEqual('footer');
+      expect(elementParent.childNodes[1].className).toEqual('classOne');
+      expect(elementParent.childNodes[1].getAttribute('sampleAttribute')).toEqual('sampleValue');
     });
   });
 });
