@@ -78,17 +78,23 @@ describe('CopyPaste', () => {
         'B2\tC2',
         'B3\tC3',
       ].join('\n'));
+      /* eslint-disable indent */
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
-          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table><tbody>',
-        '<tr><td>B-1-0</td><td>C-2-0</td></tr>',
-        '<tr><td>B-1-1</td><td>C-2-1</td></tr>',
-        '<tr><td>B-1-2</td><td>C-2-2</td></tr>',
-        '<tr><td>B2</td><td>C2</td></tr>',
-        '<tr><td>B3</td><td>C3</td></tr>',
-        '</tbody></table>',
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table>',
+          '<thead>',
+            '<tr><th>B-1-0</th><th>C-2-0</th></tr>',
+            '<tr><th>B-1-1</th><th>C-2-1</th></tr>',
+            '<tr><th>B-1-2</th><th>C-2-2</th></tr>',
+          '</thead>',
+          '<tbody>',
+            '<tr><td>B2</td><td>C2</td></tr>',
+            '<tr><td>B3</td><td>C3</td></tr>',
+          '</tbody>',
+        '</table>',
       ].join(''));
+      /* eslint-enable */
     });
   });
 });
