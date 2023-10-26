@@ -206,4 +206,21 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       hot.getTranslatedPhrase(dictionaryKeys.COLUMN_HEADER_LABEL_OPEN_MENU)
     );
   });
+
+  it('should add the `aria-haspopup` attribute to the column headers when the plugin is enabled', () => {
+    handsontable({
+      colHeaders: true,
+      dropdownMenu: ['remove_col', 'alignment']
+    });
+
+    expect(getCell(-1, 0).getAttribute('aria-haspopup')).toEqual('menu');
+    expect(getCell(-1, 1).getAttribute('aria-haspopup')).toEqual('menu');
+
+    updateSettings({
+      dropdownMenu: false
+    });
+
+    expect(getCell(-1, 0).getAttribute('aria-haspopup')).toEqual(null);
+    expect(getCell(-1, 1).getAttribute('aria-haspopup')).toEqual(null);
+  });
 });

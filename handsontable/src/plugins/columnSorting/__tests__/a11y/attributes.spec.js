@@ -72,4 +72,22 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(getCell(-1, 2).getAttribute('aria-description'))
       .toEqual(hot.getTranslatedPhrase(dictionaryKeys.COLUMN_HEADER_DESCRIPTION_SORT_ROWS));
   });
+
+  it('should add the `aria-hidden` attribute to the indicator elements', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      colHeaders: true,
+      nestedRows: true,
+      columnSorting: true,
+    });
+
+    getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+    expect(getCell(-1, 0).querySelector('.columnSortingIndicator').getAttribute('aria-hidden')).toEqual('true');
+
+    getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+
+    expect(getCell(-1, 0).querySelector('.columnSortingIndicator')).toEqual(null);
+    expect(getCell(-1, 1).querySelector('.columnSortingIndicator').getAttribute('aria-hidden')).toEqual('true');
+  });
 });
