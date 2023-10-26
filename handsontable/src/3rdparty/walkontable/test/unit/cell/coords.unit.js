@@ -197,6 +197,49 @@ describe('CellCoords', () => {
     });
   });
 
+  describe('assign()', () => {
+    it('should be possible to assign coords from other CellCoords instance', () => {
+      const coords = new CellCoords(0, 0, false);
+      const coords2 = new CellCoords(3, 9, true);
+
+      coords.assign(coords2);
+
+      expect(coords).not.toBe(coords2);
+      expect(coords.row).toBe(coords2.row);
+      expect(coords.col).toBe(coords2.col);
+      expect(coords.isRtl()).toBe(coords2.isRtl());
+    });
+
+    it('should be possible to assign coords from literal object', () => {
+      const coords = new CellCoords(0, 0, true);
+
+      coords.assign({ row: 3 });
+
+      expect(coords.row).toBe(3);
+      expect(coords.col).toBe(0);
+      expect(coords.isRtl()).toBe(true);
+
+      coords.assign({ col: 4 });
+
+      expect(coords.row).toBe(3);
+      expect(coords.col).toBe(4);
+      expect(coords.isRtl()).toBe(true);
+
+      coords.assign({ row: -1, col: -2 });
+
+      expect(coords.row).toBe(-1);
+      expect(coords.col).toBe(-2);
+      expect(coords.isRtl()).toBe(true);
+    });
+  });
+
+  describe('isRtl()', () => {
+    it('should return correct values', () => {
+      expect(new CellCoords(0, 0, false).isRtl()).toBe(false);
+      expect(new CellCoords(0, 0, true).isRtl()).toBe(true);
+    });
+  });
+
   describe('isCell()', () => {
     it('should return `false` when one of the axis point to the header (negative value)', () => {
       expect(new CellCoords(-1, 9).isCell()).toBe(false);
