@@ -1,5 +1,4 @@
-import { instanceToHTML, _dataToHTML, htmlToGridSettings } from '../parseTable';
-import Handsontable from '../../index';
+import { htmlToGridSettings } from '../parseTable';
 import { registerCellType, TextCellType } from '../../cellTypes';
 import { IntersectionObserverMock } from '../../../test/__mocks__/intersectionObserverMock';
 import { ResizeObserverMock } from '../../../test/__mocks__/resizeObserverMock';
@@ -15,131 +14,6 @@ describe('instanceToHTML', () => {
   afterAll(() => {
     delete window.IntersectionObserver;
     delete window.ResizeObserver;
-  });
-
-  it('should convert clear instance into HTML table', () => {
-    const hot = new Handsontable(document.createElement('div'), {});
-
-    expect(instanceToHTML(hot)).toBe([
-      '<table><tbody>',
-      '<tr><td ></td><td ></td><td ></td><td ></td><td ></td></tr>',
-      '<tr><td ></td><td ></td><td ></td><td ></td><td ></td></tr>',
-      '<tr><td ></td><td ></td><td ></td><td ></td><td ></td></tr>',
-      '<tr><td ></td><td ></td><td ></td><td ></td><td ></td></tr>',
-      '<tr><td ></td><td ></td><td ></td><td ></td><td ></td></tr>',
-      '</tbody></table>',
-    ].join(''));
-  });
-
-  it('should convert column headers into HTML table', () => {
-    const hot = new Handsontable(document.createElement('div'), {
-      colHeaders: true,
-      data: [
-        ['A1', 'B1'],
-        ['A2', 'B2'],
-      ],
-    });
-
-    expect(instanceToHTML(hot)).toBe([
-      '<table><thead>',
-      '<tr><th>A</th><th>B</th></tr>',
-      '</thead><tbody>',
-      '<tr><td >A1</td><td >B1</td></tr>',
-      '<tr><td >A2</td><td >B2</td></tr>',
-      '</tbody></table>',
-    ].join(''));
-  });
-
-  it('should convert row headers into HTML table', () => {
-    const hot = new Handsontable(document.createElement('div'), {
-      rowHeaders: true,
-      data: [
-        ['A1', 'B1'],
-        ['A2', 'B2'],
-      ],
-    });
-
-    expect(instanceToHTML(hot)).toBe([
-      '<table><tbody>',
-      '<tr><th>1</th><td >A1</td><td >B1</td></tr>',
-      '<tr><th>2</th><td >A2</td><td >B2</td></tr>',
-      '</tbody></table>',
-    ].join(''));
-  });
-
-  it('should convert column and rows headers into HTML table', () => {
-    const hot = new Handsontable(document.createElement('div'), {
-      colHeaders: true,
-      rowHeaders: true,
-      data: [
-        ['A1', 'B1'],
-        ['A2', 'B2'],
-      ],
-    });
-
-    expect(instanceToHTML(hot)).toBe([
-      '<table><thead>',
-      '<tr><th></th><th>A</th><th>B</th></tr>',
-      '</thead><tbody>',
-      '<tr><th>1</th><td >A1</td><td >B1</td></tr>',
-      '<tr><th>2</th><td >A2</td><td >B2</td></tr>',
-      '</tbody></table>',
-    ].join(''));
-  });
-
-  it('should convert merged cells into HTML table', () => {
-    const hot = new Handsontable(document.createElement('div'), {
-      colHeaders: true,
-      rowHeaders: true,
-      data: [
-        ['A1', 'B1', 'C1'],
-        ['A2', 'B2', 'C2'],
-        ['A3', 'B3', 'C3'],
-      ],
-      mergeCells: [
-        { row: 0, col: 0, colspan: 2, rowspan: 3 }
-      ],
-    });
-
-    expect(instanceToHTML(hot)).toBe([
-      '<table><thead>',
-      '<tr><th></th><th>A</th><th>B</th><th>C</th></tr>',
-      '</thead><tbody>',
-      '<tr><th>1</th><td rowspan="3" colspan="2">A1</td><td >C1</td></tr>',
-      '<tr><th>2</th><td >C2</td></tr>',
-      '<tr><th>3</th><td >C3</td></tr>',
-      '</tbody></table>',
-    ].join(''));
-  });
-});
-
-describe('_dataToHTML', () => {
-  it('should parse two-dimensional array into HTML table', () => {
-    const data = [
-      ['A1', 'B1', 'C1'],
-      ['A2', 'B2', 'C2'],
-      ['A3', 'B3', 'C3'],
-    ];
-
-    expect(_dataToHTML(data)).toBe([
-      '<table><tbody>',
-      '<tr><td>A1</td><td>B1</td><td>C1</td></tr>',
-      '<tr><td>A2</td><td>B2</td><td>C2</td></tr>',
-      '<tr><td>A3</td><td>B3</td><td>C3</td></tr>',
-      '</tbody></table>',
-    ].join(''));
-  });
-
-  it('should escape HTML tags into entities', () => {
-    const data = [
-      ['<div class="test">A1</div>'],
-    ];
-
-    expect(_dataToHTML(data)).toBe([
-      '<table><tbody>',
-      '<tr><td>&lt;div class="test"&gt;A1&lt;/div&gt;</td></tr>',
-      '</tbody></table>',
-    ].join(''));
   });
 });
 
@@ -308,7 +182,7 @@ describe('htmlToGridSettings', () => {
     it('should parse nested headers from HTML table', () => {
       const htmlToParse = [
         '<table><thead>',
-        '<tr><th colspan="6" >A</th></tr>',
+        '<tr><th colspan="6">A</th></tr>',
         '<tr><th colspan="3">B</th><th colspan="3">C</th></tr>',
         '<tr><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th><th>I</th></tr>',
         '</thead><tbody>',
@@ -330,7 +204,7 @@ describe('htmlToGridSettings', () => {
     it('should parse nested headers from HTML table if row headers are present', () => {
       const htmlToParse = [
         '<table><thead>',
-        '<tr><th></th><th colspan="2" >A</th></tr>',
+        '<tr><th></th><th colspan="2">A</th></tr>',
         '<tr><th></th><th>B</th><th>C</th></tr>',
         '</thead><tbody>',
         '<tr><th>1</th><td>B1</td><td>C1</td></tr>',
