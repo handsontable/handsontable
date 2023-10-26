@@ -62,7 +62,7 @@ export class PasteClipboardData extends ClipboardData {
   /**
    * Gets type of the copied data.
    *
-   * @returns {string}
+   * @returns {'table' | 'handsontable' | 'unrecognizable'}
    */
   getType() {
     if (this.isSerializedHandsontable()) {
@@ -73,6 +73,6 @@ export class PasteClipboardData extends ClipboardData {
       return 'table';
     }
 
-    return 'string';
+    return 'unrecognizable';
   }
 }

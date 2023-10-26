@@ -96,7 +96,7 @@ describe('ClipboardData', () => {
     });
   });
 
-  it('should parse source of the data properly', () => {
+  it('should parse type of the data properly', () => {
     const tableData = new PasteClipboardData('A-0-0\tA-0-1', simpleTableWithOnlyHeaders);
     const handsontableData = new PasteClipboardData('A-0-0\tA-0-1', simpleHandsontableWithOnlyHeaders);
     const simpleText = new PasteClipboardData('hello world',
@@ -104,7 +104,7 @@ describe('ClipboardData', () => {
 
     expect(tableData.getType()).toBe('table');
     expect(handsontableData.getType()).toBe('handsontable');
-    expect(simpleText.getType()).toBe('string');
+    expect(simpleText.getType()).toBe('unrecognizable');
   });
 
   it('should return proper values after using `getCellAt` and `setCellAt` methods', () => {

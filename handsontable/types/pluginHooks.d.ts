@@ -70,7 +70,7 @@ interface ClipboardData {
 }
 
 interface PasteClipboardData extends ClipboardData {
-  getType: () => 'handsontable' | 'table' | 'string';
+  getType: () => 'handsontable' | 'table' | 'unrecognizable';
 }
 
 interface CopyClipboardData extends ClipboardData {
