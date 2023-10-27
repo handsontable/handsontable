@@ -198,7 +198,8 @@ class CellCoords {
    * Assigns the coordinates from another `CellCoords` instance (or compatible literal object)
    * to your `CellCoords` instance.
    *
-   * @param {CellCoords | { row?: number, col?: number }} coords The CellCoords instance or compatible literal object.
+   * @param {CellCoords | { row: number | undefined, col: number | undefined }} coords The CellCoords
+   * instance or compatible literal object.
    * @returns {CellCoords}
    */
   assign(coords) {
