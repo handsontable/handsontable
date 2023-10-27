@@ -126,8 +126,10 @@
 .handsontable .columnSorting.sortAction:hover {
   text-decoration: underline;
   cursor: pointer;
-}/* Arrow position */
-.handsontable span.colHeader.columnSorting::before {
+}
+
+/* Arrow position */
+.handsontable span.colHeader.columnSorting .columnSortingIndicator::before {
   /* Centering start */
   top: 50%;
   /* One extra pixel for purpose of proper positioning of sorting arrow, when `font-size` set to default */
@@ -149,17 +151,17 @@
   background-position-x: inline-end;
 }
 
-.handsontable span.colHeader.columnSorting.ascending::before {
+.handsontable span.colHeader.columnSorting.ascending .columnSortingIndicator::before {
   /* arrow up; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFNJREFUeAHtzjkSgCAUBNHPgsoy97+ulGXRqJE5L+xkxoYt2UdsLb5bqFINz+aLuuLn5rIu2RkO3fZpWENimNgiw6iBYRTPMLJjGFxQZ1hxxb/xBI1qC8k39CdKAAAAAElFTkSuQmCC");
 }
 
-.handsontable span.colHeader.columnSorting.descending::before {
+.handsontable span.colHeader.columnSorting.descending .columnSortingIndicator::before {
   /* arrow down; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFJJREFUeAHtzjkSgCAQRNFmQYUZ7n9dKUvru0TmvPAn3br0QfgdZ5xx6x+rQn23GqTYnq1FDcnuzZIO2WmedVqIRVxgGKEyjNgYRjKGkZ1hFIZ3I70LyM0VtU8AAAAASUVORK5CYII=");
 }
 
-.htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::after {
+.htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::before {
   content: '*';
   display: inline-block;
   position: relative;
@@ -303,20 +305,20 @@ TextRenderer readOnly cell
   position: relative;
 }
 
-.handsontable .htSubmenu :after {
-  content: '\25B6';
+.handsontable .htSubmenu .submenuIndicator::after {
+  content: '\25B6'; // right-pointing triangle
   color: #777;
   position: absolute;
   right: 5px;
   font-size: 9px;
 }
 
-[dir=rtl].handsontable .htSubmenu :after {
+[dir=rtl].handsontable .htSubmenu .submenuIndicator::after {
   content: '';
 }
 
-[dir=rtl].handsontable .htSubmenu :before {
-  content: '\25C0';
+[dir=rtl].handsontable .htSubmenu .submenuIndicator::before {
+  content: '\25C0'; // left-pointing triangle
   color: #777;
   position: absolute;
   left: 5px;

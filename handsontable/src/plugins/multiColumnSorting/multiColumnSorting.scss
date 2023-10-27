@@ -1,5 +1,5 @@
 /* Column's number position */
-.handsontable span.colHeader.columnSorting::after {
+.handsontable span.colHeader.columnSorting .columnSortingIndicator::after {
   /* Centering start */
   top: 50%;
   /* Two extra pixels (-2 instead of -4) for purpose of proper positioning of numeric indicators, when `font-size` set to default */
@@ -21,41 +21,41 @@
 }
 
 /* Workaround for IE9 - IE11, https://stackoverflow.com/a/21902566, https://stackoverflow.com/a/32120247 */
-.handsontable span.colHeader.columnSorting::after {
+.handsontable span.colHeader.columnSorting .columnSortingIndicator::after {
   text-decoration: none;
 }
 
 /* We support up to 7 numeric indicators, describing order of column in sorted columns queue */
-.handsontable span.colHeader.columnSorting[class^="sort-"]::after,
-.handsontable span.colHeader.columnSorting[class*=" sort-"]::after {
+.handsontable span.colHeader.columnSorting[class^="sort-"] .columnSortingIndicator::after,
+.handsontable span.colHeader.columnSorting[class*=" sort-"] .columnSortingIndicator::after {
   content: "+"
 }
 
-.handsontable span.colHeader.columnSorting.sort-1::after {
+.handsontable span.colHeader.columnSorting.sort-1 .columnSortingIndicator::after {
   content: '1';
 }
 
-.handsontable span.colHeader.columnSorting.sort-2::after {
+.handsontable span.colHeader.columnSorting.sort-2 .columnSortingIndicator::after {
   content: '2';
 }
 
-.handsontable span.colHeader.columnSorting.sort-3::after {
+.handsontable span.colHeader.columnSorting.sort-3 .columnSortingIndicator::after {
   content: '3';
 }
 
-.handsontable span.colHeader.columnSorting.sort-4::after {
+.handsontable span.colHeader.columnSorting.sort-4 .columnSortingIndicator::after {
   content: '4';
 }
 
-.handsontable span.colHeader.columnSorting.sort-5::after {
+.handsontable span.colHeader.columnSorting.sort-5 .columnSortingIndicator::after {
   content: '5';
 }
 
-.handsontable span.colHeader.columnSorting.sort-6::after {
+.handsontable span.colHeader.columnSorting.sort-6 .columnSortingIndicator::after {
   content: '6';
 }
 
-.handsontable span.colHeader.columnSorting.sort-7::after {
+.handsontable span.colHeader.columnSorting.sort-7 .columnSortingIndicator::after {
   content: '7';
 }
 
