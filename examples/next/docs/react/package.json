@@ -2,7 +2,10 @@
   "name": "examples-react",
   "version": "0.0.0",
   "private": true,
+  "scripts": {
+    "postinstall": "cd accessibility && npm i"
+  },
   "workspaces": [
-    "@(!(node_modules))/"
+    "@(!(node_modules|accessibility))/"
   ]
 }
