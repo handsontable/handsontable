@@ -15,6 +15,7 @@ import StateManager from './stateManager';
 import GhostTable from './utils/ghostTable';
 
 import './nestedHeaders.css';
+import { isObject } from '../../helpers/object';
 
 export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;
@@ -532,18 +533,15 @@ export class NestedHeaders extends BasePlugin {
         break;
       }
 
-      for (let column = startCol; column <= endCol; column += 1) {
-        for (let row = startRow; row <= endRow; row += 1) {
+      for (let row = startRow; row <= endRow; row += 1) {
+        for (let column = startCol; column <= endCol; column += 1) {
           const zeroBasedColumnIndex = column - startCol;
 
-          if (zeroBasedColumnIndex === 0) {
-            continue; // eslint-disable-line no-continue
-          }
-
           const isRoot = this.#stateManager.getHeaderTreeNodeData(row, column)?.isRoot;
-          const collapsible = this.#stateManager.getHeaderTreeNodeData(row, column)?.collapsible;
+          const colspan = this.#stateManager.getHeaderTreeNodeData(row, column)?.origColspan;
 
-          if (collapsible === true && isRoot === false) {
+          if (colspan > 1 && isRoot === false && startCol !== column
+            && isObject(clipboardData.getCellAt(row, zeroBasedColumnIndex)) === false) {
             clipboardData.setCellAt(row, zeroBasedColumnIndex, '');
           }
         }

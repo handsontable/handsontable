@@ -7,6 +7,7 @@ import {
   getHTMLFromConfig,
   htmlToGridSettings,
 } from '../../../utils/parseTable';
+import {arrayEach} from "../../../helpers/array";
 
 export const META_HEAD = [
   '<meta name="generator" content="Handsontable"/>',
@@ -22,14 +23,12 @@ export class ClipboardData {
   /**
    * Sanitized data of "text/html" type inside the clipboard.
    *
-   * @private
    * @type {string}
    */
   html;
   /**
    * Copied data stored as array of arrays.
    *
-   * @private
    * @type {string[][]}
    */
   data;
@@ -482,6 +481,53 @@ export class ClipboardData {
   }
 
   /**
+   * Get nested header for certain row and column indexes.
+   *
+   * @private
+   * @param {number} row Row index related to level of the nested headers.
+   * @param {number} column Column index for certain row.
+   * @returns {*}
+   */
+  getNestedHeader(row, column) {
+    const { nestedHeaders } = this.getMetaInfo();
+    const rowRelative = row + nestedHeaders.length;
+    const nestedHeadersForLevel = nestedHeaders[rowRelative];
+    let indexInHeadersArray;
+    let currentColumnIndex = 0;
+
+    if (Array.isArray(nestedHeadersForLevel) === false) {
+      return;
+    }
+
+    arrayEach(nestedHeadersForLevel, (nestedHeaderInfo, index) => {
+      const isSimpleHeader = typeof nestedHeaderInfo === 'string';
+
+      if (isSimpleHeader === true) {
+        if (currentColumnIndex === column) {
+          indexInHeadersArray = index;
+
+          return false;
+        }
+
+        currentColumnIndex += 1;
+
+      } else {
+        const { colspan } = nestedHeaderInfo;
+
+        if (column < currentColumnIndex + colspan) {
+          indexInHeadersArray = index;
+
+          return false;
+        }
+
+        currentColumnIndex += colspan;
+      }
+    });
+
+    return nestedHeaders[rowRelative][indexInHeadersArray];
+  }
+
+  /**
    * Gets header or cell values from the serialized dataset.
    *
    * Note: Used indexes refers to processed data, not to the instance of Handsontable. Please keep in mind that headers
@@ -501,11 +547,7 @@ export class ClipboardData {
 
     if (row < 0) {
       if (Array.isArray(nestedHeaders)) {
-        const rowRelative = row + nestedHeaders.length;
-
-        if (Array.isArray(nestedHeaders[rowRelative]) && isDefined(nestedHeaders[rowRelative][column])) {
-          return nestedHeaders[rowRelative][column];
-        }
+        return this.getNestedHeader(row, column);
 
       } else if (Array.isArray(colHeaders)) {
         if (isDefined(colHeaders[column])) {
