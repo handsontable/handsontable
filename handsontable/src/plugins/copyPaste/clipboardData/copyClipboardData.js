@@ -1,6 +1,6 @@
 import { META_HEAD, ClipboardData } from './clipboardData';
 import { normalizeRanges } from '../copyableRanges';
-import { getDataByCoords, getHTMLByCoords } from '../../../utils/parseTable';
+import { getDataWithHeadersByConfig, getHTMLByCoords } from '../../../utils/parseTable';
 
 /**
  * Creates an object containing information about copy/cut action.
@@ -40,7 +40,7 @@ export class CopyClipboardData extends ClipboardData {
     const { rows, columns } = normalizeRanges(copyableRanges);
 
     this.html = [META_HEAD, getHTMLByCoords(instance, { rows, columns })].join('');
-    this.data = getDataByCoords(instance, { rows, columns });
+    this.data = getDataWithHeadersByConfig(this.getMetaInfo());
     this.copyableRanges = copyableRanges;
   }
 

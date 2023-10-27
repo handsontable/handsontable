@@ -22,14 +22,12 @@ export class ClipboardData {
   /**
    * Sanitized data of "text/html" type inside the clipboard.
    *
-   * @private
    * @type {string}
    */
   html;
   /**
    * Copied data stored as array of arrays.
    *
-   * @private
    * @type {string[][]}
    */
   data;
@@ -502,10 +500,34 @@ export class ClipboardData {
     if (row < 0) {
       if (Array.isArray(nestedHeaders)) {
         const rowRelative = row + nestedHeaders.length;
+        const findNestedIndex = (searchedColumn) => {
+          const nestedHeadersForLevel = nestedHeaders[rowRelative];
+          let currentColumnIndex = 0;
 
-        if (Array.isArray(nestedHeaders[rowRelative]) && isDefined(nestedHeaders[rowRelative][column])) {
-          return nestedHeaders[rowRelative][column];
-        }
+          for (let i = 0; i < nestedHeadersForLevel.length; i += 1) {
+            const nestedHeaderInfo = nestedHeadersForLevel[i];
+            const isSimpleHeader = typeof nestedHeaderInfo === 'string';
+
+            if (isSimpleHeader === true) {
+              if (currentColumnIndex === searchedColumn) {
+                return i;
+              }
+
+              currentColumnIndex += 1;
+
+            } else {
+              const { colspan } = nestedHeaderInfo;
+
+              if (searchedColumn < currentColumnIndex + colspan) {
+                return i;
+              }
+
+              currentColumnIndex += colspan;
+            }
+          }
+        };
+
+        return nestedHeaders[rowRelative][findNestedIndex(column)];
 
       } else if (Array.isArray(colHeaders)) {
         if (isDefined(colHeaders[column])) {

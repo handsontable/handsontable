@@ -152,16 +152,17 @@ function getNestedHeadersHTML(nestedHeaders, excludedHeaders, excludedColumns) {
     for (let i = 0; i < listOfHeaders.length; i += 1) {
       const header = listOfHeaders[i];
       let headerValue = header;
-      let colspanAttribute = '';
 
       if (isObject(header)) {
         const { colspan, label } = header;
 
         headerValue = label;
-        colspanAttribute = ` colspan=${colspan}`;
-      }
 
-      rowHTML.push(`<th${colspanAttribute}>${encodeHTMLEntities(parseEmptyValues(headerValue))}</th>`);
+        rowHTML.push(`<th colspan=${colspan}>${encodeHTMLEntities(parseEmptyValues(headerValue))}</th>`);
+
+      } else {
+        rowHTML.push(`<th>${encodeHTMLEntities(parseEmptyValues(headerValue))}</th>`);
+      }
     }
 
     rowHTML.push('</tr>');
@@ -465,9 +466,10 @@ function getHeadersHTMLByCoords(hotInstance, config) {
 
       if (colspan) {
         const parsedColspan = parseInt(colspan, 10);
+        const colspanReduced = Math.min(parsedColspan, columns.length - i);
 
-        colspanAttribute = ` colspan=${parsedColspan}`;
-        i += parsedColspan - 1;
+        colspanAttribute = ` colspan=${colspanReduced}`;
+        i += colspanReduced - 1;
       }
 
       rowHTML.push(`<th${colspanAttribute}>${
