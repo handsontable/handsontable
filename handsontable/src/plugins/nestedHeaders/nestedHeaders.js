@@ -16,6 +16,7 @@ import GhostTable from './utils/ghostTable';
 
 import './nestedHeaders.css';
 import { isDefined } from '../../helpers/mixed';
+import {isObject} from "../../helpers/object";
 
 export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;
@@ -523,7 +524,6 @@ export class NestedHeaders extends BasePlugin {
    */
   onBeforeCopy(clipboardData) {
     const copyableRanges = clipboardData.getRanges();
-    const metaInfo = clipboardData.getMetaInfo();
 
     for (let rangeIndex = 0; rangeIndex < copyableRanges.length; rangeIndex += 1) {
       const { startRow, startCol, endRow, endCol } = copyableRanges[rangeIndex];
@@ -541,10 +541,9 @@ export class NestedHeaders extends BasePlugin {
           const isRoot = this.#stateManager.getHeaderTreeNodeData(row, column)?.isRoot;
           const colspan = this.#stateManager.getHeaderTreeNodeData(row, column)?.origColspan;
 
-          if (colspan > 1 && isRoot === false) {
-            if (isDefined(metaInfo.colHeaders)) {
-              clipboardData.setCellAt(row, zeroBasedColumnIndex, '');
-            }
+          if (colspan > 1 && isRoot === false && startCol !== column
+            && isObject(clipboardData.getCellAt(row, zeroBasedColumnIndex)) === false) {
+            clipboardData.setCellAt(row, zeroBasedColumnIndex, '');
           }
         }
       }
