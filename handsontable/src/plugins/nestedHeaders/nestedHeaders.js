@@ -15,7 +15,7 @@ import StateManager from './stateManager';
 import GhostTable from './utils/ghostTable';
 
 import './nestedHeaders.css';
-import {isDefined} from "../../helpers/mixed";
+import { isDefined } from '../../helpers/mixed';
 
 export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;
