@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the default styling for the OK button in filters.",
+  "type": "changed",
+  "issueOrPR": 10558,
+  "breaking": true,
+  "framework": "none"
+}
