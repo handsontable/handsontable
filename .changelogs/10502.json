@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a bug where pressing a Ctrl/Cmd does not trigger non-contiguous selection.",
-  "type": "fixed",
-  "issueOrPR": 10502,
-  "breaking": false,
-  "framework": "none"
-}

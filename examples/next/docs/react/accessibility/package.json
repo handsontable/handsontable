@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
+    "check-types": "tsc",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "test": "node spec/support/jasmine.config.cjs"
@@ -14,8 +15,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "@ngneat/falso": "^7.1.1",
-    "handsontable": "0.0.0-next-ff8465d-20231006",
-    "@handsontable/react": "0.0.0-next-ff8465d-20231006"
+    "handsontable": "latest",
+    "@handsontable/react": "latest"
   },
   "devDependencies": {
     "cross-env": "7.0.3",

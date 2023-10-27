@@ -1,0 +1,11 @@
+{
+  "name": "examples-react-14.0.0",
+  "version": "14.0.0",
+  "private": true,
+  "scripts": {
+    "postinstall": "cd accessibility && npm i"
+  },
+  "workspaces": [
+    "@(!(node_modules|accessibility))/"
+  ]
+}

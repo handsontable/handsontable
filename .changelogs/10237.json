@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added Ctrl/Cmd+Shift+Space keyboard shortcut that allows selecting all cells.",
-  "type": "added",
-  "issueOrPR": 10237,
-  "breaking": false,
-  "framework": "none"
-}
