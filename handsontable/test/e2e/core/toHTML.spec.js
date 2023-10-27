@@ -25,8 +25,8 @@ describe('Core.toHTML', () => {
       '<tr><th></th><th>A</th><th>B</th></tr>',
       '</thead>',
       '<tbody>',
-      '<tr><th>1</th><td >A1</td><td >B1</td></tr>',
-      '<tr><th>2</th><td >A2</td><td >B2</td></tr>',
+      '<tr><th>1</th><td>A1</td><td>B1</td></tr>',
+      '<tr><th>2</th><td>A2</td><td>B2</td></tr>',
       '</tbody>',
       '</table>'
     ].join(''));
