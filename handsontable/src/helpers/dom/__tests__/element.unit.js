@@ -765,13 +765,13 @@ describe('DomElement helper', () => {
 
       appendElement(elementParent, {
         tagName: 'footer',
-        className: 'classOne',
+        className: ['classOne', 'classTwo'],
         attributes: [['sampleAttribute', 'sampleValue']],
       });
 
       expect(elementParent.childNodes.length).toEqual(2);
       expect(elementParent.childNodes[1].tagName).toEqual('FOOTER');
-      expect(elementParent.childNodes[1].className).toEqual('classOne');
+      expect(elementParent.childNodes[1].className).toEqual('classOne classTwo');
       expect(elementParent.childNodes[1].getAttribute('sampleAttribute')).toEqual('sampleValue');
     });
   });

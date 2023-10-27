@@ -1155,7 +1155,7 @@ export function runWithSelectedContendEditableElement(element, callback, invisib
  * @param {HTMLElement} parentElement The parent element.
  * @param {object} properties The properties object.
  * @param {string} properties.tagName The type of the new element.
- * @param {string} properties.className Class name as string or array of strings.
+ * @param {string|string[]} properties.className Class name as string or array of strings.
  * @param {Array[]} properties.attributes An array containing the attributes to be added. Each element of the array
  * should be an array in a form of `[attributeName, attributeValue]`.
  * @returns {HTMLElement} The created div element.
