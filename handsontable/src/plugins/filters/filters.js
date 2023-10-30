@@ -318,8 +318,14 @@ export class Filters extends BasePlugin {
         keys: [['Alt', 'A']],
         stopPropagation: true,
         callback: () => {
+          const selection = this.hot.getSelected();
+
           this.clearConditions();
           this.filter();
+
+          if (selection) {
+            this.hot.selectCells(selection);
+          }
         },
         group: SHORTCUTS_GROUP,
       });
@@ -492,6 +498,7 @@ export class Filters extends BasePlugin {
    * @fires Hooks#afterFilter
    */
   filter() {
+    const { navigableHeaders } = this.hot.getSettings();
     const dataFilter = this._createDataFilter();
     const needToFilter = !this.conditionCollection.isEmpty();
     let visibleVisualRows = [];
@@ -521,7 +528,7 @@ export class Filters extends BasePlugin {
           });
         }, true);
 
-        if (!visibleVisualRows.length) {
+        if (!navigableHeaders && !visibleVisualRows.length) {
           this.hot.deselectCell();
         }
       } else {
@@ -533,6 +540,13 @@ export class Filters extends BasePlugin {
 
     this.hot.view.adjustElementsSize(true);
     this.hot.render();
+
+    if (this.hot.selection.isSelected()) {
+      this.hot.selectCell(
+        navigableHeaders ? -1 : 0,
+        this.hot.getSelectedRangeLast().highlight.col,
+      );
+    }
   }
 
   /**
@@ -744,7 +758,6 @@ export class Filters extends BasePlugin {
       this.components.forEach(component => component.saveState(physicalIndex));
       this.filtersRowsMap.clear();
       this.filter();
-      this.hot.selectCell(0, selectedColumn.visualIndex);
     }
 
     this.dropdownMenuPlugin?.close();
