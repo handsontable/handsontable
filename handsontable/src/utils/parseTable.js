@@ -465,9 +465,10 @@ function getHeadersHTMLByCoords(hotInstance, config) {
 
       if (colspan) {
         const parsedColspan = parseInt(colspan, 10);
+        const colspanReduced = Math.min(parsedColspan, columns.length - i);
 
-        colspanAttribute = ` colspan=${parsedColspan}`;
-        i += parsedColspan - 1;
+        colspanAttribute = ` colspan=${colspanReduced}`;
+        i += colspanReduced - 1;
       }
 
       rowHTML.push(`<th${colspanAttribute}>${
@@ -509,9 +510,10 @@ function getHeadersDataByCoords(hotInstance, config) {
 
       if (colspan) {
         const parsedColspan = parseInt(colspan, 10);
+        const colspanReduced = Math.min(parsedColspan, columns.length - i);
 
-        rowData.push(...new Array(parsedColspan - 1).fill(''));
-        i += parsedColspan - 1;
+        rowData.push(...new Array(colspanReduced - 1).fill(''));
+        i += colspanReduced - 1;
       }
     }
 

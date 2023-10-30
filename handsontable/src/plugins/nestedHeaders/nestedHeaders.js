@@ -537,8 +537,18 @@ export class NestedHeaders extends BasePlugin {
         for (let column = startCol; column <= endCol; column += 1) {
           const zeroBasedColumnIndex = column - startCol;
 
-          const isRoot = this.#stateManager.getHeaderTreeNodeData(row, column)?.isRoot;
-          const colspan = this.#stateManager.getHeaderTreeNodeData(row, column)?.origColspan;
+          const headerData = this.#stateManager.getHeaderTreeNodeData(row, column);
+          const isRoot = headerData?.isRoot;
+          const colspan = headerData?.origColspan;
+
+
+          if (colspan > 1) {
+            if (startCol === column && isObject(clipboardData.getCellAt(row, zeroBasedColumnIndex)) === false) {
+              console.log(row, column, this.hot.getColHeader(row));
+              clipboardData.setCellAt(row, zeroBasedColumnIndex, { label: this.hot.getColHeader(column, row), 
+                colspan: 2 });
+            }
+          }
 
           if (colspan > 1 && isRoot === false && startCol !== column
             && isObject(clipboardData.getCellAt(row, zeroBasedColumnIndex)) === false) {
