@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.0.0
- * Release date: 08/11/2023 (built at 27/10/2023 12:55:44)
+ * Release date: 08/11/2023 (built at 30/10/2023 10:04:08)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -105,7 +105,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "27/10/2023 12:55:44";
+Handsontable.buildDate = "30/10/2023 10:04:08";
 Handsontable.version = "14.0.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -65652,8 +65652,12 @@ class Filters extends _base.BasePlugin {
       keys: [['Alt', 'A']],
       stopPropagation: true,
       callback: () => {
+        const selection = this.hot.getSelected();
         this.clearConditions();
         this.filter();
+        if (selection) {
+          this.hot.selectCells(selection);
+        }
       },
       group: SHORTCUTS_GROUP
     });
@@ -65826,6 +65830,9 @@ class Filters extends _base.BasePlugin {
    * @fires Hooks#afterFilter
    */
   filter() {
+    const {
+      navigableHeaders
+    } = this.hot.getSettings();
     const dataFilter = this._createDataFilter();
     const needToFilter = !this.conditionCollection.isEmpty();
     let visibleVisualRows = [];
@@ -65847,7 +65854,7 @@ class Filters extends _base.BasePlugin {
             this.filtersRowsMap.setValueAtIndex(physicalRow, true);
           });
         }, true);
-        if (!visibleVisualRows.length) {
+        if (!navigableHeaders && !visibleVisualRows.length) {
           this.hot.deselectCell();
         }
       } else {
@@ -65857,6 +65864,9 @@ class Filters extends _base.BasePlugin {
     this.hot.runHooks('afterFilter', conditions);
     this.hot.view.adjustElementsSize(true);
     this.hot.render();
+    if (this.hot.selection.isSelected()) {
+      this.hot.selectCell(navigableHeaders ? -1 : 0, this.hot.getSelectedRangeLast().highlight.col);
+    }
   }
 
   /**
@@ -66062,7 +66072,6 @@ class Filters extends _base.BasePlugin {
       this.components.forEach(component => component.saveState(physicalIndex));
       this.filtersRowsMap.clear();
       this.filter();
-      this.hot.selectCell(0, selectedColumn.visualIndex);
     }
     (_this$dropdownMenuPlu3 = this.dropdownMenuPlugin) === null || _this$dropdownMenuPlu3 === void 0 || _this$dropdownMenuPlu3.close();
   }
