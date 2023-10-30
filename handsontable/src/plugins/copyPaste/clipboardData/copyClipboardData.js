@@ -1,6 +1,6 @@
 import { META_HEAD, ClipboardData } from './clipboardData';
 import { normalizeRanges } from '../copyableRanges';
-import { getDataWithHeadersByConfig, getHTMLByCoords } from '../../../utils/parseTable';
+import { getDataByCoords, getHTMLByCoords } from '../../../utils/parseTable';
 
 /**
  * Creates an object containing information about copy/cut action.

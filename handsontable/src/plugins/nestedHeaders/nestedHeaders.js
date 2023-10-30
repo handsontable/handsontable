@@ -541,15 +541,6 @@ export class NestedHeaders extends BasePlugin {
           const isRoot = headerData?.isRoot;
           const colspan = headerData?.origColspan;
 
-
-          if (colspan > 1) {
-            if (startCol === column && isObject(clipboardData.getCellAt(row, zeroBasedColumnIndex)) === false) {
-              console.log(row, column, this.hot.getColHeader(row));
-              clipboardData.setCellAt(row, zeroBasedColumnIndex, { label: this.hot.getColHeader(column, row), 
-                colspan: 2 });
-            }
-          }
-
           if (colspan > 1 && isRoot === false && startCol !== column
             && isObject(clipboardData.getCellAt(row, zeroBasedColumnIndex)) === false) {
             clipboardData.setCellAt(row, zeroBasedColumnIndex, '');

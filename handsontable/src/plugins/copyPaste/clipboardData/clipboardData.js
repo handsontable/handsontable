@@ -7,7 +7,7 @@ import {
   getHTMLFromConfig,
   htmlToGridSettings,
 } from '../../../utils/parseTable';
-import {arrayEach} from "../../../helpers/array";
+import { arrayEach } from '../../../helpers/array';
 
 export const META_HEAD = [
   '<meta name="generator" content="Handsontable"/>',
