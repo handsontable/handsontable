@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Changed the default styling for the OK button in filters.",
+  "title": "Changed the default styling for the OK button in filters when focused.",
   "type": "changed",
   "issueOrPR": 10558,
-  "breaking": true,
+  "breaking": false,
   "framework": "none"
 }
