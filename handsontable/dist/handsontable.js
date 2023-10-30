@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.0.0
- * Release date: 08/11/2023 (built at 30/10/2023 10:04:08)
+ * Release date: 08/11/2023 (built at 30/10/2023 15:16:30)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -105,7 +105,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "30/10/2023 10:04:08";
+Handsontable.buildDate = "30/10/2023 15:16:30";
 Handsontable.version = "14.0.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -13406,7 +13406,7 @@ const REMOVED_HOOKS = new Map([['modifyRow', '8.0.0'], ['modifyCol', '8.0.0'], [
  * @type {Map<string, string>}
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
-const DEPRECATED_HOOKS = new Map([['beforeRemoveCellClassNames', 'The hook "beforeRemoveCellClassNames" is deprecated and will be removed in the next major release.']]);
+const DEPRECATED_HOOKS = new Map([[]]);
 class Hooks {
   static getSingleton() {
     return getGlobalSingleton();
@@ -77685,6 +77685,9 @@ class MergeCells extends _base.BasePlugin {
     this.addHook('afterDrawSelection', function () {
       return _this.onAfterDrawSelection(...arguments);
     });
+    this.addHook('beforeRemoveCellClassNames', function () {
+      return _this.onBeforeRemoveCellClassNames(...arguments);
+    });
     this.addHook('beforeUndoStackChange', (action, source) => {
       if (source === 'MergeCells') {
         return false;
@@ -78695,6 +78698,17 @@ class MergeCells extends _base.BasePlugin {
       return;
     }
     return this.selectionCalculations.getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection, layerLevel);
+  }
+
+  /**
+   * `beforeRemoveCellClassNames` hook callback. Used to remove additional class name from all cells in the table.
+   *
+   * @private
+   * @returns {string[]} An `Array` of `String`s. Each of these strings will act like class names to be removed from
+   *   all the cells in the table.
+   */
+  onBeforeRemoveCellClassNames() {
+    return this.selectionCalculations.getSelectedMergedCellClassNameToRemove();
   }
 }
 exports.MergeCells = MergeCells;
