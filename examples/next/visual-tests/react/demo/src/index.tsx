@@ -46,6 +46,7 @@ const App = () => {
       beforeRenderer={addClassesToRows}
       afterGetRowHeader={drawCheckboxInRowHeaders}
       afterOnCellMouseDown={changeCheckboxCell}
+      mergeCells={true}
       manualRowMove={true}
       navigableHeaders={true}
       licenseKey="non-commercial-and-evaluation"

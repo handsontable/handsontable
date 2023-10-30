@@ -30,6 +30,7 @@ export default {
           indicators: true,
         },
         contextMenu: true,
+        mergeCells: true,
         multiColumnSorting: true,
         filters: true,
         rowHeaders: true,
