@@ -1,5 +1,5 @@
 import { isDefined } from '../../../helpers/mixed';
-import { deepClone } from '../../../helpers/object';
+import { deepClone, isObject } from '../../../helpers/object';
 import { toSingleLine } from '../../../helpers/templateLiteralTag';
 import { warn } from '../../../helpers/console';
 import {
@@ -450,7 +450,7 @@ export class ClipboardData {
    *
    * @param {number} row Row index of cell which should be changed.
    * @param {number} column Column index of cell which should be changed.
-   * @param {string} value Value for particular indexes.
+   * @param {string|object} value Value for particular index.
    */
   setCellAt(row, column, value) {
     if (this.isSerializedTable() === false) {
@@ -464,7 +464,11 @@ export class ClipboardData {
       if (Array.isArray(nestedHeaders)) {
         const rowRelative = row + nestedHeaders.length;
 
-        if (Array.isArray(nestedHeaders[rowRelative]) && isDefined(nestedHeaders[rowRelative][column])) {
+        if (isObject(value) && Number.isInteger(value.colspan) && value.colspan > 1) {
+          // Replacing headers stored as repetitive string by object describing header with colspan.
+          nestedHeaders[rowRelative].splice(column, value.colspan, value);
+
+        } else {
           nestedHeaders[rowRelative][column] = value;
         }
 

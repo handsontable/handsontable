@@ -204,7 +204,7 @@ describe('Integration with other plugins', () => {
       ]);
     });
 
-    it('should copy part of nested header properly2', () => {
+    it('should copy part of nested header properly', () => {
       handsontable({
         data: createSpreadsheetData(2, 5),
         rowHeaders: true,
@@ -279,7 +279,7 @@ describe('Integration with other plugins', () => {
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
           '<thead>',
-            '<tr><th>a1</th><th></th></tr>',
+            '<tr><th colspan=2>a1</th></tr>',
             '<tr><th colspan=2>b2</th></tr>',
             '<tr><th colspan=2>b3</th></tr>',
           '</thead>',

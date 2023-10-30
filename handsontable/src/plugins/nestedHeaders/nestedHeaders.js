@@ -536,14 +536,28 @@ export class NestedHeaders extends BasePlugin {
       for (let row = startRow; row <= endRow; row += 1) {
         for (let column = startCol; column <= endCol; column += 1) {
           const zeroBasedColumnIndex = column - startCol;
-
           const headerData = this.#stateManager.getHeaderTreeNodeData(row, column);
           const isRoot = headerData?.isRoot;
           const colspan = headerData?.origColspan;
+          const mergeStartColumn = headerData?.columnIndex;
 
-          if (colspan > 1 && isRoot === false && startCol !== column
-            && isObject(clipboardData.getCellAt(row, zeroBasedColumnIndex)) === false) {
-            clipboardData.setCellAt(row, zeroBasedColumnIndex, '');
+          if (colspan > 1 && isRoot === false) {
+            const headerInfo = clipboardData.getCellAt(row, zeroBasedColumnIndex);
+
+            // Handling headers with colspan being stored as repetitive label.
+            if (isObject(headerInfo) === false && startCol !== column) {
+              clipboardData.setCellAt(row, zeroBasedColumnIndex, ''); // Overwriting repeated value.
+
+              // Handling copying middle of the header which has colspan (copied area starts with it).
+            } else if (startCol === column) {
+              const { label } = headerData;
+              const columnsFromMergeStart = column - mergeStartColumn;
+              const leftMergeCells = colspan - columnsFromMergeStart;
+              const cellsToCopyAreaEnd = endCol - column + 1;
+              const maxColspan = Math.min(leftMergeCells, cellsToCopyAreaEnd);
+
+              clipboardData.setCellAt(row, zeroBasedColumnIndex, { label, colspan: maxColspan });
+            }
           }
         }
       }
