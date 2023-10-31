@@ -443,56 +443,14 @@ export class ClipboardData {
   }
 
   /**
-   * Change headers or cells in the serialized dataset.
-   *
-   * Note: Used indexes refers to processed data, not to the instance of Handsontable. Please keep in mind that headers
-   * are handled separately from cells and they are recognised using negative indexes.
-   *
-   * @param {number} row Row index of cell which should be changed.
-   * @param {number} column Column index of cell which should be changed.
-   * @param {string|object} value Value for particular index.
-   */
-  setCellAt(row, column, value) {
-    if (this.isSerializedTable() === false) {
-      return;
-    }
-
-    const config = this.getMetaInfo();
-    const { data, nestedHeaders, colHeaders } = config;
-
-    if (row < 0) {
-      if (Array.isArray(nestedHeaders)) {
-        const rowRelative = row + nestedHeaders.length;
-
-        if (isObject(value) && Number.isInteger(value.colspan) && value.colspan > 1) {
-          // Replacing headers stored as repetitive string by object describing header with colspan.
-          nestedHeaders[rowRelative].splice(column, value.colspan, value);
-
-        } else {
-          nestedHeaders[rowRelative][column] = value;
-        }
-
-      } else if (Array.isArray(colHeaders)) {
-        if (isDefined(colHeaders[column])) {
-          colHeaders[column] = value;
-        }
-      }
-    } else if (row >= 0 && Array.isArray(data) && Array.isArray(data[row]) && isDefined(data[row][column])) {
-      data[row][column] = value;
-    }
-
-    this.overwriteInfo(config);
-  }
-
-  /**
-   * Get nested header for certain row and column indexes.
+   * Get internal column index for nested header with certain row and column indexes.
    *
    * @private
    * @param {number} row Row index related to level of the nested headers.
    * @param {number} column Column index for certain row.
    * @returns {*}
    */
-  getNestedHeader(row, column) {
+  getNestedHeaderColumn(row, column) {
     const { nestedHeaders } = this.getMetaInfo();
     const rowRelative = row + nestedHeaders.length;
     const nestedHeadersForLevel = nestedHeaders[rowRelative];
@@ -528,7 +486,53 @@ export class ClipboardData {
       }
     });
 
-    return nestedHeaders[rowRelative][indexInHeadersArray];
+    return indexInHeadersArray;
+  }
+
+  /**
+   * Change headers or cells in the serialized dataset.
+   *
+   * Note: Used indexes refers to processed data, not to the instance of Handsontable. Please keep in mind that headers
+   * are handled separately from cells and they are recognised using negative indexes.
+   *
+   * @param {number} row Row index of cell which should be changed.
+   * @param {number} column Column index of cell which should be changed.
+   * @param {string|object} value Value for particular index.
+   */
+  setCellAt(row, column, value) {
+    if (this.isSerializedTable() === false) {
+      return;
+    }
+
+    const config = this.getMetaInfo();
+    const { data, nestedHeaders, colHeaders } = config;
+
+    if (row < 0) {
+      if (Array.isArray(nestedHeaders)) {
+        const rowRelative = row + nestedHeaders.length;
+
+        const currentValue = this.getCellAt(row, column);
+        const newValueColspan = value?.colspan;
+
+        if (isObject(currentValue) === false && isObject(value) &&
+          Number.isInteger(newValueColspan) && newValueColspan > 1) {
+          // Replacing headers stored as a repetitive string by object describing header with colspan.
+          nestedHeaders[rowRelative].splice(column, newValueColspan, value);
+
+        } else {
+          nestedHeaders[rowRelative][this.getNestedHeaderColumn(row, column)] = value;
+        }
+
+      } else if (Array.isArray(colHeaders)) {
+        if (isDefined(colHeaders[column])) {
+          colHeaders[column] = value;
+        }
+      }
+    } else if (row >= 0 && Array.isArray(data) && Array.isArray(data[row]) && isDefined(data[row][column])) {
+      data[row][column] = value;
+    }
+
+    this.overwriteInfo(config);
   }
 
   /**
@@ -548,10 +552,11 @@ export class ClipboardData {
 
     const config = this.getMetaInfo();
     const { data, nestedHeaders, colHeaders } = config;
+    const rowRelative = row + nestedHeaders.length;
 
     if (row < 0) {
       if (Array.isArray(nestedHeaders)) {
-        return this.getNestedHeader(row, column);
+        return nestedHeaders[rowRelative][this.getNestedHeaderColumn(row, column)];
 
       } else if (Array.isArray(colHeaders)) {
         if (isDefined(colHeaders[column])) {

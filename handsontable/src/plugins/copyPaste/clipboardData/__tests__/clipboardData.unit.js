@@ -8,7 +8,7 @@ import {
   simpleHandsontableWithOnlyHeaders,
   simpleWithHeaders,
   simpleWithOnlyNestedHeaders,
-  simpleWithNestedHeaders,
+  simpleWithNestedHeaders, simpleWithGroupHeaders,
 } from './dataExamples';
 
 describe('ClipboardData', () => {
@@ -118,5 +118,59 @@ describe('ClipboardData', () => {
 
     expect(clipboardData.getCellAt(0, 0)).toEqual('A1-modified');
     expect(clipboardData.getCellAt(-1, 0)).toEqual('A-0-modified');
+  });
+
+  it('should properly store data for grouped headers', () => {
+    const clipboardData = new PasteClipboardData('A-0-0\t\tC-0-0\t\tG-0-0\tH-0-0', simpleWithGroupHeaders);
+
+    expect(clipboardData.getData()).toEqual([
+      ['A-0-0', '', '', 'D-0-0', '', '', 'G-0-0', 'H-0-0'],
+    ]);
+
+    expect(clipboardData.getMetaInfo()).toEqual({
+      nestedHeaders: [[
+        { label: 'A-0-0', colspan: 3 },
+        { label: 'D-0-0', colspan: 3 },
+        'G-0-0',
+        'H-0-0',
+      ]],
+    });
+  });
+
+  it('should properly get data for grouped headers', () => {
+    const clipboardData = new PasteClipboardData('A-0-0\t\tC-0-0\t\tG-0-0\tH-0-0', simpleWithGroupHeaders);
+
+    expect(clipboardData.getCellAt(-1, 0)).toEqual({ label: 'A-0-0', colspan: 3 });
+    expect(clipboardData.getCellAt(-1, 1)).toEqual({ label: 'A-0-0', colspan: 3 });
+    expect(clipboardData.getCellAt(-1, 2)).toEqual({ label: 'A-0-0', colspan: 3 });
+    expect(clipboardData.getCellAt(-1, 3)).toEqual({ label: 'D-0-0', colspan: 3 });
+    expect(clipboardData.getCellAt(-1, 4)).toEqual({ label: 'D-0-0', colspan: 3 });
+    expect(clipboardData.getCellAt(-1, 5)).toEqual({ label: 'D-0-0', colspan: 3 });
+    expect(clipboardData.getCellAt(-1, 6)).toEqual('G-0-0');
+    expect(clipboardData.getCellAt(-1, 7)).toEqual('H-0-0');
+  });
+
+  it('should properly set data for grouped headers', () => {
+    const clipboardData = new PasteClipboardData('A-0-0\t\tC-0-0\t\tG-0-0\tH-0-0', simpleWithGroupHeaders);
+
+    clipboardData.setCellAt(-1, 0, { label: 'Z-0-0', colspan: 2 });
+    clipboardData.setCellAt(-1, 5, 'hello world');
+
+    // expect(clipboardData.getMetaInfo()).toEqual({
+    //   nestedHeaders: [[
+    //     { label: 'Z-0-0', colspan: 2 },
+    //     { label: 'D-0-0', colspan: 3 },
+    //     'hello world',
+    //     'H-0-0',
+    //   ]],
+    // });
+
+    expect(clipboardData.getCellAt(-1, 0)).toEqual({ label: 'Z-0-0', colspan: 2 });
+    expect(clipboardData.getCellAt(-1, 1)).toEqual({ label: 'Z-0-0', colspan: 2 });
+    expect(clipboardData.getCellAt(-1, 2)).toEqual({ label: 'D-0-0', colspan: 3 });
+    expect(clipboardData.getCellAt(-1, 3)).toEqual({ label: 'D-0-0', colspan: 3 });
+    expect(clipboardData.getCellAt(-1, 4)).toEqual({ label: 'D-0-0', colspan: 3 });
+    expect(clipboardData.getCellAt(-1, 5)).toEqual('hello world');
+    expect(clipboardData.getCellAt(-1, 6)).toEqual('H-0-0');
   });
 });

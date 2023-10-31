@@ -541,14 +541,14 @@ export class NestedHeaders extends BasePlugin {
           const colspan = headerData?.origColspan;
           const mergeStartColumn = headerData?.columnIndex;
 
-          if (colspan > 1 && isRoot === false) {
+          if (Number.isInteger(colspan) && colspan > 1 && isRoot === false) {
             const headerInfo = clipboardData.getCellAt(row, zeroBasedColumnIndex);
 
-            // Handling headers with colspan being stored as repetitive label.
+            // Handling headers with colspan being stored as a repetitive label.
             if (isObject(headerInfo) === false && startCol !== column) {
               clipboardData.setCellAt(row, zeroBasedColumnIndex, ''); // Overwriting repeated value.
 
-              // Handling copying middle of the header which has colspan (copied area starts with it).
+              // Handling copying middle of the header which has a colspan (the copied area starts with it).
             } else if (startCol === column) {
               const { label } = headerData;
               const columnsFromMergeStart = column - mergeStartColumn;
