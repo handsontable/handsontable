@@ -33,6 +33,8 @@ class CellCoords {
    * @type {boolean}
    */
   #isRtl = false;
+  #rowIndexMapper = null;
+  #columnIndexMapper = null;
 
   constructor(row, column, isRtl = false) {
     this.#isRtl = isRtl;
@@ -41,6 +43,33 @@ class CellCoords {
       this.row = row;
       this.col = column;
     }
+  }
+
+  /**
+   * Assigns the index mappers to the `CellCoords` instance.
+   *
+   * @param {object} mappers The index mappers.
+   * @param {IndexMapper} mappers.rowIndexMapper The instance of the row index mapper.
+   * @param {IndexMapper} mappers.columnIndexMapper The instance of the column index mapper.
+   * @returns {CellCoords}
+   */
+  assignIndexMappers({ rowIndexMapper, columnIndexMapper }) {
+    this.#rowIndexMapper = rowIndexMapper;
+    this.#columnIndexMapper = columnIndexMapper;
+
+    return this;
+  }
+
+  /**
+   * Returns `true` if the cell coordinates are visible (renderable).
+   *
+   * @returns {boolean}
+   */
+  isVisible() {
+    const row = this.row >= 0 ? this.#rowIndexMapper.getRenderableFromVisualIndex(this.row) : this.row;
+    const columns = this.col >= 0 ? this.#columnIndexMapper.getRenderableFromVisualIndex(this.col) : this.col;
+
+    return row !== null && columns !== null;
   }
 
   /**
@@ -223,7 +252,14 @@ class CellCoords {
    * @returns {CellCoords}
    */
   clone() {
-    return new CellCoords(this.row, this.col, this.#isRtl);
+    const coords = new CellCoords(this.row, this.col, this.#isRtl);
+
+    coords.assignIndexMappers({
+      rowIndexMapper: this.#rowIndexMapper,
+      columnIndexMapper: this.#columnIndexMapper,
+    });
+
+    return coords;
   }
 
   /**

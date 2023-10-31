@@ -1387,7 +1387,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {CellCoords}
    */
   this._createCellCoords = function(row, column) {
-    return instance.view._wt.createCellCoords(row, column);
+    return instance.view._wt
+      .createCellCoords(row, column)
+      .assignIndexMappers(instance);
   };
 
   /**

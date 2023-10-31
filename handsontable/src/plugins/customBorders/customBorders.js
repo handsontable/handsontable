@@ -179,7 +179,10 @@ export class CustomBorders extends BasePlugin {
     }
 
     const selectionType = detectSelectionType(selectionRanges);
-    const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType);
+    const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType, {
+      createCellCoords: this.hot._createCellCoords.bind(this.hot),
+      createCellRange: this.hot._createCellRange.bind(this.hot),
+    });
 
     arrayEach(selectionRanges, (selection) => {
       selectionSchemaNormalizer(selection).forAll((row, col) => {
@@ -226,7 +229,10 @@ export class CustomBorders extends BasePlugin {
     }
 
     const selectionType = detectSelectionType(selectionRanges);
-    const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType);
+    const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType, {
+      createCellCoords: this.hot._createCellCoords.bind(this.hot),
+      createCellRange: this.hot._createCellRange.bind(this.hot),
+    });
     const selectedBorders = [];
 
     arrayEach(selectionRanges, (selection) => {
