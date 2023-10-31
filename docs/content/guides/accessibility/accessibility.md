@@ -121,16 +121,18 @@ There are a variety of screen readers available to users. At Handsontable, we pr
 
 | Option                                  | Default | Definition |
 |:----------------------------------------|:--------|:-----------|
-| [**navigableHeaders**](https://handsontable.com/docs/javascript-data-grid/api/options/#navigableHeaders) | -       | -          |
-| [**tabMoves**](https://handsontable.com/docs/javascript-data-grid/api/options/#tabMoves)               | -       | -          |
-| [**enterMoves**](https://handsontable.com/docs/javascript-data-grid/api/options/#entermoves)           | -       | -          |
-| [**enterBeginsEditing**](https://handsontable.com/docs/javascript-data-grid/api/options/#enterbeginsediting) | -    | -          |
-| [**autoWrapCol**](https://handsontable.com/docs/javascript-data-grid/api/options/#autowrapcol)         | -       | -          |
-| [**autoWrapRow**](https://handsontable.com/docs/javascript-data-grid/api/options/#autowraprow)         | -       | -          |
-| [**renderAllRows**](https://handsontable.com/docs/javascript-data-grid/api/options/#renderallrows)     | -       | -          |
-| [**viewportColumnRenderingOffset**](https://handsontable.com/docs/javascript-data-grid/api/options/#viewportcolumnrenderingoffset) | - | -  |
+| [**navigableHeaders**](https://handsontable.com/docs/javascript-data-grid/api/options.md/#navigableHeaders) |-      |  -     |
+| [**tabMoves**](https://handsontable.com/docs/javascript-data-grid/api/options/#tabMoves)               |row: 0, col: 1|The `tabMoves` option sets the cell movement behavior for pressing the Tab key in a grid, allowing specification of the number of rows and columns to navigate, which can be defined using an object or a function.|
+| [**enterMoves**](https://handsontable.com/docs/javascript-data-grid/api/options/#entermoves)           |col: 0, row:1|The `enterMoves` option defines the navigation behavior upon pressing the Enter key in a grid, dictating the number of columns and rows the selection moves, which can be customized with an object or function, especially in relation to the `enterBeginsEditing` setting.|
+| [**enterBeginsEditing**](https://handsontable.com/docs/javascript-data-grid/api/options/#enterbeginsediting) |true  |The `enterBeginsEditing` option controls if pressing Enter key once starts editing the active cell (`true`, default) or moves to the next cell according to `enterMoves` settings (`false`).|
+| [**autoWrapCol**](https://handsontable.com/docs/javascript-data-grid/api/options/#autowrapcol)         |false     |The `autoWrapCol` option toggles vertical wrapping in a grid, where pressing ↓ in the bottom-most cell moves to the top cell of the next column and pressing ↑ in the top-most cell moves to the bottom cell of the previous column, with `true` activating this behavior and `false` (default) preventing it.|
+| [**autoWrapRow**](https://handsontable.com/docs/javascript-data-grid/api/options/#autowraprow)         |false      |The `autoWrapRow` option in a grid enables (`true`) or disables (`false`, default) wrapping the selection from the first cell to the last of the previous row and from the last cell to the first of the next row when navigating with arrow keys.|
+| [**renderAllRows**](https://handsontable.com/docs/javascript-data-grid/api/options/#renderallrows)     |undefined     |The `renderAllRows` option in Handsontable determines if row virtualization is turned off (`true`) to render all rows simultaneously, or turned on (`false`, default) to render rows efficiently as needed.
+|
+| [**viewportColumnRenderingOffset**](https://handsontable.com/docs/javascript-data-grid/api/options/#viewportcolumnrenderingoffset) |auto |The `viewportColumnRenderingOffset` option sets the quantity of columns that Handsontable pre-renders outside the visible grid area, with `auto` for automatic calculation or a specific number for manual configuration.
+|
 
-
+DEMO PLACEHOLDER
 
 ## High-contrast Theme
 Ensuring that content is easily readable and distinguishable is important for users, especially those with visual impairments. Proper contrast between elements not only enhances readability but also ensures that users can comfortably interact with the content for extended periods. The minimum recommended contrast between images and text, or a background and text, is [4.5:1](https://www.w3.org/WAI/WCAG21/quickref/#contrast-minimum). To meet this requirement we recommend either:
