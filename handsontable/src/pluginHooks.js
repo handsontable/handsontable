@@ -2825,10 +2825,7 @@ const REMOVED_HOOKS = new Map([
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 const DEPRECATED_HOOKS = new Map([
-  [
-    'beforeRemoveCellClassNames',
-    'The hook "beforeRemoveCellClassNames" is deprecated and will be removed in the next major release.'
-  ]
+  []
 ]);
 
 class Hooks {
