@@ -278,7 +278,6 @@ ReactDOM.render(<App />, document.getElementById('exampleKeyboardNavigation'));
 
 :::
 
-:::
 
 ## Navigation modes
 
