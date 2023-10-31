@@ -2157,8 +2157,8 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomSortIcons2'));
 
 :::
 
-To replace the icons that indicate sorting [by multiple columns](#sort-by-multiple-columns) (<sub>1</sub>, <sub>2</sub> etc.), change `content` for the
-`.columnSorting.sort-1::after` and subsequent pseudo-elements:
+To replace the icons that indicate sorting [by multiple columns](#sort-by-multiple-columns)
+(<sub>1</sub>, <sub>2</sub> etc.), change `content` for the `.columnSorting.sort-1 .columnSortingIndicator::after` and subsequent pseudo-elements:
 
 ::: only-for javascript
 
