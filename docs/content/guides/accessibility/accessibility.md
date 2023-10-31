@@ -25,7 +25,7 @@ searchCategory: Guides
 ---
 # Accessibility
 
-Handsontable offers comprehensive accessibility support in line with international standards. Due to our deep belief in the principle of "design for all", web applications should be as inclusive as possible. 
+Handsontable offers accessibility support in line with international standards. Due to our belief in the principle of "design for all", web applications should be as inclusive as possible. 
 
 [[toc]]
 
@@ -33,17 +33,15 @@ Handsontable offers comprehensive accessibility support in line with internation
 
 Accessibility features of Handsontable include:
 
-- Intuitive [keyboard navigation](@/guides/navigation/keyboard-navigation.md) that lets you access any feature without using a mouse.
-- Transparent HTML structure following best accessibility practices.
+- [Keyboard navigation](@/guides/navigation/keyboard-navigation.md) that lets you access any feature without using a mouse.
 - [WAI-ARIA](#wai-aria) roles and attributes that complement HTML where needed.
 - Support for the most popular [screen readers](#supported-screen-readers).
-- Compliance with the most important accessibility [standards and regulations](#accessibility-compliance).
+- Compliance with the accessibility [standards and regulations](#accessibility-compliance).
 - A set of configurable [accessibility options](#accessibility-configuration).
 
 ## Conformance with Standards
 Several regulatory standards were established by the governing bodies, for instance the European Union or the United States, which align with the Web Content Accessibility Guidelines (WCAG). They consist of a number of guidelines maintained by the World Wide Web Consortium (W3C). <br>
 Handsontable delivers conformance to W3C standards by meeting the requirements of [WCAG 2.1](https://www.w3.org/WAI/WCAG21/quickref/) at level AA.<br> 
-You may find a comprehensive list of policies appertaining to web accessibility in various jurisdictions [here](https://www.w3.org/WAI/policies/).
 
 - **Europe / EU:**
   - [European Accessibility Act (EAA)](https://ec.europa.eu/social/main.jsp?catId=1202)
@@ -57,23 +55,23 @@ You may find a comprehensive list of policies appertaining to web accessibility 
   - [Standard on Web Accessibility](https://www.tbs-sct.canada.ca/pol/doc-eng.aspx?id=23601)
 
 ### Accessibility Statement and Voluntary Product Accessibility Template (VPAT)
-The **Accessibility Statement** is a company's commitment, indicating how well their product caters to individuals with disabilities. **Voluntary Product Accessibility Template (VPAT)**, meanwhile, provides detailed insights into how a product aligns with user-friendly standards, such as the Web Content Accessibility Guidelines (WCAG).
+Companies integrating Handsontable into their applications aim for optimal user accessibility. If their apps adhere to standards like WCAG 2.1 AA, they expect Handsontable not to compromise that. By offering an **Accessibility Statement** and **VPAT**, Handsontable assures its commitment to universal usability.
 
-Why do these documents matter? Consider Handsontable. Companies integrating Handsontable into their applications aim for optimal user accessibility. If their apps adhere to standards like WCAG 2.1 AA, they expect Handsontable not to compromise that. By offering an **Accessibility Statement** and **VPAT**, Handsontable assures its commitment to universal usability.
+Accessibility Statement and VPAT (Voluntary Product Accessibility Template) for Handsontable outline how the product meets accessibility standards. This ensures compliance with laws like the Americans with Disabilities Act (ADA) and Section 508.
+
+A VPAT reflects a product's dedication to accessibility, which can improve an organization's image and demonstrate its values in creating software for the broadest audience, including those using assistive technologies.
 
 ### Accessibility testing
 
-Before releasing a new version of Handsontable, we carefully test it for accessibility, using a combination of different approaches:
+Before releasing a new version of Handsontable, we test it for accessibility, using different approaches:
 
 - We cover the most common use cases with automated unit and end-to-end tests.
-- We manually test all of Handsontable's features with the most popular screen readers (odniesienie do sekcji screen readers w tym artykule ).
+- We manually test all of Handsontable's features with the most popular screen readers.
 - We use automated visual regression testing.
-- We check Handsontable's accessibility score with a range of the most popular accessibility testing tools, such as Lighthouse, Axe-core, or Accessibility Insights for Web.
+- We check Handsontable's accessibility score with a range of the accessibility testing tools, such as Lighthouse, Axe-core, or Accessibility Insights for Web.
 
 ## Keyboard Navigation
-The principle of accessible web components is that users who cannot use a mouse can still navigate the product with a keyboard or other assistive technology.
-
-Handsontable provides intuitive navigation that allows access to all focusable elements in a predictable way. It also identifies elements currently holding focus across cells, headers, and subcomponents such as menus, fly-out editors, and more.
+Our goal is to provide a data grid that doesn't require a mouse to operate. This is important for people who rely on a keyboard or other assistive technologies. Importantly, depending on your needs, the navigation can be controlled or customized through the API.
 <br><br>Learn more in the following sections:
 
 - [Keyboard navigation](@/guides/navigation/keyboard-navigation.md)
@@ -82,7 +80,7 @@ Handsontable provides intuitive navigation that allows access to all focusable e
 - [Custom shortcuts](@/guides/navigation/custom-shortcuts.md)
 
 ### Navigation Models
-Handsontable is mainly used either as a spreadsheet-like application or as a data grid. At first glance, the differences may not be significant, but this entirely changes the user experience by altering the keyboard navigation within the grid. See the table below for a better context.
+Handsontable functions as both a spreadsheet application and a data grid. While the differences might seem minor at first, they significantly affect how users navigate using the keyboard. The following table provides more details for clearer understanding.
 | Feature/Setting                   | Data grid mode                                                                 | Spreadsheet mode (default)                                                                                           |
 |----------------------------------|--------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
 | Configuration options            | Enables navigation across headers, false by default <br>`navigableHeaders: true`<br><br> Disables navigation with the Tab key, true by default.<br>`tabMoves: false`                                  | <br>Enables navigation across headers, false by default<br>`navigableHeaders: false`<br><br>Disables navigation with the Tab key, true by default.<br>`tabMoves: true`                                                                        |
@@ -92,8 +90,9 @@ Handsontable is mainly used either as a spreadsheet-like application or as a dat
 | Navigable headers                | Yes                                                                            | No                                                                                                                   |
 | Complex shortcut keys            | No                                                                             | Yes                                                                                                                  |
 ### Shortcut Keys Configuration
-Handsontable provides an extensive amount of [built-in shortcut keys](https://handsontable.com/docs/javascript-data-grid/keyboard-shortcuts/) and the ability to customize them, but some of them stand out. <br><br>
-For instance, one great example would be opening the menus. The user gets access to variety of actions. With navigable headers enabled it gets easier for disabled users to navigate across the grid with simple shortcut keys.
+Hansontable includes a wide range of [shortcut keys](https://handsontable.com/docs/javascript-data-grid/keyboard-shortcuts/) for quick navigation and offers customization options. 
+
+Shortcuts for menu access streamline a variety of actions. When headers are set to be navigable, these shortcuts enhance accessibility, making it simpler for users with disabilities to move through the grid.
 | Action/Setting                   | Data grid mode (Navigable headers)                                           | Spreadsheet mode (Non-navigable headers)                                                    |
 |----------------------------------|------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
 | Open column menu                 | macOS: <kbd>Cmd</kbd> + <kbd>Enter</kbd><br>Windows: <kbd>Ctrl</kbd> + <kbd>Enter</kbd>                | macOS: <kbd>Shift</kbd> + <kbd>Option</kbd> + <kbd>i</kbd><br>Windows: <kbd>Shift</kbd> + <kbd>Alt</kbd> + <kbd>i</kbd> |
@@ -104,20 +103,21 @@ For instance, one great example would be opening the menus. The user gets access
 | Invoke context menu              | macOS: <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> <br> <br> Windows: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> | macOS: <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br>Windows: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> |
 
 
-This is the exerpt from [this](https://handsontable.com/docs/javascript-data-grid/keyboard-shortcuts/) page. 
+This is an excerpt from [this](https://handsontable.com/docs/javascript-data-grid/keyboard-shortcuts/) page. 
 
 ## Screen Readers
-Recognized by WAI-ARIA as a composite widget, Handsontable adopts the ARIA role of treegrid, ensuring that it adheres to established standards. To enhance the experience for visually impaired users, Handsontable employs ARIA attributes, which provide screen readers with a clearer understanding of the data's structure and content.
+Handsontable is recognized as a composite widget by WAI-ARIA and uses the ARIA role of 'treegrid' to meet established accessibility standards. It incorporates ARIA attributes to make the grid's structure and content more comprehensible to screen readers, improving the experience for users with visual impairments.
 
-There are a variety of screen readers available to users. At Handsontable, we prioritize the following screen readers in our testing to ensure optimal compatibility:
-- JAWS (Windows)
-- VoiceOver (macOS)
-- NVDA (Windows)
-- ChromeVox (Chrome Screen Reader)
+Handsontable focuses on compatibility with a range of screen readers, with particular emphasis on testing with:
+
+* JAWS for Windows
+* VoiceOver for macOS
+* NVDA for Windows
+* ChromeVox, the Chrome screen reader
 
 
 ## Accessibility Demo
-**Handsontable demo optimized for Accessibility** can look differently depending on the application you build. In this demo below you enable or disable multiple options that change the level of support for disabled users.
+**Handsontable demo optimized for Accessibility** may vary based on the application you create. In the demo provided, you can toggle various options to adjust the accessibility support for users with disabilities.
 
 | Option                                  | Default | Definition |
 |:----------------------------------------|:--------|:-----------|
@@ -135,11 +135,10 @@ There are a variety of screen readers available to users. At Handsontable, we pr
 DEMO PLACEHOLDER
 
 ## High-contrast Theme
-Ensuring that content is easily readable and distinguishable is important for users, especially those with visual impairments. Proper contrast between elements not only enhances readability but also ensures that users can comfortably interact with the content for extended periods. The minimum recommended contrast between images and text, or a background and text, is [4.5:1](https://www.w3.org/WAI/WCAG21/quickref/#contrast-minimum). To meet this requirement we recommend either:
+It's essential to make content easy to read and distinguish, particularly for users with visual impairments. High contrast between elements improves readability and user comfort during prolonged interaction. The recommended minimum contrast ratio for text against images or backgrounds is [4.5:1](https://www.w3.org/WAI/WCAG21/quickref/#contrast-minimum), as outlined by the Web Content Accessibility Guidelines (WCAG). To achieve this level of contrast, consider the following options:
 
-- Overriding the default Handsontable theme with custom CSS values.
-- Use the special software, like the [High Contrast](https://chrome.google.com/webstore/detail/high-contrast/djcfdncoelnlbldjfhinnjlhdjlikmph) plugin maintained by Google for Chrome users.
-
+* Customize the default Handsontable theme using your own CSS settings.
+* Utilize tools designed for this purpose, such as the [High Contrast](https://chrome.google.com/webstore/detail/high-contrast/djcfdncoelnlbldjfhinnjlhdjlikmph) extension offered by Google for Chrome.
 
 ## Requirements for the Developers
 
