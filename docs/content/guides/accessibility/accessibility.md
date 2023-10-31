@@ -23,11 +23,13 @@ react:
   metaTitle: Accessibility - React Data Grid | Handsontable
 searchCategory: Guides
 ---
+# Accessibility
+
+Handsontable offers comprehensive accessibility support in line with international standards. Due to our deep belief in the principle of "design for all", web applications should be as inclusive as possible. 
+
 [[toc]]
 
 ## Overview
-
-Handsontable offers comprehensive accessibility support in line with international standards. Due to our deep belief in the principle of "design for all", web applications should be as inclusive as possible.
 
 Accessibility features of Handsontable include:
 

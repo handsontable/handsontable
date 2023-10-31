@@ -4,8 +4,8 @@ id: 5w6juytvv
 title: Keyboard shortcuts
 metaTitle: Keyboard shortcuts - JavaScript Data Grid | Handsontable
 description: Access all Handsontable features using just your keyboard. Use shortcuts you know from Google Sheets or Microsoft Excel.
-permalink: /keyboard-shortcuts
-canonicalUrl: /keyboard-shortcuts
+permalink: /keyboard-shortcuts-v
+canonicalUrl: /keyboard-shortcuts-v
 tags:
   - key bindings
   - keymap
