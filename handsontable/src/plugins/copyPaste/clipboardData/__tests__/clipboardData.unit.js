@@ -156,14 +156,14 @@ describe('ClipboardData', () => {
     clipboardData.setCellAt(-1, 0, { label: 'Z-0-0', colspan: 2 });
     clipboardData.setCellAt(-1, 5, 'hello world');
 
-    // expect(clipboardData.getMetaInfo()).toEqual({
-    //   nestedHeaders: [[
-    //     { label: 'Z-0-0', colspan: 2 },
-    //     { label: 'D-0-0', colspan: 3 },
-    //     'hello world',
-    //     'H-0-0',
-    //   ]],
-    // });
+    expect(clipboardData.getMetaInfo()).toEqual({
+      nestedHeaders: [[
+        { label: 'Z-0-0', colspan: 2 },
+        { label: 'D-0-0', colspan: 3 },
+        'hello world',
+        'H-0-0',
+      ]],
+    });
 
     expect(clipboardData.getCellAt(-1, 0)).toEqual({ label: 'Z-0-0', colspan: 2 });
     expect(clipboardData.getCellAt(-1, 1)).toEqual({ label: 'Z-0-0', colspan: 2 });
