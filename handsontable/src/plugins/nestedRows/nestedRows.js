@@ -14,10 +14,7 @@ export const PLUGIN_KEY = 'nestedRows';
 export const PLUGIN_PRIORITY = 300;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
-const privatePool = new WeakMap();
-
 /* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * Error message for the wrong data type error.
  */
@@ -40,37 +37,39 @@ export class NestedRows extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * Reference to the DataManager instance.
-     *
-     * @private
-     * @type {object}
-     */
-    this.dataManager = null;
-
-    /**
-     * Reference to the HeadersUI instance.
-     *
-     * @private
-     * @type {object}
-     */
-    this.headersUI = null;
-    /**
-     * Map of skipped rows by plugin.
-     *
-     * @private
-     * @type {null|TrimmingMap}
-     */
-    this.collapsedRowsMap = null;
-
-    privatePool.set(this, {
-      movedToCollapsed: false,
-      skipRender: null,
-      skipCoreAPIModifiers: false
-    });
-  }
+  /**
+   * Reference to the DataManager instance.
+   *
+   * @private
+   * @type {object}
+   */
+  dataManager = null;
+  /**
+   * Reference to the HeadersUI instance.
+   *
+   * @private
+   * @type {object}
+   */
+  headersUI = null;
+  /**
+   * Map of skipped rows by plugin.
+   *
+   * @private
+   * @type {null|TrimmingMap}
+   */
+  collapsedRowsMap = null;
+  /**
+   * Allows skipping the render cycle if set as `true`.
+   *
+   * @type {boolean}
+   */
+  #skipRender = false;
+  /**
+   * Allows skipping the internal Core methods call if set as `true`.
+   *
+   * @type {boolean}
+   */
+  #skipCoreAPIModifiers = false;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -215,20 +214,20 @@ export class NestedRows extends BasePlugin {
   /**
    * Enable the modify hook skipping flag - allows retrieving the data from Handsontable without this plugin's
    * modifications.
+   *
+   * @private
    */
   disableCoreAPIModifiers() {
-    const priv = privatePool.get(this);
-
-    priv.skipCoreAPIModifiers = true;
+    this.#skipCoreAPIModifiers = true;
   }
 
   /**
    * Disable the modify hook skipping flag.
+   *
+   * @private
    */
   enableCoreAPIModifiers() {
-    const priv = privatePool.get(this);
-
-    priv.skipCoreAPIModifiers = false;
+    this.#skipCoreAPIModifiers = false;
   }
 
   /**
@@ -251,9 +250,7 @@ export class NestedRows extends BasePlugin {
    * @returns {boolean}
    */
   onModifyRowData(row) {
-    const priv = privatePool.get(this);
-
-    if (priv.skipCoreAPIModifiers) {
+    if (this.#skipCoreAPIModifiers) {
       return;
     }
 
@@ -267,9 +264,7 @@ export class NestedRows extends BasePlugin {
    * @returns {number}
    */
   onModifySourceLength() {
-    const priv = privatePool.get(this);
-
-    if (priv.skipCoreAPIModifiers) {
+    if (this.#skipCoreAPIModifiers) {
       return;
     }
 
@@ -284,9 +279,7 @@ export class NestedRows extends BasePlugin {
    * @returns {boolean}
    */
   onBeforeDataSplice(index, amount, element) {
-    const priv = privatePool.get(this);
-
-    if (priv.skipCoreAPIModifiers || this.dataManager.isRowHighestLevel(index)) {
+    if (this.#skipCoreAPIModifiers || this.dataManager.isRowHighestLevel(index)) {
       return true;
     }
 
@@ -305,14 +298,12 @@ export class NestedRows extends BasePlugin {
    * @returns {Array}
    */
   onFilterData(index, amount, physicalRows) {
-    const priv = privatePool.get(this);
-
     this.collapsingUI.collapsedRowsStash.stash();
     this.collapsingUI.collapsedRowsStash.trimStash(physicalRows[0], amount);
     this.collapsingUI.collapsedRowsStash.shiftStash(physicalRows[0], null, (-1) * amount);
     this.dataManager.filterData(index, amount, physicalRows);
 
-    priv.skipRender = true;
+    this.#skipRender = true;
 
     return this.dataManager.getData().slice(); // Data contains reference sometimes.
   }
@@ -347,7 +338,7 @@ export class NestedRows extends BasePlugin {
    * @returns {number}
    */
   onModifyRowHeaderWidth(rowHeaderWidth) {
-    return this.headersUI.rowHeaderWidthCache || rowHeaderWidth;
+    return Math.max(this.headersUI.rowHeaderWidthCache, rowHeaderWidth);
   }
 
   /**
@@ -364,13 +355,11 @@ export class NestedRows extends BasePlugin {
       return;
     }
 
-    const priv = privatePool.get(this);
-
-    setTimeout(() => {
-      priv.skipRender = null;
+    this.hot._registerTimeout(() => {
+      this.#skipRender = null;
       this.headersUI.updateRowHeaderWidth();
       this.collapsingUI.collapsedRowsStash.applyStash();
-    }, 0);
+    });
   }
 
   /**
@@ -480,9 +469,7 @@ export class NestedRows extends BasePlugin {
    * @private
    */
   onBeforeViewRender(force, skipRender) {
-    const priv = privatePool.get(this);
-
-    if (priv.skipRender) {
+    if (this.#skipRender) {
       skipRender.skipRender = true;
     }
   }
