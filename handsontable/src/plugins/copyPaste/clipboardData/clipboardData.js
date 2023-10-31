@@ -552,10 +552,11 @@ export class ClipboardData {
 
     const config = this.getMetaInfo();
     const { data, nestedHeaders, colHeaders } = config;
-    const rowRelative = row + nestedHeaders.length;
 
     if (row < 0) {
       if (Array.isArray(nestedHeaders)) {
+        const rowRelative = row + nestedHeaders.length;
+
         return nestedHeaders[rowRelative][this.getNestedHeaderColumn(row, column)];
 
       } else if (Array.isArray(colHeaders)) {

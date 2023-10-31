@@ -109,6 +109,7 @@ describe('ClipboardData', () => {
 
   it('should return proper values after using `getCellAt` and `setCellAt` methods', () => {
     const clipboardData = new PasteClipboardData('A-1\tB-1\nA-0\tB-0\nA1\tB1', simpleWithNestedHeaders);
+    const clipboardData2 = new PasteClipboardData('B2\t\n\t', simpleWithMergedCell);
 
     expect(clipboardData.getCellAt(0, 0)).toEqual('A1');
     expect(clipboardData.getCellAt(-1, 0)).toEqual('A-0');
@@ -118,6 +119,18 @@ describe('ClipboardData', () => {
 
     expect(clipboardData.getCellAt(0, 0)).toEqual('A1-modified');
     expect(clipboardData.getCellAt(-1, 0)).toEqual('A-0-modified');
+
+    expect(clipboardData2.getCellAt(0, 0)).toEqual('B2');
+    expect(clipboardData2.getCellAt(0, 1)).toEqual(null);
+    expect(clipboardData2.getCellAt(1, 0)).toEqual(null);
+    expect(clipboardData2.getCellAt(1, 1)).toEqual(null);
+
+    clipboardData2.setCellAt(0, 0, 'B2-modified');
+
+    expect(clipboardData2.getCellAt(0, 0)).toEqual('B2-modified');
+    expect(clipboardData2.getCellAt(0, 1)).toEqual(null);
+    expect(clipboardData2.getCellAt(1, 0)).toEqual(null);
+    expect(clipboardData2.getCellAt(1, 1)).toEqual(null);
   });
 
   it('should properly store data for grouped headers', () => {
