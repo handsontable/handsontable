@@ -208,6 +208,13 @@
   border-color: #18804e;
   color: #fff;
 }
+
+.handsontable .htUIInput.htUIButtonOK input:focus-visible {
+  background-color: #92dd8d;
+  border-color: #7cb878;
+  color: #000;
+}
+
 .handsontable .htUIInput.htUIButtonOK input:hover {
   border-color: #1a6f46;
 }
