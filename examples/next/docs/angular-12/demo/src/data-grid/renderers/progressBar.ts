@@ -1,5 +1,5 @@
 import Handsontable from "handsontable";
-import { baseRenderer } from 'handsontable/renderers/baseRenderer';
+import { baseRenderer } from "handsontable/renderers/baseRenderer";
 
 type AddClassWhenNeeded = (
   td: HTMLTableCellElement,
@@ -26,7 +26,7 @@ export const progressBarRenderer: typeof baseRenderer = (
   const div = document.createElement("div");
 
   div.style.width = `${value * 10}px`;
-  div.ariaLabel = `${value * 10}%`;
+  div.setAttribute("aria-label", `${value * 10}%`);
 
   addClassWhenNeeded(td, cellProperties);
   Handsontable.dom.addClass(div, "progressBar");

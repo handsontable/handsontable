@@ -13,7 +13,7 @@ export const starsRenderer: typeof baseRenderer = function(
 ) {
   const div = document.createElement("div");
   div.textContent = "★".repeat(value);
-  div.ariaLabel = `${value}`;
+  div.setAttribute('aria-label', `${value}`);
   Handsontable.dom.addClass(div, "stars");
   Handsontable.dom.empty(td);
 

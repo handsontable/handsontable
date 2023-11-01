@@ -1,5 +1,5 @@
 import Handsontable from "handsontable";
-import { SELECTED_CLASS, ODD_ROW_CLASS } from "./constants";
+import { ODD_ROW_CLASS } from "./constants";
 
 const headerAlignments = new Map([
   ["9", "htCenter"],
@@ -21,8 +21,7 @@ export const addClassesToRows: AddClassesToRows = (
   row,
   column,
   _prop,
-  _value,
-  cellProperties
+  _value
 ) => {
   // Adding classes to `TR` just while rendering first visible `TD` element
   if (column !== 0) {
@@ -41,7 +40,6 @@ export const addClassesToRows: AddClassesToRows = (
     Handsontable.dom.removeClass(parentElement, ODD_ROW_CLASS);
   }
 };
-
 
 export function alignHeaders(
   this: Handsontable,
