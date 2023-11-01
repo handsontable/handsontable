@@ -1,4 +1,5 @@
 import Handsontable from "handsontable";
+import { baseRenderer } from "handsontable/renderers";
 
 type AddClassWhenNeeded = (
   td: HTMLTableCellElement,
@@ -13,18 +14,19 @@ const addClassWhenNeeded: AddClassWhenNeeded = (td, cellProperties) => {
   }
 };
 
-export const progressBarRenderer: Handsontable.renderers.Base = (
-  instance,
+export const progressBarRenderer: typeof baseRenderer = (
+  _instance,
   td,
-  row,
-  column,
-  prop,
+  _row,
+  _col,
+  _prop,
   value,
   cellProperties
-) => {
+): void => {
   const div = document.createElement("div");
 
   div.style.width = `${value * 10}px`;
+  div.ariaLabel = `${value * 10}%`;
 
   addClassWhenNeeded(td, cellProperties);
   Handsontable.dom.addClass(div, "progressBar");
@@ -33,22 +35,20 @@ export const progressBarRenderer: Handsontable.renderers.Base = (
   td.appendChild(div);
 };
 
-export const starsRenderer: Handsontable.renderers.Base = (
-  instance,
+export const starsRenderer: typeof baseRenderer = (
+  _instance,
   td,
-  row,
-  column,
-  prop,
+  _row,
+  _col,
+  _prop,
   value,
-  cellProperties
-) => {
-  Handsontable.renderers.TextRenderer.apply(this, [
-    instance,
-    td,
-    row,
-    column,
-    prop,
-    "★".repeat(value),
-    cellProperties
-  ]);
+  _cellProperties
+): void => {
+  const div = document.createElement("div");
+  div.textContent = "★".repeat(value);
+  div.ariaLabel = `${value}`;
+  Handsontable.dom.addClass(div, "stars");
+  Handsontable.dom.empty(td);
+
+  td.appendChild(div);
 };
