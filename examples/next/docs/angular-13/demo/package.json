@@ -26,8 +26,8 @@
     "@angular/platform-browser": "v13-lts",
     "@angular/platform-browser-dynamic": "v13-lts",
     "@angular/router": "v13-lts",
-    "@handsontable/angular": "next",
-    "handsontable": "next",
+    "@handsontable/angular": "14.0.0-next-5fd908e-20231030",
+    "handsontable": "14.0.0-next-5fd908e-20231030",
     "rxjs": "6.6.7",
     "tslib": "1.14.1",
     "zone.js": "0.11.5"
