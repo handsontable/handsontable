@@ -9,9 +9,7 @@ import { ProgressBarRenderer } from "./renderers/ProgressBar";
 import { StarsRenderer } from "./renderers/Stars";
 
 import {
-  drawCheckboxInRowHeaders,
   addClassesToRows,
-  changeCheckboxCell,
   alignHeaders
 } from "./hooksCallbacks";
 
@@ -44,9 +42,9 @@ const App = () => {
       rowHeaders={true}
       afterGetColHeader={alignHeaders}
       beforeRenderer={addClassesToRows}
-      afterGetRowHeader={drawCheckboxInRowHeaders}
-      afterOnCellMouseDown={changeCheckboxCell}
       manualRowMove={true}
+      autoWrapRow={true}
+      navigableHeaders={true}
       licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data={1} />
