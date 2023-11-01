@@ -53,11 +53,9 @@ const App = () => {
       <HotColumn data={6} type="checkbox" className="htCenter" />
       <HotColumn data={7} type="numeric" />
       <HotColumn data={8} readOnly={true} className="htMiddle">
-        {/* @ts-ignore Element inherits some props. It's hard to type it. */}
         <ProgressBarRenderer hot-renderer />
       </HotColumn>
       <HotColumn data={9} readOnly={true} className="htCenter">
-        {/* @ts-ignore Element inherits some props. It's hard to type it. */}
         <StarsRenderer hot-renderer />
       </HotColumn>
       <HotColumn data={5} />

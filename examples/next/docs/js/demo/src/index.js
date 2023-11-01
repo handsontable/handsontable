@@ -116,6 +116,8 @@ new Handsontable(example, {
   filters: true,
   rowHeaders: true,
   manualRowMove: true,
+  navigableHeaders: true,
+  autoWrapCol: true,
   afterGetColHeader: alignHeaders,
   beforeRenderer: addClassesToRows,
   licenseKey: "non-commercial-and-evaluation"
