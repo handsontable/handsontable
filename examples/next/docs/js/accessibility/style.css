@@ -13,7 +13,7 @@ html {
   A stylesheet customizing app (custom renderers)
 */
 
-table.htCore td.star {
+table.htCore td .stars {
   color: #fcb515;
 }
 
