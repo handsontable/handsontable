@@ -518,7 +518,9 @@ const dictionary = {
   [C.FILTERS_BUTTONS_CANCEL]: 'Cancel',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Search',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Value',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Second value'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Second value',
+  [C.CHECKBOX_CHECKED]: 'Checked',
+  [C.CHECKBOX_UNCHECKED]: 'Unchecked'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = dictionary;
@@ -1418,7 +1420,9 @@ const dictionary = {
   [C.FILTERS_BUTTONS_CANCEL]: 'Anuluj',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Szukaj',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Wartość',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druga wartość'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druga wartość',
+  [C.CHECKBOX_CHECKED]: 'Zaznaczony',
+  [C.CHECKBOX_UNCHECKED]: 'Odznaczony'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = dictionary;
