@@ -1,3 +1,6 @@
+import { toSingleLine } from '../../../../helpers/templateLiteralTag';
+import { IndexMapper } from '../../../../translations';
+
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @description
@@ -30,10 +33,22 @@ class CellCoords {
    */
   col = null;
   /**
+   * A flag which determines if the coordinates run in RTL mode.
+   *
    * @type {boolean}
    */
   #isRtl = false;
+  /**
+   * A reference to the row index mapper.
+   *
+   * @type {IndexMapper}
+   */
   #rowIndexMapper = null;
+  /**
+   * A reference to the column index mapper.
+   *
+   * @type {IndexMapper}
+   */
   #columnIndexMapper = null;
 
   constructor(row, column, isRtl = false) {
@@ -54,6 +69,11 @@ class CellCoords {
    * @returns {CellCoords}
    */
   assignIndexMappers({ rowIndexMapper, columnIndexMapper }) {
+    if (!(rowIndexMapper instanceof IndexMapper) || !(columnIndexMapper instanceof IndexMapper)) {
+      throw new Error(toSingleLine`The "rowIndexMapper" and "columnIndexMapper" arguments must be\x20
+                                   an instance of IndexMapper class.`);
+    }
+
     this.#rowIndexMapper = rowIndexMapper;
     this.#columnIndexMapper = columnIndexMapper;
 
@@ -66,6 +86,11 @@ class CellCoords {
    * @returns {boolean}
    */
   isVisible() {
+    if (this.#rowIndexMapper === null || this.#columnIndexMapper === null) {
+      throw new Error(toSingleLine`To calculate if the cell coordinates are visible, you need to assign the index\x20
+                                   mappers to the CellCoords instance.`);
+    }
+
     const row = this.row >= 0 ? this.#rowIndexMapper.getRenderableFromVisualIndex(this.row) : this.row;
     const columns = this.col >= 0 ? this.#columnIndexMapper.getRenderableFromVisualIndex(this.col) : this.col;
 

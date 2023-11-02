@@ -1,3 +1,5 @@
+import { IndexMapper } from '../../../../translations';
+
 export default class CellCoords {
   constructor(row: number, column: number, isRtl?: boolean);
 
@@ -12,10 +14,12 @@ export default class CellCoords {
   }): boolean;
   isRtl(): boolean;
   isEqual(cellCoords: CellCoords): boolean;
+  isVisible(): boolean;
   isSouthEastOf(testedCoords: any): boolean;
   isNorthWestOf(testedCoords: any): boolean;
   isSouthWestOf(testedCoords: any): boolean;
   isNorthEastOf(testedCoords: any): boolean;
+  assignIndexMappers({ rowIndexMapper: IndexMapper, columnIndexMapper: IndexMapper }): CellCoords;
   normalize(): CellCoords;
   assign(coords: CellCoords | { row?: number, col?: number }): CellCoords;
   clone(): CellCoords;

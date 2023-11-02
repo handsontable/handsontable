@@ -3,7 +3,6 @@ import Hooks from '../../pluginHooks';
 import { arrayEach } from '../../helpers/array';
 import { objectEach } from '../../helpers/object';
 import { CommandExecutor } from './commandExecutor';
-import EventManager from '../../eventManager';
 import { ItemsFactory } from './itemsFactory';
 import {
   Menu,
@@ -97,39 +96,26 @@ export class ContextMenu extends BasePlugin {
   }
 
   /**
-   * @param {Core} hotInstance Handsontable instance.
+   * Instance of {@link CommandExecutor}.
+   *
+   * @private
+   * @type {CommandExecutor}
    */
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * Instance of {@link EventManager}.
-     *
-     * @private
-     * @type {EventManager}
-     */
-    this.eventManager = new EventManager(this);
-    /**
-     * Instance of {@link CommandExecutor}.
-     *
-     * @private
-     * @type {CommandExecutor}
-     */
-    this.commandExecutor = new CommandExecutor(this.hot);
-    /**
-     * Instance of {@link ItemsFactory}.
-     *
-     * @private
-     * @type {ItemsFactory}
-     */
-    this.itemsFactory = null;
-    /**
-     * Instance of {@link Menu}.
-     *
-     * @private
-     * @type {Menu}
-     */
-    this.menu = null;
-  }
+  #commandExecutor = new CommandExecutor(this.hot);
+  /**
+   * Instance of {@link ItemsFactory}.
+   *
+   * @private
+   * @type {ItemsFactory}
+   */
+  #itemsFactory = null;
+  /**
+   * Instance of {@link Menu}.
+   *
+   * @private
+   * @type {Menu}
+   */
+  menu = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -152,7 +138,7 @@ export class ContextMenu extends BasePlugin {
     const settings = this.hot.getSettings()[PLUGIN_KEY];
 
     if (typeof settings.callback === 'function') {
-      this.commandExecutor.setCommonCallback(settings.callback);
+      this.#commandExecutor.setCommonCallback(settings.callback);
     }
 
     this.menu = new Menu(this.hot, {
@@ -272,7 +258,7 @@ export class ContextMenu extends BasePlugin {
    */
   close() {
     this.menu?.close();
-    this.itemsFactory = null;
+    this.#itemsFactory = null;
   }
 
   /**
@@ -306,11 +292,11 @@ export class ContextMenu extends BasePlugin {
    * @param {*} params Additional parameters passed to command executor module.
    */
   executeCommand(commandName, ...params) {
-    if (this.itemsFactory === null) {
+    if (this.#itemsFactory === null) {
       this.prepareMenuItems();
     }
 
-    this.commandExecutor.execute(commandName, ...params);
+    this.#commandExecutor.execute(commandName, ...params);
   }
 
   /**
@@ -321,24 +307,24 @@ export class ContextMenu extends BasePlugin {
    * @fires Hooks#beforeContextMenuSetItems
    */
   prepareMenuItems() {
-    this.itemsFactory = new ItemsFactory(this.hot, ContextMenu.DEFAULT_ITEMS);
+    this.#itemsFactory = new ItemsFactory(this.hot, ContextMenu.DEFAULT_ITEMS);
 
     const settings = this.hot.getSettings()[PLUGIN_KEY];
     const predefinedItems = {
-      items: this.itemsFactory.getItems(settings)
+      items: this.#itemsFactory.getItems(settings)
     };
 
     this.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
 
-    this.itemsFactory.setPredefinedItems(predefinedItems.items);
-    const menuItems = this.itemsFactory.getItems(settings);
+    this.#itemsFactory.setPredefinedItems(predefinedItems.items);
+    const menuItems = this.#itemsFactory.getItems(settings);
 
     this.hot.runHooks('beforeContextMenuSetItems', menuItems);
 
     this.menu.setMenuItems(menuItems);
 
     // Register all commands. Predefined and added by user or by plugins
-    arrayEach(menuItems, command => this.commandExecutor.registerCommand(command.key, command));
+    arrayEach(menuItems, command => this.#commandExecutor.registerCommand(command.key, command));
   }
 
   /**
