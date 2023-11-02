@@ -66,6 +66,7 @@ interface ClipboardData {
   setCellAt: (row: number, column: number, value: any) => void;
   getData: () => any[][];
   getMetaInfo: () => GridSettings;
+  setMetaInfo: (property: 'colHeaders' | 'nestedHeaders' | 'mergeCells' | 'data', value: any) => void;
   getType: () => 'handsontable' | 'table' | 'unrecognizable';
 }
 

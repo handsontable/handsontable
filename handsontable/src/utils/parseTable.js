@@ -152,16 +152,12 @@ function getNestedHeadersHTML(nestedHeaders, excludedHeaders, excludedColumns) {
     for (let i = 0; i < listOfHeaders.length; i += 1) {
       const header = listOfHeaders[i];
       let headerValue = header;
-      let colspanAttribute = '';
 
       if (isObject(header)) {
-        const { colspan, label } = header;
-
-        headerValue = label;
-        colspanAttribute = ` colspan=${colspan}`;
+        headerValue = header.label;
       }
 
-      rowHTML.push(`<th${colspanAttribute}>${encodeHTMLEntities(parseEmptyValues(headerValue))}</th>`);
+      rowHTML.push(`<th>${encodeHTMLEntities(parseEmptyValues(headerValue))}</th>`);
     }
 
     rowHTML.push('</tr>');
@@ -458,21 +454,7 @@ function getHeadersHTMLByCoords(hotInstance, config) {
     const rowHTML = ['<tr>'];
 
     for (let i = 0; i < columns.length; i += 1) {
-      const columnIndex = columns[i];
-      const headerCell = hotInstance.getCell(rowIndex, columnIndex);
-      const colspan = headerCell?.getAttribute('colspan');
-      let colspanAttribute = '';
-
-      if (colspan) {
-        const parsedColspan = parseInt(colspan, 10);
-        const colspanReduced = Math.min(parsedColspan, columns.length - i);
-
-        colspanAttribute = ` colspan=${colspanReduced}`;
-        i += colspanReduced - 1;
-      }
-
-      rowHTML.push(`<th${colspanAttribute}>${
-        encodeHTMLEntities(parseEmptyValues(hotInstance.getColHeader(columnIndex, rowIndex)))}</th>`);
+      rowHTML.push(`<th>${encodeHTMLEntities(parseEmptyValues(hotInstance.getColHeader(columns[i], rowIndex)))}</th>`);
     }
 
     rowHTML.push('</tr>');
@@ -502,19 +484,7 @@ function getHeadersDataByCoords(hotInstance, config) {
     const rowData = [];
 
     for (let i = 0; i < columns.length; i += 1) {
-      const columnIndex = columns[i];
-      const headerCell = hotInstance.getCell(rowIndex, columnIndex);
-      const colspan = headerCell?.getAttribute('colspan');
-
-      rowData.push(hotInstance.getColHeader(columnIndex, rowIndex));
-
-      if (colspan) {
-        const parsedColspan = parseInt(colspan, 10);
-        const colspanReduced = Math.min(parsedColspan, columns.length - i);
-
-        rowData.push(...new Array(colspanReduced - 1).fill(''));
-        i += colspanReduced - 1;
-      }
+      rowData.push(hotInstance.getColHeader(columns[i], rowIndex));
     }
 
     headersData.push(rowData);

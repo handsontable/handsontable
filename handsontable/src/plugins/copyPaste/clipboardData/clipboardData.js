@@ -60,6 +60,25 @@ export class ClipboardData {
   }
 
   /**
+   * Sets meta information for certain property.
+   *
+   * @param {string} property Property for which the meta information will be changed.
+   * @param {*} value New meta information value.
+   */
+  setMetaInfo(property, value) {
+    const metaInfo = this.getMetaInfo();
+
+    if (value === undefined) {
+      delete metaInfo[property];
+
+    } else {
+      metaInfo[property] = value;
+    }
+
+    this.overwriteInfo(metaInfo);
+  }
+
+  /**
    * Overwrite stored data basing on handled configuration.
    *
    * @private

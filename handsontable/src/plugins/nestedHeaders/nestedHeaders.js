@@ -15,7 +15,7 @@ import StateManager from './stateManager';
 import GhostTable from './utils/ghostTable';
 
 import './nestedHeaders.css';
-import { isObject } from '../../helpers/object';
+import { normalizeRanges } from '../copyPaste/copyableRanges';
 
 export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;
@@ -519,49 +519,47 @@ export class NestedHeaders extends BasePlugin {
    * @param {Function} clipboardData.getCellAt Get headers or cells from the copied/pasted dataset.
    * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
    * @param {Function} clipboardData.getMetaInfo Gets grid settings for copied data.
+   * @param {Function} clipboardData.setMetaInfo Sets grid settings for copied data.
    * @param {Function} clipboardData.getRanges Returns ranges related to copied part of Handsontable.
    */
   onBeforeCopy(clipboardData) {
-    const copyableRanges = clipboardData.getRanges();
+    const { rows, columns } = normalizeRanges(clipboardData.getRanges());
+    const headers = rows.filter(row => row < 0);
+    const nestedHeaders = [];
 
-    for (let rangeIndex = 0; rangeIndex < copyableRanges.length; rangeIndex += 1) {
-      const { startRow, startCol, endRow, endCol } = copyableRanges[rangeIndex];
-      const columnsCount = startCol - endCol + 1;
+    headers.forEach((header) => {
+      const headersForLevel = [];
 
-      // do not process dataset ranges and column headers where only one column is copied
-      if (startRow >= 0 || columnsCount === 1) {
-        break;
-      }
+      columns.forEach((column, index) => {
+        const { isPlaceholder } = this.getHeaderSettings(header, column);
+        const columnsToEnd = columns.slice(index).length;
 
-      for (let row = startRow; row <= endRow; row += 1) {
-        for (let column = startCol; column <= endCol; column += 1) {
-          const zeroBasedColumnIndex = column - startCol;
-          const headerData = this.#stateManager.getHeaderTreeNodeData(row, column);
-          const isRoot = headerData?.isRoot;
-          const colspan = headerData?.origColspan;
-          const mergeStartColumn = headerData?.columnIndex;
+        if (index === 0 && isPlaceholder === true) {
+          const headerTreeNodeData = this.getStateManager().getHeaderTreeNodeData(header, column);
+          const { label, colspan, columnIndex } = headerTreeNodeData;
+          const columnFromStart = column - columnIndex;
+          const reducedColspan = Math.min(colspan - columnFromStart, columnsToEnd);
 
-          if (Number.isInteger(colspan) && colspan > 1 && isRoot === false) {
-            const headerInfo = clipboardData.getCellAt(row, zeroBasedColumnIndex);
+          if (reducedColspan > 1) {
+            headersForLevel.push({ label, colspan: reducedColspan });
 
-            // Handling headers with colspan being stored as a repetitive label.
-            if (isObject(headerInfo) === false && startCol !== column) {
-              clipboardData.setCellAt(row, zeroBasedColumnIndex, ''); // Overwriting repeated value.
-
-              // Handling copying middle of the header which has a colspan (the copied area starts with it).
-            } else if (startCol === column) {
-              const { label } = headerData;
-              const columnsFromMergeStart = column - mergeStartColumn;
-              const leftMergeCells = colspan - columnsFromMergeStart;
-              const cellsToCopyAreaEnd = endCol - column + 1;
-              const maxColspan = Math.min(leftMergeCells, cellsToCopyAreaEnd);
-
-              clipboardData.setCellAt(row, zeroBasedColumnIndex, { label, colspan: maxColspan });
-            }
+          } else {
+            headersForLevel.push(label);
           }
+
+        } else if (isPlaceholder === false) {
+          const { label, colspan } = this.getHeaderSettings(header, column);
+          const reducedColspan = Math.min(columnsToEnd, colspan);
+
+          headersForLevel.push({ label, colspan: reducedColspan });
         }
-      }
-    }
+      });
+
+      nestedHeaders.push(headersForLevel);
+    });
+
+    clipboardData.setMetaInfo('colHeaders', undefined);
+    clipboardData.setMetaInfo('nestedHeaders', nestedHeaders);
   }
 
   /**
