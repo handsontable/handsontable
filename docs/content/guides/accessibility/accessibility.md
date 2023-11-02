@@ -1,6 +1,6 @@
 ---
 id: o4qhm1bg
-title: Handsontable - Accessibility
+title: Accessibility
 metaTitle: Accessibility - JavaScript Data Grid | Handsontable
 description: Learn about Handsontable's accessibility features.
 permalink: /accessibility
@@ -93,14 +93,16 @@ Handsontable functions as both a spreadsheet application and a data grid. While 
 Hansontable includes a wide range of [shortcut keys](https://handsontable.com/docs/javascript-data-grid/keyboard-shortcuts/) for quick navigation and offers customization options. 
 
 Shortcuts for menu access streamline a variety of actions. When headers are set to be navigable, these shortcuts enhance accessibility, making it simpler for users with disabilities to move through the grid.
-| Action/Setting                   | Data grid mode (Navigable headers)                                           | Spreadsheet mode (Non-navigable headers)                                                    |
-|----------------------------------|------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
-| Open column menu                 | macOS: <kbd>Cmd</kbd> + <kbd>Enter</kbd><br>Windows: <kbd>Ctrl</kbd> + <kbd>Enter</kbd>                | macOS: <kbd>Shift</kbd> + <kbd>Option</kbd> + <kbd>i</kbd><br>Windows: <kbd>Shift</kbd> + <kbd>Alt</kbd> + <kbd>i</kbd> |
-| Sort data                        | <kbd>Shift</kbd> + <kbd>Enter</kbd>                                         | Use of a custom context menu item is required                                               |
-| Clear filters                    | macOS: <kbd>Alt</kbd> + <kbd>A</kbd><br>Windows: <kbd>Option</kbd> + <kbd>A</kbd>                    | macOS: <kbd>Alt</kbd> + <kbd>A</kbd><br>Windows: <kbd>Option</kbd> + <kbd>A</kbd>           |
-| Select the entire column         | <kbd>Ctrl</kbd> + <kbd>space</kbd>                                          | <kbd>Ctrl</kbd> + <kbd>space</kbd>                                                           |
-| Select the entire row            | <kbd>Shift</kbd> + <kbd>space</kbd>                                         | <kbd>Shift</kbd> + <kbd>space</kbd>                                                          |
-| Invoke context menu              | macOS: <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> <br> <br> Windows: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> | macOS: <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br>Windows: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> |
+| Windows                       | macOS                         | Action                                  |
+|-------------------------------|-------------------------------|-----------------------------------------|
+| <kbd>Shift</kbd> + <kbd>Alt</kbd> + <kbd>I</kbd>       | <kbd>Shift</kbd> + <kbd>Option</kbd> + <kbd>I</kbd>    | Open column menu (any table cell).      |
+| <kbd>Ctrl</kbd> + <kbd>Enter</kbd>                    | <kbd>Cmd</kbd> + <kbd>Enter</kbd>                       | Open column menu (column header).       |
+| <kbd>Shift</kbd> + <kbd>Enter</kbd>                   | <kbd>Shift</kbd> + <kbd>Enter</kbd>                     | Sort data.                              |
+| <kbd>Option</kbd> + <kbd>A</kbd>                      | <kbd>Alt</kbd> + <kbd>A</kbd>                           | Clear filters.                          |
+| <kbd>Ctrl</kbd> + <kbd>space</kbd>                    | <kbd>Ctrl</kbd> + <kbd>space</kbd>                      | Select the entire column.               |
+| <kbd>Shift</kbd> + <kbd>Space</kbd>                   | <kbd>Shift</kbd> + <kbd>space</kbd>                     | Select the entire row.                  |
+| <kbd>Cmd</kbd> + <kbd>shift</kbd> + <kbd>\\</kbd>      | <kbd>Shift</kbd> + <kbd>F10</kbd>                       | Invoke context menu.                    |
+
 
 
 This is an excerpt from [this](https://handsontable.com/docs/javascript-data-grid/keyboard-shortcuts/) page. 
