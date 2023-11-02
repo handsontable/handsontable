@@ -100,7 +100,7 @@ Shortcuts for menu access streamline a variety of actions. When headers are set 
 | <kbd>Shift</kbd> + <kbd>Enter</kbd>                   | <kbd>Shift</kbd> + <kbd>Enter</kbd>                     | Sort data.                              |
 | <kbd>Alt</kbd> + <kbd>A</kbd>                      | <kbd>Option</kbd> + <kbd>A</kbd>                           | Clear filters.                          |
 | <kbd>Ctrl</kbd> + <kbd>space</kbd>                    | <kbd>Cmd</kbd> + <kbd>space</kbd>                      | Select the entire column.               |
-| <kbd>Shift</kbd> + <kbd>Space</kbd>                   | <kbd>Shift</kbd> + <kbd>space</kbd>                     | Select the entire row.                  |
+| <kbd>Shift</kbd> + <kbd>space</kbd>                   | <kbd>Shift</kbd> + <kbd>space</kbd>                     | Select the entire row.                  |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd>      | <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd>                       | Invoke context menu.                    |
 
 
