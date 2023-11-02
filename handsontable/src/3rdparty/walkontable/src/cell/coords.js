@@ -1,6 +1,3 @@
-import { toSingleLine } from '../../../../helpers/templateLiteralTag';
-import { IndexMapper } from '../../../../translations';
-
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @description
@@ -38,18 +35,6 @@ class CellCoords {
    * @type {boolean}
    */
   #isRtl = false;
-  /**
-   * A reference to the row index mapper.
-   *
-   * @type {IndexMapper}
-   */
-  #rowIndexMapper = null;
-  /**
-   * A reference to the column index mapper.
-   *
-   * @type {IndexMapper}
-   */
-  #columnIndexMapper = null;
 
   constructor(row, column, isRtl = false) {
     this.#isRtl = isRtl;
@@ -58,43 +43,6 @@ class CellCoords {
       this.row = row;
       this.col = column;
     }
-  }
-
-  /**
-   * Assigns the index mappers to the `CellCoords` instance.
-   *
-   * @param {object} mappers The index mappers.
-   * @param {IndexMapper} mappers.rowIndexMapper The instance of the row index mapper.
-   * @param {IndexMapper} mappers.columnIndexMapper The instance of the column index mapper.
-   * @returns {CellCoords}
-   */
-  assignIndexMappers({ rowIndexMapper, columnIndexMapper }) {
-    if (!(rowIndexMapper instanceof IndexMapper) || !(columnIndexMapper instanceof IndexMapper)) {
-      throw new Error(toSingleLine`The "rowIndexMapper" and "columnIndexMapper" arguments must be\x20
-                                   an instance of IndexMapper class.`);
-    }
-
-    this.#rowIndexMapper = rowIndexMapper;
-    this.#columnIndexMapper = columnIndexMapper;
-
-    return this;
-  }
-
-  /**
-   * Returns `true` if the cell coordinates are visible (renderable).
-   *
-   * @returns {boolean}
-   */
-  isVisible() {
-    if (this.#rowIndexMapper === null || this.#columnIndexMapper === null) {
-      throw new Error(toSingleLine`To calculate if the cell coordinates are visible, you need to assign the index\x20
-                                   mappers to the CellCoords instance.`);
-    }
-
-    const row = this.row >= 0 ? this.#rowIndexMapper.getRenderableFromVisualIndex(this.row) : this.row;
-    const columns = this.col >= 0 ? this.#columnIndexMapper.getRenderableFromVisualIndex(this.col) : this.col;
-
-    return row !== null && columns !== null;
   }
 
   /**
@@ -143,18 +91,18 @@ class CellCoords {
   }
 
   /**
-   * Checks if another set of coordinates (`cellCoords`)
+   * Checks if another set of coordinates (`coords`)
    * is equal to the coordinates in your `CellCoords` instance.
    *
-   * @param {CellCoords} cellCoords Coordinates to check.
+   * @param {CellCoords} coords Coordinates to check.
    * @returns {boolean}
    */
-  isEqual(cellCoords) {
-    if (cellCoords === this) {
+  isEqual(coords) {
+    if (coords === this) {
       return true;
     }
 
-    return this.row === cellCoords.row && this.col === cellCoords.col;
+    return this.row === coords.row && this.col === coords.col;
   }
 
   /**
@@ -277,14 +225,7 @@ class CellCoords {
    * @returns {CellCoords}
    */
   clone() {
-    const coords = new CellCoords(this.row, this.col, this.#isRtl);
-
-    coords.assignIndexMappers({
-      rowIndexMapper: this.#rowIndexMapper,
-      columnIndexMapper: this.#columnIndexMapper,
-    });
-
-    return coords;
+    return new CellCoords(this.row, this.col, this.#isRtl);
   }
 
   /**

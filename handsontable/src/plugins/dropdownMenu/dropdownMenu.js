@@ -3,7 +3,6 @@ import { arrayEach } from '../../helpers/array';
 import { objectEach } from '../../helpers/object';
 import { CommandExecutor } from '../contextMenu/commandExecutor';
 import { getDocumentOffsetByElement } from '../contextMenu/utils';
-import EventManager from '../../eventManager';
 import { hasClass, setAttribute } from '../../helpers/dom/element';
 import { ItemsFactory } from '../contextMenu/itemsFactory';
 import { Menu } from '../contextMenu/menu';
@@ -119,36 +118,28 @@ export class DropdownMenu extends BasePlugin {
     ];
   }
 
+  /**
+   * Instance of {@link Menu}.
+   *
+   * @private
+   * @type {Menu}
+   */
+  menu = null;
+  /**
+   * Instance of {@link CommandExecutor}.
+   *
+   * @type {CommandExecutor}
+   */
+  #commandExecutor = new CommandExecutor(this.hot);
+  /**
+   * Instance of {@link ItemsFactory}.
+   *
+   * @type {ItemsFactory}
+   */
+  #itemsFactory = null;
+
   constructor(hotInstance) {
     super(hotInstance);
-    /**
-     * Instance of {@link EventManager}.
-     *
-     * @private
-     * @type {EventManager}
-     */
-    this.eventManager = new EventManager(this);
-    /**
-     * Instance of {@link CommandExecutor}.
-     *
-     * @private
-     * @type {CommandExecutor}
-     */
-    this.commandExecutor = new CommandExecutor(this.hot);
-    /**
-     * Instance of {@link ItemsFactory}.
-     *
-     * @private
-     * @type {ItemsFactory}
-     */
-    this.itemsFactory = null;
-    /**
-     * Instance of {@link Menu}.
-     *
-     * @private
-     * @type {Menu}
-     */
-    this.menu = null;
 
     // One listener for enable/disable functionality
     this.hot.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
@@ -174,17 +165,17 @@ export class DropdownMenu extends BasePlugin {
     if (this.enabled) {
       return;
     }
-    this.itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS);
+    this.#itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS);
 
     const settings = this.hot.getSettings()[PLUGIN_KEY];
     const predefinedItems = {
-      items: this.itemsFactory.getItems(settings)
+      items: this.#itemsFactory.getItems(settings)
     };
 
     this.registerEvents();
 
     if (typeof settings.callback === 'function') {
-      this.commandExecutor.setCommonCallback(settings.callback);
+      this.#commandExecutor.setCommonCallback(settings.callback);
     }
 
     this.registerShortcuts();
@@ -193,8 +184,8 @@ export class DropdownMenu extends BasePlugin {
     this.callOnPluginsReady(() => {
       this.hot.runHooks('afterDropdownMenuDefaultOptions', predefinedItems);
 
-      this.itemsFactory.setPredefinedItems(predefinedItems.items);
-      const menuItems = this.itemsFactory.getItems(settings);
+      this.#itemsFactory.setPredefinedItems(predefinedItems.items);
+      const menuItems = this.#itemsFactory.getItems(settings);
 
       if (this.menu) {
         this.menu.destroy();
@@ -215,7 +206,7 @@ export class DropdownMenu extends BasePlugin {
       this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
 
       // Register all commands. Predefined and added by user or by plugins
-      arrayEach(menuItems, command => this.commandExecutor.registerCommand(command.key, command));
+      arrayEach(menuItems, command => this.#commandExecutor.registerCommand(command.key, command));
     });
   }
 
@@ -278,7 +269,8 @@ export class DropdownMenu extends BasePlugin {
       runOnlyIf: () => {
         const highlight = this.hot.getSelectedRangeLast()?.highlight;
 
-        return highlight?.isVisible() && highlight?.isHeader() && !this.menu.isOpened();
+        return highlight && this.hot.selection.isCellVisible(highlight) &&
+          highlight.isHeader() && !this.menu.isOpened();
       },
       captureCtrl: true,
       group: SHORTCUTS_GROUP,
@@ -288,7 +280,8 @@ export class DropdownMenu extends BasePlugin {
       runOnlyIf: () => {
         const highlight = this.hot.getSelectedRangeLast()?.highlight;
 
-        return highlight?.isVisible() && highlight?.isCell() && !this.menu.isOpened();
+        return highlight && this.hot.selection.isCellVisible(highlight) &&
+          highlight.isCell() && !this.menu.isOpened();
       },
       group: SHORTCUTS_GROUP,
     }]);
@@ -377,7 +370,7 @@ export class DropdownMenu extends BasePlugin {
    * @param {*} params Additional parameters passed to the command executor.
    */
   executeCommand(commandName, ...params) {
-    this.commandExecutor.execute(commandName, ...params);
+    this.#commandExecutor.execute(commandName, ...params);
   }
 
   /**

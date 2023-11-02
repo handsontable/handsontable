@@ -1,5 +1,4 @@
 import { BasePlugin } from '../base';
-import EventManager from '../../eventManager';
 import { isRightClick } from '../../helpers/dom/event';
 import { getParentWindow } from '../../helpers/dom/element';
 
@@ -27,13 +26,6 @@ export class DragToScroll extends BasePlugin {
 
   constructor(hotInstance) {
     super(hotInstance);
-    /**
-     * Instance of {@link EventManager}.
-     *
-     * @private
-     * @type {EventManager}
-     */
-    this.eventManager = new EventManager(this);
     /**
      * Size of an element and its position relative to the viewport,
      * e.g. {bottom: 449, height: 441, left: 8, right: 814, top: 8, width: 806, x: 8, y:8}.

@@ -10,7 +10,6 @@ import {
   removeAttribute,
   setAttribute,
 } from '../../helpers/dom/element';
-import EventManager from '../../eventManager';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import {
   A11Y_DESCRIPTION,
@@ -141,13 +140,6 @@ export class CollapsibleColumns extends BasePlugin {
    * @type {NestedHeaders}
    */
   nestedHeadersPlugin = null;
-  /**
-   * Event manager instance reference.
-   *
-   * @private
-   * @type {EventManager}
-   */
-  eventManager = new EventManager(this);
   /**
    * The NestedHeaders plugin StateManager instance.
    *

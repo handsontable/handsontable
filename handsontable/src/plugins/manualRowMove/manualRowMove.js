@@ -3,7 +3,6 @@ import Hooks from '../../pluginHooks';
 import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, getTrimmingContainer } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
-import EventManager from '../../eventManager';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
 
@@ -73,13 +72,6 @@ export class ManualRowMove extends BasePlugin {
       cachedDropIndex: void 0
     });
 
-    /**
-     * Event Manager object.
-     *
-     * @private
-     * @type {object}
-     */
-    this.eventManager = new EventManager(this);
     /**
      * Backlight UI object.
      *

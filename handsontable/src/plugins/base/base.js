@@ -5,6 +5,7 @@ import { hasCellType } from '../../cellTypes/registry';
 import { hasEditor } from '../../editors/registry';
 import { hasRenderer } from '../../renderers/registry';
 import { hasValidator } from '../../validators/registry';
+import EventManager from '../../eventManager';
 
 const DEPS_TYPE_CHECKERS = new Map([
   ['plugin', hasPlugin],
@@ -42,6 +43,14 @@ export class BasePlugin {
       this.PLUGIN_KEY
     ];
   }
+
+  /**
+   * Instance of {@link EventManager}.
+   *
+   * @private
+   * @type {EventManager}
+   */
+  eventManager = new EventManager(this);
 
   /**
    * @param {object} hotInstance Handsontable instance.
@@ -151,9 +160,7 @@ export class BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
-    if (this.eventManager) {
-      this.eventManager.clear();
-    }
+    this.eventManager?.clear();
     this.clearHooks();
     this.enabled = false;
   }
@@ -293,9 +300,7 @@ export class BasePlugin {
    * Destroy plugin.
    */
   destroy() {
-    if (this.eventManager) {
-      this.eventManager.destroy();
-    }
+    this.eventManager?.destroy();
     this.clearHooks();
 
     objectEach(this, (value, property) => {

@@ -98,14 +98,12 @@ export class ContextMenu extends BasePlugin {
   /**
    * Instance of {@link CommandExecutor}.
    *
-   * @private
    * @type {CommandExecutor}
    */
   #commandExecutor = new CommandExecutor(this.hot);
   /**
    * Instance of {@link ItemsFactory}.
    *
-   * @private
    * @type {ItemsFactory}
    */
   #itemsFactory = null;
@@ -211,7 +209,11 @@ export class ContextMenu extends BasePlugin {
             above: -rect.height,
           });
         },
-        runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isVisible() && !this.menu.isOpened(),
+        runOnlyIf: () => {
+          const highlight = this.hot.getSelectedRangeLast()?.highlight;
+
+          return highlight && this.hot.selection.isCellVisible(highlight) && !this.menu.isOpened();
+        },
         group: SHORTCUTS_GROUP,
       });
   }

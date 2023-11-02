@@ -600,6 +600,19 @@ class Selection {
   }
 
   /**
+   * Returns `true` if the cell coordinates are visible (renderable).
+   *
+   * @private
+   * @param {CellCoords} coords The cell coordinates to check.
+   * @returns {boolean}
+   */
+  isCellVisible(coords) {
+    const renderableCoords = this.tableProps.visualToRenderableCoords(coords);
+
+    return renderableCoords.row !== null && renderableCoords.col !== null;
+  }
+
+  /**
    * Returns `true` if the area corner should be visible.
    *
    * @param {number} layerLevel The layer level.

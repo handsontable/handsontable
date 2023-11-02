@@ -2,7 +2,6 @@ import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
 import { offset, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { arrayEach, arrayMap } from '../../helpers/array';
-import EventManager from '../../eventManager';
 import { getDragDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting } from './utils';
 
 Hooks.getSingleton().register('modifyAutofillRange');
@@ -48,13 +47,6 @@ export class Autofill extends BasePlugin {
 
   constructor(hotInstance) {
     super(hotInstance);
-    /**
-     * Event manager instance.
-     *
-     * @private
-     * @type {EventManager}
-     */
-    this.eventManager = new EventManager(this);
     /**
      * Specifies if adding new row started.
      *

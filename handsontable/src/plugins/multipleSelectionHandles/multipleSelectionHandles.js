@@ -1,7 +1,6 @@
 import { hasClass } from '../../helpers/dom/element';
 import { isMobileBrowser } from '../../helpers/browser';
 import { BasePlugin } from '../base';
-import EventManager from '../../eventManager';
 
 export const PLUGIN_KEY = 'multipleSelectionHandles';
 export const PLUGIN_PRIORITY = 160;
@@ -30,12 +29,6 @@ export class MultipleSelectionHandles extends BasePlugin {
      */
     this.dragged = [];
     /**
-     * Instance of EventManager.
-     *
-     * @type {EventManager}
-     */
-    this.eventManager = null;
-    /**
      * @type {null}
      */
     this.lastSetCell = null;
@@ -57,9 +50,7 @@ export class MultipleSelectionHandles extends BasePlugin {
     if (this.enabled) {
       return;
     }
-    if (!this.eventManager) {
-      this.eventManager = new EventManager(this);
-    }
+
     this.registerListeners();
     super.enablePlugin();
   }
