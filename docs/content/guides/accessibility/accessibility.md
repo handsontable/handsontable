@@ -98,10 +98,10 @@ Shortcuts for menu access streamline a variety of actions. When headers are set 
 | <kbd>Shift</kbd> + <kbd>Alt</kbd> + <kbd>I</kbd>       | <kbd>Shift</kbd> + <kbd>Option</kbd> + <kbd>I</kbd>    | Open column menu (any table cell).      |
 | <kbd>Ctrl</kbd> + <kbd>Enter</kbd>                    | <kbd>Cmd</kbd> + <kbd>Enter</kbd>                       | Open column menu (column header).       |
 | <kbd>Shift</kbd> + <kbd>Enter</kbd>                   | <kbd>Shift</kbd> + <kbd>Enter</kbd>                     | Sort data.                              |
-| <kbd>Option</kbd> + <kbd>A</kbd>                      | <kbd>Alt</kbd> + <kbd>A</kbd>                           | Clear filters.                          |
-| <kbd>Ctrl</kbd> + <kbd>space</kbd>                    | <kbd>Ctrl</kbd> + <kbd>space</kbd>                      | Select the entire column.               |
+| <kbd>Alt</kbd> + <kbd>A</kbd>                      | <kbd>Option</kbd> + <kbd>A</kbd>                           | Clear filters.                          |
+| <kbd>Ctrl</kbd> + <kbd>space</kbd>                    | <kbd>Cmd</kbd> + <kbd>space</kbd>                      | Select the entire column.               |
 | <kbd>Shift</kbd> + <kbd>Space</kbd>                   | <kbd>Shift</kbd> + <kbd>space</kbd>                     | Select the entire row.                  |
-| <kbd>Cmd</kbd> + <kbd>shift</kbd> + <kbd>\\</kbd>      | <kbd>Shift</kbd> + <kbd>F10</kbd>                       | Invoke context menu.                    |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd>      | <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd>                       | Invoke context menu.                    |
 
 
 
