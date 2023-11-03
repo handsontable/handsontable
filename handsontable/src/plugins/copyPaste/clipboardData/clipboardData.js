@@ -516,7 +516,7 @@ export class ClipboardData {
    *
    * @param {number} row Row index of cell which should be changed.
    * @param {number} column Column index of cell which should be changed.
-   * @param {string|object} value Value for particular index.
+   * @param {string} value Value for particular index.
    */
   setCellAt(row, column, value) {
     if (this.isSerializedTable() === false) {
@@ -529,14 +529,10 @@ export class ClipboardData {
     if (row < 0) {
       if (Array.isArray(nestedHeaders)) {
         const rowRelative = row + nestedHeaders.length;
+        const header = nestedHeaders[rowRelative][this.getNestedHeaderColumn(row, column)];
 
-        const currentValue = this.getCellAt(row, column);
-        const newValueColspan = value?.colspan;
-
-        if (isObject(currentValue) === false && isObject(value) &&
-          Number.isInteger(newValueColspan) && newValueColspan > 1) {
-          // Replacing headers stored as a repetitive string by object describing header with colspan.
-          nestedHeaders[rowRelative].splice(column, newValueColspan, value);
+        if (isObject(header)) {
+          header.label = value;
 
         } else {
           nestedHeaders[rowRelative][this.getNestedHeaderColumn(row, column)] = value;
@@ -575,8 +571,13 @@ export class ClipboardData {
     if (row < 0) {
       if (Array.isArray(nestedHeaders)) {
         const rowRelative = row + nestedHeaders.length;
+        const header = nestedHeaders[rowRelative][this.getNestedHeaderColumn(row, column)];
 
-        return nestedHeaders[rowRelative][this.getNestedHeaderColumn(row, column)];
+        if (isObject(header)) {
+          return header.label;
+        }
+
+        return header;
 
       } else if (Array.isArray(colHeaders)) {
         if (isDefined(colHeaders[column])) {

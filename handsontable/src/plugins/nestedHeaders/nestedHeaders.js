@@ -533,10 +533,10 @@ export class NestedHeaders extends BasePlugin {
       columns.forEach((column, index) => {
         const { isPlaceholder } = this.getHeaderSettings(header, column);
         const columnsToEnd = columns.slice(index).length;
+        const headerTreeNodeData = this.getStateManager().getHeaderTreeNodeData(header, column);
 
         if (index === 0 && isPlaceholder === true) {
-          const headerTreeNodeData = this.getStateManager().getHeaderTreeNodeData(header, column);
-          const { label, colspan, columnIndex } = headerTreeNodeData;
+          const { label, origColspan: colspan, columnIndex } = headerTreeNodeData;
           const columnFromStart = column - columnIndex;
           const reducedColspan = Math.min(colspan - columnFromStart, columnsToEnd);
 
@@ -548,10 +548,11 @@ export class NestedHeaders extends BasePlugin {
           }
 
         } else if (isPlaceholder === false) {
-          const { label, colspan } = this.getHeaderSettings(header, column);
-          const reducedColspan = Math.min(columnsToEnd, colspan);
+          const { label, origColspan: colspan, columnIndex } = headerTreeNodeData;
+          const columnFromStart = column - columnIndex;
+          const reducedColspan = Math.min(colspan - columnFromStart, columnsToEnd);
 
-          headersForLevel.push({ label, colspan: reducedColspan });
+          headersForLevel.push(reducedColspan > 1 ? { label, colspan: reducedColspan } : label);
         }
       });
 
