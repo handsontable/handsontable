@@ -25,7 +25,7 @@ searchCategory: Guides
 ---
 # Accessibility
 
-Handsontable is designed to be accessible, aligning with global standards. We support the idea that web applications should be inclusive, making them usable for as many people as possible. 
+Handsontable is designed to be accessible, aligning with global standards. We prioritize inclusivity, ensuring web applications are usable by as many people as possible. 
 
 [[toc]]
 
@@ -36,10 +36,12 @@ Accessibility features of Handsontable include:
 - [Keyboard navigation](@/guides/navigation/keyboard-navigation.md) that lets you access any feature without using a mouse.
 - WAI-ARIA roles and attributes that enrich the context of HTML where needed.
 - Support for the most popular [screen readers](#screen-readers).
-- [Standards](#conformance-with-standards) conforming [WCAG 2.1 AA](https://www.w3.org/WAI/WCAG21/quickref/).
+- Standards conforming to [WCAG 2.1 AA](https://www.w3.org/WAI/WCAG21/quickref/).
 
 ## Conformance with standards
-Numerous regulatory standards have been established by authorities such as the European Union and the United States to be in harmony with the Web Content Accessibility Guidelines (WCAG). These guidelines are separately maintained by the World Wide Web Consortium (W3C). Handsontable ensures adherence to W3C standards by meeting the criteria of [WCAG 2.1](https://www.w3.org/WAI/WCAG21/quickref/) at the AA level.
+Handsontable conforms to [WCAG 2.1](https://www.w3.org/WAI/standards-guidelines/wcag/) at the level AA, aligning with established accessibility standards such as ADA and Section 508 standards.
+
+A list of the most commonly encountered conformance guidelines are:
 <br> 
 
 - **Europe / EU:**
@@ -56,9 +58,9 @@ Numerous regulatory standards have been established by authorities such as the E
 ### Accessibility Statement and Voluntary Product Accessibility Template (VPAT)
 Companies integrating Handsontable into their applications aim for optimal user accessibility. If their apps adhere to standards like WCAG 2.1 AA, they expect Handsontable not to compromise that. By offering an **Accessibility Statement** and **VPAT**, Handsontable assures its commitment to universal usability.
 
-Accessibility Statement and VPAT (Voluntary Product Accessibility Template) for Handsontable outline how the product meets accessibility standards. This ensures compliance with laws like the Americans with Disabilities Act (ADA) and Section 508.
+Accessibility Statement and VPAT (Voluntary Product Accessibility Template) for Handsontable outline how the product meets accessibility standards.
 
-A VPAT reflects a product's dedication to accessibility, which can improve an organization's image and demonstrate its values in creating software for the broadest audience, including those using assistive technologies.
+<!-- Chris to send the documents VPAT and Accessibility statement -->
 
 ### Accessibility testing
 
@@ -82,7 +84,7 @@ Our goal is to provide a data grid that doesn't require a mouse to operate. This
 Handsontable functions as both a spreadsheet application and a data grid. While the differences might seem minor at first, they significantly affect how users navigate using the keyboard. The following table provides more details for clearer understanding.
 |               | Data grid mode                                                                 | Spreadsheet mode (default)                                                                                           |
 |----------------------------------|--------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
-| Configuration options            | Enables navigation across headers, `false` by default <br>`navigableHeaders: true`<br><br> Disables navigation with the <kbd>Tab</kbd> key, `true` by default.<br>`tabMoves: false`                                  | <br>Enables navigation across headers, `false` by default<br>`navigableHeaders: false`<br><br>Disables navigation with the <kbd>Tab</kbd> key, `true` by default.<br>`tabMoves: true`                                                                        |
+| Configuration options            | `navigableHeaders: true` or `tabMoves: false`                                  | `navigableHeaders: false` or `tabMoves: true`                                                                        |
 | Brief description                | A user cannot use <kbd>Tab</kbd> key to navigate across the grid.<br>User uses <kbd>Arrow keys</kbd> to navigate across the grid. It uses simple shortcut keys such as <kbd>Enter</kbd> or <kbd>space</kbd>, to open menus or interact with headers, cells, or editors. | The <kbd>Tab</kbd> key is primarily used to navigate across the grid.<br>This scenario provides an experience familiar to users of Excel or Google Sheets. To open menus users need to learn and use more complex shortcut keys. |
 | Primary navigation method        | <kbd>Arrow keys</kbd>                                                                     | <kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd>                                                                                                    |
 | <kbd>Tab</kbd> sequence within the page     | One <kbd>Tab</kbd> stop - the grid is included in the page sequence only once.            | Multiple <kbd>Tab</kbd> stops - all the grid tabbable elements are included in the page <kbd>Tab</kbd> sequence.                            |
