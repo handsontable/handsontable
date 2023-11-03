@@ -8,7 +8,8 @@ import {
   simpleHandsontableWithOnlyHeaders,
   simpleWithHeaders,
   simpleWithOnlyNestedHeaders,
-  simpleWithNestedHeaders, simpleWithGroupHeaders,
+  simpleWithNestedHeaders, 
+  simpleWithGroupHeaders,
 } from './dataExamples';
 
 describe('ClipboardData', () => {
