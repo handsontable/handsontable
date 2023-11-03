@@ -24,15 +24,16 @@ export default function removeCommentItem(plugin) {
     disabled() {
       const range = this.getSelectedRangeLast();
 
-      if (!range) {
+      if (
+        !range ||
+        range.highlight.isHeader() ||
+        this.selection.isEntireRowSelected() && this.selection.isEntireColumnSelected() ||
+        this.countRenderedRows() === 0 || this.countRenderedCols() === 0
+      ) {
         return true;
       }
 
-      if (range.highlight.isHeader()) {
-        return true;
-      }
-
-      return this.countRenderedRows() === 0 || this.countRenderedCols() === 0;
+      return false;
     }
   };
 }
