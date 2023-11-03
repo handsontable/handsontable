@@ -16,6 +16,7 @@ import GhostTable from './utils/ghostTable';
 
 import './nestedHeaders.css';
 import { normalizeRanges } from '../copyPaste/copyableRanges';
+import { arrayEach } from '../../helpers/array';
 
 export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;
@@ -530,8 +531,14 @@ export class NestedHeaders extends BasePlugin {
     headers.forEach((header) => {
       const headersForLevel = [];
 
-      columns.forEach((column, index) => {
-        const { isPlaceholder } = this.getHeaderSettings(header, column);
+      arrayEach(columns, (column, index) => {
+        const headerSettings = this.getHeaderSettings(header, column);
+
+        if (headerSettings === null) {
+          return;
+        }
+
+        const { isPlaceholder } = headerSettings;
         const columnsToEnd = columns.slice(index).length;
         const headerTreeNodeData = this.getStateManager().getHeaderTreeNodeData(header, column);
 
@@ -559,7 +566,7 @@ export class NestedHeaders extends BasePlugin {
       nestedHeaders.push(headersForLevel);
     });
 
-    clipboardData.setMetaInfo('colHeaders', undefined);
+    clipboardData.setMetaInfo('colHeaders', null);
     clipboardData.setMetaInfo('nestedHeaders', nestedHeaders);
   }
 

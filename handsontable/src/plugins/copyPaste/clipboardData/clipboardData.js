@@ -23,12 +23,14 @@ export class ClipboardData {
   /**
    * Sanitized data of "text/html" type inside the clipboard.
    *
+   * @private
    * @type {string}
    */
   html;
   /**
    * Copied data stored as array of arrays.
    *
+   * @private
    * @type {string[][]}
    */
   data;
@@ -68,7 +70,7 @@ export class ClipboardData {
   setMetaInfo(property, value) {
     const metaInfo = this.getMetaInfo();
 
-    if (value === undefined) {
+    if (value === null) {
       delete metaInfo[property];
 
     } else {
