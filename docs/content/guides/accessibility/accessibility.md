@@ -35,8 +35,8 @@ Accessibility features of Handsontable include:
 
 - [Keyboard navigation](@/guides/navigation/keyboard-navigation.md) that lets you access any feature without using a mouse.
 - WAI-ARIA roles and attributes that enrich the context of HTML where needed.
-- Support for the most popular [screen readers](#screen-readers).
-- Standards conforming to [WCAG 2.1 AA](https://www.w3.org/WAI/WCAG21/quickref/).
+- Support for the [screen readers](#screen-readers).
+- Standards conforming to [WCAG 2.1 AA](https://www.w3.org/WAI/standards-guidelines/wcag/).
 
 ## Conformance with standards
 Handsontable conforms to [WCAG 2.1](https://www.w3.org/WAI/standards-guidelines/wcag/) at the level AA, aligning with established accessibility standards such as ADA and Section 508 standards.
@@ -56,7 +56,7 @@ A list of the most commonly encountered conformance guidelines are:
   - [Standard on Web Accessibility](https://www.tbs-sct.canada.ca/pol/doc-eng.aspx?id=23601)
 
 ### Accessibility Statement and Voluntary Product Accessibility Template (VPAT)
-Companies integrating Handsontable into their applications aim for optimal user accessibility. If their apps adhere to standards like WCAG 2.1 AA, they expect Handsontable not to compromise that. By offering an **Accessibility Statement** and **VPAT**, Handsontable assures its commitment to universal usability.
+Companies integrating Handsontable into their applications aim for optimal user accessibility. If their apps adhere to standards like [WCAG 2.1](https://www.w3.org/WAI/standards-guidelines/wcag/) AA, they expect Handsontable not to compromise that. By offering an **Accessibility Statement** and **VPAT**, Handsontable assures its commitment to universal usability.
 
 Accessibility Statement and VPAT (Voluntary Product Accessibility Template) for Handsontable outline how the product meets accessibility standards.
 
@@ -84,7 +84,7 @@ Our goal is to provide a data grid that doesn't require a mouse to operate. This
 Handsontable functions as both a spreadsheet application and a data grid. While the differences might seem minor at first, they significantly affect how users navigate using the keyboard. The following table provides more details for clearer understanding.
 |               | Data grid mode                                                                 | Spreadsheet mode (default)                                                                                           |
 |----------------------------------|--------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
-| Configuration options            | `navigableHeaders: true` or `tabMoves: false`                                  | `navigableHeaders: false` or `tabMoves: true`                                                                        |
+| Configuration options            | `navigableHeaders`: `true` or `tabMoves`: `false`                                  | `navigableHeaders`: `false` or `tabMoves`: `true`                                                                        |
 | Brief description                | A user cannot use <kbd>Tab</kbd> key to navigate across the grid.<br>User uses <kbd>Arrow keys</kbd> to navigate across the grid. It uses simple shortcut keys such as <kbd>Enter</kbd> or <kbd>space</kbd>, to open menus or interact with headers, cells, or editors. | The <kbd>Tab</kbd> key is primarily used to navigate across the grid.<br>This scenario provides an experience familiar to users of Excel or Google Sheets. To open menus users need to learn and use more complex shortcut keys. |
 | Primary navigation method        | <kbd>Arrow keys</kbd>                                                                     | <kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd>                                                                                                    |
 | <kbd>Tab</kbd> sequence within the page     | One <kbd>Tab</kbd> stop - the grid is included in the page sequence only once.            | Multiple <kbd>Tab</kbd> stops - all the grid tabbable elements are included in the page <kbd>Tab</kbd> sequence.                            |
@@ -110,10 +110,10 @@ Handsontable is recognized as a composite widget by WAI-ARIA and uses the ARIA r
 
 Handsontable focuses on compatibility with a range of screen readers, with particular emphasis on testing with:
 
-* JAWS for Windows
-* VoiceOver for macOS
-* NVDA for Windows
-* ChromeVox, the Chrome screen reader
+* [JAWS](https://www.freedomscientific.com/products/software/jaws/) for Windows
+* [VoiceOver](https://www.apple.com/voiceover/info/guide/_1121.html) for macOS
+* [NVDA](https://www.nvaccess.org/) for Windows
+* [ChromeVox](https://chrome.google.com/webstore/detail/screen-reader/kgejglhpjiefppelpmljglcjbhoiplfn), the Chrome screen reader
 
 
 ## Accessibility demo
@@ -2520,7 +2520,7 @@ setupCheckbox(document.querySelector("#enableEnterFocusEditing"), (checked) => {
 :::
 
 ## High-contrast theme
-It's essential to make content easy to read and distinguish, particularly for users with visual impairments. High contrast between elements improves readability and user comfort during prolonged interaction. The recommended [minimum contrast ratio](https://www.w3.org/WAI/WCAG21/quickref/#contrast-minimum) for text against images or backgrounds is 4.5:1, as outlined by the Web Content Accessibility Guidelines (WCAG). To achieve this level of contrast, consider the following options:
+It's essential to make content easy to read and distinguish, particularly for users with visual impairments. High contrast between elements improves readability and user comfort during prolonged interaction. The recommended [minimum contrast ratio](https://www.w3.org/WAI/WCAG21/quickref/#contrast-minimum) for text against images or backgrounds is 4.5:1. To achieve this level of contrast, consider the following options:
 
 * Customize the default Handsontable theme using your own CSS settings.
 * Utilize tools designed for this purpose, such as the [High Contrast](https://chrome.google.com/webstore/detail/high-contrast/djcfdncoelnlbldjfhinnjlhdjlikmph) extension offered by Google for Chrome.
@@ -2545,11 +2545,11 @@ Recommendations for customizations:
 
 ## Known limitations
 
-   - **ARIA Labels:** We are actively working towards providing [comprehensive translations](@/guides/internationalization/language.md). We appreciate your patience and will keep our users updated on the progress.
-   - **Screen Readers with Frozen Rows/Columns:** Some screen readers may incorrectly read the number of rows and columns or their indices when frozen rows and columns are enabled.
-   - **Dynamic ARIA Attributes:** Dynamic ARIA attributes, such as sorting order or filters set, are often not announced at all, depending on the screen reader used.
-  - **Access to Actions:** Access to certain actions may require custom menu items, e.g., sorting data in spreadsheet mode where headers are non-navigable, moving a column/row, resizing a column/row, and renaming a header name.
-   - **Testing Limitations:** We test our data grid with only some of screen readers on the market - the most popular ones. It’s because there are no ways to automate those tests; they all are conducted manually.
+   - **ARIA labels:** We are actively working towards providing [comprehensive translations](@/guides/internationalization/language.md). We appreciate your patience and will keep our users updated on the progress.
+   - **Screen readers with frozen rows/columns:** Some screen readers may incorrectly read the number of rows and columns or their indices when frozen rows and columns are enabled.
+   - **Dynamic ARIA attributes:** Dynamic ARIA attributes, such as sorting order or filters set, are often not announced at all, depending on the screen reader used.
+  - **Access to actions:** Access to certain actions may require custom menu items, e.g., sorting data in spreadsheet mode where headers are non-navigable, moving a column/row, resizing a column/row, and renaming a header name.
+   - **Testing limitations:** We test our data grid with only some of screen readers on the market - the most popular ones. It’s because there are no ways to automate those tests; they all are conducted manually.
 
 ## API reference
 
