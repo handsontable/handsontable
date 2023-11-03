@@ -375,6 +375,7 @@ Handsontable focuses on compatibility with a range of screen readers, with parti
 
 ```css
 .exampleContainer {
+  margin-top: 3rem;
   display: flex;
   flex-direction: column;
   gap: 2rem;
