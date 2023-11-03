@@ -47,14 +47,12 @@ interface HookHighlightRowHeaderMeta {
   selectionType: string;
   rowCursor: number;
   selectionHeight: number;
-  classNames: string[];
 }
 
 interface HookHighlightColumnHeaderMeta {
   selectionType: string;
   columnCursor: number;
   selectionWidth: number;
-  classNames: string[];
 }
 
 interface ClipboardData {
