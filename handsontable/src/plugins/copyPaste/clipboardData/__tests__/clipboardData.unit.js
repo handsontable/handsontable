@@ -8,7 +8,7 @@ import {
   simpleHandsontableWithOnlyHeaders,
   simpleWithHeaders,
   simpleWithOnlyNestedHeaders,
-  simpleWithNestedHeaders, 
+  simpleWithNestedHeaders,
   simpleWithGroupHeaders,
 } from './dataExamples';
 
@@ -213,5 +213,27 @@ describe('ClipboardData', () => {
       'hello world',
       'H-0-0',
     ]]);
+  });
+
+  it('should not throw error for set/get data beyond the table boundaries', () => {
+    const clipboardData = new PasteClipboardData('A-1\tB-1\nA-0\tB-0\nA1\tB1', simpleWithNestedHeaders);
+    const clipboardData2 = new PasteClipboardData('A\tB\nA1\tB1', simpleWithHeaders);
+    const clipboardData3 = new PasteClipboardData('A-0-0\tA-0-1', simpleTableWithOnlyHeaders);
+
+    expect(() => {
+      clipboardData.getCellAt(-10, -10);
+      clipboardData.getCellAt(100, 100);
+      clipboardData2.getCellAt(-10, -10);
+      clipboardData2.getCellAt(100, 100);
+      clipboardData3.getCellAt(-10, -10);
+      clipboardData3.getCellAt(100, 100);
+
+      clipboardData.setCellAt(-10, -10, 'value');
+      clipboardData.setCellAt(100, 100, 'value');
+      clipboardData2.setCellAt(-10, -10, 'value');
+      clipboardData2.setCellAt(100, 100, 'value');
+      clipboardData3.setCellAt(-10, -10, 'value');
+      clipboardData3.setCellAt(100, 100, 'value');
+    }).not.toThrow();
   });
 });

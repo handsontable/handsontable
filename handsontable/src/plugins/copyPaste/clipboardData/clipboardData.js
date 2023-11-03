@@ -531,13 +531,19 @@ export class ClipboardData {
     if (row < 0) {
       if (Array.isArray(nestedHeaders)) {
         const rowRelative = row + nestedHeaders.length;
-        const header = nestedHeaders[rowRelative][this.getNestedHeaderColumn(row, column)];
+        const nestedHeaderColumn = this.getNestedHeaderColumn(row, column);
+
+        if (isDefined(nestedHeaderColumn) === false) {
+          return;
+        }
+
+        const header = nestedHeaders[rowRelative][nestedHeaderColumn];
 
         if (isObject(header)) {
           header.label = value;
 
         } else {
-          nestedHeaders[rowRelative][this.getNestedHeaderColumn(row, column)] = value;
+          nestedHeaders[rowRelative][nestedHeaderColumn] = value;
         }
 
       } else if (Array.isArray(colHeaders)) {
@@ -573,7 +579,13 @@ export class ClipboardData {
     if (row < 0) {
       if (Array.isArray(nestedHeaders)) {
         const rowRelative = row + nestedHeaders.length;
-        const header = nestedHeaders[rowRelative][this.getNestedHeaderColumn(row, column)];
+        const nestedHeaderColumn = this.getNestedHeaderColumn(row, column);
+
+        if (isDefined(nestedHeaderColumn) === false) {
+          return;
+        }
+
+        const header = nestedHeaders[rowRelative][nestedHeaderColumn];
 
         if (isObject(header)) {
           return header.label;
