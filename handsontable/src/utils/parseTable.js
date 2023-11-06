@@ -124,8 +124,8 @@ export function getHTMLFromConfig(config) {
     '<table>',
     // Needed for desktop Excel on MacOS while pasting any elements with rowspan/colspan.
     isAddedCommentForExcel ? '<!--StartFragment-->' : '',
-    ...getHeadersHTMLByConfig(config),
-    ...getBodyHTMLByConfig(config),
+    ...headers,
+    ...body,
     // Needed for desktop Excel on MacOS while pasting any elements with rowspan/colspan.
     isAddedCommentForExcel ? '<!--EndFragment-->' : '',
     '</table>',
