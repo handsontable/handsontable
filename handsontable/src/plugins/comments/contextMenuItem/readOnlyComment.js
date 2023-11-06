@@ -33,19 +33,17 @@ export default function readOnlyCommentItem(plugin) {
     disabled() {
       const range = this.getSelectedRangeLast();
 
-      if (!range) {
+      if (
+        !range ||
+        range.highlight.isHeader() ||
+        !plugin.getCommentAtCell(range.highlight.row, range.highlight.col) ||
+        this.selection.isEntireRowSelected() && this.selection.isEntireColumnSelected() ||
+        this.countRenderedRows() === 0 || this.countRenderedCols() === 0
+      ) {
         return true;
       }
 
-      if (range.highlight.isHeader()) {
-        return true;
-      }
-
-      if (!plugin.getCommentAtCell(range.highlight.row, range.highlight.col)) {
-        return true;
-      }
-
-      return this.countRenderedRows() === 0 || this.countRenderedCols() === 0;
+      return false;
     }
   };
 }
