@@ -36,12 +36,12 @@ Accessibility features of Handsontable include:
 - [Keyboard navigation](@/guides/navigation/keyboard-navigation.md) that lets you access any feature without using a mouse.
 - WAI-ARIA roles and attributes that enrich the context of HTML where needed.
 - Support for the [screen readers](#screen-readers).
-- Standards conforming to [WCAG 2.1 AA](https://www.w3.org/WAI/standards-guidelines/wcag/).
+- Standards conforming to [WCAG 2.1 AA](https://www.w3.org/WAI/standards-guidelines/wcag/)
 
 ## Conformance with standards
 Handsontable conforms to [WCAG 2.1](https://www.w3.org/WAI/standards-guidelines/wcag/) at the level AA, aligning with established accessibility standards such as ADA and Section 508 standards.
 
-A list of the most commonly encountered conformance guidelines are:
+A list of the most known accessibility standards are:
 <br> 
 
 - **Europe / EU:**
@@ -55,16 +55,14 @@ A list of the most commonly encountered conformance guidelines are:
 - **Canada:**
   - [Standard on Web Accessibility](https://www.tbs-sct.canada.ca/pol/doc-eng.aspx?id=23601)
 
-### Accessibility Statement and Voluntary Product Accessibility Template (VPAT)
-Companies integrating Handsontable into their applications aim for optimal user accessibility. If their apps adhere to standards like [WCAG 2.1](https://www.w3.org/WAI/standards-guidelines/wcag/) AA, they expect Handsontable not to compromise that. By offering an **Accessibility Statement** and **VPAT**, Handsontable assures its commitment to universal usability.
-
+### VPAT and Accessibility Statement
 Accessibility Statement and VPAT (Voluntary Product Accessibility Template) for Handsontable outline how the product meets accessibility standards.
 
 <!-- Chris to send the documents VPAT and Accessibility statement -->
 
 ### Accessibility testing
 
-Before releasing a new version of Handsontable, we test it for accessibility, using different approaches:
+We for people with different disabilities Before releasing a new version of Handsontable, we test it for accessibility, using different approaches:
 
 - We cover the most common use cases with automated unit and end-to-end tests.
 - We manually test all of Handsontable's features with the most popular screen readers.
@@ -72,19 +70,21 @@ Before releasing a new version of Handsontable, we test it for accessibility, us
 - We check Handsontable's accessibility score with a range of the accessibility testing tools, such as Lighthouse, Axe-core, or Accessibility Insights for Web.
 
 ## Keyboard navigation
-Our goal is to provide a data grid that doesn't require a mouse to operate. This is important for people who rely on a keyboard or other assistive technologies. Importantly, depending on your needs, the navigation can be controlled or customized through the API.
+Handsontable doesn't require a mouse to operate. This is critical for people who rely on a keyboard or other assistive technologies. 
+Importantly, depending on your needs, the navigation can be customized through the API.
 <br><br>Learn more in the following sections:
 
 - [Keyboard navigation](@/guides/navigation/keyboard-navigation.md)
-- [Configure keyboard navigation options](@/guides/navigation/keyboard-navigation.md#configure-keyboard-navigation-options)
 - [Default keyboard shortcuts](@/guides/navigation/keyboard-shortcuts.md)
 - [Custom shortcuts](@/guides/navigation/custom-shortcuts.md)
 
-### Navigation models
-Handsontable functions as both a spreadsheet application and a data grid. While the differences might seem minor at first, they significantly affect how users navigate using the keyboard. The following table provides more details for clearer understanding.
+### Navigation modes
+Handsontable works as both a spreadsheet application and a data grid. While the differences might seem minor at first, they significantly affect how users navigate using the keyboard. The following table provides a comparison between the two nodes for clearer understanding.
+
+
 |               | Data grid mode                                                                 | Spreadsheet mode (default)                                                                                           |
 |----------------------------------|--------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
-| Configuration options            | `navigableHeaders`: `true` or `tabMoves`: `false`                                  | `navigableHeaders`: `false` or `tabMoves`: `true`                                                                        |
+| Configuration options            | `navigableHeaders: true` <br>  `tabMoves: false`                                  | `navigableHeaders: false` <br> and <br> `tabMoves: true`                                                                        |
 | Brief description                | A user cannot use <kbd>Tab</kbd> key to navigate across the grid.<br>User uses <kbd>Arrow keys</kbd> to navigate across the grid. It uses simple shortcut keys such as <kbd>Enter</kbd> or <kbd>space</kbd>, to open menus or interact with headers, cells, or editors. | The <kbd>Tab</kbd> key is primarily used to navigate across the grid.<br>This scenario provides an experience familiar to users of Excel or Google Sheets. To open menus users need to learn and use more complex shortcut keys. |
 | Primary navigation method        | <kbd>Arrow keys</kbd>                                                                     | <kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd>                                                                                                    |
 | <kbd>Tab</kbd> sequence within the page     | One <kbd>Tab</kbd> stop - the grid is included in the page sequence only once.            | Multiple <kbd>Tab</kbd> stops - all the grid tabbable elements are included in the page <kbd>Tab</kbd> sequence.                            |
