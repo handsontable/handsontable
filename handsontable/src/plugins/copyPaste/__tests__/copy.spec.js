@@ -157,12 +157,14 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->' +
           '<thead>',
             '<tr><th>!@#$%^&amp;*()_+-={[</th><th>]};:\'"\\|,&lt;.&gt;/?~&amp;LTE</th></tr>',
           '</thead>',
           '<tbody>',
             '<tr><td>!@#$%^&amp;*()_+-={[</td><td>]};:\'"\\|,&lt;.&gt;/?~&amp;LTE</td></tr>',
           '</tbody>',
+        '<!--EndFragment-->' +
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -194,6 +196,7 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->' +
           '<thead>',
             '<tr><th>{"test": "value"}</th></tr>',
           '</thead>',
@@ -202,6 +205,7 @@ describe('CopyPaste', () => {
             '<tr><td>{"test2": {"testtest": ""}}</td></tr>',
             '<tr><td>{"test3": ""}</td></tr>',
           '</tbody>',
+        '<!--EndFragment-->' +
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -228,12 +232,14 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->' +
           '<thead>',
             '<tr><th></th><th>0</th><th>false</th><th>D</th><th></th></tr>',
           '</thead>',
           '<tbody>',
             '<tr><td></td><td>0</td><td>false</td><td></td><td></td></tr>',
           '</tbody>',
+        '<!--EndFragment-->' +
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -257,13 +263,14 @@ describe('CopyPaste', () => {
       plugin.copyWithColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
-      /* eslint-disable indent */
       expect(copyEvent.clipboardData.getData('text/plain'))
         .toBe('a   b\nc d\ne  f\ng      h');
+      /* eslint-disable indent */
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->' +
           '<thead>',
             '<tr><th>a<span style="mso-spacerun: yes">&nbsp;&nbsp; </span>b</th></tr>',
           '</thead>',
@@ -272,6 +279,7 @@ describe('CopyPaste', () => {
             '<tr><td>e<span style="mso-spacerun: yes">&nbsp; </span>f</td></tr>',
             '<tr><td>g<span style="mso-spacerun: yes">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>h</td></tr>',
           '</tbody>',
+        '<!--EndFragment-->' +
         '</table>',
       ].join(''));
       /* eslint-enable */

@@ -9,13 +9,13 @@ import { warn } from '../../helpers/console';
 import {
   ACTIVE_HEADER_TYPE,
   HEADER_TYPE,
+  normalizeRanges,
 } from '../../selection';
 import { BasePlugin } from '../base';
 import StateManager from './stateManager';
 import GhostTable from './utils/ghostTable';
 
 import './nestedHeaders.css';
-import { normalizeRanges } from '../copyPaste/copyableRanges';
 import { arrayEach } from '../../helpers/array';
 
 export const PLUGIN_KEY = 'nestedHeaders';

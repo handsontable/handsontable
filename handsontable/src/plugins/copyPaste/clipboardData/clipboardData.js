@@ -64,6 +64,7 @@ export class ClipboardData {
   /**
    * Sets meta information for certain property.
    *
+   * @private
    * @param {string} property Property for which the meta information will be changed.
    * @param {*} value New meta information value.
    */

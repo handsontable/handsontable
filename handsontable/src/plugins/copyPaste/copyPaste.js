@@ -15,8 +15,8 @@ import copyWithColumnHeadersItem from './contextMenuItem/copyWithColumnHeaders';
 import cutItem from './contextMenuItem/cut';
 import {
   CopyableRangesFactory,
-  normalizeRanges,
 } from './copyableRanges';
+import { normalizeRanges } from '../../selection';
 import {
   getDataByCoords, getHTMLFromConfig,
 } from '../../utils/parseTable';

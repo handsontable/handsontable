@@ -118,6 +118,7 @@ describe('Integration with other plugins', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
             '<tr><th colspan=2>a3</th><th>b3</th><th>c3</th></tr>',
           '</thead>',
@@ -125,6 +126,7 @@ describe('Integration with other plugins', () => {
             '<tr><td>A1</td><td>B1</td><td>C1</td><td>D1</td></tr>',
             '<tr><td>A2</td><td>B2</td><td>C2</td><td>D2</td></tr>',
           '</tbody>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -178,6 +180,7 @@ describe('Integration with other plugins', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
             '<tr><th colspan=3>a1</th><th>b1</th></tr>',
             '<tr><th colspan=2>a2</th><th>b2</th><th>c2</th></tr>',
@@ -187,6 +190,7 @@ describe('Integration with other plugins', () => {
             '<tr><td>A1</td><td>B1</td><td>C1</td><td>D1</td></tr>',
             '<tr><td>A2</td><td>B2</td><td>C2</td><td>D2</td></tr>',
           '</tbody>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -242,6 +246,7 @@ describe('Integration with other plugins', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
             '<tr><th colspan=2>a1</th></tr>',
             '<tr><th colspan=2>a2</th></tr>',
@@ -257,6 +262,7 @@ describe('Integration with other plugins', () => {
               '<td>B2</td>',
             '</tr>',
           '</tbody>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -278,6 +284,7 @@ describe('Integration with other plugins', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
             '<tr><th colspan=2>a1</th></tr>',
             '<tr><th colspan=2>b2</th></tr>',
@@ -293,6 +300,7 @@ describe('Integration with other plugins', () => {
               '<td>D2</td>',
             '</tr>',
           '</tbody>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */

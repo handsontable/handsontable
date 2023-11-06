@@ -2,6 +2,7 @@ import { CellRange, CellCoords } from 'walkontable';
 import {
   detectSelectionType,
   normalizeSelectionFactory,
+  normalizeRanges,
   transformSelectionToColumnDistance,
   transformSelectionToRowDistance,
   SELECTION_TYPE_ARRAY,
@@ -271,6 +272,55 @@ describe('selection utils', () => {
       expect(transformSelectionToRowDistance([range(0, 0, 1, 1, -2, -2)])).toEqual([[0, 2]]);
       expect(transformSelectionToRowDistance([range(1, 1, 1, 1, 2, 2), range(3, 3, 3, 3, 5, 3)]))
         .toEqual([[1, 5]]);
+    });
+  });
+
+  describe('`normalizeRanges` utils', () => {
+    it('should return a correct results for specific range', () => {
+      expect(normalizeRanges([
+        { startRow: 0, endRow: 0, startCol: 0, endCol: 0 }
+      ])).toEqual({
+        rows: [0],
+        columns: [0],
+      });
+      expect(normalizeRanges([
+        { startRow: 0, endRow: 2, startCol: 3, endCol: 9 }
+      ])).toEqual({
+        rows: [0, 1, 2],
+        columns: [3, 4, 5, 6, 7, 8, 9],
+      });
+      expect(normalizeRanges([
+        { startRow: -3, endRow: 2, startCol: 3, endCol: 9 }
+      ])).toEqual({
+        rows: [-3, -2, -1, 0, 1, 2],
+        columns: [3, 4, 5, 6, 7, 8, 9],
+      });
+      expect(normalizeRanges([
+        { startRow: 2, endRow: -3, startCol: 9, endCol: 3 }
+      ])).toEqual({
+        rows: [-3, -2, -1, 0, 1, 2],
+        columns: [3, 4, 5, 6, 7, 8, 9],
+      });
+    });
+
+    it('should return a correct results with uniq indexes for multiple ranges', () => {
+      // the same coords but defined with opposite directions
+      expect(normalizeRanges([
+        { startRow: -3, endRow: 2, startCol: 3, endCol: 9 },
+        { startRow: 2, endRow: -3, startCol: 9, endCol: 3 },
+      ])).toEqual({
+        rows: [-3, -2, -1, 0, 1, 2],
+        columns: [3, 4, 5, 6, 7, 8, 9],
+      });
+      expect(normalizeRanges([
+        { startRow: -3, endRow: 2, startCol: 3, endCol: 9 },
+        { startRow: 2, endRow: -3, startCol: 9, endCol: 3 },
+        { startRow: 100, endRow: 101, startCol: 9, endCol: 3 },
+        { startRow: 0, endRow: 0, startCol: 22, endCol: 19 },
+      ])).toEqual({
+        rows: [-3, -2, -1, 0, 1, 2, 100, 101],
+        columns: [3, 4, 5, 6, 7, 8, 9, 19, 20, 21, 22],
+      });
     });
   });
 });

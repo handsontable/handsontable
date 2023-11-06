@@ -39,6 +39,7 @@ describe('MergeCells copy and paste', () => {
       '<meta name="generator" content="Handsontable"/>',
       '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
       '<table>',
+      '<!--StartFragment-->',
         '<tbody>',
           '<tr>',
             '<td rowspan="2" colspan="2">B2</td>',
@@ -46,6 +47,7 @@ describe('MergeCells copy and paste', () => {
           '<tr>',
           '</tr>',
         '</tbody>',
+      '<!--EndFragment-->',
       '</table>',
     ].join(''));
     /* eslint-enable */
@@ -87,6 +89,7 @@ describe('MergeCells copy and paste', () => {
       '<meta name="generator" content="Handsontable"/>',
       '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
       '<table>',
+      '<!--StartFragment-->',
         '<thead>',
           '<tr>',
             '<th>A</th>',
@@ -115,6 +118,7 @@ describe('MergeCells copy and paste', () => {
             '<td>D4</td>',
           '</tr>',
         '</tbody>',
+      '<!--EndFragment-->',
       '</table>'
     ].join(''));
     /* eslint-enable */
@@ -204,6 +208,7 @@ describe('MergeCells copy and paste', () => {
       '<meta name="generator" content="Handsontable"/>',
       '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
       '<table>',
+      '<!--StartFragment-->',
         '<tbody>',
           '<tr>',
             '<td>A1</td>',
@@ -267,6 +272,7 @@ describe('MergeCells copy and paste', () => {
             '<td>H8</td>',
           '</tr>',
         '</tbody>',
+      '<!--EndFragment-->',
       '</table>',
     ].join(''));
     /* eslint-enable */
@@ -310,6 +316,7 @@ describe('MergeCells copy and paste', () => {
       '<meta name="generator" content="Handsontable"/>',
       '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
       '<table>',
+      '<!--StartFragment-->',
         '<tbody>',
           '<tr>',
             '<td>A1</td>',
@@ -369,6 +376,7 @@ describe('MergeCells copy and paste', () => {
             '<td>H8</td>',
           '</tr>',
         '</tbody>',
+      '<!--EndFragment-->',
       '</table>',
     ].join(''));
     /* eslint-enable */
@@ -412,6 +420,7 @@ describe('MergeCells copy and paste', () => {
       '<meta name="generator" content="Handsontable"/>',
       '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
       '<table>',
+      '<!--StartFragment-->',
         '<tbody>',
           '<tr>',
             '<td>A1</td>',
@@ -471,6 +480,7 @@ describe('MergeCells copy and paste', () => {
             '<td>H8</td>',
           '</tr>',
         '</tbody>',
+      '<!--EndFragment-->',
       '</table>',
     ].join(''));
     /* eslint-enable */
@@ -516,6 +526,7 @@ describe('MergeCells copy and paste', () => {
       '<meta name="generator" content="Handsontable"/>',
       '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
       '<table>',
+      '<!--StartFragment-->',
         '<tbody>',
           '<tr>',
             '<td>A1</td>',
@@ -560,6 +571,7 @@ describe('MergeCells copy and paste', () => {
             '<td>H8</td>',
           '</tr>',
         '</tbody>',
+      '<!--EndFragment-->',
       '</table>',
     ].join(''));
     /* eslint-enable */
@@ -603,6 +615,7 @@ describe('MergeCells copy and paste', () => {
       '<meta name="generator" content="Handsontable"/>',
       '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
       '<table>',
+      '<!--StartFragment-->',
         '<tbody>',
           '<tr>',
             '<td>A1</td>',
@@ -647,6 +660,7 @@ describe('MergeCells copy and paste', () => {
             '<td>H8</td>',
           '</tr>',
         '</tbody>',
+      '<!--EndFragment-->',
       '</table>',
     ].join(''));
     /* eslint-enable */
@@ -692,6 +706,7 @@ describe('MergeCells copy and paste', () => {
       '<meta name="generator" content="Handsontable"/>',
       '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
       '<table>',
+      '<!--StartFragment-->',
         '<tbody>',
           '<tr>',
             '<td>A1</td>',
@@ -771,6 +786,7 @@ describe('MergeCells copy and paste', () => {
             '<td>H8</td>',
           '</tr>',
         '</tbody>',
+      '<!--EndFragment-->',
       '</table>',
     ].join(''));
     /* eslint-enable */
@@ -815,6 +831,7 @@ describe('MergeCells copy and paste', () => {
       '<meta name="generator" content="Handsontable"/>',
       '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
       '<table>',
+      '<!--StartFragment-->',
         '<tbody>',
           '<tr>',
             '<td>A1</td>',
@@ -892,6 +909,7 @@ describe('MergeCells copy and paste', () => {
             '<td>H8</td>',
           '</tr>',
         '</tbody>',
+      '<!--EndFragment-->',
       '</table>',
     ].join(''));
     /* eslint-enable */
@@ -937,6 +955,7 @@ describe('MergeCells copy and paste', () => {
       '<meta name="generator" content="Handsontable"/>',
       '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
       '<table>',
+      '<!--StartFragment-->',
         '<thead>',
           '<tr>',
             '<th>A</th>',
@@ -1027,6 +1046,7 @@ describe('MergeCells copy and paste', () => {
             '<td>H8</td>',
           '</tr>',
         '</tbody>',
+      '<!--EndFragment-->',
       '</table>',
     ].join(''));
     /* eslint-enable */
@@ -1062,6 +1082,7 @@ describe('MergeCells copy and paste', () => {
       '<meta name="generator" content="Handsontable"/>',
       '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
       '<table>',
+      '<!--StartFragment-->',
         '<thead>',
           '<tr>',
             '<th>A</th>',
@@ -1075,6 +1096,7 @@ describe('MergeCells copy and paste', () => {
             '<th>H</th>',
           '</tr>',
         '</thead>',
+      '<!--EndFragment-->',
       '</table>',
     ].join(''));
     /* eslint-enable */

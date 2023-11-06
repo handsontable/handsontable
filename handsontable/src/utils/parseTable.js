@@ -1,4 +1,4 @@
-import { isEmpty } from './../helpers/mixed';
+import { isDefined, isEmpty } from './../helpers/mixed';
 import { isObject } from './../helpers/object';
 import { rangeEach } from '../helpers/number';
 
@@ -49,7 +49,7 @@ export function instanceToHTML(hotInstance) {
   const columns = Array.from({ length: hotInstance.countCols() + Math.abs(startColumn) },
     (_, i) => i + startColumn);
 
-  return getHTMLByCoords(hotInstance, { rows, columns });
+  return getHTMLByCoords(hotInstance, { rows, columns, excelMode: false });
 }
 
 /**
@@ -59,13 +59,24 @@ export function instanceToHTML(hotInstance) {
  * @param {object} config Configuration for building HTMLTableElement.
  * @param {Array<number>} config.rows List of row indexes which should be taken into account when creating the table.
  * @param {Array<number>} config.columns List of column indexes which should be taken into account when creating the table.
+ * @param {boolean} [config.excelMode] Gets to format handled by desktop Excel application.
  * @returns {string} OuterHTML of the HTMLTableElement.
  */
 export function getHTMLByCoords(hotInstance, config) {
+  const headers = getHeadersHTMLByCoords(hotInstance, config);
+  const body = getBodyHTMLByCoords(hotInstance, config);
+  const excelMode = isDefined(config.excelMode) ? config.excelMode : true;
+  const multipleElements = headers.length + body.length > 5; // Has at least two cells/headers
+  const isAddedCommentForExcel = excelMode && multipleElements;
+
   return [
     '<table>',
-    ...getHeadersHTMLByCoords(hotInstance, config),
-    ...getBodyHTMLByCoords(hotInstance, config),
+    // Needed for desktop Excel on MacOS while pasting any elements with rowspan/colspan.
+    isAddedCommentForExcel ? '<!--StartFragment-->' : '',
+    ...headers,
+    ...body,
+    // Needed for desktop Excel on MacOS while pasting any elements with rowspan/colspan.
+    isAddedCommentForExcel ? '<!--EndFragment-->' : '',
     '</table>',
   ].join('');
 }
@@ -99,13 +110,24 @@ export function getDataByCoords(hotInstance, config) {
  * @param {Array<Array<string|object>>} [config.nestedHeaders] List of headers and corresponding information about some
  * nested elements.
  * @param {Array<string>} [config.colHeaders] List of first level header values.
+ * @param {boolean} [config.excelMode] Gets to format handled by desktop Excel application.
  * @returns {string} OuterHTML of the HTMLTableElement.
  */
 export function getHTMLFromConfig(config) {
+  const headers = getHeadersHTMLByConfig(config);
+  const body = getBodyHTMLByConfig(config);
+  const excelMode = isDefined(config.excelMode) ? config.excelMode : true;
+  const multipleElements = headers.length + body.length > 5; // Has at least two cells/headers
+  const isAddedCommentForExcel = excelMode && multipleElements;
+
   return [
     '<table>',
+    // Needed for desktop Excel on MacOS while pasting any elements with rowspan/colspan.
+    isAddedCommentForExcel ? '<!--StartFragment-->' : '',
     ...getHeadersHTMLByConfig(config),
     ...getBodyHTMLByConfig(config),
+    // Needed for desktop Excel on MacOS while pasting any elements with rowspan/colspan.
+    isAddedCommentForExcel ? '<!--EndFragment-->' : '',
     '</table>',
   ].join('');
 }

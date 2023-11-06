@@ -1,5 +1,5 @@
 import { META_HEAD, ClipboardData } from './clipboardData';
-import { normalizeRanges } from '../copyableRanges';
+import { normalizeRanges } from '../../../selection';
 import { getDataByCoords, getHTMLByCoords } from '../../../utils/parseTable';
 
 /**

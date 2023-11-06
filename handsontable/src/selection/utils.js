@@ -1,6 +1,7 @@
 import { CellRange, CellCoords } from './../3rdparty/walkontable/src';
 import { arrayEach, arrayReduce } from './../helpers/array';
 import { isUndefined } from './../helpers/mixed';
+import { rangeEach } from '../helpers/number';
 
 export const SELECTION_TYPE_UNRECOGNIZED = 0;
 export const SELECTION_TYPE_EMPTY = 1;
@@ -221,4 +222,41 @@ export function transformSelectionToRowDistance(selectionRanges) {
   }, []);
 
   return normalizedRowRanges;
+}
+
+/**
+ * Returns an object with `rows` and `columns` keys. The arrays contains sorted indexes
+ * generated according to the given `ranges` array.
+ *
+ * @param {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>} ranges The range to process.
+ * @returns {{rows: number[], columns: number[]}}
+ */
+export function normalizeRanges(ranges) {
+  const rows = [];
+  const columns = [];
+
+  arrayEach(ranges, (range) => {
+    const minRow = Math.min(range.startRow, range.endRow);
+    const maxRow = Math.max(range.startRow, range.endRow);
+
+    rangeEach(minRow, maxRow, (row) => {
+      if (rows.indexOf(row) === -1) {
+        rows.push(row);
+      }
+    });
+
+    const minColumn = Math.min(range.startCol, range.endCol);
+    const maxColumn = Math.max(range.startCol, range.endCol);
+
+    rangeEach(minColumn, maxColumn, (column) => {
+      if (columns.indexOf(column) === -1) {
+        columns.push(column);
+      }
+    });
+  });
+
+  return {
+    rows,
+    columns,
+  };
 }
