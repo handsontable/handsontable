@@ -8,53 +8,57 @@ import { warn } from '../../helpers/console';
  * @class Endpoints
  */
 class Endpoints {
+  /**
+   * The main plugin instance.
+   */
+  plugin;
+  /**
+   * Handsontable instance.
+   *
+   * @type {object}
+   */
+  hot;
+  /**
+   * Array of declared plugin endpoints (calculation destination points).
+   *
+   * @type {Array}
+   * @default {Array} Empty array.
+   */
+  endpoints = [];
+  /**
+   * The plugin settings, taken from Handsontable configuration.
+   *
+   * @type {object|Function}
+   * @default null
+   */
+  settings;
+  /**
+   * Settings type. Can be either 'array' or 'function'.
+   *
+   * @type {string}
+   * @default {'array'}
+   */
+  settingsType = 'array';
+  /**
+   * The current endpoint (calculation destination point) in question.
+   *
+   * @type {object}
+   * @default null
+   */
+  currentEndpoint = null;
+  /**
+   * Array containing a list of changes to be applied.
+   *
+   * @private
+   * @type {Array}
+   * @default {[]}
+   */
+  cellsToSetCache = [];
+
   constructor(plugin, settings) {
-    /**
-     * The main plugin instance.
-     */
     this.plugin = plugin;
-    /**
-     * Handsontable instance.
-     *
-     * @type {object}
-     */
     this.hot = this.plugin.hot;
-    /**
-     * Array of declared plugin endpoints (calculation destination points).
-     *
-     * @type {Array}
-     * @default {Array} Empty array.
-     */
-    this.endpoints = [];
-    /**
-     * The plugin settings, taken from Handsontable configuration.
-     *
-     * @type {object|Function}
-     * @default null
-     */
     this.settings = settings;
-    /**
-     * Settings type. Can be either 'array' or 'function.
-     *
-     * @type {string}
-     * @default {'array'}
-     */
-    this.settingsType = 'array';
-    /**
-     * The current endpoint (calculation destination point) in question.
-     *
-     * @type {object}
-     * @default null
-     */
-    this.currentEndpoint = null;
-    /**
-     * Array containing a list of changes to be applied.
-     *
-     * @private
-     * @type {Array}
-     * @default {[]}
-     */
-    this.cellsToSetCache = [];
   }
 
   /**

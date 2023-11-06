@@ -2834,6 +2834,11 @@ class Hooks {
   }
 
   /**
+   * @type {object}
+   */
+  globalBucket;
+
+  /**
    *
    */
   constructor() {

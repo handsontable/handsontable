@@ -9,13 +9,25 @@ import {
  */
 export default class ColumnUtils {
   /**
+   * @type {TableDao}
+   */
+  dataAccessObject;
+  /**
+   * @type {Settings}
+   */
+  wtSettings;
+  /**
+   * @type {Map<number, number>}
+   */
+  headerWidths = new Map();
+
+  /**
    * @param {TableDao} dataAccessObject The table Data Access Object.
    * @param {Settings} wtSettings The walkontable settings.
    */
   constructor(dataAccessObject, wtSettings) {
     this.dataAccessObject = dataAccessObject;
     this.wtSettings = wtSettings;
-    this.headerWidths = new Map();
   }
 
   /**

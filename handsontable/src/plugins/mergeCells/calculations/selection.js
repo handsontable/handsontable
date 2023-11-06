@@ -5,26 +5,28 @@
  * @class SelectionCalculations
  */
 class SelectionCalculations {
-  constructor(plugin) {
-    /**
-     * Reference to the Merge Cells plugin.
-     *
-     * @type {MergeCells}
-     */
-    this.plugin = plugin;
-    /**
-     * Reference to the Handsontable instance.
-     *
-     * @type {Handsontable}
-     */
-    this.hot = plugin.hot;
-    /**
-     * Class name used for fully selected merged cells.
-     *
-     * @type {string}
-     */
-    this.fullySelectedMergedCellClassName = 'fullySelectedMergedCell';
+  /**
+   * Reference to the Merge Cells plugin.
+   *
+   * @type {MergeCells}
+   */
+  plugin;
+  /**
+   * Reference to the Handsontable instance.
+   *
+   * @type {Handsontable}
+   */
+  hot;
+  /**
+   * Class name used for fully selected merged cells.
+   *
+   * @type {string}
+   */
+  fullySelectedMergedCellClassName = 'fullySelectedMergedCell';
 
+  constructor(plugin) {
+    this.plugin = plugin;
+    this.hot = plugin.hot;
   }
 
   /**

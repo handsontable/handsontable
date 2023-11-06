@@ -24,13 +24,16 @@ let performanceWarningAppeared = false;
  * @class {RowsRenderer}
  */
 export default class RowsRenderer extends BaseRenderer {
+  /**
+   * Cache for OrderView classes connected to specified node.
+   *
+   * @type {WeakMap}
+   */
+  orderView;
+
   constructor(rootNode) {
     super('TR', rootNode);
-    /**
-     * Cache for OrderView classes connected to specified node.
-     *
-     * @type {WeakMap}
-     */
+
     this.orderView = new OrderView(
       rootNode,
       sourceRowIndex => this.nodesPool.obtain(sourceRowIndex),

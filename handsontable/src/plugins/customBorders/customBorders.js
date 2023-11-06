@@ -117,8 +117,8 @@ export class CustomBorders extends BasePlugin {
       return;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', options => this.onAfterContextMenuDefaultOptions(options));
-    this.addHook('init', () => this.onAfterInit());
+    this.addHook('afterContextMenuDefaultOptions', options => this.#onAfterContextMenuDefaultOptions(options));
+    this.addHook('init', () => this.#onAfterInit());
 
     super.enablePlugin();
   }
@@ -771,10 +771,9 @@ export class CustomBorders extends BasePlugin {
   /**
    * Add border options to context menu.
    *
-   * @private
    * @param {object} defaultOptions Context menu items.
    */
-  onAfterContextMenuDefaultOptions(defaultOptions) {
+  #onAfterContextMenuDefaultOptions(defaultOptions) {
     if (!this.hot.getSettings()[PLUGIN_KEY]) {
       return;
     }
@@ -813,10 +812,8 @@ export class CustomBorders extends BasePlugin {
 
   /**
    * `afterInit` hook callback.
-   *
-   * @private
    */
-  onAfterInit() {
+  #onAfterInit() {
     this.changeBorderSettings();
   }
 

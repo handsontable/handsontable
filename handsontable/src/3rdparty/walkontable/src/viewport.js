@@ -331,13 +331,13 @@ class Viewport {
     }
 
     return new ViewportRowsCalculator({
-      viewportSize: height,
+      viewportHeight: height,
       scrollOffset: pos,
-      totalItems: wtSettings.getSetting('totalRows'),
-      itemSizeFn: sourceRow => wtTable.getRowHeight(sourceRow),
+      totalRows: wtSettings.getSetting('totalRows'),
+      rowHeightFn: sourceRow => wtTable.getRowHeight(sourceRow),
       overrideFn: wtSettings.getSettingPure('viewportRowCalculatorOverride'),
       calculationType,
-      scrollbarHeight,
+      horizontalScrollbarHeight: scrollbarHeight,
     });
   }
 
@@ -370,14 +370,14 @@ class Viewport {
     }
 
     return new ViewportColumnsCalculator({
-      viewportSize: width,
+      viewportWidth: width,
       scrollOffset: pos,
-      totalItems: wtSettings.getSetting('totalColumns'),
-      itemSizeFn: sourceCol => wtTable.getColumnWidth(sourceCol),
+      totalColumns: wtSettings.getSetting('totalColumns'),
+      columnWidthFn: sourceCol => wtTable.getColumnWidth(sourceCol),
       overrideFn: wtSettings.getSettingPure('viewportColumnCalculatorOverride'),
       calculationType,
       stretchMode: wtSettings.getSetting('stretchH'),
-      stretchingItemWidthFn: (stretchedWidth, column) => {
+      stretchingColumnWidthFn: (stretchedWidth, column) => {
         return wtSettings.getSetting('onBeforeStretchingColumnWidth', stretchedWidth, column);
       },
       inlineStartOffset: this.dataAccessObject.inlineStartParentOffset

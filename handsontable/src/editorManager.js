@@ -8,68 +8,73 @@ export const SHORTCUTS_GROUP_NAVIGATION = 'editorManager.navigation';
 
 class EditorManager {
   /**
+   * Instance of {@link Handsontable}.
+   *
+   * @private
+   * @type {Handsontable}
+   */
+  instance;
+  /**
+   * Reference to an instance's private GridSettings object.
+   *
+   * @private
+   * @type {GridSettings}
+   */
+  tableMeta;
+  /**
+   * Instance of {@link Selection}.
+   *
+   * @private
+   * @type {Selection}
+   */
+  selection;
+  /**
+   * Instance of {@link EventManager}.
+   *
+   * @private
+   * @type {EventManager}
+   */
+  eventManager;
+  /**
+   * Determines if EditorManager is destroyed.
+   *
+   * @private
+   * @type {boolean}
+   */
+  destroyed = false;
+  /**
+   * Determines if EditorManager is locked.
+   *
+   * @private
+   * @type {boolean}
+   */
+  lock = false;
+  /**
+   * A reference to an instance of the activeEditor.
+   *
+   * @private
+   * @type {BaseEditor}
+   */
+  activeEditor;
+  /**
+   * Keeps a reference to the cell's properties object.
+   *
+   * @type {object}
+   */
+  cellProperties;
+
+  /**
    * @param {Core} instance The Handsontable instance.
    * @param {TableMeta} tableMeta The table meta instance.
    * @param {Selection} selection The selection instance.
    */
   constructor(instance, tableMeta, selection) {
-    /**
-     * Instance of {@link Handsontable}.
-     *
-     * @private
-     * @type {Handsontable}
-     */
     this.instance = instance;
-    /**
-     * Reference to an instance's private GridSettings object.
-     *
-     * @private
-     * @type {GridSettings}
-     */
     this.tableMeta = tableMeta;
-    /**
-     * Instance of {@link Selection}.
-     *
-     * @private
-     * @type {Selection}
-     */
     this.selection = selection;
-    /**
-     * Instance of {@link EventManager}.
-     *
-     * @private
-     * @type {EventManager}
-     */
     this.eventManager = new EventManager(instance);
-    /**
-     * Determines if EditorManager is destroyed.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.destroyed = false;
-    /**
-     * Determines if EditorManager is locked.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.lock = false;
-    /**
-     * A reference to an instance of the activeEditor.
-     *
-     * @private
-     * @type {BaseEditor}
-     */
-    this.activeEditor = void 0;
-    /**
-     * Keeps a reference to the cell's properties object.
-     *
-     * @type {object}
-     */
-    this.cellProperties = void 0;
 
-    this.instance.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
+    this.instance.addHook('afterDocumentKeyDown', event => this.#onAfterDocumentKeyDown(event));
 
     // Open editor when text composition is started (IME editor)
     this.eventManager.addEventListener(this.instance.rootDocument.documentElement, 'compositionstart', (event) => {
@@ -78,7 +83,7 @@ class EditorManager {
       }
     });
 
-    this.instance.view._wt.update('onCellDblClick', (event, coords, elem) => this.onCellDblClick(event, coords, elem));
+    this.instance.view._wt.update('onCellDblClick', (event, coords, elem) => this.#onCellDblClick(event, coords, elem));
   }
 
   /**
@@ -313,10 +318,9 @@ class EditorManager {
   /**
    * OnAfterDocumentKeyDown callback.
    *
-   * @private
    * @param {KeyboardEvent} event The keyboard event object.
    */
-  onAfterDocumentKeyDown(event) {
+  #onAfterDocumentKeyDown(event) {
     const selection = this.instance.getSelectedRangeLast();
 
     if (!this.instance.isListening() || !selection || selection.highlight.isHeader() ||
@@ -368,12 +372,11 @@ class EditorManager {
   /**
    * OnCellDblClick callback.
    *
-   * @private
    * @param {MouseEvent} event The mouse event object.
    * @param {object} coords The cell coordinates.
    * @param {HTMLTableCellElement|HTMLTableHeaderCellElement} elem The element which triggers the action.
    */
-  onCellDblClick(event, coords, elem) {
+  #onCellDblClick(event, coords, elem) {
     // may be TD or TH
     if (elem.nodeName === 'TD') {
       this.openEditor(null, event, true);

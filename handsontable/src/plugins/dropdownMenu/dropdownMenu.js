@@ -119,39 +119,40 @@ export class DropdownMenu extends BasePlugin {
     ];
   }
 
+  /**
+   * Instance of {@link EventManager}.
+   *
+   * @private
+   * @type {EventManager}
+   */
+  eventManager = new EventManager(this);
+  /**
+   * Instance of {@link CommandExecutor}.
+   *
+   * @private
+   * @type {CommandExecutor}
+   */
+  commandExecutor = new CommandExecutor(this.hot);
+  /**
+   * Instance of {@link ItemsFactory}.
+   *
+   * @private
+   * @type {ItemsFactory}
+   */
+  itemsFactory = null;
+  /**
+   * Instance of {@link Menu}.
+   *
+   * @private
+   * @type {Menu}
+   */
+  menu = null;
+
   constructor(hotInstance) {
     super(hotInstance);
-    /**
-     * Instance of {@link EventManager}.
-     *
-     * @private
-     * @type {EventManager}
-     */
-    this.eventManager = new EventManager(this);
-    /**
-     * Instance of {@link CommandExecutor}.
-     *
-     * @private
-     * @type {CommandExecutor}
-     */
-    this.commandExecutor = new CommandExecutor(this.hot);
-    /**
-     * Instance of {@link ItemsFactory}.
-     *
-     * @private
-     * @type {ItemsFactory}
-     */
-    this.itemsFactory = null;
-    /**
-     * Instance of {@link Menu}.
-     *
-     * @private
-     * @type {Menu}
-     */
-    this.menu = null;
 
     // One listener for enable/disable functionality
-    this.hot.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
+    this.hot.addHook('afterGetColHeader', (col, TH) => this.#onAfterGetColHeader(col, TH));
   }
 
   /**
@@ -208,10 +209,10 @@ export class DropdownMenu extends BasePlugin {
 
       this.menu.setMenuItems(menuItems);
 
-      this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());
-      this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
-      this.menu.addLocalHook('afterSubmenuOpen', subMenuInstance => this.onSubMenuAfterOpen(subMenuInstance));
-      this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
+      this.menu.addLocalHook('beforeOpen', () => this.#onMenuBeforeOpen());
+      this.menu.addLocalHook('afterOpen', () => this.#onMenuAfterOpen());
+      this.menu.addLocalHook('afterSubmenuOpen', subMenuInstance => this.#onSubMenuAfterOpen(subMenuInstance));
+      this.menu.addLocalHook('afterClose', () => this.#onMenuAfterClose());
       this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
 
       // Register all commands. Predefined and added by user or by plugins
@@ -303,7 +304,7 @@ export class DropdownMenu extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(this.hot.rootElement, 'click', event => this.onTableClick(event));
+    this.eventManager.addEventListener(this.hot.rootElement, 'click', event => this.#onTableClick(event));
   }
 
   /**
@@ -408,7 +409,7 @@ export class DropdownMenu extends BasePlugin {
    * @private
    * @param {Event} event The mouse event object.
    */
-  onTableClick(event) {
+  #onTableClick(event) {
     event.stopPropagation();
 
     if (hasClass(event.target, BUTTON_CLASS_NAME)) {
@@ -431,7 +432,7 @@ export class DropdownMenu extends BasePlugin {
    * @param {number} col Visual column index.
    * @param {HTMLTableCellElement} TH Header's TH element.
    */
-  onAfterGetColHeader(col, TH) {
+  #onAfterGetColHeader(col, TH) {
     // Corner or a higher-level header
     const headerRow = TH.parentNode;
 
@@ -490,7 +491,7 @@ export class DropdownMenu extends BasePlugin {
    * @private
    * @fires Hooks#beforeDropdownMenuShow
    */
-  onMenuBeforeOpen() {
+  #onMenuBeforeOpen() {
     this.hot.runHooks('beforeDropdownMenuShow', this);
   }
 
@@ -500,7 +501,7 @@ export class DropdownMenu extends BasePlugin {
    * @private
    * @fires Hooks#afterDropdownMenuShow
    */
-  onMenuAfterOpen() {
+  #onMenuAfterOpen() {
     this.hot.runHooks('afterDropdownMenuShow', this);
 
     this.#addCustomShortcuts(this.menu);
@@ -512,7 +513,7 @@ export class DropdownMenu extends BasePlugin {
    * @private
    * @param {Menu} subMenuInstance The opened sub menu instance.
    */
-  onSubMenuAfterOpen(subMenuInstance) {
+  #onSubMenuAfterOpen(subMenuInstance) {
     this.#addCustomShortcuts(subMenuInstance);
   }
 
@@ -522,7 +523,7 @@ export class DropdownMenu extends BasePlugin {
    * @private
    * @fires Hooks#afterDropdownMenuHide
    */
-  onMenuAfterClose() {
+  #onMenuAfterClose() {
     this.hot.listen();
     this.hot.runHooks('afterDropdownMenuHide', this);
   }

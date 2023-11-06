@@ -15,48 +15,50 @@ const HEADER_ACTION_DEFAULT = true;
  * @class ColumnStatesManager
  */
 export class ColumnStatesManager {
-  constructor(hot, mapName) {
-    /**
-     * Handsontable instance.
-     *
-     * @type {Core}
-     */
-    this.hot = hot;
-    /**
-     * Index map storing sorting states for every column. ColumnStatesManager write and read to/from this element.
-     *
-     * @type {LinkedPhysicalIndexToValueMap}
-     */
-    this.sortingStates = new IndexToValueMap();
-    /**
-     * Determines whether we should sort empty cells.
-     *
-     * @type {boolean}
-     */
-    this.sortEmptyCells = SORT_EMPTY_CELLS_DEFAULT;
-    /**
-     * Determines whether indicator should be visible (for sorted columns).
-     *
-     * @type {boolean}
-     */
-    this.indicator = SHOW_SORT_INDICATOR_DEFAULT;
-    /**
-     * Determines whether click on the header perform sorting.
-     *
-     * @type {boolean}
-     */
-    this.headerAction = HEADER_ACTION_DEFAULT;
-    /**
-     * Determines compare function factory. Method get as parameters `sortOder` and `columnMeta` and return compare function.
-     */
-    this.compareFunctionFactory = void 0;
-    /**
-     * Name of map storing sorting states. Required for unique name (PR #7440 introduced it). It's needed as
-     * both ColumnSorting and MultiColumnSorting plugins create state manager and as a consequence register maps.
-     * Objects are destroyed in strange order as the updateSettings doesn't work well.
-     */
-    this.mapName = mapName;
+  /**
+   * Handsontable instance.
+   *
+   * @type {Core}
+   */
+  hot;
+  /**
+   * Index map storing sorting states for every column. ColumnStatesManager write and read to/from this element.
+   *
+   * @type {LinkedPhysicalIndexToValueMap}
+   */
+  sortingStates = new IndexToValueMap();
+  /**
+   * Determines whether we should sort empty cells.
+   *
+   * @type {boolean}
+   */
+  sortEmptyCells = SORT_EMPTY_CELLS_DEFAULT;
+  /**
+   * Determines whether indicator should be visible (for sorted columns).
+   *
+   * @type {boolean}
+   */
+  indicator = SHOW_SORT_INDICATOR_DEFAULT;
+  /**
+   * Determines whether click on the header perform sorting.
+   *
+   * @type {boolean}
+   */
+  headerAction = HEADER_ACTION_DEFAULT;
+  /**
+   * Determines compare function factory. Method get as parameters `sortOder` and `columnMeta` and return compare function.
+   */
+  compareFunctionFactory;
+  /**
+   * Name of map storing sorting states. Required for unique name (PR #7440 introduced it). It's needed as
+   * both ColumnSorting and MultiColumnSorting plugins create state manager and as a consequence register maps.
+   * Objects are destroyed in strange order as the updateSettings doesn't work well.
+   */
+  mapName;
 
+  constructor(hot, mapName) {
+    this.hot = hot;
+    this.mapName = mapName;
     this.hot.columnIndexMapper.registerMap(mapName, this.sortingStates);
   }
 

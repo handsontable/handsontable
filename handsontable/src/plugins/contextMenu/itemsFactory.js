@@ -13,9 +13,21 @@ import {
  * @class ItemsFactory
  */
 export class ItemsFactory {
+  /**
+   * @type {Core}
+   */
+  hot;
+  /**
+   * @type {object}
+   */
+  predefinedItems = predefinedItems();
+  /**
+   * @type {Array}
+   */
+  defaultOrderPattern;
+
   constructor(hotInstance, orderPattern = null) {
     this.hot = hotInstance;
-    this.predefinedItems = predefinedItems();
     this.defaultOrderPattern = orderPattern;
   }
 

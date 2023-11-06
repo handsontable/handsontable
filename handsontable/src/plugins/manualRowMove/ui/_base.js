@@ -7,26 +7,28 @@ const UNIT = 'px';
  * @private
  */
 class BaseUI {
+  /**
+   * Instance of Handsontable.
+   *
+   * @type {Core}
+   */
+  hot;
+  /**
+   * DOM element representing the ui element.
+   *
+   * @type {HTMLElement}
+   * @private
+   */
+  _element = null;
+  /**
+   * Flag which determines build state of element.
+   *
+   * @type {number}
+   */
+  state = STATE_INITIALIZED;
+
   constructor(hotInstance) {
-    /**
-     * Instance of Handsontable.
-     *
-     * @type {Core}
-     */
     this.hot = hotInstance;
-    /**
-     * DOM element representing the ui element.
-     *
-     * @type {HTMLElement}
-     * @private
-     */
-    this._element = null;
-    /**
-     * Flag which determines build state of element.
-     *
-     * @type {number}
-     */
-    this.state = STATE_INITIALIZED;
   }
 
   /**

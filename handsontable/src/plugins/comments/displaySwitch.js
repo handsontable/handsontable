@@ -12,27 +12,27 @@ const DEFAULT_HIDE_DELAY = 250;
  * @class DisplaySwitch
  */
 class DisplaySwitch {
-  constructor(displayDelay) {
-    /**
-     * Flag to determine if comment can be showed or hidden. State `true` mean that last performed action
-     * was an attempt to show comment element. State `false` mean that it was attempt to hide comment element.
-     *
-     * @type {boolean}
-     */
-    this.wasLastActionShow = true;
-    /**
-     * Show comment after predefined delay. It keeps reference to immutable `debounce` function.
-     *
-     * @type {Function}
-     */
-    this.showDebounced = null;
-    /**
-     * Reference to timer, run by `setTimeout`, which is hiding comment.
-     *
-     * @type {number}
-     */
-    this.hidingTimer = null;
+  /**
+   * Flag to determine if comment can be showed or hidden. State `true` mean that last performed action
+   * was an attempt to show comment element. State `false` mean that it was attempt to hide comment element.
+   *
+   * @type {boolean}
+   */
+  wasLastActionShow = true;
+  /**
+   * Show comment after predefined delay. It keeps reference to immutable `debounce` function.
+   *
+   * @type {Function}
+   */
+  showDebounced = null;
+  /**
+   * Reference to timer, run by `setTimeout`, which is hiding comment.
+   *
+   * @type {number}
+   */
+  hidingTimer = null;
 
+  constructor(displayDelay) {
     this.updateDelay(displayDelay);
   }
 

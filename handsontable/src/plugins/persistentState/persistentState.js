@@ -45,16 +45,13 @@ export class PersistentState extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * Instance of {@link Storage}.
-     *
-     * @private
-     * @type {Storage}
-     */
-    this.storage = void 0;
-  }
+  /**
+   * Instance of {@link Storage}.
+   *
+   * @private
+   * @type {Storage}
+   */
+  storage;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}

@@ -21,25 +21,19 @@ export class MultipleSelectionHandles extends BasePlugin {
   }
 
   /**
-   * @param {object} hotInstance The handsontable instance.
+   * @type {Array}
    */
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * @type {Array}
-     */
-    this.dragged = [];
-    /**
-     * Instance of EventManager.
-     *
-     * @type {EventManager}
-     */
-    this.eventManager = null;
-    /**
-     * @type {null}
-     */
-    this.lastSetCell = null;
-  }
+  dragged = [];
+  /**
+   * Instance of EventManager.
+   *
+   * @type {EventManager}
+   */
+  eventManager = null;
+  /**
+   * @type {null}
+   */
+  lastSetCell = null;
 
   /**
    * Check if the plugin is enabled in the handsontable settings.

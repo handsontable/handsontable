@@ -5,18 +5,21 @@ import { arrayEach } from '../../helpers/array';
  * @class DataFilter
  */
 class DataFilter {
+  /**
+   * Reference to the instance of {ConditionCollection}.
+   *
+   * @type {ConditionCollection}
+   */
+  conditionCollection;
+  /**
+   * Function which provide source data factory for specified column.
+   *
+   * @type {Function}
+   */
+  columnDataFactory;
+
   constructor(conditionCollection, columnDataFactory = () => []) {
-    /**
-     * Reference to the instance of {ConditionCollection}.
-     *
-     * @type {ConditionCollection}
-     */
     this.conditionCollection = conditionCollection;
-    /**
-     * Function which provide source data factory for specified column.
-     *
-     * @type {Function}
-     */
     this.columnDataFactory = columnDataFactory;
   }
 

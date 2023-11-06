@@ -5,27 +5,31 @@ import { arrayEach } from '../../helpers/array';
  * @class Storage
  */
 class Storage {
+  /**
+   * Reference to proper window.
+   *
+   * @type {Window}
+   */
+  rootWindow;
+  /**
+   * Prefix for key (id element).
+   *
+   * @type {string}
+   */
+  prefix;
+
+  /**
+   * Saved keys.
+   *
+   * @type {Array}
+   */
+  savedKeys = [];
+
   // eslint-disable-next-line no-restricted-globals
   constructor(prefix, rootWindow = window) {
-    /**
-     * Reference to proper window.
-     *
-     * @type {Window}
-     */
     this.rootWindow = rootWindow;
-    /**
-     * Prefix for key (id element).
-     *
-     * @type {string}
-     */
     this.prefix = prefix;
 
-    /**
-     * Saved keys.
-     *
-     * @type {Array}
-     */
-    this.savedKeys = [];
     this.loadSavedKeys();
   }
 

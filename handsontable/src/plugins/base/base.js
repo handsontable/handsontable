@@ -15,7 +15,6 @@ const DEPS_TYPE_CHECKERS = new Map([
 ]);
 
 export const PLUGIN_KEY = 'base';
-const privatePool = new WeakMap();
 const missingDependeciesMsgs = [];
 let initializedPlugins = null;
 
@@ -43,6 +42,16 @@ export class BasePlugin {
     ];
   }
 
+  pluginName = null;
+  pluginsInitializedCallbacks = [];
+  isPluginsReady = false;
+  enabled = false;
+  initialized = false;
+  /**
+   * Collection of the reference to the plugins hooks.
+   */
+  #hooks = {};
+
   /**
    * @param {object} hotInstance Handsontable instance.
    */
@@ -56,14 +65,7 @@ export class BasePlugin {
       writable: false
     });
 
-    privatePool.set(this, { hooks: {} });
     initializedPlugins = null;
-
-    this.pluginName = null;
-    this.pluginsInitializedCallbacks = [];
-    this.isPluginsReady = false;
-    this.enabled = false;
-    this.initialized = false;
 
     this.hot.addHook('afterPluginsInitialized', () => this.onAfterPluginsInitialized());
     this.hot.addHook('afterUpdateSettings', newSettings => this.onUpdateSettings(newSettings));
@@ -165,13 +167,13 @@ export class BasePlugin {
    * @param {Function} callback The listener function to add.
    */
   addHook(name, callback) {
-    privatePool.get(this).hooks[name] = (privatePool.get(this).hooks[name] || []);
+    this.#hooks[name] = (this.#hooks[name] || []);
 
-    const hooks = privatePool.get(this).hooks[name];
+    const hooks = this.#hooks[name];
 
     this.hot.addHook(name, callback);
     hooks.push(callback);
-    privatePool.get(this).hooks[name] = hooks;
+    this.#hooks[name] = hooks;
   }
 
   /**
@@ -180,7 +182,7 @@ export class BasePlugin {
    * @param {string} name The hook name.
    */
   removeHooks(name) {
-    arrayEach(privatePool.get(this).hooks[name] || [], (callback) => {
+    arrayEach(this.#hooks[name] || [], (callback) => {
       this.hot.removeHook(name, callback);
     });
   }
@@ -189,7 +191,7 @@ export class BasePlugin {
    * Clear all hooks.
    */
   clearHooks() {
-    const hooks = privatePool.get(this).hooks;
+    const hooks = this.#hooks;
 
     objectEach(hooks, (callbacks, name) => this.removeHooks(name));
     hooks.length = 0;

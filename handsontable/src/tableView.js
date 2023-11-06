@@ -25,8 +25,6 @@ import {
   A11Y_TREEGRID
 } from './helpers/a11y';
 
-const privatePool = new WeakMap();
-
 /**
  * @class TableView
  * @private
@@ -104,6 +102,34 @@ class TableView {
    * @type {boolean}
    */
   postponedAdjustElementsSize = false;
+  /**
+   * Defines if the text should be selected during mousemove.
+   *
+   * @type {boolean}
+   */
+  #selectionMouseDown = false;
+  /**
+   * @type {boolean}
+   */
+  #mouseDown;
+  /**
+   * Main <TABLE> element.
+   *
+   * @type {HTMLTableElement}
+   */
+  #table;
+  /**
+   * Cached width of the rootElement.
+   *
+   * @type {number}
+   */
+  #lastWidth = 0;
+  /**
+   * Cached height of the rootElement.
+   *
+   * @type {number}
+   */
+  #lastHeight = 0;
 
   /**
    * @param {Hanstontable} instance Instance of {@link Handsontable}.
@@ -112,40 +138,6 @@ class TableView {
     this.instance = instance;
     this.eventManager = new EventManager(this.instance);
     this.settings = this.instance.getSettings();
-
-    privatePool.set(this, {
-      /**
-       * Defines if the text should be selected during mousemove.
-       *
-       * @private
-       * @type {boolean}
-       */
-      selectionMouseDown: false,
-      /**
-       * @private
-       * @type {boolean}
-       */
-      mouseDown: void 0,
-      /**
-       * Main <TABLE> element.
-       *
-       * @private
-       * @type {HTMLTableElement}
-       */
-      table: void 0,
-      /**
-       * Cached width of the rootElement.
-       *
-       * @type {number}
-       */
-      lastWidth: 0,
-      /**
-       * Cached height of the rootElement.
-       *
-       * @type {number}
-       */
-      lastHeight: 0,
-    });
 
     this.createElements();
     this.registerEvents();
@@ -246,7 +238,6 @@ class TableView {
    * @private
    */
   createElements() {
-    const priv = privatePool.get(this);
     const { rootElement, rootDocument } = this.instance;
     const originalStyle = rootElement.getAttribute('style');
 
@@ -256,15 +247,15 @@ class TableView {
 
     addClass(rootElement, 'handsontable');
 
-    priv.table = rootDocument.createElement('TABLE');
-    addClass(priv.table, 'htCore');
+    this.#table = rootDocument.createElement('TABLE');
+    addClass(this.#table, 'htCore');
 
     if (this.instance.getSettings().tableClassName) {
-      addClass(priv.table, this.instance.getSettings().tableClassName);
+      addClass(this.#table, this.instance.getSettings().tableClassName);
     }
 
     if (this.settings.ariaTags) {
-      setAttribute(priv.table, [
+      setAttribute(this.#table, [
         A11Y_PRESENTATION()
       ]);
 
@@ -277,14 +268,14 @@ class TableView {
     }
 
     this.THEAD = rootDocument.createElement('THEAD');
-    priv.table.appendChild(this.THEAD);
+    this.#table.appendChild(this.THEAD);
 
     this.TBODY = rootDocument.createElement('TBODY');
-    priv.table.appendChild(this.TBODY);
+    this.#table.appendChild(this.TBODY);
 
-    this.instance.table = priv.table;
+    this.instance.table = this.#table;
 
-    this.instance.container.insertBefore(priv.table, this.instance.container.firstChild);
+    this.instance.container.insertBefore(this.#table, this.instance.container.firstChild);
   }
 
   /**
@@ -293,12 +284,11 @@ class TableView {
    * @private
    */
   registerEvents() {
-    const priv = privatePool.get(this);
     const { rootElement, rootDocument, selection } = this.instance;
     const documentElement = rootDocument.documentElement;
 
     this.eventManager.addEventListener(rootElement, 'mousedown', (event) => {
-      priv.selectionMouseDown = true;
+      this.#selectionMouseDown = true;
 
       if (!this.isTextSelectionAllowed(event.target)) {
         const { rootWindow } = this.instance;
@@ -310,10 +300,10 @@ class TableView {
     });
 
     this.eventManager.addEventListener(rootElement, 'mouseup', () => {
-      priv.selectionMouseDown = false;
+      this.#selectionMouseDown = false;
     });
     this.eventManager.addEventListener(rootElement, 'mousemove', (event) => {
-      if (priv.selectionMouseDown && !this.isTextSelectionAllowed(event.target)) {
+      if (this.#selectionMouseDown && !this.isTextSelectionAllowed(event.target)) {
         // Clear selection only when fragmentSelection is enabled, otherwise clearing selection breaks the IME editor.
         if (this.settings.fragmentSelection) {
           clearTextSelection(this.instance.rootWindow);
@@ -334,7 +324,7 @@ class TableView {
         selection.finish();
       }
 
-      priv.mouseDown = false;
+      this.#mouseDown = false;
 
       const isOutsideInputElement = isOutsideInput(rootDocument.activeElement);
 
@@ -352,7 +342,7 @@ class TableView {
       if (selection.isInProgress() && isRightClick(event)) {
         selection.finish();
 
-        priv.mouseDown = false;
+        this.#mouseDown = false;
       }
     });
 
@@ -361,7 +351,7 @@ class TableView {
         selection.finish();
       }
 
-      priv.mouseDown = false;
+      this.#mouseDown = false;
     });
 
     this.eventManager.addEventListener(documentElement, 'mousedown', (event) => {
@@ -370,7 +360,7 @@ class TableView {
       const eventY = event.y || event.clientY;
       let next = event.target;
 
-      if (priv.mouseDown || !rootElement || !this.instance.view) {
+      if (this.#mouseDown || !rootElement || !this.instance.view) {
         return; // it must have been started in a cell
       }
 
@@ -414,7 +404,7 @@ class TableView {
       }
     });
 
-    this.eventManager.addEventListener(priv.table, 'selectstart', (event) => {
+    this.eventManager.addEventListener(this.#table, 'selectstart', (event) => {
       if (this.settings.fragmentSelection || isInput(event.target)) {
         return;
       }
@@ -656,13 +646,12 @@ class TableView {
    * @private
    */
   initializeWalkontable() {
-    const priv = privatePool.get(this);
     const walkontableConfig = {
       ariaTags: this.settings.ariaTags,
       rtlMode: this.instance.isRtl(),
       externalRowCalculator: this.instance.getPlugin('autoRowSize') &&
         this.instance.getPlugin('autoRowSize').isEnabled(),
-      table: priv.table,
+      table: this.#table,
       isDataViewInstance: () => isRootInstance(this.instance),
       preventOverflow: () => this.settings.preventOverflow,
       preventWheel: () => this.settings.preventWheel,
@@ -802,7 +791,7 @@ class TableView {
         this.instance.listen();
 
         this.activeWt = wt;
-        priv.mouseDown = true;
+        this.#mouseDown = true;
 
         this.instance.runHooks('beforeOnCellMouseDown', event, visualCoords, TD, controller);
 
@@ -824,7 +813,7 @@ class TableView {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
 
         this.activeWt = wt;
-        priv.mouseDown = false;
+        this.#mouseDown = false;
 
         if (this.instance.selection.isInProgress()) {
           this.instance.selection.finish();
@@ -869,7 +858,7 @@ class TableView {
           return;
         }
 
-        if (priv.mouseDown) {
+        if (this.#mouseDown) {
           handleMouseEvent(event, {
             coords: visualCoords,
             selection: this.instance.selection,
@@ -1190,7 +1179,7 @@ class TableView {
    * @returns {boolean}
    */
   isMouseDown() {
-    return privatePool.get(this).mouseDown;
+    return this.#mouseDown;
   }
 
   /**
@@ -1390,9 +1379,8 @@ class TableView {
    * @param {number} height The table height.
    */
   setLastSize(width, height) {
-    const priv = privatePool.get(this);
-
-    [priv.lastWidth, priv.lastHeight] = [width, height];
+    this.#lastWidth = width;
+    this.#lastHeight = height;
   }
 
   /**
@@ -1401,9 +1389,10 @@ class TableView {
    * @returns {object}
    */
   getLastSize() {
-    const priv = privatePool.get(this);
-
-    return { width: priv.lastWidth, height: priv.lastHeight };
+    return {
+      width: this.#lastWidth,
+      height: this.#lastHeight,
+    };
   }
 
   /**

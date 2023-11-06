@@ -8,42 +8,45 @@ import { arrayEach } from '../../../helpers/array';
  * @private
  */
 class DataManager {
+  /**
+   * Main Handsontable instance reference.
+   *
+   * @type {object}
+   */
+  hot;
+  /**
+   * Reference to the source data object.
+   *
+   * @type {Handsontable.CellValue[][]|Handsontable.RowObject[]}
+   */
+  data = null;
+  /**
+   * Reference to the NestedRows plugin.
+   *
+   * @type {object}
+   */
+  plugin;
+  /**
+   * Map of row object parents.
+   *
+   * @type {WeakMap}
+   */
+  parentReference = new WeakMap();
+  /**
+   * Nested structure cache.
+   *
+   * @type {object}
+   */
+  cache = {
+    levels: [],
+    levelCount: 0,
+    rows: [],
+    nodeInfo: new WeakMap()
+  };
+
   constructor(nestedRowsPlugin, hotInstance) {
-    /**
-     * Main Handsontable instance reference.
-     *
-     * @type {object}
-     */
     this.hot = hotInstance;
-    /**
-     * Reference to the source data object.
-     *
-     * @type {Handsontable.CellValue[][]|Handsontable.RowObject[]}
-     */
-    this.data = null;
-    /**
-     * Reference to the NestedRows plugin.
-     *
-     * @type {object}
-     */
     this.plugin = nestedRowsPlugin;
-    /**
-     * Map of row object parents.
-     *
-     * @type {WeakMap}
-     */
-    this.parentReference = new WeakMap();
-    /**
-     * Nested structure cache.
-     *
-     * @type {object}
-     */
-    this.cache = {
-      levels: [],
-      levelCount: 0,
-      rows: [],
-      nodeInfo: new WeakMap()
-    };
   }
 
   /**

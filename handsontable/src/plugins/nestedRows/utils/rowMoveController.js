@@ -9,30 +9,35 @@ import { toSingleLine } from '../../../helpers/templateLiteralTag';
  * @class RowMoveController
  */
 export default class RowMoveController {
+  /**
+   * Reference to the Nested Rows plugin instance.
+   *
+   * @type {NestedRows}
+   */
+  plugin;
+  /**
+   * Reference to the Handsontable instance.
+   *
+   * @type {Handsontable.Core}
+   */
+  hot;
+  /**
+   * Reference to the Data Manager class instance.
+   *
+   * @type {DataManager}
+   */
+  dataManager;
+  /**
+   * Reference to the Collapsing UI class instance.
+   *
+   * @type {CollapsingUI}
+   */
+  collapsingUI;
+
   constructor(plugin) {
-    /**
-     * Reference to the Nested Rows plugin instance.
-     *
-     * @type {NestedRows}
-     */
     this.plugin = plugin;
-    /**
-     * Reference to the Handsontable instance.
-     *
-     * @type {Handsontable.Core}
-     */
     this.hot = plugin.hot;
-    /**
-     * Reference to the Data Manager class instance.
-     *
-     * @type {DataManager}
-     */
     this.dataManager = plugin.dataManager;
-    /**
-     * Reference to the Collapsing UI class instance.
-     *
-     * @type {CollapsingUI}
-     */
     this.collapsingUI = plugin.collapsingUI;
   }
 

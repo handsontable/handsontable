@@ -11,7 +11,6 @@ import { ViewportRowsCalculator } from '../../3rdparty/walkontable/src';
 export const PLUGIN_KEY = 'manualRowResize';
 export const PLUGIN_PRIORITY = 30;
 const PERSISTENT_STATE_KEY = 'manualRowHeights';
-const privatePool = new WeakMap();
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -36,40 +35,82 @@ export class ManualRowResize extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * @type {HTMLTableCellElement}
+   */
+  currentTH = null;
+  /**
+   * @type {number}
+   */
+  currentRow = null;
+  /**
+   * @type {number[]}
+   */
+  selectedRows = [];
+  /**
+   * @type {number}
+   */
+  currentHeight = null;
+  /**
+   * @type {number}
+   */
+  newSize = null;
+  /**
+   * @type {number}
+   */
+  startY = null;
+  /**
+   * @type {number}
+   */
+  startHeight = null;
+  /**
+   * @type {number}
+   */
+  startOffset = null;
+  /**
+   * @type {HTMLElement}
+   */
+  handle = this.hot.rootDocument.createElement('DIV');
+  /**
+   * @type {HTMLElement}
+   */
+  guide = this.hot.rootDocument.createElement('DIV');
+  /**
+   * @type {EventManager}
+   */
+  eventManager = new EventManager(this);
+  /**
+   * @type {boolean}
+   */
+  pressed = false;
+  /**
+   * @type {boolean}
+   */
+  isTriggeredByRMB = false;
+  /**
+   * @type {number}
+   */
+  dblclick = 0;
+  /**
+   * @type {number}
+   */
+  autoresizeTimeout = null;
+  /**
+   * PhysicalIndexToValueMap to keep and track widths for physical row indexes.
+   *
+   * @private
+   * @type {PhysicalIndexToValueMap}
+   */
+  rowHeightsMap;
+  /**
+   * Private pool to save configuration from updateSettings.
+   *
+   * @type {object}
+   */
+  #config;
+
   constructor(hotInstance) {
     super(hotInstance);
-
-    const { rootDocument } = this.hot;
-
-    this.currentTH = null;
-    this.currentRow = null;
-    this.selectedRows = [];
-    this.currentHeight = null;
-    this.newSize = null;
-    this.startY = null;
-    this.startHeight = null;
-    this.startOffset = null;
-    this.handle = rootDocument.createElement('DIV');
-    this.guide = rootDocument.createElement('DIV');
-    this.eventManager = new EventManager(this);
-    this.pressed = null;
-    this.isTriggeredByRMB = false;
-    this.dblclick = 0;
-    this.autoresizeTimeout = null;
-
-    /**
-     * PhysicalIndexToValueMap to keep and track widths for physical row indexes.
-     *
-     * @private
-     * @type {PhysicalIndexToValueMap}
-     */
-    this.rowHeightsMap = void 0;
-    /**
-     * Private pool to save configuration from updateSettings.
-     */
-    privatePool.set(this, {
-      config: void 0,
-    });
 
     addClass(this.handle, 'manualRowResizer');
     addClass(this.guide, 'manualRowResizerGuide');
@@ -102,10 +143,10 @@ export class ManualRowResize extends BasePlugin {
     }
 
     this.rowHeightsMap = new IndexToValueMap();
-    this.rowHeightsMap.addLocalHook('init', () => this.onMapInit());
+    this.rowHeightsMap.addLocalHook('init', () => this.#onMapInit());
     this.hot.rowIndexMapper.registerMap(this.pluginName, this.rowHeightsMap);
 
-    this.addHook('modifyRowHeight', (height, row) => this.onModifyRowHeight(height, row));
+    this.addHook('modifyRowHeight', (height, row) => this.#onModifyRowHeight(height, row));
 
     this.bindEvents();
 
@@ -129,9 +170,7 @@ export class ManualRowResize extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    const priv = privatePool.get(this);
-
-    priv.config = this.rowHeightsMap.getValues();
+    this.#config = this.rowHeightsMap.getValues();
 
     this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     super.disablePlugin();
@@ -364,10 +403,9 @@ export class ManualRowResize extends BasePlugin {
   /**
    * 'mouseover' event callback - set the handle position.
    *
-   * @private
    * @param {MouseEvent} event The mouse event.
    */
-  onMouseOver(event) {
+  #onMouseOver(event) {
     // Workaround for #6926 - if the `event.target` is temporarily detached, we can skip this callback and wait for
     // the next `onmouseover`.
     if (isDetached(event.target)) {
@@ -440,10 +478,9 @@ export class ManualRowResize extends BasePlugin {
   /**
    * 'mousedown' event callback.
    *
-   * @private
    * @param {MouseEvent} event The mouse event.
    */
-  onMouseDown(event) {
+  #onMouseDown(event) {
     if (hasClass(event.target, 'manualRowResizer')) {
       this.setupHandlePosition(this.currentTH);
       this.setupGuidePosition();
@@ -464,10 +501,9 @@ export class ManualRowResize extends BasePlugin {
   /**
    * 'mousemove' event callback - refresh the handle and guide positions, cache the new row height.
    *
-   * @private
    * @param {MouseEvent} event The mouse event.
    */
-  onMouseMove(event) {
+  #onMouseMove(event) {
     if (this.pressed) {
       this.currentHeight = this.startHeight + (event.pageY - this.startY);
 
@@ -483,12 +519,10 @@ export class ManualRowResize extends BasePlugin {
   /**
    * 'mouseup' event callback - apply the row resizing.
    *
-   * @private
-   *
    * @fires Hooks#beforeRowResize
    * @fires Hooks#afterRowResize
    */
-  onMouseUp() {
+  #onMouseUp() {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
@@ -531,10 +565,8 @@ export class ManualRowResize extends BasePlugin {
 
   /**
    * Callback for "contextmenu" event triggered on element showing move handle. It removes handle and guide elements.
-   *
-   * @private
    */
-  onContextMenu() {
+  #onContextMenu() {
     this.hideHandleAndGuide();
     this.hot.rootElement.removeChild(this.handle);
     this.hot.rootElement.removeChild(this.guide);
@@ -557,22 +589,21 @@ export class ManualRowResize extends BasePlugin {
   bindEvents() {
     const { rootElement, rootWindow } = this.hot;
 
-    this.eventManager.addEventListener(rootElement, 'mouseover', e => this.onMouseOver(e));
-    this.eventManager.addEventListener(rootElement, 'mousedown', e => this.onMouseDown(e));
-    this.eventManager.addEventListener(rootWindow, 'mousemove', e => this.onMouseMove(e));
-    this.eventManager.addEventListener(rootWindow, 'mouseup', () => this.onMouseUp());
-    this.eventManager.addEventListener(this.handle, 'contextmenu', () => this.onContextMenu());
+    this.eventManager.addEventListener(rootElement, 'mouseover', e => this.#onMouseOver(e));
+    this.eventManager.addEventListener(rootElement, 'mousedown', e => this.#onMouseDown(e));
+    this.eventManager.addEventListener(rootWindow, 'mousemove', e => this.#onMouseMove(e));
+    this.eventManager.addEventListener(rootWindow, 'mouseup', () => this.#onMouseUp());
+    this.eventManager.addEventListener(this.handle, 'contextmenu', () => this.#onContextMenu());
   }
 
   /**
    * Modifies the provided row height, based on the plugin settings.
    *
-   * @private
    * @param {number} height Row height.
    * @param {number} row Visual row index.
    * @returns {number}
    */
-  onModifyRowHeight(height, row) {
+  #onModifyRowHeight(height, row) {
     let newHeight = height;
 
     if (this.enabled) {
@@ -589,11 +620,8 @@ export class ManualRowResize extends BasePlugin {
 
   /**
    * Callback to call on map's `init` local hook.
-   *
-   * @private
    */
-  onMapInit() {
-    const priv = privatePool.get(this);
+  #onMapInit() {
     const initialSetting = this.hot.getSettings()[PLUGIN_KEY];
     const loadedManualRowHeights = this.loadManualRowHeights();
 
@@ -609,10 +637,10 @@ export class ManualRowResize extends BasePlugin {
           this.rowHeightsMap.setValueAtIndex(index, height);
         });
 
-        priv.config = initialSetting;
+        this.#config = initialSetting;
 
-      } else if (initialSetting === true && Array.isArray(priv.config)) {
-        priv.config.forEach((height, index) => {
+      } else if (initialSetting === true && Array.isArray(this.#config)) {
+        this.#config.forEach((height, index) => {
           this.rowHeightsMap.setValueAtIndex(index, height);
         });
       }
