@@ -18,7 +18,7 @@
     "test": "node spec/support/jasmine.config.js"
   },
   "dependencies": {
-    "handsontable": "14.0.0-next-5fd908e-20231030",
+    "handsontable": "14.0.0-next-f88c253-20231106",
     "pikaday": "1.8.2"
   },
   "devDependencies": {

@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@ngneat/falso": "^7.1.1",
-    "handsontable": "14.0.0-next-5fd908e-20231030"
+    "handsontable": "14.0.0-next-f88c253-20231106"
   },
   "devDependencies": {
     "vite": "^4.4.5",

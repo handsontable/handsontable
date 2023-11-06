@@ -36,7 +36,7 @@ export const data = [
       },
     ],
   },
-  ...Array.from({ length: 150 }, () => ({
+  ...Array.from({ length: 5000 }, () => ({
     companyName: randCompanyName({ maxCharCount: 18 }),
     productName: randProductName({ maxCharCount: 18 }),
     sellDate: randPastDate().toLocaleDateString(),
