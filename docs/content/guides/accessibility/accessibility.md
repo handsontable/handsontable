@@ -25,7 +25,7 @@ searchCategory: Guides
 ---
 # Accessibility
 
-Handsontable is designed to be accessible, aligning with global standards. We prioritize inclusivity, ensuring web applications are usable by as many people as possible. 
+Handsontable is designed to be accessible, aligning with global standards. We prioritize inclusivity, ensuring web applications are usable by as many people with disabilities as possible. 
 
 [[toc]]
 
@@ -33,13 +33,12 @@ Handsontable is designed to be accessible, aligning with global standards. We pr
 
 Accessibility features of Handsontable include:
 
-- [Keyboard navigation](@/guides/navigation/keyboard-navigation.md) that lets you access any feature without using a mouse.
-- WAI-ARIA roles and attributes that enrich the context of HTML where needed.
-- Support for the [screen readers](#screen-readers).
-- Standards conforming to [WCAG 2.1 AA](https://www.w3.org/WAI/standards-guidelines/wcag/)
+- [Keyboard navigation](@/guides/navigation/keyboard-navigation.md) that lets you access most of the features without using a mouse.
+- Support for the most popular [screen readers](#screen-readers).
+- Standards conforming to [WCAG 2.1 AA](https://www.w3.org/WAI/WCAG21/quickref/)
 
 ## Conformance with standards
-Handsontable conforms to [WCAG 2.1](https://www.w3.org/WAI/standards-guidelines/wcag/) at the level AA, aligning with established accessibility standards such as ADA and Section 508 standards.
+Standard regulations laid out by different jurisdictions such as the European Union or the US, are inline with WCAG.
 
 A list of the most known accessibility standards are:
 <br> 
@@ -60,15 +59,6 @@ Accessibility Statement and VPAT (Voluntary Product Accessibility Template) for 
 
 <!-- Chris to send the documents VPAT and Accessibility statement -->
 
-### Accessibility testing
-
-We for people with different disabilities Before releasing a new version of Handsontable, we test it for accessibility, using different approaches:
-
-- We cover the most common use cases with automated unit and end-to-end tests.
-- We manually test all of Handsontable's features with the most popular screen readers.
-- We use automated visual regression testing.
-- We check Handsontable's accessibility score with a range of the accessibility testing tools, such as Lighthouse, Axe-core, or Accessibility Insights for Web.
-
 ## Keyboard navigation
 Handsontable doesn't require a mouse to operate. This is critical for people who rely on a keyboard or other assistive technologies. 
 Importantly, depending on your needs, the navigation can be customized through the API.
@@ -85,11 +75,10 @@ Handsontable works as both a spreadsheet application and a data grid. While the 
 |               | Data grid mode                                                                 | Spreadsheet mode (default)                                                                                           |
 |----------------------------------|--------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
 | Configuration options            | `navigableHeaders: true` <br>  `tabMoves: false`                                  | `navigableHeaders: false` <br> and <br> `tabMoves: true`                                                                        |
-| Brief description                | A user cannot use <kbd>Tab</kbd> key to navigate across the grid.<br>User uses <kbd>Arrow keys</kbd> to navigate across the grid. It uses simple shortcut keys such as <kbd>Enter</kbd> or <kbd>space</kbd>, to open menus or interact with headers, cells, or editors. | The <kbd>Tab</kbd> key is primarily used to navigate across the grid.<br>This scenario provides an experience familiar to users of Excel or Google Sheets. To open menus users need to learn and use more complex shortcut keys. |
+| Brief description                | The <kbd>Arrow keys</kbd> are primarly used to navigate across the grid. Use simple shortcut keys such as <kbd>Enter</kbd> or <kbd>Space</kbd> to open menus or interact with headers, cells, or editors. <br>You cannot use <kbd>Tab</kbd> key to navigate across the grid.| The <kbd>Tab</kbd> key is primarily used to navigate across the grid.<br>This scenario provides an experience familiar to users of Excel or Google Sheets. To open menus users need to learn and use more complex shortcut keys. |
 | Primary navigation method        | <kbd>Arrow keys</kbd>                                                                     | <kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd>                                                                                                    |
 | <kbd>Tab</kbd> sequence within the page     | One <kbd>Tab</kbd> stop - the grid is included in the page sequence only once.            | Multiple <kbd>Tab</kbd> stops - all the grid tabbable elements are included in the page <kbd>Tab</kbd> sequence.                            |
-| Navigable headers                | Yes                                                                            | No                                                                                                                   |
-| Complex shortcut keys            | No                                                                             | Yes                                                                                                                  |
+| Navigable headers                | Yes                                                                            | No                                                                                                                   |                                                                                              |
 ### Shortcut keys configuration
 Hansontable includes a wide range of [shortcut keys](@/guides/navigation/keyboard-shortcuts.md) for quick navigation and offers customization options.
 
@@ -2542,6 +2531,15 @@ Recommendations for customizations:
  The accessibility level of any component in your application may be decreased by a low accessibility level of its parent elements. For this reason, make sure to always check the accessibility of the entire page, using tools such as [Lighthouse](https://developers.google.com/web/tools/lighthouse).
 
 :::
+
+## Accessibility testing
+
+We test Handsontable for accessibility using different approaches:
+
+- We check Handsontable's accessibility score with a range of the accessibility testing tools, such as Lighthouse, Axe-core, or Accessibility Insights for Web.
+- We use automated visual regression testing.
+- We manually test all of Handsontable's features with the most popular screen readers.
+- We cover the most common use cases with automated unit and end-to-end tests.
 
 ## Known limitations
 
