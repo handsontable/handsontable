@@ -117,7 +117,7 @@ describe('Core.getSourceDataAtCell', () => {
             newDataset.push('2016', 0, 0, 0, 0);
           }
 
-          return newDataset.length ? newDataset : void 0;
+          return newDataset.length ? newDataset : undefined;
         }
       });
 

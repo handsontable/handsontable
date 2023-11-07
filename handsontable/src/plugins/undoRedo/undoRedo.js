@@ -632,7 +632,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
     });
   });
 
-  instance.setSourceDataAtCell(changes, void 0, void 0, 'UndoRedo.undo');
+  instance.setSourceDataAtCell(changes, undefined, undefined, 'UndoRedo.undo');
 
   if (typeof this.headers !== 'undefined') {
     arrayEach(sortedHeaders, (headerData, columnIndex) => {
@@ -756,8 +756,8 @@ class MergeCellsAction extends UndoRedo.Action {
       topStartCorner.row,
       topStartCorner.col,
       this.rangeData,
-      void 0,
-      void 0,
+      undefined,
+      undefined,
       'MergeCells'
     );
   }

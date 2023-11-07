@@ -31,13 +31,13 @@ export function autoResize() {
         newChar = ".";
       }
 
-      if (text.textContent !== void 0) {
+      if (text.textContent !== undefined) {
         text.textContent = el.value + newChar;
       }
       else {
         text.data = el.value + newChar; //IE8
       }
-      // Won't expand the element size for displaying body as for example, `grid`, `inline-grid` or `flex` with 
+      // Won't expand the element size for displaying body as for example, `grid`, `inline-grid` or `flex` with
       // `flex-direction` set as `column`.
       span.style.position = 'absolute';
       span.style.fontSize = getComputedStyle(el).fontSize;

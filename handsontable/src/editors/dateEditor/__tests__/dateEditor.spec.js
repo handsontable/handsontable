@@ -904,7 +904,7 @@ describe('DateEditor', () => {
 
       const datePickerDate = hot().getActiveEditor().$datePicker._d;
 
-      expect(datePickerDate).toEqual(void 0);
+      expect(datePickerDate).toEqual(undefined);
     });
   });
 

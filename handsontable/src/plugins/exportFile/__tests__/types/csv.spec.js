@@ -379,7 +379,7 @@ describe('exportFile CSV type', () => {
       expect(csv._escapeCell('')).toBe('');
       expect(csv._escapeCell('12345')).toBe('12345');
       expect(csv._escapeCell(null)).toBe('');
-      expect(csv._escapeCell(void 0)).toBe('');
+      expect(csv._escapeCell(undefined)).toBe('');
       expect(csv._escapeCell({})).toBe('[object Object]');
     });
 

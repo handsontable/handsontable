@@ -91,7 +91,7 @@ export function closest(element, nodes = [], until) {
   const { ELEMENT_NODE, DOCUMENT_FRAGMENT_NODE } = Node;
   let elementToCheck = element;
 
-  while (elementToCheck !== null && elementToCheck !== void 0 && elementToCheck !== until) {
+  while (elementToCheck !== null && elementToCheck !== undefined && elementToCheck !== until) {
     const { nodeType, nodeName } = elementToCheck;
 
     if (nodeType === ELEMENT_NODE && (nodes.includes(nodeName) || nodes.includes(elementToCheck))) {
@@ -263,7 +263,7 @@ function filterRegexes(list, returnBoth) {
  * @returns {boolean}
  */
 export function hasClass(element, className) {
-  if (element.classList === void 0 || typeof className !== 'string' || className === '') {
+  if (element.classList === undefined || typeof className !== 'string' || className === '') {
     return false;
   }
 
@@ -601,7 +601,7 @@ export function getScrollLeft(element, rootWindow = window) {
  */
 export function getScrollableElement(element) {
   let rootDocument = element.ownerDocument;
-  let rootWindow = rootDocument ? rootDocument.defaultView : void 0;
+  let rootWindow = rootDocument ? rootDocument.defaultView : undefined;
 
   if (!rootDocument) {
     rootDocument = element.document ? element.document : element;
@@ -700,13 +700,13 @@ export function getStyle(element, prop, rootWindow = window) {
 
   const styleProp = element.style[prop];
 
-  if (styleProp !== '' && styleProp !== void 0) {
+  if (styleProp !== '' && styleProp !== undefined) {
     return styleProp;
   }
 
   const computedStyle = getComputedStyle(element, rootWindow);
 
-  if (computedStyle[prop] !== '' && computedStyle[prop] !== void 0) {
+  if (computedStyle[prop] !== '' && computedStyle[prop] !== undefined) {
     return computedStyle[prop];
   }
 }
@@ -880,7 +880,7 @@ export function clearTextSelection(rootWindow = window) {
  * @param {number} endPos The selection end position.
  */
 export function setCaretPosition(element, pos, endPos) {
-  if (endPos === void 0) {
+  if (endPos === undefined) {
     endPos = pos;
   }
   if (element.setSelectionRange) {
@@ -950,7 +950,7 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
  */
 // eslint-disable-next-line no-restricted-globals
 export function getScrollbarWidth(rootDocument = document) {
-  if (cachedScrollbarWidth === void 0) {
+  if (cachedScrollbarWidth === undefined) {
     cachedScrollbarWidth = walkontableCalculateScrollbarWidth(rootDocument);
   }
 

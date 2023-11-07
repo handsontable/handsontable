@@ -117,8 +117,8 @@ export class CustomBorders extends BasePlugin {
       return;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', options => this.onAfterContextMenuDefaultOptions(options));
-    this.addHook('init', () => this.onAfterInit());
+    this.addHook('afterContextMenuDefaultOptions', options => this.#onAfterContextMenuDefaultOptions(options));
+    this.addHook('init', () => this.#onAfterInit());
 
     super.enablePlugin();
   }
@@ -423,7 +423,7 @@ export class CustomBorders extends BasePlugin {
   setBorder(row, column, place, remove) {
     let bordersMeta = this.hot.getCellMeta(row, column).borders;
 
-    if (!bordersMeta || bordersMeta.border === void 0) {
+    if (!bordersMeta || bordersMeta.border === undefined) {
       bordersMeta = createEmptyBorders(row, column);
     } else {
       bordersMeta = normalizeBorder(bordersMeta);
@@ -742,7 +742,7 @@ export class CustomBorders extends BasePlugin {
 
       this.createCustomBorders(bordersClone);
 
-    } else if (customBorders !== void 0) {
+    } else if (customBorders !== undefined) {
       this.createCustomBorders(this.savedBorders);
     }
   }
@@ -771,10 +771,9 @@ export class CustomBorders extends BasePlugin {
   /**
    * Add border options to context menu.
    *
-   * @private
    * @param {object} defaultOptions Context menu items.
    */
-  onAfterContextMenuDefaultOptions(defaultOptions) {
+  #onAfterContextMenuDefaultOptions(defaultOptions) {
     if (!this.hot.getSettings()[PLUGIN_KEY]) {
       return;
     }
@@ -813,10 +812,8 @@ export class CustomBorders extends BasePlugin {
 
   /**
    * `afterInit` hook callback.
-   *
-   * @private
    */
-  onAfterInit() {
+  #onAfterInit() {
     this.changeBorderSettings();
   }
 
