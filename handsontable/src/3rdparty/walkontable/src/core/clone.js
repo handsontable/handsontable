@@ -9,7 +9,7 @@ export default class Clone extends CoreAbstract {
    * @type {Walkontable}
    */
   cloneSource;
-    /**
+  /**
    * @type {Overlay}
    */
   cloneOverlay;
