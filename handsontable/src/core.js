@@ -308,8 +308,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     createCellRange: (highlight, from, to) => instance._createCellRange(highlight, from, to),
     visualToRenderableCoords,
     renderableToVisualCoords,
-    isDisabledCellSelection: (visualRow, visualColumn) =>
-      instance.getCellMeta(visualRow, visualColumn).disableVisualSelection
+    isDisabledCellSelection: (visualRow, visualColumn) => {
+      if (visualRow < 0 || visualColumn < 0) {
+        return instance.getSettings().disableVisualSelection;
+      }
+
+      return instance.getCellMeta(visualRow, visualColumn).disableVisualSelection;
+    }
   });
 
   this.selection = selection;
