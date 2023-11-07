@@ -124,14 +124,14 @@ export class DropdownMenu extends BasePlugin {
    * @private
    * @type {CommandExecutor}
    */
-  #commandExecutor = new CommandExecutor(this.hot);
+  commandExecutor = new CommandExecutor(this.hot);
   /**
    * Instance of {@link ItemsFactory}.
    *
    * @private
    * @type {ItemsFactory}
    */
-  #itemsFactory = null;
+  itemsFactory = null;
   /**
    * Instance of {@link Menu}.
    *
@@ -167,17 +167,17 @@ export class DropdownMenu extends BasePlugin {
     if (this.enabled) {
       return;
     }
-    this.#itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS);
+    this.itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS);
 
     const settings = this.hot.getSettings()[PLUGIN_KEY];
     const predefinedItems = {
-      items: this.#itemsFactory.getItems(settings)
+      items: this.itemsFactory.getItems(settings)
     };
 
     this.registerEvents();
 
     if (typeof settings.callback === 'function') {
-      this.#commandExecutor.setCommonCallback(settings.callback);
+      this.commandExecutor.setCommonCallback(settings.callback);
     }
 
     this.registerShortcuts();
@@ -186,8 +186,8 @@ export class DropdownMenu extends BasePlugin {
     this.callOnPluginsReady(() => {
       this.hot.runHooks('afterDropdownMenuDefaultOptions', predefinedItems);
 
-      this.#itemsFactory.setPredefinedItems(predefinedItems.items);
-      const menuItems = this.#itemsFactory.getItems(settings);
+      this.itemsFactory.setPredefinedItems(predefinedItems.items);
+      const menuItems = this.itemsFactory.getItems(settings);
 
       if (this.menu) {
         this.menu.destroy();
@@ -208,7 +208,7 @@ export class DropdownMenu extends BasePlugin {
       this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
 
       // Register all commands. Predefined and added by user or by plugins
-      arrayEach(menuItems, command => this.#commandExecutor.registerCommand(command.key, command));
+      arrayEach(menuItems, command => this.commandExecutor.registerCommand(command.key, command));
     });
   }
 
@@ -372,7 +372,7 @@ export class DropdownMenu extends BasePlugin {
    * @param {*} params Additional parameters passed to the command executor.
    */
   executeCommand(commandName, ...params) {
-    this.#commandExecutor.execute(commandName, ...params);
+    this.commandExecutor.execute(commandName, ...params);
   }
 
   /**
