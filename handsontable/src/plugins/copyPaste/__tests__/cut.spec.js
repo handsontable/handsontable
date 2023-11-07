@@ -36,19 +36,10 @@ describe('CopyPaste', () => {
       plugin.onCut(cutEvent);
 
       expect(cutEvent.clipboardData.getData('text/plain')).toBe('A2');
-      /* eslint-disable indent */
       expect(cutEvent.clipboardData.getData('text/html')).toEqual([
-        '<meta name="generator" content="Handsontable"/>',
-        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table>',
-          '<tbody>',
-            '<tr>',
-              '<td>A2</td>',
-            '</tr>',
-          '</tbody>',
-        '</table>',
-      ].join(''));
-      /* eslint-enable */
+        '<meta name="generator" content="Handsontable"/>' +
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table><tbody><tr><td>A2</td></tr></tbody></table>'].join(''));
 
       expect(hot.getDataAtCell(1, 0)).toBe(null);
     });
@@ -60,7 +51,7 @@ describe('CopyPaste', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2),
         beforeCut: beforeCutSpy,
-        afterCut: afterCutSpy,
+        afterCut: afterCutSpy
       });
       const cutEvent = getClipboardEvent();
       const plugin = hot.getPlugin('CopyPaste');
@@ -69,25 +60,12 @@ describe('CopyPaste', () => {
 
       plugin.onCut(cutEvent);
 
-      expect(beforeCutSpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
-        data: [['A1']],
-      });
-      expect(afterCutSpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
-        data: [['A1']],
-      });
-      /* eslint-disable indent */
-      expect(cutEvent.clipboardData.getData('text/html')).toBe(
-        '<meta name="generator" content="Handsontable"/>' +
-        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
-        '<table>' +
-          '<tbody>' +
-            '<tr>' +
-              '<td>A1</td>' +
-            '</tr>' +
-          '</tbody>' +
-        '</table>'
-      );
-      /* eslint-enable */
+      expect(beforeCutSpy.calls.count()).toEqual(1);
+      expect(beforeCutSpy).toHaveBeenCalledWith(
+        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }]);
+      expect(afterCutSpy.calls.count()).toEqual(1);
+      expect(afterCutSpy).toHaveBeenCalledWith(
+        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }]);
     });
   });
 });

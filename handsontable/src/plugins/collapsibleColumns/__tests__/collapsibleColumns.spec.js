@@ -1,7 +1,5 @@
 describe('CollapsibleColumns', () => {
   beforeEach(function() {
-    spyOn(document, 'execCommand');
-
     // Matchers configuration.
     this.matchersConfig = {
       toMatchHTML: {
@@ -2788,79 +2786,6 @@ describe('CollapsibleColumns', () => {
         expect(countVisibleCols()).toBe(3);
         expect(getCell(-1, 2)).toBeNull();
       });
-    });
-
-    it('should copy collapsed headers properly', () => {
-      handsontable({
-        data: [
-          ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],
-        ],
-        colHeaders: true,
-        rowHeaders: true,
-        colWidths: 60,
-        height: 'auto',
-        nestedHeaders: [
-          ['A', { label: 'B', colspan: 3 }, 'C', 'D', { label: 'E', colspan: 4 }],
-        ],
-        collapsibleColumns: [
-          { row: -1, col: 1, collapsible: true },
-          { row: -1, col: 6, collapsible: true },
-        ],
-      });
-
-      const collapsibleColumnsPlugin = getPlugin('collapsibleColumns');
-
-      collapsibleColumnsPlugin.collapseSection({ row: -1, col: 1 });
-      render();
-
-      const copyEvent = getClipboardEvent();
-      const copyPastePlugin = getPlugin('CopyPaste');
-
-      selectAll();
-
-      copyPastePlugin.copyWithAllColumnHeaders();
-      copyPastePlugin.onCopy(copyEvent); // emulate native "copy" event
-
-      /* eslint-disable no-tabs */
-      expect(copyEvent.clipboardData.getData('text/plain')).toBe([
-        'A	B			C	D	E			',
-        'A1	B1	C1	D1	E1	F1	G1	H1	I1	J1',
-      ].join('\n'));
-      /* eslint-enable */
-
-      /* eslint-disable indent */
-      expect(copyEvent.clipboardData.getData('text/html')).toBe([
-        '<meta name="generator" content="Handsontable"/>',
-        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table>',
-          '<thead>',
-            '<tr>',
-              '<th>A</th>',
-              '<th>B</th>',
-              '<th></th>',
-              '<th></th>',
-              '<th>C</th>',
-              '<th>D</th>',
-              '<th colspan=4>E</th>',
-            '</tr>',
-          '</thead>',
-          '<tbody>',
-            '<tr>',
-              '<td>A1</td>',
-              '<td>B1</td>',
-              '<td>C1</td>',
-              '<td>D1</td>',
-              '<td>E1</td>',
-              '<td>F1</td>',
-              '<td>G1</td>',
-              '<td>H1</td>',
-              '<td>I1</td>',
-              '<td>J1</td>',
-            '</tr>',
-          '</tbody>',
-        '</table>'
-      ].join(''));
-      /* eslint-enable */
     });
   });
 });
