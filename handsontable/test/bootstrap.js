@@ -15,7 +15,7 @@ const exportToGlobal = (helpersHolder) => {
       return;
     }
 
-    if (global[key] !== void 0) {
+    if (global[key] !== undefined) {
       throw Error(`Cannot export "${key}" helper because this name is already assigned.`);
     }
 

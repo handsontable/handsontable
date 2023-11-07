@@ -11,7 +11,7 @@ export const useAddClass = (props: RendererProps) => {
   useEffect(() => {
     const className = props.cellProperties?.className;
 
-    if (className !== void 0 && props.TD) {
+    if (className !== undefined && props.TD) {
       Handsontable.dom.addClass(props.TD, className);
     }
   }, [props.cellProperties?.className, props.TD]);

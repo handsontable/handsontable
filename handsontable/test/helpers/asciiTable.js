@@ -34,13 +34,13 @@ function getSelectionSymbol(cell) {
   } else if (hasCurrent && hasArea && areaLevel) {
     symbol = ` ${String.fromCharCode(65 + areaLevel)} `;
 
-  } else if (hasCurrent && hasArea && areaLevel === void 0) {
+  } else if (hasCurrent && hasArea && areaLevel === undefined) {
     symbol = ' A ';
 
-  } else if (hasCurrent && !hasArea && areaLevel === void 0) {
+  } else if (hasCurrent && !hasArea && areaLevel === undefined) {
     symbol = ' # ';
 
-  } else if (!hasCurrent && hasArea && areaLevel === void 0) {
+  } else if (!hasCurrent && hasArea && areaLevel === undefined) {
     symbol = ' 0 ';
 
   } else if (!hasCurrent && hasArea && areaLevel) {

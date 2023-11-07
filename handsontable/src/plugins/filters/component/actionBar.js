@@ -9,6 +9,13 @@ import { InputUI } from '../ui/input';
  * @class ActionBarComponent
  */
 export class ActionBarComponent extends BaseComponent {
+  /**
+   * The name of the component.
+   *
+   * @type {string}
+   */
+  name = '';
+
   static get BUTTON_OK() {
     return 'ok';
   }

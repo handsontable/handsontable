@@ -688,7 +688,7 @@ class Selection {
     const endCoords = this.tableProps.createCellCoords(nrOfRows - 1, nrOfColumns - 1);
 
     this.clear();
-    this.setRangeStartOnly(startCoords, void 0, highlight);
+    this.setRangeStartOnly(startCoords, undefined, highlight);
 
     if (columnFrom < 0) {
       this.selectedByRowHeader.add(this.getLayerLevel());
@@ -802,7 +802,7 @@ class Selection {
       from.row = fromRow;
       to.row = toRow;
 
-      this.setRangeStartOnly(from, void 0, highlight);
+      this.setRangeStartOnly(from, undefined, highlight);
       this.selectedByColumnHeader.add(this.getLayerLevel());
       this.setRangeEnd(to);
       this.runLocalHooks('afterSelectColumns', from, to, highlight);
@@ -851,7 +851,7 @@ class Selection {
       from.col = fromColumn;
       to.col = toColumn;
 
-      this.setRangeStartOnly(from, void 0, highlight);
+      this.setRangeStartOnly(from, undefined, highlight);
       this.selectedByRowHeader.add(this.getLayerLevel());
       this.setRangeEnd(to);
       this.runLocalHooks('afterSelectRows', from, to, highlight);

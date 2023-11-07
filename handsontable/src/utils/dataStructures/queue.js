@@ -36,7 +36,7 @@ class Queue {
    * @returns {*}
    */
   peek() {
-    return this.isEmpty() ? void 0 : this.items[0];
+    return this.isEmpty() ? undefined : this.items[0];
   }
 
   /**

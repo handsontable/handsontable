@@ -1037,7 +1037,7 @@ describe('Filters UI', () => {
     it('should display `undefined` values as "(Blank cells)"', () => {
       const data = getDataForFilters();
 
-      data[3].name = void 0;
+      data[3].name = undefined;
 
       handsontable({
         data: getDataForFilters(),
@@ -1061,7 +1061,7 @@ describe('Filters UI', () => {
     it('shouldn\'t break "by value" items in the next filter stacks', (done) => {
       const data = getDataForFilters();
 
-      data[3].name = void 0;
+      data[3].name = undefined;
 
       handsontable({
         data,

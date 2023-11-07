@@ -1,7 +1,6 @@
 import { hasClass } from '../../helpers/dom/element';
 import { isMobileBrowser } from '../../helpers/browser';
 import { BasePlugin } from '../base';
-import EventManager from '../../eventManager';
 
 export const PLUGIN_KEY = 'multipleSelectionHandles';
 export const PLUGIN_PRIORITY = 160;
@@ -21,25 +20,13 @@ export class MultipleSelectionHandles extends BasePlugin {
   }
 
   /**
-   * @param {object} hotInstance The handsontable instance.
+   * @type {Array}
    */
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * @type {Array}
-     */
-    this.dragged = [];
-    /**
-     * Instance of EventManager.
-     *
-     * @type {EventManager}
-     */
-    this.eventManager = null;
-    /**
-     * @type {null}
-     */
-    this.lastSetCell = null;
-  }
+  dragged = [];
+  /**
+   * @type {null}
+   */
+  lastSetCell = null;
 
   /**
    * Check if the plugin is enabled in the handsontable settings.
@@ -57,9 +44,7 @@ export class MultipleSelectionHandles extends BasePlugin {
     if (this.enabled) {
       return;
     }
-    if (!this.eventManager) {
-      this.eventManager = new EventManager(this);
-    }
+
     this.registerListeners();
     super.enablePlugin();
   }
@@ -137,7 +122,7 @@ export class MultipleSelectionHandles extends BasePlugin {
       if (hasClass(event.target, 'topSelectionHandle-HitArea')) {
         removeFromDragged.call(_this, 'top');
 
-        _this.touchStartRange = void 0;
+        _this.touchStartRange = undefined;
 
         event.preventDefault();
 
@@ -146,7 +131,7 @@ export class MultipleSelectionHandles extends BasePlugin {
       } else if (hasClass(event.target, 'bottomSelectionHandle-HitArea')) {
         removeFromDragged.call(_this, 'bottom');
 
-        _this.touchStartRange = void 0;
+        _this.touchStartRange = undefined;
 
         event.preventDefault();
 

@@ -5,7 +5,13 @@ import CoreAbstract from './_base';
  * @class Walkontable
  */
 export default class Clone extends CoreAbstract {
+  /**
+   * @type {Walkontable}
+   */
   cloneSource;
+  /**
+   * @type {Overlay}
+   */
   cloneOverlay;
 
   /**
