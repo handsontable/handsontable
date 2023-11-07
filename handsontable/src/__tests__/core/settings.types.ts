@@ -523,8 +523,24 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeGetCellMeta: (row, col, cellProperties) => {},
   beforeHideColumns: (currentHideConfig, destinationHideConfig, actionPossible) => {},
   beforeHideRows: (currentHideConfig, destinationHideConfig, actionPossible) => {},
-  beforeHighlightingColumnHeader: (column, headerLevel, highlightMeta) => column,
-  beforeHighlightingRowHeader: (row, headerLevel, highlightMeta) => row,
+  beforeHighlightingColumnHeader: (column, headerLevel, highlightMeta) => {
+    const _column: number = column;
+    const _headerLevel: number = headerLevel;
+    const selectionType: string = highlightMeta.selectionType;
+    const columnCursor: number = highlightMeta.columnCursor;
+    const selectionWidth: number = highlightMeta.selectionWidth;
+
+    return 10;
+  },
+  beforeHighlightingRowHeader: (row, headerLevel, highlightMeta) => {
+    const _row: number = row;
+    const _headerLevel: number = headerLevel;
+    const selectionType: string = highlightMeta.selectionType;
+    const columnCursor: number = highlightMeta.rowCursor;
+    const selectionWidth: number = highlightMeta.selectionHeight;
+
+    return 10;
+  },
   beforeInit: () => {},
   beforeInitWalkontable: (walkontableConfig) => {},
   beforeKeyDown: (event) => {},
