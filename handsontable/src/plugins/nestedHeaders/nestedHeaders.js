@@ -504,22 +504,21 @@ export class NestedHeaders extends BasePlugin {
    * merged column headers do not propagate the value for each column but only once at the beginning
    * of the column.
    *
-   * @param {object} clipboardData Information about already performed copy action.
-   * @param {Function} clipboardData.removeRow Remove row from the copied/pasted dataset.
-   * @param {Function} clipboardData.removeColumn Remove column from the copied/pasted dataset.
-   * @param {Function} clipboardData.insertAtRow Insert values at row index.
-   * @param {Function} clipboardData.insertAtColumn Insert values at column index.
-   * @param {Function} clipboardData.setCellAt Change headers or cells in the copied/pasted dataset.
-   * @param {Function} clipboardData.getCellAt Get headers or cells from the copied/pasted dataset.
-   * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
-   * @param {Function} clipboardData.getMetaInfo Gets grid settings for copied data.
-   * @param {Function} clipboardData.getRanges Returns ranges related to copied part of Handsontable.
+   * @private
+   * @param {Array[]} data An array of arrays which contains data to copied.
+   * @param {object[]} copyableRanges An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
+   *                                  which will copied.
+   * @param {{ columnHeadersCount: number }} copiedHeadersCount An object with keys that holds information with
+   *                                                            the number of copied headers.
    */
-  #onBeforeCopy(clipboardData) {
-    const copyableRanges = clipboardData.getRanges();
+  #onBeforeCopy(data, copyableRanges, { columnHeadersCount }) {
+    if (columnHeadersCount === 0) {
+      return;
+    }
 
-    for (let rangeIndex = 0; rangeIndex < copyableRanges.length; rangeIndex += 1) {
+    for (let rangeIndex = 0; rangeIndex < copyableRanges.length; rangeIndex++) {
       const { startRow, startCol, endRow, endCol } = copyableRanges[rangeIndex];
+      const rowsCount = endRow - startRow + 1;
       const columnsCount = startCol - endCol + 1;
 
       // do not process dataset ranges and column headers where only one column is copied
@@ -527,8 +526,9 @@ export class NestedHeaders extends BasePlugin {
         break;
       }
 
-      for (let column = startCol; column <= endCol; column += 1) {
-        for (let row = startRow; row <= endRow; row += 1) {
+      for (let column = startCol; column <= endCol; column++) {
+        for (let row = startRow; row <= endRow; row++) {
+          const zeroBasedColumnHeaderLevel = rowsCount + row;
           const zeroBasedColumnIndex = column - startCol;
 
           if (zeroBasedColumnIndex === 0) {
@@ -536,10 +536,9 @@ export class NestedHeaders extends BasePlugin {
           }
 
           const isRoot = this.#stateManager.getHeaderTreeNodeData(row, column)?.isRoot;
-          const collapsible = this.#stateManager.getHeaderTreeNodeData(row, column)?.collapsible;
 
-          if (collapsible === true && isRoot === false) {
-            clipboardData.setCellAt(row, zeroBasedColumnIndex, '');
+          if (isRoot === false) {
+            data[zeroBasedColumnHeaderLevel][zeroBasedColumnIndex] = '';
           }
         }
       }
