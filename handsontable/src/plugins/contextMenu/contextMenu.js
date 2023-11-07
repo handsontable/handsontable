@@ -101,14 +101,14 @@ export class ContextMenu extends BasePlugin {
    * @private
    * @type {CommandExecutor}
    */
-  commandExecutor = new CommandExecutor(this.hot);
+  #commandExecutor = new CommandExecutor(this.hot);
   /**
    * Instance of {@link ItemsFactory}.
    *
    * @private
    * @type {ItemsFactory}
    */
-  itemsFactory = null;
+  #itemsFactory = null;
   /**
    * Instance of {@link Menu}.
    *

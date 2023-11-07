@@ -6,7 +6,6 @@ import { hasEditor } from '../../editors/registry';
 import { hasRenderer } from '../../renderers/registry';
 import { hasValidator } from '../../validators/registry';
 import EventManager from '../../eventManager';
-import EventManager from '../../eventManager';
 
 const DEPS_TYPE_CHECKERS = new Map([
   ['plugin', hasPlugin],
