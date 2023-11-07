@@ -231,7 +231,7 @@ export function transformSelectionToRowDistance(selectionRanges) {
  * @param {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>} ranges The range to process.
  * @returns {{rows: number[], columns: number[]}}
  */
-export function normalizeRanges(ranges) {
+export function transformRangeLikeToIndexes(ranges) {
   const rows = [];
   const columns = [];
 

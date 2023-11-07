@@ -3,7 +3,7 @@ import { handleMouseEvent } from './mouseEventHandler';
 import {
   detectSelectionType,
   normalizeSelectionFactory,
-  normalizeRanges,
+  transformRangeLikeToIndexes,
 } from './utils';
 
 export * from './highlight/highlight';
@@ -12,5 +12,5 @@ export {
   Selection,
   detectSelectionType,
   normalizeSelectionFactory,
-  normalizeRanges,
+  transformRangeLikeToIndexes,
 };

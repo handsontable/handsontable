@@ -9,7 +9,7 @@ import { warn } from '../../helpers/console';
 import {
   ACTIVE_HEADER_TYPE,
   HEADER_TYPE,
-  normalizeRanges,
+  transformRangeLikeToIndexes,
 } from '../../selection';
 import { BasePlugin } from '../base';
 import StateManager from './stateManager';
@@ -524,7 +524,7 @@ export class NestedHeaders extends BasePlugin {
    * @param {Function} clipboardData.getRanges Returns ranges related to copied part of Handsontable.
    */
   onBeforeCopy(clipboardData) {
-    const { rows, columns } = normalizeRanges(clipboardData.getRanges());
+    const { rows, columns } = transformRangeLikeToIndexes(clipboardData.getRanges());
     const headers = rows.filter(row => row < 0);
     const nestedHeaders = [];
 

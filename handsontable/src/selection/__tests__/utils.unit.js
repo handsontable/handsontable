@@ -2,7 +2,7 @@ import { CellRange, CellCoords } from 'walkontable';
 import {
   detectSelectionType,
   normalizeSelectionFactory,
-  normalizeRanges,
+  transformRangeLikeToIndexes,
   transformSelectionToColumnDistance,
   transformSelectionToRowDistance,
   SELECTION_TYPE_ARRAY,
@@ -275,27 +275,27 @@ describe('selection utils', () => {
     });
   });
 
-  describe('`normalizeRanges` utils', () => {
+  describe('`transformRangeLikeToIndexes` utils', () => {
     it('should return a correct results for specific range', () => {
-      expect(normalizeRanges([
+      expect(transformRangeLikeToIndexes([
         { startRow: 0, endRow: 0, startCol: 0, endCol: 0 }
       ])).toEqual({
         rows: [0],
         columns: [0],
       });
-      expect(normalizeRanges([
+      expect(transformRangeLikeToIndexes([
         { startRow: 0, endRow: 2, startCol: 3, endCol: 9 }
       ])).toEqual({
         rows: [0, 1, 2],
         columns: [3, 4, 5, 6, 7, 8, 9],
       });
-      expect(normalizeRanges([
+      expect(transformRangeLikeToIndexes([
         { startRow: -3, endRow: 2, startCol: 3, endCol: 9 }
       ])).toEqual({
         rows: [-3, -2, -1, 0, 1, 2],
         columns: [3, 4, 5, 6, 7, 8, 9],
       });
-      expect(normalizeRanges([
+      expect(transformRangeLikeToIndexes([
         { startRow: 2, endRow: -3, startCol: 9, endCol: 3 }
       ])).toEqual({
         rows: [-3, -2, -1, 0, 1, 2],
@@ -305,14 +305,14 @@ describe('selection utils', () => {
 
     it('should return a correct results with uniq indexes for multiple ranges', () => {
       // the same coords but defined with opposite directions
-      expect(normalizeRanges([
+      expect(transformRangeLikeToIndexes([
         { startRow: -3, endRow: 2, startCol: 3, endCol: 9 },
         { startRow: 2, endRow: -3, startCol: 9, endCol: 3 },
       ])).toEqual({
         rows: [-3, -2, -1, 0, 1, 2],
         columns: [3, 4, 5, 6, 7, 8, 9],
       });
-      expect(normalizeRanges([
+      expect(transformRangeLikeToIndexes([
         { startRow: -3, endRow: 2, startCol: 3, endCol: 9 },
         { startRow: 2, endRow: -3, startCol: 9, endCol: 3 },
         { startRow: 100, endRow: 101, startCol: 9, endCol: 3 },
