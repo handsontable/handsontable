@@ -22,7 +22,7 @@ export default function freezeColumnItem(manualColumnFreezePlugin) {
       const selection = this.getSelectedRange();
       let hide = false;
 
-      if (selection === void 0) {
+      if (selection === undefined) {
         hide = true;
 
       } else if (selection.length > 1) {

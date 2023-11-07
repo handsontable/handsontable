@@ -154,7 +154,7 @@ class Endpoints {
    * @param {object} defaultValue Default value for the settings.
    */
   assignSetting(settings, endpoint, name, defaultValue) {
-    if (name === 'ranges' && settings[name] === void 0) {
+    if (name === 'ranges' && settings[name] === undefined) {
       endpoint[name] = defaultValue;
 
       return;
@@ -162,7 +162,7 @@ class Endpoints {
       return;
     }
 
-    if (settings[name] === void 0) {
+    if (settings[name] === undefined) {
       if (defaultValue instanceof Error) {
         throw defaultValue;
 
@@ -289,8 +289,8 @@ class Endpoints {
    * @param {object} endpoint And endpoint object.
    */
   clearOffsetInformation(endpoint) {
-    endpoint.alterRowOffset = void 0;
-    endpoint.alterColumnOffset = void 0;
+    endpoint.alterRowOffset = undefined;
+    endpoint.alterColumnOffset = undefined;
   }
 
   /**
@@ -551,8 +551,8 @@ class Endpoints {
       this.cellsToSetCache.push([visualEndpointRowIndex, endpoint.destinationColumn, endpoint.result]);
     }
 
-    endpoint.alterRowOffset = void 0;
-    endpoint.alterColumnOffset = void 0;
+    endpoint.alterRowOffset = undefined;
+    endpoint.alterColumnOffset = undefined;
   }
 
   /**

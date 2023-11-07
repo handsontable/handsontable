@@ -16,7 +16,7 @@ export const RENDERER_TYPE = 'html';
 export function htmlRenderer(instance, TD, row, col, prop, value, cellProperties) {
   baseRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
 
-  fastInnerHTML(TD, value === null || value === void 0 ? '' : value, false);
+  fastInnerHTML(TD, value === null || value === undefined ? '' : value, false);
 }
 
 htmlRenderer.RENDERER_TYPE = RENDERER_TYPE;

@@ -2,18 +2,22 @@
  * @class ExtendMetaPropertiesMod
  */
 export class ExtendMetaPropertiesMod {
+  /**
+   * @type {MetaManager}
+   */
+  metaManager;
+  /**
+   * @type {Set}
+   */
+  usageTracker = new Set();
+  /**
+   * @type {Set}
+   */
+  propDescriptors = new Set();
+
   constructor(metaManager) {
-    /**
-     * @type {MetaManager}
-     */
     this.metaManager = metaManager;
-    /**
-     * @type {Set}
-     */
     this.usageTracker = new Set();
-    /**
-     * @type {Map}
-     */
     this.propDescriptors = new Map([
       [
         'ariaTags', {

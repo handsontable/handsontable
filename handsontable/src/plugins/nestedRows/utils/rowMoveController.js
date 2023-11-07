@@ -191,7 +191,7 @@ export default class RowMoveController {
 
     // If we try to move an element to the place of a top-level parent, snap the element to the previous top-level
     // parent's children instead
-    if (targetParent === null || targetParent === void 0) {
+    if (targetParent === null || targetParent === undefined) {
       targetParent = this.dataManager.getRowParent(physicalDropIndex - 1);
     }
 

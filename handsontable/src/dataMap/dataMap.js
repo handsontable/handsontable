@@ -63,56 +63,62 @@ class DataMap {
   }
 
   /**
+   * Instance of {@link Handsontable}.
+   *
+   * @private
+   * @type {Handsontable}
+   */
+  instance;
+  /**
+   * Instance of {@link MetaManager}.
+   *
+   * @private
+   * @type {MetaManager}
+   */
+  metaManager;
+  /**
+   * Instance of {@link TableMeta}.
+   *
+   * @private
+   * @type {TableMeta}
+   */
+  tableMeta;
+  /**
+   * Reference to the original dataset.
+   *
+   * @type {*}
+   */
+  dataSource;
+  /**
+   * Generated schema based on the first row from the source data.
+   *
+   * @type {object}
+   */
+  duckSchema;
+  /**
+   * Cached array of properties to columns.
+   *
+   * @type {Array}
+   */
+  colToPropCache;
+  /**
+   * Cached map of properties to columns.
+   *
+   * @type {Map}
+   */
+  propToColCache;
+
+  /**
    * @param {object} instance Instance of Handsontable.
    * @param {Array} data Array of arrays or array of objects containing data.
    * @param {MetaManager} metaManager The meta manager instance.
    */
   constructor(instance, data, metaManager) {
-    /**
-     * Instance of {@link Handsontable}.
-     *
-     * @private
-     * @type {Handsontable}
-     */
     this.instance = instance;
-    /**
-     * Instance of {@link MetaManager}.
-     *
-     * @private
-     * @type {MetaManager}
-     */
     this.metaManager = metaManager;
-    /**
-     * Instance of {@link TableMeta}.
-     *
-     * @private
-     * @type {TableMeta}
-     */
     this.tableMeta = metaManager.getTableMeta();
-    /**
-     * Reference to the original dataset.
-     *
-     * @type {*}
-     */
     this.dataSource = data;
-    /**
-     * Generated schema based on the first row from the source data.
-     *
-     * @type {object}
-     */
     this.duckSchema = this.createDuckSchema();
-    /**
-     * Cached array of properties to columns.
-     *
-     * @type {Array}
-     */
-    this.colToPropCache = void 0;
-    /**
-     * Cached map of properties to columns.
-     *
-     * @type {Map}
-     */
-    this.propToColCache = void 0;
 
     this.createMap();
   }
@@ -380,7 +386,7 @@ class DataMap {
     }
 
     if (numberOfCreatedRows > 0) {
-      if ((index === void 0 || index === null)) {
+      if ((index === undefined || index === null)) {
         // Creates the meta rows at the end of the rows collection without shifting the cells
         // that were defined out of the range of the dataset.
         this.metaManager.createRow(null, numberOfCreatedRows);
@@ -480,7 +486,7 @@ class DataMap {
     this.instance.columnIndexMapper.insertIndexes(columnIndex, numberOfCreatedCols);
 
     if (numberOfCreatedCols > 0) {
-      if ((index === void 0 || index === null)) {
+      if ((index === undefined || index === null)) {
         // Creates the meta columns at the end of the columns collection without shifting the cells
         // that were defined out of the range of the dataset.
         this.metaManager.createColumn(null, numberOfCreatedCols);
@@ -1046,7 +1052,7 @@ class DataMap {
     this.colToPropCache.length = 0;
 
     this.propToColCache.clear();
-    this.propToColCache = void 0;
+    this.propToColCache = undefined;
   }
 }
 

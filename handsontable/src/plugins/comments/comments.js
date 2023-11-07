@@ -8,7 +8,6 @@ import {
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { deepClone, deepExtend, isObject } from '../../helpers/object';
-import EventManager from '../../eventManager';
 import { BasePlugin } from '../base';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
@@ -134,13 +133,6 @@ export class Comments extends BasePlugin {
    */
   range = {};
   /**
-   * Instance of {@link EventManager}.
-   *
-   * @protected
-   * @type {EventManager}
-   */
-  eventManager = null;
-  /**
    * Instance of {@link CommentEditor}.
    *
    * @private
@@ -211,10 +203,6 @@ export class Comments extends BasePlugin {
 
     if (!this.#editor) {
       this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl());
-    }
-
-    if (!this.eventManager) {
-      this.eventManager = new EventManager(this);
     }
 
     if (!this.#displaySwitch) {
@@ -390,9 +378,9 @@ export class Comments extends BasePlugin {
     const editorValue = this.#editor.getValue();
     let comment = '';
 
-    if (value !== null && value !== void 0) {
+    if (value !== null && value !== undefined) {
       comment = value;
-    } else if (editorValue !== null && editorValue !== void 0) {
+    } else if (editorValue !== null && editorValue !== undefined) {
       comment = editorValue;
     }
 
@@ -652,7 +640,7 @@ export class Comments extends BasePlugin {
     const cellMeta = this.hot.getCellMeta(row, column);
 
     if (!cellMeta[META_COMMENT]) {
-      return void 0;
+      return undefined;
     }
 
     return cellMeta[META_COMMENT][property];

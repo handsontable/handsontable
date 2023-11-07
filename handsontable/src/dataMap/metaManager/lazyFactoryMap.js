@@ -166,7 +166,7 @@ export default class LazyFactoryMap {
     if (dataIndex >= 0) {
       result = this.data[dataIndex];
 
-      if (result === void 0) {
+      if (result === undefined) {
         result = this.valueFactory(key);
         this.data[dataIndex] = result;
       }
@@ -204,7 +204,7 @@ export default class LazyFactoryMap {
 
     for (let i = 0; i < amount; i++) {
       newIndexes.push(dataLength + i);
-      this.data.push(void 0);
+      this.data.push(undefined);
     }
 
     const insertionIndex = isNullish(key) ? this.index.length : key;

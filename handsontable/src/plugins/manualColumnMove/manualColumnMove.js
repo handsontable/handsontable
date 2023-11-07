@@ -4,7 +4,6 @@ import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, hasClass, outerWidth } from '../../helpers/dom/element';
 import { offsetRelativeTo } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
-import EventManager from '../../eventManager';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
 
@@ -56,13 +55,6 @@ export class ManualColumnMove extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
-  /**
-   * Event Manager object.
-   *
-   * @private
-   * @type {object}
-   */
-  eventManager = new EventManager(this);
   /**
    * Backlight UI object.
    *
@@ -203,7 +195,7 @@ export class ManualColumnMove extends BasePlugin {
     const movePossible = this.isMovePossible(columns, finalIndex);
     const beforeMoveHook = this.hot.runHooks('beforeColumnMove', columns, finalIndex, dropIndex, movePossible);
 
-    this.#cachedDropIndex = void 0;
+    this.#cachedDropIndex = undefined;
 
     if (beforeMoveHook === false) {
       return;
@@ -350,7 +342,7 @@ export class ManualColumnMove extends BasePlugin {
     if (Array.isArray(pluginSettings)) {
       this.moveColumns(pluginSettings, 0);
 
-    } else if (pluginSettings !== void 0) {
+    } else if (pluginSettings !== undefined) {
       const persistentState = this.persistentStateLoad();
 
       if (persistentState.length) {
@@ -445,11 +437,11 @@ export class ManualColumnMove extends BasePlugin {
       const gridMostRightPos = rootWindow.innerWidth - this.#rootElementOffset - containerWidth;
 
       mouseOffsetStart = rootWindow.innerWidth - this.#target.eventPageX - gridMostRightPos -
-        (scrollableElement.scrollX === void 0 ? scrollStart : 0);
+        (scrollableElement.scrollX === undefined ? scrollStart : 0);
 
     } else {
       mouseOffsetStart = this.#target.eventPageX -
-        (this.#rootElementOffset - (scrollableElement.scrollX === void 0 ? scrollStart : 0));
+        (this.#rootElementOffset - (scrollableElement.scrollX === undefined ? scrollStart : 0));
     }
 
     if (this.#hasRowHeaders) {
@@ -503,7 +495,7 @@ export class ManualColumnMove extends BasePlugin {
       // guideline has got `margin-left: -1px` as default
       guidelineStart = 1;
 
-    } else if (scrollableElement.scrollX !== void 0 && this.#hoveredColumn < this.#fixedColumnsStart) {
+    } else if (scrollableElement.scrollX !== undefined && this.#hoveredColumn < this.#fixedColumnsStart) {
       guidelineStart -= ((this.#rootElementOffset <= scrollableElement.scrollX) ? this.#rootElementOffset : 0);
     }
 
@@ -657,7 +649,7 @@ export class ManualColumnMove extends BasePlugin {
     const target = this.#target.col;
     const columnsLen = this.#columnsToMove.length;
 
-    this.#hoveredColumn = void 0;
+    this.#hoveredColumn = undefined;
     this.#pressed = false;
 
     removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
@@ -666,7 +658,7 @@ export class ManualColumnMove extends BasePlugin {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
 
-    if (columnsLen < 1 || target === void 0) {
+    if (columnsLen < 1 || target === undefined) {
       return;
     }
 

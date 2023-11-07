@@ -91,10 +91,10 @@ class BaseUI {
    * @param {number} left New left position of the element.
    */
   setPosition(top, left) {
-    if (top !== void 0) {
+    if (top !== undefined) {
       this._element.style.top = top + UNIT;
     }
-    if (left !== void 0) {
+    if (left !== undefined) {
       this._element.style.left = left + UNIT;
     }
   }

@@ -60,7 +60,7 @@ class Storage {
     const itemKey = typeof key === 'undefined' ? defaultValue : key;
     const value = this.rootWindow.localStorage.getItem(`${this.prefix}_${itemKey}`);
 
-    return value === null ? void 0 : JSON.parse(value);
+    return value === null ? undefined : JSON.parse(value);
   }
 
   /**
@@ -91,7 +91,7 @@ class Storage {
    */
   loadSavedKeys() {
     const keysJSON = this.rootWindow.localStorage.getItem(`${this.prefix}__persistentStateKeys`);
-    const keys = typeof keysJSON === 'string' ? JSON.parse(keysJSON) : void 0;
+    const keys = typeof keysJSON === 'string' ? JSON.parse(keysJSON) : undefined;
 
     this.savedKeys = keys || [];
   }

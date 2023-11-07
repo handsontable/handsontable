@@ -124,7 +124,7 @@ class SelectionCalculations {
     const endRow = Math.max(cornersOfSelection[0], cornersOfSelection[2]);
     const endColumn = Math.max(cornersOfSelection[1], cornersOfSelection[3]);
 
-    if (layerLevel === void 0) {
+    if (layerLevel === undefined) {
       return;
     }
 

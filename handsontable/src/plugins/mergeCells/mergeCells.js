@@ -450,7 +450,8 @@ export class MergeCells extends BasePlugin {
         populationInfo = [mergeParent.row, mergeParent.col, clearedData];
 
       } else {
-        this.hot.populateFromArray(mergeParent.row, mergeParent.col, clearedData, void 0, void 0, this.pluginName);
+        this.hot.populateFromArray(
+          mergeParent.row, mergeParent.col, clearedData, undefined, undefined, this.pluginName);
       }
 
       if (!auto) {
@@ -783,7 +784,7 @@ export class MergeCells extends BasePlugin {
   #onAfterRenderer(TD, row, col) {
     const mergedCell = this.mergedCellsCollection.get(row, col);
     // We shouldn't override data in the collection.
-    const mergedCellCopy = isObject(mergedCell) ? clone(mergedCell) : void 0;
+    const mergedCellCopy = isObject(mergedCell) ? clone(mergedCell) : undefined;
 
     if (isObject(mergedCellCopy)) {
       const { rowIndexMapper: rowMapper, columnIndexMapper: columnMapper } = this.hot;

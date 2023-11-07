@@ -16,9 +16,9 @@ describe('ViewportRowsCalculator', () => {
       scrollOffset: 0,
       totalRows: 1000,
       rowHeightFn: index => allRows20(index),
-      overrideFn: void 0,
+      overrideFn: undefined,
       calculationType: RENDER_TYPE,
-      horizontalScrollbarHeight: void 0,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -44,9 +44,9 @@ describe('ViewportRowsCalculator', () => {
       scrollOffset: 70,
       totalRows: 1000,
       rowHeightFn: index => allRows20(index),
-      overrideFn: void 0,
+      overrideFn: undefined,
       calculationType: RENDER_TYPE,
-      horizontalScrollbarHeight: void 0,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -78,7 +78,7 @@ describe('ViewportRowsCalculator', () => {
       rowHeightFn: index => allRows20(index),
       overrideFn: calc => overrideFn(calc),
       calculationType: RENDER_TYPE,
-      horizontalScrollbarHeight: void 0,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -109,7 +109,7 @@ describe('ViewportRowsCalculator', () => {
       totalRows: 8,
       rowHeightFn: index => allRows20(index),
       overrideFn: calc => overrideFn(calc),
-      horizontalScrollbarHeight: void 0,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -135,8 +135,8 @@ describe('ViewportRowsCalculator', () => {
       scrollOffset: 50,
       totalRows: 1000,
       rowHeightFn: index => allRows20(index),
-      overrideFn: void 0,
-      horizontalScrollbarHeight: void 0,
+      overrideFn: undefined,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -153,8 +153,8 @@ describe('ViewportRowsCalculator', () => {
       scrollOffset: 0,
       totalRows: 8,
       rowHeightFn: index => allRows20(index),
-      overrideFn: void 0,
-      horizontalScrollbarHeight: void 0,
+      overrideFn: undefined,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -179,8 +179,8 @@ describe('ViewportRowsCalculator', () => {
       scrollOffset: 0,
       totalRows: 10,
       rowHeightFn: index => allRows20(index),
-      overrideFn: void 0,
-      horizontalScrollbarHeight: void 0,
+      overrideFn: undefined,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -205,8 +205,8 @@ describe('ViewportRowsCalculator', () => {
       scrollOffset: 0,
       totalRows: 10,
       rowHeightFn: index => allRows20(index),
-      overrideFn: void 0,
-      horizontalScrollbarHeight: void 0,
+      overrideFn: undefined,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -231,8 +231,8 @@ describe('ViewportRowsCalculator', () => {
       scrollOffset: 0,
       totalRows: 0,
       rowHeightFn: index => allRows20(index),
-      overrideFn: void 0,
-      horizontalScrollbarHeight: void 0,
+      overrideFn: undefined,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -263,7 +263,7 @@ describe('ViewportRowsCalculator', () => {
       totalRows: 0,
       rowHeightFn: index => allRows20(index),
       overrideFn: calc => overrideFn(calc),
-      horizontalScrollbarHeight: void 0,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -289,8 +289,8 @@ describe('ViewportRowsCalculator', () => {
       scrollOffset: 350,
       totalRows: 20,
       rowHeightFn: index => allRows20(index),
-      overrideFn: void 0,
-      horizontalScrollbarHeight: void 0,
+      overrideFn: undefined,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -316,9 +316,9 @@ describe('ViewportRowsCalculator', () => {
       viewportHeight: 100,
       scrollOffset: 0,
       totalRows: 1000,
-      rowHeightFn: () => (void 0 + 1),
-      overrideFn: void 0,
-      horizontalScrollbarHeight: void 0,
+      rowHeightFn: () => (undefined + 1),
+      overrideFn: undefined,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });

@@ -162,7 +162,7 @@ export class BaseUI {
       element.setAttribute('data-hot-input', true);
 
       objectEach(this.options, (value, key) => {
-        if (element[key] !== void 0 && key !== 'className' && key !== 'tagName' && key !== 'children') {
+        if (element[key] !== undefined && key !== 'className' && key !== 'tagName' && key !== 'children') {
           element[key] = this.translateIfPossible(value);
         }
       });

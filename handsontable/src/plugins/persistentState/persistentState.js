@@ -86,7 +86,7 @@ export class PersistentState extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.storage = void 0;
+    this.storage = undefined;
 
     super.disablePlugin();
   }

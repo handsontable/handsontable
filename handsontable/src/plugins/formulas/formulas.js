@@ -346,7 +346,7 @@ export class Formulas extends BasePlugin {
         this.switchSheet(this.sheetName);
 
       } else {
-        this.sheetName = this.addSheet(sheetName ?? void 0, this.hot.getSourceDataArray());
+        this.sheetName = this.addSheet(sheetName ?? undefined, this.hot.getSourceDataArray());
       }
     }
 
@@ -384,14 +384,14 @@ export class Formulas extends BasePlugin {
       return false;
     }
 
-    if (sheetName !== void 0 && sheetName !== null && this.engine.doesSheetExist(sheetName)) {
+    if (sheetName !== undefined && sheetName !== null && this.engine.doesSheetExist(sheetName)) {
       warn('Sheet with the provided name already exists.');
 
       return false;
     }
 
     try {
-      const actualSheetName = this.engine.addSheet(sheetName ?? void 0);
+      const actualSheetName = this.engine.addSheet(sheetName ?? undefined);
 
       if (sheetData) {
         this.engine.setSheetContent(this.engine.getSheetId(actualSheetName), sheetData);
@@ -484,7 +484,7 @@ export class Formulas extends BasePlugin {
       // For the Named expression the address is empty, hence the `sheetId` is undefined.
       const sheetId = change?.address?.sheet;
 
-      if (sheetId !== void 0) {
+      if (sheetId !== undefined) {
         if (!affectedSheetIds.has(sheetId)) {
           affectedSheetIds.add(sheetId);
         }
@@ -536,7 +536,7 @@ export class Formulas extends BasePlugin {
 
       // Validate the cells that depend on the calculated formulas. Skip that cells
       // where the user directly changes the values - the Core triggers those validators.
-      if (sheetId !== void 0 && !changedCellsSet.has(addressId)) {
+      if (sheetId !== undefined && !changedCellsSet.has(addressId)) {
         const boundHot = getRegisteredHotInstances(this.engine).get(sheetId);
 
         // if `sheetId` is not bound to any Handsontable instance, skip the validation process
@@ -1067,7 +1067,7 @@ export class Formulas extends BasePlugin {
       return this.engine.isItPossibleToRemoveRows(this.sheetId, [hfRow, 1]);
     });
 
-    return possible === false ? false : void 0;
+    return possible === false ? false : undefined;
   }
 
   /**
@@ -1085,7 +1085,7 @@ export class Formulas extends BasePlugin {
       return this.engine.isItPossibleToRemoveColumns(this.sheetId, [hfColumn, 1]);
     });
 
-    return possible === false ? false : void 0;
+    return possible === false ? false : undefined;
   }
 
   /**

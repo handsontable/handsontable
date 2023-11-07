@@ -192,7 +192,7 @@ export class DateEditor extends TextEditor {
     if (restoreOriginalValue) { // pressed ESC, restore original value
       const value = this.originalValue;
 
-      if (value !== void 0) {
+      if (value !== undefined) {
         this.setValue(value);
       }
     }

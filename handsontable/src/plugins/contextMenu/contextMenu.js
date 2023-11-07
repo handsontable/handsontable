@@ -3,7 +3,6 @@ import Hooks from '../../pluginHooks';
 import { arrayEach } from '../../helpers/array';
 import { objectEach } from '../../helpers/object';
 import { CommandExecutor } from './commandExecutor';
-import EventManager from '../../eventManager';
 import { ItemsFactory } from './itemsFactory';
 import {
   Menu,
@@ -96,13 +95,6 @@ export class ContextMenu extends BasePlugin {
     ];
   }
 
-  /**
-   * Instance of {@link EventManager}.
-   *
-   * @private
-   * @type {EventManager}
-   */
-  eventManager = new EventManager(this);
   /**
    * Instance of {@link CommandExecutor}.
    *

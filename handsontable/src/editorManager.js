@@ -260,7 +260,7 @@ class EditorManager {
    * @private
    */
   clearActiveEditor() {
-    this.activeEditor = void 0;
+    this.activeEditor = undefined;
   }
 
   /**

@@ -3,7 +3,6 @@ import Hooks from '../../pluginHooks';
 import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, getTrimmingContainer } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
-import EventManager from '../../eventManager';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
 
@@ -54,13 +53,6 @@ export class ManualRowMove extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
-  /**
-   * Event Manager object.
-   *
-   * @private
-   * @type {object}
-   */
-  eventManager = new EventManager(this);
   /**
    * Backlight UI object.
    *
@@ -185,7 +177,7 @@ export class ManualRowMove extends BasePlugin {
     const movePossible = this.isMovePossible(rows, finalIndex);
     const beforeMoveHook = this.hot.runHooks('beforeRowMove', rows, finalIndex, dropIndex, movePossible);
 
-    this.#cachedDropIndex = void 0;
+    this.#cachedDropIndex = undefined;
 
     if (beforeMoveHook === false) {
       return;
@@ -326,7 +318,7 @@ export class ManualRowMove extends BasePlugin {
     if (Array.isArray(pluginSettings)) {
       this.moveRows(pluginSettings, 0);
 
-    } else if (pluginSettings !== void 0) {
+    } else if (pluginSettings !== undefined) {
       const persistentState = this.persistentStateLoad();
 
       if (persistentState.length) {
@@ -626,7 +618,7 @@ export class ManualRowMove extends BasePlugin {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
 
-    if (rowsLen < 1 || target === void 0) {
+    if (rowsLen < 1 || target === undefined) {
       return;
     }
 

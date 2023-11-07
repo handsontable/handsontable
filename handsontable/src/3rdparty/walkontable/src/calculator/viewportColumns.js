@@ -135,7 +135,7 @@ class ViewportColumnsCalculator {
         sum + (calculationType === FULLY_VISIBLE_TYPE ? columnWidth : 0) <=
         zeroBasedScrollOffset + compensatedViewportWidth
       ) {
-        if (this.startColumn === null || this.startColumn === void 0) {
+        if (this.startColumn === null || this.startColumn === undefined) {
           this.startColumn = i;
 
           firstVisibleColumnWidth = columnWidth;
@@ -199,7 +199,7 @@ class ViewportColumnsCalculator {
     }
     this.startPosition = startPositions[this.startColumn];
 
-    if (this.startPosition === void 0) {
+    if (this.startPosition === undefined) {
       this.startPosition = null;
     }
 
@@ -288,7 +288,7 @@ class ViewportColumnsCalculator {
       const stretchedWidth = Math.round(baseWidth * this.stretchAllRatio);
       const newStretchedWidth = this.#options.stretchingColumnWidthFn(stretchedWidth, column);
 
-      if (newStretchedWidth === void 0) {
+      if (newStretchedWidth === undefined) {
         this.stretchAllColumnsWidth[column] = stretchedWidth;
       } else {
         this.stretchAllColumnsWidth[column] = isNaN(newStretchedWidth)

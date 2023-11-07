@@ -105,7 +105,7 @@ class ContextMenuUI extends BaseUI {
     rangeEach(0, defaultOptions.items.length - 1, (i) => {
       const option = this.#menuEntries[defaultOptions.items[i].key];
 
-      if (option !== null && option !== void 0) {
+      if (option !== null && option !== undefined) {
         defaultOptions.items[i].callback = option;
       }
     });

@@ -3,7 +3,6 @@ import { arrayEach } from '../../helpers/array';
 import { objectEach } from '../../helpers/object';
 import { CommandExecutor } from '../contextMenu/commandExecutor';
 import { getDocumentOffsetByElement } from '../contextMenu/utils';
-import EventManager from '../../eventManager';
 import { hasClass, setAttribute } from '../../helpers/dom/element';
 import { ItemsFactory } from '../contextMenu/itemsFactory';
 import { Menu } from '../contextMenu/menu';
@@ -119,13 +118,6 @@ export class DropdownMenu extends BasePlugin {
     ];
   }
 
-  /**
-   * Instance of {@link EventManager}.
-   *
-   * @private
-   * @type {EventManager}
-   */
-  eventManager = new EventManager(this);
   /**
    * Instance of {@link CommandExecutor}.
    *

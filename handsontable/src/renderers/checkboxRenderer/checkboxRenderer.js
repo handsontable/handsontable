@@ -241,7 +241,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
             if ([cachedCellProperties.checkedTemplate, cachedCellProperties.checkedTemplate.toString()].includes(dataAtCell)) { // eslint-disable-line max-len
               changes.push([visualRow, visualColumn, cachedCellProperties.uncheckedTemplate]);
 
-            } else if ([cachedCellProperties.uncheckedTemplate, cachedCellProperties.uncheckedTemplate.toString(), null, void 0].includes(dataAtCell)) { // eslint-disable-line max-len
+            } else if ([cachedCellProperties.uncheckedTemplate, cachedCellProperties.uncheckedTemplate.toString(), null, undefined].includes(dataAtCell)) { // eslint-disable-line max-len
               changes.push([visualRow, visualColumn, cachedCellProperties.checkedTemplate]);
             }
 
@@ -284,7 +284,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
 
           const cell = instance.getCell(visualRow, visualColumn);
 
-          if (cell === null || cell === void 0) {
+          if (cell === null || cell === undefined) {
             return true;
 
           } else {
@@ -435,9 +435,9 @@ function onChange(event, instance) {
     let newCheckboxValue = null;
 
     if (event.target.checked) {
-      newCheckboxValue = cellProperties.uncheckedTemplate === void 0 ? true : cellProperties.checkedTemplate;
+      newCheckboxValue = cellProperties.uncheckedTemplate === undefined ? true : cellProperties.checkedTemplate;
     } else {
-      newCheckboxValue = cellProperties.uncheckedTemplate === void 0 ? false : cellProperties.uncheckedTemplate;
+      newCheckboxValue = cellProperties.uncheckedTemplate === undefined ? false : cellProperties.uncheckedTemplate;
     }
 
     instance.setDataAtCell(row, col, newCheckboxValue);

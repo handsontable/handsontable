@@ -127,7 +127,7 @@ export class IndexMapper {
    *
    * @type {undefined|string}
    */
-  indexesChangeSource = void 0;
+  indexesChangeSource = undefined;
   /**
    * Flag determining whether any action on trimmed indexes has been performed. It's used for cache management.
    *
@@ -437,7 +437,7 @@ export class IndexMapper {
     this.suspendOperations();
     this.indexesChangeSource = 'init';
     this.indexesSequence.init(length);
-    this.indexesChangeSource = void 0;
+    this.indexesChangeSource = undefined;
     this.trimmingMapsCollection.initEvery(length);
     this.resumeOperations();
 
@@ -487,14 +487,14 @@ export class IndexMapper {
    * @param {Array} indexes Physical indexes.
    */
   setIndexesSequence(indexes) {
-    if (this.indexesChangeSource === void 0) {
+    if (this.indexesChangeSource === undefined) {
       this.indexesChangeSource = 'update';
     }
 
     this.indexesSequence.setValues(indexes);
 
     if (this.indexesChangeSource === 'update') {
-      this.indexesChangeSource = void 0;
+      this.indexesChangeSource = undefined;
     }
   }
 
@@ -627,7 +627,7 @@ export class IndexMapper {
     // Adding indexes without re-indexing.
     this.setIndexesSequence(getListWithInsertedItems(notMovedIndexes, destinationPosition, physicalMovedIndexes));
 
-    this.indexesChangeSource = void 0;
+    this.indexesChangeSource = undefined;
   }
 
   /**
@@ -668,7 +668,7 @@ export class IndexMapper {
     this.suspendOperations();
     this.indexesChangeSource = 'insert';
     this.indexesSequence.insert(insertionIndex, insertedIndexes);
-    this.indexesChangeSource = void 0;
+    this.indexesChangeSource = undefined;
     this.trimmingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
     this.hidingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
     this.variousMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
@@ -685,7 +685,7 @@ export class IndexMapper {
     this.suspendOperations();
     this.indexesChangeSource = 'remove';
     this.indexesSequence.remove(removedIndexes);
-    this.indexesChangeSource = void 0;
+    this.indexesChangeSource = undefined;
     this.trimmingMapsCollection.removeFromEvery(removedIndexes);
     this.hidingMapsCollection.removeFromEvery(removedIndexes);
     this.variousMapsCollection.removeFromEvery(removedIndexes);

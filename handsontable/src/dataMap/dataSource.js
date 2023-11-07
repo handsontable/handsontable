@@ -54,7 +54,7 @@ class DataSource {
       modifyRowData = this.hot.runHooks('modifyRowData', rowIndex);
     }
 
-    return (modifyRowData !== void 0 && !Number.isInteger(modifyRowData)) ? modifyRowData : this.data[rowIndex];
+    return (modifyRowData !== undefined && !Number.isInteger(modifyRowData)) ? modifyRowData : this.data[rowIndex];
   }
 
   /**
@@ -114,7 +114,7 @@ class DataSource {
    * @returns {Array|object}
    */
   getAtRow(row, startColumn, endColumn, toArray = false) {
-    const getAllProps = startColumn === void 0 && endColumn === void 0;
+    const getAllProps = startColumn === undefined && endColumn === undefined;
     let dataRow = null;
     let newDataRow = null;
 
@@ -286,7 +286,7 @@ class DataSource {
     rangeEach(startRow, endRow, (currentRow) => {
       result.push((
         getAllProps ?
-          this.getAtRow(currentRow, void 0, void 0, toArray) :
+          this.getAtRow(currentRow, undefined, undefined, toArray) :
           this.getAtRow(currentRow, startCol, endCol, toArray)
       ));
     });

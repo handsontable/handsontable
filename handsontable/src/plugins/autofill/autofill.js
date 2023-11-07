@@ -2,7 +2,6 @@ import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
 import { offset, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { arrayEach, arrayMap } from '../../helpers/array';
-import EventManager from '../../eventManager';
 import { getDragDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting } from './utils';
 
 Hooks.getSingleton().register('modifyAutofillRange');
@@ -46,13 +45,6 @@ export class Autofill extends BasePlugin {
     ];
   }
 
-  /**
-   * Event manager instance.
-   *
-   * @private
-   * @type {EventManager}
-   */
-  eventManager = new EventManager(this);
   /**
    * Specifies if adding new row started.
    *
@@ -397,7 +389,7 @@ export class Autofill extends BasePlugin {
    */
   addRow() {
     this.hot._registerTimeout(() => {
-      this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME, void 0, 1, `${this.pluginName}.fill`);
+      this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME, undefined, 1, `${this.pluginName}.fill`);
 
       this.addingStarted = false;
     }, INTERVAL_FOR_ADDING_ROW);
@@ -490,7 +482,7 @@ export class Autofill extends BasePlugin {
     const cornersOfSelectedCells = this.hot.getSelectedLast();
     const lastFilledInRowIndex = this.getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells);
 
-    if (lastFilledInRowIndex === -1 || lastFilledInRowIndex === void 0) {
+    if (lastFilledInRowIndex === -1 || lastFilledInRowIndex === undefined) {
       return false;
     }
 

@@ -357,7 +357,7 @@ export class ColumnSummary extends BasePlugin {
     const ranges = endpoint.ranges;
 
     objectEach(ranges, (range) => {
-      const partial = range[1] === void 0 ? 1 : range[1] - range[0] + 1;
+      const partial = range[1] === undefined ? 1 : range[1] - range[0] + 1;
       const emptyCount = this.countEmpty(range, endpoint.sourceColumn);
 
       result += partial;

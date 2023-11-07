@@ -1,6 +1,5 @@
 import { BasePlugin } from '../base';
 import { addClass, closest, hasClass, removeClass, outerWidth, isDetached } from '../../helpers/dom/element';
-import EventManager from '../../eventManager';
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
@@ -75,10 +74,6 @@ export class ManualRowResize extends BasePlugin {
    * @type {HTMLElement}
    */
   guide = this.hot.rootDocument.createElement('DIV');
-  /**
-   * @type {EventManager}
-   */
-  eventManager = new EventManager(this);
   /**
    * @type {boolean}
    */
@@ -393,7 +388,7 @@ export class ManualRowResize extends BasePlugin {
     // TODO: this should utilize `this.hot.getRowHeight` after it's fixed and working properly.
     const walkontableHeight = this.hot.view._wt.wtTable.getRowHeight(row);
 
-    if (walkontableHeight !== void 0 && this.newSize < walkontableHeight) {
+    if (walkontableHeight !== undefined && this.newSize < walkontableHeight) {
       return walkontableHeight;
     }
 
@@ -444,7 +439,7 @@ export class ManualRowResize extends BasePlugin {
     const resize = (row, forceRender) => {
       const hookNewSize = this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, true);
 
-      if (hookNewSize !== void 0) {
+      if (hookNewSize !== undefined) {
         this.newSize = hookNewSize;
       }
 

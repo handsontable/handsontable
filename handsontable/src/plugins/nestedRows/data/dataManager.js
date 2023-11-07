@@ -145,7 +145,7 @@ class DataManager {
    * @returns {object}
    */
   getDataObject(row) {
-    return row === null || row === void 0 ? null : this.cache.rows[row];
+    return row === null || row === undefined ? null : this.cache.rows[row];
   }
 
   /**
@@ -176,11 +176,11 @@ class DataManager {
       readNodesCount -= 1;
     }
 
-    if (neededIndex !== null && neededIndex !== void 0 && readNodesCount === neededIndex) {
+    if (neededIndex !== null && neededIndex !== undefined && readNodesCount === neededIndex) {
       return { result: parentObj, end: true };
     }
 
-    if (neededObject !== null && neededObject !== void 0 && parentObj === neededObject) {
+    if (neededObject !== null && neededObject !== undefined && parentObj === neededObject) {
       return { result: readNodesCount, end: true };
     }
 
@@ -239,7 +239,7 @@ class DataManager {
    * @returns {number} Row index.
    */
   getRowIndex(rowObj) {
-    return rowObj === null || rowObj === void 0 ? null : this.cache.nodeInfo.get(rowObj).row;
+    return rowObj === null || rowObj === undefined ? null : this.cache.nodeInfo.get(rowObj).row;
   }
 
   /**
@@ -259,7 +259,7 @@ class DataManager {
 
     const parent = this.getRowParent(row);
 
-    if (parent === null || parent === void 0) {
+    if (parent === null || parent === undefined) {
       return this.data.indexOf(rowObj);
     }
 
@@ -367,7 +367,7 @@ class DataManager {
    * @returns {number} Row level.
    */
   getRowObjectLevel(rowObject) {
-    return rowObject === null || rowObject === void 0 ? null : this.cache.nodeInfo.get(rowObject).level;
+    return rowObject === null || rowObject === undefined ? null : this.cache.nodeInfo.get(rowObject).level;
   }
 
   /**
@@ -593,7 +593,7 @@ class DataManager {
 
     this.hot.runHooks('beforeDetachChild', parent, element);
 
-    if (indexWithinParent !== null && indexWithinParent !== void 0) {
+    if (indexWithinParent !== null && indexWithinParent !== undefined) {
       const removedRowIndexes = Array.from(
         new Array(childRowIndex + childCount + 1).keys()
       ).splice(-1 * (childCount + 1));
@@ -767,11 +767,11 @@ class DataManager {
     const movingUp = fromIndex > toIndex;
     let toParent = moveToLastRow ? this.getRowParent(toIndex - 1) : this.getRowParent(toIndex);
 
-    if (toParent === null || toParent === void 0) {
+    if (toParent === null || toParent === undefined) {
       toParent = this.getRowParent(toIndex - 1);
     }
 
-    if (toParent === null || toParent === void 0) {
+    if (toParent === null || toParent === undefined) {
       toParent = this.getDataObject(toIndex - 1);
     }
 

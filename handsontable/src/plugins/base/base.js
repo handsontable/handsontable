@@ -5,6 +5,7 @@ import { hasCellType } from '../../cellTypes/registry';
 import { hasEditor } from '../../editors/registry';
 import { hasRenderer } from '../../renderers/registry';
 import { hasValidator } from '../../validators/registry';
+import EventManager from '../../eventManager';
 
 const DEPS_TYPE_CHECKERS = new Map([
   ['plugin', hasPlugin],
@@ -15,7 +16,7 @@ const DEPS_TYPE_CHECKERS = new Map([
 ]);
 
 export const PLUGIN_KEY = 'base';
-const missingDependeciesMsgs = [];
+const missingDepsMsgs = [];
 let initializedPlugins = null;
 
 /**
@@ -42,10 +43,31 @@ export class BasePlugin {
     ];
   }
 
+  /**
+   * The instance of the {@link EventManager} class.
+   *
+   * @type {EventManager}
+   */
+  eventManager = new EventManager(this);
+  /**
+   * @type {string}
+   */
   pluginName = null;
+  /**
+   * @type {Function[]}
+   */
   pluginsInitializedCallbacks = [];
+  /**
+   * @type {boolean}
+   */
   isPluginsReady = false;
+  /**
+   * @type {boolean}
+   */
   enabled = false;
+  /**
+   * @type {boolean}
+   */
   initialized = false;
   /**
    * Collection of the reference to the plugins hooks.
@@ -76,12 +98,12 @@ export class BasePlugin {
     this.pluginName = this.hot.getPluginName(this);
 
     const pluginDeps = this.constructor.PLUGIN_DEPS;
-    const dependecies = Array.isArray(pluginDeps) ? pluginDeps : [];
+    const deps = Array.isArray(pluginDeps) ? pluginDeps : [];
 
-    if (dependecies.length > 0) {
+    if (deps.length > 0) {
       const missingDependencies = [];
 
-      dependecies.forEach((dependency) => {
+      deps.forEach((dependency) => {
         const [type, moduleName] = dependency.split(':');
 
         if (!DEPS_TYPE_CHECKERS.has(type)) {
@@ -99,7 +121,7 @@ export class BasePlugin {
           `${missingDependencies.join('\n')}\n`,
         ].join('');
 
-        missingDependeciesMsgs.push(errorMsg);
+        missingDepsMsgs.push(errorMsg);
       }
     }
 
@@ -127,9 +149,9 @@ export class BasePlugin {
     const isAllPluginsAreInitialized = initializedPlugins.length === 0;
 
     if (isAllPluginsAreInitialized) {
-      if (missingDependeciesMsgs.length > 0) {
+      if (missingDepsMsgs.length > 0) {
         const errorMsg = [
-          `${missingDependeciesMsgs.join('\n')}\n`,
+          `${missingDepsMsgs.join('\n')}\n`,
           'You have to import and register them manually.',
         ].join('');
 
@@ -235,7 +257,7 @@ export class BasePlugin {
     }
 
     for (let i = 0; i < settingKeys.length; i++) {
-      if (settings[settingKeys[i]] !== void 0) {
+      if (settings[settingKeys[i]] !== undefined) {
         return true;
       }
     }

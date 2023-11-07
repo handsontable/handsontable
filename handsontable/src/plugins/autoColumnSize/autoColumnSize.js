@@ -230,7 +230,7 @@ export class AutoColumnSize extends BasePlugin {
 
     const setting = this.hot.getSettings()[PLUGIN_KEY];
 
-    if (setting && setting.useHeaders !== null && setting.useHeaders !== void 0) {
+    if (setting && setting.useHeaders !== null && setting.useHeaders !== undefined) {
       this.ghostTable.setSetting('useHeaders', setting.useHeaders);
     }
 
@@ -290,7 +290,7 @@ export class AutoColumnSize extends BasePlugin {
       return;
     }
 
-    this.calculateColumnsWidth({ from: firstVisibleColumn, to: lastVisibleColumn }, void 0, force);
+    this.calculateColumnsWidth({ from: firstVisibleColumn, to: lastVisibleColumn }, undefined, force);
   }
 
   /**
@@ -399,9 +399,9 @@ export class AutoColumnSize extends BasePlugin {
   setSamplingOptions() {
     const setting = this.hot.getSettings()[PLUGIN_KEY];
     const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ?
-      setting.samplingRatio : void 0;
+      setting.samplingRatio : undefined;
     const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ?
-      setting.allowSampleDuplicates : void 0;
+      setting.allowSampleDuplicates : undefined;
 
     if (samplingRatio && !isNaN(samplingRatio)) {
       this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
@@ -456,10 +456,10 @@ export class AutoColumnSize extends BasePlugin {
    * @param {boolean} [keepMinimum=true] If `true` then returned value won't be smaller then 50 (default column width).
    * @returns {number}
    */
-  getColumnWidth(column, defaultWidth = void 0, keepMinimum = true) {
+  getColumnWidth(column, defaultWidth = undefined, keepMinimum = true) {
     let width = defaultWidth;
 
-    if (width === void 0) {
+    if (width === undefined) {
       width = this.columnWidthsMap.getValueAtIndex(this.hot.toPhysicalColumn(column));
 
       if (keepMinimum && typeof width === 'number') {
@@ -637,9 +637,9 @@ export class AutoColumnSize extends BasePlugin {
     let newSize = size;
 
     if (isDblClick) {
-      this.calculateColumnsWidth(column, void 0, true);
+      this.calculateColumnsWidth(column, undefined, true);
 
-      newSize = this.getColumnWidth(column, void 0, false);
+      newSize = this.getColumnWidth(column, undefined, false);
     }
 
     return newSize;

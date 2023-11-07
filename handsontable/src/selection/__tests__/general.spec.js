@@ -93,7 +93,7 @@ describe('Selection', () => {
       height: 150,
       startRows: 5,
       startCols: 5,
-      cells: (row, col) => (row === 1 && col === 1 ? { className: 'red-background' } : void 0)
+      cells: (row, col) => (row === 1 && col === 1 ? { className: 'red-background' } : undefined)
     });
 
     mouseDown(getCell(0, 0));

@@ -136,7 +136,7 @@ export class AutocompleteEditor extends HandsontableEditor {
   open() {
     super.open();
 
-    const trimDropdown = this.cellProperties.trimDropdown === void 0 ? true : this.cellProperties.trimDropdown;
+    const trimDropdown = this.cellProperties.trimDropdown === undefined ? true : this.cellProperties.trimDropdown;
     const rootInstanceAriaTagsEnabled = this.hot.getSettings().ariaTags;
     const sourceArray = Array.isArray(this.cellProperties.source) ? this.cellProperties.source : null;
     const sourceSize = sourceArray?.length;
@@ -153,8 +153,8 @@ export class AutocompleteEditor extends HandsontableEditor {
     this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
 
     this.htEditor.updateSettings({
-      colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
-      width: trimDropdown ? outerWidth(this.TEXTAREA) + scrollbarWidth : void 0,
+      colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : undefined,
+      width: trimDropdown ? outerWidth(this.TEXTAREA) + scrollbarWidth : undefined,
       autoColumnSize: true,
       renderer: (instance, TD, row, col, prop, value, cellProperties) => {
         textRenderer(instance, TD, row, col, prop, value, cellProperties);
@@ -338,7 +338,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     this.hot.listen();
 
-    setCaretPosition(this.TEXTAREA, pos, (pos === endPos ? void 0 : endPos));
+    setCaretPosition(this.TEXTAREA, pos, (pos === endPos ? undefined : endPos));
   }
 
   /**
@@ -434,7 +434,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     dropdownStyle.position = 'absolute';
     dropdownStyle.top = '';
 
-    this.htEditor.flipped = void 0;
+    this.htEditor.flipped = undefined;
   }
 
   /**
@@ -448,7 +448,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     this.htEditor.updateSettings({
       height: this.getDropdownHeight(),
-      width: trimDropdown ? void 0 : currentDropdownWidth
+      width: trimDropdown ? undefined : currentDropdownWidth
     });
 
     this.htEditor.view._wt.wtTable.alignOverlaysWithTrimmingContainer();
@@ -474,7 +474,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    */
   highlightBestMatchingChoice(index) {
     if (typeof index === 'number') {
-      this.htEditor.selectCell(index, 0, void 0, void 0, void 0, false);
+      this.htEditor.selectCell(index, 0, undefined, undefined, undefined, false);
     } else {
       this.htEditor.deselectCell();
     }

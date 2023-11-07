@@ -112,7 +112,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     {row: -4, col: 1, collapsible: true},
     {row: -3, col: 5, collapsible: true}
   ]),
-  columnHeaderHeight: oneOf(35, [35, void 0, 55]),
+  columnHeaderHeight: oneOf(35, [35, undefined, 55]),
   columns: [
     { type: 'numeric', numericFormat: { pattern: '0,0.00 $' } },
     { type: 'text', readOnly: true }
@@ -131,7 +131,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
       customFunction: (endpoint) => 100
     }
   ],
-  colWidths: oneOf(100, '100px', [100, '100px'], ((index: number) => oneOf('100px', 100, void 0))),
+  colWidths: oneOf(100, '100px', [100, '100px'], ((index: number) => oneOf('100px', 100, undefined))),
   commentedCellClassName: 'foo',
   comments: oneOf(true, { displayDelay: 123 }),
   contextMenu: oneOf(true_or_false, contextMenuDemo) || [

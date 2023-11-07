@@ -481,7 +481,7 @@ export class Filters extends BasePlugin {
    * @param {number} [column] Visual column index.
    */
   clearConditions(column) {
-    if (column === void 0) {
+    if (column === undefined) {
       this.conditionCollection.clean();
 
     } else {
@@ -731,7 +731,7 @@ export class Filters extends BasePlugin {
       let columnStackPosition = this.conditionCollection.getColumnStackPosition(physicalIndex);
 
       if (columnStackPosition === -1) {
-        columnStackPosition = void 0;
+        columnStackPosition = undefined;
       }
 
       this.conditionCollection.removeConditions(physicalIndex);

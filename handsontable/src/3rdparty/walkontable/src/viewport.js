@@ -497,7 +497,7 @@ class Viewport {
    */
   resetHasOversizedColumnHeadersMarked() {
     objectEach(this.hasOversizedColumnHeadersMarked, (value, key, object) => {
-      object[key] = void 0;
+      object[key] = undefined;
     });
   }
 }

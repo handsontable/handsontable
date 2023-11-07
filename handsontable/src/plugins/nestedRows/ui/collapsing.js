@@ -29,7 +29,7 @@ class CollapsingUI extends BaseUI {
         this.expandMultipleChildren(this.lastCollapsedRows, forceRender);
       },
       shiftStash: (baseIndex, targetIndex, delta = 1) => {
-        if (targetIndex === null || targetIndex === void 0) {
+        if (targetIndex === null || targetIndex === undefined) {
           targetIndex = Infinity;
         }
 
@@ -41,7 +41,7 @@ class CollapsingUI extends BaseUI {
       },
       applyStash: (forceRender = true) => {
         this.collapseMultipleChildren(this.lastCollapsedRows, forceRender);
-        this.lastCollapsedRows = void 0;
+        this.lastCollapsedRows = undefined;
       },
       trimStash: (realElementIndex, amount) => {
         rangeEach(realElementIndex, realElementIndex + amount - 1, (i) => {

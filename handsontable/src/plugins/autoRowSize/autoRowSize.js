@@ -119,13 +119,6 @@ export class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * PhysicalIndexToValueMap to keep and track heights for physical row indexes.
-   *
-   * @private
-   * @type {PhysicalIndexToValueMap}
-   */
-  rowHeightsMap;
-  /**
    * Columns header's height cache.
    *
    * @private
@@ -359,9 +352,9 @@ export class AutoRowSize extends BasePlugin {
   setSamplingOptions() {
     const setting = this.hot.getSettings()[PLUGIN_KEY];
     const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ?
-      setting.samplingRatio : void 0;
+      setting.samplingRatio : undefined;
     const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ?
-      setting.allowSampleDuplicates : void 0;
+      setting.allowSampleDuplicates : undefined;
 
     if (samplingRatio && !isNaN(samplingRatio)) {
       this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
@@ -421,7 +414,7 @@ export class AutoRowSize extends BasePlugin {
    * @param {number} [defaultHeight] If no height is found, `defaultHeight` is returned instead.
    * @returns {number} The height of the specified row, in pixels.
    */
-  getRowHeight(row, defaultHeight = void 0) {
+  getRowHeight(row, defaultHeight = undefined) {
     const cachedHeight = row < 0 ? this.headerHeight : this.rowHeightsMap.getValueAtIndex(this.hot.toPhysicalRow(row));
     let height = defaultHeight;
 
@@ -522,7 +515,7 @@ export class AutoRowSize extends BasePlugin {
       return;
     }
 
-    this.calculateRowsHeight({ from: firstVisibleRow, to: lastVisibleRow }, void 0, force);
+    this.calculateRowsHeight({ from: firstVisibleRow, to: lastVisibleRow }, undefined, force);
 
     // Calculate rows height synchronously for bottom overlay
     if (fixedRowsBottom) {
@@ -548,7 +541,7 @@ export class AutoRowSize extends BasePlugin {
     let newSize = size;
 
     if (isDblClick) {
-      this.calculateRowsHeight(row, void 0, true);
+      this.calculateRowsHeight(row, undefined, true);
 
       newSize = this.getRowHeight(row);
     }

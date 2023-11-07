@@ -423,7 +423,7 @@ export class CustomBorders extends BasePlugin {
   setBorder(row, column, place, remove) {
     let bordersMeta = this.hot.getCellMeta(row, column).borders;
 
-    if (!bordersMeta || bordersMeta.border === void 0) {
+    if (!bordersMeta || bordersMeta.border === undefined) {
       bordersMeta = createEmptyBorders(row, column);
     } else {
       bordersMeta = normalizeBorder(bordersMeta);
@@ -742,7 +742,7 @@ export class CustomBorders extends BasePlugin {
 
       this.createCustomBorders(bordersClone);
 
-    } else if (customBorders !== void 0) {
+    } else if (customBorders !== undefined) {
       this.createCustomBorders(this.savedBorders);
     }
   }

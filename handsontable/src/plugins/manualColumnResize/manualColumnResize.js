@@ -1,6 +1,5 @@
 import { BasePlugin } from '../base';
 import { addClass, closest, hasClass, removeClass, outerHeight, isDetached } from '../../helpers/dom/element';
-import EventManager from '../../eventManager';
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
@@ -74,10 +73,6 @@ export class ManualColumnResize extends BasePlugin {
    * @type {HTMLElement}
    */
   guide = this.hot.rootDocument.createElement('DIV');
-  /**
-   * @type {EventManager}
-   */
-  eventManager = new EventManager(this);
   /**
    * @type {boolean}
    */
@@ -471,7 +466,7 @@ export class ManualColumnResize extends BasePlugin {
     const resize = (column, forceRender) => {
       const hookNewSize = this.hot.runHooks('beforeColumnResize', this.newSize, column, true);
 
-      if (hookNewSize !== void 0) {
+      if (hookNewSize !== undefined) {
         this.newSize = hookNewSize;
       }
 

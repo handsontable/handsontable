@@ -55,7 +55,7 @@ class DataFilter {
     const filteredData = [];
 
     arrayEach(dataSource, (dataRow) => {
-      if (dataRow !== void 0 && this.conditionCollection.isMatch(dataRow, column)) {
+      if (dataRow !== undefined && this.conditionCollection.isMatch(dataRow, column)) {
         filteredData.push(dataRow);
       }
     });
@@ -77,7 +77,7 @@ class DataFilter {
     arrayEach(needles, (needleRow) => {
       const row = needleRow.meta.visualRow;
 
-      if (data[row] !== void 0) {
+      if (data[row] !== undefined) {
         result[row] = data[row];
       }
     });

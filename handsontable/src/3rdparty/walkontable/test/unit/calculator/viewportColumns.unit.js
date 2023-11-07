@@ -16,9 +16,9 @@ describe('ViewportColumnsCalculator', () => {
       scrollOffset: 0,
       totalColumns: 1000,
       columnWidthFn: index => allColumns20(index),
-      overrideFn: void 0,
-      stretchMode: void 0,
-      stretchingColumnWidthFn: void 0,
+      overrideFn: undefined,
+      stretchMode: undefined,
+      stretchingColumnWidthFn: undefined,
     };
     const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -44,9 +44,9 @@ describe('ViewportColumnsCalculator', () => {
       scrollOffset: 70,
       totalColumns: 1000,
       columnWidthFn: index => allColumns20(index),
-      overrideFn: void 0,
-      stretchMode: void 0,
-      stretchingColumnWidthFn: void 0,
+      overrideFn: undefined,
+      stretchMode: undefined,
+      stretchingColumnWidthFn: undefined,
     };
     const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -77,8 +77,8 @@ describe('ViewportColumnsCalculator', () => {
       totalColumns: 1000,
       columnWidthFn: index => allColumns20(index),
       overrideFn: calc => overrideFn(calc),
-      stretchMode: void 0,
-      stretchingColumnWidthFn: void 0,
+      stretchMode: undefined,
+      stretchingColumnWidthFn: undefined,
     };
     const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -109,8 +109,8 @@ describe('ViewportColumnsCalculator', () => {
       totalColumns: 8,
       columnWidthFn: index => allColumns20(index),
       overrideFn: calc => overrideFn(calc),
-      stretchMode: void 0,
-      stretchingColumnWidthFn: void 0,
+      stretchMode: undefined,
+      stretchingColumnWidthFn: undefined,
     };
     const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -136,9 +136,9 @@ describe('ViewportColumnsCalculator', () => {
       scrollOffset: 50,
       totalColumns: 1000,
       columnWidthFn: index => allColumns20(index),
-      overrideFn: void 0,
-      stretchMode: void 0,
-      stretchingColumnWidthFn: void 0,
+      overrideFn: undefined,
+      stretchMode: undefined,
+      stretchingColumnWidthFn: undefined,
     };
     const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -155,9 +155,9 @@ describe('ViewportColumnsCalculator', () => {
       scrollOffset: 0,
       totalColumns: 8,
       columnWidthFn: index => allColumns20(index),
-      overrideFn: void 0,
-      stretchMode: void 0,
-      stretchingColumnWidthFn: void 0,
+      overrideFn: undefined,
+      stretchMode: undefined,
+      stretchingColumnWidthFn: undefined,
     };
     const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -182,9 +182,9 @@ describe('ViewportColumnsCalculator', () => {
       scrollOffset: 0,
       totalColumns: 10,
       columnWidthFn: index => allColumns20(index),
-      overrideFn: void 0,
-      stretchMode: void 0,
-      stretchingColumnWidthFn: void 0,
+      overrideFn: undefined,
+      stretchMode: undefined,
+      stretchingColumnWidthFn: undefined,
     };
     const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -209,9 +209,9 @@ describe('ViewportColumnsCalculator', () => {
       scrollOffset: 0,
       totalColumns: 10,
       columnWidthFn: index => allColumns20(index),
-      overrideFn: void 0,
-      stretchMode: void 0,
-      stretchingColumnWidthFn: void 0,
+      overrideFn: undefined,
+      stretchMode: undefined,
+      stretchingColumnWidthFn: undefined,
     };
     const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -236,9 +236,9 @@ describe('ViewportColumnsCalculator', () => {
       scrollOffset: 0,
       totalColumns: 0,
       columnWidthFn: index => allColumns20(index),
-      overrideFn: void 0,
-      stretchMode: void 0,
-      stretchingColumnWidthFn: void 0,
+      overrideFn: undefined,
+      stretchMode: undefined,
+      stretchingColumnWidthFn: undefined,
     };
     const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -269,8 +269,8 @@ describe('ViewportColumnsCalculator', () => {
       totalColumns: 0,
       columnWidthFn: index => allColumns20(index),
       overrideFn: calc => overrideFn(calc),
-      stretchMode: void 0,
-      stretchingColumnWidthFn: void 0,
+      stretchMode: undefined,
+      stretchingColumnWidthFn: undefined,
     };
     const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -296,9 +296,9 @@ describe('ViewportColumnsCalculator', () => {
       scrollOffset: 350,
       totalColumns: 20,
       columnWidthFn: index => allColumns20(index),
-      overrideFn: void 0,
-      stretchMode: void 0,
-      stretchingColumnWidthFn: void 0,
+      overrideFn: undefined,
+      stretchMode: undefined,
+      stretchingColumnWidthFn: undefined,
     };
     const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -324,10 +324,10 @@ describe('ViewportColumnsCalculator', () => {
       scrollOffset: 0,
       totalColumns: 20,
       columnWidthFn: index => allColumns20(index),
-      overrideFn: void 0,
+      overrideFn: undefined,
       calculationType: RENDER_TYPE,
       stretchMode: 'all',
-      stretchingColumnWidthFn: void 0,
+      stretchingColumnWidthFn: undefined,
     });
 
     expect(calc.stretchAllRatio).toBe(0);
@@ -345,10 +345,10 @@ describe('ViewportColumnsCalculator', () => {
       scrollOffset: 0,
       totalColumns: 5,
       columnWidthFn: index => allColumns20(index),
-      overrideFn: void 0,
+      overrideFn: undefined,
       calculationType: RENDER_TYPE,
       stretchMode: 'last',
-      stretchingColumnWidthFn: void 0,
+      stretchingColumnWidthFn: undefined,
     });
 
     expect(calc.stretchAllRatio).toBe(0);
@@ -366,10 +366,10 @@ describe('ViewportColumnsCalculator', () => {
       scrollOffset: 0,
       totalColumns: 5,
       columnWidthFn: index => allColumns20(index),
-      overrideFn: void 0,
+      overrideFn: undefined,
       calculationType: RENDER_TYPE,
       stretchMode: 'all',
-      stretchingColumnWidthFn: void 0,
+      stretchingColumnWidthFn: undefined,
     });
 
     expect(calc.getStretchedColumnWidth(0, 50)).toBe(null);
@@ -392,10 +392,10 @@ describe('ViewportColumnsCalculator', () => {
       scrollOffset: 0,
       totalColumns: 5,
       columnWidthFn: index => allColumns20(index),
-      overrideFn: void 0,
+      overrideFn: undefined,
       calculationType: RENDER_TYPE,
       stretchMode: 'last',
-      stretchingColumnWidthFn: void 0,
+      stretchingColumnWidthFn: undefined,
     });
 
     expect(calc.getStretchedColumnWidth(0, 50)).toBe(null);
@@ -415,10 +415,10 @@ describe('ViewportColumnsCalculator', () => {
       scrollOffset: 0,
       totalColumns: 5,
       columnWidthFn: index => allColumns20(index),
-      overrideFn: void 0,
+      overrideFn: undefined,
       calculationType: RENDER_TYPE,
       stretchMode: 'all',
-      stretchingColumnWidthFn: void 0,
+      stretchingColumnWidthFn: undefined,
     });
 
     expect(calc.stretchAllColumnsWidth.length).toBe(0);

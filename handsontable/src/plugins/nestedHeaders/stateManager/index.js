@@ -144,7 +144,7 @@ export default class StateManager {
       rootNode.walkDown((node) => {
         const result = callback(node.data);
 
-        if (result !== void 0) {
+        if (result !== undefined) {
           acc.push(result);
         }
       });

@@ -27,14 +27,16 @@ import { extendByMetaType } from '../utils';
  *                    +-------------+.
  */
 export default class TableMeta {
+  /**
+   * Main object (instance of the internal TableMeta class from GlobalMeta), holder for all settings defined in the table scope.
+   *
+   * @type {TableMeta}
+   */
+  meta;
+
   constructor(globalMeta) {
     const MetaCtor = globalMeta.getMetaConstructor();
 
-    /**
-     * Main object (instance of the internal TableMeta class from GlobalMeta), holder for all settings defined in the table scope.
-     *
-     * @type {TableMeta}
-     */
     this.meta = new MetaCtor();
   }
 

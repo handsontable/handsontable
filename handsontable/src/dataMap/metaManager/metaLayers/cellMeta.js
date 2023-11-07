@@ -33,22 +33,24 @@ import LazyFactoryMap from '../lazyFactoryMap';
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 export default class CellMeta {
+  /**
+   * Reference to the ColumnMeta layer. While creating new cell meta objects, all new objects
+   * inherit properties from the ColumnMeta layer.
+   *
+   * @type {ColumnMeta}
+   */
+  columnMeta;
+  /**
+   * Holder for cell meta objects, organized as a grid of LazyFactoryMap of LazyFactoryMaps.
+   * The access to the cell meta object is done through access to the row defined by the physical
+   * row index and then by accessing the second LazyFactory Map under the physical column index.
+   *
+   * @type {LazyFactoryMap<number, LazyFactoryMap<number, object>>}
+   */
+  metas = new LazyFactoryMap(() => this._createRow());
+
   constructor(columnMeta) {
-    /**
-     * Reference to the ColumnMeta layer. While creating new cell meta objects, all new objects
-     * inherit properties from the ColumnMeta layer.
-     *
-     * @type {ColumnMeta}
-     */
     this.columnMeta = columnMeta;
-    /**
-     * Holder for cell meta objects, organized as a grid of LazyFactoryMap of LazyFactoryMaps.
-     * The access to the cell meta object is done through access to the row defined by the physical
-     * row index and then by accessing the second LazyFactory Map under the physical column index.
-     *
-     * @type {LazyFactoryMap<number, LazyFactoryMap<number, object>>}
-     */
-    this.metas = new LazyFactoryMap(() => this._createRow());
   }
 
   /**
@@ -120,7 +122,7 @@ export default class CellMeta {
   getMeta(physicalRow, physicalColumn, key) {
     const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
 
-    if (key === void 0) {
+    if (key === undefined) {
       return cellMeta;
     }
 

@@ -20,7 +20,6 @@ import {
 import {
   getDataByCoords, getHTMLFromConfig,
 } from '../../utils/parseTable';
-import EventManager from '../../eventManager';
 
 import './copyPaste.css';
 import { CopyClipboardData, PasteClipboardData, META_HEAD } from './clipboardData';
@@ -219,8 +218,6 @@ export class CopyPaste extends BasePlugin {
 
     this.addHook('afterContextMenuDefaultOptions', options => this.#onAfterContextMenuDefaultOptions(options));
     this.addHook('afterSelectionEnd', () => this.#onAfterSelectionEnd());
-
-    this.eventManager = new EventManager(this);
 
     this.eventManager.addEventListener(this.hot.rootDocument, 'copy', (...args) => this.onCopy(...args));
     this.eventManager.addEventListener(this.hot.rootDocument, 'cut', (...args) => this.onCut(...args));
@@ -530,7 +527,7 @@ export class CopyPaste extends BasePlugin {
       newRows.push(newRow);
     }
 
-    this.hot.populateFromArray(startRow, startColumn, newRows, void 0, void 0, 'CopyPaste.paste', this.pasteMode);
+    this.hot.populateFromArray(startRow, startColumn, newRows, undefined, undefined, 'CopyPaste.paste', this.pasteMode);
 
     return [startRow, startColumn, lastVisualRow, lastVisualColumn];
   }

@@ -95,7 +95,7 @@ describe('WalkontableTable', () => {
       cellRenderer(row, column, TD) {
         const cellData = getData(row, column);
 
-        if (cellData === void 0) {
+        if (cellData === undefined) {
           TD.innerHTML = '';
         } else {
           TD.innerHTML = cellData;
