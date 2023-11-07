@@ -13,7 +13,6 @@ Hooks.getSingleton().register('afterRowMove');
 
 export const PLUGIN_KEY = 'manualRowMove';
 export const PLUGIN_PRIORITY = 140;
-const privatePool = new WeakMap();
 const CSS_PLUGIN = 'ht__manualRowMove';
 const CSS_SHOW_UI = 'show-ui';
 const CSS_ON_MOVING = 'on-moving--rows';
@@ -54,39 +53,36 @@ export class ManualRowMove extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
-  constructor(hotInstance) {
-    super(hotInstance);
-
-    /**
-     * Set up WeakMap of plugin to sharing private parameters;.
-     */
-    privatePool.set(this, {
-      rowsToMove: [],
-      pressed: void 0,
-      target: {
-        eventPageY: void 0,
-        coords: void 0,
-        TD: void 0,
-        row: void 0
-      },
-      cachedDropIndex: void 0
-    });
-
-    /**
-     * Backlight UI object.
-     *
-     * @private
-     * @type {object}
-     */
-    this.backlight = new BacklightUI(hotInstance);
-    /**
-     * Guideline UI object.
-     *
-     * @private
-     * @type {object}
-     */
-    this.guideline = new GuidelineUI(hotInstance);
-  }
+  /**
+   * Backlight UI object.
+   *
+   * @private
+   * @type {object}
+   */
+  backlight = new BacklightUI(this.hot);
+  /**
+   * Guideline UI object.
+   *
+   * @private
+   * @type {object}
+   */
+  guideline = new GuidelineUI(this.hot);
+  /**
+   * @type {number[]}
+   */
+  #rowsToMove = [];
+  /**
+   * @type {boolean}
+   */
+  #pressed;
+  /**
+   * @type {object}
+   */
+  #target = {};
+  /**
+   * @type {number}
+   */
+  #cachedDropIndex;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -106,10 +102,10 @@ export class ManualRowMove extends BasePlugin {
       return;
     }
 
-    this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
-    this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
-    this.addHook('afterScrollHorizontally', () => this.onAfterScrollHorizontally());
-    this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
+    this.addHook('beforeOnCellMouseDown', (...args) => this.#onBeforeOnCellMouseDown(...args));
+    this.addHook('beforeOnCellMouseOver', (...args) => this.#onBeforeOnCellMouseOver(...args));
+    this.addHook('afterScrollHorizontally', () => this.#onAfterScrollHorizontally());
+    this.addHook('afterLoadData', (...args) => this.#onAfterLoadData(...args));
 
     this.buildPluginUI();
     this.registerEvents();
@@ -177,12 +173,11 @@ export class ManualRowMove extends BasePlugin {
    * @returns {boolean}
    */
   moveRows(rows, finalIndex) {
-    const priv = privatePool.get(this);
-    const dropIndex = priv.cachedDropIndex;
+    const dropIndex = this.#cachedDropIndex;
     const movePossible = this.isMovePossible(rows, finalIndex);
     const beforeMoveHook = this.hot.runHooks('beforeRowMove', rows, finalIndex, dropIndex, movePossible);
 
-    priv.cachedDropIndex = void 0;
+    this.#cachedDropIndex = undefined;
 
     if (beforeMoveHook === false) {
       return;
@@ -225,9 +220,8 @@ export class ManualRowMove extends BasePlugin {
    */
   dragRows(rows, dropIndex) {
     const finalIndex = this.countFinalIndex(rows, dropIndex);
-    const priv = privatePool.get(this);
 
-    priv.cachedDropIndex = dropIndex;
+    this.#cachedDropIndex = dropIndex;
 
     return this.moveRows(rows, finalIndex);
   }
@@ -324,7 +318,7 @@ export class ManualRowMove extends BasePlugin {
     if (Array.isArray(pluginSettings)) {
       this.moveRows(pluginSettings, 0);
 
-    } else if (pluginSettings !== void 0) {
+    } else if (pluginSettings !== undefined) {
       const persistentState = this.persistentStateLoad();
 
       if (persistentState.length) {
@@ -412,8 +406,7 @@ export class ManualRowMove extends BasePlugin {
    * @private
    */
   refreshPositions() {
-    const priv = privatePool.get(this);
-    const coords = priv.target.coords;
+    const coords = this.#target.coords;
     const firstVisible = this.hot.view.getFirstFullyVisibleRow();
     const lastVisible = this.hot.view.getLastFullyVisibleRow();
     const countRows = this.hot.countRows();
@@ -427,7 +420,7 @@ export class ManualRowMove extends BasePlugin {
     }
 
     const wtTable = this.hot.view._wt.wtTable;
-    const TD = priv.target.TD;
+    const TD = this.#target.TD;
     const rootElement = this.hot.rootElement;
     const rootElementOffset = offset(rootElement);
     const trimmingContainer = getTrimmingContainer(rootElement);
@@ -435,7 +428,7 @@ export class ManualRowMove extends BasePlugin {
     const trimmingContainerScroll = this.hot.rootWindow !== trimmingContainer ? trimmingContainer.scrollTop : 0;
 
     const pixelsAbove = rootElementOffset.top - trimmingContainerScroll;
-    const pixelsRelToTableStart = priv.target.eventPageY - pixelsAbove + tableScroll;
+    const pixelsRelToTableStart = this.#target.eventPageY - pixelsAbove + tableScroll;
     const hiderHeight = wtTable.hider.offsetHeight;
     const tbodyOffsetTop = wtTable.TBODY.offsetTop;
     const backlightElemMarginTop = this.backlight.getOffset().top;
@@ -451,16 +444,16 @@ export class ManualRowMove extends BasePlugin {
 
     if (coords.row < 0) {
       // if hover on colHeader
-      priv.target.row = firstVisible > 0 ? firstVisible - 1 : firstVisible;
+      this.#target.row = firstVisible > 0 ? firstVisible - 1 : firstVisible;
     } else if (isBelowTable) {
       // if hover on lower part of TD
-      priv.target.row = coords.row + 1;
+      this.#target.row = coords.row + 1;
       // unfortunately first row is bigger than rest
       tdStartPixel += coords.row === 0 ? tdHeight - 1 : tdHeight;
 
     } else {
       // elsewhere on table
-      priv.target.row = coords.row;
+      this.#target.row = coords.row;
     }
 
     let backlightTop = pixelsRelToTableStart;
@@ -492,8 +485,8 @@ export class ManualRowMove extends BasePlugin {
   registerEvents() {
     const { documentElement } = this.hot.rootDocument;
 
-    this.eventManager.addEventListener(documentElement, 'mousemove', event => this.onMouseMove(event));
-    this.eventManager.addEventListener(documentElement, 'mouseup', () => this.onMouseUp());
+    this.eventManager.addEventListener(documentElement, 'mousemove', event => this.#onMouseMove(event));
+    this.eventManager.addEventListener(documentElement, 'mouseup', () => this.#onMouseUp());
   }
 
   /**
@@ -508,22 +501,20 @@ export class ManualRowMove extends BasePlugin {
   /**
    * Change the behavior of selection / dragging.
    *
-   * @private
    * @param {MouseEvent} event `mousedown` event properties.
    * @param {CellCoords} coords Visual cell coordinates where was fired event.
    * @param {HTMLElement} TD Cell represented as HTMLElement.
    * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  onBeforeOnCellMouseDown(event, coords, TD, controller) {
+  #onBeforeOnCellMouseDown(event, coords, TD, controller) {
     const { wtTable, wtViewport } = this.hot.view._wt;
     const isHeaderSelection = this.hot.selection.isSelectedByRowHeader();
     const selection = this.hot.getSelectedRangeLast();
-    const priv = privatePool.get(this);
 
-    if (!selection || !isHeaderSelection || priv.pressed || event.button !== 0) {
-      priv.pressed = false;
-      priv.rowsToMove.length = 0;
+    if (!selection || !isHeaderSelection || this.#pressed || event.button !== 0) {
+      this.#pressed = false;
+      this.#rowsToMove.length = 0;
       removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
 
       return;
@@ -543,12 +534,12 @@ export class ManualRowMove extends BasePlugin {
 
     if (coords.col < 0 && (coords.row >= start && coords.row <= end)) {
       controller.row = true;
-      priv.pressed = true;
+      this.#pressed = true;
 
-      priv.target.eventPageY = event.pageY;
-      priv.target.coords = coords;
-      priv.target.TD = TD;
-      priv.rowsToMove = this.prepareRowsToMoving();
+      this.#target.eventPageY = event.pageY;
+      this.#target.coords = coords;
+      this.#target.TD = TD;
+      this.#rowsToMove = this.prepareRowsToMoving();
 
       const leftPos = wtTable.holder.scrollLeft + wtViewport.getRowHeaderWidth();
       const topOffset = this.getRowsHeight(start, coords.row - 1) + event.offsetY;
@@ -563,47 +554,42 @@ export class ManualRowMove extends BasePlugin {
 
     } else {
       removeClass(this.hot.rootElement, CSS_AFTER_SELECTION);
-      priv.pressed = false;
-      priv.rowsToMove.length = 0;
+      this.#pressed = false;
+      this.#rowsToMove.length = 0;
     }
   }
 
   /**
    * 'mouseMove' event callback. Fired when pointer move on document.documentElement.
    *
-   * @private
    * @param {MouseEvent} event `mousemove` event properties.
    */
-  onMouseMove(event) {
-    const priv = privatePool.get(this);
-
-    if (!priv.pressed) {
+  #onMouseMove(event) {
+    if (!this.#pressed) {
       return;
     }
 
-    priv.target.eventPageY = event.pageY;
+    this.#target.eventPageY = event.pageY;
     this.refreshPositions();
   }
 
   /**
    * 'beforeOnCellMouseOver' hook callback. Fired when pointer was over cell.
    *
-   * @private
    * @param {MouseEvent} event `mouseover` event properties.
    * @param {CellCoords} coords Visual cell coordinates where was fired event.
    * @param {HTMLElement} TD Cell represented as HTMLElement.
    * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  onBeforeOnCellMouseOver(event, coords, TD, controller) {
+  #onBeforeOnCellMouseOver(event, coords, TD, controller) {
     const selectedRange = this.hot.getSelectedRangeLast();
-    const priv = privatePool.get(this);
 
-    if (!selectedRange || !priv.pressed) {
+    if (!selectedRange || !this.#pressed) {
       return;
     }
 
-    if (priv.rowsToMove.indexOf(coords.row) > -1) {
+    if (this.#rowsToMove.indexOf(coords.row) > -1) {
       removeClass(this.hot.rootElement, CSS_SHOW_UI);
 
     } else {
@@ -613,22 +599,18 @@ export class ManualRowMove extends BasePlugin {
     controller.row = true;
     controller.column = true;
     controller.cell = true;
-    priv.target.coords = coords;
-    priv.target.TD = TD;
+    this.#target.coords = coords;
+    this.#target.TD = TD;
   }
 
   /**
    * `onMouseUp` hook callback.
-   *
-   * @private
    */
-  onMouseUp() {
-    const priv = privatePool.get(this);
-    const target = priv.target.row;
-    const rowsLen = priv.rowsToMove.length;
+  #onMouseUp() {
+    const target = this.#target.row;
+    const rowsLen = this.#rowsToMove.length;
 
-    priv.pressed = false;
-    priv.backlightHeight = 0;
+    this.#pressed = false;
 
     removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
 
@@ -636,15 +618,15 @@ export class ManualRowMove extends BasePlugin {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
 
-    if (rowsLen < 1 || target === void 0) {
+    if (rowsLen < 1 || target === undefined) {
       return;
     }
 
-    const firstMovedVisualRow = priv.rowsToMove[0];
+    const firstMovedVisualRow = this.#rowsToMove[0];
     const firstMovedPhysicalRow = this.hot.toPhysicalRow(firstMovedVisualRow);
-    const movePerformed = this.dragRows(priv.rowsToMove, target);
+    const movePerformed = this.dragRows(this.#rowsToMove, target);
 
-    priv.rowsToMove.length = 0;
+    this.#rowsToMove.length = 0;
 
     if (movePerformed === true) {
       this.persistentStateSave();
@@ -660,10 +642,8 @@ export class ManualRowMove extends BasePlugin {
 
   /**
    * `afterScrollHorizontally` hook callback. Fired the table was scrolled horizontally.
-   *
-   * @private
    */
-  onAfterScrollHorizontally() {
+  #onAfterScrollHorizontally() {
     const wtTable = this.hot.view._wt.wtTable;
     const headerWidth = this.hot.view._wt.wtViewport.getRowHeaderWidth();
     const scrollLeft = wtTable.holder.scrollLeft;
@@ -685,10 +665,8 @@ export class ManualRowMove extends BasePlugin {
 
   /**
    * Callback for the `afterLoadData` hook.
-   *
-   * @private
    */
-  onAfterLoadData() {
+  #onAfterLoadData() {
     this.moveBySettingsOrLoad();
   }
 

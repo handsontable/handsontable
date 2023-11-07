@@ -20,19 +20,13 @@ export class MultipleSelectionHandles extends BasePlugin {
   }
 
   /**
-   * @param {object} hotInstance The handsontable instance.
+   * @type {Array}
    */
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * @type {Array}
-     */
-    this.dragged = [];
-    /**
-     * @type {null}
-     */
-    this.lastSetCell = null;
-  }
+  dragged = [];
+  /**
+   * @type {null}
+   */
+  lastSetCell = null;
 
   /**
    * Check if the plugin is enabled in the handsontable settings.
@@ -128,7 +122,7 @@ export class MultipleSelectionHandles extends BasePlugin {
       if (hasClass(event.target, 'topSelectionHandle-HitArea')) {
         removeFromDragged.call(_this, 'top');
 
-        _this.touchStartRange = void 0;
+        _this.touchStartRange = undefined;
 
         event.preventDefault();
 
@@ -137,7 +131,7 @@ export class MultipleSelectionHandles extends BasePlugin {
       } else if (hasClass(event.target, 'bottomSelectionHandle-HitArea')) {
         removeFromDragged.call(_this, 'bottom');
 
-        _this.touchStartRange = void 0;
+        _this.touchStartRange = undefined;
 
         event.preventDefault();
 

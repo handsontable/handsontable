@@ -403,7 +403,7 @@ describe('ContextMenu', () => {
 
       await selectContextSubmenuOption('Alignment', 'Right');
 
-      expect(getCellMeta(2, 3).className).toBe(void 0);
+      expect(getCellMeta(2, 3).className).toBe(undefined);
     });
 
     describe('UI', () => {

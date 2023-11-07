@@ -101,10 +101,10 @@ export default class Settings {
    */
   constructor(settings) {
     objectEach(this.defaults, (value, key) => {
-      if (settings[key] !== void 0) {
+      if (settings[key] !== undefined) {
         this.settings[key] = settings[key];
 
-      } else if (value === void 0) {
+      } else if (value === undefined) {
         throw new Error(`A required setting "${key}" was not provided`);
 
       } else {
@@ -122,8 +122,8 @@ export default class Settings {
    */
   getDefaults() {
     return {
-      facade: void 0,
-      table: void 0,
+      facade: undefined,
+      table: undefined,
 
       // Determines whether the Walkontable instance is used as dataset viewer. When its instance is used as
       // a context menu, autocomplete list, etc, the returned value is `false`.
@@ -139,7 +139,7 @@ export default class Settings {
       preventWheel: false,
 
       // data source
-      data: void 0,
+      data: undefined,
       freezeOverlays: false,
       // Number of renderable columns for the left overlay.
       fixedColumnsStart: 0,
@@ -170,12 +170,12 @@ export default class Settings {
       columnHeaders() {
         return [];
       },
-      totalRows: void 0,
-      totalColumns: void 0,
+      totalRows: undefined,
+      totalColumns: undefined,
       cellRenderer: (row, column, TD) => {
         const cellData = this.getSetting('data', row, column);
 
-        fastInnerText(TD, cellData === void 0 || cellData === null ? '' : cellData);
+        fastInnerText(TD, cellData === undefined || cellData === null ? '' : cellData);
       },
 
       // columnWidth: 50,
@@ -244,7 +244,7 @@ export default class Settings {
    * @returns {Settings}
    */
   update(settings, value) {
-    if (value === void 0) { // settings is object
+    if (value === undefined) { // settings is object
       objectEach(settings, (settingValue, key) => {
         this.settings[key] = settingValue;
       });
@@ -269,7 +269,7 @@ export default class Settings {
     if (typeof this.settings[key] === 'function') {
       return this.settings[key](param1, param2, param3, param4);
 
-    } else if (param1 !== void 0 && Array.isArray(this.settings[key])) {
+    } else if (param1 !== undefined && Array.isArray(this.settings[key])) {
       return this.settings[key][param1];
 
     }

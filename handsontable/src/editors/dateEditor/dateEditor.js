@@ -21,19 +21,23 @@ export class DateEditor extends TextEditor {
     return EDITOR_TYPE;
   }
 
+  // TODO: Move this option to general settings
   /**
-   * @param {Core} hotInstance Handsontable instance.
-   * @private
+   * @type {string}
    */
-  constructor(hotInstance) {
-    super(hotInstance);
-
-    // TODO: Move this option to general settings
-    this.defaultDateFormat = 'DD/MM/YYYY';
-    this.isCellEdited = false;
-    this.parentDestroyed = false;
-    this.$datePicker = null;
-  }
+  defaultDateFormat = 'DD/MM/YYYY';
+  /**
+   * @type {boolean}
+   */
+  isCellEdited = false;
+  /**
+   * @type {boolean}
+   */
+  parentDestroyed = false;
+  /**
+   * @type {Pikaday}
+   */
+  $datePicker = null;
 
   init() {
     if (typeof moment !== 'function') {
@@ -188,7 +192,7 @@ export class DateEditor extends TextEditor {
     if (restoreOriginalValue) { // pressed ESC, restore original value
       const value = this.originalValue;
 
-      if (value !== void 0) {
+      if (value !== undefined) {
         this.setValue(value);
       }
     }

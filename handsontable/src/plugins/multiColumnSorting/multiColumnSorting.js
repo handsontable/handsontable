@@ -81,16 +81,13 @@ export class MultiColumnSorting extends ColumnSorting {
     return PLUGIN_PRIORITY;
   }
 
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * Main settings key designed for the plugin.
-     *
-     * @private
-     * @type {string}
-     */
-    this.pluginKey = PLUGIN_KEY;
-  }
+  /**
+   * Main settings key designed for the plugin.
+   *
+   * @private
+   * @type {string}
+   */
+  pluginKey = PLUGIN_KEY;
 
   /**
    * Checks if the plugin is enabled in the Handsontable settings. This method is executed in {@link Hooks#beforeInit}

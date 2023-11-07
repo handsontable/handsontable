@@ -219,8 +219,8 @@ export class CopyPaste extends BasePlugin {
       this.uiContainer = settings.uiContainer ?? this.uiContainer;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', options => this.onAfterContextMenuDefaultOptions(options));
-    this.addHook('afterSelectionEnd', () => this.onAfterSelectionEnd());
+    this.addHook('afterContextMenuDefaultOptions', options => this.#onAfterContextMenuDefaultOptions(options));
+    this.addHook('afterSelectionEnd', () => this.#onAfterSelectionEnd());
 
     this.eventManager.addEventListener(this.hot.rootDocument, 'copy', (...args) => this.onCopy(...args));
     this.eventManager.addEventListener(this.hot.rootDocument, 'cut', (...args) => this.onCut(...args));
@@ -229,13 +229,13 @@ export class CopyPaste extends BasePlugin {
     // Without this workaround Safari (tested on Safari@16.5.2) does allow copying/cutting from the browser menu.
     if (isSafari()) {
       this.eventManager.addEventListener(
-        this.hot.rootDocument.body, 'mouseenter', (...args) => this.onSafariMouseEnter(...args)
+        this.hot.rootDocument.body, 'mouseenter', (...args) => this.#onSafariMouseEnter(...args)
       );
       this.eventManager.addEventListener(
-        this.hot.rootDocument.body, 'mouseleave', (...args) => this.onSafariMouseLeave(...args)
+        this.hot.rootDocument.body, 'mouseleave', (...args) => this.#onSafariMouseLeave(...args)
       );
 
-      this.addHook('afterSelection', () => this.onSafariAfterSelection());
+      this.addHook('afterSelection', () => this.#onSafariAfterSelection());
     }
 
     super.enablePlugin();
@@ -561,7 +561,7 @@ export class CopyPaste extends BasePlugin {
       newRows.push(newRow);
     }
 
-    this.hot.populateFromArray(startRow, startColumn, newRows, void 0, void 0, 'CopyPaste.paste', this.pasteMode);
+    this.hot.populateFromArray(startRow, startColumn, newRows, undefined, undefined, 'CopyPaste.paste', this.pasteMode);
 
     return [startRow, startColumn, lastVisualRow, lastVisualColumn];
   }
@@ -741,10 +741,9 @@ export class CopyPaste extends BasePlugin {
   /**
    * Add copy and cut options to the Context Menu.
    *
-   * @private
    * @param {object} options Contains default added options of the Context Menu.
    */
-  onAfterContextMenuDefaultOptions(options) {
+  #onAfterContextMenuDefaultOptions(options) {
     options.items.push(
       { name: '---------' },
       copyItem(this),
@@ -771,10 +770,8 @@ export class CopyPaste extends BasePlugin {
 
   /**
    * Force focus on focusableElement after end of the selection.
-   *
-   * @private
    */
-  onAfterSelectionEnd() {
+  #onAfterSelectionEnd() {
     if (this.isEditorOpened()) {
       return;
     }
@@ -789,29 +786,23 @@ export class CopyPaste extends BasePlugin {
   /**
    * `document.body` `mouseenter` callback used to work around a Safari's problem with copying/cutting from the
    * browser's menu.
-   *
-   * @private
    */
-  onSafariMouseEnter() {
+  #onSafariMouseEnter() {
     this.#removeContentEditableFromHighlightedCell();
   }
 
   /**
    * `document.body` `mouseleave` callback used to work around a Safari's problem with copying/cutting from the
    * browser's menu.
-   *
-   * @private
    */
-  onSafariMouseLeave() {
+  #onSafariMouseLeave() {
     this.#addContentEditableToHighlightedCell();
   }
 
   /**
    * `afterSelection` hook callback triggered only on Safari.
-   *
-   * @private
    */
-  onSafariAfterSelection() {
+  #onSafariAfterSelection() {
     this.#removeContentEditableFromHighlightedCell();
   }
 

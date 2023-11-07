@@ -19,6 +19,6 @@
   "include": [
     "./common.d.ts",
     "**/*.types.ts",
-    "../../src/**/__tests__/*.types.ts"
+    "../../src/**/*.types.ts"
   ]
 }

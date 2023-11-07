@@ -13,25 +13,27 @@
  * @util
  */
 class NodeStructure {
+  /**
+   * Data of the node.
+   *
+   * @member {object}
+   */
+  data;
+  /**
+   * Next node.
+   *
+   * @member {NodeStructure}
+   */
+  next = null;
+  /**
+   * Previous node.
+   *
+   * @member {NodeStructure}
+   */
+  prev = null;
+
   constructor(data) {
-    /**
-     * Data of the node.
-     *
-     * @member {object}
-     */
     this.data = data;
-    /**
-     * Next node.
-     *
-     * @member {NodeStructure}
-     */
-    this.next = null;
-    /**
-     * Previous node.
-     *
-     * @member {NodeStructure}
-     */
-    this.prev = null;
   }
 }
 
@@ -42,10 +44,8 @@ class NodeStructure {
  * @util
  */
 class LinkedList {
-  constructor() {
-    this.first = null;
-    this.last = null;
-  }
+  first = null;
+  last = null;
 
   /**
    * Add data to the end of linked list.

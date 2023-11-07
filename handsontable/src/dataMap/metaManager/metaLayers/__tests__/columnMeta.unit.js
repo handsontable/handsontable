@@ -37,9 +37,9 @@ describe('ColumnMeta', () => {
     meta.getMeta(1)._myCustomKey = { foo: 'bar' };
 
     expect(globalMeta.getMeta()).toHaveProperty('copyable', true);
-    expect(globalMeta.getMeta()).toHaveProperty('renderer', void 0);
-    expect(globalMeta.getMeta()).toHaveProperty('rowHeights', void 0);
-    expect(globalMeta.getMeta()).toHaveProperty('_myCustomKey', void 0);
+    expect(globalMeta.getMeta()).toHaveProperty('renderer', undefined);
+    expect(globalMeta.getMeta()).toHaveProperty('rowHeights', undefined);
+    expect(globalMeta.getMeta()).toHaveProperty('_myCustomKey', undefined);
   });
 
   describe('getMeta()', () => {
@@ -119,7 +119,7 @@ describe('ColumnMeta', () => {
       meta.createColumn(1);
 
       expect(meta.getMeta(0)._test).toBe(1);
-      expect(meta.getMeta(1)._test).toBe(void 0);
+      expect(meta.getMeta(1)._test).toBe(undefined);
       expect(meta.getMeta(2)._test).toBe(2);
       expect(meta.getMeta(3)._test).toBe(3);
       expect(meta.getMeta(4)._test).toBe(4);
@@ -140,9 +140,9 @@ describe('ColumnMeta', () => {
 
       expect(meta.getMeta(0)._test).toBe(1);
       expect(meta.getMeta(1)._test).toBe(2);
-      expect(meta.getMeta(2)._test).toBe(void 0);
-      expect(meta.getMeta(3)._test).toBe(void 0);
-      expect(meta.getMeta(4)._test).toBe(void 0);
+      expect(meta.getMeta(2)._test).toBe(undefined);
+      expect(meta.getMeta(3)._test).toBe(undefined);
+      expect(meta.getMeta(4)._test).toBe(undefined);
       expect(meta.getMeta(5)._test).toBe(3);
       expect(meta.getMeta(6)._test).toBe(4);
       expect(meta.getMeta(7)._test).toBe(5);
@@ -177,7 +177,7 @@ describe('ColumnMeta', () => {
       expect(meta.getMeta(1)._test).toBe(3);
       expect(meta.getMeta(2)._test).toBe(4);
       expect(meta.getMeta(3)._test).toBe(5);
-      expect(meta.getMeta(4)._test).toBe(void 0);
+      expect(meta.getMeta(4)._test).toBe(undefined);
     });
 
     it('should remove columns while maintaining data consistently', () => {
@@ -194,9 +194,9 @@ describe('ColumnMeta', () => {
 
       expect(meta.getMeta(0)._test).toBe(1);
       expect(meta.getMeta(1)._test).toBe(2);
-      expect(meta.getMeta(2)._test).toBe(void 0);
-      expect(meta.getMeta(3)._test).toBe(void 0);
-      expect(meta.getMeta(4)._test).toBe(void 0);
+      expect(meta.getMeta(2)._test).toBe(undefined);
+      expect(meta.getMeta(3)._test).toBe(undefined);
+      expect(meta.getMeta(4)._test).toBe(undefined);
     });
   });
 
@@ -432,12 +432,12 @@ describe('ColumnMeta', () => {
 
       meta.clearCache();
 
-      expect(meta.getMeta(0)._test).toBe(void 0);
-      expect(meta.getMeta(1)._test).toBe(void 0);
-      expect(meta.getMeta(2)._test).toBe(void 0);
-      expect(meta.getMeta(3)._test).toBe(void 0);
-      expect(meta.getMeta(4)._test).toBe(void 0);
-      expect(meta.getMeta(5)._test).toBe(void 0);
+      expect(meta.getMeta(0)._test).toBe(undefined);
+      expect(meta.getMeta(1)._test).toBe(undefined);
+      expect(meta.getMeta(2)._test).toBe(undefined);
+      expect(meta.getMeta(3)._test).toBe(undefined);
+      expect(meta.getMeta(4)._test).toBe(undefined);
+      expect(meta.getMeta(5)._test).toBe(undefined);
     });
   });
 });

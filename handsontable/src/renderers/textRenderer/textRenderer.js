@@ -8,7 +8,7 @@ export const RENDERER_TYPE = 'text';
  * Default text renderer.
  *
  * @private
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {HTMLTableCellElement} TD The rendered cell element.
  * @param {number} row The visual row index.
  * @param {number} col The visual column index.
@@ -16,8 +16,8 @@ export const RENDERER_TYPE = 'text';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-export function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  baseRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
+export function textRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
+  baseRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
   let escaped = value;
 
   if (!escaped && cellProperties.placeholder) {
@@ -32,12 +32,12 @@ export function textRenderer(instance, TD, row, col, prop, value, cellProperties
 
   if (cellProperties.rendererTemplate) {
     empty(TD);
-    const TEMPLATE = instance.rootDocument.createElement('TEMPLATE');
+    const TEMPLATE = hotInstance.rootDocument.createElement('TEMPLATE');
 
     TEMPLATE.setAttribute('bind', '{{}}');
     TEMPLATE.innerHTML = cellProperties.rendererTemplate;
     HTMLTemplateElement.decorate(TEMPLATE);
-    TEMPLATE.model = instance.getSourceDataAtRow(row);
+    TEMPLATE.model = hotInstance.getSourceDataAtRow(row);
     TD.appendChild(TEMPLATE);
 
   } else {

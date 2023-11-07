@@ -98,15 +98,17 @@ export class ContextMenu extends BasePlugin {
   /**
    * Instance of {@link CommandExecutor}.
    *
+   * @private
    * @type {CommandExecutor}
    */
-  #commandExecutor = new CommandExecutor(this.hot);
+  commandExecutor = new CommandExecutor(this.hot);
   /**
    * Instance of {@link ItemsFactory}.
    *
+   * @private
    * @type {ItemsFactory}
    */
-  #itemsFactory = null;
+  itemsFactory = null;
   /**
    * Instance of {@link Menu}.
    *
@@ -145,12 +147,12 @@ export class ContextMenu extends BasePlugin {
       container: settings.uiContainer || this.hot.rootDocument.body,
     });
 
-    this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());
-    this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
-    this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
+    this.menu.addLocalHook('beforeOpen', () => this.#onMenuBeforeOpen());
+    this.menu.addLocalHook('afterOpen', () => this.#onMenuAfterOpen());
+    this.menu.addLocalHook('afterClose', () => this.#onMenuAfterClose());
     this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
 
-    this.addHook('afterOnCellContextMenu', event => this.onAfterOnCellContextMenu(event));
+    this.addHook('afterOnCellContextMenu', event => this.#onAfterOnCellContextMenu(event));
 
     this.registerShortcuts();
     super.enablePlugin();
@@ -332,10 +334,9 @@ export class ContextMenu extends BasePlugin {
   /**
    * On contextmenu listener.
    *
-   * @private
    * @param {Event} event The mouse event object.
    */
-  onAfterOnCellContextMenu(event) {
+  #onAfterOnCellContextMenu(event) {
     const settings = this.hot.getSettings();
     const showRowHeaders = settings.rowHeaders;
     const showColHeaders = settings.colHeaders;
@@ -375,28 +376,22 @@ export class ContextMenu extends BasePlugin {
 
   /**
    * On menu before open listener.
-   *
-   * @private
    */
-  onMenuBeforeOpen() {
+  #onMenuBeforeOpen() {
     this.hot.runHooks('beforeContextMenuShow', this);
   }
 
   /**
    * On menu after open listener.
-   *
-   * @private
    */
-  onMenuAfterOpen() {
+  #onMenuAfterOpen() {
     this.hot.runHooks('afterContextMenuShow', this);
   }
 
   /**
    * On menu after close listener.
-   *
-   * @private
    */
-  onMenuAfterClose() {
+  #onMenuAfterClose() {
     this.hot.listen();
     this.hot.runHooks('afterContextMenuHide', this);
   }

@@ -521,7 +521,7 @@ describe('Comments', () => {
 
       const plugin = hot.getPlugin('comments');
 
-      expect(getCellMeta(1, 1).comment).toEqual(void 0);
+      expect(getCellMeta(1, 1).comment).toEqual(undefined);
 
       plugin.setCommentAtCell(1, 1, 'test comment');
 
@@ -537,11 +537,11 @@ describe('Comments', () => {
 
       const plugin = hot.getPlugin('comments');
 
-      expect(getCellMeta(1, 1).comment).toEqual(void 0);
+      expect(getCellMeta(1, 1).comment).toEqual(undefined);
 
       plugin.setCommentAtCell(1, 1, 'test comment');
 
-      expect(getCellMeta(1, 1).comment).toEqual(void 0);
+      expect(getCellMeta(1, 1).comment).toEqual(undefined);
     });
 
     it('should trigger `afterSetCellMeta` callback when `setCommentAtCell` function is invoked', () => {
@@ -574,7 +574,7 @@ describe('Comments', () => {
 
       plugin.removeCommentAtCell(1, 1);
 
-      expect(getCellMeta(1, 1).comment).toEqual(void 0);
+      expect(getCellMeta(1, 1).comment).toEqual(undefined);
     });
 
     it('should not allow removing comments using the `removeCommentAtCell` method if `beforeSetCellMeta` returned false', () => {
@@ -771,7 +771,7 @@ describe('Comments', () => {
       contextMenu();
       selectContextMenuOption('Delete comment');
 
-      expect(getCellMeta(1, 1).comment).toEqual(void 0);
+      expect(getCellMeta(1, 1).comment).toEqual(undefined);
     });
 
     it('should remove the comments from multiple cells after clicking the "Delete comment" entry (selection from top-left to bottom-right)', () => {
@@ -790,9 +790,9 @@ describe('Comments', () => {
       contextMenu();
       selectContextMenuOption('Delete comment');
 
-      expect(getCellMeta(1, 1).comment).toEqual(void 0);
-      expect(getCellMeta(2, 2).comment).toEqual(void 0);
-      expect(getCellMeta(3, 3).comment).toEqual(void 0);
+      expect(getCellMeta(1, 1).comment).toEqual(undefined);
+      expect(getCellMeta(2, 2).comment).toEqual(undefined);
+      expect(getCellMeta(3, 3).comment).toEqual(undefined);
     });
 
     it('Should remove the comments from multiple cells after clicking the "Delete comment" entry (selection from bottom-right to top-left)', () => {
@@ -811,9 +811,9 @@ describe('Comments', () => {
       contextMenu();
       selectContextMenuOption('Delete comment');
 
-      expect(getCellMeta(1, 1).comment).toEqual(void 0);
-      expect(getCellMeta(2, 2).comment).toEqual(void 0);
-      expect(getCellMeta(3, 3).comment).toEqual(void 0);
+      expect(getCellMeta(1, 1).comment).toEqual(undefined);
+      expect(getCellMeta(2, 2).comment).toEqual(undefined);
+      expect(getCellMeta(3, 3).comment).toEqual(undefined);
     });
 
     it('should make the comment editor\'s textarea read-only after clicking the "Read-only comment" entry', async() => {

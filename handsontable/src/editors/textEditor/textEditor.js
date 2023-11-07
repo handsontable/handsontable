@@ -12,7 +12,7 @@ import {
 } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { KEY_CODES } from '../../helpers/unicode';
-import { autoResize } from '../../3rdparty/autoResize';
+import { autoResize as autoResizer } from '../../3rdparty/autoResize';
 import { isDefined } from '../../helpers/mixed';
 import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
 import { SHORTCUTS_GROUP_EDITOR } from '../baseEditor/baseEditor';
@@ -38,59 +38,61 @@ export class TextEditor extends BaseEditor {
   }
 
   /**
-   * @param {Core} instance The Handsontable instance.
+   * Instance of {@link EventManager}.
+   *
+   * @private
+   * @type {EventManager}
    */
-  constructor(instance) {
-    super(instance);
-    /**
-     * Instance of {@link EventManager}.
-     *
-     * @private
-     * @type {EventManager}
-     */
+  eventManager = new EventManager(this);
+  /**
+   * Autoresize instance. Automagically resizes editor after changes.
+   *
+   * @private
+   * @type {Function}
+   */
+  autoResize = autoResizer();
+  /**
+   * An TEXTAREA element.
+   *
+   * @private
+   * @type {HTMLTextAreaElement}
+   */
+  TEXTAREA;
+  /**
+   * Style declaration object of the TEXTAREA element.
+   *
+   * @private
+   * @type {CSSStyleDeclaration}
+   */
+  textareaStyle;
+  /**
+   * Parent element of the TEXTAREA.
+   *
+   * @private
+   * @type {HTMLDivElement}
+   */
+  TEXTAREA_PARENT;
+  /**
+   * Style declaration object of the TEXTAREA_PARENT element.
+   *
+   * @private
+   * @type {CSSStyleDeclaration}
+   */
+  textareaParentStyle;
+  /**
+   * Z-index class style for the editor.
+   *
+   * @private
+   * @type {string}
+   */
+  layerClass;
+
+  /**
+   * @param {Core} hotInstance The Handsontable instance.
+   */
+  constructor(hotInstance) {
+    super(hotInstance);
     this.eventManager = new EventManager(this);
-    /**
-     * Autoresize instance. Automagically resizes editor after changes.
-     *
-     * @private
-     * @type {autoResize}
-     */
-    this.autoResize = autoResize();
-    /**
-     * An TEXTAREA element.
-     *
-     * @private
-     * @type {HTMLTextAreaElement}
-     */
-    this.TEXTAREA = void 0;
-    /**
-     * Style declaration object of the TEXTAREA element.
-     *
-     * @private
-     * @type {CSSStyleDeclaration}
-     */
-    this.textareaStyle = void 0;
-    /**
-     * Parent element of the TEXTAREA.
-     *
-     * @private
-     * @type {HTMLDivElement}
-     */
-    this.TEXTAREA_PARENT = void 0;
-    /**
-     * Style declaration object of the TEXTAREA_PARENT element.
-     *
-     * @private
-     * @type {CSSStyleDeclaration}
-     */
-    this.textareaParentStyle = void 0;
-    /**
-     * Z-index class style for the editor.
-     *
-     * @private
-     * @type {string}
-     */
-    this.layerClass = void 0;
 
     this.createElements();
     this.bindEvents();

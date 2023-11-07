@@ -9,20 +9,22 @@ import localHooks from '../../mixins/localHooks';
  * @class IndexMap
  */
 export class IndexMap {
+  /**
+   * List of values for particular indexes.
+   *
+   * @private
+   * @type {Array}
+   */
+  indexedValues = [];
+  /**
+   * Initial value or function for each existing index.
+   *
+   * @private
+   * @type {*}
+   */
+  initValueOrFn;
+
   constructor(initValueOrFn = null) {
-    /**
-     * List of values for particular indexes.
-     *
-     * @private
-     * @type {Array}
-     */
-    this.indexedValues = [];
-    /**
-     * Initial value or function for each existing index.
-     *
-     * @private
-     * @type {*}
-     */
     this.initValueOrFn = initValueOrFn;
   }
 

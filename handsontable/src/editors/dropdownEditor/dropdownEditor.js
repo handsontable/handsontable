@@ -31,7 +31,7 @@ Hooks.getSingleton().add('beforeValidate', function(value, row, col) {
   const cellMeta = this.getCellMeta(row, this.propToCol(col));
 
   if (cellMeta.editor === DropdownEditor) {
-    if (cellMeta.strict === void 0) {
+    if (cellMeta.strict === undefined) {
       cellMeta.filter = false;
       cellMeta.strict = true;
     }

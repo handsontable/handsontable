@@ -25,20 +25,21 @@ import {
  * @class {CellsRenderer}
  */
 export default class CellsRenderer extends BaseRenderer {
+  /**
+   * Cache for OrderView classes connected to specified node.
+   *
+   * @type {WeakMap}
+   */
+  orderViews = new WeakMap();
+  /**
+   * Row index which specifies the row position of the processed cell.
+   *
+   * @type {number}
+   */
+  sourceRowIndex = 0;
+
   constructor() {
     super('TD');
-    /**
-     * Cache for OrderView classes connected to specified node.
-     *
-     * @type {WeakMap}
-     */
-    this.orderViews = new WeakMap();
-    /**
-     * Row index which specifies the row position of the processed cell.
-     *
-     * @type {number}
-     */
-    this.sourceRowIndex = 0;
   }
 
   /**
