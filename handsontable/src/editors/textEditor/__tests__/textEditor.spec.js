@@ -1660,7 +1660,7 @@ describe('TextEditor', () => {
       data: [
         ['', 5, 12, 13]
       ],
-      renderer(instance, td, row, col, prop, value) {
+      renderer(hotInstance, td, row, col, prop, value) {
         if (!value || value === '') {
           td.style.background = '#EEE';
         }

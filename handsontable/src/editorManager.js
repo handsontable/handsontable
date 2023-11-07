@@ -13,7 +13,7 @@ class EditorManager {
    * @private
    * @type {Handsontable}
    */
-  instance;
+  hot;
   /**
    * Reference to an instance's private GridSettings object.
    *
@@ -64,26 +64,26 @@ class EditorManager {
   cellProperties;
 
   /**
-   * @param {Core} instance The Handsontable instance.
+   * @param {Core} hotInstance The Handsontable instance.
    * @param {TableMeta} tableMeta The table meta instance.
    * @param {Selection} selection The selection instance.
    */
-  constructor(instance, tableMeta, selection) {
-    this.instance = instance;
+  constructor(hotInstance, tableMeta, selection) {
+    this.hot = hotInstance;
     this.tableMeta = tableMeta;
     this.selection = selection;
-    this.eventManager = new EventManager(instance);
+    this.eventManager = new EventManager(hotInstance);
 
-    this.instance.addHook('afterDocumentKeyDown', event => this.#onAfterDocumentKeyDown(event));
+    this.hot.addHook('afterDocumentKeyDown', event => this.#onAfterDocumentKeyDown(event));
 
     // Open editor when text composition is started (IME editor)
-    this.eventManager.addEventListener(this.instance.rootDocument.documentElement, 'compositionstart', (event) => {
-      if (!this.destroyed && this.instance.isListening()) {
+    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'compositionstart', (event) => {
+      if (!this.destroyed && this.hot.isListening()) {
         this.openEditor('', event);
       }
     });
 
-    this.instance.view._wt.update('onCellDblClick', (event, coords, elem) => this.#onCellDblClick(event, coords, elem));
+    this.hot.view._wt.update('onCellDblClick', (event, coords, elem) => this.#onCellDblClick(event, coords, elem));
   }
 
   /**
@@ -141,14 +141,14 @@ class EditorManager {
       return;
     }
 
-    const { highlight } = this.instance.getSelectedRangeLast();
+    const { highlight } = this.hot.getSelectedRangeLast();
 
     if (highlight.isHeader()) {
       return;
     }
 
     const { row, col } = highlight;
-    const modifiedCellCoords = this.instance.runHooks('modifyGetCellCoords', row, col);
+    const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', row, col);
     let visualRowToCheck = row;
     let visualColumnToCheck = col;
 
@@ -157,7 +157,7 @@ class EditorManager {
     }
 
     // Getting values using the modified coordinates.
-    this.cellProperties = this.instance.getCellMeta(visualRowToCheck, visualColumnToCheck);
+    this.cellProperties = this.hot.getCellMeta(visualRowToCheck, visualColumnToCheck);
 
     if (!this.isCellEditable()) {
       this.clearActiveEditor();
@@ -165,17 +165,17 @@ class EditorManager {
       return;
     }
 
-    const td = this.instance.getCell(row, col, true);
+    const td = this.hot.getCell(row, col, true);
 
     // Skip the preparation when the cell is not rendered in the DOM. The cell is scrolled out of
     // the table's viewport.
     if (td) {
-      const editorClass = this.instance.getCellEditor(this.cellProperties);
-      const prop = this.instance.colToProp(visualColumnToCheck);
+      const editorClass = this.hot.getCellEditor(this.cellProperties);
+      const prop = this.hot.colToProp(visualColumnToCheck);
       const originalValue =
-        this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(visualRowToCheck), visualColumnToCheck);
+        this.hot.getSourceDataAtCell(this.hot.toPhysicalRow(visualRowToCheck), visualColumnToCheck);
 
-      this.activeEditor = getEditorInstance(editorClass, this.instance);
+      this.activeEditor = getEditorInstance(editorClass, this.hot);
       // Using not modified coordinates, as we need to get the table element using selection coordinates.
       // There is an extra translation in the editor for saving value.
       this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);
@@ -207,7 +207,7 @@ class EditorManager {
     }
 
     if (!this.activeEditor) {
-      this.instance.scrollToFocusedCell();
+      this.hot.scrollToFocusedCell();
       this.prepareEditor();
     }
 
@@ -274,20 +274,20 @@ class EditorManager {
    * @returns {boolean}
    */
   isCellEditable() {
-    const selection = this.instance.getSelectedRangeLast();
+    const selection = this.hot.getSelectedRangeLast();
 
     if (!selection) {
       return false;
     }
 
-    const editorClass = this.instance.getCellEditor(this.cellProperties);
+    const editorClass = this.hot.getCellEditor(this.cellProperties);
     const { row, col } = selection.highlight;
     const {
       rowIndexMapper,
       columnIndexMapper
-    } = this.instance;
-    const isCellHidden = rowIndexMapper.isHidden(this.instance.toPhysicalRow(row)) ||
-      columnIndexMapper.isHidden(this.instance.toPhysicalColumn(col));
+    } = this.hot;
+    const isCellHidden = rowIndexMapper.isHidden(this.hot.toPhysicalRow(row)) ||
+      columnIndexMapper.isHidden(this.hot.toPhysicalColumn(col));
 
     if (this.cellProperties.readOnly || !editorClass || isCellHidden) {
       return false;
@@ -321,9 +321,9 @@ class EditorManager {
    * @param {KeyboardEvent} event The keyboard event object.
    */
   #onAfterDocumentKeyDown(event) {
-    const selection = this.instance.getSelectedRangeLast();
+    const selection = this.hot.getSelectedRangeLast();
 
-    if (!this.instance.isListening() || !selection || selection.highlight.isHeader() ||
+    if (!this.hot.isListening() || !selection || selection.highlight.isHeader() ||
         isImmediatePropagationStopped(event)) {
       return;
     }
@@ -335,32 +335,32 @@ class EditorManager {
 
     if (!this.activeEditor || (this.activeEditor && !this.activeEditor.isWaiting())) {
       if (!isFunctionKey(keyCode) && !isCtrlMetaKey(keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
-        const shortcutManager = this.instance.getShortcutManager();
+        const shortcutManager = this.hot.getShortcutManager();
         const editorContext = shortcutManager.getContext('editor');
         const runOnlySelectedConfig = {
-          runOnlyIf: () => isDefined(this.instance.getSelected()),
+          runOnlyIf: () => isDefined(this.hot.getSelected()),
           group: SHORTCUTS_GROUP_NAVIGATION
         };
 
         editorContext.addShortcuts([{
           keys: [['ArrowUp']],
           callback: () => {
-            this.instance.selection.transformStart(-1, 0);
+            this.hot.selection.transformStart(-1, 0);
           },
         }, {
           keys: [['ArrowDown']],
           callback: () => {
-            this.instance.selection.transformStart(1, 0);
+            this.hot.selection.transformStart(1, 0);
           },
         }, {
           keys: [['ArrowLeft']],
           callback: () => {
-            this.instance.selection.transformStart(0, -1 * this.instance.getDirectionFactor());
+            this.hot.selection.transformStart(0, -1 * this.hot.getDirectionFactor());
           },
         }, {
           keys: [['ArrowRight']],
           callback: () => {
-            this.instance.selection.transformStart(0, this.instance.getDirectionFactor());
+            this.hot.selection.transformStart(0, this.hot.getDirectionFactor());
           },
         }], runOnlySelectedConfig);
 

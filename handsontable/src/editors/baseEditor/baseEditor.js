@@ -37,14 +37,6 @@ export class BaseEditor {
    */
   hot;
   /**
-   * A reference to the source instance of the Handsontable.
-   *
-   * @deprecated
-   *
-   * @type {Handsontable}
-   */
-  instance;
-  /**
    * Editor's state.
    *
    * @type {string}
@@ -110,11 +102,10 @@ export class BaseEditor {
   cellProperties = null;
 
   /**
-   * @param {Handsontable} instance A reference to the source instance of the Handsontable.
+   * @param {Handsontable} hotInstance A reference to the source instance of the Handsontable.
    */
-  constructor(instance) {
-    this.hot = instance;
-    this.instance = instance;
+  constructor(hotInstance) {
+    this.hot = hotInstance;
     this.init();
   }
 

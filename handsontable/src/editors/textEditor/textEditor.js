@@ -88,10 +88,10 @@ export class TextEditor extends BaseEditor {
   layerClass;
 
   /**
-   * @param {Core} instance The Handsontable instance.
+   * @param {Core} hotInstance The Handsontable instance.
    */
-  constructor(instance) {
-    super(instance);
+  constructor(hotInstance) {
+    super(hotInstance);
     this.eventManager = new EventManager(this);
 
     this.createElements();

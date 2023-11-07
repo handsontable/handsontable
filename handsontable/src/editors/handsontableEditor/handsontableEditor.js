@@ -108,7 +108,7 @@ export class HandsontableEditor extends TextEditor {
         if (sourceValue !== undefined) {
           parent.setValue(sourceValue);
         }
-        parent.instance.destroyEditor();
+        parent.hot.destroyEditor();
       },
       preventWheel: true,
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',

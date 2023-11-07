@@ -156,8 +156,8 @@ export class AutocompleteEditor extends HandsontableEditor {
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : undefined,
       width: trimDropdown ? outerWidth(this.TEXTAREA) + scrollbarWidth : undefined,
       autoColumnSize: true,
-      renderer: (instance, TD, row, col, prop, value, cellProperties) => {
-        textRenderer(instance, TD, row, col, prop, value, cellProperties);
+      renderer: (hotInstance, TD, row, col, prop, value, cellProperties) => {
+        textRenderer(hotInstance, TD, row, col, prop, value, cellProperties);
 
         const { filteringCaseSensitive, allowHtml, locale } = this.cellProperties;
         const query = this.query;
