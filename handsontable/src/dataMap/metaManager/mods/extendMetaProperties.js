@@ -11,47 +11,45 @@ export class ExtendMetaPropertiesMod {
    */
   usageTracker = new Set();
   /**
-   * @type {Set}
+   * @type {Map}
    */
-  propDescriptors = new Set();
+  propDescriptors = new Map([
+    [
+      'ariaTags', {
+        onChange(propName, value, isInitialChange) {
+          if (!isInitialChange) {
+            throw new Error(
+              `The \`${propName}\` option can not be updated after the Handsontable instance was initialized.`
+            );
+          }
+        }
+      }],
+    ['fixedColumnsLeft', {
+      target: 'fixedColumnsStart',
+      onChange(propName) {
+        const isRtl = this.metaManager.hot.isRtl();
+
+        if (isRtl && propName === 'fixedColumnsLeft') {
+          throw new Error('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
+        }
+
+        if (this.usageTracker.has('fixedColumnsLeft') && this.usageTracker.has('fixedColumnsStart')) {
+          throw new Error('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together. ' +
+            'Please use only the option `fixedColumnsStart`.');
+        }
+      }
+    }],
+    ['layoutDirection', {
+      onChange(propName, value, isInitialChange) {
+        if (!isInitialChange) {
+          throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
+        }
+      }
+    }],
+  ]);
 
   constructor(metaManager) {
     this.metaManager = metaManager;
-    this.usageTracker = new Set();
-    this.propDescriptors = new Map([
-      [
-        'ariaTags', {
-          onChange(propName, value, isInitialChange) {
-            if (!isInitialChange) {
-              throw new Error(
-                `The \`${propName}\` option can not be updated after the Handsontable instance was initialized.`
-              );
-            }
-          }
-        }],
-      ['fixedColumnsLeft', {
-        target: 'fixedColumnsStart',
-        onChange(propName) {
-          const isRtl = this.metaManager.hot.isRtl();
-
-          if (isRtl && propName === 'fixedColumnsLeft') {
-            throw new Error('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
-          }
-
-          if (this.usageTracker.has('fixedColumnsLeft') && this.usageTracker.has('fixedColumnsStart')) {
-            throw new Error('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together. ' +
-              'Please use only the option `fixedColumnsStart`.');
-          }
-        }
-      }],
-      ['layoutDirection', {
-        onChange(propName, value, isInitialChange) {
-          if (!isInitialChange) {
-            throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
-          }
-        }
-      }],
-    ]);
 
     this.extendMetaProps();
   }

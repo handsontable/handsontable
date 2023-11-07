@@ -15,29 +15,32 @@ import { isFunction } from '../helpers/function';
  * @private
  */
 class DataSource {
-  constructor(hotInstance, dataSource = []) {
-    /**
-     * Instance of Handsontable.
-     *
-     * @type {Handsontable}
-     */
-    this.hot = hotInstance;
-    /**
-     * Data source.
-     *
-     * @type {Array}
-     */
-    this.data = dataSource;
-    /**
-     * Type of data source.
-     *
-     * @type {string}
-     * @default 'array'
-     */
-    this.dataType = 'array';
+  /**
+   * Instance of Handsontable.
+   *
+   * @type {Handsontable}
+   */
+  hot;
+  /**
+   * Data source.
+   *
+   * @type {Array}
+   */
+  data;
+  /**
+   * Type of data source.
+   *
+   * @type {string}
+   * @default 'array'
+   */
+  dataType = 'array';
 
-    this.colToProp = () => {};
-    this.propToCol = () => {};
+  colToProp = () => {};
+  propToCol = () => {};
+
+  constructor(hotInstance, dataSource = []) {
+    this.hot = hotInstance;
+    this.data = dataSource;
   }
 
   /**
