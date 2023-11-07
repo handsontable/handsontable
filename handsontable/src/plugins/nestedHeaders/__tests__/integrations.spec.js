@@ -210,7 +210,7 @@ describe('Integration with other plugins', () => {
 
     it('should copy part of nested header properly', () => {
       handsontable({
-        data: createSpreadsheetData(2, 5),
+        data: createSpreadsheetData(2, 7),
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
@@ -298,6 +298,46 @@ describe('Integration with other plugins', () => {
             '<tr>',
               '<td>C2</td>',
               '<td>D2</td>',
+            '</tr>',
+          '</tbody>',
+        '<!--EndFragment-->',
+        '</table>',
+      ].join(''));
+      /* eslint-enable */
+
+      selectColumns(4, 6);
+
+      plugin.copyWithAllColumnHeaders();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe([
+        'c1\t\t',
+        'c2\td2\t',
+        'c3\td2\t',
+        'E1\tF1\tG1',
+        'E2\tF2\tG2',
+      ].join('\n'));
+      /* eslint-disable indent */
+      expect(copyEvent.clipboardData.getData('text/html')).toBe([
+        '<meta name="generator" content="Handsontable"/>',
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table>',
+        '<!--StartFragment-->',
+          '<thead>',
+            '<tr><th>c1</th><th></th><th></th></tr>',
+            '<tr><th>c2</th><th>d2</th><th></th></tr>',
+            '<tr><th>c3</th><th>d2</th><th></th></tr>',
+          '</thead>',
+          '<tbody>',
+            '<tr>',
+              '<td>E1</td>',
+              '<td>F1</td>',
+              '<td>G1</td>',
+            '</tr>',
+            '<tr>',
+              '<td>E2</td>',
+              '<td>F2</td>',
+              '<td>G2</td>',
             '</tr>',
           '</tbody>',
         '<!--EndFragment-->',

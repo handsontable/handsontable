@@ -535,6 +535,8 @@ export class NestedHeaders extends BasePlugin {
         const headerSettings = this.getHeaderSettings(header, column);
 
         if (headerSettings === null) {
+          headersForLevel.push(this.hot.getColHeader(column, header));
+
           return;
         }
 
