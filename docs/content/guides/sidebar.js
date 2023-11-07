@@ -122,7 +122,6 @@ const navigationItems = [
   { path: 'guides/navigation/keyboard-navigation' },
   { path: 'guides/navigation/keyboard-shortcuts' },
   { path: 'guides/navigation/custom-shortcuts' },
-  { path: 'guides/navigation/touch-navigation' },
   { path: 'guides/navigation/searching-values' },
 ];
 
