@@ -15,6 +15,17 @@ import { getConditionDescriptor } from '../conditionRegisterer';
  * @class ConditionComponent
  */
 export class ConditionComponent extends BaseComponent {
+  /**
+   * The name of the component.
+   *
+   * @type {string}
+   */
+  name = '';
+  /**
+   * @type {boolean}
+   */
+  addSeparator = false;
+
   constructor(hotInstance, options) {
     super(hotInstance, {
       id: options.id,

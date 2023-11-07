@@ -8,10 +8,21 @@ import { hasOwnProperty } from '../../helpers/object';
  * @class CommandExecutor
  */
 export class CommandExecutor {
+  /**
+   * @type {Core}
+   */
+  hot;
+  /**
+   * @type {object}
+   */
+  commands = {};
+  /**
+   * @type {Function}
+   */
+  commonCallback = null;
+
   constructor(hotInstance) {
     this.hot = hotInstance;
-    this.commands = {};
-    this.commonCallback = null;
   }
 
   /**

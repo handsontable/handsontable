@@ -25,20 +25,22 @@ class BaseType {
     };
   }
 
-  constructor(dataProvider, options) {
-    /**
-     * Data provider.
-     *
-     * @type {DataProvider}
-     */
-    this.dataProvider = dataProvider;
-    /**
-     * Format type class options.
-     *
-     * @type {object}
-     */
-    this.options = this._mergeOptions(options);
+  /**
+   * Data provider.
+   *
+   * @type {DataProvider}
+   */
+  dataProvider;
+  /**
+   * Format type class options.
+   *
+   * @type {object}
+   */
+  options;
 
+  constructor(dataProvider, options) {
+    this.dataProvider = dataProvider;
+    this.options = this._mergeOptions(options);
     this.dataProvider.setOptions(this.options);
   }
 

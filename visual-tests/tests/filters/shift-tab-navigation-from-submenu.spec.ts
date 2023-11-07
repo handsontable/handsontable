@@ -20,6 +20,8 @@ test(__filename, async({ page }) => {
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('ArrowRight'); // opens the "Alignment" submenu
 
+  await page.waitForTimeout(10);
+
   // take a screenshot of the submenu
   await page.screenshot({ path: helpers.screenshotPath() });
 

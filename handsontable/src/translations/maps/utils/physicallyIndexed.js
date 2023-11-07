@@ -12,7 +12,7 @@ import { arrayFilter } from '../../../helpers/array';
  * @returns {Array} List with new mappings.
  */
 export function getListWithInsertedItems(indexedValues, insertionIndex, insertedIndexes, insertedValuesMapping) {
-  const firstInsertedIndex = insertedIndexes.length ? insertedIndexes[0] : void 0;
+  const firstInsertedIndex = insertedIndexes.length ? insertedIndexes[0] : undefined;
 
   return [
     ...indexedValues.slice(0, firstInsertedIndex),
@@ -23,7 +23,7 @@ export function getListWithInsertedItems(indexedValues, insertionIndex, inserted
 
       return insertedValuesMapping;
     }),
-    ...(firstInsertedIndex === void 0 ? [] : indexedValues.slice(firstInsertedIndex)),
+    ...(firstInsertedIndex === undefined ? [] : indexedValues.slice(firstInsertedIndex)),
   ];
 }
 

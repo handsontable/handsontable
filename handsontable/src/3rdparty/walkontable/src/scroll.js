@@ -79,7 +79,7 @@ class Scroll {
 
     const firstVisibleColumn = this.getFirstVisibleColumn();
     const lastVisibleColumn = this.getLastVisibleColumn();
-    const autoSnapping = snapToRight === void 0 && snapToLeft === void 0;
+    const autoSnapping = snapToRight === undefined && snapToLeft === undefined;
     const {
       fixedColumnsStart,
       inlineStartOverlay,
@@ -136,7 +136,7 @@ class Scroll {
 
     const firstVisibleRow = this.getFirstVisibleRow();
     const lastVisibleRow = this.getLastVisibleRow();
-    const autoSnapping = snapToTop === void 0 && snapToBottom === void 0;
+    const autoSnapping = snapToTop === undefined && snapToBottom === undefined;
     const {
       fixedRowsBottom,
       fixedRowsTop,

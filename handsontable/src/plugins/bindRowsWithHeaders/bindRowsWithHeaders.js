@@ -53,16 +53,13 @@ export class BindRowsWithHeaders extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * Plugin indexes cache.
-     *
-     * @private
-     * @type {null|IndexMap}
-     */
-    this.headerIndexes = null;
-  }
+  /**
+   * Plugin indexes cache.
+   *
+   * @private
+   * @type {null|IndexMap}
+   */
+  headerIndexes = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -92,7 +89,7 @@ export class BindRowsWithHeaders extends BasePlugin {
 
     this.headerIndexes = this.hot.rowIndexMapper.registerMap('bindRowsWithHeaders', new MapStrategy());
 
-    this.addHook('modifyRowHeader', row => this.onModifyRowHeader(row));
+    this.addHook('modifyRowHeader', row => this.#onModifyRowHeader(row));
 
     super.enablePlugin();
   }
@@ -109,11 +106,10 @@ export class BindRowsWithHeaders extends BasePlugin {
   /**
    * On modify row header listener.
    *
-   * @private
    * @param {number} row Row index.
    * @returns {number}
    */
-  onModifyRowHeader(row) {
+  #onModifyRowHeader(row) {
     return this.headerIndexes.getValueAtIndex(this.hot.toPhysicalRow(row));
   }
 

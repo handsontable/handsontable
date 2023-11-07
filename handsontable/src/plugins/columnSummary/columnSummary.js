@@ -102,16 +102,13 @@ export class ColumnSummary extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * The Endpoints class instance. Used to make all endpoint-related operations.
-     *
-     * @private
-     * @type {null|Endpoints}
-     */
-    this.endpoints = null;
-  }
+  /**
+   * The Endpoints class instance. Used to make all endpoint-related operations.
+   *
+   * @private
+   * @type {null|Endpoints}
+   */
+  endpoints = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -134,8 +131,8 @@ export class ColumnSummary extends BasePlugin {
     this.settings = this.hot.getSettings()[PLUGIN_KEY];
     this.endpoints = new Endpoints(this, this.settings);
 
-    this.addHook('afterInit', (...args) => this.onAfterInit(...args));
-    this.addHook('afterChange', (...args) => this.onAfterChange(...args));
+    this.addHook('afterInit', (...args) => this.#onAfterInit(...args));
+    this.addHook('afterChange', (...args) => this.#onAfterChange(...args));
 
     this.addHook('beforeCreateRow', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_row', index, amount, null, source)); // eslint-disable-line max-len
     this.addHook('beforeCreateCol', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_col', index, amount, null, source)); // eslint-disable-line max-len
@@ -150,7 +147,7 @@ export class ColumnSummary extends BasePlugin {
       (...args) => this.endpoints.resetSetupAfterStructureAlteration('remove_row', ...args));
     this.addHook('afterRemoveCol',
       (...args) => this.endpoints.resetSetupAfterStructureAlteration('remove_col', ...args));
-    this.addHook('afterRowMove', (...args) => this.onAfterRowMove(...args));
+    this.addHook('afterRowMove', (...args) => this.#onAfterRowMove(...args));
 
     super.enablePlugin();
   }
@@ -360,7 +357,7 @@ export class ColumnSummary extends BasePlugin {
     const ranges = endpoint.ranges;
 
     objectEach(ranges, (range) => {
-      const partial = range[1] === void 0 ? 1 : range[1] - range[0] + 1;
+      const partial = range[1] === undefined ? 1 : range[1] - range[0] + 1;
       const emptyCount = this.countEmpty(range, endpoint.sourceColumn);
 
       result += partial;
@@ -427,10 +424,8 @@ export class ColumnSummary extends BasePlugin {
 
   /**
    * `afterInit` hook callback.
-   *
-   * @private
    */
-  onAfterInit() {
+  #onAfterInit() {
     this.endpoints.endpoints = this.endpoints.parseSettings();
     this.endpoints.refreshAllEndpoints(true);
   }
@@ -438,11 +433,10 @@ export class ColumnSummary extends BasePlugin {
   /**
    * `afterChange` hook callback.
    *
-   * @private
    * @param {Array} changes 2D array containing information about each of the edited cells.
    * @param {string} source The string that identifies source of changes.
    */
-  onAfterChange(changes, source) {
+  #onAfterChange(changes, source) {
     if (changes && source !== 'ColumnSummary.reset' && source !== 'ColumnSummary.set' && source !== 'loadData') {
       this.endpoints.refreshChangedEndpoints(changes);
     }
@@ -451,12 +445,11 @@ export class ColumnSummary extends BasePlugin {
   /**
    * `beforeRowMove` hook callback.
    *
-   * @private
    * @param {Array} rows Array of visual row indexes to be moved.
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
    * To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md).
    */
-  onAfterRowMove(rows, finalIndex) {
+  #onAfterRowMove(rows, finalIndex) {
     this.endpoints.resetSetupBeforeStructureAlteration('move_row', rows[0], rows.length, rows, this.pluginName);
     this.endpoints.resetSetupAfterStructureAlteration('move_row', finalIndex, rows.length, rows, this.pluginName);
   }

@@ -34,11 +34,11 @@ describe('ColumnSorting DOM helpers', () => {
         { column: 1, sortOrder: DESC_SORT_STATE }
       ]);
 
-      expect(getClassesToAdd(columnStatesManager, 0, void 0, true).includes('sortAction')).toBeTruthy();
-      expect(getClassesToAdd(columnStatesManager, 0, void 0, false).includes('sortAction')).toBeFalsy();
+      expect(getClassesToAdd(columnStatesManager, 0, undefined, true).includes('sortAction')).toBeTruthy();
+      expect(getClassesToAdd(columnStatesManager, 0, undefined, false).includes('sortAction')).toBeFalsy();
 
-      expect(getClassesToAdd(columnStatesManager, 1, void 0, true).includes('sortAction')).toBeTruthy();
-      expect(getClassesToAdd(columnStatesManager, 1, void 0, false).includes('sortAction')).toBeFalsy();
+      expect(getClassesToAdd(columnStatesManager, 1, undefined, true).includes('sortAction')).toBeTruthy();
+      expect(getClassesToAdd(columnStatesManager, 1, undefined, false).includes('sortAction')).toBeFalsy();
 
       columnStatesManager.destroy(); // Unregister already registered Index Map.
     });

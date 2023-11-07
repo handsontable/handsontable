@@ -471,7 +471,7 @@ let cachedScrollbarWidth;
  * @returns {number}
  */
 export function getScrollbarWidth() {
-  if (cachedScrollbarWidth === void 0) {
+  if (cachedScrollbarWidth === undefined) {
     cachedScrollbarWidth = walkontableCalculateScrollbarWidth();
   }
 

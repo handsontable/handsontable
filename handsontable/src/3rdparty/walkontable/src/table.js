@@ -469,7 +469,7 @@ class Table {
       }
 
       if (Array.isArray(columnHeaderHeightSetting)) {
-        if (columnHeaderHeightSetting[level] !== null && columnHeaderHeightSetting[level] !== void 0) {
+        if (columnHeaderHeightSetting[level] !== null && columnHeaderHeightSetting[level] !== undefined) {
           this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting[level];
         }
 
@@ -523,7 +523,7 @@ class Table {
         const sourceRow = this.rowFilter.renderedToSource(visibleRowIndex);
 
         if (wtViewport.oversizedRows && wtViewport.oversizedRows[sourceRow]) {
-          wtViewport.oversizedRows[sourceRow] = void 0;
+          wtViewport.oversizedRows[sourceRow] = undefined;
         }
       }
     }
@@ -609,7 +609,7 @@ class Table {
       parentElement = this.TBODY;
     }
 
-    if (renderedRowIndex !== void 0 && parentElement !== void 0) {
+    if (renderedRowIndex !== undefined && parentElement !== undefined) {
       if (parentElement.childNodes.length < renderedRowIndex + 1) {
         return false;
 

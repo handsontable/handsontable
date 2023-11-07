@@ -1324,8 +1324,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         continue;
       }
 
-      if ((changes[i][2] === null || changes[i][2] === void 0)
-        && (changes[i][3] === null || changes[i][3] === void 0)) {
+      if ((changes[i][2] === null || changes[i][2] === undefined)
+        && (changes[i][3] === null || changes[i][3] === undefined)) {
         /* eslint-disable no-continue */
         continue;
       }
@@ -1334,7 +1334,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         while (changes[i][0] > instance.countRows() - 1) {
           const {
             delta: numberOfCreatedRows
-          } = datamap.createRow(void 0, void 0, { source });
+          } = datamap.createRow(undefined, undefined, { source });
 
           if (numberOfCreatedRows === 0) {
             skipThisChange = true;
@@ -1348,7 +1348,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
           const {
             delta: numberOfCreatedColumns
-          } = datamap.createCol(void 0, void 0, { source });
+          } = datamap.createCol(undefined, undefined, { source });
 
           if (numberOfCreatedColumns === 0) {
             skipThisChange = true;
@@ -2505,13 +2505,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     // Load data or create data map
-    if (settings.data === void 0 && tableMeta.data === void 0) {
+    if (settings.data === undefined && tableMeta.data === undefined) {
       dataUpdateFunction(null, 'updateSettings'); // data source created just now
 
-    } else if (settings.data !== void 0) {
+    } else if (settings.data !== undefined) {
       dataUpdateFunction(settings.data, 'updateSettings'); // data source given as option
 
-    } else if (settings.columns !== void 0) {
+    } else if (settings.columns !== undefined) {
       datamap.createMap();
 
       // The `column` property has changed - dataset may be expanded or narrowed down. The `loadData` do the same.
@@ -2527,7 +2527,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     // Clear cell meta cache
-    if (settings.cell !== void 0 || settings.cells !== void 0 || settings.columns !== void 0) {
+    if (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined) {
       metaManager.clearCache();
     }
 
@@ -2585,7 +2585,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         instance.rootElement.style.overflow = '';
       }
 
-    } else if (height !== void 0) {
+    } else if (height !== undefined) {
       instance.rootElement.style.height = isNaN(height) ? `${height}` : `${height}px`;
       instance.rootElement.style.overflow = 'hidden';
     }
@@ -2619,7 +2619,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       editorManager.unlockEditor();
     }
 
-    if (!init && instance.view && (currentHeight === '' || height === '' || height === void 0) &&
+    if (!init && instance.view && (currentHeight === '' || height === '' || height === undefined) &&
         currentHeight !== height) {
       instance.view._wt.wtOverlays.updateMainScrollableElements();
     }
@@ -3004,7 +3004,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.getSourceData = function(row, column, row2, column2) {
     let data;
 
-    if (row === void 0) {
+    if (row === undefined) {
       data = dataSource.getData();
     } else {
       data = dataSource
@@ -3033,7 +3033,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.getSourceDataArray = function(row, column, row2, column2) {
     let data;
 
-    if (row === void 0) {
+    if (row === undefined) {
       data = dataSource.getData(true);
     } else {
       data = dataSource
@@ -3167,17 +3167,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {string} Cell type (e.q: `'mixed'`, `'text'`, `'numeric'`, `'autocomplete'`).
    */
   this.getDataType = function(rowFrom, columnFrom, rowTo, columnTo) {
-    const coords = rowFrom === void 0 ?
+    const coords = rowFrom === undefined ?
       [0, 0, this.countRows(), this.countCols()] : [rowFrom, columnFrom, rowTo, columnTo];
     const [rowStart, columnStart] = coords;
     let [,, rowEnd, columnEnd] = coords;
     let previousType = null;
     let currentType = null;
 
-    if (rowEnd === void 0) {
+    if (rowEnd === undefined) {
       rowEnd = rowStart;
     }
-    if (columnEnd === void 0) {
+    if (columnEnd === undefined) {
       columnEnd = columnStart;
     }
     let type = 'mixed';
@@ -3611,17 +3611,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     let rowHeader = tableMeta.rowHeaders;
     let physicalRow = row;
 
-    if (physicalRow !== void 0) {
+    if (physicalRow !== undefined) {
       physicalRow = instance.runHooks('modifyRowHeader', physicalRow);
     }
 
-    if (physicalRow === void 0) {
+    if (physicalRow === undefined) {
       rowHeader = [];
       rangeEach(instance.countRows() - 1, (i) => {
         rowHeader.push(instance.getRowHeader(i));
       });
 
-    } else if (Array.isArray(rowHeader) && rowHeader[physicalRow] !== void 0) {
+    } else if (Array.isArray(rowHeader) && rowHeader[physicalRow] !== undefined) {
       rowHeader = rowHeader[physicalRow];
 
     } else if (isFunction(rowHeader)) {
@@ -3653,7 +3653,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {boolean} `true` if the instance has the column headers enabled, `false` otherwise.
    */
   this.hasColHeaders = function() {
-    if (tableMeta.colHeaders !== void 0 && tableMeta.colHeaders !== null) { // Polymer has empty value = null
+    if (tableMeta.colHeaders !== undefined && tableMeta.colHeaders !== null) { // Polymer has empty value = null
       return !!tableMeta.colHeaders;
     }
     for (let i = 0, ilen = instance.countCols(); i < ilen; i++) {
@@ -3707,7 +3707,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.getColHeader = function(column, headerLevel = -1) {
     const columnIndex = instance.runHooks('modifyColHeader', column);
 
-    if (columnIndex === void 0) {
+    if (columnIndex === undefined) {
       const out = [];
       const ilen = instance.countCols();
 
@@ -3748,7 +3748,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                tableMeta.columns[physicalColumn].title) {
       result = tableMeta.columns[physicalColumn].title;
 
-    } else if (Array.isArray(tableMeta.colHeaders) && tableMeta.colHeaders[physicalColumn] !== void 0) {
+    } else if (Array.isArray(tableMeta.colHeaders) && tableMeta.colHeaders[physicalColumn] !== undefined) {
       result = tableMeta.colHeaders[physicalColumn];
 
     } else if (isFunction(tableMeta.colHeaders)) {
@@ -3783,11 +3783,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       width = cellProperties.width;
     }
 
-    if (width === void 0 || width === tableMeta.width) {
+    if (width === undefined || width === tableMeta.width) {
       width = tableMeta.colWidths;
     }
 
-    if (width !== void 0 && width !== null) {
+    if (width !== undefined && width !== null) {
       switch (typeof width) {
         case 'object': // array
           width = width[col];
@@ -3821,7 +3821,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     width = instance.runHooks('modifyColWidth', width, column);
 
-    if (width === void 0) {
+    if (width === undefined) {
       width = ViewportColumnsCalculator.DEFAULT_WIDTH;
     }
 
@@ -3841,12 +3841,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     // let cellProperties = instance.getCellMeta(row, 0);
     // let height = cellProperties.height;
     //
-    // if (height === void 0 || height === tableMeta.height) {
+    // if (height === undefined || height === tableMeta.height) {
     //  height = cellProperties.rowHeights;
     // }
     let height = tableMeta.rowHeights;
 
-    if (height !== void 0 && height !== null) {
+    if (height !== undefined && height !== null) {
       switch (typeof height) {
         case 'object': // array
           height = height[row];

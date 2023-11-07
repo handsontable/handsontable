@@ -29,7 +29,7 @@ describe('Formulas public API', () => {
           ['', ''],
           ['=A1', '\'=A1'],
           [0, true],
-          [null, void 0],
+          [null, undefined],
         ],
         formulas: {
           engine: HyperFormula
@@ -64,7 +64,7 @@ describe('Formulas public API', () => {
           [null, null],
           ['=A1', '\'=A1'],
           [0, true],
-          [null, void 0],
+          [null, undefined],
           ['', 1.1],
         ],
         formulas: {

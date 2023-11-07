@@ -12,7 +12,7 @@ export const RENDERER_TYPE = 'autocomplete';
  * Autocomplete renderer.
  *
  * @private
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {HTMLTableCellElement} TD The rendered cell element.
  * @param {number} row The visual row index.
  * @param {number} col The visual column index.
@@ -20,11 +20,11 @@ export const RENDERER_TYPE = 'autocomplete';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-export function autocompleteRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  const { rootDocument } = instance;
+export function autocompleteRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
+  const { rootDocument } = hotInstance;
   const rendererFunc = cellProperties.allowHtml ? htmlRenderer : textRenderer;
   const ARROW = rootDocument.createElement('DIV');
-  const isAriaEnabled = instance.getSettings().ariaTags;
+  const isAriaEnabled = hotInstance.getSettings().ariaTags;
 
   ARROW.className = 'htAutocompleteArrow';
 
@@ -34,7 +34,7 @@ export function autocompleteRenderer(instance, TD, row, col, prop, value, cellPr
 
   ARROW.appendChild(rootDocument.createTextNode(String.fromCharCode(9660)));
 
-  rendererFunc.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
+  rendererFunc.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
 
   if (!TD.firstChild) { // http://jsperf.com/empty-node-if-needed
     // otherwise empty fields appear borderless in demo/renderers.html (IE)
@@ -50,20 +50,20 @@ export function autocompleteRenderer(instance, TD, row, col, prop, value, cellPr
     TD.setAttribute(...A11Y_HASPOPUP('listbox'));
   }
 
-  if (!instance.acArrowListener) {
-    const eventManager = new EventManager(instance);
+  if (!hotInstance.acArrowListener) {
+    const eventManager = new EventManager(hotInstance);
 
     // not very elegant but easy and fast
-    instance.acArrowListener = function(event) {
+    hotInstance.acArrowListener = function(event) {
       if (hasClass(event.target, 'htAutocompleteArrow')) {
-        instance.view._wt.getSetting('onCellDblClick', null, instance._createCellCoords(row, col), TD);
+        hotInstance.view._wt.getSetting('onCellDblClick', null, hotInstance._createCellCoords(row, col), TD);
       }
     };
 
-    eventManager.addEventListener(instance.rootElement, 'mousedown', instance.acArrowListener);
+    eventManager.addEventListener(hotInstance.rootElement, 'mousedown', hotInstance.acArrowListener);
 
     // We need to unbind the listener after the table has been destroyed
-    instance.addHookOnce('afterDestroy', () => {
+    hotInstance.addHookOnce('afterDestroy', () => {
       eventManager.destroy();
     });
   }

@@ -31,7 +31,7 @@ describe('baseRenderer', () => {
     it('should add className', () => {
       const TD = document.createElement('td');
 
-      baseRenderer(void 0, TD, void 0, void 0, void 0, '', {
+      baseRenderer(undefined, TD, undefined, undefined, undefined, '', {
         className: 'custom',
       });
 
@@ -41,7 +41,7 @@ describe('baseRenderer', () => {
     it('should manage readOnly class name', () => {
       const TD = document.createElement('td');
 
-      baseRenderer(void 0, TD, void 0, void 0, void 0, '', {
+      baseRenderer(undefined, TD, undefined, undefined, undefined, '', {
         readOnly: true,
         readOnlyCellClassName: 'read-only',
       });
@@ -56,13 +56,13 @@ describe('baseRenderer', () => {
         invalidCellClassName: 'invalid',
       };
 
-      baseRenderer(void 0, TD, void 0, void 0, void 0, '', cellMeta);
+      baseRenderer(undefined, TD, undefined, undefined, undefined, '', cellMeta);
 
       expect(TD.outerHTML).toMatchHTML('<td class="invalid"></td>', toMatchHTMLConfig);
 
       cellMeta.valid = true;
 
-      baseRenderer(void 0, TD, void 0, void 0, void 0, '', cellMeta);
+      baseRenderer(undefined, TD, undefined, undefined, undefined, '', cellMeta);
 
       expect(TD.outerHTML).toMatchHTML('<td class=""></td>', toMatchHTMLConfig);
     });
@@ -70,7 +70,7 @@ describe('baseRenderer', () => {
     it('should manage wordWrap class name', () => {
       const TD = document.createElement('td');
 
-      baseRenderer(void 0, TD, void 0, void 0, void 0, '', {
+      baseRenderer(undefined, TD, undefined, undefined, undefined, '', {
         wordWrap: false,
         noWordWrapClassName: 'no-word-wrap',
       });
@@ -81,7 +81,7 @@ describe('baseRenderer', () => {
     it('should manage placeholder class name', () => {
       const TD = document.createElement('td');
 
-      baseRenderer(void 0, TD, void 0, void 0, void 0, '', {
+      baseRenderer(undefined, TD, undefined, undefined, undefined, '', {
         placeholder: 'Placeholder',
         placeholderCellClassName: 'placeholder'
       });

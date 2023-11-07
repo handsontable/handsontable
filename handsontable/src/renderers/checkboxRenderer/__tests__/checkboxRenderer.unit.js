@@ -44,7 +44,7 @@ describe('checkboxRenderer', () => {
       const instance = getInstance();
       const cellMeta = {};
 
-      checkboxRenderer(instance, TD, 0, 0, void 0, null, cellMeta);
+      checkboxRenderer(instance, TD, 0, 0, undefined, null, cellMeta);
 
       expect(TD.outerHTML).toMatchHTML([
         '<td><input class="htCheckboxRendererInput noValue" type="checkbox" ',
@@ -57,7 +57,7 @@ describe('checkboxRenderer', () => {
       const instance = getInstance();
       const cellMeta = {};
 
-      checkboxRenderer(instance, TD, 100, 50, void 0, null, cellMeta);
+      checkboxRenderer(instance, TD, 100, 50, undefined, null, cellMeta);
 
       expect(TD.outerHTML).toMatchHTML([
         '<td><input class="htCheckboxRendererInput noValue" type="checkbox" ',
@@ -70,7 +70,7 @@ describe('checkboxRenderer', () => {
       const instance = getInstance();
       const cellMeta = {};
 
-      checkboxRenderer(instance, TD, 100, 50, void 0, 'yes', cellMeta);
+      checkboxRenderer(instance, TD, 100, 50, undefined, 'yes', cellMeta);
 
       expect(TD.outerHTML).toMatchHTML([
         '<td><input class="htCheckboxRendererInput htBadValue" type="checkbox" autocomplete="off" ',

@@ -187,14 +187,14 @@ export class HiddenColumns extends BasePlugin {
     }
 
     this.#hiddenColumnsMap = new HidingMap();
-    this.#hiddenColumnsMap.addLocalHook('init', () => this.onMapInit());
+    this.#hiddenColumnsMap.addLocalHook('init', () => this.#onMapInit());
     this.hot.columnIndexMapper.registerMap(this.pluginName, this.#hiddenColumnsMap);
 
-    this.addHook('afterContextMenuDefaultOptions', (...args) => this.onAfterContextMenuDefaultOptions(...args));
-    this.addHook('afterGetCellMeta', (row, col, cellProperties) => this.onAfterGetCellMeta(row, col, cellProperties));
-    this.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
-    this.addHook('afterGetColHeader', (...args) => this.onAfterGetColHeader(...args));
-    this.addHook('modifyCopyableRange', ranges => this.onModifyCopyableRange(ranges));
+    this.addHook('afterContextMenuDefaultOptions', (...args) => this.#onAfterContextMenuDefaultOptions(...args));
+    this.addHook('afterGetCellMeta', (row, col, cellProperties) => this.#onAfterGetCellMeta(row, col, cellProperties));
+    this.addHook('modifyColWidth', (width, col) => this.#onModifyColWidth(width, col));
+    this.addHook('afterGetColHeader', (...args) => this.#onAfterGetColHeader(...args));
+    this.addHook('modifyCopyableRange', ranges => this.#onModifyCopyableRange(ranges));
 
     super.enablePlugin();
   }
@@ -398,12 +398,11 @@ export class HiddenColumns extends BasePlugin {
   /**
    * Adds the additional column width for the hidden column indicators.
    *
-   * @private
    * @param {number|undefined} width Column width.
    * @param {number} column Visual column index.
    * @returns {number}
    */
-  onModifyColWidth(width, column) {
+  #onModifyColWidth(width, column) {
     // Hook is triggered internally only for the visible columns. Conditional will be handled for the API
     // calls of the `getColWidth` function on not visible indexes.
     if (this.isHidden(column)) {
@@ -422,12 +421,11 @@ export class HiddenColumns extends BasePlugin {
   /**
    * Sets the copy-related cell meta.
    *
-   * @private
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    * @param {object} cellProperties Object containing the cell properties.
    */
-  onAfterGetCellMeta(row, column, cellProperties) {
+  #onAfterGetCellMeta(row, column, cellProperties) {
     if (this.#settings.copyPasteEnabled === false && this.isHidden(column)) {
       // Cell property handled by the `Autofill` and the `CopyPaste` plugins.
       cellProperties.skipColumnOnPaste = true;
@@ -457,11 +455,10 @@ export class HiddenColumns extends BasePlugin {
   /**
    * Modifies the copyable range, accordingly to the provided config.
    *
-   * @private
    * @param {Array} ranges An array of objects defining copyable cells.
    * @returns {Array}
    */
-  onModifyCopyableRange(ranges) {
+  #onModifyCopyableRange(ranges) {
     // Ranges shouldn't be modified when `copyPasteEnabled` option is set to `true` (by default).
     if (this.#settings.copyPasteEnabled) {
       return ranges;
@@ -505,11 +502,10 @@ export class HiddenColumns extends BasePlugin {
   /**
    * Adds the needed classes to the headers.
    *
-   * @private
    * @param {number} column Visual column index.
    * @param {HTMLElement} TH Header's TH element.
    */
-  onAfterGetColHeader(column, TH) {
+  #onAfterGetColHeader(column, TH) {
     const areAriaTagsEnabled = this.hot.getSettings().ariaTags;
     const beforeHiddenColumnIndicatorElement = TH.querySelector('.beforeHiddenColumnIndicator');
     const afterHiddenColumnIndicatorElement = TH.querySelector('.afterHiddenColumnIndicator');
@@ -561,10 +557,9 @@ export class HiddenColumns extends BasePlugin {
   /**
    * Add Show-hide columns to context menu.
    *
-   * @private
    * @param {object} options An array of objects containing information about the pre-defined Context Menu items.
    */
-  onAfterContextMenuDefaultOptions(options) {
+  #onAfterContextMenuDefaultOptions(options) {
     options.items.push(
       {
         name: SEPARATOR
@@ -576,10 +571,8 @@ export class HiddenColumns extends BasePlugin {
 
   /**
    * On map initialized hook callback.
-   *
-   * @private
    */
-  onMapInit() {
+  #onMapInit() {
     if (Array.isArray(this.#settings.columns)) {
       this.hideColumns(this.#settings.columns);
     }

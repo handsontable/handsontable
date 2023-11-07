@@ -36,7 +36,7 @@ class Stack {
    * @returns {*}
    */
   peek() {
-    return this.isEmpty() ? void 0 : this.items[this.items.length - 1];
+    return this.isEmpty() ? undefined : this.items[this.items.length - 1];
   }
 
   /**
