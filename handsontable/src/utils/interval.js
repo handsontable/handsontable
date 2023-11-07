@@ -9,6 +9,12 @@ class Interval {
   }
 
   /**
+   * Number of milliseconds that function should wait before next call.
+   *
+   * @type {number}
+   */
+  delay;
+  /**
    * Animation frame request id.
    *
    * @type {number}
@@ -20,10 +26,6 @@ class Interval {
    * @type {Function}
    */
   #func;
-  /**
-   * Number of milliseconds that function should wait before next call.
-   */
-  #delay;
   /**
    * Flag which indicates if interval object was stopped.
    *
@@ -46,7 +48,7 @@ class Interval {
 
   constructor(func, delay) {
     this.#func = func;
-    this.#delay = parseDelay(delay);
+    this.delay = parseDelay(delay);
     this.#callback = () => this.#__callback();
   }
 
@@ -86,12 +88,12 @@ class Interval {
   #__callback() {
     this.#timer = requestAnimationFrame(this.#callback);
 
-    if (this.#delay) {
+    if (this.delay) {
       const now = Date.now();
       const elapsed = now - this.#then;
 
-      if (elapsed > this.#delay) {
-        this.#then = now - (elapsed % this.#delay);
+      if (elapsed > this.delay) {
+        this.#then = now - (elapsed % this.delay);
         this.#func();
       }
     } else {

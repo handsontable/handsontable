@@ -4,7 +4,7 @@ import {
   registerAsRootInstance,
   hasValidParameter,
   isRootInstance,
-} from 'handsontable/utils/rootInstance';
+} from '../rootInstance';
 
 describe('rootInstance', () => {
   describe('.registerAsRootInstance', () => {

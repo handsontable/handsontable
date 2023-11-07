@@ -18,8 +18,8 @@ import {
   CheckboxCellType,
   TextCellType,
 } from 'handsontable/cellTypes';
-import { IntersectionObserverMock } from '../__mocks__/intersectionObserverMock';
-import { ResizeObserverMock } from '../__mocks__/resizeObserverMock';
+import { IntersectionObserverMock } from '../../test/__mocks__/intersectionObserverMock';
+import { ResizeObserverMock } from '../../test/__mocks__/resizeObserverMock';
 
 registerCellType(CheckboxCellType);
 registerCellType(TextCellType);
