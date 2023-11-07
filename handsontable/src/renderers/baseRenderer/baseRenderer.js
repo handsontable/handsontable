@@ -12,7 +12,7 @@ import { A11Y_INVALID, A11Y_READONLY } from '../../helpers/a11y';
 export const RENDERER_TYPE = 'base';
 
 /**
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {HTMLTableCellElement} TD The rendered cell element.
  * @param {number} row The visual row index.
  * @param {number} col The visual column index.
@@ -20,7 +20,7 @@ export const RENDERER_TYPE = 'base';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-export function baseRenderer(instance, TD, row, col, prop, value, cellProperties) {
+export function baseRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
   const ariaEnabled = cellProperties.ariaTags;
   const classesToAdd = [];
   const classesToRemove = [];

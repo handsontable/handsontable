@@ -37,7 +37,7 @@ describe('textRenderer', () => {
         placeholder: 'Placeholder'
       };
 
-      textRenderer(instance, TD, void 0, void 0, void 0, '', cellMeta);
+      textRenderer(instance, TD, undefined, undefined, undefined, '', cellMeta);
 
       expect(TD.outerHTML).toMatchHTML('<td>Placeholder</td>');
     });
@@ -50,7 +50,7 @@ describe('textRenderer', () => {
       });
       const cellMeta = {};
 
-      textRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
+      textRenderer(instance, TD, undefined, undefined, undefined, 'Long   text ', cellMeta);
 
       expect(TD.outerHTML).toMatchHTML('<td>Long   text </td>');
     });
@@ -62,7 +62,7 @@ describe('textRenderer', () => {
       });
       const cellMeta = { trimWhitespace: true }; // cell meta layer has priority
 
-      textRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
+      textRenderer(instance, TD, undefined, undefined, undefined, 'Long   text ', cellMeta);
 
       expect(TD.outerHTML).toMatchHTML('<td>Long   text</td>');
     });
@@ -75,7 +75,7 @@ describe('textRenderer', () => {
       });
       const cellMeta = { trimWhitespace: true }; // cell meta layer has priority
 
-      textRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
+      textRenderer(instance, TD, undefined, undefined, undefined, 'Long   text ', cellMeta);
 
       expect(TD.outerHTML).toMatchHTML('<td>Long   text</td>');
     });
@@ -86,7 +86,7 @@ describe('textRenderer', () => {
       const value = [1, 2, 3];
       const cellMeta = {};
 
-      textRenderer(instance, TD, void 0, void 0, void 0, value, cellMeta);
+      textRenderer(instance, TD, undefined, undefined, undefined, value, cellMeta);
 
       expect(TD.outerHTML).toMatchHTML('<td>1,2,3</td>');
     });

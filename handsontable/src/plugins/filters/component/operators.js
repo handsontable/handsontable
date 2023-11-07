@@ -15,6 +15,13 @@ const SELECTED_AT_START_ELEMENT_INDEX = 0;
  * @class OperatorsComponent
  */
 export class OperatorsComponent extends BaseComponent {
+  /**
+   * The name of the component.
+   *
+   * @type {string}
+   */
+  name = '';
+
   constructor(hotInstance, options) {
     super(hotInstance, {
       id: options.id,

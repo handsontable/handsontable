@@ -57,7 +57,7 @@ describe('numericRenderer', () => {
 
         numbro.registerLanguage(deDE);
 
-        numericRenderer(instance, TD, void 0, void 0, void 0, 1.002, cellMeta);
+        numericRenderer(instance, TD, undefined, undefined, undefined, 1.002, cellMeta);
 
         expect(TD.outerHTML).toMatchHTML('<td dir="ltr" class="htRight htNumeric">1,00€</td>', toMatchHTMLConfig);
       });
@@ -69,7 +69,7 @@ describe('numericRenderer', () => {
         const instance = getInstance();
         const cellMeta = {};
 
-        numericRenderer(instance, TD, void 0, void 0, void 0, 1, cellMeta);
+        numericRenderer(instance, TD, undefined, undefined, undefined, 1, cellMeta);
 
         expect(TD.outerHTML).toMatchHTML('<td dir="ltr" class="htRight htNumeric">1</td>', toMatchHTMLConfig);
       });
@@ -79,7 +79,7 @@ describe('numericRenderer', () => {
         const instance = getInstance();
         const cellMeta = {};
 
-        numericRenderer(instance, TD, void 0, void 0, void 0, '100', cellMeta);
+        numericRenderer(instance, TD, undefined, undefined, undefined, '100', cellMeta);
 
         expect(TD.outerHTML).toMatchHTML('<td dir="ltr" class="htRight htNumeric">100</td>', toMatchHTMLConfig);
       });
@@ -89,7 +89,7 @@ describe('numericRenderer', () => {
         const instance = getInstance();
         const cellMeta = {};
 
-        numericRenderer(instance, TD, void 0, void 0, void 0, 'A', cellMeta);
+        numericRenderer(instance, TD, undefined, undefined, undefined, 'A', cellMeta);
 
         expect(TD.outerHTML).toMatchHTML('<td>A</td>');
       });
@@ -101,7 +101,7 @@ describe('numericRenderer', () => {
           className: 'htCenter'
         };
 
-        numericRenderer(instance, TD, void 0, void 0, void 0, 1, cellMeta);
+        numericRenderer(instance, TD, undefined, undefined, undefined, 1, cellMeta);
 
         expect(TD.outerHTML).toMatchHTML('<td dir="ltr" class="htCenter htNumeric">1</td>', toMatchHTMLConfig);
       });

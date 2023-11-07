@@ -9,7 +9,7 @@ export type RendererProps = {
 export const addClassWhenNeeded = (props: RendererProps) => {
   const className = props.cellProperties.className;
 
-  if (className !== void 0) {
+  if (className !== undefined) {
     Handsontable.dom.addClass(props.TD, className);
   }
 };

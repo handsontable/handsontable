@@ -108,7 +108,7 @@ describe('shortcutManager', () => {
         spy();
       },
       group: 'spy',
-      runOnlyIf: () => hot.getSelected() !== void 0,
+      runOnlyIf: () => hot.getSelected() !== undefined,
     });
 
     keyDownUp(['control', 'b']);
@@ -223,7 +223,7 @@ describe('shortcutManager', () => {
         text += '2';
       },
       group: 'spy',
-      runOnlyIf: () => hot.getSelected() !== void 0,
+      runOnlyIf: () => hot.getSelected() !== undefined,
     });
 
     selectCell(0, 0);
@@ -273,7 +273,7 @@ describe('shortcutManager', () => {
         text += '2';
       },
       group: 'spy',
-      runOnlyIf: () => hot.getSelected() !== void 0,
+      runOnlyIf: () => hot.getSelected() !== undefined,
     });
 
     selectCell(0, 0);
@@ -295,7 +295,7 @@ describe('shortcutManager', () => {
         text += '1';
       },
       group: 'spy',
-      runOnlyIf: () => hot.getSelected() !== void 0,
+      runOnlyIf: () => hot.getSelected() !== undefined,
     });
 
     gridContext.addShortcut({
@@ -306,7 +306,7 @@ describe('shortcutManager', () => {
         return false;
       },
       group: 'spy',
-      runOnlyIf: () => hot.getSelected() !== void 0,
+      runOnlyIf: () => hot.getSelected() !== undefined,
     });
 
     gridContext.addShortcut({

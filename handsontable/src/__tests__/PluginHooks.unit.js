@@ -52,7 +52,7 @@ describe('PluginHooks', () => {
     expect(hooks.getBucket.calls.count()).toBe(5);
     expect(hooks.getBucket.calls.mostRecent()).toEqual({ object: hooks, args: [{}], returnValue: bucket });
     expect(hooks.register.calls.count()).toBe(1);
-    expect(hooks.register.calls.mostRecent()).toEqual({ object: hooks, args: ['test'], returnValue: void 0 });
+    expect(hooks.register.calls.mostRecent()).toEqual({ object: hooks, args: ['test'], returnValue: undefined });
 
     expect(bucket.test.length).toBe(3);
     expect(bucket.test[0]).toBe(fn1);
@@ -100,7 +100,8 @@ describe('PluginHooks', () => {
     expect(fn2.runOnce).toBe(true);
     expect(fn3.runOnce).toBe(true);
     expect(hooks.add.calls.count()).toBe(5);
-    expect(hooks.add.calls.mostRecent()).toEqual({ object: hooks, args: ['test', fn3, context], returnValue: void 0 });
+    expect(hooks.add.calls.mostRecent())
+      .toEqual({ object: hooks, args: ['test', fn3, context], returnValue: undefined });
   });
 
   it('should add hook once as function', () => {

@@ -6,13 +6,18 @@
  * @util
  */
 class SelectionRange {
+  /**
+   * List of all CellRanges added to the class instance.
+   *
+   * @type {CellRange[]}
+   */
+  ranges = [];
+  /**
+   * @type {function(CellCoords): CellRange}
+   */
+  createCellRange;
+
   constructor(createCellRange) {
-    /**
-     * List of all CellRanges added to the class instance.
-     *
-     * @type {CellRange[]}
-     */
-    this.ranges = [];
     this.createCellRange = createCellRange;
   }
 

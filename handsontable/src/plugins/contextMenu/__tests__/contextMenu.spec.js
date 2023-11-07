@@ -830,7 +830,7 @@ describe('ContextMenu', () => {
           items: {
             alignment: {
               name() {
-                return void 0;
+                return undefined;
               },
               submenu: {
                 items: [

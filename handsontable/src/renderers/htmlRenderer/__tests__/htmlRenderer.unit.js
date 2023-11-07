@@ -36,16 +36,16 @@ describe('htmlRenderer', () => {
       const TD = document.createElement('td');
       const value = null;
 
-      htmlRenderer(void 0, TD, void 0, void 0, void 0, value, {});
+      htmlRenderer(undefined, TD, undefined, undefined, undefined, value, {});
 
       expect(TD.outerHTML).toMatchHTML('<td></td>');
     });
 
     it('should left an empty element if value is undefined', () => {
       const TD = document.createElement('td');
-      const value = void 0;
+      const value = undefined;
 
-      htmlRenderer(void 0, TD, void 0, void 0, void 0, value, {});
+      htmlRenderer(undefined, TD, undefined, undefined, undefined, value, {});
 
       expect(TD.outerHTML).toMatchHTML('<td></td>');
     });
@@ -54,7 +54,7 @@ describe('htmlRenderer', () => {
       const TD = document.createElement('td');
       const value = '<p><span>HTML value</span></p>';
 
-      htmlRenderer(void 0, TD, void 0, void 0, void 0, value, {});
+      htmlRenderer(undefined, TD, undefined, undefined, undefined, value, {});
 
       expect(TD.outerHTML).toMatchHTML('<td><p><span>HTML value</span></p></td>');
     });

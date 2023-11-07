@@ -31,7 +31,7 @@ export function arrayDiff(baseArray, newArray) {
     changes.push({
       op: 'insert',
       index: i,
-      oldValue: void 0,
+      oldValue: undefined,
       newValue: newArray[i],
     });
   }
@@ -41,7 +41,7 @@ export function arrayDiff(baseArray, newArray) {
       op: 'remove',
       index: j,
       oldValue: baseArray[j],
-      newValue: void 0,
+      newValue: undefined,
     });
   }
 

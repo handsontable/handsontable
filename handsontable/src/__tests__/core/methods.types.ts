@@ -98,7 +98,7 @@ const hasColHeaders: boolean = hot.hasColHeaders();
 const hasHook: boolean = hot.hasHook('afterChange');
 const hasRowHeaders: boolean = hot.hasRowHeaders();
 
-hot.init() === void 0;
+hot.init() === undefined;
 
 const isColumnModificationAllowed: boolean = hot.isColumnModificationAllowed();
 const isEmptyCol: boolean = hot.isEmptyCol(123);
