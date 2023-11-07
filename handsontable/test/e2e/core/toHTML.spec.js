@@ -19,16 +19,20 @@ describe('Core.toHTML', () => {
       rowHeaders: true,
     });
 
+    /* eslint-disable indent */
     expect(hot.toHTML()).toBe([
       '<table>',
-      '<thead>',
-      '<tr><th></th><th>A</th><th>B</th></tr>',
-      '</thead>',
-      '<tbody>',
-      '<tr><th>1</th><td>A1</td><td>B1</td></tr>',
-      '<tr><th>2</th><td>A2</td><td>B2</td></tr>',
-      '</tbody>',
+      '<!--StartFragment-->',
+        '<thead>',
+          '<tr><th></th><th>A</th><th>B</th></tr>',
+        '</thead>',
+        '<tbody>',
+          '<tr><th>1</th><td>A1</td><td>B1</td></tr>',
+          '<tr><th>2</th><td>A2</td><td>B2</td></tr>',
+        '</tbody>',
+      '<!--EndFragment-->',
       '</table>'
     ].join(''));
+    /* eslint-enable */
   });
 });
