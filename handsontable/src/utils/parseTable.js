@@ -1,6 +1,4 @@
 import { isEmpty } from './../helpers/mixed';
-import { isObject } from './../helpers/object';
-import { rangeEach } from '../helpers/number';
 
 const ESCAPED_HTML_CHARS = {
   '&nbsp;': '\x20',
@@ -21,598 +19,136 @@ function isHTMLTable(element) {
 }
 
 /**
- * Parses empty values to an empty string or leave them untouched otherwise.
- *
- * @private
- * @param {string} cellValue Parsed cell value.
- * @returns {string}
- */
-function parseEmptyValues(cellValue) {
-  if (isEmpty(cellValue)) {
-    return '';
-  }
-
-  return cellValue;
-}
-
-/**
  * Converts Handsontable into HTMLTableElement.
  *
- * @param {Core} hotInstance The Handsontable instance.
+ * @param {Core} instance The Handsontable instance.
  * @returns {string} OuterHTML of the HTMLTableElement.
  */
-export function instanceToHTML(hotInstance) {
-  const startColumn = hotInstance.hasRowHeaders() ? -1 : 0;
-  const startRow = hotInstance.hasColHeaders() ? -1 : 0;
-  const rows = Array.from({ length: hotInstance.countRows() + Math.abs(startRow) },
-    (_, i) => i + startRow);
-  const columns = Array.from({ length: hotInstance.countCols() + Math.abs(startColumn) },
-    (_, i) => i + startColumn);
-
-  return getHTMLByCoords(hotInstance, { rows, columns });
-}
-
-/**
- * Converts Handsontable's coordinates into HTMLTableElement.
- *
- * @param {Core} hotInstance The Handsontable instance.
- * @param {object} config Configuration for building HTMLTableElement.
- * @param {Array<number>} config.rows List of row indexes which should be taken into account when creating the table.
- * @param {Array<number>} config.columns List of column indexes which should be taken into account when creating the table.
- * @returns {string} OuterHTML of the HTMLTableElement.
- */
-export function getHTMLByCoords(hotInstance, config) {
-  return [
-    '<table>',
-    ...getHeadersHTMLByCoords(hotInstance, config),
-    ...getBodyHTMLByCoords(hotInstance, config),
-    '</table>',
-  ].join('');
-}
-
-/**
- * Converts Handsontable's coordinates into list of cell values.
- *
- * @param {Core} hotInstance The Handsontable instance.
- * @param {object} config Configuration for building the cell value list.
- * @param {Array<number>} config.rows List of row indexes which should be taken into account when creating the
- * cell value list.
- * @param {Array<number>} config.columns List of column indexes which should be taken into account when creating the
- * cell value list.
- * @returns {Array<Array<string>>} List of displayed cell values.
- */
-export function getDataByCoords(hotInstance, config) {
-  return [
-    ...getHeadersDataByCoords(hotInstance, config),
-    ...getBodyDataByCoords(hotInstance, config),
+export function instanceToHTML(instance) {
+  const hasColumnHeaders = instance.hasColHeaders();
+  const hasRowHeaders = instance.hasRowHeaders();
+  const coords = [
+    hasColumnHeaders ? -1 : 0,
+    hasRowHeaders ? -1 : 0,
+    instance.countRows() - 1,
+    instance.countCols() - 1,
   ];
+  const data = instance.getData(...coords);
+  const countRows = data.length;
+  const countCols = countRows > 0 ? data[0].length : 0;
+  const TABLE = ['<table>', '</table>'];
+  const THEAD = hasColumnHeaders ? ['<thead>', '</thead>'] : [];
+  const TBODY = ['<tbody>', '</tbody>'];
+  const rowModifier = hasRowHeaders ? 1 : 0;
+  const columnModifier = hasColumnHeaders ? 1 : 0;
+
+  for (let row = 0; row < countRows; row += 1) {
+    const isColumnHeadersRow = hasColumnHeaders && row === 0;
+    const CELLS = [];
+
+    for (let column = 0; column < countCols; column += 1) {
+      const isRowHeadersColumn = !isColumnHeadersRow && hasRowHeaders && column === 0;
+      let cell = '';
+
+      if (isColumnHeadersRow) {
+        cell = `<th>${instance.getColHeader(column - rowModifier)}</th>`;
+
+      } else if (isRowHeadersColumn) {
+        cell = `<th>${instance.getRowHeader(row - columnModifier)}</th>`;
+
+      } else {
+        const cellData = data[row][column];
+        const { hidden, rowspan, colspan } = instance.getCellMeta(row - columnModifier, column - rowModifier);
+
+        if (!hidden) {
+          const attrs = [];
+
+          if (rowspan) {
+            attrs.push(`rowspan="${rowspan}"`);
+          }
+          if (colspan) {
+            attrs.push(`colspan="${colspan}"`);
+          }
+          if (isEmpty(cellData)) {
+            cell = `<td ${attrs.join(' ')}></td>`;
+          } else {
+            const value = cellData.toString()
+              .replace('<', '&lt;')
+              .replace('>', '&gt;')
+              .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
+              .replace(/\x20/gi, '&nbsp;')
+              .replace(/\t/gi, '&#9;');
+
+            cell = `<td ${attrs.join(' ')}>${value}</td>`;
+          }
+        }
+      }
+
+      CELLS.push(cell);
+    }
+
+    const TR = ['<tr>', ...CELLS, '</tr>'].join('');
+
+    if (isColumnHeadersRow) {
+      THEAD.splice(1, 0, TR);
+    } else {
+      TBODY.splice(-1, 0, TR);
+    }
+  }
+
+  TABLE.splice(1, 0, THEAD.join(''), TBODY.join(''));
+
+  return TABLE.join('');
 }
 
 /**
- * Converts config into HTMLTableElement.
+ * Converts 2D array into HTMLTableElement.
  *
- * @param {object} config Configuration for building HTMLTableElement.
- * @param {Array<number>} [config.excludedRows] List of row indexes which should be excluded when creating the table.
- * @param {Array<number>} [config.excludedColumns] List of column indexes which should be excluded when creating the table.
- * @param {Array<Array<string>>} [config.data] List of cell data.
- * @param {Array<object>} [config.mergeCells] List of merged cells.
- * @param {Array<Array<string|object>>} [config.nestedHeaders] List of headers and corresponding information about some
- * nested elements.
- * @param {Array<string>} [config.colHeaders] List of first level header values.
+ * @param {Array} input Input array which will be converted to HTMLTable.
  * @returns {string} OuterHTML of the HTMLTableElement.
  */
-export function getHTMLFromConfig(config) {
-  return [
-    '<table>',
-    ...getHeadersHTMLByConfig(config),
-    ...getBodyHTMLByConfig(config),
-    '</table>',
-  ].join('');
-}
+// eslint-disable-next-line no-restricted-globals
+export function _dataToHTML(input) {
+  const inputLen = input.length;
+  const result = ['<table>'];
 
-/**
- * Get list of filtered nested headers.
- *
- * @param {Array<Array<string|object>>} nestedHeaders List of nested headers which will be filtered.
- * @param {Array<number>} excludedHeaders List of headers which should be excluded when creating the HTMLTableElement.tHead.
- * @param {Array<number>} excludedColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
- * @returns {*}
- */
-function getFilteredNestedHeaders(nestedHeaders, excludedHeaders, excludedColumns) {
-  return nestedHeaders.reduce((listOfHeaders, headerValues, rowIndex) => {
-    if (excludedHeaders.includes(rowIndex - nestedHeaders.length)) {
-      return listOfHeaders;
+  for (let row = 0; row < inputLen; row += 1) {
+    const rowData = input[row];
+    const columnsLen = rowData.length;
+    const columnsResult = [];
+
+    if (row === 0) {
+      result.push('<tbody>');
     }
 
-    const filteredNestedHeader = headerValues.filter((columnData, columnIndex) =>
-      excludedColumns.includes(columnIndex) === false);
+    for (let column = 0; column < columnsLen; column += 1) {
+      const cellData = rowData[column];
+      const parsedCellData = isEmpty(cellData) ?
+        '' :
+        cellData.toString()
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
+          .replace(/\x20{2,}/gi, (substring) => {
+            // The way how Excel serializes data with at least two spaces.
+            return `<span style="mso-spacerun: yes">${'&nbsp;'.repeat(substring.length - 1)} </span>`;
+          })
+          .replace(/\t/gi, '&#9;');
 
-    if (filteredNestedHeader.length > 0) {
-      return listOfHeaders.concat([filteredNestedHeader]);
+      columnsResult.push(`<td>${parsedCellData}</td>`);
     }
 
-    return listOfHeaders;
-  }, []);
-}
+    result.push('<tr>', ...columnsResult, '</tr>');
 
-/**
- * Get HTML for nested headers.
- *
- * @param {Array<Array<string|object>>} nestedHeaders List of nested headers which will be filtered.
- * @param {Array<number>} excludedHeaders List of headers which should be excluded when creating the HTMLTableElement.tHead.
- * @param {Array<number>} excludedColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
- * @returns {Array<string>}
- */
-function getNestedHeadersHTML(nestedHeaders, excludedHeaders, excludedColumns) {
-  const headersHTML = [];
-
-  getFilteredNestedHeaders(nestedHeaders, excludedHeaders, excludedColumns).forEach((listOfHeaders) => {
-    const rowHTML = ['<tr>'];
-
-    for (let i = 0; i < listOfHeaders.length; i += 1) {
-      const header = listOfHeaders[i];
-      let headerValue = header;
-      let colspanAttribute = '';
-
-      if (isObject(header)) {
-        const { colspan, label } = header;
-
-        headerValue = label;
-        colspanAttribute = ` colspan=${colspan}`;
-      }
-
-      rowHTML.push(`<th${colspanAttribute}>${encodeHTMLEntities(parseEmptyValues(headerValue))}</th>`);
+    if (row + 1 === inputLen) {
+      result.push('</tbody>');
     }
-
-    rowHTML.push('</tr>');
-    headersHTML.push(...rowHTML);
-  });
-
-  return headersHTML;
-}
-
-/**
- * Get HTML for first level header.
- *
- * @param {Array<string>} columnHeaders List of header values which will be filtered.
- * @param {Array<number>} excludedHeaders List of headers which should be excluded when creating the HTMLTableElement.tHead.
- * @param {Array<number>} excludedColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
- * @returns {*[]}
- */
-function getSimpleHeadersHTML(columnHeaders, excludedHeaders, excludedColumns) {
-  if (excludedHeaders.includes(-1)) {
-    return [];
   }
 
-  const filteredColumnHeaders = columnHeaders.filter((columnHeaderValue, columnIndex) =>
-    excludedColumns.includes(columnIndex) === false);
+  result.push('</table>');
 
-  if (filteredColumnHeaders.length === 0) {
-    return [];
-  }
-
-  return ['<tr>', ...filteredColumnHeaders.map(columnHeader =>
-    `<th>${encodeHTMLEntities(parseEmptyValues(columnHeader))}</th>`), '</tr>'];
-}
-
-/**
- * Get list of cells filtered by list of excluded rows and columns.
- *
- * @private
- * @param {Array<Array<string>>} data List of cells values which will be filtered.
- * @param {Array<number>} excludedRows List of row indexes which should be excluded when creating the HTMLTableElement.tHead.
- * @param {Array<number>} excludedColumns List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
- * @returns {Array<string>} List of cell values.
- */
-function getFilteredCells(data, excludedRows, excludedColumns) {
-  if (Array.isArray(data) === false) {
-    return [];
-  }
-
-  return data.reduce((listOfCells, rowData, rowIndex) => {
-    if (excludedRows.includes(rowIndex)) {
-      return listOfCells;
-    }
-
-    const filteredRowData = rowData.filter((cellData, columnIndex) =>
-      excludedColumns.includes(columnIndex) === false);
-
-    if (filteredRowData.length > 0) {
-      return listOfCells.concat([filteredRowData]);
-    }
-
-    return listOfCells;
-  }, []);
-}
-
-/**
- * Prepare information about merged areas to reduce complexity of calculations.
- *
- * @private
- * @param {Array<object>} mergedCellsConfig List of merged cells.
- * @returns {{mergedCellsMap: Map<any, any>, mergedArea: Set<any>}}
- */
-function getMergedCellsInformation(mergedCellsConfig) {
-  const mergedCellsMap = new Map();
-  const mergedArea = new Set();
-  let mergedRows = 1;
-  let mergedColumns = 1;
-
-  mergedCellsConfig?.forEach((mergeArea) => {
-    const { row, col, rowspan, colspan } = mergeArea;
-
-    mergedCellsMap.set(`${row}x${col}`, { rowspan, colspan });
-
-    if (Number.isInteger(rowspan)) {
-      mergedRows = rowspan;
-    }
-
-    if (Number.isInteger(colspan)) {
-      mergedColumns = colspan;
-    }
-
-    rangeEach(row, row + mergedRows - 1, (rowIndex) => {
-      rangeEach(col, col + mergedColumns - 1, (columnIndex) => {
-        // Other than start point.
-        if (rowIndex !== row || columnIndex !== col) {
-          mergedArea.add(`${rowIndex}x${columnIndex}`);
-        }
-      });
-    });
-  });
-
-  return {
-    mergedCellsMap,
-    mergedArea,
-  };
-}
-
-/**
- * Converts config with information about cells into HTMLTableElement.tBodies.
- *
- * @private
- * @param {object} config Configuration for building HTMLTableElement.tBodies.
- * @param {Array<Array<string>>} config.data List of cell data.
- * @param {Array<number>} [config.excludedRows] List of row indexes which should be excluded when creating the HTMLTableElement.tBodies.
- * @param {Array<number>} [config.excludedColumns] List of column indexes which should be excluded when creating the HTMLTableElement.tBodies.
- * @param {Array<object>} [config.mergeCells] List of merged cells.
- * @returns {Array<string>} List of HTMLElements stored as strings.
- */
-function getBodyHTMLByConfig(config) {
-  const excludedColumns = config.excludedColumns || [];
-  const excludedRows = config.excludedRows || [];
-  const { data, mergeCells } = config;
-  const ignoredCellRows = excludedRows.filter(rowIndex => rowIndex >= 0);
-  const filteredData = getFilteredCells(data, ignoredCellRows, excludedColumns);
-  const cells = [];
-
-  if (filteredData.length === 0) {
-    return [];
-  }
-
-  const { mergedCellsMap, mergedArea } = getMergedCellsInformation(mergeCells);
-
-  filteredData.forEach((rowData, rowIndex) => {
-    const rowHTML = ['<tr>'];
-
-    rowData.forEach((cellData, columnIndex) => {
-      const attrs = [];
-      const checkedMergeCoordinate = `${rowIndex}x${columnIndex}`;
-      const mergeParent = mergedCellsMap.get(checkedMergeCoordinate);
-
-      if (mergeParent !== undefined) {
-        const { rowspan, colspan } = mergeParent;
-
-        if (Number.isInteger(rowspan) && rowspan > 1) {
-          attrs.push(` rowspan="${rowspan}"`);
-        }
-
-        if (Number.isInteger(colspan) && colspan > 1) {
-          attrs.push(` colspan="${colspan}"`);
-        }
-
-      } else if (mergedArea.has(checkedMergeCoordinate)) {
-        return;
-      }
-
-      rowHTML.push(`<td${attrs.join('')}>${encodeHTMLEntities(parseEmptyValues(cellData))}</td>`);
-    });
-
-    rowHTML.push('</tr>');
-    cells.push(...rowHTML);
-  });
-
-  return ['<tbody>', ...cells, '</tbody>'];
-}
-
-/**
- * Converts config with information about headers into HTMLTableElement.tHead.
- *
- * @private
- * @param {object} config Configuration for building HTMLTableElement.tHead.
- * @param {Array<Array<string|object>>} [config.nestedHeaders] List of headers and corresponding information about some
- * nested elements.
- * @param {Array<string>} [config.colHeaders] List of first level header values.
- * @param {Array<number>} [config.excludedRows] List of row indexes which should be excluded when creating the HTMLTableElement.tHead.
- * @param {Array<number>} [config.excludedColumns] List of column indexes which should be excluded when creating the HTMLTableElement.tHead.
- * @returns {Array<string>} List of HTMLElements stored as strings.
- */
-function getHeadersHTMLByConfig(config) {
-  const headersHTML = [];
-  const excludedColumns = Array.isArray(config?.excludedColumns) ? config.excludedColumns : [];
-  const excludedRows = Array.isArray(config?.excludedRows) ? config.excludedRows : [];
-  const { nestedHeaders, colHeaders } = config;
-  const excludedHeaders = excludedRows.filter(rowIndex => rowIndex < 0);
-
-  if (Array.isArray(nestedHeaders)) {
-    headersHTML.push(...getNestedHeadersHTML(nestedHeaders, excludedHeaders, excludedColumns));
-
-  } else if (Array.isArray(colHeaders)) {
-    headersHTML.push(...getSimpleHeadersHTML(colHeaders, excludedHeaders, excludedColumns));
-  }
-
-  if (headersHTML.length > 0) {
-    return ['<thead>', ...headersHTML, '</thead>'];
-  }
-
-  return [];
-}
-
-/**
- * Converts config with information about cells and headers into list of values.
- *
- * @param {object} config Configuration for building list of values.
- * @param {Array<number>} [config.excludedRows] List of row indexes which should be excluded when creating the value list.
- * @param {Array<number>} [config.excludedColumns] List of column indexes which should be excluded when creating the value list.
- * @param {Array<Array<string|object>>} [config.nestedHeaders] List of headers and information about some nested elements.
- * @param {Array<string>} [config.colHeaders] List of first level header values.
- * @returns {string[][]} List of values.
- */
-export function getDataWithHeadersByConfig(config) {
-  const dataWithHeaders = [];
-  const excludedColumns = Array.isArray(config?.excludedColumns) ? config.excludedColumns : [];
-  const excludedRows = Array.isArray(config?.excludedRows) ? config.excludedRows : [];
-  const { data, nestedHeaders, colHeaders } = config;
-  const excludedHeaders = excludedRows.filter(rowIndex => rowIndex < 0);
-
-  if (Array.isArray(nestedHeaders)) {
-    dataWithHeaders.push(...getFilteredNestedHeaders(nestedHeaders, excludedHeaders, excludedColumns)
-      .map((listOfHeaders) => {
-        return listOfHeaders.reduce((headers, header) => {
-          if (isObject(header)) {
-            headers.push(header.label, ...new Array(header.colspan - 1).fill(''));
-
-          } else {
-            headers.push(header);
-          }
-
-          return headers;
-        }, []);
-      })
-    );
-
-  } else if (Array.isArray(colHeaders)) {
-    dataWithHeaders.push([...colHeaders.filter((columnHeaderData, columnIndex) =>
-      excludedColumns.includes(columnIndex) === false)]);
-  }
-
-  dataWithHeaders.push(...getFilteredCells(data, excludedRows.filter(rowIndex => rowIndex >= 0),
-    excludedColumns.filter(columnIndex => columnIndex >= 0)));
-
-  return dataWithHeaders;
-}
-
-/**
- * Encode text to HTML.
- *
- * @param {string} text Text to prepare.
- * @returns {string}
- */
-function encodeHTMLEntities(text) {
-  return `${text}`
-    .replace(/&/g, '&amp;')
-    .replace('<', '&lt;')
-    .replace('>', '&gt;')
-    .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
-    .replace(/\x20{2,}/gi, (substring) => {
-      // The way how Excel serializes data with at least two spaces.
-      return `<span style="mso-spacerun: yes">${'&nbsp;'.repeat(substring.length - 1)} </span>`;
-    })
-    .replace(/\t/gi, '&#9;');
-}
-
-/**
- * Decode HTML to simple text.
- *
- * @param {string} html HTML for handling.
- * @returns {string}
- */
-function decodeHTMLEntities(html) {
-  return html.replace(regEscapedChars, match => ESCAPED_HTML_CHARS[match])
-    // The way how Excel serializes data with at least two spaces.
-    .replace(/<span style="mso-spacerun: yes">(.+?)<\/span>/, '$1')
-    .replaceAll('&nbsp;', ' ');
-}
-
-/**
- * Converts Handsontable's header coordinates into HTMLTableElement.tHead.
- *
- * @param {Core} hotInstance The Handsontable instance.
- * @param {object} config Configuration for building HTMLTableElement.tHead.
- * @param {Array<number>} config.rows List of row indexes which should be taken into account when creating
- * the HTMLTableElement.tHead.
- * @param {Array<number>} config.columns List of column indexes which should be taken into account when creating
- * the HTMLTableElement.tHead.
- * @returns {Array<string>} List of HTMLElements stored as strings.
- */
-function getHeadersHTMLByCoords(hotInstance, config) {
-  const { rows, columns } = config;
-  const headers = rows.filter(rowIndex => rowIndex < 0);
-  const headersHTML = [];
-
-  if (headers.length === 0 || columns.length === 0) {
-    return [];
-  }
-
-  headers.forEach((rowIndex) => {
-    const rowHTML = ['<tr>'];
-
-    for (let i = 0; i < columns.length; i += 1) {
-      const columnIndex = columns[i];
-      const headerCell = hotInstance.getCell(rowIndex, columnIndex);
-      const colspan = headerCell?.getAttribute('colspan');
-      let colspanAttribute = '';
-
-      if (colspan) {
-        const parsedColspan = parseInt(colspan, 10);
-
-        colspanAttribute = ` colspan=${parsedColspan}`;
-        i += parsedColspan - 1;
-      }
-
-      rowHTML.push(`<th${colspanAttribute}>${
-        encodeHTMLEntities(parseEmptyValues(hotInstance.getColHeader(columnIndex, rowIndex)))}</th>`);
-    }
-
-    rowHTML.push('</tr>');
-    headersHTML.push(...rowHTML);
-  });
-
-  return ['<thead>', ...headersHTML, '</thead>'];
-}
-
-/**
- * Converts Handsontable's coordinates into list of values for cells being headers.
- *
- * @param {Core} hotInstance The Handsontable instance.
- * @param {object} config Configuration for building the cell value list.
- * @param {Array<number>} config.rows List of row indexes which should be taken into account when creating the
- * cell value list.
- * @param {Array<number>} config.columns List of column indexes which should be taken into account when creating the
- * cell value list.
- * @returns {Array[]} List of displayed cell values.
- */
-function getHeadersDataByCoords(hotInstance, config) {
-  const headersData = [];
-  const { columns, rows } = config;
-  const headers = rows.filter(rowIndex => rowIndex < 0);
-
-  headers.forEach((rowIndex) => {
-    const rowData = [];
-
-    for (let i = 0; i < columns.length; i += 1) {
-      const columnIndex = columns[i];
-      const headerCell = hotInstance.getCell(rowIndex, columnIndex);
-      const colspan = headerCell?.getAttribute('colspan');
-
-      rowData.push(hotInstance.getColHeader(columnIndex, rowIndex));
-
-      if (colspan) {
-        const parsedColspan = parseInt(colspan, 10);
-
-        rowData.push(...new Array(parsedColspan - 1).fill(''));
-        i += parsedColspan - 1;
-      }
-    }
-
-    headersData.push(rowData);
-  });
-
-  return headersData;
-}
-
-/**
- * Converts Handsontable's header coordinates into HTMLTableElement.tBodies.
- *
- * @param {Core} hotInstance The Handsontable instance.
- * @param {object} config Configuration for building HTMLTableElement.
- * @param {Array<number>} config.rows List of row indexes which should be taken into account when creating the table.
- * @param {Array<number>} config.columns List of column indexes which should be taken into account when creating the table.
- * @returns {Array<string>} List of HTMLElements stored as strings.
- */
-function getBodyHTMLByCoords(hotInstance, config) {
-  const { columns, rows } = config;
-  const bodyRows = rows.filter(rowIndex => rowIndex >= 0);
-  const cells = [];
-
-  if (bodyRows.length === 0 || columns.length === 0) {
-    return [];
-  }
-
-  bodyRows.forEach((rowIndex, nthRow) => {
-    const rowHTML = ['<tr>'];
-
-    columns.forEach((columnIndex, nthColumn) => {
-      if (columnIndex < 0) {
-        rowHTML.push(`<th>${encodeHTMLEntities(parseEmptyValues(hotInstance.getRowHeader(rowIndex)))}</th>`);
-
-        return;
-      }
-
-      const cellValue = hotInstance.getCopyableData(rowIndex, columnIndex);
-      const cellValueParsed = encodeHTMLEntities(parseEmptyValues((cellValue)));
-      const { hidden, rowspan, colspan } = hotInstance.getCellMeta(rowIndex, columnIndex);
-
-      if (!hidden) {
-        const attrs = [];
-
-        if (rowspan) {
-          const recalculatedRowSpan = Math.min(rowspan, bodyRows.slice(nthRow).length);
-
-          if (recalculatedRowSpan > 1) {
-            attrs.push(` rowspan="${recalculatedRowSpan}"`);
-          }
-        }
-
-        if (colspan) {
-          const recalculatedColumnSpan = Math.min(colspan, columns.slice(nthColumn).length);
-
-          if (recalculatedColumnSpan > 1) {
-            attrs.push(` colspan="${recalculatedColumnSpan}"`);
-          }
-        }
-
-        rowHTML.push(`<td${attrs.join('')}>${cellValueParsed}</td>`);
-      }
-    });
-
-    rowHTML.push('</tr>');
-    cells.push(...rowHTML);
-  });
-
-  return ['<tbody>', ...cells, '</tbody>'];
-}
-
-/**
- * Converts Handsontable's coordinates into list of values for cells not being headers.
- *
- * @param {Core} hotInstance The Handsontable instance.
- * @param {object} config Configuration for building the cell value list.
- * @param {Array<number>} config.rows List of row indexes which should be taken into account when creating the
- * cell value list.
- * @param {Array<number>} config.columns List of column indexes which should be taken into account when creating the
- * cell value list.
- * @returns {Array[]} List of displayed cell values.
- */
-function getBodyDataByCoords(hotInstance, config) {
-  const cells = [];
-  const { columns, rows } = config;
-  const bodyRows = rows.filter(rowIndex => rowIndex >= 0);
-
-  bodyRows.forEach((rowIndex) => {
-    const rowData = [];
-
-    columns.forEach((columnIndex) => {
-      const cellValue = hotInstance.getCopyableData(rowIndex, columnIndex);
-      const cellValueParsed = isEmpty(cellValue) ? '' : cellValue;
-
-      rowData.push(cellValueParsed);
-    });
-
-    cells.push(rowData);
-  });
-
-  return cells;
+  return result.join('');
 }
 
 /**
@@ -672,21 +208,20 @@ export function htmlToGridSettings(element, rootDocument = document) {
       return !isDataRow;
     });
 
-    const isAnyNested = thRows.find(tr => tr.querySelector('th[colspan]') !== null) !== undefined;
-
     thRowsLen = thRows.length;
     hasColHeaders = thRowsLen > 0;
 
-    if (thRowsLen > 1 || isAnyNested) {
+    if (thRowsLen > 1) {
       settingsObj.nestedHeaders = Array.from(thRows).reduce((rows, row) => {
         const headersRow = Array.from(row.cells).reduce((headers, header, currentIndex) => {
           if (hasRowHeaders && currentIndex === 0) {
             return headers;
           }
 
-          const { colSpan: colspan } = header;
-          const innerHTML = decodeHTMLEntities(header.innerHTML);
-
+          const {
+            colSpan: colspan,
+            innerHTML,
+          } = header;
           const nextHeader = colspan > 1 ? { label: innerHTML, colspan } : innerHTML;
 
           headers.push(nextHeader);
@@ -705,7 +240,7 @@ export function htmlToGridSettings(element, rootDocument = document) {
           return headers;
         }
 
-        headers.push(decodeHTMLEntities(header.innerHTML));
+        headers.push(header.innerHTML);
 
         return headers;
       }, []);
@@ -782,7 +317,7 @@ export function htmlToGridSettings(element, rootDocument = document) {
           cellValue = innerHTML.replace(/<br(\s*|\/)>[\r\n]?/gim, '\r\n');
         }
 
-        dataArr[row][col] = decodeHTMLEntities(cellValue);
+        dataArr[row][col] = cellValue.replace(regEscapedChars, match => ESCAPED_HTML_CHARS[match]);
 
       } else {
         rowHeaders.push(innerHTML);
