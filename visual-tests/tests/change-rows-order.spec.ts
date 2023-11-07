@@ -7,7 +7,7 @@ test(__filename, async({ page }) => {
   await table.waitFor();
 
   const cloneInlineStartTable = table.locator(helpers.selectors.cloneInlineStartTable);
-  const cell = cloneInlineStartTable.locator(helpers.findCell({ row: 4, cell: 1, cellType: 'th' }));
+  const cell = cloneInlineStartTable.locator(helpers.findCell({ row: 3, column: 0, cellType: 'th' }));
 
   // without coordinates, `click()` works in the middle of the element,
   // so in this case, it would deselect the checkbox

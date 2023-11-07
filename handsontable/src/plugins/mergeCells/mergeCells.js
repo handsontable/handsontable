@@ -586,8 +586,12 @@ export class MergeCells extends BasePlugin {
     gridContext.addShortcut({
       keys: [['Control', 'm']],
       callback: () => {
-        this.toggleMerge(this.hot.getSelectedRangeLast());
-        this.hot.render();
+        const range = this.hot.getSelectedRangeLast();
+
+        if (range && !range.isSingleHeader()) {
+          this.toggleMerge(range);
+          this.hot.render();
+        }
       },
       runOnlyIf: event => !event.altKey, // right ALT in some systems triggers ALT+CTRL
       group: SHORTCUTS_GROUP,
@@ -1356,27 +1360,27 @@ export class MergeCells extends BasePlugin {
    * `beforePaste` hook callback. Used for manipulating with area of paste (by changing selection) and unmerging cells.
    *
    * @private
-   * @param {object} actionInfo Information about already performed cut action.
-   * @param {Function} actionInfo.isTable Checks whether copied data is an array.
-   * @param {Function} actionInfo.isHandsontable Checks whether copied data is a Handsontable.
-   * @param {Function} actionInfo.remove Remove rows/columns from the copied/pasted dataset.
-   * @param {Function} actionInfo.insertAtRow Insert values at row index.
-   * @param {Function} actionInfo.insertAtColumn Insert values at column index.
-   * @param {Function} actionInfo.change  Change headers or cells in the copied/pasted dataset.
-   * @param {Function} actionInfo.getData Gets copied data stored as array of arrays.
-   * @param {Function} actionInfo.getHTML Gets sanitized data of "text/html" type inside the clipboard.
-   * @param {Function} actionInfo.getGridSettings Gets grid settings for copied data.
+   * @param {object} clipboardData Information about copy action which is going to happen.
+   * @param {Function} clipboardData.removeRow Remove row from the copied dataset.
+   * @param {Function} clipboardData.removeColumn Remove column from the copied dataset.
+   * @param {Function} clipboardData.insertAtRow Insert values at row index.
+   * @param {Function} clipboardData.insertAtColumn Insert values at column index.
+   * @param {Function} clipboardData.setCellAt Change headers or cells in the copied dataset.
+   * @param {Function} clipboardData.getCellAt Get headers or cells from the copied dataset.
+   * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
+   * @param {Function} clipboardData.getMetaInfo Gets meta information for the copied data.
+   * @param {Function} clipboardData.getRanges Returns ranges related to copied part of Handsontable.
    */
-  onBeforePaste(actionInfo) {
+  onBeforePaste(clipboardData) {
     const selectedRangeLast = this.hot.getSelectedRangeLast();
-    const data = actionInfo.getData();
+    const data = clipboardData.getData();
     const pastedRows = data.length;
     const pastedColumns = data[0].length;
     const { row: selectionFromRow, col: selectionFromColumn } = selectedRangeLast.from;
     const selectedRows = selectedRangeLast.getHeight();
     const selectedColumns = selectedRangeLast.getWidth();
 
-    if (this.shouldUnmerge(actionInfo.getGridSettings().mergeCells, pastedRows, pastedColumns) === false) {
+    if (this.shouldUnmerge(clipboardData.getMetaInfo().mergeCells, pastedRows, pastedColumns) === false) {
       return;
     }
 

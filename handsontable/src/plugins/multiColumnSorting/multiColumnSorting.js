@@ -1,17 +1,22 @@
-import { ColumnSorting } from '../columnSorting';
+import {
+  APPEND_COLUMN_CONFIG_STRATEGY,
+  ColumnSorting
+} from '../columnSorting';
 import { registerRootComparator } from '../columnSorting/sortService';
 import { wasHeaderClickedProperly } from '../columnSorting/utils';
-import { addClass, removeClass } from '../../helpers/dom/element';
+import { addClass, removeClass, setAttribute, removeAttribute } from '../../helpers/dom/element';
 import { rootComparator } from './rootComparator';
 import { warnAboutPluginsConflict } from './utils';
 import { getClassesToAdd, getClassesToRemove } from './domHelpers';
+import { A11Y_HIDDEN, A11Y_LABEL } from '../../helpers/a11y';
+import { COLUMN_HEADER_LABEL_MULTI_COLUMN_SORT_ORDER } from '../../i18n/constants';
 
 import './multiColumnSorting.scss';
 
 export const PLUGIN_KEY = 'multiColumnSorting';
 export const PLUGIN_PRIORITY = 170;
-const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 const CONFLICTED_PLUGIN_KEY = 'columnSorting';
+const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 registerRootComparator(PLUGIN_KEY, rootComparator);
 
@@ -113,6 +118,41 @@ export class MultiColumnSorting extends ColumnSorting {
    */
   disablePlugin() {
     super.disablePlugin();
+  }
+
+  /**
+   * Register shortcuts responsible for toggling column sorting functionality.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    super.registerShortcuts();
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .addShortcut({
+        keys: [['Shift', 'Enter']],
+        callback: () => {
+          const { highlight } = this.hot.getSelectedRangeLast();
+
+          if (highlight.row === -1 && highlight.col >= 0) {
+            this.sort(this.getNextSortConfig(highlight.col, APPEND_COLUMN_CONFIG_STRATEGY));
+          }
+        },
+        runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isHeader(),
+        group: SHORTCUTS_GROUP,
+      });
+  }
+
+  /**
+   * Unregister shortcuts responsible for toggling column sorting functionality.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    super.unregisterShortcuts();
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -232,6 +272,35 @@ export class MultiColumnSorting extends ColumnSorting {
     if (this.enabled !== false) {
       addClass(headerSpanElement, getClassesToAdd(...args));
     }
+  }
+
+  /**
+   * Update sorting indicator.
+   *
+   * @private
+   * @param {number} column Visual column index.
+   * @param {HTMLElement} headerSpanElement Header span element.
+   */
+  updateSortingIndicator(column, headerSpanElement) {
+    super.updateSortingIndicator(column, headerSpanElement);
+    const indicatorElement = headerSpanElement.querySelector('.columnSortingIndicator');
+
+    if (
+      !indicatorElement
+      || !this.hot.getSettings().ariaTags
+      || !this.columnStatesManager.isColumnSorted(column)
+      || this.columnStatesManager.getNumberOfSortedColumns() <= 1
+    ) {
+      return;
+    }
+
+    const multiColumnSortingOrder = this.columnStatesManager.getIndexOfColumnInSortQueue(column) + 1;
+    const a11yLabelAttribute = A11Y_LABEL(
+      `${this.hot.getTranslatedPhrase(COLUMN_HEADER_LABEL_MULTI_COLUMN_SORT_ORDER)} ${multiColumnSortingOrder}.`
+    );
+
+    removeAttribute(indicatorElement, A11Y_HIDDEN()[0]);
+    setAttribute(indicatorElement, ...a11yLabelAttribute);
   }
 
   /**

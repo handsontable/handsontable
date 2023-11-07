@@ -16,7 +16,7 @@ export default class CoreAbstract {
   wtScroll;
   wtViewport;
   wtOverlays;
-  selections;
+  selectionManager;
   wtEvent;
   /**
    * The walkontable instance id.
@@ -318,8 +318,8 @@ export default class CoreAbstract {
       get wtOverlays() {
         return wot.wtOverlays; // TODO refactoring: move outside dao, use IOC
       },
-      get selections() {
-        return wot.selections; // TODO refactoring: move outside dao, use IOC
+      get selectionManager() {
+        return wot.selectionManager; // TODO refactoring: move outside dao, use IOC
       },
       get drawn() {
         return wot.drawn;
@@ -365,6 +365,12 @@ export default class CoreAbstract {
       },
       get countRowsVisible() {
         return wot.wtViewport.rowsVisibleCalculator.count;
+      },
+      get columnHeaders() {
+        return wot.wtSettings.getSetting('columnHeaders');
+      },
+      get rowHeaders() {
+        return wot.wtSettings.getSetting('rowHeaders');
       },
     };
   }

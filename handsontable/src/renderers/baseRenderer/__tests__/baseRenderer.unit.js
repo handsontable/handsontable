@@ -9,6 +9,8 @@ import {
 } from '../../registry';
 
 describe('baseRenderer', () => {
+  const toMatchHTMLConfig = ['class'];
+
   describe('registering', () => {
     it('should throw an error if renderer is not registered', () => {
       expect(getRegisteredRendererNames()).toEqual([]);
@@ -33,7 +35,7 @@ describe('baseRenderer', () => {
         className: 'custom',
       });
 
-      expect(TD.outerHTML).toBe('<td class="custom"></td>');
+      expect(TD.outerHTML).toMatchHTML('<td class="custom"></td>', toMatchHTMLConfig);
     });
 
     it('should manage readOnly class name', () => {
@@ -44,7 +46,7 @@ describe('baseRenderer', () => {
         readOnlyCellClassName: 'read-only',
       });
 
-      expect(TD.outerHTML).toBe('<td class="read-only"></td>');
+      expect(TD.outerHTML).toMatchHTML('<td class="read-only"></td>', toMatchHTMLConfig);
     });
 
     it('should manage validation class name', () => {
@@ -56,13 +58,13 @@ describe('baseRenderer', () => {
 
       baseRenderer(void 0, TD, void 0, void 0, void 0, '', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td class="invalid"></td>');
+      expect(TD.outerHTML).toMatchHTML('<td class="invalid"></td>', toMatchHTMLConfig);
 
       cellMeta.valid = true;
 
       baseRenderer(void 0, TD, void 0, void 0, void 0, '', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td class=""></td>');
+      expect(TD.outerHTML).toMatchHTML('<td class=""></td>', toMatchHTMLConfig);
     });
 
     it('should manage wordWrap class name', () => {
@@ -73,7 +75,7 @@ describe('baseRenderer', () => {
         noWordWrapClassName: 'no-word-wrap',
       });
 
-      expect(TD.outerHTML).toBe('<td class="no-word-wrap"></td>');
+      expect(TD.outerHTML).toMatchHTML('<td class="no-word-wrap"></td>', toMatchHTMLConfig);
     });
 
     it('should manage placeholder class name', () => {
@@ -84,7 +86,7 @@ describe('baseRenderer', () => {
         placeholderCellClassName: 'placeholder'
       });
 
-      expect(TD.outerHTML).toBe('<td class="placeholder"></td>');
+      expect(TD.outerHTML).toMatchHTML('<td class="placeholder"></td>', toMatchHTMLConfig);
     });
   });
 

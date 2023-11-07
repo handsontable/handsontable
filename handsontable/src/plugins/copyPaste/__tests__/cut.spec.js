@@ -41,11 +41,11 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
-          '<tbody>',
-            '<tr>',
-              '<td>A2</td>',
-            '</tr>',
-          '</tbody>',
+        '<tbody>',
+        '<tr>',
+        '<td>A2</td>',
+        '</tr>',
+        '</tbody>',
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -54,17 +54,13 @@ describe('CopyPaste', () => {
     });
 
     it('should call beforeCut and afterCut during cutting out operation', () => {
-      let beforeCutArgument;
-      let afterCutArgument;
+      const beforeCutSpy = jasmine.createSpy('beforeCut');
+      const afterCutSpy = jasmine.createSpy('afterCut');
 
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2),
-        beforeCut(actionInfo) {
-          beforeCutArgument = actionInfo;
-        },
-        afterCut(actionInfo) {
-          afterCutArgument = actionInfo;
-        },
+        beforeCut: beforeCutSpy,
+        afterCut: afterCutSpy,
       });
       const cutEvent = getClipboardEvent();
       const plugin = hot.getPlugin('CopyPaste');
@@ -73,31 +69,24 @@ describe('CopyPaste', () => {
 
       plugin.onCut(cutEvent);
 
+      expect(beforeCutSpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
+        data: [['A1']],
+      });
+      expect(afterCutSpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
+        data: [['A1']],
+      });
       /* eslint-disable indent */
-      expect(beforeCutArgument.getHTML()).toBe(
+      expect(cutEvent.clipboardData.getData('text/html')).toBe(
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
         '<table>' +
-          '<tbody>' +
-            '<tr>' +
-              '<td>A1</td>' +
-            '</tr>' +
-          '</tbody>' +
+        '<tbody>' +
+        '<tr>' +
+        '<td>A1</td>' +
+        '</tr>' +
+        '</tbody>' +
         '</table>'
       );
-      expect(beforeCutArgument.getData()).toEqual([['A1']]);
-      expect(afterCutArgument.getHTML()).toBe(
-        '<meta name="generator" content="Handsontable"/>' +
-        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
-        '<table>' +
-          '<tbody>' +
-            '<tr>' +
-              '<td>A1</td>' +
-            '</tr>' +
-          '</tbody>' +
-        '</table>'
-      );
-      expect(afterCutArgument.getData()).toEqual([['A1']]);
       /* eslint-enable */
     });
   });

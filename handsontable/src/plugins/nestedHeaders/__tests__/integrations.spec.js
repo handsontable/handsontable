@@ -82,7 +82,65 @@ describe('Integration with other plugins', () => {
       spyOn(document, 'execCommand');
     });
 
-    it('should copy cells and all column nested headers to the clipboard', () => {
+    it('should copy and paste cells and all column nested headers to the clipboard (single level)', () => {
+      handsontable({
+        data: createSpreadsheetData(2, 4),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        copyPaste: {
+          copyColumnHeaders: true,
+          copyColumnGroupHeaders: true,
+          copyColumnHeadersOnly: true,
+        },
+        nestedHeaders: [
+          [{ label: 'a1', colspan: 3 }, 'b1'],
+          [{ label: 'a2', colspan: 2 }, 'b2', 'c2'],
+          [{ label: 'a3', colspan: 2 }, 'b3', 'c3'],
+        ],
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectAll();
+
+      plugin.copyWithColumnHeaders();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe([
+        'a3\t\tb3\tc3',
+        'A1\tB1\tC1\tD1',
+        'A2\tB2\tC2\tD2',
+      ].join('\n'));
+      /* eslint-disable indent */
+      expect(copyEvent.clipboardData.getData('text/html')).toBe([
+        '<meta name="generator" content="Handsontable"/>',
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table>',
+        '<thead>',
+        '<tr><th colspan=2>a3</th><th>b3</th><th>c3</th></tr>',
+        '</thead>',
+        '<tbody>',
+        '<tr><td>A1</td><td>B1</td><td>C1</td><td>D1</td></tr>',
+        '<tr><td>A2</td><td>B2</td><td>C2</td><td>D2</td></tr>',
+        '</tbody>',
+        '</table>',
+      ].join(''));
+      /* eslint-enable */
+
+      selectCell(0, 0);
+
+      plugin.onPaste(copyEvent);
+
+      expect(getData()).toEqual([
+        ['a3', '', 'b3', 'c3'],
+        ['A1', 'B1', 'C1', 'D1'],
+        ['A2', 'B2', 'C2', 'D2'],
+      ]);
+    });
+
+    it('should copy and paste cells and all column nested headers to the clipboard (multi level)', () => {
       handsontable({
         data: createSpreadsheetData(2, 4),
         rowHeaders: true,
@@ -120,18 +178,30 @@ describe('Integration with other plugins', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
-          '<thead>',
-            '<tr><th colspan=3>a1</th><th>b1</th></tr>',
-            '<tr><th colspan=2>a2</th><th>b2</th><th>c2</th></tr>',
-            '<tr><th colspan=2>a3</th><th>b3</th><th>c3</th></tr>',
-          '</thead>',
-          '<tbody>',
-            '<tr><td>A1</td><td>B1</td><td>C1</td><td>D1</td></tr>',
-            '<tr><td>A2</td><td>B2</td><td>C2</td><td>D2</td></tr>',
-          '</tbody>',
+        '<thead>',
+        '<tr><th colspan=3>a1</th><th>b1</th></tr>',
+        '<tr><th colspan=2>a2</th><th>b2</th><th>c2</th></tr>',
+        '<tr><th colspan=2>a3</th><th>b3</th><th>c3</th></tr>',
+        '</thead>',
+        '<tbody>',
+        '<tr><td>A1</td><td>B1</td><td>C1</td><td>D1</td></tr>',
+        '<tr><td>A2</td><td>B2</td><td>C2</td><td>D2</td></tr>',
+        '</tbody>',
         '</table>',
       ].join(''));
       /* eslint-enable */
+
+      selectCell(0, 0);
+
+      plugin.onPaste(copyEvent);
+
+      expect(getData()).toEqual([
+        ['a1', '', '', 'b1'],
+        ['a2', '', 'b2', 'c2'],
+        ['a3', '', 'b3', 'c3'],
+        ['A1', 'B1', 'C1', 'D1'],
+        ['A2', 'B2', 'C2', 'D2'],
+      ]);
     });
   });
 });

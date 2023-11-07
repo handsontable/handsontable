@@ -38,34 +38,34 @@ function parseEmptyValues(cellValue) {
 /**
  * Converts Handsontable into HTMLTableElement.
  *
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @returns {string} OuterHTML of the HTMLTableElement.
  */
-export function instanceToHTML(instance) {
-  const startColumn = instance.hasRowHeaders() ? -1 : 0;
-  const startRow = instance.hasColHeaders() ? -1 : 0;
-  const rows = Array.from({ length: instance.countRows() + Math.abs(startRow) },
+export function instanceToHTML(hotInstance) {
+  const startColumn = hotInstance.hasRowHeaders() ? -1 : 0;
+  const startRow = hotInstance.hasColHeaders() ? -1 : 0;
+  const rows = Array.from({ length: hotInstance.countRows() + Math.abs(startRow) },
     (_, i) => i + startRow);
-  const columns = Array.from({ length: instance.countCols() + Math.abs(startColumn) },
+  const columns = Array.from({ length: hotInstance.countCols() + Math.abs(startColumn) },
     (_, i) => i + startColumn);
 
-  return getHTMLByCoords(instance, { rows, columns });
+  return getHTMLByCoords(hotInstance, { rows, columns });
 }
 
 /**
  * Converts Handsontable's coordinates into HTMLTableElement.
  *
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {object} config Configuration for building HTMLTableElement.
  * @param {Array<number>} config.rows List of row indexes which should be taken into account when creating the table.
  * @param {Array<number>} config.columns List of column indexes which should be taken into account when creating the table.
  * @returns {string} OuterHTML of the HTMLTableElement.
  */
-export function getHTMLByCoords(instance, config) {
+export function getHTMLByCoords(hotInstance, config) {
   return [
     '<table>',
-    ...getHeadersHTMLByCoords(instance, config),
-    ...getBodyHTMLByCoords(instance, config),
+    ...getHeadersHTMLByCoords(hotInstance, config),
+    ...getBodyHTMLByCoords(hotInstance, config),
     '</table>',
   ].join('');
 }
@@ -73,7 +73,7 @@ export function getHTMLByCoords(instance, config) {
 /**
  * Converts Handsontable's coordinates into list of cell values.
  *
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {object} config Configuration for building the cell value list.
  * @param {Array<number>} config.rows List of row indexes which should be taken into account when creating the
  * cell value list.
@@ -81,10 +81,10 @@ export function getHTMLByCoords(instance, config) {
  * cell value list.
  * @returns {Array<Array<string>>} List of displayed cell values.
  */
-export function getDataByCoords(instance, config) {
+export function getDataByCoords(hotInstance, config) {
   return [
-    ...getHeadersDataByCoords(instance, config),
-    ...getBodyDataByCoords(instance, config),
+    ...getHeadersDataByCoords(hotInstance, config),
+    ...getBodyDataByCoords(hotInstance, config),
   ];
 }
 
@@ -161,7 +161,7 @@ function getNestedHeadersHTML(nestedHeaders, excludedHeaders, excludedColumns) {
         colspanAttribute = ` colspan=${colspan}`;
       }
 
-      rowHTML.push(`<th${colspanAttribute}>${encodeHTMLEntities(headerValue)}</th>`);
+      rowHTML.push(`<th${colspanAttribute}>${encodeHTMLEntities(parseEmptyValues(headerValue))}</th>`);
     }
 
     rowHTML.push('</tr>');
@@ -192,7 +192,7 @@ function getSimpleHeadersHTML(columnHeaders, excludedHeaders, excludedColumns) {
   }
 
   return ['<tr>', ...filteredColumnHeaders.map(columnHeader =>
-    `<th>${encodeHTMLEntities(columnHeader)}</th>`), '</tr>'];
+    `<th>${encodeHTMLEntities(parseEmptyValues(columnHeader))}</th>`), '</tr>'];
 }
 
 /**
@@ -315,7 +315,7 @@ function getBodyHTMLByConfig(config) {
         return;
       }
 
-      rowHTML.push(`<td${attrs.join('')}>${encodeHTMLEntities(cellData)}</td>`);
+      rowHTML.push(`<td${attrs.join('')}>${encodeHTMLEntities(parseEmptyValues(cellData))}</td>`);
     });
 
     rowHTML.push('</tr>');
@@ -339,8 +339,8 @@ function getBodyHTMLByConfig(config) {
  */
 function getHeadersHTMLByConfig(config) {
   const headersHTML = [];
-  const excludedColumns = config.excludedColumns || [];
-  const excludedRows = config.excludedRows || [];
+  const excludedColumns = Array.isArray(config?.excludedColumns) ? config.excludedColumns : [];
+  const excludedRows = Array.isArray(config?.excludedRows) ? config.excludedRows : [];
   const { nestedHeaders, colHeaders } = config;
   const excludedHeaders = excludedRows.filter(rowIndex => rowIndex < 0);
 
@@ -370,8 +370,8 @@ function getHeadersHTMLByConfig(config) {
  */
 export function getDataWithHeadersByConfig(config) {
   const dataWithHeaders = [];
-  const excludedColumns = config.excludedColumns || [];
-  const excludedRows = config.excludedRows || [];
+  const excludedColumns = Array.isArray(config?.excludedColumns) ? config.excludedColumns : [];
+  const excludedRows = Array.isArray(config?.excludedRows) ? config.excludedRows : [];
   const { data, nestedHeaders, colHeaders } = config;
   const excludedHeaders = excludedRows.filter(rowIndex => rowIndex < 0);
 
@@ -422,9 +422,22 @@ function encodeHTMLEntities(text) {
 }
 
 /**
+ * Decode HTML to simple text.
+ *
+ * @param {string} html HTML for handling.
+ * @returns {string}
+ */
+function decodeHTMLEntities(html) {
+  return html.replace(regEscapedChars, match => ESCAPED_HTML_CHARS[match])
+    // The way how Excel serializes data with at least two spaces.
+    .replace(/<span style="mso-spacerun: yes">(.+?)<\/span>/, '$1')
+    .replaceAll('&nbsp;', ' ');
+}
+
+/**
  * Converts Handsontable's header coordinates into HTMLTableElement.tHead.
  *
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {object} config Configuration for building HTMLTableElement.tHead.
  * @param {Array<number>} config.rows List of row indexes which should be taken into account when creating
  * the HTMLTableElement.tHead.
@@ -432,7 +445,7 @@ function encodeHTMLEntities(text) {
  * the HTMLTableElement.tHead.
  * @returns {Array<string>} List of HTMLElements stored as strings.
  */
-function getHeadersHTMLByCoords(instance, config) {
+function getHeadersHTMLByCoords(hotInstance, config) {
   const { rows, columns } = config;
   const headers = rows.filter(rowIndex => rowIndex < 0);
   const headersHTML = [];
@@ -446,7 +459,7 @@ function getHeadersHTMLByCoords(instance, config) {
 
     for (let i = 0; i < columns.length; i += 1) {
       const columnIndex = columns[i];
-      const headerCell = instance.getCell(rowIndex, columnIndex);
+      const headerCell = hotInstance.getCell(rowIndex, columnIndex);
       const colspan = headerCell?.getAttribute('colspan');
       let colspanAttribute = '';
 
@@ -458,7 +471,7 @@ function getHeadersHTMLByCoords(instance, config) {
       }
 
       rowHTML.push(`<th${colspanAttribute}>${
-        encodeHTMLEntities(parseEmptyValues(instance.getColHeader(columnIndex, rowIndex)))}</th>`);
+        encodeHTMLEntities(parseEmptyValues(hotInstance.getColHeader(columnIndex, rowIndex)))}</th>`);
     }
 
     rowHTML.push('</tr>');
@@ -471,7 +484,7 @@ function getHeadersHTMLByCoords(instance, config) {
 /**
  * Converts Handsontable's coordinates into list of values for cells being headers.
  *
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {object} config Configuration for building the cell value list.
  * @param {Array<number>} config.rows List of row indexes which should be taken into account when creating the
  * cell value list.
@@ -479,7 +492,7 @@ function getHeadersHTMLByCoords(instance, config) {
  * cell value list.
  * @returns {Array[]} List of displayed cell values.
  */
-function getHeadersDataByCoords(instance, config) {
+function getHeadersDataByCoords(hotInstance, config) {
   const headersData = [];
   const { columns, rows } = config;
   const headers = rows.filter(rowIndex => rowIndex < 0);
@@ -489,10 +502,10 @@ function getHeadersDataByCoords(instance, config) {
 
     for (let i = 0; i < columns.length; i += 1) {
       const columnIndex = columns[i];
-      const headerCell = instance.getCell(rowIndex, columnIndex);
+      const headerCell = hotInstance.getCell(rowIndex, columnIndex);
       const colspan = headerCell?.getAttribute('colspan');
 
-      rowData.push(instance.getColHeader(columnIndex, rowIndex));
+      rowData.push(hotInstance.getColHeader(columnIndex, rowIndex));
 
       if (colspan) {
         const parsedColspan = parseInt(colspan, 10);
@@ -511,13 +524,13 @@ function getHeadersDataByCoords(instance, config) {
 /**
  * Converts Handsontable's header coordinates into HTMLTableElement.tBodies.
  *
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {object} config Configuration for building HTMLTableElement.
  * @param {Array<number>} config.rows List of row indexes which should be taken into account when creating the table.
  * @param {Array<number>} config.columns List of column indexes which should be taken into account when creating the table.
  * @returns {Array<string>} List of HTMLElements stored as strings.
  */
-function getBodyHTMLByCoords(instance, config) {
+function getBodyHTMLByCoords(hotInstance, config) {
   const { columns, rows } = config;
   const bodyRows = rows.filter(rowIndex => rowIndex >= 0);
   const cells = [];
@@ -531,14 +544,14 @@ function getBodyHTMLByCoords(instance, config) {
 
     columns.forEach((columnIndex, nthColumn) => {
       if (columnIndex < 0) {
-        rowHTML.push(`<th>${encodeHTMLEntities(parseEmptyValues(instance.getRowHeader(rowIndex)))}</th>`);
+        rowHTML.push(`<th>${encodeHTMLEntities(parseEmptyValues(hotInstance.getRowHeader(rowIndex)))}</th>`);
 
         return;
       }
 
-      const cellValue = instance.getCopyableData(rowIndex, columnIndex);
+      const cellValue = hotInstance.getCopyableData(rowIndex, columnIndex);
       const cellValueParsed = encodeHTMLEntities(parseEmptyValues((cellValue)));
-      const { hidden, rowspan, colspan } = instance.getCellMeta(rowIndex, columnIndex);
+      const { hidden, rowspan, colspan } = hotInstance.getCellMeta(rowIndex, columnIndex);
 
       if (!hidden) {
         const attrs = [];
@@ -573,7 +586,7 @@ function getBodyHTMLByCoords(instance, config) {
 /**
  * Converts Handsontable's coordinates into list of values for cells not being headers.
  *
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {object} config Configuration for building the cell value list.
  * @param {Array<number>} config.rows List of row indexes which should be taken into account when creating the
  * cell value list.
@@ -581,7 +594,7 @@ function getBodyHTMLByCoords(instance, config) {
  * cell value list.
  * @returns {Array[]} List of displayed cell values.
  */
-function getBodyDataByCoords(instance, config) {
+function getBodyDataByCoords(hotInstance, config) {
   const cells = [];
   const { columns, rows } = config;
   const bodyRows = rows.filter(rowIndex => rowIndex >= 0);
@@ -590,7 +603,7 @@ function getBodyDataByCoords(instance, config) {
     const rowData = [];
 
     columns.forEach((columnIndex) => {
-      const cellValue = instance.getCopyableData(rowIndex, columnIndex);
+      const cellValue = hotInstance.getCopyableData(rowIndex, columnIndex);
       const cellValueParsed = isEmpty(cellValue) ? '' : cellValue;
 
       rowData.push(cellValueParsed);
@@ -659,20 +672,21 @@ export function htmlToGridSettings(element, rootDocument = document) {
       return !isDataRow;
     });
 
+    const isAnyNested = thRows.find(tr => tr.querySelector('th[colspan]') !== null) !== undefined;
+
     thRowsLen = thRows.length;
     hasColHeaders = thRowsLen > 0;
 
-    if (thRowsLen > 1) {
+    if (thRowsLen > 1 || isAnyNested) {
       settingsObj.nestedHeaders = Array.from(thRows).reduce((rows, row) => {
         const headersRow = Array.from(row.cells).reduce((headers, header, currentIndex) => {
           if (hasRowHeaders && currentIndex === 0) {
             return headers;
           }
 
-          const {
-            colSpan: colspan,
-            innerHTML,
-          } = header;
+          const { colSpan: colspan } = header;
+          const innerHTML = decodeHTMLEntities(header.innerHTML);
+
           const nextHeader = colspan > 1 ? { label: innerHTML, colspan } : innerHTML;
 
           headers.push(nextHeader);
@@ -691,7 +705,7 @@ export function htmlToGridSettings(element, rootDocument = document) {
           return headers;
         }
 
-        headers.push(header.innerHTML);
+        headers.push(decodeHTMLEntities(header.innerHTML));
 
         return headers;
       }, []);
@@ -768,7 +782,7 @@ export function htmlToGridSettings(element, rootDocument = document) {
           cellValue = innerHTML.replace(/<br(\s*|\/)>[\r\n]?/gim, '\r\n');
         }
 
-        dataArr[row][col] = cellValue.replace(regEscapedChars, match => ESCAPED_HTML_CHARS[match]);
+        dataArr[row][col] = decodeHTMLEntities(cellValue);
 
       } else {
         rowHeaders.push(innerHTML);

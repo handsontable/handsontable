@@ -26,12 +26,7 @@ describe('ContextMenu (RTL mode)', () => {
 
       contextMenu(getCell(-1, 1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(3); // "Insert column right"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column right');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual(['A1', null, 'B1', 'C1', 'D1', 'E1']);
@@ -56,23 +51,18 @@ describe('ContextMenu (RTL mode)', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(3); // "Insert column right"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column right');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual([null, 'A1', 'B1', 'C1', 'D1', 'E1']);
       expect(`
-        | * : * : * : * : * : * ║   |
+        | - : - : - : - : - : - ║   |
         |===:===:===:===:===:===:===|
-        | 0 : 0 : 0 : 0 : 0 : A ║ * |
-        | 0 : 0 : 0 : 0 : 0 : 0 ║ * |
-        | 0 : 0 : 0 : 0 : 0 : 0 ║ * |
-        | 0 : 0 : 0 : 0 : 0 : 0 ║ * |
-        | 0 : 0 : 0 : 0 : 0 : 0 ║ * |
+        | 0 : 0 : 0 : 0 : 0 : A ║ - |
+        | 0 : 0 : 0 : 0 : 0 : 0 ║ - |
+        | 0 : 0 : 0 : 0 : 0 : 0 ║ - |
+        | 0 : 0 : 0 : 0 : 0 : 0 ║ - |
+        | 0 : 0 : 0 : 0 : 0 : 0 ║ - |
         `).toBeMatchToSelectionPattern();
     });
 
@@ -87,17 +77,12 @@ describe('ContextMenu (RTL mode)', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(3); // "Insert column right"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column right');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getColHeader()).toEqual(['A', 1, 2, 3, 4, 5]);
       expect(`
-        | * : * : * : * : * : * ║   |
+        | - : - : - : - : - : - ║   |
         |===:===:===:===:===:===:===|
         `).toBeMatchToSelectionPattern();
     });
@@ -113,22 +98,17 @@ describe('ContextMenu (RTL mode)', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(3); // "Insert column right"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column right');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(`
-        | * ║   |
+        | - ║   |
         |===:===|
-        | A ║ * |
-        | 0 ║ * |
-        | 0 ║ * |
-        | 0 ║ * |
-        | 0 ║ * |
+        | A ║ - |
+        | 0 ║ - |
+        | 0 ║ - |
+        | 0 ║ - |
+        | 0 ║ - |
         `).toBeMatchToSelectionPattern();
     });
 
@@ -143,16 +123,11 @@ describe('ContextMenu (RTL mode)', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(3); // "Insert column right"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column right');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(`
-        | * ║   |
+        | - ║   |
         |===:===|
         `).toBeMatchToSelectionPattern();
     });
@@ -167,12 +142,7 @@ describe('ContextMenu (RTL mode)', () => {
 
       contextMenu(getCell(1, 1));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(3); // "Insert column right"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert column right');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual(['A1', null, 'B1', 'C1', 'D1', 'E1']);

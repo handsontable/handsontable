@@ -13,8 +13,8 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --port 8080",
-    "build": "ng build",
+    "start": "cross-env NODE_OPTIONS=--openssl-legacy-provider ng serve --port 8080",
+    "build": "cross-env NODE_OPTIONS=--openssl-legacy-provider ng build",
     "test": "node spec/support/jasmine.config.js"
   },
   "dependencies": {

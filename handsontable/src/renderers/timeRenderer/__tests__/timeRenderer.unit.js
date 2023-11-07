@@ -16,6 +16,8 @@ import {
 registerCellType(TextCellType);
 
 describe('timeRenderer', () => {
+  const toMatchHTMLConfig = ['dir'];
+
   describe('registering', () => {
     it('should throw an error if renderer is not registered', () => {
       expect(getRegisteredRendererNames()).toEqual(['text']);
@@ -46,7 +48,7 @@ describe('timeRenderer', () => {
 
       timeRenderer(instance, TD, void 0, void 0, void 0, '', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td dir="ltr">Placeholder</td>');
+      expect(TD.outerHTML).toMatchHTML('<td dir="ltr">Placeholder</td>', toMatchHTMLConfig);
     });
 
     it('should replace white spaces with nbsp entity', () => {
@@ -59,7 +61,7 @@ describe('timeRenderer', () => {
 
       timeRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td dir="ltr">Long   text </td>');
+      expect(TD.outerHTML).toMatchHTML('<td dir="ltr">Long   text </td>', toMatchHTMLConfig);
     });
 
     it('should trim whitespaces if trimWhitespace is set as true', () => {
@@ -71,7 +73,7 @@ describe('timeRenderer', () => {
 
       timeRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td dir="ltr">Long   text</td>');
+      expect(TD.outerHTML).toMatchHTML('<td dir="ltr">Long   text</td>', toMatchHTMLConfig);
     });
 
     it('should trim whitespaces if wordWrap is set as true and trimWhitespace is set as true', () => {
@@ -84,7 +86,7 @@ describe('timeRenderer', () => {
 
       timeRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td dir="ltr">Long   text</td>');
+      expect(TD.outerHTML).toMatchHTML('<td dir="ltr">Long   text</td>', toMatchHTMLConfig);
     });
 
     it('should insert stringified value', () => {
@@ -95,7 +97,7 @@ describe('timeRenderer', () => {
 
       timeRenderer(instance, TD, void 0, void 0, void 0, value, cellMeta);
 
-      expect(TD.outerHTML).toBe('<td dir="ltr">1,2,3</td>');
+      expect(TD.outerHTML).toMatchHTML('<td dir="ltr">1,2,3</td>', toMatchHTMLConfig);
     });
 
     it('should apply "dir" attribute as "ltr" to the TD element', () => {

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved keyboard shortcuts navigation for the context and dropdown menus and add new `forwardToContext` option to the ShortcutManager.",
+  "type": "changed",
+  "issueOrPR": 10519,
+  "breaking": true,
+  "framework": "none"
+}

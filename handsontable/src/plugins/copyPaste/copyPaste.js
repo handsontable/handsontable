@@ -2,24 +2,28 @@ import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
 import { stringify } from '../../3rdparty/SheetClip';
 import { sanitize } from '../../helpers/string';
-import { getSelectionText } from '../../helpers/dom/element';
+import {
+  removeContentEditableFromElementAndDeselect,
+  runWithSelectedContendEditableElement,
+  makeElementContentEditableAndSelectItsContent
+} from '../../helpers/dom/element';
+import { isSafari } from '../../helpers/browser';
 import copyItem from './contextMenuItem/copy';
 import copyColumnHeadersOnlyItem from './contextMenuItem/copyColumnHeadersOnly';
 import copyWithColumnGroupHeadersItem from './contextMenuItem/copyWithColumnGroupHeaders';
 import copyWithColumnHeadersItem from './contextMenuItem/copyWithColumnHeaders';
 import cutItem from './contextMenuItem/cut';
-import PasteEvent from './pasteEvent';
-import { createElement, destroyElement } from './focusableElement';
 import {
   CopyableRangesFactory,
   normalizeRanges,
 } from './copyableRanges';
 import {
-  getDataByCoords,
+  getDataByCoords, getHTMLFromConfig,
 } from '../../utils/parseTable';
+import EventManager from '../../eventManager';
 
 import './copyPaste.css';
-import { ActionInfo } from './actionInfo';
+import { CopyClipboardData, PasteClipboardData, META_HEAD } from './clipboardData';
 
 Hooks.getSingleton().register('afterCopyLimit');
 Hooks.getSingleton().register('modifyCopyableRange');
@@ -181,13 +185,6 @@ export class CopyPaste extends BasePlugin {
    * @type {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>}
    */
   copyableRanges = [];
-  /**
-   * Provides focusable element to support IME and copy/paste/cut actions.
-   *
-   * @private
-   * @type {FocusableWrapper}
-   */
-  focusableElement = void 0;
 
   /**
    * Checks if the [`CopyPaste`](#copypaste) plugin is enabled.
@@ -221,15 +218,25 @@ export class CopyPaste extends BasePlugin {
     }
 
     this.addHook('afterContextMenuDefaultOptions', options => this.onAfterContextMenuDefaultOptions(options));
-    this.addHook('afterOnCellMouseUp', () => this.onAfterOnCellMouseUp());
     this.addHook('afterSelectionEnd', () => this.onAfterSelectionEnd());
-    this.addHook('beforeKeyDown', () => this.onBeforeKeyDown());
 
-    this.focusableElement = createElement(this.uiContainer);
-    this.focusableElement
-      .addLocalHook('copy', event => this.onCopy(event))
-      .addLocalHook('cut', event => this.onCut(event))
-      .addLocalHook('paste', event => this.onPaste(event));
+    this.eventManager = new EventManager(this);
+
+    this.eventManager.addEventListener(this.hot.rootDocument, 'copy', (...args) => this.onCopy(...args));
+    this.eventManager.addEventListener(this.hot.rootDocument, 'cut', (...args) => this.onCut(...args));
+    this.eventManager.addEventListener(this.hot.rootDocument, 'paste', (...args) => this.onPaste(...args));
+
+    // Without this workaround Safari (tested on Safari@16.5.2) does allow copying/cutting from the browser menu.
+    if (isSafari()) {
+      this.eventManager.addEventListener(
+        this.hot.rootDocument.body, 'mouseenter', (...args) => this.onSafariMouseEnter(...args)
+      );
+      this.eventManager.addEventListener(
+        this.hot.rootDocument.body, 'mouseleave', (...args) => this.onSafariMouseLeave(...args)
+      );
+
+      this.addHook('afterSelection', () => this.onSafariAfterSelection());
+    }
 
     super.enablePlugin();
   }
@@ -245,7 +252,6 @@ export class CopyPaste extends BasePlugin {
   updatePlugin() {
     this.disablePlugin();
     this.enablePlugin();
-    this.getOrCreateFocusableElement();
 
     super.updatePlugin();
   }
@@ -254,10 +260,6 @@ export class CopyPaste extends BasePlugin {
    * Disables the [`CopyPaste`](#copypaste) plugin for your Handsontable instance.
    */
   disablePlugin() {
-    if (this.focusableElement) {
-      destroyElement(this.focusableElement);
-    }
-
     super.disablePlugin();
   }
 
@@ -278,9 +280,8 @@ export class CopyPaste extends BasePlugin {
   copy(copyMode = 'cells-only') {
     this.#copyMode = copyMode;
     this.#isTriggeredByCopy = true;
-    this.getOrCreateFocusableElement();
-    this.focusableElement.focus();
-    this.hot.rootDocument.execCommand('copy');
+
+    this.#ensureClipboardEventsGetTriggered('copy');
   }
 
   /**
@@ -313,9 +314,8 @@ export class CopyPaste extends BasePlugin {
    */
   cut() {
     this.#isTriggeredByCut = true;
-    this.getOrCreateFocusableElement();
-    this.focusableElement.focus();
-    this.hot.rootDocument.execCommand('cut');
+
+    this.#ensureClipboardEventsGetTriggered('cut');
   }
 
   /**
@@ -353,16 +353,26 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
-    const pasteData = new PasteEvent();
+    const pasteData = {
+      clipboardData: {
+        data: {},
+        setData(type, value) {
+          this.data[type] = value;
+        },
+        getData(type) {
+          return this.data[type];
+        }
+      }
+    };
 
     if (pastableText) {
       pasteData.clipboardData.setData('text/plain', pastableText);
     }
+
     if (pastableHtml) {
       pasteData.clipboardData.setData('text/html', pastableHtml);
     }
 
-    this.getOrCreateFocusableElement();
     this.onPaste(pasteData);
   }
 
@@ -373,6 +383,12 @@ export class CopyPaste extends BasePlugin {
     const selectionRange = this.hot.getSelectedRangeLast();
 
     if (!selectionRange) {
+      return;
+    }
+
+    if (selectionRange.isSingleHeader()) {
+      this.copyableRanges = [];
+
       return;
     }
 
@@ -416,21 +432,6 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Force focus on editable element.
-   *
-   * @private
-   */
-  getOrCreateFocusableElement() {
-    const editableElement = this.hot.getActiveEditor()?.TEXTAREA;
-
-    if (editableElement) {
-      this.focusableElement.setFocusableElement(editableElement);
-    } else {
-      this.focusableElement.useSecondaryElement();
-    }
-  }
-
-  /**
    * Verifies if editor exists and is open.
    *
    * @private
@@ -438,6 +439,32 @@ export class CopyPaste extends BasePlugin {
    */
   isEditorOpened() {
     return this.hot.getActiveEditor()?.isOpened();
+  }
+
+  /**
+   * Ensure that the `copy`/`cut` events get triggered properly in Safari.
+   *
+   * @param {string} eventName Name of the event to get triggered.
+   */
+  #ensureClipboardEventsGetTriggered(eventName) {
+    // Without this workaround Safari (tested on Safari@16.5.2) does not trigger the 'copy' event.
+    if (isSafari()) {
+      const lastSelectedRange = this.hot.getSelectedRangeLast();
+
+      if (lastSelectedRange) {
+        const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
+        const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
+
+        if (currentlySelectedCell) {
+          runWithSelectedContendEditableElement(currentlySelectedCell, () => {
+            this.hot.rootDocument.execCommand(eventName);
+          });
+        }
+      }
+
+    } else {
+      this.hot.rootDocument.execCommand(eventName);
+    }
   }
 
   /**
@@ -509,6 +536,43 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
+   * Add the `contenteditable` attribute to the highlighted cell and select its content.
+   */
+  #addContentEditableToHighlightedCell() {
+    if (this.hot.isListening()) {
+      const lastSelectedRange = this.hot.getSelectedRangeLast();
+
+      if (lastSelectedRange) {
+        const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
+        const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
+
+        if (currentlySelectedCell) {
+          makeElementContentEditableAndSelectItsContent(currentlySelectedCell);
+        }
+      }
+    }
+  }
+
+  /**
+   * Remove the `contenteditable` attribute from the highlighted cell and deselect its content.
+   */
+  #removeContentEditableFromHighlightedCell() {
+    // If the instance is not listening, the workaround is not needed.
+    if (this.hot.isListening()) {
+      const lastSelectedRange = this.hot.getSelectedRangeLast();
+
+      if (lastSelectedRange) {
+        const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
+        const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
+
+        if (currentlySelectedCell?.hasAttribute('contenteditable')) {
+          removeContentEditableFromElementAndDeselect(currentlySelectedCell);
+        }
+      }
+    }
+  }
+
+  /**
    * `copy` event callback on textarea element.
    *
    * @param {ClipboardEvent} event ClipboardEvent.
@@ -522,18 +586,15 @@ export class CopyPaste extends BasePlugin {
     this.setCopyableText();
     this.#isTriggeredByCopy = false;
 
-    const actionInfo = new ActionInfo({
-      type: 'copy',
-      instance: this.hot,
-      copyableRanges: this.copyableRanges
-    });
-    const allowCopying = !!this.hot.runHooks('beforeCopy', actionInfo);
+    const copyClipboardData = new CopyClipboardData(this.hot, this.copyableRanges);
+    const allowCopying = !!this.hot.runHooks('beforeCopy', copyClipboardData);
 
     if (allowCopying) {
-      event.clipboardData.setData('text/plain', stringify(actionInfo.getData()));
-      event.clipboardData.setData('text/html', actionInfo.getHTML());
+      event.clipboardData.setData('text/plain', stringify(copyClipboardData.getData()));
+      event.clipboardData.setData('text/html', [copyClipboardData.getType() === 'handsontable' ? META_HEAD : '',
+        getHTMLFromConfig(copyClipboardData.getMetaInfo())].join(''));
 
-      this.hot.runHooks('afterCopy', actionInfo);
+      this.hot.runHooks('afterCopy', copyClipboardData);
     }
 
     this.#copyMode = 'cells-only';
@@ -554,19 +615,16 @@ export class CopyPaste extends BasePlugin {
     this.setCopyableText();
     this.#isTriggeredByCut = false;
 
-    const actionInfo = new ActionInfo({
-      type: 'copy',
-      instance: this.hot,
-      copyableRanges: this.copyableRanges
-    });
-    const allowCuttingOut = !!this.hot.runHooks('beforeCut', actionInfo);
+    const copyClipboardData = new CopyClipboardData(this.hot, this.copyableRanges);
+    const allowCuttingOut = !!this.hot.runHooks('beforeCut', copyClipboardData);
 
     if (allowCuttingOut) {
-      event.clipboardData.setData('text/plain', stringify(actionInfo.getData()));
-      event.clipboardData.setData('text/html', actionInfo.getHTML());
+      event.clipboardData.setData('text/plain', stringify(copyClipboardData.getData()));
+      event.clipboardData.setData('text/html', [copyClipboardData.getType() === 'handsontable' ? META_HEAD : '',
+        getHTMLFromConfig(copyClipboardData.getMetaInfo())].join(''));
 
       this.hot.emptySelectedCells('CopyPaste.cut');
-      this.hot.runHooks('afterCut', actionInfo);
+      this.hot.runHooks('afterCut', copyClipboardData);
     }
 
     event.preventDefault();
@@ -579,7 +637,7 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onPaste(event) {
-    if (!this.hot.isListening() || this.isEditorOpened()) {
+    if (!this.hot.isListening() || this.isEditorOpened() || !this.hot.getSelected()) {
       return;
     }
 
@@ -593,16 +651,13 @@ export class CopyPaste extends BasePlugin {
       FORCE_BODY: true,
     });
 
-    const actionInfo = new ActionInfo({
-      type: 'paste',
-      html,
-    });
+    const pasteClipboardData = new PasteClipboardData(event.clipboardData.getData('text/plain'), html);
 
-    if (this.hot.runHooks('beforePaste', actionInfo) === false) {
+    if (this.hot.runHooks('beforePaste', pasteClipboardData) === false) {
       return;
     }
 
-    const pastedTable = actionInfo.getData();
+    const pastedTable = pasteClipboardData.getData();
 
     if (pastedTable.length === 0) {
       return;
@@ -617,7 +672,7 @@ export class CopyPaste extends BasePlugin {
       Math.min(this.hot.countCols() - 1, endColumn),
     );
 
-    this.hot.runHooks('afterPaste', actionInfo);
+    this.hot.runHooks('afterPaste', pasteClipboardData);
   }
 
   /**
@@ -652,22 +707,6 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Force focus on focusableElement.
-   *
-   * @private
-   */
-  onAfterOnCellMouseUp() {
-    // Changing focused element will remove current selection. It's unnecessary in case when we give possibility
-    // for fragment selection
-    if (!this.hot.isListening() || this.isEditorOpened() || this.hot.getSettings().fragmentSelection) {
-      return;
-    }
-
-    this.getOrCreateFocusableElement();
-    this.focusableElement.focus();
-  }
-
-  /**
    * Force focus on focusableElement after end of the selection.
    *
    * @private
@@ -677,47 +716,46 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
-    this.getOrCreateFocusableElement();
-
-    if (this.hot.getSettings().fragmentSelection &&
-      this.focusableElement.getFocusableElement() !== this.hot.rootDocument.activeElement && getSelectionText()) {
+    if (this.hot.getSettings().fragmentSelection) {
       return;
     }
 
     this.setCopyableText();
-    this.focusableElement.focus();
   }
 
   /**
-   * `beforeKeyDown` listener to force focus of focusableElement.
+   * `document.body` `mouseenter` callback used to work around a Safari's problem with copying/cutting from the
+   * browser's menu.
    *
    * @private
    */
-  onBeforeKeyDown() {
-    if (!this.hot.isListening() || this.isEditorOpened()) {
-      return;
-    }
-    const activeElement = this.hot.rootDocument.activeElement;
-    const activeEditor = this.hot.getActiveEditor();
+  onSafariMouseEnter() {
+    this.#removeContentEditableFromHighlightedCell();
+  }
 
-    if (!activeEditor ||
-      (activeElement !== this.focusableElement.getFocusableElement() && activeElement !== activeEditor.select)) {
-      return;
-    }
+  /**
+   * `document.body` `mouseleave` callback used to work around a Safari's problem with copying/cutting from the
+   * browser's menu.
+   *
+   * @private
+   */
+  onSafariMouseLeave() {
+    this.#addContentEditableToHighlightedCell();
+  }
 
-    this.getOrCreateFocusableElement();
-    this.focusableElement.focus();
+  /**
+   * `afterSelection` hook callback triggered only on Safari.
+   *
+   * @private
+   */
+  onSafariAfterSelection() {
+    this.#removeContentEditableFromHighlightedCell();
   }
 
   /**
    * Destroys the `CopyPaste` plugin instance.
    */
   destroy() {
-    if (this.focusableElement) {
-      destroyElement(this.focusableElement);
-      this.focusableElement = null;
-    }
-
     super.destroy();
   }
 }

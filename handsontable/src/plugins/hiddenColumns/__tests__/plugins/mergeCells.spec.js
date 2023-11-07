@@ -355,7 +355,7 @@ describe('HiddenColumns', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelected()).toEqual([[0, 1, 0, 4]]);
       expect(getSelectedRangeLast().highlight.row).toBe(0);
-      expect(getSelectedRangeLast().highlight.col).toBe(1);
+      expect(getSelectedRangeLast().highlight.col).toBe(3);
       expect(getSelectedRangeLast().from.row).toBe(0);
       expect(getSelectedRangeLast().from.col).toBe(1);
       expect(getSelectedRangeLast().to.row).toBe(0);
@@ -469,8 +469,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().to.col).toBe(4);
       expect($mergeArea.hasClass('area')).toBeTrue();
       expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
-      // TODO: Probably it should return `false`.
-      expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeTrue();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       // Probably it should return `true`, changed since 8.0.0.
       expect($mergeArea.hasClass('fullySelectedMergedCell-0')).toBeTrue();
       expect($mergeArea.hasClass('fullySelectedMergedCell-1')).toBeFalse();
@@ -1438,7 +1437,7 @@ describe('HiddenColumns', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelected()).toEqual([[2, 3, 1, 1]]); // TODO: There should be [2, 1, 1, 3] probably.
       expect(getSelectedRangeLast().highlight.row).toBe(2);
-      expect(getSelectedRangeLast().highlight.col).toBe(3); // TODO: There should be 2 probably.
+      expect(getSelectedRangeLast().highlight.col).toBe(2);
       expect(getSelectedRangeLast().from.row).toBe(2);
       expect(getSelectedRangeLast().from.col).toBe(3); // TODO: There should be 1 probably.
       expect(getSelectedRangeLast().to.row).toBe(1);
@@ -1593,7 +1592,7 @@ describe('HiddenColumns', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelected()).toEqual([[1, 3, 1, 0]]);
       expect(getSelectedRangeLast().highlight.row).toBe(1);
-      expect(getSelectedRangeLast().highlight.col).toBe(3);
+      expect(getSelectedRangeLast().highlight.col).toBe(2);
       expect(getSelectedRangeLast().from.row).toBe(1);
       expect(getSelectedRangeLast().from.col).toBe(3);
       expect(getSelectedRangeLast().to.row).toBe(1);

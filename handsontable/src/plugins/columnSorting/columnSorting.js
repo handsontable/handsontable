@@ -1,6 +1,8 @@
 import {
   addClass,
+  appendElement,
   removeClass,
+  setAttribute,
 } from '../../helpers/dom/element';
 import { isUndefined, isDefined } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
@@ -17,14 +19,21 @@ import {
   isFirstLevelColumnHeader,
   wasHeaderClickedProperly
 } from './utils';
-import { getClassesToRemove, getClassesToAdd } from './domHelpers';
+import {
+  getClassesToRemove,
+  getClassesToAdd
+} from './domHelpers';
 import { rootComparator } from './rootComparator';
 import { registerRootComparator, sort } from './sortService';
+import { A11Y_DESCRIPTION, A11Y_HIDDEN, A11Y_SORT } from '../../helpers/a11y';
+import { COLUMN_HEADER_DESCRIPTION_SORT_ROWS } from '../../i18n/constants';
 
 export const PLUGIN_KEY = 'columnSorting';
 export const PLUGIN_PRIORITY = 50;
-const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
-const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
+export const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
+export const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
+const SHORTCUTS_GROUP = PLUGIN_KEY;
+const SORTING_INDICATOR_CLASS = 'columnSortingIndicator';
 
 registerRootComparator(PLUGIN_KEY, rootComparator);
 
@@ -164,6 +173,7 @@ export class ColumnSorting extends BasePlugin {
       this.loadOrSortBySettings();
     }
 
+    this.registerShortcuts();
     super.enablePlugin();
   }
 
@@ -199,7 +209,41 @@ export class ColumnSorting extends BasePlugin {
     this.columnMetaCache = null;
     this.columnStatesManager = null;
 
+    this.unregisterShortcuts();
     super.disablePlugin();
+  }
+
+  /**
+   * Register shortcuts responsible for toggling column sorting functionality.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .addShortcut({
+        keys: [['Enter']],
+        callback: () => {
+          const { highlight } = this.hot.getSelectedRangeLast();
+
+          if (highlight.row === -1 && highlight.col >= 0) {
+            this.sort(this.getColumnNextConfig(highlight.col));
+          }
+        },
+        runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isHeader(),
+        group: SHORTCUTS_GROUP,
+      });
+  }
+
+  /**
+   * Unregister shortcuts responsible for toggling column sorting functionality.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   // DIFF - MultiColumnSorting & ColumnSorting: changed function documentation.
@@ -671,8 +715,10 @@ export class ColumnSorting extends BasePlugin {
     }
 
     const pluginSettingsForColumn = this.getFirstCellSettings(column)[this.pluginKey];
+    const ariaTags = this.hot.getSettings().ariaTags;
     const showSortIndicator = pluginSettingsForColumn.indicator;
     const headerActionEnabled = pluginSettingsForColumn.headerAction;
+    const currentSortState = this.columnStatesManager.getSortOrderOfColumn(column);
 
     this.updateHeaderClasses(
       headerSpanElement,
@@ -681,6 +727,15 @@ export class ColumnSorting extends BasePlugin {
       showSortIndicator,
       headerActionEnabled
     );
+
+    this.updateSortingIndicator(column, headerSpanElement);
+
+    if (ariaTags) {
+      setAttribute(TH, [
+        A11Y_SORT(currentSortState ? `${currentSortState}ending` : 'none'),
+        A11Y_DESCRIPTION(this.hot.getTranslatedPhrase(COLUMN_HEADER_DESCRIPTION_SORT_ROWS)),
+      ]);
+    }
   }
 
   /**
@@ -695,6 +750,29 @@ export class ColumnSorting extends BasePlugin {
 
     if (this.enabled !== false) {
       addClass(headerSpanElement, getClassesToAdd(...args));
+    }
+  }
+
+  /**
+   * Update sorting indicator.
+   *
+   * @private
+   * @param {number} column Visual column index.
+   * @param {HTMLElement} headerSpanElement Header span element.
+   */
+  updateSortingIndicator(column, headerSpanElement) {
+    const pluginSettingsForColumn = this.getFirstCellSettings(column)[this.pluginKey];
+    const ariaTags = this.hot.getSettings().ariaTags;
+    const showSortIndicator = pluginSettingsForColumn.indicator;
+    const isColumnSorted = this.columnStatesManager.isColumnSorted(column);
+    const indicatorElement = headerSpanElement.querySelector(`.${SORTING_INDICATOR_CLASS}`);
+
+    if (showSortIndicator && isColumnSorted && !indicatorElement) {
+      appendElement(headerSpanElement, {
+        tagName: 'div',
+        className: SORTING_INDICATOR_CLASS,
+        attributes: (ariaTags ? [A11Y_HIDDEN()] : []),
+      });
     }
   }
 

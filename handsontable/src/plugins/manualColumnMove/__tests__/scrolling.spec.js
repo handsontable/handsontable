@@ -90,7 +90,12 @@ describe('manualColumnMove', () => {
         manualColumnMove: true,
       });
 
-      scrollViewportTo(0, countCols() - 1);
+      scrollViewportTo({
+        row: 0,
+        col: countCols() - 1,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
 
       await sleep(10);
 
@@ -128,7 +133,12 @@ describe('manualColumnMove', () => {
         manualColumnMove: true,
       });
 
-      scrollViewportTo(0, countCols() - 1);
+      scrollViewportTo({
+        row: 0,
+        col: countCols() - 1,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
 
       await sleep(10);
 
@@ -170,7 +180,12 @@ describe('manualColumnMove', () => {
 
       await sleep(10);
 
-      scrollViewportTo(0, countCols() - 1);
+      scrollViewportTo({
+        row: 0,
+        col: countCols() - 1,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
 
       const columnHeader = $(getCell(-1, 8));
       const leftOverlayColumnHeader = $(getCell(-1, 1));
@@ -205,7 +220,12 @@ describe('manualColumnMove', () => {
         manualColumnMove: true,
       });
 
-      scrollViewportTo(0, countCols() - 1);
+      scrollViewportTo({
+        row: 0,
+        col: countCols() - 1,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
 
       await sleep(10);
 

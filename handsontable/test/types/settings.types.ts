@@ -81,6 +81,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   allowInvalid: true,
   allowRemoveColumn: true,
   allowRemoveRow: true,
+  ariaTags: true,
   autoColumnSize:  true,
   autoRowSize: true,
   autoWrapCol: true,
@@ -134,14 +135,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
   commentedCellClassName: 'foo',
   comments: oneOf(true, { displayDelay: 123 }),
   contextMenu: oneOf(true_or_false, contextMenuDemo) || [
-      'row_above', 'row_below', 'col_left', 'col_right', '---------', 'remove_row', 'remove_col',
-      'clear_column', 'undo', 'redo', 'make_read_only', 'alignment', 'cut', 'copy', 'copy_column_headers_only',
-      'copy_with_column_group_headers', 'copy_with_column_headers', 'freeze_column', 'unfreeze_column',
-      'borders', 'commentsAddEdit', 'commentsRemove', 'commentsReadOnly', 'mergeCells',
-      'add_child', 'detach_from_parent', 'hidden_columns_hide', 'hidden_columns_show', 'hidden_rows_hide',
-      'hidden_rows_show', 'filter_by_condition', 'filter_operators', 'filter_by_condition2', 'filter_by_value',
-      'filter_action_bar'
-    ],
+    'row_above', 'row_below', 'col_left', 'col_right', '---------', 'remove_row', 'remove_col',
+    'clear_column', 'undo', 'redo', 'make_read_only', 'alignment', 'cut', 'copy', 'copy_column_headers_only',
+    'copy_with_column_group_headers', 'copy_with_column_headers', 'freeze_column', 'unfreeze_column',
+    'borders', 'commentsAddEdit', 'commentsRemove', 'commentsReadOnly', 'mergeCells',
+    'add_child', 'detach_from_parent', 'hidden_columns_hide', 'hidden_columns_show', 'hidden_rows_hide',
+    'hidden_rows_show', 'filter_by_condition', 'filter_operators', 'filter_by_condition2', 'filter_by_value',
+    'filter_action_bar'
+  ],
   copyable: true,
   copyPaste: oneOf(true, {
     pasteMode: oneOf('overwrite', 'shift_down', 'shift_right'),
@@ -157,35 +158,35 @@ const allSettings: Required<Handsontable.GridSettings> = {
   currentHeaderClassName: 'foo',
   currentRowClassName: 'foo',
   customBorders: oneOf(true, [
-    {
-      range: {
-        from: { row: 1, col: 1 },
-        to: { row: 3, col: 4 }
+      {
+        range: {
+          from: { row: 1, col: 1 },
+          to: { row: 3, col: 4 }
+        },
+        start: { width: 2, color: 'red' },
+        end: { width: 2, color: 'red' },
+        left: { width: 2, color: 'red' },
+        right: { width: 2, color: 'red' },
+        top: { width: 2, color: 'red' },
+        bottom: { width: 2, color: 'red' }
       },
-      start: { width: 2, color: 'red' },
-      end: { width: 2, color: 'red' },
-      left: { width: 2, color: 'red' },
-      right: { width: 2, color: 'red' },
-      top: { width: 2, color: 'red' },
-      bottom: { width: 2, color: 'red' }
-    },
-    {
-      row: 2,
-      col: 2,
-      left: { width: 2, color: 'red' },
-      right: { width: 1, color: 'red' },
-      top: { width: 2, color: 'red' },
-      bottom: { width: 2, color: 'red' }
-    }
-  ],
-  [
-    {
-      row: 2,
-      col: 2,
-      left: '',
-      right: ''
-    }
-  ]),
+      {
+        row: 2,
+        col: 2,
+        left: { width: 2, color: 'red' },
+        right: { width: 1, color: 'red' },
+        top: { width: 2, color: 'red' },
+        bottom: { width: 2, color: 'red' }
+      }
+    ],
+    [
+      {
+        row: 2,
+        col: 2,
+        left: '',
+        right: ''
+      }
+    ]),
   data: oneOf([{}, {}, {}], [[], [], []]),
   dataSchema: oneOf({}, [[]], (index: number) => oneOf([index], { index })),
   dateFormat: 'foo',
@@ -198,6 +199,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     }
   },
   defaultDate: 'foo',
+  disableTabNavigation: oneOf(true),
   disableVisualSelection: oneOf(
     true,
     'current',
@@ -215,7 +217,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     'filter_by_condition2', 'filter_by_value', 'filter_action_bar'
   ],
   editor: oneOf(true, 'autocomplete', 'checkbox', 'date', 'dropdown', 'handsontable', 'mobile',
-  'password', 'select', 'text', 'time', 'custom.editor'),
+    'password', 'select', 'text', 'time', 'custom.editor'),
   enterBeginsEditing: true,
   enterMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({row: 1, col: 1})),
   fillHandle: oneOf(true_or_false, 'vertical', 'horizontal') || {
@@ -254,6 +256,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   hiddenColumns: true,
   hiddenRows: true,
   invalidCellClassName: 'foo',
+  imeFastEdit: true,
   isEmptyCol: (col) => col === 0,
   isEmptyRow: (row) => row === 0,
   label: {property: 'name.last', position: 'after', value: oneOf('My label: ', () => 'My label')},
@@ -277,6 +280,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   minRows: 123,
   minSpareCols: 123,
   minSpareRows: 123,
+  navigableHeaders: true,
   multiColumnSorting: true_or_false,
   nestedHeaders:  [
     ['A', {label: 'B', colspan: 8}, 'C'],
@@ -299,7 +303,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   renderer: oneOf(
     'autocomplete', 'checkbox', 'html', 'numeric', 'password', 'text', 'time', 'custom.renderer',
     (instance: Handsontable, TD: HTMLTableCellElement, row: number, col: number,
-      prop: number | string, value: any, cellProperties: Handsontable.CellProperties) => TD
+     prop: number | string, value: any, cellProperties: Handsontable.CellProperties) => TD
   ),
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
   rowHeaderWidth: oneOf(25, [25, 30, 55]),
@@ -391,9 +395,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   afterChangesObserved: () => {},
   afterColumnCollapse: (currentCollapsedColumn, destinationCollapsedColumns, collapsePossible,
-    successfullyCollapsed) => {},
+                        successfullyCollapsed) => {},
   afterColumnExpand: (currentCollapsedColumn, destinationCollapsedColumns, expandPossible,
-    successfullyExpanded) => {},
+                      successfullyExpanded) => {},
   afterColumnFreeze: (columnIndex, isFreezingPerformed) => {},
   afterColumnMove: (columns, target) => {},
   afterColumnResize: (newSize, column, isDoubleClick) => {},
@@ -403,11 +407,33 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterContextMenuDefaultOptions: (predefinedItems) => {},
   afterContextMenuHide: (context) => {},
   afterContextMenuShow: (context) => {},
-  afterCopy: (actionInfo) => {},
+  afterCopy: (clipboardData) => {
+    clipboardData.removeRows([0]);
+    clipboardData.removeColumns([0]);
+    clipboardData.insertAtRow(0, ['A', 'B', 'C']);
+    clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
+    clipboardData.setCellAt(0, 0, '');
+    clipboardData.getCellAt(0, 0);
+    clipboardData.getData();
+    clipboardData.getMetaInfo();
+    clipboardData.getType();
+    clipboardData.getRanges();
+  },
   afterCopyLimit: (selectedRows, selectedColumnds, copyRowsLimit, copyColumnsLimit) => {},
   afterCreateCol: (index, amount, source) => {},
   afterCreateRow: (index, amount, source) => {},
-  afterCut: (actionInfo) => {},
+  afterCut: (clipboardData) => {
+    clipboardData.removeRows([0]);
+    clipboardData.removeColumns([0]);
+    clipboardData.insertAtRow(0, ['A', 'B', 'C']);
+    clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
+    clipboardData.setCellAt(0, 0, '');
+    clipboardData.getCellAt(0, 0);
+    clipboardData.getData();
+    clipboardData.getMetaInfo();
+    clipboardData.getType();
+    clipboardData.getRanges();
+  },
   afterDeselect: () => {},
   afterDestroy: () => {},
   afterDetachChild: (parent, element) => {},
@@ -443,7 +469,17 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterOnCellMouseOver: (event, coords, TD) => {},
   afterOnCellMouseOut: (event, coords, TD) => {},
   afterOnCellMouseUp: (event, coords, TD) => {},
-  afterPaste: (actionInfo) => {},
+  afterPaste: (clipboardData) => {
+    clipboardData.removeRows([0]);
+    clipboardData.removeColumns([0]);
+    clipboardData.insertAtRow(0, ['A', 'B', 'C']);
+    clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
+    clipboardData.setCellAt(0, 0, '');
+    clipboardData.getCellAt(0, 0);
+    clipboardData.getData();
+    clipboardData.getMetaInfo();
+    clipboardData.getType();
+  },
   afterPluginsInitialized: () => {},
   afterRedo: (action) => {},
   afterRedoStackChange: (undoneActionsBefore, undoneActionsAfter) => {},
@@ -454,15 +490,18 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterRender: (isForced) => {},
   afterRenderer: (TD, row, col, prop, value, cellProperties) => {},
   afterRowMove: (movedRows, finalIndex, dropIndex, movePossible,
-    orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
+                 orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
   afterRowResize: (newSize, row, isDoubleClick) => {},
   afterRowSequenceChange: (source) => {},
   afterScrollHorizontally: () => {},
   afterScrollVertically: () => {},
+  afterScroll: () => {},
+  afterSelectColumns: (from, to, highlight) => {},
   afterSelection: (r, c, r2, c2, preventScrolling, selectionLayerLevel) => preventScrolling.value = true,
   afterSelectionByProp: (r, p, r2, p2, preventScrolling, selectionLayerLevel) => preventScrolling.value = true,
   afterSelectionEnd: (r, c, r2, c2, selectionLayerLevel) => {},
   afterSelectionEndByProp: (r, p, r2, p2, selectionLayerLevel) => {},
+  afterSelectRows: (from, to, highlight) => {},
   afterSetCellMeta: (row, col, key, value) => {},
   afterSetDataAtCell: (changes, source) => {},
   afterSetDataAtRowProp: (changes, source) => {},
@@ -481,9 +520,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterUpdateData: (sourceData, firstTime, source) => {},
   afterUpdateSettings: () => {},
   afterValidate: () => {},
-  afterViewRender: (isForced) => {},
   afterViewportColumnCalculatorOverride: (calc) => {},
   afterViewportRowCalculatorOverride: (calc) => {},
+  afterViewRender: (isForced) => {},
   beforeAddChild: (parent, element, index) => {},
   beforeAutofill: (start, end, data) => {},
   beforeCellAlignment: (stateBefore, range, type, alignmentClass) => {},
@@ -495,32 +534,40 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeColumnMove: (columns, target) => {},
   beforeColumnResize: (newSize, column, isDoubleClick) => {},
   beforeColumnSort: (currentSortConfig, destinationSortConfigs) => {},
+  beforeColumnWrap: (isAutoWrapEnabled, newCoords, isColumnFlipped) => {
+    const _isAutoWrapEnabled: boolean = isAutoWrapEnabled;
+    const _isColumnFlipped: boolean = isColumnFlipped;
+
+    newCoords.clone();
+  },
   beforeColumnUnfreeze: (columnIndex, isFreezingPerformed) => false,
   beforeContextMenuSetItems: (menuItems) => {},
   beforeContextMenuShow: (context) => {},
-  beforeCopy: (actionInfo) => {
-    actionInfo.remove({ rows: [0], columns: [0] });
-    actionInfo.insertAtRow(0, ['A', 'B', 'C']);
-    actionInfo.insertAtColumn(0, ['A', 'B', 'C']);
-    actionInfo.change([{ row: 0, column: 0, value: '' }]);
-    actionInfo.isTable();
-    actionInfo.isHandsontable();
-    actionInfo.getData();
-    actionInfo.getHTML();
-    actionInfo.getGridSettings();
+  beforeCopy: (clipboardData) => {
+    clipboardData.removeRows([0]);
+    clipboardData.removeColumns([0]);
+    clipboardData.insertAtRow(0, ['A', 'B', 'C']);
+    clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
+    clipboardData.setCellAt(0, 0, '');
+    clipboardData.getCellAt(0, 0);
+    clipboardData.getData();
+    clipboardData.getMetaInfo();
+    clipboardData.getType();
+    clipboardData.getRanges();
   },
   beforeCreateCol: (index, amount, source) => {},
   beforeCreateRow: (index, amount, source) => {},
-  beforeCut: (actionInfo) => {
-    actionInfo.remove({ rows: [0], columns: [0] });
-    actionInfo.insertAtRow(0, ['A', 'B', 'C']);
-    actionInfo.insertAtColumn(0, ['A', 'B', 'C']);
-    actionInfo.change([{ row: 0, column: 0, value: '' }]);
-    actionInfo.isTable();
-    actionInfo.isHandsontable();
-    actionInfo.getData();
-    actionInfo.getHTML();
-    actionInfo.getGridSettings();
+  beforeCut: (clipboardData) => {
+    clipboardData.removeRows([0]);
+    clipboardData.removeColumns([0]);
+    clipboardData.insertAtRow(0, ['A', 'B', 'C']);
+    clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
+    clipboardData.setCellAt(0, 0, '');
+    clipboardData.getCellAt(0, 0);
+    clipboardData.getData();
+    clipboardData.getMetaInfo();
+    clipboardData.getType();
+    clipboardData.getRanges();
   },
   beforeDetachChild: (parent, element) => {},
   beforeDrawBorders: (corners, borderClassName) => {},
@@ -543,16 +590,16 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeOnCellMouseOut: (event, coords, TD) => {},
   beforeOnCellMouseOver: (event, coords, TD, controller) => {},
   beforeOnCellMouseUp: (event, coords, TD) => {},
-  beforePaste: (actionInfo) => {
-    actionInfo.remove({ rows: [0], columns: [0] });
-    actionInfo.insertAtRow(0, ['A', 'B', 'C']);
-    actionInfo.insertAtColumn(0, ['A', 'B', 'C']);
-    actionInfo.change([{ row: 0, column: 0, value: '' }]);
-    actionInfo.isTable();
-    actionInfo.isHandsontable();
-    actionInfo.getData();
-    actionInfo.getHTML();
-    actionInfo.getGridSettings();
+  beforePaste: (clipboardData) => {
+    clipboardData.removeRows([0]);
+    clipboardData.removeColumns([0]);
+    clipboardData.insertAtRow(0, ['A', 'B', 'C']);
+    clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
+    clipboardData.setCellAt(0, 0, '');
+    clipboardData.getCellAt(0, 0);
+    clipboardData.getData();
+    clipboardData.getMetaInfo();
+    clipboardData.getType();
   },
   beforeRedo: (action) => {},
   beforeRedoStackChange: (undoneActions) => {},
@@ -565,6 +612,15 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeRenderer: (TD, row, col, prop, value, cellProperties) => {},
   beforeRowMove: (movedRows, finalIndex, dropIndex, movePossible) => {},
   beforeRowResize: (newSize, row, isDoubleClick) => {},
+  beforeRowWrap: (isAutoWrapEnabled, newCoords, isRowFlipped) => {
+    const _isAutoWrapEnabled: boolean = isAutoWrapEnabled;
+    const _isRowFlipped: boolean = isRowFlipped;
+
+    newCoords.clone();
+  },
+  beforeSelectColumns: (from, to, highlight) => {},
+  beforeSelectionHighlightSet: () => {},
+  beforeSelectRows: (from, to, highlight) => {},
   beforeSetCellMeta: (row, col, key, value) => {},
   beforeSetRangeEnd: (coords) => {},
   beforeSetRangeStart: (coords) => {},
@@ -581,6 +637,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeUpdateData: (sourceData, firstTime, source) => {},
   beforeValidate: (value, row, prop, source) => {},
   beforeValueRender: (value) => {},
+  beforeViewportScrollVertically: (visualRow) => visualRow + 1,
+  beforeViewportScrollHorizontally: (visualColumn) => visualColumn + 1,
+  beforeViewportScroll: () => {},
   beforeViewRender: (isForced, skipRender) => {},
   construct: () => {},
   init: () => {},
@@ -591,7 +650,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   modifyColumnHeaderValue: (headerValue, visualColumnIndex, headerLevel) => {},
   modifyColWidth: (width) => {},
   modifyCopyableRange: (copyableRanges) => {},
+  modifyFocusedElement: (row, column, focusedElement) => document.createElement('TD'),
   modifyData: () => {},
+  modifyFocusOnTabNavigation: (tabActivationDir, visualCoords) => {},
   modifyGetCellCoords: (row, column, topmost) => {},
   modifyRowData: (row) => {},
   modifyRowHeader: (row) => {},

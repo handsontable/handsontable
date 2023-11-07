@@ -15,7 +15,7 @@ import {
   alignHeaders
 } from "./hooksCallbacks";
 
-import "handsontable/dist/handsontable.min.css";
+import "handsontable/dist/handsontable.css";
 
 const App = () => {
   return (
@@ -46,7 +46,9 @@ const App = () => {
       beforeRenderer={addClassesToRows}
       afterGetRowHeader={drawCheckboxInRowHeaders}
       afterOnCellMouseDown={changeCheckboxCell}
+      mergeCells={true}
       manualRowMove={true}
+      navigableHeaders={true}
       licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data={1} />
@@ -72,4 +74,3 @@ const rootElement = document.getElementById("root");
 ReactDOM.render(<App />, rootElement);
 
 console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate}) Wrapper: v${HotTable.version} React: v${React.version}`);
-

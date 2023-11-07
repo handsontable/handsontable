@@ -12,6 +12,7 @@ import './nestedRows.scss';
 
 export const PLUGIN_KEY = 'nestedRows';
 export const PLUGIN_PRIORITY = 300;
+const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 const privatePool = new WeakMap();
 
@@ -118,6 +119,7 @@ export class NestedRows extends BasePlugin {
     this.addHook('beforeLoadData', data => this.onBeforeLoadData(data));
     this.addHook('beforeUpdateData', data => this.onBeforeLoadData(data));
 
+    this.registerShortcuts();
     super.enablePlugin();
   }
 
@@ -127,13 +129,15 @@ export class NestedRows extends BasePlugin {
   disablePlugin() {
     this.hot.rowIndexMapper.unregisterMap('nestedRows');
 
+    this.unregisterShortcuts();
     super.disablePlugin();
   }
 
   /**
    * Updates the plugin's state.
    *
-   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the
+   * following configuration options:
    *  - [`nestedRows`](@/api/options.md#nestedrows)
    */
   updatePlugin() {
@@ -148,6 +152,45 @@ export class NestedRows extends BasePlugin {
     this.dataManager.updateWithData(currentSourceData);
 
     super.updatePlugin();
+  }
+
+  /**
+   * Register shortcuts responsible for toggling collapsible columns.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .addShortcut({
+        keys: [['Enter']],
+        callback: () => {
+          const { highlight } = this.hot.getSelectedRangeLast();
+
+          if (highlight.col === -1 && highlight.row >= 0) {
+            const row = this.collapsingUI.translateTrimmedRow(highlight.row);
+
+            if (this.collapsingUI.areChildrenCollapsed(row)) {
+              this.collapsingUI.expandChildren(row);
+            } else {
+              this.collapsingUI.collapseChildren(row);
+            }
+          }
+        },
+        runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isHeader(),
+        group: SHORTCUTS_GROUP,
+      });
+  }
+
+  /**
+   * Unregister shortcuts responsible for toggling collapsible columns.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
