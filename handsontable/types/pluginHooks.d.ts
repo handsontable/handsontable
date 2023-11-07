@@ -181,7 +181,7 @@ export interface Events {
   beforeAddChild?: (parent: RowObject, element?: RowObject, index?: number) => void;
   beforeAutofill?: (selectionData: CellValue[][], sourceRange: CellRange, targetRange: CellRange, direction: 'up' | 'down' | 'left' | 'right') => CellValue[][] | boolean | void;
   beforeCellAlignment?: (stateBefore: { [row: number]: string[] }, range: CellRange[], type: 'horizontal' | 'vertical',
-                         alignmentClass: 'htLeft' | 'htCenter' | 'htRight' | 'htJustify' | 'htTop' | 'htMiddle' | 'htBottom') => void;
+    alignmentClass: 'htLeft' | 'htCenter' | 'htRight' | 'htJustify' | 'htTop' | 'htMiddle' | 'htBottom') => void;
   beforeChange?: (changes: Array<CellChange | null>, source: ChangeSource) => void | boolean;
   beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
   beforeColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], collapsePossible: boolean) => void | boolean;

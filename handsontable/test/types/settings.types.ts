@@ -135,14 +135,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
   commentedCellClassName: 'foo',
   comments: oneOf(true, { displayDelay: 123 }),
   contextMenu: oneOf(true_or_false, contextMenuDemo) || [
-    'row_above', 'row_below', 'col_left', 'col_right', '---------', 'remove_row', 'remove_col',
-    'clear_column', 'undo', 'redo', 'make_read_only', 'alignment', 'cut', 'copy', 'copy_column_headers_only',
-    'copy_with_column_group_headers', 'copy_with_column_headers', 'freeze_column', 'unfreeze_column',
-    'borders', 'commentsAddEdit', 'commentsRemove', 'commentsReadOnly', 'mergeCells',
-    'add_child', 'detach_from_parent', 'hidden_columns_hide', 'hidden_columns_show', 'hidden_rows_hide',
-    'hidden_rows_show', 'filter_by_condition', 'filter_operators', 'filter_by_condition2', 'filter_by_value',
-    'filter_action_bar'
-  ],
+      'row_above', 'row_below', 'col_left', 'col_right', '---------', 'remove_row', 'remove_col',
+      'clear_column', 'undo', 'redo', 'make_read_only', 'alignment', 'cut', 'copy', 'copy_column_headers_only',
+      'copy_with_column_group_headers', 'copy_with_column_headers', 'freeze_column', 'unfreeze_column',
+      'borders', 'commentsAddEdit', 'commentsRemove', 'commentsReadOnly', 'mergeCells',
+      'add_child', 'detach_from_parent', 'hidden_columns_hide', 'hidden_columns_show', 'hidden_rows_hide',
+      'hidden_rows_show', 'filter_by_condition', 'filter_operators', 'filter_by_condition2', 'filter_by_value',
+      'filter_action_bar'
+    ],
   copyable: true,
   copyPaste: oneOf(true, {
     pasteMode: oneOf('overwrite', 'shift_down', 'shift_right'),
@@ -158,35 +158,35 @@ const allSettings: Required<Handsontable.GridSettings> = {
   currentHeaderClassName: 'foo',
   currentRowClassName: 'foo',
   customBorders: oneOf(true, [
-      {
-        range: {
-          from: { row: 1, col: 1 },
-          to: { row: 3, col: 4 }
-        },
-        start: { width: 2, color: 'red' },
-        end: { width: 2, color: 'red' },
-        left: { width: 2, color: 'red' },
-        right: { width: 2, color: 'red' },
-        top: { width: 2, color: 'red' },
-        bottom: { width: 2, color: 'red' }
+    {
+      range: {
+        from: { row: 1, col: 1 },
+        to: { row: 3, col: 4 }
       },
-      {
-        row: 2,
-        col: 2,
-        left: { width: 2, color: 'red' },
-        right: { width: 1, color: 'red' },
-        top: { width: 2, color: 'red' },
-        bottom: { width: 2, color: 'red' }
-      }
-    ],
-    [
-      {
-        row: 2,
-        col: 2,
-        left: '',
-        right: ''
-      }
-    ]),
+      start: { width: 2, color: 'red' },
+      end: { width: 2, color: 'red' },
+      left: { width: 2, color: 'red' },
+      right: { width: 2, color: 'red' },
+      top: { width: 2, color: 'red' },
+      bottom: { width: 2, color: 'red' }
+    },
+    {
+      row: 2,
+      col: 2,
+      left: { width: 2, color: 'red' },
+      right: { width: 1, color: 'red' },
+      top: { width: 2, color: 'red' },
+      bottom: { width: 2, color: 'red' }
+    }
+  ],
+  [
+    {
+      row: 2,
+      col: 2,
+      left: '',
+      right: ''
+    }
+  ]),
   data: oneOf([{}, {}, {}], [[], [], []]),
   dataSchema: oneOf({}, [[]], (index: number) => oneOf([index], { index })),
   dateFormat: 'foo',
@@ -217,7 +217,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     'filter_by_condition2', 'filter_by_value', 'filter_action_bar'
   ],
   editor: oneOf(true, 'autocomplete', 'checkbox', 'date', 'dropdown', 'handsontable', 'mobile',
-    'password', 'select', 'text', 'time', 'custom.editor'),
+  'password', 'select', 'text', 'time', 'custom.editor'),
   enterBeginsEditing: true,
   enterMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({row: 1, col: 1})),
   fillHandle: oneOf(true_or_false, 'vertical', 'horizontal') || {
@@ -303,7 +303,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   renderer: oneOf(
     'autocomplete', 'checkbox', 'html', 'numeric', 'password', 'text', 'time', 'custom.renderer',
     (instance: Handsontable, TD: HTMLTableCellElement, row: number, col: number,
-     prop: number | string, value: any, cellProperties: Handsontable.CellProperties) => TD
+      prop: number | string, value: any, cellProperties: Handsontable.CellProperties) => TD
   ),
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
   rowHeaderWidth: oneOf(25, [25, 30, 55]),
@@ -395,9 +395,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   afterChangesObserved: () => {},
   afterColumnCollapse: (currentCollapsedColumn, destinationCollapsedColumns, collapsePossible,
-                        successfullyCollapsed) => {},
+    successfullyCollapsed) => {},
   afterColumnExpand: (currentCollapsedColumn, destinationCollapsedColumns, expandPossible,
-                      successfullyExpanded) => {},
+    successfullyExpanded) => {},
   afterColumnFreeze: (columnIndex, isFreezingPerformed) => {},
   afterColumnMove: (columns, target) => {},
   afterColumnResize: (newSize, column, isDoubleClick) => {},
@@ -490,7 +490,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterRender: (isForced) => {},
   afterRenderer: (TD, row, col, prop, value, cellProperties) => {},
   afterRowMove: (movedRows, finalIndex, dropIndex, movePossible,
-                 orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
+    orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
   afterRowResize: (newSize, row, isDoubleClick) => {},
   afterRowSequenceChange: (source) => {},
   afterScrollHorizontally: () => {},
