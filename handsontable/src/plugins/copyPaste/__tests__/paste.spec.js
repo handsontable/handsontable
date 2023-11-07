@@ -401,28 +401,28 @@ describe('CopyPaste', () => {
 
       clipboardEvent.clipboardData.setData('text/html', [
         '<table>' +
-        '<thead>' +
-        '<tr>' +
-        '<th>A</th>' +
-        '<th>B</th>' +
-        '<th>C</th>' +
-        '<th>D</th>' +
-        '</tr>' +
-        '</thead>' +
-        '<tbody>' +
-        '<tr>' +
-        '<td>A1</td>' +
-        '<td>B1</td>' +
-        '<td>C1</td>' +
-        '<td>D1</td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td>A2</td>' +
-        '<td>B2</td>' +
-        '<td>C2</td>' +
-        '<td>D2</td>' +
-        '</tr>' +
-        '</tbody>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>A</th>' +
+              '<th>B</th>' +
+              '<th>C</th>' +
+              '<th>D</th>' +
+            '</tr>' +
+            '</thead>' +
+            '<tbody>' +
+            '<tr>' +
+              '<td>A1</td>' +
+              '<td>B1</td>' +
+              '<td>C1</td>' +
+              '<td>D1</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td>A2</td>' +
+              '<td>B2</td>' +
+              '<td>C2</td>' +
+              '<td>D2</td>' +
+            '</tr>' +
+          '</tbody>' +
         '</table>'
       ].join('\r\n'));
 
@@ -455,26 +455,26 @@ describe('CopyPaste', () => {
 
       clipboardEvent.clipboardData.setData('text/html', [
         '<table>' +
-        '<thead>' +
-        '<tr>' +
-        '<th>A-0-0</th>' +
-        '<th>A-0-1</th>' +
-        '</tr>' +
-        '<tr>' +
-        '<th>B-1-0</th>' +
-        '<th>B-1-1</th>' +
-        '</tr>' +
-        '</thead>' +
-        '<tbody>' +
-        '<tr>' +
-        '<td>A1</td>' +
-        '<td>B1</td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td>A2</td>' +
-        '<td>B2</td>' +
-        '</tr>' +
-        '</tbody>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>A-0-0</th>' +
+              '<th>A-0-1</th>' +
+            '</tr>' +
+            '<tr>' +
+              '<th>B-1-0</th>' +
+              '<th>B-1-1</th>' +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+            '<tr>' +
+              '<td>A1</td>' +
+              '<td>B1</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td>A2</td>' +
+              '<td>B2</td>' +
+            '</tr>' +
+          '</tbody>' +
         '</table>'
       ].join('\r\n'));
 
@@ -515,26 +515,26 @@ describe('CopyPaste', () => {
 
       clipboardEvent.clipboardData.setData('text/html', [
         '<table>' +
-        '<thead>' +
-        '<tr>' +
-        '<th>A-0-0</th>' +
-        '<th>A-0-1</th>' +
-        '</tr>' +
-        '<tr>' +
-        '<th>B-1-0</th>' +
-        '<th>B-1-1</th>' +
-        '</tr>' +
-        '</thead>' +
-        '<tbody>' +
-        '<tr>' +
-        '<td>A1</td>' +
-        '<td>B1</td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td>A2</td>' +
-        '<td>B2</td>' +
-        '</tr>' +
-        '</tbody>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>A-0-0</th>' +
+              '<th>A-0-1</th>' +
+            '</tr>' +
+            '<tr>' +
+              '<th>B-1-0</th>' +
+              '<th>B-1-1</th>' +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+            '<tr>' +
+              '<td>A1</td>' +
+              '<td>B1</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td>A2</td>' +
+              '<td>B2</td>' +
+            '</tr>' +
+          '</tbody>' +
         '</table>'
       ].join('\r\n'));
 
@@ -575,26 +575,26 @@ describe('CopyPaste', () => {
 
       clipboardEvent.clipboardData.setData('text/html', [
         '<table>' +
-        '<thead>' +
-        '<tr>' +
-        '<th>A-0-0</th>' +
-        '<th>A-0-1</th>' +
-        '</tr>' +
-        '<tr>' +
-        '<th>B-1-0</th>' +
-        '<th>B-1-1</th>' +
-        '</tr>' +
-        '</thead>' +
-        '<tbody>' +
-        '<tr>' +
-        '<td>A1</td>' +
-        '<td>B1</td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td>A2</td>' +
-        '<td>B2</td>' +
-        '</tr>' +
-        '</tbody>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>A-0-0</th>' +
+              '<th>A-0-1</th>' +
+            '</tr>' +
+            '<tr>' +
+              '<th>B-1-0</th>' +
+              '<th>B-1-1</th>' +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+            '<tr>' +
+              '<td>A1</td>' +
+              '<td>B1</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td>A2</td>' +
+              '<td>B2</td>' +
+            '</tr>' +
+          '</tbody>' +
         '</table>'
       ].join('\r\n'));
 
@@ -636,12 +636,12 @@ describe('CopyPaste', () => {
 
       clipboardEvent.clipboardData.setData('text/html', [
         '<table>' +
-        '<thead>' +
-        '<tr>' +
-        '<th>A-0-0</th>' +
-        '<th>A-0-1</th>' +
-        '</tr>' +
-        '</thead>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>A-0-0</th>' +
+              '<th>A-0-1</th>' +
+            '</tr>' +
+          '</thead>' +
         '</table>'
       ].join('\r\n'));
 
@@ -677,26 +677,26 @@ describe('CopyPaste', () => {
 
       clipboardEvent.clipboardData.setData('text/html', [
         '<table>' +
-        '<thead>' +
-        '<tr>' +
-        '<th>A-0-0</th>' +
-        '<th>A-0-1</th>' +
-        '</tr>' +
-        '<tr>' +
-        '<th>B-1-0</th>' +
-        '<th>B-1-1</th>' +
-        '</tr>' +
-        '</thead>' +
-        '<tbody>' +
-        '<tr>' +
-        '<td>A1</td>' +
-        '<td>B1</td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td>A2</td>' +
-        '<td>B2</td>' +
-        '</tr>' +
-        '</tbody>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>A-0-0</th>' +
+              '<th>A-0-1</th>' +
+            '</tr>' +
+            '<tr>' +
+              '<th>B-1-0</th>' +
+              '<th>B-1-1</th>' +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+            '<tr>' +
+            '<td>A1</td>' +
+            '<td>B1</td>' +
+            '</tr>' +
+            '<tr>' +
+            '<td>A2</td>' +
+            '<td>B2</td>' +
+            '</tr>' +
+          '</tbody>' +
         '</table>'
       ].join('\r\n'));
 
