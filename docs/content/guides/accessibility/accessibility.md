@@ -25,7 +25,7 @@ searchCategory: Guides
 ---
 # Accessibility
 
-Handsontable is designed to be accessible, aligning with global standards. We prioritize inclusivity, ensuring web applications are usable by as many people with disabilities as possible. 
+Handsontable is designed to be accessible, aligning with global standards. We prioritize inclusivity, ensuring web applications are usable by people with disabilities. 
 
 [[toc]]
 
@@ -38,7 +38,7 @@ Accessibility features of Handsontable include:
 - Standards conforming to [WCAG 2.1 AA](https://www.w3.org/WAI/WCAG21/quickref/)
 
 ## Conformance with standards
-Standard regulations laid out by different jurisdictions such as the European Union or the US, are inline with WCAG.
+Handsontable aligns with global standards and regulations. These standards, which are in accordance with the Web Content Accessibility Guidelines (WCAG), aim to make the web more inclusive for individuals with disabilities.
 
 A list of the most known accessibility standards are:
 <br> 
@@ -60,9 +60,10 @@ Accessibility Statement and VPAT (Voluntary Product Accessibility Template) for 
 <!-- Chris to send the documents VPAT and Accessibility statement -->
 
 ## Keyboard navigation
-Handsontable doesn't require a mouse to operate. This is critical for people who rely on a keyboard or other assistive technologies. 
+Handsontable mainly uses keyboard navigation. This is critical for people who rely on a keyboard or other assistive technologies. 
 Importantly, depending on your needs, the navigation can be customized through the API.
-<br><br>Learn more in the following sections:
+
+Learn more in the following sections:
 
 - [Keyboard navigation](@/guides/navigation/keyboard-navigation.md)
 - [Default keyboard shortcuts](@/guides/navigation/keyboard-shortcuts.md)
@@ -74,51 +75,37 @@ Handsontable works as both a spreadsheet application and a data grid. While the 
 
 |               | Data grid mode                                                                 | Spreadsheet mode (default)                                                                                           |
 |----------------------------------|--------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
-| Configuration options            | `navigableHeaders: true` <br>  `tabMoves: false`                                  | `navigableHeaders: false` <br> and <br> `tabMoves: true`                                                                        |
+| Configuration options            | `navigableHeaders: true` <br>  `tabMoves: false`                                  | `navigableHeaders: false` <br> `tabMoves: true`                                                                        |
 | Brief description                | The <kbd>Arrow keys</kbd> are primarly used to navigate across the grid. Use simple shortcut keys such as <kbd>Enter</kbd> or <kbd>Space</kbd> to open menus or interact with headers, cells, or editors. <br>You cannot use <kbd>Tab</kbd> key to navigate across the grid.| The <kbd>Tab</kbd> key is primarily used to navigate across the grid.<br>This scenario provides an experience familiar to users of Excel or Google Sheets. To open menus users need to learn and use more complex shortcut keys. |
 | Primary navigation method        | <kbd>Arrow keys</kbd>                                                                     | <kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd>                                                                                                    |
 | <kbd>Tab</kbd> sequence within the page     | One <kbd>Tab</kbd> stop - the grid is included in the page sequence only once.            | Multiple <kbd>Tab</kbd> stops - all the grid tabbable elements are included in the page <kbd>Tab</kbd> sequence.                            |
 | Navigable headers                | Yes                                                                            | No                                                                                                                   |                                                                                              |
 ### Shortcut keys configuration
-Hansontable includes a wide range of [shortcut keys](@/guides/navigation/keyboard-shortcuts.md) for quick navigation and offers customization options.
+Hansontable includes a wide range of shortcut keys for quick navigation and offers customization options through API.
 
-Shortcuts for menu access streamline a variety of actions. When headers are set to be navigable, these shortcuts enhance accessibility, making it simpler for users with disabilities to move through the grid.
-| Windows                       | macOS                         | Action                                  |
-|-------------------------------|-------------------------------|-----------------------------------------|
-| <kbd>Shift</kbd> + <kbd>Alt</kbd> + <kbd>I</kbd>       | <kbd>Shift</kbd> + <kbd>Option</kbd> + <kbd>I</kbd>    | Open column menu (any table cell)      |
-| <kbd>Ctrl</kbd> + <kbd>Enter</kbd>                    | <kbd>Cmd</kbd> + <kbd>Enter</kbd>                       | Open column menu (column header)      |
-| <kbd>Shift</kbd> + <kbd>Enter</kbd>                   | <kbd>Shift</kbd> + <kbd>Enter</kbd>                     | Sort data                            |
-| <kbd>Alt</kbd> + <kbd>A</kbd>                      | <kbd>Option</kbd> + <kbd>A</kbd>                           | Clear filters                          |
-| <kbd>Ctrl</kbd> + <kbd>space</kbd>                    | <kbd>Cmd</kbd> + <kbd>space</kbd>                      | Select the entire column               |
-| <kbd>Shift</kbd> + <kbd>space</kbd>                   | <kbd>Shift</kbd> + <kbd>space</kbd>                     | Select the entire row                  |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd>      | <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd>                       | Invoke context menu                    |
+| Windows                                         | macOS                                           | Action                                      | Focus                    |
+|-------------------------------------------------|-------------------------------------------------|---------------------------------------------|-----------------------------|
+| <kbd>Shift</kbd> + <kbd>Alt</kbd> + <kbd>I</kbd>       | <kbd>Shift</kbd> + <kbd>Option</kbd> + <kbd>I</kbd>    | Open column menu       | Any table cell              |
+| <kbd>Ctrl</kbd> + <kbd>Enter</kbd>                    | <kbd>Cmd</kbd> + <kbd>Enter</kbd>                       | Open column menu           | Column header               |
+| <kbd>Shift</kbd> + <kbd>Enter</kbd>                   | <kbd>Shift</kbd> + <kbd>Enter</kbd>                     | Sort data                                  |    Column header             |
+| <kbd>Alt</kbd> + <kbd>A</kbd>                         | <kbd>Option</kbd> + <kbd>A</kbd>                        | Clear filters                              |      Any table cell            |
+| <kbd>Ctrl</kbd> + <kbd>Space</kbd>                    | <kbd>Cmd</kbd> + <kbd>Space</kbd>                       | Select the entire column                   | Any cell in a column        |
+| <kbd>Shift</kbd> + <kbd>Space</kbd>                   | <kbd>Shift</kbd> + <kbd>Space</kbd>                     | Select the entire row                      | Any cell in a row           |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd>      | <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> | Invoke context menu          |  Any table cell |
 
-
+For the full reference , go to the [shortcut keys](@/guides/navigation/keyboard-shortcuts.md) page.
 ## Screen readers
-Handsontable is recognized as a composite widget by WAI-ARIA and uses the ARIA role of 'treegrid' to meet established accessibility standards. It incorporates ARIA attributes to make the grid's structure and content more comprehensible to screen readers, improving the experience for users with visual impairments.
+Handsontable incorporates ARIA attributes to make its content available to screen readers and other assistive technologies. 
 
-Handsontable focuses on compatibility with a range of screen readers, with particular emphasis on testing with:
+Handsontable is being tested with popular screen readers for compatibility. We specifically focus on testing with the following software:
 
 * [JAWS](https://www.freedomscientific.com/products/software/jaws/) for Windows
 * [VoiceOver](https://www.apple.com/voiceover/info/guide/_1121.html) for macOS
 * [NVDA](https://www.nvaccess.org/) for Windows
-* [ChromeVox](https://chrome.google.com/webstore/detail/screen-reader/kgejglhpjiefppelpmljglcjbhoiplfn), the Chrome screen reader
 
 
-## Accessibility demo
-**Handsontable demo optimized for Accessibility** may vary based on the application you create. In the demo provided, you can toggle various options to adjust the accessibility support for users with disabilities.
-
-| Option                                  | Default | Definition |
-|:----------------------------------------|:--------|:-----------|
-| [`navigableHeaders`](@/api/options.md#navigableheaders) |`false`    |The `navigableHeaders` boolean option enables keyboard navigation across row and column headers using arrow or Tab keys.     |
-| [`tabMoves`](@/api/options.md#tabmoves)               |`{row: 0, col: 1}`|The `tabMoves` option sets the cell movement behavior for pressing the Tab key in a grid, allowing specification of the number of rows and columns to navigate, which can be defined using an object or a function.|
-| [`enterMoves`](@/api/options.md#entermoves)           |`{col: 0, row:1}`|The `enterMoves` option defines the navigation behavior upon pressing the Enter key in a grid, dictating the number of columns and rows the selection moves, which can be customized with an object or function, especially in relation to the `enterBeginsEditing` setting.|
-| [`enterBeginsEditing`](@/api/options.md#enterbeginsediting) |`true`  |The `enterBeginsEditing` option controls if pressing Enter key once starts editing the active cell (`true`, default) or moves to the next cell according to `enterMoves` settings (`false`).|
-| [`autoWrapCol`](@/api/options.md#autowrapcol)         |`false`     |The `autoWrapCol` option toggles vertical wrapping in a grid, where pressing ↓ in the bottom-most cell moves to the top cell of the next column and pressing ↑ in the top-most cell moves to the bottom cell of the previous column, with `true` activating this behavior and `false` (default) preventing it.|
-| [`autoWrapRow`](@/api/options.md#autowraprow)         |`false`      |The `autoWrapRow` option in a grid enables (`true`) or disables (`false`, default) wrapping the selection from the first cell to the last of the previous row and from the last cell to the first of the next row when navigating with arrow keys.|
-| [`renderAllRows`](@/api/options.md#renderallrows)     |`false`    |The `renderAllRows` option in Handsontable determines if row virtualization is turned off (`true`) to render all rows simultaneously, or turned on (`false`, default) to render rows efficiently as needed.
-| [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset) |`auto` |The `viewportColumnRenderingOffset` option sets the quantity of columns that Handsontable pre-renders outside the visible grid area, with `auto` for automatic calculation or a specific number for manual configuration.
-
+## A demo configured for accessibility
+In the demo provided, you can toggle various options to adjust the accessibility support for users with disabilities. Handsontable demo configured for accessibility may vary based on the application you create. 
 
 ::: example-without-tabs #example
 
@@ -2507,47 +2494,56 @@ setupCheckbox(document.querySelector("#enableEnterFocusEditing"), (checked) => {
 ```
 
 :::
+### Handsontable configuration options 
+Each feature within Handsontable is designed to accommodate specific needs. Below, we show key configuration options that offer flexibility and control over the grid's behavior. 
+| Option                                                                                          | Definition                                                                                                                                                                                                                                                                                                   |
+|:------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`navigableHeaders`](@/api/options.md#navigableheaders)                                         | The `navigableHeaders` option enables keyboard navigation across row and column headers using <kbd>Arrow keys</kbd> or <kbd>Tab</kbd> keys. <br><br> Default: `false`                                                                                                                                                                         |
+| [`tabMoves`](@/api/options.md#tabmoves)                                                         | The `tabMoves` option sets the cell movement behavior for pressing the <kbd>Tab</kbd> key in a grid, allowing specification of the number of rows and columns to navigate, which can be defined using an object or a function.                <br><br>Default: `{row: 0, col: 1}`                                          |
+| [`enterMoves`](@/api/options.md#entermoves)                                                     | The `enterMoves` option defines the navigation behavior upon pressing the <kbd>Enter</kbd> key in a grid, dictating the number of columns and rows the selection moves, which can be customized with an object or function, especially in relation to the `enterBeginsEditing` setting. <br><br> Default: `{col: 0, row: 1}`|
+| [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)                                     | The `enterBeginsEditing` option controls if pressing <kbd>Enter</kbd> key once starts editing the active cell (`true`, default) or moves to the next cell according to `enterMoves` settings (`false`). <br><br> Default: `true`                                                                                             |
+| [`autoWrapCol`](@/api/options.md#autowrapcol)                                                   | The `autoWrapCol` option toggles vertical wrapping in a grid, where pressing <kbd>↓</kbd> in the bottom-most cell moves to the top cell of the next column and pressing <kbd>↑</kbd> in the top-most cell moves to the bottom cell of the previous column.  <br><br> Default: `false`                                                   |
+| [`autoWrapRow`](@/api/options.md#autowraprow)                                                   | The `autoWrapRow` option enables or disables wrapping the selection from the first cell to the last of the previous row and from the last cell to the first of the next row when navigating with arrow keys.   <br><br> Default: `false`                                                                          |
+| [`renderAllRows`](@/api/options.md#renderallrows)                                               | The `renderAllRows` option determines if row virtualization is turned off (`true`) to render all rows simultaneously, or turned on (`false`, default) to render rows efficiently as needed.           <br><br> Default: `false`                                                                                   |
+| [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)               | The `viewportColumnRenderingOffset` option sets the quantity of columns that Handsontable pre-renders outside the visible grid area, with `auto` for automatic calculation or a specific number for manual configuration.  <br><br> Default: `auto`                                                               |
 
 ## High-contrast theme
-It's essential to make content easy to read and distinguish, particularly for users with visual impairments. High contrast between elements improves readability and user comfort during prolonged interaction. The recommended [minimum contrast ratio](https://www.w3.org/WAI/WCAG21/quickref/#contrast-minimum) for text against images or backgrounds is 4.5:1. To achieve this level of contrast, consider the following options:
+It's essential to make content easy to read and distinguish, particularly for users with visual impairments. High contrast between elements improves readability and user comfort during prolonged interaction. The recommended [minimum contrast ratio](https://www.w3.org/WAI/WCAG21/quickref/#contrast-minimum) for text against images or backgrounds is 4.5:1. To achieve this level of contrast with the default theme of Handsontable, you need to adjust it according to your end-users' needs by doing the following:
 
-* Customize the default Handsontable theme using your own CSS settings.
-* Utilize tools designed for this purpose, such as the [High Contrast](https://chrome.google.com/webstore/detail/high-contrast/djcfdncoelnlbldjfhinnjlhdjlikmph) extension offered by Google for Chrome.
+* Override the grid's CSS with your own attributes.
+* Use third-party software, such as the [High Contrast](https://chrome.google.com/webstore/detail/high-contrast/djcfdncoelnlbldjfhinnjlhdjlikmph) extension offered by Google for Chrome.
 
 ## Requirements for the developers
 
-When you customize Handsontable, it's you who is responsible for ensuring the accessibility of your solution. Especially when it comes to creating [custom cell type](@/guides/cell-types/cell-type.md) or [custom plugin](@/guides/tools-and-building/custom-plugins.md), it’s important to remember about making them accessible to everyone, best if they meet **WCAG 2.1 AA guidelines** at minimum.
+When you customize Handsontable, it's you who is responsible for ensuring the accessibility of your solution. Especially when you create [custom cell type](@/guides/cell-types/cell-type.md) or [custom plugin](@/guides/tools-and-building/custom-plugins.md), remember about making them accessible to everyone.
 
-Recommendations for customizations:
+Our recommendations for custom development:
 
-- Test your code against [WCAG 2.1 requirements](https://www.w3.org/WAI/WCAG21/quickref/).
+- Test your code against WCAG 2.1 requirements regulary.
 - Use proper color contrast, font size, and semantic HTML.
-- If needed, implement additional **WAI-ARIA** attributes.
+- If needed, implement additional WAI-ARIA attributes.
 - Avoid flashing or blinking content.
 - Test your customizations with real users who have different types of disabilities. If you don’t have access to real users, try [Funkify](https://www.funkify.org/), a disability simulator, which can help you step into disabled users' shoes.
 
 ::: tip
 
- The accessibility level of any component in your application may be decreased by a low accessibility level of its parent elements. For this reason, make sure to always check the accessibility of the entire page, using tools such as [Lighthouse](https://developers.google.com/web/tools/lighthouse).
+ The accessibility level of any component in your application may be decreased by a low accessibility level of the elements surrounding it. For this reason, make sure to always check the accessibility of the entire application, using tools such as [Lighthouse](https://developers.google.com/web/tools/lighthouse).
 
 :::
 
 ## Accessibility testing
 
-We test Handsontable for accessibility using different approaches:
+We make sure our data grid remains accessible by taking the following steps:
 
-- We check Handsontable's accessibility score with a range of the accessibility testing tools, such as Lighthouse, Axe-core, or Accessibility Insights for Web.
+- We check Handsontable's accessibility score with a range of accessibility testing tools.
 - We use automated visual regression testing.
 - We manually test all of Handsontable's features with the most popular screen readers.
-- We cover the most common use cases with automated unit and end-to-end tests.
+- We use automated unit and end-to-end tests.
 
 ## Known limitations
-
-   - **ARIA labels:** We are actively working towards providing [comprehensive translations](@/guides/internationalization/language.md). We appreciate your patience and will keep our users updated on the progress.
-   - **Screen readers with frozen rows/columns:** Some screen readers may incorrectly read the number of rows and columns or their indices when frozen rows and columns are enabled.
-   - **Dynamic ARIA attributes:** Dynamic ARIA attributes, such as sorting order or filters set, are often not announced at all, depending on the screen reader used.
-  - **Access to actions:** Access to certain actions may require custom menu items, e.g., sorting data in spreadsheet mode where headers are non-navigable, moving a column/row, resizing a column/row, and renaming a header name.
-   - **Testing limitations:** We test our data grid with only some of screen readers on the market - the most popular ones. It’s because there are no ways to automate those tests; they all are conducted manually.
+   - **Screen readers with frozen rows/columns:** Some screen readers may incorrectly read the number of rows and columns when frozen rows and columns are enabled.
+   - **Dynamic ARIA attributes:** Dynamic ARIA attributes are sometimes ommited by screen readers.
+   - **Access to actions:** Access to certain actions may require custom menu items; for example, sorting data in spreadsheet mode where headers are non-navigable, moving a column or row, resizing a column or row, and renaming a header name.
 
 ## API reference
 
