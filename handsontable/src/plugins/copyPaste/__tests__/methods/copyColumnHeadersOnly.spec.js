@@ -49,17 +49,13 @@ describe('CopyPaste', () => {
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('B-1-1');
-      /* eslint-disable indent */
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
-        '<meta name="generator" content="Handsontable"/>',
-        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table>',
-          '<thead>',
-            '<tr><th>B-1-1</th></tr>',
-          '</thead>',
-        '</table>',
+        '<meta name="generator" content="Handsontable"/>' +
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table><tbody>',
+        '<tr><td>B-1-1</td></tr>',
+        '</tbody></table>',
       ].join(''));
-      /* eslint-enable */
     });
 
     it('should copy only the most-bottom column headers when all cells are selected', () => {
@@ -95,17 +91,13 @@ describe('CopyPaste', () => {
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('A-0-1\tB-1-1\tC-2-1\tD-3-1');
-      /* eslint-disable indent */
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
-        '<meta name="generator" content="Handsontable"/>',
-        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table>',
-          '<thead>',
-            '<tr><th>A-0-1</th><th>B-1-1</th><th>C-2-1</th><th>D-3-1</th></tr>',
-          '</thead>',
-        '</table>',
+        '<meta name="generator" content="Handsontable"/>' +
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table><tbody>',
+        '<tr><td>A-0-1</td><td>B-1-1</td><td>C-2-1</td><td>D-3-1</td></tr>',
+        '</tbody></table>',
       ].join(''));
-      /* eslint-enable */
     });
 
     it('should copy only the most-bottom column headers when all rows are hidden', () => {
@@ -129,17 +121,13 @@ describe('CopyPaste', () => {
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('B\tC\tD');
-      /* eslint-disable indent */
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
-        '<meta name="generator" content="Handsontable"/>',
-        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table>',
-          '<thead>',
-            '<tr><th>B</th><th>C</th><th>D</th></tr>',
-          '</thead>',
-        '</table>',
+        '<meta name="generator" content="Handsontable"/>' +
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table><tbody>',
+        '<tr><td>B</td><td>C</td><td>D</td></tr>',
+        '</tbody></table>',
       ].join(''));
-      /* eslint-enable */
     });
 
     it('should copy an empty string to the clipboard when all rows are hidden and the `colHeaders` is disabled', () => {
@@ -165,7 +153,7 @@ describe('CopyPaste', () => {
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
-        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table></table>',
       ].join(''));
     });
@@ -191,17 +179,13 @@ describe('CopyPaste', () => {
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('B\tC\tD');
-      /* eslint-disable indent */
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
-        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table>',
-          '<thead>',
-            '<tr><th>B</th><th>C</th><th>D</th></tr>',
-          '</thead>',
-        '</table>',
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table><tbody>',
+        '<tr><td>B</td><td>C</td><td>D</td></tr>',
+        '</tbody></table>',
       ].join(''));
-      /* eslint-enable */
     });
 
     it('should copy an empty string to the clipboard when all columns are hidden and the `colHeaders` is disabled', () => {
@@ -227,7 +211,7 @@ describe('CopyPaste', () => {
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
-        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table></table>',
       ].join(''));
     });
@@ -252,18 +236,14 @@ describe('CopyPaste', () => {
       plugin.copyColumnHeadersOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
-      /* eslint-disable indent */
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('A\tB\tC\tD\tE');
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
-        '<meta name="generator" content="Handsontable"/>',
-        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table>',
-          '<thead>',
-            '<tr><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th></tr>',
-          '</thead>',
-        '</table>',
+        '<meta name="generator" content="Handsontable"/>' +
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table><tbody>',
+        '<tr><td>A</td><td>B</td><td>C</td><td>D</td><td>E</td></tr>',
+        '</tbody></table>',
       ].join(''));
-      /* eslint-enable */
     });
 
     it('should copy an empty string to the clipboard when all rows are trimmed and the `colHeaders` is disabled', () => {
@@ -289,7 +269,7 @@ describe('CopyPaste', () => {
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
-        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table></table>',
       ].join(''));
     });
@@ -317,7 +297,7 @@ describe('CopyPaste', () => {
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
-        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table></table>',
       ].join(''));
     });
@@ -345,7 +325,7 @@ describe('CopyPaste', () => {
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
-        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table></table>',
       ].join(''));
     });
