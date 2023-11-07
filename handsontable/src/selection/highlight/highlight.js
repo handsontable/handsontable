@@ -171,11 +171,7 @@ class Highlight {
       type = 'current'; // One from settings for `disableVisualSelection` up to Handsontable 0.36/Handsontable Pro 1.16.0.
     }
 
-    let disableHighlight = false;
-
-    if (coords.isCell()) {
-      disableHighlight = this.options.disabledCellSelection(coords.row, coords.col);
-    }
+    let disableHighlight = this.options.disabledCellSelection(coords.row, coords.col);
 
     if (typeof disableHighlight === 'string') {
       disableHighlight = [disableHighlight];
