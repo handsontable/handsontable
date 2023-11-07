@@ -329,7 +329,7 @@ export class NestedRows extends BasePlugin {
    * @returns {number}
    */
   #onModifyRowHeaderWidth(rowHeaderWidth) {
-    return this.headersUI.rowHeaderWidthCache || rowHeaderWidth;
+    return Math.max(this.headersUI.rowHeaderWidthCache, rowHeaderWidth);
   }
 
   /**
