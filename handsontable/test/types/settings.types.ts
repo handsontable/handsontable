@@ -407,33 +407,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterContextMenuDefaultOptions: (predefinedItems) => {},
   afterContextMenuHide: (context) => {},
   afterContextMenuShow: (context) => {},
-  afterCopy: (clipboardData) => {
-    clipboardData.removeRows([0]);
-    clipboardData.removeColumns([0]);
-    clipboardData.insertAtRow(0, ['A', 'B', 'C']);
-    clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
-    clipboardData.setCellAt(0, 0, '');
-    clipboardData.getCellAt(0, 0);
-    clipboardData.getData();
-    clipboardData.getMetaInfo();
-    clipboardData.getType();
-    clipboardData.getRanges();
-  },
+  afterCopy: (data, coords) => {},
   afterCopyLimit: (selectedRows, selectedColumnds, copyRowsLimit, copyColumnsLimit) => {},
   afterCreateCol: (index, amount, source) => {},
   afterCreateRow: (index, amount, source) => {},
-  afterCut: (clipboardData) => {
-    clipboardData.removeRows([0]);
-    clipboardData.removeColumns([0]);
-    clipboardData.insertAtRow(0, ['A', 'B', 'C']);
-    clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
-    clipboardData.setCellAt(0, 0, '');
-    clipboardData.getCellAt(0, 0);
-    clipboardData.getData();
-    clipboardData.getMetaInfo();
-    clipboardData.getType();
-    clipboardData.getRanges();
-  },
+  afterCut: (data, coords) => {},
   afterDeselect: () => {},
   afterDestroy: () => {},
   afterDetachChild: (parent, element) => {},
@@ -469,17 +447,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterOnCellMouseOver: (event, coords, TD) => {},
   afterOnCellMouseOut: (event, coords, TD) => {},
   afterOnCellMouseUp: (event, coords, TD) => {},
-  afterPaste: (clipboardData) => {
-    clipboardData.removeRows([0]);
-    clipboardData.removeColumns([0]);
-    clipboardData.insertAtRow(0, ['A', 'B', 'C']);
-    clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
-    clipboardData.setCellAt(0, 0, '');
-    clipboardData.getCellAt(0, 0);
-    clipboardData.getData();
-    clipboardData.getMetaInfo();
-    clipboardData.getType();
-  },
+  afterPaste: (data, coords) => {},
   afterPluginsInitialized: () => {},
   afterRedo: (action) => {},
   afterRedoStackChange: (undoneActionsBefore, undoneActionsAfter) => {},
@@ -543,32 +511,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeColumnUnfreeze: (columnIndex, isFreezingPerformed) => false,
   beforeContextMenuSetItems: (menuItems) => {},
   beforeContextMenuShow: (context) => {},
-  beforeCopy: (clipboardData) => {
-    clipboardData.removeRows([0]);
-    clipboardData.removeColumns([0]);
-    clipboardData.insertAtRow(0, ['A', 'B', 'C']);
-    clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
-    clipboardData.setCellAt(0, 0, '');
-    clipboardData.getCellAt(0, 0);
-    clipboardData.getData();
-    clipboardData.getMetaInfo();
-    clipboardData.getType();
-    clipboardData.getRanges();
-  },
+  beforeCopy: (data, coords) => { data.splice(0, 1); return false; },
   beforeCreateCol: (index, amount, source) => {},
   beforeCreateRow: (index, amount, source) => {},
-  beforeCut: (clipboardData) => {
-    clipboardData.removeRows([0]);
-    clipboardData.removeColumns([0]);
-    clipboardData.insertAtRow(0, ['A', 'B', 'C']);
-    clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
-    clipboardData.setCellAt(0, 0, '');
-    clipboardData.getCellAt(0, 0);
-    clipboardData.getData();
-    clipboardData.getMetaInfo();
-    clipboardData.getType();
-    clipboardData.getRanges();
-  },
+  beforeCut: (data, coords) => { data.splice(0, 1); return false; },
   beforeDetachChild: (parent, element) => {},
   beforeDrawBorders: (corners, borderClassName) => {},
   beforeDropdownMenuSetItems: (menuItems) => {},
@@ -606,17 +552,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeOnCellMouseOut: (event, coords, TD) => {},
   beforeOnCellMouseOver: (event, coords, TD, controller) => {},
   beforeOnCellMouseUp: (event, coords, TD) => {},
-  beforePaste: (clipboardData) => {
-    clipboardData.removeRows([0]);
-    clipboardData.removeColumns([0]);
-    clipboardData.insertAtRow(0, ['A', 'B', 'C']);
-    clipboardData.insertAtColumn(0, ['A', 'B', 'C']);
-    clipboardData.setCellAt(0, 0, '');
-    clipboardData.getCellAt(0, 0);
-    clipboardData.getData();
-    clipboardData.getMetaInfo();
-    clipboardData.getType();
-  },
+  beforePaste: (data, coords) => { data.splice(0, 1); return false; },
   beforeRedo: (action) => {},
   beforeRedoStackChange: (undoneActions) => {},
   beforeRefreshDimensions: (previousDimensions, currentDimensions, actionPossible) => {},
