@@ -46,6 +46,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Updated TS definition for the AutoRowSize and AutoColumnSize plugins [#10493](https://github.com/handsontable/handsontable/pull/10493)
 - Updated TS definition for Filters plugin and Core methods [#10494](https://github.com/handsontable/handsontable/pull/10494)
 - Fix typescript types [#10509](https://github.com/handsontable/handsontable/issues/10509)
+- Changed the default styling for the OK button in filters when focused. [#10558](https://github.com/handsontable/handsontable/issues/10558)
 
 ### Fixed
 - Fixed ampersand copy/paste issue; [#10472](https://github.com/handsontable/handsontable/pull/10472)
