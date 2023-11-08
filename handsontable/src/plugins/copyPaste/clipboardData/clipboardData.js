@@ -1,5 +1,5 @@
 import { isDefined } from '../../../helpers/mixed';
-import { deepClone } from '../../../helpers/object';
+import { deepClone, isObject } from '../../../helpers/object';
 import { toSingleLine } from '../../../helpers/templateLiteralTag';
 import { warn } from '../../../helpers/console';
 import {
@@ -7,6 +7,7 @@ import {
   getHTMLFromConfig,
   htmlToGridSettings,
 } from '../../../utils/parseTable';
+import { arrayEach } from '../../../helpers/array';
 
 export const META_HEAD = [
   '<meta name="generator" content="Handsontable"/>',
@@ -58,6 +59,26 @@ export class ClipboardData {
    */
   getMetaInfo() {
     return htmlToGridSettings(this.html);
+  }
+
+  /**
+   * Sets meta information for certain property.
+   *
+   * @private
+   * @param {string} property Property for which the meta information will be changed.
+   * @param {*} value New meta information value.
+   */
+  setMetaInfo(property, value) {
+    const metaInfo = this.getMetaInfo();
+
+    if (value === null) {
+      delete metaInfo[property];
+
+    } else {
+      metaInfo[property] = value;
+    }
+
+    this.overwriteInfo(metaInfo);
   }
 
   /**
@@ -444,6 +465,53 @@ export class ClipboardData {
   }
 
   /**
+   * Get internal column index for nested header with certain row and column indexes.
+   *
+   * @private
+   * @param {number} row Row index related to level of the nested headers.
+   * @param {number} column Column index for certain row.
+   * @returns {*}
+   */
+  getNestedHeaderColumn(row, column) {
+    const { nestedHeaders } = this.getMetaInfo();
+    const rowRelative = row + nestedHeaders.length;
+    const nestedHeadersForLevel = nestedHeaders[rowRelative];
+    let indexInHeadersArray;
+    let currentColumnIndex = 0;
+
+    if (Array.isArray(nestedHeadersForLevel) === false) {
+      return;
+    }
+
+    arrayEach(nestedHeadersForLevel, (nestedHeaderInfo, index) => {
+      const isSimpleHeader = typeof nestedHeaderInfo === 'string';
+
+      if (isSimpleHeader === true) {
+        if (currentColumnIndex === column) {
+          indexInHeadersArray = index;
+
+          return false;
+        }
+
+        currentColumnIndex += 1;
+
+      } else {
+        const { colspan } = nestedHeaderInfo;
+
+        if (column < currentColumnIndex + colspan) {
+          indexInHeadersArray = index;
+
+          return false;
+        }
+
+        currentColumnIndex += colspan;
+      }
+    });
+
+    return indexInHeadersArray;
+  }
+
+  /**
    * Change headers or cells in the serialized dataset.
    *
    * Note: Used indexes refers to processed data, not to the instance of Handsontable. Please keep in mind that headers
@@ -451,7 +519,7 @@ export class ClipboardData {
    *
    * @param {number} row Row index of cell which should be changed.
    * @param {number} column Column index of cell which should be changed.
-   * @param {string} value Value for particular indexes.
+   * @param {string} value Value for particular index.
    */
   setCellAt(row, column, value) {
     if (this.isSerializedTable() === false) {
@@ -464,9 +532,19 @@ export class ClipboardData {
     if (row < 0) {
       if (Array.isArray(nestedHeaders)) {
         const rowRelative = row + nestedHeaders.length;
+        const nestedHeaderColumn = this.getNestedHeaderColumn(row, column);
 
-        if (Array.isArray(nestedHeaders[rowRelative]) && isDefined(nestedHeaders[rowRelative][column])) {
-          nestedHeaders[rowRelative][column] = value;
+        if (isDefined(nestedHeaderColumn) === false) {
+          return;
+        }
+
+        const header = nestedHeaders[rowRelative][nestedHeaderColumn];
+
+        if (isObject(header)) {
+          header.label = value;
+
+        } else {
+          nestedHeaders[rowRelative][nestedHeaderColumn] = value;
         }
 
       } else if (Array.isArray(colHeaders)) {
@@ -502,10 +580,19 @@ export class ClipboardData {
     if (row < 0) {
       if (Array.isArray(nestedHeaders)) {
         const rowRelative = row + nestedHeaders.length;
+        const nestedHeaderColumn = this.getNestedHeaderColumn(row, column);
 
-        if (Array.isArray(nestedHeaders[rowRelative]) && isDefined(nestedHeaders[rowRelative][column])) {
-          return nestedHeaders[rowRelative][column];
+        if (isDefined(nestedHeaderColumn) === false) {
+          return;
         }
+
+        const header = nestedHeaders[rowRelative][nestedHeaderColumn];
+
+        if (isObject(header)) {
+          return header.label;
+        }
+
+        return header;
 
       } else if (Array.isArray(colHeaders)) {
         if (isDefined(colHeaders[column])) {

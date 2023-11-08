@@ -9,12 +9,14 @@ import { warn } from '../../helpers/console';
 import {
   ACTIVE_HEADER_TYPE,
   HEADER_TYPE,
+  transformRangeLikeToIndexes,
 } from '../../selection';
 import { BasePlugin } from '../base';
 import StateManager from './stateManager';
 import GhostTable from './utils/ghostTable';
 
 import './nestedHeaders.css';
+import { arrayEach } from '../../helpers/array';
 
 export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;
@@ -518,37 +520,56 @@ export class NestedHeaders extends BasePlugin {
    * @param {Function} clipboardData.getCellAt Get headers or cells from the copied/pasted dataset.
    * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
    * @param {Function} clipboardData.getMetaInfo Gets grid settings for copied data.
+   * @param {Function} clipboardData.setMetaInfo Sets grid settings for copied data.
    * @param {Function} clipboardData.getRanges Returns ranges related to copied part of Handsontable.
    */
   onBeforeCopy(clipboardData) {
-    const copyableRanges = clipboardData.getRanges();
+    const { rows, columns } = transformRangeLikeToIndexes(clipboardData.getRanges());
+    const headers = rows.filter(row => row < 0);
+    const nestedHeaders = [];
 
-    for (let rangeIndex = 0; rangeIndex < copyableRanges.length; rangeIndex += 1) {
-      const { startRow, startCol, endRow, endCol } = copyableRanges[rangeIndex];
-      const columnsCount = startCol - endCol + 1;
+    headers.forEach((header) => {
+      const headersForLevel = [];
 
-      // do not process dataset ranges and column headers where only one column is copied
-      if (startRow >= 0 || columnsCount === 1) {
-        break;
-      }
+      arrayEach(columns, (column, index) => {
+        const headerSettings = this.getHeaderSettings(header, column);
 
-      for (let column = startCol; column <= endCol; column += 1) {
-        for (let row = startRow; row <= endRow; row += 1) {
-          const zeroBasedColumnIndex = column - startCol;
+        if (headerSettings === null) {
+          headersForLevel.push(this.hot.getColHeader(column, header));
 
-          if (zeroBasedColumnIndex === 0) {
-            continue; // eslint-disable-line no-continue
-          }
-
-          const isRoot = this.#stateManager.getHeaderTreeNodeData(row, column)?.isRoot;
-          const collapsible = this.#stateManager.getHeaderTreeNodeData(row, column)?.collapsible;
-
-          if (collapsible === true && isRoot === false) {
-            clipboardData.setCellAt(row, zeroBasedColumnIndex, '');
-          }
+          return;
         }
-      }
-    }
+
+        const { isPlaceholder } = headerSettings;
+        const columnsToEnd = columns.slice(index).length;
+        const headerTreeNodeData = this.getStateManager().getHeaderTreeNodeData(header, column);
+
+        if (index === 0 && isPlaceholder === true) {
+          const { label, origColspan: colspan, columnIndex } = headerTreeNodeData;
+          const columnFromStart = column - columnIndex;
+          const reducedColspan = Math.min(colspan - columnFromStart, columnsToEnd);
+
+          if (reducedColspan > 1) {
+            headersForLevel.push({ label, colspan: reducedColspan });
+
+          } else {
+            headersForLevel.push(label);
+          }
+
+        } else if (isPlaceholder === false) {
+          const { label, origColspan: colspan, columnIndex } = headerTreeNodeData;
+          const columnFromStart = column - columnIndex;
+          const reducedColspan = Math.min(colspan - columnFromStart, columnsToEnd);
+
+          headersForLevel.push(reducedColspan > 1 ? { label, colspan: reducedColspan } : label);
+        }
+      });
+
+      nestedHeaders.push(headersForLevel);
+    });
+
+    clipboardData.setMetaInfo('colHeaders', null);
+    clipboardData.setMetaInfo('nestedHeaders', nestedHeaders);
   }
 
   /**

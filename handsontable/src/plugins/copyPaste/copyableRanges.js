@@ -1,6 +1,3 @@
-import { arrayEach } from '../../helpers/array';
-import { rangeEach } from '../../helpers/number';
-
 /**
  * The utils class produces the selection ranges in the `{startRow, startCol, endRow, endCol}` format
  * based on the current table selection. The CopyPaste plugin consumes that ranges to generate
@@ -176,41 +173,4 @@ export class CopyableRangesFactory {
   #trimRowsRange(startRow, endRow) {
     return Math.min(endRow, Math.max(startRow + this.#rowsLimit() - 1, startRow));
   }
-}
-
-/**
- * Returns an object with `rows` and `columns` keys. The arrays contains sorted indexes
- * generated according to the given `ranges` array.
- *
- * @param {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>} ranges The range to process.
- * @returns {{rows: number[], columns: number[]}}
- */
-export function normalizeRanges(ranges) {
-  const rows = [];
-  const columns = [];
-
-  arrayEach(ranges, (range) => {
-    const minRow = Math.min(range.startRow, range.endRow);
-    const maxRow = Math.max(range.startRow, range.endRow);
-
-    rangeEach(minRow, maxRow, (row) => {
-      if (rows.indexOf(row) === -1) {
-        rows.push(row);
-      }
-    });
-
-    const minColumn = Math.min(range.startCol, range.endCol);
-    const maxColumn = Math.max(range.startCol, range.endCol);
-
-    rangeEach(minColumn, maxColumn, (column) => {
-      if (columns.indexOf(column) === -1) {
-        columns.push(column);
-      }
-    });
-  });
-
-  return {
-    rows,
-    columns,
-  };
 }

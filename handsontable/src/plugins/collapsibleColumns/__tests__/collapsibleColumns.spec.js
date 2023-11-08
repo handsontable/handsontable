@@ -2833,12 +2833,11 @@ describe('CollapsibleColumns', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
             '<tr>',
               '<th>A</th>',
-              '<th>B</th>',
-              '<th></th>',
-              '<th></th>',
+              '<th colspan=3>B</th>',
               '<th>C</th>',
               '<th>D</th>',
               '<th colspan=4>E</th>',
@@ -2858,6 +2857,7 @@ describe('CollapsibleColumns', () => {
               '<td>J1</td>',
             '</tr>',
           '</tbody>',
+        '<!--EndFragment-->',
         '</table>'
       ].join(''));
       /* eslint-enable */

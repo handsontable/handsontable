@@ -1,5 +1,5 @@
 import { META_HEAD, ClipboardData } from './clipboardData';
-import { normalizeRanges } from '../copyableRanges';
+import { transformRangeLikeToIndexes } from '../../../selection';
 import { getDataByCoords, getHTMLByCoords } from '../../../utils/parseTable';
 
 /**
@@ -37,7 +37,7 @@ export class CopyClipboardData extends ClipboardData {
   constructor(instance, copyableRanges) {
     super();
 
-    const { rows, columns } = normalizeRanges(copyableRanges);
+    const { rows, columns } = transformRangeLikeToIndexes(copyableRanges);
 
     this.html = [META_HEAD, getHTMLByCoords(instance, { rows, columns })].join('');
     this.data = getDataByCoords(instance, { rows, columns });

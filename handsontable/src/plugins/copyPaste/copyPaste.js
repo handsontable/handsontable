@@ -15,8 +15,8 @@ import copyWithColumnHeadersItem from './contextMenuItem/copyWithColumnHeaders';
 import cutItem from './contextMenuItem/cut';
 import {
   CopyableRangesFactory,
-  normalizeRanges,
 } from './copyableRanges';
+import { transformRangeLikeToIndexes } from '../../selection';
 import {
   getDataByCoords, getHTMLFromConfig,
 } from '../../utils/parseTable';
@@ -335,7 +335,7 @@ export class CopyPaste extends BasePlugin {
    * @returns {Array[]} An array of arrays that will be copied to the clipboard.
    */
   getRangedData(ranges) {
-    const { rows, columns } = normalizeRanges(ranges);
+    const { rows, columns } = transformRangeLikeToIndexes(ranges);
 
     return getDataByCoords(this.hot, { rows, columns });
   }
