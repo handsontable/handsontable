@@ -153,7 +153,7 @@ export class MergeCells extends BasePlugin {
         return false;
       }
     });
-    this.addHook('beforePaste', (...args) => this.onBeforePaste(...args));
+    this.addHook('beforePaste', (...args) => this.#onBeforePaste(...args));
 
     this.registerShortcuts();
 
@@ -1371,7 +1371,7 @@ export class MergeCells extends BasePlugin {
    * @param {Function} clipboardData.getMetaInfo Gets meta information for the copied data.
    * @param {Function} clipboardData.getRanges Returns ranges related to copied part of Handsontable.
    */
-  onBeforePaste(clipboardData) {
+  #onBeforePaste(clipboardData) {
     const selectedRangeLast = this.hot.getSelectedRangeLast();
     const data = clipboardData.getData();
     const pastedRows = data.length;
