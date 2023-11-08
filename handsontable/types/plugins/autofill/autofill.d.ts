@@ -12,7 +12,6 @@ export type Settings = boolean | Direction | DetailedSettings;
 
 export class Autofill extends BasePlugin {
   constructor(hotInstance: Core);
-  autoInsertRow: boolean;
 
   isEnabled(): boolean;
 }
