@@ -54,9 +54,11 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
             '<tr><th>B-1-1</th></tr>',
           '</thead>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -100,9 +102,16 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
-            '<tr><th>A-0-1</th><th>B-1-1</th><th>C-2-1</th><th>D-3-1</th></tr>',
+            '<tr>',
+              '<th>A-0-1</th>',
+              '<th>B-1-1</th>',
+              '<th>C-2-1</th>',
+              '<th>D-3-1</th>',
+            '</tr>',
           '</thead>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -134,9 +143,15 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
-            '<tr><th>B</th><th>C</th><th>D</th></tr>',
+            '<tr>',
+              '<th>B</th>',
+              '<th>C</th>',
+              '<th>D</th>',
+            '</tr>',
           '</thead>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -166,7 +181,10 @@ describe('CopyPaste', () => {
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table></table>',
+        '<table>',
+        '<!--StartFragment-->',
+        '<!--EndFragment-->',
+        '</table>',
       ].join(''));
     });
 
@@ -196,9 +214,15 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
-            '<tr><th>B</th><th>C</th><th>D</th></tr>',
+            '<tr>',
+              '<th>B</th>',
+              '<th>C</th>',
+              '<th>D</th>',
+            '</tr>',
           '</thead>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -228,7 +252,10 @@ describe('CopyPaste', () => {
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table></table>',
+        '<table>',
+        '<!--StartFragment-->',
+        '<!--EndFragment-->',
+        '</table>',
       ].join(''));
     });
 
@@ -258,9 +285,17 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
-            '<tr><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th></tr>',
+            '<tr>',
+              '<th>A</th>',
+              '<th>B</th>',
+              '<th>C</th>',
+              '<th>D</th>',
+              '<th>E</th>',
+            '</tr>',
           '</thead>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -290,7 +325,10 @@ describe('CopyPaste', () => {
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table></table>',
+        '<table>',
+        '<!--StartFragment-->',
+        '<!--EndFragment-->',
+        '</table>',
       ].join(''));
     });
 
@@ -318,7 +356,10 @@ describe('CopyPaste', () => {
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table></table>',
+        '<table>',
+        '<!--StartFragment-->',
+        '<!--EndFragment-->',
+        '</table>'
       ].join(''));
     });
 
@@ -346,7 +387,10 @@ describe('CopyPaste', () => {
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table></table>',
+        '<table>',
+        '<!--StartFragment-->',
+        '<!--EndFragment-->',
+        '</table>',
       ].join(''));
     });
   });

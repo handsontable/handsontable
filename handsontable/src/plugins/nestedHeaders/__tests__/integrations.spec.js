@@ -118,6 +118,7 @@ describe('Integration with other plugins', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
             '<tr><th colspan=2>a3</th><th>b3</th><th>c3</th></tr>',
           '</thead>',
@@ -125,6 +126,7 @@ describe('Integration with other plugins', () => {
             '<tr><td>A1</td><td>B1</td><td>C1</td><td>D1</td></tr>',
             '<tr><td>A2</td><td>B2</td><td>C2</td><td>D2</td></tr>',
           '</tbody>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -178,6 +180,7 @@ describe('Integration with other plugins', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
             '<tr><th colspan=3>a1</th><th>b1</th></tr>',
             '<tr><th colspan=2>a2</th><th>b2</th><th>c2</th></tr>',
@@ -187,6 +190,7 @@ describe('Integration with other plugins', () => {
             '<tr><td>A1</td><td>B1</td><td>C1</td><td>D1</td></tr>',
             '<tr><td>A2</td><td>B2</td><td>C2</td><td>D2</td></tr>',
           '</tbody>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -202,6 +206,144 @@ describe('Integration with other plugins', () => {
         ['A1', 'B1', 'C1', 'D1'],
         ['A2', 'B2', 'C2', 'D2'],
       ]);
+    });
+
+    it('should copy part of nested header properly', () => {
+      handsontable({
+        data: createSpreadsheetData(2, 7),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        copyPaste: {
+          copyColumnHeaders: true,
+          copyColumnGroupHeaders: true,
+          copyColumnHeadersOnly: true,
+        },
+        nestedHeaders: [
+          [{ label: 'a1', colspan: 4 }, 'c1'],
+          [{ label: 'a2', colspan: 2 }, { label: 'b2', colspan: 2 }, 'c2', 'd2'],
+          [{ label: 'a3', colspan: 2 }, { label: 'b3', colspan: 2 }, 'c3', 'd2'],
+        ],
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectColumns(0, 1);
+
+      plugin.copyWithAllColumnHeaders();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe([
+        'a1\t',
+        'a2\t',
+        'a3\t',
+        'A1\tB1',
+        'A2\tB2',
+      ].join('\n'));
+      /* eslint-disable indent */
+      expect(copyEvent.clipboardData.getData('text/html')).toBe([
+        '<meta name="generator" content="Handsontable"/>',
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table>',
+        '<!--StartFragment-->',
+          '<thead>',
+            '<tr><th colspan=2>a1</th></tr>',
+            '<tr><th colspan=2>a2</th></tr>',
+            '<tr><th colspan=2>a3</th></tr>',
+          '</thead>',
+          '<tbody>',
+            '<tr>',
+              '<td>A1</td>',
+              '<td>B1</td>',
+            '</tr>',
+            '<tr>',
+              '<td>A2</td>',
+              '<td>B2</td>',
+            '</tr>',
+          '</tbody>',
+        '<!--EndFragment-->',
+        '</table>',
+      ].join(''));
+      /* eslint-enable */
+
+      selectColumns(2, 3);
+
+      plugin.copyWithAllColumnHeaders();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe([
+        'a1\t',
+        'b2\t',
+        'b3\t',
+        'C1\tD1',
+        'C2\tD2',
+      ].join('\n'));
+      /* eslint-disable indent */
+      expect(copyEvent.clipboardData.getData('text/html')).toBe([
+        '<meta name="generator" content="Handsontable"/>',
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table>',
+        '<!--StartFragment-->',
+          '<thead>',
+            '<tr><th colspan=2>a1</th></tr>',
+            '<tr><th colspan=2>b2</th></tr>',
+            '<tr><th colspan=2>b3</th></tr>',
+          '</thead>',
+          '<tbody>',
+            '<tr>',
+              '<td>C1</td>',
+              '<td>D1</td>',
+            '</tr>',
+            '<tr>',
+              '<td>C2</td>',
+              '<td>D2</td>',
+            '</tr>',
+          '</tbody>',
+        '<!--EndFragment-->',
+        '</table>',
+      ].join(''));
+      /* eslint-enable */
+
+      selectColumns(4, 6);
+
+      plugin.copyWithAllColumnHeaders();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe([
+        'c1\t\t',
+        'c2\td2\t',
+        'c3\td2\t',
+        'E1\tF1\tG1',
+        'E2\tF2\tG2',
+      ].join('\n'));
+      /* eslint-disable indent */
+      expect(copyEvent.clipboardData.getData('text/html')).toBe([
+        '<meta name="generator" content="Handsontable"/>',
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table>',
+        '<!--StartFragment-->',
+          '<thead>',
+            '<tr><th>c1</th><th></th><th></th></tr>',
+            '<tr><th>c2</th><th>d2</th><th></th></tr>',
+            '<tr><th>c3</th><th>d2</th><th></th></tr>',
+          '</thead>',
+          '<tbody>',
+            '<tr>',
+              '<td>E1</td>',
+              '<td>F1</td>',
+              '<td>G1</td>',
+            '</tr>',
+            '<tr>',
+              '<td>E2</td>',
+              '<td>F2</td>',
+              '<td>G2</td>',
+            '</tr>',
+          '</tbody>',
+        '<!--EndFragment-->',
+        '</table>',
+      ].join(''));
+      /* eslint-enable */
     });
   });
 });

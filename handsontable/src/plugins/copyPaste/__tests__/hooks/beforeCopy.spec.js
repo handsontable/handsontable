@@ -65,6 +65,7 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
         '<table>' +
+        '<!--StartFragment-->' +
           '<tbody>' +
             '<tr>' +
               '<td>C2</td>' +
@@ -82,6 +83,7 @@ describe('CopyPaste', () => {
               '<td>E4</td>' +
             '</tr>' +
           '</tbody>' +
+        '<!--EndFragment-->' +
         '</table>',
       );
       /* eslint-enable */
@@ -151,6 +153,7 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
         '<table>' +
+        '<!--StartFragment-->' +
           '<thead>' +
             '<tr>' +
               '<th>C</th>' +
@@ -175,6 +178,7 @@ describe('CopyPaste', () => {
               '<td>E4</td>' +
             '</tr>' +
           '</tbody>' +
+        '<!--EndFragment-->' +
         '</table>',
       );
       expect(beforeCopySpy.calls.argsFor(0)[0].getMetaInfo()).toEqual({
@@ -302,6 +306,7 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+          '<!--StartFragment-->',
           '<thead>',
             '<tr>' +
               '<th>A-0-0</th>' +
@@ -312,6 +317,7 @@ describe('CopyPaste', () => {
               '<td>A2</td>',
             '</tr>',
           '</tbody>',
+        '<!--EndFragment-->',
         '</table>'
       ].join(''));
       /* eslint-enable */
@@ -361,6 +367,7 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
             '<tr>' +
               '<th>hello world</th>' +
@@ -381,6 +388,7 @@ describe('CopyPaste', () => {
             '<td>hello world2</td>',
           '</tr>',
           '</tbody>',
+        '<!--EndFragment-->',
         '</table>'
       ].join(''));
       /* eslint-enable */
@@ -432,6 +440,7 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
             '<tr>' +
               '<th>hello world</th>' +
@@ -452,6 +461,7 @@ describe('CopyPaste', () => {
             '<td>hello world2</td>',
           '</tr>',
           '</tbody>',
+        '<!--EndFragment-->',
         '</table>'
       ].join(''));
       /* eslint-enable */

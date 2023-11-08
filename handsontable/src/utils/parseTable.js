@@ -64,8 +64,12 @@ export function instanceToHTML(hotInstance) {
 export function getHTMLByCoords(hotInstance, config) {
   return [
     '<table>',
+    // Needed for desktop Excel on MacOS while pasting any elements with rowspan/colspan.
+    '<!--StartFragment-->',
     ...getHeadersHTMLByCoords(hotInstance, config),
     ...getBodyHTMLByCoords(hotInstance, config),
+    // Needed for desktop Excel on MacOS while pasting any elements with rowspan/colspan.
+    '<!--EndFragment-->',
     '</table>',
   ].join('');
 }
@@ -104,8 +108,12 @@ export function getDataByCoords(hotInstance, config) {
 export function getHTMLFromConfig(config) {
   return [
     '<table>',
+    // Needed for desktop Excel on MacOS while pasting any elements with rowspan/colspan.
+    '<!--StartFragment-->',
     ...getHeadersHTMLByConfig(config),
     ...getBodyHTMLByConfig(config),
+    // Needed for desktop Excel on MacOS while pasting any elements with rowspan/colspan.
+    '<!--EndFragment-->',
     '</table>',
   ].join('');
 }
@@ -465,9 +473,10 @@ function getHeadersHTMLByCoords(hotInstance, config) {
 
       if (colspan) {
         const parsedColspan = parseInt(colspan, 10);
+        const colspanReduced = Math.min(parsedColspan, columns.length - i);
 
-        colspanAttribute = ` colspan=${parsedColspan}`;
-        i += parsedColspan - 1;
+        colspanAttribute = ` colspan=${colspanReduced}`;
+        i += colspanReduced - 1;
       }
 
       rowHTML.push(`<th${colspanAttribute}>${
@@ -509,9 +518,10 @@ function getHeadersDataByCoords(hotInstance, config) {
 
       if (colspan) {
         const parsedColspan = parseInt(colspan, 10);
+        const colspanReduced = Math.min(parsedColspan, columns.length - i);
 
-        rowData.push(...new Array(parsedColspan - 1).fill(''));
-        i += parsedColspan - 1;
+        rowData.push(...new Array(colspanReduced - 1).fill(''));
+        i += colspanReduced - 1;
       }
     }
 

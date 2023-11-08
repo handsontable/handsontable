@@ -416,6 +416,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
+    clipboardData.setMetaInfo('colHeaders', ['A', 'B', 'C']);
     clipboardData.getType();
     clipboardData.getRanges();
   },
@@ -431,6 +432,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
+    clipboardData.setMetaInfo('colHeaders', ['A', 'B', 'C']);
     clipboardData.getType();
     clipboardData.getRanges();
   },
@@ -478,6 +480,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
+    clipboardData.setMetaInfo('colHeaders', ['A', 'B', 'C']);
     clipboardData.getType();
   },
   afterPluginsInitialized: () => {},
@@ -552,6 +555,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
+    clipboardData.setMetaInfo('colHeaders', ['A', 'B', 'C']);
     clipboardData.getType();
     clipboardData.getRanges();
   },
@@ -566,6 +570,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
+    clipboardData.setMetaInfo('colHeaders', ['A', 'B', 'C']);
     clipboardData.getType();
     clipboardData.getRanges();
   },
@@ -599,6 +604,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     clipboardData.getCellAt(0, 0);
     clipboardData.getData();
     clipboardData.getMetaInfo();
+    clipboardData.setMetaInfo('colHeaders', ['A', 'B', 'C']);
     clipboardData.getType();
   },
   beforeRedo: (action) => {},

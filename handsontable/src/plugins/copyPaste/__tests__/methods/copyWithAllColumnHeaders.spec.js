@@ -57,6 +57,7 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
             '<tr><th>A-0-0</th></tr>',
             '<tr><th>A-0-1</th></tr>',
@@ -65,6 +66,7 @@ describe('CopyPaste', () => {
           '<tbody>',
             '<tr><td>A2</td></tr>',
           '</tbody>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -117,6 +119,7 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
             '<tr><th>A-0-0</th><th>B-1-0</th><th>C-2-0</th></tr>',
             '<tr><th>A-0-1</th><th>B-1-1</th><th>C-2-1</th></tr>',
@@ -126,6 +129,7 @@ describe('CopyPaste', () => {
             '<tr><td>A1</td><td>B1</td><td>C1</td></tr>',
             '<tr><td>A2</td><td>B2</td><td>C2</td></tr>',
           '</tbody>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -177,6 +181,7 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
             '<tr><th>B-1-0</th><th>C-2-0</th><th>D-3-0</th></tr>',
             '<tr><th>B-1-1</th><th>C-2-1</th><th>D-3-1</th></tr>',
@@ -185,6 +190,7 @@ describe('CopyPaste', () => {
             '<tr><td>B2</td><td>C2</td><td>D2</td></tr>',
             '<tr><td>B3</td><td>C3</td><td>D3</td></tr>',
           '</tbody>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -210,14 +216,28 @@ describe('CopyPaste', () => {
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('B2\tC2\tD2\nB3\tC3\tD3');
+      /* eslint-disable indent */
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table><tbody>',
-        '<tr><td>B2</td><td>C2</td><td>D2</td></tr>',
-        '<tr><td>B3</td><td>C3</td><td>D3</td></tr>',
-        '</tbody></table>',
+        '<table>',
+        '<!--StartFragment-->',
+          '<tbody>',
+            '<tr>',
+              '<td>B2</td>',
+              '<td>C2</td>',
+              '<td>D2</td>',
+            '</tr>',
+            '<tr>',
+              '<td>B3</td>',
+              '<td>C3</td>',
+              '<td>D3</td>',
+            '</tr>',
+          '</tbody>',
+        '<!--EndFragment-->',
+        '</table>',
       ].join(''));
+      /* eslint-enable */
     });
 
     it('should copy cells with all column headers to the clipboard when all columns are hidden', () => {
@@ -267,6 +287,7 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
             '<tr><th>B-1-0</th><th>C-2-0</th><th>D-3-0</th></tr>',
             '<tr><th>B-1-1</th><th>C-2-1</th><th>D-3-1</th></tr>',
@@ -275,6 +296,7 @@ describe('CopyPaste', () => {
             '<tr><td>B2</td><td>C2</td><td>D2</td></tr>',
             '<tr><td>B3</td><td>C3</td><td>D3</td></tr>',
           '</tbody>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -301,14 +323,28 @@ describe('CopyPaste', () => {
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('B2\tC2\tD2\nB3\tC3\tD3');
+      /* eslint-disable indent */
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table><tbody>',
-        '<tr><td>B2</td><td>C2</td><td>D2</td></tr>',
-        '<tr><td>B3</td><td>C3</td><td>D3</td></tr>',
-        '</tbody></table>',
+        '<table>',
+        '<!--StartFragment-->',
+          '<tbody>',
+            '<tr>',
+              '<td>B2</td>',
+              '<td>C2</td>',
+              '<td>D2</td>',
+            '</tr>',
+            '<tr>',
+              '<td>B3</td>',
+              '<td>C3</td>',
+              '<td>D3</td>',
+            '</tr>',
+          '</tbody>',
+        '<!--EndFragment-->',
+        '</table>',
       ].join(''));
+      /* eslint-enable */
     });
 
     it('should copy all column headers only to the clipboard when all rows are trimmed', () => {
@@ -356,10 +392,12 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
             '<tr><th>A-0-0</th><th>B-1-0</th><th>C-2-0</th><th>D-3-0</th><th>E-4-0</th></tr>',
             '<tr><th>A-0-1</th><th>B-1-1</th><th>C-2-1</th><th>D-3-1</th><th>E-4-1</th></tr>',
           '</thead>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -389,7 +427,10 @@ describe('CopyPaste', () => {
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table></table>',
+        '<table>',
+        '<!--StartFragment-->',
+        '<!--EndFragment-->',
+        '</table>',
       ].join(''));
     });
 
@@ -433,7 +474,10 @@ describe('CopyPaste', () => {
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table></table>',
+        '<table>',
+        '<!--StartFragment-->',
+        '<!--EndFragment-->',
+        '</table>',
       ].join(''));
     });
 
@@ -461,7 +505,10 @@ describe('CopyPaste', () => {
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table></table>',
+        '<table>',
+        '<!--StartFragment-->',
+        '<!--EndFragment-->',
+        '</table>',
       ].join(''));
     });
 
@@ -513,6 +560,7 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
             '<tr>',
               '<th>A</th>',
@@ -572,6 +620,7 @@ describe('CopyPaste', () => {
               '<td>J2</td>',
             '</tr>',
           '</tbody>',
+        '<!--EndFragment-->',
         '</table>'
       ].join(''));
       /* eslint-enable */

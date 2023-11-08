@@ -77,4 +77,17 @@ export const simpleTableWithOnlyHeaders =
      </thead>
    </table>`;
 
+export const simpleWithGroupHeaders =
+  toSingleLine`
+    <table>
+     <thead>
+       <tr>
+         <th colspan=3>A-0-0</th>
+         <th colspan=3>D-0-0</th>
+         <th>G-0-0</th>
+         <th>H-0-0</th>
+       </tr>
+     </thead>
+   </table>`;
+
 export const simpleHandsontableWithOnlyHeaders = `${META_HEAD}${simpleTableWithOnlyHeaders}`;

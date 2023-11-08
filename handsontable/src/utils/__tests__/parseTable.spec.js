@@ -50,6 +50,7 @@ describe('parseTable', () => {
       /* eslint-disable indent */
       expect(hot.toHTML()).toBe([
         '<table>',
+        '<!--StartFragment-->',
           '<tbody>',
             '<tr><td></td><td></td><td></td><td></td><td></td></tr>',
             '<tr><td></td><td></td><td></td><td></td><td></td></tr>',
@@ -57,6 +58,7 @@ describe('parseTable', () => {
             '<tr><td></td><td></td><td></td><td></td><td></td></tr>',
             '<tr><td></td><td></td><td></td><td></td><td></td></tr>',
           '</tbody>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -74,6 +76,7 @@ describe('parseTable', () => {
       /* eslint-disable indent */
       expect(hot.toHTML()).toBe([
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
             '<tr><th>A</th><th>B</th></tr>',
           '</thead>',
@@ -81,6 +84,7 @@ describe('parseTable', () => {
             '<tr><td>A1</td><td>B1</td></tr>',
             '<tr><td>A2</td><td>B2</td></tr>',
           '</tbody>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -98,10 +102,12 @@ describe('parseTable', () => {
       /* eslint-disable indent */
       expect(hot.toHTML()).toBe([
         '<table>',
+        '<!--StartFragment-->',
           '<tbody>',
             '<tr><th>1</th><td>A1</td><td>B1</td></tr>',
             '<tr><th>2</th><td>A2</td><td>B2</td></tr>',
           '</tbody>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -120,6 +126,7 @@ describe('parseTable', () => {
       /* eslint-disable indent */
       expect(hot.toHTML()).toBe([
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
             '<tr><th></th><th>A</th><th>B</th></tr>',
           '</thead>',
@@ -127,6 +134,7 @@ describe('parseTable', () => {
             '<tr><th>1</th><td>A1</td><td>B1</td></tr>',
             '<tr><th>2</th><td>A2</td><td>B2</td></tr>',
           '</tbody>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */
@@ -149,6 +157,7 @@ describe('parseTable', () => {
       /* eslint-disable indent */
       expect(hot.toHTML()).toBe([
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
             '<tr><th></th><th>A</th><th>B</th><th>C</th></tr>',
           '</thead>',
@@ -157,6 +166,7 @@ describe('parseTable', () => {
             '<tr><th>2</th><td>C2</td></tr>',
             '<tr><th>3</th><td>C3</td></tr>',
           '</tbody>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */

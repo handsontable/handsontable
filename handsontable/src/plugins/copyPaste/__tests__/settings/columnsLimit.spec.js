@@ -87,6 +87,7 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>',
         '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table>',
+        '<!--StartFragment-->',
           '<thead>',
             '<tr><th>B-1-0</th><th>C-2-0</th></tr>',
             '<tr><th>B-1-1</th><th>C-2-1</th></tr>',
@@ -96,6 +97,7 @@ describe('CopyPaste', () => {
             '<tr><td>B2</td><td>C2</td></tr>',
             '<tr><td>B3</td><td>C3</td></tr>',
           '</tbody>',
+        '<!--EndFragment-->',
         '</table>',
       ].join(''));
       /* eslint-enable */
