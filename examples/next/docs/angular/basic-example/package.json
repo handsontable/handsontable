@@ -26,8 +26,8 @@
     "@angular/platform-browser": "latest",
     "@angular/platform-browser-dynamic": "latest",
     "@angular/router": "latest",
-    "@handsontable/angular": "14.0.0-next-f88c253-20231106",
-    "handsontable": "14.0.0-next-f88c253-20231106",
+    "@handsontable/angular": "14.0.0-next-b24d538-20231108",
+    "handsontable": "14.0.0-next-b24d538-20231108",
     "rxjs": "6.6.7",
     "tslib": "2.1.0",
     "zone.js": "0.13.0"

@@ -17,9 +17,9 @@
     "test": "node spec/support/jasmine.config.js"
   },
   "dependencies": {
-    "@handsontable/vue": "14.0.0-next-f88c253-20231106",
+    "@handsontable/vue": "14.0.0-next-b24d538-20231108",
     "core-js": "3.9.1",
-    "handsontable": "14.0.0-next-f88c253-20231106",
+    "handsontable": "14.0.0-next-b24d538-20231108",
     "vue": "2.7.14"
   },
   "devDependencies": {

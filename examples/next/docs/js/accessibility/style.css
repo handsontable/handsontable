@@ -2,7 +2,7 @@
 body {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
 }
 
 #handsontable { 
@@ -118,6 +118,10 @@ input {
 
 .optionLabel > input:focus {
   outline: none;
+}
+
+.optionLabel {
+  align-items: flex-start;
 }
 
 .optionLabel:focus-within {
