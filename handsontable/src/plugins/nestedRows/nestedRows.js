@@ -15,7 +15,6 @@ export const PLUGIN_PRIORITY = 300;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * Error message for the wrong data type error.
  */
@@ -60,10 +59,14 @@ export class NestedRows extends BasePlugin {
    */
   collapsedRowsMap = null;
   /**
+   * Allows skipping the render cycle if set as `true`.
+   *
    * @type {boolean}
    */
   #skipRender = false;
   /**
+   * Allows skipping the internal Core methods call if set as `true`.
+   *
    * @type {boolean}
    */
   #skipCoreAPIModifiers = false;
@@ -214,6 +217,8 @@ export class NestedRows extends BasePlugin {
   /**
    * Enable the modify hook skipping flag - allows retrieving the data from Handsontable without this plugin's
    * modifications.
+   *
+   * @private
    */
   disableCoreAPIModifiers() {
     this.#skipCoreAPIModifiers = true;
@@ -221,6 +226,8 @@ export class NestedRows extends BasePlugin {
 
   /**
    * Disable the modify hook skipping flag.
+   *
+   * @private
    */
   enableCoreAPIModifiers() {
     this.#skipCoreAPIModifiers = false;
@@ -326,7 +333,7 @@ export class NestedRows extends BasePlugin {
    * @returns {number}
    */
   #onModifyRowHeaderWidth(rowHeaderWidth) {
-    return this.headersUI.rowHeaderWidthCache || rowHeaderWidth;
+    return Math.max(this.headersUI.rowHeaderWidthCache, rowHeaderWidth);
   }
 
   /**
@@ -346,7 +353,7 @@ export class NestedRows extends BasePlugin {
       this.#skipRender = false;
       this.headersUI.updateRowHeaderWidth();
       this.collapsingUI.collapsedRowsStash.applyStash();
-    }, 0);
+    });
   }
 
   /**
