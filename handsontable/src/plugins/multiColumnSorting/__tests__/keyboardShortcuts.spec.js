@@ -20,6 +20,26 @@ describe('MultiColumnSorting keyboard shortcut', () => {
   }
 
   describe('"Shift" + "Enter"', () => {
+    it('should not be possible to sort non-visible column', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        multiColumnSorting: true
+      });
+
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      hidingMap.setValueAtIndex(1, true);
+
+      render();
+      selectCell(-1, 1);
+      keyDownUp(['shift', 'enter']);
+
+      expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([]);
+    });
+
     it('should be possible to sort columns with correct sort order', () => {
       handsontable({
         data: createSpreadsheetData(3, 8),

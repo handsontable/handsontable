@@ -20,6 +20,26 @@ describe('ColumnSorting keyboard shortcut', () => {
   }
 
   describe('"Enter"', () => {
+    it('should not be possible to sort non-visible column', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        columnSorting: true
+      });
+
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      hidingMap.setValueAtIndex(1, true);
+
+      render();
+      selectCell(-1, 1);
+      keyDownUp('enter');
+
+      expect(getPlugin('columnSorting').getSortConfig()).toEqual([]);
+    });
+
     it('should be possible to sort columns with correct sort order', () => {
       handsontable({
         data: createSpreadsheetData(3, 8),

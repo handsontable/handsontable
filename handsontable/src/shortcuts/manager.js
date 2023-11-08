@@ -127,7 +127,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
         forwardToContext,
       } = shortcuts[index];
 
-      if (runOnlyIf(event) !== false) {
+      if (runOnlyIf(event) === true) {
         isCtrlKeySilenced = captureCtrl;
         isExecutionCancelled = callback(event, keys) === false;
         isCtrlKeySilenced = false;

@@ -14,6 +14,35 @@ describe('ContextMenu keyboard shortcut', () => {
     ['Shift', 'Control/Meta', '\\'],
     ['Shift', 'F10'],
   ], (keyboardShortcut) => {
+    it('should not throw an error when triggered on selection that points on the hidden records', () => {
+      const spy = jasmine.createSpyObj('error', ['test']);
+      const prevError = window.onerror;
+
+      window.onerror = function() {
+        spy.test();
+
+        return true;
+      };
+      handsontable({
+        contextMenu: true,
+      });
+
+      const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      hidingMap.setValueAtIndex(0, true);
+      hidingMap.setValueAtIndex(1, true);
+      hidingMap.setValueAtIndex(2, true);
+
+      render();
+      selectCell(1, 1);
+
+      keyDownUp(keyboardShortcut);
+
+      expect(spy.test.calls.count()).toBe(0);
+
+      window.onerror = prevError;
+    });
+
     it('should open a menu after `updateSettings` call', () => {
       handsontable({
         contextMenu: true,

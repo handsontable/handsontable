@@ -268,13 +268,23 @@ export class DropdownMenu extends BasePlugin {
     gridContext.addShortcuts([{
       keys: [['Shift', 'Alt', 'ArrowDown'], ['Control/Meta', 'Enter']],
       callback,
-      runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isHeader() && !this.menu.isOpened(),
+      runOnlyIf: () => {
+        const highlight = this.hot.getSelectedRangeLast()?.highlight;
+
+        return highlight && this.hot.selection.isCellVisible(highlight) &&
+          highlight.isHeader() && !this.menu.isOpened();
+      },
       captureCtrl: true,
       group: SHORTCUTS_GROUP,
     }, {
       keys: [['Shift', 'Alt', 'ArrowDown']],
       callback,
-      runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isCell() && !this.menu.isOpened(),
+      runOnlyIf: () => {
+        const highlight = this.hot.getSelectedRangeLast()?.highlight;
+
+        return highlight && this.hot.selection.isCellVisible(highlight) &&
+          highlight.isCell() && !this.menu.isOpened();
+      },
       group: SHORTCUTS_GROUP,
     }]);
   }
