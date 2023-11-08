@@ -173,7 +173,11 @@ export class NestedRows extends BasePlugin {
             }
           }
         },
-        runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isHeader(),
+        runOnlyIf: () => {
+          const highlight = this.hot.getSelectedRangeLast()?.highlight;
+
+          return highlight && this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
+        },
         group: SHORTCUTS_GROUP,
       });
   }

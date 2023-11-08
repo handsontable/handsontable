@@ -135,7 +135,11 @@ export class MultiColumnSorting extends ColumnSorting {
             this.sort(this.getNextSortConfig(highlight.col, APPEND_COLUMN_CONFIG_STRATEGY));
           }
         },
-        runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isHeader(),
+        runOnlyIf: () => {
+          const highlight = this.hot.getSelectedRangeLast()?.highlight;
+
+          return highlight && this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
+        },
         group: SHORTCUTS_GROUP,
       });
   }

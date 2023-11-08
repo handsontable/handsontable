@@ -175,9 +175,7 @@ export class BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
-    if (this.eventManager) {
-      this.eventManager.clear();
-    }
+    this.eventManager?.clear();
     this.clearHooks();
     this.enabled = false;
   }
@@ -317,9 +315,7 @@ export class BasePlugin {
    * Destroy plugin.
    */
   destroy() {
-    if (this.eventManager) {
-      this.eventManager.destroy();
-    }
+    this.eventManager?.destroy();
     this.clearHooks();
 
     objectEach(this, (value, property) => {
