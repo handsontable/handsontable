@@ -1,15 +1,15 @@
 <template>
   <nav class="nav-frameworks nav-links">
-    <img :src="imageUrl"/>
+    <img :src="imageUrl" :alt="alt" />
     <!-- user links -->
-    <nav class="nav-item" >
+    <nav class="nav-item">
       <DropdownLink @item-click="onFrameworkClick" :item="item"></DropdownLink>
     </nav>
   </nav>
 </template>
 
 <script>
-import DropdownLink from '@theme/components/DropdownLink.vue';
+import DropdownLink from "@theme/components/DropdownLink.vue";
 
 /**
  * Sets cookie bound to the docs URL domain and path.
@@ -19,57 +19,75 @@ import DropdownLink from '@theme/components/DropdownLink.vue';
  */
 function setCookie(name, value) {
   const hostname = window.location.hostname;
-  const urlParts = hostname.split('.');
+  const urlParts = hostname.split(".");
   let domainWithoutSubdomain = hostname;
 
   if (urlParts.length > 2) {
-    domainWithoutSubdomain = urlParts.slice(1).join('.');
+    domainWithoutSubdomain = urlParts.slice(1).join(".");
   }
   let str = `${name}=${value}`;
 
   str += `; Domain=${domainWithoutSubdomain}`;
-  str += '; Path=/docs';
-  str += `; Expires=${new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)).toUTCString()}`; // 1 year
+  str += "; Path=/docs";
+  str += `; Expires=${new Date(
+    Date.now() + 365 * 24 * 60 * 60 * 1000
+  ).toUTCString()}`; // 1 year
 
   document.cookie = str;
 }
 
 const frameworkIdToFullName = new Map([
-  ['javascript', { name: 'JavaScript' }],
-  ['react', { name: 'React' }],
-  ['angular', { name: 'Angular', homepage: '/javascript-data-grid/angular-installation/' }],
-  ['vue', { name: 'Vue 2', homepage: '/javascript-data-grid/vue-installation/' }],
-  ['vue3', { name: 'Vue 3', homepage: '/javascript-data-grid/vue3-installation/' }],
+  ["javascript", { name: "JavaScript" }],
+  ["react", { name: "React" }],
+  [
+    "angular",
+    {
+      name: "Angular",
+      homepage: "/javascript-data-grid/angular-installation/",
+    },
+  ],
+  [
+    "vue",
+    { name: "Vue 2", homepage: "/javascript-data-grid/vue-installation/" },
+  ],
+  [
+    "vue3",
+    { name: "Vue 3", homepage: "/javascript-data-grid/vue3-installation/" },
+  ],
 ]);
 
 export default {
-  name: 'FrameworksDropdown',
+  name: "FrameworksDropdown",
   components: {
-    DropdownLink
+    DropdownLink,
   },
   watch: {
     $route(to) {
       this.detectLegacyFramework(to.fullPath);
-    }
+    },
   },
   data() {
     return {
-      legacyFramework: null
+      legacyFramework: null,
     };
   },
   methods: {
     onFrameworkClick(item) {
-      setCookie('docs_fw', item.id === 'react' ? 'react' : 'javascript');
+      setCookie("docs_fw", item.id === "react" ? "react" : "javascript");
     },
     detectLegacyFramework(path) {
-      const frameworkMatch = path.match(/javascript-data-grid\/(vue3|vue|angular)?/);
+      const frameworkMatch = path.match(
+        /javascript-data-grid\/(vue3|vue|angular)?/
+      );
 
       this.legacyFramework = frameworkMatch ? frameworkMatch[1] : null;
     },
+    getAlt(framework) {
+      return frameworkIdToFullName.get(framework).alt;
+    },
     getLink(framework) {
-      const {
-        homepage = `/${framework}${this.$page.frameworkSuffix}/`
-      } = frameworkIdToFullName.get(framework);
+      const { homepage = `/${framework}${this.$page.frameworkSuffix}/` } =
+        frameworkIdToFullName.get(framework);
 
       if (this.$page.currentVersion === this.$page.latestVersion) {
         return `/docs${homepage}`;
@@ -81,33 +99,44 @@ export default {
       return frameworkIdToFullName.get(id).name;
     },
     getFrameworkItems() {
-      return Array.from(frameworkIdToFullName.entries()).map(([id, { name }]) => {
-        return {
-          id,
-          text: name,
-          link: this.getLink(id),
-          target: '_self',
-          isHtmlLink: true
-        };
-      });
-    }
+      return Array.from(frameworkIdToFullName.entries()).map(
+        ([id, { name }]) => {
+          return {
+            id,
+            text: name,
+            link: this.getLink(id),
+            target: "_self",
+            isHtmlLink: true,
+          };
+        }
+      );
+    },
   },
   computed: {
+    alt() {
+      return `${this.$page.frameworkName} data grid`;
+    },
     imageUrl() {
-      const frameworkWithoutNumber = (this.legacyFramework ?? this.$page.currentFramework).replace(/\d+$/, '');
+      const frameworkWithoutNumber = (
+        this.legacyFramework ?? this.$page.currentFramework
+      ).replace(/\d+$/, "");
 
-      return this.$withBase(`/img/pages/introduction/${frameworkWithoutNumber}.svg`);
+      return this.$withBase(
+        `/img/pages/introduction/${frameworkWithoutNumber}.svg`
+      );
     },
     item() {
       return {
-        text: this.getFrameworkName(this.legacyFramework ?? this.$page.currentFramework),
+        text: this.getFrameworkName(
+          this.legacyFramework ?? this.$page.currentFramework
+        ),
         items: this.getFrameworkItems(),
       };
-    }
+    },
   },
   created() {
     this.detectLegacyFramework(this.$route.fullPath);
-  }
+  },
 };
 </script>
 
@@ -157,5 +186,4 @@ export default {
     z-index 100
 .dropdown-wrapper .dropdown-title .arrow, .dropdown-wrapper .mobile-dropdown-title .arrow
   margin-left 0.1rem
-
 </style>
