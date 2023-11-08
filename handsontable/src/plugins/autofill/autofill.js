@@ -83,6 +83,7 @@ export class Autofill extends BasePlugin {
   /**
    * Specifies if can insert new rows if needed.
    *
+   * @private
    * @type {boolean}
    */
   autoInsertRow = false;

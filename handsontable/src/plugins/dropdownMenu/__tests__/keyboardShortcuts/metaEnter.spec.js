@@ -18,6 +18,36 @@ describe('DropdownMenu keyboard shortcut', () => {
   }
 
   describe('"Control/meta" + "Enter"', () => {
+    it('should not throw an error when triggered on selection that points on the hidden records', () => {
+      const spy = jasmine.createSpyObj('error', ['test']);
+      const prevError = window.onerror;
+
+      window.onerror = function() {
+        spy.test();
+
+        return true;
+      };
+      handsontable({
+        colHeaders: true,
+        dropdownMenu: true,
+      });
+
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      hidingMap.setValueAtIndex(0, true);
+      hidingMap.setValueAtIndex(1, true);
+      hidingMap.setValueAtIndex(2, true);
+
+      render();
+      selectCell(-1, 1);
+
+      keyDownUp(['control/meta', 'enter']);
+
+      expect(spy.test.calls.count()).toBe(0);
+
+      window.onerror = prevError;
+    });
+
     it('should not be possible to open the dropdown menu (navigableHeaders off)', () => {
       handsontable({
         data: createSpreadsheetData(3, 8),

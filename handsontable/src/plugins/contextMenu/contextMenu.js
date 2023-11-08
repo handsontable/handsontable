@@ -211,7 +211,11 @@ export class ContextMenu extends BasePlugin {
             above: -rect.height,
           });
         },
-        runOnlyIf: () => this.hot.getSelectedRangeLast() && !this.menu.isOpened(),
+        runOnlyIf: () => {
+          const highlight = this.hot.getSelectedRangeLast()?.highlight;
+
+          return highlight && this.hot.selection.isCellVisible(highlight) && !this.menu.isOpened();
+        },
         group: SHORTCUTS_GROUP,
       });
   }
