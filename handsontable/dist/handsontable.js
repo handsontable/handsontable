@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.0.0
- * Release date: 15/11/2023 (built at 06/11/2023 14:15:45)
+ * Release date: 15/11/2023 (built at 08/11/2023 10:15:52)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -67,7 +67,7 @@ __webpack_require__(6);
 var _core = _interopRequireDefault(__webpack_require__(7));
 var _rootInstance = __webpack_require__(218);
 var _dataMap = __webpack_require__(262);
-var _pluginHooks = _interopRequireDefault(__webpack_require__(124));
+var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 var _registry = __webpack_require__(240);
 var _registry2 = __webpack_require__(269);
 var _textType = __webpack_require__(333);
@@ -105,7 +105,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "06/11/2023 14:15:45";
+Handsontable.buildDate = "08/11/2023 10:15:52";
 Handsontable.version = "14.0.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -170,30 +170,30 @@ var _function = __webpack_require__(115);
 var _mixed = __webpack_require__(110);
 var _browser = __webpack_require__(116);
 var _editorManager = _interopRequireDefault(__webpack_require__(120));
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
+var _eventManager = _interopRequireDefault(__webpack_require__(131));
 var _object = __webpack_require__(117);
-var _focusManager = __webpack_require__(128);
+var _focusManager = __webpack_require__(132);
 var _array = __webpack_require__(113);
-var _parseTable = __webpack_require__(134);
-var _registry = __webpack_require__(135);
-var _registry2 = __webpack_require__(140);
-var _registry3 = __webpack_require__(123);
-var _registry4 = __webpack_require__(141);
+var _parseTable = __webpack_require__(138);
+var _registry = __webpack_require__(139);
+var _registry2 = __webpack_require__(144);
+var _registry3 = __webpack_require__(127);
+var _registry4 = __webpack_require__(145);
 var _string = __webpack_require__(108);
-var _number = __webpack_require__(137);
-var _tableView = _interopRequireDefault(__webpack_require__(142));
+var _number = __webpack_require__(141);
+var _tableView = _interopRequireDefault(__webpack_require__(146));
 var _dataSource = _interopRequireDefault(__webpack_require__(219));
 var _data = __webpack_require__(220);
 var _translations = __webpack_require__(221);
 var _rootInstance = __webpack_require__(218);
 var _src = __webpack_require__(147);
-var _pluginHooks = _interopRequireDefault(__webpack_require__(124));
+var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 var _registry5 = __webpack_require__(240);
 var _utils = __webpack_require__(241);
 var _selection = __webpack_require__(246);
 var _dataMap = __webpack_require__(262);
 var _index3 = __webpack_require__(278);
-var _uniqueMap = __webpack_require__(138);
+var _uniqueMap = __webpack_require__(142);
 var _shortcuts = __webpack_require__(327);
 var _shortcutContexts = __webpack_require__(280);
 let activeGuid = null;
@@ -450,7 +450,12 @@ function Core(rootElement, userSettings) {
     createCellRange: (highlight, from, to) => instance._createCellRange(highlight, from, to),
     visualToRenderableCoords,
     renderableToVisualCoords,
-    isDisabledCellSelection: (visualRow, visualColumn) => instance.getCellMeta(visualRow, visualColumn).disableVisualSelection
+    isDisabledCellSelection: (visualRow, visualColumn) => {
+      if (visualRow < 0 || visualColumn < 0) {
+        return instance.getSettings().disableVisualSelection;
+      }
+      return instance.getCellMeta(visualRow, visualColumn).disableVisualSelection;
+    }
   });
   this.selection = selection;
   const onIndexMapperCacheUpdate = _ref => {
@@ -1396,7 +1401,7 @@ function Core(rootElement, userSettings) {
         /* eslint-disable no-continue */
         continue;
       }
-      if ((changes[i][2] === null || changes[i][2] === void 0) && (changes[i][3] === null || changes[i][3] === void 0)) {
+      if ((changes[i][2] === null || changes[i][2] === undefined) && (changes[i][3] === null || changes[i][3] === undefined)) {
         /* eslint-disable no-continue */
         continue;
       }
@@ -1404,7 +1409,7 @@ function Core(rootElement, userSettings) {
         while (changes[i][0] > instance.countRows() - 1) {
           const {
             delta: numberOfCreatedRows
-          } = datamap.createRow(void 0, void 0, {
+          } = datamap.createRow(undefined, undefined, {
             source
           });
           if (numberOfCreatedRows === 0) {
@@ -1417,7 +1422,7 @@ function Core(rootElement, userSettings) {
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
           const {
             delta: numberOfCreatedColumns
-          } = datamap.createCol(void 0, void 0, {
+          } = datamap.createCol(undefined, undefined, {
             source
           });
           if (numberOfCreatedColumns === 0) {
@@ -2513,11 +2518,11 @@ function Core(rootElement, userSettings) {
     }
 
     // Load data or create data map
-    if (settings.data === void 0 && tableMeta.data === void 0) {
+    if (settings.data === undefined && tableMeta.data === undefined) {
       dataUpdateFunction(null, 'updateSettings'); // data source created just now
-    } else if (settings.data !== void 0) {
+    } else if (settings.data !== undefined) {
       dataUpdateFunction(settings.data, 'updateSettings'); // data source given as option
-    } else if (settings.columns !== void 0) {
+    } else if (settings.columns !== undefined) {
       datamap.createMap();
 
       // The `column` property has changed - dataset may be expanded or narrowed down. The `loadData` do the same.
@@ -2532,7 +2537,7 @@ function Core(rootElement, userSettings) {
     }
 
     // Clear cell meta cache
-    if (settings.cell !== void 0 || settings.cells !== void 0 || settings.columns !== void 0) {
+    if (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined) {
       metaManager.clearCache();
     }
     if (clen > 0) {
@@ -2575,7 +2580,7 @@ function Core(rootElement, userSettings) {
         instance.rootElement.style.height = '';
         instance.rootElement.style.overflow = '';
       }
-    } else if (height !== void 0) {
+    } else if (height !== undefined) {
       instance.rootElement.style.height = isNaN(height) ? `${height}` : `${height}px`;
       instance.rootElement.style.overflow = 'hidden';
     }
@@ -2601,7 +2606,7 @@ function Core(rootElement, userSettings) {
       instance.view._wt.wtOverlays.adjustElementsSize();
       editorManager.unlockEditor();
     }
-    if (!init && instance.view && (currentHeight === '' || height === '' || height === void 0) && currentHeight !== height) {
+    if (!init && instance.view && (currentHeight === '' || height === '' || height === undefined) && currentHeight !== height) {
       instance.view._wt.wtOverlays.updateMainScrollableElements();
     }
   };
@@ -2964,7 +2969,7 @@ function Core(rootElement, userSettings) {
    */
   this.getSourceData = function (row, column, row2, column2) {
     let data;
-    if (row === void 0) {
+    if (row === undefined) {
       data = dataSource.getData();
     } else {
       data = dataSource.getByRange(instance._createCellCoords(row, column), instance._createCellCoords(row2, column2));
@@ -2990,7 +2995,7 @@ function Core(rootElement, userSettings) {
    */
   this.getSourceDataArray = function (row, column, row2, column2) {
     let data;
-    if (row === void 0) {
+    if (row === undefined) {
       data = dataSource.getData(true);
     } else {
       data = dataSource.getByRange(instance._createCellCoords(row, column), instance._createCellCoords(row2, column2), true);
@@ -3110,15 +3115,15 @@ function Core(rootElement, userSettings) {
    * @returns {string} Cell type (e.q: `'mixed'`, `'text'`, `'numeric'`, `'autocomplete'`).
    */
   this.getDataType = function (rowFrom, columnFrom, rowTo, columnTo) {
-    const coords = rowFrom === void 0 ? [0, 0, this.countRows(), this.countCols()] : [rowFrom, columnFrom, rowTo, columnTo];
+    const coords = rowFrom === undefined ? [0, 0, this.countRows(), this.countCols()] : [rowFrom, columnFrom, rowTo, columnTo];
     const [rowStart, columnStart] = coords;
     let [,, rowEnd, columnEnd] = coords;
     let previousType = null;
     let currentType = null;
-    if (rowEnd === void 0) {
+    if (rowEnd === undefined) {
       rowEnd = rowStart;
     }
-    if (columnEnd === void 0) {
+    if (columnEnd === undefined) {
       columnEnd = columnStart;
     }
     let type = 'mixed';
@@ -3516,15 +3521,15 @@ function Core(rootElement, userSettings) {
   this.getRowHeader = function (row) {
     let rowHeader = tableMeta.rowHeaders;
     let physicalRow = row;
-    if (physicalRow !== void 0) {
+    if (physicalRow !== undefined) {
       physicalRow = instance.runHooks('modifyRowHeader', physicalRow);
     }
-    if (physicalRow === void 0) {
+    if (physicalRow === undefined) {
       rowHeader = [];
       (0, _number.rangeEach)(instance.countRows() - 1, i => {
         rowHeader.push(instance.getRowHeader(i));
       });
-    } else if (Array.isArray(rowHeader) && rowHeader[physicalRow] !== void 0) {
+    } else if (Array.isArray(rowHeader) && rowHeader[physicalRow] !== undefined) {
       rowHeader = rowHeader[physicalRow];
     } else if ((0, _function.isFunction)(rowHeader)) {
       rowHeader = rowHeader(physicalRow);
@@ -3553,7 +3558,7 @@ function Core(rootElement, userSettings) {
    * @returns {boolean} `true` if the instance has the column headers enabled, `false` otherwise.
    */
   this.hasColHeaders = function () {
-    if (tableMeta.colHeaders !== void 0 && tableMeta.colHeaders !== null) {
+    if (tableMeta.colHeaders !== undefined && tableMeta.colHeaders !== null) {
       // Polymer has empty value = null
       return !!tableMeta.colHeaders;
     }
@@ -3607,7 +3612,7 @@ function Core(rootElement, userSettings) {
   this.getColHeader = function (column) {
     let headerLevel = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : -1;
     const columnIndex = instance.runHooks('modifyColHeader', column);
-    if (columnIndex === void 0) {
+    if (columnIndex === undefined) {
       const out = [];
       const ilen = instance.countCols();
       for (let i = 0; i < ilen; i++) {
@@ -3635,7 +3640,7 @@ function Core(rootElement, userSettings) {
       result = tableMeta.columns(prop).title;
     } else if (tableMeta.columns && tableMeta.columns[physicalColumn] && tableMeta.columns[physicalColumn].title) {
       result = tableMeta.columns[physicalColumn].title;
-    } else if (Array.isArray(tableMeta.colHeaders) && tableMeta.colHeaders[physicalColumn] !== void 0) {
+    } else if (Array.isArray(tableMeta.colHeaders) && tableMeta.colHeaders[physicalColumn] !== undefined) {
       result = tableMeta.colHeaders[physicalColumn];
     } else if ((0, _function.isFunction)(tableMeta.colHeaders)) {
       result = tableMeta.colHeaders(physicalColumn);
@@ -3664,10 +3669,10 @@ function Core(rootElement, userSettings) {
       const cellProperties = instance.getCellMeta(0, col);
       width = cellProperties.width;
     }
-    if (width === void 0 || width === tableMeta.width) {
+    if (width === undefined || width === tableMeta.width) {
       width = tableMeta.colWidths;
     }
-    if (width !== void 0 && width !== null) {
+    if (width !== undefined && width !== null) {
       switch (typeof width) {
         case 'object':
           // array
@@ -3698,7 +3703,7 @@ function Core(rootElement, userSettings) {
   this.getColWidth = function (column) {
     let width = instance._getColWidthFromSettings(column);
     width = instance.runHooks('modifyColWidth', width, column);
-    if (width === void 0) {
+    if (width === undefined) {
       width = _src.ViewportColumnsCalculator.DEFAULT_WIDTH;
     }
     return width;
@@ -3717,11 +3722,11 @@ function Core(rootElement, userSettings) {
     // let cellProperties = instance.getCellMeta(row, 0);
     // let height = cellProperties.height;
     //
-    // if (height === void 0 || height === tableMeta.height) {
+    // if (height === undefined || height === tableMeta.height) {
     //  height = cellProperties.rowHeights;
     // }
     let height = tableMeta.rowHeights;
-    if (height !== void 0 && height !== null) {
+    if (height !== undefined && height !== null) {
       switch (typeof height) {
         case 'object':
           // array
@@ -7238,7 +7243,7 @@ function closest(element) {
     DOCUMENT_FRAGMENT_NODE
   } = Node;
   let elementToCheck = element;
-  while (elementToCheck !== null && elementToCheck !== void 0 && elementToCheck !== until) {
+  while (elementToCheck !== null && elementToCheck !== undefined && elementToCheck !== until) {
     const {
       nodeType,
       nodeName
@@ -7396,7 +7401,7 @@ function filterRegexes(list, returnBoth) {
  * @returns {boolean}
  */
 function hasClass(element, className) {
-  if (element.classList === void 0 || typeof className !== 'string' || className === '') {
+  if (element.classList === undefined || typeof className !== 'string' || className === '') {
     return false;
   }
   return element.classList.contains(className);
@@ -7718,7 +7723,7 @@ function getScrollLeft(element) {
  */
 function getScrollableElement(element) {
   let rootDocument = element.ownerDocument;
-  let rootWindow = rootDocument ? rootDocument.defaultView : void 0;
+  let rootWindow = rootDocument ? rootDocument.defaultView : undefined;
   if (!rootDocument) {
     rootDocument = element.document ? element.document : element;
     rootWindow = rootDocument.defaultView;
@@ -7805,11 +7810,11 @@ function getStyle(element, prop) {
     return;
   }
   const styleProp = element.style[prop];
-  if (styleProp !== '' && styleProp !== void 0) {
+  if (styleProp !== '' && styleProp !== undefined) {
     return styleProp;
   }
   const computedStyle = getComputedStyle(element, rootWindow);
-  if (computedStyle[prop] !== '' && computedStyle[prop] !== void 0) {
+  if (computedStyle[prop] !== '' && computedStyle[prop] !== undefined) {
     return computedStyle[prop];
   }
 }
@@ -7982,7 +7987,7 @@ function clearTextSelection() {
  * @param {number} endPos The selection end position.
  */
 function setCaretPosition(element, pos, endPos) {
-  if (endPos === void 0) {
+  if (endPos === undefined) {
     endPos = pos;
   }
   if (element.setSelectionRange) {
@@ -8044,7 +8049,7 @@ function walkontableCalculateScrollbarWidth() {
 // eslint-disable-next-line no-restricted-globals
 function getScrollbarWidth() {
   let rootDocument = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : document;
-  if (cachedScrollbarWidth === void 0) {
+  if (cachedScrollbarWidth === undefined) {
     cachedScrollbarWidth = walkontableCalculateScrollbarWidth(rootDocument);
   }
   return cachedScrollbarWidth;
@@ -8347,7 +8352,7 @@ function substitute(template) {
     if (match.charAt(0) === '\\') {
       return match.substr(1, match.length - 1);
     }
-    return variables[name] === void 0 ? '' : variables[name];
+    return variables[name] === undefined ? '' : variables[name];
   });
 }
 
@@ -8839,7 +8844,7 @@ function arraySum(array) {
  * @returns {number} Returns the highest value from an array.
  */
 function arrayMax(array) {
-  return arrayReduce(array, (a, b) => a > b ? a : b, Array.isArray(array) ? array[0] : void 0);
+  return arrayReduce(array, (a, b) => a > b ? a : b, Array.isArray(array) ? array[0] : undefined);
 }
 
 /**
@@ -8850,7 +8855,7 @@ function arrayMax(array) {
  * @returns {number} Returns the lowest value from an array.
  */
 function arrayMin(array) {
-  return arrayReduce(array, (a, b) => a < b ? a : b, Array.isArray(array) ? array[0] : void 0);
+  return arrayReduce(array, (a, b) => a < b ? a : b, Array.isArray(array) ? array[0] : undefined);
 }
 
 /**
@@ -9120,7 +9125,7 @@ function throttle(func) {
         result.lastCallThrottled = false;
         func.apply(this, args);
         lastCalled = 0;
-        lastTimer = void 0;
+        lastTimer = undefined;
       }, remaining);
     }
     return result;
@@ -9714,7 +9719,7 @@ function mixin(Base) {
   (0, _array.arrayEach)(mixins, mixinItem => {
     Base.MIXINS.push(mixinItem.MIXIN_NAME);
     objectEach(mixinItem, (value, key) => {
-      if (Base.prototype[key] !== void 0) {
+      if (Base.prototype[key] !== undefined) {
         throw new Error(`Mixin conflict. Property '${key}' already exist and cannot be overwritten.`);
       }
       if (typeof value === 'function') {
@@ -9730,7 +9735,7 @@ function mixin(Base) {
             return result;
           };
           return function () {
-            if (this[propertyName] === void 0) {
+            if (this[propertyName] === undefined) {
               this[propertyName] = initValue(initialValue);
             }
             return this[propertyName];
@@ -9820,8 +9825,8 @@ function getProperty(object, name) {
   let result = object;
   objectEach(names, nameItem => {
     result = result[nameItem];
-    if (result === void 0) {
-      result = void 0;
+    if (result === undefined) {
+      result = undefined;
       return false;
     }
   });
@@ -10045,83 +10050,108 @@ module.exports = function (replacer) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _unicode = __webpack_require__(121);
-var _event = __webpack_require__(122);
-var _registry = __webpack_require__(123);
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
+__webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _unicode = __webpack_require__(125);
+var _event = __webpack_require__(126);
+var _registry = __webpack_require__(127);
+var _eventManager = _interopRequireDefault(__webpack_require__(131));
 var _mixed = __webpack_require__(110);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 const SHORTCUTS_GROUP_NAVIGATION = exports.SHORTCUTS_GROUP_NAVIGATION = 'editorManager.navigation';
+var _onAfterDocumentKeyDown = /*#__PURE__*/new WeakSet();
+var _onCellDblClick = /*#__PURE__*/new WeakSet();
 class EditorManager {
   /**
-   * @param {Core} instance The Handsontable instance.
+   * @param {Core} hotInstance The Handsontable instance.
    * @param {TableMeta} tableMeta The table meta instance.
    * @param {Selection} selection The selection instance.
    */
-  constructor(instance, tableMeta, selection) {
+  constructor(hotInstance, tableMeta, _selection) {
+    /**
+     * OnCellDblClick callback.
+     *
+     * @param {MouseEvent} event The mouse event object.
+     * @param {object} coords The cell coordinates.
+     * @param {HTMLTableCellElement|HTMLTableHeaderCellElement} elem The element which triggers the action.
+     */
+    _classPrivateMethodInitSpec(this, _onCellDblClick);
+    /**
+     * OnAfterDocumentKeyDown callback.
+     *
+     * @param {KeyboardEvent} event The keyboard event object.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterDocumentKeyDown);
     /**
      * Instance of {@link Handsontable}.
      *
      * @private
      * @type {Handsontable}
      */
-    this.instance = instance;
+    (0, _defineProperty2.default)(this, "hot", void 0);
     /**
      * Reference to an instance's private GridSettings object.
      *
      * @private
      * @type {GridSettings}
      */
-    this.tableMeta = tableMeta;
+    (0, _defineProperty2.default)(this, "tableMeta", void 0);
     /**
      * Instance of {@link Selection}.
      *
      * @private
      * @type {Selection}
      */
-    this.selection = selection;
+    (0, _defineProperty2.default)(this, "selection", void 0);
     /**
      * Instance of {@link EventManager}.
      *
      * @private
      * @type {EventManager}
      */
-    this.eventManager = new _eventManager.default(instance);
+    (0, _defineProperty2.default)(this, "eventManager", void 0);
     /**
      * Determines if EditorManager is destroyed.
      *
      * @private
      * @type {boolean}
      */
-    this.destroyed = false;
+    (0, _defineProperty2.default)(this, "destroyed", false);
     /**
      * Determines if EditorManager is locked.
      *
      * @private
      * @type {boolean}
      */
-    this.lock = false;
+    (0, _defineProperty2.default)(this, "lock", false);
     /**
      * A reference to an instance of the activeEditor.
      *
      * @private
      * @type {BaseEditor}
      */
-    this.activeEditor = void 0;
+    (0, _defineProperty2.default)(this, "activeEditor", void 0);
     /**
      * Keeps a reference to the cell's properties object.
      *
      * @type {object}
      */
-    this.cellProperties = void 0;
-    this.instance.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
+    (0, _defineProperty2.default)(this, "cellProperties", void 0);
+    this.hot = hotInstance;
+    this.tableMeta = tableMeta;
+    this.selection = _selection;
+    this.eventManager = new _eventManager.default(hotInstance);
+    this.hot.addHook('afterDocumentKeyDown', event => _classPrivateMethodGet(this, _onAfterDocumentKeyDown, _onAfterDocumentKeyDown2).call(this, event));
 
     // Open editor when text composition is started (IME editor)
-    this.eventManager.addEventListener(this.instance.rootDocument.documentElement, 'compositionstart', event => {
-      if (!this.destroyed && this.instance.isListening()) {
+    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'compositionstart', event => {
+      if (!this.destroyed && this.hot.isListening()) {
         this.openEditor('', event);
       }
     });
-    this.instance.view._wt.update('onCellDblClick', (event, coords, elem) => this.onCellDblClick(event, coords, elem));
+    this.hot.view._wt.update('onCellDblClick', (event, coords, elem) => _classPrivateMethodGet(this, _onCellDblClick, _onCellDblClick2).call(this, event, coords, elem));
   }
 
   /**
@@ -10178,7 +10208,7 @@ class EditorManager {
     }
     const {
       highlight
-    } = this.instance.getSelectedRangeLast();
+    } = this.hot.getSelectedRangeLast();
     if (highlight.isHeader()) {
       return;
     }
@@ -10186,7 +10216,7 @@ class EditorManager {
       row,
       col
     } = highlight;
-    const modifiedCellCoords = this.instance.runHooks('modifyGetCellCoords', row, col);
+    const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', row, col);
     let visualRowToCheck = row;
     let visualColumnToCheck = col;
     if (Array.isArray(modifiedCellCoords)) {
@@ -10194,20 +10224,20 @@ class EditorManager {
     }
 
     // Getting values using the modified coordinates.
-    this.cellProperties = this.instance.getCellMeta(visualRowToCheck, visualColumnToCheck);
+    this.cellProperties = this.hot.getCellMeta(visualRowToCheck, visualColumnToCheck);
     if (!this.isCellEditable()) {
       this.clearActiveEditor();
       return;
     }
-    const td = this.instance.getCell(row, col, true);
+    const td = this.hot.getCell(row, col, true);
 
     // Skip the preparation when the cell is not rendered in the DOM. The cell is scrolled out of
     // the table's viewport.
     if (td) {
-      const editorClass = this.instance.getCellEditor(this.cellProperties);
-      const prop = this.instance.colToProp(visualColumnToCheck);
-      const originalValue = this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(visualRowToCheck), visualColumnToCheck);
-      this.activeEditor = (0, _registry.getEditorInstance)(editorClass, this.instance);
+      const editorClass = this.hot.getCellEditor(this.cellProperties);
+      const prop = this.hot.colToProp(visualColumnToCheck);
+      const originalValue = this.hot.getSourceDataAtCell(this.hot.toPhysicalRow(visualRowToCheck), visualColumnToCheck);
+      this.activeEditor = (0, _registry.getEditorInstance)(editorClass, this.hot);
       // Using not modified coordinates, as we need to get the table element using selection coordinates.
       // There is an extra translation in the editor for saving value.
       this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);
@@ -10238,7 +10268,7 @@ class EditorManager {
       return;
     }
     if (!this.activeEditor) {
-      this.instance.scrollToFocusedCell();
+      this.hot.scrollToFocusedCell();
       this.prepareEditor();
     }
     if (this.activeEditor) {
@@ -10288,7 +10318,7 @@ class EditorManager {
    * @private
    */
   clearActiveEditor() {
-    this.activeEditor = void 0;
+    this.activeEditor = undefined;
   }
 
   /**
@@ -10302,11 +10332,11 @@ class EditorManager {
    * @returns {boolean}
    */
   isCellEditable() {
-    const selection = this.instance.getSelectedRangeLast();
+    const selection = this.hot.getSelectedRangeLast();
     if (!selection) {
       return false;
     }
-    const editorClass = this.instance.getCellEditor(this.cellProperties);
+    const editorClass = this.hot.getCellEditor(this.cellProperties);
     const {
       row,
       col
@@ -10314,8 +10344,8 @@ class EditorManager {
     const {
       rowIndexMapper,
       columnIndexMapper
-    } = this.instance;
-    const isCellHidden = rowIndexMapper.isHidden(this.instance.toPhysicalRow(row)) || columnIndexMapper.isHidden(this.instance.toPhysicalColumn(col));
+    } = this.hot;
+    const isCellHidden = rowIndexMapper.isHidden(this.hot.toPhysicalRow(row)) || columnIndexMapper.isHidden(this.hot.toPhysicalColumn(col));
     if (this.cellProperties.readOnly || !editorClass || isCellHidden) {
       return false;
     }
@@ -10338,79 +10368,62 @@ class EditorManager {
       this.selection.transformStart(enterMoves.row, enterMoves.col, true);
     }
   }
-
-  /**
-   * OnAfterDocumentKeyDown callback.
-   *
-   * @private
-   * @param {KeyboardEvent} event The keyboard event object.
-   */
-  onAfterDocumentKeyDown(event) {
-    const selection = this.instance.getSelectedRangeLast();
-    if (!this.instance.isListening() || !selection || selection.highlight.isHeader() || (0, _event.isImmediatePropagationStopped)(event)) {
-      return;
-    }
-    const {
-      keyCode
-    } = event;
-
-    // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-    const isCtrlPressed = (event.ctrlKey || event.metaKey) && !event.altKey;
-    if (!this.activeEditor || this.activeEditor && !this.activeEditor.isWaiting()) {
-      if (!(0, _unicode.isFunctionKey)(keyCode) && !(0, _unicode.isCtrlMetaKey)(keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
-        const shortcutManager = this.instance.getShortcutManager();
-        const editorContext = shortcutManager.getContext('editor');
-        const runOnlySelectedConfig = {
-          runOnlyIf: () => (0, _mixed.isDefined)(this.instance.getSelected()),
-          group: SHORTCUTS_GROUP_NAVIGATION
-        };
-        editorContext.addShortcuts([{
-          keys: [['ArrowUp']],
-          callback: () => {
-            this.instance.selection.transformStart(-1, 0);
-          }
-        }, {
-          keys: [['ArrowDown']],
-          callback: () => {
-            this.instance.selection.transformStart(1, 0);
-          }
-        }, {
-          keys: [['ArrowLeft']],
-          callback: () => {
-            this.instance.selection.transformStart(0, -1 * this.instance.getDirectionFactor());
-          }
-        }, {
-          keys: [['ArrowRight']],
-          callback: () => {
-            this.instance.selection.transformStart(0, this.instance.getDirectionFactor());
-          }
-        }], runOnlySelectedConfig);
-        this.openEditor('', event);
-      }
-    }
-  }
-
-  /**
-   * OnCellDblClick callback.
-   *
-   * @private
-   * @param {MouseEvent} event The mouse event object.
-   * @param {object} coords The cell coordinates.
-   * @param {HTMLTableCellElement|HTMLTableHeaderCellElement} elem The element which triggers the action.
-   */
-  onCellDblClick(event, coords, elem) {
-    // may be TD or TH
-    if (elem.nodeName === 'TD') {
-      this.openEditor(null, event, true);
-    }
-  }
-
   /**
    * Destroy the instance.
    */
   destroy() {
     this.destroyed = true;
     this.eventManager.destroy();
+  }
+}
+function _onAfterDocumentKeyDown2(event) {
+  const selection = this.hot.getSelectedRangeLast();
+  if (!this.hot.isListening() || !selection || selection.highlight.isHeader() || (0, _event.isImmediatePropagationStopped)(event)) {
+    return;
+  }
+  const {
+    keyCode
+  } = event;
+
+  // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+  const isCtrlPressed = (event.ctrlKey || event.metaKey) && !event.altKey;
+  if (!this.activeEditor || this.activeEditor && !this.activeEditor.isWaiting()) {
+    if (!(0, _unicode.isFunctionKey)(keyCode) && !(0, _unicode.isCtrlMetaKey)(keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
+      const shortcutManager = this.hot.getShortcutManager();
+      const editorContext = shortcutManager.getContext('editor');
+      const runOnlySelectedConfig = {
+        runOnlyIf: () => (0, _mixed.isDefined)(this.hot.getSelected()),
+        group: SHORTCUTS_GROUP_NAVIGATION
+      };
+      editorContext.addShortcuts([{
+        keys: [['ArrowUp']],
+        callback: () => {
+          this.hot.selection.transformStart(-1, 0);
+        }
+      }, {
+        keys: [['ArrowDown']],
+        callback: () => {
+          this.hot.selection.transformStart(1, 0);
+        }
+      }, {
+        keys: [['ArrowLeft']],
+        callback: () => {
+          this.hot.selection.transformStart(0, -1 * this.hot.getDirectionFactor());
+        }
+      }, {
+        keys: [['ArrowRight']],
+        callback: () => {
+          this.hot.selection.transformStart(0, this.hot.getDirectionFactor());
+        }
+      }], runOnlySelectedConfig);
+      this.openEditor('', event);
+    }
+  }
+}
+function _onCellDblClick2(event, coords, elem) {
+  // may be TD or TH
+  if (elem.nodeName === 'TD') {
+    this.openEditor(null, event, true);
   }
 }
 const instances = new WeakMap();
@@ -10433,6 +10446,71 @@ var _default = exports["default"] = EditorManager;
 
 /***/ }),
 /* 121 */
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var toPropertyKey = __webpack_require__(122);
+function _defineProperty(obj, key, value) {
+  key = toPropertyKey(key);
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+  return obj;
+}
+module.exports = _defineProperty, module.exports.__esModule = true, module.exports["default"] = module.exports;
+
+/***/ }),
+/* 122 */
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var _typeof = (__webpack_require__(123)["default"]);
+var toPrimitive = __webpack_require__(124);
+function _toPropertyKey(arg) {
+  var key = toPrimitive(arg, "string");
+  return _typeof(key) === "symbol" ? key : String(key);
+}
+module.exports = _toPropertyKey, module.exports.__esModule = true, module.exports["default"] = module.exports;
+
+/***/ }),
+/* 123 */
+/***/ ((module) => {
+
+function _typeof(o) {
+  "@babel/helpers - typeof";
+
+  return (module.exports = _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) {
+    return typeof o;
+  } : function (o) {
+    return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o;
+  }, module.exports.__esModule = true, module.exports["default"] = module.exports), _typeof(o);
+}
+module.exports = _typeof, module.exports.__esModule = true, module.exports["default"] = module.exports;
+
+/***/ }),
+/* 124 */
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var _typeof = (__webpack_require__(123)["default"]);
+function _toPrimitive(input, hint) {
+  if (_typeof(input) !== "object" || input === null) return input;
+  var prim = input[Symbol.toPrimitive];
+  if (prim !== undefined) {
+    var res = prim.call(input, hint || "default");
+    if (_typeof(res) !== "object") return res;
+    throw new TypeError("@@toPrimitive must return a primitive value.");
+  }
+  return (hint === "string" ? String : Number)(input);
+}
+module.exports = _toPrimitive, module.exports.__esModule = true, module.exports["default"] = module.exports;
+
+/***/ }),
+/* 125 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -10593,7 +10671,7 @@ function isKey(keyCode, baseCode) {
 }
 
 /***/ }),
-/* 122 */
+/* 126 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -10670,7 +10748,7 @@ function offsetRelativeTo(event, untilElement) {
 }
 
 /***/ }),
-/* 123 */
+/* 127 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -10683,8 +10761,8 @@ exports.getEditorInstance = exports._getEditorInstance = _getEditorInstance;
 exports.getEditor = _getItem;
 exports.registerEditor = _register;
 __webpack_require__(78);
-var _pluginHooks = _interopRequireDefault(__webpack_require__(124));
-var _staticRegister = _interopRequireDefault(__webpack_require__(126));
+var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
+var _staticRegister = _interopRequireDefault(__webpack_require__(130));
 /**
  * Utility to register editors and common namespace for keeping reference to all editor classes.
  */
@@ -10781,18 +10859,20 @@ function _register(name, editorClass) {
 }
 
 /***/ }),
-/* 124 */
+/* 128 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _array = __webpack_require__(113);
 var _object = __webpack_require__(117);
 var _string = __webpack_require__(108);
-var _console = __webpack_require__(125);
+var _console = __webpack_require__(129);
 var _templateLiteralTag = __webpack_require__(112);
 var _function = __webpack_require__(115);
 /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -13359,9 +13439,14 @@ class Hooks {
   }
 
   /**
+   * @type {object}
+   */
+
+  /**
    *
    */
   constructor() {
+    (0, _defineProperty2.default)(this, "globalBucket", void 0);
     this.globalBucket = this.createEmptyBucket();
   }
 
@@ -13536,7 +13621,7 @@ class Hooks {
   has(key) {
     let context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
     const bucket = this.getBucket(context);
-    return !!(bucket[key] !== void 0 && bucket[key].length);
+    return !!(bucket[key] !== undefined && bucket[key].length);
   }
 
   /**
@@ -13573,7 +13658,7 @@ class Hooks {
             continue;
           }
           const res = (0, _function.fastCall)(globalHandlers[index], context, p1, p2, p3, p4, p5, p6);
-          if (res !== void 0) {
+          if (res !== undefined) {
             // eslint-disable-next-line no-param-reassign
             p1 = res;
           }
@@ -13597,7 +13682,7 @@ class Hooks {
             continue;
           }
           const res = (0, _function.fastCall)(localHandlers[index], context, p1, p2, p3, p4, p5, p6);
-          if (res !== void 0) {
+          if (res !== undefined) {
             // eslint-disable-next-line no-param-reassign
             p1 = res;
           }
@@ -13735,7 +13820,7 @@ function getGlobalSingleton() {
 var _default = exports["default"] = Hooks;
 
 /***/ }),
-/* 125 */
+/* 129 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -13802,7 +13887,7 @@ function error() {
 }
 
 /***/ }),
-/* 126 */
+/* 130 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -13880,16 +13965,18 @@ function staticRegister() {
 }
 
 /***/ }),
-/* 127 */
+/* 131 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.getListenersCounter = getListenersCounter;
 __webpack_require__(8);
-var _event = __webpack_require__(122);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _event = __webpack_require__(126);
 /**
  * Counter which tracks unregistered listeners (useful for detecting memory leaks).
  *
@@ -13910,6 +13997,10 @@ class EventManager {
    */
   constructor() {
     let context = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+    /**
+     * @type {object}
+     */
+    (0, _defineProperty2.default)(this, "context", void 0);
     this.context = context || this;
 
     // TODO it modify external object. Rethink that.
@@ -14096,7 +14187,7 @@ function getListenersCounter() {
 }
 
 /***/ }),
-/* 128 */
+/* 132 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -14105,9 +14196,9 @@ function getListenersCounter() {
 __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _classPrivateFieldGet4 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
-var _console = __webpack_require__(125);
+var _classPrivateFieldGet4 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
+var _console = __webpack_require__(129);
 var _element = __webpack_require__(107);
 function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
@@ -14365,11 +14456,11 @@ function _onUpdateSettings2(newSettings) {
 }
 
 /***/ }),
-/* 129 */
+/* 133 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var classApplyDescriptorGet = __webpack_require__(130);
-var classExtractFieldDescriptor = __webpack_require__(131);
+var classApplyDescriptorGet = __webpack_require__(134);
+var classExtractFieldDescriptor = __webpack_require__(135);
 function _classPrivateFieldGet(receiver, privateMap) {
   var descriptor = classExtractFieldDescriptor(receiver, privateMap, "get");
   return classApplyDescriptorGet(receiver, descriptor);
@@ -14377,7 +14468,7 @@ function _classPrivateFieldGet(receiver, privateMap) {
 module.exports = _classPrivateFieldGet, module.exports.__esModule = true, module.exports["default"] = module.exports;
 
 /***/ }),
-/* 130 */
+/* 134 */
 /***/ ((module) => {
 
 function _classApplyDescriptorGet(receiver, descriptor) {
@@ -14389,7 +14480,7 @@ function _classApplyDescriptorGet(receiver, descriptor) {
 module.exports = _classApplyDescriptorGet, module.exports.__esModule = true, module.exports["default"] = module.exports;
 
 /***/ }),
-/* 131 */
+/* 135 */
 /***/ ((module) => {
 
 function _classExtractFieldDescriptor(receiver, privateMap, action) {
@@ -14401,11 +14492,11 @@ function _classExtractFieldDescriptor(receiver, privateMap, action) {
 module.exports = _classExtractFieldDescriptor, module.exports.__esModule = true, module.exports["default"] = module.exports;
 
 /***/ }),
-/* 132 */
+/* 136 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var classApplyDescriptorSet = __webpack_require__(133);
-var classExtractFieldDescriptor = __webpack_require__(131);
+var classApplyDescriptorSet = __webpack_require__(137);
+var classExtractFieldDescriptor = __webpack_require__(135);
 function _classPrivateFieldSet(receiver, privateMap, value) {
   var descriptor = classExtractFieldDescriptor(receiver, privateMap, "set");
   classApplyDescriptorSet(receiver, descriptor, value);
@@ -14414,7 +14505,7 @@ function _classPrivateFieldSet(receiver, privateMap, value) {
 module.exports = _classPrivateFieldSet, module.exports.__esModule = true, module.exports["default"] = module.exports;
 
 /***/ }),
-/* 133 */
+/* 137 */
 /***/ ((module) => {
 
 function _classApplyDescriptorSet(receiver, descriptor, value) {
@@ -14430,7 +14521,7 @@ function _classApplyDescriptorSet(receiver, descriptor, value) {
 module.exports = _classApplyDescriptorSet, module.exports.__esModule = true, module.exports["default"] = module.exports;
 
 /***/ }),
-/* 134 */
+/* 138 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -14664,7 +14755,7 @@ function htmlToGridSettings(element) {
         rowSpan: rowspan,
         colSpan: colspan
       } = cell;
-      const col = dataArr[row].findIndex(value => value === void 0);
+      const col = dataArr[row].findIndex(value => value === undefined);
       if (nodeName === 'TD') {
         if (rowspan > 1 || colspan > 1) {
           for (let rstart = row; rstart < row + rowspan; rstart++) {
@@ -14710,7 +14801,7 @@ function htmlToGridSettings(element) {
 }
 
 /***/ }),
-/* 135 */
+/* 139 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -14723,9 +14814,9 @@ exports.hasPlugin = hasPlugin;
 exports.registerPlugin = registerPlugin;
 __webpack_require__(78);
 var _string = __webpack_require__(108);
-var _priorityMap = __webpack_require__(136);
-var _uniqueMap = __webpack_require__(138);
-var _uniqueSet = __webpack_require__(139);
+var _priorityMap = __webpack_require__(140);
+var _uniqueMap = __webpack_require__(142);
+var _uniqueSet = __webpack_require__(143);
 /**
  * Utility to register plugins and common namespace for keeping the reference to all plugins classes.
  */
@@ -14796,7 +14887,7 @@ function hasPlugin(pluginName) {
  */
 function registerPlugin(pluginName, pluginClass, priority) {
   [pluginName, pluginClass, priority] = unifyPluginArguments(pluginName, pluginClass, priority);
-  if (getPlugin(pluginName) === void 0) {
+  if (getPlugin(pluginName) === undefined) {
     _registerPlugin(pluginName, pluginClass, priority);
   }
 }
@@ -14813,7 +14904,7 @@ function _registerPlugin(pluginName, pluginClass, priority) {
   if (uniquePluginsList.hasItem(unifiedPluginName)) {
     throw new Error(ERROR_PLUGIN_REGISTERED(unifiedPluginName));
   }
-  if (priority === void 0) {
+  if (priority === undefined) {
     uniquePluginsQueue.addItem(unifiedPluginName);
   } else {
     priorityPluginsQueue.addItem(priority, unifiedPluginName);
@@ -14839,7 +14930,7 @@ function unifyPluginArguments(pluginName, pluginClass, priority) {
 }
 
 /***/ }),
-/* 136 */
+/* 140 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -14848,7 +14939,7 @@ function unifyPluginArguments(pluginName, pluginClass, priority) {
 exports.__esModule = true;
 exports.createPriorityMap = createPriorityMap;
 __webpack_require__(78);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 var _function = __webpack_require__(115);
 const ASC = exports.ASC = 'asc';
 const DESC = exports.DESC = 'desc';
@@ -14916,7 +15007,7 @@ function createPriorityMap() {
 }
 
 /***/ }),
-/* 137 */
+/* 141 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -15054,7 +15145,7 @@ function clamp(value, minValue, maxValue) {
 }
 
 /***/ }),
-/* 138 */
+/* 142 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -15177,7 +15268,7 @@ function createUniqueMap() {
 }
 
 /***/ }),
-/* 139 */
+/* 143 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -15243,7 +15334,7 @@ function createUniqueSet() {
 }
 
 /***/ }),
-/* 140 */
+/* 144 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -15254,7 +15345,7 @@ exports.__esModule = true;
 exports.getRenderer = _getItem;
 exports.registerRenderer = _register;
 __webpack_require__(78);
-var _staticRegister = _interopRequireDefault(__webpack_require__(126));
+var _staticRegister = _interopRequireDefault(__webpack_require__(130));
 const {
   register,
   getItem,
@@ -15297,7 +15388,7 @@ function _register(name, renderer) {
 }
 
 /***/ }),
-/* 141 */
+/* 145 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -15308,7 +15399,7 @@ exports.__esModule = true;
 exports.getValidator = _getItem;
 exports.registerValidator = _register;
 __webpack_require__(78);
-var _staticRegister = _interopRequireDefault(__webpack_require__(126));
+var _staticRegister = _interopRequireDefault(__webpack_require__(130));
 const {
   register,
   getItem,
@@ -15351,7 +15442,7 @@ function _register(name, validator) {
 }
 
 /***/ }),
-/* 142 */
+/* 146 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -15361,38 +15452,41 @@ __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _element = __webpack_require__(107);
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
-var _event = __webpack_require__(122);
+var _eventManager = _interopRequireDefault(__webpack_require__(131));
+var _event = __webpack_require__(126);
 var _src = _interopRequireDefault(__webpack_require__(147));
 var _mouseEventHandler = __webpack_require__(217);
 var _rootInstance = __webpack_require__(218);
 var _a11y = __webpack_require__(114);
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
-const privatePool = new WeakMap();
-
 /**
  * @class TableView
  * @private
  */
 var _columnHeadersCount = /*#__PURE__*/new WeakMap();
 var _rowHeadersCount = /*#__PURE__*/new WeakMap();
+var _selectionMouseDown = /*#__PURE__*/new WeakMap();
+var _mouseDown = /*#__PURE__*/new WeakMap();
+var _table = /*#__PURE__*/new WeakMap();
+var _lastWidth = /*#__PURE__*/new WeakMap();
+var _lastHeight = /*#__PURE__*/new WeakMap();
 class TableView {
   /**
-   * @param {Hanstontable} instance Instance of {@link Handsontable}.
+   * @param {Hanstontable} hotInstance Instance of {@link Handsontable}.
    */
-  constructor(instance) {
+  constructor(hotInstance) {
     /**
      * Instance of {@link Handsontable}.
      *
      * @private
      * @type {Handsontable}
      */
-    (0, _defineProperty2.default)(this, "instance", void 0);
+    (0, _defineProperty2.default)(this, "hot", void 0);
     /**
      * Instance of {@link EventManager}.
      *
@@ -15431,7 +15525,6 @@ class TableView {
     /**
      * Main Walkontable instance.
      *
-     * @private
      * @type {Walkontable}
      */
     (0, _defineProperty2.default)(this, "activeWt", void 0);
@@ -15464,42 +15557,52 @@ class TableView {
      * @type {boolean}
      */
     (0, _defineProperty2.default)(this, "postponedAdjustElementsSize", false);
-    this.instance = instance;
-    this.eventManager = new _eventManager.default(this.instance);
-    this.settings = this.instance.getSettings();
-    privatePool.set(this, {
-      /**
-       * Defines if the text should be selected during mousemove.
-       *
-       * @private
-       * @type {boolean}
-       */
-      selectionMouseDown: false,
-      /**
-       * @private
-       * @type {boolean}
-       */
-      mouseDown: void 0,
-      /**
-       * Main <TABLE> element.
-       *
-       * @private
-       * @type {HTMLTableElement}
-       */
-      table: void 0,
-      /**
-       * Cached width of the rootElement.
-       *
-       * @type {number}
-       */
-      lastWidth: 0,
-      /**
-       * Cached height of the rootElement.
-       *
-       * @type {number}
-       */
-      lastHeight: 0
+    /**
+     * Defines if the text should be selected during mousemove.
+     *
+     * @type {boolean}
+     */
+    _classPrivateFieldInitSpec(this, _selectionMouseDown, {
+      writable: true,
+      value: false
     });
+    /**
+     * @type {boolean}
+     */
+    _classPrivateFieldInitSpec(this, _mouseDown, {
+      writable: true,
+      value: void 0
+    });
+    /**
+     * Main <TABLE> element.
+     *
+     * @type {HTMLTableElement}
+     */
+    _classPrivateFieldInitSpec(this, _table, {
+      writable: true,
+      value: void 0
+    });
+    /**
+     * Cached width of the rootElement.
+     *
+     * @type {number}
+     */
+    _classPrivateFieldInitSpec(this, _lastWidth, {
+      writable: true,
+      value: 0
+    });
+    /**
+     * Cached height of the rootElement.
+     *
+     * @type {number}
+     */
+    _classPrivateFieldInitSpec(this, _lastHeight, {
+      writable: true,
+      value: 0
+    });
+    this.hot = hotInstance;
+    this.eventManager = new _eventManager.default(this.hot);
+    this.settings = this.hot.getSettings();
     this.createElements();
     this.registerEvents();
     this.initializeWalkontable();
@@ -15509,16 +15612,16 @@ class TableView {
    * Renders WalkontableUI.
    */
   render() {
-    if (!this.instance.isRenderSuspended()) {
-      this.instance.runHooks('beforeRender', this.instance.forceFullRender);
+    if (!this.hot.isRenderSuspended()) {
+      this.hot.runHooks('beforeRender', this.hot.forceFullRender);
       if (this.postponedAdjustElementsSize) {
         this.postponedAdjustElementsSize = false;
         this.adjustElementsSize(true);
       }
-      this._wt.draw(!this.instance.forceFullRender);
-      this.instance.runHooks('afterRender', this.instance.forceFullRender);
-      this.instance.forceFullRender = false;
-      this.instance.renderCall = false;
+      this._wt.draw(!this.hot.forceFullRender);
+      this.hot.runHooks('afterRender', this.hot.forceFullRender);
+      this.hot.forceFullRender = false;
+      this.hot.renderCall = false;
     }
   }
 
@@ -15529,7 +15632,7 @@ class TableView {
    */
   adjustElementsSize() {
     let force = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-    if (this.instance.isRenderSuspended()) {
+    if (this.hot.isRenderSuspended()) {
       this.postponedAdjustElementsSize = true;
     } else {
       this._wt.wtOverlays.adjustElementsSize(force);
@@ -15596,32 +15699,31 @@ class TableView {
    * @private
    */
   createElements() {
-    const priv = privatePool.get(this);
     const {
       rootElement,
       rootDocument
-    } = this.instance;
+    } = this.hot;
     const originalStyle = rootElement.getAttribute('style');
     if (originalStyle) {
       rootElement.setAttribute('data-originalstyle', originalStyle); // needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
     }
 
     (0, _element.addClass)(rootElement, 'handsontable');
-    priv.table = rootDocument.createElement('TABLE');
-    (0, _element.addClass)(priv.table, 'htCore');
-    if (this.instance.getSettings().tableClassName) {
-      (0, _element.addClass)(priv.table, this.instance.getSettings().tableClassName);
+    (0, _classPrivateFieldSet2.default)(this, _table, rootDocument.createElement('TABLE'));
+    (0, _element.addClass)((0, _classPrivateFieldGet2.default)(this, _table), 'htCore');
+    if (this.hot.getSettings().tableClassName) {
+      (0, _element.addClass)((0, _classPrivateFieldGet2.default)(this, _table), this.hot.getSettings().tableClassName);
     }
     if (this.settings.ariaTags) {
-      (0, _element.setAttribute)(priv.table, [(0, _a11y.A11Y_PRESENTATION)()]);
-      (0, _element.setAttribute)(rootElement, [(0, _a11y.A11Y_TREEGRID)(), (0, _a11y.A11Y_ROWCOUNT)(this.instance.countRows()), (0, _a11y.A11Y_COLCOUNT)(this.instance.countCols()), (0, _a11y.A11Y_MULTISELECTABLE)()]);
+      (0, _element.setAttribute)((0, _classPrivateFieldGet2.default)(this, _table), [(0, _a11y.A11Y_PRESENTATION)()]);
+      (0, _element.setAttribute)(rootElement, [(0, _a11y.A11Y_TREEGRID)(), (0, _a11y.A11Y_ROWCOUNT)(this.hot.countRows()), (0, _a11y.A11Y_COLCOUNT)(this.hot.countCols()), (0, _a11y.A11Y_MULTISELECTABLE)()]);
     }
     this.THEAD = rootDocument.createElement('THEAD');
-    priv.table.appendChild(this.THEAD);
+    (0, _classPrivateFieldGet2.default)(this, _table).appendChild(this.THEAD);
     this.TBODY = rootDocument.createElement('TBODY');
-    priv.table.appendChild(this.TBODY);
-    this.instance.table = priv.table;
-    this.instance.container.insertBefore(priv.table, this.instance.container.firstChild);
+    (0, _classPrivateFieldGet2.default)(this, _table).appendChild(this.TBODY);
+    this.hot.table = (0, _classPrivateFieldGet2.default)(this, _table);
+    this.hot.container.insertBefore((0, _classPrivateFieldGet2.default)(this, _table), this.hot.container.firstChild);
   }
 
   /**
@@ -15630,19 +15732,18 @@ class TableView {
    * @private
    */
   registerEvents() {
-    const priv = privatePool.get(this);
     const {
       rootElement,
       rootDocument,
       selection
-    } = this.instance;
+    } = this.hot;
     const documentElement = rootDocument.documentElement;
     this.eventManager.addEventListener(rootElement, 'mousedown', event => {
-      priv.selectionMouseDown = true;
+      (0, _classPrivateFieldSet2.default)(this, _selectionMouseDown, true);
       if (!this.isTextSelectionAllowed(event.target)) {
         const {
           rootWindow
-        } = this.instance;
+        } = this.hot;
         (0, _element.clearTextSelection)(rootWindow);
         event.preventDefault();
         rootWindow.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
@@ -15650,13 +15751,13 @@ class TableView {
     });
 
     this.eventManager.addEventListener(rootElement, 'mouseup', () => {
-      priv.selectionMouseDown = false;
+      (0, _classPrivateFieldSet2.default)(this, _selectionMouseDown, false);
     });
     this.eventManager.addEventListener(rootElement, 'mousemove', event => {
-      if (priv.selectionMouseDown && !this.isTextSelectionAllowed(event.target)) {
+      if ((0, _classPrivateFieldGet2.default)(this, _selectionMouseDown) && !this.isTextSelectionAllowed(event.target)) {
         // Clear selection only when fragmentSelection is enabled, otherwise clearing selection breaks the IME editor.
         if (this.settings.fragmentSelection) {
-          (0, _element.clearTextSelection)(this.instance.rootWindow);
+          (0, _element.clearTextSelection)(this.hot.rootWindow);
         }
         event.preventDefault();
       }
@@ -15671,40 +15772,40 @@ class TableView {
       if (selection.isInProgress() && (0, _event.isLeftClick)(event)) {
         selection.finish();
       }
-      priv.mouseDown = false;
+      (0, _classPrivateFieldSet2.default)(this, _mouseDown, false);
       const isOutsideInputElement = (0, _element.isOutsideInput)(rootDocument.activeElement);
       if (!isOutsideInputElement) {
         return;
       }
       if (isOutsideInputElement || !selection.isSelected() && !selection.isSelectedByAnyHeader() && !rootElement.contains(event.target) && !(0, _event.isRightClick)(event)) {
-        this.instance.unlisten();
+        this.hot.unlisten();
       }
     });
     this.eventManager.addEventListener(documentElement, 'contextmenu', event => {
       if (selection.isInProgress() && (0, _event.isRightClick)(event)) {
         selection.finish();
-        priv.mouseDown = false;
+        (0, _classPrivateFieldSet2.default)(this, _mouseDown, false);
       }
     });
     this.eventManager.addEventListener(documentElement, 'touchend', () => {
       if (selection.isInProgress()) {
         selection.finish();
       }
-      priv.mouseDown = false;
+      (0, _classPrivateFieldSet2.default)(this, _mouseDown, false);
     });
     this.eventManager.addEventListener(documentElement, 'mousedown', event => {
       const originalTarget = event.target;
       const eventX = event.x || event.clientX;
       const eventY = event.y || event.clientY;
       let next = event.target;
-      if (priv.mouseDown || !rootElement || !this.instance.view) {
+      if ((0, _classPrivateFieldGet2.default)(this, _mouseDown) || !rootElement || !this.hot.view) {
         return; // it must have been started in a cell
       }
 
       // immediate click on "holder" means click on the right side of vertical scrollbar
       const {
         holder
-      } = this.instance.view._wt.wtTable;
+      } = this.hot.view._wt.wtTable;
       if (next === holder) {
         const scrollbarWidth = (0, _element.getScrollbarWidth)(rootDocument);
         if (rootDocument.elementFromPoint(eventX + scrollbarWidth, eventY) !== holder || rootDocument.elementFromPoint(eventX, eventY + scrollbarWidth) !== holder) {
@@ -15731,12 +15832,12 @@ class TableView {
       // function did not return until here, we have an outside click!
       const outsideClickDeselects = typeof this.settings.outsideClickDeselects === 'function' ? this.settings.outsideClickDeselects(originalTarget) : this.settings.outsideClickDeselects;
       if (outsideClickDeselects) {
-        this.instance.deselectCell();
+        this.hot.deselectCell();
       } else {
-        this.instance.destroyEditor(false, false);
+        this.hot.destroyEditor(false, false);
       }
     });
-    this.eventManager.addEventListener(priv.table, 'selectstart', event => {
+    this.eventManager.addEventListener((0, _classPrivateFieldGet2.default)(this, _table), 'selectstart', event => {
       if (this.settings.fragmentSelection || (0, _element.isInput)(event.target)) {
         return;
       }
@@ -15758,7 +15859,7 @@ class TableView {
       col
     } = _ref;
     // TODO: To consider an idea to reusing the CellCoords instance instead creating new one.
-    return this.instance._createCellCoords(...this.translateFromRenderableToVisualIndex(row, col));
+    return this.hot._createCellCoords(...this.translateFromRenderableToVisualIndex(row, col));
   }
 
   /**
@@ -15771,8 +15872,8 @@ class TableView {
   translateFromRenderableToVisualIndex(renderableRow, renderableColumn) {
     // TODO: Some helper may be needed.
     // We perform translation for indexes (without headers).
-    let visualRow = renderableRow >= 0 ? this.instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRow) : renderableRow;
-    let visualColumn = renderableColumn >= 0 ? this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn) : renderableColumn;
+    let visualRow = renderableRow >= 0 ? this.hot.rowIndexMapper.getVisualFromRenderableIndex(renderableRow) : renderableRow;
+    let visualColumn = renderableColumn >= 0 ? this.hot.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn) : renderableColumn;
     if (visualRow === null) {
       visualRow = renderableRow;
     }
@@ -15809,7 +15910,7 @@ class TableView {
    * @returns {number}
    */
   countRenderableColumns() {
-    return this.countRenderableIndexes(this.instance.columnIndexMapper, this.settings.maxCols);
+    return this.countRenderableIndexes(this.hot.columnIndexMapper, this.settings.maxCols);
   }
 
   /**
@@ -15818,7 +15919,7 @@ class TableView {
    * @returns {number}
    */
   countRenderableRows() {
-    return this.countRenderableIndexes(this.instance.rowIndexMapper, this.settings.maxRows);
+    return this.countRenderableIndexes(this.hot.rowIndexMapper, this.settings.maxRows);
   }
 
   /**
@@ -15830,7 +15931,7 @@ class TableView {
    * @returns {number}
    */
   countNotHiddenRowIndexes(visualIndex, incrementBy) {
-    return this.countNotHiddenIndexes(visualIndex, incrementBy, this.instance.rowIndexMapper, this.countRenderableRows());
+    return this.countNotHiddenIndexes(visualIndex, incrementBy, this.hot.rowIndexMapper, this.countRenderableRows());
   }
 
   /**
@@ -15842,7 +15943,7 @@ class TableView {
    * @returns {number}
    */
   countNotHiddenColumnIndexes(visualIndex, incrementBy) {
-    return this.countNotHiddenIndexes(visualIndex, incrementBy, this.instance.columnIndexMapper, this.countRenderableColumns());
+    return this.countNotHiddenIndexes(visualIndex, incrementBy, this.hot.columnIndexMapper, this.countRenderableColumns());
   }
 
   /**
@@ -15881,7 +15982,7 @@ class TableView {
    * @returns {number}
    */
   countNotHiddenFixedColumnsStart() {
-    const countCols = this.instance.countCols();
+    const countCols = this.hot.countCols();
     const visualFixedColumnsStart = Math.min(parseInt(this.settings.fixedColumnsStart, 10), countCols) - 1;
     return this.countNotHiddenColumnIndexes(visualFixedColumnsStart, -1);
   }
@@ -15893,7 +15994,7 @@ class TableView {
    * @returns {number}
    */
   countNotHiddenFixedRowsTop() {
-    const countRows = this.instance.countRows();
+    const countRows = this.hot.countRows();
     const visualFixedRowsTop = Math.min(parseInt(this.settings.fixedRowsTop, 10), countRows) - 1;
     return this.countNotHiddenRowIndexes(visualFixedRowsTop, -1);
   }
@@ -15905,7 +16006,7 @@ class TableView {
    * @returns {number}
    */
   countNotHiddenFixedRowsBottom() {
-    const countRows = this.instance.countRows();
+    const countRows = this.hot.countRows();
     const visualFixedRowsBottom = Math.max(countRows - parseInt(this.settings.fixedRowsBottom, 10), 0);
     return this.countNotHiddenRowIndexes(visualFixedRowsBottom, 1);
   }
@@ -15920,7 +16021,7 @@ class TableView {
   countRenderableColumnsInRange(columnStart, columnEnd) {
     let count = 0;
     for (let column = columnStart; column <= columnEnd; column++) {
-      if (this.instance.columnIndexMapper.getRenderableFromVisualIndex(column) !== null) {
+      if (this.hot.columnIndexMapper.getRenderableFromVisualIndex(column) !== null) {
         count += 1;
       }
     }
@@ -15937,7 +16038,7 @@ class TableView {
   countRenderableRowsInRange(rowStart, rowEnd) {
     let count = 0;
     for (let row = rowStart; row <= rowEnd; row++) {
-      if (this.instance.rowIndexMapper.getRenderableFromVisualIndex(row) !== null) {
+      if (this.hot.rowIndexMapper.getRenderableFromVisualIndex(row) !== null) {
         count += 1;
       }
     }
@@ -15953,7 +16054,7 @@ class TableView {
   isMainTableNotFullyCoveredByOverlays() {
     const fixedAllRows = this.countNotHiddenFixedRowsTop() + this.countNotHiddenFixedRowsBottom();
     const fixedAllColumns = this.countNotHiddenFixedColumnsStart();
-    return this.instance.countRenderedRows() > fixedAllRows && this.instance.countRenderedCols() > fixedAllColumns;
+    return this.hot.countRenderedRows() > fixedAllRows && this.hot.countRenderedCols() > fixedAllColumns;
   }
 
   /**
@@ -15962,18 +16063,17 @@ class TableView {
    * @private
    */
   initializeWalkontable() {
-    const priv = privatePool.get(this);
     const walkontableConfig = {
       ariaTags: this.settings.ariaTags,
-      rtlMode: this.instance.isRtl(),
-      externalRowCalculator: this.instance.getPlugin('autoRowSize') && this.instance.getPlugin('autoRowSize').isEnabled(),
-      table: priv.table,
-      isDataViewInstance: () => (0, _rootInstance.isRootInstance)(this.instance),
+      rtlMode: this.hot.isRtl(),
+      externalRowCalculator: this.hot.getPlugin('autoRowSize') && this.hot.getPlugin('autoRowSize').isEnabled(),
+      table: (0, _classPrivateFieldGet2.default)(this, _table),
+      isDataViewInstance: () => (0, _rootInstance.isRootInstance)(this.hot),
       preventOverflow: () => this.settings.preventOverflow,
       preventWheel: () => this.settings.preventWheel,
       stretchH: () => this.settings.stretchH,
       data: (renderableRow, renderableColumn) => {
-        return this.instance.getDataAtCell(...this.translateFromRenderableToVisualIndex(renderableRow, renderableColumn));
+        return this.hot.getDataAtCell(...this.translateFromRenderableToVisualIndex(renderableRow, renderableColumn));
       },
       totalRows: () => this.countRenderableRows(),
       totalColumns: () => this.countRenderableColumns(),
@@ -15999,74 +16099,74 @@ class TableView {
       renderAllRows: this.settings.renderAllRows,
       rowHeaders: () => {
         const headerRenderers = [];
-        if (this.instance.hasRowHeaders()) {
+        if (this.hot.hasRowHeaders()) {
           headerRenderers.push((renderableRowIndex, TH) => {
             // TODO: Some helper may be needed.
             // We perform translation for row indexes (without row headers).
-            const visualRowIndex = renderableRowIndex >= 0 ? this.instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRowIndex) : renderableRowIndex;
+            const visualRowIndex = renderableRowIndex >= 0 ? this.hot.rowIndexMapper.getVisualFromRenderableIndex(renderableRowIndex) : renderableRowIndex;
             this.appendRowHeader(visualRowIndex, TH);
           });
         }
-        this.instance.runHooks('afterGetRowHeaderRenderers', headerRenderers);
+        this.hot.runHooks('afterGetRowHeaderRenderers', headerRenderers);
         (0, _classPrivateFieldSet2.default)(this, _rowHeadersCount, headerRenderers.length);
         return headerRenderers;
       },
       columnHeaders: () => {
         const headerRenderers = [];
-        if (this.instance.hasColHeaders()) {
+        if (this.hot.hasColHeaders()) {
           headerRenderers.push((renderedColumnIndex, TH) => {
             // TODO: Some helper may be needed.
             // We perform translation for columns indexes (without column headers).
-            const visualColumnsIndex = renderedColumnIndex >= 0 ? this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex) : renderedColumnIndex;
+            const visualColumnsIndex = renderedColumnIndex >= 0 ? this.hot.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex) : renderedColumnIndex;
             this.appendColHeader(visualColumnsIndex, TH);
           });
         }
-        this.instance.runHooks('afterGetColumnHeaderRenderers', headerRenderers);
+        this.hot.runHooks('afterGetColumnHeaderRenderers', headerRenderers);
         (0, _classPrivateFieldSet2.default)(this, _columnHeadersCount, headerRenderers.length);
         return headerRenderers;
       },
       columnWidth: renderedColumnIndex => {
-        const visualIndex = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
+        const visualIndex = this.hot.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
 
         // It's not a bug that we can't find visual index for some handled by method indexes. The function is called also
         // for indexes that are not displayed (indexes that are beyond the grid's boundaries), i.e. when `fixedColumnsStart` > `startCols` (wrong config?) or
         // scrolling and dataset is empty (scroll should handle that?).
-        return this.instance.getColWidth(visualIndex === null ? renderedColumnIndex : visualIndex);
+        return this.hot.getColWidth(visualIndex === null ? renderedColumnIndex : visualIndex);
       },
       rowHeight: renderedRowIndex => {
-        const visualIndex = this.instance.rowIndexMapper.getVisualFromRenderableIndex(renderedRowIndex);
-        return this.instance.getRowHeight(visualIndex === null ? renderedRowIndex : visualIndex);
+        const visualIndex = this.hot.rowIndexMapper.getVisualFromRenderableIndex(renderedRowIndex);
+        return this.hot.getRowHeight(visualIndex === null ? renderedRowIndex : visualIndex);
       },
       cellRenderer: (renderedRowIndex, renderedColumnIndex, TD) => {
         const [visualRowIndex, visualColumnIndex] = this.translateFromRenderableToVisualIndex(renderedRowIndex, renderedColumnIndex);
 
         // Coords may be modified. For example, by the `MergeCells` plugin. It should affect cell value and cell meta.
-        const modifiedCellCoords = this.instance.runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex);
+        const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex);
         let visualRowToCheck = visualRowIndex;
         let visualColumnToCheck = visualColumnIndex;
         if (Array.isArray(modifiedCellCoords)) {
           [visualRowToCheck, visualColumnToCheck] = modifiedCellCoords;
         }
-        const cellProperties = this.instance.getCellMeta(visualRowToCheck, visualColumnToCheck);
-        const prop = this.instance.colToProp(visualColumnToCheck);
-        let value = this.instance.getDataAtRowProp(visualRowToCheck, prop);
-        if (this.instance.hasHook('beforeValueRender')) {
-          value = this.instance.runHooks('beforeValueRender', value, cellProperties);
+        const cellProperties = this.hot.getCellMeta(visualRowToCheck, visualColumnToCheck);
+        const prop = this.hot.colToProp(visualColumnToCheck);
+        let value = this.hot.getDataAtRowProp(visualRowToCheck, prop);
+        if (this.hot.hasHook('beforeValueRender')) {
+          value = this.hot.runHooks('beforeValueRender', value, cellProperties);
         }
-        this.instance.runHooks('beforeRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
-        this.instance.getCellRenderer(cellProperties)(this.instance, TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
-        this.instance.runHooks('afterRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
+        this.hot.runHooks('beforeRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
+        this.hot.getCellRenderer(cellProperties)(this.hot, TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
+        this.hot.runHooks('afterRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
       },
-      selections: this.instance.selection.highlight,
+      selections: this.hot.selection.highlight,
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,
       onWindowResize: () => {
-        if (this.instance && !this.instance.isDestroyed) {
-          this.instance.refreshDimensions();
+        if (this.hot && !this.hot.isDestroyed) {
+          this.hot.refreshDimensions();
         }
       },
       onContainerElementResize: () => {
-        if (this.instance && !this.instance.isDestroyed && (0, _element.isVisible)(this.instance.rootElement)) {
-          this.instance.refreshDimensions();
+        if (this.hot && !this.hot.isDestroyed && (0, _element.isVisible)(this.hot.rootElement)) {
+          this.hot.refreshDimensions();
         }
       },
       onCellMouseDown: (event, coords, TD, wt) => {
@@ -16076,44 +16176,44 @@ class TableView {
           column: false,
           cell: false
         };
-        this.instance.listen();
+        this.hot.listen();
         this.activeWt = wt;
-        priv.mouseDown = true;
-        this.instance.runHooks('beforeOnCellMouseDown', event, visualCoords, TD, controller);
+        (0, _classPrivateFieldSet2.default)(this, _mouseDown, true);
+        this.hot.runHooks('beforeOnCellMouseDown', event, visualCoords, TD, controller);
         if ((0, _event.isImmediatePropagationStopped)(event)) {
           return;
         }
         (0, _mouseEventHandler.handleMouseEvent)(event, {
           coords: visualCoords,
-          selection: this.instance.selection,
+          selection: this.hot.selection,
           controller,
-          cellCoordsFactory: (row, column) => this.instance._createCellCoords(row, column)
+          cellCoordsFactory: (row, column) => this.hot._createCellCoords(row, column)
         });
-        this.instance.runHooks('afterOnCellMouseDown', event, visualCoords, TD);
+        this.hot.runHooks('afterOnCellMouseDown', event, visualCoords, TD);
         this.activeWt = this._wt;
       },
       onCellContextMenu: (event, coords, TD, wt) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
         this.activeWt = wt;
-        priv.mouseDown = false;
-        if (this.instance.selection.isInProgress()) {
-          this.instance.selection.finish();
+        (0, _classPrivateFieldSet2.default)(this, _mouseDown, false);
+        if (this.hot.selection.isInProgress()) {
+          this.hot.selection.finish();
         }
-        this.instance.runHooks('beforeOnCellContextMenu', event, visualCoords, TD);
+        this.hot.runHooks('beforeOnCellContextMenu', event, visualCoords, TD);
         if ((0, _event.isImmediatePropagationStopped)(event)) {
           return;
         }
-        this.instance.runHooks('afterOnCellContextMenu', event, visualCoords, TD);
+        this.hot.runHooks('afterOnCellContextMenu', event, visualCoords, TD);
         this.activeWt = this._wt;
       },
       onCellMouseOut: (event, coords, TD, wt) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
         this.activeWt = wt;
-        this.instance.runHooks('beforeOnCellMouseOut', event, visualCoords, TD);
+        this.hot.runHooks('beforeOnCellMouseOut', event, visualCoords, TD);
         if ((0, _event.isImmediatePropagationStopped)(event)) {
           return;
         }
-        this.instance.runHooks('afterOnCellMouseOut', event, visualCoords, TD);
+        this.hot.runHooks('afterOnCellMouseOut', event, visualCoords, TD);
         this.activeWt = this._wt;
       },
       onCellMouseOver: (event, coords, TD, wt) => {
@@ -16124,48 +16224,48 @@ class TableView {
           cell: false
         };
         this.activeWt = wt;
-        this.instance.runHooks('beforeOnCellMouseOver', event, visualCoords, TD, controller);
+        this.hot.runHooks('beforeOnCellMouseOver', event, visualCoords, TD, controller);
         if ((0, _event.isImmediatePropagationStopped)(event)) {
           return;
         }
-        if (priv.mouseDown) {
+        if ((0, _classPrivateFieldGet2.default)(this, _mouseDown)) {
           (0, _mouseEventHandler.handleMouseEvent)(event, {
             coords: visualCoords,
-            selection: this.instance.selection,
+            selection: this.hot.selection,
             controller,
-            cellCoordsFactory: (row, column) => this.instance._createCellCoords(row, column)
+            cellCoordsFactory: (row, column) => this.hot._createCellCoords(row, column)
           });
         }
-        this.instance.runHooks('afterOnCellMouseOver', event, visualCoords, TD);
+        this.hot.runHooks('afterOnCellMouseOver', event, visualCoords, TD);
         this.activeWt = this._wt;
       },
       onCellMouseUp: (event, coords, TD, wt) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
         this.activeWt = wt;
-        this.instance.runHooks('beforeOnCellMouseUp', event, visualCoords, TD);
+        this.hot.runHooks('beforeOnCellMouseUp', event, visualCoords, TD);
 
         // TODO: The second condition check is a workaround. Callback corresponding the method `updateSettings`
         // disable plugin and enable it again. Disabling plugin closes the menu. Thus, calling the
         // `updateSettings` in a body of any callback executed right after some context-menu action
         // breaks the table (#7231).
-        if ((0, _event.isImmediatePropagationStopped)(event) || this.instance.isDestroyed) {
+        if ((0, _event.isImmediatePropagationStopped)(event) || this.hot.isDestroyed) {
           return;
         }
-        this.instance.runHooks('afterOnCellMouseUp', event, visualCoords, TD);
+        this.hot.runHooks('afterOnCellMouseUp', event, visualCoords, TD);
         this.activeWt = this._wt;
       },
       onCellCornerMouseDown: event => {
         event.preventDefault();
-        this.instance.runHooks('afterOnCellCornerMouseDown', event);
+        this.hot.runHooks('afterOnCellCornerMouseDown', event);
       },
       onCellCornerDblClick: event => {
         event.preventDefault();
-        this.instance.runHooks('afterOnCellCornerDblClick', event);
+        this.hot.runHooks('afterOnCellCornerDblClick', event);
       },
       beforeDraw: (force, skipRender) => this.beforeRender(force, skipRender),
       onDraw: force => this.afterRender(force),
       onBeforeViewportScrollVertically: renderableRow => {
-        const rowMapper = this.instance.rowIndexMapper;
+        const rowMapper = this.hot.rowIndexMapper;
         const areColumnHeadersSelected = renderableRow < 0;
         let visualRow = renderableRow;
         if (!areColumnHeadersSelected) {
@@ -16176,15 +16276,15 @@ class TableView {
             return renderableRow;
           }
         }
-        visualRow = this.instance.runHooks('beforeViewportScrollVertically', visualRow);
-        this.instance.runHooks('beforeViewportScroll');
+        visualRow = this.hot.runHooks('beforeViewportScrollVertically', visualRow);
+        this.hot.runHooks('beforeViewportScroll');
         if (!areColumnHeadersSelected) {
           return rowMapper.getRenderableFromVisualIndex(visualRow);
         }
         return visualRow;
       },
       onBeforeViewportScrollHorizontally: renderableColumn => {
-        const columnMapper = this.instance.columnIndexMapper;
+        const columnMapper = this.hot.columnIndexMapper;
         const areRowHeadersSelected = renderableColumn < 0;
         let visualColumn = renderableColumn;
         if (!areRowHeadersSelected) {
@@ -16195,43 +16295,43 @@ class TableView {
             return renderableColumn;
           }
         }
-        visualColumn = this.instance.runHooks('beforeViewportScrollHorizontally', visualColumn);
-        this.instance.runHooks('beforeViewportScroll');
+        visualColumn = this.hot.runHooks('beforeViewportScrollHorizontally', visualColumn);
+        this.hot.runHooks('beforeViewportScroll');
         if (!areRowHeadersSelected) {
           return columnMapper.getRenderableFromVisualIndex(visualColumn);
         }
         return visualColumn;
       },
       onScrollVertically: () => {
-        this.instance.runHooks('afterScrollVertically');
-        this.instance.runHooks('afterScroll');
+        this.hot.runHooks('afterScrollVertically');
+        this.hot.runHooks('afterScroll');
       },
       onScrollHorizontally: () => {
-        this.instance.runHooks('afterScrollHorizontally');
-        this.instance.runHooks('afterScroll');
+        this.hot.runHooks('afterScrollHorizontally');
+        this.hot.runHooks('afterScroll');
       },
-      onBeforeRemoveCellClassNames: () => this.instance.runHooks('beforeRemoveCellClassNames'),
+      onBeforeRemoveCellClassNames: () => this.hot.runHooks('beforeRemoveCellClassNames'),
       onBeforeHighlightingRowHeader: (renderableRow, headerLevel, highlightMeta) => {
-        const rowMapper = this.instance.rowIndexMapper;
+        const rowMapper = this.hot.rowIndexMapper;
         const areColumnHeadersSelected = renderableRow < 0;
         let visualRow = renderableRow;
         if (!areColumnHeadersSelected) {
           visualRow = rowMapper.getVisualFromRenderableIndex(renderableRow);
         }
-        const newVisualRow = this.instance.runHooks('beforeHighlightingRowHeader', visualRow, headerLevel, highlightMeta);
+        const newVisualRow = this.hot.runHooks('beforeHighlightingRowHeader', visualRow, headerLevel, highlightMeta);
         if (!areColumnHeadersSelected) {
           return rowMapper.getRenderableFromVisualIndex(rowMapper.getNearestNotHiddenIndex(newVisualRow, 1));
         }
         return newVisualRow;
       },
       onBeforeHighlightingColumnHeader: (renderableColumn, headerLevel, highlightMeta) => {
-        const columnMapper = this.instance.columnIndexMapper;
+        const columnMapper = this.hot.columnIndexMapper;
         const areRowHeadersSelected = renderableColumn < 0;
         let visualColumn = renderableColumn;
         if (!areRowHeadersSelected) {
           visualColumn = columnMapper.getVisualFromRenderableIndex(renderableColumn);
         }
-        const newVisualColumn = this.instance.runHooks('beforeHighlightingColumnHeader', visualColumn, headerLevel, highlightMeta);
+        const newVisualColumn = this.hot.runHooks('beforeHighlightingColumnHeader', visualColumn, headerLevel, highlightMeta);
         if (!areRowHeadersSelected) {
           return columnMapper.getRenderableFromVisualIndex(columnMapper.getNearestNotHiddenIndex(newVisualColumn, 1));
         }
@@ -16240,34 +16340,34 @@ class TableView {
       onAfterDrawSelection: (currentRow, currentColumn, layerLevel) => {
         let cornersOfSelection;
         const [visualRowIndex, visualColumnIndex] = this.translateFromRenderableToVisualIndex(currentRow, currentColumn);
-        const selectedRange = this.instance.selection.getSelectedRange();
+        const selectedRange = this.hot.selection.getSelectedRange();
         const selectionRangeSize = selectedRange.size();
         if (selectionRangeSize > 0) {
           const selectionForLayer = selectedRange.peekByIndex(layerLevel !== null && layerLevel !== void 0 ? layerLevel : 0);
           cornersOfSelection = [selectionForLayer.from.row, selectionForLayer.from.col, selectionForLayer.to.row, selectionForLayer.to.col];
         }
-        return this.instance.runHooks('afterDrawSelection', visualRowIndex, visualColumnIndex, cornersOfSelection, layerLevel);
+        return this.hot.runHooks('afterDrawSelection', visualRowIndex, visualColumnIndex, cornersOfSelection, layerLevel);
       },
       onBeforeDrawBorders: (corners, borderClassName) => {
         const [startRenderableRow, startRenderableColumn, endRenderableRow, endRenderableColumn] = corners;
-        const visualCorners = [this.instance.rowIndexMapper.getVisualFromRenderableIndex(startRenderableRow), this.instance.columnIndexMapper.getVisualFromRenderableIndex(startRenderableColumn), this.instance.rowIndexMapper.getVisualFromRenderableIndex(endRenderableRow), this.instance.columnIndexMapper.getVisualFromRenderableIndex(endRenderableColumn)];
-        return this.instance.runHooks('beforeDrawBorders', visualCorners, borderClassName);
+        const visualCorners = [this.hot.rowIndexMapper.getVisualFromRenderableIndex(startRenderableRow), this.hot.columnIndexMapper.getVisualFromRenderableIndex(startRenderableColumn), this.hot.rowIndexMapper.getVisualFromRenderableIndex(endRenderableRow), this.hot.columnIndexMapper.getVisualFromRenderableIndex(endRenderableColumn)];
+        return this.hot.runHooks('beforeDrawBorders', visualCorners, borderClassName);
       },
-      onBeforeTouchScroll: () => this.instance.runHooks('beforeTouchScroll'),
-      onAfterMomentumScroll: () => this.instance.runHooks('afterMomentumScroll'),
+      onBeforeTouchScroll: () => this.hot.runHooks('beforeTouchScroll'),
+      onAfterMomentumScroll: () => this.hot.runHooks('afterMomentumScroll'),
       onBeforeStretchingColumnWidth: (stretchedWidth, renderedColumnIndex) => {
-        const visualColumnIndex = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
-        return this.instance.runHooks('beforeStretchingColumnWidth', stretchedWidth, visualColumnIndex);
+        const visualColumnIndex = this.hot.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
+        return this.hot.runHooks('beforeStretchingColumnWidth', stretchedWidth, visualColumnIndex);
       },
-      onModifyRowHeaderWidth: rowHeaderWidth => this.instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
+      onModifyRowHeaderWidth: rowHeaderWidth => this.hot.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
       onModifyGetCellCoords: (renderableRowIndex, renderableColumnIndex, topmost) => {
-        const rowMapper = this.instance.rowIndexMapper;
-        const columnMapper = this.instance.columnIndexMapper;
+        const rowMapper = this.hot.rowIndexMapper;
+        const columnMapper = this.hot.columnIndexMapper;
 
         // Callback handle also headers. We shouldn't translate them.
         const visualColumnIndex = renderableColumnIndex >= 0 ? columnMapper.getVisualFromRenderableIndex(renderableColumnIndex) : renderableColumnIndex;
         const visualRowIndex = renderableRowIndex >= 0 ? rowMapper.getVisualFromRenderableIndex(renderableRowIndex) : renderableRowIndex;
-        const visualIndexes = this.instance.runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex, topmost);
+        const visualIndexes = this.hot.runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex, topmost);
         if (Array.isArray(visualIndexes)) {
           const [visualRowFrom, visualColumnFrom, visualRowTo, visualColumnTo] = visualIndexes;
 
@@ -16293,7 +16393,7 @@ class TableView {
             calc.endRow = Math.min(lastRenderedRow + offset, renderableRows - 1);
           }
         }
-        this.instance.runHooks('afterViewportRowCalculatorOverride', calc);
+        this.hot.runHooks('afterViewportRowCalculatorOverride', calc);
       },
       viewportColumnCalculatorOverride: calc => {
         let viewportOffset = this.settings.viewportColumnRenderingOffset;
@@ -16314,15 +16414,15 @@ class TableView {
             calc.endColumn = Math.min(lastRenderedColumn + offset, renderableColumns - 1);
           }
         }
-        this.instance.runHooks('afterViewportColumnCalculatorOverride', calc);
+        this.hot.runHooks('afterViewportColumnCalculatorOverride', calc);
       },
       rowHeaderWidth: () => this.settings.rowHeaderWidth,
       columnHeaderHeight: () => {
-        const columnHeaderHeight = this.instance.runHooks('modifyColumnHeaderHeight');
+        const columnHeaderHeight = this.hot.runHooks('modifyColumnHeaderHeight');
         return this.settings.columnHeaderHeight || columnHeaderHeight;
       }
     };
-    this.instance.runHooks('beforeInitWalkontable', walkontableConfig);
+    this.hot.runHooks('beforeInitWalkontable', walkontableConfig);
     this._wt = new _src.default(walkontableConfig);
     this.activeWt = this._wt;
     const spreader = this._wt.wtTable.spreader;
@@ -16330,7 +16430,7 @@ class TableView {
     const {
       width,
       height
-    } = this.instance.rootElement.getBoundingClientRect();
+    } = this.hot.rootElement.getBoundingClientRect();
     this.setLastSize(width, height);
     this.eventManager.addEventListener(spreader, 'mousedown', event => {
       // right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
@@ -16344,10 +16444,10 @@ class TableView {
         event.stopPropagation();
       }
     });
-    this.eventManager.addEventListener(this.instance.rootDocument.documentElement, 'click', () => {
+    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'click', () => {
       if (this.settings.observeDOMVisibility) {
         if (this._wt.drawInterrupted) {
-          this.instance.forceFullRender = true;
+          this.hot.forceFullRender = true;
           this.render();
         }
       }
@@ -16365,7 +16465,7 @@ class TableView {
     if ((0, _element.isInput)(el)) {
       return true;
     }
-    const isChildOfTableBody = (0, _element.isChildOf)(el, this.instance.view._wt.wtTable.spreader);
+    const isChildOfTableBody = (0, _element.isChildOf)(el, this.hot.view._wt.wtTable.spreader);
     if (this.settings.fragmentSelection === true && isChildOfTableBody) {
       return true;
     }
@@ -16385,7 +16485,7 @@ class TableView {
    * @returns {boolean}
    */
   isMouseDown() {
-    return privatePool.get(this).mouseDown;
+    return (0, _classPrivateFieldGet2.default)(this, _mouseDown);
   }
 
   /**
@@ -16395,8 +16495,8 @@ class TableView {
    * @returns {boolean}
    */
   isSelectedOnlyCell() {
-    var _this$instance$getSel, _this$instance$getSel2;
-    return (_this$instance$getSel = (_this$instance$getSel2 = this.instance.getSelectedRangeLast()) === null || _this$instance$getSel2 === void 0 ? void 0 : _this$instance$getSel2.isSingleCell()) !== null && _this$instance$getSel !== void 0 ? _this$instance$getSel : false;
+    var _this$hot$getSelected, _this$hot$getSelected2;
+    return (_this$hot$getSelected = (_this$hot$getSelected2 = this.hot.getSelectedRangeLast()) === null || _this$hot$getSelected2 === void 0 ? void 0 : _this$hot$getSelected2.isSingleCell()) !== null && _this$hot$getSelected !== void 0 ? _this$hot$getSelected : false;
   }
 
   /**
@@ -16406,7 +16506,7 @@ class TableView {
    * @returns {boolean}
    */
   isCellEdited() {
-    const activeEditor = this.instance.getActiveEditor();
+    const activeEditor = this.hot.getActiveEditor();
     return activeEditor && activeEditor.isOpened();
   }
 
@@ -16421,8 +16521,8 @@ class TableView {
    */
   beforeRender(force, skipRender) {
     if (force) {
-      // this.instance.forceFullRender = did Handsontable request full render?
-      this.instance.runHooks('beforeViewRender', this.instance.forceFullRender, skipRender);
+      // this.hot.forceFullRender = did Handsontable request full render?
+      this.hot.runHooks('beforeViewRender', this.hot.forceFullRender, skipRender);
     }
   }
 
@@ -16435,8 +16535,8 @@ class TableView {
    */
   afterRender(force) {
     if (force) {
-      // this.instance.forceFullRender = did Handsontable request full render?
-      this.instance.runHooks('afterViewRender', this.instance.forceFullRender);
+      // this.hot.forceFullRender = did Handsontable request full render?
+      this.hot.runHooks('afterViewRender', this.hot.forceFullRender);
     }
   }
 
@@ -16455,12 +16555,12 @@ class TableView {
         this.appendRowHeader(visualRowIndex, TH);
         return;
       }
-      this.updateCellHeader(container.querySelector('.rowHeader'), visualRowIndex, this.instance.getRowHeader);
+      this.updateCellHeader(container.querySelector('.rowHeader'), visualRowIndex, this.hot.getRowHeader);
     } else {
       const {
         rootDocument,
         getRowHeader
-      } = this.instance;
+      } = this.hot;
       const div = rootDocument.createElement('div');
       const span = rootDocument.createElement('span');
       div.className = 'relative';
@@ -16469,7 +16569,7 @@ class TableView {
       div.appendChild(span);
       TH.appendChild(div);
     }
-    this.instance.runHooks('afterGetRowHeader', visualRowIndex, TH);
+    this.hot.runHooks('afterGetRowHeader', visualRowIndex, TH);
   }
 
   /**
@@ -16483,7 +16583,7 @@ class TableView {
    *                                 values counting from 0 to N).
    */
   appendColHeader(visualColumnIndex, TH) {
-    let label = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.instance.getColHeader;
+    let label = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.hot.getColHeader;
     let headerLevel = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
     if (TH.firstChild) {
       const container = TH.firstChild;
@@ -16496,7 +16596,7 @@ class TableView {
     } else {
       const {
         rootDocument
-      } = this.instance;
+      } = this.hot;
       const div = rootDocument.createElement('div');
       const span = rootDocument.createElement('span');
       div.className = 'relative';
@@ -16505,7 +16605,7 @@ class TableView {
       div.appendChild(span);
       TH.appendChild(div);
     }
-    this.instance.runHooks('afterGetColHeader', visualColumnIndex, TH, headerLevel);
+    this.hot.runHooks('afterGetColHeader', visualColumnIndex, TH, headerLevel);
   }
 
   /**
@@ -16575,8 +16675,8 @@ class TableView {
    * @param {number} height The table height.
    */
   setLastSize(width, height) {
-    const priv = privatePool.get(this);
-    [priv.lastWidth, priv.lastHeight] = [width, height];
+    (0, _classPrivateFieldSet2.default)(this, _lastWidth, width);
+    (0, _classPrivateFieldSet2.default)(this, _lastHeight, height);
   }
 
   /**
@@ -16585,10 +16685,9 @@ class TableView {
    * @returns {object}
    */
   getLastSize() {
-    const priv = privatePool.get(this);
     return {
-      width: priv.lastWidth,
-      height: priv.lastHeight
+      width: (0, _classPrivateFieldGet2.default)(this, _lastWidth),
+      height: (0, _classPrivateFieldGet2.default)(this, _lastHeight)
     };
   }
 
@@ -16598,7 +16697,7 @@ class TableView {
    * @returns {number}
    */
   getFirstFullyVisibleRow() {
-    return this.instance.rowIndexMapper.getVisualFromRenderableIndex(this.instance.view._wt.wtScroll.getFirstVisibleRow());
+    return this.hot.rowIndexMapper.getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getFirstVisibleRow());
   }
 
   /**
@@ -16607,7 +16706,7 @@ class TableView {
    * @returns {number}
    */
   getLastFullyVisibleRow() {
-    return this.instance.rowIndexMapper.getVisualFromRenderableIndex(this.instance.view._wt.wtScroll.getLastVisibleRow());
+    return this.hot.rowIndexMapper.getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getLastVisibleRow());
   }
 
   /**
@@ -16616,7 +16715,7 @@ class TableView {
    * @returns {number}
    */
   getFirstFullyVisibleColumn() {
-    return this.instance.columnIndexMapper.getVisualFromRenderableIndex(this.instance.view._wt.wtScroll.getFirstVisibleColumn());
+    return this.hot.columnIndexMapper.getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getFirstVisibleColumn());
   }
 
   /**
@@ -16625,7 +16724,7 @@ class TableView {
    * @returns {number}
    */
   getLastFullyVisibleColumn() {
-    return this.instance.columnIndexMapper.getVisualFromRenderableIndex(this.instance.view._wt.wtScroll.getLastVisibleColumn());
+    return this.hot.columnIndexMapper.getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getLastVisibleColumn());
   }
 
   /**
@@ -16657,71 +16756,6 @@ class TableView {
   }
 }
 var _default = exports["default"] = TableView;
-
-/***/ }),
-/* 143 */
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var toPropertyKey = __webpack_require__(144);
-function _defineProperty(obj, key, value) {
-  key = toPropertyKey(key);
-  if (key in obj) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  } else {
-    obj[key] = value;
-  }
-  return obj;
-}
-module.exports = _defineProperty, module.exports.__esModule = true, module.exports["default"] = module.exports;
-
-/***/ }),
-/* 144 */
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var _typeof = (__webpack_require__(145)["default"]);
-var toPrimitive = __webpack_require__(146);
-function _toPropertyKey(arg) {
-  var key = toPrimitive(arg, "string");
-  return _typeof(key) === "symbol" ? key : String(key);
-}
-module.exports = _toPropertyKey, module.exports.__esModule = true, module.exports["default"] = module.exports;
-
-/***/ }),
-/* 145 */
-/***/ ((module) => {
-
-function _typeof(o) {
-  "@babel/helpers - typeof";
-
-  return (module.exports = _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) {
-    return typeof o;
-  } : function (o) {
-    return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o;
-  }, module.exports.__esModule = true, module.exports["default"] = module.exports), _typeof(o);
-}
-module.exports = _typeof, module.exports.__esModule = true, module.exports["default"] = module.exports;
-
-/***/ }),
-/* 146 */
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var _typeof = (__webpack_require__(145)["default"]);
-function _toPrimitive(input, hint) {
-  if (_typeof(input) !== "object" || input === null) return input;
-  var prim = input[Symbol.toPrimitive];
-  if (prim !== undefined) {
-    var res = prim.call(input, hint || "default");
-    if (_typeof(res) !== "object") return res;
-    throw new TypeError("@@toPrimitive must return a primitive value.");
-  }
-  return (hint === "string" ? String : Number)(input);
-}
-module.exports = _toPrimitive, module.exports.__esModule = true, module.exports["default"] = module.exports;
 
 /***/ }),
 /* 147 */
@@ -16758,7 +16792,7 @@ exports.Renderer = Renderer;
 var _orderView = __webpack_require__(171);
 exports.OrderView = _orderView.OrderView;
 exports.SharedOrderView = _orderView.SharedOrderView;
-var _eventManager = __webpack_require__(127);
+var _eventManager = __webpack_require__(131);
 exports.getListenersCounter = _eventManager.getListenersCounter;
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && Object.prototype.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
@@ -16770,18 +16804,38 @@ function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; 
 "use strict";
 
 
+__webpack_require__(78);
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
 __webpack_require__(149);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _constants = __webpack_require__(154);
-const privatePool = new WeakMap();
-
+function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+/**
+ * @typedef {object} ViewportColumnsCalculatorOptions
+ * @property {number} viewportWidth Width of the viewport.
+ * @property {number} scrollOffset Current horizontal scroll position of the viewport.
+ * @property {number} totalColumns Total number of columns.
+ * @property {Function} columnWidthFn Function that returns the width of the column at a given index (in px).
+ * @property {Function} overrideFn Function that changes calculated this.startRow, this.endRow (used by
+ *   MergeCells plugin).
+ * @property {string} calculationType String which describes types of calculation which will be performed.
+ * @property {string} inlineStartOffset Inline-start offset of the parent container.
+ * @property {string} stretchMode Stretch mode 'all' or 'last'.
+ * @property {Function} stretchingColumnWidthFn Function that returns the new width of the stretched column.
+ */
 /**
  * Calculates indexes of columns to render OR columns that are visible.
  * To redo the calculation, you need to create a new calculator.
  *
  * @class ViewportColumnsCalculator
  */
+var _totalTargetWidth = /*#__PURE__*/new WeakMap();
+var _options = /*#__PURE__*/new WeakMap();
 class ViewportColumnsCalculator {
   /**
    * Default column width.
@@ -16793,75 +16847,76 @@ class ViewportColumnsCalculator {
   }
 
   /**
-   * @param {object} options Object with all options specified for column viewport calculation.
-   * @param {number} options.viewportSize Width of the viewport.
-   * @param {number} options.scrollOffset Current horizontal scroll position of the viewport.
-   * @param {number} options.totalItems Total number of columns.
-   * @param {Function} options.itemSizeFn Function that returns the width of the column at a given index (in px).
-   * @param {Function} options.overrideFn Function that changes calculated this.startRow, this.endRow (used by
-   *   MergeCells plugin).
-   * @param {string} options.calculationType String which describes types of calculation which will be performed.
-   * @param {string} options.inlineStartOffset Inline-start offset of the parent container.
-   * @param {string} [options.stretchMode] Stretch mode 'all' or 'last'.
-   * @param {Function} [options.stretchingItemWidthFn] Function that returns the new width of the stretched column.
+   * Number of rendered/visible columns.
+   *
+   * @type {number}
    */
-  constructor() {
-    let {
-      viewportSize,
-      scrollOffset,
-      totalItems,
-      itemSizeFn,
-      overrideFn,
-      calculationType,
-      stretchMode,
-      stretchingItemWidthFn = width => width,
-      inlineStartOffset
-    } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    privatePool.set(this, {
-      viewportWidth: viewportSize,
-      scrollOffset,
-      totalColumns: totalItems,
-      columnWidthFn: itemSizeFn,
-      overrideFn,
-      calculationType,
-      stretchingColumnWidthFn: stretchingItemWidthFn,
-      inlineStartOffset
-    });
 
-    /**
-     * Number of rendered/visible columns.
-     *
-     * @type {number}
-     */
-    this.count = 0;
-
+  /**
+   * @param {ViewportColumnsCalculatorOptions} options Object with all options specified for column viewport calculation.
+   */
+  constructor(options) {
+    (0, _defineProperty2.default)(this, "count", 0);
     /**
      * Index of the first rendered/visible column (can be overwritten using overrideFn).
      *
      * @type {number|null}
      */
-    this.startColumn = null;
-
+    (0, _defineProperty2.default)(this, "startColumn", null);
     /**
      * Index of the last rendered/visible column (can be overwritten using overrideFn).
      *
      * @type {null}
      */
-    this.endColumn = null;
-
+    (0, _defineProperty2.default)(this, "endColumn", null);
     /**
      * Position of the first rendered/visible column (in px).
      *
      * @type {number|null}
      */
-    this.startPosition = null;
-    this.isVisibleInTrimmingContainer = false;
-    this.stretchAllRatio = 0;
-    this.stretchLastWidth = 0;
-    this.stretch = stretchMode;
-    this.totalTargetWidth = 0;
-    this.needVerifyLastColumnWidth = true;
-    this.stretchAllColumnsWidth = [];
+    (0, _defineProperty2.default)(this, "startPosition", null);
+    /**
+     * Determines if the viewport is visible in the trimming container.
+     *
+     * @type {boolean}
+     */
+    (0, _defineProperty2.default)(this, "isVisibleInTrimmingContainer", false);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "stretchAllRatio", 0);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "stretchLastWidth", 0);
+    /**
+     * @type {number}
+     */
+    _classPrivateFieldInitSpec(this, _totalTargetWidth, {
+      writable: true,
+      value: 0
+    });
+    /**
+     * @type {boolean}
+     */
+    (0, _defineProperty2.default)(this, "needVerifyLastColumnWidth", true);
+    /**
+     * @type {number[]}
+     */
+    (0, _defineProperty2.default)(this, "stretchAllColumnsWidth", []);
+    /**
+     * The calculator options.
+     *
+     * @type {ViewportColumnsCalculatorOptions}
+     */
+    _classPrivateFieldInitSpec(this, _options, {
+      writable: true,
+      value: void 0
+    });
+    (0, _classPrivateFieldSet2.default)(this, _options, options);
+    if (typeof (0, _classPrivateFieldGet2.default)(this, _options).stretchingColumnWidthFn !== 'function') {
+      (0, _classPrivateFieldGet2.default)(this, _options).stretchingColumnWidthFn = width => width;
+    }
     this.calculate();
   }
 
@@ -16869,21 +16924,22 @@ class ViewportColumnsCalculator {
    * Calculates viewport.
    */
   calculate() {
+    const {
+      calculationType,
+      overrideFn,
+      scrollOffset,
+      totalColumns,
+      viewportWidth
+    } = (0, _classPrivateFieldGet2.default)(this, _options);
+    const zeroBasedScrollOffset = Math.max((0, _classPrivateFieldGet2.default)(this, _options).scrollOffset, 0);
+    // +1 pixel for row header width compensation for horizontal scroll > 0
+    const compensatedViewportWidth = zeroBasedScrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
     let sum = 0;
     let needReverse = true;
     const startPositions = [];
     let columnWidth;
     let firstVisibleColumnWidth = 0;
     let lastVisibleColumnWidth = 0;
-    const priv = privatePool.get(this);
-    const calculationType = priv.calculationType;
-    const overrideFn = priv.overrideFn;
-    const scrollOffset = priv.scrollOffset;
-    const zeroBasedScrollOffset = Math.max(priv.scrollOffset, 0);
-    const totalColumns = priv.totalColumns;
-    const viewportWidth = priv.viewportWidth;
-    // +1 pixel for row header width compensation for horizontal scroll > 0
-    const compensatedViewportWidth = zeroBasedScrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
     for (let i = 0; i < totalColumns; i++) {
       columnWidth = this._getColumnWidth(i);
       if (sum <= zeroBasedScrollOffset && calculationType !== _constants.FULLY_VISIBLE_TYPE) {
@@ -16891,7 +16947,7 @@ class ViewportColumnsCalculator {
         firstVisibleColumnWidth = columnWidth;
       }
       if (sum >= zeroBasedScrollOffset && sum + (calculationType === _constants.FULLY_VISIBLE_TYPE ? columnWidth : 0) <= zeroBasedScrollOffset + compensatedViewportWidth) {
-        if (this.startColumn === null || this.startColumn === void 0) {
+        if (this.startColumn === null || this.startColumn === undefined) {
           this.startColumn = i;
           firstVisibleColumnWidth = columnWidth;
         }
@@ -16913,9 +16969,9 @@ class ViewportColumnsCalculator {
     const inlineStartColumnOffset = calculationType === _constants.FULLY_VISIBLE_TYPE ? firstVisibleColumnWidth : 0;
     if (
     // the table is to the left of the viewport
-    mostRightScrollOffset < -1 * priv.inlineStartOffset || scrollOffset > startPositions.at(-1) + inlineEndColumnOffset ||
+    mostRightScrollOffset < -1 * (0, _classPrivateFieldGet2.default)(this, _options).inlineStartOffset || scrollOffset > startPositions.at(-1) + inlineEndColumnOffset ||
     // the table is to the right of the viewport
-    -1 * priv.scrollOffset - priv.viewportWidth > -1 * inlineStartColumnOffset) {
+    -1 * (0, _classPrivateFieldGet2.default)(this, _options).scrollOffset - (0, _classPrivateFieldGet2.default)(this, _options).viewportWidth > -1 * inlineStartColumnOffset) {
       this.isVisibleInTrimmingContainer = false;
     } else {
       this.isVisibleInTrimmingContainer = true;
@@ -16936,7 +16992,7 @@ class ViewportColumnsCalculator {
       overrideFn(this);
     }
     this.startPosition = startPositions[this.startColumn];
-    if (this.startPosition === void 0) {
+    if (this.startPosition === undefined) {
       this.startPosition = null;
     }
 
@@ -16955,17 +17011,16 @@ class ViewportColumnsCalculator {
    * @param {number} totalWidth The total width of the table.
    */
   refreshStretching(totalWidth) {
-    if (this.stretch === 'none') {
+    if ((0, _classPrivateFieldGet2.default)(this, _options).stretchMode === 'none') {
       return;
     }
     let totalColumnsWidth = totalWidth;
-    this.totalTargetWidth = totalColumnsWidth;
-    const priv = privatePool.get(this);
-    const totalColumns = priv.totalColumns;
+    (0, _classPrivateFieldSet2.default)(this, _totalTargetWidth, totalColumnsWidth);
+    const totalColumns = (0, _classPrivateFieldGet2.default)(this, _options).totalColumns;
     let sumAll = 0;
     for (let i = 0; i < totalColumns; i++) {
       const columnWidth = this._getColumnWidth(i);
-      const permanentColumnWidth = priv.stretchingColumnWidthFn(void 0, i);
+      const permanentColumnWidth = (0, _classPrivateFieldGet2.default)(this, _options).stretchingColumnWidthFn(undefined, i);
       if (typeof permanentColumnWidth === 'number') {
         totalColumnsWidth -= permanentColumnWidth;
       } else {
@@ -16973,11 +17028,11 @@ class ViewportColumnsCalculator {
       }
     }
     const remainingSize = totalColumnsWidth - sumAll;
-    if (this.stretch === 'all' && remainingSize > 0) {
+    if ((0, _classPrivateFieldGet2.default)(this, _options).stretchMode === 'all' && remainingSize > 0) {
       this.stretchAllRatio = totalColumnsWidth / sumAll;
       this.stretchAllColumnsWidth = [];
       this.needVerifyLastColumnWidth = true;
-    } else if (this.stretch === 'last' && totalColumnsWidth !== Infinity) {
+    } else if ((0, _classPrivateFieldGet2.default)(this, _options).stretchMode === 'last' && totalColumnsWidth !== Infinity) {
       const columnWidth = this._getColumnWidth(totalColumns - 1);
       const lastColumnWidth = remainingSize + columnWidth;
       this.stretchLastWidth = lastColumnWidth >= 0 ? lastColumnWidth : columnWidth;
@@ -16993,9 +17048,9 @@ class ViewportColumnsCalculator {
    */
   getStretchedColumnWidth(column, baseWidth) {
     let result = null;
-    if (this.stretch === 'all' && this.stretchAllRatio !== 0) {
+    if ((0, _classPrivateFieldGet2.default)(this, _options).stretchMode === 'all' && this.stretchAllRatio !== 0) {
       result = this._getStretchedAllColumnWidth(column, baseWidth);
-    } else if (this.stretch === 'last' && this.stretchLastWidth !== 0) {
+    } else if ((0, _classPrivateFieldGet2.default)(this, _options).stretchMode === 'last' && this.stretchLastWidth !== 0) {
       result = this._getStretchedLastColumnWidth(column);
     }
     return result;
@@ -17009,12 +17064,11 @@ class ViewportColumnsCalculator {
    */
   _getStretchedAllColumnWidth(column, baseWidth) {
     let sumRatioWidth = 0;
-    const priv = privatePool.get(this);
-    const totalColumns = priv.totalColumns;
+    const totalColumns = (0, _classPrivateFieldGet2.default)(this, _options).totalColumns;
     if (!this.stretchAllColumnsWidth[column]) {
       const stretchedWidth = Math.round(baseWidth * this.stretchAllRatio);
-      const newStretchedWidth = priv.stretchingColumnWidthFn(stretchedWidth, column);
-      if (newStretchedWidth === void 0) {
+      const newStretchedWidth = (0, _classPrivateFieldGet2.default)(this, _options).stretchingColumnWidthFn(stretchedWidth, column);
+      if (newStretchedWidth === undefined) {
         this.stretchAllColumnsWidth[column] = stretchedWidth;
       } else {
         this.stretchAllColumnsWidth[column] = isNaN(newStretchedWidth) ? this._getColumnWidth(column) : newStretchedWidth;
@@ -17025,8 +17079,8 @@ class ViewportColumnsCalculator {
       for (let i = 0; i < this.stretchAllColumnsWidth.length; i++) {
         sumRatioWidth += this.stretchAllColumnsWidth[i];
       }
-      if (sumRatioWidth !== this.totalTargetWidth) {
-        this.stretchAllColumnsWidth[this.stretchAllColumnsWidth.length - 1] += this.totalTargetWidth - sumRatioWidth;
+      if (sumRatioWidth !== (0, _classPrivateFieldGet2.default)(this, _totalTargetWidth)) {
+        this.stretchAllColumnsWidth[this.stretchAllColumnsWidth.length - 1] += (0, _classPrivateFieldGet2.default)(this, _totalTargetWidth) - sumRatioWidth;
       }
     }
     return this.stretchAllColumnsWidth[column];
@@ -17038,8 +17092,7 @@ class ViewportColumnsCalculator {
    * @private
    */
   _getStretchedLastColumnWidth(column) {
-    const priv = privatePool.get(this);
-    const totalColumns = priv.totalColumns;
+    const totalColumns = (0, _classPrivateFieldGet2.default)(this, _options).totalColumns;
     if (column === totalColumns - 1) {
       return this.stretchLastWidth;
     }
@@ -17052,7 +17105,7 @@ class ViewportColumnsCalculator {
    * @private
    */
   _getColumnWidth(column) {
-    let width = privatePool.get(this).columnWidthFn(column);
+    let width = (0, _classPrivateFieldGet2.default)(this, _options).columnWidthFn(column);
     if (isNaN(width)) {
       width = ViewportColumnsCalculator.DEFAULT_WIDTH;
     }
@@ -17291,18 +17344,34 @@ const PARTIALLY_VISIBLE_TYPE = exports.PARTIALLY_VISIBLE_TYPE = 3;
 "use strict";
 
 
+__webpack_require__(78);
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
 __webpack_require__(149);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _constants = __webpack_require__(154);
-const privatePool = new WeakMap();
-
+function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+/**
+ * @typedef {object} ViewportRowsCalculatorOptions
+ * @property {number} viewportHeight Height of the viewport.
+ * @property {number} scrollOffset Current vertical scroll position of the viewport.
+ * @property {number} totalRows Total number of rows.
+ * @property {Function} rowHeightFn Function that returns the height of the row at a given index (in px).
+ * @property {Function} overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin).
+ * @property {string} calculationType String which describes types of calculation which will be performed.
+ * @property {number} horizontalScrollbarHeight The scrollbar height.
+ */
 /**
  * Calculates indexes of rows to render OR rows that are visible.
  * To redo the calculation, you need to create a new calculator.
  *
  * @class ViewportRowsCalculator
  */
+var _options = /*#__PURE__*/new WeakMap();
 class ViewportRowsCalculator {
   /**
    * Default row height.
@@ -17314,63 +17383,50 @@ class ViewportRowsCalculator {
   }
 
   /**
-   * @param {object} options Object with all options specified for row viewport calculation.
-   * @param {number} options.viewportSize Height of the viewport.
-   * @param {number} options.scrollOffset Current vertical scroll position of the viewport.
-   * @param {number} options.totalItems Total number of rows.
-   * @param {Function} options.itemSizeFn Function that returns the height of the row at a given index (in px).
-   * @param {Function} options.overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin).
-   * @param {string} options.calculationType String which describes types of calculation which will be performed.
-   * @param {number} options.scrollbarHeight The scrollbar height.
+   * Number of rendered/visible rows.
+   *
+   * @type {number}
    */
-  constructor() {
-    let {
-      viewportSize,
-      scrollOffset,
-      totalItems,
-      itemSizeFn,
-      overrideFn,
-      calculationType,
-      scrollbarHeight
-    } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    privatePool.set(this, {
-      viewportHeight: viewportSize,
-      scrollOffset,
-      totalRows: totalItems,
-      rowHeightFn: itemSizeFn,
-      overrideFn,
-      calculationType,
-      horizontalScrollbarHeight: scrollbarHeight
-    });
 
-    /**
-     * Number of rendered/visible rows.
-     *
-     * @type {number}
-     */
-    this.count = 0;
-
+  /**
+   * @param {ViewportRowsCalculatorOptions} options Object with all options specified for row viewport calculation.
+   */
+  constructor(options) {
+    (0, _defineProperty2.default)(this, "count", 0);
     /**
      * Index of the first rendered/visible row (can be overwritten using overrideFn).
      *
      * @type {number|null}
      */
-    this.startRow = null;
-
+    (0, _defineProperty2.default)(this, "startRow", null);
     /**
      * Index of the last rendered/visible row (can be overwritten using overrideFn).
      *
      * @type {null}
      */
-    this.endRow = null;
-
+    (0, _defineProperty2.default)(this, "endRow", null);
     /**
      * Position of the first rendered/visible row (in px).
      *
      * @type {number|null}
      */
-    this.startPosition = null;
-    this.isVisibleInTrimmingContainer = false;
+    (0, _defineProperty2.default)(this, "startPosition", null);
+    /**
+     * Determines if the viewport is visible in the trimming container.
+     *
+     * @type {boolean}
+     */
+    (0, _defineProperty2.default)(this, "isVisibleInTrimmingContainer", false);
+    /**
+     * The calculator options.
+     *
+     * @type {ViewportRowsCalculatorOptions}
+     */
+    _classPrivateFieldInitSpec(this, _options, {
+      writable: true,
+      value: void 0
+    });
+    (0, _classPrivateFieldSet2.default)(this, _options, options);
     this.calculate();
   }
 
@@ -17378,15 +17434,16 @@ class ViewportRowsCalculator {
    * Calculates viewport.
    */
   calculate() {
-    const priv = privatePool.get(this);
-    const calculationType = priv.calculationType;
-    const overrideFn = priv.overrideFn;
-    const rowHeightFn = priv.rowHeightFn;
-    const scrollOffset = priv.scrollOffset;
-    const zeroBasedScrollOffset = Math.max(priv.scrollOffset, 0);
-    const totalRows = priv.totalRows;
-    const viewportHeight = priv.viewportHeight;
-    const horizontalScrollbarHeight = priv.horizontalScrollbarHeight || 0;
+    const {
+      calculationType,
+      overrideFn,
+      rowHeightFn,
+      scrollOffset,
+      totalRows,
+      viewportHeight
+    } = (0, _classPrivateFieldGet2.default)(this, _options);
+    const zeroBasedScrollOffset = Math.max((0, _classPrivateFieldGet2.default)(this, _options).scrollOffset, 0);
+    const horizontalScrollbarHeight = (0, _classPrivateFieldGet2.default)(this, _options).horizontalScrollbarHeight || 0;
     let sum = 0;
     let needReverse = true;
     const startPositions = [];
@@ -17451,7 +17508,7 @@ class ViewportRowsCalculator {
       overrideFn(this);
     }
     this.startPosition = startPositions[this.startRow];
-    if (this.startPosition === void 0) {
+    if (this.startPosition === undefined) {
       this.startPosition = null;
     }
 
@@ -17476,9 +17533,9 @@ var _default = exports["default"] = ViewportRowsCalculator;
 __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
 var _isRtl = /*#__PURE__*/new WeakMap();
@@ -17516,6 +17573,8 @@ class CellCoords {
      */
     (0, _defineProperty2.default)(this, "col", null);
     /**
+     * A flag which determines if the coordinates run in RTL mode.
+     *
      * @type {boolean}
      */
     _classPrivateFieldInitSpec(this, _isRtl, {
@@ -17576,17 +17635,17 @@ class CellCoords {
   }
 
   /**
-   * Checks if another set of coordinates (`cellCoords`)
+   * Checks if another set of coordinates (`coords`)
    * is equal to the coordinates in your `CellCoords` instance.
    *
-   * @param {CellCoords} cellCoords Coordinates to check.
+   * @param {CellCoords} coords Coordinates to check.
    * @returns {boolean}
    */
-  isEqual(cellCoords) {
-    if (cellCoords === this) {
+  isEqual(coords) {
+    if (coords === this) {
       return true;
     }
-    return this.row === cellCoords.row && this.col === cellCoords.col;
+    return this.row === coords.row && this.col === coords.col;
   }
 
   /**
@@ -17730,9 +17789,9 @@ __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _coords = _interopRequireDefault(__webpack_require__(156));
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
@@ -18886,17 +18945,31 @@ exports["default"] = Walkontable;
 "use strict";
 
 
+__webpack_require__(78);
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _element = __webpack_require__(107);
 var _function = __webpack_require__(115);
 var _feature = __webpack_require__(161);
 var _browser = __webpack_require__(116);
 var _mixed = __webpack_require__(110);
-const privatePool = new WeakMap();
-
+function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
 /**
  * @class Event
  */
+var _wtSettings = /*#__PURE__*/new WeakMap();
+var _domBindings = /*#__PURE__*/new WeakMap();
+var _wtTable = /*#__PURE__*/new WeakMap();
+var _selectionManager = /*#__PURE__*/new WeakMap();
+var _parent = /*#__PURE__*/new WeakMap();
+var _eventManager = /*#__PURE__*/new WeakMap();
+var _facadeGetter = /*#__PURE__*/new WeakMap();
+var _selectedCellBeforeTouchEnd = /*#__PURE__*/new WeakMap();
+var _dblClickTimeout = /*#__PURE__*/new WeakMap();
+var _dblClickOrigin = /*#__PURE__*/new WeakMap();
 class Event {
   /**
    * @param {FacadeGetter} facadeGetter Gets an instance facade.
@@ -18909,20 +18982,35 @@ class Event {
    */
   constructor(facadeGetter, domBindings, wtSettings, eventManager, wtTable, selectionManager) {
     let parent = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : null;
-    this.wtSettings = wtSettings;
-    this.domBindings = domBindings;
-    this.wtTable = wtTable;
-    this.selectionManager = selectionManager;
-    this.parent = parent;
-
+    _classPrivateFieldInitSpec(this, _wtSettings, {
+      writable: true,
+      value: void 0
+    });
+    _classPrivateFieldInitSpec(this, _domBindings, {
+      writable: true,
+      value: void 0
+    });
+    _classPrivateFieldInitSpec(this, _wtTable, {
+      writable: true,
+      value: void 0
+    });
+    _classPrivateFieldInitSpec(this, _selectionManager, {
+      writable: true,
+      value: void 0
+    });
+    _classPrivateFieldInitSpec(this, _parent, {
+      writable: true,
+      value: void 0
+    });
     /**
      * Instance of {@link EventManager}.
      *
-     * @private
      * @type {EventManager}
      */
-    this.eventManager = eventManager;
-
+    _classPrivateFieldInitSpec(this, _eventManager, {
+      writable: true,
+      value: void 0
+    });
     /**
      * Should be use only for passing face called external origin methods, like registered event listeners.
      * It provides backward compatibility by getting instance facade.
@@ -18932,14 +19020,39 @@ class Event {
      * @todo Con. Maybe passing listener caller as an ioc from faced resolves this issue. To rethink later.
      *
      * @type {FacadeGetter}
-     * @private
      */
-    this.facadeGetter = facadeGetter;
-    privatePool.set(this, {
-      selectedCellBeforeTouchEnd: void 0,
-      dblClickTimeout: [null, null],
-      dblClickOrigin: [null, null]
+    _classPrivateFieldInitSpec(this, _facadeGetter, {
+      writable: true,
+      value: void 0
     });
+    /**
+     * @type {boolean}
+     */
+    _classPrivateFieldInitSpec(this, _selectedCellBeforeTouchEnd, {
+      writable: true,
+      value: void 0
+    });
+    /**
+     * @type {number[]}
+     */
+    _classPrivateFieldInitSpec(this, _dblClickTimeout, {
+      writable: true,
+      value: [null, null]
+    });
+    /**
+     * @type {number[]}
+     */
+    _classPrivateFieldInitSpec(this, _dblClickOrigin, {
+      writable: true,
+      value: [null, null]
+    });
+    (0, _classPrivateFieldSet2.default)(this, _wtSettings, wtSettings);
+    (0, _classPrivateFieldSet2.default)(this, _domBindings, domBindings);
+    (0, _classPrivateFieldSet2.default)(this, _wtTable, wtTable);
+    (0, _classPrivateFieldSet2.default)(this, _selectionManager, selectionManager);
+    (0, _classPrivateFieldSet2.default)(this, _parent, parent);
+    (0, _classPrivateFieldSet2.default)(this, _eventManager, eventManager);
+    (0, _classPrivateFieldSet2.default)(this, _facadeGetter, facadeGetter);
     this.registerEvents();
   }
 
@@ -18949,32 +19062,32 @@ class Event {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(this.wtTable.holder, 'contextmenu', event => this.onContextMenu(event));
-    this.eventManager.addEventListener(this.wtTable.TABLE, 'mouseover', event => this.onMouseOver(event));
-    this.eventManager.addEventListener(this.wtTable.TABLE, 'mouseout', event => this.onMouseOut(event));
+    (0, _classPrivateFieldGet2.default)(this, _eventManager).addEventListener((0, _classPrivateFieldGet2.default)(this, _wtTable).holder, 'contextmenu', event => this.onContextMenu(event));
+    (0, _classPrivateFieldGet2.default)(this, _eventManager).addEventListener((0, _classPrivateFieldGet2.default)(this, _wtTable).TABLE, 'mouseover', event => this.onMouseOver(event));
+    (0, _classPrivateFieldGet2.default)(this, _eventManager).addEventListener((0, _classPrivateFieldGet2.default)(this, _wtTable).TABLE, 'mouseout', event => this.onMouseOut(event));
     const initTouchEvents = () => {
-      this.eventManager.addEventListener(this.wtTable.holder, 'touchstart', event => this.onTouchStart(event));
-      this.eventManager.addEventListener(this.wtTable.holder, 'touchend', event => this.onTouchEnd(event));
+      (0, _classPrivateFieldGet2.default)(this, _eventManager).addEventListener((0, _classPrivateFieldGet2.default)(this, _wtTable).holder, 'touchstart', event => this.onTouchStart(event));
+      (0, _classPrivateFieldGet2.default)(this, _eventManager).addEventListener((0, _classPrivateFieldGet2.default)(this, _wtTable).holder, 'touchend', event => this.onTouchEnd(event));
       if (!this.momentumScrolling) {
         this.momentumScrolling = {};
       }
-      this.eventManager.addEventListener(this.wtTable.holder, 'scroll', () => {
+      (0, _classPrivateFieldGet2.default)(this, _eventManager).addEventListener((0, _classPrivateFieldGet2.default)(this, _wtTable).holder, 'scroll', () => {
         clearTimeout(this.momentumScrolling._timeout);
         if (!this.momentumScrolling.ongoing) {
-          this.wtSettings.getSetting('onBeforeTouchScroll');
+          (0, _classPrivateFieldGet2.default)(this, _wtSettings).getSetting('onBeforeTouchScroll');
         }
         this.momentumScrolling.ongoing = true;
         this.momentumScrolling._timeout = setTimeout(() => {
           if (!this.touchApplied) {
             this.momentumScrolling.ongoing = false;
-            this.wtSettings.getSetting('onAfterMomentumScroll');
+            (0, _classPrivateFieldGet2.default)(this, _wtSettings).getSetting('onAfterMomentumScroll');
           }
         }, 200);
       });
     };
     const initMouseEvents = () => {
-      this.eventManager.addEventListener(this.wtTable.holder, 'mouseup', event => this.onMouseUp(event));
-      this.eventManager.addEventListener(this.wtTable.holder, 'mousedown', event => this.onMouseDown(event));
+      (0, _classPrivateFieldGet2.default)(this, _eventManager).addEventListener((0, _classPrivateFieldGet2.default)(this, _wtTable).holder, 'mouseup', event => this.onMouseUp(event));
+      (0, _classPrivateFieldGet2.default)(this, _eventManager).addEventListener((0, _classPrivateFieldGet2.default)(this, _wtTable).holder, 'mousedown', event => this.onMouseDown(event));
     };
     if ((0, _browser.isMobileBrowser)()) {
       initTouchEvents();
@@ -18995,12 +19108,11 @@ class Event {
    * @returns {boolean}
    */
   selectedCellWasTouched(touchTarget) {
-    const priv = privatePool.get(this);
     const cellUnderFinger = this.parentCell(touchTarget);
     const coordsOfCellUnderFinger = cellUnderFinger.coords;
-    if (priv.selectedCellBeforeTouchEnd && coordsOfCellUnderFinger) {
-      const [rowTouched, rowSelected] = [coordsOfCellUnderFinger.row, priv.selectedCellBeforeTouchEnd.from.row];
-      const [colTouched, colSelected] = [coordsOfCellUnderFinger.col, priv.selectedCellBeforeTouchEnd.from.col];
+    if ((0, _classPrivateFieldGet2.default)(this, _selectedCellBeforeTouchEnd) && coordsOfCellUnderFinger) {
+      const [rowTouched, rowSelected] = [coordsOfCellUnderFinger.row, (0, _classPrivateFieldGet2.default)(this, _selectedCellBeforeTouchEnd).from.row];
+      const [colTouched, colSelected] = [coordsOfCellUnderFinger.col, (0, _classPrivateFieldGet2.default)(this, _selectedCellBeforeTouchEnd).from.col];
       return rowTouched === rowSelected && colTouched === colSelected;
     }
     return false;
@@ -19015,18 +19127,18 @@ class Event {
    */
   parentCell(elem) {
     const cell = {};
-    const TABLE = this.wtTable.TABLE;
+    const TABLE = (0, _classPrivateFieldGet2.default)(this, _wtTable).TABLE;
     const TD = (0, _element.closestDown)(elem, ['TD', 'TH'], TABLE);
     if (TD) {
-      cell.coords = this.wtTable.getCoords(TD);
+      cell.coords = (0, _classPrivateFieldGet2.default)(this, _wtTable).getCoords(TD);
       cell.TD = TD;
     } else if ((0, _element.hasClass)(elem, 'wtBorder') && (0, _element.hasClass)(elem, 'current')) {
-      cell.coords = this.selectionManager.getFocusSelection().cellRange.highlight;
-      cell.TD = this.wtTable.getCell(cell.coords);
+      cell.coords = (0, _classPrivateFieldGet2.default)(this, _selectionManager).getFocusSelection().cellRange.highlight;
+      cell.TD = (0, _classPrivateFieldGet2.default)(this, _wtTable).getCell(cell.coords);
     } else if ((0, _element.hasClass)(elem, 'wtBorder') && (0, _element.hasClass)(elem, 'area')) {
-      if (this.selectionManager.getAreaSelection().cellRange) {
-        cell.coords = this.selectionManager.getAreaSelection().cellRange.to;
-        cell.TD = this.wtTable.getCell(cell.coords);
+      if ((0, _classPrivateFieldGet2.default)(this, _selectionManager).getAreaSelection().cellRange) {
+        cell.coords = (0, _classPrivateFieldGet2.default)(this, _selectionManager).getAreaSelection().cellRange.to;
+        cell.TD = (0, _classPrivateFieldGet2.default)(this, _wtTable).getCell(cell.coords);
       }
     }
     return cell;
@@ -19039,8 +19151,7 @@ class Event {
    * @param {MouseEvent} event The mouse event object.
    */
   onMouseDown(event) {
-    const priv = privatePool.get(this);
-    const activeElement = this.domBindings.rootDocument.activeElement;
+    const activeElement = (0, _classPrivateFieldGet2.default)(this, _domBindings).rootDocument.activeElement;
     const getParentNode = (0, _function.partial)(_element.getParent, event.target);
     const realTarget = event.target;
 
@@ -19051,17 +19162,17 @@ class Event {
     }
     const cell = this.parentCell(realTarget);
     if ((0, _element.hasClass)(realTarget, 'corner')) {
-      this.wtSettings.getSetting('onCellCornerMouseDown', event, realTarget);
-    } else if (cell.TD && this.wtSettings.has('onCellMouseDown')) {
+      (0, _classPrivateFieldGet2.default)(this, _wtSettings).getSetting('onCellCornerMouseDown', event, realTarget);
+    } else if (cell.TD && (0, _classPrivateFieldGet2.default)(this, _wtSettings).has('onCellMouseDown')) {
       this.callListener('onCellMouseDown', event, cell.coords, cell.TD);
     }
 
     // doubleclick reacts only for left mouse button or from touch events
     if ((event.button === 0 || this.touchApplied) && cell.TD) {
-      priv.dblClickOrigin[0] = cell.TD;
-      clearTimeout(priv.dblClickTimeout[0]);
-      priv.dblClickTimeout[0] = setTimeout(() => {
-        priv.dblClickOrigin[0] = null;
+      (0, _classPrivateFieldGet2.default)(this, _dblClickOrigin)[0] = cell.TD;
+      clearTimeout((0, _classPrivateFieldGet2.default)(this, _dblClickTimeout)[0]);
+      (0, _classPrivateFieldGet2.default)(this, _dblClickTimeout)[0] = setTimeout(() => {
+        (0, _classPrivateFieldGet2.default)(this, _dblClickOrigin)[0] = null;
       }, 1000);
     }
   }
@@ -19073,7 +19184,7 @@ class Event {
    * @param {MouseEvent} event The mouse event object.
    */
   onContextMenu(event) {
-    if (this.wtSettings.has('onCellContextMenu')) {
+    if ((0, _classPrivateFieldGet2.default)(this, _wtSettings).has('onCellContextMenu')) {
       const cell = this.parentCell(event.target);
       if (cell.TD) {
         this.callListener('onCellContextMenu', event, cell.coords, cell.TD);
@@ -19088,15 +19199,15 @@ class Event {
    * @param {MouseEvent} event The mouse event object.
    */
   onMouseOver(event) {
-    if (!this.wtSettings.has('onCellMouseOver')) {
+    if (!(0, _classPrivateFieldGet2.default)(this, _wtSettings).has('onCellMouseOver')) {
       return;
     }
-    const table = this.wtTable.TABLE;
+    const table = (0, _classPrivateFieldGet2.default)(this, _wtTable).TABLE;
     const td = (0, _element.closestDown)(event.target, ['TD', 'TH'], table);
-    const parent = this.parent || this;
+    const parent = (0, _classPrivateFieldGet2.default)(this, _parent) || this;
     if (td && td !== parent.lastMouseOver && (0, _element.isChildOf)(td, table)) {
       parent.lastMouseOver = td;
-      this.callListener('onCellMouseOver', event, this.wtTable.getCoords(td), td);
+      this.callListener('onCellMouseOver', event, (0, _classPrivateFieldGet2.default)(this, _wtTable).getCoords(td), td);
     }
   }
 
@@ -19107,15 +19218,15 @@ class Event {
    * @param {MouseEvent} event The mouse event object.
    */
   onMouseOut(event) {
-    if (!this.wtSettings.has('onCellMouseOut')) {
+    if (!(0, _classPrivateFieldGet2.default)(this, _wtSettings).has('onCellMouseOut')) {
       return;
     }
-    const table = this.wtTable.TABLE;
+    const table = (0, _classPrivateFieldGet2.default)(this, _wtTable).TABLE;
     const lastTD = (0, _element.closestDown)(event.target, ['TD', 'TH'], table);
     const nextTD = (0, _element.closestDown)(event.relatedTarget, ['TD', 'TH'], table);
-    const parent = this.parent || this;
+    const parent = (0, _classPrivateFieldGet2.default)(this, _parent) || this;
     if (lastTD && lastTD !== nextTD && (0, _element.isChildOf)(lastTD, table)) {
-      this.callListener('onCellMouseOut', event, this.wtTable.getCoords(lastTD), lastTD);
+      this.callListener('onCellMouseOut', event, (0, _classPrivateFieldGet2.default)(this, _wtTable).getCoords(lastTD), lastTD);
       if (nextTD === null) {
         parent.lastMouseOver = null;
       }
@@ -19129,9 +19240,8 @@ class Event {
    * @param {MouseEvent} event The mouse event object.
    */
   onMouseUp(event) {
-    const priv = privatePool.get(this);
     const cell = this.parentCell(event.target);
-    if (cell.TD && this.wtSettings.has('onCellMouseUp')) {
+    if (cell.TD && (0, _classPrivateFieldGet2.default)(this, _wtSettings).has('onCellMouseUp')) {
       this.callListener('onCellMouseUp', event, cell.coords, cell.TD);
     }
 
@@ -19139,19 +19249,19 @@ class Event {
     if (event.button !== 0 && !this.touchApplied) {
       return;
     }
-    if (cell.TD === priv.dblClickOrigin[0] && cell.TD === priv.dblClickOrigin[1]) {
+    if (cell.TD === (0, _classPrivateFieldGet2.default)(this, _dblClickOrigin)[0] && cell.TD === (0, _classPrivateFieldGet2.default)(this, _dblClickOrigin)[1]) {
       if ((0, _element.hasClass)(event.target, 'corner')) {
         this.callListener('onCellCornerDblClick', event, cell.coords, cell.TD);
       } else {
         this.callListener('onCellDblClick', event, cell.coords, cell.TD);
       }
-      priv.dblClickOrigin[0] = null;
-      priv.dblClickOrigin[1] = null;
-    } else if (cell.TD === priv.dblClickOrigin[0]) {
-      priv.dblClickOrigin[1] = cell.TD;
-      clearTimeout(priv.dblClickTimeout[1]);
-      priv.dblClickTimeout[1] = setTimeout(() => {
-        priv.dblClickOrigin[1] = null;
+      (0, _classPrivateFieldGet2.default)(this, _dblClickOrigin)[0] = null;
+      (0, _classPrivateFieldGet2.default)(this, _dblClickOrigin)[1] = null;
+    } else if (cell.TD === (0, _classPrivateFieldGet2.default)(this, _dblClickOrigin)[0]) {
+      (0, _classPrivateFieldGet2.default)(this, _dblClickOrigin)[1] = cell.TD;
+      clearTimeout((0, _classPrivateFieldGet2.default)(this, _dblClickTimeout)[1]);
+      (0, _classPrivateFieldGet2.default)(this, _dblClickTimeout)[1] = setTimeout(() => {
+        (0, _classPrivateFieldGet2.default)(this, _dblClickOrigin)[1] = null;
       }, 500);
     }
   }
@@ -19163,8 +19273,7 @@ class Event {
    * @param {MouseEvent} event The mouse event object.
    */
   onTouchStart(event) {
-    const priv = privatePool.get(this);
-    priv.selectedCellBeforeTouchEnd = this.selectionManager.getFocusSelection().cellRange;
+    (0, _classPrivateFieldSet2.default)(this, _selectedCellBeforeTouchEnd, (0, _classPrivateFieldGet2.default)(this, _selectionManager).getFocusSelection().cellRange);
     this.touchApplied = true;
     this.onMouseDown(event);
   }
@@ -19180,7 +19289,7 @@ class Event {
     const target = event.target;
     const parentCellCoords = (_this$parentCell = this.parentCell(target)) === null || _this$parentCell === void 0 ? void 0 : _this$parentCell.coords;
     const isCellsRange = (0, _mixed.isDefined)(parentCellCoords) && parentCellCoords.row >= 0 && parentCellCoords.col >= 0;
-    const isEventCancelable = event.cancelable && isCellsRange && this.wtSettings.getSetting('isDataViewInstance');
+    const isEventCancelable = event.cancelable && isCellsRange && (0, _classPrivateFieldGet2.default)(this, _wtSettings).getSetting('isDataViewInstance');
 
     // To prevent accidental redirects or other actions that the interactive elements (e.q "A" link) do
     // while the cell is highlighted, all touch events that are triggered on different cells are
@@ -19216,9 +19325,9 @@ class Event {
    * @param {HTMLElement} target Event target.
    */
   callListener(name, event, coords, target) {
-    const listener = this.wtSettings.getSettingPure(name);
+    const listener = (0, _classPrivateFieldGet2.default)(this, _wtSettings).getSettingPure(name);
     if (listener) {
-      listener(event, coords, target, this.facadeGetter());
+      listener(event, coords, target, (0, _classPrivateFieldGet2.default)(this, _facadeGetter).call(this));
     }
   }
 
@@ -19226,10 +19335,9 @@ class Event {
    * Clears double-click timeouts and destroys the internal eventManager instance.
    */
   destroy() {
-    const priv = privatePool.get(this);
-    clearTimeout(priv.dblClickTimeout[0]);
-    clearTimeout(priv.dblClickTimeout[1]);
-    this.eventManager.destroy();
+    clearTimeout((0, _classPrivateFieldGet2.default)(this, _dblClickTimeout)[0]);
+    clearTimeout((0, _classPrivateFieldGet2.default)(this, _dblClickTimeout)[1]);
+    (0, _classPrivateFieldGet2.default)(this, _eventManager).destroy();
   }
 }
 var _default = exports["default"] = Event;
@@ -19311,11 +19419,11 @@ function getComparisonFunction(language) {
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _element = __webpack_require__(107);
 var _feature = __webpack_require__(161);
 var _array = __webpack_require__(113);
-var _unicode = __webpack_require__(121);
+var _unicode = __webpack_require__(125);
 var _browser = __webpack_require__(116);
 var _overlay = __webpack_require__(163);
 /**
@@ -20152,7 +20260,7 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
 __webpack_require__(8);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _element = __webpack_require__(107);
 var _function = __webpack_require__(115);
 var _column = _interopRequireDefault(__webpack_require__(167));
@@ -20537,7 +20645,7 @@ class Table {
         this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = currentHeaderHeight;
       }
       if (Array.isArray(columnHeaderHeightSetting)) {
-        if (columnHeaderHeightSetting[level] !== null && columnHeaderHeightSetting[level] !== void 0) {
+        if (columnHeaderHeightSetting[level] !== null && columnHeaderHeightSetting[level] !== undefined) {
           this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting[level];
         }
       } else if (!isNaN(columnHeaderHeightSetting)) {
@@ -20590,7 +20698,7 @@ class Table {
       for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
         const sourceRow = this.rowFilter.renderedToSource(visibleRowIndex);
         if (wtViewport.oversizedRows && wtViewport.oversizedRows[sourceRow]) {
-          wtViewport.oversizedRows[sourceRow] = void 0;
+          wtViewport.oversizedRows[sourceRow] = undefined;
         }
       }
     }
@@ -20665,7 +20773,7 @@ class Table {
       renderedRowIndex = (_this$rowFilter2 = this.rowFilter) === null || _this$rowFilter2 === void 0 ? void 0 : _this$rowFilter2.sourceToRendered(rowIndex);
       parentElement = this.TBODY;
     }
-    if (renderedRowIndex !== void 0 && parentElement !== void 0) {
+    if (renderedRowIndex !== undefined && parentElement !== undefined) {
       if (parentElement.childNodes.length < renderedRowIndex + 1) {
         return false;
       } else {
@@ -21176,12 +21284,14 @@ var _default = exports["default"] = Table;
 
 /***/ }),
 /* 167 */
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 /**
  * @class ColumnFilter
  */
@@ -21192,6 +21302,18 @@ class ColumnFilter {
    * @param {number} countTH The number of rendered row headers.
    */
   constructor(offset, total, countTH) {
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "offset", void 0);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "total", void 0);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "countTH", void 0);
     this.offset = offset;
     this.total = total;
     this.countTH = countTH;
@@ -21265,12 +21387,14 @@ var _default = exports["default"] = ColumnFilter;
 
 /***/ }),
 /* 168 */
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 /**
  * @class RowFilter
  */
@@ -21281,6 +21405,18 @@ class RowFilter {
    * @param {number} countTH The number of rendered column headers.
    */
   constructor(offset, total, countTH) {
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "offset", void 0);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "total", void 0);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "countTH", void 0);
     this.offset = offset;
     this.total = total;
     this.countTH = countTH;
@@ -21469,6 +21605,7 @@ exports.Renderer = Renderer;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _orderView = __webpack_require__(171);
 var _base = _interopRequireDefault(__webpack_require__(177));
 var _element = __webpack_require__(107);
@@ -21494,13 +21631,13 @@ class RowHeadersRenderer extends _base.default {
      *
      * @type {WeakMap}
      */
-    this.orderViews = new WeakMap();
+    (0, _defineProperty2.default)(this, "orderViews", new WeakMap());
     /**
      * Row index which specifies the row position of the processed row header.
      *
      * @type {number}
      */
-    this.sourceRowIndex = 0;
+    (0, _defineProperty2.default)(this, "sourceRowIndex", 0);
   }
 
   /**
@@ -21581,6 +21718,7 @@ exports.SharedOrderView = _sharedView.default;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _constants = __webpack_require__(173);
 var _viewSizeSet = _interopRequireDefault(__webpack_require__(174));
 /**
@@ -21598,37 +21736,40 @@ class OrderView {
      *
      * @type {HTMLElement}
      */
-    this.rootNode = rootNode;
+    (0, _defineProperty2.default)(this, "rootNode", void 0);
     /**
      * Factory for newly created DOM elements.
      *
      * @type {Function}
      */
-    this.nodesPool = nodesPool;
+    (0, _defineProperty2.default)(this, "nodesPool", void 0);
     /**
      * Holder for sizing and positioning of the view.
      *
      * @type {ViewSizeSet}
      */
-    this.sizeSet = new _viewSizeSet.default();
+    (0, _defineProperty2.default)(this, "sizeSet", new _viewSizeSet.default());
     /**
      * Node type which the order view will manage while rendering the DOM elements.
      *
      * @type {string}
      */
-    this.childNodeType = childNodeType.toUpperCase();
+    (0, _defineProperty2.default)(this, "childNodeType", void 0);
     /**
      * The visual index of currently processed row.
      *
      * @type {number}
      */
-    this.visualIndex = 0;
+    (0, _defineProperty2.default)(this, "visualIndex", 0);
     /**
      * The list of DOM elements which are rendered for this render cycle.
      *
      * @type {HTMLElement[]}
      */
-    this.collectedNodes = [];
+    (0, _defineProperty2.default)(this, "collectedNodes", []);
+    this.rootNode = rootNode;
+    this.nodesPool = nodesPool;
+    this.childNodeType = childNodeType.toUpperCase();
   }
 
   /**
@@ -21817,6 +21958,7 @@ const WORKING_SPACE_BOTTOM = exports.WORKING_SPACE_BOTTOM = 2;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _viewSize = _interopRequireDefault(__webpack_require__(175));
 var _constants = __webpack_require__(173);
 /**
@@ -21842,22 +21984,21 @@ class ViewSizeSet {
      *
      * @type {ViewSize}
      */
-    this.size = new _viewSize.default();
+    (0, _defineProperty2.default)(this, "size", new _viewSize.default());
     /**
      * Defines if this instance shares its size with another instance. If it's in the shared
      * mode it defines what space it occupies ('top' or 'bottom').
      *
      * @type {number}
      */
-    this.workingSpace = _constants.WORKING_SPACE_ALL;
+    (0, _defineProperty2.default)(this, "workingSpace", _constants.WORKING_SPACE_ALL);
     /**
      * Shared Size instance.
      *
      * @type {ViewSize}
      */
-    this.sharedSize = null;
+    (0, _defineProperty2.default)(this, "sharedSize", null);
   }
-
   /**
    * Sets the size for rendered elements. It can be a size for rows, cells or size for row
    * headers etc.
@@ -21932,12 +22073,14 @@ exports["default"] = ViewSizeSet;
 
 /***/ }),
 /* 175 */
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 /**
  * Holder for current and next size (count of rendered and to render DOM elements) and offset.
  *
@@ -21950,27 +22093,26 @@ class ViewSize {
      *
      * @type {number}
      */
-    this.currentSize = 0;
+    (0, _defineProperty2.default)(this, "currentSize", 0);
     /**
      * Next size of the rendered DOM elements which should be fulfilled.
      *
      * @type {number}
      */
-    this.nextSize = 0;
+    (0, _defineProperty2.default)(this, "nextSize", 0);
     /**
      * Current offset.
      *
      * @type {number}
      */
-    this.currentOffset = 0;
+    (0, _defineProperty2.default)(this, "currentOffset", 0);
     /**
-     * Next ofset.
+     * Next offset.
      *
      * @type {number}
      */
-    this.nextOffset = 0;
+    (0, _defineProperty2.default)(this, "nextOffset", 0);
   }
-
   /**
    * Sets new size of the rendered DOM elements.
    *
@@ -22054,6 +22196,7 @@ exports["default"] = SharedOrderView;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _nodesPool = _interopRequireDefault(__webpack_require__(178));
 /**
  * Base renderer class, abstract logic for specialized renderers.
@@ -22070,31 +22213,34 @@ class BaseRenderer {
      *
      * @type {NodesPool|null}
      */
-    this.nodesPool = typeof nodeType === 'string' ? new _nodesPool.default(nodeType) : null;
+    (0, _defineProperty2.default)(this, "nodesPool", null);
     /**
      * Node type which the renderer will manage while building the table (eg. 'TD', 'TR', 'TH').
      *
      * @type {string}
      */
-    this.nodeType = nodeType;
+    (0, _defineProperty2.default)(this, "nodeType", void 0);
     /**
      * The root node to which newly created elements will be inserted.
      *
      * @type {HTMLElement}
      */
-    this.rootNode = rootNode;
+    (0, _defineProperty2.default)(this, "rootNode", void 0);
     /**
      * The instance of the Table class, a wrapper for all renderers and holder for properties describe table state.
      *
      * @type {TableRenderer}
      */
-    this.table = null;
+    (0, _defineProperty2.default)(this, "table", null);
     /**
      * Counter of nodes already added.
      *
      * @type {number}
      */
-    this.renderedNodes = 0;
+    (0, _defineProperty2.default)(this, "renderedNodes", 0);
+    this.nodesPool = typeof nodeType === 'string' ? new _nodesPool.default(nodeType) : null;
+    this.nodeType = nodeType;
+    this.rootNode = rootNode;
   }
 
   /**
@@ -22123,12 +22269,14 @@ exports["default"] = BaseRenderer;
 
 /***/ }),
 /* 178 */
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 /**
  * Factory for newly created DOM elements.
  *
@@ -22141,6 +22289,7 @@ class NodesPool {
      *
      * @type {string}
      */
+    (0, _defineProperty2.default)(this, "nodeType", void 0);
     this.nodeType = nodeType.toUpperCase();
   }
 
@@ -22360,7 +22509,8 @@ exports["default"] = ColGroupRenderer;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _console = __webpack_require__(125);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _console = __webpack_require__(129);
 var _templateLiteralTag = __webpack_require__(112);
 var _orderView = __webpack_require__(171);
 var _base = _interopRequireDefault(__webpack_require__(177));
@@ -22388,6 +22538,7 @@ class RowsRenderer extends _base.default {
      *
      * @type {WeakMap}
      */
+    (0, _defineProperty2.default)(this, "orderView", void 0);
     this.orderView = new _orderView.OrderView(rootNode, sourceRowIndex => this.nodesPool.obtain(sourceRowIndex), this.nodeType);
   }
 
@@ -22442,6 +22593,7 @@ exports["default"] = RowsRenderer;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _element = __webpack_require__(107);
 var _orderView = __webpack_require__(171);
 var _base = _interopRequireDefault(__webpack_require__(177));
@@ -22467,13 +22619,13 @@ class CellsRenderer extends _base.default {
      *
      * @type {WeakMap}
      */
-    this.orderViews = new WeakMap();
+    (0, _defineProperty2.default)(this, "orderViews", new WeakMap());
     /**
      * Row index which specifies the row position of the processed cell.
      *
      * @type {number}
      */
-    this.sourceRowIndex = 0;
+    (0, _defineProperty2.default)(this, "sourceRowIndex", 0);
   }
 
   /**
@@ -22542,12 +22694,14 @@ exports["default"] = CellsRenderer;
 
 /***/ }),
 /* 183 */
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 /**
  * TableRenderer class collects all renderers and properties necessary for table creation. It's
  * responsible for adjusting and rendering each renderer.
@@ -22602,108 +22756,111 @@ class TableRenderer {
      *
      * @type {HTMLTableElement}
      */
-    this.rootNode = rootNode;
+    (0, _defineProperty2.default)(this, "rootNode", void 0);
     /**
      * Document owner of the root node.
      *
      * @type {HTMLDocument}
      */
-    this.rootDocument = this.rootNode.ownerDocument;
+    (0, _defineProperty2.default)(this, "rootDocument", void 0);
     /**
      * Renderer class responsible for rendering row headers.
      *
      * @type {RowsRenderer}
      */
-    this.rowHeaders = null;
+    (0, _defineProperty2.default)(this, "rowHeaders", null);
     /**
      * Renderer class responsible for rendering column headers.
      *
      * @type {ColumnHeadersRenderer}
      */
-    this.columnHeaders = null;
+    (0, _defineProperty2.default)(this, "columnHeaders", null);
     /**
      * Renderer class responsible for rendering col in colgroup.
      *
      * @type {ColGroupRenderer}
      */
-    this.colGroup = null;
+    (0, _defineProperty2.default)(this, "colGroup", null);
     /**
      * Renderer class responsible for rendering rows in tbody.
      *
      * @type {RowsRenderer}
      */
-    this.rows = null;
+    (0, _defineProperty2.default)(this, "rows", null);
     /**
      * Renderer class responsible for rendering cells.
      *
      * @type {CellsRenderer}
      */
-    this.cells = null;
+    (0, _defineProperty2.default)(this, "cells", null);
     /**
      * Row filter which contains all necessary information about row index transformation.
      *
      * @type {RowFilter}
      */
-    this.rowFilter = null;
+    (0, _defineProperty2.default)(this, "rowFilter", null);
     /**
      * Column filter which contains all necessary information about column index transformation.
      *
      * @type {ColumnFilter}
      */
-    this.columnFilter = null;
+    (0, _defineProperty2.default)(this, "columnFilter", null);
     /**
      * Row utils class which contains all necessary information about sizes of the rows.
      *
      * @type {RowUtils}
      */
-    this.rowUtils = null;
+    (0, _defineProperty2.default)(this, "rowUtils", null);
     /**
      * Column utils class which contains all necessary information about sizes of the columns.
      *
      * @type {ColumnUtils}
      */
-    this.columnUtils = null;
+    (0, _defineProperty2.default)(this, "columnUtils", null);
     /**
      * Indicates how much rows should be rendered to fill whole table viewport.
      *
      * @type {number}
      */
-    this.rowsToRender = 0;
+    (0, _defineProperty2.default)(this, "rowsToRender", 0);
     /**
      * Indicates how much columns should be rendered to fill whole table viewport.
      *
      * @type {number}
      */
-    this.columnsToRender = 0;
+    (0, _defineProperty2.default)(this, "columnsToRender", 0);
     /**
      * An array of functions to be used as a content factory to row headers.
      *
      * @type {Function[]}
      */
-    this.rowHeaderFunctions = [];
+    (0, _defineProperty2.default)(this, "rowHeaderFunctions", []);
     /**
      * Count of the function used to render row headers.
      *
      * @type {number}
      */
-    this.rowHeadersCount = 0;
+    (0, _defineProperty2.default)(this, "rowHeadersCount", 0);
     /**
      * An array of functions to be used as a content factory to column headers.
      *
      * @type {Function[]}
      */
-    this.columnHeaderFunctions = [];
+    (0, _defineProperty2.default)(this, "columnHeaderFunctions", []);
     /**
      * Count of the function used to render column headers.
      *
      * @type {number}
      */
-    this.columnHeadersCount = 0;
+    (0, _defineProperty2.default)(this, "columnHeadersCount", 0);
     /**
      * Cell renderer used to render cells content.
      *
      * @type {Function}
      */
+    (0, _defineProperty2.default)(this, "cellRenderer", void 0);
+    this.rootNode = rootNode;
+    this.rootDocument = this.rootNode.ownerDocument;
     this.cellRenderer = cellRenderer;
   }
 
@@ -22860,7 +23017,9 @@ exports["default"] = TableRenderer;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _element = __webpack_require__(107);
 /**
  * Column utils class contains all necessary information about sizes of the columns.
@@ -22873,9 +23032,20 @@ class ColumnUtils {
    * @param {Settings} wtSettings The walkontable settings.
    */
   constructor(dataAccessObject, wtSettings) {
+    /**
+     * @type {TableDao}
+     */
+    (0, _defineProperty2.default)(this, "dataAccessObject", void 0);
+    /**
+     * @type {Settings}
+     */
+    (0, _defineProperty2.default)(this, "wtSettings", void 0);
+    /**
+     * @type {Map<number, number>}
+     */
+    (0, _defineProperty2.default)(this, "headerWidths", new Map());
     this.dataAccessObject = dataAccessObject;
     this.wtSettings = wtSettings;
-    this.headerWidths = new Map();
   }
 
   /**
@@ -22915,7 +23085,7 @@ class ColumnUtils {
   getHeaderHeight(level) {
     let height = this.wtSettings.getSetting('defaultRowHeight');
     const oversizedHeight = this.dataAccessObject.wtViewport.oversizedColumnHeaders[level];
-    if (oversizedHeight !== void 0) {
+    if (oversizedHeight !== undefined) {
       height = height ? Math.max(height, oversizedHeight) : oversizedHeight;
     }
     return height;
@@ -22948,12 +23118,12 @@ class ColumnUtils {
     let rowHeaderWidthSetting = wtSettings.getSetting('rowHeaderWidth');
     wtViewport.columnsRenderCalculator.refreshStretching(wtViewport.getViewportWidth() - scrollbarCompensation);
     rowHeaderWidthSetting = wtSettings.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
-    if (rowHeaderWidthSetting !== null && rowHeaderWidthSetting !== void 0) {
+    if (rowHeaderWidthSetting !== null && rowHeaderWidthSetting !== undefined) {
       const rowHeadersCount = wtSettings.getSetting('rowHeaders').length;
       const defaultColumnWidth = wtSettings.getSetting('defaultColumnWidth');
       for (let visibleColumnIndex = 0; visibleColumnIndex < rowHeadersCount; visibleColumnIndex++) {
         let width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[visibleColumnIndex] : rowHeaderWidthSetting;
-        width = width === null || width === void 0 ? defaultColumnWidth : width;
+        width = width === null || width === undefined ? defaultColumnWidth : width;
         this.headerWidths.set(visibleColumnIndex, width);
       }
     }
@@ -22963,12 +23133,14 @@ exports["default"] = ColumnUtils;
 
 /***/ }),
 /* 185 */
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 /**
  * Row utils class contains all necessary information about sizes of the rows.
  *
@@ -22980,6 +23152,14 @@ class RowUtils {
    * @param {Settings} wtSettings The walkontable settings.
    */
   constructor(dataAccessObject, wtSettings) {
+    /**
+     * @type {TableDao}
+     */
+    (0, _defineProperty2.default)(this, "dataAccessObject", void 0);
+    /**
+     * @type {Settings}
+     */
+    (0, _defineProperty2.default)(this, "wtSettings", void 0);
     this.dataAccessObject = dataAccessObject;
     this.wtSettings = wtSettings;
   }
@@ -22993,8 +23173,8 @@ class RowUtils {
   getHeight(sourceIndex) {
     let height = this.wtSettings.getSetting('rowHeight', sourceIndex);
     const oversizedHeight = this.dataAccessObject.wtViewport.oversizedRows[sourceIndex];
-    if (oversizedHeight !== void 0) {
-      height = height === void 0 ? oversizedHeight : Math.max(height, oversizedHeight);
+    if (oversizedHeight !== undefined) {
+      height = height === undefined ? oversizedHeight : Math.max(height, oversizedHeight);
     }
     return height;
   }
@@ -23212,11 +23392,11 @@ var _default = exports["default"] = stickyColumnsStart;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _element = __webpack_require__(107);
 var _object = __webpack_require__(117);
 var _array = __webpack_require__(113);
-var _console = __webpack_require__(125);
+var _console = __webpack_require__(129);
 var _constants = __webpack_require__(189);
 var _clone = _interopRequireDefault(__webpack_require__(190));
 var _a11y = __webpack_require__(114);
@@ -23584,7 +23764,7 @@ const CLONE_CLASS_NAMES = exports.CLONE_CLASS_NAMES = new Map([[CLONE_TOP, `ht_c
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _event = _interopRequireDefault(__webpack_require__(160));
 var _base = _interopRequireDefault(__webpack_require__(191));
 /**
@@ -23598,7 +23778,13 @@ class Clone extends _base.default {
    */
   constructor(table, settings, clone) {
     super(table, settings);
+    /**
+     * @type {Walkontable}
+     */
     (0, _defineProperty2.default)(this, "cloneSource", void 0);
+    /**
+     * @type {Overlay}
+     */
     (0, _defineProperty2.default)(this, "cloneOverlay", void 0);
     const facadeGetter = this.wtSettings.getSetting('facade', this);
     this.cloneSource = clone.source;
@@ -23622,10 +23808,10 @@ exports["default"] = Clone;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _element = __webpack_require__(107);
 var _string = __webpack_require__(108);
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
+var _eventManager = _interopRequireDefault(__webpack_require__(131));
 var _scroll = _interopRequireDefault(__webpack_require__(192));
 var _coords = _interopRequireDefault(__webpack_require__(156));
 var _range = _interopRequireDefault(__webpack_require__(157));
@@ -23996,7 +24182,7 @@ exports["default"] = CoreAbstract;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _element = __webpack_require__(107);
 /**
  * @class Scroll
@@ -24068,7 +24254,7 @@ class Scroll {
     }
     const firstVisibleColumn = this.getFirstVisibleColumn();
     const lastVisibleColumn = this.getLastVisibleColumn();
-    const autoSnapping = snapToRight === void 0 && snapToLeft === void 0;
+    const autoSnapping = snapToRight === undefined && snapToLeft === undefined;
     const {
       fixedColumnsStart,
       inlineStartOverlay
@@ -24117,7 +24303,7 @@ class Scroll {
     }
     const firstVisibleRow = this.getFirstVisibleRow();
     const lastVisibleRow = this.getLastVisibleRow();
-    const autoSnapping = snapToTop === void 0 && snapToBottom === void 0;
+    const autoSnapping = snapToTop === undefined && snapToBottom === undefined;
     const {
       fixedRowsBottom,
       fixedRowsTop,
@@ -24314,7 +24500,7 @@ var _default = exports["default"] = Scroll;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _element = __webpack_require__(107);
 var _bottom = _interopRequireDefault(__webpack_require__(194));
 var _base = __webpack_require__(188);
@@ -24460,7 +24646,7 @@ class BottomOverlay extends _base.Overlay {
     let sum = 0;
     while (row < to) {
       const height = wtTable.getRowHeight(row);
-      sum += height === void 0 ? defaultRowHeight : height;
+      sum += height === undefined ? defaultRowHeight : height;
       row += 1;
     }
     return sum;
@@ -25587,8 +25773,8 @@ __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(205);
-var _classPrivateFieldGet8 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
+var _classPrivateFieldGet8 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _element = __webpack_require__(107);
 var _scanner2 = __webpack_require__(206);
 var _border = _interopRequireDefault(__webpack_require__(207));
@@ -25877,8 +26063,8 @@ addToUnscopables('flat');
 __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _element = __webpack_require__(107);
 function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
@@ -26150,7 +26336,7 @@ function _scanCellsRange2(callback) {
 
 exports.__esModule = true;
 var _element = __webpack_require__(107);
-var _event = __webpack_require__(122);
+var _event = __webpack_require__(126);
 var _object = __webpack_require__(117);
 var _browser = __webpack_require__(116);
 var _constants = __webpack_require__(203);
@@ -26513,7 +26699,7 @@ class Border {
         break;
       }
     }
-    if (fromRow === void 0 || fromColumn === void 0) {
+    if (fromRow === undefined || fromColumn === undefined) {
       this.disappear();
       return;
     }
@@ -26827,7 +27013,7 @@ var _default = exports["default"] = Border;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _element = __webpack_require__(107);
 var _topInlineStartCorner = _interopRequireDefault(__webpack_require__(209));
 var _base = __webpack_require__(188);
@@ -27060,7 +27246,7 @@ var _default = exports["default"] = stickyRowsTop;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _element = __webpack_require__(107);
 var _top = _interopRequireDefault(__webpack_require__(212));
 var _base = __webpack_require__(188);
@@ -27198,7 +27384,7 @@ class TopOverlay extends _base.Overlay {
     let sum = 0;
     while (row < to) {
       const height = this.wot.wtTable.getRowHeight(row);
-      sum += height === void 0 ? defaultRowHeight : height;
+      sum += height === undefined ? defaultRowHeight : height;
       row += 1;
     }
     return sum;
@@ -27467,7 +27653,7 @@ var _default = exports["default"] = TopOverlayTable;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _element = __webpack_require__(107);
 var _object = __webpack_require__(117);
 /**
@@ -27567,9 +27753,9 @@ class Settings {
      */
     (0, _defineProperty2.default)(this, "defaults", Object.freeze(this.getDefaults()));
     (0, _object.objectEach)(this.defaults, (value, key) => {
-      if (settings[key] !== void 0) {
+      if (settings[key] !== undefined) {
         this.settings[key] = settings[key];
-      } else if (value === void 0) {
+      } else if (value === undefined) {
         throw new Error(`A required setting "${key}" was not provided`);
       } else {
         this.settings[key] = value;
@@ -27586,8 +27772,8 @@ class Settings {
    */
   getDefaults() {
     return {
-      facade: void 0,
-      table: void 0,
+      facade: undefined,
+      table: undefined,
       // Determines whether the Walkontable instance is used as dataset viewer. When its instance is used as
       // a context menu, autocomplete list, etc, the returned value is `false`.
       isDataViewInstance: true,
@@ -27602,7 +27788,7 @@ class Settings {
       },
       preventWheel: false,
       // data source
-      data: void 0,
+      data: undefined,
       freezeOverlays: false,
       // Number of renderable columns for the left overlay.
       fixedColumnsStart: 0,
@@ -27631,11 +27817,11 @@ class Settings {
       columnHeaders() {
         return [];
       },
-      totalRows: void 0,
-      totalColumns: void 0,
+      totalRows: undefined,
+      totalColumns: undefined,
       cellRenderer: (row, column, TD) => {
         const cellData = this.getSetting('data', row, column);
-        (0, _element.fastInnerText)(TD, cellData === void 0 || cellData === null ? '' : cellData);
+        (0, _element.fastInnerText)(TD, cellData === undefined || cellData === null ? '' : cellData);
       },
       // columnWidth: 50,
       columnWidth() {
@@ -27699,7 +27885,7 @@ class Settings {
    * @returns {Settings}
    */
   update(settings, value) {
-    if (value === void 0) {
+    if (value === undefined) {
       // settings is object
       (0, _object.objectEach)(settings, (settingValue, key) => {
         this.settings[key] = settingValue;
@@ -27724,7 +27910,7 @@ class Settings {
   getSetting(key, param1, param2, param3, param4) {
     if (typeof this.settings[key] === 'function') {
       return this.settings[key](param1, param2, param3, param4);
-    } else if (param1 !== void 0 && Array.isArray(this.settings[key])) {
+    } else if (param1 !== undefined && Array.isArray(this.settings[key])) {
       return this.settings[key][param1];
     }
     return this.settings[key];
@@ -28154,13 +28340,13 @@ class Viewport {
       scrollbarHeight = (0, _element.getScrollbarWidth)(this.domBindings.rootDocument);
     }
     return new _calculator.ViewportRowsCalculator({
-      viewportSize: height,
+      viewportHeight: height,
       scrollOffset: pos,
-      totalItems: wtSettings.getSetting('totalRows'),
-      itemSizeFn: sourceRow => wtTable.getRowHeight(sourceRow),
+      totalRows: wtSettings.getSetting('totalRows'),
+      rowHeightFn: sourceRow => wtTable.getRowHeight(sourceRow),
       overrideFn: wtSettings.getSettingPure('viewportRowCalculatorOverride'),
       calculationType,
-      scrollbarHeight
+      horizontalScrollbarHeight: scrollbarHeight
     });
   }
 
@@ -28192,14 +28378,14 @@ class Viewport {
       width -= (0, _element.getScrollbarWidth)(this.domBindings.rootDocument);
     }
     return new _calculator.ViewportColumnsCalculator({
-      viewportSize: width,
+      viewportWidth: width,
       scrollOffset: pos,
-      totalItems: wtSettings.getSetting('totalColumns'),
-      itemSizeFn: sourceCol => wtTable.getColumnWidth(sourceCol),
+      totalColumns: wtSettings.getSetting('totalColumns'),
+      columnWidthFn: sourceCol => wtTable.getColumnWidth(sourceCol),
       overrideFn: wtSettings.getSettingPure('viewportColumnCalculatorOverride'),
       calculationType,
       stretchMode: wtSettings.getSetting('stretchH'),
-      stretchingItemWidthFn: (stretchedWidth, column) => {
+      stretchingColumnWidthFn: (stretchedWidth, column) => {
         return wtSettings.getSetting('onBeforeStretchingColumnWidth', stretchedWidth, column);
       },
       inlineStartOffset: this.dataAccessObject.inlineStartParentOffset
@@ -28316,7 +28502,7 @@ class Viewport {
    */
   resetHasOversizedColumnHeadersMarked() {
     (0, _object.objectEach)(this.hasOversizedColumnHeadersMarked, (value, key, object) => {
-      object[key] = void 0;
+      object[key] = undefined;
     });
   }
 }
@@ -28358,7 +28544,7 @@ exports.__esModule = true;
 exports.handleMouseEvent = handleMouseEvent;
 exports.mouseDown = mouseDown;
 exports.mouseOver = mouseOver;
-var _event = __webpack_require__(122);
+var _event = __webpack_require__(126);
 /**
  * MouseDown handler.
  *
@@ -28545,12 +28731,14 @@ function isRootInstance(object) {
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _object = __webpack_require__(117);
 var _data = __webpack_require__(220);
 var _array = __webpack_require__(113);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 var _function = __webpack_require__(115);
 /**
  * @class DataSource
@@ -28564,22 +28752,24 @@ class DataSource {
      *
      * @type {Handsontable}
      */
-    this.hot = hotInstance;
+    (0, _defineProperty2.default)(this, "hot", void 0);
     /**
      * Data source.
      *
      * @type {Array}
      */
-    this.data = dataSource;
+    (0, _defineProperty2.default)(this, "data", void 0);
     /**
      * Type of data source.
      *
      * @type {string}
      * @default 'array'
      */
-    this.dataType = 'array';
-    this.colToProp = () => {};
-    this.propToCol = () => {};
+    (0, _defineProperty2.default)(this, "dataType", 'array');
+    (0, _defineProperty2.default)(this, "colToProp", () => {});
+    (0, _defineProperty2.default)(this, "propToCol", () => {});
+    this.hot = hotInstance;
+    this.data = dataSource;
   }
 
   /**
@@ -28594,7 +28784,7 @@ class DataSource {
     if (this.hot.hasHook('modifyRowData')) {
       modifyRowData = this.hot.runHooks('modifyRowData', rowIndex);
     }
-    return modifyRowData !== void 0 && !Number.isInteger(modifyRowData) ? modifyRowData : this.data[rowIndex];
+    return modifyRowData !== undefined && !Number.isInteger(modifyRowData) ? modifyRowData : this.data[rowIndex];
   }
 
   /**
@@ -28648,7 +28838,7 @@ class DataSource {
    */
   getAtRow(row, startColumn, endColumn) {
     let toArray = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
-    const getAllProps = startColumn === void 0 && endColumn === void 0;
+    const getAllProps = startColumn === undefined && endColumn === undefined;
     let dataRow = null;
     let newDataRow = null;
     dataRow = this.modifyRowData(row);
@@ -28792,7 +28982,7 @@ class DataSource {
     }
     const result = [];
     (0, _number.rangeEach)(startRow, endRow, currentRow => {
-      result.push(getAllProps ? this.getAtRow(currentRow, void 0, void 0, toArray) : this.getAtRow(currentRow, startCol, endCol, toArray));
+      result.push(getAllProps ? this.getAtRow(currentRow, undefined, undefined, toArray) : this.getAtRow(currentRow, startCol, endCol, toArray));
     });
     return result;
   }
@@ -29063,6 +29253,7 @@ Object.keys(_maps).forEach(function (key) {
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _array = __webpack_require__(113);
 var _maps = __webpack_require__(223);
 var _mapCollections = __webpack_require__(234);
@@ -29106,7 +29297,7 @@ class IndexMapper {
      * @private
      * @type {IndexesSequence}
      */
-    this.indexesSequence = new _maps.IndexesSequence();
+    (0, _defineProperty2.default)(this, "indexesSequence", new _maps.IndexesSequence());
     /**
      * Collection for different trimming maps. Indexes marked as trimmed in any map WILL NOT be included in
      * the {@link DataMap} and won't be rendered.
@@ -29114,7 +29305,7 @@ class IndexMapper {
      * @private
      * @type {MapCollection}
      */
-    this.trimmingMapsCollection = new _mapCollections.AggregatedCollection(valuesForIndex => valuesForIndex.some(value => value === true), false);
+    (0, _defineProperty2.default)(this, "trimmingMapsCollection", new _mapCollections.AggregatedCollection(valuesForIndex => valuesForIndex.some(value => value === true), false));
     /**
      * Collection for different hiding maps. Indexes marked as hidden in any map WILL be included in the {@link DataMap},
      * but won't be rendered.
@@ -29122,14 +29313,14 @@ class IndexMapper {
      * @private
      * @type {MapCollection}
      */
-    this.hidingMapsCollection = new _mapCollections.AggregatedCollection(valuesForIndex => valuesForIndex.some(value => value === true), false);
+    (0, _defineProperty2.default)(this, "hidingMapsCollection", new _mapCollections.AggregatedCollection(valuesForIndex => valuesForIndex.some(value => value === true), false));
     /**
      * Collection for another kind of maps. There are stored mappings from indexes (visual or physical) to values.
      *
      * @private
      * @type {MapCollection}
      */
-    this.variousMapsCollection = new _mapCollections.MapCollection();
+    (0, _defineProperty2.default)(this, "variousMapsCollection", new _mapCollections.MapCollection());
     /**
      * The class instance collects row and column index changes that happen while the Handsontable
      * is running. The object allows creating observers that you can subscribe. Each event represents
@@ -29139,9 +29330,9 @@ class IndexMapper {
      * @private
      * @type {ChangesObservable}
      */
-    this.hidingChangesObservable = new _observable.ChangesObservable({
+    (0, _defineProperty2.default)(this, "hidingChangesObservable", new _observable.ChangesObservable({
       initialIndexValue: false
-    });
+    }));
     /**
      * Cache for list of not trimmed indexes, respecting the indexes sequence (physical indexes).
      *
@@ -29150,7 +29341,7 @@ class IndexMapper {
      * @private
      * @type {Array}
      */
-    this.notTrimmedIndexesCache = [];
+    (0, _defineProperty2.default)(this, "notTrimmedIndexesCache", []);
     /**
      * Cache for list of not hidden indexes, respecting the indexes sequence (physical indexes).
      *
@@ -29159,62 +29350,62 @@ class IndexMapper {
      * @private
      * @type {Array}
      */
-    this.notHiddenIndexesCache = [];
+    (0, _defineProperty2.default)(this, "notHiddenIndexesCache", []);
     /**
      * Flag determining whether actions performed on index mapper have been batched. It's used for cache management.
      *
      * @private
      * @type {boolean}
      */
-    this.isBatched = false;
+    (0, _defineProperty2.default)(this, "isBatched", false);
     /**
      * Flag determining whether any action on indexes sequence has been performed. It's used for cache management.
      *
      * @private
      * @type {boolean}
      */
-    this.indexesSequenceChanged = false;
+    (0, _defineProperty2.default)(this, "indexesSequenceChanged", false);
     /**
      * Flag informing about source of the change.
      *
      * @type {undefined|string}
      */
-    this.indexesChangeSource = void 0;
+    (0, _defineProperty2.default)(this, "indexesChangeSource", undefined);
     /**
      * Flag determining whether any action on trimmed indexes has been performed. It's used for cache management.
      *
      * @private
      * @type {boolean}
      */
-    this.trimmedIndexesChanged = false;
+    (0, _defineProperty2.default)(this, "trimmedIndexesChanged", false);
     /**
      * Flag determining whether any action on hidden indexes has been performed. It's used for cache management.
      *
      * @private
      * @type {boolean}
      */
-    this.hiddenIndexesChanged = false;
+    (0, _defineProperty2.default)(this, "hiddenIndexesChanged", false);
     /**
      * Physical indexes (respecting the sequence of indexes) which may be rendered (when they are in a viewport).
      *
      * @private
      * @type {Array}
      */
-    this.renderablePhysicalIndexesCache = [];
+    (0, _defineProperty2.default)(this, "renderablePhysicalIndexesCache", []);
     /**
      * Visual indexes (native map's value) corresponding to physical indexes (native map's index).
      *
      * @private
      * @type {Map}
      */
-    this.fromPhysicalToVisualIndexesCache = new Map();
+    (0, _defineProperty2.default)(this, "fromPhysicalToVisualIndexesCache", new Map());
     /**
      * Visual indexes (native map's value) corresponding to physical indexes (native map's index).
      *
      * @private
      * @type {Map}
      */
-    this.fromVisualToRenderableIndexesCache = new Map();
+    (0, _defineProperty2.default)(this, "fromVisualToRenderableIndexesCache", new Map());
     this.indexesSequence.addLocalHook('change', () => {
       this.indexesSequenceChanged = true;
 
@@ -29462,7 +29653,7 @@ class IndexMapper {
     this.suspendOperations();
     this.indexesChangeSource = 'init';
     this.indexesSequence.init(length);
-    this.indexesChangeSource = void 0;
+    this.indexesChangeSource = undefined;
     this.trimmingMapsCollection.initEvery(length);
     this.resumeOperations();
 
@@ -29506,12 +29697,12 @@ class IndexMapper {
    * @param {Array} indexes Physical indexes.
    */
   setIndexesSequence(indexes) {
-    if (this.indexesChangeSource === void 0) {
+    if (this.indexesChangeSource === undefined) {
       this.indexesChangeSource = 'update';
     }
     this.indexesSequence.setValues(indexes);
     if (this.indexesChangeSource === 'update') {
-      this.indexesChangeSource = void 0;
+      this.indexesChangeSource = undefined;
     }
   }
 
@@ -29637,7 +29828,7 @@ class IndexMapper {
 
     // Adding indexes without re-indexing.
     this.setIndexesSequence((0, _maps.getListWithInsertedItems)(notMovedIndexes, destinationPosition, physicalMovedIndexes));
-    this.indexesChangeSource = void 0;
+    this.indexesChangeSource = undefined;
   }
 
   /**
@@ -29675,7 +29866,7 @@ class IndexMapper {
     this.suspendOperations();
     this.indexesChangeSource = 'insert';
     this.indexesSequence.insert(insertionIndex, insertedIndexes);
-    this.indexesChangeSource = void 0;
+    this.indexesChangeSource = undefined;
     this.trimmingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
     this.hidingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
     this.variousMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
@@ -29692,7 +29883,7 @@ class IndexMapper {
     this.suspendOperations();
     this.indexesChangeSource = 'remove';
     this.indexesSequence.remove(removedIndexes);
-    this.indexesChangeSource = void 0;
+    this.indexesChangeSource = undefined;
     this.trimmingMapsCollection.removeFromEvery(removedIndexes);
     this.hidingMapsCollection.removeFromEvery(removedIndexes);
     this.variousMapsCollection.removeFromEvery(removedIndexes);
@@ -29922,7 +30113,8 @@ exports.PhysicalIndexToValueMap = PhysicalIndexToValueMap;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
-var _number = __webpack_require__(137);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _number = __webpack_require__(141);
 var _object = __webpack_require__(117);
 var _function = __webpack_require__(115);
 var _localHooks = _interopRequireDefault(__webpack_require__(201));
@@ -29940,13 +30132,14 @@ class IndexMap {
      * @private
      * @type {Array}
      */
-    this.indexedValues = [];
+    (0, _defineProperty2.default)(this, "indexedValues", []);
     /**
      * Initial value or function for each existing index.
      *
      * @private
      * @type {*}
      */
+    (0, _defineProperty2.default)(this, "initValueOrFn", void 0);
     this.initValueOrFn = initValueOrFn;
   }
 
@@ -30110,13 +30303,13 @@ var _array = __webpack_require__(113);
  * @returns {Array} List with new mappings.
  */
 function getListWithInsertedItems(indexedValues, insertionIndex, insertedIndexes, insertedValuesMapping) {
-  const firstInsertedIndex = insertedIndexes.length ? insertedIndexes[0] : void 0;
+  const firstInsertedIndex = insertedIndexes.length ? insertedIndexes[0] : undefined;
   return [...indexedValues.slice(0, firstInsertedIndex), ...insertedIndexes.map((insertedIndex, ordinalNumber) => {
     if ((0, _function.isFunction)(insertedValuesMapping)) {
       return insertedValuesMapping(insertedIndex, ordinalNumber);
     }
     return insertedValuesMapping;
-  }), ...(firstInsertedIndex === void 0 ? [] : indexedValues.slice(firstInsertedIndex))];
+  }), ...(firstInsertedIndex === undefined ? [] : indexedValues.slice(firstInsertedIndex))];
 }
 
 /**
@@ -30140,7 +30333,7 @@ function getListWithRemovedItems(indexedValues, removedIndexes) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _indexMap = __webpack_require__(226);
 var _physicallyIndexed = __webpack_require__(227);
 var _indexesSequence = __webpack_require__(229);
@@ -30513,8 +30706,10 @@ Object.keys(_mapCollection).forEach(function (key) {
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _mapCollection = __webpack_require__(236);
 var _array = __webpack_require__(113);
 var _mixed = __webpack_require__(110);
@@ -30530,14 +30725,16 @@ class AggregatedCollection extends _mapCollection.MapCollection {
      *
      * @type {Array}
      */
-    this.mergedValuesCache = [];
+    (0, _defineProperty2.default)(this, "mergedValuesCache", []);
     /**
      * Function which do aggregation on the values for particular index.
      */
-    this.aggregationFunction = aggregationFunction;
+    (0, _defineProperty2.default)(this, "aggregationFunction", void 0);
     /**
      * Fallback value when there is no calculated value for particular index.
      */
+    (0, _defineProperty2.default)(this, "fallbackValue", void 0);
+    this.aggregationFunction = aggregationFunction;
     this.fallbackValue = fallbackValue;
   }
 
@@ -30625,6 +30822,7 @@ exports.AggregatedCollection = AggregatedCollection;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.getRegisteredMapsCounter = getRegisteredMapsCounter;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _mixed = __webpack_require__(110);
 var _object = __webpack_require__(117);
 var _localHooks = _interopRequireDefault(__webpack_require__(201));
@@ -30641,9 +30839,8 @@ class MapCollection {
      *
      * @type {Map<string, IndexMap>}
      */
-    this.collection = new Map();
+    (0, _defineProperty2.default)(this, "collection", new Map());
   }
-
   /**
    * Register custom index map.
    *
@@ -30759,8 +30956,8 @@ function getRegisteredMapsCounter() {
 __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _observer = __webpack_require__(238);
 var _utils = __webpack_require__(239);
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
@@ -30913,8 +31110,8 @@ exports.ChangesObservable = ChangesObservable;
 __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
 var _object = __webpack_require__(117);
 var _localHooks = _interopRequireDefault(__webpack_require__(201));
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
@@ -31035,7 +31232,7 @@ function arrayDiff(baseArray, newArray) {
     changes.push({
       op: 'insert',
       index: i,
-      oldValue: void 0,
+      oldValue: undefined,
       newValue: newArray[i]
     });
   }
@@ -31044,7 +31241,7 @@ function arrayDiff(baseArray, newArray) {
       op: 'remove',
       index: j,
       oldValue: baseArray[j],
-      newValue: void 0
+      newValue: undefined
     });
   }
   return changes;
@@ -31070,7 +31267,7 @@ var _object = __webpack_require__(117);
 var _array = __webpack_require__(113);
 var _mixed = __webpack_require__(110);
 var _utils = __webpack_require__(241);
-var _staticRegister = _interopRequireDefault(__webpack_require__(126));
+var _staticRegister = _interopRequireDefault(__webpack_require__(130));
 var _phraseFormatters = __webpack_require__(242);
 var _enUS = _interopRequireDefault(__webpack_require__(244));
 var _dictionaryKeys = _interopRequireWildcard(__webpack_require__(245));
@@ -31239,7 +31436,7 @@ exports.normalizeLanguageCode = normalizeLanguageCode;
 exports.warnUserAboutLanguageRegistration = warnUserAboutLanguageRegistration;
 var _mixed = __webpack_require__(110);
 var _object = __webpack_require__(117);
-var _console = __webpack_require__(125);
+var _console = __webpack_require__(129);
 var _templateLiteralTag = __webpack_require__(112);
 /**
  * Perform shallow extend of a target object with only this extension's properties which doesn't exist in the target.
@@ -31324,7 +31521,7 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.getPhraseFormatters = exports.getAll = getAll;
 exports.registerPhraseFormatter = exports.register = register;
-var _staticRegister = _interopRequireDefault(__webpack_require__(126));
+var _staticRegister = _interopRequireDefault(__webpack_require__(130));
 var _pluralize = _interopRequireDefault(__webpack_require__(243));
 const {
   register: registerGloballyPhraseFormatter,
@@ -31640,15 +31837,14 @@ Object.keys(_highlight).forEach(function (key) {
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
-var _src = __webpack_require__(147);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
 var _highlight = _interopRequireWildcard(__webpack_require__(248));
 var _range = _interopRequireDefault(__webpack_require__(259));
 var _object = __webpack_require__(117);
 var _mixed = __webpack_require__(110);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 var _array = __webpack_require__(113);
 var _localHooks = _interopRequireDefault(__webpack_require__(201));
 var _transformation = _interopRequireDefault(__webpack_require__(260));
@@ -32194,6 +32390,18 @@ class Selection {
   }
 
   /**
+   * Returns `true` if the cell coordinates are visible (renderable).
+   *
+   * @private
+   * @param {CellCoords} coords The cell coordinates to check.
+   * @returns {boolean}
+   */
+  isCellVisible(coords) {
+    const renderableCoords = this.tableProps.visualToRenderableCoords(coords);
+    return renderableCoords.row !== null && renderableCoords.col !== null;
+  }
+
+  /**
    * Returns `true` if the area corner should be visible.
    *
    * @param {number} layerLevel The layer level.
@@ -32273,7 +32481,7 @@ class Selection {
     const startCoords = this.tableProps.createCellCoords(rowFrom, columnFrom);
     const endCoords = this.tableProps.createCellCoords(nrOfRows - 1, nrOfColumns - 1);
     this.clear();
-    this.setRangeStartOnly(startCoords, void 0, highlight);
+    this.setRangeStartOnly(startCoords, undefined, highlight);
     if (columnFrom < 0) {
       this.selectedByRowHeader.add(this.getLayerLevel());
     }
@@ -32295,6 +32503,7 @@ class Selection {
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
   selectCells(selectionRanges) {
+    var _this2 = this;
     const selectionType = (0, _utils.detectSelectionType)(selectionRanges);
     if (selectionType === _utils.SELECTION_TYPE_EMPTY) {
       return false;
@@ -32304,6 +32513,12 @@ class Selection {
         columnEnd/columnPropEnd]]) or as an array of CellRange objects.`);
     }
     const selectionSchemaNormalizer = (0, _utils.normalizeSelectionFactory)(selectionType, {
+      createCellCoords: function () {
+        return _this2.tableProps.createCellCoords(...arguments);
+      },
+      createCellRange: function () {
+        return _this2.tableProps.createCellRange(...arguments);
+      },
       propToCol: prop => this.tableProps.propToCol(prop),
       keepDirection: true
     });
@@ -32356,9 +32571,9 @@ class Selection {
     const countCols = this.tableProps.countCols();
     const countColHeaders = this.tableProps.countColHeaders();
     const columnHeaderLastIndex = countColHeaders === 0 ? 0 : -countColHeaders;
-    const fromCoords = new _src.CellCoords(columnHeaderLastIndex, start);
-    const toCoords = new _src.CellCoords(countRows - 1, end);
-    const isValid = new _src.CellRange(fromCoords, fromCoords, toCoords).isValid({
+    const fromCoords = this.tableProps.createCellCoords(columnHeaderLastIndex, start);
+    const toCoords = this.tableProps.createCellCoords(countRows - 1, end);
+    const isValid = this.tableProps.createCellRange(fromCoords, fromCoords, toCoords).isValid({
       countRows,
       countCols,
       countRowHeaders: 0,
@@ -32375,7 +32590,7 @@ class Selection {
       // disallow modifying row axis for that hooks
       from.row = fromRow;
       to.row = toRow;
-      this.setRangeStartOnly(from, void 0, highlight);
+      this.setRangeStartOnly(from, undefined, highlight);
       this.selectedByColumnHeader.add(this.getLayerLevel());
       this.setRangeEnd(to);
       this.runLocalHooks('afterSelectColumns', from, to, highlight);
@@ -32401,9 +32616,9 @@ class Selection {
     const countCols = this.tableProps.countCols();
     const countRowHeaders = this.tableProps.countRowHeaders();
     const rowHeaderLastIndex = countRowHeaders === 0 ? 0 : -countRowHeaders;
-    const fromCoords = new _src.CellCoords(startRow, rowHeaderLastIndex);
-    const toCoords = new _src.CellCoords(endRow, countCols - 1);
-    const isValid = new _src.CellRange(fromCoords, fromCoords, toCoords).isValid({
+    const fromCoords = this.tableProps.createCellCoords(startRow, rowHeaderLastIndex);
+    const toCoords = this.tableProps.createCellCoords(endRow, countCols - 1);
+    const isValid = this.tableProps.createCellRange(fromCoords, fromCoords, toCoords).isValid({
       countRows,
       countCols,
       countRowHeaders,
@@ -32420,7 +32635,7 @@ class Selection {
       // disallow modifying column axis for that hooks
       from.col = fromColumn;
       to.col = toColumn;
-      this.setRangeStartOnly(from, void 0, highlight);
+      this.setRangeStartOnly(from, undefined, highlight);
       this.selectedByRowHeader.add(this.getLayerLevel());
       this.setRangeEnd(to);
       this.runLocalHooks('afterSelectRows', from, to, highlight);
@@ -32485,7 +32700,7 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
 __webpack_require__(78);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _activeHeader = __webpack_require__(249);
 var _areaLayered = __webpack_require__(251);
 var _area = __webpack_require__(252);
@@ -32659,10 +32874,7 @@ class Highlight {
       type = 'current'; // One from settings for `disableVisualSelection` up to Handsontable 0.36/Handsontable Pro 1.16.0.
     }
 
-    let disableHighlight = false;
-    if (coords.isCell()) {
-      disableHighlight = this.options.disabledCellSelection(coords.row, coords.col);
-    }
+    let disableHighlight = this.options.disabledCellSelection(coords.row, coords.col);
     if (typeof disableHighlight === 'string') {
       disableHighlight = [disableHighlight];
     }
@@ -32973,7 +33185,7 @@ function createHighlight(_ref) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _src = __webpack_require__(147);
 class VisualSelection extends _src.Selection {
   constructor(settings, visualCellRange) {
@@ -33478,8 +33690,12 @@ function createHighlight(_ref) {
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+let _Symbol$iterator;
+_Symbol$iterator = Symbol.iterator;
 /**
  * The SelectionRange class is a simple CellRanges collection designed for easy manipulation of the multiple
  * consecutive and non-consecutive selections.
@@ -33494,7 +33710,11 @@ class SelectionRange {
      *
      * @type {CellRange[]}
      */
-    this.ranges = [];
+    (0, _defineProperty2.default)(this, "ranges", []);
+    /**
+     * @type {function(CellCoords): CellRange}
+     */
+    (0, _defineProperty2.default)(this, "createCellRange", void 0);
     this.createCellRange = createCellRange;
   }
 
@@ -33604,7 +33824,7 @@ class SelectionRange {
     }
     return cellRange;
   }
-  [Symbol.iterator]() {
+  [_Symbol$iterator]() {
     return this.ranges[Symbol.iterator]();
   }
 }
@@ -33620,8 +33840,8 @@ var _default = exports["default"] = SelectionRange;
 __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _object = __webpack_require__(117);
 var _localHooks = _interopRequireDefault(__webpack_require__(201));
 function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
@@ -33979,7 +34199,9 @@ function detectSelectionType(selectionRanges) {
  * Factory function designed for normalization data schema from different data structures of the selection ranges.
  *
  * @param {number} type Selection type which will be processed.
- * @param {object} [options] The normalization options.
+ * @param {object} options The normalization options.
+ * @param {function(number, number): CellCoords} options.createCellCoords The factory function that returns an instance of the `CellCoords` class.
+ * @param {function(CellCoords, CellCoords, CellCoords): CellRange} options.createCellRange The factory function that returns an instance of the `CellRange` class.
  * @param {boolean} [options.keepDirection=false] If `true`, the coordinates which contain the direction of the
  *                                                selected cells won't be changed. Otherwise, the selection will be
  *                                                normalized to values starting from top-left to bottom-right.
@@ -33989,6 +34211,8 @@ function detectSelectionType(selectionRanges) {
  */
 function normalizeSelectionFactory(type) {
   let {
+    createCellCoords,
+    createCellRange,
     keepDirection = false,
     propToCol
   } = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -34025,9 +34249,9 @@ function normalizeSelectionFactory(type) {
       rowEnd = Math.max(origRowStart, origRowEnd);
       columnEnd = Math.max(origColumnStart, origColumnEnd);
     }
-    const from = new _src.CellCoords(rowStart, columnStart);
-    const to = new _src.CellCoords(rowEnd, columnEnd);
-    return new _src.CellRange(from, from, to);
+    const from = createCellCoords(rowStart, columnStart);
+    const to = createCellCoords(rowEnd, columnEnd);
+    return createCellRange(from, from, to);
   };
 }
 
@@ -34037,22 +34261,25 @@ function normalizeSelectionFactory(type) {
  * contains an array of arrays. The single item contains at index 0 visual column index from the selection was
  * started and at index 1 distance as a count of selected columns.
  *
- * @param {Array[]|CellRange[]} selectionRanges Selection ranges produced by Handsontable.
+ * @param {Core} hotInstance The Handsontable instance.
  * @returns {Array[]} Returns an array of arrays with ranges defines in that schema:
  *                   `[[visualColumnStart, distance], [visualColumnStart, distance], ...]`.
  *                   The column distances are always created starting from the left (zero index) to the
  *                   right (the latest column index).
  */
-function transformSelectionToColumnDistance(selectionRanges) {
-  const selectionType = detectSelectionType(selectionRanges);
+function transformSelectionToColumnDistance(hotInstance) {
+  const selectionType = detectSelectionType(hotInstance.getSelected());
   if (selectionType === SELECTION_TYPE_UNRECOGNIZED || selectionType === SELECTION_TYPE_EMPTY) {
     return [];
   }
-  const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType);
+  const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType, {
+    createCellCoords: hotInstance._createCellCoords.bind(hotInstance),
+    createCellRange: hotInstance._createCellRange.bind(hotInstance)
+  });
   const unorderedIndexes = new Set();
 
   // Iterate through all ranges and collect all column indexes which are not saved yet.
-  (0, _array.arrayEach)(selectionRanges, selection => {
+  (0, _array.arrayEach)(hotInstance.getSelected(), selection => {
     const {
       from,
       to
@@ -34085,22 +34312,25 @@ function transformSelectionToColumnDistance(selectionRanges) {
  * contains an array of arrays. The single item contains at index 0 visual column index from the selection was
  * started and at index 1 distance as a count of selected columns.
  *
- * @param {Array[]|CellRange[]} selectionRanges Selection ranges produced by Handsontable.
+ * @param {Core} hotInstance The Handsontable instance.
  * @returns {Array[]} Returns an array of arrays with ranges defines in that schema:
  *                   `[[visualColumnStart, distance], [visualColumnStart, distance], ...]`.
  *                   The column distances are always created starting from the left (zero index) to the
  *                   right (the latest column index).
  */
-function transformSelectionToRowDistance(selectionRanges) {
-  const selectionType = detectSelectionType(selectionRanges);
+function transformSelectionToRowDistance(hotInstance) {
+  const selectionType = detectSelectionType(hotInstance.getSelected());
   if (selectionType === SELECTION_TYPE_UNRECOGNIZED || selectionType === SELECTION_TYPE_EMPTY) {
     return [];
   }
-  const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType);
+  const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType, {
+    createCellCoords: hotInstance._createCellCoords.bind(hotInstance),
+    createCellRange: hotInstance._createCellRange.bind(hotInstance)
+  });
   const unorderedIndexes = new Set();
 
   // Iterate through all ranges and collect all column indexes which are not saved yet.
-  (0, _array.arrayEach)(selectionRanges, selection => {
+  (0, _array.arrayEach)(hotInstance.getSelected(), selection => {
     const {
       from,
       to
@@ -34156,14 +34386,16 @@ exports.ExtendMetaPropertiesMod = _extendMetaProperties.ExtendMetaPropertiesMod;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
 __webpack_require__(8);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _SheetClip = __webpack_require__(264);
 var _data = __webpack_require__(220);
 var _object = __webpack_require__(117);
 var _array = __webpack_require__(113);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 var _mixed = __webpack_require__(110);
 /*
 This class contains open-source contributions covered by the MIT license.
@@ -34211,56 +34443,62 @@ class DataMap {
   }
 
   /**
-   * @param {object} instance Instance of Handsontable.
+   * Instance of {@link Handsontable}.
+   *
+   * @private
+   * @type {Handsontable}
+   */
+
+  /**
+   * @param {object} hotInstance Instance of Handsontable.
    * @param {Array} data Array of arrays or array of objects containing data.
    * @param {MetaManager} metaManager The meta manager instance.
    */
-  constructor(instance, data, metaManager) {
-    /**
-     * Instance of {@link Handsontable}.
-     *
-     * @private
-     * @type {Handsontable}
-     */
-    this.instance = instance;
+  constructor(hotInstance, data, metaManager) {
+    (0, _defineProperty2.default)(this, "hot", void 0);
     /**
      * Instance of {@link MetaManager}.
      *
      * @private
      * @type {MetaManager}
      */
-    this.metaManager = metaManager;
+    (0, _defineProperty2.default)(this, "metaManager", void 0);
     /**
      * Instance of {@link TableMeta}.
      *
      * @private
      * @type {TableMeta}
      */
-    this.tableMeta = metaManager.getTableMeta();
+    (0, _defineProperty2.default)(this, "tableMeta", void 0);
     /**
      * Reference to the original dataset.
      *
      * @type {*}
      */
-    this.dataSource = data;
+    (0, _defineProperty2.default)(this, "dataSource", void 0);
     /**
      * Generated schema based on the first row from the source data.
      *
      * @type {object}
      */
-    this.duckSchema = this.createDuckSchema();
+    (0, _defineProperty2.default)(this, "duckSchema", void 0);
     /**
      * Cached array of properties to columns.
      *
      * @type {Array}
      */
-    this.colToPropCache = void 0;
+    (0, _defineProperty2.default)(this, "colToPropCache", void 0);
     /**
      * Cached map of properties to columns.
      *
      * @type {Map}
      */
-    this.propToColCache = void 0;
+    (0, _defineProperty2.default)(this, "propToColCache", void 0);
+    this.hot = hotInstance;
+    this.metaManager = metaManager;
+    this.tableMeta = metaManager.getTableMeta();
+    this.dataSource = data;
+    this.duckSchema = this.createDuckSchema();
     this.createMap();
   }
 
@@ -34356,7 +34594,7 @@ class DataMap {
     if (Number.isInteger(column) === false) {
       return column;
     }
-    const physicalColumn = this.instance.toPhysicalColumn(column);
+    const physicalColumn = this.hot.toPhysicalColumn(column);
 
     // Out of range, not visible column index.
     if (physicalColumn === null) {
@@ -34379,11 +34617,11 @@ class DataMap {
   propToCol(prop) {
     const cachedPhysicalIndex = this.propToColCache.get(prop);
     if ((0, _mixed.isDefined)(cachedPhysicalIndex)) {
-      return this.instance.toVisualColumn(cachedPhysicalIndex);
+      return this.hot.toVisualColumn(cachedPhysicalIndex);
     }
 
     // Property may be a physical column index.
-    const visualColumn = this.instance.toVisualColumn(prop);
+    const visualColumn = this.hot.toVisualColumn(prop);
     if (visualColumn === null) {
       return prop;
     }
@@ -34439,17 +34677,17 @@ class DataMap {
       source,
       mode = 'above'
     } = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-    const sourceRowsCount = this.instance.countSourceRows();
+    const sourceRowsCount = this.hot.countSourceRows();
     let physicalRowIndex = sourceRowsCount;
     let numberOfCreatedRows = 0;
     let rowIndex = index;
     if (typeof rowIndex !== 'number' || rowIndex >= sourceRowsCount) {
       rowIndex = sourceRowsCount;
     }
-    if (rowIndex < this.instance.countRows()) {
-      physicalRowIndex = this.instance.toPhysicalRow(rowIndex);
+    if (rowIndex < this.hot.countRows()) {
+      physicalRowIndex = this.hot.toPhysicalRow(rowIndex);
     }
-    const continueProcess = this.instance.runHooks('beforeCreateRow', rowIndex, amount, source);
+    const continueProcess = this.hot.runHooks('beforeCreateRow', rowIndex, amount, source);
     if (continueProcess === false || physicalRowIndex === null) {
       return {
         delta: 0
@@ -34460,7 +34698,7 @@ class DataMap {
     const rowsToAdd = [];
     while (numberOfCreatedRows < amount && sourceRowsCount + numberOfCreatedRows < maxRows) {
       let row = null;
-      if (this.instance.dataType === 'array') {
+      if (this.hot.dataType === 'array') {
         if (this.tableMeta.dataSchema) {
           // Clone template array
           row = (0, _object.deepClone)(this.getSchema());
@@ -34469,7 +34707,7 @@ class DataMap {
           /* eslint-disable no-loop-func */
           (0, _number.rangeEach)(columnCount - 1, () => row.push(null));
         }
-      } else if (this.instance.dataType === 'function') {
+      } else if (this.hot.dataType === 'function') {
         row = this.tableMeta.dataSchema(rowIndex + numberOfCreatedRows);
       } else {
         row = {};
@@ -34478,20 +34716,20 @@ class DataMap {
       rowsToAdd.push(row);
       numberOfCreatedRows += 1;
     }
-    this.instance.rowIndexMapper.insertIndexes(rowIndex, numberOfCreatedRows);
+    this.hot.rowIndexMapper.insertIndexes(rowIndex, numberOfCreatedRows);
     if (mode === 'below') {
       physicalRowIndex = Math.min(physicalRowIndex + 1, sourceRowsCount);
     }
     this.spliceData(physicalRowIndex, 0, rowsToAdd);
-    const newVisualRowIndex = this.instance.toVisualRow(physicalRowIndex);
+    const newVisualRowIndex = this.hot.toVisualRow(physicalRowIndex);
 
     // In case the created rows are the only ones in the table, the column index mappers need to be rebuilt based on
     // the number of columns created in the row or the schema.
-    if (this.instance.countSourceRows() === rowsToAdd.length) {
-      this.instance.columnIndexMapper.initToLength(this.instance.getInitialColumnCount());
+    if (this.hot.countSourceRows() === rowsToAdd.length) {
+      this.hot.columnIndexMapper.initToLength(this.hot.getInitialColumnCount());
     }
     if (numberOfCreatedRows > 0) {
-      if (index === void 0 || index === null) {
+      if (index === undefined || index === null) {
         // Creates the meta rows at the end of the rows collection without shifting the cells
         // that were defined out of the range of the dataset.
         this.metaManager.createRow(null, numberOfCreatedRows);
@@ -34499,8 +34737,8 @@ class DataMap {
         this.metaManager.createRow(physicalRowIndex, amount);
       }
     }
-    this.instance.runHooks('afterCreateRow', newVisualRowIndex, numberOfCreatedRows, source);
-    this.instance.forceFullRender = true; // used when data was changed
+    this.hot.runHooks('afterCreateRow', newVisualRowIndex, numberOfCreatedRows, source);
+    this.hot.forceFullRender = true; // used when data was changed
 
     return {
       delta: numberOfCreatedRows,
@@ -34526,28 +34764,28 @@ class DataMap {
       source,
       mode = 'start'
     } = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-    if (!this.instance.isColumnModificationAllowed()) {
+    if (!this.hot.isColumnModificationAllowed()) {
       throw new Error('Cannot create new column. When data source in an object, ' + 'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' + 'If you want to be able to add new columns, you have to use array datasource.');
     }
     const dataSource = this.dataSource;
     const maxCols = this.tableMeta.maxCols;
-    const countSourceCols = this.instance.countSourceCols();
+    const countSourceCols = this.hot.countSourceCols();
     let columnIndex = index;
     if (typeof columnIndex !== 'number' || columnIndex >= countSourceCols) {
       columnIndex = countSourceCols;
     }
-    const continueProcess = this.instance.runHooks('beforeCreateCol', columnIndex, amount, source);
+    const continueProcess = this.hot.runHooks('beforeCreateCol', columnIndex, amount, source);
     if (continueProcess === false) {
       return {
         delta: 0
       };
     }
     let physicalColumnIndex = countSourceCols;
-    if (columnIndex < this.instance.countCols()) {
-      physicalColumnIndex = this.instance.toPhysicalColumn(columnIndex);
+    if (columnIndex < this.hot.countCols()) {
+      physicalColumnIndex = this.hot.toPhysicalColumn(columnIndex);
     }
-    const numberOfSourceRows = this.instance.countSourceRows();
-    let nrOfColumns = this.instance.countCols();
+    const numberOfSourceRows = this.hot.countSourceRows();
+    let nrOfColumns = this.hot.countCols();
     let numberOfCreatedCols = 0;
     let currentIndex = physicalColumnIndex;
     if (mode === 'end') {
@@ -34575,9 +34813,9 @@ class DataMap {
       currentIndex += 1;
       nrOfColumns += 1;
     }
-    this.instance.columnIndexMapper.insertIndexes(columnIndex, numberOfCreatedCols);
+    this.hot.columnIndexMapper.insertIndexes(columnIndex, numberOfCreatedCols);
     if (numberOfCreatedCols > 0) {
-      if (index === void 0 || index === null) {
+      if (index === undefined || index === null) {
         // Creates the meta columns at the end of the columns collection without shifting the cells
         // that were defined out of the range of the dataset.
         this.metaManager.createColumn(null, numberOfCreatedCols);
@@ -34585,9 +34823,9 @@ class DataMap {
         this.metaManager.createColumn(startPhysicalIndex, amount);
       }
     }
-    const newVisualColumnIndex = this.instance.toVisualColumn(startPhysicalIndex);
-    this.instance.runHooks('afterCreateCol', newVisualColumnIndex, numberOfCreatedCols, source);
-    this.instance.forceFullRender = true; // used when data was changed
+    const newVisualColumnIndex = this.hot.toVisualColumn(startPhysicalIndex);
+    this.hot.runHooks('afterCreateCol', newVisualColumnIndex, numberOfCreatedCols, source);
+    this.hot.forceFullRender = true; // used when data was changed
 
     this.refreshDuckSchema();
     return {
@@ -34611,11 +34849,11 @@ class DataMap {
     let source = arguments.length > 2 ? arguments[2] : undefined;
     let rowIndex = Number.isInteger(index) ? index : -amount; // -amount = taking indexes from the end.
     const removedPhysicalIndexes = this.visualRowsToPhysical(rowIndex, amount);
-    const sourceRowsLength = this.instance.countSourceRows();
+    const sourceRowsLength = this.hot.countSourceRows();
     rowIndex = (sourceRowsLength + rowIndex) % sourceRowsLength;
 
     // It handle also callback from the `NestedRows` plugin. Removing parent node has effect in removing children nodes.
-    const actionWasNotCancelled = this.instance.runHooks('beforeRemoveRow', rowIndex, removedPhysicalIndexes.length, removedPhysicalIndexes, source);
+    const actionWasNotCancelled = this.hot.runHooks('beforeRemoveRow', rowIndex, removedPhysicalIndexes.length, removedPhysicalIndexes, source);
     if (actionWasNotCancelled === false) {
       return false;
     }
@@ -34625,21 +34863,21 @@ class DataMap {
     this.filterData(rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes);
 
     // TODO: Function `removeRow` should validate fully, probably above.
-    if (rowIndex < this.instance.countRows()) {
-      this.instance.rowIndexMapper.removeIndexes(removedPhysicalIndexes);
+    if (rowIndex < this.hot.countRows()) {
+      this.hot.rowIndexMapper.removeIndexes(removedPhysicalIndexes);
       const customDefinedColumns = (0, _mixed.isDefined)(this.tableMeta.columns) || (0, _mixed.isDefined)(this.tableMeta.dataSchema);
 
       // All rows have been removed. There shouldn't be any columns.
-      if (this.instance.rowIndexMapper.getNotTrimmedIndexesLength() === 0 && customDefinedColumns === false) {
-        this.instance.columnIndexMapper.setIndexesSequence([]);
+      if (this.hot.rowIndexMapper.getNotTrimmedIndexesLength() === 0 && customDefinedColumns === false) {
+        this.hot.columnIndexMapper.setIndexesSequence([]);
       }
     }
     const descendingPhysicalRows = removedPhysicalIndexes.slice(0).sort((a, b) => b - a);
     descendingPhysicalRows.forEach(rowPhysicalIndex => {
       this.metaManager.removeRow(rowPhysicalIndex, 1);
     });
-    this.instance.runHooks('afterRemoveRow', rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes, source);
-    this.instance.forceFullRender = true; // used when data was changed
+    this.hot.runHooks('afterRemoveRow', rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes, source);
+    this.hot.forceFullRender = true; // used when data was changed
 
     return true;
   }
@@ -34657,14 +34895,14 @@ class DataMap {
   removeCol(index) {
     let amount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
     let source = arguments.length > 2 ? arguments[2] : undefined;
-    if (this.instance.dataType === 'object' || this.tableMeta.columns) {
+    if (this.hot.dataType === 'object' || this.tableMeta.columns) {
       throw new Error('cannot remove column with object data source or columns option specified');
     }
     let columnIndex = typeof index !== 'number' ? -amount : index;
-    columnIndex = (this.instance.countCols() + columnIndex) % this.instance.countCols();
+    columnIndex = (this.hot.countCols() + columnIndex) % this.hot.countCols();
     const removedPhysicalIndexes = this.visualColumnsToPhysical(columnIndex, amount);
     const descendingPhysicalColumns = removedPhysicalIndexes.slice(0).sort((a, b) => b - a);
-    const actionWasNotCancelled = this.instance.runHooks('beforeRemoveCol', columnIndex, amount, removedPhysicalIndexes, source);
+    const actionWasNotCancelled = this.hot.runHooks('beforeRemoveCol', columnIndex, amount, removedPhysicalIndexes, source);
     if (actionWasNotCancelled === false) {
       return false;
     }
@@ -34677,14 +34915,14 @@ class DataMap {
       }
     }
     if (isTableUniform) {
-      for (let r = 0, rlen = this.instance.countSourceRows(); r < rlen; r++) {
+      for (let r = 0, rlen = this.hot.countSourceRows(); r < rlen; r++) {
         data[r].splice(removedPhysicalIndexes[0], amount);
         if (r === 0) {
           this.metaManager.removeColumn(removedPhysicalIndexes[0], amount);
         }
       }
     } else {
-      for (let r = 0, rlen = this.instance.countSourceRows(); r < rlen; r++) {
+      for (let r = 0, rlen = this.hot.countSourceRows(); r < rlen; r++) {
         for (let c = 0; c < removedColumnsCount; c++) {
           data[r].splice(descendingPhysicalColumns[c], 1);
           if (r === 0) {
@@ -34695,16 +34933,16 @@ class DataMap {
     }
 
     // TODO: Function `removeCol` should validate fully, probably above.
-    if (columnIndex < this.instance.countCols()) {
-      this.instance.columnIndexMapper.removeIndexes(removedPhysicalIndexes);
+    if (columnIndex < this.hot.countCols()) {
+      this.hot.columnIndexMapper.removeIndexes(removedPhysicalIndexes);
 
       // All columns have been removed. There shouldn't be any rows.
-      if (this.instance.columnIndexMapper.getNotTrimmedIndexesLength() === 0) {
-        this.instance.rowIndexMapper.setIndexesSequence([]);
+      if (this.hot.columnIndexMapper.getNotTrimmedIndexesLength() === 0) {
+        this.hot.rowIndexMapper.setIndexesSequence([]);
       }
     }
-    this.instance.runHooks('afterRemoveCol', columnIndex, amount, removedPhysicalIndexes, source);
-    this.instance.forceFullRender = true; // used when data was changed
+    this.hot.runHooks('afterRemoveCol', columnIndex, amount, removedPhysicalIndexes, source);
+    this.hot.forceFullRender = true; // used when data was changed
     this.refreshDuckSchema();
     return true;
   }
@@ -34719,7 +34957,7 @@ class DataMap {
    * @returns {Array} Returns removed portion of columns.
    */
   spliceCol(col, index, amount) {
-    const colData = this.instance.getDataAtCol(col);
+    const colData = this.hot.getDataAtCol(col);
     const removed = colData.slice(index, index + amount);
     const after = colData.slice(index + amount);
     for (var _len = arguments.length, elements = new Array(_len > 3 ? _len - 3 : 0), _key = 3; _key < _len; _key++) {
@@ -34732,7 +34970,7 @@ class DataMap {
       i += 1;
     }
     (0, _array.to2dArray)(elements);
-    this.instance.populateFromArray(index, col, elements, null, null, 'spliceCol');
+    this.hot.populateFromArray(index, col, elements, null, null, 'spliceCol');
     return removed;
   }
 
@@ -34746,7 +34984,7 @@ class DataMap {
    * @returns {Array} Returns removed portion of rows.
    */
   spliceRow(row, index, amount) {
-    const rowData = this.instance.getSourceDataAtRow(row);
+    const rowData = this.hot.getSourceDataAtRow(row);
     const removed = rowData.slice(index, index + amount);
     const after = rowData.slice(index + amount);
     for (var _len2 = arguments.length, elements = new Array(_len2 > 3 ? _len2 - 3 : 0), _key2 = 3; _key2 < _len2; _key2++) {
@@ -34758,7 +34996,7 @@ class DataMap {
       elements.push(null); // add null in place of removed elements
       i += 1;
     }
-    this.instance.populateFromArray(row, index, [elements], null, null, 'spliceRow');
+    this.hot.populateFromArray(row, index, [elements], null, null, 'spliceRow');
     return removed;
   }
 
@@ -34770,7 +35008,7 @@ class DataMap {
    * @param {Array<object>} elements Row elements to be added.
    */
   spliceData(index, deleteCount, elements) {
-    const continueSplicing = this.instance.runHooks('beforeDataSplice', index, deleteCount, elements);
+    const continueSplicing = this.hot.runHooks('beforeDataSplice', index, deleteCount, elements);
     if (continueSplicing !== false) {
       const newData = [...this.dataSource.slice(0, index), ...elements, ...this.dataSource.slice(index)];
 
@@ -34792,7 +35030,7 @@ class DataMap {
    */
   filterData(index, amount, physicalRows) {
     // Custom data filtering (run as a consequence of calling the below hook) provide an array containing new data.
-    let data = this.instance.runHooks('filterData', index, amount, physicalRows);
+    let data = this.hot.runHooks('filterData', index, amount, physicalRows);
 
     // Hooks by default returns first argument (when there is no callback changing execution result).
     if (Array.isArray(data) === false) {
@@ -34810,10 +35048,10 @@ class DataMap {
    * @returns {*}
    */
   get(row, prop) {
-    const physicalRow = this.instance.toPhysicalRow(row);
+    const physicalRow = this.hot.toPhysicalRow(row);
     let dataRow = this.dataSource[physicalRow];
     // TODO: To remove, use 'modifyData' hook instead (see below)
-    const modifiedRowData = this.instance.runHooks('modifyRowData', physicalRow);
+    const modifiedRowData = this.hot.runHooks('modifyRowData', physicalRow);
     dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
     //
 
@@ -34838,9 +35076,9 @@ class DataMap {
     } else if (typeof prop === 'function') {
       value = prop(this.dataSource.slice(physicalRow, physicalRow + 1)[0]);
     }
-    if (this.instance.hasHook('modifyData')) {
+    if (this.hot.hasHook('modifyData')) {
       const valueHolder = (0, _object.createObjectPropListener)(value);
-      this.instance.runHooks('modifyData', physicalRow, this.propToCol(prop), valueHolder, 'get');
+      this.hot.runHooks('modifyData', physicalRow, this.propToCol(prop), valueHolder, 'get');
       if (valueHolder.isTouched()) {
         value = valueHolder.value;
       }
@@ -34856,7 +35094,7 @@ class DataMap {
    * @returns {string}
    */
   getCopyable(row, prop) {
-    if (this.instance.getCellMeta(row, this.propToCol(prop)).copyable) {
+    if (this.hot.getCellMeta(row, this.propToCol(prop)).copyable) {
       return this.get(row, prop);
     }
     return '';
@@ -34870,17 +35108,17 @@ class DataMap {
    * @param {string} value The value to set.
    */
   set(row, prop, value) {
-    const physicalRow = this.instance.toPhysicalRow(row);
+    const physicalRow = this.hot.toPhysicalRow(row);
     let newValue = value;
     let dataRow = this.dataSource[physicalRow];
     // TODO: To remove, use 'modifyData' hook instead (see below)
-    const modifiedRowData = this.instance.runHooks('modifyRowData', physicalRow);
+    const modifiedRowData = this.hot.runHooks('modifyRowData', physicalRow);
     dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
     //
 
-    if (this.instance.hasHook('modifyData')) {
+    if (this.hot.hasHook('modifyData')) {
       const valueHolder = (0, _object.createObjectPropListener)(newValue);
-      this.instance.runHooks('modifyData', physicalRow, this.propToCol(prop), valueHolder, 'set');
+      this.hot.runHooks('modifyData', physicalRow, this.propToCol(prop), valueHolder, 'set');
       if (valueHolder.isTouched()) {
         newValue = valueHolder.value;
       }
@@ -34918,13 +35156,13 @@ class DataMap {
    * @returns {number}
    */
   visualRowsToPhysical(index, amount) {
-    const totalRows = this.instance.countSourceRows();
+    const totalRows = this.hot.countSourceRows();
     const logicRows = [];
     let physicRow = (totalRows + index) % totalRows;
     let rowsToRemove = amount;
     let row;
     while (physicRow < totalRows && rowsToRemove) {
-      row = this.instance.toPhysicalRow(physicRow);
+      row = this.hot.toPhysicalRow(physicRow);
       logicRows.push(row);
       rowsToRemove -= 1;
       physicRow += 1;
@@ -34939,12 +35177,12 @@ class DataMap {
    * @returns {Array}
    */
   visualColumnsToPhysical(index, amount) {
-    const totalCols = this.instance.countCols();
+    const totalCols = this.hot.countCols();
     const visualCols = [];
     let physicalCol = (totalCols + index) % totalCols;
     let colsToRemove = amount;
     while (physicalCol < totalCols && colsToRemove) {
-      const col = this.instance.toPhysicalColumn(physicalCol);
+      const col = this.hot.toPhysicalColumn(physicalCol);
       visualCols.push(col);
       colsToRemove -= 1;
       physicalCol += 1;
@@ -34956,8 +35194,8 @@ class DataMap {
    * Clears the data array.
    */
   clear() {
-    for (let r = 0; r < this.instance.countSourceRows(); r++) {
-      for (let c = 0; c < this.instance.countCols(); c++) {
+    for (let r = 0; r < this.hot.countSourceRows(); r++) {
+      for (let c = 0; c < this.hot.countCols(); c++) {
         this.set(r, this.colToProp(c), '');
       }
     }
@@ -34976,7 +35214,7 @@ class DataMap {
     } else {
       maxRows = maxRowsFromSettings || Infinity;
     }
-    const length = this.instance.rowIndexMapper.getNotTrimmedIndexesLength();
+    const length = this.hot.rowIndexMapper.getNotTrimmedIndexesLength();
     return Math.min(length, maxRows);
   }
 
@@ -34991,10 +35229,10 @@ class DataMap {
       col: 0
     };
     const end = {
-      row: Math.max(this.instance.countRows() - 1, 0),
-      col: Math.max(this.instance.countCols() - 1, 0)
+      row: Math.max(this.hot.countRows() - 1, 0),
+      col: Math.max(this.hot.countCols() - 1, 0)
     };
-    if (start.row - end.row === 0 && !this.instance.countSourceRows()) {
+    if (start.row - end.row === 0 && !this.hot.countSourceRows()) {
       return [];
     }
     return this.getRange(start, end, DataMap.DESTINATION_RENDERER);
@@ -35033,7 +35271,7 @@ class DataMap {
     for (r = Math.min(start.row, end.row); r <= rlen; r++) {
       row = [];
       // We just store indexes for rows without headers.
-      const physicalRow = r >= 0 ? this.instance.toPhysicalRow(r) : r;
+      const physicalRow = r >= 0 ? this.hot.toPhysicalRow(r) : r;
       for (c = Math.min(start.col, end.col); c <= clen; c++) {
         if (physicalRow === null) {
           break;
@@ -35073,13 +35311,13 @@ class DataMap {
    * Destroy instance.
    */
   destroy() {
-    this.instance = null;
+    this.hot = null;
     this.metaManager = null;
     this.dataSource = null;
     this.duckSchema = null;
     this.colToPropCache.length = 0;
     this.propToColCache.clear();
-    this.propToColCache = void 0;
+    this.propToColCache = undefined;
   }
 }
 var _default = exports["default"] = DataMap;
@@ -35206,8 +35444,8 @@ function stringify(arr) {
         } else {
           str += val;
         }
-      } else if (val === null || val === void 0) {
-        // void 0 resolves to undefined
+      } else if (val === null || val === undefined) {
+        // undefined resolves to undefined
         str += '';
       } else {
         str += val;
@@ -35527,6 +35765,7 @@ exports["default"] = MetaManager;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _object = __webpack_require__(117);
 var _utils = __webpack_require__(268);
 var _metaSchema = _interopRequireDefault(__webpack_require__(270));
@@ -35571,12 +35810,13 @@ class GlobalMeta {
      *
      * @type {TableMeta}
      */
-    this.metaCtor = createTableMetaEmptyClass();
+    (0, _defineProperty2.default)(this, "metaCtor", createTableMetaEmptyClass());
     /**
      * Main object (prototype of the internal TableMeta class), holder for all default settings.
      *
      * @type {object}
      */
+    (0, _defineProperty2.default)(this, "meta", void 0);
     this.meta = this.metaCtor.prototype;
     (0, _object.extend)(this.meta, (0, _metaSchema.default)());
     this.meta.instance = hot;
@@ -35706,7 +35946,7 @@ function columnFactory(TableMeta) {
 
   // Clear conflict settings
   for (let i = 0; i < conflictList.length; i++) {
-    ColumnMeta.prototype[conflictList[i]] = void 0;
+    ColumnMeta.prototype[conflictList[i]] = undefined;
   }
   return ColumnMeta;
 }
@@ -35740,7 +35980,7 @@ function assert(condition, errorMessage) {
  * @returns {boolean}
  */
 function isNullish(variable) {
-  return variable === null || variable === void 0;
+  return variable === null || variable === undefined;
 }
 
 /***/ }),
@@ -35755,10 +35995,10 @@ exports.__esModule = true;
 exports.getCellType = _getItem;
 exports.registerCellType = _register;
 __webpack_require__(78);
-var _staticRegister = _interopRequireDefault(__webpack_require__(126));
-var _registry = __webpack_require__(123);
-var _registry2 = __webpack_require__(140);
-var _registry3 = __webpack_require__(141);
+var _staticRegister = _interopRequireDefault(__webpack_require__(130));
+var _registry = __webpack_require__(127);
+var _registry2 = __webpack_require__(144);
+var _registry3 = __webpack_require__(145);
 const {
   register,
   getItem,
@@ -35926,7 +36166,7 @@ var _default = () => {
      * @type {Set}
      * @default undefined
      */
-    _automaticallyAssignedMetaProps: void 0,
+    _automaticallyAssignedMetaProps: undefined,
     /**
      * The `activeHeaderClassName` option lets you add a CSS class name
      * to every currently-active, currently-selected header (when a whole column or row is selected).
@@ -36199,7 +36439,7 @@ var _default = () => {
      * },
      * ```
      */
-    autoColumnSize: void 0,
+    autoColumnSize: undefined,
     /**
      * The `autoRowSize` option configures the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
      *
@@ -36238,7 +36478,7 @@ var _default = () => {
      * },
      * ```
      */
-    autoRowSize: void 0,
+    autoRowSize: undefined,
     /**
      * With [`autoWrapCol`](#autowrapcol) enabled:
      * - When you select a bottom-most cell, pressing <kbd>**↓**</kbd> takes you to the top-most cell of the next column.
@@ -36324,7 +36564,7 @@ var _default = () => {
      * bindRowsWithHeaders: true
      * ```
      */
-    bindRowsWithHeaders: void 0,
+    bindRowsWithHeaders: undefined,
     /**
      * The `cell` option lets you apply [configuration options](@/guides/getting-started/configuration-options.md) to individual cells.
      *
@@ -36395,7 +36635,7 @@ var _default = () => {
      * },
      * ```
      */
-    cells: void 0,
+    cells: undefined,
     /**
      * The `checkedTemplate` option lets you configure what value
      * a checked [`checkbox`](@/guides/cell-types/checkbox-cell-type.md) cell has.
@@ -36437,7 +36677,7 @@ var _default = () => {
      * ],
      * ```
      */
-    checkedTemplate: void 0,
+    checkedTemplate: undefined,
     /**
      * The `className` option lets you add CSS class names to every currently-selected element.
      *
@@ -36484,7 +36724,7 @@ var _default = () => {
      * className: ['first-class-name', 'second-class-name'],
      * ```
      */
-    className: void 0,
+    className: undefined,
     /**
      * The `colHeaders` option configures your grid's column headers.
      *
@@ -36552,7 +36792,7 @@ var _default = () => {
      * ],
      * ```
      */
-    collapsibleColumns: void 0,
+    collapsibleColumns: undefined,
     /**
      * @description
      * The `columnHeaderHeight` option configures the height of column headers.
@@ -36578,7 +36818,7 @@ var _default = () => {
      * columnHeaderHeight: [25, 30, 55],
      * ```
      */
-    columnHeaderHeight: void 0,
+    columnHeaderHeight: undefined,
     /**
      * @description
      * The `columns` option lets you apply any other [configuration options](@/guides/getting-started/configuration-options.md) to individual columns (or ranges of columns).
@@ -36631,7 +36871,7 @@ var _default = () => {
      * }
      * ```
      */
-    columns: void 0,
+    columns: undefined,
     /**
      * @description
      * The `columnSorting` option configures the [`ColumnSorting`](@/api/columnSorting.md) plugin.
@@ -36710,7 +36950,7 @@ var _default = () => {
      * }
      * ```
      */
-    columnSorting: void 0,
+    columnSorting: undefined,
     /**
      * @description
      * The `columnSummary` option configures the [`ColumnSummary`](@/api/columnSummary.md) plugin.
@@ -36764,7 +37004,7 @@ var _default = () => {
      * ],
      * ```
      */
-    columnSummary: void 0,
+    columnSummary: undefined,
     /**
      * The `colWidths` option sets columns' widths, in pixels.
      *
@@ -36813,7 +37053,7 @@ var _default = () => {
      * },
      * ```
      */
-    colWidths: void 0,
+    colWidths: undefined,
     /**
      * The `commentedCellClassName` option lets you add a CSS class name to cells
      * that have comments.
@@ -36960,7 +37200,7 @@ var _default = () => {
      * },
      * ```
      */
-    contextMenu: void 0,
+    contextMenu: undefined,
     /**
      * @description
      * The `copyable` option determines whether a cell's value can be copied to the clipboard or not.
@@ -37154,7 +37394,7 @@ var _default = () => {
      * currentColClassName: 'your-class-name',
      * ```
      */
-    currentColClassName: void 0,
+    currentColClassName: undefined,
     /**
      * The `currentHeaderClassName` option lets you add a CSS class name
      * to every currently-visible, currently-selected header.
@@ -37211,7 +37451,7 @@ var _default = () => {
      * currentRowClassName: 'your-class-name',
      * ```
      */
-    currentRowClassName: void 0,
+    currentRowClassName: undefined,
     /**
      * @description
      * The `customBorders` option configures the [`CustomBorders`](@/api/customBorders.md) plugin.
@@ -37366,7 +37606,7 @@ var _default = () => {
      * ]
      * ```
      */
-    data: void 0,
+    data: undefined,
     /**
      * @description
      * When the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects)
@@ -37404,7 +37644,7 @@ var _default = () => {
      * minSpareRows: 1
      * ```
      */
-    dataSchema: void 0,
+    dataSchema: undefined,
     /**
      * The `dateFormat` option configures the date format accepted by [`date`](@/guides/cell-types/date-cell-type.md) cells.
      *
@@ -37463,7 +37703,7 @@ var _default = () => {
      * @default undefined
      * @category Core
      */
-    datePickerConfig: void 0,
+    datePickerConfig: undefined,
     /**
      * The `defaultDate` option configures the date displayed
      * in empty [`date`](@/guides/cell-types/date-cell-type.md) cells.
@@ -37491,7 +37731,7 @@ var _default = () => {
      * ],
      * ```
      */
-    defaultDate: void 0,
+    defaultDate: undefined,
     /**
      * @description
      * The `disableVisualSelection` option configures how
@@ -37618,7 +37858,7 @@ var _default = () => {
      * },
      * ```
      */
-    dropdownMenu: void 0,
+    dropdownMenu: undefined,
     /**
      * The `editor` option sets a [cell editor](@/guides/cell-functions/cell-editor.md) for a cell.
      *
@@ -37676,7 +37916,7 @@ var _default = () => {
      * ]
      * ```
      */
-    editor: void 0,
+    editor: undefined,
     /**
      * The `enterBeginsEditing` option configures the action of the <kbd>**Enter**</kbd> key.
      *
@@ -37904,7 +38144,7 @@ var _default = () => {
      * filters: true,
      * ```
      */
-    filters: void 0,
+    filters: undefined,
     /**
      * `fixedColumnsLeft` is a legacy option.
      *
@@ -38082,7 +38322,7 @@ var _default = () => {
      * }
      * ```
      */
-    formulas: void 0,
+    formulas: undefined,
     /**
      * The `fragmentSelection` option configures text selection settings.
      *
@@ -38142,7 +38382,7 @@ var _default = () => {
      * },
      * ```
      */
-    height: void 0,
+    height: undefined,
     /**
      * The `hiddenColumns` option configures the [`HiddenColumns`](@/api/hiddenColumns.md) plugin.
      *
@@ -38187,7 +38427,7 @@ var _default = () => {
      * }
      * ```
      */
-    hiddenColumns: void 0,
+    hiddenColumns: undefined,
     /**
      * The `hiddenRows` option configures the [`HiddenRows`](@/api/hiddenRows.md) plugin.
      *
@@ -38232,7 +38472,7 @@ var _default = () => {
      * }
      * ```
      */
-    hiddenRows: void 0,
+    hiddenRows: undefined,
     /**
      * The `invalidCellClassName` option lets you add a CSS class name to cells
      * that were marked as `invalid` by the [cell validator](@/guides/cell-functions/cell-validator.md).
@@ -38375,7 +38615,7 @@ var _default = () => {
      * }],
      * ```
      */
-    label: void 0,
+    label: undefined,
     /**
      * The `language` option configures Handsontable's [language](@/guides/internationalization/language.md) settings.
      *
@@ -38492,7 +38732,7 @@ var _default = () => {
      * licenseKey: 'non-commercial-and-evaluation',
      * ```
      */
-    licenseKey: void 0,
+    licenseKey: undefined,
     /**
      * The `locale` option configures Handsontable's [locale](@/guides/internationalization/locale.md) settings.
      *
@@ -38553,7 +38793,7 @@ var _default = () => {
      * manualColumnFreeze: true,
      * ```
      */
-    manualColumnFreeze: void 0,
+    manualColumnFreeze: undefined,
     /**
      * The `manualColumnMove` option configures the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin.
      *
@@ -38585,7 +38825,7 @@ var _default = () => {
      * manualColumnMove: [1, 4, 6],
      * ```
      */
-    manualColumnMove: void 0,
+    manualColumnMove: undefined,
     /**
      * @description
      * The `manualColumnResize` option configures the [`ManualColumnResize`](@/api/manualColumnResize.md) plugin.
@@ -38618,7 +38858,7 @@ var _default = () => {
      * manualColumnResize: [40, 50, 60],
      * ```
      */
-    manualColumnResize: void 0,
+    manualColumnResize: undefined,
     /**
      * @description
      * The `manualRowMove` option configures the [`ManualRowMove`](@/api/manualRowMove.md) plugin.
@@ -38651,7 +38891,7 @@ var _default = () => {
      * manualColumnMove: [1, 4, 6],
      * ```
      */
-    manualRowMove: void 0,
+    manualRowMove: undefined,
     /**
      * @description
      * The `manualRowResize` option configures the [`ManualRowResize`](@/api/manualRowResize.md) plugin.
@@ -38684,7 +38924,7 @@ var _default = () => {
      * manualRowResize: [40, 50, 60],
      * ```
      */
-    manualRowResize: void 0,
+    manualRowResize: undefined,
     /**
      * The `maxCols` option sets a maximum number of columns.
      *
@@ -38946,7 +39186,7 @@ var _default = () => {
      * }
      * ```
      */
-    multiColumnSorting: void 0,
+    multiColumnSorting: undefined,
     /**
      * When set to `true`, the `navigableHeaders` option lets you navigate [row headers](@/guides/rows/row-header.md) and [column headers](@/guides/columns/column-header.md), using the arrow keys or the <kbd>**Tab**</kbd> key (if the [`disableTabNavigation`](#disabletabnavigation) option is set to `false`).
      *
@@ -39027,7 +39267,7 @@ var _default = () => {
      * ],
      * ```
      */
-    nestedHeaders: void 0,
+    nestedHeaders: undefined,
     /**
      * @description
      * The `nestedRows` option configures the [`NestedRows`](@/api/nestedRows.md) plugin.
@@ -39053,7 +39293,7 @@ var _default = () => {
      * @default false
      * @category NestedRows
      */
-    nestedRows: void 0,
+    nestedRows: undefined,
     /**
      * The `noWordWrapClassName` option lets you add a CSS class name
      * to each cell that has the [`wordWrap`](#wordWrap) option set to `false`.
@@ -39126,7 +39366,7 @@ var _default = () => {
      * ],
      * ```
      */
-    numericFormat: void 0,
+    numericFormat: undefined,
     /**
      * If the `observeDOMVisibility` option is set to `true`,
      * Handsontable rerenders every time it detects that the grid was made visible in the DOM.
@@ -39206,7 +39446,7 @@ var _default = () => {
      * persistentState: true,
      * ```
      */
-    persistentState: void 0,
+    persistentState: undefined,
     /**
      * The `placeholder` option lets you display placeholder text in every empty cell.
      *
@@ -39243,7 +39483,7 @@ var _default = () => {
      * ],
      * ```
      */
-    placeholder: void 0,
+    placeholder: undefined,
     /**
      * The `placeholderCellClassName` option lets you add a CSS class name to cells
      * that contain [`placeholder`](#placeholder) text.
@@ -39402,7 +39642,7 @@ var _default = () => {
      * renderAllRows: true,
      * ```
      */
-    renderAllRows: void 0,
+    renderAllRows: undefined,
     /**
      * @description
      * The `renderer` option sets a [cell renderer](@/guides/cell-functions/cell-renderer.md) for a cell.
@@ -39463,7 +39703,7 @@ var _default = () => {
      * ]
      * ```
      */
-    renderer: void 0,
+    renderer: undefined,
     /**
      * The `rowHeaders` option configures your grid's row headers.
      *
@@ -39498,7 +39738,7 @@ var _default = () => {
      * },
      * ```
      */
-    rowHeaders: void 0,
+    rowHeaders: undefined,
     /**
      * @description
      * The `rowHeaderWidth` option configures the width of row headers.
@@ -39524,7 +39764,7 @@ var _default = () => {
      * rowHeaderWidth: [25, 30, 55],
      * ```
      */
-    rowHeaderWidth: void 0,
+    rowHeaderWidth: undefined,
     /**
      * The `rowHeights` option sets rows' heights, in pixels.
      *
@@ -39570,7 +39810,7 @@ var _default = () => {
      * },
      * ```
      */
-    rowHeights: void 0,
+    rowHeights: undefined,
     /**
      * @description
      * The `search` option configures the [`Search`](@/api/search.md) plugin.
@@ -39711,7 +39951,7 @@ var _default = () => {
      * ],
      * ```
      */
-    selectOptions: void 0,
+    selectOptions: undefined,
     /**
      * @description
      * The `skipColumnOnPaste` option determines whether you can paste data into a given column.
@@ -39859,7 +40099,7 @@ var _default = () => {
      * }],
      * ```
      */
-    source: void 0,
+    source: undefined,
     /**
      * @description
      * If the [`data`](#data) option is not set, the `startCols` option sets the initial number of empty columns.
@@ -39958,7 +40198,7 @@ var _default = () => {
      * ],
      * ```
      */
-    strict: void 0,
+    strict: undefined,
     /**
      * The `tableClassName` option lets you add CSS class names
      * to every Handsontable instance inside the `container` element.
@@ -39998,7 +40238,7 @@ var _default = () => {
      * tableClassName: ['first-class-name', 'second-class-name'],
      * ```
      */
-    tableClassName: void 0,
+    tableClassName: undefined,
     /**
      * The `tabMoves` option configures the action of the <kbd>**Tab**</kbd> key.
      *
@@ -40064,7 +40304,7 @@ var _default = () => {
      * ],
      * ```
      */
-    title: void 0,
+    title: undefined,
     /**
      * The `trimDropdown` option configures the width of the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)
      * and [`dropdown`](@/guides/cell-types/dropdown-cell-type.md) lists.
@@ -40135,7 +40375,7 @@ var _default = () => {
      * trimRows: [5, 10, 15],
      * ```
      */
-    trimRows: void 0,
+    trimRows: undefined,
     /**
      * The `trimWhitespace` option configures automatic whitespace removal. This option
      * affects the cell renderer and the cell editor.
@@ -40259,7 +40499,7 @@ var _default = () => {
      * ],
      * ```
      */
-    uncheckedTemplate: void 0,
+    uncheckedTemplate: undefined,
     /**
      * The `undo` option configures the [`UndoRedo`](@/api/undoRedo.md) plugin.
      *
@@ -40289,7 +40529,7 @@ var _default = () => {
      * undo: true,
      * ```
      */
-    undo: void 0,
+    undo: undefined,
     /**
      * @description
      * The `validator` option sets a [cell validator](@/guides/cell-functions/cell-validator.md) for a cell.
@@ -40348,7 +40588,7 @@ var _default = () => {
      * ],
      * ```
      */
-    validator: void 0,
+    validator: undefined,
     /**
      * @description
      * The `viewportColumnRenderingOffset` option configures the number of columns
@@ -40471,7 +40711,7 @@ var _default = () => {
      * },
      * ```
      */
-    width: void 0,
+    width: undefined,
     /**
      * The `wordWrap` option configures whether content that exceeds a column's width is wrapped or not.
      *
@@ -40523,7 +40763,9 @@ exports["default"] = _default;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _object = __webpack_require__(117);
 var _utils = __webpack_require__(268);
 /**
@@ -40553,13 +40795,13 @@ var _utils = __webpack_require__(268);
  */
 class TableMeta {
   constructor(globalMeta) {
-    const MetaCtor = globalMeta.getMetaConstructor();
-
     /**
      * Main object (instance of the internal TableMeta class from GlobalMeta), holder for all settings defined in the table scope.
      *
      * @type {TableMeta}
      */
+    (0, _defineProperty2.default)(this, "meta", void 0);
+    const MetaCtor = globalMeta.getMetaConstructor();
     this.meta = new MetaCtor();
   }
 
@@ -40593,6 +40835,7 @@ exports["default"] = TableMeta;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _object = __webpack_require__(117);
 var _utils = __webpack_require__(268);
 var _lazyFactoryMap = _interopRequireDefault(__webpack_require__(273));
@@ -40638,13 +40881,15 @@ class ColumnMeta {
      *
      * @type {GlobalMeta}
      */
-    this.globalMeta = globalMeta;
+    (0, _defineProperty2.default)(this, "globalMeta", void 0);
     /**
      * The LazyFactoryMap structure, holder for column meta objects where each column meta is
      * stored under the physical column index.
      *
      * @type {LazyFactoryMap}
      */
+    (0, _defineProperty2.default)(this, "metas", new _lazyFactoryMap.default(() => this._createMeta()));
+    this.globalMeta = globalMeta;
     this.metas = new _lazyFactoryMap.default(() => this._createMeta());
   }
 
@@ -40726,10 +40971,13 @@ exports["default"] = ColumnMeta;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _array = __webpack_require__(113);
 var _utils = __webpack_require__(268);
+let _Symbol$iterator;
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @class LazyFactoryMap
@@ -40852,22 +41100,28 @@ var _utils = __webpack_require__(268);
  * The hole index is taken from the hole collection which act as FIFO (First In First Out).
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
+_Symbol$iterator = Symbol.iterator;
 class LazyFactoryMap {
   constructor(valueFactory) {
-    this.valueFactory = valueFactory;
+    /**
+     * The data factory function.
+     *
+     * @type {Function}
+     */
+    (0, _defineProperty2.default)(this, "valueFactory", void 0);
     /**
      * An array which contains data.
      *
      * @type {Array}
      */
-    this.data = [];
+    (0, _defineProperty2.default)(this, "data", []);
     /**
      * An array of indexes where the key of the array is mapped to the value which points to the
      * specific position of the data array.
      *
      * @type {number[]}
      */
-    this.index = [];
+    (0, _defineProperty2.default)(this, "index", []);
     /**
      * The collection of indexes that points to the data items which can be replaced by obtaining new
      * ones. The "holes" are an intended effect of deleting entries.
@@ -40877,7 +41131,8 @@ class LazyFactoryMap {
      *
      * @type {Set<number>}
      */
-    this.holes = new Set();
+    (0, _defineProperty2.default)(this, "holes", new Set());
+    this.valueFactory = valueFactory;
   }
 
   /**
@@ -40892,7 +41147,7 @@ class LazyFactoryMap {
     let result;
     if (dataIndex >= 0) {
       result = this.data[dataIndex];
-      if (result === void 0) {
+      if (result === undefined) {
         result = this.valueFactory(key);
         this.data[dataIndex] = result;
       }
@@ -40926,7 +41181,7 @@ class LazyFactoryMap {
     const dataLength = this.data.length;
     for (let i = 0; i < amount; i++) {
       newIndexes.push(dataLength + i);
-      this.data.push(void 0);
+      this.data.push(undefined);
     }
     const insertionIndex = (0, _utils.isNullish)(key) ? this.index.length : key;
     this.index = [...this.index.slice(0, insertionIndex), ...newIndexes, ...this.index.slice(insertionIndex)];
@@ -41033,7 +41288,7 @@ class LazyFactoryMap {
    *
    * @returns {Iterator}
    */
-  [Symbol.iterator]() {
+  [_Symbol$iterator]() {
     return this.entries();
   }
 }
@@ -41049,6 +41304,7 @@ exports["default"] = LazyFactoryMap;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _object = __webpack_require__(117);
 var _utils = __webpack_require__(268);
 var _lazyFactoryMap = _interopRequireDefault(__webpack_require__(273));
@@ -41090,7 +41346,7 @@ class CellMeta {
      *
      * @type {ColumnMeta}
      */
-    this.columnMeta = columnMeta;
+    (0, _defineProperty2.default)(this, "columnMeta", void 0);
     /**
      * Holder for cell meta objects, organized as a grid of LazyFactoryMap of LazyFactoryMaps.
      * The access to the cell meta object is done through access to the row defined by the physical
@@ -41098,7 +41354,8 @@ class CellMeta {
      *
      * @type {LazyFactoryMap<number, LazyFactoryMap<number, object>>}
      */
-    this.metas = new _lazyFactoryMap.default(() => this._createRow());
+    (0, _defineProperty2.default)(this, "metas", new _lazyFactoryMap.default(() => this._createRow()));
+    this.columnMeta = columnMeta;
   }
 
   /**
@@ -41168,7 +41425,7 @@ class CellMeta {
    */
   getMeta(physicalRow, physicalColumn, key) {
     const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
-    if (key === void 0) {
+    if (key === undefined) {
       return cellMeta;
     }
     return cellMeta[key];
@@ -41395,7 +41652,8 @@ function replaceData(data, setDataMapFunction, callbackFunction, config) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _pluginHooks = _interopRequireDefault(__webpack_require__(124));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 var _object = __webpack_require__(117);
 var _function = __webpack_require__(115);
 /**
@@ -41418,11 +41676,12 @@ class DynamicCellMetaMod {
     /**
      * @type {MetaManager}
      */
-    this.metaManager = metaManager;
+    (0, _defineProperty2.default)(this, "metaManager", void 0);
     /**
      * @type {Map}
      */
-    this.metaSyncMemo = new Map();
+    (0, _defineProperty2.default)(this, "metaSyncMemo", new Map());
+    this.metaManager = metaManager;
     metaManager.addLocalHook('afterGetCellMeta', cellMeta => this.extendCellMeta(cellMeta));
     _pluginHooks.default.getSingleton().add('beforeRender', forceFullRender => {
       if (forceFullRender) {
@@ -41492,8 +41751,10 @@ exports.DynamicCellMetaMod = DynamicCellMetaMod;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 /**
  * @class ExtendMetaPropertiesMod
  */
@@ -41502,15 +41763,15 @@ class ExtendMetaPropertiesMod {
     /**
      * @type {MetaManager}
      */
-    this.metaManager = metaManager;
+    (0, _defineProperty2.default)(this, "metaManager", void 0);
     /**
      * @type {Set}
      */
-    this.usageTracker = new Set();
+    (0, _defineProperty2.default)(this, "usageTracker", new Set());
     /**
      * @type {Map}
      */
-    this.propDescriptors = new Map([['ariaTags', {
+    (0, _defineProperty2.default)(this, "propDescriptors", new Map([['ariaTags', {
       onChange(propName, value, isInitialChange) {
         if (!isInitialChange) {
           throw new Error(`The \`${propName}\` option can not be updated after the Handsontable instance was initialized.`);
@@ -41533,7 +41794,8 @@ class ExtendMetaPropertiesMod {
           throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
         }
       }
-    }]]);
+    }]]));
+    this.metaManager = metaManager;
     this.extendMetaProps();
   }
 
@@ -41957,7 +42219,7 @@ const command = exports.command = {
 
 
 exports.__esModule = true;
-var _event = __webpack_require__(122);
+var _event = __webpack_require__(126);
 const command = exports.command = {
   name: 'editorOpen',
   callback(hot, event, keys) {
@@ -43146,8 +43408,8 @@ exports.createShortcutManager = _manager.createShortcutManager;
 
 exports.__esModule = true;
 __webpack_require__(78);
-var _uniqueMap = __webpack_require__(138);
-var _event = __webpack_require__(122);
+var _uniqueMap = __webpack_require__(142);
+var _event = __webpack_require__(126);
 var _context = __webpack_require__(329);
 var _recorder = __webpack_require__(331);
 var _templateLiteralTag = __webpack_require__(112);
@@ -43275,7 +43537,7 @@ const createShortcutManager = _ref => {
         captureCtrl,
         forwardToContext
       } = shortcuts[index];
-      if (runOnlyIf(event) !== false) {
+      if (runOnlyIf(event) === true) {
         isCtrlKeySilenced = captureCtrl;
         isExecutionCancelled = callback(event, keys) === false;
         isCtrlKeySilenced = false;
@@ -43346,7 +43608,7 @@ exports.__esModule = true;
 exports.isContextObject = isContextObject;
 __webpack_require__(78);
 __webpack_require__(8);
-var _uniqueMap = __webpack_require__(138);
+var _uniqueMap = __webpack_require__(142);
 var _utils = __webpack_require__(330);
 var _mixed = __webpack_require__(110);
 var _function = __webpack_require__(115);
@@ -43641,7 +43903,7 @@ exports.useRecorder = useRecorder;
 __webpack_require__(8);
 var _keyObserver = __webpack_require__(332);
 var _utils = __webpack_require__(330);
-var _event = __webpack_require__(122);
+var _event = __webpack_require__(126);
 var _element = __webpack_require__(107);
 var _browser = __webpack_require__(116);
 const MODIFIER_KEYS = ['meta', 'alt', 'shift', 'control'];
@@ -43922,12 +44184,13 @@ exports.TextEditor = _textEditor.TextEditor;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _baseEditor = __webpack_require__(337);
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
+var _eventManager = _interopRequireDefault(__webpack_require__(131));
 var _browser = __webpack_require__(116);
 var _element = __webpack_require__(107);
-var _number = __webpack_require__(137);
-var _unicode = __webpack_require__(121);
+var _number = __webpack_require__(141);
+var _unicode = __webpack_require__(125);
 var _autoResize = __webpack_require__(340);
 var _mixed = __webpack_require__(110);
 var _editorManager = __webpack_require__(120);
@@ -43949,59 +44212,61 @@ class TextEditor extends _baseEditor.BaseEditor {
   }
 
   /**
-   * @param {Core} instance The Handsontable instance.
+   * Instance of {@link EventManager}.
+   *
+   * @private
+   * @type {EventManager}
    */
-  constructor(instance) {
-    super(instance);
-    /**
-     * Instance of {@link EventManager}.
-     *
-     * @private
-     * @type {EventManager}
-     */
-    this.eventManager = new _eventManager.default(this);
+
+  /**
+   * @param {Core} hotInstance The Handsontable instance.
+   */
+  constructor(hotInstance) {
+    super(hotInstance);
+    (0, _defineProperty2.default)(this, "eventManager", new _eventManager.default(this));
     /**
      * Autoresize instance. Automagically resizes editor after changes.
      *
      * @private
-     * @type {autoResize}
+     * @type {Function}
      */
-    this.autoResize = (0, _autoResize.autoResize)();
+    (0, _defineProperty2.default)(this, "autoResize", (0, _autoResize.autoResize)());
     /**
      * An TEXTAREA element.
      *
      * @private
      * @type {HTMLTextAreaElement}
      */
-    this.TEXTAREA = void 0;
+    (0, _defineProperty2.default)(this, "TEXTAREA", void 0);
     /**
      * Style declaration object of the TEXTAREA element.
      *
      * @private
      * @type {CSSStyleDeclaration}
      */
-    this.textareaStyle = void 0;
+    (0, _defineProperty2.default)(this, "textareaStyle", void 0);
     /**
      * Parent element of the TEXTAREA.
      *
      * @private
      * @type {HTMLDivElement}
      */
-    this.TEXTAREA_PARENT = void 0;
+    (0, _defineProperty2.default)(this, "TEXTAREA_PARENT", void 0);
     /**
      * Style declaration object of the TEXTAREA_PARENT element.
      *
      * @private
      * @type {CSSStyleDeclaration}
      */
-    this.textareaParentStyle = void 0;
+    (0, _defineProperty2.default)(this, "textareaParentStyle", void 0);
     /**
      * Z-index class style for the editor.
      *
      * @private
      * @type {string}
      */
-    this.layerClass = void 0;
+    (0, _defineProperty2.default)(this, "layerClass", void 0);
+    this.eventManager = new _eventManager.default(this);
     this.createElements();
     this.bindEvents();
     this.hot.addHookOnce('afterDestroy', () => this.destroy());
@@ -44444,6 +44709,7 @@ exports.BaseEditor = _baseEditor.BaseEditor;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _mixed = __webpack_require__(110);
 var _object = __webpack_require__(117);
 var _editorManager = __webpack_require__(120);
@@ -44469,29 +44735,22 @@ class BaseEditor {
   }
 
   /**
-   * @param {Handsontable} instance A reference to the source instance of the Handsontable.
+   * A reference to the source instance of the Handsontable.
+   *
+   * @type {Handsontable}
    */
-  constructor(instance) {
-    /**
-     * A reference to the source instance of the Handsontable.
-     *
-     * @type {Handsontable}
-     */
-    this.hot = instance;
-    /**
-     * A reference to the source instance of the Handsontable.
-     *
-     * @deprecated
-     *
-     * @type {Handsontable}
-     */
-    this.instance = instance;
+
+  /**
+   * @param {Handsontable} hotInstance A reference to the source instance of the Handsontable.
+   */
+  constructor(hotInstance) {
+    (0, _defineProperty2.default)(this, "hot", void 0);
     /**
      * Editor's state.
      *
      * @type {string}
      */
-    this.state = EDITOR_STATE.VIRGIN;
+    (0, _defineProperty2.default)(this, "state", EDITOR_STATE.VIRGIN);
     /**
      * Flag to store information about editor's opening status.
      *
@@ -44499,7 +44758,7 @@ class BaseEditor {
      *
      * @type {boolean}
      */
-    this._opened = false;
+    (0, _defineProperty2.default)(this, "_opened", false);
     /**
      * Defines the editor's editing mode. When false, then an editor works in fast editing mode.
      *
@@ -44507,49 +44766,50 @@ class BaseEditor {
      *
      * @type {boolean}
      */
-    this._fullEditMode = false;
+    (0, _defineProperty2.default)(this, "_fullEditMode", false);
     /**
      * Callback to call after closing editor.
      *
      * @type {Function}
      */
-    this._closeCallback = null;
+    (0, _defineProperty2.default)(this, "_closeCallback", null);
     /**
      * Currently rendered cell's TD element.
      *
      * @type {HTMLTableCellElement}
      */
-    this.TD = null;
+    (0, _defineProperty2.default)(this, "TD", null);
     /**
      * Visual row index.
      *
      * @type {number}
      */
-    this.row = null;
+    (0, _defineProperty2.default)(this, "row", null);
     /**
      * Visual column index.
      *
      * @type {number}
      */
-    this.col = null;
+    (0, _defineProperty2.default)(this, "col", null);
     /**
      * Column property name or a column index, if datasource is an array of arrays.
      *
      * @type {number|string}
      */
-    this.prop = null;
+    (0, _defineProperty2.default)(this, "prop", null);
     /**
      * Original cell's value.
      *
      * @type {*}
      */
-    this.originalValue = null;
+    (0, _defineProperty2.default)(this, "originalValue", null);
     /**
      * Object containing the cell's properties.
      *
      * @type {object}
      */
-    this.cellProperties = null;
+    (0, _defineProperty2.default)(this, "cellProperties", null);
+    this.hot = hotInstance;
     this.init();
   }
 
@@ -45151,12 +45411,12 @@ function autoResize() {
       } else if (!/^[a-zA-Z \.,\\\/\|0-9]$/.test(newChar)) {
         newChar = ".";
       }
-      if (text.textContent !== void 0) {
+      if (text.textContent !== undefined) {
         text.textContent = el.value + newChar;
       } else {
         text.data = el.value + newChar; //IE8
       }
-      // Won't expand the element size for displaying body as for example, `grid`, `inline-grid` or `flex` with 
+      // Won't expand the element size for displaying body as for example, `grid`, `inline-grid` or `flex` with
       // `flex-direction` set as `column`.
       span.style.position = 'absolute';
       span.style.fontSize = getComputedStyle(el).fontSize;
@@ -45352,7 +45612,7 @@ const RENDERER_TYPE = exports.RENDERER_TYPE = 'text';
  * Default text renderer.
  *
  * @private
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {HTMLTableCellElement} TD The rendered cell element.
  * @param {number} row The visual row index.
  * @param {number} col The visual column index.
@@ -45360,8 +45620,8 @@ const RENDERER_TYPE = exports.RENDERER_TYPE = 'text';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  _baseRenderer.baseRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
+function textRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
+  _baseRenderer.baseRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
   let escaped = value;
   if (!escaped && cellProperties.placeholder) {
     escaped = cellProperties.placeholder;
@@ -45372,11 +45632,11 @@ function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
   }
   if (cellProperties.rendererTemplate) {
     (0, _element.empty)(TD);
-    const TEMPLATE = instance.rootDocument.createElement('TEMPLATE');
+    const TEMPLATE = hotInstance.rootDocument.createElement('TEMPLATE');
     TEMPLATE.setAttribute('bind', '{{}}');
     TEMPLATE.innerHTML = cellProperties.rendererTemplate;
     HTMLTemplateElement.decorate(TEMPLATE);
-    TEMPLATE.model = instance.getSourceDataAtRow(row);
+    TEMPLATE.model = hotInstance.getSourceDataAtRow(row);
     TD.appendChild(TEMPLATE);
   } else {
     // this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
@@ -45416,7 +45676,7 @@ var _a11y = __webpack_require__(114);
 const RENDERER_TYPE = exports.RENDERER_TYPE = 'base';
 
 /**
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {HTMLTableCellElement} TD The rendered cell element.
  * @param {number} row The visual row index.
  * @param {number} col The visual column index.
@@ -45424,7 +45684,7 @@ const RENDERER_TYPE = exports.RENDERER_TYPE = 'base';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-function baseRenderer(instance, TD, row, col, prop, value, cellProperties) {
+function baseRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
   const ariaEnabled = cellProperties.ariaTags;
   const classesToAdd = [];
   const classesToRemove = [];
@@ -45548,7 +45808,7 @@ exports.TEXT_EDITOR = _textEditor.EDITOR_TYPE;
 var _timeEditor = __webpack_require__(367);
 exports.TimeEditor = _timeEditor.TimeEditor;
 exports.TIME_EDITOR = _timeEditor.EDITOR_TYPE;
-var _registry = __webpack_require__(123);
+var _registry = __webpack_require__(127);
 exports.registerEditor = _registry.registerEditor;
 exports.RegisteredEditor = _registry.RegisteredEditor;
 exports._getEditorInstance = _registry._getEditorInstance;
@@ -45593,36 +45853,60 @@ exports.AutocompleteEditor = _autocompleteEditor.AutocompleteEditor;
 "use strict";
 
 
+__webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
 var _handsontableEditor = __webpack_require__(351);
 var _array = __webpack_require__(113);
 var _element = __webpack_require__(107);
 var _mixed = __webpack_require__(110);
 var _string = __webpack_require__(108);
-var _unicode = __webpack_require__(121);
+var _unicode = __webpack_require__(125);
+var _browser = __webpack_require__(116);
 var _textRenderer = __webpack_require__(343);
 var _a11y = __webpack_require__(114);
-const privatePool = new WeakMap();
+function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
 const EDITOR_TYPE = exports.EDITOR_TYPE = 'autocomplete';
 
 /**
  * @private
  * @class AutocompleteEditor
  */
+var _idPrefix = /*#__PURE__*/new WeakMap();
 class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
-  static get EDITOR_TYPE() {
-    return EDITOR_TYPE;
-  }
-  constructor(instance) {
-    super(instance);
+  constructor() {
+    super(...arguments);
     /**
      * Query string to turn available values over.
      *
      * @type {string}
      */
+    (0, _defineProperty2.default)(this, "query", null);
+    /**
+     * Contains stripped choices.
+     *
+     * @type {string[]}
+     */
+    (0, _defineProperty2.default)(this, "strippedChoices", []);
+    /**
+     * Contains raw choices.
+     *
+     * @type {Array}
+     */
+    (0, _defineProperty2.default)(this, "rawChoices", []);
+    /**
+     * Holds the prefix of the editor's id.
+     *
+     * @type {string}
+     */
+    _classPrivateFieldInitSpec(this, _idPrefix, {
+      writable: true,
+      value: this.hot.guid.slice(0, 9)
+    });
     /**
      * Filters and sorts by relevance.
      *
@@ -45689,26 +45973,10 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
       }
       return result;
     });
-    this.query = null;
-    /**
-     * Contains stripped choices.
-     *
-     * @type {string[]}
-     */
-    this.strippedChoices = [];
-    /**
-     * Contains raw choices.
-     *
-     * @type {Array}
-     */
-    this.rawChoices = [];
-    privatePool.set(this, {
-      skipOne: false,
-      isMacOS: this.hot.rootWindow.navigator.platform.indexOf('Mac') > -1,
-      idPrefix: instance.guid.slice(0, 9)
-    });
   }
-
+  static get EDITOR_TYPE() {
+    return EDITOR_TYPE;
+  }
   /**
    * Gets current value from editable element.
    *
@@ -45748,10 +46016,9 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
    * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
    */
   prepare(row, col, prop, td, value, cellProperties) {
-    const priv = privatePool.get(this);
     super.prepare(row, col, prop, td, value, cellProperties);
     if (this.hot.getSettings().ariaTags) {
-      (0, _element.setAttribute)(this.TEXTAREA, [(0, _a11y.A11Y_EXPANDED)('false'), (0, _a11y.A11Y_CONTROLS)(`${priv.idPrefix}-listbox-${row}-${col}`)]);
+      (0, _element.setAttribute)(this.TEXTAREA, [(0, _a11y.A11Y_EXPANDED)('false'), (0, _a11y.A11Y_CONTROLS)(`${(0, _classPrivateFieldGet2.default)(this, _idPrefix)}-listbox-${row}-${col}`)]);
     }
   }
 
@@ -45759,9 +46026,8 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
    * Opens the editor and adjust its size and internal Handsontable's instance.
    */
   open() {
-    const priv = privatePool.get(this);
     super.open();
-    const trimDropdown = this.cellProperties.trimDropdown === void 0 ? true : this.cellProperties.trimDropdown;
+    const trimDropdown = this.cellProperties.trimDropdown === undefined ? true : this.cellProperties.trimDropdown;
     const rootInstanceAriaTagsEnabled = this.hot.getSettings().ariaTags;
     const sourceArray = Array.isArray(this.cellProperties.source) ? this.cellProperties.source : null;
     const sourceSize = sourceArray === null || sourceArray === void 0 ? void 0 : sourceArray.length;
@@ -45772,17 +46038,17 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
     this.showEditableElement();
     this.focus();
     let scrollbarWidth = (0, _element.getScrollbarWidth)();
-    if (scrollbarWidth === 0 && priv.isMacOS) {
+    if (scrollbarWidth === 0 && (0, _browser.isMacOS)()) {
       scrollbarWidth += 15; // default scroll bar width if scroll bars are visible only when scrolling
     }
 
     this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
     this.htEditor.updateSettings({
-      colWidths: trimDropdown ? [(0, _element.outerWidth)(this.TEXTAREA) - 2] : void 0,
-      width: trimDropdown ? (0, _element.outerWidth)(this.TEXTAREA) + scrollbarWidth : void 0,
+      colWidths: trimDropdown ? [(0, _element.outerWidth)(this.TEXTAREA) - 2] : undefined,
+      width: trimDropdown ? (0, _element.outerWidth)(this.TEXTAREA) + scrollbarWidth : undefined,
       autoColumnSize: true,
-      renderer: (instance, TD, row, col, prop, value, cellProperties) => {
-        (0, _textRenderer.textRenderer)(instance, TD, row, col, prop, value, cellProperties);
+      renderer: (hotInstance, TD, row, col, prop, value, cellProperties) => {
+        (0, _textRenderer.textRenderer)(hotInstance, TD, row, col, prop, value, cellProperties);
         const {
           filteringCaseSensitive,
           allowHtml,
@@ -45817,11 +46083,8 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
     if (rootInstanceAriaTagsEnabled) {
       // Add `role=presentation` to the main table to prevent the readers from treating the option list as a table.
       (0, _element.setAttribute)(this.htEditor.view._wt.wtOverlays.wtTable.TABLE, ...(0, _a11y.A11Y_PRESENTATION)());
-      (0, _element.setAttribute)(this.htEditor.rootElement, [(0, _a11y.A11Y_LISTBOX)(), (0, _a11y.A11Y_LIVE)('polite'), (0, _a11y.A11Y_RELEVANT)('text'), ['id', `${priv.idPrefix}-listbox-${rowIndex}-${colIndex}`]]);
+      (0, _element.setAttribute)(this.htEditor.rootElement, [(0, _a11y.A11Y_LISTBOX)(), (0, _a11y.A11Y_LIVE)('polite'), (0, _a11y.A11Y_RELEVANT)('text'), ['id', `${(0, _classPrivateFieldGet2.default)(this, _idPrefix)}-listbox-${rowIndex}-${colIndex}`]]);
       (0, _element.setAttribute)(this.TEXTAREA, ...(0, _a11y.A11Y_EXPANDED)('true'));
-    }
-    if (priv.skipOne) {
-      priv.skipOne = false;
     }
     this.hot._registerTimeout(() => {
       this.queryChoices(this.TEXTAREA.value);
@@ -45922,7 +46185,7 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
       }
     }
     this.hot.listen();
-    (0, _element.setCaretPosition)(this.TEXTAREA, pos, pos === endPos ? void 0 : endPos);
+    (0, _element.setCaretPosition)(this.TEXTAREA, pos, pos === endPos ? undefined : endPos);
   }
 
   /**
@@ -46005,7 +46268,7 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
     const dropdownStyle = this.htEditor.rootElement.style;
     dropdownStyle.position = 'absolute';
     dropdownStyle.top = '';
-    this.htEditor.flipped = void 0;
+    this.htEditor.flipped = undefined;
   }
 
   /**
@@ -46018,7 +46281,7 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
     const trimDropdown = this.cellProperties.trimDropdown;
     this.htEditor.updateSettings({
       height: this.getDropdownHeight(),
-      width: trimDropdown ? void 0 : currentDropdownWidth
+      width: trimDropdown ? undefined : currentDropdownWidth
     });
     this.htEditor.view._wt.wtTable.alignOverlaysWithTrimmingContainer();
   }
@@ -46043,7 +46306,7 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
    */
   highlightBestMatchingChoice(index) {
     if (typeof index === 'number') {
-      this.htEditor.selectCell(index, 0, void 0, void 0, void 0, false);
+      this.htEditor.selectCell(index, 0, undefined, undefined, undefined, false);
     } else {
       this.htEditor.deselectCell();
     }
@@ -46117,8 +46380,6 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
    * @param {KeyboardEvent} event The keyboard event object.
    */
   onBeforeKeyDown(event) {
-    const priv = privatePool.get(this);
-    priv.skipOne = false;
     if ((0, _unicode.isPrintableChar)(event.keyCode) || event.keyCode === _unicode.KEY_CODES.BACKSPACE || event.keyCode === _unicode.KEY_CODES.DELETE || event.keyCode === _unicode.KEY_CODES.INSERT) {
       // for Windows 10 + FF86 there is need to add delay to make sure that the value taken from
       // the textarea is the freshest value. Otherwise the list of choices does not update correctly (see #7570).
@@ -46136,7 +46397,6 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
       if (this.htEditor) {
         this.hot._registerTimeout(() => {
           this.queryChoices(this.TEXTAREA.value);
-          priv.skipOne = true;
         }, timeOffset);
       }
     }
@@ -46166,7 +46426,7 @@ exports.HandsontableEditor = _handsontableEditor.HandsontableEditor;
 exports.__esModule = true;
 var _textEditor = __webpack_require__(335);
 var _element = __webpack_require__(107);
-var _event = __webpack_require__(122);
+var _event = __webpack_require__(126);
 var _object = __webpack_require__(117);
 var _editorManager = __webpack_require__(120);
 var _a11y = __webpack_require__(114);
@@ -46255,10 +46515,10 @@ class HandsontableEditor extends _textEditor.TextEditor {
         const sourceValue = this.getSourceData(coords.row, coords.col);
 
         // if the value is undefined then it means we don't want to set the value
-        if (sourceValue !== void 0) {
+        if (sourceValue !== undefined) {
           parent.setValue(sourceValue);
         }
-        parent.instance.destroyEditor();
+        parent.hot.destroyEditor();
       },
       preventWheel: true,
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr'
@@ -46310,7 +46570,7 @@ class HandsontableEditor extends _textEditor.TextEditor {
 
     if (this.htEditor && this.htEditor.getSelectedLast()) {
       const value = this.htEditor.getValue();
-      if (value !== void 0) {
+      if (value !== undefined) {
         // if the value is undefined then it means we don't want to set the value
         this.setValue(value);
       }
@@ -46347,7 +46607,7 @@ class HandsontableEditor extends _textEditor.TextEditor {
     };
     const action = (rowToSelect, event) => {
       const innerHOT = this.htEditor;
-      if (rowToSelect !== void 0) {
+      if (rowToSelect !== undefined) {
         if (rowToSelect < 0 || innerHOT.flipped && rowToSelect > innerHOT.countRows() - 1) {
           innerHOT.deselectCell();
         } else {
@@ -46495,14 +46755,15 @@ exports.DateEditor = _dateEditor.DateEditor;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _moment = _interopRequireDefault(__webpack_require__(111));
 var _pikaday = _interopRequireDefault(__webpack_require__(357));
 var _textEditor = __webpack_require__(335);
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
+var _eventManager = _interopRequireDefault(__webpack_require__(131));
 var _element = __webpack_require__(107);
 var _a11y = __webpack_require__(114);
 var _object = __webpack_require__(117);
-var _unicode = __webpack_require__(121);
+var _unicode = __webpack_require__(125);
 __webpack_require__(358);
 const EDITOR_TYPE = exports.EDITOR_TYPE = 'date';
 const SHORTCUTS_GROUP_EDITOR = 'dateEditor';
@@ -46512,22 +46773,28 @@ const SHORTCUTS_GROUP_EDITOR = 'dateEditor';
  * @class DateEditor
  */
 class DateEditor extends _textEditor.TextEditor {
+  constructor() {
+    super(...arguments);
+    // TODO: Move this option to general settings
+    /**
+     * @type {string}
+     */
+    (0, _defineProperty2.default)(this, "defaultDateFormat", 'DD/MM/YYYY');
+    /**
+     * @type {boolean}
+     */
+    (0, _defineProperty2.default)(this, "isCellEdited", false);
+    /**
+     * @type {boolean}
+     */
+    (0, _defineProperty2.default)(this, "parentDestroyed", false);
+    /**
+     * @type {Pikaday}
+     */
+    (0, _defineProperty2.default)(this, "$datePicker", null);
+  }
   static get EDITOR_TYPE() {
     return EDITOR_TYPE;
-  }
-
-  /**
-   * @param {Core} hotInstance Handsontable instance.
-   * @private
-   */
-  constructor(hotInstance) {
-    super(hotInstance);
-
-    // TODO: Move this option to general settings
-    this.defaultDateFormat = 'DD/MM/YYYY';
-    this.isCellEdited = false;
-    this.parentDestroyed = false;
-    this.$datePicker = null;
   }
   init() {
     if (typeof _moment.default !== 'function') {
@@ -46666,7 +46933,7 @@ class DateEditor extends _textEditor.TextEditor {
     if (restoreOriginalValue) {
       // pressed ESC, restore original value
       const value = this.originalValue;
-      if (value !== void 0) {
+      if (value !== undefined) {
         this.setValue(value);
       }
     }
@@ -46812,7 +47079,7 @@ exports.DropdownEditor = _dropdownEditor.DropdownEditor;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 var _autocompleteEditor = __webpack_require__(349);
-var _pluginHooks = _interopRequireDefault(__webpack_require__(124));
+var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 const EDITOR_TYPE = exports.EDITOR_TYPE = 'dropdown';
 
 /**
@@ -46842,7 +47109,7 @@ exports.DropdownEditor = DropdownEditor;
 _pluginHooks.default.getSingleton().add('beforeValidate', function (value, row, col) {
   const cellMeta = this.getCellMeta(row, this.propToCol(col));
   if (cellMeta.editor === DropdownEditor) {
-    if (cellMeta.strict === void 0) {
+    if (cellMeta.strict === undefined) {
       cellMeta.filter = false;
       cellMeta.strict = true;
     }
@@ -47259,7 +47526,7 @@ exports.TEXT_RENDERER = _textRenderer.RENDERER_TYPE;
 var _timeRenderer = __webpack_require__(383);
 exports.timeRenderer = _timeRenderer.timeRenderer;
 exports.TIME_RENDERER = _timeRenderer.RENDERER_TYPE;
-var _registry = __webpack_require__(140);
+var _registry = __webpack_require__(144);
 exports.registerRenderer = _registry.registerRenderer;
 exports.getRegisteredRendererNames = _registry.getRegisteredRendererNames;
 exports.getRegisteredRenderers = _registry.getRegisteredRenderers;
@@ -47303,7 +47570,7 @@ exports.__esModule = true;
 exports.autocompleteRenderer = autocompleteRenderer;
 var _htmlRenderer = __webpack_require__(372);
 var _textRenderer = __webpack_require__(343);
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
+var _eventManager = _interopRequireDefault(__webpack_require__(131));
 var _element = __webpack_require__(107);
 __webpack_require__(374);
 var _a11y = __webpack_require__(114);
@@ -47313,7 +47580,7 @@ const RENDERER_TYPE = exports.RENDERER_TYPE = 'autocomplete';
  * Autocomplete renderer.
  *
  * @private
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {HTMLTableCellElement} TD The rendered cell element.
  * @param {number} row The visual row index.
  * @param {number} col The visual column index.
@@ -47321,19 +47588,19 @@ const RENDERER_TYPE = exports.RENDERER_TYPE = 'autocomplete';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-function autocompleteRenderer(instance, TD, row, col, prop, value, cellProperties) {
+function autocompleteRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
   const {
     rootDocument
-  } = instance;
+  } = hotInstance;
   const rendererFunc = cellProperties.allowHtml ? _htmlRenderer.htmlRenderer : _textRenderer.textRenderer;
   const ARROW = rootDocument.createElement('DIV');
-  const isAriaEnabled = instance.getSettings().ariaTags;
+  const isAriaEnabled = hotInstance.getSettings().ariaTags;
   ARROW.className = 'htAutocompleteArrow';
   if (isAriaEnabled) {
     ARROW.setAttribute(...(0, _a11y.A11Y_HIDDEN)());
   }
   ARROW.appendChild(rootDocument.createTextNode(String.fromCharCode(9660)));
-  rendererFunc.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
+  rendererFunc.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
   if (!TD.firstChild) {
     // http://jsperf.com/empty-node-if-needed
     // otherwise empty fields appear borderless in demo/renderers.html (IE)
@@ -47346,19 +47613,19 @@ function autocompleteRenderer(instance, TD, row, col, prop, value, cellPropertie
   if (isAriaEnabled) {
     TD.setAttribute(...(0, _a11y.A11Y_HASPOPUP)('listbox'));
   }
-  if (!instance.acArrowListener) {
-    const eventManager = new _eventManager.default(instance);
+  if (!hotInstance.acArrowListener) {
+    const eventManager = new _eventManager.default(hotInstance);
 
     // not very elegant but easy and fast
-    instance.acArrowListener = function (event) {
+    hotInstance.acArrowListener = function (event) {
       if ((0, _element.hasClass)(event.target, 'htAutocompleteArrow')) {
-        instance.view._wt.getSetting('onCellDblClick', null, instance._createCellCoords(row, col), TD);
+        hotInstance.view._wt.getSetting('onCellDblClick', null, hotInstance._createCellCoords(row, col), TD);
       }
     };
-    eventManager.addEventListener(instance.rootElement, 'mousedown', instance.acArrowListener);
+    eventManager.addEventListener(hotInstance.rootElement, 'mousedown', hotInstance.acArrowListener);
 
     // We need to unbind the listener after the table has been destroyed
-    instance.addHookOnce('afterDestroy', () => {
+    hotInstance.addHookOnce('afterDestroy', () => {
       eventManager.destroy();
     });
   }
@@ -47392,7 +47659,7 @@ const RENDERER_TYPE = exports.RENDERER_TYPE = 'html';
 
 /**
  * @private
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {HTMLTableCellElement} TD The rendered cell element.
  * @param {number} row The visual row index.
  * @param {number} col The visual column index.
@@ -47400,9 +47667,9 @@ const RENDERER_TYPE = exports.RENDERER_TYPE = 'html';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-function htmlRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  _baseRenderer.baseRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
-  (0, _element.fastInnerHTML)(TD, value === null || value === void 0 ? '' : value, false);
+function htmlRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
+  _baseRenderer.baseRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
+  (0, _element.fastInnerHTML)(TD, value === null || value === undefined ? '' : value, false);
 }
 htmlRenderer.RENDERER_TYPE = RENDERER_TYPE;
 
@@ -47439,11 +47706,11 @@ exports.__esModule = true;
 exports.checkboxRenderer = checkboxRenderer;
 __webpack_require__(8);
 var _baseRenderer = __webpack_require__(345);
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
+var _eventManager = _interopRequireDefault(__webpack_require__(131));
 var _element = __webpack_require__(107);
 var _mixed = __webpack_require__(110);
 var _shortcutContexts = __webpack_require__(280);
-var _pluginHooks = _interopRequireDefault(__webpack_require__(124));
+var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 var _a11y = __webpack_require__(114);
 var _constants = __webpack_require__(245);
 __webpack_require__(377);
@@ -47485,7 +47752,7 @@ _pluginHooks.default.getSingleton().add('modifyAutoColumnSizeSeed', function (bu
  * Checkbox renderer.
  *
  * @private
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {HTMLTableCellElement} TD The rendered cell element.
  * @param {number} row The visual row index.
  * @param {number} col The visual column index.
@@ -47493,13 +47760,13 @@ _pluginHooks.default.getSingleton().add('modifyAutoColumnSizeSeed', function (bu
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
+function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
   const {
     rootDocument
-  } = instance;
-  const ariaEnabled = instance.getSettings().ariaTags;
-  _baseRenderer.baseRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
-  registerEvents(instance);
+  } = hotInstance;
+  const ariaEnabled = hotInstance.getSettings().ariaTags;
+  _baseRenderer.baseRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
+  registerEvents(hotInstance);
   let input = createInput(rootDocument);
   const labelOptions = cellProperties.label;
   let badValue = false;
@@ -47525,14 +47792,14 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   }
   (0, _element.setAttribute)(input, [[ATTR_ROW, row], [ATTR_COLUMN, col]]);
   if (ariaEnabled) {
-    (0, _element.setAttribute)(input, [(0, _a11y.A11Y_LABEL)(input.checked ? instance.getTranslatedPhrase(_constants.CHECKBOX_CHECKED) : instance.getTranslatedPhrase(_constants.CHECKBOX_UNCHECKED)), (0, _a11y.A11Y_CHECKED)(input.checked), (0, _a11y.A11Y_CHECKBOX)()]);
+    (0, _element.setAttribute)(input, [(0, _a11y.A11Y_LABEL)(input.checked ? hotInstance.getTranslatedPhrase(_constants.CHECKBOX_CHECKED) : hotInstance.getTranslatedPhrase(_constants.CHECKBOX_UNCHECKED)), (0, _a11y.A11Y_CHECKED)(input.checked), (0, _a11y.A11Y_CHECKBOX)()]);
   }
   if (!badValue && labelOptions) {
     let labelText = '';
     if (labelOptions.value) {
       labelText = typeof labelOptions.value === 'function' ? labelOptions.value.call(this, row, col, prop, value) : labelOptions.value;
     } else if (labelOptions.property) {
-      const labelValue = instance.getDataAtRowProp(row, labelOptions.property);
+      const labelValue = hotInstance.getDataAtRowProp(row, labelOptions.property);
       labelText = labelValue !== null ? labelValue : '';
     }
     const label = createLabel(rootDocument, labelText, labelOptions.separated !== true);
@@ -47560,8 +47827,8 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   if (badValue) {
     TD.appendChild(rootDocument.createTextNode('#bad-value#'));
   }
-  if (!isListeningKeyDownEvent.has(instance)) {
-    isListeningKeyDownEvent.set(instance, true);
+  if (!isListeningKeyDownEvent.has(hotInstance)) {
+    isListeningKeyDownEvent.set(hotInstance, true);
     registerShortcuts();
   }
 
@@ -47571,7 +47838,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
    * @private
    */
   function registerShortcuts() {
-    const shortcutManager = instance.getShortcutManager();
+    const shortcutManager = hotInstance.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
     const config = {
       group: SHORTCUTS_GROUP
@@ -47589,7 +47856,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
 
-      runOnlyIf: () => instance.getSettings().enterBeginsEditing
+      runOnlyIf: () => hotInstance.getSettings().enterBeginsEditing
     }, {
       keys: [['delete'], ['backspace']],
       callback: () => {
@@ -47610,7 +47877,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
    */
   function changeSelectedCheckboxesState() {
     let uncheckCheckbox = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-    const selRange = instance.getSelectedRange();
+    const selRange = hotInstance.getSelectedRange();
     if (!selRange) {
       return;
     }
@@ -47626,7 +47893,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
       const changes = [];
       for (let visualRow = startRow; visualRow <= endRow; visualRow += 1) {
         for (let visualColumn = startColumn; visualColumn <= endColumn; visualColumn += 1) {
-          const cachedCellProperties = instance.getCellMeta(visualRow, visualColumn);
+          const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
           if (cachedCellProperties.type !== 'checkbox') {
             return;
           }
@@ -47641,12 +47908,12 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
           if (typeof cachedCellProperties.uncheckedTemplate === 'undefined') {
             cachedCellProperties.uncheckedTemplate = false;
           }
-          const dataAtCell = instance.getDataAtCell(visualRow, visualColumn);
+          const dataAtCell = hotInstance.getDataAtCell(visualRow, visualColumn);
           if (uncheckCheckbox === false) {
             if ([cachedCellProperties.checkedTemplate, cachedCellProperties.checkedTemplate.toString()].includes(dataAtCell)) {
               // eslint-disable-line max-len
               changes.push([visualRow, visualColumn, cachedCellProperties.uncheckedTemplate]);
-            } else if ([cachedCellProperties.uncheckedTemplate, cachedCellProperties.uncheckedTemplate.toString(), null, void 0].includes(dataAtCell)) {
+            } else if ([cachedCellProperties.uncheckedTemplate, cachedCellProperties.uncheckedTemplate.toString(), null, undefined].includes(dataAtCell)) {
               // eslint-disable-line max-len
               changes.push([visualRow, visualColumn, cachedCellProperties.checkedTemplate]);
             }
@@ -47656,7 +47923,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
         }
       }
       if (changes.length > 0) {
-        instance.setDataAtCell(changes);
+        hotInstance.setDataAtCell(changes);
       }
     }
   }
@@ -47668,7 +47935,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
    * @private
    */
   function areSelectedCheckboxCells() {
-    const selRange = instance.getSelectedRange();
+    const selRange = hotInstance.getSelectedRange();
     if (!selRange) {
       return;
     }
@@ -47677,12 +47944,12 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
       const bottomRight = selRange[key].getBottomEndCorner();
       for (let visualRow = topLeft.row; visualRow <= bottomRight.row; visualRow++) {
         for (let visualColumn = topLeft.col; visualColumn <= bottomRight.col; visualColumn++) {
-          const cachedCellProperties = instance.getCellMeta(visualRow, visualColumn);
+          const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
           if (cachedCellProperties.type !== 'checkbox') {
             return false;
           }
-          const cell = instance.getCell(visualRow, visualColumn);
-          if (cell === null || cell === void 0) {
+          const cell = hotInstance.getCell(visualRow, visualColumn);
+          if (cell === null || cell === undefined) {
             return true;
           } else {
             const checkboxes = cell.querySelectorAll('input[type=checkbox]');
@@ -47816,9 +48083,9 @@ function onChange(event, instance) {
   if (!cellProperties.readOnly) {
     let newCheckboxValue = null;
     if (event.target.checked) {
-      newCheckboxValue = cellProperties.uncheckedTemplate === void 0 ? true : cellProperties.checkedTemplate;
+      newCheckboxValue = cellProperties.uncheckedTemplate === undefined ? true : cellProperties.checkedTemplate;
     } else {
-      newCheckboxValue = cellProperties.uncheckedTemplate === void 0 ? false : cellProperties.uncheckedTemplate;
+      newCheckboxValue = cellProperties.uncheckedTemplate === undefined ? false : cellProperties.uncheckedTemplate;
     }
     instance.setDataAtCell(row, col, newCheckboxValue);
   }
@@ -47869,14 +48136,14 @@ exports.numericRenderer = numericRenderer;
 __webpack_require__(8);
 var _numbro = _interopRequireDefault(__webpack_require__(380));
 var _textRenderer = __webpack_require__(343);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 const RENDERER_TYPE = exports.RENDERER_TYPE = 'numeric';
 
 /**
  * Numeric cell renderer.
  *
  * @private
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {HTMLTableCellElement} TD The rendered cell element.
  * @param {number} row The visual row index.
  * @param {number} col The visual column index.
@@ -47884,7 +48151,7 @@ const RENDERER_TYPE = exports.RENDERER_TYPE = 'numeric';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
+function numericRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
   let newValue = value;
   if ((0, _number.isNumeric)(newValue)) {
     const numericFormat = cellProperties.numericFormat;
@@ -47910,7 +48177,7 @@ function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
     cellProperties.className = classArr.join(' ');
     TD.dir = 'ltr';
   }
-  (0, _textRenderer.textRenderer)(instance, TD, row, col, prop, newValue, cellProperties);
+  (0, _textRenderer.textRenderer)(hotInstance, TD, row, col, prop, newValue, cellProperties);
 }
 numericRenderer.RENDERER_TYPE = RENDERER_TYPE;
 
@@ -47944,12 +48211,12 @@ exports.__esModule = true;
 exports.passwordRenderer = passwordRenderer;
 var _textRenderer = __webpack_require__(343);
 var _element = __webpack_require__(107);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 const RENDERER_TYPE = exports.RENDERER_TYPE = 'password';
 
 /**
  * @private
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {HTMLTableCellElement} TD The rendered cell element.
  * @param {number} row The visual row index.
  * @param {number} col The visual column index.
@@ -47957,8 +48224,8 @@ const RENDERER_TYPE = exports.RENDERER_TYPE = 'password';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-function passwordRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  _textRenderer.textRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
+function passwordRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
+  _textRenderer.textRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
   const hashLength = cellProperties.hashLength || TD.innerHTML.length;
   const hashSymbol = cellProperties.hashSymbol || '*';
   let hash = '';
@@ -47997,7 +48264,7 @@ const RENDERER_TYPE = exports.RENDERER_TYPE = 'time';
  * Default time renderer.
  *
  * @private
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {HTMLTableCellElement} TD The rendered cell element.
  * @param {number} row The visual row index.
  * @param {number} col The visual column index.
@@ -48005,8 +48272,8 @@ const RENDERER_TYPE = exports.RENDERER_TYPE = 'time';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-function timeRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  _textRenderer.textRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
+function timeRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
+  _textRenderer.textRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
   TD.dir = 'ltr';
 }
 timeRenderer.RENDERER_TYPE = RENDERER_TYPE;
@@ -48032,7 +48299,7 @@ exports.NUMERIC_VALIDATOR = _numericValidator.VALIDATOR_TYPE;
 var _timeValidator = __webpack_require__(393);
 exports.timeValidator = _timeValidator.timeValidator;
 exports.TIME_VALIDATOR = _timeValidator.VALIDATOR_TYPE;
-var _registry = __webpack_require__(141);
+var _registry = __webpack_require__(145);
 exports.registerValidator = _registry.registerValidator;
 exports.getRegisteredValidatorNames = _registry.getRegisteredValidatorNames;
 exports.getRegisteredValidators = _registry.getRegisteredValidators;
@@ -48080,7 +48347,7 @@ const VALIDATOR_TYPE = exports.VALIDATOR_TYPE = 'autocomplete';
  */
 function autocompleteValidator(value, callback) {
   let valueToValidate = value;
-  if (valueToValidate === null || valueToValidate === void 0) {
+  if (valueToValidate === null || valueToValidate === undefined) {
     valueToValidate = '';
   }
   if (this.allowEmpty && valueToValidate === '') {
@@ -48145,7 +48412,7 @@ exports.__esModule = true;
 exports.correctFormat = correctFormat;
 exports.dateValidator = dateValidator;
 var _moment = _interopRequireDefault(__webpack_require__(111));
-var _registry = __webpack_require__(123);
+var _registry = __webpack_require__(127);
 var _dateEditor = __webpack_require__(355);
 var _date = __webpack_require__(390);
 const VALIDATOR_TYPE = exports.VALIDATOR_TYPE = 'date';
@@ -48161,7 +48428,7 @@ function dateValidator(value, callback) {
   const dateEditor = (0, _registry.getEditorInstance)(_dateEditor.EDITOR_TYPE, this.instance);
   let valueToValidate = value;
   let valid = true;
-  if (valueToValidate === null || valueToValidate === void 0) {
+  if (valueToValidate === null || valueToValidate === undefined) {
     valueToValidate = '';
   }
   let isValidFormat = (0, _moment.default)(valueToValidate, this.dateFormat || dateEditor.defaultDateFormat, true).isValid();
@@ -48261,7 +48528,7 @@ exports.numericValidator = _numericValidator.numericValidator;
 
 exports.__esModule = true;
 exports.numericValidator = numericValidator;
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 const VALIDATOR_TYPE = exports.VALIDATOR_TYPE = 'numeric';
 
 /**
@@ -48273,7 +48540,7 @@ const VALIDATOR_TYPE = exports.VALIDATOR_TYPE = 'numeric';
  */
 function numericValidator(value, callback) {
   let valueToValidate = value;
-  if (valueToValidate === null || valueToValidate === void 0) {
+  if (valueToValidate === null || valueToValidate === undefined) {
     valueToValidate = '';
   }
   if (this.allowEmpty && valueToValidate === '') {
@@ -48550,7 +48817,7 @@ const RENDERER_TYPE = exports.RENDERER_TYPE = 'date';
  * Handsontable renderer.
  *
  * @private
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {HTMLTableCellElement} TD The rendered cell element.
  * @param {number} row The visual row index.
  * @param {number} col The visual column index.
@@ -48558,9 +48825,9 @@ const RENDERER_TYPE = exports.RENDERER_TYPE = 'date';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-function dateRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  _autocompleteRenderer.autocompleteRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
-  if (instance.getSettings().ariaTags) {
+function dateRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
+  _autocompleteRenderer.autocompleteRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
+  if (hotInstance.getSettings().ariaTags) {
     (0, _element.setAttribute)(TD, [(0, _a11y.A11Y_HASPOPUP)('dialog'), (0, _a11y.A11Y_EXPANDED)('false')]);
   }
 }
@@ -48658,7 +48925,7 @@ const RENDERER_TYPE = exports.RENDERER_TYPE = 'handsontable';
  * Handsontable renderer.
  *
  * @private
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {HTMLTableCellElement} TD The rendered cell element.
  * @param {number} row The visual row index.
  * @param {number} col The visual column index.
@@ -48666,9 +48933,9 @@ const RENDERER_TYPE = exports.RENDERER_TYPE = 'handsontable';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-function handsontableRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  _autocompleteRenderer.autocompleteRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
-  if (instance.getSettings().ariaTags) {
+function handsontableRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
+  _autocompleteRenderer.autocompleteRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
+  if (hotInstance.getSettings().ariaTags) {
     (0, _element.setAttribute)(TD, [(0, _a11y.A11Y_HASPOPUP)('true'), (0, _a11y.A11Y_EXPANDED)('false')]);
   }
 }
@@ -48793,7 +49060,7 @@ const RENDERER_TYPE = exports.RENDERER_TYPE = 'select';
 
 /**
  * @private
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {HTMLTableCellElement} TD The rendered cell element.
  * @param {number} row The visual row index.
  * @param {number} col The visual column index.
@@ -48801,9 +49068,9 @@ const RENDERER_TYPE = exports.RENDERER_TYPE = 'select';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-function selectRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  _textRenderer.textRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
-  if (instance.getSettings().ariaTags) {
+function selectRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
+  _textRenderer.textRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
+  if (hotInstance.getSettings().ariaTags) {
     (0, _element.setAttribute)(TD, ...(0, _a11y.A11Y_HASPOPUP)('listbox'));
   }
 }
@@ -48917,7 +49184,7 @@ var _trimRows = __webpack_require__(663);
 exports.TrimRows = _trimRows.TrimRows;
 var _undoRedo = __webpack_require__(665);
 exports.UndoRedo = _undoRedo.UndoRedo;
-var _registry = __webpack_require__(135);
+var _registry = __webpack_require__(139);
 exports.registerPlugin = _registry.registerPlugin;
 exports.getPlugin = _registry.getPlugin;
 exports.getPluginsNames = _registry.getPluginsNames;
@@ -48983,22 +49250,29 @@ exports.AutoColumnSize = _autoColumnSize.AutoColumnSize;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+__webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
 var _base = __webpack_require__(423);
 var _array = __webpack_require__(113);
 var _feature = __webpack_require__(161);
 var _ghostTable = _interopRequireDefault(__webpack_require__(425));
-var _pluginHooks = _interopRequireDefault(__webpack_require__(124));
+var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 var _object = __webpack_require__(117);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 var _samplesGenerator = _interopRequireDefault(__webpack_require__(426));
 var _string = __webpack_require__(108);
 var _src = __webpack_require__(147);
 var _translations = __webpack_require__(221);
 var _mixed = __webpack_require__(110);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 _pluginHooks.default.getSingleton().register('modifyAutoColumnSizeSeed');
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'autoColumnSize';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 10;
-const privatePool = new WeakMap();
 const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -49098,6 +49372,13 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * :::
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
+var _cachedColumnHeaders = /*#__PURE__*/new WeakMap();
+var _onBeforeViewRender = /*#__PURE__*/new WeakSet();
+var _onAfterLoadData = /*#__PURE__*/new WeakSet();
+var _onBeforeChange = /*#__PURE__*/new WeakSet();
+var _onBeforeColumnResize = /*#__PURE__*/new WeakSet();
+var _onAfterInit = /*#__PURE__*/new WeakSet();
+var _onAfterFormulasValuesUpdate = /*#__PURE__*/new WeakSet();
 class AutoColumnSize extends _base.BasePlugin {
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
@@ -49114,25 +49395,50 @@ class AutoColumnSize extends _base.BasePlugin {
   static get SYNC_CALCULATION_LIMIT() {
     return 50;
   }
+
+  /**
+   * Instance of {@link GhostTable} for rows and columns size calculations.
+   *
+   * @private
+   * @type {GhostTable}
+   */
+
   constructor(hotInstance) {
     super(hotInstance);
-    privatePool.set(this, {
-      /**
-       * Cached column header names. It is used to diff current column headers with previous state and detect which
-       * columns width should be updated.
-       *
-       * @private
-       * @type {Array}
-       */
-      cachedColumnHeaders: []
-    });
     /**
-     * Instance of {@link GhostTable} for rows and columns size calculations.
+     * After formulas values updated listener.
      *
-     * @private
-     * @type {GhostTable}
+     * @param {Array} changes An array of modified data.
      */
-    this.ghostTable = new _ghostTable.default(this.hot);
+    _classPrivateMethodInitSpec(this, _onAfterFormulasValuesUpdate);
+    /**
+     * On after Handsontable init fill plugin with all necessary values.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterInit);
+    /**
+     * On before column resize listener.
+     *
+     * @param {number} size Calculated new column width.
+     * @param {number} column Visual index of the resized column.
+     * @param {boolean} isDblClick  Flag that determines whether there was a double-click.
+     * @returns {number}
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeColumnResize);
+    /**
+     * On before change listener.
+     *
+     * @param {Array} changes An array of modified data.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeChange);
+    /**
+     * On after load data listener.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterLoadData);
+    /**
+     * On before view render listener.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeViewRender);
+    (0, _defineProperty2.default)(this, "ghostTable", new _ghostTable.default(this.hot));
     /**
      * Instance of {@link SamplesGenerator} for generating samples necessary for columns width calculations.
      *
@@ -49140,7 +49446,7 @@ class AutoColumnSize extends _base.BasePlugin {
      * @type {SamplesGenerator}
      * @fires Hooks#modifyAutoColumnSizeSeed
      */
-    this.samplesGenerator = new _samplesGenerator.default((row, column) => {
+    (0, _defineProperty2.default)(this, "samplesGenerator", new _samplesGenerator.default((row, column) => {
       const cellMeta = this.hot.getCellMeta(row, column);
       let cellValue = '';
       if (!cellMeta.spanned) {
@@ -49154,38 +49460,48 @@ class AutoColumnSize extends _base.BasePlugin {
         value: cellValue,
         bundleSeed
       };
-    });
+    }));
     /**
      * `true` only if the first calculation was performed.
      *
      * @private
      * @type {boolean}
      */
-    this.firstCalculation = true;
+    (0, _defineProperty2.default)(this, "firstCalculation", true);
     /**
      * `true` if the size calculation is in progress.
      *
      * @type {boolean}
      */
-    this.inProgress = false;
+    (0, _defineProperty2.default)(this, "inProgress", false);
     /**
      * Number of already measured columns (we already know their sizes).
      *
      * @type {number}
      */
-    this.measuredColumns = 0;
+    (0, _defineProperty2.default)(this, "measuredColumns", 0);
     /**
      * PhysicalIndexToValueMap to keep and track widths for physical column indexes.
      *
      * @private
      * @type {PhysicalIndexToValueMap}
      */
-    this.columnWidthsMap = new _translations.PhysicalIndexToValueMap();
+    (0, _defineProperty2.default)(this, "columnWidthsMap", new _translations.PhysicalIndexToValueMap());
+    /**
+     * Cached column header names. It is used to diff current column headers with previous state and detect which
+     * columns width should be updated.
+     *
+     * @type {Array}
+     */
+    _classPrivateFieldInitSpec(this, _cachedColumnHeaders, {
+      writable: true,
+      value: []
+    });
     this.hot.columnIndexMapper.registerMap(COLUMN_SIZE_MAP_NAME, this.columnWidthsMap);
 
     // Leave the listener active to allow auto-sizing the columns when the plugin is disabled.
     // This is necessary for width recalculation for resize handler doubleclick (ManualColumnResize).
-    this.addHook('beforeColumnResize', (size, column, isDblClick) => this.onBeforeColumnResize(size, column, isDblClick));
+    this.addHook('beforeColumnResize', (size, column, isDblClick) => _classPrivateMethodGet(this, _onBeforeColumnResize, _onBeforeColumnResize2).call(this, size, column, isDblClick));
   }
 
   /**
@@ -49207,18 +49523,21 @@ class AutoColumnSize extends _base.BasePlugin {
       return;
     }
     const setting = this.hot.getSettings()[PLUGIN_KEY];
-    if (setting && setting.useHeaders !== null && setting.useHeaders !== void 0) {
+    if (setting && setting.useHeaders !== null && setting.useHeaders !== undefined) {
       this.ghostTable.setSetting('useHeaders', setting.useHeaders);
     }
     this.setSamplingOptions();
     this.addHook('afterLoadData', function () {
-      return _this.onAfterLoadData(...arguments);
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+      return _classPrivateMethodGet(_this, _onAfterLoadData, _onAfterLoadData2).call(_this, ...args);
     });
-    this.addHook('beforeChangeRender', changes => this.onBeforeChange(changes));
-    this.addHook('afterFormulasValuesUpdate', changes => this.onAfterFormulasValuesUpdate(changes));
-    this.addHook('beforeViewRender', force => this.onBeforeViewRender(force));
+    this.addHook('beforeChangeRender', changes => _classPrivateMethodGet(this, _onBeforeChange, _onBeforeChange2).call(this, changes));
+    this.addHook('afterFormulasValuesUpdate', changes => _classPrivateMethodGet(this, _onAfterFormulasValuesUpdate, _onAfterFormulasValuesUpdate2).call(this, changes));
+    this.addHook('beforeViewRender', force => _classPrivateMethodGet(this, _onBeforeViewRender, _onBeforeViewRender2).call(this, force));
     this.addHook('modifyColWidth', (width, col) => this.getColumnWidth(col, width));
-    this.addHook('afterInit', () => this.onAfterInit());
+    this.addHook('afterInit', () => _classPrivateMethodGet(this, _onAfterInit, _onAfterInit2).call(this));
     super.enablePlugin();
   }
 
@@ -49242,7 +49561,7 @@ class AutoColumnSize extends _base.BasePlugin {
 
     // Leave the listener active to allow auto-sizing the columns when the plugin is disabled.
     // This is necessary for width recalculation for resize handler doubleclick (ManualColumnResize).
-    this.addHook('beforeColumnResize', (size, column, isDblClick) => this.onBeforeColumnResize(size, column, isDblClick));
+    this.addHook('beforeColumnResize', (size, column, isDblClick) => _classPrivateMethodGet(this, _onBeforeColumnResize, _onBeforeColumnResize2).call(this, size, column, isDblClick));
   }
 
   /**
@@ -49264,7 +49583,7 @@ class AutoColumnSize extends _base.BasePlugin {
     this.calculateColumnsWidth({
       from: firstVisibleColumn,
       to: lastVisibleColumn
-    }, void 0, force);
+    }, undefined, force);
   }
 
   /**
@@ -49320,7 +49639,7 @@ class AutoColumnSize extends _base.BasePlugin {
 
   /**
    * Calculates all columns width. The calculated column will be cached in the {@link AutoColumnSize#widths} property.
-   * To retrieve width for specified column use {@link AutoColumnSize#getColumnWidth} method.
+   * To retrieve width for specified column use {@link AutoColumnSize##getColumnWidth} method.
    *
    * @param {object|number} rowRange Row index or an object with `from` and `to` properties which define row range.
    */
@@ -49381,8 +49700,8 @@ class AutoColumnSize extends _base.BasePlugin {
    */
   setSamplingOptions() {
     const setting = this.hot.getSettings()[PLUGIN_KEY];
-    const samplingRatio = setting && (0, _object.hasOwnProperty)(setting, 'samplingRatio') ? setting.samplingRatio : void 0;
-    const allowSampleDuplicates = setting && (0, _object.hasOwnProperty)(setting, 'allowSampleDuplicates') ? setting.allowSampleDuplicates : void 0;
+    const samplingRatio = setting && (0, _object.hasOwnProperty)(setting, 'samplingRatio') ? setting.samplingRatio : undefined;
+    const allowSampleDuplicates = setting && (0, _object.hasOwnProperty)(setting, 'allowSampleDuplicates') ? setting.allowSampleDuplicates : undefined;
     if (samplingRatio && !isNaN(samplingRatio)) {
       this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
     }
@@ -49433,10 +49752,10 @@ class AutoColumnSize extends _base.BasePlugin {
    * @returns {number}
    */
   getColumnWidth(column) {
-    let defaultWidth = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : void 0;
+    let defaultWidth = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : undefined;
     let keepMinimum = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
     let width = defaultWidth;
-    if (width === void 0) {
+    if (width === undefined) {
       width = this.columnWidthsMap.getValueAtIndex(this.hot.toPhysicalColumn(column));
       if (keepMinimum && typeof width === 'number') {
         width = Math.max(width, _src.ViewportColumnsCalculator.DEFAULT_WIDTH);
@@ -49504,18 +49823,15 @@ class AutoColumnSize extends _base.BasePlugin {
    */
   findColumnsWhereHeaderWasChanged() {
     const columnHeaders = this.hot.getColHeader();
-    const {
-      cachedColumnHeaders
-    } = privatePool.get(this);
     const changedColumns = (0, _array.arrayReduce)(columnHeaders, (acc, columnTitle, physicalColumn) => {
-      const cachedColumnsLength = cachedColumnHeaders.length;
-      if (cachedColumnsLength - 1 < physicalColumn || cachedColumnHeaders[physicalColumn] !== columnTitle) {
+      const cachedColumnsLength = (0, _classPrivateFieldGet2.default)(this, _cachedColumnHeaders).length;
+      if (cachedColumnsLength - 1 < physicalColumn || (0, _classPrivateFieldGet2.default)(this, _cachedColumnHeaders)[physicalColumn] !== columnTitle) {
         acc.push(physicalColumn);
       }
       if (cachedColumnsLength - 1 < physicalColumn) {
-        cachedColumnHeaders.push(columnTitle);
+        (0, _classPrivateFieldGet2.default)(this, _cachedColumnHeaders).push(columnTitle);
       } else {
-        cachedColumnHeaders[physicalColumn] = columnTitle;
+        (0, _classPrivateFieldGet2.default)(this, _cachedColumnHeaders)[physicalColumn] = columnTitle;
       }
       return acc;
     }, []);
@@ -49549,93 +49865,6 @@ class AutoColumnSize extends _base.BasePlugin {
   isNeedRecalculate() {
     return !!(0, _array.arrayFilter)(this.columnWidthsMap.getValues().slice(0, this.measuredColumns), item => item === null).length;
   }
-
-  /**
-   * On before view render listener.
-   *
-   * @private
-   */
-  onBeforeViewRender() {
-    this.calculateVisibleColumnsWidth();
-    if (this.isNeedRecalculate() && !this.inProgress) {
-      this.calculateAllColumnsWidth();
-    }
-  }
-
-  /**
-   * On after load data listener.
-   *
-   * @private
-   */
-  onAfterLoadData() {
-    if (this.hot.view) {
-      this.recalculateAllColumnsWidth();
-    } else {
-      // first load - initialization
-      setTimeout(() => {
-        if (this.hot) {
-          this.recalculateAllColumnsWidth();
-        }
-      }, 0);
-    }
-  }
-
-  /**
-   * On before change listener.
-   *
-   * @private
-   * @param {Array} changes An array of modified data.
-   */
-  onBeforeChange(changes) {
-    const changedColumns = (0, _array.arrayMap)(changes, _ref2 => {
-      let [, columnProperty] = _ref2;
-      return this.hot.toPhysicalColumn(this.hot.propToCol(columnProperty));
-    });
-    this.clearCache(Array.from(new Set(changedColumns)));
-  }
-
-  /**
-   * On before column resize listener.
-   *
-   * @private
-   * @param {number} size Calculated new column width.
-   * @param {number} column Visual index of the resized column.
-   * @param {boolean} isDblClick  Flag that determines whether there was a double-click.
-   * @returns {number}
-   */
-  onBeforeColumnResize(size, column, isDblClick) {
-    let newSize = size;
-    if (isDblClick) {
-      this.calculateColumnsWidth(column, void 0, true);
-      newSize = this.getColumnWidth(column, void 0, false);
-    }
-    return newSize;
-  }
-
-  /**
-   * On after Handsontable init fill plugin with all necessary values.
-   *
-   * @private
-   */
-  onAfterInit() {
-    privatePool.get(this).cachedColumnHeaders = this.hot.getColHeader();
-  }
-
-  /**
-   * After formulas values updated listener.
-   *
-   * @private
-   * @param {Array} changes An array of modified data.
-   */
-  onAfterFormulasValuesUpdate(changes) {
-    const filteredChanges = (0, _array.arrayFilter)(changes, change => {
-      var _change$address;
-      return (0, _mixed.isDefined)((_change$address = change.address) === null || _change$address === void 0 ? void 0 : _change$address.col);
-    });
-    const changedColumns = (0, _array.arrayMap)(filteredChanges, change => change.address.col);
-    this.clearCache(Array.from(new Set(changedColumns)));
-  }
-
   /**
    * Destroys the plugin instance.
    */
@@ -49645,6 +49874,50 @@ class AutoColumnSize extends _base.BasePlugin {
   }
 }
 exports.AutoColumnSize = AutoColumnSize;
+function _onBeforeViewRender2() {
+  this.calculateVisibleColumnsWidth();
+  if (this.isNeedRecalculate() && !this.inProgress) {
+    this.calculateAllColumnsWidth();
+  }
+}
+function _onAfterLoadData2() {
+  if (this.hot.view) {
+    this.recalculateAllColumnsWidth();
+  } else {
+    // first load - initialization
+    setTimeout(() => {
+      if (this.hot) {
+        this.recalculateAllColumnsWidth();
+      }
+    }, 0);
+  }
+}
+function _onBeforeChange2(changes) {
+  const changedColumns = (0, _array.arrayMap)(changes, _ref2 => {
+    let [, columnProperty] = _ref2;
+    return this.hot.toPhysicalColumn(this.hot.propToCol(columnProperty));
+  });
+  this.clearCache(Array.from(new Set(changedColumns)));
+}
+function _onBeforeColumnResize2(size, column, isDblClick) {
+  let newSize = size;
+  if (isDblClick) {
+    this.calculateColumnsWidth(column, undefined, true);
+    newSize = this.getColumnWidth(column, undefined, false);
+  }
+  return newSize;
+}
+function _onAfterInit2() {
+  (0, _classPrivateFieldSet2.default)(this, _cachedColumnHeaders, this.hot.getColHeader());
+}
+function _onAfterFormulasValuesUpdate2(changes) {
+  const filteredChanges = (0, _array.arrayFilter)(changes, change => {
+    var _change$address;
+    return (0, _mixed.isDefined)((_change$address = change.address) === null || _change$address === void 0 ? void 0 : _change$address.col);
+  });
+  const changedColumns = (0, _array.arrayMap)(filteredChanges, change => change.address.col);
+  this.clearCache(Array.from(new Set(changedColumns)));
+}
 
 /***/ }),
 /* 423 */
@@ -49665,29 +49938,34 @@ exports.BasePlugin = _base.BasePlugin;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
 __webpack_require__(8);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
 var _object = __webpack_require__(117);
 var _array = __webpack_require__(113);
-var _registry = __webpack_require__(135);
+var _registry = __webpack_require__(139);
 var _registry2 = __webpack_require__(269);
-var _registry3 = __webpack_require__(123);
-var _registry4 = __webpack_require__(140);
-var _registry5 = __webpack_require__(141);
+var _registry3 = __webpack_require__(127);
+var _registry4 = __webpack_require__(144);
+var _registry5 = __webpack_require__(145);
+var _eventManager = _interopRequireDefault(__webpack_require__(131));
 function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
 function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 const DEPS_TYPE_CHECKERS = new Map([['plugin', _registry.hasPlugin], ['cell-type', _registry2.hasCellType], ['editor', _registry3.hasEditor], ['renderer', _registry4.hasRenderer], ['validator', _registry5.hasValidator]]);
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'base';
-const privatePool = new WeakMap();
-const missingDependeciesMsgs = [];
+const missingDepsMsgs = [];
 let initializedPlugins = null;
 
 /**
  * @util
  * @property {Core} hot Handsontable instance.
  */
+var _hooks = /*#__PURE__*/new WeakMap();
 var _isRelevantToSettings = /*#__PURE__*/new WeakSet();
 class BasePlugin {
   static get PLUGIN_KEY() {
@@ -49708,6 +49986,12 @@ class BasePlugin {
   }
 
   /**
+   * The instance of the {@link EventManager} class.
+   *
+   * @type {EventManager}
+   */
+
+  /**
    * @param {object} hotInstance Handsontable instance.
    */
   constructor(hotInstance) {
@@ -49721,6 +50005,34 @@ class BasePlugin {
      * @returns {boolean}
      */
     _classPrivateMethodInitSpec(this, _isRelevantToSettings);
+    (0, _defineProperty2.default)(this, "eventManager", new _eventManager.default(this));
+    /**
+     * @type {string}
+     */
+    (0, _defineProperty2.default)(this, "pluginName", null);
+    /**
+     * @type {Function[]}
+     */
+    (0, _defineProperty2.default)(this, "pluginsInitializedCallbacks", []);
+    /**
+     * @type {boolean}
+     */
+    (0, _defineProperty2.default)(this, "isPluginsReady", false);
+    /**
+     * @type {boolean}
+     */
+    (0, _defineProperty2.default)(this, "enabled", false);
+    /**
+     * @type {boolean}
+     */
+    (0, _defineProperty2.default)(this, "initialized", false);
+    /**
+     * Collection of the reference to the plugins hooks.
+     */
+    _classPrivateFieldInitSpec(this, _hooks, {
+      writable: true,
+      value: {}
+    });
     /**
      * Handsontable instance.
      *
@@ -49729,15 +50041,7 @@ class BasePlugin {
     (0, _object.defineGetter)(this, 'hot', hotInstance, {
       writable: false
     });
-    privatePool.set(this, {
-      hooks: {}
-    });
     initializedPlugins = null;
-    this.pluginName = null;
-    this.pluginsInitializedCallbacks = [];
-    this.isPluginsReady = false;
-    this.enabled = false;
-    this.initialized = false;
     this.hot.addHook('afterPluginsInitialized', () => this.onAfterPluginsInitialized());
     this.hot.addHook('afterUpdateSettings', newSettings => this.onUpdateSettings(newSettings));
     this.hot.addHook('beforeInit', () => this.init());
@@ -49745,10 +50049,10 @@ class BasePlugin {
   init() {
     this.pluginName = this.hot.getPluginName(this);
     const pluginDeps = this.constructor.PLUGIN_DEPS;
-    const dependecies = Array.isArray(pluginDeps) ? pluginDeps : [];
-    if (dependecies.length > 0) {
+    const deps = Array.isArray(pluginDeps) ? pluginDeps : [];
+    if (deps.length > 0) {
       const missingDependencies = [];
-      dependecies.forEach(dependency => {
+      deps.forEach(dependency => {
         const [type, moduleName] = dependency.split(':');
         if (!DEPS_TYPE_CHECKERS.has(type)) {
           throw new Error(`Unknown plugin dependency type "${type}" was found.`);
@@ -49759,7 +50063,7 @@ class BasePlugin {
       });
       if (missingDependencies.length > 0) {
         const errorMsg = [`The ${this.pluginName} plugin requires the following modules:\n`, `${missingDependencies.join('\n')}\n`].join('');
-        missingDependeciesMsgs.push(errorMsg);
+        missingDepsMsgs.push(errorMsg);
       }
     }
     if (!initializedPlugins) {
@@ -49782,8 +50086,8 @@ class BasePlugin {
     });
     const isAllPluginsAreInitialized = initializedPlugins.length === 0;
     if (isAllPluginsAreInitialized) {
-      if (missingDependeciesMsgs.length > 0) {
-        const errorMsg = [`${missingDependeciesMsgs.join('\n')}\n`, 'You have to import and register them manually.'].join('');
+      if (missingDepsMsgs.length > 0) {
+        const errorMsg = [`${missingDepsMsgs.join('\n')}\n`, 'You have to import and register them manually.'].join('');
         throw new Error(errorMsg);
       }
       this.hot.runHooks('afterPluginsInitialized');
@@ -49802,9 +50106,8 @@ class BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
-    if (this.eventManager) {
-      this.eventManager.clear();
-    }
+    var _this$eventManager;
+    (_this$eventManager = this.eventManager) === null || _this$eventManager === void 0 || _this$eventManager.clear();
     this.clearHooks();
     this.enabled = false;
   }
@@ -49816,11 +50119,11 @@ class BasePlugin {
    * @param {Function} callback The listener function to add.
    */
   addHook(name, callback) {
-    privatePool.get(this).hooks[name] = privatePool.get(this).hooks[name] || [];
-    const hooks = privatePool.get(this).hooks[name];
+    (0, _classPrivateFieldGet2.default)(this, _hooks)[name] = (0, _classPrivateFieldGet2.default)(this, _hooks)[name] || [];
+    const hooks = (0, _classPrivateFieldGet2.default)(this, _hooks)[name];
     this.hot.addHook(name, callback);
     hooks.push(callback);
-    privatePool.get(this).hooks[name] = hooks;
+    (0, _classPrivateFieldGet2.default)(this, _hooks)[name] = hooks;
   }
 
   /**
@@ -49829,7 +50132,7 @@ class BasePlugin {
    * @param {string} name The hook name.
    */
   removeHooks(name) {
-    (0, _array.arrayEach)(privatePool.get(this).hooks[name] || [], callback => {
+    (0, _array.arrayEach)((0, _classPrivateFieldGet2.default)(this, _hooks)[name] || [], callback => {
       this.hot.removeHook(name, callback);
     });
   }
@@ -49838,7 +50141,7 @@ class BasePlugin {
    * Clear all hooks.
    */
   clearHooks() {
-    const hooks = privatePool.get(this).hooks;
+    const hooks = (0, _classPrivateFieldGet2.default)(this, _hooks);
     (0, _object.objectEach)(hooks, (callbacks, name) => this.removeHooks(name));
     hooks.length = 0;
   }
@@ -49898,9 +50201,8 @@ class BasePlugin {
    * Destroy plugin.
    */
   destroy() {
-    if (this.eventManager) {
-      this.eventManager.destroy();
-    }
+    var _this$eventManager2;
+    (_this$eventManager2 = this.eventManager) === null || _this$eventManager2 === void 0 || _this$eventManager2.destroy();
     this.clearHooks();
     (0, _object.objectEach)(this, (value, property) => {
       if (property !== 'hot') {
@@ -49926,7 +50228,7 @@ function _isRelevantToSettings2(settings) {
     return settingKeys;
   }
   for (let i = 0; i < settingKeys.length; i++) {
-    if (settings[settingKeys[i]] !== void 0) {
+    if (settings[settingKeys[i]] !== undefined) {
       return true;
     }
   }
@@ -49944,7 +50246,7 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
 __webpack_require__(8);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _element = __webpack_require__(107);
 var _array = __webpack_require__(113);
 /**
@@ -50033,7 +50335,7 @@ class GhostTable {
    */
   addColumnHeadersRow(samples) {
     const colHeader = this.hot.getColHeader(0);
-    if (colHeader !== null && colHeader !== void 0) {
+    if (colHeader !== null && colHeader !== undefined) {
       const rowObject = {
         row: -1
       };
@@ -50285,7 +50587,7 @@ class GhostTable {
    */
   clean() {
     this.rows.length = 0;
-    this.rows[-1] = void 0;
+    this.rows[-1] = undefined;
     this.columns.length = 0;
     if (this.samples) {
       this.samples.clear();
@@ -50439,9 +50741,9 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
 __webpack_require__(8);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _object = __webpack_require__(117);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 var _mixed = __webpack_require__(110);
 /**
  * @class SamplesGenerator
@@ -50645,12 +50947,16 @@ exports.Autofill = _autofill.Autofill;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+__webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _base = __webpack_require__(423);
-var _pluginHooks = _interopRequireDefault(__webpack_require__(124));
+var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 var _element = __webpack_require__(107);
 var _array = __webpack_require__(113);
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
 var _utils = __webpack_require__(429);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 _pluginHooks.default.getSingleton().register('modifyAutofillRange');
 _pluginHooks.default.getSingleton().register('beforeAutofill');
 _pluginHooks.default.getSingleton().register('afterAutofill');
@@ -50674,8 +50980,83 @@ const INTERVAL_FOR_ADDING_ROW = 200;
  * @class Autofill
  * @plugin Autofill
  */
-
+var _onCellCornerDblClick = /*#__PURE__*/new WeakSet();
+var _onAfterCellCornerMouseDown = /*#__PURE__*/new WeakSet();
+var _onBeforeCellMouseOver = /*#__PURE__*/new WeakSet();
+var _onMouseUp = /*#__PURE__*/new WeakSet();
+var _onMouseMove = /*#__PURE__*/new WeakSet();
 class Autofill extends _base.BasePlugin {
+  constructor() {
+    super(...arguments);
+    /**
+     * On mouse move listener.
+     *
+     * @param {MouseEvent} event `mousemove` event properties.
+     */
+    _classPrivateMethodInitSpec(this, _onMouseMove);
+    /**
+     * On mouse up listener.
+     */
+    _classPrivateMethodInitSpec(this, _onMouseUp);
+    /**
+     * On before cell mouse over listener.
+     *
+     * @param {CellCoords} coords `CellCoords` coord object.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeCellMouseOver);
+    /**
+     * On after cell corner mouse down listener.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterCellCornerMouseDown);
+    /**
+     * On cell corner double click callback.
+     *
+     * @private
+     */
+    _classPrivateMethodInitSpec(this, _onCellCornerDblClick);
+    /**
+     * Specifies if adding new row started.
+     *
+     * @private
+     * @type {boolean}
+     */
+    (0, _defineProperty2.default)(this, "addingStarted", false);
+    /**
+     * Specifies if there was mouse down on the cell corner.
+     *
+     * @private
+     * @type {boolean}
+     */
+    (0, _defineProperty2.default)(this, "mouseDownOnCellCorner", false);
+    /**
+     * Specifies if mouse was dragged outside Handsontable.
+     *
+     * @private
+     * @type {boolean}
+     */
+    (0, _defineProperty2.default)(this, "mouseDragOutside", false);
+    /**
+     * Specifies how many cell levels were dragged using the handle.
+     *
+     * @private
+     * @type {boolean}
+     */
+    (0, _defineProperty2.default)(this, "handleDraggedCells", 0);
+    /**
+     * Specifies allowed directions of drag (`'horizontal'` or '`vertical`').
+     *
+     * @private
+     * @type {string[]}
+     */
+    (0, _defineProperty2.default)(this, "directions", []);
+    /**
+     * Specifies if can insert new rows if needed.
+     *
+     * @private
+     * @type {boolean}
+     */
+    (0, _defineProperty2.default)(this, "autoInsertRow", false);
+  }
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
@@ -50685,58 +51066,6 @@ class Autofill extends _base.BasePlugin {
   static get SETTING_KEYS() {
     return [PLUGIN_KEY, ...SETTING_KEYS];
   }
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * Event manager instance.
-     *
-     * @private
-     * @type {EventManager}
-     */
-    this.eventManager = new _eventManager.default(this);
-    /**
-     * Specifies if adding new row started.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.addingStarted = false;
-    /**
-     * Specifies if there was mouse down on the cell corner.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.mouseDownOnCellCorner = false;
-    /**
-     * Specifies if mouse was dragged outside Handsontable.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.mouseDragOutside = false;
-    /**
-     * Specifies how many cell levels were dragged using the handle.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.handleDraggedCells = 0;
-    /**
-     * Specifies allowed directions of drag (`'horizontal'` or '`vertical`').
-     *
-     * @private
-     * @type {string[]}
-     */
-    this.directions = [];
-    /**
-     * Specifies if can insert new rows if needed.
-     *
-     * @type {boolean}
-     */
-    this.autoInsertRow = false;
-  }
-
   /**
    * Checks if the plugin is enabled in the Handsontable settings.
    *
@@ -50755,9 +51084,9 @@ class Autofill extends _base.BasePlugin {
     }
     this.mapSettings();
     this.registerEvents();
-    this.addHook('afterOnCellCornerMouseDown', event => this.onAfterCellCornerMouseDown(event));
-    this.addHook('afterOnCellCornerDblClick', event => this.onCellCornerDblClick(event));
-    this.addHook('beforeOnCellMouseOver', (_, coords) => this.onBeforeCellMouseOver(coords));
+    this.addHook('afterOnCellCornerMouseDown', event => _classPrivateMethodGet(this, _onAfterCellCornerMouseDown, _onAfterCellCornerMouseDown2).call(this, event));
+    this.addHook('afterOnCellCornerDblClick', event => _classPrivateMethodGet(this, _onCellCornerDblClick, _onCellCornerDblClick2).call(this, event));
+    this.addHook('beforeOnCellMouseOver', (_, coords) => _classPrivateMethodGet(this, _onBeforeCellMouseOver, _onBeforeCellMouseOver2).call(this, coords));
     super.enablePlugin();
   }
 
@@ -50968,7 +51297,7 @@ class Autofill extends _base.BasePlugin {
    */
   addRow() {
     this.hot._registerTimeout(() => {
-      this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME, void 0, 1, `${this.pluginName}.fill`);
+      this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME, undefined, 1, `${this.pluginName}.fill`);
       this.addingStarted = false;
     }, INTERVAL_FOR_ADDING_ROW);
   }
@@ -51048,7 +51377,7 @@ class Autofill extends _base.BasePlugin {
   selectAdjacent() {
     const cornersOfSelectedCells = this.hot.getSelectedLast();
     const lastFilledInRowIndex = this.getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells);
-    if (lastFilledInRowIndex === -1 || lastFilledInRowIndex === void 0) {
+    if (lastFilledInRowIndex === -1 || lastFilledInRowIndex === undefined) {
       return false;
     }
     this.addSelectionFromStartAreaToSpecificRowIndex(cornersOfSelectedCells, lastFilledInRowIndex);
@@ -51101,80 +51430,9 @@ class Autofill extends _base.BasePlugin {
     const {
       documentElement
     } = this.hot.rootDocument;
-    this.eventManager.addEventListener(documentElement, 'mouseup', () => this.onMouseUp());
-    this.eventManager.addEventListener(documentElement, 'mousemove', event => this.onMouseMove(event));
+    this.eventManager.addEventListener(documentElement, 'mouseup', () => _classPrivateMethodGet(this, _onMouseUp, _onMouseUp2).call(this));
+    this.eventManager.addEventListener(documentElement, 'mousemove', event => _classPrivateMethodGet(this, _onMouseMove, _onMouseMove2).call(this, event));
   }
-
-  /**
-   * On cell corner double click callback.
-   *
-   * @private
-   */
-  onCellCornerDblClick() {
-    const selectionApplied = this.selectAdjacent();
-    if (selectionApplied) {
-      this.fillIn();
-    }
-  }
-
-  /**
-   * On after cell corner mouse down listener.
-   *
-   * @private
-   */
-  onAfterCellCornerMouseDown() {
-    this.handleDraggedCells = 1;
-    this.mouseDownOnCellCorner = true;
-  }
-
-  /**
-   * On before cell mouse over listener.
-   *
-   * @private
-   * @param {CellCoords} coords `CellCoords` coord object.
-   */
-  onBeforeCellMouseOver(coords) {
-    if (this.mouseDownOnCellCorner && !this.hot.view.isMouseDown() && this.handleDraggedCells) {
-      this.handleDraggedCells += 1;
-      this.showBorder(coords);
-      this.addNewRowIfNeeded();
-    }
-  }
-
-  /**
-   * On mouse up listener.
-   *
-   * @private
-   */
-  onMouseUp() {
-    if (this.handleDraggedCells) {
-      if (this.handleDraggedCells > 1) {
-        this.fillIn();
-      }
-      this.handleDraggedCells = 0;
-      this.mouseDownOnCellCorner = false;
-    }
-  }
-
-  /**
-   * On mouse move listener.
-   *
-   * @private
-   * @param {MouseEvent} event `mousemove` event properties.
-   */
-  onMouseMove(event) {
-    const mouseWasDraggedOutside = this.getIfMouseWasDraggedOutside(event);
-    if (this.addingStarted === false && this.handleDraggedCells > 0 && mouseWasDraggedOutside) {
-      this.mouseDragOutside = true;
-      this.addingStarted = true;
-    } else {
-      this.mouseDragOutside = false;
-    }
-    if (this.mouseDragOutside && this.autoInsertRow) {
-      this.addRow();
-    }
-  }
-
   /**
    * Clears mapped settings.
    *
@@ -51204,6 +51462,44 @@ class Autofill extends _base.BasePlugin {
   }
 }
 exports.Autofill = Autofill;
+function _onCellCornerDblClick2() {
+  const selectionApplied = this.selectAdjacent();
+  if (selectionApplied) {
+    this.fillIn();
+  }
+}
+function _onAfterCellCornerMouseDown2() {
+  this.handleDraggedCells = 1;
+  this.mouseDownOnCellCorner = true;
+}
+function _onBeforeCellMouseOver2(coords) {
+  if (this.mouseDownOnCellCorner && !this.hot.view.isMouseDown() && this.handleDraggedCells) {
+    this.handleDraggedCells += 1;
+    this.showBorder(coords);
+    this.addNewRowIfNeeded();
+  }
+}
+function _onMouseUp2() {
+  if (this.handleDraggedCells) {
+    if (this.handleDraggedCells > 1) {
+      this.fillIn();
+    }
+    this.handleDraggedCells = 0;
+    this.mouseDownOnCellCorner = false;
+  }
+}
+function _onMouseMove2(event) {
+  const mouseWasDraggedOutside = this.getIfMouseWasDraggedOutside(event);
+  if (this.addingStarted === false && this.handleDraggedCells > 0 && mouseWasDraggedOutside) {
+    this.mouseDragOutside = true;
+    this.addingStarted = true;
+  } else {
+    this.mouseDragOutside = false;
+  }
+  if (this.mouseDragOutside && this.autoInsertRow) {
+    this.addRow();
+  }
+}
 
 /***/ }),
 /* 429 */
@@ -51326,16 +51622,21 @@ exports.AutoRowSize = _autoRowSize.AutoRowSize;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+__webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _base = __webpack_require__(423);
 var _array = __webpack_require__(113);
 var _feature = __webpack_require__(161);
 var _element = __webpack_require__(107);
 var _ghostTable = _interopRequireDefault(__webpack_require__(425));
 var _object = __webpack_require__(117);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 var _samplesGenerator = _interopRequireDefault(__webpack_require__(426));
 var _string = __webpack_require__(108);
 var _translations = __webpack_require__(221);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'autoRowSize';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 40;
 const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
@@ -51424,6 +51725,10 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  * :::
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
+var _onBeforeViewRender = /*#__PURE__*/new WeakSet();
+var _onBeforeRowResize = /*#__PURE__*/new WeakSet();
+var _onAfterLoadData = /*#__PURE__*/new WeakSet();
+var _onBeforeChange = /*#__PURE__*/new WeakSet();
 class AutoRowSize extends _base.BasePlugin {
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
@@ -51440,36 +51745,54 @@ class AutoRowSize extends _base.BasePlugin {
   static get SYNC_CALCULATION_LIMIT() {
     return 500;
   }
+
+  /**
+   * Columns header's height cache.
+   *
+   * @private
+   * @type {number}
+   */
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * PhysicalIndexToValueMap to keep and track heights for physical row indexes.
+     * On before change listener.
      *
-     * @private
-     * @type {PhysicalIndexToValueMap}
+     * @param {Array} changes 2D array containing information about each of the edited cells.
      */
-    this.rowHeightsMap = void 0;
+    _classPrivateMethodInitSpec(this, _onBeforeChange);
     /**
-     * Columns header's height cache.
-     *
-     * @private
-     * @type {number}
+     * On after load data listener.
      */
-    this.headerHeight = null;
+    _classPrivateMethodInitSpec(this, _onAfterLoadData);
+    /**
+     * On before row resize listener.
+     *
+     * @param {number} size The size of the current row index.
+     * @param {number} row Current row index.
+     * @param {boolean} isDblClick Indicates if the resize was triggered by doubleclick.
+     * @returns {number}
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeRowResize);
+    /**
+     * On before view render listener.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeViewRender);
+    (0, _defineProperty2.default)(this, "headerHeight", null);
     /**
      * Instance of {@link GhostTable} for rows and columns size calculations.
      *
      * @private
      * @type {GhostTable}
      */
-    this.ghostTable = new _ghostTable.default(this.hot);
+    (0, _defineProperty2.default)(this, "ghostTable", new _ghostTable.default(this.hot));
     /**
      * Instance of {@link SamplesGenerator} for generating samples necessary for rows height calculations.
      *
      * @private
      * @type {SamplesGenerator}
      */
-    this.samplesGenerator = new _samplesGenerator.default((row, column) => {
+    (0, _defineProperty2.default)(this, "samplesGenerator", new _samplesGenerator.default((row, column) => {
       if (row >= 0 && column >= 0) {
         const cellMeta = this.hot.getCellMeta(row, column);
         if (cellMeta.hidden) {
@@ -51486,38 +51809,38 @@ class AutoRowSize extends _base.BasePlugin {
       return {
         value: cellValue
       };
-    });
+    }));
     /**
      * `true` if only the first calculation was performed.
      *
      * @private
      * @type {boolean}
      */
-    this.firstCalculation = true;
+    (0, _defineProperty2.default)(this, "firstCalculation", true);
     /**
      * `true` if the size calculation is in progress.
      *
      * @type {boolean}
      */
-    this.inProgress = false;
+    (0, _defineProperty2.default)(this, "inProgress", false);
     /**
      * Number of already measured rows (we already know their sizes).
      *
      * @type {number}
      */
-    this.measuredRows = 0;
+    (0, _defineProperty2.default)(this, "measuredRows", 0);
     /**
      * PhysicalIndexToValueMap to keep and track heights for physical row indexes.
      *
      * @private
      * @type {PhysicalIndexToValueMap}
      */
-    this.rowHeightsMap = new _translations.PhysicalIndexToValueMap();
+    (0, _defineProperty2.default)(this, "rowHeightsMap", new _translations.PhysicalIndexToValueMap());
     this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
 
     // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
     // This is necessary for height recalculation for resize handler doubleclick (ManualRowResize).
-    this.addHook('beforeRowResize', (size, row, isDblClick) => this.onBeforeRowResize(size, row, isDblClick));
+    this.addHook('beforeRowResize', (size, row, isDblClick) => _classPrivateMethodGet(this, _onBeforeRowResize, _onBeforeRowResize2).call(this, size, row, isDblClick));
   }
 
   /**
@@ -51541,11 +51864,14 @@ class AutoRowSize extends _base.BasePlugin {
     }
     this.setSamplingOptions();
     this.addHook('afterLoadData', function () {
-      return _this.onAfterLoadData(...arguments);
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+      return _classPrivateMethodGet(_this, _onAfterLoadData, _onAfterLoadData2).call(_this, ...args);
     });
-    this.addHook('beforeChangeRender', changes => this.onBeforeChange(changes));
+    this.addHook('beforeChangeRender', changes => _classPrivateMethodGet(this, _onBeforeChange, _onBeforeChange2).call(this, changes));
     this.addHook('beforeColumnResize', () => this.recalculateAllRowsHeight());
-    this.addHook('beforeViewRender', force => this.onBeforeViewRender(force));
+    this.addHook('beforeViewRender', force => _classPrivateMethodGet(this, _onBeforeViewRender, _onBeforeViewRender2).call(this, force));
     this.addHook('modifyRowHeight', (height, row) => this.getRowHeight(row, height));
     this.addHook('modifyColumnHeaderHeight', () => this.getColumnHeaderHeight());
     super.enablePlugin();
@@ -51560,7 +51886,7 @@ class AutoRowSize extends _base.BasePlugin {
 
     // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
     // This is necesseary for height recalculation for resize handler doubleclick (ManualRowResize).
-    this.addHook('beforeRowResize', (size, row, isDblClick) => this.onBeforeRowResize(size, row, isDblClick));
+    this.addHook('beforeRowResize', (size, row, isDblClick) => _classPrivateMethodGet(this, _onBeforeRowResize, _onBeforeRowResize2).call(this, size, row, isDblClick));
   }
 
   /**
@@ -51688,8 +52014,8 @@ class AutoRowSize extends _base.BasePlugin {
    */
   setSamplingOptions() {
     const setting = this.hot.getSettings()[PLUGIN_KEY];
-    const samplingRatio = setting && (0, _object.hasOwnProperty)(setting, 'samplingRatio') ? setting.samplingRatio : void 0;
-    const allowSampleDuplicates = setting && (0, _object.hasOwnProperty)(setting, 'allowSampleDuplicates') ? setting.allowSampleDuplicates : void 0;
+    const samplingRatio = setting && (0, _object.hasOwnProperty)(setting, 'samplingRatio') ? setting.samplingRatio : undefined;
+    const allowSampleDuplicates = setting && (0, _object.hasOwnProperty)(setting, 'allowSampleDuplicates') ? setting.allowSampleDuplicates : undefined;
     if (samplingRatio && !isNaN(samplingRatio)) {
       this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
     }
@@ -51745,7 +52071,7 @@ class AutoRowSize extends _base.BasePlugin {
    * @returns {number} The height of the specified row, in pixels.
    */
   getRowHeight(row) {
-    let defaultHeight = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : void 0;
+    let defaultHeight = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : undefined;
     const cachedHeight = row < 0 ? this.headerHeight : this.rowHeightsMap.getValueAtIndex(this.hot.toPhysicalRow(row));
     let height = defaultHeight;
     if (cachedHeight !== null && cachedHeight > (defaultHeight || 0)) {
@@ -51831,110 +52157,6 @@ class AutoRowSize extends _base.BasePlugin {
   isNeedRecalculate() {
     return !!(0, _array.arrayFilter)(this.rowHeightsMap.getValues().slice(0, this.measuredRows), item => item === null).length;
   }
-
-  /**
-   * On before view render listener.
-   *
-   * @private
-   */
-  onBeforeViewRender() {
-    const force = this.hot.renderCall;
-    const fixedRowsBottom = this.hot.getSettings().fixedRowsBottom;
-    const firstVisibleRow = this.getFirstVisibleRow();
-    const lastVisibleRow = this.getLastVisibleRow();
-    if (firstVisibleRow === -1 || lastVisibleRow === -1) {
-      return;
-    }
-    this.calculateRowsHeight({
-      from: firstVisibleRow,
-      to: lastVisibleRow
-    }, void 0, force);
-
-    // Calculate rows height synchronously for bottom overlay
-    if (fixedRowsBottom) {
-      const totalRows = this.hot.countRows() - 1;
-      this.calculateRowsHeight({
-        from: totalRows - fixedRowsBottom,
-        to: totalRows
-      });
-    }
-    if (this.isNeedRecalculate() && !this.inProgress) {
-      this.calculateAllRowsHeight();
-    }
-  }
-
-  /**
-   * On before row move listener.
-   *
-   * @private
-   * @param {number} from Row index where was grabbed.
-   * @param {number} to Destination row index.
-   */
-  onBeforeRowMove(from, to) {
-    this.clearCacheByRange({
-      from,
-      to
-    });
-    this.calculateAllRowsHeight();
-  }
-
-  /**
-   * On before row resize listener.
-   *
-   * @private
-   * @param {number} size The size of the current row index.
-   * @param {number} row Current row index.
-   * @param {boolean} isDblClick Indicates if the resize was triggered by doubleclick.
-   * @returns {number}
-   */
-  onBeforeRowResize(size, row, isDblClick) {
-    let newSize = size;
-    if (isDblClick) {
-      this.calculateRowsHeight(row, void 0, true);
-      newSize = this.getRowHeight(row);
-    }
-    return newSize;
-  }
-
-  /**
-   * On after load data listener.
-   *
-   * @private
-   */
-  onAfterLoadData() {
-    if (this.hot.view) {
-      this.recalculateAllRowsHeight();
-    } else {
-      // first load - initialization
-      this.hot._registerTimeout(() => {
-        if (this.hot) {
-          this.recalculateAllRowsHeight();
-        }
-      });
-    }
-  }
-
-  /**
-   * On before change listener.
-   *
-   * @private
-   * @param {Array} changes 2D array containing information about each of the edited cells.
-   */
-  onBeforeChange(changes) {
-    let range = null;
-    if (changes.length === 1) {
-      range = changes[0][0];
-    } else if (changes.length > 1) {
-      range = {
-        from: changes[0][0],
-        to: changes[changes.length - 1][0]
-      };
-    }
-    if (range !== null) {
-      this.clearCacheByRange(range);
-    }
-  }
-
   /**
    * Destroys the plugin instance.
    */
@@ -51944,6 +52166,65 @@ class AutoRowSize extends _base.BasePlugin {
   }
 }
 exports.AutoRowSize = AutoRowSize;
+function _onBeforeViewRender2() {
+  const force = this.hot.renderCall;
+  const fixedRowsBottom = this.hot.getSettings().fixedRowsBottom;
+  const firstVisibleRow = this.getFirstVisibleRow();
+  const lastVisibleRow = this.getLastVisibleRow();
+  if (firstVisibleRow === -1 || lastVisibleRow === -1) {
+    return;
+  }
+  this.calculateRowsHeight({
+    from: firstVisibleRow,
+    to: lastVisibleRow
+  }, undefined, force);
+
+  // Calculate rows height synchronously for bottom overlay
+  if (fixedRowsBottom) {
+    const totalRows = this.hot.countRows() - 1;
+    this.calculateRowsHeight({
+      from: totalRows - fixedRowsBottom,
+      to: totalRows
+    });
+  }
+  if (this.isNeedRecalculate() && !this.inProgress) {
+    this.calculateAllRowsHeight();
+  }
+}
+function _onBeforeRowResize2(size, row, isDblClick) {
+  let newSize = size;
+  if (isDblClick) {
+    this.calculateRowsHeight(row, undefined, true);
+    newSize = this.getRowHeight(row);
+  }
+  return newSize;
+}
+function _onAfterLoadData2() {
+  if (this.hot.view) {
+    this.recalculateAllRowsHeight();
+  } else {
+    // first load - initialization
+    this.hot._registerTimeout(() => {
+      if (this.hot) {
+        this.recalculateAllRowsHeight();
+      }
+    });
+  }
+}
+function _onBeforeChange2(changes) {
+  let range = null;
+  if (changes.length === 1) {
+    range = changes[0][0];
+  } else if (changes.length > 1) {
+    range = {
+      from: changes[0][0],
+      to: changes[changes.length - 1][0]
+    };
+  }
+  if (range !== null) {
+    this.clearCacheByRange(range);
+  }
+}
 
 /***/ }),
 /* 432 */
@@ -51967,9 +52248,14 @@ exports.BindRowsWithHeaders = _bindRowsWithHeaders.BindRowsWithHeaders;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+__webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _base = __webpack_require__(423);
 var _looseBindsMap = _interopRequireDefault(__webpack_require__(434));
 var _strictBindsMap = _interopRequireDefault(__webpack_require__(435));
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'bindRowsWithHeaders';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 210;
 const DEFAULT_BIND = 'loose';
@@ -52007,24 +52293,31 @@ const bindTypeToMapStrategy = new Map([['loose', _looseBindsMap.default], ['stri
  * ```
  * :::
  */
+var _onModifyRowHeader = /*#__PURE__*/new WeakSet();
 class BindRowsWithHeaders extends _base.BasePlugin {
-  static get PLUGIN_KEY() {
-    return PLUGIN_KEY;
-  }
-  static get PLUGIN_PRIORITY() {
-    return PLUGIN_PRIORITY;
-  }
-  constructor(hotInstance) {
-    super(hotInstance);
+  constructor() {
+    super(...arguments);
+    /**
+     * On modify row header listener.
+     *
+     * @param {number} row Row index.
+     * @returns {number}
+     */
+    _classPrivateMethodInitSpec(this, _onModifyRowHeader);
     /**
      * Plugin indexes cache.
      *
      * @private
      * @type {null|IndexMap}
      */
-    this.headerIndexes = null;
+    (0, _defineProperty2.default)(this, "headerIndexes", null);
   }
-
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link BindRowsWithHeaders#enablePlugin} method is called.
@@ -52048,7 +52341,7 @@ class BindRowsWithHeaders extends _base.BasePlugin {
     }
     const MapStrategy = bindTypeToMapStrategy.get(bindType);
     this.headerIndexes = this.hot.rowIndexMapper.registerMap('bindRowsWithHeaders', new MapStrategy());
-    this.addHook('modifyRowHeader', row => this.onModifyRowHeader(row));
+    this.addHook('modifyRowHeader', row => _classPrivateMethodGet(this, _onModifyRowHeader, _onModifyRowHeader2).call(this, row));
     super.enablePlugin();
   }
 
@@ -52059,18 +52352,6 @@ class BindRowsWithHeaders extends _base.BasePlugin {
     this.hot.rowIndexMapper.unregisterMap('bindRowsWithHeaders');
     super.disablePlugin();
   }
-
-  /**
-   * On modify row header listener.
-   *
-   * @private
-   * @param {number} row Row index.
-   * @returns {number}
-   */
-  onModifyRowHeader(row) {
-    return this.headerIndexes.getValueAtIndex(this.hot.toPhysicalRow(row));
-  }
-
   /**
    * Destroys the plugin instance.
    */
@@ -52079,6 +52360,9 @@ class BindRowsWithHeaders extends _base.BasePlugin {
   }
 }
 exports.BindRowsWithHeaders = BindRowsWithHeaders;
+function _onModifyRowHeader2(row) {
+  return this.headerIndexes.getValueAtIndex(this.hot.toPhysicalRow(row));
+}
 
 /***/ }),
 /* 434 */
@@ -52210,20 +52494,21 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
 __webpack_require__(8);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _base = __webpack_require__(423);
 var _array = __webpack_require__(113);
-var _number = __webpack_require__(137);
-var _console = __webpack_require__(125);
+var _number = __webpack_require__(141);
+var _console = __webpack_require__(129);
 var _element = __webpack_require__(107);
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
-var _event = __webpack_require__(122);
+var _event = __webpack_require__(126);
 var _a11y = __webpack_require__(114);
 var _constants = __webpack_require__(245);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'collapsibleColumns';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 290;
 const SETTING_KEYS = ['nestedHeaders'];
@@ -52311,9 +52596,41 @@ const actionDictionary = new Map([['collapse', {
  * :::
  */
 var _collapsedColumnsMap = /*#__PURE__*/new WeakMap();
+var _onAfterGetColHeader = /*#__PURE__*/new WeakSet();
+var _onBeforeOnCellMouseDown = /*#__PURE__*/new WeakSet();
+var _onInit = /*#__PURE__*/new WeakSet();
+var _onAfterLoadData = /*#__PURE__*/new WeakSet();
 class CollapsibleColumns extends _base.BasePlugin {
   constructor() {
     super(...arguments);
+    /**
+     * Updates the plugin state after new dataset load.
+     *
+     * @param {Array[]} sourceData Array of arrays or array of objects containing data.
+     * @param {boolean} initialLoad Flag that determines whether the data has been loaded
+     *                              during the initialization.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterLoadData);
+    /**
+     * Updates the plugin state after HoT initialization.
+     */
+    _classPrivateMethodInitSpec(this, _onInit);
+    /**
+     * Indicator mouse event callback.
+     *
+     * @param {object} event Mouse event.
+     * @param {object} coords Event coordinates.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeOnCellMouseDown);
+    /**
+     * Adds the indicator to the headers.
+     *
+     * @param {number} column Column index.
+     * @param {HTMLElement} TH TH element.
+     * @param {number} headerLevel The index of header level counting from the top (positive
+     *                             values counting from 0 to N).
+     */
+    _classPrivateMethodInitSpec(this, _onAfterGetColHeader);
     /**
      * Cached reference to the NestedHeaders plugin.
      *
@@ -52321,13 +52638,6 @@ class CollapsibleColumns extends _base.BasePlugin {
      * @type {NestedHeaders}
      */
     (0, _defineProperty2.default)(this, "nestedHeadersPlugin", null);
-    /**
-     * Event manager instance reference.
-     *
-     * @private
-     * @type {EventManager}
-     */
-    (0, _defineProperty2.default)(this, "eventManager", new _eventManager.default(this));
     /**
      * The NestedHeaders plugin StateManager instance.
      *
@@ -52385,14 +52695,20 @@ class CollapsibleColumns extends _base.BasePlugin {
     (0, _classPrivateFieldSet2.default)(this, _collapsedColumnsMap, this.hot.columnIndexMapper.createAndRegisterIndexMap(this.pluginName, 'hiding'));
     this.nestedHeadersPlugin = this.hot.getPlugin('nestedHeaders');
     this.headerStateManager = this.nestedHeadersPlugin.getStateManager();
-    this.addHook('init', () => this.onInit());
+    this.addHook('init', () => _classPrivateMethodGet(this, _onInit, _onInit2).call(this));
     this.addHook('afterLoadData', function () {
-      return _this.onAfterLoadData(...arguments);
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+      return _classPrivateMethodGet(_this, _onAfterLoadData, _onAfterLoadData2).call(_this, ...args);
     });
     this.addHook('afterGetColHeader', function () {
-      return _this.onAfterGetColHeader(...arguments);
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+      return _classPrivateMethodGet(_this, _onAfterGetColHeader, _onAfterGetColHeader2).call(_this, ...args);
     });
-    this.addHook('beforeOnCellMouseDown', (event, coords, TD) => this.onBeforeOnCellMouseDown(event, coords, TD));
+    this.addHook('beforeOnCellMouseDown', (event, coords, TD) => _classPrivateMethodGet(this, _onBeforeOnCellMouseDown, _onBeforeOnCellMouseDown2).call(this, event, coords, TD));
     this.registerShortcuts();
     super.enablePlugin();
     // @TODO: Workaround for broken plugin initialization abstraction (#6806).
@@ -52686,104 +53002,6 @@ class CollapsibleColumns extends _base.BasePlugin {
   getCollapsedColumns() {
     return (0, _classPrivateFieldGet2.default)(this, _collapsedColumnsMap).getHiddenIndexes();
   }
-
-  /**
-   * Adds the indicator to the headers.
-   *
-   * @private
-   * @param {number} column Column index.
-   * @param {HTMLElement} TH TH element.
-   * @param {number} headerLevel The index of header level counting from the top (positive
-   *                             values counting from 0 to N).
-   */
-  onAfterGetColHeader(column, TH, headerLevel) {
-    var _this$headerStateMana3;
-    const {
-      collapsible,
-      origColspan,
-      isCollapsed
-    } = (_this$headerStateMana3 = this.headerStateManager.getHeaderSettings(headerLevel, column)) !== null && _this$headerStateMana3 !== void 0 ? _this$headerStateMana3 : {};
-    const isNodeCollapsible = collapsible && origColspan > 1 && column >= this.hot.getSettings().fixedColumnsStart;
-    const isAriaTagsEnabled = this.hot.getSettings().ariaTags;
-    let collapsibleElement = TH.querySelector(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
-    (0, _element.removeAttribute)(TH, [(0, _a11y.A11Y_EXPANDED)('')[0]]);
-    if (isNodeCollapsible) {
-      if (!collapsibleElement) {
-        collapsibleElement = this.hot.rootDocument.createElement('div');
-        (0, _element.addClass)(collapsibleElement, COLLAPSIBLE_ELEMENT_CLASS);
-        TH.querySelector('div:first-child').appendChild(collapsibleElement);
-      }
-      (0, _element.removeClass)(collapsibleElement, ['collapsed', 'expanded']);
-      if (isCollapsed) {
-        (0, _element.addClass)(collapsibleElement, 'collapsed');
-        (0, _element.fastInnerText)(collapsibleElement, '+');
-
-        // Add ARIA tags
-        if (isAriaTagsEnabled) {
-          (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_EXPANDED)(false), (0, _a11y.A11Y_DESCRIPTION)(this.hot.getTranslatedPhrase(_constants.COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN))]);
-        }
-      } else {
-        (0, _element.addClass)(collapsibleElement, 'expanded');
-        (0, _element.fastInnerText)(collapsibleElement, '-');
-
-        // Add ARIA tags
-        if (isAriaTagsEnabled) {
-          (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_EXPANDED)(true), (0, _a11y.A11Y_DESCRIPTION)(this.hot.getTranslatedPhrase(_constants.COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN))]);
-        }
-      }
-      if (isAriaTagsEnabled) {
-        (0, _element.setAttribute)(collapsibleElement, ...(0, _a11y.A11Y_HIDDEN)());
-      }
-    } else {
-      var _collapsibleElement;
-      (_collapsibleElement = collapsibleElement) === null || _collapsibleElement === void 0 || _collapsibleElement.remove();
-    }
-  }
-
-  /**
-   * Indicator mouse event callback.
-   *
-   * @private
-   * @param {object} event Mouse event.
-   * @param {object} coords Event coordinates.
-   */
-  onBeforeOnCellMouseDown(event, coords) {
-    if ((0, _element.hasClass)(event.target, COLLAPSIBLE_ELEMENT_CLASS)) {
-      if ((0, _element.hasClass)(event.target, 'expanded')) {
-        this.eventManager.fireEvent(event.target, 'mouseup');
-        this.toggleCollapsibleSection([coords], 'collapse');
-      } else if ((0, _element.hasClass)(event.target, 'collapsed')) {
-        this.eventManager.fireEvent(event.target, 'mouseup');
-        this.toggleCollapsibleSection([coords], 'expand');
-      }
-      (0, _event.stopImmediatePropagation)(event);
-    }
-  }
-
-  /**
-   * Updates the plugin state after HoT initialization.
-   *
-   * @private
-   */
-  onInit() {
-    // @TODO: Workaround for broken plugin initialization abstraction (#6806).
-    this.updatePlugin();
-  }
-
-  /**
-   * Updates the plugin state after new dataset load.
-   *
-   * @private
-   * @param {Array[]} sourceData Array of arrays or array of objects containing data.
-   * @param {boolean} initialLoad Flag that determines whether the data has been loaded
-   *                              during the initialization.
-   */
-  onAfterLoadData(sourceData, initialLoad) {
-    if (!initialLoad) {
-      this.updatePlugin();
-    }
-  }
-
   /**
    * Destroys the plugin instance.
    */
@@ -52793,6 +53011,70 @@ class CollapsibleColumns extends _base.BasePlugin {
   }
 }
 exports.CollapsibleColumns = CollapsibleColumns;
+function _onAfterGetColHeader2(column, TH, headerLevel) {
+  var _this$headerStateMana3;
+  const {
+    collapsible,
+    origColspan,
+    isCollapsed
+  } = (_this$headerStateMana3 = this.headerStateManager.getHeaderSettings(headerLevel, column)) !== null && _this$headerStateMana3 !== void 0 ? _this$headerStateMana3 : {};
+  const isNodeCollapsible = collapsible && origColspan > 1 && column >= this.hot.getSettings().fixedColumnsStart;
+  const isAriaTagsEnabled = this.hot.getSettings().ariaTags;
+  let collapsibleElement = TH.querySelector(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
+  (0, _element.removeAttribute)(TH, [(0, _a11y.A11Y_EXPANDED)('')[0]]);
+  if (isNodeCollapsible) {
+    if (!collapsibleElement) {
+      collapsibleElement = this.hot.rootDocument.createElement('div');
+      (0, _element.addClass)(collapsibleElement, COLLAPSIBLE_ELEMENT_CLASS);
+      TH.querySelector('div:first-child').appendChild(collapsibleElement);
+    }
+    (0, _element.removeClass)(collapsibleElement, ['collapsed', 'expanded']);
+    if (isCollapsed) {
+      (0, _element.addClass)(collapsibleElement, 'collapsed');
+      (0, _element.fastInnerText)(collapsibleElement, '+');
+
+      // Add ARIA tags
+      if (isAriaTagsEnabled) {
+        (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_EXPANDED)(false), (0, _a11y.A11Y_DESCRIPTION)(this.hot.getTranslatedPhrase(_constants.COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN))]);
+      }
+    } else {
+      (0, _element.addClass)(collapsibleElement, 'expanded');
+      (0, _element.fastInnerText)(collapsibleElement, '-');
+
+      // Add ARIA tags
+      if (isAriaTagsEnabled) {
+        (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_EXPANDED)(true), (0, _a11y.A11Y_DESCRIPTION)(this.hot.getTranslatedPhrase(_constants.COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN))]);
+      }
+    }
+    if (isAriaTagsEnabled) {
+      (0, _element.setAttribute)(collapsibleElement, ...(0, _a11y.A11Y_HIDDEN)());
+    }
+  } else {
+    var _collapsibleElement;
+    (_collapsibleElement = collapsibleElement) === null || _collapsibleElement === void 0 || _collapsibleElement.remove();
+  }
+}
+function _onBeforeOnCellMouseDown2(event, coords) {
+  if ((0, _element.hasClass)(event.target, COLLAPSIBLE_ELEMENT_CLASS)) {
+    if ((0, _element.hasClass)(event.target, 'expanded')) {
+      this.eventManager.fireEvent(event.target, 'mouseup');
+      this.toggleCollapsibleSection([coords], 'collapse');
+    } else if ((0, _element.hasClass)(event.target, 'collapsed')) {
+      this.eventManager.fireEvent(event.target, 'mouseup');
+      this.toggleCollapsibleSection([coords], 'expand');
+    }
+    (0, _event.stopImmediatePropagation)(event);
+  }
+}
+function _onInit2() {
+  // @TODO: Workaround for broken plugin initialization abstraction (#6806).
+  this.updatePlugin();
+}
+function _onAfterLoadData2(sourceData, initialLoad) {
+  if (!initialLoad) {
+    this.updatePlugin();
+  }
+}
 
 /***/ }),
 /* 438 */
@@ -52819,6 +53101,8 @@ exports.REPLACE_COLUMN_CONFIG_STRATEGY = _columnSorting.REPLACE_COLUMN_CONFIG_ST
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+__webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _element = __webpack_require__(107);
 var _mixed = __webpack_require__(110);
 var _object = __webpack_require__(117);
@@ -52826,7 +53110,7 @@ var _function = __webpack_require__(115);
 var _array = __webpack_require__(113);
 var _base = __webpack_require__(423);
 var _translations = __webpack_require__(221);
-var _pluginHooks = _interopRequireDefault(__webpack_require__(124));
+var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 var _columnStatesManager = __webpack_require__(440);
 var _utils = __webpack_require__(441);
 var _domHelpers = __webpack_require__(442);
@@ -52834,6 +53118,9 @@ var _rootComparator = __webpack_require__(443);
 var _sortService = __webpack_require__(444);
 var _a11y = __webpack_require__(114);
 var _constants = __webpack_require__(245);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'columnSorting';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 50;
 const APPEND_COLUMN_CONFIG_STRATEGY = exports.APPEND_COLUMN_CONFIG_STRATEGY = 'append';
@@ -52894,45 +53181,75 @@ _pluginHooks.default.getSingleton().register('afterColumnSort');
  * }]
  * ```
  */
+var _loadOrSortBySettings = /*#__PURE__*/new WeakSet();
+var _onAfterGetColHeader = /*#__PURE__*/new WeakSet();
+var _onAfterLoadData = /*#__PURE__*/new WeakSet();
+var _onBeforeOnCellMouseDown = /*#__PURE__*/new WeakSet();
 class ColumnSorting extends _base.BasePlugin {
-  static get PLUGIN_KEY() {
-    return PLUGIN_KEY;
-  }
-  static get PLUGIN_PRIORITY() {
-    return PLUGIN_PRIORITY;
-  }
-  constructor(hotInstance) {
-    super(hotInstance);
+  constructor() {
+    super(...arguments);
+    /**
+     * Changes the behavior of selection / dragging.
+     *
+     * @param {MouseEvent} event The `mousedown` event.
+     * @param {CellCoords} coords Visual coordinates.
+     * @param {HTMLElement} TD The cell element.
+     * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+     *                            a boolean value that allows or disallows changing the selection for that particular area.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeOnCellMouseDown);
+    /**
+     * Callback for the `afterLoadData` hook.
+     *
+     * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterLoadData);
+    /**
+     * Callback for the `onAfterGetColHeader` hook. Adds column sorting CSS classes.
+     *
+     * @param {number} column Visual column index.
+     * @param {Element} TH TH HTML element.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterGetColHeader);
+    /**
+     * Load saved settings or sort by predefined plugin configuration.
+     */
+    _classPrivateMethodInitSpec(this, _loadOrSortBySettings);
     /**
      * Instance of column state manager.
      *
      * @private
      * @type {null|ColumnStatesManager}
      */
-    this.columnStatesManager = null;
+    (0, _defineProperty2.default)(this, "columnStatesManager", null);
     /**
      * Cached column properties from plugin like i.e. `indicator`, `headerAction`.
      *
      * @private
      * @type {null|PhysicalIndexToValueMap}
      */
-    this.columnMetaCache = null;
+    (0, _defineProperty2.default)(this, "columnMetaCache", null);
     /**
      * Main settings key designed for the plugin.
      *
      * @private
      * @type {string}
      */
-    this.pluginKey = PLUGIN_KEY;
+    (0, _defineProperty2.default)(this, "pluginKey", PLUGIN_KEY);
     /**
      * Plugin indexes cache.
      *
      * @private
      * @type {null|IndexesSequence}
      */
-    this.indexesSequenceCache = null;
+    (0, _defineProperty2.default)(this, "indexesSequenceCache", null);
   }
-
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
   /**
    * Checks if the plugin is enabled in the Handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link ColumnSorting#enablePlugin} method is called.
@@ -52960,19 +53277,25 @@ class ColumnSorting extends _base.BasePlugin {
       return this.getMergedPluginSettings(visualIndex);
     });
     this.hot.columnIndexMapper.registerMap(`${this.pluginKey}.columnMeta`, this.columnMetaCache);
-    this.addHook('afterGetColHeader', (column, TH) => this.onAfterGetColHeader(column, TH));
+    this.addHook('afterGetColHeader', (column, TH) => _classPrivateMethodGet(this, _onAfterGetColHeader, _onAfterGetColHeader2).call(this, column, TH));
     this.addHook('beforeOnCellMouseDown', function () {
-      return _this.onBeforeOnCellMouseDown(...arguments);
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeOnCellMouseDown, _onBeforeOnCellMouseDown2).call(_this, ...args);
     });
     this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
-    this.addHook('afterInit', () => this.loadOrSortBySettings());
+    this.addHook('afterInit', () => _classPrivateMethodGet(this, _loadOrSortBySettings, _loadOrSortBySettings2).call(this));
     this.addHook('afterLoadData', function () {
-      return _this.onAfterLoadData(...arguments);
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+      return _classPrivateMethodGet(_this, _onAfterLoadData, _onAfterLoadData2).call(_this, ...args);
     });
 
     // TODO: Workaround? It should be refactored / described.
     if (this.hot.view) {
-      this.loadOrSortBySettings();
+      _classPrivateMethodGet(this, _loadOrSortBySettings, _loadOrSortBySettings2).call(this);
     }
     this.registerShortcuts();
     super.enablePlugin();
@@ -53027,7 +53350,8 @@ class ColumnSorting extends _base.BasePlugin {
       },
       runOnlyIf: () => {
         var _this$hot$getSelected;
-        return (_this$hot$getSelected = this.hot.getSelectedRangeLast()) === null || _this$hot$getSelected === void 0 ? void 0 : _this$hot$getSelected.highlight.isHeader();
+        const highlight = (_this$hot$getSelected = this.hot.getSelectedRangeLast()) === null || _this$hot$getSelected === void 0 ? void 0 : _this$hot$getSelected.highlight;
+        return highlight && this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
       },
       group: SHORTCUTS_GROUP
     });
@@ -53409,22 +53733,6 @@ class ColumnSorting extends _base.BasePlugin {
     });
     this.hot.rowIndexMapper.setIndexesSequence(newIndexesSequence);
   }
-
-  /**
-   * Load saved settings or sort by predefined plugin configuration.
-   *
-   * @private
-   */
-  loadOrSortBySettings() {
-    const storedAllSortSettings = this.getAllSavedSortSettings();
-    if ((0, _object.isObject)(storedAllSortSettings)) {
-      this.sortBySettings(storedAllSortSettings);
-    } else {
-      const allSortSettings = this.hot.getSettings()[this.pluginKey];
-      this.sortBySettings(allSortSettings);
-    }
-  }
-
   /**
    * Sort the table by provided configuration.
    *
@@ -53444,31 +53752,6 @@ class ColumnSorting extends _base.BasePlugin {
       this.hot.render();
     }
   }
-
-  /**
-   * Callback for the `onAfterGetColHeader` hook. Adds column sorting CSS classes.
-   *
-   * @private
-   * @param {number} column Visual column index.
-   * @param {Element} TH TH HTML element.
-   */
-  onAfterGetColHeader(column, TH) {
-    const headerSpanElement = (0, _utils.getHeaderSpanElement)(TH);
-    if ((0, _utils.isFirstLevelColumnHeader)(column, TH) === false || headerSpanElement === null) {
-      return;
-    }
-    const pluginSettingsForColumn = this.getFirstCellSettings(column)[this.pluginKey];
-    const ariaTags = this.hot.getSettings().ariaTags;
-    const showSortIndicator = pluginSettingsForColumn.indicator;
-    const headerActionEnabled = pluginSettingsForColumn.headerAction;
-    const currentSortState = this.columnStatesManager.getSortOrderOfColumn(column);
-    this.updateHeaderClasses(headerSpanElement, this.columnStatesManager, column, showSortIndicator, headerActionEnabled);
-    this.updateSortingIndicator(column, headerSpanElement);
-    if (ariaTags) {
-      (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_SORT)(currentSortState ? `${currentSortState}ending` : 'none'), (0, _a11y.A11Y_DESCRIPTION)(this.hot.getTranslatedPhrase(_constants.COLUMN_HEADER_DESCRIPTION_SORT_ROWS))]);
-    }
-  }
-
   /**
    * Update header classes.
    *
@@ -53479,8 +53762,8 @@ class ColumnSorting extends _base.BasePlugin {
   updateHeaderClasses(headerSpanElement) {
     (0, _element.removeClass)(headerSpanElement, (0, _domHelpers.getClassesToRemove)(headerSpanElement));
     if (this.enabled !== false) {
-      for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-        args[_key - 1] = arguments[_key];
+      for (var _len3 = arguments.length, args = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+        args[_key3 - 1] = arguments[_key3];
       }
       (0, _element.addClass)(headerSpanElement, (0, _domHelpers.getClassesToAdd)(...args));
     }
@@ -53525,22 +53808,6 @@ class ColumnSorting extends _base.BasePlugin {
       this.sortBySettings(newSettings[this.pluginKey]);
     }
   }
-
-  /**
-   * Callback for the `afterLoadData` hook.
-   *
-   * @private
-   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
-   */
-  onAfterLoadData(initialLoad) {
-    if (initialLoad === true) {
-      // TODO: Workaround? It should be refactored / described.
-      if (this.hot.view) {
-        this.loadOrSortBySettings();
-      }
-    }
-  }
-
   /**
    * Indicates if clickable header was clicked.
    *
@@ -53554,26 +53821,6 @@ class ColumnSorting extends _base.BasePlugin {
     const headerActionEnabled = pluginSettingsForColumn.headerAction;
     return headerActionEnabled && event.target.nodeName === 'SPAN';
   }
-
-  /**
-   * Changes the behavior of selection / dragging.
-   *
-   * @private
-   * @param {MouseEvent} event The `mousedown` event.
-   * @param {CellCoords} coords Visual coordinates.
-   * @param {HTMLElement} TD The cell element.
-   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
-   *                            a boolean value that allows or disallows changing the selection for that particular area.
-   */
-  onBeforeOnCellMouseDown(event, coords, TD, controller) {
-    if ((0, _utils.wasHeaderClickedProperly)(coords.row, coords.col, event) === false) {
-      return;
-    }
-    if (this.wasClickableHeaderClicked(event, coords.col) && this.hot.getShortcutManager().isCtrlPressed()) {
-      controller.column = true;
-    }
-  }
-
   /**
    * Callback for the `onAfterOnCellMouseDown` hook.
    *
@@ -53606,6 +53853,47 @@ class ColumnSorting extends _base.BasePlugin {
   }
 }
 exports.ColumnSorting = ColumnSorting;
+function _loadOrSortBySettings2() {
+  const storedAllSortSettings = this.getAllSavedSortSettings();
+  if ((0, _object.isObject)(storedAllSortSettings)) {
+    this.sortBySettings(storedAllSortSettings);
+  } else {
+    const allSortSettings = this.hot.getSettings()[this.pluginKey];
+    this.sortBySettings(allSortSettings);
+  }
+}
+function _onAfterGetColHeader2(column, TH) {
+  const headerSpanElement = (0, _utils.getHeaderSpanElement)(TH);
+  if ((0, _utils.isFirstLevelColumnHeader)(column, TH) === false || headerSpanElement === null) {
+    return;
+  }
+  const pluginSettingsForColumn = this.getFirstCellSettings(column)[this.pluginKey];
+  const ariaTags = this.hot.getSettings().ariaTags;
+  const showSortIndicator = pluginSettingsForColumn.indicator;
+  const headerActionEnabled = pluginSettingsForColumn.headerAction;
+  const currentSortState = this.columnStatesManager.getSortOrderOfColumn(column);
+  this.updateHeaderClasses(headerSpanElement, this.columnStatesManager, column, showSortIndicator, headerActionEnabled);
+  this.updateSortingIndicator(column, headerSpanElement);
+  if (ariaTags) {
+    (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_SORT)(currentSortState ? `${currentSortState}ending` : 'none'), (0, _a11y.A11Y_DESCRIPTION)(this.hot.getTranslatedPhrase(_constants.COLUMN_HEADER_DESCRIPTION_SORT_ROWS))]);
+  }
+}
+function _onAfterLoadData2(initialLoad) {
+  if (initialLoad === true) {
+    // TODO: Workaround? It should be refactored / described.
+    if (this.hot.view) {
+      _classPrivateMethodGet(this, _loadOrSortBySettings, _loadOrSortBySettings2).call(this);
+    }
+  }
+}
+function _onBeforeOnCellMouseDown2(event, coords, TD, controller) {
+  if ((0, _utils.wasHeaderClickedProperly)(coords.row, coords.col, event) === false) {
+    return;
+  }
+  if (this.wasClickableHeaderClicked(event, coords.col) && this.hot.getShortcutManager().isCtrlPressed()) {
+    controller.column = true;
+  }
+}
 
 /***/ }),
 /* 440 */
@@ -53614,7 +53902,9 @@ exports.ColumnSorting = ColumnSorting;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _object = __webpack_require__(117);
 var _translations = __webpack_require__(221);
 var _mixed = __webpack_require__(110);
@@ -53636,40 +53926,42 @@ class ColumnStatesManager {
      *
      * @type {Core}
      */
-    this.hot = hot;
+    (0, _defineProperty2.default)(this, "hot", void 0);
     /**
      * Index map storing sorting states for every column. ColumnStatesManager write and read to/from this element.
      *
      * @type {LinkedPhysicalIndexToValueMap}
      */
-    this.sortingStates = new _translations.LinkedPhysicalIndexToValueMap();
+    (0, _defineProperty2.default)(this, "sortingStates", new _translations.LinkedPhysicalIndexToValueMap());
     /**
      * Determines whether we should sort empty cells.
      *
      * @type {boolean}
      */
-    this.sortEmptyCells = SORT_EMPTY_CELLS_DEFAULT;
+    (0, _defineProperty2.default)(this, "sortEmptyCells", SORT_EMPTY_CELLS_DEFAULT);
     /**
      * Determines whether indicator should be visible (for sorted columns).
      *
      * @type {boolean}
      */
-    this.indicator = SHOW_SORT_INDICATOR_DEFAULT;
+    (0, _defineProperty2.default)(this, "indicator", SHOW_SORT_INDICATOR_DEFAULT);
     /**
      * Determines whether click on the header perform sorting.
      *
      * @type {boolean}
      */
-    this.headerAction = HEADER_ACTION_DEFAULT;
+    (0, _defineProperty2.default)(this, "headerAction", HEADER_ACTION_DEFAULT);
     /**
      * Determines compare function factory. Method get as parameters `sortOder` and `columnMeta` and return compare function.
      */
-    this.compareFunctionFactory = void 0;
+    (0, _defineProperty2.default)(this, "compareFunctionFactory", void 0);
     /**
      * Name of map storing sorting states. Required for unique name (PR #7440 introduced it). It's needed as
      * both ColumnSorting and MultiColumnSorting plugins create state manager and as a consequence register maps.
      * Objects are destroyed in strange order as the updateSettings doesn't work well.
      */
+    (0, _defineProperty2.default)(this, "mapName", void 0);
+    this.hot = hot;
     this.mapName = mapName;
     this.hot.columnIndexMapper.registerMap(mapName, this.sortingStates);
   }
@@ -53839,7 +54131,7 @@ exports.getNextSortOrder = getNextSortOrder;
 exports.isFirstLevelColumnHeader = isFirstLevelColumnHeader;
 exports.wasHeaderClickedProperly = wasHeaderClickedProperly;
 var _object = __webpack_require__(117);
-var _event = __webpack_require__(122);
+var _event = __webpack_require__(126);
 const ASC_SORT_STATE = exports.ASC_SORT_STATE = 'asc';
 const DESC_SORT_STATE = exports.DESC_SORT_STATE = 'desc';
 const HEADER_SPAN_CLASS = exports.HEADER_SPAN_CLASS = 'colHeader';
@@ -54065,7 +54357,7 @@ var _default = __webpack_require__(446);
 var _numeric = __webpack_require__(447);
 var _checkbox = __webpack_require__(448);
 var _date = __webpack_require__(449);
-var _staticRegister = _interopRequireDefault(__webpack_require__(126));
+var _staticRegister = _interopRequireDefault(__webpack_require__(130));
 const {
   register: registerCompareFunctionFactory,
   getItem: getGloballyCompareFunctionFactory,
@@ -54408,11 +54700,15 @@ exports.ColumnSummary = _columnSummary.ColumnSummary;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _base = __webpack_require__(423);
 var _object = __webpack_require__(117);
 var _endpoints = _interopRequireDefault(__webpack_require__(453));
 var _templateLiteralTag = __webpack_require__(112);
 var _utils = __webpack_require__(454);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'columnSummary';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 220;
 
@@ -54502,24 +54798,45 @@ const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 220;
  * ```
  * :::
  */
+var _onAfterInit = /*#__PURE__*/new WeakSet();
+var _onAfterChange = /*#__PURE__*/new WeakSet();
+var _onAfterRowMove = /*#__PURE__*/new WeakSet();
 class ColumnSummary extends _base.BasePlugin {
-  static get PLUGIN_KEY() {
-    return PLUGIN_KEY;
-  }
-  static get PLUGIN_PRIORITY() {
-    return PLUGIN_PRIORITY;
-  }
-  constructor(hotInstance) {
-    super(hotInstance);
+  constructor() {
+    super(...arguments);
+    /**
+     * `beforeRowMove` hook callback.
+     *
+     * @param {Array} rows Array of visual row indexes to be moved.
+     * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
+     * To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md).
+     */
+    _classPrivateMethodInitSpec(this, _onAfterRowMove);
+    /**
+     * `afterChange` hook callback.
+     *
+     * @param {Array} changes 2D array containing information about each of the edited cells.
+     * @param {string} source The string that identifies source of changes.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterChange);
+    /**
+     * `afterInit` hook callback.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterInit);
     /**
      * The Endpoints class instance. Used to make all endpoint-related operations.
      *
      * @private
      * @type {null|Endpoints}
      */
-    this.endpoints = null;
+    (0, _defineProperty2.default)(this, "endpoints", null);
   }
-
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link ColumnSummary#enablePlugin} method is called.
@@ -54541,41 +54858,50 @@ class ColumnSummary extends _base.BasePlugin {
     this.settings = this.hot.getSettings()[PLUGIN_KEY];
     this.endpoints = new _endpoints.default(this, this.settings);
     this.addHook('afterInit', function () {
-      return _this.onAfterInit(...arguments);
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+      return _classPrivateMethodGet(_this, _onAfterInit, _onAfterInit2).call(_this, ...args);
     });
     this.addHook('afterChange', function () {
-      return _this.onAfterChange(...arguments);
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+      return _classPrivateMethodGet(_this, _onAfterChange, _onAfterChange2).call(_this, ...args);
     });
     this.addHook('beforeCreateRow', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_row', index, amount, null, source)); // eslint-disable-line max-len
     this.addHook('beforeCreateCol', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_col', index, amount, null, source)); // eslint-disable-line max-len
     this.addHook('beforeRemoveRow', function () {
-      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
+      for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        args[_key3] = arguments[_key3];
       }
       return _this.endpoints.resetSetupBeforeStructureAlteration('remove_row', ...args);
     });
     this.addHook('beforeRemoveCol', function () {
-      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        args[_key2] = arguments[_key2];
+      for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+        args[_key4] = arguments[_key4];
       }
       return _this.endpoints.resetSetupBeforeStructureAlteration('remove_col', ...args);
     });
     this.addHook('afterCreateRow', (index, amount, source) => this.endpoints.resetSetupAfterStructureAlteration('insert_row', index, amount, null, source)); // eslint-disable-line max-len
     this.addHook('afterCreateCol', (index, amount, source) => this.endpoints.resetSetupAfterStructureAlteration('insert_col', index, amount, null, source)); // eslint-disable-line max-len
     this.addHook('afterRemoveRow', function () {
-      for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-        args[_key3] = arguments[_key3];
+      for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+        args[_key5] = arguments[_key5];
       }
       return _this.endpoints.resetSetupAfterStructureAlteration('remove_row', ...args);
     });
     this.addHook('afterRemoveCol', function () {
-      for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-        args[_key4] = arguments[_key4];
+      for (var _len6 = arguments.length, args = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+        args[_key6] = arguments[_key6];
       }
       return _this.endpoints.resetSetupAfterStructureAlteration('remove_col', ...args);
     });
     this.addHook('afterRowMove', function () {
-      return _this.onAfterRowMove(...arguments);
+      for (var _len7 = arguments.length, args = new Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
+        args[_key7] = arguments[_key7];
+      }
+      return _classPrivateMethodGet(_this, _onAfterRowMove, _onAfterRowMove2).call(_this, ...args);
     });
     super.enablePlugin();
   }
@@ -54765,7 +55091,7 @@ class ColumnSummary extends _base.BasePlugin {
     let result = 0;
     const ranges = endpoint.ranges;
     (0, _object.objectEach)(ranges, range => {
-      const partial = range[1] === void 0 ? 1 : range[1] - range[0] + 1;
+      const partial = range[1] === undefined ? 1 : range[1] - range[0] + 1;
       const emptyCount = this.countEmpty(range, endpoint.sourceColumn);
       result += partial;
       result -= emptyCount;
@@ -54819,44 +55145,21 @@ class ColumnSummary extends _base.BasePlugin {
     }
     return cellValue;
   }
-
-  /**
-   * `afterInit` hook callback.
-   *
-   * @private
-   */
-  onAfterInit() {
-    this.endpoints.endpoints = this.endpoints.parseSettings();
-    this.endpoints.refreshAllEndpoints(true);
-  }
-
-  /**
-   * `afterChange` hook callback.
-   *
-   * @private
-   * @param {Array} changes 2D array containing information about each of the edited cells.
-   * @param {string} source The string that identifies source of changes.
-   */
-  onAfterChange(changes, source) {
-    if (changes && source !== 'ColumnSummary.reset' && source !== 'ColumnSummary.set' && source !== 'loadData') {
-      this.endpoints.refreshChangedEndpoints(changes);
-    }
-  }
-
-  /**
-   * `beforeRowMove` hook callback.
-   *
-   * @private
-   * @param {Array} rows Array of visual row indexes to be moved.
-   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md).
-   */
-  onAfterRowMove(rows, finalIndex) {
-    this.endpoints.resetSetupBeforeStructureAlteration('move_row', rows[0], rows.length, rows, this.pluginName);
-    this.endpoints.resetSetupAfterStructureAlteration('move_row', finalIndex, rows.length, rows, this.pluginName);
-  }
 }
 exports.ColumnSummary = ColumnSummary;
+function _onAfterInit2() {
+  this.endpoints.endpoints = this.endpoints.parseSettings();
+  this.endpoints.refreshAllEndpoints(true);
+}
+function _onAfterChange2(changes, source) {
+  if (changes && source !== 'ColumnSummary.reset' && source !== 'ColumnSummary.set' && source !== 'loadData') {
+    this.endpoints.refreshChangedEndpoints(changes);
+  }
+}
+function _onAfterRowMove2(rows, finalIndex) {
+  this.endpoints.resetSetupBeforeStructureAlteration('move_row', rows[0], rows.length, rows, this.pluginName);
+  this.endpoints.resetSetupAfterStructureAlteration('move_row', finalIndex, rows.length, rows, this.pluginName);
+}
 
 /***/ }),
 /* 453 */
@@ -54865,11 +55168,13 @@ exports.ColumnSummary = ColumnSummary;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
 __webpack_require__(8);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _array = __webpack_require__(113);
-var _console = __webpack_require__(125);
+var _console = __webpack_require__(129);
 /**
  * Class used to make all endpoint-related operations.
  *
@@ -54881,41 +55186,41 @@ class Endpoints {
     /**
      * The main plugin instance.
      */
-    this.plugin = plugin;
+    (0, _defineProperty2.default)(this, "plugin", void 0);
     /**
      * Handsontable instance.
      *
      * @type {object}
      */
-    this.hot = this.plugin.hot;
+    (0, _defineProperty2.default)(this, "hot", void 0);
     /**
      * Array of declared plugin endpoints (calculation destination points).
      *
      * @type {Array}
      * @default {Array} Empty array.
      */
-    this.endpoints = [];
+    (0, _defineProperty2.default)(this, "endpoints", []);
     /**
      * The plugin settings, taken from Handsontable configuration.
      *
      * @type {object|Function}
      * @default null
      */
-    this.settings = settings;
+    (0, _defineProperty2.default)(this, "settings", void 0);
     /**
-     * Settings type. Can be either 'array' or 'function.
+     * Settings type. Can be either 'array' or 'function'.
      *
      * @type {string}
      * @default {'array'}
      */
-    this.settingsType = 'array';
+    (0, _defineProperty2.default)(this, "settingsType", 'array');
     /**
      * The current endpoint (calculation destination point) in question.
      *
      * @type {object}
      * @default null
      */
-    this.currentEndpoint = null;
+    (0, _defineProperty2.default)(this, "currentEndpoint", null);
     /**
      * Array containing a list of changes to be applied.
      *
@@ -54923,7 +55228,10 @@ class Endpoints {
      * @type {Array}
      * @default {[]}
      */
-    this.cellsToSetCache = [];
+    (0, _defineProperty2.default)(this, "cellsToSetCache", []);
+    this.plugin = plugin;
+    this.hot = this.plugin.hot;
+    this.settings = settings;
   }
 
   /**
@@ -55010,13 +55318,13 @@ class Endpoints {
    * @param {object} defaultValue Default value for the settings.
    */
   assignSetting(settings, endpoint, name, defaultValue) {
-    if (name === 'ranges' && settings[name] === void 0) {
+    if (name === 'ranges' && settings[name] === undefined) {
       endpoint[name] = defaultValue;
       return;
     } else if (name === 'ranges' && settings[name].length === 0) {
       return;
     }
-    if (settings[name] === void 0) {
+    if (settings[name] === undefined) {
       if (defaultValue instanceof Error) {
         throw defaultValue;
       }
@@ -55125,8 +55433,8 @@ class Endpoints {
    * @param {object} endpoint And endpoint object.
    */
   clearOffsetInformation(endpoint) {
-    endpoint.alterRowOffset = void 0;
-    endpoint.alterColumnOffset = void 0;
+    endpoint.alterRowOffset = undefined;
+    endpoint.alterColumnOffset = undefined;
   }
 
   /**
@@ -55347,8 +55655,8 @@ class Endpoints {
     } else {
       this.cellsToSetCache.push([visualEndpointRowIndex, endpoint.destinationColumn, endpoint.result]);
     }
-    endpoint.alterRowOffset = void 0;
-    endpoint.alterColumnOffset = void 0;
+    endpoint.alterRowOffset = undefined;
+    endpoint.alterColumnOffset = undefined;
   }
 
   /**
@@ -55405,13 +55713,12 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
 __webpack_require__(8);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
 var _element = __webpack_require__(107);
-var _event = __webpack_require__(122);
+var _event = __webpack_require__(126);
 var _object = __webpack_require__(117);
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
 var _base = __webpack_require__(423);
 var _commentEditor = _interopRequireDefault(__webpack_require__(457));
 var _displaySwitch2 = _interopRequireDefault(__webpack_require__(458));
@@ -55420,8 +55727,10 @@ var _addEditComment = _interopRequireDefault(__webpack_require__(474));
 var _removeComment = _interopRequireDefault(__webpack_require__(475));
 var _readOnlyComment = _interopRequireDefault(__webpack_require__(476));
 __webpack_require__(477);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'comments';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 60;
 const META_COMMENT = exports.META_COMMENT = 'comment';
@@ -55528,22 +55837,81 @@ var _preventEditorHiding = /*#__PURE__*/new WeakMap();
 var _tempEditorDimensions = /*#__PURE__*/new WeakMap();
 var _cellBelowCursor = /*#__PURE__*/new WeakMap();
 var _commentValueBeforeSave = /*#__PURE__*/new WeakMap();
+var _onMouseDown = /*#__PURE__*/new WeakSet();
+var _onMouseOver = /*#__PURE__*/new WeakSet();
+var _onMouseUp = /*#__PURE__*/new WeakSet();
+var _onAfterRenderer = /*#__PURE__*/new WeakSet();
+var _onEditorBlur = /*#__PURE__*/new WeakSet();
+var _onEditorFocus = /*#__PURE__*/new WeakSet();
+var _onEditorMouseDown = /*#__PURE__*/new WeakSet();
+var _onEditorMouseUp = /*#__PURE__*/new WeakSet();
+var _onAfterDocumentKeyDown = /*#__PURE__*/new WeakSet();
+var _onAfterScroll = /*#__PURE__*/new WeakSet();
 class Comments extends _base.BasePlugin {
   constructor() {
     super(...arguments);
+    /**
+     * Observes the changes in the scroll position if triggered it hides the comment editor.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterScroll);
+    /**
+     * Observes the pressed keys and if there is already opened the comment editor prevents open
+     * the table editor into the fast edit mode.
+     *
+     * @param {Event} event The keydown event.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterDocumentKeyDown);
+    /**
+     * `mouseup` hook. Along with `onEditorMouseDown` used to simulate the textarea resizing event.
+     *
+     * @param {MouseEvent} event The `mouseup` event.
+     */
+    _classPrivateMethodInitSpec(this, _onEditorMouseUp);
+    /**
+     * `mousedown` hook. Along with `onEditorMouseUp` used to simulate the textarea resizing event.
+     *
+     * @param {MouseEvent} event The `mousedown` event.
+     */
+    _classPrivateMethodInitSpec(this, _onEditorMouseDown);
+    /**
+     * Hook observer the "focus" event from the comments editor element. The hook takes the control of
+     * the keyboard shortcuts by switching the context to plugins one.
+     */
+    _classPrivateMethodInitSpec(this, _onEditorFocus);
+    /**
+     * Hook observer the "blur" event from the comments editor element. The hook clears the
+     * editor content and gives back the keyboard shortcuts control by switching to the "grid" context.
+     */
+    _classPrivateMethodInitSpec(this, _onEditorBlur);
+    /**
+     * The `afterRenderer` hook callback.
+     *
+     * @param {HTMLTableCellElement} TD The rendered `TD` element.
+     * @param {object} cellProperties The rendered cell's property object.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterRenderer);
+    /**
+     * `mouseup` event callback.
+     */
+    _classPrivateMethodInitSpec(this, _onMouseUp);
+    /**
+     * `mouseover` event callback.
+     *
+     * @param {MouseEvent} event The `mouseover` event.
+     */
+    _classPrivateMethodInitSpec(this, _onMouseOver);
+    /**
+     * `mousedown` event callback.
+     *
+     * @param {MouseEvent} event The `mousedown` event.
+     */
+    _classPrivateMethodInitSpec(this, _onMouseDown);
     /**
      * Current cell range, an object with `from` property, with `row` and `col` properties (e.q. `{from: {row: 1, col: 6}}`).
      *
      * @type {object}
      */
     (0, _defineProperty2.default)(this, "range", {});
-    /**
-     * Instance of {@link EventManager}.
-     *
-     * @protected
-     * @type {EventManager}
-     */
-    (0, _defineProperty2.default)(this, "eventManager", null);
     /**
      * Instance of {@link CommentEditor}.
      *
@@ -55642,17 +56010,14 @@ class Comments extends _base.BasePlugin {
     if (!(0, _classPrivateFieldGet2.default)(this, _editor)) {
       (0, _classPrivateFieldSet2.default)(this, _editor, new _commentEditor.default(this.hot.rootDocument, this.hot.isRtl()));
     }
-    if (!this.eventManager) {
-      this.eventManager = new _eventManager.default(this);
-    }
     if (!(0, _classPrivateFieldGet2.default)(this, _displaySwitch)) {
       (0, _classPrivateFieldSet2.default)(this, _displaySwitch, new _displaySwitch2.default(this.getDisplayDelaySetting()));
     }
     this.addHook('afterContextMenuDefaultOptions', options => this.addToContextMenu(options));
-    this.addHook('afterRenderer', (TD, row, col, prop, value, cellProperties) => this.onAfterRenderer(TD, cellProperties));
-    this.addHook('afterScroll', () => this.onAfterScroll());
+    this.addHook('afterRenderer', (TD, row, col, prop, value, cellProperties) => _classPrivateMethodGet(this, _onAfterRenderer, _onAfterRenderer2).call(this, TD, cellProperties));
+    this.addHook('afterScroll', () => _classPrivateMethodGet(this, _onAfterScroll, _onAfterScroll2).call(this));
     this.addHook('afterBeginEditing', () => this.hide());
-    this.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
+    this.addHook('afterDocumentKeyDown', event => _classPrivateMethodGet(this, _onAfterDocumentKeyDown, _onAfterDocumentKeyDown2).call(this, event));
     (0, _classPrivateFieldGet2.default)(this, _displaySwitch).addLocalHook('hide', () => this.hide());
     (0, _classPrivateFieldGet2.default)(this, _displaySwitch).addLocalHook('show', (row, col) => this.showAtCell(row, col));
     this.registerShortcuts();
@@ -55756,13 +56121,13 @@ class Comments extends _base.BasePlugin {
       rootDocument
     } = this.hot;
     const editorElement = this.getEditorInputElement();
-    this.eventManager.addEventListener(rootDocument, 'mouseover', event => this.onMouseOver(event));
-    this.eventManager.addEventListener(rootDocument, 'mousedown', event => this.onMouseDown(event));
-    this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.onMouseUp());
-    this.eventManager.addEventListener(editorElement, 'focus', () => this.onEditorFocus());
-    this.eventManager.addEventListener(editorElement, 'blur', () => this.onEditorBlur());
-    this.eventManager.addEventListener(editorElement, 'mousedown', event => this.onEditorMouseDown(event));
-    this.eventManager.addEventListener(editorElement, 'mouseup', event => this.onEditorMouseUp(event));
+    this.eventManager.addEventListener(rootDocument, 'mouseover', event => _classPrivateMethodGet(this, _onMouseOver, _onMouseOver2).call(this, event));
+    this.eventManager.addEventListener(rootDocument, 'mousedown', event => _classPrivateMethodGet(this, _onMouseDown, _onMouseDown2).call(this, event));
+    this.eventManager.addEventListener(rootDocument, 'mouseup', () => _classPrivateMethodGet(this, _onMouseUp, _onMouseUp2).call(this));
+    this.eventManager.addEventListener(editorElement, 'focus', () => _classPrivateMethodGet(this, _onEditorFocus, _onEditorFocus2).call(this));
+    this.eventManager.addEventListener(editorElement, 'blur', () => _classPrivateMethodGet(this, _onEditorBlur, _onEditorBlur2).call(this));
+    this.eventManager.addEventListener(editorElement, 'mousedown', event => _classPrivateMethodGet(this, _onEditorMouseDown, _onEditorMouseDown2).call(this, event));
+    this.eventManager.addEventListener(editorElement, 'mouseup', event => _classPrivateMethodGet(this, _onEditorMouseUp, _onEditorMouseUp2).call(this, event));
   }
 
   /**
@@ -55815,9 +56180,9 @@ class Comments extends _base.BasePlugin {
     }
     const editorValue = (0, _classPrivateFieldGet2.default)(this, _editor).getValue();
     let comment = '';
-    if (value !== null && value !== void 0) {
+    if (value !== null && value !== undefined) {
       comment = value;
-    } else if (editorValue !== null && editorValue !== void 0) {
+    } else if (editorValue !== null && editorValue !== undefined) {
       comment = editorValue;
     }
     const row = this.range.from.row;
@@ -56075,154 +56440,10 @@ class Comments extends _base.BasePlugin {
   getCommentMeta(row, column, property) {
     const cellMeta = this.hot.getCellMeta(row, column);
     if (!cellMeta[META_COMMENT]) {
-      return void 0;
+      return undefined;
     }
     return cellMeta[META_COMMENT][property];
   }
-
-  /**
-   * `mousedown` event callback.
-   *
-   * @private
-   * @param {MouseEvent} event The `mousedown` event.
-   */
-  onMouseDown(event) {
-    if (!this.hot.view || !this.hot.view._wt) {
-      return;
-    }
-    if (!(0, _classPrivateFieldGet2.default)(this, _preventEditorAutoSwitch) && !this.targetIsCommentTextArea(event)) {
-      const eventCell = (0, _element.closest)(event.target, 'TD', 'TBODY');
-      let coordinates = null;
-      if (eventCell) {
-        coordinates = this.hot.getCoords(eventCell);
-      }
-      if (!eventCell || this.range.from && coordinates && (this.range.from.row !== coordinates.row || this.range.from.col !== coordinates.col)) {
-        this.hide();
-      }
-    }
-  }
-
-  /**
-   * `mouseover` event callback.
-   *
-   * @private
-   * @param {MouseEvent} event The `mouseover` event.
-   */
-  onMouseOver(event) {
-    const {
-      rootDocument
-    } = this.hot;
-    if ((0, _classPrivateFieldGet2.default)(this, _preventEditorAutoSwitch) || (0, _classPrivateFieldGet2.default)(this, _editor).isFocused() || (0, _element.hasClass)(event.target, 'wtBorder') || (0, _classPrivateFieldGet2.default)(this, _cellBelowCursor) === event.target || !(0, _classPrivateFieldGet2.default)(this, _editor)) {
-      return;
-    }
-    (0, _classPrivateFieldSet2.default)(this, _cellBelowCursor, rootDocument.elementFromPoint(event.clientX, event.clientY));
-    if (this.targetIsCellWithComment(event)) {
-      const range = this.hot._createCellRange(this.hot.getCoords(event.target));
-      (0, _classPrivateFieldGet2.default)(this, _displaySwitch).show(range);
-    } else if ((0, _element.isChildOf)(event.target, rootDocument) && !this.targetIsCommentTextArea(event)) {
-      (0, _classPrivateFieldGet2.default)(this, _displaySwitch).hide();
-    }
-  }
-
-  /**
-   * `mouseup` event callback.
-   *
-   * @private
-   */
-  onMouseUp() {
-    (0, _classPrivateFieldSet2.default)(this, _preventEditorAutoSwitch, false);
-  }
-
-  /**
-   * The `afterRenderer` hook callback.
-   *
-   * @private
-   * @param {HTMLTableCellElement} TD The rendered `TD` element.
-   * @param {object} cellProperties The rendered cell's property object.
-   */
-  onAfterRenderer(TD, cellProperties) {
-    if (cellProperties[META_COMMENT] && cellProperties[META_COMMENT][META_COMMENT_VALUE]) {
-      (0, _element.addClass)(TD, cellProperties.commentedCellClassName);
-    }
-  }
-
-  /**
-   * Hook observer the "blur" event from the comments editor element. The hook clears the
-   * editor content and gives back the keyboard shortcuts control by switching to the "grid" context.
-   *
-   * @private
-   */
-  onEditorBlur() {
-    (0, _classPrivateFieldSet2.default)(this, _commentValueBeforeSave, '');
-    this.hot.getShortcutManager().setActiveContextName('grid');
-    this.setComment();
-  }
-
-  /**
-   * Hook observer the "focus" event from the comments editor element. The hook takes the control of
-   * the keyboard shortcuts by switching the context to plugins one.
-   *
-   * @private
-   */
-  onEditorFocus() {
-    (0, _classPrivateFieldSet2.default)(this, _commentValueBeforeSave, this.getComment());
-    this.hot.listen();
-    this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-  }
-
-  /**
-   * `mousedown` hook. Along with `onEditorMouseUp` used to simulate the textarea resizing event.
-   *
-   * @private
-   * @param {MouseEvent} event The `mousedown` event.
-   */
-  onEditorMouseDown(event) {
-    (0, _classPrivateFieldSet2.default)(this, _tempEditorDimensions, {
-      width: (0, _element.outerWidth)(event.target),
-      height: (0, _element.outerHeight)(event.target)
-    });
-  }
-
-  /**
-   * `mouseup` hook. Along with `onEditorMouseDown` used to simulate the textarea resizing event.
-   *
-   * @private
-   * @param {MouseEvent} event The `mouseup` event.
-   */
-  onEditorMouseUp(event) {
-    const currentWidth = (0, _element.outerWidth)(event.target);
-    const currentHeight = (0, _element.outerHeight)(event.target);
-    if (currentWidth !== (0, _classPrivateFieldGet2.default)(this, _tempEditorDimensions).width + 1 || currentHeight !== (0, _classPrivateFieldGet2.default)(this, _tempEditorDimensions).height + 2) {
-      this.updateCommentMeta(this.range.from.row, this.range.from.col, {
-        [META_STYLE]: {
-          width: currentWidth,
-          height: currentHeight
-        }
-      });
-    }
-  }
-
-  /**
-   * Observes the pressed keys and if there is already opened the comment editor prevents open
-   * the table editor into the fast edit mode.
-   *
-   * @param {Event} event The keydown event.
-   */
-  onAfterDocumentKeyDown(event) {
-    if ((0, _classPrivateFieldGet2.default)(this, _editor).isVisible()) {
-      (0, _event.stopImmediatePropagation)(event);
-    }
-  }
-
-  /**
-   * Observes the changes in the scroll position if triggered it hides the comment editor.
-   */
-  onAfterScroll() {
-    if (!(0, _classPrivateFieldGet2.default)(this, _preventEditorHiding)) {
-      this.hide();
-    }
-  }
-
   /**
    * Add Comments plugin options to the Context Menu.
    *
@@ -56272,6 +56493,82 @@ class Comments extends _base.BasePlugin {
   }
 }
 exports.Comments = Comments;
+function _onMouseDown2(event) {
+  if (!this.hot.view || !this.hot.view._wt) {
+    return;
+  }
+  if (!(0, _classPrivateFieldGet2.default)(this, _preventEditorAutoSwitch) && !this.targetIsCommentTextArea(event)) {
+    const eventCell = (0, _element.closest)(event.target, 'TD', 'TBODY');
+    let coordinates = null;
+    if (eventCell) {
+      coordinates = this.hot.getCoords(eventCell);
+    }
+    if (!eventCell || this.range.from && coordinates && (this.range.from.row !== coordinates.row || this.range.from.col !== coordinates.col)) {
+      this.hide();
+    }
+  }
+}
+function _onMouseOver2(event) {
+  const {
+    rootDocument
+  } = this.hot;
+  if ((0, _classPrivateFieldGet2.default)(this, _preventEditorAutoSwitch) || (0, _classPrivateFieldGet2.default)(this, _editor).isFocused() || (0, _element.hasClass)(event.target, 'wtBorder') || (0, _classPrivateFieldGet2.default)(this, _cellBelowCursor) === event.target || !(0, _classPrivateFieldGet2.default)(this, _editor)) {
+    return;
+  }
+  (0, _classPrivateFieldSet2.default)(this, _cellBelowCursor, rootDocument.elementFromPoint(event.clientX, event.clientY));
+  if (this.targetIsCellWithComment(event)) {
+    const range = this.hot._createCellRange(this.hot.getCoords(event.target));
+    (0, _classPrivateFieldGet2.default)(this, _displaySwitch).show(range);
+  } else if ((0, _element.isChildOf)(event.target, rootDocument) && !this.targetIsCommentTextArea(event)) {
+    (0, _classPrivateFieldGet2.default)(this, _displaySwitch).hide();
+  }
+}
+function _onMouseUp2() {
+  (0, _classPrivateFieldSet2.default)(this, _preventEditorAutoSwitch, false);
+}
+function _onAfterRenderer2(TD, cellProperties) {
+  if (cellProperties[META_COMMENT] && cellProperties[META_COMMENT][META_COMMENT_VALUE]) {
+    (0, _element.addClass)(TD, cellProperties.commentedCellClassName);
+  }
+}
+function _onEditorBlur2() {
+  (0, _classPrivateFieldSet2.default)(this, _commentValueBeforeSave, '');
+  this.hot.getShortcutManager().setActiveContextName('grid');
+  this.setComment();
+}
+function _onEditorFocus2() {
+  (0, _classPrivateFieldSet2.default)(this, _commentValueBeforeSave, this.getComment());
+  this.hot.listen();
+  this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+}
+function _onEditorMouseDown2(event) {
+  (0, _classPrivateFieldSet2.default)(this, _tempEditorDimensions, {
+    width: (0, _element.outerWidth)(event.target),
+    height: (0, _element.outerHeight)(event.target)
+  });
+}
+function _onEditorMouseUp2(event) {
+  const currentWidth = (0, _element.outerWidth)(event.target);
+  const currentHeight = (0, _element.outerHeight)(event.target);
+  if (currentWidth !== (0, _classPrivateFieldGet2.default)(this, _tempEditorDimensions).width + 1 || currentHeight !== (0, _classPrivateFieldGet2.default)(this, _tempEditorDimensions).height + 2) {
+    this.updateCommentMeta(this.range.from.row, this.range.from.col, {
+      [META_STYLE]: {
+        width: currentWidth,
+        height: currentHeight
+      }
+    });
+  }
+}
+function _onAfterDocumentKeyDown2(event) {
+  if ((0, _classPrivateFieldGet2.default)(this, _editor).isVisible()) {
+    (0, _event.stopImmediatePropagation)(event);
+  }
+}
+function _onAfterScroll2() {
+  if (!(0, _classPrivateFieldGet2.default)(this, _preventEditorHiding)) {
+    this.hide();
+  }
+}
 
 /***/ }),
 /* 457 */
@@ -56280,7 +56577,9 @@ exports.Comments = Comments;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _element = __webpack_require__(107);
 /**
  * Comment editor for the Comments plugin.
@@ -56301,13 +56600,37 @@ class CommentEditor {
   static get CLASS_CELL() {
     return 'htCommentCell';
   }
+
+  /**
+   * @type {HTMLDocument}
+   */
+
   constructor(rootDocument, isRtl) {
+    (0, _defineProperty2.default)(this, "rootDocument", void 0);
+    /**
+     * @type {boolean}
+     */
+    (0, _defineProperty2.default)(this, "isRtl", false);
+    /**
+     * @type {HTMLElement}
+     */
+    (0, _defineProperty2.default)(this, "container", null);
+    /**
+     * @type {HTMLElement}
+     */
+    (0, _defineProperty2.default)(this, "editor", void 0);
+    /**
+     * @type {CSSStyleDeclaration}
+     */
+    (0, _defineProperty2.default)(this, "editorStyle", void 0);
+    /**
+     * @type {boolean}
+     */
+    (0, _defineProperty2.default)(this, "hidden", true);
     this.rootDocument = rootDocument;
     this.isRtl = isRtl;
-    this.container = null;
     this.editor = this.createEditor();
     this.editorStyle = this.editor.style;
-    this.hidden = true;
     this.hide();
   }
 
@@ -56484,6 +56807,7 @@ var _default = exports["default"] = CommentEditor;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _function = __webpack_require__(115);
 var _object = __webpack_require__(117);
 var _localHooks = _interopRequireDefault(__webpack_require__(201));
@@ -56504,19 +56828,19 @@ class DisplaySwitch {
      *
      * @type {boolean}
      */
-    this.wasLastActionShow = true;
+    (0, _defineProperty2.default)(this, "wasLastActionShow", true);
     /**
      * Show comment after predefined delay. It keeps reference to immutable `debounce` function.
      *
      * @type {Function}
      */
-    this.showDebounced = null;
+    (0, _defineProperty2.default)(this, "showDebounced", null);
     /**
      * Reference to timer, run by `setTimeout`, which is hiding comment.
      *
      * @type {number}
      */
-    this.hidingTimer = null;
+    (0, _defineProperty2.default)(this, "hidingTimer", null);
     this.updateDelay(displayDelay);
   }
 
@@ -57341,7 +57665,7 @@ function removeColumnItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COLUMN, pluralForm);
     },
     callback() {
-      this.alter('remove_col', (0, _utils.transformSelectionToColumnDistance)(this.getSelected()), null, 'ContextMenu.removeColumn');
+      this.alter('remove_col', (0, _utils.transformSelectionToColumnDistance)(this), null, 'ContextMenu.removeColumn');
     },
     disabled() {
       if (!this.isColumnModificationAllowed()) {
@@ -57406,7 +57730,7 @@ function removeRowItem() {
     callback() {
       // TODO: Please keep in mind that below `1` may be improper. The table's way of work, before change `f1747b3912ea3b21fe423fd102ca94c87db81379` was restored.
       // There is still problem when removing more than one row.
-      this.alter('remove_row', (0, _utils.transformSelectionToRowDistance)(this.getSelected()), 1, 'ContextMenu.removeRow');
+      this.alter('remove_row', (0, _utils.transformSelectionToRowDistance)(this), 1, 'ContextMenu.removeRow');
     },
     disabled() {
       const range = this.getSelectedRangeLast();
@@ -57623,13 +57947,10 @@ function addEditCommentItem(plugin) {
     },
     disabled() {
       const range = this.getSelectedRangeLast();
-      if (!range) {
+      if (!range || range.highlight.isHeader() || this.selection.isEntireRowSelected() && this.selection.isEntireColumnSelected() || this.countRenderedRows() === 0 || this.countRenderedCols() === 0) {
         return true;
       }
-      if (range.highlight.isHeader()) {
-        return true;
-      }
-      return this.countRenderedRows() === 0 || this.countRenderedCols() === 0;
+      return false;
     }
   };
 }
@@ -57667,13 +57988,10 @@ function removeCommentItem(plugin) {
     },
     disabled() {
       const range = this.getSelectedRangeLast();
-      if (!range) {
+      if (!range || range.highlight.isHeader() || this.selection.isEntireRowSelected() && this.selection.isEntireColumnSelected() || this.countRenderedRows() === 0 || this.countRenderedCols() === 0) {
         return true;
       }
-      if (range.highlight.isHeader()) {
-        return true;
-      }
-      return this.countRenderedRows() === 0 || this.countRenderedCols() === 0;
+      return false;
     }
   };
 }
@@ -57719,16 +58037,10 @@ function readOnlyCommentItem(plugin) {
     },
     disabled() {
       const range = this.getSelectedRangeLast();
-      if (!range) {
+      if (!range || range.highlight.isHeader() || !plugin.getCommentAtCell(range.highlight.row, range.highlight.col) || this.selection.isEntireRowSelected() && this.selection.isEntireColumnSelected() || this.countRenderedRows() === 0 || this.countRenderedCols() === 0) {
         return true;
       }
-      if (range.highlight.isHeader()) {
-        return true;
-      }
-      if (!plugin.getCommentAtCell(range.highlight.row, range.highlight.col)) {
-        return true;
-      }
-      return this.countRenderedRows() === 0 || this.countRenderedCols() === 0;
+      return false;
     }
   };
 }
@@ -57764,18 +58076,22 @@ exports.ContextMenu = _contextMenu.ContextMenu;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+__webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _base = __webpack_require__(423);
-var _pluginHooks = _interopRequireDefault(__webpack_require__(124));
+var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 var _array = __webpack_require__(113);
 var _object = __webpack_require__(117);
 var _commandExecutor = __webpack_require__(480);
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
 var _itemsFactory = __webpack_require__(483);
 var _menu = __webpack_require__(484);
 var _utils = __webpack_require__(461);
 var _element = __webpack_require__(107);
 var _predefinedItems = __webpack_require__(459);
 __webpack_require__(494);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'contextMenu';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 70;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
@@ -57809,7 +58125,53 @@ _pluginHooks.default.getSingleton().register('afterContextMenuExecute');
  *
  * @plugin ContextMenu
  */
+var _onAfterOnCellContextMenu = /*#__PURE__*/new WeakSet();
+var _onMenuBeforeOpen = /*#__PURE__*/new WeakSet();
+var _onMenuAfterOpen = /*#__PURE__*/new WeakSet();
+var _onMenuAfterClose = /*#__PURE__*/new WeakSet();
 class ContextMenu extends _base.BasePlugin {
+  constructor() {
+    super(...arguments);
+    /**
+     * On menu after close listener.
+     */
+    _classPrivateMethodInitSpec(this, _onMenuAfterClose);
+    /**
+     * On menu after open listener.
+     */
+    _classPrivateMethodInitSpec(this, _onMenuAfterOpen);
+    /**
+     * On menu before open listener.
+     */
+    _classPrivateMethodInitSpec(this, _onMenuBeforeOpen);
+    /**
+     * On contextmenu listener.
+     *
+     * @param {Event} event The mouse event object.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterOnCellContextMenu);
+    /**
+     * Instance of {@link CommandExecutor}.
+     *
+     * @private
+     * @type {CommandExecutor}
+     */
+    (0, _defineProperty2.default)(this, "commandExecutor", new _commandExecutor.CommandExecutor(this.hot));
+    /**
+     * Instance of {@link ItemsFactory}.
+     *
+     * @private
+     * @type {ItemsFactory}
+     */
+    (0, _defineProperty2.default)(this, "itemsFactory", null);
+    /**
+     * Instance of {@link Menu}.
+     *
+     * @private
+     * @type {Menu}
+     */
+    (0, _defineProperty2.default)(this, "menu", null);
+  }
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
@@ -57828,42 +58190,6 @@ class ContextMenu extends _base.BasePlugin {
   static get DEFAULT_ITEMS() {
     return [_predefinedItems.ROW_ABOVE, _predefinedItems.ROW_BELOW, _predefinedItems.SEPARATOR, _predefinedItems.COLUMN_LEFT, _predefinedItems.COLUMN_RIGHT, _predefinedItems.SEPARATOR, _predefinedItems.REMOVE_ROW, _predefinedItems.REMOVE_COLUMN, _predefinedItems.SEPARATOR, _predefinedItems.UNDO, _predefinedItems.REDO, _predefinedItems.SEPARATOR, _predefinedItems.READ_ONLY, _predefinedItems.SEPARATOR, _predefinedItems.ALIGNMENT];
   }
-
-  /**
-   * @param {Core} hotInstance Handsontable instance.
-   */
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * Instance of {@link EventManager}.
-     *
-     * @private
-     * @type {EventManager}
-     */
-    this.eventManager = new _eventManager.default(this);
-    /**
-     * Instance of {@link CommandExecutor}.
-     *
-     * @private
-     * @type {CommandExecutor}
-     */
-    this.commandExecutor = new _commandExecutor.CommandExecutor(this.hot);
-    /**
-     * Instance of {@link ItemsFactory}.
-     *
-     * @private
-     * @type {ItemsFactory}
-     */
-    this.itemsFactory = null;
-    /**
-     * Instance of {@link Menu}.
-     *
-     * @private
-     * @type {Menu}
-     */
-    this.menu = null;
-  }
-
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link ContextMenu#enablePlugin} method is called.
@@ -57891,16 +58217,16 @@ class ContextMenu extends _base.BasePlugin {
       keepInViewport: true,
       container: settings.uiContainer || this.hot.rootDocument.body
     });
-    this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());
-    this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
-    this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
+    this.menu.addLocalHook('beforeOpen', () => _classPrivateMethodGet(this, _onMenuBeforeOpen, _onMenuBeforeOpen2).call(this));
+    this.menu.addLocalHook('afterOpen', () => _classPrivateMethodGet(this, _onMenuAfterOpen, _onMenuAfterOpen2).call(this));
+    this.menu.addLocalHook('afterClose', () => _classPrivateMethodGet(this, _onMenuAfterClose, _onMenuAfterClose2).call(this));
     this.menu.addLocalHook('executeCommand', function () {
       for (var _len = arguments.length, params = new Array(_len), _key = 0; _key < _len; _key++) {
         params[_key] = arguments[_key];
       }
       return _this.executeCommand.call(_this, ...params);
     });
-    this.addHook('afterOnCellContextMenu', event => this.onAfterOnCellContextMenu(event));
+    this.addHook('afterOnCellContextMenu', event => _classPrivateMethodGet(this, _onAfterOnCellContextMenu, _onAfterOnCellContextMenu2).call(this, event));
     this.registerShortcuts();
     super.enablePlugin();
   }
@@ -57953,7 +58279,11 @@ class ContextMenu extends _base.BasePlugin {
           above: -rect.height
         });
       },
-      runOnlyIf: () => this.hot.getSelectedRangeLast() && !this.menu.isOpened(),
+      runOnlyIf: () => {
+        var _this$hot$getSelected;
+        const highlight = (_this$hot$getSelected = this.hot.getSelectedRangeLast()) === null || _this$hot$getSelected === void 0 ? void 0 : _this$hot$getSelected.highlight;
+        return highlight && this.hot.selection.isCellVisible(highlight) && !this.menu.isOpened();
+      },
       group: SHORTCUTS_GROUP
     });
   }
@@ -58069,73 +58399,6 @@ class ContextMenu extends _base.BasePlugin {
     // Register all commands. Predefined and added by user or by plugins
     (0, _array.arrayEach)(menuItems, command => this.commandExecutor.registerCommand(command.key, command));
   }
-
-  /**
-   * On contextmenu listener.
-   *
-   * @private
-   * @param {Event} event The mouse event object.
-   */
-  onAfterOnCellContextMenu(event) {
-    const settings = this.hot.getSettings();
-    const showRowHeaders = settings.rowHeaders;
-    const showColHeaders = settings.colHeaders;
-
-    /**
-     * @private
-     * @param {HTMLElement} element The element to validate.
-     * @returns {boolean}
-     */
-    function isValidElement(element) {
-      return element.nodeName === 'TD' || element.parentNode.nodeName === 'TD';
-    }
-    const element = event.target;
-    this.close();
-    if ((0, _element.hasClass)(element, 'handsontableInput')) {
-      return;
-    }
-    event.preventDefault();
-    event.stopPropagation();
-    if (!(showRowHeaders || showColHeaders)) {
-      if (!isValidElement(element) && !((0, _element.hasClass)(element, 'current') && (0, _element.hasClass)(element, 'wtBorder'))) {
-        return;
-      }
-    }
-    const offset = (0, _utils.getDocumentOffsetByElement)(this.menu.container, this.hot.rootDocument);
-    this.open({
-      top: event.clientY + offset.top,
-      left: event.clientX + offset.left
-    });
-  }
-
-  /**
-   * On menu before open listener.
-   *
-   * @private
-   */
-  onMenuBeforeOpen() {
-    this.hot.runHooks('beforeContextMenuShow', this);
-  }
-
-  /**
-   * On menu after open listener.
-   *
-   * @private
-   */
-  onMenuAfterOpen() {
-    this.hot.runHooks('afterContextMenuShow', this);
-  }
-
-  /**
-   * On menu after close listener.
-   *
-   * @private
-   */
-  onMenuAfterClose() {
-    this.hot.listen();
-    this.hot.runHooks('afterContextMenuHide', this);
-  }
-
   /**
    * Destroys the plugin instance.
    */
@@ -58148,6 +58411,47 @@ class ContextMenu extends _base.BasePlugin {
   }
 }
 exports.ContextMenu = ContextMenu;
+function _onAfterOnCellContextMenu2(event) {
+  const settings = this.hot.getSettings();
+  const showRowHeaders = settings.rowHeaders;
+  const showColHeaders = settings.colHeaders;
+
+  /**
+   * @private
+   * @param {HTMLElement} element The element to validate.
+   * @returns {boolean}
+   */
+  function isValidElement(element) {
+    return element.nodeName === 'TD' || element.parentNode.nodeName === 'TD';
+  }
+  const element = event.target;
+  this.close();
+  if ((0, _element.hasClass)(element, 'handsontableInput')) {
+    return;
+  }
+  event.preventDefault();
+  event.stopPropagation();
+  if (!(showRowHeaders || showColHeaders)) {
+    if (!isValidElement(element) && !((0, _element.hasClass)(element, 'current') && (0, _element.hasClass)(element, 'wtBorder'))) {
+      return;
+    }
+  }
+  const offset = (0, _utils.getDocumentOffsetByElement)(this.menu.container, this.hot.rootDocument);
+  this.open({
+    top: event.clientY + offset.top,
+    left: event.clientX + offset.left
+  });
+}
+function _onMenuBeforeOpen2() {
+  this.hot.runHooks('beforeContextMenuShow', this);
+}
+function _onMenuAfterOpen2() {
+  this.hot.runHooks('afterContextMenuShow', this);
+}
+function _onMenuAfterClose2() {
+  this.hot.listen();
+  this.hot.runHooks('afterContextMenuHide', this);
+}
 ContextMenu.SEPARATOR = {
   name: _predefinedItems.SEPARATOR
 };
@@ -58159,10 +58463,12 @@ ContextMenu.SEPARATOR = {
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
 __webpack_require__(8);
 __webpack_require__(481);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _array = __webpack_require__(113);
 var _object = __webpack_require__(117);
 /**
@@ -58173,9 +58479,19 @@ var _object = __webpack_require__(117);
  */
 class CommandExecutor {
   constructor(hotInstance) {
+    /**
+     * @type {Core}
+     */
+    (0, _defineProperty2.default)(this, "hot", void 0);
+    /**
+     * @type {object}
+     */
+    (0, _defineProperty2.default)(this, "commands", {});
+    /**
+     * @type {Function}
+     */
+    (0, _defineProperty2.default)(this, "commonCallback", null);
     this.hot = hotInstance;
-    this.commands = {};
-    this.commonCallback = null;
   }
 
   /**
@@ -58331,8 +58647,10 @@ module.exports = function (O, P) {
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _object = __webpack_require__(117);
 var _array = __webpack_require__(113);
 var _predefinedItems = __webpack_require__(459);
@@ -58345,8 +58663,19 @@ var _predefinedItems = __webpack_require__(459);
 class ItemsFactory {
   constructor(hotInstance) {
     let orderPattern = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+    /**
+     * @type {Core}
+     */
+    (0, _defineProperty2.default)(this, "hot", void 0);
+    /**
+     * @type {object}
+     */
+    (0, _defineProperty2.default)(this, "predefinedItems", (0, _predefinedItems.predefinedItems)());
+    /**
+     * @type {Array}
+     */
+    (0, _defineProperty2.default)(this, "defaultOrderPattern", void 0);
     this.hot = hotInstance;
-    this.predefinedItems = (0, _predefinedItems.predefinedItems)();
     this.defaultOrderPattern = orderPattern;
   }
 
@@ -58366,7 +58695,7 @@ class ItemsFactory {
 
         // Menu item added as a property to array
       } else if (isNaN(parseInt(key, 10))) {
-        value.key = value.key === void 0 ? key : value.key;
+        value.key = value.key === undefined ? key : value.key;
         items[key] = value;
         menuItemKey = value.key;
       } else {
@@ -58422,7 +58751,7 @@ function getItems() {
           name: item
         };
       }
-      if (item.key === void 0) {
+      if (item.key === undefined) {
         item.key = key;
       }
       result.push(item);
@@ -58444,7 +58773,7 @@ function getItems() {
       if ((0, _object.isObject)(name)) {
         (0, _object.extend)(item, name);
       }
-      if (item.key === void 0) {
+      if (item.key === undefined) {
         item.key = key;
       }
       result.push(item);
@@ -58479,18 +58808,19 @@ __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
 var _positioner = __webpack_require__(486);
 var _navigator2 = __webpack_require__(488);
 var _shortcuts = __webpack_require__(491);
 var _predefinedItems = __webpack_require__(459);
 var _utils = __webpack_require__(490);
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
+var _eventManager = _interopRequireDefault(__webpack_require__(131));
 var _array = __webpack_require__(113);
 var _browser = __webpack_require__(116);
 var _element = __webpack_require__(107);
-var _event = __webpack_require__(122);
+var _event = __webpack_require__(126);
 var _function = __webpack_require__(115);
 var _mixed = __webpack_require__(110);
 var _object = __webpack_require__(117);
@@ -58526,6 +58856,60 @@ class Menu {
   constructor(hotInstance, options) {
     var _this = this;
     /**
+     * The Handsontable instance.
+     *
+     * @type {Core}
+     */
+    (0, _defineProperty2.default)(this, "hot", void 0);
+    /**
+     * The Menu options.
+     *
+     * @type {object}
+     */
+    (0, _defineProperty2.default)(this, "options", void 0);
+    /**
+     * @type {EventManager}
+     */
+    (0, _defineProperty2.default)(this, "eventManager", new _eventManager.default(this));
+    /**
+     * The Menu container element.
+     *
+     * @type {HTMLElement}
+     */
+    (0, _defineProperty2.default)(this, "container", void 0);
+    /**
+     * @type {Positioner}
+     */
+    (0, _defineProperty2.default)(this, "positioner", void 0);
+    /**
+     * The instance of the Handsontable that is used as a menu.
+     *
+     * @type {Core}
+     */
+    (0, _defineProperty2.default)(this, "hotMenu", null);
+    /**
+     * The collection of the Handsontable instances that are used as sub-menus.
+     *
+     * @type {object}
+     */
+    (0, _defineProperty2.default)(this, "hotSubMenus", {});
+    /**
+     * If the menu acts as the sub-menu then this property contains the reference to the parent menu.
+     *
+     * @type {Menu}
+     */
+    (0, _defineProperty2.default)(this, "parentMenu", void 0);
+    /**
+     * The menu items entries.
+     *
+     * @type {object[]}
+     */
+    (0, _defineProperty2.default)(this, "menuItems", null);
+    /**
+     * @type {boolean}
+     */
+    (0, _defineProperty2.default)(this, "origOutsideClickDeselects", null);
+    /**
      * The controller module that allows modifying the menu item selection positions.
      *
      * @type {Paginator}
@@ -58553,14 +58937,9 @@ class Menu {
       minWidth: MIN_WIDTH,
       container: this.hot.rootDocument.documentElement
     };
-    this.eventManager = new _eventManager.default(this);
     this.container = this.createContainer(this.options.name);
     this.positioner = new _positioner.Positioner(this.options.keepInViewport);
-    this.hotMenu = null;
-    this.hotSubMenus = {};
     this.parentMenu = this.options.parent || null;
-    this.menuItems = null;
-    this.origOutsideClickDeselects = null;
     this.registerEvents();
     if (this.isSubMenu()) {
       this.addLocalHook('afterSelectionChange', function () {
@@ -59079,8 +59458,8 @@ exports.Menu = Menu;
 __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _cursor2 = __webpack_require__(487);
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
@@ -59288,12 +59667,14 @@ exports.Positioner = Positioner;
 
 /***/ }),
 /* 487 */
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 /**
  * Helper class for checking if element will fit at the desired side of cursor.
  *
@@ -59302,6 +59683,38 @@ exports.__esModule = true;
  */
 class Cursor {
   constructor(object, rootWindow) {
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "top", void 0);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "topRelative", void 0);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "left", void 0);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "leftRelative", void 0);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "scrollTop", void 0);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "scrollLeft", void 0);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "cellHeight", void 0);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "cellWidth", void 0);
     const windowScrollTop = rootWindow.scrollY;
     const windowScrollLeft = rootWindow.scrollX;
     let top;
@@ -59441,7 +59854,7 @@ function createMenuNavigator(hotMenu) {
 
 exports.__esModule = true;
 exports.createPaginator = createPaginator;
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 /**
  * @typedef Paginator
  * @property {function(number): void} setCurrentPage Sets the current index to the specific page.
@@ -60095,11 +60508,11 @@ __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _base = __webpack_require__(423);
-var _pluginHooks = _interopRequireDefault(__webpack_require__(124));
+var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 var _SheetClip = __webpack_require__(264);
 var _array = __webpack_require__(113);
 var _string = __webpack_require__(108);
@@ -60112,8 +60525,7 @@ var _copyWithColumnHeaders = _interopRequireDefault(__webpack_require__(500));
 var _cut = _interopRequireDefault(__webpack_require__(501));
 var _pasteEvent = _interopRequireDefault(__webpack_require__(502));
 var _copyableRanges = __webpack_require__(504);
-var _parseTable = __webpack_require__(134);
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
+var _parseTable = __webpack_require__(138);
 __webpack_require__(505);
 function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
@@ -60178,9 +60590,38 @@ var _ensureClipboardEventsGetTriggered = /*#__PURE__*/new WeakSet();
 var _countCopiedHeaders = /*#__PURE__*/new WeakSet();
 var _addContentEditableToHighlightedCell = /*#__PURE__*/new WeakSet();
 var _removeContentEditableFromHighlightedCell = /*#__PURE__*/new WeakSet();
+var _onAfterContextMenuDefaultOptions = /*#__PURE__*/new WeakSet();
+var _onAfterSelectionEnd = /*#__PURE__*/new WeakSet();
+var _onSafariMouseEnter = /*#__PURE__*/new WeakSet();
+var _onSafariMouseLeave = /*#__PURE__*/new WeakSet();
+var _onSafariAfterSelection = /*#__PURE__*/new WeakSet();
 class CopyPaste extends _base.BasePlugin {
   constructor() {
     super(...arguments);
+    /**
+     * `afterSelection` hook callback triggered only on Safari.
+     */
+    _classPrivateMethodInitSpec(this, _onSafariAfterSelection);
+    /**
+     * `document.body` `mouseleave` callback used to work around a Safari's problem with copying/cutting from the
+     * browser's menu.
+     */
+    _classPrivateMethodInitSpec(this, _onSafariMouseLeave);
+    /**
+     * `document.body` `mouseenter` callback used to work around a Safari's problem with copying/cutting from the
+     * browser's menu.
+     */
+    _classPrivateMethodInitSpec(this, _onSafariMouseEnter);
+    /**
+     * Force focus on focusableElement after end of the selection.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterSelectionEnd);
+    /**
+     * Add copy and cut options to the Context Menu.
+     *
+     * @param {object} options Contains default added options of the Context Menu.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterContextMenuDefaultOptions);
     /**
      * Remove the `contenteditable` attribute from the highlighted cell and deselect its content.
      */
@@ -60364,9 +60805,8 @@ class CopyPaste extends _base.BasePlugin {
       (0, _classPrivateFieldSet2.default)(this, _enableCopyColumnHeadersOnly, !!settings.copyColumnHeadersOnly);
       this.uiContainer = (_settings$uiContainer = settings.uiContainer) !== null && _settings$uiContainer !== void 0 ? _settings$uiContainer : this.uiContainer;
     }
-    this.addHook('afterContextMenuDefaultOptions', options => this.onAfterContextMenuDefaultOptions(options));
-    this.addHook('afterSelectionEnd', () => this.onAfterSelectionEnd());
-    this.eventManager = new _eventManager.default(this);
+    this.addHook('afterContextMenuDefaultOptions', options => _classPrivateMethodGet(this, _onAfterContextMenuDefaultOptions, _onAfterContextMenuDefaultOptions2).call(this, options));
+    this.addHook('afterSelectionEnd', () => _classPrivateMethodGet(this, _onAfterSelectionEnd, _onAfterSelectionEnd2).call(this));
     this.eventManager.addEventListener(this.hot.rootDocument, 'copy', function () {
       return _this.onCopy(...arguments);
     });
@@ -60380,12 +60820,18 @@ class CopyPaste extends _base.BasePlugin {
     // Without this workaround Safari (tested on Safari@16.5.2) does allow copying/cutting from the browser menu.
     if ((0, _browser.isSafari)()) {
       this.eventManager.addEventListener(this.hot.rootDocument.body, 'mouseenter', function () {
-        return _this.onSafariMouseEnter(...arguments);
+        for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+          args[_key] = arguments[_key];
+        }
+        return _classPrivateMethodGet(_this, _onSafariMouseEnter, _onSafariMouseEnter2).call(_this, ...args);
       });
       this.eventManager.addEventListener(this.hot.rootDocument.body, 'mouseleave', function () {
-        return _this.onSafariMouseLeave(...arguments);
+        for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+          args[_key2] = arguments[_key2];
+        }
+        return _classPrivateMethodGet(_this, _onSafariMouseLeave, _onSafariMouseLeave2).call(_this, ...args);
       });
-      this.addHook('afterSelection', () => this.onSafariAfterSelection());
+      this.addHook('afterSelection', () => _classPrivateMethodGet(this, _onSafariAfterSelection, _onSafariAfterSelection2).call(this));
     }
     super.enablePlugin();
   }
@@ -60651,7 +61097,7 @@ class CopyPaste extends _base.BasePlugin {
       }
       newRows.push(newRow);
     }
-    this.hot.populateFromArray(startRow, startColumn, newRows, void 0, void 0, 'CopyPaste.paste', this.pasteMode);
+    this.hot.populateFromArray(startRow, startColumn, newRows, undefined, undefined, 'CopyPaste.paste', this.pasteMode);
     return [startRow, startColumn, lastVisualRow, lastVisualColumn];
   }
   /**
@@ -60755,73 +61201,6 @@ class CopyPaste extends _base.BasePlugin {
     this.hot.selectCell(startRow, startColumn, Math.min(this.hot.countRows() - 1, endRow), Math.min(this.hot.countCols() - 1, endColumn));
     this.hot.runHooks('afterPaste', pastedData, this.copyableRanges);
   }
-
-  /**
-   * Add copy and cut options to the Context Menu.
-   *
-   * @private
-   * @param {object} options Contains default added options of the Context Menu.
-   */
-  onAfterContextMenuDefaultOptions(options) {
-    options.items.push({
-      name: '---------'
-    }, (0, _copy.default)(this));
-    if ((0, _classPrivateFieldGet2.default)(this, _enableCopyColumnHeaders)) {
-      options.items.push((0, _copyWithColumnHeaders.default)(this));
-    }
-    if ((0, _classPrivateFieldGet2.default)(this, _enableCopyColumnGroupHeaders)) {
-      options.items.push((0, _copyWithColumnGroupHeaders.default)(this));
-    }
-    if ((0, _classPrivateFieldGet2.default)(this, _enableCopyColumnHeadersOnly)) {
-      options.items.push((0, _copyColumnHeadersOnly.default)(this));
-    }
-    options.items.push((0, _cut.default)(this));
-  }
-
-  /**
-   * Force focus on focusableElement after end of the selection.
-   *
-   * @private
-   */
-  onAfterSelectionEnd() {
-    if (this.isEditorOpened()) {
-      return;
-    }
-    if (this.hot.getSettings().fragmentSelection) {
-      return;
-    }
-    this.setCopyableText();
-  }
-
-  /**
-   * `document.body` `mouseenter` callback used to work around a Safari's problem with copying/cutting from the
-   * browser's menu.
-   *
-   * @private
-   */
-  onSafariMouseEnter() {
-    _classPrivateMethodGet(this, _removeContentEditableFromHighlightedCell, _removeContentEditableFromHighlightedCell2).call(this);
-  }
-
-  /**
-   * `document.body` `mouseleave` callback used to work around a Safari's problem with copying/cutting from the
-   * browser's menu.
-   *
-   * @private
-   */
-  onSafariMouseLeave() {
-    _classPrivateMethodGet(this, _addContentEditableToHighlightedCell, _addContentEditableToHighlightedCell2).call(this);
-  }
-
-  /**
-   * `afterSelection` hook callback triggered only on Safari.
-   *
-   * @private
-   */
-  onSafariAfterSelection() {
-    _classPrivateMethodGet(this, _removeContentEditableFromHighlightedCell, _removeContentEditableFromHighlightedCell2).call(this);
-  }
-
   /**
    * Destroys the `CopyPaste` plugin instance.
    */
@@ -60896,6 +61275,39 @@ function _removeContentEditableFromHighlightedCell2() {
     }
   }
 }
+function _onAfterContextMenuDefaultOptions2(options) {
+  options.items.push({
+    name: '---------'
+  }, (0, _copy.default)(this));
+  if ((0, _classPrivateFieldGet2.default)(this, _enableCopyColumnHeaders)) {
+    options.items.push((0, _copyWithColumnHeaders.default)(this));
+  }
+  if ((0, _classPrivateFieldGet2.default)(this, _enableCopyColumnGroupHeaders)) {
+    options.items.push((0, _copyWithColumnGroupHeaders.default)(this));
+  }
+  if ((0, _classPrivateFieldGet2.default)(this, _enableCopyColumnHeadersOnly)) {
+    options.items.push((0, _copyColumnHeadersOnly.default)(this));
+  }
+  options.items.push((0, _cut.default)(this));
+}
+function _onAfterSelectionEnd2() {
+  if (this.isEditorOpened()) {
+    return;
+  }
+  if (this.hot.getSettings().fragmentSelection) {
+    return;
+  }
+  this.setCopyableText();
+}
+function _onSafariMouseEnter2() {
+  _classPrivateMethodGet(this, _removeContentEditableFromHighlightedCell, _removeContentEditableFromHighlightedCell2).call(this);
+}
+function _onSafariMouseLeave2() {
+  _classPrivateMethodGet(this, _addContentEditableToHighlightedCell, _addContentEditableToHighlightedCell2).call(this);
+}
+function _onSafariAfterSelection2() {
+  _classPrivateMethodGet(this, _removeContentEditableFromHighlightedCell, _removeContentEditableFromHighlightedCell2).call(this);
+}
 
 /***/ }),
 /* 497 */
@@ -60953,7 +61365,7 @@ function copyItem(copyPastePlugin) {
 exports.__esModule = true;
 exports["default"] = copyColumnHeadersOnlyItem;
 var _constants = __webpack_require__(245);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 /**
  * @param {CopyPaste} copyPastePlugin The plugin instance.
  * @returns {object}
@@ -61002,7 +61414,7 @@ function copyColumnHeadersOnlyItem(copyPastePlugin) {
 exports.__esModule = true;
 exports["default"] = copyWithColumnGroupHeadersItem;
 var _constants = __webpack_require__(245);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 /**
  * @param {CopyPaste} copyPastePlugin The plugin instance.
  * @returns {object}
@@ -61051,7 +61463,7 @@ function copyWithColumnGroupHeadersItem(copyPastePlugin) {
 exports.__esModule = true;
 exports["default"] = copyWithColumnHeadersItem;
 var _constants = __webpack_require__(245);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 /**
  * @param {CopyPaste} copyPastePlugin The plugin instance.
  * @returns {object}
@@ -61194,10 +61606,10 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.normalizeRanges = normalizeRanges;
 __webpack_require__(8);
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _array = __webpack_require__(113);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
@@ -61468,10 +61880,10 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
 __webpack_require__(78);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _base = __webpack_require__(423);
 var _object = __webpack_require__(117);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 var _array = __webpack_require__(113);
 var C = _interopRequireWildcard(__webpack_require__(245));
 var _contextMenuItem = __webpack_require__(508);
@@ -61479,6 +61891,9 @@ var _utils = __webpack_require__(510);
 var _selection = __webpack_require__(246);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && Object.prototype.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'customBorders';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 90;
 
@@ -61537,9 +61952,21 @@ const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 90;
  * ],
  * ```
  */
+var _onAfterContextMenuDefaultOptions = /*#__PURE__*/new WeakSet();
+var _onAfterInit = /*#__PURE__*/new WeakSet();
 class CustomBorders extends _base.BasePlugin {
   constructor() {
     super(...arguments);
+    /**
+     * `afterInit` hook callback.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterInit);
+    /**
+     * Add border options to context menu.
+     *
+     * @param {object} defaultOptions Context menu items.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterContextMenuDefaultOptions);
     /**
      * Saved borders.
      *
@@ -61571,8 +61998,8 @@ class CustomBorders extends _base.BasePlugin {
     if (this.enabled) {
       return;
     }
-    this.addHook('afterContextMenuDefaultOptions', options => this.onAfterContextMenuDefaultOptions(options));
-    this.addHook('init', () => this.onAfterInit());
+    this.addHook('afterContextMenuDefaultOptions', options => _classPrivateMethodGet(this, _onAfterContextMenuDefaultOptions, _onAfterContextMenuDefaultOptions2).call(this, options));
+    this.addHook('init', () => _classPrivateMethodGet(this, _onAfterInit, _onAfterInit2).call(this));
     super.enablePlugin();
   }
 
@@ -61626,7 +62053,10 @@ class CustomBorders extends _base.BasePlugin {
       normBorder = (0, _utils.normalizeBorder)(borderObject);
     }
     const selectionType = (0, _selection.detectSelectionType)(selectionRanges);
-    const selectionSchemaNormalizer = (0, _selection.normalizeSelectionFactory)(selectionType);
+    const selectionSchemaNormalizer = (0, _selection.normalizeSelectionFactory)(selectionType, {
+      createCellCoords: this.hot._createCellCoords.bind(this.hot),
+      createCellRange: this.hot._createCellRange.bind(this.hot)
+    });
     (0, _array.arrayEach)(selectionRanges, selection => {
       selectionSchemaNormalizer(selection).forAll((row, col) => {
         (0, _array.arrayEach)(borderKeys, borderKey => {
@@ -61669,7 +62099,10 @@ class CustomBorders extends _base.BasePlugin {
       return this.savedBorders;
     }
     const selectionType = (0, _selection.detectSelectionType)(selectionRanges);
-    const selectionSchemaNormalizer = (0, _selection.normalizeSelectionFactory)(selectionType);
+    const selectionSchemaNormalizer = (0, _selection.normalizeSelectionFactory)(selectionType, {
+      createCellCoords: this.hot._createCellCoords.bind(this.hot),
+      createCellRange: this.hot._createCellRange.bind(this.hot)
+    });
     const selectedBorders = [];
     (0, _array.arrayEach)(selectionRanges, selection => {
       selectionSchemaNormalizer(selection).forAll((row, col) => {
@@ -61848,7 +62281,7 @@ class CustomBorders extends _base.BasePlugin {
    */
   setBorder(row, column, place, remove) {
     let bordersMeta = this.hot.getCellMeta(row, column).borders;
-    if (!bordersMeta || bordersMeta.border === void 0) {
+    if (!bordersMeta || bordersMeta.border === undefined) {
       bordersMeta = (0, _utils.createEmptyBorders)(row, column);
     } else {
       bordersMeta = (0, _utils.normalizeBorder)(bordersMeta);
@@ -62132,7 +62565,7 @@ class CustomBorders extends _base.BasePlugin {
         this.savedBorders = bordersClone;
       }
       this.createCustomBorders(bordersClone);
-    } else if (customBorders !== void 0) {
+    } else if (customBorders !== undefined) {
       this.createCustomBorders(this.savedBorders);
     }
   }
@@ -62154,49 +62587,6 @@ class CustomBorders extends _base.BasePlugin {
       throw new Error('The "left"/"right" properties are not supported for RTL. Please use option "start"/"end".');
     }
   }
-
-  /**
-   * Add border options to context menu.
-   *
-   * @private
-   * @param {object} defaultOptions Context menu items.
-   */
-  onAfterContextMenuDefaultOptions(defaultOptions) {
-    if (!this.hot.getSettings()[PLUGIN_KEY]) {
-      return;
-    }
-    defaultOptions.items.push({
-      name: '---------'
-    }, {
-      key: 'borders',
-      name() {
-        return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS);
-      },
-      disabled() {
-        const range = this.getSelectedRangeLast();
-        if (!range) {
-          return true;
-        }
-        if (range.isSingleHeader()) {
-          return true;
-        }
-        return this.selection.isSelectedByCorner();
-      },
-      submenu: {
-        items: [(0, _contextMenuItem.top)(this), (0, _contextMenuItem.right)(this), (0, _contextMenuItem.bottom)(this), (0, _contextMenuItem.left)(this), (0, _contextMenuItem.noBorders)(this)]
-      }
-    });
-  }
-
-  /**
-   * `afterInit` hook callback.
-   *
-   * @private
-   */
-  onAfterInit() {
-    this.changeBorderSettings();
-  }
-
   /**
    * Destroys the plugin instance.
    */
@@ -62205,6 +62595,35 @@ class CustomBorders extends _base.BasePlugin {
   }
 }
 exports.CustomBorders = CustomBorders;
+function _onAfterContextMenuDefaultOptions2(defaultOptions) {
+  if (!this.hot.getSettings()[PLUGIN_KEY]) {
+    return;
+  }
+  defaultOptions.items.push({
+    name: '---------'
+  }, {
+    key: 'borders',
+    name() {
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS);
+    },
+    disabled() {
+      const range = this.getSelectedRangeLast();
+      if (!range) {
+        return true;
+      }
+      if (range.isSingleHeader()) {
+        return true;
+      }
+      return this.selection.isSelectedByCorner();
+    },
+    submenu: {
+      items: [(0, _contextMenuItem.top)(this), (0, _contextMenuItem.right)(this), (0, _contextMenuItem.bottom)(this), (0, _contextMenuItem.left)(this), (0, _contextMenuItem.noBorders)(this)]
+    }
+  });
+}
+function _onAfterInit2() {
+  this.changeBorderSettings();
+}
 
 /***/ }),
 /* 508 */
@@ -62683,10 +63102,14 @@ exports.DragToScroll = _dragToScroll.DragToScroll;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+__webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _base = __webpack_require__(423);
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
-var _event = __webpack_require__(122);
+var _event = __webpack_require__(126);
 var _element = __webpack_require__(107);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'dragToScroll';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 100;
 
@@ -62700,45 +63123,44 @@ const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 100;
  * @class DragToScroll
  * @plugin DragToScroll
  */
+var _setupListening = /*#__PURE__*/new WeakSet();
 class DragToScroll extends _base.BasePlugin {
-  static get PLUGIN_KEY() {
-    return PLUGIN_KEY;
-  }
-  static get PLUGIN_PRIORITY() {
-    return PLUGIN_PRIORITY;
-  }
-  constructor(hotInstance) {
-    super(hotInstance);
+  constructor() {
+    super(...arguments);
     /**
-     * Instance of {@link EventManager}.
+     * On after on cell/cellCorner mouse down listener.
      *
-     * @private
-     * @type {EventManager}
+     * @param {MouseEvent} event The mouse event object.
      */
-    this.eventManager = new _eventManager.default(this);
+    _classPrivateMethodInitSpec(this, _setupListening);
     /**
      * Size of an element and its position relative to the viewport,
      * e.g. {bottom: 449, height: 441, left: 8, right: 814, top: 8, width: 806, x: 8, y:8}.
      *
      * @type {DOMRect}
      */
-    this.boundaries = null;
+    (0, _defineProperty2.default)(this, "boundaries", null);
     /**
      * Callback function.
      *
      * @private
      * @type {Function}
      */
-    this.callback = null;
+    (0, _defineProperty2.default)(this, "callback", null);
     /**
      * Flag indicates mouseDown/mouseUp.
      *
      * @private
      * @type {boolean}
      */
-    this.listening = false;
+    (0, _defineProperty2.default)(this, "listening", false);
   }
-
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link DragToScroll#enablePlugin} method is called.
@@ -62756,8 +63178,8 @@ class DragToScroll extends _base.BasePlugin {
     if (this.enabled) {
       return;
     }
-    this.addHook('afterOnCellMouseDown', event => this.setupListening(event));
-    this.addHook('afterOnCellCornerMouseDown', event => this.setupListening(event));
+    this.addHook('afterOnCellMouseDown', event => _classPrivateMethodGet(this, _setupListening, _setupListening2).call(this, event));
+    this.addHook('afterOnCellCornerMouseDown', event => _classPrivateMethodGet(this, _setupListening, _setupListening2).call(this, event));
     this.registerEvents();
     super.enablePlugin();
   }
@@ -62881,39 +63303,6 @@ class DragToScroll extends _base.BasePlugin {
   unregisterEvents() {
     this.eventManager.clear();
   }
-
-  /**
-   * On after on cell/cellCorner mouse down listener.
-   *
-   * @private
-   * @param {MouseEvent} event The mouse event object.
-   */
-  setupListening(event) {
-    if ((0, _event.isRightClick)(event)) {
-      return;
-    }
-    const scrollHandler = this.hot.view._wt.wtTable.holder; // native scroll
-
-    if (scrollHandler === this.hot.rootWindow) {
-      // not much we can do currently
-      return;
-    }
-    this.setBoundaries(scrollHandler.getBoundingClientRect());
-    this.setCallback((scrollX, scrollY) => {
-      if (scrollX < 0) {
-        scrollHandler.scrollLeft -= 50;
-      } else if (scrollX > 0) {
-        scrollHandler.scrollLeft += 50;
-      }
-      if (scrollY < 0) {
-        scrollHandler.scrollTop -= 20;
-      } else if (scrollY > 0) {
-        scrollHandler.scrollTop += 20;
-      }
-    });
-    this.listen();
-  }
-
   /**
    * 'mouseMove' event callback.
    *
@@ -62935,6 +63324,31 @@ class DragToScroll extends _base.BasePlugin {
   }
 }
 exports.DragToScroll = DragToScroll;
+function _setupListening2(event) {
+  if ((0, _event.isRightClick)(event)) {
+    return;
+  }
+  const scrollHandler = this.hot.view._wt.wtTable.holder; // native scroll
+
+  if (scrollHandler === this.hot.rootWindow) {
+    // not much we can do currently
+    return;
+  }
+  this.setBoundaries(scrollHandler.getBoundingClientRect());
+  this.setCallback((scrollX, scrollY) => {
+    if (scrollX < 0) {
+      scrollHandler.scrollLeft -= 50;
+    } else if (scrollX > 0) {
+      scrollHandler.scrollLeft += 50;
+    }
+    if (scrollY < 0) {
+      scrollHandler.scrollTop -= 20;
+    } else if (scrollY > 0) {
+      scrollHandler.scrollTop += 20;
+    }
+  });
+  this.listen();
+}
 
 /***/ }),
 /* 517 */
@@ -62959,16 +63373,16 @@ exports.DropdownMenu = _dropdownMenu.DropdownMenu;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _base = __webpack_require__(423);
 var _array = __webpack_require__(113);
 var _object = __webpack_require__(117);
 var _commandExecutor = __webpack_require__(480);
 var _utils = __webpack_require__(461);
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
 var _element = __webpack_require__(107);
 var _itemsFactory = __webpack_require__(483);
 var _menu = __webpack_require__(484);
-var _pluginHooks = _interopRequireDefault(__webpack_require__(124));
+var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 var _predefinedItems = __webpack_require__(459);
 __webpack_require__(519);
 var _constants = __webpack_require__(245);
@@ -63037,6 +63451,12 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * :::
  */
 var _addCustomShortcuts = /*#__PURE__*/new WeakSet();
+var _onTableClick = /*#__PURE__*/new WeakSet();
+var _onAfterGetColHeader = /*#__PURE__*/new WeakSet();
+var _onMenuBeforeOpen = /*#__PURE__*/new WeakSet();
+var _onMenuAfterOpen = /*#__PURE__*/new WeakSet();
+var _onSubMenuAfterOpen = /*#__PURE__*/new WeakSet();
+var _onMenuAfterClose = /*#__PURE__*/new WeakSet();
 class DropdownMenu extends _base.BasePlugin {
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
@@ -63056,45 +63476,83 @@ class DropdownMenu extends _base.BasePlugin {
   static get DEFAULT_ITEMS() {
     return [_predefinedItems.COLUMN_LEFT, _predefinedItems.COLUMN_RIGHT, _predefinedItems.SEPARATOR, _predefinedItems.REMOVE_COLUMN, _predefinedItems.SEPARATOR, _predefinedItems.CLEAR_COLUMN, _predefinedItems.SEPARATOR, _predefinedItems.READ_ONLY, _predefinedItems.SEPARATOR, _predefinedItems.ALIGNMENT];
   }
+
+  /**
+   * Instance of {@link CommandExecutor}.
+   *
+   * @private
+   * @type {CommandExecutor}
+   */
+
   constructor(hotInstance) {
     super(hotInstance);
+
+    // One listener for enable/disable functionality
     /**
-     * Instance of {@link EventManager}.
+     * On menu after close listener.
      *
      * @private
-     * @type {EventManager}
+     * @fires Hooks#afterDropdownMenuHide
      */
+    _classPrivateMethodInitSpec(this, _onMenuAfterClose);
+    /**
+     * Listener for the `afterSubmenuOpen` hook.
+     *
+     * @private
+     * @param {Menu} subMenuInstance The opened sub menu instance.
+     */
+    _classPrivateMethodInitSpec(this, _onSubMenuAfterOpen);
+    /**
+     * On menu after open listener.
+     *
+     * @private
+     * @fires Hooks#afterDropdownMenuShow
+     */
+    _classPrivateMethodInitSpec(this, _onMenuAfterOpen);
+    /**
+     * On menu before open listener.
+     *
+     * @private
+     * @fires Hooks#beforeDropdownMenuShow
+     */
+    _classPrivateMethodInitSpec(this, _onMenuBeforeOpen);
+    /**
+     * On after get column header listener.
+     *
+     * @private
+     * @param {number} col Visual column index.
+     * @param {HTMLTableCellElement} TH Header's TH element.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterGetColHeader);
+    /**
+     * Table click listener.
+     *
+     * @private
+     * @param {Event} event The mouse event object.
+     */
+    _classPrivateMethodInitSpec(this, _onTableClick);
     /**
      * Add custom shortcuts to the provided menu instance.
      *
      * @param {Menu} menuInstance The menu instance.
      */
     _classPrivateMethodInitSpec(this, _addCustomShortcuts);
-    this.eventManager = new _eventManager.default(this);
-    /**
-     * Instance of {@link CommandExecutor}.
-     *
-     * @private
-     * @type {CommandExecutor}
-     */
-    this.commandExecutor = new _commandExecutor.CommandExecutor(this.hot);
+    (0, _defineProperty2.default)(this, "commandExecutor", new _commandExecutor.CommandExecutor(this.hot));
     /**
      * Instance of {@link ItemsFactory}.
      *
      * @private
      * @type {ItemsFactory}
      */
-    this.itemsFactory = null;
+    (0, _defineProperty2.default)(this, "itemsFactory", null);
     /**
      * Instance of {@link Menu}.
      *
      * @private
      * @type {Menu}
      */
-    this.menu = null;
-
-    // One listener for enable/disable functionality
-    this.hot.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
+    (0, _defineProperty2.default)(this, "menu", null);
+    this.hot.addHook('afterGetColHeader', (col, TH) => _classPrivateMethodGet(this, _onAfterGetColHeader, _onAfterGetColHeader2).call(this, col, TH));
   }
 
   /**
@@ -63143,10 +63601,10 @@ class DropdownMenu extends _base.BasePlugin {
       });
       this.hot.runHooks('beforeDropdownMenuSetItems', menuItems);
       this.menu.setMenuItems(menuItems);
-      this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());
-      this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
-      this.menu.addLocalHook('afterSubmenuOpen', subMenuInstance => this.onSubMenuAfterOpen(subMenuInstance));
-      this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
+      this.menu.addLocalHook('beforeOpen', () => _classPrivateMethodGet(this, _onMenuBeforeOpen, _onMenuBeforeOpen2).call(this));
+      this.menu.addLocalHook('afterOpen', () => _classPrivateMethodGet(this, _onMenuAfterOpen, _onMenuAfterOpen2).call(this));
+      this.menu.addLocalHook('afterSubmenuOpen', subMenuInstance => _classPrivateMethodGet(this, _onSubMenuAfterOpen, _onSubMenuAfterOpen2).call(this, subMenuInstance));
+      this.menu.addLocalHook('afterClose', () => _classPrivateMethodGet(this, _onMenuAfterClose, _onMenuAfterClose2).call(this));
       this.menu.addLocalHook('executeCommand', function () {
         for (var _len = arguments.length, params = new Array(_len), _key = 0; _key < _len; _key++) {
           params[_key] = arguments[_key];
@@ -63215,7 +63673,8 @@ class DropdownMenu extends _base.BasePlugin {
       callback,
       runOnlyIf: () => {
         var _this$hot$getSelected;
-        return ((_this$hot$getSelected = this.hot.getSelectedRangeLast()) === null || _this$hot$getSelected === void 0 ? void 0 : _this$hot$getSelected.highlight.isHeader()) && !this.menu.isOpened();
+        const highlight = (_this$hot$getSelected = this.hot.getSelectedRangeLast()) === null || _this$hot$getSelected === void 0 ? void 0 : _this$hot$getSelected.highlight;
+        return highlight && this.hot.selection.isCellVisible(highlight) && highlight.isHeader() && !this.menu.isOpened();
       },
       captureCtrl: true,
       group: SHORTCUTS_GROUP
@@ -63224,7 +63683,8 @@ class DropdownMenu extends _base.BasePlugin {
       callback,
       runOnlyIf: () => {
         var _this$hot$getSelected2;
-        return ((_this$hot$getSelected2 = this.hot.getSelectedRangeLast()) === null || _this$hot$getSelected2 === void 0 ? void 0 : _this$hot$getSelected2.highlight.isCell()) && !this.menu.isOpened();
+        const highlight = (_this$hot$getSelected2 = this.hot.getSelectedRangeLast()) === null || _this$hot$getSelected2 === void 0 ? void 0 : _this$hot$getSelected2.highlight;
+        return highlight && this.hot.selection.isCellVisible(highlight) && highlight.isCell() && !this.menu.isOpened();
       },
       group: SHORTCUTS_GROUP
     }]);
@@ -63245,7 +63705,7 @@ class DropdownMenu extends _base.BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(this.hot.rootElement, 'click', event => this.onTableClick(event));
+    this.eventManager.addEventListener(this.hot.rootElement, 'click', event => _classPrivateMethodGet(this, _onTableClick, _onTableClick2).call(this, event));
   }
 
   /**
@@ -63340,115 +63800,6 @@ class DropdownMenu extends _base.BasePlugin {
     }
   }
   /**
-   * Table click listener.
-   *
-   * @private
-   * @param {Event} event The mouse event object.
-   */
-  onTableClick(event) {
-    event.stopPropagation();
-    if ((0, _element.hasClass)(event.target, BUTTON_CLASS_NAME)) {
-      const offset = (0, _utils.getDocumentOffsetByElement)(this.menu.container, this.hot.rootDocument);
-      const rect = event.target.getBoundingClientRect();
-      this.open({
-        left: rect.left + offset.left,
-        top: rect.top + event.target.offsetHeight + 3 + offset.top
-      }, {
-        left: rect.width
-      });
-    }
-  }
-
-  /**
-   * On after get column header listener.
-   *
-   * @private
-   * @param {number} col Visual column index.
-   * @param {HTMLTableCellElement} TH Header's TH element.
-   */
-  onAfterGetColHeader(col, TH) {
-    // Corner or a higher-level header
-    const headerRow = TH.parentNode;
-    if (!headerRow) {
-      return;
-    }
-    const headerRowList = headerRow.parentNode.childNodes;
-    const level = Array.prototype.indexOf.call(headerRowList, headerRow);
-    if (col < 0 || level !== headerRowList.length - 1) {
-      return;
-    }
-    const existingButton = TH.querySelector(`.${BUTTON_CLASS_NAME}`);
-
-    // Plugin enabled and buttons already exists, return.
-    if (this.enabled && existingButton) {
-      return;
-    }
-    // Plugin disabled and buttons still exists, so remove them.
-    if (!this.enabled) {
-      if (existingButton) {
-        existingButton.parentNode.removeChild(existingButton);
-      }
-      return;
-    }
-    const button = this.hot.rootDocument.createElement('button');
-    button.className = BUTTON_CLASS_NAME;
-    button.type = 'button';
-    button.tabIndex = -1;
-    if (this.hot.getSettings().ariaTags) {
-      (0, _element.setAttribute)(button, [(0, _a11y.A11Y_LABEL)(this.hot.getTranslatedPhrase(_constants.COLUMN_HEADER_LABEL_OPEN_MENU))]);
-      (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_HASPOPUP)('menu')]);
-    }
-
-    // prevent page reload on button click
-    button.onclick = function () {
-      return false;
-    };
-    TH.firstChild.insertBefore(button, TH.firstChild.firstChild);
-  }
-
-  /**
-   * On menu before open listener.
-   *
-   * @private
-   * @fires Hooks#beforeDropdownMenuShow
-   */
-  onMenuBeforeOpen() {
-    this.hot.runHooks('beforeDropdownMenuShow', this);
-  }
-
-  /**
-   * On menu after open listener.
-   *
-   * @private
-   * @fires Hooks#afterDropdownMenuShow
-   */
-  onMenuAfterOpen() {
-    this.hot.runHooks('afterDropdownMenuShow', this);
-    _classPrivateMethodGet(this, _addCustomShortcuts, _addCustomShortcuts2).call(this, this.menu);
-  }
-
-  /**
-   * Listener for the `afterSubmenuOpen` hook.
-   *
-   * @private
-   * @param {Menu} subMenuInstance The opened sub menu instance.
-   */
-  onSubMenuAfterOpen(subMenuInstance) {
-    _classPrivateMethodGet(this, _addCustomShortcuts, _addCustomShortcuts2).call(this, subMenuInstance);
-  }
-
-  /**
-   * On menu after close listener.
-   *
-   * @private
-   * @fires Hooks#afterDropdownMenuHide
-   */
-  onMenuAfterClose() {
-    this.hot.listen();
-    this.hot.runHooks('afterDropdownMenuHide', this);
-  }
-
-  /**
    * Destroys the plugin instance.
    */
   destroy() {
@@ -63465,6 +63816,72 @@ function _addCustomShortcuts2(menuInstance) {
     keys: [['Control/Meta', 'A']],
     callback: () => false
   }]);
+}
+function _onTableClick2(event) {
+  event.stopPropagation();
+  if ((0, _element.hasClass)(event.target, BUTTON_CLASS_NAME)) {
+    const offset = (0, _utils.getDocumentOffsetByElement)(this.menu.container, this.hot.rootDocument);
+    const rect = event.target.getBoundingClientRect();
+    this.open({
+      left: rect.left + offset.left,
+      top: rect.top + event.target.offsetHeight + 3 + offset.top
+    }, {
+      left: rect.width
+    });
+  }
+}
+function _onAfterGetColHeader2(col, TH) {
+  // Corner or a higher-level header
+  const headerRow = TH.parentNode;
+  if (!headerRow) {
+    return;
+  }
+  const headerRowList = headerRow.parentNode.childNodes;
+  const level = Array.prototype.indexOf.call(headerRowList, headerRow);
+  if (col < 0 || level !== headerRowList.length - 1) {
+    return;
+  }
+  const existingButton = TH.querySelector(`.${BUTTON_CLASS_NAME}`);
+
+  // Plugin enabled and buttons already exists, return.
+  if (this.enabled && existingButton) {
+    return;
+  }
+  // Plugin disabled and buttons still exists, so remove them.
+  if (!this.enabled) {
+    if (existingButton) {
+      existingButton.parentNode.removeChild(existingButton);
+    }
+    return;
+  }
+  const button = this.hot.rootDocument.createElement('button');
+  button.className = BUTTON_CLASS_NAME;
+  button.type = 'button';
+  button.tabIndex = -1;
+  if (this.hot.getSettings().ariaTags) {
+    (0, _element.setAttribute)(button, [(0, _a11y.A11Y_LABEL)(this.hot.getTranslatedPhrase(_constants.COLUMN_HEADER_LABEL_OPEN_MENU))]);
+    (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_HASPOPUP)('menu')]);
+  }
+
+  // prevent page reload on button click
+  button.onclick = function () {
+    return false;
+  };
+  TH.firstChild.insertBefore(button, TH.firstChild.firstChild);
+}
+function _onMenuBeforeOpen2() {
+  this.hot.runHooks('beforeDropdownMenuShow', this);
+}
+function _onMenuAfterOpen2() {
+  this.hot.runHooks('afterDropdownMenuShow', this);
+  _classPrivateMethodGet(this, _addCustomShortcuts, _addCustomShortcuts2).call(this, this.menu);
+}
+function _onSubMenuAfterOpen2(subMenuInstance) {
+  _classPrivateMethodGet(this, _addCustomShortcuts, _addCustomShortcuts2).call(this, subMenuInstance);
+}
+function _onMenuAfterClose2() {
+  this.hot.listen();
+  this.hot.runHooks('afterDropdownMenuHide', this);
 }
 DropdownMenu.SEPARATOR = {
   name: _predefinedItems.SEPARATOR
@@ -63658,7 +64075,7 @@ class ExportFile extends _base.BasePlugin {
     const URL = rootWindow.URL || rootWindow.webkitURL;
     const a = rootDocument.createElement('a');
     const name = `${formatter.options.filename}.${formatter.options.fileExtension}`;
-    if (a.download !== void 0) {
+    if (a.download !== undefined) {
       const url = URL.createObjectURL(blob);
       a.style.display = 'none';
       a.setAttribute('href', url);
@@ -63717,9 +64134,11 @@ exports.ExportFile = ExportFile;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
-var _number = __webpack_require__(137);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _number = __webpack_require__(141);
 /**
  * @private
  */
@@ -63730,13 +64149,14 @@ class DataProvider {
      *
      * @type {Core}
      */
-    this.hot = hotInstance;
+    (0, _defineProperty2.default)(this, "hot", void 0);
     /**
      * Format type class options.
      *
      * @type {object}
      */
-    this.options = {};
+    (0, _defineProperty2.default)(this, "options", {});
+    this.hot = hotInstance;
   }
 
   /**
@@ -63997,7 +64417,9 @@ var _default = exports["default"] = Csv;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _object = __webpack_require__(117);
 var _string = __webpack_require__(108);
 /**
@@ -64023,18 +64445,22 @@ class BaseType {
       range: []
     };
   }
+
+  /**
+   * Data provider.
+   *
+   * @type {DataProvider}
+   */
+
   constructor(dataProvider, options) {
-    /**
-     * Data provider.
-     *
-     * @type {DataProvider}
-     */
-    this.dataProvider = dataProvider;
+    (0, _defineProperty2.default)(this, "dataProvider", void 0);
     /**
      * Format type class options.
      *
      * @type {object}
      */
+    (0, _defineProperty2.default)(this, "options", void 0);
+    this.dataProvider = dataProvider;
     this.options = this._mergeOptions(options);
     this.dataProvider.setOptions(this.options);
   }
@@ -64080,21 +64506,21 @@ exports.Filters = _filters.Filters;
 "use strict";
 
 
-__webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(205);
 __webpack_require__(8);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
+__webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
 var _base = __webpack_require__(423);
 var _array = __webpack_require__(113);
 var _templateLiteralTag = __webpack_require__(112);
-var _console = __webpack_require__(125);
-var _number = __webpack_require__(137);
+var _console = __webpack_require__(129);
+var _number = __webpack_require__(141);
 var _element = __webpack_require__(107);
-var _unicode = __webpack_require__(121);
+var _unicode = __webpack_require__(125);
 var _predefinedItems = __webpack_require__(459);
 var constants = _interopRequireWildcard(__webpack_require__(245));
 var _condition = __webpack_require__(528);
@@ -64111,8 +64537,10 @@ var _translations = __webpack_require__(221);
 __webpack_require__(574);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && Object.prototype.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'filters';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 250;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
@@ -64153,6 +64581,15 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * :::
  */
 var _menuFocusNavigator = /*#__PURE__*/new WeakMap();
+var _onAfterChange = /*#__PURE__*/new WeakSet();
+var _onAfterDropdownMenuShow = /*#__PURE__*/new WeakSet();
+var _onAfterDropdownMenuHide = /*#__PURE__*/new WeakSet();
+var _onAfterDropdownMenuDefaultOptions = /*#__PURE__*/new WeakSet();
+var _onActionBarSubmit = /*#__PURE__*/new WeakSet();
+var _onComponentChange = /*#__PURE__*/new WeakSet();
+var _onSelectUIClosed = /*#__PURE__*/new WeakSet();
+var _onAfterGetColHeader = /*#__PURE__*/new WeakSet();
+var _updateComponents = /*#__PURE__*/new WeakSet();
 class Filters extends _base.BasePlugin {
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
@@ -64174,6 +64611,59 @@ class Filters extends _base.BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     // One listener for the enable/disable functionality
+    /**
+     * It updates the components state. The state is triggered by ConditionUpdateObserver, which
+     * reacts to any condition added to the condition collection. It may be added through the UI
+     * components or by API call.
+     *
+     * @param {object} conditionsState An object with the state generated by UI components.
+     */
+    _classPrivateMethodInitSpec(this, _updateComponents);
+    /**
+     * On after get column header listener.
+     *
+     * @param {number} col Visual column index.
+     * @param {HTMLTableCellElement} TH Header's TH element.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterGetColHeader);
+    /**
+     * On component SelectUI closed listener.
+     */
+    _classPrivateMethodInitSpec(this, _onSelectUIClosed);
+    /**
+     * On component change listener.
+     *
+     * @param {BaseComponent} component Component inheriting BaseComponent.
+     * @param {object} command Menu item object (command).
+     */
+    _classPrivateMethodInitSpec(this, _onComponentChange);
+    /**
+     * On action bar submit listener.
+     *
+     * @private
+     * @param {string} submitType The submit type.
+     */
+    _classPrivateMethodInitSpec(this, _onActionBarSubmit);
+    /**
+     * After dropdown menu default options listener.
+     *
+     * @param {object} defaultOptions ContextMenu default item options.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterDropdownMenuDefaultOptions);
+    /**
+     * After dropdown menu hide listener.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterDropdownMenuHide);
+    /**
+     * After dropdown menu show listener.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterDropdownMenuShow);
+    /**
+     * `afterChange` listener.
+     *
+     * @param {Array} changes Array of changes.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterChange);
     (0, _defineProperty2.default)(this, "dropdownMenuPlugin", null);
     /**
      * Instance of {@link ConditionCollection}.
@@ -64212,7 +64702,7 @@ class Filters extends _base.BasePlugin {
       writable: true,
       value: void 0
     });
-    this.hot.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
+    this.hot.addHook('afterGetColHeader', (col, TH) => _classPrivateMethodGet(this, _onAfterGetColHeader, _onAfterGetColHeader2).call(this, col, TH));
   }
 
   /**
@@ -64238,9 +64728,9 @@ class Filters extends _base.BasePlugin {
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
     const menuContainer = dropdownSettings && dropdownSettings.uiContainer || this.hot.rootDocument.body;
     const addConfirmationHooks = component => {
-      component.addLocalHook('accept', () => this.onActionBarSubmit('accept'));
-      component.addLocalHook('cancel', () => this.onActionBarSubmit('cancel'));
-      component.addLocalHook('change', command => this.onComponentChange(component, command));
+      component.addLocalHook('accept', () => _classPrivateMethodGet(this, _onActionBarSubmit, _onActionBarSubmit2).call(this, 'accept'));
+      component.addLocalHook('cancel', () => _classPrivateMethodGet(this, _onActionBarSubmit, _onActionBarSubmit2).call(this, 'cancel'));
+      component.addLocalHook('change', command => _classPrivateMethodGet(this, _onComponentChange, _onComponentChange2).call(this, component, command));
       return component;
     };
     const filterByConditionLabel = () => `${this.hot.getTranslatedPhrase(constants.FILTERS_DIVS_FILTER_BY_CONDITION)}:`;
@@ -64252,7 +64742,7 @@ class Filters extends _base.BasePlugin {
         addSeparator: false,
         menuContainer
       });
-      conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
+      conditionComponent.addLocalHook('afterClose', () => _classPrivateMethodGet(this, _onSelectUIClosed, _onSelectUIClosed2).call(this));
       this.components.set('filter_by_condition', addConfirmationHooks(conditionComponent));
     }
     if (!this.components.get('filter_operators')) {
@@ -64268,7 +64758,7 @@ class Filters extends _base.BasePlugin {
         addSeparator: true,
         menuContainer
       });
-      conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
+      conditionComponent.addLocalHook('afterClose', () => _classPrivateMethodGet(this, _onSelectUIClosed, _onSelectUIClosed2).call(this));
       this.components.set('filter_by_condition2', addConfirmationHooks(conditionComponent));
     }
     if (!this.components.get('filter_by_value')) {
@@ -64288,13 +64778,13 @@ class Filters extends _base.BasePlugin {
     }
     if (!this.conditionUpdateObserver) {
       this.conditionUpdateObserver = new _conditionUpdateObserver.default(this.hot, this.conditionCollection, physicalColumn => this.getDataMapAtColumn(physicalColumn));
-      this.conditionUpdateObserver.addLocalHook('update', conditionState => this.updateComponents(conditionState));
+      this.conditionUpdateObserver.addLocalHook('update', conditionState => _classPrivateMethodGet(this, _updateComponents, _updateComponents2).call(this, conditionState));
     }
     this.components.forEach(component => component.show());
-    this.addHook('afterDropdownMenuDefaultOptions', defaultOptions => this.onAfterDropdownMenuDefaultOptions(defaultOptions));
-    this.addHook('afterDropdownMenuShow', () => this.onAfterDropdownMenuShow());
-    this.addHook('afterDropdownMenuHide', () => this.onAfterDropdownMenuHide());
-    this.addHook('afterChange', changes => this.onAfterChange(changes));
+    this.addHook('afterDropdownMenuDefaultOptions', defaultOptions => _classPrivateMethodGet(this, _onAfterDropdownMenuDefaultOptions, _onAfterDropdownMenuDefaultOptions2).call(this, defaultOptions));
+    this.addHook('afterDropdownMenuShow', () => _classPrivateMethodGet(this, _onAfterDropdownMenuShow, _onAfterDropdownMenuShow2).call(this));
+    this.addHook('afterDropdownMenuHide', () => _classPrivateMethodGet(this, _onAfterDropdownMenuHide, _onAfterDropdownMenuHide2).call(this));
+    this.addHook('afterChange', changes => _classPrivateMethodGet(this, _onAfterChange, _onAfterChange2).call(this, changes));
 
     // Temp. solution (extending menu items bug in contextMenu/dropdownMenu)
     if (this.hot.getSettings().dropdownMenu && this.dropdownMenuPlugin) {
@@ -64525,7 +65015,7 @@ class Filters extends _base.BasePlugin {
    * @param {number} [column] Visual column index.
    */
   clearConditions(column) {
-    if (column === void 0) {
+    if (column === undefined) {
       this.conditionCollection.clean();
     } else {
       const physicalColumn = this.hot.toPhysicalColumn(column);
@@ -64636,25 +65126,6 @@ class Filters extends _base.BasePlugin {
     });
     return data;
   }
-
-  /**
-   * `afterChange` listener.
-   *
-   * @private
-   * @param {Array} changes Array of changes.
-   */
-  onAfterChange(changes) {
-    if (changes) {
-      (0, _array.arrayEach)(changes, change => {
-        const [, prop] = change;
-        const columnIndex = this.hot.propToCol(prop);
-        if (this.conditionCollection.hasConditions(columnIndex)) {
-          this.updateValueComponentCondition(columnIndex);
-        }
-      });
-    }
-  }
-
   /**
    * Update the condition of ValueComponent, based on the handled changes.
    *
@@ -64684,41 +65155,6 @@ class Filters extends _base.BasePlugin {
     });
     this.updateDependentComponentsVisibility();
   }
-
-  /**
-   * After dropdown menu show listener.
-   *
-   * @private
-   */
-  onAfterDropdownMenuShow() {
-    this.restoreComponents(Array.from(this.components.values()));
-  }
-
-  /**
-   * After dropdown menu hide listener.
-   *
-   * @private
-   */
-  onAfterDropdownMenuHide() {
-    this.components.get('filter_by_condition').getSelectElement().closeOptions();
-    this.components.get('filter_by_condition2').getSelectElement().closeOptions();
-  }
-
-  /**
-   * After dropdown menu default options listener.
-   *
-   * @private
-   * @param {object} defaultOptions ContextMenu default item options.
-   */
-  onAfterDropdownMenuDefaultOptions(defaultOptions) {
-    defaultOptions.items.push({
-      name: _predefinedItems.SEPARATOR
-    });
-    this.components.forEach(component => {
-      defaultOptions.items.push(component.getMenuItemDescriptor());
-    });
-  }
-
   /**
    * Get an operation, based on the number and types of arguments (where arguments are states of components).
    *
@@ -64740,75 +65176,6 @@ class Filters extends _base.BasePlugin {
     }
     return operation;
   }
-
-  /**
-   * On action bar submit listener.
-   *
-   * @private
-   * @param {string} submitType The submit type.
-   */
-  onActionBarSubmit(submitType) {
-    var _this$dropdownMenuPlu3;
-    if (submitType === 'accept') {
-      const selectedColumn = this.getSelectedColumn();
-      if (selectedColumn === null) {
-        var _this$dropdownMenuPlu2;
-        (_this$dropdownMenuPlu2 = this.dropdownMenuPlugin) === null || _this$dropdownMenuPlu2 === void 0 || _this$dropdownMenuPlu2.close();
-        return;
-      }
-      const {
-        physicalIndex
-      } = selectedColumn;
-      const byConditionState1 = this.components.get('filter_by_condition').getState();
-      const byConditionState2 = this.components.get('filter_by_condition2').getState();
-      const byValueState = this.components.get('filter_by_value').getState();
-      const operation = this.getOperationBasedOnArguments(this.components.get('filter_operators').getActiveOperationId(), byConditionState1, byConditionState2, byValueState);
-      this.conditionUpdateObserver.groupChanges();
-      let columnStackPosition = this.conditionCollection.getColumnStackPosition(physicalIndex);
-      if (columnStackPosition === -1) {
-        columnStackPosition = void 0;
-      }
-      this.conditionCollection.removeConditions(physicalIndex);
-      if (byConditionState1.command.key !== _constants2.CONDITION_NONE) {
-        this.conditionCollection.addCondition(physicalIndex, byConditionState1, operation, columnStackPosition);
-        if (byConditionState2.command.key !== _constants2.CONDITION_NONE) {
-          this.conditionCollection.addCondition(physicalIndex, byConditionState2, operation, columnStackPosition);
-        }
-      }
-      if (byValueState.command.key !== _constants2.CONDITION_NONE) {
-        this.conditionCollection.addCondition(physicalIndex, byValueState, operation, columnStackPosition);
-      }
-      this.conditionUpdateObserver.flush();
-      this.components.forEach(component => component.saveState(physicalIndex));
-      this.filtersRowsMap.clear();
-      this.filter();
-    }
-    (_this$dropdownMenuPlu3 = this.dropdownMenuPlugin) === null || _this$dropdownMenuPlu3 === void 0 || _this$dropdownMenuPlu3.close();
-  }
-
-  /**
-   * On component change listener.
-   *
-   * @private
-   * @param {BaseComponent} component Component inheriting BaseComponent.
-   * @param {object} command Menu item object (command).
-   */
-  onComponentChange(component, command) {
-    this.updateDependentComponentsVisibility();
-    if (component.constructor === _condition.ConditionComponent && !command.inputsCount) {
-      this.setListeningDropdownMenu();
-    }
-  }
-
-  /**
-   * On component SelectUI closed listener.
-   *
-   * @private
-   */
-  onSelectUIClosed() {
-    this.setListeningDropdownMenu();
-  }
-
   /**
    * Listen to the keyboard input on document body and forward events to instance of Handsontable
    * created by DropdownMenu plugin.
@@ -64838,23 +65205,6 @@ class Filters extends _base.BasePlugin {
       this.hideComponents(...componentsToShow);
     }
   }
-
-  /**
-   * On after get column header listener.
-   *
-   * @private
-   * @param {number} col Visual column index.
-   * @param {HTMLTableCellElement} TH Header's TH element.
-   */
-  onAfterGetColHeader(col, TH) {
-    const physicalColumn = this.hot.toPhysicalColumn(col);
-    if (this.enabled && this.conditionCollection.hasConditions(physicalColumn)) {
-      (0, _element.addClass)(TH, 'htFiltersActive');
-    } else {
-      (0, _element.removeClass)(TH, 'htFiltersActive');
-    }
-  }
-
   /**
    * Creates DataFilter instance based on condition collection.
    *
@@ -64866,41 +65216,6 @@ class Filters extends _base.BasePlugin {
     let conditionCollection = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.conditionCollection;
     return new _dataFilter.default(conditionCollection, physicalColumn => this.getDataMapAtColumn(physicalColumn));
   }
-
-  /**
-   * It updates the components state. The state is triggered by ConditionUpdateObserver, which
-   * reacts to any condition added to the condition collection. It may be added through the UI
-   * components or by API call.
-   *
-   * @private
-   * @param {object} conditionsState An object with the state generated by UI components.
-   */
-  updateComponents(conditionsState) {
-    var _this$dropdownMenuPlu4;
-    if (!((_this$dropdownMenuPlu4 = this.dropdownMenuPlugin) !== null && _this$dropdownMenuPlu4 !== void 0 && _this$dropdownMenuPlu4.enabled)) {
-      return;
-    }
-    const {
-      editedConditionStack: {
-        conditions,
-        column
-      }
-    } = conditionsState;
-    const conditionsByValue = conditions.filter(condition => condition.name === _constants2.CONDITION_BY_VALUE);
-    const conditionsWithoutByValue = conditions.filter(condition => condition.name !== _constants2.CONDITION_BY_VALUE);
-    if (conditionsByValue.length >= 2 || conditionsWithoutByValue.length >= 3) {
-      (0, _console.warn)((0, _templateLiteralTag.toSingleLine)`The filter conditions have been applied properly, but couldn’t be displayed visually.\x20
-        The overall amount of conditions exceed the capability of the dropdown menu.\x20
-        For more details see the documentation.`);
-    } else {
-      const operationType = this.conditionCollection.getOperation(column);
-      this.components.get('filter_by_condition').updateState(conditionsWithoutByValue[0], column);
-      this.components.get('filter_by_condition2').updateState(conditionsWithoutByValue[1], column);
-      this.components.get('filter_operators').updateState(operationType, column);
-      this.components.get('filter_by_value').updateState(conditionsState);
-    }
-  }
-
   /**
    * Returns indexes of passed components inside list of `dropdownMenu` items.
    *
@@ -64999,6 +65314,112 @@ class Filters extends _base.BasePlugin {
   }
 }
 exports.Filters = Filters;
+function _onAfterChange2(changes) {
+  if (changes) {
+    (0, _array.arrayEach)(changes, change => {
+      const [, prop] = change;
+      const columnIndex = this.hot.propToCol(prop);
+      if (this.conditionCollection.hasConditions(columnIndex)) {
+        this.updateValueComponentCondition(columnIndex);
+      }
+    });
+  }
+}
+function _onAfterDropdownMenuShow2() {
+  this.restoreComponents(Array.from(this.components.values()));
+}
+function _onAfterDropdownMenuHide2() {
+  this.components.get('filter_by_condition').getSelectElement().closeOptions();
+  this.components.get('filter_by_condition2').getSelectElement().closeOptions();
+}
+function _onAfterDropdownMenuDefaultOptions2(defaultOptions) {
+  defaultOptions.items.push({
+    name: _predefinedItems.SEPARATOR
+  });
+  this.components.forEach(component => {
+    defaultOptions.items.push(component.getMenuItemDescriptor());
+  });
+}
+function _onActionBarSubmit2(submitType) {
+  var _this$dropdownMenuPlu3;
+  if (submitType === 'accept') {
+    const selectedColumn = this.getSelectedColumn();
+    if (selectedColumn === null) {
+      var _this$dropdownMenuPlu2;
+      (_this$dropdownMenuPlu2 = this.dropdownMenuPlugin) === null || _this$dropdownMenuPlu2 === void 0 || _this$dropdownMenuPlu2.close();
+      return;
+    }
+    const {
+      physicalIndex
+    } = selectedColumn;
+    const byConditionState1 = this.components.get('filter_by_condition').getState();
+    const byConditionState2 = this.components.get('filter_by_condition2').getState();
+    const byValueState = this.components.get('filter_by_value').getState();
+    const operation = this.getOperationBasedOnArguments(this.components.get('filter_operators').getActiveOperationId(), byConditionState1, byConditionState2, byValueState);
+    this.conditionUpdateObserver.groupChanges();
+    let columnStackPosition = this.conditionCollection.getColumnStackPosition(physicalIndex);
+    if (columnStackPosition === -1) {
+      columnStackPosition = undefined;
+    }
+    this.conditionCollection.removeConditions(physicalIndex);
+    if (byConditionState1.command.key !== _constants2.CONDITION_NONE) {
+      this.conditionCollection.addCondition(physicalIndex, byConditionState1, operation, columnStackPosition);
+      if (byConditionState2.command.key !== _constants2.CONDITION_NONE) {
+        this.conditionCollection.addCondition(physicalIndex, byConditionState2, operation, columnStackPosition);
+      }
+    }
+    if (byValueState.command.key !== _constants2.CONDITION_NONE) {
+      this.conditionCollection.addCondition(physicalIndex, byValueState, operation, columnStackPosition);
+    }
+    this.conditionUpdateObserver.flush();
+    this.components.forEach(component => component.saveState(physicalIndex));
+    this.filtersRowsMap.clear();
+    this.filter();
+  }
+  (_this$dropdownMenuPlu3 = this.dropdownMenuPlugin) === null || _this$dropdownMenuPlu3 === void 0 || _this$dropdownMenuPlu3.close();
+}
+function _onComponentChange2(component, command) {
+  this.updateDependentComponentsVisibility();
+  if (component.constructor === _condition.ConditionComponent && !command.inputsCount) {
+    this.setListeningDropdownMenu();
+  }
+}
+function _onSelectUIClosed2() {
+  this.setListeningDropdownMenu();
+}
+function _onAfterGetColHeader2(col, TH) {
+  const physicalColumn = this.hot.toPhysicalColumn(col);
+  if (this.enabled && this.conditionCollection.hasConditions(physicalColumn)) {
+    (0, _element.addClass)(TH, 'htFiltersActive');
+  } else {
+    (0, _element.removeClass)(TH, 'htFiltersActive');
+  }
+}
+function _updateComponents2(conditionsState) {
+  var _this$dropdownMenuPlu4;
+  if (!((_this$dropdownMenuPlu4 = this.dropdownMenuPlugin) !== null && _this$dropdownMenuPlu4 !== void 0 && _this$dropdownMenuPlu4.enabled)) {
+    return;
+  }
+  const {
+    editedConditionStack: {
+      conditions,
+      column
+    }
+  } = conditionsState;
+  const conditionsByValue = conditions.filter(condition => condition.name === _constants2.CONDITION_BY_VALUE);
+  const conditionsWithoutByValue = conditions.filter(condition => condition.name !== _constants2.CONDITION_BY_VALUE);
+  if (conditionsByValue.length >= 2 || conditionsWithoutByValue.length >= 3) {
+    (0, _console.warn)((0, _templateLiteralTag.toSingleLine)`The filter conditions have been applied properly, but couldn’t be displayed visually.\x20
+        The overall amount of conditions exceed the capability of the dropdown menu.\x20
+        For more details see the documentation.`);
+  } else {
+    const operationType = this.conditionCollection.getOperation(column);
+    this.components.get('filter_by_condition').updateState(conditionsWithoutByValue[0], column);
+    this.components.get('filter_by_condition2').updateState(conditionsWithoutByValue[1], column);
+    this.components.get('filter_operators').updateState(operationType, column);
+    this.components.get('filter_by_value').updateState(conditionsState);
+  }
+}
 
 /***/ }),
 /* 528 */
@@ -65007,13 +65428,15 @@ exports.Filters = Filters;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
 __webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _element = __webpack_require__(107);
-var _event = __webpack_require__(122);
+var _event = __webpack_require__(126);
 var _array = __webpack_require__(113);
-var _unicode = __webpack_require__(121);
+var _unicode = __webpack_require__(125);
 var _object = __webpack_require__(117);
 var C = _interopRequireWildcard(__webpack_require__(245));
 var _base = __webpack_require__(529);
@@ -65050,6 +65473,16 @@ class ConditionComponent extends _base.BaseComponent {
      * @param {object} command Menu item object (command).
      */
     _classPrivateMethodInitSpec(this, _onConditionSelect);
+    /**
+     * The name of the component.
+     *
+     * @type {string}
+     */
+    (0, _defineProperty2.default)(this, "name", '');
+    /**
+     * @type {boolean}
+     */
+    (0, _defineProperty2.default)(this, "addSeparator", false);
     this.name = options.name;
     this.addSeparator = options.addSeparator;
     this.elements.push(new _select.SelectUI(this.hot, {
@@ -65244,7 +65677,7 @@ function _onInputKeyDown2(event) {
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _array = __webpack_require__(113);
 var _object = __webpack_require__(117);
 var _localHooks = _interopRequireDefault(__webpack_require__(201));
@@ -66346,7 +66779,7 @@ function createArrayAssertion(initialData) {
  * @returns {string}
  */
 function toEmptyString(value) {
-  return value === null || value === void 0 ? '' : value;
+  return value === null || value === undefined ? '' : value;
 }
 
 /**
@@ -66601,8 +67034,8 @@ function operationResult(conditions, value) {
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _element = __webpack_require__(107);
 var _object = __webpack_require__(117);
 var _base = __webpack_require__(561);
@@ -66699,10 +67132,10 @@ function _onKeyup2(event) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _object = __webpack_require__(117);
 var _localHooks = _interopRequireDefault(__webpack_require__(201));
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
+var _eventManager = _interopRequireDefault(__webpack_require__(131));
 var _element = __webpack_require__(107);
 var _array = __webpack_require__(113);
 var C = _interopRequireWildcard(__webpack_require__(245));
@@ -66856,7 +67289,7 @@ class BaseUI {
       // (https://github.com/handsontable/handsontable/blob/master/handsontable/src/tableView.js#L317-L321)
       element.setAttribute('data-hot-input', true);
       (0, _object.objectEach)(this.options, (value, key) => {
-        if (element[key] !== void 0 && key !== 'className' && key !== 'tagName' && key !== 'children') {
+        if (element[key] !== undefined && key !== 'className' && key !== 'tagName' && key !== 'children') {
           element[key] = this.translateIfPossible(value);
         }
       });
@@ -66921,8 +67354,8 @@ exports.BaseUI = BaseUI;
 __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
 var _menu2 = __webpack_require__(484);
 var _object = __webpack_require__(117);
 var _array = __webpack_require__(113);
@@ -67197,9 +67630,11 @@ function _onClick2() {
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
 __webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _element = __webpack_require__(107);
 var _array = __webpack_require__(113);
 var _templateLiteralTag = __webpack_require__(112);
@@ -67231,6 +67666,12 @@ class OperatorsComponent extends _base.BaseComponent {
      * @param {Event} event The DOM event object.
      */
     _classPrivateMethodInitSpec(this, _onRadioInputChange);
+    /**
+     * The name of the component.
+     *
+     * @type {string}
+     */
+    (0, _defineProperty2.default)(this, "name", '');
     this.name = options.name;
     this.buildOperatorsElement();
   }
@@ -67366,8 +67807,8 @@ function _onRadioInputChange2(event) {
 __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _object = __webpack_require__(117);
 var _base = __webpack_require__(561);
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
@@ -67475,13 +67916,15 @@ exports.RadioInputUI = RadioInputUI;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
 __webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _element = __webpack_require__(107);
-var _event = __webpack_require__(122);
+var _event = __webpack_require__(126);
 var _array = __webpack_require__(113);
-var _unicode = __webpack_require__(121);
+var _unicode = __webpack_require__(125);
 var C = _interopRequireWildcard(__webpack_require__(245));
 var _utils = __webpack_require__(553);
 var _base = __webpack_require__(529);
@@ -67510,6 +67953,12 @@ class ValueComponent extends _base.BaseComponent {
      * @param {Event} event The DOM event object.
      */
     _classPrivateMethodInitSpec(this, _onInputKeyDown);
+    /**
+     * The name of the component.
+     *
+     * @type {string}
+     */
+    (0, _defineProperty2.default)(this, "name", '');
     this.name = options.name;
     this.elements.push(new _multipleSelect.MultipleSelectUI(this.hot));
     this.registerHooks();
@@ -67691,16 +68140,16 @@ __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _element = __webpack_require__(107);
 var _object = __webpack_require__(117);
 var _array = __webpack_require__(113);
-var _unicode = __webpack_require__(121);
+var _unicode = __webpack_require__(125);
 var _function = __webpack_require__(115);
 var _data = __webpack_require__(220);
 var C = _interopRequireWildcard(__webpack_require__(245));
-var _event = __webpack_require__(122);
+var _event = __webpack_require__(126);
 var _base = __webpack_require__(561);
 var _input = __webpack_require__(560);
 var _link = __webpack_require__(567);
@@ -68147,8 +68596,8 @@ function itemsToValue(availableItems) {
 __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _object = __webpack_require__(117);
 var _base = __webpack_require__(561);
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
@@ -68225,9 +68674,11 @@ exports.LinkUI = LinkUI;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
 __webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _element = __webpack_require__(107);
 var _array = __webpack_require__(113);
 var C = _interopRequireWildcard(__webpack_require__(245));
@@ -68263,6 +68714,12 @@ class ActionBarComponent extends _base.BaseComponent {
      * @param {InputUI} button InputUI object.
      */
     _classPrivateMethodInitSpec(this, _onButtonClick);
+    /**
+     * The name of the component.
+     *
+     * @type {string}
+     */
+    (0, _defineProperty2.default)(this, "name", '');
     this.name = options.name;
     this.elements.push(new _input.InputUI(this.hot, {
       type: 'button',
@@ -68345,6 +68802,7 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
 __webpack_require__(8);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _array = __webpack_require__(113);
 var _object = __webpack_require__(117);
 var _templateLiteralTag = __webpack_require__(112);
@@ -68368,7 +68826,7 @@ class ConditionCollection {
      *
      * @type {Core}
      */
-    this.hot = hot;
+    (0, _defineProperty2.default)(this, "hot", void 0);
     /**
      * Indicates whether the internal IndexMap should be registered or not. Generally,
      * registered Maps responds to the index changes. Within that collection, sometimes
@@ -68376,13 +68834,15 @@ class ConditionCollection {
      *
      * @type {boolean}
      */
-    this.isMapRegistrable = isMapRegistrable;
+    (0, _defineProperty2.default)(this, "isMapRegistrable", void 0);
     /**
-     * Index map storing filtering states for every column. ConditionCollection write and read to/from this element.
+     * Index map storing filtering states for every column. ConditionCollection write and read to/from element.
      *
      * @type {LinkedPhysicalIndexToValueMap}
      */
-    this.filteringStates = new _translations.LinkedPhysicalIndexToValueMap();
+    (0, _defineProperty2.default)(this, "filteringStates", new _translations.LinkedPhysicalIndexToValueMap());
+    this.hot = hot;
+    this.isMapRegistrable = isMapRegistrable;
     if (this.isMapRegistrable === true) {
       this.hot.columnIndexMapper.registerMap(MAP_NAME, this.filteringStates);
     } else {
@@ -68631,8 +69091,10 @@ var _default = exports["default"] = ConditionCollection;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _array = __webpack_require__(113);
 /**
  * @private
@@ -68646,12 +69108,14 @@ class DataFilter {
      *
      * @type {ConditionCollection}
      */
-    this.conditionCollection = conditionCollection;
+    (0, _defineProperty2.default)(this, "conditionCollection", void 0);
     /**
      * Function which provide source data factory for specified column.
      *
      * @type {Function}
      */
+    (0, _defineProperty2.default)(this, "columnDataFactory", void 0);
+    this.conditionCollection = conditionCollection;
     this.columnDataFactory = columnDataFactory;
   }
 
@@ -68683,7 +69147,7 @@ class DataFilter {
     let dataSource = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
     const filteredData = [];
     (0, _array.arrayEach)(dataSource, dataRow => {
-      if (dataRow !== void 0 && this.conditionCollection.isMatch(dataRow, column)) {
+      if (dataRow !== undefined && this.conditionCollection.isMatch(dataRow, column)) {
         filteredData.push(dataRow);
       }
     });
@@ -68702,7 +69166,7 @@ class DataFilter {
     const result = [];
     (0, _array.arrayEach)(needles, needleRow => {
       const row = needleRow.meta.visualRow;
-      if (data[row] !== void 0) {
+      if (data[row] !== undefined) {
         result[row] = data[row];
       }
     });
@@ -68721,6 +69185,8 @@ var _default = exports["default"] = DataFilter;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+__webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _array = __webpack_require__(113);
 var _object = __webpack_require__(117);
 var _function = __webpack_require__(115);
@@ -68728,6 +69194,9 @@ var _localHooks = _interopRequireDefault(__webpack_require__(201));
 var _conditionCollection = _interopRequireDefault(__webpack_require__(569));
 var _dataFilter = _interopRequireDefault(__webpack_require__(570));
 var _utils = __webpack_require__(553);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 /**
  * Class which is designed for observing changes in condition collection. When condition is changed by user at specified
  * column it's necessary to update all conditions defined after this edited one.
@@ -68737,58 +69206,83 @@ var _utils = __webpack_require__(553);
  * @private
  * @class ConditionUpdateObserver
  */
+var _onConditionBeforeModify = /*#__PURE__*/new WeakSet();
+var _onConditionBeforeClean = /*#__PURE__*/new WeakSet();
+var _onConditionAfterClean = /*#__PURE__*/new WeakSet();
 class ConditionUpdateObserver {
   constructor(hot, conditionCollection) {
     let columnDataFactory = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : () => [];
+    /**
+     * On after conditions clean listener.
+     *
+     * @private
+     */
+    _classPrivateMethodInitSpec(this, _onConditionAfterClean);
+    /**
+     * On before conditions clean listener.
+     *
+     * @private
+     */
+    _classPrivateMethodInitSpec(this, _onConditionBeforeClean);
+    /**
+     * On before modify condition (add or remove from collection),.
+     *
+     * @param {number} column Column index.
+     * @private
+     */
+    _classPrivateMethodInitSpec(this, _onConditionBeforeModify);
     /**
      * Handsontable instance.
      *
      * @type {Core}
      */
-    this.hot = hot;
+    (0, _defineProperty2.default)(this, "hot", void 0);
     /**
      * Reference to the instance of {@link ConditionCollection}.
      *
      * @type {ConditionCollection}
      */
-    this.conditionCollection = conditionCollection;
+    (0, _defineProperty2.default)(this, "conditionCollection", void 0);
     /**
      * Function which provide source data factory for specified column.
      *
      * @type {Function}
      */
-    this.columnDataFactory = columnDataFactory;
+    (0, _defineProperty2.default)(this, "columnDataFactory", void 0);
     /**
      * Collected changes when grouping is enabled.
      *
      * @type {Array}
      * @default []
      */
-    this.changes = [];
+    (0, _defineProperty2.default)(this, "changes", []);
     /**
      * Flag which determines if grouping events is enabled.
      *
      * @type {boolean}
      */
-    this.grouping = false;
+    (0, _defineProperty2.default)(this, "grouping", false);
     /**
      * The latest known position of edited conditions at specified column index.
      *
      * @type {number}
      * @default -1
      */
-    this.latestEditedColumnPosition = -1;
+    (0, _defineProperty2.default)(this, "latestEditedColumnPosition", -1);
     /**
      * The latest known order of conditions stack.
      *
      * @type {Array}
      */
-    this.latestOrderStack = [];
-    this.conditionCollection.addLocalHook('beforeRemove', column => this._onConditionBeforeModify(column));
+    (0, _defineProperty2.default)(this, "latestOrderStack", []);
+    this.hot = hot;
+    this.conditionCollection = conditionCollection;
+    this.columnDataFactory = columnDataFactory;
+    this.conditionCollection.addLocalHook('beforeRemove', column => _classPrivateMethodGet(this, _onConditionBeforeModify, _onConditionBeforeModify2).call(this, column));
     this.conditionCollection.addLocalHook('afterRemove', column => this.updateStatesAtColumn(column));
     this.conditionCollection.addLocalHook('afterAdd', column => this.updateStatesAtColumn(column));
-    this.conditionCollection.addLocalHook('beforeClean', () => this._onConditionBeforeClean());
-    this.conditionCollection.addLocalHook('afterClean', () => this._onConditionAfterClean());
+    this.conditionCollection.addLocalHook('beforeClean', () => _classPrivateMethodGet(this, _onConditionBeforeClean, _onConditionBeforeClean2).call(this));
+    this.conditionCollection.addLocalHook('afterClean', () => _classPrivateMethodGet(this, _onConditionAfterClean, _onConditionAfterClean2).call(this));
   }
 
   /**
@@ -68810,17 +69304,6 @@ class ConditionUpdateObserver {
     });
     this.changes.length = 0;
   }
-
-  /**
-   * On before modify condition (add or remove from collection),.
-   *
-   * @param {number} column Column index.
-   * @private
-   */
-  _onConditionBeforeModify(column) {
-    this.latestEditedColumnPosition = this.conditionCollection.getColumnStackPosition(column);
-  }
-
   /**
    * Update all related states which should be changed after invoking changes applied to current column.
    *
@@ -68883,27 +69366,6 @@ class ConditionUpdateObserver {
       conditionArgsChange
     });
   }
-
-  /**
-   * On before conditions clean listener.
-   *
-   * @private
-   */
-  _onConditionBeforeClean() {
-    this.latestOrderStack = this.conditionCollection.getFilteredColumns();
-  }
-
-  /**
-   * On after conditions clean listener.
-   *
-   * @private
-   */
-  _onConditionAfterClean() {
-    (0, _array.arrayEach)(this.latestOrderStack, column => {
-      this.updateStatesAtColumn(column);
-    });
-  }
-
   /**
    * Destroy instance.
    */
@@ -68913,6 +69375,17 @@ class ConditionUpdateObserver {
       this[property] = null;
     });
   }
+}
+function _onConditionBeforeModify2(column) {
+  this.latestEditedColumnPosition = this.conditionCollection.getColumnStackPosition(column);
+}
+function _onConditionBeforeClean2() {
+  this.latestOrderStack = this.conditionCollection.getFilteredColumns();
+}
+function _onConditionAfterClean2() {
+  (0, _array.arrayEach)(this.latestOrderStack, column => {
+    this.updateStatesAtColumn(column);
+  });
 }
 (0, _object.mixin)(ConditionUpdateObserver, _localHooks.default);
 var _default = exports["default"] = ConditionUpdateObserver;
@@ -69111,28 +69584,30 @@ exports.Formulas = _formulas.Formulas;
 "use strict";
 
 
-__webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(118);
+__webpack_require__(78);
 __webpack_require__(8);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
 var _base = __webpack_require__(423);
-var _staticRegister = _interopRequireDefault(__webpack_require__(126));
-var _console = __webpack_require__(125);
-var _number = __webpack_require__(137);
+var _staticRegister = _interopRequireDefault(__webpack_require__(130));
+var _console = __webpack_require__(129);
+var _number = __webpack_require__(141);
 var _mixed = __webpack_require__(110);
 var _register = __webpack_require__(577);
 var _utils = __webpack_require__(579);
 var _settings = __webpack_require__(578);
 var _data = __webpack_require__(220);
 var _string = __webpack_require__(108);
-var _pluginHooks = _interopRequireDefault(__webpack_require__(124));
+var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 var _indexSyncer = _interopRequireDefault(__webpack_require__(580));
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'formulas';
 const SETTING_KEYS = exports.SETTING_KEYS = ['maxRows', 'maxColumns', 'language'];
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 260;
@@ -69162,11 +69637,238 @@ const isBlockedSource = source => source === 'UndoRedo.undo' || source === 'Undo
 var _internalOperationPending = /*#__PURE__*/new WeakMap();
 var _hotWasInitializedWithEmptyData = /*#__PURE__*/new WeakMap();
 var _engineListeners = /*#__PURE__*/new WeakMap();
+var _onBeforeValidate = /*#__PURE__*/new WeakSet();
+var _onBeforeAutofill = /*#__PURE__*/new WeakSet();
+var _onBeforeLoadData = /*#__PURE__*/new WeakSet();
+var _onAfterCellMetaReset = /*#__PURE__*/new WeakSet();
+var _onAfterLoadData = /*#__PURE__*/new WeakSet();
+var _onModifyData = /*#__PURE__*/new WeakSet();
+var _onModifySourceData = /*#__PURE__*/new WeakSet();
+var _onAfterSetDataAtCell = /*#__PURE__*/new WeakSet();
+var _onAfterSetSourceDataAtCell = /*#__PURE__*/new WeakSet();
+var _onBeforeCreateRow = /*#__PURE__*/new WeakSet();
+var _onBeforeCreateCol = /*#__PURE__*/new WeakSet();
+var _onBeforeRemoveRow = /*#__PURE__*/new WeakSet();
+var _onBeforeRemoveCol = /*#__PURE__*/new WeakSet();
+var _onAfterCreateRow = /*#__PURE__*/new WeakSet();
+var _onAfterCreateCol = /*#__PURE__*/new WeakSet();
+var _onAfterRemoveRow = /*#__PURE__*/new WeakSet();
+var _onAfterRemoveCol = /*#__PURE__*/new WeakSet();
+var _onAfterDetachChild = /*#__PURE__*/new WeakSet();
+var _onEngineValuesUpdated = /*#__PURE__*/new WeakSet();
+var _onEngineNamedExpressionsAdded = /*#__PURE__*/new WeakSet();
+var _onEngineNamedExpressionsRemoved = /*#__PURE__*/new WeakSet();
+var _onEngineSheetAdded = /*#__PURE__*/new WeakSet();
+var _onEngineSheetRenamed = /*#__PURE__*/new WeakSet();
+var _onEngineSheetRemoved = /*#__PURE__*/new WeakSet();
 class Formulas extends _base.BasePlugin {
   constructor() {
     var _this;
     super(...arguments);
     _this = this;
+    /**
+     * Called when a sheet is removed from the engine instance.
+     *
+     * @fires Hooks#afterSheetRemoved
+     * @param {string} removedSheetDisplayName The removed sheet name.
+     * @param {Array} changes The values and location of applied changes.
+     */
+    _classPrivateMethodInitSpec(this, _onEngineSheetRemoved);
+    /**
+     * Called when a sheet in the engine instance is renamed.
+     *
+     * @fires Hooks#afterSheetRenamed
+     * @param {string} oldDisplayName The old name of the sheet.
+     * @param {string} newDisplayName The new name of the sheet.
+     */
+    _classPrivateMethodInitSpec(this, _onEngineSheetRenamed);
+    /**
+     * Called when a new sheet is added to the engine instance.
+     *
+     * @fires Hooks#afterSheetAdded
+     * @param {string} addedSheetDisplayName The name of the added sheet.
+     */
+    _classPrivateMethodInitSpec(this, _onEngineSheetAdded);
+    /**
+     * Called when a named expression is removed from the engine instance.
+     *
+     * @fires Hooks#afterNamedExpressionRemoved
+     * @param {string} namedExpressionName The name of the removed expression.
+     * @param {Array} changes The values and location of applied changes.
+     */
+    _classPrivateMethodInitSpec(this, _onEngineNamedExpressionsRemoved);
+    /**
+     * Called when a named expression is added to the engine instance.
+     *
+     * @fires Hooks#afterNamedExpressionAdded
+     * @param {string} namedExpressionName The name of the added expression.
+     * @param {Array} changes The values and location of applied changes.
+     */
+    _classPrivateMethodInitSpec(this, _onEngineNamedExpressionsAdded);
+    /**
+     * Called when a value is updated in the engine.
+     *
+     * @fires Hooks#afterFormulasValuesUpdate
+     * @param {Array} changes The values and location of applied changes.
+     */
+    _classPrivateMethodInitSpec(this, _onEngineValuesUpdated);
+    /**
+     * `afterDetachChild` hook callback.
+     * Used to sync the data of the rows detached in the Nested Rows plugin with the engine's dataset.
+     *
+     * @param {object} parent An object representing the parent from which the element was detached.
+     * @param {object} element The detached element.
+     * @param {number} finalElementRowIndex The final row index of the detached element.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterDetachChild);
+    /**
+     * `afterRemoveCol` hook callback.
+     *
+     * @param {number} col Visual index of starter column.
+     * @param {number} amount An amount of removed columns.
+     * @param {number[]} physicalColumns An array of physical columns removed from the data source.
+     * @param {string} [source] String that identifies source of hook call
+     *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
+     */
+    _classPrivateMethodInitSpec(this, _onAfterRemoveCol);
+    /**
+     * `afterRemoveRow` hook callback.
+     *
+     * @param {number} row Visual index of starter row.
+     * @param {number} amount An amount of removed rows.
+     * @param {number[]} physicalRows An array of physical rows removed from the data source.
+     * @param {string} [source] String that identifies source of hook call
+     *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
+     */
+    _classPrivateMethodInitSpec(this, _onAfterRemoveRow);
+    /**
+     * `afterCreateCol` hook callback.
+     *
+     * @param {number} visualColumn Represents the visual index of first newly created column in the data source.
+     * @param {number} amount Number of newly created columns in the data source.
+     * @param {string} [source] String that identifies source of hook call
+     *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
+     */
+    _classPrivateMethodInitSpec(this, _onAfterCreateCol);
+    /**
+     * `afterCreateRow` hook callback.
+     *
+     * @param {number} visualRow Represents the visual index of first newly created row in the data source array.
+     * @param {number} amount Number of newly created rows in the data source array.
+     * @param {string} [source] String that identifies source of hook call
+     *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
+     */
+    _classPrivateMethodInitSpec(this, _onAfterCreateRow);
+    /**
+     * `beforeRemoveCol` hook callback.
+     *
+     * @param {number} col Visual index of starter column.
+     * @param {number} amount Amount of columns to be removed.
+     * @param {number[]} physicalColumns An array of physical columns removed from the data source.
+     * @returns {*|boolean} If false is returned the action is canceled.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeRemoveCol);
+    /**
+     * `beforeRemoveRow` hook callback.
+     *
+     * @param {number} row Visual index of starter row.
+     * @param {number} amount Amount of rows to be removed.
+     * @param {number[]} physicalRows An array of physical rows removed from the data source.
+     * @returns {*|boolean} If false is returned the action is canceled.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeRemoveRow);
+    /**
+     * `beforeCreateCol` hook callback.
+     *
+     * @param {number} visualColumn Represents the visual index of first newly created column in the data source.
+     * @param {number} amount Number of newly created columns in the data source.
+     * @returns {*|boolean} If false is returned the action is canceled.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeCreateCol);
+    /**
+     * `beforeCreateRow` hook callback.
+     *
+     * @param {number} visualRow Represents the visual index of first newly created row in the data source array.
+     * @param {number} amount Number of newly created rows in the data source array.
+     * @returns {*|boolean} If false is returned the action is canceled.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeCreateRow);
+    /**
+     * `onAfterSetSourceDataAtCell` hook callback.
+     *
+     * @param {Array[]} changes An array of changes in format [[row, column, oldValue, value], ...].
+     * @param {string} [source] String that identifies source of hook call
+     *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
+     */
+    _classPrivateMethodInitSpec(this, _onAfterSetSourceDataAtCell);
+    /**
+     * `onAfterSetDataAtCell` hook callback.
+     *
+     * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
+     * @param {string} [source] String that identifies source of hook call
+     *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
+     */
+    _classPrivateMethodInitSpec(this, _onAfterSetDataAtCell);
+    /**
+     * `modifySourceData` hook callback.
+     *
+     * @param {number} row Physical row index.
+     * @param {number|string} columnOrProp Physical column index or prop.
+     * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value`
+     *   property.
+     * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
+     */
+    _classPrivateMethodInitSpec(this, _onModifySourceData);
+    /**
+     * `modifyData` hook callback.
+     *
+     * @param {number} physicalRow Physical row index.
+     * @param {number} visualColumn Visual column index.
+     * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value`
+     *   property.
+     * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
+     */
+    _classPrivateMethodInitSpec(this, _onModifyData);
+    /**
+     * `afterLoadData` hook callback.
+     *
+     * @param {Array} sourceData Array of arrays or array of objects containing data.
+     * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
+     * @param {string} [source] Source of the call.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterLoadData);
+    /**
+     * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterCellMetaReset);
+    /**
+     * `beforeLoadData` hook callback.
+     *
+     * @param {Array} sourceData Array of arrays or array of objects containing data.
+     * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
+     * @param {string} [source] Source of the call.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeLoadData);
+    /**
+     * `onBeforeAutofill` hook callback.
+     *
+     * @param {Array[]} fillData The data that was used to fill the `targetRange`. If `beforeAutofill` was used
+     * and returned `[[]]`, this will be the same object that was returned from `beforeAutofill`.
+     * @param {CellRange} sourceRange The range values will be filled from.
+     * @param {CellRange} targetRange The range new values will be filled into.
+     * @returns {boolean|*}
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeAutofill);
+    /**
+     * The hook allows to translate the formula value to calculated value before it goes to the
+     * validator function.
+     *
+     * @param {*} value The cell value to validate.
+     * @param {number} visualRow The visual row index.
+     * @param {number|string} prop The visual column index or property name of the column.
+     * @returns {*} Returns value to validate.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeValidate);
     /**
      * Flag used to bypass hooks in internal operations.
      *
@@ -69195,17 +69897,35 @@ class Formulas extends _base.BasePlugin {
     _classPrivateFieldInitSpec(this, _engineListeners, {
       writable: true,
       value: [['valuesUpdated', function () {
-        return _this.onEngineValuesUpdated(...arguments);
+        for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+          args[_key] = arguments[_key];
+        }
+        return _classPrivateMethodGet(_this, _onEngineValuesUpdated, _onEngineValuesUpdated2).call(_this, ...args);
       }], ['namedExpressionAdded', function () {
-        return _this.onEngineNamedExpressionsAdded(...arguments);
+        for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+          args[_key2] = arguments[_key2];
+        }
+        return _classPrivateMethodGet(_this, _onEngineNamedExpressionsAdded, _onEngineNamedExpressionsAdded2).call(_this, ...args);
       }], ['namedExpressionRemoved', function () {
-        return _this.onEngineNamedExpressionsRemoved(...arguments);
+        for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+          args[_key3] = arguments[_key3];
+        }
+        return _classPrivateMethodGet(_this, _onEngineNamedExpressionsRemoved, _onEngineNamedExpressionsRemoved2).call(_this, ...args);
       }], ['sheetAdded', function () {
-        return _this.onEngineSheetAdded(...arguments);
+        for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+          args[_key4] = arguments[_key4];
+        }
+        return _classPrivateMethodGet(_this, _onEngineSheetAdded, _onEngineSheetAdded2).call(_this, ...args);
       }], ['sheetRenamed', function () {
-        return _this.onEngineSheetRenamed(...arguments);
+        for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+          args[_key5] = arguments[_key5];
+        }
+        return _classPrivateMethodGet(_this, _onEngineSheetRenamed, _onEngineSheetRenamed2).call(_this, ...args);
       }], ['sheetRemoved', function () {
-        return _this.onEngineSheetRemoved(...arguments);
+        for (var _len6 = arguments.length, args = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+          args[_key6] = arguments[_key6];
+        }
+        return _classPrivateMethodGet(_this, _onEngineSheetRemoved, _onEngineSheetRemoved2).call(_this, ...args);
       }]]
     });
     /**
@@ -69299,60 +70019,114 @@ class Formulas extends _base.BasePlugin {
       }
     }
     this.addHook('beforeLoadData', function () {
-      return _this2.onBeforeLoadData(...arguments);
+      for (var _len7 = arguments.length, args = new Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
+        args[_key7] = arguments[_key7];
+      }
+      return _classPrivateMethodGet(_this2, _onBeforeLoadData, _onBeforeLoadData2).call(_this2, ...args);
     });
     this.addHook('afterLoadData', function () {
-      return _this2.onAfterLoadData(...arguments);
+      for (var _len8 = arguments.length, args = new Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
+        args[_key8] = arguments[_key8];
+      }
+      return _classPrivateMethodGet(_this2, _onAfterLoadData, _onAfterLoadData2).call(_this2, ...args);
     });
 
     // The `updateData` hooks utilize the same logic as the `loadData` hooks.
     this.addHook('beforeUpdateData', function () {
-      return _this2.onBeforeLoadData(...arguments);
+      for (var _len9 = arguments.length, args = new Array(_len9), _key9 = 0; _key9 < _len9; _key9++) {
+        args[_key9] = arguments[_key9];
+      }
+      return _classPrivateMethodGet(_this2, _onBeforeLoadData, _onBeforeLoadData2).call(_this2, ...args);
     });
     this.addHook('afterUpdateData', function () {
-      return _this2.onAfterLoadData(...arguments);
+      for (var _len10 = arguments.length, args = new Array(_len10), _key10 = 0; _key10 < _len10; _key10++) {
+        args[_key10] = arguments[_key10];
+      }
+      return _classPrivateMethodGet(_this2, _onAfterLoadData, _onAfterLoadData2).call(_this2, ...args);
     });
     this.addHook('modifyData', function () {
-      return _this2.onModifyData(...arguments);
+      for (var _len11 = arguments.length, args = new Array(_len11), _key11 = 0; _key11 < _len11; _key11++) {
+        args[_key11] = arguments[_key11];
+      }
+      return _classPrivateMethodGet(_this2, _onModifyData, _onModifyData2).call(_this2, ...args);
     });
     this.addHook('modifySourceData', function () {
-      return _this2.onModifySourceData(...arguments);
+      for (var _len12 = arguments.length, args = new Array(_len12), _key12 = 0; _key12 < _len12; _key12++) {
+        args[_key12] = arguments[_key12];
+      }
+      return _classPrivateMethodGet(_this2, _onModifySourceData, _onModifySourceData2).call(_this2, ...args);
     });
     this.addHook('beforeValidate', function () {
-      return _this2.onBeforeValidate(...arguments);
+      for (var _len13 = arguments.length, args = new Array(_len13), _key13 = 0; _key13 < _len13; _key13++) {
+        args[_key13] = arguments[_key13];
+      }
+      return _classPrivateMethodGet(_this2, _onBeforeValidate, _onBeforeValidate2).call(_this2, ...args);
     });
     this.addHook('afterSetSourceDataAtCell', function () {
-      return _this2.onAfterSetSourceDataAtCell(...arguments);
+      for (var _len14 = arguments.length, args = new Array(_len14), _key14 = 0; _key14 < _len14; _key14++) {
+        args[_key14] = arguments[_key14];
+      }
+      return _classPrivateMethodGet(_this2, _onAfterSetSourceDataAtCell, _onAfterSetSourceDataAtCell2).call(_this2, ...args);
     });
     this.addHook('afterSetDataAtCell', function () {
-      return _this2.onAfterSetDataAtCell(...arguments);
+      for (var _len15 = arguments.length, args = new Array(_len15), _key15 = 0; _key15 < _len15; _key15++) {
+        args[_key15] = arguments[_key15];
+      }
+      return _classPrivateMethodGet(_this2, _onAfterSetDataAtCell, _onAfterSetDataAtCell2).call(_this2, ...args);
     });
     this.addHook('afterSetDataAtRowProp', function () {
-      return _this2.onAfterSetDataAtCell(...arguments);
+      for (var _len16 = arguments.length, args = new Array(_len16), _key16 = 0; _key16 < _len16; _key16++) {
+        args[_key16] = arguments[_key16];
+      }
+      return _classPrivateMethodGet(_this2, _onAfterSetDataAtCell, _onAfterSetDataAtCell2).call(_this2, ...args);
     });
     this.addHook('beforeCreateRow', function () {
-      return _this2.onBeforeCreateRow(...arguments);
+      for (var _len17 = arguments.length, args = new Array(_len17), _key17 = 0; _key17 < _len17; _key17++) {
+        args[_key17] = arguments[_key17];
+      }
+      return _classPrivateMethodGet(_this2, _onBeforeCreateRow, _onBeforeCreateRow2).call(_this2, ...args);
     });
     this.addHook('beforeCreateCol', function () {
-      return _this2.onBeforeCreateCol(...arguments);
+      for (var _len18 = arguments.length, args = new Array(_len18), _key18 = 0; _key18 < _len18; _key18++) {
+        args[_key18] = arguments[_key18];
+      }
+      return _classPrivateMethodGet(_this2, _onBeforeCreateCol, _onBeforeCreateCol2).call(_this2, ...args);
     });
     this.addHook('afterCreateRow', function () {
-      return _this2.onAfterCreateRow(...arguments);
+      for (var _len19 = arguments.length, args = new Array(_len19), _key19 = 0; _key19 < _len19; _key19++) {
+        args[_key19] = arguments[_key19];
+      }
+      return _classPrivateMethodGet(_this2, _onAfterCreateRow, _onAfterCreateRow2).call(_this2, ...args);
     });
     this.addHook('afterCreateCol', function () {
-      return _this2.onAfterCreateCol(...arguments);
+      for (var _len20 = arguments.length, args = new Array(_len20), _key20 = 0; _key20 < _len20; _key20++) {
+        args[_key20] = arguments[_key20];
+      }
+      return _classPrivateMethodGet(_this2, _onAfterCreateCol, _onAfterCreateCol2).call(_this2, ...args);
     });
     this.addHook('beforeRemoveRow', function () {
-      return _this2.onBeforeRemoveRow(...arguments);
+      for (var _len21 = arguments.length, args = new Array(_len21), _key21 = 0; _key21 < _len21; _key21++) {
+        args[_key21] = arguments[_key21];
+      }
+      return _classPrivateMethodGet(_this2, _onBeforeRemoveRow, _onBeforeRemoveRow2).call(_this2, ...args);
     });
     this.addHook('beforeRemoveCol', function () {
-      return _this2.onBeforeRemoveCol(...arguments);
+      for (var _len22 = arguments.length, args = new Array(_len22), _key22 = 0; _key22 < _len22; _key22++) {
+        args[_key22] = arguments[_key22];
+      }
+      return _classPrivateMethodGet(_this2, _onBeforeRemoveCol, _onBeforeRemoveCol2).call(_this2, ...args);
     });
     this.addHook('afterRemoveRow', function () {
-      return _this2.onAfterRemoveRow(...arguments);
+      for (var _len23 = arguments.length, args = new Array(_len23), _key23 = 0; _key23 < _len23; _key23++) {
+        args[_key23] = arguments[_key23];
+      }
+      return _classPrivateMethodGet(_this2, _onAfterRemoveRow, _onAfterRemoveRow2).call(_this2, ...args);
     });
     this.addHook('afterRemoveCol', function () {
-      return _this2.onAfterRemoveCol(...arguments);
+      for (var _len24 = arguments.length, args = new Array(_len24), _key24 = 0; _key24 < _len24; _key24++) {
+        args[_key24] = arguments[_key24];
+      }
+      return _classPrivateMethodGet(_this2, _onAfterRemoveCol, _onAfterRemoveCol2).call(_this2, ...args);
     });
     this.indexSyncer = new _indexSyncer.default(this.hot.rowIndexMapper, this.hot.columnIndexMapper, postponedAction => {
       this.hot.addHookOnce('init', () => {
@@ -69394,7 +70168,10 @@ class Formulas extends _base.BasePlugin {
     // hook, because some hooks, such as `afterLoadData` doesn't have information about composed cell properties.
     // Another hooks are triggered to late for setting HF's engine data needed for some actions.
     this.addHook('afterCellMetaReset', function () {
-      return _this2.onAfterCellMetaReset(...arguments);
+      for (var _len25 = arguments.length, args = new Array(_len25), _key25 = 0; _key25 < _len25; _key25++) {
+        args[_key25] = arguments[_key25];
+      }
+      return _classPrivateMethodGet(_this2, _onAfterCellMetaReset, _onAfterCellMetaReset2).call(_this2, ...args);
     });
 
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
@@ -69415,10 +70192,16 @@ class Formulas extends _base.BasePlugin {
       this.indexSyncer.setPerformRedo(false);
     });
     this.addHook('afterDetachChild', function () {
-      return _this2.onAfterDetachChild(...arguments);
+      for (var _len26 = arguments.length, args = new Array(_len26), _key26 = 0; _key26 < _len26; _key26++) {
+        args[_key26] = arguments[_key26];
+      }
+      return _classPrivateMethodGet(_this2, _onAfterDetachChild, _onAfterDetachChild2).call(_this2, ...args);
     });
     this.addHook('beforeAutofill', function () {
-      return _this2.onBeforeAutofill(...arguments);
+      for (var _len27 = arguments.length, args = new Array(_len27), _key27 = 0; _key27 < _len27; _key27++) {
+        args[_key27] = arguments[_key27];
+      }
+      return _classPrivateMethodGet(_this2, _onBeforeAutofill, _onBeforeAutofill2).call(_this2, ...args);
     });
     (0, _classPrivateFieldGet2.default)(this, _engineListeners).forEach(_ref => {
       let [eventName, listener] = _ref;
@@ -69463,7 +70246,7 @@ class Formulas extends _base.BasePlugin {
       if (sheetName && this.engine.doesSheetExist(sheetName)) {
         this.switchSheet(this.sheetName);
       } else {
-        this.sheetName = this.addSheet(sheetName !== null && sheetName !== void 0 ? sheetName : void 0, this.hot.getSourceDataArray());
+        this.sheetName = this.addSheet(sheetName !== null && sheetName !== void 0 ? sheetName : undefined, this.hot.getSourceDataArray());
       }
     }
     super.updatePlugin(newSettings);
@@ -69499,12 +70282,12 @@ class Formulas extends _base.BasePlugin {
       (0, _console.warn)('The provided data should be an array of arrays.');
       return false;
     }
-    if (sheetName !== void 0 && sheetName !== null && this.engine.doesSheetExist(sheetName)) {
+    if (sheetName !== undefined && sheetName !== null && this.engine.doesSheetExist(sheetName)) {
       (0, _console.warn)('Sheet with the provided name already exists.');
       return false;
     }
     try {
-      const actualSheetName = this.engine.addSheet(sheetName !== null && sheetName !== void 0 ? sheetName : void 0);
+      const actualSheetName = this.engine.addSheet(sheetName !== null && sheetName !== void 0 ? sheetName : undefined);
       if (sheetData) {
         this.engine.setSheetContent(this.engine.getSheetId(actualSheetName), sheetData);
       }
@@ -69589,7 +70372,7 @@ class Formulas extends _base.BasePlugin {
       var _change$address;
       // For the Named expression the address is empty, hence the `sheetId` is undefined.
       const sheetId = change === null || change === void 0 || (_change$address = change.address) === null || _change$address === void 0 ? void 0 : _change$address.sheet;
-      if (sheetId !== void 0) {
+      if (sheetId !== undefined) {
         if (!affectedSheetIds.has(sheetId)) {
           affectedSheetIds.add(sheetId);
         }
@@ -69641,7 +70424,7 @@ class Formulas extends _base.BasePlugin {
 
       // Validate the cells that depend on the calculated formulas. Skip that cells
       // where the user directly changes the values - the Core triggers those validators.
-      if (sheetId !== void 0 && !changedCellsSet.has(addressId)) {
+      if (sheetId !== undefined && !changedCellsSet.has(addressId)) {
         const boundHot = (0, _register.getRegisteredHotInstances)(this.engine).get(sheetId);
 
         // if `sheetId` is not bound to any Handsontable instance, skip the validation process
@@ -69686,285 +70469,281 @@ class Formulas extends _base.BasePlugin {
     }
     return this.engine.setCellContents(address, newValue);
   }
-
-  /**
-   * The hook allows to translate the formula value to calculated value before it goes to the
-   * validator function.
-   *
-   * @private
-   * @param {*} value The cell value to validate.
-   * @param {number} visualRow The visual row index.
-   * @param {number|string} prop The visual column index or property name of the column.
-   * @returns {*} Returns value to validate.
-   */
-  onBeforeValidate(value, visualRow, prop) {
-    const visualColumn = this.hot.propToCol(prop);
-    if (this.isFormulaCellType(visualRow, visualColumn)) {
-      const address = {
-        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
-        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
-        sheet: this.sheetId
-      };
-      const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
-      let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel-like date).
-
-      if (cellMeta.type === 'date' && (0, _number.isNumeric)(cellValue)) {
-        cellValue = (0, _utils.getDateFromExcelDate)(cellValue, cellMeta.dateFormat);
-      }
-
-      // If `cellValue` is an object it is expected to be an error
-      return typeof cellValue === 'object' && cellValue !== null ? cellValue.value : cellValue;
-    }
-    return value;
-  }
-
-  /**
-   * `onBeforeAutofill` hook callback.
-   *
-   * @private
-   * @param {Array[]} fillData The data that was used to fill the `targetRange`. If `beforeAutofill` was used
-   * and returned `[[]]`, this will be the same object that was returned from `beforeAutofill`.
-   * @param {CellRange} sourceRange The range values will be filled from.
-   * @param {CellRange} targetRange The range new values will be filled into.
-   * @returns {boolean|*}
-   */
-  onBeforeAutofill(fillData, sourceRange, targetRange) {
-    const {
-      row: sourceTopStartRow,
-      col: sourceTopStartColumn
-    } = sourceRange.getTopStartCorner();
-    const {
-      row: sourceBottomEndRow,
-      col: sourceBottomEndColumn
-    } = sourceRange.getBottomEndCorner();
-    const {
-      row: targetTopStartRow,
-      col: targetTopStartColumn
-    } = targetRange.getTopStartCorner();
-    const {
-      row: targetBottomEndRow,
-      col: targetBottomEndColumn
-    } = targetRange.getBottomEndCorner();
-    const engineSourceRange = {
-      start: {
-        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(sourceTopStartRow),
-        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(sourceTopStartColumn),
-        sheet: this.sheetId
-      },
-      end: {
-        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(sourceBottomEndRow),
-        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(sourceBottomEndColumn),
-        sheet: this.sheetId
-      }
-    };
-    const engineTargetRange = {
-      start: {
-        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(targetTopStartRow),
-        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(targetTopStartColumn),
-        sheet: this.sheetId
-      },
-      end: {
-        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(targetBottomEndRow),
-        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(targetBottomEndColumn),
-        sheet: this.sheetId
-      }
-    };
-
-    // Blocks the autofill operation if HyperFormula says that at least one of
-    // the underlying cell's contents cannot be set.
-    if (this.engine.isItPossibleToSetCellContents(engineTargetRange) === false) {
-      return false;
-    }
-    const fillRangeData = this.engine.getFillRangeData(engineSourceRange, engineTargetRange);
-    const {
-      row: sourceStartRow,
-      col: sourceStartColumn
-    } = engineSourceRange.start;
-    const {
-      row: sourceEndRow,
-      col: sourceEndColumn
-    } = engineSourceRange.end;
-    const populationRowLength = sourceEndRow - sourceStartRow + 1;
-    const populationColumnLength = sourceEndColumn - sourceStartColumn + 1;
-    for (let populatedRowIndex = 0; populatedRowIndex < fillRangeData.length; populatedRowIndex += 1) {
-      for (let populatedColumnIndex = 0; populatedColumnIndex < fillRangeData[populatedRowIndex].length; populatedColumnIndex += 1) {
-        const populatedValue = fillRangeData[populatedRowIndex][populatedColumnIndex];
-        const sourceRow = populatedRowIndex % populationRowLength;
-        const sourceColumn = populatedColumnIndex % populationColumnLength;
-        const sourceCellMeta = this.hot.getCellMeta(sourceRow, sourceColumn);
-        if ((0, _utils.isDate)(populatedValue, sourceCellMeta.type)) {
-          if (populatedValue.startsWith('\'')) {
-            // Populating values on HOT side without apostrophe.
-            fillRangeData[populatedRowIndex][populatedColumnIndex] = populatedValue.slice(1);
-          } else if (this.isFormulaCellType(sourceRow, sourceColumn, this.sheetId) === false) {
-            // Populating date in proper format, coming from the source cell.
-            fillRangeData[populatedRowIndex][populatedColumnIndex] = (0, _utils.getDateInHotFormat)(populatedValue, sourceCellMeta.dateFormat);
-          }
-        }
-      }
-    }
-    return fillRangeData;
-  }
-
-  /**
-   * `beforeLoadData` hook callback.
-   *
-   * @param {Array} sourceData Array of arrays or array of objects containing data.
-   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
-   * @param {string} [source] Source of the call.
-   * @private
-   */
-  onBeforeLoadData(sourceData, initialLoad) {
-    let source = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
-    if (source.includes((0, _string.toUpperCaseFirst)(PLUGIN_KEY))) {
-      return;
-    }
-
-    // This flag needs to be defined, because not passing data to HOT results in HOT auto-generating a `null`-filled
-    // initial dataset.
-    (0, _classPrivateFieldSet2.default)(this, _hotWasInitializedWithEmptyData, (0, _mixed.isUndefined)(this.hot.getSettings().data));
-  }
-
-  /**
-   * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
-   *
-   * @private
-   */
-  onAfterCellMetaReset() {
-    const sourceDataArray = this.hot.getSourceDataArray();
-    let valueChanged = false;
-    sourceDataArray.forEach((rowData, rowIndex) => {
-      rowData.forEach((cellValue, columnIndex) => {
-        const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex);
-        const dateFormat = cellMeta.dateFormat;
-        if ((0, _utils.isDate)(cellValue, cellMeta.type)) {
-          valueChanged = true;
-          if ((0, _utils.isDateValid)(cellValue, dateFormat)) {
-            // Rewriting date in HOT format to HF format.
-            sourceDataArray[rowIndex][columnIndex] = (0, _utils.getDateInHfFormat)(cellValue, dateFormat);
-          } else if (this.isFormulaCellType(rowIndex, columnIndex) === false) {
-            // Escaping value from date parsing using "'" sign (HF feature).
-            sourceDataArray[rowIndex][columnIndex] = `'${cellValue}`;
-          }
-        }
-      });
-    });
-    if (valueChanged === true) {
-      (0, _classPrivateFieldSet2.default)(this, _internalOperationPending, true);
-      this.engine.setSheetContent(this.sheetId, sourceDataArray);
-      (0, _classPrivateFieldSet2.default)(this, _internalOperationPending, false);
-    }
-  }
-
-  /**
-   * `afterLoadData` hook callback.
-   *
-   * @param {Array} sourceData Array of arrays or array of objects containing data.
-   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
-   * @param {string} [source] Source of the call.
-   * @private
-   */
-  onAfterLoadData(sourceData, initialLoad) {
-    let source = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
-    if (source.includes((0, _string.toUpperCaseFirst)(PLUGIN_KEY))) {
-      return;
-    }
-    this.sheetName = (0, _register.setupSheet)(this.engine, this.hot.getSettings()[PLUGIN_KEY].sheetName);
-    if (!(0, _classPrivateFieldGet2.default)(this, _hotWasInitializedWithEmptyData)) {
-      const sourceDataArray = this.hot.getSourceDataArray();
-      if (this.engine.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
-        (0, _classPrivateFieldSet2.default)(this, _internalOperationPending, true);
-        const dependentCells = this.engine.setSheetContent(this.sheetId, sourceDataArray);
-        this.indexSyncer.setupSyncEndpoint(this.engine, this.sheetId);
-        this.renderDependentSheets(dependentCells);
-        (0, _classPrivateFieldSet2.default)(this, _internalOperationPending, false);
-      }
-    } else {
-      this.switchSheet(this.sheetName);
-    }
-  }
-
-  /**
-   * `modifyData` hook callback.
-   *
-   * @private
-   * @param {number} physicalRow Physical row index.
-   * @param {number} visualColumn Visual column index.
-   * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value`
-   *   property.
-   * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
-   */
-  onModifyData(physicalRow, visualColumn, valueHolder, ioMode) {
-    if (ioMode !== 'get' || (0, _classPrivateFieldGet2.default)(this, _internalOperationPending) || this.sheetName === null || !this.engine.doesSheetExist(this.sheetName)) {
-      return;
-    }
-    const visualRow = this.hot.toVisualRow(physicalRow);
-    if (visualRow === null || visualColumn === null) {
-      return;
-    }
-
-    // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
-    const isFormulaCellType = this.isFormulaCellType(visualRow, visualColumn);
-    if (!isFormulaCellType) {
-      const cellType = this.getCellType(visualRow, visualColumn);
-      if (cellType !== 'ARRAY') {
-        if ((0, _utils.isEscapedFormulaExpression)(valueHolder.value)) {
-          valueHolder.value = (0, _utils.unescapeFormulaExpression)(valueHolder.value);
-        }
-        return;
-      }
-    }
+}
+exports.Formulas = Formulas;
+function _onBeforeValidate2(value, visualRow, prop) {
+  const visualColumn = this.hot.propToCol(prop);
+  if (this.isFormulaCellType(visualRow, visualColumn)) {
     const address = {
       row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
       col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
       sheet: this.sheetId
     };
-    let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel like date).
     const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
+    let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel-like date).
+
     if (cellMeta.type === 'date' && (0, _number.isNumeric)(cellValue)) {
       cellValue = (0, _utils.getDateFromExcelDate)(cellValue, cellMeta.dateFormat);
     }
 
     // If `cellValue` is an object it is expected to be an error
-    const value = typeof cellValue === 'object' && cellValue !== null ? cellValue.value : cellValue;
-    valueHolder.value = value;
+    return typeof cellValue === 'object' && cellValue !== null ? cellValue.value : cellValue;
   }
-
-  /**
-   * `modifySourceData` hook callback.
-   *
-   * @private
-   * @param {number} row Physical row index.
-   * @param {number|string} columnOrProp Physical column index or prop.
-   * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value`
-   *   property.
-   * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
-   */
-  onModifySourceData(row, columnOrProp, valueHolder, ioMode) {
-    if (ioMode !== 'get' || (0, _classPrivateFieldGet2.default)(this, _internalOperationPending) || this.sheetName === null || !this.engine.doesSheetExist(this.sheetName)) {
-      return;
+  return value;
+}
+function _onBeforeAutofill2(fillData, sourceRange, targetRange) {
+  const {
+    row: sourceTopStartRow,
+    col: sourceTopStartColumn
+  } = sourceRange.getTopStartCorner();
+  const {
+    row: sourceBottomEndRow,
+    col: sourceBottomEndColumn
+  } = sourceRange.getBottomEndCorner();
+  const {
+    row: targetTopStartRow,
+    col: targetTopStartColumn
+  } = targetRange.getTopStartCorner();
+  const {
+    row: targetBottomEndRow,
+    col: targetBottomEndColumn
+  } = targetRange.getBottomEndCorner();
+  const engineSourceRange = {
+    start: {
+      row: this.rowAxisSyncer.getHfIndexFromVisualIndex(sourceTopStartRow),
+      col: this.columnAxisSyncer.getHfIndexFromVisualIndex(sourceTopStartColumn),
+      sheet: this.sheetId
+    },
+    end: {
+      row: this.rowAxisSyncer.getHfIndexFromVisualIndex(sourceBottomEndRow),
+      col: this.columnAxisSyncer.getHfIndexFromVisualIndex(sourceBottomEndColumn),
+      sheet: this.sheetId
     }
-    const visualRow = this.hot.toVisualRow(row);
-    const visualColumn = this.hot.propToCol(columnOrProp);
-    if (visualRow === null || visualColumn === null) {
-      return;
+  };
+  const engineTargetRange = {
+    start: {
+      row: this.rowAxisSyncer.getHfIndexFromVisualIndex(targetTopStartRow),
+      col: this.columnAxisSyncer.getHfIndexFromVisualIndex(targetTopStartColumn),
+      sheet: this.sheetId
+    },
+    end: {
+      row: this.rowAxisSyncer.getHfIndexFromVisualIndex(targetBottomEndRow),
+      col: this.columnAxisSyncer.getHfIndexFromVisualIndex(targetBottomEndColumn),
+      sheet: this.sheetId
     }
+  };
 
-    // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
-    const isFormulaCellType = this.isFormulaCellType(visualRow, visualColumn);
-    if (!isFormulaCellType) {
-      const cellType = this.getCellType(visualRow, visualColumn);
-      if (cellType !== 'ARRAY') {
-        return;
+  // Blocks the autofill operation if HyperFormula says that at least one of
+  // the underlying cell's contents cannot be set.
+  if (this.engine.isItPossibleToSetCellContents(engineTargetRange) === false) {
+    return false;
+  }
+  const fillRangeData = this.engine.getFillRangeData(engineSourceRange, engineTargetRange);
+  const {
+    row: sourceStartRow,
+    col: sourceStartColumn
+  } = engineSourceRange.start;
+  const {
+    row: sourceEndRow,
+    col: sourceEndColumn
+  } = engineSourceRange.end;
+  const populationRowLength = sourceEndRow - sourceStartRow + 1;
+  const populationColumnLength = sourceEndColumn - sourceStartColumn + 1;
+  for (let populatedRowIndex = 0; populatedRowIndex < fillRangeData.length; populatedRowIndex += 1) {
+    for (let populatedColumnIndex = 0; populatedColumnIndex < fillRangeData[populatedRowIndex].length; populatedColumnIndex += 1) {
+      const populatedValue = fillRangeData[populatedRowIndex][populatedColumnIndex];
+      const sourceRow = populatedRowIndex % populationRowLength;
+      const sourceColumn = populatedColumnIndex % populationColumnLength;
+      const sourceCellMeta = this.hot.getCellMeta(sourceRow, sourceColumn);
+      if ((0, _utils.isDate)(populatedValue, sourceCellMeta.type)) {
+        if (populatedValue.startsWith('\'')) {
+          // Populating values on HOT side without apostrophe.
+          fillRangeData[populatedRowIndex][populatedColumnIndex] = populatedValue.slice(1);
+        } else if (this.isFormulaCellType(sourceRow, sourceColumn, this.sheetId) === false) {
+          // Populating date in proper format, coming from the source cell.
+          fillRangeData[populatedRowIndex][populatedColumnIndex] = (0, _utils.getDateInHotFormat)(populatedValue, sourceCellMeta.dateFormat);
+        }
       }
     }
-    const dimensions = this.engine.getSheetDimensions(this.engine.getSheetId(this.sheetName));
+  }
+  return fillRangeData;
+}
+function _onBeforeLoadData2(sourceData, initialLoad) {
+  let source = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
+  if (source.includes((0, _string.toUpperCaseFirst)(PLUGIN_KEY))) {
+    return;
+  }
 
-    // Don't actually change the source data if HyperFormula is not
-    // initialized yet. This is done to allow the `afterLoadData` hook to
-    // load the existing source data with `Handsontable#getSourceDataArray`
-    // properly.
-    if (dimensions.width === 0 && dimensions.height === 0) {
+  // This flag needs to be defined, because not passing data to HOT results in HOT auto-generating a `null`-filled
+  // initial dataset.
+  (0, _classPrivateFieldSet2.default)(this, _hotWasInitializedWithEmptyData, (0, _mixed.isUndefined)(this.hot.getSettings().data));
+}
+function _onAfterCellMetaReset2() {
+  const sourceDataArray = this.hot.getSourceDataArray();
+  let valueChanged = false;
+  sourceDataArray.forEach((rowData, rowIndex) => {
+    rowData.forEach((cellValue, columnIndex) => {
+      const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex);
+      const dateFormat = cellMeta.dateFormat;
+      if ((0, _utils.isDate)(cellValue, cellMeta.type)) {
+        valueChanged = true;
+        if ((0, _utils.isDateValid)(cellValue, dateFormat)) {
+          // Rewriting date in HOT format to HF format.
+          sourceDataArray[rowIndex][columnIndex] = (0, _utils.getDateInHfFormat)(cellValue, dateFormat);
+        } else if (this.isFormulaCellType(rowIndex, columnIndex) === false) {
+          // Escaping value from date parsing using "'" sign (HF feature).
+          sourceDataArray[rowIndex][columnIndex] = `'${cellValue}`;
+        }
+      }
+    });
+  });
+  if (valueChanged === true) {
+    (0, _classPrivateFieldSet2.default)(this, _internalOperationPending, true);
+    this.engine.setSheetContent(this.sheetId, sourceDataArray);
+    (0, _classPrivateFieldSet2.default)(this, _internalOperationPending, false);
+  }
+}
+function _onAfterLoadData2(sourceData, initialLoad) {
+  let source = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
+  if (source.includes((0, _string.toUpperCaseFirst)(PLUGIN_KEY))) {
+    return;
+  }
+  this.sheetName = (0, _register.setupSheet)(this.engine, this.hot.getSettings()[PLUGIN_KEY].sheetName);
+  if (!(0, _classPrivateFieldGet2.default)(this, _hotWasInitializedWithEmptyData)) {
+    const sourceDataArray = this.hot.getSourceDataArray();
+    if (this.engine.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
+      (0, _classPrivateFieldSet2.default)(this, _internalOperationPending, true);
+      const dependentCells = this.engine.setSheetContent(this.sheetId, sourceDataArray);
+      this.indexSyncer.setupSyncEndpoint(this.engine, this.sheetId);
+      this.renderDependentSheets(dependentCells);
+      (0, _classPrivateFieldSet2.default)(this, _internalOperationPending, false);
+    }
+  } else {
+    this.switchSheet(this.sheetName);
+  }
+}
+function _onModifyData2(physicalRow, visualColumn, valueHolder, ioMode) {
+  if (ioMode !== 'get' || (0, _classPrivateFieldGet2.default)(this, _internalOperationPending) || this.sheetName === null || !this.engine.doesSheetExist(this.sheetName)) {
+    return;
+  }
+  const visualRow = this.hot.toVisualRow(physicalRow);
+  if (visualRow === null || visualColumn === null) {
+    return;
+  }
+
+  // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
+  const isFormulaCellType = this.isFormulaCellType(visualRow, visualColumn);
+  if (!isFormulaCellType) {
+    const cellType = this.getCellType(visualRow, visualColumn);
+    if (cellType !== 'ARRAY') {
+      if ((0, _utils.isEscapedFormulaExpression)(valueHolder.value)) {
+        valueHolder.value = (0, _utils.unescapeFormulaExpression)(valueHolder.value);
+      }
+      return;
+    }
+  }
+  const address = {
+    row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
+    col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
+    sheet: this.sheetId
+  };
+  let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel like date).
+  const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
+  if (cellMeta.type === 'date' && (0, _number.isNumeric)(cellValue)) {
+    cellValue = (0, _utils.getDateFromExcelDate)(cellValue, cellMeta.dateFormat);
+  }
+
+  // If `cellValue` is an object it is expected to be an error
+  const value = typeof cellValue === 'object' && cellValue !== null ? cellValue.value : cellValue;
+  valueHolder.value = value;
+}
+function _onModifySourceData2(row, columnOrProp, valueHolder, ioMode) {
+  if (ioMode !== 'get' || (0, _classPrivateFieldGet2.default)(this, _internalOperationPending) || this.sheetName === null || !this.engine.doesSheetExist(this.sheetName)) {
+    return;
+  }
+  const visualRow = this.hot.toVisualRow(row);
+  const visualColumn = this.hot.propToCol(columnOrProp);
+  if (visualRow === null || visualColumn === null) {
+    return;
+  }
+
+  // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
+  const isFormulaCellType = this.isFormulaCellType(visualRow, visualColumn);
+  if (!isFormulaCellType) {
+    const cellType = this.getCellType(visualRow, visualColumn);
+    if (cellType !== 'ARRAY') {
+      return;
+    }
+  }
+  const dimensions = this.engine.getSheetDimensions(this.engine.getSheetId(this.sheetName));
+
+  // Don't actually change the source data if HyperFormula is not
+  // initialized yet. This is done to allow the `afterLoadData` hook to
+  // load the existing source data with `Handsontable#getSourceDataArray`
+  // properly.
+  if (dimensions.width === 0 && dimensions.height === 0) {
+    return;
+  }
+  const address = {
+    row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
+    col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
+    sheet: this.sheetId
+  };
+  valueHolder.value = this.engine.getCellSerialized(address);
+}
+function _onAfterSetDataAtCell2(changes, source) {
+  if (isBlockedSource(source)) {
+    return;
+  }
+  const outOfBoundsChanges = [];
+  const changedCells = [];
+  const dependentCells = this.engine.batch(() => {
+    changes.forEach(_ref4 => {
+      let [visualRow, prop,, newValue] = _ref4;
+      const visualColumn = this.hot.propToCol(prop);
+      const physicalRow = this.hot.toPhysicalRow(visualRow);
+      const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+      const address = {
+        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
+        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
+        sheet: this.sheetId
+      };
+      if (physicalRow !== null && physicalColumn !== null) {
+        this.syncChangeWithEngine(visualRow, visualColumn, newValue);
+      } else {
+        outOfBoundsChanges.push([visualRow, visualColumn, newValue]);
+      }
+      changedCells.push({
+        address
+      });
+    });
+  });
+  if (outOfBoundsChanges.length) {
+    // Workaround for rows/columns being created two times (by HOT and the engine).
+    // (unfortunately, this requires an extra re-render)
+    this.hot.addHookOnce('afterChange', () => {
+      const outOfBoundsDependentCells = this.engine.batch(() => {
+        outOfBoundsChanges.forEach(_ref5 => {
+          let [row, column, newValue] = _ref5;
+          this.syncChangeWithEngine(row, column, newValue);
+        });
+      });
+      this.renderDependentSheets(outOfBoundsDependentCells, true);
+    });
+  }
+  this.renderDependentSheets(dependentCells);
+  this.validateDependentCells(dependentCells, changedCells);
+}
+function _onAfterSetSourceDataAtCell2(changes, source) {
+  if (isBlockedSource(source)) {
+    return;
+  }
+  const dependentCells = [];
+  const changedCells = [];
+  changes.forEach(_ref6 => {
+    let [visualRow, prop,, newValue] = _ref6;
+    const visualColumn = this.hot.propToCol(prop);
+    if (!(0, _number.isNumeric)(visualColumn)) {
       return;
     }
     const address = {
@@ -69972,347 +70751,123 @@ class Formulas extends _base.BasePlugin {
       col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
       sheet: this.sheetId
     };
-    valueHolder.value = this.engine.getCellSerialized(address);
-  }
-
-  /**
-   * `onAfterSetDataAtCell` hook callback.
-   *
-   * @private
-   * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
-   * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
-   */
-  onAfterSetDataAtCell(changes, source) {
-    if (isBlockedSource(source)) {
+    if (!this.engine.isItPossibleToSetCellContents(address)) {
+      (0, _console.warn)(`Not possible to set source cell data at ${JSON.stringify(address)}`);
       return;
     }
-    const outOfBoundsChanges = [];
-    const changedCells = [];
-    const dependentCells = this.engine.batch(() => {
-      changes.forEach(_ref4 => {
-        let [visualRow, prop,, newValue] = _ref4;
-        const visualColumn = this.hot.propToCol(prop);
-        const physicalRow = this.hot.toPhysicalRow(visualRow);
-        const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
-        const address = {
-          row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
-          col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
-          sheet: this.sheetId
-        };
-        if (physicalRow !== null && physicalColumn !== null) {
-          this.syncChangeWithEngine(visualRow, visualColumn, newValue);
-        } else {
-          outOfBoundsChanges.push([visualRow, visualColumn, newValue]);
-        }
-        changedCells.push({
-          address
-        });
-      });
+    changedCells.push({
+      address
     });
-    if (outOfBoundsChanges.length) {
-      // Workaround for rows/columns being created two times (by HOT and the engine).
-      // (unfortunately, this requires an extra re-render)
-      this.hot.addHookOnce('afterChange', () => {
-        const outOfBoundsDependentCells = this.engine.batch(() => {
-          outOfBoundsChanges.forEach(_ref5 => {
-            let [row, column, newValue] = _ref5;
-            this.syncChangeWithEngine(row, column, newValue);
-          });
-        });
-        this.renderDependentSheets(outOfBoundsDependentCells, true);
-      });
-    }
-    this.renderDependentSheets(dependentCells);
-    this.validateDependentCells(dependentCells, changedCells);
+    dependentCells.push(...this.engine.setCellContents(address, newValue));
+  });
+  this.renderDependentSheets(dependentCells);
+  this.validateDependentCells(dependentCells, changedCells);
+}
+function _onBeforeCreateRow2(visualRow, amount) {
+  let hfRowIndex = this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow);
+  if (visualRow >= this.hot.countRows()) {
+    hfRowIndex = visualRow; // Row beyond the table boundaries.
   }
 
-  /**
-   * `onAfterSetSourceDataAtCell` hook callback.
-   *
-   * @private
-   * @param {Array[]} changes An array of changes in format [[row, column, oldValue, value], ...].
-   * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
-   */
-  onAfterSetSourceDataAtCell(changes, source) {
-    if (isBlockedSource(source)) {
-      return;
-    }
-    const dependentCells = [];
-    const changedCells = [];
-    changes.forEach(_ref6 => {
-      let [visualRow, prop,, newValue] = _ref6;
-      const visualColumn = this.hot.propToCol(prop);
-      if (!(0, _number.isNumeric)(visualColumn)) {
-        return;
-      }
-      const address = {
-        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
-        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
-        sheet: this.sheetId
-      };
-      if (!this.engine.isItPossibleToSetCellContents(address)) {
-        (0, _console.warn)(`Not possible to set source cell data at ${JSON.stringify(address)}`);
-        return;
-      }
-      changedCells.push({
-        address
-      });
-      dependentCells.push(...this.engine.setCellContents(address, newValue));
-    });
-    this.renderDependentSheets(dependentCells);
-    this.validateDependentCells(dependentCells, changedCells);
-  }
-
-  /**
-   * `beforeCreateRow` hook callback.
-   *
-   * @private
-   * @param {number} visualRow Represents the visual index of first newly created row in the data source array.
-   * @param {number} amount Number of newly created rows in the data source array.
-   * @returns {*|boolean} If false is returned the action is canceled.
-   */
-  onBeforeCreateRow(visualRow, amount) {
-    let hfRowIndex = this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow);
-    if (visualRow >= this.hot.countRows()) {
-      hfRowIndex = visualRow; // Row beyond the table boundaries.
-    }
-
-    if (this.sheetId === null || !this.engine.doesSheetExist(this.sheetName) || !this.engine.isItPossibleToAddRows(this.sheetId, [hfRowIndex, amount])) {
-      return false;
-    }
-  }
-
-  /**
-   * `beforeCreateCol` hook callback.
-   *
-   * @private
-   * @param {number} visualColumn Represents the visual index of first newly created column in the data source.
-   * @param {number} amount Number of newly created columns in the data source.
-   * @returns {*|boolean} If false is returned the action is canceled.
-   */
-  onBeforeCreateCol(visualColumn, amount) {
-    let hfColumnIndex = this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn);
-    if (visualColumn >= this.hot.countCols()) {
-      hfColumnIndex = visualColumn; // Column beyond the table boundaries.
-    }
-
-    if (this.sheetId === null || !this.engine.doesSheetExist(this.sheetName) || !this.engine.isItPossibleToAddColumns(this.sheetId, [hfColumnIndex, amount])) {
-      return false;
-    }
-  }
-
-  /**
-   * `beforeRemoveRow` hook callback.
-   *
-   * @private
-   * @param {number} row Visual index of starter row.
-   * @param {number} amount Amount of rows to be removed.
-   * @param {number[]} physicalRows An array of physical rows removed from the data source.
-   * @returns {*|boolean} If false is returned the action is canceled.
-   */
-  onBeforeRemoveRow(row, amount, physicalRows) {
-    const hfRows = this.rowAxisSyncer.setRemovedHfIndexes(physicalRows);
-    const possible = hfRows.every(hfRow => {
-      return this.engine.isItPossibleToRemoveRows(this.sheetId, [hfRow, 1]);
-    });
-    return possible === false ? false : void 0;
-  }
-
-  /**
-   * `beforeRemoveCol` hook callback.
-   *
-   * @private
-   * @param {number} col Visual index of starter column.
-   * @param {number} amount Amount of columns to be removed.
-   * @param {number[]} physicalColumns An array of physical columns removed from the data source.
-   * @returns {*|boolean} If false is returned the action is canceled.
-   */
-  onBeforeRemoveCol(col, amount, physicalColumns) {
-    const hfColumns = this.columnAxisSyncer.setRemovedHfIndexes(physicalColumns);
-    const possible = hfColumns.every(hfColumn => {
-      return this.engine.isItPossibleToRemoveColumns(this.sheetId, [hfColumn, 1]);
-    });
-    return possible === false ? false : void 0;
-  }
-
-  /**
-   * `afterCreateRow` hook callback.
-   *
-   * @private
-   * @param {number} visualRow Represents the visual index of first newly created row in the data source array.
-   * @param {number} amount Number of newly created rows in the data source array.
-   * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
-   */
-  onAfterCreateRow(visualRow, amount, source) {
-    if (isBlockedSource(source)) {
-      return;
-    }
-    const changes = this.engine.addRows(this.sheetId, [this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow), amount]);
-    this.renderDependentSheets(changes);
-  }
-
-  /**
-   * `afterCreateCol` hook callback.
-   *
-   * @private
-   * @param {number} visualColumn Represents the visual index of first newly created column in the data source.
-   * @param {number} amount Number of newly created columns in the data source.
-   * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
-   */
-  onAfterCreateCol(visualColumn, amount, source) {
-    if (isBlockedSource(source)) {
-      return;
-    }
-    const changes = this.engine.addColumns(this.sheetId, [this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn), amount]);
-    this.renderDependentSheets(changes);
-  }
-
-  /**
-   * `afterRemoveRow` hook callback.
-   *
-   * @private
-   * @param {number} row Visual index of starter row.
-   * @param {number} amount An amount of removed rows.
-   * @param {number[]} physicalRows An array of physical rows removed from the data source.
-   * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
-   */
-  onAfterRemoveRow(row, amount, physicalRows, source) {
-    if (isBlockedSource(source)) {
-      return;
-    }
-    const descendingHfRows = this.rowAxisSyncer.getRemovedHfIndexes().sort().reverse();
-    const changes = this.engine.batch(() => {
-      descendingHfRows.forEach(hfRow => {
-        this.engine.removeRows(this.sheetId, [hfRow, 1]);
-      });
-    });
-    this.renderDependentSheets(changes);
-  }
-
-  /**
-   * `afterRemoveCol` hook callback.
-   *
-   * @private
-   * @param {number} col Visual index of starter column.
-   * @param {number} amount An amount of removed columns.
-   * @param {number[]} physicalColumns An array of physical columns removed from the data source.
-   * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
-   */
-  onAfterRemoveCol(col, amount, physicalColumns, source) {
-    if (isBlockedSource(source)) {
-      return;
-    }
-    const descendingHfColumns = this.columnAxisSyncer.getRemovedHfIndexes().sort().reverse();
-    const changes = this.engine.batch(() => {
-      descendingHfColumns.forEach(hfColumn => {
-        this.engine.removeColumns(this.sheetId, [hfColumn, 1]);
-      });
-    });
-    this.renderDependentSheets(changes);
-  }
-
-  /**
-   * `afterDetachChild` hook callback.
-   * Used to sync the data of the rows detached in the Nested Rows plugin with the engine's dataset.
-   *
-   * @private
-   * @param {object} parent An object representing the parent from which the element was detached.
-   * @param {object} element The detached element.
-   * @param {number} finalElementRowIndex The final row index of the detached element.
-   */
-  onAfterDetachChild(parent, element, finalElementRowIndex) {
-    var _element$__children;
-    (0, _classPrivateFieldSet2.default)(this, _internalOperationPending, true);
-    const rowsData = this.hot.getSourceDataArray(finalElementRowIndex, 0, finalElementRowIndex + (((_element$__children = element.__children) === null || _element$__children === void 0 ? void 0 : _element$__children.length) || 0), this.hot.countSourceCols());
-    (0, _classPrivateFieldSet2.default)(this, _internalOperationPending, false);
-    rowsData.forEach((row, relativeRowIndex) => {
-      row.forEach((value, colIndex) => {
-        this.engine.setCellContents({
-          col: colIndex,
-          row: finalElementRowIndex + relativeRowIndex,
-          sheet: this.sheetId
-        }, [[value]]);
-      });
-    });
-  }
-
-  /**
-   * Called when a value is updated in the engine.
-   *
-   * @private
-   * @fires Hooks#afterFormulasValuesUpdate
-   * @param {Array} changes The values and location of applied changes.
-   */
-  onEngineValuesUpdated(changes) {
-    this.hot.runHooks('afterFormulasValuesUpdate', changes);
-  }
-
-  /**
-   * Called when a named expression is added to the engine instance.
-   *
-   * @private
-   * @fires Hooks#afterNamedExpressionAdded
-   * @param {string} namedExpressionName The name of the added expression.
-   * @param {Array} changes The values and location of applied changes.
-   */
-  onEngineNamedExpressionsAdded(namedExpressionName, changes) {
-    this.hot.runHooks('afterNamedExpressionAdded', namedExpressionName, changes);
-  }
-
-  /**
-   * Called when a named expression is removed from the engine instance.
-   *
-   * @private
-   * @fires Hooks#afterNamedExpressionRemoved
-   * @param {string} namedExpressionName The name of the removed expression.
-   * @param {Array} changes The values and location of applied changes.
-   */
-  onEngineNamedExpressionsRemoved(namedExpressionName, changes) {
-    this.hot.runHooks('afterNamedExpressionRemoved', namedExpressionName, changes);
-  }
-
-  /**
-   * Called when a new sheet is added to the engine instance.
-   *
-   * @private
-   * @fires Hooks#afterSheetAdded
-   * @param {string} addedSheetDisplayName The name of the added sheet.
-   */
-  onEngineSheetAdded(addedSheetDisplayName) {
-    this.hot.runHooks('afterSheetAdded', addedSheetDisplayName);
-  }
-
-  /**
-   * Called when a sheet in the engine instance is renamed.
-   *
-   * @private
-   * @fires Hooks#afterSheetRenamed
-   * @param {string} oldDisplayName The old name of the sheet.
-   * @param {string} newDisplayName The new name of the sheet.
-   */
-  onEngineSheetRenamed(oldDisplayName, newDisplayName) {
-    this.hot.runHooks('afterSheetRenamed', oldDisplayName, newDisplayName);
-  }
-
-  /**
-   * Called when a sheet is removed from the engine instance.
-   *
-   * @private
-   * @fires Hooks#afterSheetRemoved
-   * @param {string} removedSheetDisplayName The removed sheet name.
-   * @param {Array} changes The values and location of applied changes.
-   */
-  onEngineSheetRemoved(removedSheetDisplayName, changes) {
-    this.hot.runHooks('afterSheetRemoved', removedSheetDisplayName, changes);
+  if (this.sheetId === null || !this.engine.doesSheetExist(this.sheetName) || !this.engine.isItPossibleToAddRows(this.sheetId, [hfRowIndex, amount])) {
+    return false;
   }
 }
-exports.Formulas = Formulas;
+function _onBeforeCreateCol2(visualColumn, amount) {
+  let hfColumnIndex = this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn);
+  if (visualColumn >= this.hot.countCols()) {
+    hfColumnIndex = visualColumn; // Column beyond the table boundaries.
+  }
+
+  if (this.sheetId === null || !this.engine.doesSheetExist(this.sheetName) || !this.engine.isItPossibleToAddColumns(this.sheetId, [hfColumnIndex, amount])) {
+    return false;
+  }
+}
+function _onBeforeRemoveRow2(row, amount, physicalRows) {
+  const hfRows = this.rowAxisSyncer.setRemovedHfIndexes(physicalRows);
+  const possible = hfRows.every(hfRow => {
+    return this.engine.isItPossibleToRemoveRows(this.sheetId, [hfRow, 1]);
+  });
+  return possible === false ? false : undefined;
+}
+function _onBeforeRemoveCol2(col, amount, physicalColumns) {
+  const hfColumns = this.columnAxisSyncer.setRemovedHfIndexes(physicalColumns);
+  const possible = hfColumns.every(hfColumn => {
+    return this.engine.isItPossibleToRemoveColumns(this.sheetId, [hfColumn, 1]);
+  });
+  return possible === false ? false : undefined;
+}
+function _onAfterCreateRow2(visualRow, amount, source) {
+  if (isBlockedSource(source)) {
+    return;
+  }
+  const changes = this.engine.addRows(this.sheetId, [this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow), amount]);
+  this.renderDependentSheets(changes);
+}
+function _onAfterCreateCol2(visualColumn, amount, source) {
+  if (isBlockedSource(source)) {
+    return;
+  }
+  const changes = this.engine.addColumns(this.sheetId, [this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn), amount]);
+  this.renderDependentSheets(changes);
+}
+function _onAfterRemoveRow2(row, amount, physicalRows, source) {
+  if (isBlockedSource(source)) {
+    return;
+  }
+  const descendingHfRows = this.rowAxisSyncer.getRemovedHfIndexes().sort().reverse();
+  const changes = this.engine.batch(() => {
+    descendingHfRows.forEach(hfRow => {
+      this.engine.removeRows(this.sheetId, [hfRow, 1]);
+    });
+  });
+  this.renderDependentSheets(changes);
+}
+function _onAfterRemoveCol2(col, amount, physicalColumns, source) {
+  if (isBlockedSource(source)) {
+    return;
+  }
+  const descendingHfColumns = this.columnAxisSyncer.getRemovedHfIndexes().sort().reverse();
+  const changes = this.engine.batch(() => {
+    descendingHfColumns.forEach(hfColumn => {
+      this.engine.removeColumns(this.sheetId, [hfColumn, 1]);
+    });
+  });
+  this.renderDependentSheets(changes);
+}
+function _onAfterDetachChild2(parent, element, finalElementRowIndex) {
+  var _element$__children;
+  (0, _classPrivateFieldSet2.default)(this, _internalOperationPending, true);
+  const rowsData = this.hot.getSourceDataArray(finalElementRowIndex, 0, finalElementRowIndex + (((_element$__children = element.__children) === null || _element$__children === void 0 ? void 0 : _element$__children.length) || 0), this.hot.countSourceCols());
+  (0, _classPrivateFieldSet2.default)(this, _internalOperationPending, false);
+  rowsData.forEach((row, relativeRowIndex) => {
+    row.forEach((value, colIndex) => {
+      this.engine.setCellContents({
+        col: colIndex,
+        row: finalElementRowIndex + relativeRowIndex,
+        sheet: this.sheetId
+      }, [[value]]);
+    });
+  });
+}
+function _onEngineValuesUpdated2(changes) {
+  this.hot.runHooks('afterFormulasValuesUpdate', changes);
+}
+function _onEngineNamedExpressionsAdded2(namedExpressionName, changes) {
+  this.hot.runHooks('afterNamedExpressionAdded', namedExpressionName, changes);
+}
+function _onEngineNamedExpressionsRemoved2(namedExpressionName, changes) {
+  this.hot.runHooks('afterNamedExpressionRemoved', namedExpressionName, changes);
+}
+function _onEngineSheetAdded2(addedSheetDisplayName) {
+  this.hot.runHooks('afterSheetAdded', addedSheetDisplayName);
+}
+function _onEngineSheetRenamed2(oldDisplayName, newDisplayName) {
+  this.hot.runHooks('afterSheetRenamed', oldDisplayName, newDisplayName);
+}
+function _onEngineSheetRemoved2(removedSheetDisplayName, changes) {
+  this.hot.runHooks('afterSheetRemoved', removedSheetDisplayName, changes);
+}
 
 /***/ }),
 /* 577 */
@@ -70332,10 +70887,10 @@ exports.setupEngine = setupEngine;
 exports.setupSheet = setupSheet;
 exports.unregisterEngine = unregisterEngine;
 __webpack_require__(8);
-var _staticRegister = _interopRequireDefault(__webpack_require__(126));
+var _staticRegister = _interopRequireDefault(__webpack_require__(130));
 var _mixed = __webpack_require__(110);
 var _templateLiteralTag = __webpack_require__(112);
-var _console = __webpack_require__(125);
+var _console = __webpack_require__(129);
 var _object = __webpack_require__(117);
 var _formulas = __webpack_require__(576);
 var _settings = __webpack_require__(578);
@@ -70698,7 +71253,7 @@ function getEngineSettingsWithOverrides(hotSettings) {
  */
 function haveEngineSettingsChanged(currentEngineSettings, newEngineSettings) {
   return Object.keys(newEngineSettings).some(settingOption => {
-    return newEngineSettings[settingOption] !== void 0 && newEngineSettings[settingOption] !== currentEngineSettings[settingOption];
+    return newEngineSettings[settingOption] !== undefined && newEngineSettings[settingOption] !== currentEngineSettings[settingOption];
   });
 }
 
@@ -70822,8 +71377,8 @@ function getDateFromExcelDate(numericDate, dateFormat) {
 __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _axisSyncer = _interopRequireDefault(__webpack_require__(581));
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
@@ -71014,8 +71569,8 @@ __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _string = __webpack_require__(108);
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
@@ -71347,16 +71902,16 @@ __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _base = __webpack_require__(423);
 var _element = __webpack_require__(107);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 var _array = __webpack_require__(113);
 var _object = __webpack_require__(117);
 var _mixed = __webpack_require__(110);
 var _predefinedItems = __webpack_require__(459);
-var _pluginHooks = _interopRequireDefault(__webpack_require__(124));
+var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 var _hideColumn = _interopRequireDefault(__webpack_require__(584));
 var _showColumn = _interopRequireDefault(__webpack_require__(585));
 var _translations = __webpack_require__(221);
@@ -71485,9 +72040,55 @@ const AFTER_INDICATOR_CLASSNAME = 'afterHiddenColumnIndicator';
 var _settings = /*#__PURE__*/new WeakMap();
 var _hiddenColumnsMap = /*#__PURE__*/new WeakMap();
 var _clearIndicatorElements = /*#__PURE__*/new WeakSet();
+var _onModifyColWidth = /*#__PURE__*/new WeakSet();
+var _onAfterGetCellMeta = /*#__PURE__*/new WeakSet();
+var _onModifyCopyableRange = /*#__PURE__*/new WeakSet();
+var _onAfterGetColHeader = /*#__PURE__*/new WeakSet();
+var _onAfterContextMenuDefaultOptions = /*#__PURE__*/new WeakSet();
+var _onMapInit = /*#__PURE__*/new WeakSet();
 class HiddenColumns extends _base.BasePlugin {
   constructor() {
     super(...arguments);
+    /**
+     * On map initialized hook callback.
+     */
+    _classPrivateMethodInitSpec(this, _onMapInit);
+    /**
+     * Add Show-hide columns to context menu.
+     *
+     * @param {object} options An array of objects containing information about the pre-defined Context Menu items.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterContextMenuDefaultOptions);
+    /**
+     * Adds the needed classes to the headers.
+     *
+     * @param {number} column Visual column index.
+     * @param {HTMLElement} TH Header's TH element.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterGetColHeader);
+    /**
+     * Modifies the copyable range, accordingly to the provided config.
+     *
+     * @param {Array} ranges An array of objects defining copyable cells.
+     * @returns {Array}
+     */
+    _classPrivateMethodInitSpec(this, _onModifyCopyableRange);
+    /**
+     * Sets the copy-related cell meta.
+     *
+     * @param {number} row Visual row index.
+     * @param {number} column Visual column index.
+     * @param {object} cellProperties Object containing the cell properties.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterGetCellMeta);
+    /**
+     * Adds the additional column width for the hidden column indicators.
+     *
+     * @param {number|undefined} width Column width.
+     * @param {number} column Visual column index.
+     * @returns {number}
+     */
+    _classPrivateMethodInitSpec(this, _onModifyColWidth);
     /**
      * Remove the indicator elements from the provided column header element.
      *
@@ -71547,17 +72148,23 @@ class HiddenColumns extends _base.BasePlugin {
       }
     }
     (0, _classPrivateFieldSet2.default)(this, _hiddenColumnsMap, new _translations.HidingMap());
-    (0, _classPrivateFieldGet2.default)(this, _hiddenColumnsMap).addLocalHook('init', () => this.onMapInit());
+    (0, _classPrivateFieldGet2.default)(this, _hiddenColumnsMap).addLocalHook('init', () => _classPrivateMethodGet(this, _onMapInit, _onMapInit2).call(this));
     this.hot.columnIndexMapper.registerMap(this.pluginName, (0, _classPrivateFieldGet2.default)(this, _hiddenColumnsMap));
     this.addHook('afterContextMenuDefaultOptions', function () {
-      return _this.onAfterContextMenuDefaultOptions(...arguments);
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+      return _classPrivateMethodGet(_this, _onAfterContextMenuDefaultOptions, _onAfterContextMenuDefaultOptions2).call(_this, ...args);
     });
-    this.addHook('afterGetCellMeta', (row, col, cellProperties) => this.onAfterGetCellMeta(row, col, cellProperties));
-    this.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
+    this.addHook('afterGetCellMeta', (row, col, cellProperties) => _classPrivateMethodGet(this, _onAfterGetCellMeta, _onAfterGetCellMeta2).call(this, row, col, cellProperties));
+    this.addHook('modifyColWidth', (width, col) => _classPrivateMethodGet(this, _onModifyColWidth, _onModifyColWidth2).call(this, width, col));
     this.addHook('afterGetColHeader', function () {
-      return _this.onAfterGetColHeader(...arguments);
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+      return _classPrivateMethodGet(_this, _onAfterGetColHeader, _onAfterGetColHeader2).call(_this, ...args);
     });
-    this.addHook('modifyCopyableRange', ranges => this.onModifyCopyableRange(ranges));
+    this.addHook('modifyCopyableRange', ranges => _classPrivateMethodGet(this, _onModifyCopyableRange, _onModifyCopyableRange2).call(this, ranges));
     super.enablePlugin();
   }
 
@@ -71636,8 +72243,8 @@ class HiddenColumns extends _base.BasePlugin {
    * @param {...number} column Visual column index.
    */
   showColumn() {
-    for (var _len = arguments.length, column = new Array(_len), _key = 0; _key < _len; _key++) {
-      column[_key] = arguments[_key];
+    for (var _len3 = arguments.length, column = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+      column[_key3] = arguments[_key3];
     }
     this.showColumns(column);
   }
@@ -71674,8 +72281,8 @@ class HiddenColumns extends _base.BasePlugin {
    * @param {...number} column Visual column index.
    */
   hideColumn() {
-    for (var _len2 = arguments.length, column = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-      column[_key2] = arguments[_key2];
+    for (var _len4 = arguments.length, column = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+      column[_key4] = arguments[_key4];
     }
     this.hideColumns(column);
   }
@@ -71728,167 +72335,6 @@ class HiddenColumns extends _base.BasePlugin {
     });
   }
   /**
-   * Adds the additional column width for the hidden column indicators.
-   *
-   * @private
-   * @param {number|undefined} width Column width.
-   * @param {number} column Visual column index.
-   * @returns {number}
-   */
-  onModifyColWidth(width, column) {
-    // Hook is triggered internally only for the visible columns. Conditional will be handled for the API
-    // calls of the `getColWidth` function on not visible indexes.
-    if (this.isHidden(column)) {
-      return 0;
-    }
-    if ((0, _classPrivateFieldGet2.default)(this, _settings).indicators && (this.isHidden(column + 1) || this.isHidden(column - 1))) {
-      // Add additional space for hidden column indicator.
-      if (typeof width === 'number' && this.hot.hasColHeaders()) {
-        return width + 15;
-      }
-    }
-  }
-
-  /**
-   * Sets the copy-related cell meta.
-   *
-   * @private
-   * @param {number} row Visual row index.
-   * @param {number} column Visual column index.
-   * @param {object} cellProperties Object containing the cell properties.
-   */
-  onAfterGetCellMeta(row, column, cellProperties) {
-    if ((0, _classPrivateFieldGet2.default)(this, _settings).copyPasteEnabled === false && this.isHidden(column)) {
-      // Cell property handled by the `Autofill` and the `CopyPaste` plugins.
-      cellProperties.skipColumnOnPaste = true;
-    }
-    if (this.isHidden(column - 1)) {
-      cellProperties.className = cellProperties.className || '';
-      if (cellProperties.className.indexOf('afterHiddenColumn') === -1) {
-        cellProperties.className += ' afterHiddenColumn';
-      }
-    } else if (cellProperties.className) {
-      const classArr = cellProperties.className.split(' ');
-      if (classArr.length > 0) {
-        const containAfterHiddenColumn = classArr.indexOf('afterHiddenColumn');
-        if (containAfterHiddenColumn > -1) {
-          classArr.splice(containAfterHiddenColumn, 1);
-        }
-        cellProperties.className = classArr.join(' ');
-      }
-    }
-  }
-
-  /**
-   * Modifies the copyable range, accordingly to the provided config.
-   *
-   * @private
-   * @param {Array} ranges An array of objects defining copyable cells.
-   * @returns {Array}
-   */
-  onModifyCopyableRange(ranges) {
-    // Ranges shouldn't be modified when `copyPasteEnabled` option is set to `true` (by default).
-    if ((0, _classPrivateFieldGet2.default)(this, _settings).copyPasteEnabled) {
-      return ranges;
-    }
-    const newRanges = [];
-    const pushRange = (startRow, endRow, startCol, endCol) => {
-      newRanges.push({
-        startRow,
-        endRow,
-        startCol,
-        endCol
-      });
-    };
-    (0, _array.arrayEach)(ranges, range => {
-      let isHidden = true;
-      let rangeStart = 0;
-      (0, _number.rangeEach)(range.startCol, range.endCol, visualColumn => {
-        if (this.isHidden(visualColumn)) {
-          if (!isHidden) {
-            pushRange(range.startRow, range.endRow, rangeStart, visualColumn - 1);
-          }
-          isHidden = true;
-        } else {
-          if (isHidden) {
-            rangeStart = visualColumn;
-          }
-          if (visualColumn === range.endCol) {
-            pushRange(range.startRow, range.endRow, rangeStart, visualColumn);
-          }
-          isHidden = false;
-        }
-      });
-    });
-    return newRanges;
-  }
-
-  /**
-   * Adds the needed classes to the headers.
-   *
-   * @private
-   * @param {number} column Visual column index.
-   * @param {HTMLElement} TH Header's TH element.
-   */
-  onAfterGetColHeader(column, TH) {
-    const areAriaTagsEnabled = this.hot.getSettings().ariaTags;
-    const beforeHiddenColumnIndicatorElement = TH.querySelector('.beforeHiddenColumnIndicator');
-    const afterHiddenColumnIndicatorElement = TH.querySelector('.afterHiddenColumnIndicator');
-    if (!(0, _classPrivateFieldGet2.default)(this, _settings).indicators || column < 0) {
-      beforeHiddenColumnIndicatorElement === null || beforeHiddenColumnIndicatorElement === void 0 || beforeHiddenColumnIndicatorElement.remove();
-      afterHiddenColumnIndicatorElement === null || afterHiddenColumnIndicatorElement === void 0 || afterHiddenColumnIndicatorElement.remove();
-      return;
-    }
-    const classList = [];
-    if (column >= 1 && this.isHidden(column - 1)) {
-      if (!afterHiddenColumnIndicatorElement) {
-        const attributesToAdd = areAriaTagsEnabled ? [(0, _a11y.A11Y_LABEL)(this.hot.getTranslatedPhrase(_constants.COLUMN_HEADER_LABEL_AFTER_HIDDEN_COLUMN))] : [];
-        (0, _element.appendElement)(TH, {
-          tagName: 'div',
-          attributes: attributesToAdd,
-          className: AFTER_INDICATOR_CLASSNAME
-        });
-      }
-      classList.push('afterHiddenColumn');
-    }
-    if (column < this.hot.countCols() - 1 && this.isHidden(column + 1)) {
-      if (!beforeHiddenColumnIndicatorElement) {
-        const attributesToAdd = areAriaTagsEnabled ? [(0, _a11y.A11Y_LABEL)(this.hot.getTranslatedPhrase(_constants.COLUMN_HEADER_LABEL_BEFORE_HIDDEN_COLUMN))] : [];
-        (0, _element.appendElement)(TH, {
-          tagName: 'div',
-          attributes: attributesToAdd,
-          className: BEFORE_INDICATOR_CLASSNAME
-        });
-      }
-      classList.push('beforeHiddenColumn');
-    }
-    (0, _element.addClass)(TH, classList);
-  }
-
-  /**
-   * Add Show-hide columns to context menu.
-   *
-   * @private
-   * @param {object} options An array of objects containing information about the pre-defined Context Menu items.
-   */
-  onAfterContextMenuDefaultOptions(options) {
-    options.items.push({
-      name: _predefinedItems.SEPARATOR
-    }, (0, _hideColumn.default)(this), (0, _showColumn.default)(this));
-  }
-
-  /**
-   * On map initialized hook callback.
-   *
-   * @private
-   */
-  onMapInit() {
-    if (Array.isArray((0, _classPrivateFieldGet2.default)(this, _settings).columns)) {
-      this.hideColumns((0, _classPrivateFieldGet2.default)(this, _settings).columns);
-    }
-  }
-
-  /**
    * Destroys the plugin instance.
    */
   destroy() {
@@ -71902,6 +72348,120 @@ function _clearIndicatorElements2(TH) {
   Array.from(TH.querySelectorAll(`.${AFTER_INDICATOR_CLASSNAME}, .${BEFORE_INDICATOR_CLASSNAME}`)).forEach(element => {
     element.remove();
   });
+}
+function _onModifyColWidth2(width, column) {
+  // Hook is triggered internally only for the visible columns. Conditional will be handled for the API
+  // calls of the `getColWidth` function on not visible indexes.
+  if (this.isHidden(column)) {
+    return 0;
+  }
+  if ((0, _classPrivateFieldGet2.default)(this, _settings).indicators && (this.isHidden(column + 1) || this.isHidden(column - 1))) {
+    // Add additional space for hidden column indicator.
+    if (typeof width === 'number' && this.hot.hasColHeaders()) {
+      return width + 15;
+    }
+  }
+}
+function _onAfterGetCellMeta2(row, column, cellProperties) {
+  if ((0, _classPrivateFieldGet2.default)(this, _settings).copyPasteEnabled === false && this.isHidden(column)) {
+    // Cell property handled by the `Autofill` and the `CopyPaste` plugins.
+    cellProperties.skipColumnOnPaste = true;
+  }
+  if (this.isHidden(column - 1)) {
+    cellProperties.className = cellProperties.className || '';
+    if (cellProperties.className.indexOf('afterHiddenColumn') === -1) {
+      cellProperties.className += ' afterHiddenColumn';
+    }
+  } else if (cellProperties.className) {
+    const classArr = cellProperties.className.split(' ');
+    if (classArr.length > 0) {
+      const containAfterHiddenColumn = classArr.indexOf('afterHiddenColumn');
+      if (containAfterHiddenColumn > -1) {
+        classArr.splice(containAfterHiddenColumn, 1);
+      }
+      cellProperties.className = classArr.join(' ');
+    }
+  }
+}
+function _onModifyCopyableRange2(ranges) {
+  // Ranges shouldn't be modified when `copyPasteEnabled` option is set to `true` (by default).
+  if ((0, _classPrivateFieldGet2.default)(this, _settings).copyPasteEnabled) {
+    return ranges;
+  }
+  const newRanges = [];
+  const pushRange = (startRow, endRow, startCol, endCol) => {
+    newRanges.push({
+      startRow,
+      endRow,
+      startCol,
+      endCol
+    });
+  };
+  (0, _array.arrayEach)(ranges, range => {
+    let isHidden = true;
+    let rangeStart = 0;
+    (0, _number.rangeEach)(range.startCol, range.endCol, visualColumn => {
+      if (this.isHidden(visualColumn)) {
+        if (!isHidden) {
+          pushRange(range.startRow, range.endRow, rangeStart, visualColumn - 1);
+        }
+        isHidden = true;
+      } else {
+        if (isHidden) {
+          rangeStart = visualColumn;
+        }
+        if (visualColumn === range.endCol) {
+          pushRange(range.startRow, range.endRow, rangeStart, visualColumn);
+        }
+        isHidden = false;
+      }
+    });
+  });
+  return newRanges;
+}
+function _onAfterGetColHeader2(column, TH) {
+  const areAriaTagsEnabled = this.hot.getSettings().ariaTags;
+  const beforeHiddenColumnIndicatorElement = TH.querySelector('.beforeHiddenColumnIndicator');
+  const afterHiddenColumnIndicatorElement = TH.querySelector('.afterHiddenColumnIndicator');
+  if (!(0, _classPrivateFieldGet2.default)(this, _settings).indicators || column < 0) {
+    beforeHiddenColumnIndicatorElement === null || beforeHiddenColumnIndicatorElement === void 0 || beforeHiddenColumnIndicatorElement.remove();
+    afterHiddenColumnIndicatorElement === null || afterHiddenColumnIndicatorElement === void 0 || afterHiddenColumnIndicatorElement.remove();
+    return;
+  }
+  const classList = [];
+  if (column >= 1 && this.isHidden(column - 1)) {
+    if (!afterHiddenColumnIndicatorElement) {
+      const attributesToAdd = areAriaTagsEnabled ? [(0, _a11y.A11Y_LABEL)(this.hot.getTranslatedPhrase(_constants.COLUMN_HEADER_LABEL_AFTER_HIDDEN_COLUMN))] : [];
+      (0, _element.appendElement)(TH, {
+        tagName: 'div',
+        attributes: attributesToAdd,
+        className: AFTER_INDICATOR_CLASSNAME
+      });
+    }
+    classList.push('afterHiddenColumn');
+  }
+  if (column < this.hot.countCols() - 1 && this.isHidden(column + 1)) {
+    if (!beforeHiddenColumnIndicatorElement) {
+      const attributesToAdd = areAriaTagsEnabled ? [(0, _a11y.A11Y_LABEL)(this.hot.getTranslatedPhrase(_constants.COLUMN_HEADER_LABEL_BEFORE_HIDDEN_COLUMN))] : [];
+      (0, _element.appendElement)(TH, {
+        tagName: 'div',
+        attributes: attributesToAdd,
+        className: BEFORE_INDICATOR_CLASSNAME
+      });
+    }
+    classList.push('beforeHiddenColumn');
+  }
+  (0, _element.addClass)(TH, classList);
+}
+function _onAfterContextMenuDefaultOptions2(options) {
+  options.items.push({
+    name: _predefinedItems.SEPARATOR
+  }, (0, _hideColumn.default)(this), (0, _showColumn.default)(this));
+}
+function _onMapInit2() {
+  if (Array.isArray((0, _classPrivateFieldGet2.default)(this, _settings).columns)) {
+    this.hideColumns((0, _classPrivateFieldGet2.default)(this, _settings).columns);
+  }
 }
 
 /***/ }),
@@ -72102,16 +72662,16 @@ __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _base = __webpack_require__(423);
 var _element = __webpack_require__(107);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 var _array = __webpack_require__(113);
 var _object = __webpack_require__(117);
 var _mixed = __webpack_require__(110);
 var _predefinedItems = __webpack_require__(459);
-var _pluginHooks = _interopRequireDefault(__webpack_require__(124));
+var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 var _hideRow = _interopRequireDefault(__webpack_require__(589));
 var _showRow = _interopRequireDefault(__webpack_require__(590));
 var _translations = __webpack_require__(221);
@@ -72240,9 +72800,55 @@ const BEFORE_INDICATOR_CLASSNAME = 'beforeHiddenRowIndicator';
 var _settings = /*#__PURE__*/new WeakMap();
 var _hiddenRowsMap = /*#__PURE__*/new WeakMap();
 var _clearIndicatorElements = /*#__PURE__*/new WeakSet();
+var _onModifyRowHeight = /*#__PURE__*/new WeakSet();
+var _onAfterGetCellMeta = /*#__PURE__*/new WeakSet();
+var _onModifyCopyableRange = /*#__PURE__*/new WeakSet();
+var _onAfterGetRowHeader = /*#__PURE__*/new WeakSet();
+var _onAfterContextMenuDefaultOptions = /*#__PURE__*/new WeakSet();
+var _onMapInit = /*#__PURE__*/new WeakSet();
 class HiddenRows extends _base.BasePlugin {
   constructor() {
     super(...arguments);
+    /**
+     * On map initialized hook callback.
+     */
+    _classPrivateMethodInitSpec(this, _onMapInit);
+    /**
+     * Add Show-hide rows to context menu.
+     *
+     * @param {object} options An array of objects containing information about the pre-defined Context Menu items.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterContextMenuDefaultOptions);
+    /**
+     * Adds the needed classes to the headers.
+     *
+     * @param {number} row Visual row index.
+     * @param {HTMLElement} TH Header's TH element.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterGetRowHeader);
+    /**
+     * Modifies the copyable range, accordingly to the provided config.
+     *
+     * @param {Array} ranges An array of objects defining copyable cells.
+     * @returns {Array}
+     */
+    _classPrivateMethodInitSpec(this, _onModifyCopyableRange);
+    /**
+     * Sets the copy-related cell meta.
+     *
+     * @param {number} row Visual row index.
+     * @param {number} column Visual column index.
+     * @param {object} cellProperties Object containing the cell properties.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterGetCellMeta);
+    /**
+     * Adds the additional row height for the hidden row indicators.
+     *
+     * @param {number|undefined} height Row height.
+     * @param {number} row Visual row index.
+     * @returns {number}
+     */
+    _classPrivateMethodInitSpec(this, _onModifyRowHeight);
     /**
      * Remove the indicator elements from the provided row header element.
      *
@@ -72302,17 +72908,23 @@ class HiddenRows extends _base.BasePlugin {
       }
     }
     (0, _classPrivateFieldSet2.default)(this, _hiddenRowsMap, new _translations.HidingMap());
-    (0, _classPrivateFieldGet2.default)(this, _hiddenRowsMap).addLocalHook('init', () => this.onMapInit());
+    (0, _classPrivateFieldGet2.default)(this, _hiddenRowsMap).addLocalHook('init', () => _classPrivateMethodGet(this, _onMapInit, _onMapInit2).call(this));
     this.hot.rowIndexMapper.registerMap(this.pluginName, (0, _classPrivateFieldGet2.default)(this, _hiddenRowsMap));
     this.addHook('afterContextMenuDefaultOptions', function () {
-      return _this.onAfterContextMenuDefaultOptions(...arguments);
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+      return _classPrivateMethodGet(_this, _onAfterContextMenuDefaultOptions, _onAfterContextMenuDefaultOptions2).call(_this, ...args);
     });
-    this.addHook('afterGetCellMeta', (row, col, cellProperties) => this.onAfterGetCellMeta(row, col, cellProperties));
-    this.addHook('modifyRowHeight', (height, row) => this.onModifyRowHeight(height, row));
+    this.addHook('afterGetCellMeta', (row, col, cellProperties) => _classPrivateMethodGet(this, _onAfterGetCellMeta, _onAfterGetCellMeta2).call(this, row, col, cellProperties));
+    this.addHook('modifyRowHeight', (height, row) => _classPrivateMethodGet(this, _onModifyRowHeight, _onModifyRowHeight2).call(this, height, row));
     this.addHook('afterGetRowHeader', function () {
-      return _this.onAfterGetRowHeader(...arguments);
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+      return _classPrivateMethodGet(_this, _onAfterGetRowHeader, _onAfterGetRowHeader2).call(_this, ...args);
     });
-    this.addHook('modifyCopyableRange', ranges => this.onModifyCopyableRange(ranges));
+    this.addHook('modifyCopyableRange', ranges => _classPrivateMethodGet(this, _onModifyCopyableRange, _onModifyCopyableRange2).call(this, ranges));
     super.enablePlugin();
   }
 
@@ -72388,8 +73000,8 @@ class HiddenRows extends _base.BasePlugin {
    * @param {...number} row Visual row index.
    */
   showRow() {
-    for (var _len = arguments.length, row = new Array(_len), _key = 0; _key < _len; _key++) {
-      row[_key] = arguments[_key];
+    for (var _len3 = arguments.length, row = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+      row[_key3] = arguments[_key3];
     }
     this.showRows(row);
   }
@@ -72426,8 +73038,8 @@ class HiddenRows extends _base.BasePlugin {
    * @param {...number} row Visual row index.
    */
   hideRow() {
-    for (var _len2 = arguments.length, row = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-      row[_key2] = arguments[_key2];
+    for (var _len4 = arguments.length, row = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+      row[_key4] = arguments[_key4];
     }
     this.hideRows(row);
   }
@@ -72480,162 +73092,6 @@ class HiddenRows extends _base.BasePlugin {
     });
   }
   /**
-   * Adds the additional row height for the hidden row indicators.
-   *
-   * @private
-   * @param {number|undefined} height Row height.
-   * @param {number} row Visual row index.
-   * @returns {number}
-   */
-  onModifyRowHeight(height, row) {
-    // Hook is triggered internally only for the visible rows. Conditional will be handled for the API
-    // calls of the `getRowHeight` function on not visible indexes.
-    if (this.isHidden(row)) {
-      return 0;
-    }
-    return height;
-  }
-
-  /**
-   * Sets the copy-related cell meta.
-   *
-   * @private
-   * @param {number} row Visual row index.
-   * @param {number} column Visual column index.
-   * @param {object} cellProperties Object containing the cell properties.
-   */
-  onAfterGetCellMeta(row, column, cellProperties) {
-    if ((0, _classPrivateFieldGet2.default)(this, _settings).copyPasteEnabled === false && this.isHidden(row)) {
-      // Cell property handled by the `Autofill` and the `CopyPaste` plugins.
-      cellProperties.skipRowOnPaste = true;
-    }
-    if (this.isHidden(row - 1)) {
-      cellProperties.className = cellProperties.className || '';
-      if (cellProperties.className.indexOf('afterHiddenRow') === -1) {
-        cellProperties.className += ' afterHiddenRow';
-      }
-    } else if (cellProperties.className) {
-      const classArr = cellProperties.className.split(' ');
-      if (classArr.length > 0) {
-        const containAfterHiddenRow = classArr.indexOf('afterHiddenRow');
-        if (containAfterHiddenRow > -1) {
-          classArr.splice(containAfterHiddenRow, 1);
-        }
-        cellProperties.className = classArr.join(' ');
-      }
-    }
-  }
-
-  /**
-   * Modifies the copyable range, accordingly to the provided config.
-   *
-   * @private
-   * @param {Array} ranges An array of objects defining copyable cells.
-   * @returns {Array}
-   */
-  onModifyCopyableRange(ranges) {
-    // Ranges shouldn't be modified when `copyPasteEnabled` option is set to `true` (by default).
-    if ((0, _classPrivateFieldGet2.default)(this, _settings).copyPasteEnabled) {
-      return ranges;
-    }
-    const newRanges = [];
-    const pushRange = (startRow, endRow, startCol, endCol) => {
-      newRanges.push({
-        startRow,
-        endRow,
-        startCol,
-        endCol
-      });
-    };
-    (0, _array.arrayEach)(ranges, range => {
-      let isHidden = true;
-      let rangeStart = 0;
-      (0, _number.rangeEach)(range.startRow, range.endRow, visualRow => {
-        if (this.isHidden(visualRow)) {
-          if (!isHidden) {
-            pushRange(rangeStart, visualRow - 1, range.startCol, range.endCol);
-          }
-          isHidden = true;
-        } else {
-          if (isHidden) {
-            rangeStart = visualRow;
-          }
-          if (visualRow === range.endRow) {
-            pushRange(rangeStart, visualRow, range.startCol, range.endCol);
-          }
-          isHidden = false;
-        }
-      });
-    });
-    return newRanges;
-  }
-
-  /**
-   * Adds the needed classes to the headers.
-   *
-   * @private
-   * @param {number} row Visual row index.
-   * @param {HTMLElement} TH Header's TH element.
-   */
-  onAfterGetRowHeader(row, TH) {
-    const areAriaTagsEnabled = this.hot.getSettings().ariaTags;
-    const beforeHiddenRowIndicatorElement = TH.querySelector('.beforeHiddenRowIndicator');
-    const afterHiddenRowIndicatorElement = TH.querySelector('.afterHiddenRowIndicator');
-    if (!(0, _classPrivateFieldGet2.default)(this, _settings).indicators || row < 0) {
-      beforeHiddenRowIndicatorElement === null || beforeHiddenRowIndicatorElement === void 0 || beforeHiddenRowIndicatorElement.remove();
-      afterHiddenRowIndicatorElement === null || afterHiddenRowIndicatorElement === void 0 || afterHiddenRowIndicatorElement.remove();
-      return;
-    }
-    const classList = [];
-    if (row >= 1 && this.isHidden(row - 1)) {
-      if (!afterHiddenRowIndicatorElement) {
-        const attributesToAdd = areAriaTagsEnabled ? [(0, _a11y.A11Y_LABEL)(this.hot.getTranslatedPhrase(_constants.ROW_HEADER_LABEL_AFTER_HIDDEN_ROW))] : [];
-        (0, _element.appendElement)(TH, {
-          tagName: 'div',
-          attributes: attributesToAdd,
-          className: AFTER_INDICATOR_CLASSNAME
-        });
-      }
-      classList.push('afterHiddenRow');
-    }
-    if (row < this.hot.countRows() - 1 && this.isHidden(row + 1)) {
-      if (!beforeHiddenRowIndicatorElement) {
-        const attributesToAdd = areAriaTagsEnabled ? [(0, _a11y.A11Y_LABEL)(this.hot.getTranslatedPhrase(_constants.ROW_HEADER_LABEL_BEFORE_HIDDEN_ROW))] : [];
-        (0, _element.appendElement)(TH, {
-          tagName: 'div',
-          attributes: attributesToAdd,
-          className: BEFORE_INDICATOR_CLASSNAME
-        });
-      }
-      classList.push('beforeHiddenRow');
-    }
-    (0, _element.addClass)(TH, classList);
-  }
-
-  /**
-   * Add Show-hide rows to context menu.
-   *
-   * @private
-   * @param {object} options An array of objects containing information about the pre-defined Context Menu items.
-   */
-  onAfterContextMenuDefaultOptions(options) {
-    options.items.push({
-      name: _predefinedItems.SEPARATOR
-    }, (0, _hideRow.default)(this), (0, _showRow.default)(this));
-  }
-
-  /**
-   * On map initialized hook callback.
-   *
-   * @private
-   */
-  onMapInit() {
-    if (Array.isArray((0, _classPrivateFieldGet2.default)(this, _settings).rows)) {
-      this.hideRows((0, _classPrivateFieldGet2.default)(this, _settings).rows);
-    }
-  }
-
-  /**
    * Destroys the plugin instance.
    */
   destroy() {
@@ -72649,6 +73105,115 @@ function _clearIndicatorElements2(TH) {
   Array.from(TH.querySelectorAll(`.${AFTER_INDICATOR_CLASSNAME}, .${BEFORE_INDICATOR_CLASSNAME}`)).forEach(element => {
     element.remove();
   });
+}
+function _onModifyRowHeight2(height, row) {
+  // Hook is triggered internally only for the visible rows. Conditional will be handled for the API
+  // calls of the `getRowHeight` function on not visible indexes.
+  if (this.isHidden(row)) {
+    return 0;
+  }
+  return height;
+}
+function _onAfterGetCellMeta2(row, column, cellProperties) {
+  if ((0, _classPrivateFieldGet2.default)(this, _settings).copyPasteEnabled === false && this.isHidden(row)) {
+    // Cell property handled by the `Autofill` and the `CopyPaste` plugins.
+    cellProperties.skipRowOnPaste = true;
+  }
+  if (this.isHidden(row - 1)) {
+    cellProperties.className = cellProperties.className || '';
+    if (cellProperties.className.indexOf('afterHiddenRow') === -1) {
+      cellProperties.className += ' afterHiddenRow';
+    }
+  } else if (cellProperties.className) {
+    const classArr = cellProperties.className.split(' ');
+    if (classArr.length > 0) {
+      const containAfterHiddenRow = classArr.indexOf('afterHiddenRow');
+      if (containAfterHiddenRow > -1) {
+        classArr.splice(containAfterHiddenRow, 1);
+      }
+      cellProperties.className = classArr.join(' ');
+    }
+  }
+}
+function _onModifyCopyableRange2(ranges) {
+  // Ranges shouldn't be modified when `copyPasteEnabled` option is set to `true` (by default).
+  if ((0, _classPrivateFieldGet2.default)(this, _settings).copyPasteEnabled) {
+    return ranges;
+  }
+  const newRanges = [];
+  const pushRange = (startRow, endRow, startCol, endCol) => {
+    newRanges.push({
+      startRow,
+      endRow,
+      startCol,
+      endCol
+    });
+  };
+  (0, _array.arrayEach)(ranges, range => {
+    let isHidden = true;
+    let rangeStart = 0;
+    (0, _number.rangeEach)(range.startRow, range.endRow, visualRow => {
+      if (this.isHidden(visualRow)) {
+        if (!isHidden) {
+          pushRange(rangeStart, visualRow - 1, range.startCol, range.endCol);
+        }
+        isHidden = true;
+      } else {
+        if (isHidden) {
+          rangeStart = visualRow;
+        }
+        if (visualRow === range.endRow) {
+          pushRange(rangeStart, visualRow, range.startCol, range.endCol);
+        }
+        isHidden = false;
+      }
+    });
+  });
+  return newRanges;
+}
+function _onAfterGetRowHeader2(row, TH) {
+  const areAriaTagsEnabled = this.hot.getSettings().ariaTags;
+  const beforeHiddenRowIndicatorElement = TH.querySelector('.beforeHiddenRowIndicator');
+  const afterHiddenRowIndicatorElement = TH.querySelector('.afterHiddenRowIndicator');
+  if (!(0, _classPrivateFieldGet2.default)(this, _settings).indicators || row < 0) {
+    beforeHiddenRowIndicatorElement === null || beforeHiddenRowIndicatorElement === void 0 || beforeHiddenRowIndicatorElement.remove();
+    afterHiddenRowIndicatorElement === null || afterHiddenRowIndicatorElement === void 0 || afterHiddenRowIndicatorElement.remove();
+    return;
+  }
+  const classList = [];
+  if (row >= 1 && this.isHidden(row - 1)) {
+    if (!afterHiddenRowIndicatorElement) {
+      const attributesToAdd = areAriaTagsEnabled ? [(0, _a11y.A11Y_LABEL)(this.hot.getTranslatedPhrase(_constants.ROW_HEADER_LABEL_AFTER_HIDDEN_ROW))] : [];
+      (0, _element.appendElement)(TH, {
+        tagName: 'div',
+        attributes: attributesToAdd,
+        className: AFTER_INDICATOR_CLASSNAME
+      });
+    }
+    classList.push('afterHiddenRow');
+  }
+  if (row < this.hot.countRows() - 1 && this.isHidden(row + 1)) {
+    if (!beforeHiddenRowIndicatorElement) {
+      const attributesToAdd = areAriaTagsEnabled ? [(0, _a11y.A11Y_LABEL)(this.hot.getTranslatedPhrase(_constants.ROW_HEADER_LABEL_BEFORE_HIDDEN_ROW))] : [];
+      (0, _element.appendElement)(TH, {
+        tagName: 'div',
+        attributes: attributesToAdd,
+        className: BEFORE_INDICATOR_CLASSNAME
+      });
+    }
+    classList.push('beforeHiddenRow');
+  }
+  (0, _element.addClass)(TH, classList);
+}
+function _onAfterContextMenuDefaultOptions2(options) {
+  options.items.push({
+    name: _predefinedItems.SEPARATOR
+  }, (0, _hideRow.default)(this), (0, _showRow.default)(this));
+}
+function _onMapInit2() {
+  if (Array.isArray((0, _classPrivateFieldGet2.default)(this, _settings).rows)) {
+    this.hideRows((0, _classPrivateFieldGet2.default)(this, _settings).rows);
+  }
 }
 
 /***/ }),
@@ -72847,19 +73412,25 @@ exports.ManualColumnFreeze = _manualColumnFreeze.ManualColumnFreeze;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+__webpack_require__(78);
 __webpack_require__(8);
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _base = __webpack_require__(423);
-var _pluginHooks = _interopRequireDefault(__webpack_require__(124));
+var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 var _freezeColumn = _interopRequireDefault(__webpack_require__(594));
 var _unfreezeColumn = _interopRequireDefault(__webpack_require__(595));
 __webpack_require__(596);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 _pluginHooks.default.getSingleton().register('beforeColumnFreeze');
 _pluginHooks.default.getSingleton().register('afterColumnFreeze');
 _pluginHooks.default.getSingleton().register('beforeColumnUnfreeze');
 _pluginHooks.default.getSingleton().register('afterColumnUnfreeze');
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'manualColumnFreeze';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 110;
-const privatePool = new WeakMap();
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -72877,20 +73448,44 @@ const privatePool = new WeakMap();
  * manualColumnFreeze: true,
  * ```
  */
+var _afterFirstUse = /*#__PURE__*/new WeakMap();
+var _addContextMenuEntry = /*#__PURE__*/new WeakSet();
+var _onBeforeColumnMove = /*#__PURE__*/new WeakSet();
 class ManualColumnFreeze extends _base.BasePlugin {
+  constructor() {
+    super(...arguments);
+    /**
+     * Prevents moving the columns from/to fixed area.
+     *
+     * @private
+     * @param {Array} columns Array of visual column indexes to be moved.
+     * @param {number} finalIndex Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action.
+     * @returns {boolean|undefined}
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeColumnMove);
+    /**
+     * Adds the manualColumnFreeze context menu entries.
+     *
+     * @private
+     * @param {object} options Context menu options.
+     */
+    _classPrivateMethodInitSpec(this, _addContextMenuEntry);
+    /**
+     * Determines when the moving operation is allowed.
+     *
+     * @type {boolean}
+     */
+    _classPrivateFieldInitSpec(this, _afterFirstUse, {
+      writable: true,
+      value: false
+    });
+  }
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
-  constructor(hotInstance) {
-    super(hotInstance);
-    privatePool.set(this, {
-      afterFirstUse: false
-    });
-  }
-
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link ManualColumnFreeze#enablePlugin} method is called.
@@ -72908,8 +73503,8 @@ class ManualColumnFreeze extends _base.BasePlugin {
     if (this.enabled) {
       return;
     }
-    this.addHook('afterContextMenuDefaultOptions', options => this.addContextMenuEntry(options));
-    this.addHook('beforeColumnMove', (columns, finalIndex) => this.onBeforeColumnMove(columns, finalIndex));
+    this.addHook('afterContextMenuDefaultOptions', options => _classPrivateMethodGet(this, _addContextMenuEntry, _addContextMenuEntry2).call(this, options));
+    this.addHook('beforeColumnMove', (columns, finalIndex) => _classPrivateMethodGet(this, _onBeforeColumnMove, _onBeforeColumnMove2).call(this, columns, finalIndex));
     super.enablePlugin();
   }
 
@@ -72917,8 +73512,7 @@ class ManualColumnFreeze extends _base.BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    const priv = privatePool.get(this);
-    priv.afterFirstUse = false;
+    (0, _classPrivateFieldSet2.default)(this, _afterFirstUse, false);
     super.disablePlugin();
   }
 
@@ -72943,12 +73537,11 @@ class ManualColumnFreeze extends _base.BasePlugin {
    * @param {number} column Visual column index.
    */
   freezeColumn(column) {
-    const priv = privatePool.get(this);
     const settings = this.hot.getSettings();
     // columns are already fixed (frozen)
     const freezePerformed = settings.fixedColumnsStart < this.hot.countCols() && column > settings.fixedColumnsStart - 1;
-    if (!priv.afterFirstUse) {
-      priv.afterFirstUse = true;
+    if (!(0, _classPrivateFieldGet2.default)(this, _afterFirstUse)) {
+      (0, _classPrivateFieldSet2.default)(this, _afterFirstUse, true);
     }
     const beforeColumnFreezeHook = this.hot.runHooks('beforeColumnFreeze', column, freezePerformed);
     if (beforeColumnFreezeHook === false) {
@@ -72972,12 +73565,11 @@ class ManualColumnFreeze extends _base.BasePlugin {
    * @param {number} column Visual column index.
    */
   unfreezeColumn(column) {
-    const priv = privatePool.get(this);
     const settings = this.hot.getSettings();
     // columns are not fixed (not frozen)
     const unfreezePerformed = settings.fixedColumnsStart > 0 && column <= settings.fixedColumnsStart - 1;
-    if (!priv.afterFirstUse) {
-      priv.afterFirstUse = true;
+    if (!(0, _classPrivateFieldGet2.default)(this, _afterFirstUse)) {
+      (0, _classPrivateFieldSet2.default)(this, _afterFirstUse, true);
     }
     const beforeColumnUnfreezeHook = this.hot.runHooks('beforeColumnUnfreeze', column, unfreezePerformed);
     if (beforeColumnUnfreezeHook === false) {
@@ -72993,45 +73585,28 @@ class ManualColumnFreeze extends _base.BasePlugin {
     }
     this.hot.runHooks('afterColumnUnfreeze', column, unfreezePerformed);
   }
+}
+exports.ManualColumnFreeze = ManualColumnFreeze;
+function _addContextMenuEntry2(options) {
+  options.items.push({
+    name: '---------'
+  }, (0, _freezeColumn.default)(this), (0, _unfreezeColumn.default)(this));
+}
+function _onBeforeColumnMove2(columns, finalIndex) {
+  if ((0, _classPrivateFieldGet2.default)(this, _afterFirstUse)) {
+    const freezeLine = this.hot.getSettings().fixedColumnsStart;
 
-  /**
-   * Adds the manualColumnFreeze context menu entries.
-   *
-   * @private
-   * @param {object} options Context menu options.
-   */
-  addContextMenuEntry(options) {
-    options.items.push({
-      name: '---------'
-    }, (0, _freezeColumn.default)(this), (0, _unfreezeColumn.default)(this));
-  }
+    // Moving any column before the "freeze line" isn't possible.
+    if (finalIndex < freezeLine) {
+      return false;
+    }
 
-  /**
-   * Prevents moving the columns from/to fixed area.
-   *
-   * @private
-   * @param {Array} columns Array of visual column indexes to be moved.
-   * @param {number} finalIndex Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action.
-   * @returns {boolean|undefined}
-   */
-  onBeforeColumnMove(columns, finalIndex) {
-    const priv = privatePool.get(this);
-    if (priv.afterFirstUse) {
-      const freezeLine = this.hot.getSettings().fixedColumnsStart;
-
-      // Moving any column before the "freeze line" isn't possible.
-      if (finalIndex < freezeLine) {
-        return false;
-      }
-
-      // Moving frozen column isn't possible.
-      if (columns.some(column => column < freezeLine)) {
-        return false;
-      }
+    // Moving frozen column isn't possible.
+    if (columns.some(column => column < freezeLine)) {
+      return false;
     }
   }
 }
-exports.ManualColumnFreeze = ManualColumnFreeze;
 
 /***/ }),
 /* 594 */
@@ -73068,7 +73643,7 @@ function freezeColumnItem(manualColumnFreezePlugin) {
     hidden() {
       const selection = this.getSelectedRange();
       let hide = false;
-      if (selection === void 0) {
+      if (selection === undefined) {
         hide = true;
       } else if (selection.length > 1) {
         hide = true;
@@ -73115,7 +73690,7 @@ function unfreezeColumnItem(manualColumnFreezePlugin) {
     hidden() {
       const selection = this.getSelectedRange();
       let hide = false;
-      if (selection === void 0) {
+      if (selection === undefined) {
         hide = true;
       } else if (selection.length > 1) {
         hide = true;
@@ -73159,21 +73734,27 @@ exports.ManualColumnMove = _manualColumnMove.ManualColumnMove;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+__webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
 var _base = __webpack_require__(423);
-var _pluginHooks = _interopRequireDefault(__webpack_require__(124));
+var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 var _array = __webpack_require__(113);
 var _element = __webpack_require__(107);
-var _event = __webpack_require__(122);
-var _number = __webpack_require__(137);
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
+var _event = __webpack_require__(126);
+var _number = __webpack_require__(141);
 var _backlight = _interopRequireDefault(__webpack_require__(599));
 var _guideline = _interopRequireDefault(__webpack_require__(601));
 __webpack_require__(602);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 _pluginHooks.default.getSingleton().register('beforeColumnMove');
 _pluginHooks.default.getSingleton().register('afterColumnMove');
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'manualColumnMove';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 120;
-const privatePool = new WeakMap();
 const CSS_PLUGIN = 'ht__manualColumnMove';
 const CSS_SHOW_UI = 'show-ui';
 const CSS_ON_MOVING = 'on-moving--columns';
@@ -73206,56 +73787,148 @@ const CSS_AFTER_SELECTION = 'after-selection--columns';
  * @class ManualColumnMove
  * @plugin ManualColumnMove
  */
+var _columnsToMove = /*#__PURE__*/new WeakMap();
+var _countCols = /*#__PURE__*/new WeakMap();
+var _pressed = /*#__PURE__*/new WeakMap();
+var _target = /*#__PURE__*/new WeakMap();
+var _cachedDropIndex = /*#__PURE__*/new WeakMap();
+var _hoveredColumn = /*#__PURE__*/new WeakMap();
+var _rootElementOffset = /*#__PURE__*/new WeakMap();
+var _hasRowHeaders = /*#__PURE__*/new WeakMap();
+var _fixedColumnsStart = /*#__PURE__*/new WeakMap();
+var _onBeforeOnCellMouseDown = /*#__PURE__*/new WeakSet();
+var _onMouseMove = /*#__PURE__*/new WeakSet();
+var _onBeforeOnCellMouseOver = /*#__PURE__*/new WeakSet();
+var _onMouseUp = /*#__PURE__*/new WeakSet();
+var _onAfterScrollVertically = /*#__PURE__*/new WeakSet();
+var _onAfterLoadData = /*#__PURE__*/new WeakSet();
 class ManualColumnMove extends _base.BasePlugin {
-  static get PLUGIN_KEY() {
-    return PLUGIN_KEY;
-  }
-  static get PLUGIN_PRIORITY() {
-    return PLUGIN_PRIORITY;
-  }
-  constructor(hotInstance) {
-    super(hotInstance);
-
+  constructor() {
+    super(...arguments);
     /**
-     * Set up WeakMap of plugin to sharing private parameters;.
-     */
-    privatePool.set(this, {
-      columnsToMove: [],
-      countCols: 0,
-      fixedColumns: 0,
-      pressed: void 0,
-      target: {
-        eventPageX: void 0,
-        coords: void 0,
-        TD: void 0,
-        col: void 0
-      },
-      cachedDropIndex: void 0
-    });
-
-    /**
-     * Event Manager object.
+     * Callback for the `afterLoadData` hook.
      *
      * @private
-     * @type {object}
      */
-    this.eventManager = new _eventManager.default(this);
+    _classPrivateMethodInitSpec(this, _onAfterLoadData);
+    /**
+     * `afterScrollHorizontally` hook callback. Fired the table was scrolled horizontally.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterScrollVertically);
+    /**
+     * `onMouseUp` hook callback.
+     */
+    _classPrivateMethodInitSpec(this, _onMouseUp);
+    /**
+     * 'beforeOnCellMouseOver' hook callback. Fired when pointer was over cell.
+     *
+     * @param {MouseEvent} event `mouseover` event properties.
+     * @param {CellCoords} coords Visual cell coordinates where was fired event.
+     * @param {HTMLElement} TD Cell represented as HTMLElement.
+     * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+     *                            a boolean value that allows or disallows changing the selection for that particular area.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeOnCellMouseOver);
+    /**
+     * 'mouseMove' event callback. Fired when pointer move on document.documentElement.
+     *
+     * @param {MouseEvent} event `mousemove` event properties.
+     */
+    _classPrivateMethodInitSpec(this, _onMouseMove);
+    /**
+     * Change the behavior of selection / dragging.
+     *
+     * @param {MouseEvent} event `mousedown` event properties.
+     * @param {CellCoords} coords Visual cell coordinates where was fired event.
+     * @param {HTMLElement} TD Cell represented as HTMLElement.
+     * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+     *                            a boolean value that allows or disallows changing the selection for that particular area.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeOnCellMouseDown);
     /**
      * Backlight UI object.
      *
      * @private
      * @type {object}
      */
-    this.backlight = new _backlight.default(hotInstance);
+    (0, _defineProperty2.default)(this, "backlight", new _backlight.default(this.hot));
     /**
      * Guideline UI object.
      *
      * @private
      * @type {object}
      */
-    this.guideline = new _guideline.default(hotInstance);
+    (0, _defineProperty2.default)(this, "guideline", new _guideline.default(this.hot));
+    /**
+     * @type {number[]}
+     */
+    _classPrivateFieldInitSpec(this, _columnsToMove, {
+      writable: true,
+      value: []
+    });
+    /**
+     * @type {number}
+     */
+    _classPrivateFieldInitSpec(this, _countCols, {
+      writable: true,
+      value: 0
+    });
+    /**
+     * @type {boolean}
+     */
+    _classPrivateFieldInitSpec(this, _pressed, {
+      writable: true,
+      value: false
+    });
+    /**
+     * @type {object}
+     */
+    _classPrivateFieldInitSpec(this, _target, {
+      writable: true,
+      value: {}
+    });
+    /**
+     * @type {number}
+     */
+    _classPrivateFieldInitSpec(this, _cachedDropIndex, {
+      writable: true,
+      value: void 0
+    });
+    /**
+     * @type {number}
+     */
+    _classPrivateFieldInitSpec(this, _hoveredColumn, {
+      writable: true,
+      value: void 0
+    });
+    /**
+     * @type {number}
+     */
+    _classPrivateFieldInitSpec(this, _rootElementOffset, {
+      writable: true,
+      value: void 0
+    });
+    /**
+     * @type {boolean}
+     */
+    _classPrivateFieldInitSpec(this, _hasRowHeaders, {
+      writable: true,
+      value: void 0
+    });
+    /**
+     * @type {number}
+     */
+    _classPrivateFieldInitSpec(this, _fixedColumnsStart, {
+      writable: true,
+      value: void 0
+    });
   }
-
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link ManualColumnMove#enablePlugin} method is called.
@@ -73275,14 +73948,23 @@ class ManualColumnMove extends _base.BasePlugin {
       return;
     }
     this.addHook('beforeOnCellMouseDown', function () {
-      return _this.onBeforeOnCellMouseDown(...arguments);
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeOnCellMouseDown, _onBeforeOnCellMouseDown2).call(_this, ...args);
     });
     this.addHook('beforeOnCellMouseOver', function () {
-      return _this.onBeforeOnCellMouseOver(...arguments);
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeOnCellMouseOver, _onBeforeOnCellMouseOver2).call(_this, ...args);
     });
-    this.addHook('afterScrollVertically', () => this.onAfterScrollVertically());
+    this.addHook('afterScrollVertically', () => _classPrivateMethodGet(this, _onAfterScrollVertically, _onAfterScrollVertically2).call(this));
     this.addHook('afterLoadData', function () {
-      return _this.onAfterLoadData(...arguments);
+      for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        args[_key3] = arguments[_key3];
+      }
+      return _classPrivateMethodGet(_this, _onAfterLoadData, _onAfterLoadData2).call(_this, ...args);
     });
     this.buildPluginUI();
     this.registerEvents();
@@ -73341,11 +74023,10 @@ class ManualColumnMove extends _base.BasePlugin {
    * @returns {boolean}
    */
   moveColumns(columns, finalIndex) {
-    const priv = privatePool.get(this);
-    const dropIndex = priv.cachedDropIndex;
+    const dropIndex = (0, _classPrivateFieldGet2.default)(this, _cachedDropIndex);
     const movePossible = this.isMovePossible(columns, finalIndex);
     const beforeMoveHook = this.hot.runHooks('beforeColumnMove', columns, finalIndex, dropIndex, movePossible);
-    priv.cachedDropIndex = void 0;
+    (0, _classPrivateFieldSet2.default)(this, _cachedDropIndex, undefined);
     if (beforeMoveHook === false) {
       return;
     }
@@ -73383,8 +74064,7 @@ class ManualColumnMove extends _base.BasePlugin {
    */
   dragColumns(columns, dropIndex) {
     const finalIndex = this.countFinalIndex(columns, dropIndex);
-    const priv = privatePool.get(this);
-    priv.cachedDropIndex = dropIndex;
+    (0, _classPrivateFieldSet2.default)(this, _cachedDropIndex, dropIndex);
     return this.moveColumns(columns, finalIndex);
   }
 
@@ -73475,7 +74155,7 @@ class ManualColumnMove extends _base.BasePlugin {
     const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
     if (Array.isArray(pluginSettings)) {
       this.moveColumns(pluginSettings, 0);
-    } else if (pluginSettings !== void 0) {
+    } else if (pluginSettings !== undefined) {
       const persistentState = this.persistentStateLoad();
       if (persistentState.length) {
         this.moveColumns(persistentState, 0);
@@ -73539,9 +74219,8 @@ class ManualColumnMove extends _base.BasePlugin {
    * @private
    */
   refreshPositions() {
-    const priv = privatePool.get(this);
     const firstVisible = this.hot.view.getFirstFullyVisibleColumn();
-    if (this.isFixedColumnsStart(priv.hoveredColumn) && firstVisible > 0) {
+    if (this.isFixedColumnsStart((0, _classPrivateFieldGet2.default)(this, _hoveredColumn)) && firstVisible > 0) {
       this.hot.scrollViewportTo({
         col: this.hot.columnIndexMapper.getNearestNotHiddenIndex(firstVisible - 1, -1)
       });
@@ -73549,7 +74228,7 @@ class ManualColumnMove extends _base.BasePlugin {
     const wtTable = this.hot.view._wt.wtTable;
     const scrollableElement = this.hot.view._wt.wtOverlays.scrollableElement;
     const scrollStart = typeof scrollableElement.scrollX === 'number' ? scrollableElement.scrollX : scrollableElement.scrollLeft;
-    let tdOffsetStart = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, priv.hoveredColumn - 1);
+    let tdOffsetStart = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, (0, _classPrivateFieldGet2.default)(this, _hoveredColumn) - 1);
     const hiderWidth = wtTable.hider.offsetWidth;
     const tbodyOffsetLeft = wtTable.TBODY.offsetLeft;
     const backlightElemMarginStart = this.backlight.getOffset().start;
@@ -73559,35 +74238,35 @@ class ManualColumnMove extends _base.BasePlugin {
     if (this.hot.isRtl()) {
       const rootWindow = this.hot.rootWindow;
       const containerWidth = (0, _element.outerWidth)(this.hot.rootElement);
-      const gridMostRightPos = rootWindow.innerWidth - priv.rootElementOffset - containerWidth;
-      mouseOffsetStart = rootWindow.innerWidth - priv.target.eventPageX - gridMostRightPos - (scrollableElement.scrollX === void 0 ? scrollStart : 0);
+      const gridMostRightPos = rootWindow.innerWidth - (0, _classPrivateFieldGet2.default)(this, _rootElementOffset) - containerWidth;
+      mouseOffsetStart = rootWindow.innerWidth - (0, _classPrivateFieldGet2.default)(this, _target).eventPageX - gridMostRightPos - (scrollableElement.scrollX === undefined ? scrollStart : 0);
     } else {
-      mouseOffsetStart = priv.target.eventPageX - (priv.rootElementOffset - (scrollableElement.scrollX === void 0 ? scrollStart : 0));
+      mouseOffsetStart = (0, _classPrivateFieldGet2.default)(this, _target).eventPageX - ((0, _classPrivateFieldGet2.default)(this, _rootElementOffset) - (scrollableElement.scrollX === undefined ? scrollStart : 0));
     }
-    if (priv.hasRowHeaders) {
+    if ((0, _classPrivateFieldGet2.default)(this, _hasRowHeaders)) {
       rowHeaderWidth = this.hot.view._wt.wtOverlays.inlineStartOverlay.clone.wtTable.getColumnHeader(-1).offsetWidth;
     }
-    if (this.isFixedColumnsStart(priv.hoveredColumn)) {
+    if (this.isFixedColumnsStart((0, _classPrivateFieldGet2.default)(this, _hoveredColumn))) {
       tdOffsetStart += scrollStart;
     }
     tdOffsetStart += rowHeaderWidth;
-    if (priv.hoveredColumn < 0) {
+    if ((0, _classPrivateFieldGet2.default)(this, _hoveredColumn) < 0) {
       // if hover on rowHeader
-      if (priv.fixedColumnsStart > 0) {
-        priv.target.col = 0;
+      if ((0, _classPrivateFieldGet2.default)(this, _fixedColumnsStart) > 0) {
+        (0, _classPrivateFieldGet2.default)(this, _target).col = 0;
       } else {
-        priv.target.col = firstVisible > 0 ? firstVisible - 1 : firstVisible;
+        (0, _classPrivateFieldGet2.default)(this, _target).col = firstVisible > 0 ? firstVisible - 1 : firstVisible;
       }
-    } else if (priv.target.TD.offsetWidth / 2 + tdOffsetStart <= mouseOffsetStart) {
-      const newCoordsCol = priv.hoveredColumn >= priv.countCols ? priv.countCols - 1 : priv.hoveredColumn;
+    } else if ((0, _classPrivateFieldGet2.default)(this, _target).TD.offsetWidth / 2 + tdOffsetStart <= mouseOffsetStart) {
+      const newCoordsCol = (0, _classPrivateFieldGet2.default)(this, _hoveredColumn) >= (0, _classPrivateFieldGet2.default)(this, _countCols) ? (0, _classPrivateFieldGet2.default)(this, _countCols) - 1 : (0, _classPrivateFieldGet2.default)(this, _hoveredColumn);
 
       // if hover on right part of TD
-      priv.target.col = newCoordsCol + 1;
+      (0, _classPrivateFieldGet2.default)(this, _target).col = newCoordsCol + 1;
       // unfortunately first column is bigger than rest
-      tdOffsetStart += priv.target.TD.offsetWidth;
+      tdOffsetStart += (0, _classPrivateFieldGet2.default)(this, _target).TD.offsetWidth;
     } else {
       // elsewhere on table
-      priv.target.col = priv.hoveredColumn;
+      (0, _classPrivateFieldGet2.default)(this, _target).col = (0, _classPrivateFieldGet2.default)(this, _hoveredColumn);
     }
     let backlightStart = mouseOffsetStart;
     let guidelineStart = tdOffsetStart;
@@ -73604,8 +74283,8 @@ class ManualColumnMove extends _base.BasePlugin {
     } else if (guidelineStart === 0) {
       // guideline has got `margin-left: -1px` as default
       guidelineStart = 1;
-    } else if (scrollableElement.scrollX !== void 0 && priv.hoveredColumn < priv.fixedColumnsStart) {
-      guidelineStart -= priv.rootElementOffset <= scrollableElement.scrollX ? priv.rootElementOffset : 0;
+    } else if (scrollableElement.scrollX !== undefined && (0, _classPrivateFieldGet2.default)(this, _hoveredColumn) < (0, _classPrivateFieldGet2.default)(this, _fixedColumnsStart)) {
+      guidelineStart -= (0, _classPrivateFieldGet2.default)(this, _rootElementOffset) <= scrollableElement.scrollX ? (0, _classPrivateFieldGet2.default)(this, _rootElementOffset) : 0;
     }
     this.backlight.setPosition(null, backlightStart);
     this.guideline.setPosition(null, guidelineStart);
@@ -73620,8 +74299,8 @@ class ManualColumnMove extends _base.BasePlugin {
     const {
       documentElement
     } = this.hot.rootDocument;
-    this.eventManager.addEventListener(documentElement, 'mousemove', event => this.onMouseMove(event));
-    this.eventManager.addEventListener(documentElement, 'mouseup', () => this.onMouseUp());
+    this.eventManager.addEventListener(documentElement, 'mousemove', event => _classPrivateMethodGet(this, _onMouseMove, _onMouseMove2).call(this, event));
+    this.eventManager.addEventListener(documentElement, 'mouseup', () => _classPrivateMethodGet(this, _onMouseUp, _onMouseUp2).call(this));
   }
 
   /**
@@ -73632,163 +74311,6 @@ class ManualColumnMove extends _base.BasePlugin {
   unregisterEvents() {
     this.eventManager.clear();
   }
-
-  /**
-   * Change the behavior of selection / dragging.
-   *
-   * @private
-   * @param {MouseEvent} event `mousedown` event properties.
-   * @param {CellCoords} coords Visual cell coordinates where was fired event.
-   * @param {HTMLElement} TD Cell represented as HTMLElement.
-   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
-   *                            a boolean value that allows or disallows changing the selection for that particular area.
-   */
-  onBeforeOnCellMouseDown(event, coords, TD, controller) {
-    const wtTable = this.hot.view._wt.wtTable;
-    const isHeaderSelection = this.hot.selection.isSelectedByColumnHeader();
-    const selection = this.hot.getSelectedRangeLast();
-    const priv = privatePool.get(this);
-    // This block action shouldn't be handled below.
-    const isSortingElement = (0, _element.hasClass)(event.target, 'sortAction');
-    if (!selection || !isHeaderSelection || priv.pressed || event.button !== 0 || isSortingElement) {
-      priv.pressed = false;
-      priv.columnsToMove.length = 0;
-      (0, _element.removeClass)(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
-      return;
-    }
-    const guidelineIsNotReady = this.guideline.isBuilt() && !this.guideline.isAppended();
-    const backlightIsNotReady = this.backlight.isBuilt() && !this.backlight.isAppended();
-    if (guidelineIsNotReady && backlightIsNotReady) {
-      this.guideline.appendTo(wtTable.hider);
-      this.backlight.appendTo(wtTable.hider);
-    }
-    const {
-      from,
-      to
-    } = selection;
-    const start = Math.min(from.col, to.col);
-    const end = Math.max(from.col, to.col);
-    if (coords.row < 0 && coords.col >= start && coords.col <= end) {
-      controller.column = true;
-      priv.pressed = true;
-      const eventOffsetX = TD.firstChild ? (0, _event.offsetRelativeTo)(event, TD.firstChild).x : event.offsetX;
-      priv.target.eventPageX = event.pageX;
-      priv.hoveredColumn = coords.col;
-      priv.target.TD = TD;
-      priv.target.col = coords.col;
-      priv.columnsToMove = this.prepareColumnsToMoving(start, end);
-      priv.hasRowHeaders = !!this.hot.getSettings().rowHeaders;
-      priv.countCols = this.hot.countCols();
-      priv.fixedColumnsStart = this.hot.getSettings().fixedColumnsStart;
-      priv.rootElementOffset = (0, _element.offset)(this.hot.rootElement).left;
-      const countColumnsFrom = priv.hasRowHeaders ? -1 : 0;
-      const topPos = wtTable.holder.scrollTop + wtTable.getColumnHeaderHeight(0) + 1;
-      const fixedColumnsStart = coords.col < priv.fixedColumnsStart;
-      const horizontalScrollPosition = this.hot.view._wt.wtOverlays.inlineStartOverlay.getOverlayOffset();
-      const offsetX = Math.abs(eventOffsetX - (this.hot.isRtl() ? TD.offsetWidth : 0));
-      const inlineOffset = this.getColumnsWidth(start, coords.col - 1) + offsetX;
-      const inlinePos = this.getColumnsWidth(countColumnsFrom, start - 1) + (fixedColumnsStart ? horizontalScrollPosition : 0) + inlineOffset;
-      this.backlight.setPosition(topPos, inlinePos);
-      this.backlight.setSize(this.getColumnsWidth(start, end), wtTable.hider.offsetHeight - topPos);
-      this.backlight.setOffset(null, -inlineOffset);
-      (0, _element.addClass)(this.hot.rootElement, CSS_ON_MOVING);
-    } else {
-      (0, _element.removeClass)(this.hot.rootElement, CSS_AFTER_SELECTION);
-      priv.pressed = false;
-      priv.columnsToMove.length = 0;
-    }
-  }
-
-  /**
-   * 'mouseMove' event callback. Fired when pointer move on document.documentElement.
-   *
-   * @private
-   * @param {MouseEvent} event `mousemove` event properties.
-   */
-  onMouseMove(event) {
-    const priv = privatePool.get(this);
-    if (!priv.pressed) {
-      return;
-    }
-    priv.target.eventPageX = event.pageX;
-    this.refreshPositions();
-  }
-
-  /**
-   * 'beforeOnCellMouseOver' hook callback. Fired when pointer was over cell.
-   *
-   * @private
-   * @param {MouseEvent} event `mouseover` event properties.
-   * @param {CellCoords} coords Visual cell coordinates where was fired event.
-   * @param {HTMLElement} TD Cell represented as HTMLElement.
-   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
-   *                            a boolean value that allows or disallows changing the selection for that particular area.
-   */
-  onBeforeOnCellMouseOver(event, coords, TD, controller) {
-    const selectedRange = this.hot.getSelectedRangeLast();
-    const priv = privatePool.get(this);
-    if (!selectedRange || !priv.pressed) {
-      return;
-    }
-    if (priv.columnsToMove.indexOf(coords.col) > -1) {
-      (0, _element.removeClass)(this.hot.rootElement, CSS_SHOW_UI);
-    } else {
-      (0, _element.addClass)(this.hot.rootElement, CSS_SHOW_UI);
-    }
-    controller.row = true;
-    controller.column = true;
-    controller.cell = true;
-    priv.hoveredColumn = coords.col;
-    priv.target.TD = TD;
-  }
-
-  /**
-   * `onMouseUp` hook callback.
-   *
-   * @private
-   */
-  onMouseUp() {
-    const priv = privatePool.get(this);
-    const target = priv.target.col;
-    const columnsLen = priv.columnsToMove.length;
-    priv.hoveredColumn = void 0;
-    priv.pressed = false;
-    priv.backlightWidth = 0;
-    (0, _element.removeClass)(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
-    if (this.hot.selection.isSelectedByColumnHeader()) {
-      (0, _element.addClass)(this.hot.rootElement, CSS_AFTER_SELECTION);
-    }
-    if (columnsLen < 1 || target === void 0) {
-      return;
-    }
-    const firstMovedVisualColumn = priv.columnsToMove[0];
-    const firstMovedPhysicalColumn = this.hot.toPhysicalColumn(firstMovedVisualColumn);
-    const movePerformed = this.dragColumns(priv.columnsToMove, target);
-    priv.columnsToMove.length = 0;
-    if (movePerformed === true) {
-      this.persistentStateSave();
-      this.hot.render();
-      this.hot.view.adjustElementsSize(true);
-      const selectionStart = this.hot.toVisualColumn(firstMovedPhysicalColumn);
-      const selectionEnd = selectionStart + columnsLen - 1;
-      this.hot.selectColumns(selectionStart, selectionEnd);
-    }
-  }
-
-  /**
-   * `afterScrollHorizontally` hook callback. Fired the table was scrolled horizontally.
-   *
-   * @private
-   */
-  onAfterScrollVertically() {
-    const wtTable = this.hot.view._wt.wtTable;
-    const headerHeight = wtTable.getColumnHeaderHeight(0) + 1;
-    const scrollTop = wtTable.holder.scrollTop;
-    const posTop = headerHeight + scrollTop;
-    this.backlight.setPosition(posTop);
-    this.backlight.setSize(null, wtTable.hider.offsetHeight - posTop);
-  }
-
   /**
    * Builds the plugin's UI.
    *
@@ -73798,16 +74320,6 @@ class ManualColumnMove extends _base.BasePlugin {
     this.backlight.build();
     this.guideline.build();
   }
-
-  /**
-   * Callback for the `afterLoadData` hook.
-   *
-   * @private
-   */
-  onAfterLoadData() {
-    this.moveBySettingsOrLoad();
-  }
-
   /**
    * Destroys the plugin instance.
    */
@@ -73818,6 +74330,119 @@ class ManualColumnMove extends _base.BasePlugin {
   }
 }
 exports.ManualColumnMove = ManualColumnMove;
+function _onBeforeOnCellMouseDown2(event, coords, TD, controller) {
+  const wtTable = this.hot.view._wt.wtTable;
+  const isHeaderSelection = this.hot.selection.isSelectedByColumnHeader();
+  const selection = this.hot.getSelectedRangeLast();
+  // This block action shouldn't be handled below.
+  const isSortingElement = (0, _element.hasClass)(event.target, 'sortAction');
+  if (!selection || !isHeaderSelection || (0, _classPrivateFieldGet2.default)(this, _pressed) || event.button !== 0 || isSortingElement) {
+    (0, _classPrivateFieldSet2.default)(this, _pressed, false);
+    (0, _classPrivateFieldGet2.default)(this, _columnsToMove).length = 0;
+    (0, _element.removeClass)(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
+    return;
+  }
+  const guidelineIsNotReady = this.guideline.isBuilt() && !this.guideline.isAppended();
+  const backlightIsNotReady = this.backlight.isBuilt() && !this.backlight.isAppended();
+  if (guidelineIsNotReady && backlightIsNotReady) {
+    this.guideline.appendTo(wtTable.hider);
+    this.backlight.appendTo(wtTable.hider);
+  }
+  const {
+    from,
+    to
+  } = selection;
+  const start = Math.min(from.col, to.col);
+  const end = Math.max(from.col, to.col);
+  if (coords.row < 0 && coords.col >= start && coords.col <= end) {
+    controller.column = true;
+    (0, _classPrivateFieldSet2.default)(this, _pressed, true);
+    const eventOffsetX = TD.firstChild ? (0, _event.offsetRelativeTo)(event, TD.firstChild).x : event.offsetX;
+    (0, _classPrivateFieldGet2.default)(this, _target).eventPageX = event.pageX;
+    (0, _classPrivateFieldSet2.default)(this, _hoveredColumn, coords.col);
+    (0, _classPrivateFieldGet2.default)(this, _target).TD = TD;
+    (0, _classPrivateFieldGet2.default)(this, _target).col = coords.col;
+    (0, _classPrivateFieldSet2.default)(this, _columnsToMove, this.prepareColumnsToMoving(start, end));
+    (0, _classPrivateFieldSet2.default)(this, _hasRowHeaders, !!this.hot.getSettings().rowHeaders);
+    (0, _classPrivateFieldSet2.default)(this, _countCols, this.hot.countCols());
+    (0, _classPrivateFieldSet2.default)(this, _fixedColumnsStart, this.hot.getSettings().fixedColumnsStart);
+    (0, _classPrivateFieldSet2.default)(this, _rootElementOffset, (0, _element.offset)(this.hot.rootElement).left);
+    const countColumnsFrom = (0, _classPrivateFieldGet2.default)(this, _hasRowHeaders) ? -1 : 0;
+    const topPos = wtTable.holder.scrollTop + wtTable.getColumnHeaderHeight(0) + 1;
+    const fixedColumnsStart = coords.col < (0, _classPrivateFieldGet2.default)(this, _fixedColumnsStart);
+    const horizontalScrollPosition = this.hot.view._wt.wtOverlays.inlineStartOverlay.getOverlayOffset();
+    const offsetX = Math.abs(eventOffsetX - (this.hot.isRtl() ? TD.offsetWidth : 0));
+    const inlineOffset = this.getColumnsWidth(start, coords.col - 1) + offsetX;
+    const inlinePos = this.getColumnsWidth(countColumnsFrom, start - 1) + (fixedColumnsStart ? horizontalScrollPosition : 0) + inlineOffset;
+    this.backlight.setPosition(topPos, inlinePos);
+    this.backlight.setSize(this.getColumnsWidth(start, end), wtTable.hider.offsetHeight - topPos);
+    this.backlight.setOffset(null, -inlineOffset);
+    (0, _element.addClass)(this.hot.rootElement, CSS_ON_MOVING);
+  } else {
+    (0, _element.removeClass)(this.hot.rootElement, CSS_AFTER_SELECTION);
+    (0, _classPrivateFieldSet2.default)(this, _pressed, false);
+    (0, _classPrivateFieldGet2.default)(this, _columnsToMove).length = 0;
+  }
+}
+function _onMouseMove2(event) {
+  if (!(0, _classPrivateFieldGet2.default)(this, _pressed)) {
+    return;
+  }
+  (0, _classPrivateFieldGet2.default)(this, _target).eventPageX = event.pageX;
+  this.refreshPositions();
+}
+function _onBeforeOnCellMouseOver2(event, coords, TD, controller) {
+  const selectedRange = this.hot.getSelectedRangeLast();
+  if (!selectedRange || !(0, _classPrivateFieldGet2.default)(this, _pressed)) {
+    return;
+  }
+  if ((0, _classPrivateFieldGet2.default)(this, _columnsToMove).indexOf(coords.col) > -1) {
+    (0, _element.removeClass)(this.hot.rootElement, CSS_SHOW_UI);
+  } else {
+    (0, _element.addClass)(this.hot.rootElement, CSS_SHOW_UI);
+  }
+  controller.row = true;
+  controller.column = true;
+  controller.cell = true;
+  (0, _classPrivateFieldSet2.default)(this, _hoveredColumn, coords.col);
+  (0, _classPrivateFieldGet2.default)(this, _target).TD = TD;
+}
+function _onMouseUp2() {
+  const target = (0, _classPrivateFieldGet2.default)(this, _target).col;
+  const columnsLen = (0, _classPrivateFieldGet2.default)(this, _columnsToMove).length;
+  (0, _classPrivateFieldSet2.default)(this, _hoveredColumn, undefined);
+  (0, _classPrivateFieldSet2.default)(this, _pressed, false);
+  (0, _element.removeClass)(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
+  if (this.hot.selection.isSelectedByColumnHeader()) {
+    (0, _element.addClass)(this.hot.rootElement, CSS_AFTER_SELECTION);
+  }
+  if (columnsLen < 1 || target === undefined) {
+    return;
+  }
+  const firstMovedVisualColumn = (0, _classPrivateFieldGet2.default)(this, _columnsToMove)[0];
+  const firstMovedPhysicalColumn = this.hot.toPhysicalColumn(firstMovedVisualColumn);
+  const movePerformed = this.dragColumns((0, _classPrivateFieldGet2.default)(this, _columnsToMove), target);
+  (0, _classPrivateFieldGet2.default)(this, _columnsToMove).length = 0;
+  if (movePerformed === true) {
+    this.persistentStateSave();
+    this.hot.render();
+    this.hot.view.adjustElementsSize(true);
+    const selectionStart = this.hot.toVisualColumn(firstMovedPhysicalColumn);
+    const selectionEnd = selectionStart + columnsLen - 1;
+    this.hot.selectColumns(selectionStart, selectionEnd);
+  }
+}
+function _onAfterScrollVertically2() {
+  const wtTable = this.hot.view._wt.wtTable;
+  const headerHeight = wtTable.getColumnHeaderHeight(0) + 1;
+  const scrollTop = wtTable.holder.scrollTop;
+  const posTop = headerHeight + scrollTop;
+  this.backlight.setPosition(posTop);
+  this.backlight.setSize(null, wtTable.hider.offsetHeight - posTop);
+}
+function _onAfterLoadData2() {
+  this.moveBySettingsOrLoad();
+}
 
 /***/ }),
 /* 599 */
@@ -73854,8 +74479,10 @@ var _default = exports["default"] = BacklightUI;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _number = __webpack_require__(137);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _number = __webpack_require__(141);
 var _string = __webpack_require__(108);
 const STATE_INITIALIZED = 0;
 const STATE_BUILT = 1;
@@ -73873,26 +74500,28 @@ class BaseUI {
      *
      * @type {Core}
      */
-    this.hot = hotInstance;
+    (0, _defineProperty2.default)(this, "hot", void 0);
     /**
      * DOM element representing the ui element.
      *
      * @type {HTMLElement}
      * @private
      */
-    this._element = null;
+    (0, _defineProperty2.default)(this, "_element", null);
     /**
      * Flag which determines build state of element.
      *
      * @type {number}
      */
-    this.state = STATE_INITIALIZED;
+    (0, _defineProperty2.default)(this, "state", STATE_INITIALIZED);
     /**
      * Defines the "start" physical CSS property name used within the class depending on what document
      * layout direction the library runs.
      *
      * @type {string}
      */
+    (0, _defineProperty2.default)(this, "inlineProperty", void 0);
+    this.hot = hotInstance;
     this.inlineProperty = hotInstance.isRtl() ? 'right' : 'left';
   }
 
@@ -74092,18 +74721,24 @@ exports.ManualColumnResize = _manualColumnResize.ManualColumnResize;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+__webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _base = __webpack_require__(423);
 var _element = __webpack_require__(107);
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
 var _array = __webpack_require__(113);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 var _translations = __webpack_require__(221);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
 
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'manualColumnResize';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 130;
 const PERSISTENT_STATE_KEY = 'manualColumnWidths';
-const privatePool = new WeakMap();
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -74119,6 +74754,16 @@ const privatePool = new WeakMap();
  * - handle - the draggable element that sets the desired width of the column.
  * - guide - the helper guide that shows the desired width as a vertical guide.
  */
+var _config = /*#__PURE__*/new WeakMap();
+var _onMapInit = /*#__PURE__*/new WeakSet();
+var _onMouseOver = /*#__PURE__*/new WeakSet();
+var _onMouseDown = /*#__PURE__*/new WeakSet();
+var _onMouseMove = /*#__PURE__*/new WeakSet();
+var _onMouseUp = /*#__PURE__*/new WeakSet();
+var _onContextMenu = /*#__PURE__*/new WeakSet();
+var _onModifyColWidth = /*#__PURE__*/new WeakSet();
+var _onBeforeStretchingColumnWidth = /*#__PURE__*/new WeakSet();
+var _onBeforeColumnResize = /*#__PURE__*/new WeakSet();
 class ManualColumnResize extends _base.BasePlugin {
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
@@ -74126,39 +74771,136 @@ class ManualColumnResize extends _base.BasePlugin {
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
+
+  /**
+   * @type {HTMLTableHeaderCellElement}
+   */
+
   constructor(hotInstance) {
     super(hotInstance);
-    const {
-      rootDocument
-    } = this.hot;
-    this.currentTH = null;
-    this.currentCol = null;
-    this.selectedCols = [];
-    this.currentWidth = null;
-    this.newSize = null;
-    this.startY = null;
-    this.startWidth = null;
-    this.startOffset = null;
-    this.handle = rootDocument.createElement('DIV');
-    this.guide = rootDocument.createElement('DIV');
-    this.eventManager = new _eventManager.default(this);
-    this.pressed = null;
-    this.isTriggeredByRMB = false;
-    this.dblclick = 0;
-    this.autoresizeTimeout = null;
-
+    /**
+     * `beforeColumnResize` hook callback.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeColumnResize);
+    /**
+     * Modifies the provided column stretched width. This hook decides if specified column should be stretched or not.
+     *
+     * @param {number} stretchedWidth Stretched width.
+     * @param {number} column Visual column index.
+     * @returns {number}
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeStretchingColumnWidth);
+    /**
+     * Modifies the provided column width, based on the plugin settings.
+     *
+     * @param {number} width Column width.
+     * @param {number} column Visual column index.
+     * @returns {number}
+     */
+    _classPrivateMethodInitSpec(this, _onModifyColWidth);
+    /**
+     * Callback for "contextmenu" event triggered on element showing move handle. It removes handle and guide elements.
+     */
+    _classPrivateMethodInitSpec(this, _onContextMenu);
+    /**
+     * 'mouseup' event callback - apply the column resizing.
+     *
+     * @fires Hooks#beforeColumnResize
+     * @fires Hooks#afterColumnResize
+     */
+    _classPrivateMethodInitSpec(this, _onMouseUp);
+    /**
+     * 'mousemove' event callback - refresh the handle and guide positions, cache the new column width.
+     *
+     * @param {MouseEvent} event The mouse event.
+     */
+    _classPrivateMethodInitSpec(this, _onMouseMove);
+    /**
+     * 'mousedown' event callback.
+     *
+     * @param {MouseEvent} event The mouse event.
+     */
+    _classPrivateMethodInitSpec(this, _onMouseDown);
+    /**
+     * 'mouseover' event callback - set the handle position.
+     *
+     * @param {MouseEvent} event The mouse event.
+     */
+    _classPrivateMethodInitSpec(this, _onMouseOver);
+    /**
+     * Callback to call on map's `init` local hook.
+     *
+     * @private
+     */
+    _classPrivateMethodInitSpec(this, _onMapInit);
+    (0, _defineProperty2.default)(this, "currentTH", null);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "currentCol", null);
+    /**
+     * @type {number[]}
+     */
+    (0, _defineProperty2.default)(this, "selectedCols", []);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "currentWidth", null);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "newSize", null);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "startY", null);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "startWidth", null);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "startOffset", null);
+    /**
+     * @type {HTMLElement}
+     */
+    (0, _defineProperty2.default)(this, "handle", this.hot.rootDocument.createElement('DIV'));
+    /**
+     * @type {HTMLElement}
+     */
+    (0, _defineProperty2.default)(this, "guide", this.hot.rootDocument.createElement('DIV'));
+    /**
+     * @type {boolean}
+     */
+    (0, _defineProperty2.default)(this, "pressed", null);
+    /**
+     * @type {boolean}
+     */
+    (0, _defineProperty2.default)(this, "isTriggeredByRMB", false);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "dblclick", 0);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "autoresizeTimeout", null);
     /**
      * PhysicalIndexToValueMap to keep and track widths for physical column indexes.
      *
      * @private
      * @type {PhysicalIndexToValueMap}
      */
-    this.columnWidthsMap = void 0;
+    (0, _defineProperty2.default)(this, "columnWidthsMap", void 0);
     /**
      * Private pool to save configuration from updateSettings.
+     *
+     * @type {object}
      */
-    privatePool.set(this, {
-      config: void 0
+    _classPrivateFieldInitSpec(this, _config, {
+      writable: true,
+      value: void 0
     });
     (0, _element.addClass)(this.handle, 'manualColumnResizer');
     (0, _element.addClass)(this.guide, 'manualColumnResizerGuide');
@@ -74190,11 +74932,11 @@ class ManualColumnResize extends _base.BasePlugin {
       return;
     }
     this.columnWidthsMap = new _translations.PhysicalIndexToValueMap();
-    this.columnWidthsMap.addLocalHook('init', () => this.onMapInit());
+    this.columnWidthsMap.addLocalHook('init', () => _classPrivateMethodGet(this, _onMapInit, _onMapInit2).call(this));
     this.hot.columnIndexMapper.registerMap(this.pluginName, this.columnWidthsMap);
-    this.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
-    this.addHook('beforeStretchingColumnWidth', (stretchedWidth, column) => this.onBeforeStretchingColumnWidth(stretchedWidth, column));
-    this.addHook('beforeColumnResize', (newSize, column, isDoubleClick) => this.onBeforeColumnResize(newSize, column, isDoubleClick));
+    this.addHook('modifyColWidth', (width, col) => _classPrivateMethodGet(this, _onModifyColWidth, _onModifyColWidth2).call(this, width, col));
+    this.addHook('beforeStretchingColumnWidth', (stretchedWidth, column) => _classPrivateMethodGet(this, _onBeforeStretchingColumnWidth, _onBeforeStretchingColumnWidth2).call(this, stretchedWidth, column));
+    this.addHook('beforeColumnResize', (newSize, column, isDoubleClick) => _classPrivateMethodGet(this, _onBeforeColumnResize, _onBeforeColumnResize2).call(this, newSize, column, isDoubleClick));
     this.bindEvents();
     super.enablePlugin();
   }
@@ -74215,8 +74957,7 @@ class ManualColumnResize extends _base.BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    const priv = privatePool.get(this);
-    priv.config = this.columnWidthsMap.getValues();
+    (0, _classPrivateFieldSet2.default)(this, _config, this.columnWidthsMap.getValues());
     this.hot.columnIndexMapper.unregisterMap(this.pluginName);
     super.disablePlugin();
   }
@@ -74265,38 +75006,6 @@ class ManualColumnResize extends _base.BasePlugin {
     const physicalColumn = this.hot.toPhysicalColumn(column);
     this.columnWidthsMap.setValueAtIndex(physicalColumn, null);
   }
-
-  /**
-   * Callback to call on map's `init` local hook.
-   *
-   * @private
-   */
-  onMapInit() {
-    const priv = privatePool.get(this);
-    const initialSetting = this.hot.getSettings()[PLUGIN_KEY];
-    const loadedManualColumnWidths = this.loadManualColumnWidths();
-    if (typeof loadedManualColumnWidths !== 'undefined') {
-      this.hot.batchExecution(() => {
-        loadedManualColumnWidths.forEach((width, physicalIndex) => {
-          this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
-        });
-      }, true);
-    } else if (Array.isArray(initialSetting)) {
-      this.hot.batchExecution(() => {
-        initialSetting.forEach((width, physicalIndex) => {
-          this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
-        });
-      }, true);
-      priv.config = initialSetting;
-    } else if (initialSetting === true && Array.isArray(priv.config)) {
-      this.hot.batchExecution(() => {
-        priv.config.forEach((width, physicalIndex) => {
-          this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
-        });
-      }, true);
-    }
-  }
-
   /**
    * Set the resize handle position.
    *
@@ -74435,38 +75144,6 @@ class ManualColumnResize extends _base.BasePlugin {
     }
     return null;
   }
-
-  /**
-   * 'mouseover' event callback - set the handle position.
-   *
-   * @private
-   * @param {MouseEvent} event The mouse event.
-   */
-  onMouseOver(event) {
-    // Workaround for #6926 - if the `event.target` is temporarily detached, we can skip this callback and wait for
-    // the next `onmouseover`.
-    if ((0, _element.isDetached)(event.target)) {
-      return;
-    }
-
-    // A "mouseover" action is triggered right after executing "contextmenu" event. It should be ignored.
-    if (this.isTriggeredByRMB === true) {
-      return;
-    }
-    if (this.checkIfColumnHeader(event.target)) {
-      const th = this.getClosestTHParent(event.target);
-      if (!th) {
-        return;
-      }
-      const colspan = th.getAttribute('colspan');
-      if (th && (colspan === null || colspan === '1')) {
-        if (!this.pressed) {
-          this.setupHandlePosition(th);
-        }
-      }
-    }
-  }
-
   /**
    * Auto-size row after doubleclick - callback.
    *
@@ -74482,7 +75159,7 @@ class ManualColumnResize extends _base.BasePlugin {
     };
     const resize = (column, forceRender) => {
       const hookNewSize = this.hot.runHooks('beforeColumnResize', this.newSize, column, true);
-      if (hookNewSize !== void 0) {
+      if (hookNewSize !== undefined) {
         this.newSize = hookNewSize;
       }
       if (this.hot.getSettings().stretchH === 'all') {
@@ -74513,107 +75190,6 @@ class ManualColumnResize extends _base.BasePlugin {
     this.dblclick = 0;
     this.autoresizeTimeout = null;
   }
-
-  /**
-   * 'mousedown' event callback.
-   *
-   * @private
-   * @param {MouseEvent} event The mouse event.
-   */
-  onMouseDown(event) {
-    if ((0, _element.hasClass)(event.target, 'manualColumnResizer')) {
-      this.setupHandlePosition(this.currentTH);
-      this.setupGuidePosition();
-      this.pressed = true;
-      if (this.autoresizeTimeout === null) {
-        this.autoresizeTimeout = setTimeout(() => this.afterMouseDownTimeout(), 500);
-        this.hot._registerTimeout(this.autoresizeTimeout);
-      }
-      this.dblclick += 1;
-      this.startX = event.pageX;
-      this.newSize = this.startWidth;
-    }
-  }
-
-  /**
-   * 'mousemove' event callback - refresh the handle and guide positions, cache the new column width.
-   *
-   * @private
-   * @param {MouseEvent} event The mouse event.
-   */
-  onMouseMove(event) {
-    if (this.pressed) {
-      const change = (event.pageX - this.startX) * this.hot.getDirectionFactor();
-      this.currentWidth = this.startWidth + change;
-      (0, _array.arrayEach)(this.selectedCols, selectedCol => {
-        this.newSize = this.setManualSize(selectedCol, this.currentWidth);
-      });
-      this.refreshHandlePosition();
-      this.refreshGuidePosition();
-    }
-  }
-
-  /**
-   * 'mouseup' event callback - apply the column resizing.
-   *
-   * @private
-   *
-   * @fires Hooks#beforeColumnResize
-   * @fires Hooks#afterColumnResize
-   */
-  onMouseUp() {
-    const render = () => {
-      this.hot.forceFullRender = true;
-      this.hot.view.render(); // updates all
-      this.hot.view.adjustElementsSize(true);
-    };
-    const resize = (column, forceRender) => {
-      this.hot.runHooks('beforeColumnResize', this.newSize, column, false);
-      if (forceRender) {
-        render();
-      }
-      this.saveManualColumnWidths();
-      this.hot.runHooks('afterColumnResize', this.newSize, column, false);
-    };
-    if (this.pressed) {
-      this.hideHandleAndGuide();
-      this.pressed = false;
-      if (this.newSize !== this.startWidth) {
-        const selectedColsLength = this.selectedCols.length;
-        if (selectedColsLength > 1) {
-          (0, _array.arrayEach)(this.selectedCols, selectedCol => {
-            resize(selectedCol);
-          });
-          render();
-        } else {
-          (0, _array.arrayEach)(this.selectedCols, selectedCol => {
-            resize(selectedCol, true);
-          });
-        }
-      }
-      this.setupHandlePosition(this.currentTH);
-    }
-  }
-
-  /**
-   * Callback for "contextmenu" event triggered on element showing move handle. It removes handle and guide elements.
-   *
-   * @private
-   */
-  onContextMenu() {
-    this.hideHandleAndGuide();
-    this.hot.rootElement.removeChild(this.handle);
-    this.hot.rootElement.removeChild(this.guide);
-    this.pressed = false;
-    this.isTriggeredByRMB = true;
-
-    // There is thrown "mouseover" event right after opening a context menu. This flag inform that handle
-    // shouldn't be drawn just after removing it.
-    this.hot._registerImmediate(() => {
-      this.isTriggeredByRMB = false;
-    });
-  }
-
   /**
    * Binds the mouse events.
    *
@@ -74624,59 +75200,12 @@ class ManualColumnResize extends _base.BasePlugin {
       rootWindow,
       rootElement
     } = this.hot;
-    this.eventManager.addEventListener(rootElement, 'mouseover', e => this.onMouseOver(e));
-    this.eventManager.addEventListener(rootElement, 'mousedown', e => this.onMouseDown(e));
-    this.eventManager.addEventListener(rootWindow, 'mousemove', e => this.onMouseMove(e));
-    this.eventManager.addEventListener(rootWindow, 'mouseup', () => this.onMouseUp());
-    this.eventManager.addEventListener(this.handle, 'contextmenu', () => this.onContextMenu());
+    this.eventManager.addEventListener(rootElement, 'mouseover', e => _classPrivateMethodGet(this, _onMouseOver, _onMouseOver2).call(this, e));
+    this.eventManager.addEventListener(rootElement, 'mousedown', e => _classPrivateMethodGet(this, _onMouseDown, _onMouseDown2).call(this, e));
+    this.eventManager.addEventListener(rootWindow, 'mousemove', e => _classPrivateMethodGet(this, _onMouseMove, _onMouseMove2).call(this, e));
+    this.eventManager.addEventListener(rootWindow, 'mouseup', () => _classPrivateMethodGet(this, _onMouseUp, _onMouseUp2).call(this));
+    this.eventManager.addEventListener(this.handle, 'contextmenu', () => _classPrivateMethodGet(this, _onContextMenu, _onContextMenu2).call(this));
   }
-
-  /**
-   * Modifies the provided column width, based on the plugin settings.
-   *
-   * @private
-   * @param {number} width Column width.
-   * @param {number} column Visual column index.
-   * @returns {number}
-   */
-  onModifyColWidth(width, column) {
-    let newWidth = width;
-    if (this.enabled) {
-      const physicalColumn = this.hot.toPhysicalColumn(column);
-      const columnWidth = this.columnWidthsMap.getValueAtIndex(physicalColumn);
-      if (this.hot.getSettings()[PLUGIN_KEY] && columnWidth) {
-        newWidth = columnWidth;
-      }
-    }
-    return newWidth;
-  }
-
-  /**
-   * Modifies the provided column stretched width. This hook decides if specified column should be stretched or not.
-   *
-   * @private
-   * @param {number} stretchedWidth Stretched width.
-   * @param {number} column Visual column index.
-   * @returns {number}
-   */
-  onBeforeStretchingColumnWidth(stretchedWidth, column) {
-    let width = this.columnWidthsMap.getValueAtIndex(column);
-    if (width === null) {
-      width = stretchedWidth;
-    }
-    return width;
-  }
-
-  /**
-   * `beforeColumnResize` hook callback.
-   *
-   * @private
-   */
-  onBeforeColumnResize() {
-    // clear the header height cache information
-    this.hot.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
-  }
-
   /**
    * Destroys the plugin instance.
    */
@@ -74685,6 +75214,147 @@ class ManualColumnResize extends _base.BasePlugin {
   }
 }
 exports.ManualColumnResize = ManualColumnResize;
+function _onMapInit2() {
+  const initialSetting = this.hot.getSettings()[PLUGIN_KEY];
+  const loadedManualColumnWidths = this.loadManualColumnWidths();
+  if (typeof loadedManualColumnWidths !== 'undefined') {
+    this.hot.batchExecution(() => {
+      loadedManualColumnWidths.forEach((width, physicalIndex) => {
+        this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
+      });
+    }, true);
+  } else if (Array.isArray(initialSetting)) {
+    this.hot.batchExecution(() => {
+      initialSetting.forEach((width, physicalIndex) => {
+        this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
+      });
+    }, true);
+    (0, _classPrivateFieldSet2.default)(this, _config, initialSetting);
+  } else if (initialSetting === true && Array.isArray((0, _classPrivateFieldGet2.default)(this, _config))) {
+    this.hot.batchExecution(() => {
+      (0, _classPrivateFieldGet2.default)(this, _config).forEach((width, physicalIndex) => {
+        this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
+      });
+    }, true);
+  }
+}
+function _onMouseOver2(event) {
+  // Workaround for #6926 - if the `event.target` is temporarily detached, we can skip this callback and wait for
+  // the next `onmouseover`.
+  if ((0, _element.isDetached)(event.target)) {
+    return;
+  }
+
+  // A "mouseover" action is triggered right after executing "contextmenu" event. It should be ignored.
+  if (this.isTriggeredByRMB === true) {
+    return;
+  }
+  if (this.checkIfColumnHeader(event.target)) {
+    const th = this.getClosestTHParent(event.target);
+    if (!th) {
+      return;
+    }
+    const colspan = th.getAttribute('colspan');
+    if (th && (colspan === null || colspan === '1')) {
+      if (!this.pressed) {
+        this.setupHandlePosition(th);
+      }
+    }
+  }
+}
+function _onMouseDown2(event) {
+  if ((0, _element.hasClass)(event.target, 'manualColumnResizer')) {
+    this.setupHandlePosition(this.currentTH);
+    this.setupGuidePosition();
+    this.pressed = true;
+    if (this.autoresizeTimeout === null) {
+      this.autoresizeTimeout = setTimeout(() => this.afterMouseDownTimeout(), 500);
+      this.hot._registerTimeout(this.autoresizeTimeout);
+    }
+    this.dblclick += 1;
+    this.startX = event.pageX;
+    this.newSize = this.startWidth;
+  }
+}
+function _onMouseMove2(event) {
+  if (this.pressed) {
+    const change = (event.pageX - this.startX) * this.hot.getDirectionFactor();
+    this.currentWidth = this.startWidth + change;
+    (0, _array.arrayEach)(this.selectedCols, selectedCol => {
+      this.newSize = this.setManualSize(selectedCol, this.currentWidth);
+    });
+    this.refreshHandlePosition();
+    this.refreshGuidePosition();
+  }
+}
+function _onMouseUp2() {
+  const render = () => {
+    this.hot.forceFullRender = true;
+    this.hot.view.render(); // updates all
+    this.hot.view.adjustElementsSize(true);
+  };
+  const resize = (column, forceRender) => {
+    this.hot.runHooks('beforeColumnResize', this.newSize, column, false);
+    if (forceRender) {
+      render();
+    }
+    this.saveManualColumnWidths();
+    this.hot.runHooks('afterColumnResize', this.newSize, column, false);
+  };
+  if (this.pressed) {
+    this.hideHandleAndGuide();
+    this.pressed = false;
+    if (this.newSize !== this.startWidth) {
+      const selectedColsLength = this.selectedCols.length;
+      if (selectedColsLength > 1) {
+        (0, _array.arrayEach)(this.selectedCols, selectedCol => {
+          resize(selectedCol);
+        });
+        render();
+      } else {
+        (0, _array.arrayEach)(this.selectedCols, selectedCol => {
+          resize(selectedCol, true);
+        });
+      }
+    }
+    this.setupHandlePosition(this.currentTH);
+  }
+}
+function _onContextMenu2() {
+  this.hideHandleAndGuide();
+  this.hot.rootElement.removeChild(this.handle);
+  this.hot.rootElement.removeChild(this.guide);
+  this.pressed = false;
+  this.isTriggeredByRMB = true;
+
+  // There is thrown "mouseover" event right after opening a context menu. This flag inform that handle
+  // shouldn't be drawn just after removing it.
+  this.hot._registerImmediate(() => {
+    this.isTriggeredByRMB = false;
+  });
+}
+function _onModifyColWidth2(width, column) {
+  let newWidth = width;
+  if (this.enabled) {
+    const physicalColumn = this.hot.toPhysicalColumn(column);
+    const columnWidth = this.columnWidthsMap.getValueAtIndex(physicalColumn);
+    if (this.hot.getSettings()[PLUGIN_KEY] && columnWidth) {
+      newWidth = columnWidth;
+    }
+  }
+  return newWidth;
+}
+function _onBeforeStretchingColumnWidth2(stretchedWidth, column) {
+  let width = this.columnWidthsMap.getValueAtIndex(column);
+  if (width === null) {
+    width = stretchedWidth;
+  }
+  return width;
+}
+function _onBeforeColumnResize2() {
+  // clear the header height cache information
+  this.hot.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
+}
 
 /***/ }),
 /* 605 */
@@ -74709,20 +75379,26 @@ exports.ManualRowMove = _manualRowMove.ManualRowMove;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+__webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
 var _base = __webpack_require__(423);
-var _pluginHooks = _interopRequireDefault(__webpack_require__(124));
+var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 var _array = __webpack_require__(113);
 var _element = __webpack_require__(107);
-var _number = __webpack_require__(137);
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
+var _number = __webpack_require__(141);
 var _backlight = _interopRequireDefault(__webpack_require__(607));
 var _guideline = _interopRequireDefault(__webpack_require__(609));
 __webpack_require__(610);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 _pluginHooks.default.getSingleton().register('beforeRowMove');
 _pluginHooks.default.getSingleton().register('afterRowMove');
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'manualRowMove';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 140;
-const privatePool = new WeakMap();
 const CSS_PLUGIN = 'ht__manualRowMove';
 const CSS_SHOW_UI = 'show-ui';
 const CSS_ON_MOVING = 'on-moving--rows';
@@ -74754,54 +75430,106 @@ const CSS_AFTER_SELECTION = 'after-selection--rows';
  * @class ManualRowMove
  * @plugin ManualRowMove
  */
+var _rowsToMove = /*#__PURE__*/new WeakMap();
+var _pressed = /*#__PURE__*/new WeakMap();
+var _target = /*#__PURE__*/new WeakMap();
+var _cachedDropIndex = /*#__PURE__*/new WeakMap();
+var _onBeforeOnCellMouseDown = /*#__PURE__*/new WeakSet();
+var _onMouseMove = /*#__PURE__*/new WeakSet();
+var _onBeforeOnCellMouseOver = /*#__PURE__*/new WeakSet();
+var _onMouseUp = /*#__PURE__*/new WeakSet();
+var _onAfterScrollHorizontally = /*#__PURE__*/new WeakSet();
+var _onAfterLoadData = /*#__PURE__*/new WeakSet();
 class ManualRowMove extends _base.BasePlugin {
-  static get PLUGIN_KEY() {
-    return PLUGIN_KEY;
-  }
-  static get PLUGIN_PRIORITY() {
-    return PLUGIN_PRIORITY;
-  }
-  constructor(hotInstance) {
-    super(hotInstance);
-
+  constructor() {
+    super(...arguments);
     /**
-     * Set up WeakMap of plugin to sharing private parameters;.
+     * Callback for the `afterLoadData` hook.
      */
-    privatePool.set(this, {
-      rowsToMove: [],
-      pressed: void 0,
-      target: {
-        eventPageY: void 0,
-        coords: void 0,
-        TD: void 0,
-        row: void 0
-      },
-      cachedDropIndex: void 0
-    });
-
+    _classPrivateMethodInitSpec(this, _onAfterLoadData);
     /**
-     * Event Manager object.
+     * `afterScrollHorizontally` hook callback. Fired the table was scrolled horizontally.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterScrollHorizontally);
+    /**
+     * `onMouseUp` hook callback.
+     */
+    _classPrivateMethodInitSpec(this, _onMouseUp);
+    /**
+     * 'beforeOnCellMouseOver' hook callback. Fired when pointer was over cell.
      *
-     * @private
-     * @type {object}
+     * @param {MouseEvent} event `mouseover` event properties.
+     * @param {CellCoords} coords Visual cell coordinates where was fired event.
+     * @param {HTMLElement} TD Cell represented as HTMLElement.
+     * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+     *                            a boolean value that allows or disallows changing the selection for that particular area.
      */
-    this.eventManager = new _eventManager.default(this);
+    _classPrivateMethodInitSpec(this, _onBeforeOnCellMouseOver);
+    /**
+     * 'mouseMove' event callback. Fired when pointer move on document.documentElement.
+     *
+     * @param {MouseEvent} event `mousemove` event properties.
+     */
+    _classPrivateMethodInitSpec(this, _onMouseMove);
+    /**
+     * Change the behavior of selection / dragging.
+     *
+     * @param {MouseEvent} event `mousedown` event properties.
+     * @param {CellCoords} coords Visual cell coordinates where was fired event.
+     * @param {HTMLElement} TD Cell represented as HTMLElement.
+     * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+     *                            a boolean value that allows or disallows changing the selection for that particular area.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeOnCellMouseDown);
     /**
      * Backlight UI object.
      *
      * @private
      * @type {object}
      */
-    this.backlight = new _backlight.default(hotInstance);
+    (0, _defineProperty2.default)(this, "backlight", new _backlight.default(this.hot));
     /**
      * Guideline UI object.
      *
      * @private
      * @type {object}
      */
-    this.guideline = new _guideline.default(hotInstance);
+    (0, _defineProperty2.default)(this, "guideline", new _guideline.default(this.hot));
+    /**
+     * @type {number[]}
+     */
+    _classPrivateFieldInitSpec(this, _rowsToMove, {
+      writable: true,
+      value: []
+    });
+    /**
+     * @type {boolean}
+     */
+    _classPrivateFieldInitSpec(this, _pressed, {
+      writable: true,
+      value: void 0
+    });
+    /**
+     * @type {object}
+     */
+    _classPrivateFieldInitSpec(this, _target, {
+      writable: true,
+      value: {}
+    });
+    /**
+     * @type {number}
+     */
+    _classPrivateFieldInitSpec(this, _cachedDropIndex, {
+      writable: true,
+      value: void 0
+    });
   }
-
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link ManualRowMove#enablePlugin} method is called.
@@ -74821,14 +75549,23 @@ class ManualRowMove extends _base.BasePlugin {
       return;
     }
     this.addHook('beforeOnCellMouseDown', function () {
-      return _this.onBeforeOnCellMouseDown(...arguments);
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeOnCellMouseDown, _onBeforeOnCellMouseDown2).call(_this, ...args);
     });
     this.addHook('beforeOnCellMouseOver', function () {
-      return _this.onBeforeOnCellMouseOver(...arguments);
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeOnCellMouseOver, _onBeforeOnCellMouseOver2).call(_this, ...args);
     });
-    this.addHook('afterScrollHorizontally', () => this.onAfterScrollHorizontally());
+    this.addHook('afterScrollHorizontally', () => _classPrivateMethodGet(this, _onAfterScrollHorizontally, _onAfterScrollHorizontally2).call(this));
     this.addHook('afterLoadData', function () {
-      return _this.onAfterLoadData(...arguments);
+      for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        args[_key3] = arguments[_key3];
+      }
+      return _classPrivateMethodGet(_this, _onAfterLoadData, _onAfterLoadData2).call(_this, ...args);
     });
     this.buildPluginUI();
     this.registerEvents();
@@ -74891,11 +75628,10 @@ class ManualRowMove extends _base.BasePlugin {
    * @returns {boolean}
    */
   moveRows(rows, finalIndex) {
-    const priv = privatePool.get(this);
-    const dropIndex = priv.cachedDropIndex;
+    const dropIndex = (0, _classPrivateFieldGet2.default)(this, _cachedDropIndex);
     const movePossible = this.isMovePossible(rows, finalIndex);
     const beforeMoveHook = this.hot.runHooks('beforeRowMove', rows, finalIndex, dropIndex, movePossible);
-    priv.cachedDropIndex = void 0;
+    (0, _classPrivateFieldSet2.default)(this, _cachedDropIndex, undefined);
     if (beforeMoveHook === false) {
       return;
     }
@@ -74933,8 +75669,7 @@ class ManualRowMove extends _base.BasePlugin {
    */
   dragRows(rows, dropIndex) {
     const finalIndex = this.countFinalIndex(rows, dropIndex);
-    const priv = privatePool.get(this);
-    priv.cachedDropIndex = dropIndex;
+    (0, _classPrivateFieldSet2.default)(this, _cachedDropIndex, dropIndex);
     return this.moveRows(rows, finalIndex);
   }
 
@@ -75020,7 +75755,7 @@ class ManualRowMove extends _base.BasePlugin {
     const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
     if (Array.isArray(pluginSettings)) {
       this.moveRows(pluginSettings, 0);
-    } else if (pluginSettings !== void 0) {
+    } else if (pluginSettings !== undefined) {
       const persistentState = this.persistentStateLoad();
       if (persistentState.length) {
         this.moveRows(persistentState, 0);
@@ -75104,8 +75839,7 @@ class ManualRowMove extends _base.BasePlugin {
    * @private
    */
   refreshPositions() {
-    const priv = privatePool.get(this);
-    const coords = priv.target.coords;
+    const coords = (0, _classPrivateFieldGet2.default)(this, _target).coords;
     const firstVisible = this.hot.view.getFirstFullyVisibleRow();
     const lastVisible = this.hot.view.getLastFullyVisibleRow();
     const countRows = this.hot.countRows();
@@ -75116,14 +75850,14 @@ class ManualRowMove extends _base.BasePlugin {
       this.hot.scrollViewportTo(this.hot.rowIndexMapper.getNearestNotHiddenIndex(lastVisible + 1, 1), undefined, true);
     }
     const wtTable = this.hot.view._wt.wtTable;
-    const TD = priv.target.TD;
+    const TD = (0, _classPrivateFieldGet2.default)(this, _target).TD;
     const rootElement = this.hot.rootElement;
     const rootElementOffset = (0, _element.offset)(rootElement);
     const trimmingContainer = (0, _element.getTrimmingContainer)(rootElement);
     const tableScroll = wtTable.holder.scrollTop;
     const trimmingContainerScroll = this.hot.rootWindow !== trimmingContainer ? trimmingContainer.scrollTop : 0;
     const pixelsAbove = rootElementOffset.top - trimmingContainerScroll;
-    const pixelsRelToTableStart = priv.target.eventPageY - pixelsAbove + tableScroll;
+    const pixelsRelToTableStart = (0, _classPrivateFieldGet2.default)(this, _target).eventPageY - pixelsAbove + tableScroll;
     const hiderHeight = wtTable.hider.offsetHeight;
     const tbodyOffsetTop = wtTable.TBODY.offsetTop;
     const backlightElemMarginTop = this.backlight.getOffset().top;
@@ -75137,15 +75871,15 @@ class ManualRowMove extends _base.BasePlugin {
     }
     if (coords.row < 0) {
       // if hover on colHeader
-      priv.target.row = firstVisible > 0 ? firstVisible - 1 : firstVisible;
+      (0, _classPrivateFieldGet2.default)(this, _target).row = firstVisible > 0 ? firstVisible - 1 : firstVisible;
     } else if (isBelowTable) {
       // if hover on lower part of TD
-      priv.target.row = coords.row + 1;
+      (0, _classPrivateFieldGet2.default)(this, _target).row = coords.row + 1;
       // unfortunately first row is bigger than rest
       tdStartPixel += coords.row === 0 ? tdHeight - 1 : tdHeight;
     } else {
       // elsewhere on table
-      priv.target.row = coords.row;
+      (0, _classPrivateFieldGet2.default)(this, _target).row = coords.row;
     }
     let backlightTop = pixelsRelToTableStart;
     let guidelineTop = tdStartPixel;
@@ -75173,8 +75907,8 @@ class ManualRowMove extends _base.BasePlugin {
     const {
       documentElement
     } = this.hot.rootDocument;
-    this.eventManager.addEventListener(documentElement, 'mousemove', event => this.onMouseMove(event));
-    this.eventManager.addEventListener(documentElement, 'mouseup', () => this.onMouseUp());
+    this.eventManager.addEventListener(documentElement, 'mousemove', event => _classPrivateMethodGet(this, _onMouseMove, _onMouseMove2).call(this, event));
+    this.eventManager.addEventListener(documentElement, 'mouseup', () => _classPrivateMethodGet(this, _onMouseUp, _onMouseUp2).call(this));
   }
 
   /**
@@ -75185,153 +75919,6 @@ class ManualRowMove extends _base.BasePlugin {
   unregisterEvents() {
     this.eventManager.clear();
   }
-
-  /**
-   * Change the behavior of selection / dragging.
-   *
-   * @private
-   * @param {MouseEvent} event `mousedown` event properties.
-   * @param {CellCoords} coords Visual cell coordinates where was fired event.
-   * @param {HTMLElement} TD Cell represented as HTMLElement.
-   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
-   *                            a boolean value that allows or disallows changing the selection for that particular area.
-   */
-  onBeforeOnCellMouseDown(event, coords, TD, controller) {
-    const {
-      wtTable,
-      wtViewport
-    } = this.hot.view._wt;
-    const isHeaderSelection = this.hot.selection.isSelectedByRowHeader();
-    const selection = this.hot.getSelectedRangeLast();
-    const priv = privatePool.get(this);
-    if (!selection || !isHeaderSelection || priv.pressed || event.button !== 0) {
-      priv.pressed = false;
-      priv.rowsToMove.length = 0;
-      (0, _element.removeClass)(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
-      return;
-    }
-    const guidelineIsNotReady = this.guideline.isBuilt() && !this.guideline.isAppended();
-    const backlightIsNotReady = this.backlight.isBuilt() && !this.backlight.isAppended();
-    if (guidelineIsNotReady && backlightIsNotReady) {
-      this.guideline.appendTo(wtTable.hider);
-      this.backlight.appendTo(wtTable.hider);
-    }
-    const {
-      from,
-      to
-    } = selection;
-    const start = Math.min(from.row, to.row);
-    const end = Math.max(from.row, to.row);
-    if (coords.col < 0 && coords.row >= start && coords.row <= end) {
-      controller.row = true;
-      priv.pressed = true;
-      priv.target.eventPageY = event.pageY;
-      priv.target.coords = coords;
-      priv.target.TD = TD;
-      priv.rowsToMove = this.prepareRowsToMoving();
-      const leftPos = wtTable.holder.scrollLeft + wtViewport.getRowHeaderWidth();
-      const topOffset = this.getRowsHeight(start, coords.row - 1) + event.offsetY;
-      this.backlight.setPosition(null, leftPos);
-      this.backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end));
-      this.backlight.setOffset(-topOffset, null);
-      (0, _element.addClass)(this.hot.rootElement, CSS_ON_MOVING);
-      this.refreshPositions();
-    } else {
-      (0, _element.removeClass)(this.hot.rootElement, CSS_AFTER_SELECTION);
-      priv.pressed = false;
-      priv.rowsToMove.length = 0;
-    }
-  }
-
-  /**
-   * 'mouseMove' event callback. Fired when pointer move on document.documentElement.
-   *
-   * @private
-   * @param {MouseEvent} event `mousemove` event properties.
-   */
-  onMouseMove(event) {
-    const priv = privatePool.get(this);
-    if (!priv.pressed) {
-      return;
-    }
-    priv.target.eventPageY = event.pageY;
-    this.refreshPositions();
-  }
-
-  /**
-   * 'beforeOnCellMouseOver' hook callback. Fired when pointer was over cell.
-   *
-   * @private
-   * @param {MouseEvent} event `mouseover` event properties.
-   * @param {CellCoords} coords Visual cell coordinates where was fired event.
-   * @param {HTMLElement} TD Cell represented as HTMLElement.
-   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
-   *                            a boolean value that allows or disallows changing the selection for that particular area.
-   */
-  onBeforeOnCellMouseOver(event, coords, TD, controller) {
-    const selectedRange = this.hot.getSelectedRangeLast();
-    const priv = privatePool.get(this);
-    if (!selectedRange || !priv.pressed) {
-      return;
-    }
-    if (priv.rowsToMove.indexOf(coords.row) > -1) {
-      (0, _element.removeClass)(this.hot.rootElement, CSS_SHOW_UI);
-    } else {
-      (0, _element.addClass)(this.hot.rootElement, CSS_SHOW_UI);
-    }
-    controller.row = true;
-    controller.column = true;
-    controller.cell = true;
-    priv.target.coords = coords;
-    priv.target.TD = TD;
-  }
-
-  /**
-   * `onMouseUp` hook callback.
-   *
-   * @private
-   */
-  onMouseUp() {
-    const priv = privatePool.get(this);
-    const target = priv.target.row;
-    const rowsLen = priv.rowsToMove.length;
-    priv.pressed = false;
-    priv.backlightHeight = 0;
-    (0, _element.removeClass)(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
-    if (this.hot.selection.isSelectedByRowHeader()) {
-      (0, _element.addClass)(this.hot.rootElement, CSS_AFTER_SELECTION);
-    }
-    if (rowsLen < 1 || target === void 0) {
-      return;
-    }
-    const firstMovedVisualRow = priv.rowsToMove[0];
-    const firstMovedPhysicalRow = this.hot.toPhysicalRow(firstMovedVisualRow);
-    const movePerformed = this.dragRows(priv.rowsToMove, target);
-    priv.rowsToMove.length = 0;
-    if (movePerformed === true) {
-      this.persistentStateSave();
-      this.hot.render();
-      this.hot.view.adjustElementsSize(true);
-      const selectionStart = this.hot.toVisualRow(firstMovedPhysicalRow);
-      const selectionEnd = selectionStart + rowsLen - 1;
-      this.hot.selectRows(selectionStart, selectionEnd);
-    }
-  }
-
-  /**
-   * `afterScrollHorizontally` hook callback. Fired the table was scrolled horizontally.
-   *
-   * @private
-   */
-  onAfterScrollHorizontally() {
-    const wtTable = this.hot.view._wt.wtTable;
-    const headerWidth = this.hot.view._wt.wtViewport.getRowHeaderWidth();
-    const scrollLeft = wtTable.holder.scrollLeft;
-    const posLeft = headerWidth + scrollLeft;
-    this.backlight.setPosition(null, posLeft);
-    this.backlight.setSize(wtTable.hider.offsetWidth - posLeft);
-  }
-
   /**
    * Builds the plugin's UI.
    *
@@ -75341,16 +75928,6 @@ class ManualRowMove extends _base.BasePlugin {
     this.backlight.build();
     this.guideline.build();
   }
-
-  /**
-   * Callback for the `afterLoadData` hook.
-   *
-   * @private
-   */
-  onAfterLoadData() {
-    this.moveBySettingsOrLoad();
-  }
-
   /**
    * Destroys the plugin instance.
    */
@@ -75361,6 +75938,109 @@ class ManualRowMove extends _base.BasePlugin {
   }
 }
 exports.ManualRowMove = ManualRowMove;
+function _onBeforeOnCellMouseDown2(event, coords, TD, controller) {
+  const {
+    wtTable,
+    wtViewport
+  } = this.hot.view._wt;
+  const isHeaderSelection = this.hot.selection.isSelectedByRowHeader();
+  const selection = this.hot.getSelectedRangeLast();
+  if (!selection || !isHeaderSelection || (0, _classPrivateFieldGet2.default)(this, _pressed) || event.button !== 0) {
+    (0, _classPrivateFieldSet2.default)(this, _pressed, false);
+    (0, _classPrivateFieldGet2.default)(this, _rowsToMove).length = 0;
+    (0, _element.removeClass)(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
+    return;
+  }
+  const guidelineIsNotReady = this.guideline.isBuilt() && !this.guideline.isAppended();
+  const backlightIsNotReady = this.backlight.isBuilt() && !this.backlight.isAppended();
+  if (guidelineIsNotReady && backlightIsNotReady) {
+    this.guideline.appendTo(wtTable.hider);
+    this.backlight.appendTo(wtTable.hider);
+  }
+  const {
+    from,
+    to
+  } = selection;
+  const start = Math.min(from.row, to.row);
+  const end = Math.max(from.row, to.row);
+  if (coords.col < 0 && coords.row >= start && coords.row <= end) {
+    controller.row = true;
+    (0, _classPrivateFieldSet2.default)(this, _pressed, true);
+    (0, _classPrivateFieldGet2.default)(this, _target).eventPageY = event.pageY;
+    (0, _classPrivateFieldGet2.default)(this, _target).coords = coords;
+    (0, _classPrivateFieldGet2.default)(this, _target).TD = TD;
+    (0, _classPrivateFieldSet2.default)(this, _rowsToMove, this.prepareRowsToMoving());
+    const leftPos = wtTable.holder.scrollLeft + wtViewport.getRowHeaderWidth();
+    const topOffset = this.getRowsHeight(start, coords.row - 1) + event.offsetY;
+    this.backlight.setPosition(null, leftPos);
+    this.backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end));
+    this.backlight.setOffset(-topOffset, null);
+    (0, _element.addClass)(this.hot.rootElement, CSS_ON_MOVING);
+    this.refreshPositions();
+  } else {
+    (0, _element.removeClass)(this.hot.rootElement, CSS_AFTER_SELECTION);
+    (0, _classPrivateFieldSet2.default)(this, _pressed, false);
+    (0, _classPrivateFieldGet2.default)(this, _rowsToMove).length = 0;
+  }
+}
+function _onMouseMove2(event) {
+  if (!(0, _classPrivateFieldGet2.default)(this, _pressed)) {
+    return;
+  }
+  (0, _classPrivateFieldGet2.default)(this, _target).eventPageY = event.pageY;
+  this.refreshPositions();
+}
+function _onBeforeOnCellMouseOver2(event, coords, TD, controller) {
+  const selectedRange = this.hot.getSelectedRangeLast();
+  if (!selectedRange || !(0, _classPrivateFieldGet2.default)(this, _pressed)) {
+    return;
+  }
+  if ((0, _classPrivateFieldGet2.default)(this, _rowsToMove).indexOf(coords.row) > -1) {
+    (0, _element.removeClass)(this.hot.rootElement, CSS_SHOW_UI);
+  } else {
+    (0, _element.addClass)(this.hot.rootElement, CSS_SHOW_UI);
+  }
+  controller.row = true;
+  controller.column = true;
+  controller.cell = true;
+  (0, _classPrivateFieldGet2.default)(this, _target).coords = coords;
+  (0, _classPrivateFieldGet2.default)(this, _target).TD = TD;
+}
+function _onMouseUp2() {
+  const target = (0, _classPrivateFieldGet2.default)(this, _target).row;
+  const rowsLen = (0, _classPrivateFieldGet2.default)(this, _rowsToMove).length;
+  (0, _classPrivateFieldSet2.default)(this, _pressed, false);
+  (0, _element.removeClass)(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
+  if (this.hot.selection.isSelectedByRowHeader()) {
+    (0, _element.addClass)(this.hot.rootElement, CSS_AFTER_SELECTION);
+  }
+  if (rowsLen < 1 || target === undefined) {
+    return;
+  }
+  const firstMovedVisualRow = (0, _classPrivateFieldGet2.default)(this, _rowsToMove)[0];
+  const firstMovedPhysicalRow = this.hot.toPhysicalRow(firstMovedVisualRow);
+  const movePerformed = this.dragRows((0, _classPrivateFieldGet2.default)(this, _rowsToMove), target);
+  (0, _classPrivateFieldGet2.default)(this, _rowsToMove).length = 0;
+  if (movePerformed === true) {
+    this.persistentStateSave();
+    this.hot.render();
+    this.hot.view.adjustElementsSize(true);
+    const selectionStart = this.hot.toVisualRow(firstMovedPhysicalRow);
+    const selectionEnd = selectionStart + rowsLen - 1;
+    this.hot.selectRows(selectionStart, selectionEnd);
+  }
+}
+function _onAfterScrollHorizontally2() {
+  const wtTable = this.hot.view._wt.wtTable;
+  const headerWidth = this.hot.view._wt.wtViewport.getRowHeaderWidth();
+  const scrollLeft = wtTable.holder.scrollLeft;
+  const posLeft = headerWidth + scrollLeft;
+  this.backlight.setPosition(null, posLeft);
+  this.backlight.setSize(wtTable.hider.offsetWidth - posLeft);
+}
+function _onAfterLoadData2() {
+  this.moveBySettingsOrLoad();
+}
 
 /***/ }),
 /* 607 */
@@ -75392,12 +76072,14 @@ var _default = exports["default"] = BacklightUI;
 
 /***/ }),
 /* 608 */
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 const STATE_INITIALIZED = 0;
 const STATE_BUILT = 1;
 const STATE_APPENDED = 2;
@@ -75413,20 +76095,21 @@ class BaseUI {
      *
      * @type {Core}
      */
-    this.hot = hotInstance;
+    (0, _defineProperty2.default)(this, "hot", void 0);
     /**
      * DOM element representing the ui element.
      *
      * @type {HTMLElement}
      * @private
      */
-    this._element = null;
+    (0, _defineProperty2.default)(this, "_element", null);
     /**
      * Flag which determines build state of element.
      *
      * @type {number}
      */
-    this.state = STATE_INITIALIZED;
+    (0, _defineProperty2.default)(this, "state", STATE_INITIALIZED);
+    this.hot = hotInstance;
   }
 
   /**
@@ -75486,10 +76169,10 @@ class BaseUI {
    * @param {number} left New left position of the element.
    */
   setPosition(top, left) {
-    if (top !== void 0) {
+    if (top !== undefined) {
       this._element.style.top = top + UNIT;
     }
-    if (left !== void 0) {
+    if (left !== undefined) {
       this._element.style.left = left + UNIT;
     }
   }
@@ -75622,19 +76305,25 @@ exports.ManualRowResize = _manualRowResize.ManualRowResize;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+__webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _base = __webpack_require__(423);
 var _element = __webpack_require__(107);
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
 var _array = __webpack_require__(113);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 var _translations = __webpack_require__(221);
 var _src = __webpack_require__(147);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 // Developer note! Whenever you make a change in this file, make an analogous change in manualColumnResize.js
 
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'manualRowResize';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 30;
 const PERSISTENT_STATE_KEY = 'manualRowHeights';
-const privatePool = new WeakMap();
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -75650,6 +76339,14 @@ const privatePool = new WeakMap();
  * - handle - the draggable element that sets the desired height of the row.
  * - guide - the helper guide that shows the desired height as a horizontal guide.
  */
+var _config = /*#__PURE__*/new WeakMap();
+var _onMouseOver = /*#__PURE__*/new WeakSet();
+var _onMouseDown = /*#__PURE__*/new WeakSet();
+var _onMouseMove = /*#__PURE__*/new WeakSet();
+var _onMouseUp = /*#__PURE__*/new WeakSet();
+var _onContextMenu = /*#__PURE__*/new WeakSet();
+var _onModifyRowHeight = /*#__PURE__*/new WeakSet();
+var _onMapInit = /*#__PURE__*/new WeakSet();
 class ManualRowResize extends _base.BasePlugin {
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
@@ -75657,39 +76354,122 @@ class ManualRowResize extends _base.BasePlugin {
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
+
+  /**
+   * @type {HTMLTableCellElement}
+   */
+
   constructor(hotInstance) {
     super(hotInstance);
-    const {
-      rootDocument
-    } = this.hot;
-    this.currentTH = null;
-    this.currentRow = null;
-    this.selectedRows = [];
-    this.currentHeight = null;
-    this.newSize = null;
-    this.startY = null;
-    this.startHeight = null;
-    this.startOffset = null;
-    this.handle = rootDocument.createElement('DIV');
-    this.guide = rootDocument.createElement('DIV');
-    this.eventManager = new _eventManager.default(this);
-    this.pressed = null;
-    this.isTriggeredByRMB = false;
-    this.dblclick = 0;
-    this.autoresizeTimeout = null;
-
+    /**
+     * Callback to call on map's `init` local hook.
+     */
+    _classPrivateMethodInitSpec(this, _onMapInit);
+    /**
+     * Modifies the provided row height, based on the plugin settings.
+     *
+     * @param {number} height Row height.
+     * @param {number} row Visual row index.
+     * @returns {number}
+     */
+    _classPrivateMethodInitSpec(this, _onModifyRowHeight);
+    /**
+     * Callback for "contextmenu" event triggered on element showing move handle. It removes handle and guide elements.
+     */
+    _classPrivateMethodInitSpec(this, _onContextMenu);
+    /**
+     * 'mouseup' event callback - apply the row resizing.
+     *
+     * @fires Hooks#beforeRowResize
+     * @fires Hooks#afterRowResize
+     */
+    _classPrivateMethodInitSpec(this, _onMouseUp);
+    /**
+     * 'mousemove' event callback - refresh the handle and guide positions, cache the new row height.
+     *
+     * @param {MouseEvent} event The mouse event.
+     */
+    _classPrivateMethodInitSpec(this, _onMouseMove);
+    /**
+     * 'mousedown' event callback.
+     *
+     * @param {MouseEvent} event The mouse event.
+     */
+    _classPrivateMethodInitSpec(this, _onMouseDown);
+    /**
+     * 'mouseover' event callback - set the handle position.
+     *
+     * @param {MouseEvent} event The mouse event.
+     */
+    _classPrivateMethodInitSpec(this, _onMouseOver);
+    (0, _defineProperty2.default)(this, "currentTH", null);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "currentRow", null);
+    /**
+     * @type {number[]}
+     */
+    (0, _defineProperty2.default)(this, "selectedRows", []);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "currentHeight", null);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "newSize", null);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "startY", null);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "startHeight", null);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "startOffset", null);
+    /**
+     * @type {HTMLElement}
+     */
+    (0, _defineProperty2.default)(this, "handle", this.hot.rootDocument.createElement('DIV'));
+    /**
+     * @type {HTMLElement}
+     */
+    (0, _defineProperty2.default)(this, "guide", this.hot.rootDocument.createElement('DIV'));
+    /**
+     * @type {boolean}
+     */
+    (0, _defineProperty2.default)(this, "pressed", false);
+    /**
+     * @type {boolean}
+     */
+    (0, _defineProperty2.default)(this, "isTriggeredByRMB", false);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "dblclick", 0);
+    /**
+     * @type {number}
+     */
+    (0, _defineProperty2.default)(this, "autoresizeTimeout", null);
     /**
      * PhysicalIndexToValueMap to keep and track widths for physical row indexes.
      *
      * @private
      * @type {PhysicalIndexToValueMap}
      */
-    this.rowHeightsMap = void 0;
+    (0, _defineProperty2.default)(this, "rowHeightsMap", void 0);
     /**
      * Private pool to save configuration from updateSettings.
+     *
+     * @type {object}
      */
-    privatePool.set(this, {
-      config: void 0
+    _classPrivateFieldInitSpec(this, _config, {
+      writable: true,
+      value: void 0
     });
     (0, _element.addClass)(this.handle, 'manualRowResizer');
     (0, _element.addClass)(this.guide, 'manualRowResizerGuide');
@@ -75721,9 +76501,9 @@ class ManualRowResize extends _base.BasePlugin {
       return;
     }
     this.rowHeightsMap = new _translations.PhysicalIndexToValueMap();
-    this.rowHeightsMap.addLocalHook('init', () => this.onMapInit());
+    this.rowHeightsMap.addLocalHook('init', () => _classPrivateMethodGet(this, _onMapInit, _onMapInit2).call(this));
     this.hot.rowIndexMapper.registerMap(this.pluginName, this.rowHeightsMap);
-    this.addHook('modifyRowHeight', (height, row) => this.onModifyRowHeight(height, row));
+    this.addHook('modifyRowHeight', (height, row) => _classPrivateMethodGet(this, _onModifyRowHeight, _onModifyRowHeight2).call(this, height, row));
     this.bindEvents();
     super.enablePlugin();
   }
@@ -75744,8 +76524,7 @@ class ManualRowResize extends _base.BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    const priv = privatePool.get(this);
-    priv.config = this.rowHeightsMap.getValues();
+    (0, _classPrivateFieldSet2.default)(this, _config, this.rowHeightsMap.getValues());
     this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     super.disablePlugin();
   }
@@ -75941,39 +76720,11 @@ class ManualRowResize extends _base.BasePlugin {
   getActualRowHeight(row) {
     // TODO: this should utilize `this.hot.getRowHeight` after it's fixed and working properly.
     const walkontableHeight = this.hot.view._wt.wtTable.getRowHeight(row);
-    if (walkontableHeight !== void 0 && this.newSize < walkontableHeight) {
+    if (walkontableHeight !== undefined && this.newSize < walkontableHeight) {
       return walkontableHeight;
     }
     return this.newSize;
   }
-
-  /**
-   * 'mouseover' event callback - set the handle position.
-   *
-   * @private
-   * @param {MouseEvent} event The mouse event.
-   */
-  onMouseOver(event) {
-    // Workaround for #6926 - if the `event.target` is temporarily detached, we can skip this callback and wait for
-    // the next `onmouseover`.
-    if ((0, _element.isDetached)(event.target)) {
-      return;
-    }
-
-    // A "mouseover" action is triggered right after executing "contextmenu" event. It should be ignored.
-    if (this.isTriggeredByRMB === true) {
-      return;
-    }
-    if (this.checkIfRowHeader(event.target)) {
-      const th = this.getClosestTHParent(event.target);
-      if (th) {
-        if (!this.pressed) {
-          this.setupHandlePosition(th);
-        }
-      }
-    }
-  }
-
   /**
    * Auto-size row after doubleclick - callback.
    *
@@ -75989,7 +76740,7 @@ class ManualRowResize extends _base.BasePlugin {
     };
     const resize = (row, forceRender) => {
       const hookNewSize = this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, true);
-      if (hookNewSize !== void 0) {
+      if (hookNewSize !== undefined) {
         this.newSize = hookNewSize;
       }
       this.setManualSize(row, this.newSize); // double click sets auto row size
@@ -76015,106 +76766,6 @@ class ManualRowResize extends _base.BasePlugin {
     this.dblclick = 0;
     this.autoresizeTimeout = null;
   }
-
-  /**
-   * 'mousedown' event callback.
-   *
-   * @private
-   * @param {MouseEvent} event The mouse event.
-   */
-  onMouseDown(event) {
-    if ((0, _element.hasClass)(event.target, 'manualRowResizer')) {
-      this.setupHandlePosition(this.currentTH);
-      this.setupGuidePosition();
-      this.pressed = true;
-      if (this.autoresizeTimeout === null) {
-        this.autoresizeTimeout = setTimeout(() => this.afterMouseDownTimeout(), 500);
-        this.hot._registerTimeout(this.autoresizeTimeout);
-      }
-      this.dblclick += 1;
-      this.startY = event.pageY;
-      this.newSize = this.startHeight;
-    }
-  }
-
-  /**
-   * 'mousemove' event callback - refresh the handle and guide positions, cache the new row height.
-   *
-   * @private
-   * @param {MouseEvent} event The mouse event.
-   */
-  onMouseMove(event) {
-    if (this.pressed) {
-      this.currentHeight = this.startHeight + (event.pageY - this.startY);
-      (0, _array.arrayEach)(this.selectedRows, selectedRow => {
-        this.newSize = this.setManualSize(selectedRow, this.currentHeight);
-      });
-      this.refreshHandlePosition();
-      this.refreshGuidePosition();
-    }
-  }
-
-  /**
-   * 'mouseup' event callback - apply the row resizing.
-   *
-   * @private
-   *
-   * @fires Hooks#beforeRowResize
-   * @fires Hooks#afterRowResize
-   */
-  onMouseUp() {
-    const render = () => {
-      this.hot.forceFullRender = true;
-      this.hot.view.render(); // updates all
-      this.hot.view.adjustElementsSize(true);
-    };
-    const runHooks = (row, forceRender) => {
-      this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, false);
-      if (forceRender) {
-        render();
-      }
-      this.saveManualRowHeights();
-      this.hot.runHooks('afterRowResize', this.getActualRowHeight(row), row, false);
-    };
-    if (this.pressed) {
-      this.hideHandleAndGuide();
-      this.pressed = false;
-      if (this.newSize !== this.startHeight) {
-        const selectedRowsLength = this.selectedRows.length;
-        if (selectedRowsLength > 1) {
-          (0, _array.arrayEach)(this.selectedRows, selectedRow => {
-            runHooks(selectedRow);
-          });
-          render();
-        } else {
-          (0, _array.arrayEach)(this.selectedRows, selectedRow => {
-            runHooks(selectedRow, true);
-          });
-        }
-      }
-      this.setupHandlePosition(this.currentTH);
-    }
-  }
-
-  /**
-   * Callback for "contextmenu" event triggered on element showing move handle. It removes handle and guide elements.
-   *
-   * @private
-   */
-  onContextMenu() {
-    this.hideHandleAndGuide();
-    this.hot.rootElement.removeChild(this.handle);
-    this.hot.rootElement.removeChild(this.guide);
-    this.pressed = false;
-    this.isTriggeredByRMB = true;
-
-    // There is thrown "mouseover" event right after opening a context menu. This flag inform that handle
-    // shouldn't be drawn just after removing it.
-    this.hot._registerImmediate(() => {
-      this.isTriggeredByRMB = false;
-    });
-  }
-
   /**
    * Binds the mouse events.
    *
@@ -76125,60 +76776,12 @@ class ManualRowResize extends _base.BasePlugin {
       rootElement,
       rootWindow
     } = this.hot;
-    this.eventManager.addEventListener(rootElement, 'mouseover', e => this.onMouseOver(e));
-    this.eventManager.addEventListener(rootElement, 'mousedown', e => this.onMouseDown(e));
-    this.eventManager.addEventListener(rootWindow, 'mousemove', e => this.onMouseMove(e));
-    this.eventManager.addEventListener(rootWindow, 'mouseup', () => this.onMouseUp());
-    this.eventManager.addEventListener(this.handle, 'contextmenu', () => this.onContextMenu());
+    this.eventManager.addEventListener(rootElement, 'mouseover', e => _classPrivateMethodGet(this, _onMouseOver, _onMouseOver2).call(this, e));
+    this.eventManager.addEventListener(rootElement, 'mousedown', e => _classPrivateMethodGet(this, _onMouseDown, _onMouseDown2).call(this, e));
+    this.eventManager.addEventListener(rootWindow, 'mousemove', e => _classPrivateMethodGet(this, _onMouseMove, _onMouseMove2).call(this, e));
+    this.eventManager.addEventListener(rootWindow, 'mouseup', () => _classPrivateMethodGet(this, _onMouseUp, _onMouseUp2).call(this));
+    this.eventManager.addEventListener(this.handle, 'contextmenu', () => _classPrivateMethodGet(this, _onContextMenu, _onContextMenu2).call(this));
   }
-
-  /**
-   * Modifies the provided row height, based on the plugin settings.
-   *
-   * @private
-   * @param {number} height Row height.
-   * @param {number} row Visual row index.
-   * @returns {number}
-   */
-  onModifyRowHeight(height, row) {
-    let newHeight = height;
-    if (this.enabled) {
-      const physicalRow = this.hot.toPhysicalRow(row);
-      const rowHeight = this.rowHeightsMap.getValueAtIndex(physicalRow);
-      if (this.hot.getSettings()[PLUGIN_KEY] && rowHeight) {
-        newHeight = rowHeight;
-      }
-    }
-    return newHeight;
-  }
-
-  /**
-   * Callback to call on map's `init` local hook.
-   *
-   * @private
-   */
-  onMapInit() {
-    const priv = privatePool.get(this);
-    const initialSetting = this.hot.getSettings()[PLUGIN_KEY];
-    const loadedManualRowHeights = this.loadManualRowHeights();
-    this.hot.batchExecution(() => {
-      if (typeof loadedManualRowHeights !== 'undefined') {
-        loadedManualRowHeights.forEach((height, index) => {
-          this.rowHeightsMap.setValueAtIndex(index, height);
-        });
-      } else if (Array.isArray(initialSetting)) {
-        initialSetting.forEach((height, index) => {
-          this.rowHeightsMap.setValueAtIndex(index, height);
-        });
-        priv.config = initialSetting;
-      } else if (initialSetting === true && Array.isArray(priv.config)) {
-        priv.config.forEach((height, index) => {
-          this.rowHeightsMap.setValueAtIndex(index, height);
-        });
-      }
-    }, true);
-  }
-
   /**
    * Destroys the plugin instance.
    */
@@ -76187,6 +76790,127 @@ class ManualRowResize extends _base.BasePlugin {
   }
 }
 exports.ManualRowResize = ManualRowResize;
+function _onMouseOver2(event) {
+  // Workaround for #6926 - if the `event.target` is temporarily detached, we can skip this callback and wait for
+  // the next `onmouseover`.
+  if ((0, _element.isDetached)(event.target)) {
+    return;
+  }
+
+  // A "mouseover" action is triggered right after executing "contextmenu" event. It should be ignored.
+  if (this.isTriggeredByRMB === true) {
+    return;
+  }
+  if (this.checkIfRowHeader(event.target)) {
+    const th = this.getClosestTHParent(event.target);
+    if (th) {
+      if (!this.pressed) {
+        this.setupHandlePosition(th);
+      }
+    }
+  }
+}
+function _onMouseDown2(event) {
+  if ((0, _element.hasClass)(event.target, 'manualRowResizer')) {
+    this.setupHandlePosition(this.currentTH);
+    this.setupGuidePosition();
+    this.pressed = true;
+    if (this.autoresizeTimeout === null) {
+      this.autoresizeTimeout = setTimeout(() => this.afterMouseDownTimeout(), 500);
+      this.hot._registerTimeout(this.autoresizeTimeout);
+    }
+    this.dblclick += 1;
+    this.startY = event.pageY;
+    this.newSize = this.startHeight;
+  }
+}
+function _onMouseMove2(event) {
+  if (this.pressed) {
+    this.currentHeight = this.startHeight + (event.pageY - this.startY);
+    (0, _array.arrayEach)(this.selectedRows, selectedRow => {
+      this.newSize = this.setManualSize(selectedRow, this.currentHeight);
+    });
+    this.refreshHandlePosition();
+    this.refreshGuidePosition();
+  }
+}
+function _onMouseUp2() {
+  const render = () => {
+    this.hot.forceFullRender = true;
+    this.hot.view.render(); // updates all
+    this.hot.view.adjustElementsSize(true);
+  };
+  const runHooks = (row, forceRender) => {
+    this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, false);
+    if (forceRender) {
+      render();
+    }
+    this.saveManualRowHeights();
+    this.hot.runHooks('afterRowResize', this.getActualRowHeight(row), row, false);
+  };
+  if (this.pressed) {
+    this.hideHandleAndGuide();
+    this.pressed = false;
+    if (this.newSize !== this.startHeight) {
+      const selectedRowsLength = this.selectedRows.length;
+      if (selectedRowsLength > 1) {
+        (0, _array.arrayEach)(this.selectedRows, selectedRow => {
+          runHooks(selectedRow);
+        });
+        render();
+      } else {
+        (0, _array.arrayEach)(this.selectedRows, selectedRow => {
+          runHooks(selectedRow, true);
+        });
+      }
+    }
+    this.setupHandlePosition(this.currentTH);
+  }
+}
+function _onContextMenu2() {
+  this.hideHandleAndGuide();
+  this.hot.rootElement.removeChild(this.handle);
+  this.hot.rootElement.removeChild(this.guide);
+  this.pressed = false;
+  this.isTriggeredByRMB = true;
+
+  // There is thrown "mouseover" event right after opening a context menu. This flag inform that handle
+  // shouldn't be drawn just after removing it.
+  this.hot._registerImmediate(() => {
+    this.isTriggeredByRMB = false;
+  });
+}
+function _onModifyRowHeight2(height, row) {
+  let newHeight = height;
+  if (this.enabled) {
+    const physicalRow = this.hot.toPhysicalRow(row);
+    const rowHeight = this.rowHeightsMap.getValueAtIndex(physicalRow);
+    if (this.hot.getSettings()[PLUGIN_KEY] && rowHeight) {
+      newHeight = rowHeight;
+    }
+  }
+  return newHeight;
+}
+function _onMapInit2() {
+  const initialSetting = this.hot.getSettings()[PLUGIN_KEY];
+  const loadedManualRowHeights = this.loadManualRowHeights();
+  this.hot.batchExecution(() => {
+    if (typeof loadedManualRowHeights !== 'undefined') {
+      loadedManualRowHeights.forEach((height, index) => {
+        this.rowHeightsMap.setValueAtIndex(index, height);
+      });
+    } else if (Array.isArray(initialSetting)) {
+      initialSetting.forEach((height, index) => {
+        this.rowHeightsMap.setValueAtIndex(index, height);
+      });
+      (0, _classPrivateFieldSet2.default)(this, _config, initialSetting);
+    } else if (initialSetting === true && Array.isArray((0, _classPrivateFieldGet2.default)(this, _config))) {
+      (0, _classPrivateFieldGet2.default)(this, _config).forEach((height, index) => {
+        this.rowHeightsMap.setValueAtIndex(index, height);
+      });
+    }
+  }, true);
+}
 
 /***/ }),
 /* 613 */
@@ -76211,8 +76935,12 @@ exports.MergeCells = _mergeCells.MergeCells;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+__webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
 var _base = __webpack_require__(423);
-var _pluginHooks = _interopRequireDefault(__webpack_require__(124));
+var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 var _cellsCollection = _interopRequireDefault(__webpack_require__(615));
 var _cellCoords = _interopRequireDefault(__webpack_require__(616));
 var _autofill = _interopRequireDefault(__webpack_require__(618));
@@ -76220,19 +76948,22 @@ var _selection = _interopRequireDefault(__webpack_require__(619));
 var _toggleMerge = _interopRequireDefault(__webpack_require__(620));
 var _array = __webpack_require__(113);
 var _object = __webpack_require__(117);
-var _console = __webpack_require__(125);
-var _number = __webpack_require__(137);
+var _console = __webpack_require__(129);
+var _number = __webpack_require__(141);
 var _utils = __webpack_require__(617);
 __webpack_require__(621);
 var _element = __webpack_require__(107);
 var _browser = __webpack_require__(116);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 _pluginHooks.default.getSingleton().register('beforeMergeCells');
 _pluginHooks.default.getSingleton().register('afterMergeCells');
 _pluginHooks.default.getSingleton().register('beforeUnmergeCells');
 _pluginHooks.default.getSingleton().register('afterUnmergeCells');
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'mergeCells';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 150;
-const privatePool = new WeakMap();
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -76272,42 +77003,231 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * ```
  * :::
  */
+var _lastDesiredCoords = /*#__PURE__*/new WeakMap();
+var _onAfterInit = /*#__PURE__*/new WeakSet();
+var _onAfterIsMultipleSelection = /*#__PURE__*/new WeakSet();
+var _onModifyTransformStart = /*#__PURE__*/new WeakSet();
+var _onModifyTransformEnd = /*#__PURE__*/new WeakSet();
+var _onModifyGetCellCoords = /*#__PURE__*/new WeakSet();
+var _addMergeActionsToContextMenu = /*#__PURE__*/new WeakSet();
+var _onAfterRenderer = /*#__PURE__*/new WeakSet();
+var _onBeforeSetRangeStart = /*#__PURE__*/new WeakSet();
+var _onBeforeSetRangeEnd = /*#__PURE__*/new WeakSet();
+var _onAfterGetCellMeta = /*#__PURE__*/new WeakSet();
+var _onAfterViewportRowCalculatorOverride = /*#__PURE__*/new WeakSet();
+var _onAfterViewportColumnCalculatorOverride = /*#__PURE__*/new WeakSet();
+var _onModifyAutofillRange = /*#__PURE__*/new WeakSet();
+var _onAfterCreateCol = /*#__PURE__*/new WeakSet();
+var _onAfterRemoveCol = /*#__PURE__*/new WeakSet();
+var _onAfterCreateRow = /*#__PURE__*/new WeakSet();
+var _onAfterRemoveRow = /*#__PURE__*/new WeakSet();
+var _onAfterChange = /*#__PURE__*/new WeakSet();
+var _onBeforeDrawAreaBorders = /*#__PURE__*/new WeakSet();
+var _onAfterModifyTransformStart = /*#__PURE__*/new WeakSet();
+var _onAfterDrawSelection = /*#__PURE__*/new WeakSet();
+var _onBeforeRemoveCellClassNames = /*#__PURE__*/new WeakSet();
 class MergeCells extends _base.BasePlugin {
-  static get PLUGIN_KEY() {
-    return PLUGIN_KEY;
-  }
-  static get PLUGIN_PRIORITY() {
-    return PLUGIN_PRIORITY;
-  }
-  constructor(hotInstance) {
-    super(hotInstance);
-    privatePool.set(this, {
-      lastDesiredCoords: null
-    });
-
+  constructor() {
+    super(...arguments);
+    /**
+     * `beforeRemoveCellClassNames` hook callback. Used to remove additional class name from all cells in the table.
+     *
+     * @returns {string[]} An `Array` of `String`s. Each of these strings will act like class names to be removed from
+     *   all the cells in the table.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeRemoveCellClassNames);
+    /**
+     * `afterDrawSelection` hook callback. Used to add the additional class name for the entirely-selected merged cells.
+     *
+     * @param {number} currentRow Visual row index of the currently processed cell.
+     * @param {number} currentColumn Visual column index of the currently cell.
+     * @param {Array} cornersOfSelection Array of the current selection in a form of `[startRow, startColumn, endRow,
+     *   endColumn]`.
+     * @param {number|undefined} layerLevel Number indicating which layer of selection is currently processed.
+     * @returns {string|undefined} A `String`, which will act as an additional `className` to be added to the currently
+     *   processed cell.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterDrawSelection);
+    /**
+     * `afterModifyTransformStart` hook callback. Fixes a problem with navigating through merged cells at the edges of
+     * the table with the ENTER/SHIFT+ENTER/TAB/SHIFT+TAB keys.
+     *
+     * @param {CellCoords} coords Coordinates of the to-be-selected cell.
+     * @param {number} rowTransformDir Row transformation direction (negative value = up, 0 = none, positive value =
+     *   down).
+     * @param {number} colTransformDir Column transformation direction (negative value = up, 0 = none, positive value =
+     *   down).
+     */
+    _classPrivateMethodInitSpec(this, _onAfterModifyTransformStart);
+    /**
+     * `beforeDrawAreaBorders` hook callback.
+     *
+     * @param {Array} corners Visual coordinates of the area corners.
+     * @param {string} className Class name for the area.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeDrawAreaBorders);
+    /**
+     * `afterChange` hook callback. Used to propagate merged cells after using Autofill.
+     *
+     * @param {Array} changes The changes array.
+     * @param {string} source Determines the source of the change.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterChange);
+    /**
+     * `afterRemoveRow` hook callback.
+     *
+     * @param {number} row Row index.
+     * @param {number} count Number of removed rows.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterRemoveRow);
+    /**
+     * `afterCreateRow` hook callback.
+     *
+     * @param {number} row Row index.
+     * @param {number} count Number of created rows.
+     * @param {string} source Source of change.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterCreateRow);
+    /**
+     * `afterRemoveCol` hook callback.
+     *
+     * @param {number} column Column index.
+     * @param {number} count Number of removed columns.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterRemoveCol);
+    /**
+     * `afterCreateCol` hook callback.
+     *
+     * @param {number} column Column index.
+     * @param {number} count Number of created columns.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterCreateCol);
+    /**
+     * The `modifyAutofillRange` hook callback.
+     *
+     * @param {Array} drag The drag area coordinates.
+     * @param {Array} select The selection information.
+     * @returns {Array} The new drag area.
+     */
+    _classPrivateMethodInitSpec(this, _onModifyAutofillRange);
+    /**
+     * `afterViewportColumnCalculatorOverride` hook callback.
+     *
+     * @param {object} calc The column calculator object.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterViewportColumnCalculatorOverride);
+    /**
+     * `afterViewportRowCalculatorOverride` hook callback.
+     *
+     * @param {object} calc The row calculator object.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterViewportRowCalculatorOverride);
+    /**
+     * The `afterGetCellMeta` hook callback.
+     *
+     * @param {number} row Row index.
+     * @param {number} col Column index.
+     * @param {object} cellProperties The cell properties object.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterGetCellMeta);
+    /**
+     * `beforeSetRangeEnd` hook callback.
+     * While selecting cells with keyboard or mouse, make sure that rectangular area is expanded to the extent of the
+     * merged cell.
+     *
+     * Note: Please keep in mind that callback may modify both start and end range coordinates by the reference.
+     *
+     * @param {object} coords Cell coords.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeSetRangeEnd);
+    /**
+     * `beforeSetRangeStart` and `beforeSetRangeStartOnly` hook callback.
+     * A selection within merge area should be rewritten to the start of merge area.
+     *
+     * @param {object} coords Cell coords.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeSetRangeStart);
+    /**
+     * `afterRenderer` hook callback.
+     *
+     * @param {HTMLElement} TD The cell to be modified.
+     * @param {number} row Row index.
+     * @param {number} col Visual column index.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterRenderer);
+    /**
+     * `afterContextMenuDefaultOptions` hook callback.
+     *
+     * @param {object} defaultOptions The default context menu options.
+     */
+    _classPrivateMethodInitSpec(this, _addMergeActionsToContextMenu);
+    /**
+     * `modifyGetCellCoords` hook callback. Swaps the `getCell` coords with the merged parent coords.
+     *
+     * @param {number} row Row index.
+     * @param {number} column Visual column index.
+     * @returns {Array|undefined} Visual coordinates of the merge.
+     */
+    _classPrivateMethodInitSpec(this, _onModifyGetCellCoords);
+    /**
+     * `modifyTransformEnd` hook callback. Needed to handle "jumping over" merged merged cells, while selecting.
+     *
+     * @param {object} delta The transformation delta.
+     */
+    _classPrivateMethodInitSpec(this, _onModifyTransformEnd);
+    /**
+     * `modifyTransformStart` hook callback.
+     *
+     * @param {object} delta The transformation delta.
+     */
+    _classPrivateMethodInitSpec(this, _onModifyTransformStart);
+    /**
+     * Modifies the information on whether the current selection contains multiple cells. The `afterIsMultipleSelection`
+     * hook callback.
+     *
+     * @param {boolean} isMultiple Determines whether the current selection contains multiple cells.
+     * @returns {boolean}
+     */
+    _classPrivateMethodInitSpec(this, _onAfterIsMultipleSelection);
+    /**
+     * `afterInit` hook callback.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterInit);
     /**
      * A container for all the merged cells.
      *
      * @private
      * @type {MergedCellsCollection}
      */
-    this.mergedCellsCollection = null;
+    (0, _defineProperty2.default)(this, "mergedCellsCollection", null);
     /**
      * Instance of the class responsible for all the autofill-related calculations.
      *
      * @private
      * @type {AutofillCalculations}
      */
-    this.autofillCalculations = null;
+    (0, _defineProperty2.default)(this, "autofillCalculations", null);
     /**
      * Instance of the class responsible for the selection-related calculations.
      *
      * @private
      * @type {SelectionCalculations}
      */
-    this.selectionCalculations = null;
+    (0, _defineProperty2.default)(this, "selectionCalculations", null);
+    /**
+     * @type {CellCoords}
+     */
+    _classPrivateFieldInitSpec(this, _lastDesiredCoords, {
+      writable: true,
+      value: null
+    });
   }
-
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link MergeCells#enablePlugin} method is called.
@@ -76330,73 +77250,142 @@ class MergeCells extends _base.BasePlugin {
     this.autofillCalculations = new _autofill.default(this);
     this.selectionCalculations = new _selection.default(this);
     this.addHook('afterInit', function () {
-      return _this.onAfterInit(...arguments);
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+      return _classPrivateMethodGet(_this, _onAfterInit, _onAfterInit2).call(_this, ...args);
     });
     this.addHook('modifyTransformStart', function () {
-      return _this.onModifyTransformStart(...arguments);
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+      return _classPrivateMethodGet(_this, _onModifyTransformStart, _onModifyTransformStart2).call(_this, ...args);
     });
     this.addHook('afterModifyTransformStart', function () {
-      return _this.onAfterModifyTransformStart(...arguments);
+      for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        args[_key3] = arguments[_key3];
+      }
+      return _classPrivateMethodGet(_this, _onAfterModifyTransformStart, _onAfterModifyTransformStart2).call(_this, ...args);
     });
     this.addHook('modifyTransformEnd', function () {
-      return _this.onModifyTransformEnd(...arguments);
+      for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+        args[_key4] = arguments[_key4];
+      }
+      return _classPrivateMethodGet(_this, _onModifyTransformEnd, _onModifyTransformEnd2).call(_this, ...args);
     });
     this.addHook('modifyGetCellCoords', function () {
-      return _this.onModifyGetCellCoords(...arguments);
+      for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+        args[_key5] = arguments[_key5];
+      }
+      return _classPrivateMethodGet(_this, _onModifyGetCellCoords, _onModifyGetCellCoords2).call(_this, ...args);
     });
     this.addHook('beforeSetRangeStart', function () {
-      return _this.onBeforeSetRangeStart(...arguments);
+      for (var _len6 = arguments.length, args = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+        args[_key6] = arguments[_key6];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeSetRangeStart, _onBeforeSetRangeStart2).call(_this, ...args);
     });
     this.addHook('beforeSetRangeStartOnly', function () {
-      return _this.onBeforeSetRangeStart(...arguments);
+      for (var _len7 = arguments.length, args = new Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
+        args[_key7] = arguments[_key7];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeSetRangeStart, _onBeforeSetRangeStart2).call(_this, ...args);
     });
     this.addHook('beforeSetRangeEnd', function () {
-      return _this.onBeforeSetRangeEnd(...arguments);
+      for (var _len8 = arguments.length, args = new Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
+        args[_key8] = arguments[_key8];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeSetRangeEnd, _onBeforeSetRangeEnd2).call(_this, ...args);
     });
     this.addHook('afterIsMultipleSelection', function () {
-      return _this.onAfterIsMultipleSelection(...arguments);
+      for (var _len9 = arguments.length, args = new Array(_len9), _key9 = 0; _key9 < _len9; _key9++) {
+        args[_key9] = arguments[_key9];
+      }
+      return _classPrivateMethodGet(_this, _onAfterIsMultipleSelection, _onAfterIsMultipleSelection2).call(_this, ...args);
     });
     this.addHook('afterRenderer', function () {
-      return _this.onAfterRenderer(...arguments);
+      for (var _len10 = arguments.length, args = new Array(_len10), _key10 = 0; _key10 < _len10; _key10++) {
+        args[_key10] = arguments[_key10];
+      }
+      return _classPrivateMethodGet(_this, _onAfterRenderer, _onAfterRenderer2).call(_this, ...args);
     });
     this.addHook('afterContextMenuDefaultOptions', function () {
-      return _this.addMergeActionsToContextMenu(...arguments);
+      for (var _len11 = arguments.length, args = new Array(_len11), _key11 = 0; _key11 < _len11; _key11++) {
+        args[_key11] = arguments[_key11];
+      }
+      return _classPrivateMethodGet(_this, _addMergeActionsToContextMenu, _addMergeActionsToContextMenu2).call(_this, ...args);
     });
     this.addHook('afterGetCellMeta', function () {
-      return _this.onAfterGetCellMeta(...arguments);
+      for (var _len12 = arguments.length, args = new Array(_len12), _key12 = 0; _key12 < _len12; _key12++) {
+        args[_key12] = arguments[_key12];
+      }
+      return _classPrivateMethodGet(_this, _onAfterGetCellMeta, _onAfterGetCellMeta2).call(_this, ...args);
     });
     this.addHook('afterViewportRowCalculatorOverride', function () {
-      return _this.onAfterViewportRowCalculatorOverride(...arguments);
+      for (var _len13 = arguments.length, args = new Array(_len13), _key13 = 0; _key13 < _len13; _key13++) {
+        args[_key13] = arguments[_key13];
+      }
+      return _classPrivateMethodGet(_this, _onAfterViewportRowCalculatorOverride, _onAfterViewportRowCalculatorOverride2).call(_this, ...args);
     });
     this.addHook('afterViewportColumnCalculatorOverride', function () {
-      return _this.onAfterViewportColumnCalculatorOverride(...arguments);
+      for (var _len14 = arguments.length, args = new Array(_len14), _key14 = 0; _key14 < _len14; _key14++) {
+        args[_key14] = arguments[_key14];
+      }
+      return _classPrivateMethodGet(_this, _onAfterViewportColumnCalculatorOverride, _onAfterViewportColumnCalculatorOverride2).call(_this, ...args);
     });
     this.addHook('modifyAutofillRange', function () {
-      return _this.onModifyAutofillRange(...arguments);
+      for (var _len15 = arguments.length, args = new Array(_len15), _key15 = 0; _key15 < _len15; _key15++) {
+        args[_key15] = arguments[_key15];
+      }
+      return _classPrivateMethodGet(_this, _onModifyAutofillRange, _onModifyAutofillRange2).call(_this, ...args);
     });
     this.addHook('afterCreateCol', function () {
-      return _this.onAfterCreateCol(...arguments);
+      for (var _len16 = arguments.length, args = new Array(_len16), _key16 = 0; _key16 < _len16; _key16++) {
+        args[_key16] = arguments[_key16];
+      }
+      return _classPrivateMethodGet(_this, _onAfterCreateCol, _onAfterCreateCol2).call(_this, ...args);
     });
     this.addHook('afterRemoveCol', function () {
-      return _this.onAfterRemoveCol(...arguments);
+      for (var _len17 = arguments.length, args = new Array(_len17), _key17 = 0; _key17 < _len17; _key17++) {
+        args[_key17] = arguments[_key17];
+      }
+      return _classPrivateMethodGet(_this, _onAfterRemoveCol, _onAfterRemoveCol2).call(_this, ...args);
     });
     this.addHook('afterCreateRow', function () {
-      return _this.onAfterCreateRow(...arguments);
+      for (var _len18 = arguments.length, args = new Array(_len18), _key18 = 0; _key18 < _len18; _key18++) {
+        args[_key18] = arguments[_key18];
+      }
+      return _classPrivateMethodGet(_this, _onAfterCreateRow, _onAfterCreateRow2).call(_this, ...args);
     });
     this.addHook('afterRemoveRow', function () {
-      return _this.onAfterRemoveRow(...arguments);
+      for (var _len19 = arguments.length, args = new Array(_len19), _key19 = 0; _key19 < _len19; _key19++) {
+        args[_key19] = arguments[_key19];
+      }
+      return _classPrivateMethodGet(_this, _onAfterRemoveRow, _onAfterRemoveRow2).call(_this, ...args);
     });
     this.addHook('afterChange', function () {
-      return _this.onAfterChange(...arguments);
+      for (var _len20 = arguments.length, args = new Array(_len20), _key20 = 0; _key20 < _len20; _key20++) {
+        args[_key20] = arguments[_key20];
+      }
+      return _classPrivateMethodGet(_this, _onAfterChange, _onAfterChange2).call(_this, ...args);
     });
     this.addHook('beforeDrawBorders', function () {
-      return _this.onBeforeDrawAreaBorders(...arguments);
+      for (var _len21 = arguments.length, args = new Array(_len21), _key21 = 0; _key21 < _len21; _key21++) {
+        args[_key21] = arguments[_key21];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeDrawAreaBorders, _onBeforeDrawAreaBorders2).call(_this, ...args);
     });
     this.addHook('afterDrawSelection', function () {
-      return _this.onAfterDrawSelection(...arguments);
+      for (var _len22 = arguments.length, args = new Array(_len22), _key22 = 0; _key22 < _len22; _key22++) {
+        args[_key22] = arguments[_key22];
+      }
+      return _classPrivateMethodGet(_this, _onAfterDrawSelection, _onAfterDrawSelection2).call(_this, ...args);
     });
     this.addHook('beforeRemoveCellClassNames', function () {
-      return _this.onBeforeRemoveCellClassNames(...arguments);
+      for (var _len23 = arguments.length, args = new Array(_len23), _key23 = 0; _key23 < _len23; _key23++) {
+        args[_key23] = arguments[_key23];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeRemoveCellClassNames, _onBeforeRemoveCellClassNames2).call(_this, ...args);
     });
     this.addHook('beforeUndoStackChange', (action, source) => {
       if (source === 'MergeCells') {
@@ -76671,7 +77660,7 @@ class MergeCells extends _base.BasePlugin {
       if (preventPopulation) {
         populationInfo = [mergeParent.row, mergeParent.col, clearedData];
       } else {
-        this.hot.populateFromArray(mergeParent.row, mergeParent.col, clearedData, void 0, void 0, this.pluginName);
+        this.hot.populateFromArray(mergeParent.row, mergeParent.col, clearedData, undefined, undefined, this.pluginName);
       }
       if (!auto) {
         this.ifChromeForceRepaint();
@@ -76760,17 +77749,6 @@ class MergeCells extends _base.BasePlugin {
     const end = this.hot._createCellCoords(endRow, endColumn);
     this.unmergeRange(this.hot._createCellRange(start, start, end));
   }
-
-  /**
-   * `afterInit` hook callback.
-   *
-   * @private
-   */
-  onAfterInit() {
-    this.generateFromSettings(this.hot.getSettings()[PLUGIN_KEY]);
-    this.hot.render();
-  }
-
   /**
    * Register shortcuts responsible for toggling a merge.
    *
@@ -76804,280 +77782,6 @@ class MergeCells extends _base.BasePlugin {
     const gridContext = shortcutManager.getContext('grid');
     gridContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
-
-  /**
-   * Modifies the information on whether the current selection contains multiple cells. The `afterIsMultipleSelection`
-   * hook callback.
-   *
-   * @private
-   * @param {boolean} isMultiple Determines whether the current selection contains multiple cells.
-   * @returns {boolean}
-   */
-  onAfterIsMultipleSelection(isMultiple) {
-    if (isMultiple) {
-      const mergedCells = this.mergedCellsCollection.mergedCells;
-      const selectionRange = this.hot.getSelectedRangeLast();
-      for (let group = 0; group < mergedCells.length; group += 1) {
-        if (selectionRange.from.row === mergedCells[group].row && selectionRange.from.col === mergedCells[group].col && selectionRange.to.row === mergedCells[group].row + mergedCells[group].rowspan - 1 && selectionRange.to.col === mergedCells[group].col + mergedCells[group].colspan - 1) {
-          return false;
-        }
-      }
-    }
-    return isMultiple;
-  }
-
-  /**
-   * `modifyTransformStart` hook callback.
-   *
-   * @private
-   * @param {object} delta The transformation delta.
-   */
-  onModifyTransformStart(delta) {
-    const priv = privatePool.get(this);
-    const currentlySelectedRange = this.hot.getSelectedRangeLast();
-    let newDelta = {
-      row: delta.row,
-      col: delta.col
-    };
-    let nextPosition = null;
-    const currentPosition = this.hot._createCellCoords(currentlySelectedRange.highlight.row, currentlySelectedRange.highlight.col);
-    const mergedParent = this.mergedCellsCollection.get(currentPosition.row, currentPosition.col);
-    if (!priv.lastDesiredCoords) {
-      priv.lastDesiredCoords = this.hot._createCellCoords(null, null);
-    }
-    if (mergedParent) {
-      // only merge selected
-      const mergeTopLeft = this.hot._createCellCoords(mergedParent.row, mergedParent.col);
-      const mergeBottomRight = this.hot._createCellCoords(mergedParent.row + mergedParent.rowspan - 1, mergedParent.col + mergedParent.colspan - 1);
-      const mergeRange = this.hot._createCellRange(mergeTopLeft, mergeTopLeft, mergeBottomRight);
-      if (!mergeRange.includes(priv.lastDesiredCoords)) {
-        priv.lastDesiredCoords = this.hot._createCellCoords(null, null); // reset outdated version of lastDesiredCoords
-      }
-
-      newDelta.row = priv.lastDesiredCoords.row ? priv.lastDesiredCoords.row - currentPosition.row : newDelta.row;
-      newDelta.col = priv.lastDesiredCoords.col ? priv.lastDesiredCoords.col - currentPosition.col : newDelta.col;
-      if (delta.row > 0) {
-        // moving down
-        newDelta.row = mergedParent.row + mergedParent.rowspan - 1 - currentPosition.row + delta.row;
-      } else if (delta.row < 0) {
-        // moving up
-        newDelta.row = currentPosition.row - mergedParent.row + delta.row;
-      }
-      if (delta.col > 0) {
-        // moving right
-        newDelta.col = mergedParent.col + mergedParent.colspan - 1 - currentPosition.col + delta.col;
-      } else if (delta.col < 0) {
-        // moving left
-        newDelta.col = currentPosition.col - mergedParent.col + delta.col;
-      }
-    }
-    nextPosition = this.hot._createCellCoords(currentlySelectedRange.highlight.row + newDelta.row, currentlySelectedRange.highlight.col + newDelta.col);
-    const nextPositionMergedCell = this.mergedCellsCollection.get(nextPosition.row, nextPosition.col);
-    if (nextPositionMergedCell) {
-      // skipping the invisible cells in the merge range
-      const firstRenderableCoords = this.mergedCellsCollection.getFirstRenderableCoords(nextPositionMergedCell.row, nextPositionMergedCell.col);
-      priv.lastDesiredCoords = nextPosition;
-      newDelta = {
-        row: firstRenderableCoords.row - currentPosition.row,
-        col: firstRenderableCoords.col - currentPosition.col
-      };
-    }
-    if (newDelta.row !== 0) {
-      delta.row = newDelta.row;
-    }
-    if (newDelta.col !== 0) {
-      delta.col = newDelta.col;
-    }
-  }
-
-  /**
-   * `modifyTransformEnd` hook callback. Needed to handle "jumping over" merged merged cells, while selecting.
-   *
-   * @private
-   * @param {object} delta The transformation delta.
-   */
-  onModifyTransformEnd(delta) {
-    const currentSelectionRange = this.hot.getSelectedRangeLast();
-    const newDelta = (0, _object.clone)(delta);
-    const newSelectionRange = this.selectionCalculations.getUpdatedSelectionRange(currentSelectionRange, delta);
-    let tempDelta = (0, _object.clone)(newDelta);
-    const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(newSelectionRange, true);
-    do {
-      tempDelta = (0, _object.clone)(newDelta);
-      this.selectionCalculations.getUpdatedSelectionRange(currentSelectionRange, newDelta);
-      (0, _array.arrayEach)(mergedCellsWithinRange, mergedCell => {
-        this.selectionCalculations.snapDelta(newDelta, currentSelectionRange, mergedCell);
-      });
-    } while (newDelta.row !== tempDelta.row || newDelta.col !== tempDelta.col);
-    delta.row = newDelta.row;
-    delta.col = newDelta.col;
-  }
-
-  /**
-   * `modifyGetCellCoords` hook callback. Swaps the `getCell` coords with the merged parent coords.
-   *
-   * @private
-   * @param {number} row Row index.
-   * @param {number} column Visual column index.
-   * @returns {Array|undefined} Visual coordinates of the merge.
-   */
-  onModifyGetCellCoords(row, column) {
-    if (row < 0 || column < 0) {
-      return;
-    }
-    const mergeParent = this.mergedCellsCollection.get(row, column);
-    if (!mergeParent) {
-      return;
-    }
-    const {
-      row: mergeRow,
-      col: mergeColumn,
-      colspan,
-      rowspan
-    } = mergeParent;
-    return [
-    // Most top-left merged cell coords.
-    mergeRow, mergeColumn,
-    // Most bottom-right merged cell coords.
-    mergeRow + rowspan - 1, mergeColumn + colspan - 1];
-  }
-
-  /**
-   * `afterContextMenuDefaultOptions` hook callback.
-   *
-   * @private
-   * @param {object} defaultOptions The default context menu options.
-   */
-  addMergeActionsToContextMenu(defaultOptions) {
-    defaultOptions.items.push({
-      name: '---------'
-    }, (0, _toggleMerge.default)(this));
-  }
-
-  /**
-   * `afterRenderer` hook callback.
-   *
-   * @private
-   * @param {HTMLElement} TD The cell to be modified.
-   * @param {number} row Row index.
-   * @param {number} col Visual column index.
-   */
-  onAfterRenderer(TD, row, col) {
-    const mergedCell = this.mergedCellsCollection.get(row, col);
-    // We shouldn't override data in the collection.
-    const mergedCellCopy = (0, _object.isObject)(mergedCell) ? (0, _object.clone)(mergedCell) : void 0;
-    if ((0, _object.isObject)(mergedCellCopy)) {
-      const {
-        rowIndexMapper: rowMapper,
-        columnIndexMapper: columnMapper
-      } = this.hot;
-      const {
-        row: mergeRow,
-        col: mergeColumn,
-        colspan,
-        rowspan
-      } = mergedCellCopy;
-      const [lastMergedRowIndex, lastMergedColumnIndex] = this.translateMergedCellToRenderable(mergeRow, rowspan, mergeColumn, colspan);
-      const renderedRowIndex = rowMapper.getRenderableFromVisualIndex(row);
-      const renderedColumnIndex = columnMapper.getRenderableFromVisualIndex(col);
-      const maxRowSpan = lastMergedRowIndex - renderedRowIndex + 1; // Number of rendered columns.
-      const maxColSpan = lastMergedColumnIndex - renderedColumnIndex + 1; // Number of rendered columns.
-
-      // We just try to determine some values basing on the actual number of rendered indexes (some columns may be hidden).
-      mergedCellCopy.row = rowMapper.getNearestNotHiddenIndex(mergedCellCopy.row, 1);
-      // We just try to determine some values basing on the actual number of rendered indexes (some columns may be hidden).
-      mergedCellCopy.col = columnMapper.getNearestNotHiddenIndex(mergedCellCopy.col, 1);
-      // The `rowSpan` property for a `TD` element should be at most equal to number of rendered rows in the merge area.
-      mergedCellCopy.rowspan = Math.min(mergedCellCopy.rowspan, maxRowSpan);
-      // The `colSpan` property for a `TD` element should be at most equal to number of rendered columns in the merge area.
-      mergedCellCopy.colspan = Math.min(mergedCellCopy.colspan, maxColSpan);
-    }
-    (0, _utils.applySpanProperties)(TD, mergedCellCopy, row, col);
-  }
-
-  /**
-   * `beforeSetRangeStart` and `beforeSetRangeStartOnly` hook callback.
-   * A selection within merge area should be rewritten to the start of merge area.
-   *
-   * @private
-   * @param {object} coords Cell coords.
-   */
-  onBeforeSetRangeStart(coords) {
-    // TODO: It is a workaround, but probably this hook may be needed. Every selection on the merge area
-    // could set start point of the selection to the start of the merge area. However, logic inside `expandByRange` need
-    // an initial start point. Click on the merge cell when there are some hidden indexes break the logic in some cases.
-    // Please take a look at #7010 for more information. I'm not sure if selection directions are calculated properly
-    // and what was idea for flipping direction inside `expandByRange` method.
-    if (this.mergedCellsCollection.isFirstRenderableMergedCell(coords.row, coords.col)) {
-      const mergeParent = this.mergedCellsCollection.get(coords.row, coords.col);
-      [coords.row, coords.col] = [mergeParent.row, mergeParent.col];
-    }
-  }
-
-  /**
-   * `beforeSetRangeEnd` hook callback.
-   * While selecting cells with keyboard or mouse, make sure that rectangular area is expanded to the extent of the
-   * merged cell.
-   *
-   * Note: Please keep in mind that callback may modify both start and end range coordinates by the reference.
-   *
-   * @private
-   * @param {object} coords Cell coords.
-   */
-  onBeforeSetRangeEnd(coords) {
-    const selRange = this.hot.getSelectedRangeLast();
-    selRange.highlight = this.hot._createCellCoords(selRange.highlight.row, selRange.highlight.col); // clone in case we will modify its reference
-    selRange.to = coords;
-    let rangeExpanded = false;
-    if (this.hot.selection.isSelectedByColumnHeader() || this.hot.selection.isSelectedByRowHeader()) {
-      return;
-    }
-    do {
-      rangeExpanded = false;
-      for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
-        const cellInfo = this.mergedCellsCollection.mergedCells[i];
-        const mergedCellRange = cellInfo.getRange();
-        if (selRange.expandByRange(mergedCellRange)) {
-          coords.row = selRange.to.row;
-          coords.col = selRange.to.col;
-          rangeExpanded = true;
-        }
-      }
-    } while (rangeExpanded);
-  }
-
-  /**
-   * The `afterGetCellMeta` hook callback.
-   *
-   * @private
-   * @param {number} row Row index.
-   * @param {number} col Column index.
-   * @param {object} cellProperties The cell properties object.
-   */
-  onAfterGetCellMeta(row, col, cellProperties) {
-    const mergeParent = this.mergedCellsCollection.get(row, col);
-    if (mergeParent) {
-      if (mergeParent.row !== row || mergeParent.col !== col) {
-        cellProperties.copyable = false;
-      } else {
-        cellProperties.rowspan = mergeParent.rowspan;
-        cellProperties.colspan = mergeParent.colspan;
-      }
-    }
-  }
-
-  /**
-   * `afterViewportRowCalculatorOverride` hook callback.
-   *
-   * @private
-   * @param {object} calc The row calculator object.
-   */
-  onAfterViewportRowCalculatorOverride(calc) {
-    const nrOfColumns = this.hot.countCols();
-    this.modifyViewportRowStart(calc, nrOfColumns);
-    this.modifyViewportRowEnd(calc, nrOfColumns);
-  }
-
   /**
    * Modify viewport start when needed. We extend viewport when merged cells aren't fully visible.
    *
@@ -77133,18 +77837,6 @@ class MergeCells extends _base.BasePlugin {
         }
       }
     }
-  }
-
-  /**
-   * `afterViewportColumnCalculatorOverride` hook callback.
-   *
-   * @private
-   * @param {object} calc The column calculator object.
-   */
-  onAfterViewportColumnCalculatorOverride(calc) {
-    const nrOfRows = this.hot.countRows();
-    this.modifyViewportColumnStart(calc, nrOfRows);
-    this.modifyViewportColumnEnd(calc, nrOfRows);
   }
 
   /**
@@ -77241,187 +77933,294 @@ class MergeCells extends _base.BasePlugin {
     const renderableColumn = parentColumn >= 0 ? columnMapper.getRenderableFromVisualIndex(firstNonHiddenColumn) : parentColumn;
     return [renderableRow, renderableColumn];
   }
-
-  /**
-   * The `modifyAutofillRange` hook callback.
-   *
-   * @private
-   * @param {Array} drag The drag area coordinates.
-   * @param {Array} select The selection information.
-   * @returns {Array} The new drag area.
-   */
-  onModifyAutofillRange(drag, select) {
-    this.autofillCalculations.correctSelectionAreaSize(select);
-    const dragDirection = this.autofillCalculations.getDirection(select, drag);
-    let dragArea = drag;
-    if (this.autofillCalculations.dragAreaOverlapsCollections(select, dragArea, dragDirection)) {
-      dragArea = select;
-      return dragArea;
-    }
-    const mergedCellsWithinSelectionArea = this.mergedCellsCollection.getWithinRange({
-      from: {
-        row: select[0],
-        col: select[1]
-      },
-      to: {
-        row: select[2],
-        col: select[3]
-      }
-    });
-    if (!mergedCellsWithinSelectionArea) {
-      return dragArea;
-    }
-    dragArea = this.autofillCalculations.snapDragArea(select, dragArea, dragDirection, mergedCellsWithinSelectionArea);
-    return dragArea;
-  }
-
-  /**
-   * `afterCreateCol` hook callback.
-   *
-   * @private
-   * @param {number} column Column index.
-   * @param {number} count Number of created columns.
-   */
-  onAfterCreateCol(column, count) {
-    this.mergedCellsCollection.shiftCollections('right', column, count);
-  }
-
-  /**
-   * `afterRemoveCol` hook callback.
-   *
-   * @private
-   * @param {number} column Column index.
-   * @param {number} count Number of removed columns.
-   */
-  onAfterRemoveCol(column, count) {
-    this.mergedCellsCollection.shiftCollections('left', column, count);
-  }
-
-  /**
-   * `afterCreateRow` hook callback.
-   *
-   * @private
-   * @param {number} row Row index.
-   * @param {number} count Number of created rows.
-   * @param {string} source Source of change.
-   */
-  onAfterCreateRow(row, count, source) {
-    if (source === 'auto') {
-      return;
-    }
-    this.mergedCellsCollection.shiftCollections('down', row, count);
-  }
-
-  /**
-   * `afterRemoveRow` hook callback.
-   *
-   * @private
-   * @param {number} row Row index.
-   * @param {number} count Number of removed rows.
-   */
-  onAfterRemoveRow(row, count) {
-    this.mergedCellsCollection.shiftCollections('up', row, count);
-  }
-
-  /**
-   * `afterChange` hook callback. Used to propagate merged cells after using Autofill.
-   *
-   * @private
-   * @param {Array} changes The changes array.
-   * @param {string} source Determines the source of the change.
-   */
-  onAfterChange(changes, source) {
-    if (source !== 'Autofill.fill') {
-      return;
-    }
-    this.autofillCalculations.recreateAfterDataPopulation(changes);
-  }
-
-  /**
-   * `beforeDrawAreaBorders` hook callback.
-   *
-   * @private
-   * @param {Array} corners Visual coordinates of the area corners.
-   * @param {string} className Class name for the area.
-   */
-  onBeforeDrawAreaBorders(corners, className) {
-    if (className && className === 'area') {
-      const selectedRange = this.hot.getSelectedRangeLast();
-      const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(selectedRange);
-      (0, _array.arrayEach)(mergedCellsWithinRange, mergedCell => {
-        if (selectedRange.getBottomEndCorner().row === mergedCell.getLastRow() && selectedRange.getBottomEndCorner().col === mergedCell.getLastColumn()) {
-          corners[2] = mergedCell.row;
-          corners[3] = mergedCell.col;
-        }
-      });
-    }
-  }
-
-  /**
-   * `afterModifyTransformStart` hook callback. Fixes a problem with navigating through merged cells at the edges of
-   * the table with the ENTER/SHIFT+ENTER/TAB/SHIFT+TAB keys.
-   *
-   * @private
-   * @param {CellCoords} coords Coordinates of the to-be-selected cell.
-   * @param {number} rowTransformDir Row transformation direction (negative value = up, 0 = none, positive value =
-   *   down).
-   * @param {number} colTransformDir Column transformation direction (negative value = up, 0 = none, positive value =
-   *   down).
-   */
-  onAfterModifyTransformStart(coords, rowTransformDir, colTransformDir) {
-    if (!this.enabled) {
-      return;
-    }
-    const mergedCellAtCoords = this.mergedCellsCollection.get(coords.row, coords.col);
-    if (!mergedCellAtCoords) {
-      return;
-    }
-    const goingDown = rowTransformDir > 0;
-    const goingUp = rowTransformDir < 0;
-    const goingLeft = colTransformDir < 0;
-    const goingRight = colTransformDir > 0;
-    const mergedCellOnBottomEdge = mergedCellAtCoords.row + mergedCellAtCoords.rowspan - 1 === this.hot.countRows() - 1;
-    const mergedCellOnTopEdge = mergedCellAtCoords.row === 0;
-    const mergedCellOnRightEdge = mergedCellAtCoords.col + mergedCellAtCoords.colspan - 1 === this.hot.countCols() - 1;
-    const mergedCellOnLeftEdge = mergedCellAtCoords.col === 0;
-    if (goingDown && mergedCellOnBottomEdge || goingUp && mergedCellOnTopEdge || goingRight && mergedCellOnRightEdge || goingLeft && mergedCellOnLeftEdge) {
-      coords.row = mergedCellAtCoords.row;
-      coords.col = mergedCellAtCoords.col;
-    }
-  }
-
-  /**
-   * `afterDrawSelection` hook callback. Used to add the additional class name for the entirely-selected merged cells.
-   *
-   * @private
-   * @param {number} currentRow Visual row index of the currently processed cell.
-   * @param {number} currentColumn Visual column index of the currently cell.
-   * @param {Array} cornersOfSelection Array of the current selection in a form of `[startRow, startColumn, endRow,
-   *   endColumn]`.
-   * @param {number|undefined} layerLevel Number indicating which layer of selection is currently processed.
-   * @returns {string|undefined} A `String`, which will act as an additional `className` to be added to the currently
-   *   processed cell.
-   */
-  onAfterDrawSelection(currentRow, currentColumn, cornersOfSelection, layerLevel) {
-    // Nothing's selected (hook might be triggered by the custom borders)
-    if (!cornersOfSelection) {
-      return;
-    }
-    return this.selectionCalculations.getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection, layerLevel);
-  }
-
-  /**
-   * `beforeRemoveCellClassNames` hook callback. Used to remove additional class name from all cells in the table.
-   *
-   * @private
-   * @returns {string[]} An `Array` of `String`s. Each of these strings will act like class names to be removed from
-   *   all the cells in the table.
-   */
-  onBeforeRemoveCellClassNames() {
-    return this.selectionCalculations.getSelectedMergedCellClassNameToRemove();
-  }
 }
 exports.MergeCells = MergeCells;
+function _onAfterInit2() {
+  this.generateFromSettings(this.hot.getSettings()[PLUGIN_KEY]);
+  this.hot.render();
+}
+function _onAfterIsMultipleSelection2(isMultiple) {
+  if (isMultiple) {
+    const mergedCells = this.mergedCellsCollection.mergedCells;
+    const selectionRange = this.hot.getSelectedRangeLast();
+    for (let group = 0; group < mergedCells.length; group += 1) {
+      if (selectionRange.from.row === mergedCells[group].row && selectionRange.from.col === mergedCells[group].col && selectionRange.to.row === mergedCells[group].row + mergedCells[group].rowspan - 1 && selectionRange.to.col === mergedCells[group].col + mergedCells[group].colspan - 1) {
+        return false;
+      }
+    }
+  }
+  return isMultiple;
+}
+function _onModifyTransformStart2(delta) {
+  const currentlySelectedRange = this.hot.getSelectedRangeLast();
+  let newDelta = {
+    row: delta.row,
+    col: delta.col
+  };
+  let nextPosition = null;
+  const currentPosition = this.hot._createCellCoords(currentlySelectedRange.highlight.row, currentlySelectedRange.highlight.col);
+  const mergedParent = this.mergedCellsCollection.get(currentPosition.row, currentPosition.col);
+  if (!(0, _classPrivateFieldGet2.default)(this, _lastDesiredCoords)) {
+    (0, _classPrivateFieldSet2.default)(this, _lastDesiredCoords, this.hot._createCellCoords(null, null));
+  }
+  if (mergedParent) {
+    // only merge selected
+    const mergeTopLeft = this.hot._createCellCoords(mergedParent.row, mergedParent.col);
+    const mergeBottomRight = this.hot._createCellCoords(mergedParent.row + mergedParent.rowspan - 1, mergedParent.col + mergedParent.colspan - 1);
+    const mergeRange = this.hot._createCellRange(mergeTopLeft, mergeTopLeft, mergeBottomRight);
+    if (!mergeRange.includes((0, _classPrivateFieldGet2.default)(this, _lastDesiredCoords))) {
+      (0, _classPrivateFieldSet2.default)(this, _lastDesiredCoords, this.hot._createCellCoords(null, null)); // reset outdated version of lastDesiredCoords
+    }
+
+    newDelta.row = (0, _classPrivateFieldGet2.default)(this, _lastDesiredCoords).row ? (0, _classPrivateFieldGet2.default)(this, _lastDesiredCoords).row - currentPosition.row : newDelta.row;
+    newDelta.col = (0, _classPrivateFieldGet2.default)(this, _lastDesiredCoords).col ? (0, _classPrivateFieldGet2.default)(this, _lastDesiredCoords).col - currentPosition.col : newDelta.col;
+    if (delta.row > 0) {
+      // moving down
+      newDelta.row = mergedParent.row + mergedParent.rowspan - 1 - currentPosition.row + delta.row;
+    } else if (delta.row < 0) {
+      // moving up
+      newDelta.row = currentPosition.row - mergedParent.row + delta.row;
+    }
+    if (delta.col > 0) {
+      // moving right
+      newDelta.col = mergedParent.col + mergedParent.colspan - 1 - currentPosition.col + delta.col;
+    } else if (delta.col < 0) {
+      // moving left
+      newDelta.col = currentPosition.col - mergedParent.col + delta.col;
+    }
+  }
+  nextPosition = this.hot._createCellCoords(currentlySelectedRange.highlight.row + newDelta.row, currentlySelectedRange.highlight.col + newDelta.col);
+  const nextPositionMergedCell = this.mergedCellsCollection.get(nextPosition.row, nextPosition.col);
+  if (nextPositionMergedCell) {
+    // skipping the invisible cells in the merge range
+    const firstRenderableCoords = this.mergedCellsCollection.getFirstRenderableCoords(nextPositionMergedCell.row, nextPositionMergedCell.col);
+    (0, _classPrivateFieldSet2.default)(this, _lastDesiredCoords, nextPosition);
+    newDelta = {
+      row: firstRenderableCoords.row - currentPosition.row,
+      col: firstRenderableCoords.col - currentPosition.col
+    };
+  }
+  if (newDelta.row !== 0) {
+    delta.row = newDelta.row;
+  }
+  if (newDelta.col !== 0) {
+    delta.col = newDelta.col;
+  }
+}
+function _onModifyTransformEnd2(delta) {
+  const currentSelectionRange = this.hot.getSelectedRangeLast();
+  const newDelta = (0, _object.clone)(delta);
+  const newSelectionRange = this.selectionCalculations.getUpdatedSelectionRange(currentSelectionRange, delta);
+  let tempDelta = (0, _object.clone)(newDelta);
+  const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(newSelectionRange, true);
+  do {
+    tempDelta = (0, _object.clone)(newDelta);
+    this.selectionCalculations.getUpdatedSelectionRange(currentSelectionRange, newDelta);
+    (0, _array.arrayEach)(mergedCellsWithinRange, mergedCell => {
+      this.selectionCalculations.snapDelta(newDelta, currentSelectionRange, mergedCell);
+    });
+  } while (newDelta.row !== tempDelta.row || newDelta.col !== tempDelta.col);
+  delta.row = newDelta.row;
+  delta.col = newDelta.col;
+}
+function _onModifyGetCellCoords2(row, column) {
+  if (row < 0 || column < 0) {
+    return;
+  }
+  const mergeParent = this.mergedCellsCollection.get(row, column);
+  if (!mergeParent) {
+    return;
+  }
+  const {
+    row: mergeRow,
+    col: mergeColumn,
+    colspan,
+    rowspan
+  } = mergeParent;
+  return [
+  // Most top-left merged cell coords.
+  mergeRow, mergeColumn,
+  // Most bottom-right merged cell coords.
+  mergeRow + rowspan - 1, mergeColumn + colspan - 1];
+}
+function _addMergeActionsToContextMenu2(defaultOptions) {
+  defaultOptions.items.push({
+    name: '---------'
+  }, (0, _toggleMerge.default)(this));
+}
+function _onAfterRenderer2(TD, row, col) {
+  const mergedCell = this.mergedCellsCollection.get(row, col);
+  // We shouldn't override data in the collection.
+  const mergedCellCopy = (0, _object.isObject)(mergedCell) ? (0, _object.clone)(mergedCell) : undefined;
+  if ((0, _object.isObject)(mergedCellCopy)) {
+    const {
+      rowIndexMapper: rowMapper,
+      columnIndexMapper: columnMapper
+    } = this.hot;
+    const {
+      row: mergeRow,
+      col: mergeColumn,
+      colspan,
+      rowspan
+    } = mergedCellCopy;
+    const [lastMergedRowIndex, lastMergedColumnIndex] = this.translateMergedCellToRenderable(mergeRow, rowspan, mergeColumn, colspan);
+    const renderedRowIndex = rowMapper.getRenderableFromVisualIndex(row);
+    const renderedColumnIndex = columnMapper.getRenderableFromVisualIndex(col);
+    const maxRowSpan = lastMergedRowIndex - renderedRowIndex + 1; // Number of rendered columns.
+    const maxColSpan = lastMergedColumnIndex - renderedColumnIndex + 1; // Number of rendered columns.
+
+    // We just try to determine some values basing on the actual number of rendered indexes (some columns may be hidden).
+    mergedCellCopy.row = rowMapper.getNearestNotHiddenIndex(mergedCellCopy.row, 1);
+    // We just try to determine some values basing on the actual number of rendered indexes (some columns may be hidden).
+    mergedCellCopy.col = columnMapper.getNearestNotHiddenIndex(mergedCellCopy.col, 1);
+    // The `rowSpan` property for a `TD` element should be at most equal to number of rendered rows in the merge area.
+    mergedCellCopy.rowspan = Math.min(mergedCellCopy.rowspan, maxRowSpan);
+    // The `colSpan` property for a `TD` element should be at most equal to number of rendered columns in the merge area.
+    mergedCellCopy.colspan = Math.min(mergedCellCopy.colspan, maxColSpan);
+  }
+  (0, _utils.applySpanProperties)(TD, mergedCellCopy, row, col);
+}
+function _onBeforeSetRangeStart2(coords) {
+  // TODO: It is a workaround, but probably this hook may be needed. Every selection on the merge area
+  // could set start point of the selection to the start of the merge area. However, logic inside `expandByRange` need
+  // an initial start point. Click on the merge cell when there are some hidden indexes break the logic in some cases.
+  // Please take a look at #7010 for more information. I'm not sure if selection directions are calculated properly
+  // and what was idea for flipping direction inside `expandByRange` method.
+  if (this.mergedCellsCollection.isFirstRenderableMergedCell(coords.row, coords.col)) {
+    const mergeParent = this.mergedCellsCollection.get(coords.row, coords.col);
+    [coords.row, coords.col] = [mergeParent.row, mergeParent.col];
+  }
+}
+function _onBeforeSetRangeEnd2(coords) {
+  const selRange = this.hot.getSelectedRangeLast();
+  selRange.highlight = this.hot._createCellCoords(selRange.highlight.row, selRange.highlight.col); // clone in case we will modify its reference
+  selRange.to = coords;
+  let rangeExpanded = false;
+  if (this.hot.selection.isSelectedByColumnHeader() || this.hot.selection.isSelectedByRowHeader()) {
+    return;
+  }
+  do {
+    rangeExpanded = false;
+    for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
+      const cellInfo = this.mergedCellsCollection.mergedCells[i];
+      const mergedCellRange = cellInfo.getRange();
+      if (selRange.expandByRange(mergedCellRange)) {
+        coords.row = selRange.to.row;
+        coords.col = selRange.to.col;
+        rangeExpanded = true;
+      }
+    }
+  } while (rangeExpanded);
+}
+function _onAfterGetCellMeta2(row, col, cellProperties) {
+  const mergeParent = this.mergedCellsCollection.get(row, col);
+  if (mergeParent) {
+    if (mergeParent.row !== row || mergeParent.col !== col) {
+      cellProperties.copyable = false;
+    } else {
+      cellProperties.rowspan = mergeParent.rowspan;
+      cellProperties.colspan = mergeParent.colspan;
+    }
+  }
+}
+function _onAfterViewportRowCalculatorOverride2(calc) {
+  const nrOfColumns = this.hot.countCols();
+  this.modifyViewportRowStart(calc, nrOfColumns);
+  this.modifyViewportRowEnd(calc, nrOfColumns);
+}
+function _onAfterViewportColumnCalculatorOverride2(calc) {
+  const nrOfRows = this.hot.countRows();
+  this.modifyViewportColumnStart(calc, nrOfRows);
+  this.modifyViewportColumnEnd(calc, nrOfRows);
+}
+function _onModifyAutofillRange2(drag, select) {
+  this.autofillCalculations.correctSelectionAreaSize(select);
+  const dragDirection = this.autofillCalculations.getDirection(select, drag);
+  let dragArea = drag;
+  if (this.autofillCalculations.dragAreaOverlapsCollections(select, dragArea, dragDirection)) {
+    dragArea = select;
+    return dragArea;
+  }
+  const mergedCellsWithinSelectionArea = this.mergedCellsCollection.getWithinRange({
+    from: {
+      row: select[0],
+      col: select[1]
+    },
+    to: {
+      row: select[2],
+      col: select[3]
+    }
+  });
+  if (!mergedCellsWithinSelectionArea) {
+    return dragArea;
+  }
+  dragArea = this.autofillCalculations.snapDragArea(select, dragArea, dragDirection, mergedCellsWithinSelectionArea);
+  return dragArea;
+}
+function _onAfterCreateCol2(column, count) {
+  this.mergedCellsCollection.shiftCollections('right', column, count);
+}
+function _onAfterRemoveCol2(column, count) {
+  this.mergedCellsCollection.shiftCollections('left', column, count);
+}
+function _onAfterCreateRow2(row, count, source) {
+  if (source === 'auto') {
+    return;
+  }
+  this.mergedCellsCollection.shiftCollections('down', row, count);
+}
+function _onAfterRemoveRow2(row, count) {
+  this.mergedCellsCollection.shiftCollections('up', row, count);
+}
+function _onAfterChange2(changes, source) {
+  if (source !== 'Autofill.fill') {
+    return;
+  }
+  this.autofillCalculations.recreateAfterDataPopulation(changes);
+}
+function _onBeforeDrawAreaBorders2(corners, className) {
+  if (className && className === 'area') {
+    const selectedRange = this.hot.getSelectedRangeLast();
+    const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(selectedRange);
+    (0, _array.arrayEach)(mergedCellsWithinRange, mergedCell => {
+      if (selectedRange.getBottomEndCorner().row === mergedCell.getLastRow() && selectedRange.getBottomEndCorner().col === mergedCell.getLastColumn()) {
+        corners[2] = mergedCell.row;
+        corners[3] = mergedCell.col;
+      }
+    });
+  }
+}
+function _onAfterModifyTransformStart2(coords, rowTransformDir, colTransformDir) {
+  if (!this.enabled) {
+    return;
+  }
+  const mergedCellAtCoords = this.mergedCellsCollection.get(coords.row, coords.col);
+  if (!mergedCellAtCoords) {
+    return;
+  }
+  const goingDown = rowTransformDir > 0;
+  const goingUp = rowTransformDir < 0;
+  const goingLeft = colTransformDir < 0;
+  const goingRight = colTransformDir > 0;
+  const mergedCellOnBottomEdge = mergedCellAtCoords.row + mergedCellAtCoords.rowspan - 1 === this.hot.countRows() - 1;
+  const mergedCellOnTopEdge = mergedCellAtCoords.row === 0;
+  const mergedCellOnRightEdge = mergedCellAtCoords.col + mergedCellAtCoords.colspan - 1 === this.hot.countCols() - 1;
+  const mergedCellOnLeftEdge = mergedCellAtCoords.col === 0;
+  if (goingDown && mergedCellOnBottomEdge || goingUp && mergedCellOnTopEdge || goingRight && mergedCellOnRightEdge || goingLeft && mergedCellOnLeftEdge) {
+    coords.row = mergedCellAtCoords.row;
+    coords.col = mergedCellAtCoords.col;
+  }
+}
+function _onAfterDrawSelection2(currentRow, currentColumn, cornersOfSelection, layerLevel) {
+  // Nothing's selected (hook might be triggered by the custom borders)
+  if (!cornersOfSelection) {
+    return;
+  }
+  return this.selectionCalculations.getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection, layerLevel);
+}
+function _onBeforeRemoveCellClassNames2() {
+  return this.selectionCalculations.getSelectedMergedCellClassNameToRemove();
+}
 
 /***/ }),
 /* 615 */
@@ -77433,9 +78232,10 @@ exports.MergeCells = MergeCells;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _cellCoords = _interopRequireDefault(__webpack_require__(616));
-var _number = __webpack_require__(137);
-var _console = __webpack_require__(125);
+var _number = __webpack_require__(141);
+var _console = __webpack_require__(129);
 var _array = __webpack_require__(113);
 var _utils = __webpack_require__(617);
 var _templateLiteralTag = __webpack_require__(112);
@@ -77446,25 +78246,27 @@ var _templateLiteralTag = __webpack_require__(112);
  * @class MergedCellsCollection
  */
 class MergedCellsCollection {
-  constructor(plugin) {
+  constructor(mergeCellsPlugin) {
     /**
      * Reference to the Merge Cells plugin.
      *
      * @type {MergeCells}
      */
-    this.plugin = plugin;
+    (0, _defineProperty2.default)(this, "plugin", void 0);
     /**
      * Array of merged cells.
      *
      * @type {Array}
      */
-    this.mergedCells = [];
+    (0, _defineProperty2.default)(this, "mergedCells", []);
     /**
      * The Handsontable instance.
      *
      * @type {Handsontable}
      */
-    this.hot = plugin.hot;
+    (0, _defineProperty2.default)(this, "hot", void 0);
+    this.plugin = mergeCellsPlugin;
+    this.hot = mergeCellsPlugin.hot;
   }
 
   /**
@@ -77727,7 +78529,9 @@ var _default = exports["default"] = MergedCellsCollection;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _templateLiteralTag = __webpack_require__(112);
 /**
  * The `MergedCellCoords` class represents a single merged cell.
@@ -77742,42 +78546,48 @@ class MergedCellCoords {
      *
      * @type {number}
      */
-    this.row = row;
+    (0, _defineProperty2.default)(this, "row", void 0);
     /**
      * The index of the leftmost column.
      *
      * @type {number}
      */
-    this.col = column;
+    (0, _defineProperty2.default)(this, "col", void 0);
     /**
      * The `rowspan` value of the merged cell.
      *
      * @type {number}
      */
-    this.rowspan = rowspan;
+    (0, _defineProperty2.default)(this, "rowspan", void 0);
     /**
      * The `colspan` value of the merged cell.
      *
      * @type {number}
      */
-    this.colspan = colspan;
+    (0, _defineProperty2.default)(this, "colspan", void 0);
     /**
      * `true` only if the merged cell is bound to be removed.
      *
      * @type {boolean}
      */
-    this.removed = false;
+    (0, _defineProperty2.default)(this, "removed", false);
     /**
      * The CellCoords function factory.
      *
      * @type {Function}
      */
-    this.cellCoordsFactory = cellCoordsFactory;
+    (0, _defineProperty2.default)(this, "cellCoordsFactory", void 0);
     /**
      * The CellRange function factory.
      *
      * @type {Function}
      */
+    (0, _defineProperty2.default)(this, "cellRangeFactory", void 0);
+    this.row = row;
+    this.col = column;
+    this.rowspan = rowspan;
+    this.colspan = colspan;
+    this.cellCoordsFactory = cellCoordsFactory;
     this.cellRangeFactory = cellRangeFactory;
   }
 
@@ -78073,7 +78883,9 @@ function applySpanProperties(TD, mergedCellInfo, row, col) {
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _object = __webpack_require__(117);
 var _array = __webpack_require__(113);
 /**
@@ -78089,20 +78901,22 @@ class AutofillCalculations {
      *
      * @type {MergeCells}
      */
-    this.plugin = plugin;
+    (0, _defineProperty2.default)(this, "plugin", void 0);
     /**
      * Reference to the MergedCellsCollection class instance.
      *
      * @type {MergedCellsCollection}
      */
-    this.mergedCellsCollection = this.plugin.mergedCellsCollection;
+    (0, _defineProperty2.default)(this, "mergedCellsCollection", void 0);
     /**
      * Cache of the currently processed autofill data.
      *
      * @private
      * @type {object}
      */
-    this.currentFillData = null;
+    (0, _defineProperty2.default)(this, "currentFillData", null);
+    this.plugin = plugin;
+    this.mergedCellsCollection = this.plugin.mergedCellsCollection;
   }
 
   /**
@@ -78471,8 +79285,10 @@ var _default = exports["default"] = AutofillCalculations;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 /**
  * Class responsible for all of the Selection-related operations on merged cells.
  *
@@ -78486,19 +79302,21 @@ class SelectionCalculations {
      *
      * @type {MergeCells}
      */
-    this.plugin = plugin;
+    (0, _defineProperty2.default)(this, "plugin", void 0);
     /**
      * Reference to the Handsontable instance.
      *
      * @type {Handsontable}
      */
-    this.hot = plugin.hot;
+    (0, _defineProperty2.default)(this, "hot", void 0);
     /**
      * Class name used for fully selected merged cells.
      *
      * @type {string}
      */
-    this.fullySelectedMergedCellClassName = 'fullySelectedMergedCell';
+    (0, _defineProperty2.default)(this, "fullySelectedMergedCellClassName", 'fullySelectedMergedCell');
+    this.plugin = plugin;
+    this.hot = plugin.hot;
   }
 
   /**
@@ -78583,7 +79401,7 @@ class SelectionCalculations {
     const startColumn = Math.min(cornersOfSelection[1], cornersOfSelection[3]);
     const endRow = Math.max(cornersOfSelection[0], cornersOfSelection[2]);
     const endColumn = Math.max(cornersOfSelection[1], cornersOfSelection[3]);
-    if (layerLevel === void 0) {
+    if (layerLevel === undefined) {
       return;
     }
     const isFirstRenderableMergedCell = this.plugin.mergedCellsCollection.isFirstRenderableMergedCell(currentRow, currentColumn);
@@ -78732,7 +79550,9 @@ exports.MultiColumnSorting = _multiColumnSorting.MultiColumnSorting;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _columnSorting = __webpack_require__(438);
 var _sortService = __webpack_require__(444);
 var _utils = __webpack_require__(441);
@@ -78802,23 +79622,22 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * ```
  */
 class MultiColumnSorting extends _columnSorting.ColumnSorting {
-  static get PLUGIN_KEY() {
-    return PLUGIN_KEY;
-  }
-  static get PLUGIN_PRIORITY() {
-    return PLUGIN_PRIORITY;
-  }
-  constructor(hotInstance) {
-    super(hotInstance);
+  constructor() {
+    super(...arguments);
     /**
      * Main settings key designed for the plugin.
      *
      * @private
      * @type {string}
      */
-    this.pluginKey = PLUGIN_KEY;
+    (0, _defineProperty2.default)(this, "pluginKey", PLUGIN_KEY);
   }
-
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
   /**
    * Checks if the plugin is enabled in the Handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link MultiColumnSorting#enablePlugin} method is called.
@@ -78865,7 +79684,8 @@ class MultiColumnSorting extends _columnSorting.ColumnSorting {
       },
       runOnlyIf: () => {
         var _this$hot$getSelected;
-        return (_this$hot$getSelected = this.hot.getSelectedRangeLast()) === null || _this$hot$getSelected === void 0 ? void 0 : _this$hot$getSelected.highlight.isHeader();
+        const highlight = (_this$hot$getSelected = this.hot.getSelectedRangeLast()) === null || _this$hot$getSelected === void 0 ? void 0 : _this$hot$getSelected.highlight;
+        return highlight && this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
       },
       group: SHORTCUTS_GROUP
     });
@@ -79109,7 +79929,7 @@ function rootComparator(sortingOrders, columnMetas) {
 
 exports.__esModule = true;
 exports.warnAboutPluginsConflict = warnAboutPluginsConflict;
-var _console = __webpack_require__(125);
+var _console = __webpack_require__(129);
 var _templateLiteralTag = __webpack_require__(112);
 /**
  * Warn users about problems when using `columnSorting` and `multiColumnSorting` plugins simultaneously.
@@ -79195,10 +80015,10 @@ exports.MultipleSelectionHandles = _multipleSelectionHandles.MultipleSelectionHa
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _element = __webpack_require__(107);
 var _browser = __webpack_require__(116);
 var _base = __webpack_require__(423);
-var _eventManager = _interopRequireDefault(__webpack_require__(127));
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'multipleSelectionHandles';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 160;
 
@@ -79208,34 +80028,23 @@ const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 160;
  * @class MultipleSelectionHandles
  */
 class MultipleSelectionHandles extends _base.BasePlugin {
+  constructor() {
+    super(...arguments);
+    /**
+     * @type {Array}
+     */
+    (0, _defineProperty2.default)(this, "dragged", []);
+    /**
+     * @type {null}
+     */
+    (0, _defineProperty2.default)(this, "lastSetCell", null);
+  }
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
-
-  /**
-   * @param {object} hotInstance The handsontable instance.
-   */
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * @type {Array}
-     */
-    this.dragged = [];
-    /**
-     * Instance of EventManager.
-     *
-     * @type {EventManager}
-     */
-    this.eventManager = null;
-    /**
-     * @type {null}
-     */
-    this.lastSetCell = null;
-  }
-
   /**
    * Check if the plugin is enabled in the handsontable settings.
    *
@@ -79251,9 +80060,6 @@ class MultipleSelectionHandles extends _base.BasePlugin {
   enablePlugin() {
     if (this.enabled) {
       return;
-    }
-    if (!this.eventManager) {
-      this.eventManager = new _eventManager.default(this);
     }
     this.registerListeners();
     super.enablePlugin();
@@ -79317,12 +80123,12 @@ class MultipleSelectionHandles extends _base.BasePlugin {
     this.eventManager.addEventListener(rootElement, 'touchend', event => {
       if ((0, _element.hasClass)(event.target, 'topSelectionHandle-HitArea')) {
         removeFromDragged.call(_this, 'top');
-        _this.touchStartRange = void 0;
+        _this.touchStartRange = undefined;
         event.preventDefault();
         return false;
       } else if ((0, _element.hasClass)(event.target, 'bottomSelectionHandle-HitArea')) {
         removeFromDragged.call(_this, 'bottom');
-        _this.touchStartRange = void 0;
+        _this.touchStartRange = undefined;
         event.preventDefault();
         return false;
       }
@@ -79558,25 +80364,27 @@ exports.NestedHeaders = _nestedHeaders.NestedHeaders;
 "use strict";
 
 
-__webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+__webpack_require__(78);
 __webpack_require__(8);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
-var _classPrivateFieldGet6 = _interopRequireDefault(__webpack_require__(129));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
+var _classPrivateFieldGet6 = _interopRequireDefault(__webpack_require__(133));
 var _element = __webpack_require__(107);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 var _templateLiteralTag = __webpack_require__(112);
-var _event = __webpack_require__(122);
-var _console = __webpack_require__(125);
+var _event = __webpack_require__(126);
+var _console = __webpack_require__(129);
 var _selection = __webpack_require__(246);
 var _base = __webpack_require__(423);
 var _stateManager2 = _interopRequireDefault(__webpack_require__(632));
 var _ghostTable = _interopRequireDefault(__webpack_require__(645));
 __webpack_require__(646);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'nestedHeaders';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 280;
 
@@ -79629,9 +80437,166 @@ var _stateManager = /*#__PURE__*/new WeakMap();
 var _hidingIndexMapObserver = /*#__PURE__*/new WeakMap();
 var _focusInitialCoords = /*#__PURE__*/new WeakMap();
 var _isColumnsSelectionInProgress = /*#__PURE__*/new WeakMap();
+var _updateFocusHighlightPosition = /*#__PURE__*/new WeakSet();
+var _onBeforeViewportScrollHorizontally = /*#__PURE__*/new WeakSet();
+var _onBeforeHighlightingColumnHeader = /*#__PURE__*/new WeakSet();
+var _onBeforeCopy = /*#__PURE__*/new WeakSet();
+var _onBeforeOnCellMouseDown = /*#__PURE__*/new WeakSet();
+var _onAfterOnCellMouseDown = /*#__PURE__*/new WeakSet();
+var _onBeforeOnCellMouseOver = /*#__PURE__*/new WeakSet();
+var _onBeforeOnCellMouseUp = /*#__PURE__*/new WeakSet();
+var _onBeforeSelectionHighlightSet = /*#__PURE__*/new WeakSet();
+var _onModifyTransformStart = /*#__PURE__*/new WeakSet();
+var _onBeforeSelectColumns = /*#__PURE__*/new WeakSet();
+var _onAfterGetColumnHeaderRenderers = /*#__PURE__*/new WeakSet();
+var _onAfterViewportColumnCalculatorOverride = /*#__PURE__*/new WeakSet();
+var _onModifyColWidth = /*#__PURE__*/new WeakSet();
+var _onModifyColumnHeaderValue = /*#__PURE__*/new WeakSet();
+var _onModifyFocusedElement = /*#__PURE__*/new WeakSet();
+var _onInit = /*#__PURE__*/new WeakSet();
+var _onAfterLoadData = /*#__PURE__*/new WeakSet();
 class NestedHeaders extends _base.BasePlugin {
   constructor() {
     super(...arguments);
+    /**
+     * Updates the plugin state after new dataset load.
+     *
+     * @param {Array[]} sourceData Array of arrays or array of objects containing data.
+     * @param {boolean} initialLoad Flag that determines whether the data has been loaded
+     *                              during the initialization.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterLoadData);
+    /**
+     * Updates the plugin state after HoT initialization.
+     */
+    _classPrivateMethodInitSpec(this, _onInit);
+    /**
+     * `modifyFocusedElement` hook callback.
+     *
+     * @param {number} row Row index.
+     * @param {number} column Column index.
+     * @returns {HTMLTableCellElement} The `TH` element to be focused.
+     */
+    _classPrivateMethodInitSpec(this, _onModifyFocusedElement);
+    /**
+     * Listens the `modifyColumnHeaderValue` hook that overwrites the column headers values based on
+     * the internal state and settings of the plugin.
+     *
+     * @param {string} value The column header value.
+     * @param {number} visualColumnIndex The visual column index.
+     * @param {number} headerLevel The index of header level. The header level accepts positive (0 to N)
+     *                             and negative (-1 to -N) values. For positive values, 0 points to the
+     *                             top most header, and for negative direction, -1 points to the most bottom
+     *                             header (the header closest to the cells).
+     * @returns {string} Returns the column header value to update.
+     */
+    _classPrivateMethodInitSpec(this, _onModifyColumnHeaderValue);
+    /**
+     * `modifyColWidth` hook callback - returns width from cache, when is greater than incoming from hook.
+     *
+     * @param {number} width Width from hook.
+     * @param {number} column Visual index of an column.
+     * @returns {number}
+     */
+    _classPrivateMethodInitSpec(this, _onModifyColWidth);
+    /**
+     * Make the renderer render the first nested column in its entirety.
+     *
+     * @param {object} calc Viewport column calculator.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterViewportColumnCalculatorOverride);
+    /**
+     * `afterGetColumnHeader` hook callback - prepares the header structure.
+     *
+     * @param {Array} renderersArray Array of renderers.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterGetColumnHeaderRenderers);
+    /**
+     * The hook observes the column selection from the Selection API and modifies the column range to
+     * ensure that the whole nested column will be covered.
+     *
+     * @param {CellCoords} from The coords object where the selection starts.
+     * @param {CellCoords} to The coords object where the selection ends.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeSelectColumns);
+    /**
+     * `modifyTransformStart` hook is called every time the keyboard navigation is used.
+     *
+     * @param {object} delta The transformation delta.
+     */
+    _classPrivateMethodInitSpec(this, _onModifyTransformStart);
+    /**
+     * The hook checks and ensures that the focus position that depends on the selected columns
+     * range is always positioned within the range.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeSelectionHighlightSet);
+    /**
+     * Switches internal flag about selection progress to `false`.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeOnCellMouseUp);
+    /**
+     * Makes the header-selection properly select the nested headers.
+     *
+     * @param {MouseEvent} event Mouse event.
+     * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
+     * @param {HTMLElement} TD The cell element.
+     * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+     *                            a boolean value that allows or disallows changing the selection for that particular area.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeOnCellMouseOver);
+    /**
+     * Allows to control how the column selection based on the coordinates and the nested headers is made.
+     *
+     * @param {MouseEvent} event Mouse event.
+     * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterOnCellMouseDown);
+    /**
+     * Allows blocking the column selection that is controlled by the core Selection module.
+     *
+     * @param {MouseEvent} event Mouse event.
+     * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
+     * @param {CellCoords} TD The table cell or header element.
+     * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+     *                            a boolean value that allows or disallows changing the selection for that particular area.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeOnCellMouseDown);
+    /**
+     * Listens the `beforeCopy` hook that allows processing the copied column headers so that the
+     * merged column headers do not propagate the value for each column but only once at the beginning
+     * of the column.
+     *
+     * @private
+     * @param {Array[]} data An array of arrays which contains data to copied.
+     * @param {object[]} copyableRanges An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
+     *                                  which will copied.
+     * @param {{ columnHeadersCount: number }} copiedHeadersCount An object with keys that holds information with
+     *                                                            the number of copied headers.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeCopy);
+    /**
+     * Allows to control which header DOM element will be used to highlight.
+     *
+     * @param {number} visualColumn A visual column index of the highlighted row header.
+     * @param {number} headerLevel A row header level that is currently highlighted.
+     * @param {object} highlightMeta An object with meta data that describes the highlight state.
+     * @returns {number}
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeHighlightingColumnHeader);
+    /**
+     * Allows to control to which column index the viewport will be scrolled. To ensure that the viewport
+     * is scrolled to the correct column for the nested header the most left and the most right visual column
+     * indexes are used.
+     *
+     * @param {number} visualColumn A visual column index to which the viewport will be scrolled.
+     * @returns {number}
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeViewportScrollHorizontally);
+    /**
+     * Updates the selection focus highlight position to point to the nested header root element (TH)
+     * even when the logical coordinates point in-between the header.
+     */
+    _classPrivateMethodInitSpec(this, _updateFocusHighlightPosition);
     /**
      * The state manager for the nested headers.
      *
@@ -79715,56 +80680,101 @@ class NestedHeaders extends _base.BasePlugin {
       (0, _console.warn)((0, _templateLiteralTag.toSingleLine)`Your Nested Headers plugin configuration is invalid. The settings has to be\x20
                         passed as an array of arrays e.q. [['A1', { label: 'A2', colspan: 2 }]]`);
     }
-    this.addHook('init', () => this.onInit());
+    this.addHook('init', () => _classPrivateMethodGet(this, _onInit, _onInit2).call(this));
     this.addHook('afterLoadData', function () {
-      return _this.onAfterLoadData(...arguments);
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+      return _classPrivateMethodGet(_this, _onAfterLoadData, _onAfterLoadData2).call(_this, ...args);
     });
     this.addHook('beforeOnCellMouseDown', function () {
-      return _this.onBeforeOnCellMouseDown(...arguments);
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeOnCellMouseDown, _onBeforeOnCellMouseDown2).call(_this, ...args);
     });
     this.addHook('afterOnCellMouseDown', function () {
-      return _this.onAfterOnCellMouseDown(...arguments);
+      for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        args[_key3] = arguments[_key3];
+      }
+      return _classPrivateMethodGet(_this, _onAfterOnCellMouseDown, _onAfterOnCellMouseDown2).call(_this, ...args);
     });
     this.addHook('beforeOnCellMouseOver', function () {
-      return _this.onBeforeOnCellMouseOver(...arguments);
+      for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+        args[_key4] = arguments[_key4];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeOnCellMouseOver, _onBeforeOnCellMouseOver2).call(_this, ...args);
     });
     this.addHook('beforeOnCellMouseUp', function () {
-      return _this.onBeforeOnCellMouseUp(...arguments);
+      for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+        args[_key5] = arguments[_key5];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeOnCellMouseUp, _onBeforeOnCellMouseUp2).call(_this, ...args);
     });
     this.addHook('beforeSelectionHighlightSet', function () {
-      return _this.onBeforeSelectionHighlightSet(...arguments);
+      for (var _len6 = arguments.length, args = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+        args[_key6] = arguments[_key6];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeSelectionHighlightSet, _onBeforeSelectionHighlightSet2).call(_this, ...args);
     });
     this.addHook('modifyTransformStart', function () {
-      return _this.onModifyTransformStart(...arguments);
+      for (var _len7 = arguments.length, args = new Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
+        args[_key7] = arguments[_key7];
+      }
+      return _classPrivateMethodGet(_this, _onModifyTransformStart, _onModifyTransformStart2).call(_this, ...args);
     });
-    this.addHook('afterSelection', () => this.updateFocusHighlightPosition());
+    this.addHook('afterSelection', () => _classPrivateMethodGet(this, _updateFocusHighlightPosition, _updateFocusHighlightPosition2).call(this));
     this.addHook('beforeViewportScrollHorizontally', function () {
-      return _this.onBeforeViewportScrollHorizontally(...arguments);
+      for (var _len8 = arguments.length, args = new Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
+        args[_key8] = arguments[_key8];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeViewportScrollHorizontally, _onBeforeViewportScrollHorizontally2).call(_this, ...args);
     });
-    this.addHook('afterGetColumnHeaderRenderers', array => this.onAfterGetColumnHeaderRenderers(array));
+    this.addHook('afterGetColumnHeaderRenderers', array => _classPrivateMethodGet(this, _onAfterGetColumnHeaderRenderers, _onAfterGetColumnHeaderRenderers2).call(this, array));
     this.addHook('modifyColWidth', function () {
-      return _this.onModifyColWidth(...arguments);
+      for (var _len9 = arguments.length, args = new Array(_len9), _key9 = 0; _key9 < _len9; _key9++) {
+        args[_key9] = arguments[_key9];
+      }
+      return _classPrivateMethodGet(_this, _onModifyColWidth, _onModifyColWidth2).call(_this, ...args);
     });
     this.addHook('modifyColumnHeaderValue', function () {
-      return _this.onModifyColumnHeaderValue(...arguments);
+      for (var _len10 = arguments.length, args = new Array(_len10), _key10 = 0; _key10 < _len10; _key10++) {
+        args[_key10] = arguments[_key10];
+      }
+      return _classPrivateMethodGet(_this, _onModifyColumnHeaderValue, _onModifyColumnHeaderValue2).call(_this, ...args);
     });
     this.addHook('beforeHighlightingColumnHeader', function () {
-      return _this.onBeforeHighlightingColumnHeader(...arguments);
+      for (var _len11 = arguments.length, args = new Array(_len11), _key11 = 0; _key11 < _len11; _key11++) {
+        args[_key11] = arguments[_key11];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeHighlightingColumnHeader, _onBeforeHighlightingColumnHeader2).call(_this, ...args);
     });
     this.addHook('beforeCopy', function () {
-      return _this.onBeforeCopy(...arguments);
+      for (var _len12 = arguments.length, args = new Array(_len12), _key12 = 0; _key12 < _len12; _key12++) {
+        args[_key12] = arguments[_key12];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeCopy, _onBeforeCopy2).call(_this, ...args);
     });
     this.addHook('beforeSelectColumns', function () {
-      return _this.onBeforeSelectColumns(...arguments);
+      for (var _len13 = arguments.length, args = new Array(_len13), _key13 = 0; _key13 < _len13; _key13++) {
+        args[_key13] = arguments[_key13];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeSelectColumns, _onBeforeSelectColumns2).call(_this, ...args);
     });
     this.addHook('afterViewportColumnCalculatorOverride', function () {
-      return _this.onAfterViewportColumnCalculatorOverride(...arguments);
+      for (var _len14 = arguments.length, args = new Array(_len14), _key14 = 0; _key14 < _len14; _key14++) {
+        args[_key14] = arguments[_key14];
+      }
+      return _classPrivateMethodGet(_this, _onAfterViewportColumnCalculatorOverride, _onAfterViewportColumnCalculatorOverride2).call(_this, ...args);
     });
     this.addHook('modifyFocusedElement', function () {
-      return _this.onModifyFocusedElement(...arguments);
+      for (var _len15 = arguments.length, args = new Array(_len15), _key15 = 0; _key15 < _len15; _key15++) {
+        args[_key15] = arguments[_key15];
+      }
+      return _classPrivateMethodGet(_this, _onModifyFocusedElement, _onModifyFocusedElement2).call(_this, ...args);
     });
-    this.hot.columnIndexMapper.addLocalHook('cacheUpdated', () => this.updateFocusHighlightPosition());
-    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', () => this.updateFocusHighlightPosition());
+    this.hot.columnIndexMapper.addLocalHook('cacheUpdated', () => _classPrivateMethodGet(this, _updateFocusHighlightPosition, _updateFocusHighlightPosition2).call(this));
+    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', () => _classPrivateMethodGet(this, _updateFocusHighlightPosition, _updateFocusHighlightPosition2).call(this));
     super.enablePlugin();
     this.updatePlugin(); // @TODO: Workaround for broken plugin initialization abstraction.
   }
@@ -79979,498 +80989,6 @@ class NestedHeaders extends _base.BasePlugin {
     }
     return this.hot.getColHeader(visualColumnIndex, headerLevel);
   }
-
-  /**
-   * Updates the selection focus highlight position to point to the nested header root element (TH)
-   * even when the logical coordinates point in-between the header.
-   *
-   * @private
-   */
-  updateFocusHighlightPosition() {
-    var _this$hot;
-    const selection = (_this$hot = this.hot) === null || _this$hot === void 0 ? void 0 : _this$hot.getSelectedRangeLast();
-    if (!selection) {
-      return;
-    }
-    const {
-      highlight
-    } = selection;
-    const isNestedHeadersRange = highlight.isHeader() && highlight.col >= 0;
-    if (isNestedHeadersRange) {
-      const columnIndex = (0, _classPrivateFieldGet6.default)(this, _stateManager).findLeftMostColumnIndex(highlight.row, highlight.col);
-      const focusHighlight = this.hot.selection.highlight.getFocus();
-
-      // Correct the highlight/focus selection to highlight the correct TH element
-      focusHighlight.visualCellRange.highlight.col = columnIndex;
-      focusHighlight.visualCellRange.from.col = columnIndex;
-      focusHighlight.visualCellRange.to.col = columnIndex;
-      focusHighlight.commit();
-    }
-  }
-
-  /**
-   * Allows to control to which column index the viewport will be scrolled. To ensure that the viewport
-   * is scrolled to the correct column for the nested header the most left and the most right visual column
-   * indexes are used.
-   *
-   * @private
-   * @param {number} visualColumn A visual column index to which the viewport will be scrolled.
-   * @returns {number}
-   */
-  onBeforeViewportScrollHorizontally(visualColumn) {
-    const selection = this.hot.getSelectedRangeLast();
-    if (!selection) {
-      return visualColumn;
-    }
-    const {
-      highlight
-    } = selection;
-    const isNestedHeadersRange = highlight.isHeader() && highlight.col >= 0;
-    if (!isNestedHeadersRange) {
-      return visualColumn;
-    }
-    const firstColumn = this.hot.view.getFirstFullyVisibleColumn();
-    const lastColumn = this.hot.view.getLastFullyVisibleColumn();
-    const mostLeftColumnIndex = (0, _classPrivateFieldGet6.default)(this, _stateManager).findLeftMostColumnIndex(highlight.row, highlight.col);
-    const mostRightColumnIndex = (0, _classPrivateFieldGet6.default)(this, _stateManager).findRightMostColumnIndex(highlight.row, highlight.col);
-
-    // do not scroll the viewport when the header is wider than the viewport
-    if (mostLeftColumnIndex < firstColumn && mostRightColumnIndex > lastColumn) {
-      return visualColumn;
-    }
-    return mostLeftColumnIndex < firstColumn ? mostLeftColumnIndex : mostRightColumnIndex;
-  }
-
-  /**
-   * Allows to control which header DOM element will be used to highlight.
-   *
-   * @private
-   * @param {number} visualColumn A visual column index of the highlighted row header.
-   * @param {number} headerLevel A row header level that is currently highlighted.
-   * @param {object} highlightMeta An object with meta data that describes the highlight state.
-   * @returns {number}
-   */
-  onBeforeHighlightingColumnHeader(visualColumn, headerLevel, highlightMeta) {
-    const headerNodeData = (0, _classPrivateFieldGet6.default)(this, _stateManager).getHeaderTreeNodeData(headerLevel, visualColumn);
-    if (!headerNodeData) {
-      return visualColumn;
-    }
-    const {
-      columnCursor,
-      selectionType,
-      selectionWidth
-    } = highlightMeta;
-    const {
-      isRoot,
-      colspan
-    } = (0, _classPrivateFieldGet6.default)(this, _stateManager).getHeaderSettings(headerLevel, visualColumn);
-    if (selectionType === _selection.HEADER_TYPE) {
-      if (!isRoot) {
-        return headerNodeData.columnIndex;
-      }
-    } else if (selectionType === _selection.ACTIVE_HEADER_TYPE) {
-      if (colspan > selectionWidth - columnCursor || !isRoot) {
-        // Prevents adding any CSS class names to the TH element
-        return null;
-      }
-    }
-    return visualColumn;
-  }
-
-  /**
-   * Listens the `beforeCopy` hook that allows processing the copied column headers so that the
-   * merged column headers do not propagate the value for each column but only once at the beginning
-   * of the column.
-   *
-   * @private
-   * @param {Array[]} data An array of arrays which contains data to copied.
-   * @param {object[]} copyableRanges An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
-   *                                  which will copied.
-   * @param {{ columnHeadersCount: number }} copiedHeadersCount An object with keys that holds information with
-   *                                                            the number of copied headers.
-   */
-  onBeforeCopy(data, copyableRanges, _ref2) {
-    let {
-      columnHeadersCount
-    } = _ref2;
-    if (columnHeadersCount === 0) {
-      return;
-    }
-    for (let rangeIndex = 0; rangeIndex < copyableRanges.length; rangeIndex++) {
-      const {
-        startRow,
-        startCol,
-        endRow,
-        endCol
-      } = copyableRanges[rangeIndex];
-      const rowsCount = endRow - startRow + 1;
-      const columnsCount = startCol - endCol + 1;
-
-      // do not process dataset ranges and column headers where only one column is copied
-      if (startRow >= 0 || columnsCount === 1) {
-        break;
-      }
-      for (let column = startCol; column <= endCol; column++) {
-        for (let row = startRow; row <= endRow; row++) {
-          var _classPrivateFieldGet4;
-          const zeroBasedColumnHeaderLevel = rowsCount + row;
-          const zeroBasedColumnIndex = column - startCol;
-          if (zeroBasedColumnIndex === 0) {
-            continue; // eslint-disable-line no-continue
-          }
-
-          const isRoot = (_classPrivateFieldGet4 = (0, _classPrivateFieldGet6.default)(this, _stateManager).getHeaderTreeNodeData(row, column)) === null || _classPrivateFieldGet4 === void 0 ? void 0 : _classPrivateFieldGet4.isRoot;
-          if (isRoot === false) {
-            data[zeroBasedColumnHeaderLevel][zeroBasedColumnIndex] = '';
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Allows blocking the column selection that is controlled by the core Selection module.
-   *
-   * @private
-   * @param {MouseEvent} event Mouse event.
-   * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
-   * @param {CellCoords} TD The table cell or header element.
-   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
-   *                            a boolean value that allows or disallows changing the selection for that particular area.
-   */
-  onBeforeOnCellMouseDown(event, coords, TD, controller) {
-    const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
-    if (headerNodeData) {
-      // Block the Selection module in controlling how the columns are selected. Pass the
-      // responsibility of the column selection to this plugin (see "onAfterOnCellMouseDown" hook).
-      controller.column = true;
-    }
-  }
-
-  /**
-   * Allows to control how the column selection based on the coordinates and the nested headers is made.
-   *
-   * @private
-   * @param {MouseEvent} event Mouse event.
-   * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
-   */
-  onAfterOnCellMouseDown(event, coords) {
-    const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
-    if (!headerNodeData) {
-      return;
-    }
-    (0, _classPrivateFieldSet2.default)(this, _focusInitialCoords, coords.clone());
-    (0, _classPrivateFieldSet2.default)(this, _isColumnsSelectionInProgress, true);
-    const {
-      selection
-    } = this.hot;
-    const currentSelection = selection.isSelected() ? selection.getSelectedRange().current() : null;
-    const columnsToSelect = [];
-    const {
-      columnIndex,
-      origColspan
-    } = headerNodeData;
-
-    // The Selection module doesn't allow it to extend its behavior easily. That's why here we need
-    // to re-implement the "click" and "shift" behavior. As a workaround, the logic for the nested
-    // headers must implement a similar logic as in the original Selection handler
-    // (see src/selection/mouseEventHandler.js).
-    const allowRightClickSelection = !selection.inInSelection(coords);
-    if (event.shiftKey && currentSelection) {
-      if (coords.col < currentSelection.from.col) {
-        columnsToSelect.push(currentSelection.getTopEndCorner().col, columnIndex, coords.row);
-      } else if (coords.col > currentSelection.from.col) {
-        columnsToSelect.push(currentSelection.getTopStartCorner().col, columnIndex + origColspan - 1, coords.row);
-      } else {
-        columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
-      }
-    } else if ((0, _event.isLeftClick)(event) || (0, _event.isRightClick)(event) && allowRightClickSelection) {
-      columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
-    }
-
-    // The plugin takes control of how the columns are selected.
-    selection.selectColumns(...columnsToSelect);
-  }
-
-  /**
-   * Makes the header-selection properly select the nested headers.
-   *
-   * @private
-   * @param {MouseEvent} event Mouse event.
-   * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
-   * @param {HTMLElement} TD The cell element.
-   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
-   *                            a boolean value that allows or disallows changing the selection for that particular area.
-   */
-  onBeforeOnCellMouseOver(event, coords, TD, controller) {
-    if (!this.hot.view.isMouseDown()) {
-      return;
-    }
-    const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
-    if (!headerNodeData) {
-      return;
-    }
-    const {
-      columnIndex,
-      origColspan
-    } = headerNodeData;
-    const selectedRange = this.hot.getSelectedRangeLast();
-    const topStartCoords = selectedRange.getTopStartCorner();
-    const bottomEndCoords = selectedRange.getBottomEndCorner();
-    const {
-      from
-    } = selectedRange;
-
-    // Block the Selection module in controlling how the columns and cells are selected.
-    // From now on, the plugin is responsible for the selection.
-    controller.column = true;
-    controller.cell = true;
-    const columnsToSelect = [];
-    const headerLevel = (0, _number.clamp)(coords.row, -Infinity, -1);
-    if (coords.col < from.col) {
-      columnsToSelect.push(bottomEndCoords.col, columnIndex, headerLevel);
-    } else if (coords.col > from.col) {
-      columnsToSelect.push(topStartCoords.col, columnIndex + origColspan - 1, headerLevel);
-    } else {
-      columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, headerLevel);
-    }
-    this.hot.selection.selectColumns(...columnsToSelect);
-  }
-
-  /**
-   * Switches internal flag about selection progress to `false`.
-   *
-   * @private
-   */
-  onBeforeOnCellMouseUp() {
-    (0, _classPrivateFieldSet2.default)(this, _isColumnsSelectionInProgress, false);
-  }
-
-  /**
-   * The hook checks and ensures that the focus position that depends on the selected columns
-   * range is always positioned within the range.
-   *
-   * @private
-   */
-  onBeforeSelectionHighlightSet() {
-    const {
-      navigableHeaders
-    } = this.hot.getSettings();
-    if (!this.hot.view.isMouseDown() || !(0, _classPrivateFieldGet6.default)(this, _isColumnsSelectionInProgress) || !navigableHeaders) {
-      return;
-    }
-    const selectedRange = this.hot.getSelectedRangeLast();
-    const columnStart = selectedRange.getTopStartCorner().col;
-    const columnEnd = selectedRange.getBottomEndCorner().col;
-    const {
-      columnIndex,
-      origColspan
-    } = (0, _classPrivateFieldGet6.default)(this, _stateManager).getHeaderTreeNodeData((0, _classPrivateFieldGet6.default)(this, _focusInitialCoords).row, (0, _classPrivateFieldGet6.default)(this, _focusInitialCoords).col);
-    selectedRange.setHighlight((0, _classPrivateFieldGet6.default)(this, _focusInitialCoords));
-    if (origColspan > selectedRange.getWidth() || columnIndex < columnStart || columnIndex + origColspan - 1 > columnEnd) {
-      const headerLevel = (0, _classPrivateFieldGet6.default)(this, _stateManager).findTopMostEntireHeaderLevel((0, _number.clamp)(columnStart, columnIndex, columnIndex + origColspan - 1), (0, _number.clamp)(columnEnd, columnIndex, columnIndex + origColspan - 1));
-      selectedRange.highlight.row = headerLevel;
-      selectedRange.highlight.col = selectedRange.from.col;
-    }
-  }
-
-  /**
-   * `modifyTransformStart` hook is called every time the keyboard navigation is used.
-   *
-   * @private
-   * @param {object} delta The transformation delta.
-   */
-  onModifyTransformStart(delta) {
-    const {
-      highlight
-    } = this.hot.getSelectedRangeLast();
-    const nextCoords = this.hot._createCellCoords(highlight.row + delta.row, highlight.col + delta.col);
-    const isNestedHeadersRange = nextCoords.isHeader() && nextCoords.col >= 0;
-    if (!isNestedHeadersRange) {
-      return;
-    }
-    const visualColumnIndexStart = (0, _classPrivateFieldGet6.default)(this, _stateManager).findLeftMostColumnIndex(nextCoords.row, nextCoords.col);
-    const visualColumnIndexEnd = (0, _classPrivateFieldGet6.default)(this, _stateManager).findRightMostColumnIndex(nextCoords.row, nextCoords.col);
-    if (delta.col < 0) {
-      const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ? visualColumnIndexStart - 1 : visualColumnIndexEnd;
-      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, -1);
-      if (notHiddenColumnIndex === null) {
-        // There are no visible columns anymore, so move the selection out of the table edge. This will
-        // be processed by the selection Transformer class as a move selection to the previous row (if autoWrapRow is enabled).
-        delta.col = -this.hot.view.countRenderableColumnsInRange(0, highlight.col);
-      } else {
-        delta.col = -Math.max(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, highlight.col) - 1, 1);
-      }
-    } else if (delta.col > 0) {
-      const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ? visualColumnIndexEnd + 1 : visualColumnIndexStart;
-      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, 1);
-      if (notHiddenColumnIndex === null) {
-        // There are no visible columns anymore, so move the selection out of the table edge. This will
-        // be processed by the selection Transformer class as a move selection to the next row (if autoWrapRow is enabled).
-        delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, this.hot.countCols());
-      } else {
-        delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1, 1);
-      }
-    }
-  }
-
-  /**
-   * The hook observes the column selection from the Selection API and modifies the column range to
-   * ensure that the whole nested column will be covered.
-   *
-   * @private
-   * @param {CellCoords} from The coords object where the selection starts.
-   * @param {CellCoords} to The coords object where the selection ends.
-   */
-  onBeforeSelectColumns(from, to) {
-    const headerLevel = from.row;
-    const startNodeData = this._getHeaderTreeNodeDataByCoords({
-      row: headerLevel,
-      col: from.col
-    });
-    const endNodeData = this._getHeaderTreeNodeDataByCoords({
-      row: headerLevel,
-      col: to.col
-    });
-    if (to.col < from.col) {
-      // Column selection from right to left
-      if (startNodeData) {
-        from.col = startNodeData.columnIndex + startNodeData.origColspan - 1;
-      }
-      if (endNodeData) {
-        to.col = endNodeData.columnIndex;
-      }
-    } else if (to.col >= from.col) {
-      // Column selection from left to right or a single column selection
-      if (startNodeData) {
-        from.col = startNodeData.columnIndex;
-      }
-      if (endNodeData) {
-        to.col = endNodeData.columnIndex + endNodeData.origColspan - 1;
-      }
-    }
-  }
-
-  /**
-   * `afterGetColumnHeader` hook callback - prepares the header structure.
-   *
-   * @private
-   * @param {Array} renderersArray Array of renderers.
-   */
-  onAfterGetColumnHeaderRenderers(renderersArray) {
-    renderersArray.length = 0;
-    for (let headerLayer = 0; headerLayer < (0, _classPrivateFieldGet6.default)(this, _stateManager).getLayersCount(); headerLayer++) {
-      renderersArray.push(this.headerRendererFactory(headerLayer));
-    }
-  }
-
-  /**
-   * Make the renderer render the first nested column in its entirety.
-   *
-   * @private
-   * @param {object} calc Viewport column calculator.
-   */
-  onAfterViewportColumnCalculatorOverride(calc) {
-    const headerLayersCount = (0, _classPrivateFieldGet6.default)(this, _stateManager).getLayersCount();
-    let newStartColumn = calc.startColumn;
-    let nonRenderable = !!headerLayersCount;
-    for (let headerLayer = 0; headerLayer < headerLayersCount; headerLayer++) {
-      const startColumn = (0, _classPrivateFieldGet6.default)(this, _stateManager).findLeftMostColumnIndex(headerLayer, calc.startColumn);
-      const renderedStartColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(startColumn);
-
-      // If any of the headers for that column index is rendered, all of them should be rendered properly, see
-      // comment below.
-      if (startColumn >= 0) {
-        nonRenderable = false;
-      }
-
-      // `renderedStartColumn` can be `null` if the leftmost columns are hidden. In that case -> ignore that header
-      // level, as it should be handled by the "parent" header
-      if ((0, _number.isNumeric)(renderedStartColumn) && renderedStartColumn < calc.startColumn) {
-        newStartColumn = renderedStartColumn;
-        break;
-      }
-    }
-
-    // If no headers for the provided column index are renderable, start rendering from the beginning of the upmost
-    // header for that position.
-    calc.startColumn = nonRenderable ? (0, _classPrivateFieldGet6.default)(this, _stateManager).getHeaderTreeNodeData(0, newStartColumn).columnIndex : newStartColumn;
-  }
-
-  /**
-   * `modifyColWidth` hook callback - returns width from cache, when is greater than incoming from hook.
-   *
-   * @private
-   * @param {number} width Width from hook.
-   * @param {number} column Visual index of an column.
-   * @returns {number}
-   */
-  onModifyColWidth(width, column) {
-    const cachedWidth = this.ghostTable.getWidth(column);
-    return width > cachedWidth ? width : cachedWidth;
-  }
-
-  /**
-   * Listens the `modifyColumnHeaderValue` hook that overwrites the column headers values based on
-   * the internal state and settings of the plugin.
-   *
-   * @private
-   * @param {string} value The column header value.
-   * @param {number} visualColumnIndex The visual column index.
-   * @param {number} headerLevel The index of header level. The header level accepts positive (0 to N)
-   *                             and negative (-1 to -N) values. For positive values, 0 points to the
-   *                             top most header, and for negative direction, -1 points to the most bottom
-   *                             header (the header closest to the cells).
-   * @returns {string} Returns the column header value to update.
-   */
-  onModifyColumnHeaderValue(value, visualColumnIndex, headerLevel) {
-    var _classPrivateFieldGet5;
-    const {
-      label
-    } = (_classPrivateFieldGet5 = (0, _classPrivateFieldGet6.default)(this, _stateManager).getHeaderTreeNodeData(headerLevel, visualColumnIndex)) !== null && _classPrivateFieldGet5 !== void 0 ? _classPrivateFieldGet5 : {
-      label: ''
-    };
-    return label;
-  }
-
-  /**
-   * `modifyFocusedElement` hook callback.
-   *
-   * @private
-   * @param {number} row Row index.
-   * @param {number} column Column index.
-   * @returns {HTMLTableCellElement} The `TH` element to be focused.
-   */
-  onModifyFocusedElement(row, column) {
-    if (row < 0) {
-      return this.hot.getCell(row, (0, _classPrivateFieldGet6.default)(this, _stateManager).findLeftMostColumnIndex(row, column), true);
-    }
-  }
-
-  /**
-   * Updates the plugin state after HoT initialization.
-   *
-   * @private
-   */
-  onInit() {
-    // @TODO: Workaround for broken plugin initialization abstraction.
-    this.updatePlugin();
-  }
-
-  /**
-   * Updates the plugin state after new dataset load.
-   *
-   * @private
-   * @param {Array[]} sourceData Array of arrays or array of objects containing data.
-   * @param {boolean} initialLoad Flag that determines whether the data has been loaded
-   *                              during the initialization.
-   */
-  onAfterLoadData(sourceData, initialLoad) {
-    if (!initialLoad) {
-      this.updatePlugin();
-    }
-  }
-
   /**
    * Destroys the plugin instance.
    */
@@ -80498,6 +81016,337 @@ class NestedHeaders extends _base.BasePlugin {
   }
 }
 exports.NestedHeaders = NestedHeaders;
+function _updateFocusHighlightPosition2() {
+  var _this$hot;
+  const selection = (_this$hot = this.hot) === null || _this$hot === void 0 ? void 0 : _this$hot.getSelectedRangeLast();
+  if (!selection) {
+    return;
+  }
+  const {
+    highlight
+  } = selection;
+  const isNestedHeadersRange = highlight.isHeader() && highlight.col >= 0;
+  if (isNestedHeadersRange) {
+    const columnIndex = (0, _classPrivateFieldGet6.default)(this, _stateManager).findLeftMostColumnIndex(highlight.row, highlight.col);
+    const focusHighlight = this.hot.selection.highlight.getFocus();
+
+    // Correct the highlight/focus selection to highlight the correct TH element
+    focusHighlight.visualCellRange.highlight.col = columnIndex;
+    focusHighlight.visualCellRange.from.col = columnIndex;
+    focusHighlight.visualCellRange.to.col = columnIndex;
+    focusHighlight.commit();
+  }
+}
+function _onBeforeViewportScrollHorizontally2(visualColumn) {
+  const selection = this.hot.getSelectedRangeLast();
+  if (!selection) {
+    return visualColumn;
+  }
+  const {
+    highlight
+  } = selection;
+  const isNestedHeadersRange = highlight.isHeader() && highlight.col >= 0;
+  if (!isNestedHeadersRange) {
+    return visualColumn;
+  }
+  const firstColumn = this.hot.view.getFirstFullyVisibleColumn();
+  const lastColumn = this.hot.view.getLastFullyVisibleColumn();
+  const mostLeftColumnIndex = (0, _classPrivateFieldGet6.default)(this, _stateManager).findLeftMostColumnIndex(highlight.row, highlight.col);
+  const mostRightColumnIndex = (0, _classPrivateFieldGet6.default)(this, _stateManager).findRightMostColumnIndex(highlight.row, highlight.col);
+
+  // do not scroll the viewport when the header is wider than the viewport
+  if (mostLeftColumnIndex < firstColumn && mostRightColumnIndex > lastColumn) {
+    return visualColumn;
+  }
+  return mostLeftColumnIndex < firstColumn ? mostLeftColumnIndex : mostRightColumnIndex;
+}
+function _onBeforeHighlightingColumnHeader2(visualColumn, headerLevel, highlightMeta) {
+  const headerNodeData = (0, _classPrivateFieldGet6.default)(this, _stateManager).getHeaderTreeNodeData(headerLevel, visualColumn);
+  if (!headerNodeData) {
+    return visualColumn;
+  }
+  const {
+    columnCursor,
+    selectionType,
+    selectionWidth
+  } = highlightMeta;
+  const {
+    isRoot,
+    colspan
+  } = (0, _classPrivateFieldGet6.default)(this, _stateManager).getHeaderSettings(headerLevel, visualColumn);
+  if (selectionType === _selection.HEADER_TYPE) {
+    if (!isRoot) {
+      return headerNodeData.columnIndex;
+    }
+  } else if (selectionType === _selection.ACTIVE_HEADER_TYPE) {
+    if (colspan > selectionWidth - columnCursor || !isRoot) {
+      // Prevents adding any CSS class names to the TH element
+      return null;
+    }
+  }
+  return visualColumn;
+}
+function _onBeforeCopy2(data, copyableRanges, _ref2) {
+  let {
+    columnHeadersCount
+  } = _ref2;
+  if (columnHeadersCount === 0) {
+    return;
+  }
+  for (let rangeIndex = 0; rangeIndex < copyableRanges.length; rangeIndex++) {
+    const {
+      startRow,
+      startCol,
+      endRow,
+      endCol
+    } = copyableRanges[rangeIndex];
+    const rowsCount = endRow - startRow + 1;
+    const columnsCount = startCol - endCol + 1;
+
+    // do not process dataset ranges and column headers where only one column is copied
+    if (startRow >= 0 || columnsCount === 1) {
+      break;
+    }
+    for (let column = startCol; column <= endCol; column++) {
+      for (let row = startRow; row <= endRow; row++) {
+        var _classPrivateFieldGet4;
+        const zeroBasedColumnHeaderLevel = rowsCount + row;
+        const zeroBasedColumnIndex = column - startCol;
+        if (zeroBasedColumnIndex === 0) {
+          continue; // eslint-disable-line no-continue
+        }
+
+        const isRoot = (_classPrivateFieldGet4 = (0, _classPrivateFieldGet6.default)(this, _stateManager).getHeaderTreeNodeData(row, column)) === null || _classPrivateFieldGet4 === void 0 ? void 0 : _classPrivateFieldGet4.isRoot;
+        if (isRoot === false) {
+          data[zeroBasedColumnHeaderLevel][zeroBasedColumnIndex] = '';
+        }
+      }
+    }
+  }
+}
+function _onBeforeOnCellMouseDown2(event, coords, TD, controller) {
+  const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
+  if (headerNodeData) {
+    // Block the Selection module in controlling how the columns are selected. Pass the
+    // responsibility of the column selection to this plugin (see "onAfterOnCellMouseDown" hook).
+    controller.column = true;
+  }
+}
+function _onAfterOnCellMouseDown2(event, coords) {
+  const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
+  if (!headerNodeData) {
+    return;
+  }
+  (0, _classPrivateFieldSet2.default)(this, _focusInitialCoords, coords.clone());
+  (0, _classPrivateFieldSet2.default)(this, _isColumnsSelectionInProgress, true);
+  const {
+    selection
+  } = this.hot;
+  const currentSelection = selection.isSelected() ? selection.getSelectedRange().current() : null;
+  const columnsToSelect = [];
+  const {
+    columnIndex,
+    origColspan
+  } = headerNodeData;
+
+  // The Selection module doesn't allow it to extend its behavior easily. That's why here we need
+  // to re-implement the "click" and "shift" behavior. As a workaround, the logic for the nested
+  // headers must implement a similar logic as in the original Selection handler
+  // (see src/selection/mouseEventHandler.js).
+  const allowRightClickSelection = !selection.inInSelection(coords);
+  if (event.shiftKey && currentSelection) {
+    if (coords.col < currentSelection.from.col) {
+      columnsToSelect.push(currentSelection.getTopEndCorner().col, columnIndex, coords.row);
+    } else if (coords.col > currentSelection.from.col) {
+      columnsToSelect.push(currentSelection.getTopStartCorner().col, columnIndex + origColspan - 1, coords.row);
+    } else {
+      columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
+    }
+  } else if ((0, _event.isLeftClick)(event) || (0, _event.isRightClick)(event) && allowRightClickSelection) {
+    columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
+  }
+
+  // The plugin takes control of how the columns are selected.
+  selection.selectColumns(...columnsToSelect);
+}
+function _onBeforeOnCellMouseOver2(event, coords, TD, controller) {
+  if (!this.hot.view.isMouseDown()) {
+    return;
+  }
+  const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
+  if (!headerNodeData) {
+    return;
+  }
+  const {
+    columnIndex,
+    origColspan
+  } = headerNodeData;
+  const selectedRange = this.hot.getSelectedRangeLast();
+  const topStartCoords = selectedRange.getTopStartCorner();
+  const bottomEndCoords = selectedRange.getBottomEndCorner();
+  const {
+    from
+  } = selectedRange;
+
+  // Block the Selection module in controlling how the columns and cells are selected.
+  // From now on, the plugin is responsible for the selection.
+  controller.column = true;
+  controller.cell = true;
+  const columnsToSelect = [];
+  const headerLevel = (0, _number.clamp)(coords.row, -Infinity, -1);
+  if (coords.col < from.col) {
+    columnsToSelect.push(bottomEndCoords.col, columnIndex, headerLevel);
+  } else if (coords.col > from.col) {
+    columnsToSelect.push(topStartCoords.col, columnIndex + origColspan - 1, headerLevel);
+  } else {
+    columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, headerLevel);
+  }
+  this.hot.selection.selectColumns(...columnsToSelect);
+}
+function _onBeforeOnCellMouseUp2() {
+  (0, _classPrivateFieldSet2.default)(this, _isColumnsSelectionInProgress, false);
+}
+function _onBeforeSelectionHighlightSet2() {
+  const {
+    navigableHeaders
+  } = this.hot.getSettings();
+  if (!this.hot.view.isMouseDown() || !(0, _classPrivateFieldGet6.default)(this, _isColumnsSelectionInProgress) || !navigableHeaders) {
+    return;
+  }
+  const selectedRange = this.hot.getSelectedRangeLast();
+  const columnStart = selectedRange.getTopStartCorner().col;
+  const columnEnd = selectedRange.getBottomEndCorner().col;
+  const {
+    columnIndex,
+    origColspan
+  } = (0, _classPrivateFieldGet6.default)(this, _stateManager).getHeaderTreeNodeData((0, _classPrivateFieldGet6.default)(this, _focusInitialCoords).row, (0, _classPrivateFieldGet6.default)(this, _focusInitialCoords).col);
+  selectedRange.setHighlight((0, _classPrivateFieldGet6.default)(this, _focusInitialCoords));
+  if (origColspan > selectedRange.getWidth() || columnIndex < columnStart || columnIndex + origColspan - 1 > columnEnd) {
+    const headerLevel = (0, _classPrivateFieldGet6.default)(this, _stateManager).findTopMostEntireHeaderLevel((0, _number.clamp)(columnStart, columnIndex, columnIndex + origColspan - 1), (0, _number.clamp)(columnEnd, columnIndex, columnIndex + origColspan - 1));
+    selectedRange.highlight.row = headerLevel;
+    selectedRange.highlight.col = selectedRange.from.col;
+  }
+}
+function _onModifyTransformStart2(delta) {
+  const {
+    highlight
+  } = this.hot.getSelectedRangeLast();
+  const nextCoords = this.hot._createCellCoords(highlight.row + delta.row, highlight.col + delta.col);
+  const isNestedHeadersRange = nextCoords.isHeader() && nextCoords.col >= 0;
+  if (!isNestedHeadersRange) {
+    return;
+  }
+  const visualColumnIndexStart = (0, _classPrivateFieldGet6.default)(this, _stateManager).findLeftMostColumnIndex(nextCoords.row, nextCoords.col);
+  const visualColumnIndexEnd = (0, _classPrivateFieldGet6.default)(this, _stateManager).findRightMostColumnIndex(nextCoords.row, nextCoords.col);
+  if (delta.col < 0) {
+    const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ? visualColumnIndexStart - 1 : visualColumnIndexEnd;
+    const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, -1);
+    if (notHiddenColumnIndex === null) {
+      // There are no visible columns anymore, so move the selection out of the table edge. This will
+      // be processed by the selection Transformer class as a move selection to the previous row (if autoWrapRow is enabled).
+      delta.col = -this.hot.view.countRenderableColumnsInRange(0, highlight.col);
+    } else {
+      delta.col = -Math.max(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, highlight.col) - 1, 1);
+    }
+  } else if (delta.col > 0) {
+    const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ? visualColumnIndexEnd + 1 : visualColumnIndexStart;
+    const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, 1);
+    if (notHiddenColumnIndex === null) {
+      // There are no visible columns anymore, so move the selection out of the table edge. This will
+      // be processed by the selection Transformer class as a move selection to the next row (if autoWrapRow is enabled).
+      delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, this.hot.countCols());
+    } else {
+      delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1, 1);
+    }
+  }
+}
+function _onBeforeSelectColumns2(from, to) {
+  const headerLevel = from.row;
+  const startNodeData = this._getHeaderTreeNodeDataByCoords({
+    row: headerLevel,
+    col: from.col
+  });
+  const endNodeData = this._getHeaderTreeNodeDataByCoords({
+    row: headerLevel,
+    col: to.col
+  });
+  if (to.col < from.col) {
+    // Column selection from right to left
+    if (startNodeData) {
+      from.col = startNodeData.columnIndex + startNodeData.origColspan - 1;
+    }
+    if (endNodeData) {
+      to.col = endNodeData.columnIndex;
+    }
+  } else if (to.col >= from.col) {
+    // Column selection from left to right or a single column selection
+    if (startNodeData) {
+      from.col = startNodeData.columnIndex;
+    }
+    if (endNodeData) {
+      to.col = endNodeData.columnIndex + endNodeData.origColspan - 1;
+    }
+  }
+}
+function _onAfterGetColumnHeaderRenderers2(renderersArray) {
+  renderersArray.length = 0;
+  for (let headerLayer = 0; headerLayer < (0, _classPrivateFieldGet6.default)(this, _stateManager).getLayersCount(); headerLayer++) {
+    renderersArray.push(this.headerRendererFactory(headerLayer));
+  }
+}
+function _onAfterViewportColumnCalculatorOverride2(calc) {
+  const headerLayersCount = (0, _classPrivateFieldGet6.default)(this, _stateManager).getLayersCount();
+  let newStartColumn = calc.startColumn;
+  let nonRenderable = !!headerLayersCount;
+  for (let headerLayer = 0; headerLayer < headerLayersCount; headerLayer++) {
+    const startColumn = (0, _classPrivateFieldGet6.default)(this, _stateManager).findLeftMostColumnIndex(headerLayer, calc.startColumn);
+    const renderedStartColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(startColumn);
+
+    // If any of the headers for that column index is rendered, all of them should be rendered properly, see
+    // comment below.
+    if (startColumn >= 0) {
+      nonRenderable = false;
+    }
+
+    // `renderedStartColumn` can be `null` if the leftmost columns are hidden. In that case -> ignore that header
+    // level, as it should be handled by the "parent" header
+    if ((0, _number.isNumeric)(renderedStartColumn) && renderedStartColumn < calc.startColumn) {
+      newStartColumn = renderedStartColumn;
+      break;
+    }
+  }
+
+  // If no headers for the provided column index are renderable, start rendering from the beginning of the upmost
+  // header for that position.
+  calc.startColumn = nonRenderable ? (0, _classPrivateFieldGet6.default)(this, _stateManager).getHeaderTreeNodeData(0, newStartColumn).columnIndex : newStartColumn;
+}
+function _onModifyColWidth2(width, column) {
+  const cachedWidth = this.ghostTable.getWidth(column);
+  return width > cachedWidth ? width : cachedWidth;
+}
+function _onModifyColumnHeaderValue2(value, visualColumnIndex, headerLevel) {
+  var _classPrivateFieldGet5;
+  const {
+    label
+  } = (_classPrivateFieldGet5 = (0, _classPrivateFieldGet6.default)(this, _stateManager).getHeaderTreeNodeData(headerLevel, visualColumnIndex)) !== null && _classPrivateFieldGet5 !== void 0 ? _classPrivateFieldGet5 : {
+    label: ''
+  };
+  return label;
+}
+function _onModifyFocusedElement2(row, column) {
+  if (row < 0) {
+    return this.hot.getCell(row, (0, _classPrivateFieldGet6.default)(this, _stateManager).findLeftMostColumnIndex(row, column), true);
+  }
+}
+function _onInit2() {
+  // @TODO: Workaround for broken plugin initialization abstraction.
+  this.updatePlugin();
+}
+function _onAfterLoadData2(sourceData, initialLoad) {
+  if (!initialLoad) {
+    this.updatePlugin();
+  }
+}
 
 /***/ }),
 /* 632 */
@@ -80510,8 +81359,8 @@ __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
-var _classPrivateFieldGet4 = _interopRequireDefault(__webpack_require__(129));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
+var _classPrivateFieldGet4 = _interopRequireDefault(__webpack_require__(133));
 var _array = __webpack_require__(113);
 var _sourceSettings2 = _interopRequireDefault(__webpack_require__(633));
 var _headersTree2 = _interopRequireDefault(__webpack_require__(636));
@@ -80671,7 +81520,7 @@ class StateManager {
     return (0, _array.arrayReduce)((0, _classPrivateFieldGet4.default)(this, _headersTree).getRoots(), (acc, rootNode) => {
       rootNode.walkDown(node => {
         const result = callback(node.data);
-        if (result !== void 0) {
+        if (result !== undefined) {
           acc.push(result);
         }
       });
@@ -81009,8 +81858,8 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(78);
 __webpack_require__(8);
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _object = __webpack_require__(117);
 var _array = __webpack_require__(113);
 var _settingsNormalizer = __webpack_require__(634);
@@ -81422,8 +82271,8 @@ function createPlaceholderHeaderSettings() {
 __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(129));
-var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(132));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _array = __webpack_require__(113);
 var _tree = _interopRequireDefault(__webpack_require__(637));
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
@@ -81669,7 +82518,7 @@ exports["default"] = HeadersTree;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.depthFirstPreOrder = depthFirstPreOrder;
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 __webpack_require__(8);
 __webpack_require__(78);
 /**
@@ -82431,7 +83280,7 @@ function createNestedArrayIfNecessary(array, index) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(143));
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _element = __webpack_require__(107);
 /**
  * The class generates the nested headers structure in the DOM and reads the column width for
@@ -82605,24 +83454,30 @@ exports.NestedRows = _nestedRows.NestedRows;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+__webpack_require__(78);
 __webpack_require__(8);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _base = __webpack_require__(423);
 var _dataManager = _interopRequireDefault(__webpack_require__(649));
 var _collapsing = _interopRequireDefault(__webpack_require__(650));
 var _headers = _interopRequireDefault(__webpack_require__(652));
 var _contextMenu = _interopRequireDefault(__webpack_require__(653));
-var _console = __webpack_require__(125);
+var _console = __webpack_require__(129);
 var _data = __webpack_require__(220);
 var _translations = __webpack_require__(221);
 var _rowMoveController = _interopRequireDefault(__webpack_require__(654));
 __webpack_require__(655);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'nestedRows';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 300;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
-const privatePool = new WeakMap();
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * Error message for the wrong data type error.
  */
@@ -82635,44 +83490,188 @@ const WRONG_DATA_TYPE_ERROR = 'The Nested Rows plugin requires an Array of Objec
  * @description
  * Plugin responsible for displaying and operating on data sources with nested structures.
  */
+var _skipRender = /*#__PURE__*/new WeakMap();
+var _skipCoreAPIModifiers = /*#__PURE__*/new WeakMap();
+var _onBeforeRowMove = /*#__PURE__*/new WeakSet();
+var _onBeforeOnCellMouseDown = /*#__PURE__*/new WeakSet();
+var _onFilterData = /*#__PURE__*/new WeakSet();
+var _onAfterContextMenuDefaultOptions = /*#__PURE__*/new WeakSet();
+var _onAfterGetRowHeader = /*#__PURE__*/new WeakSet();
+var _onModifyRowHeaderWidth = /*#__PURE__*/new WeakSet();
+var _onAfterRemoveRow = /*#__PURE__*/new WeakSet();
+var _onBeforeRemoveRow = /*#__PURE__*/new WeakSet();
+var _onBeforeAddChild = /*#__PURE__*/new WeakSet();
+var _onAfterAddChild = /*#__PURE__*/new WeakSet();
+var _onBeforeDetachChild = /*#__PURE__*/new WeakSet();
+var _onAfterDetachChild = /*#__PURE__*/new WeakSet();
+var _onAfterCreateRow = /*#__PURE__*/new WeakSet();
+var _onAfterInit = /*#__PURE__*/new WeakSet();
+var _onBeforeViewRender = /*#__PURE__*/new WeakSet();
+var _onBeforeLoadData = /*#__PURE__*/new WeakSet();
 class NestedRows extends _base.BasePlugin {
-  static get PLUGIN_KEY() {
-    return PLUGIN_KEY;
-  }
-  static get PLUGIN_PRIORITY() {
-    return PLUGIN_PRIORITY;
-  }
-  constructor(hotInstance) {
-    super(hotInstance);
+  constructor() {
+    super(...arguments);
+    /**
+     * `beforeLoadData` hook callback.
+     *
+     * @param {Array} data The source data.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeLoadData);
+    /**
+     * `beforeViewRender` hook callback.
+     *
+     * @param {boolean} force Indicates if the render call was triggered by a change of settings or data.
+     * @param {object} skipRender An object, holder for skipRender functionality.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeViewRender);
+    /**
+     * `afterInit` hook callback.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterInit);
+    /**
+     * `afterCreateRow` hook callback.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterCreateRow);
+    /**
+     * `afterDetachChild` hook callback.
+     *
+     * @param {object} parent Parent element.
+     * @param {object} element New child element.
+     * @param {number} finalElementRowIndex The final row index of the detached element.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterDetachChild);
+    /**
+     * `beforeDetachChild` hook callback.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeDetachChild);
+    /**
+     * `afterAddChild` hook callback.
+     *
+     * @param {object} parent Parent element.
+     * @param {object} element New child element.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterAddChild);
+    /**
+     * `beforeAddChild` hook callback.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeAddChild);
+    /**
+     * Callback for the `beforeRemoveRow` change list of removed physical indexes by reference. Removing parent node
+     * has effect in removing children nodes.
+     *
+     * @param {number} index Visual index of starter row.
+     * @param {number} amount Amount of rows to be removed.
+     * @param {Array} physicalRows List of physical indexes.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeRemoveRow);
+    /**
+     * `onAfterRemoveRow` hook callback.
+     *
+     * @param {number} index Removed row.
+     * @param {number} amount Amount of removed rows.
+     * @param {Array} logicRows An array of the removed physical rows.
+     * @param {string} source Source of action.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterRemoveRow);
+    /**
+     * `modifyRowHeaderWidth` hook callback.
+     *
+     * @param {number} rowHeaderWidth The initial row header width(s).
+     * @returns {number}
+     */
+    _classPrivateMethodInitSpec(this, _onModifyRowHeaderWidth);
+    /**
+     * `afterGetRowHeader` hook callback.
+     *
+     * @param {number} row Row index.
+     * @param {HTMLElement} TH Row header element.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterGetRowHeader);
+    /**
+     * `afterContextMenuDefaultOptions` hook callback.
+     *
+     * @param {object} defaultOptions The default context menu items order.
+     * @returns {boolean}
+     */
+    _classPrivateMethodInitSpec(this, _onAfterContextMenuDefaultOptions);
+    /**
+     * Provide custom source data filtering. It's handled by core method and replaces the native filtering.
+     *
+     * @param {number} index The index where the data filtering starts.
+     * @param {number} amount An amount of rows which filtering applies to.
+     * @param {number} physicalRows Physical row indexes.
+     * @returns {Array}
+     */
+    _classPrivateMethodInitSpec(this, _onFilterData);
+    /**
+     * `beforeOnCellMousedown` hook callback.
+     *
+     * @param {MouseEvent} event Mousedown event.
+     * @param {object} coords Cell coords.
+     * @param {HTMLElement} TD Clicked cell.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeOnCellMouseDown);
+    /**
+     * `beforeRowMove` hook callback.
+     *
+     * @param {Array} rows Array of visual row indexes to be moved.
+     * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements
+     *   will be placed after the moving action. To check the visualization of the final index, please take a look at
+     *   [documentation](@/guides/rows/row-summary.md).
+     * @param {undefined|number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we
+     *   are going to drop the moved elements. To check visualization of drop index please take a look at
+     *   [documentation](@/guides/rows/row-summary.md).
+     * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
+     * @fires Hooks#afterRowMove
+     * @returns {boolean}
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeRowMove);
     /**
      * Reference to the DataManager instance.
      *
      * @private
      * @type {object}
      */
-    this.dataManager = null;
-
+    (0, _defineProperty2.default)(this, "dataManager", null);
     /**
      * Reference to the HeadersUI instance.
      *
      * @private
      * @type {object}
      */
-    this.headersUI = null;
+    (0, _defineProperty2.default)(this, "headersUI", null);
     /**
      * Map of skipped rows by plugin.
      *
      * @private
      * @type {null|TrimmingMap}
      */
-    this.collapsedRowsMap = null;
-    privatePool.set(this, {
-      movedToCollapsed: false,
-      skipRender: null,
-      skipCoreAPIModifiers: false
+    (0, _defineProperty2.default)(this, "collapsedRowsMap", null);
+    /**
+     * Allows skipping the render cycle if set as `true`.
+     *
+     * @type {boolean}
+     */
+    _classPrivateFieldInitSpec(this, _skipRender, {
+      writable: true,
+      value: false
+    });
+    /**
+     * Allows skipping the internal Core methods call if set as `true`.
+     *
+     * @type {boolean}
+     */
+    _classPrivateFieldInitSpec(this, _skipCoreAPIModifiers, {
+      writable: true,
+      value: false
     });
   }
-
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link NestedRows#enablePlugin} method is called.
@@ -82698,10 +83697,16 @@ class NestedRows extends _base.BasePlugin {
     this.contextMenuUI = new _contextMenu.default(this, this.hot);
     this.rowMoveController = new _rowMoveController.default(this);
     this.addHook('afterInit', function () {
-      return _this.onAfterInit(...arguments);
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+      return _classPrivateMethodGet(_this, _onAfterInit, _onAfterInit2).call(_this, ...args);
     });
     this.addHook('beforeViewRender', function () {
-      return _this.onBeforeViewRender(...arguments);
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeViewRender, _onBeforeViewRender2).call(_this, ...args);
     });
     this.addHook('modifyRowData', function () {
       return _this.onModifyRowData(...arguments);
@@ -82713,46 +83718,85 @@ class NestedRows extends _base.BasePlugin {
       return _this.onBeforeDataSplice(...arguments);
     });
     this.addHook('filterData', function () {
-      return _this.onFilterData(...arguments);
+      for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        args[_key3] = arguments[_key3];
+      }
+      return _classPrivateMethodGet(_this, _onFilterData, _onFilterData2).call(_this, ...args);
     });
     this.addHook('afterContextMenuDefaultOptions', function () {
-      return _this.onAfterContextMenuDefaultOptions(...arguments);
+      for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+        args[_key4] = arguments[_key4];
+      }
+      return _classPrivateMethodGet(_this, _onAfterContextMenuDefaultOptions, _onAfterContextMenuDefaultOptions2).call(_this, ...args);
     });
     this.addHook('afterGetRowHeader', function () {
-      return _this.onAfterGetRowHeader(...arguments);
+      for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+        args[_key5] = arguments[_key5];
+      }
+      return _classPrivateMethodGet(_this, _onAfterGetRowHeader, _onAfterGetRowHeader2).call(_this, ...args);
     });
     this.addHook('beforeOnCellMouseDown', function () {
-      return _this.onBeforeOnCellMouseDown(...arguments);
+      for (var _len6 = arguments.length, args = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+        args[_key6] = arguments[_key6];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeOnCellMouseDown, _onBeforeOnCellMouseDown2).call(_this, ...args);
     });
     this.addHook('beforeRemoveRow', function () {
-      return _this.onBeforeRemoveRow(...arguments);
+      for (var _len7 = arguments.length, args = new Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
+        args[_key7] = arguments[_key7];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeRemoveRow, _onBeforeRemoveRow2).call(_this, ...args);
     });
     this.addHook('afterRemoveRow', function () {
-      return _this.onAfterRemoveRow(...arguments);
+      for (var _len8 = arguments.length, args = new Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
+        args[_key8] = arguments[_key8];
+      }
+      return _classPrivateMethodGet(_this, _onAfterRemoveRow, _onAfterRemoveRow2).call(_this, ...args);
     });
     this.addHook('beforeAddChild', function () {
-      return _this.onBeforeAddChild(...arguments);
+      for (var _len9 = arguments.length, args = new Array(_len9), _key9 = 0; _key9 < _len9; _key9++) {
+        args[_key9] = arguments[_key9];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeAddChild, _onBeforeAddChild2).call(_this, ...args);
     });
     this.addHook('afterAddChild', function () {
-      return _this.onAfterAddChild(...arguments);
+      for (var _len10 = arguments.length, args = new Array(_len10), _key10 = 0; _key10 < _len10; _key10++) {
+        args[_key10] = arguments[_key10];
+      }
+      return _classPrivateMethodGet(_this, _onAfterAddChild, _onAfterAddChild2).call(_this, ...args);
     });
     this.addHook('beforeDetachChild', function () {
-      return _this.onBeforeDetachChild(...arguments);
+      for (var _len11 = arguments.length, args = new Array(_len11), _key11 = 0; _key11 < _len11; _key11++) {
+        args[_key11] = arguments[_key11];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeDetachChild, _onBeforeDetachChild2).call(_this, ...args);
     });
     this.addHook('afterDetachChild', function () {
-      return _this.onAfterDetachChild(...arguments);
+      for (var _len12 = arguments.length, args = new Array(_len12), _key12 = 0; _key12 < _len12; _key12++) {
+        args[_key12] = arguments[_key12];
+      }
+      return _classPrivateMethodGet(_this, _onAfterDetachChild, _onAfterDetachChild2).call(_this, ...args);
     });
     this.addHook('modifyRowHeaderWidth', function () {
-      return _this.onModifyRowHeaderWidth(...arguments);
+      for (var _len13 = arguments.length, args = new Array(_len13), _key13 = 0; _key13 < _len13; _key13++) {
+        args[_key13] = arguments[_key13];
+      }
+      return _classPrivateMethodGet(_this, _onModifyRowHeaderWidth, _onModifyRowHeaderWidth2).call(_this, ...args);
     });
     this.addHook('afterCreateRow', function () {
-      return _this.onAfterCreateRow(...arguments);
+      for (var _len14 = arguments.length, args = new Array(_len14), _key14 = 0; _key14 < _len14; _key14++) {
+        args[_key14] = arguments[_key14];
+      }
+      return _classPrivateMethodGet(_this, _onAfterCreateRow, _onAfterCreateRow2).call(_this, ...args);
     });
     this.addHook('beforeRowMove', function () {
-      return _this.onBeforeRowMove(...arguments);
+      for (var _len15 = arguments.length, args = new Array(_len15), _key15 = 0; _key15 < _len15; _key15++) {
+        args[_key15] = arguments[_key15];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeRowMove, _onBeforeRowMove2).call(_this, ...args);
     });
-    this.addHook('beforeLoadData', data => this.onBeforeLoadData(data));
-    this.addHook('beforeUpdateData', data => this.onBeforeLoadData(data));
+    this.addHook('beforeLoadData', data => _classPrivateMethodGet(this, _onBeforeLoadData, _onBeforeLoadData2).call(this, data));
+    this.addHook('beforeUpdateData', data => _classPrivateMethodGet(this, _onBeforeLoadData, _onBeforeLoadData2).call(this, data));
     this.registerShortcuts();
     super.enablePlugin();
   }
@@ -82808,7 +83852,8 @@ class NestedRows extends _base.BasePlugin {
       },
       runOnlyIf: () => {
         var _this$hot$getSelected;
-        return (_this$hot$getSelected = this.hot.getSelectedRangeLast()) === null || _this$hot$getSelected === void 0 ? void 0 : _this$hot$getSelected.highlight.isHeader();
+        const highlight = (_this$hot$getSelected = this.hot.getSelectedRangeLast()) === null || _this$hot$getSelected === void 0 ? void 0 : _this$hot$getSelected.highlight;
+        return highlight && this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
       },
       group: SHORTCUTS_GROUP
     });
@@ -82822,65 +83867,32 @@ class NestedRows extends _base.BasePlugin {
   unregisterShortcuts() {
     this.hot.getShortcutManager().getContext('grid').removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
-
-  /**
-   * `beforeRowMove` hook callback.
-   *
-   * @private
-   * @param {Array} rows Array of visual row indexes to be moved.
-   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements
-   *   will be placed after the moving action. To check the visualization of the final index, please take a look at
-   *   [documentation](@/guides/rows/row-summary.md).
-   * @param {undefined|number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we
-   *   are going to drop the moved elements. To check visualization of drop index please take a look at
-   *   [documentation](@/guides/rows/row-summary.md).
-   * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
-   * @fires Hooks#afterRowMove
-   * @returns {boolean}
-   */
-  onBeforeRowMove(rows, finalIndex, dropIndex, movePossible) {
-    return this.rowMoveController.onBeforeRowMove(rows, finalIndex, dropIndex, movePossible);
-  }
-
   /**
    * Enable the modify hook skipping flag - allows retrieving the data from Handsontable without this plugin's
    * modifications.
+   *
+   * @private
    */
   disableCoreAPIModifiers() {
-    const priv = privatePool.get(this);
-    priv.skipCoreAPIModifiers = true;
+    (0, _classPrivateFieldSet2.default)(this, _skipCoreAPIModifiers, true);
   }
 
   /**
    * Disable the modify hook skipping flag.
-   */
-  enableCoreAPIModifiers() {
-    const priv = privatePool.get(this);
-    priv.skipCoreAPIModifiers = false;
-  }
-
-  /**
-   * `beforeOnCellMousedown` hook callback.
    *
    * @private
-   * @param {MouseEvent} event Mousedown event.
-   * @param {object} coords Cell coords.
-   * @param {HTMLElement} TD Clicked cell.
    */
-  onBeforeOnCellMouseDown(event, coords, TD) {
-    this.collapsingUI.toggleState(event, coords, TD);
+  enableCoreAPIModifiers() {
+    (0, _classPrivateFieldSet2.default)(this, _skipCoreAPIModifiers, false);
   }
-
   /**
    * The modifyRowData hook callback.
    *
-   * @private
    * @param {number} row Visual row index.
    * @returns {boolean}
    */
   onModifyRowData(row) {
-    const priv = privatePool.get(this);
-    if (priv.skipCoreAPIModifiers) {
+    if ((0, _classPrivateFieldGet2.default)(this, _skipCoreAPIModifiers)) {
       return;
     }
     return this.dataManager.getDataObject(row);
@@ -82889,240 +83901,128 @@ class NestedRows extends _base.BasePlugin {
   /**
    * Modify the source data length to match the length of the nested structure.
    *
-   * @private
    * @returns {number}
    */
   onModifySourceLength() {
-    const priv = privatePool.get(this);
-    if (priv.skipCoreAPIModifiers) {
+    if ((0, _classPrivateFieldGet2.default)(this, _skipCoreAPIModifiers)) {
       return;
     }
     return this.dataManager.countAllRows();
   }
 
   /**
-   * @private
    * @param {number} index The index where the data was spliced.
    * @param {number} amount An amount of items to remove.
    * @param {object} element An element to add.
    * @returns {boolean}
    */
   onBeforeDataSplice(index, amount, element) {
-    const priv = privatePool.get(this);
-    if (priv.skipCoreAPIModifiers || this.dataManager.isRowHighestLevel(index)) {
+    if ((0, _classPrivateFieldGet2.default)(this, _skipCoreAPIModifiers) || this.dataManager.isRowHighestLevel(index)) {
       return true;
     }
     this.dataManager.spliceData(index, amount, element);
     return false;
   }
-
-  /**
-   * Provide custom source data filtering. It's handled by core method and replaces the native filtering.
-   *
-   * @private
-   * @param {number} index The index where the data filtering starts.
-   * @param {number} amount An amount of rows which filtering applies to.
-   * @param {number} physicalRows Physical row indexes.
-   * @returns {Array}
-   */
-  onFilterData(index, amount, physicalRows) {
-    const priv = privatePool.get(this);
-    this.collapsingUI.collapsedRowsStash.stash();
-    this.collapsingUI.collapsedRowsStash.trimStash(physicalRows[0], amount);
-    this.collapsingUI.collapsedRowsStash.shiftStash(physicalRows[0], null, -1 * amount);
-    this.dataManager.filterData(index, amount, physicalRows);
-    priv.skipRender = true;
-    return this.dataManager.getData().slice(); // Data contains reference sometimes.
-  }
-
-  /**
-   * `afterContextMenuDefaultOptions` hook callback.
-   *
-   * @private
-   * @param {object} defaultOptions The default context menu items order.
-   * @returns {boolean}
-   */
-  onAfterContextMenuDefaultOptions(defaultOptions) {
-    return this.contextMenuUI.appendOptions(defaultOptions);
-  }
-
-  /**
-   * `afterGetRowHeader` hook callback.
-   *
-   * @private
-   * @param {number} row Row index.
-   * @param {HTMLElement} TH Row header element.
-   */
-  onAfterGetRowHeader(row, TH) {
-    this.headersUI.appendLevelIndicators(row, TH);
-  }
-
-  /**
-   * `modifyRowHeaderWidth` hook callback.
-   *
-   * @private
-   * @param {number} rowHeaderWidth The initial row header width(s).
-   * @returns {number}
-   */
-  onModifyRowHeaderWidth(rowHeaderWidth) {
-    return this.headersUI.rowHeaderWidthCache || rowHeaderWidth;
-  }
-
-  /**
-   * `onAfterRemoveRow` hook callback.
-   *
-   * @private
-   * @param {number} index Removed row.
-   * @param {number} amount Amount of removed rows.
-   * @param {Array} logicRows An array of the removed physical rows.
-   * @param {string} source Source of action.
-   */
-  onAfterRemoveRow(index, amount, logicRows, source) {
-    if (source === this.pluginName) {
-      return;
-    }
-    const priv = privatePool.get(this);
-    setTimeout(() => {
-      priv.skipRender = null;
-      this.headersUI.updateRowHeaderWidth();
-      this.collapsingUI.collapsedRowsStash.applyStash();
-    }, 0);
-  }
-
-  /**
-   * Callback for the `beforeRemoveRow` change list of removed physical indexes by reference. Removing parent node
-   * has effect in removing children nodes.
-   *
-   * @private
-   * @param {number} index Visual index of starter row.
-   * @param {number} amount Amount of rows to be removed.
-   * @param {Array} physicalRows List of physical indexes.
-   */
-  onBeforeRemoveRow(index, amount, physicalRows) {
-    const modifiedPhysicalRows = Array.from(physicalRows.reduce((removedRows, physicalIndex) => {
-      if (this.dataManager.isParent(physicalIndex)) {
-        const children = this.dataManager.getDataObject(physicalIndex).__children;
-
-        // Preserve a parent in the list of removed rows.
-        removedRows.add(physicalIndex);
-        if (Array.isArray(children)) {
-          // Add a children to the list of removed rows.
-          children.forEach(child => removedRows.add(this.dataManager.getRowIndex(child)));
-        }
-        return removedRows;
-      }
-
-      // Don't modify list of removed rows when already checked element isn't a parent.
-      return removedRows.add(physicalIndex);
-    }, new Set()));
-
-    // Modifying hook's argument by the reference.
-    physicalRows.length = 0;
-    physicalRows.push(...modifiedPhysicalRows);
-  }
-
-  /**
-   * `beforeAddChild` hook callback.
-   *
-   * @private
-   */
-  onBeforeAddChild() {
-    this.collapsingUI.collapsedRowsStash.stash();
-  }
-
-  /**
-   * `afterAddChild` hook callback.
-   *
-   * @private
-   * @param {object} parent Parent element.
-   * @param {object} element New child element.
-   */
-  onAfterAddChild(parent, element) {
-    this.collapsingUI.collapsedRowsStash.shiftStash(this.dataManager.getRowIndex(element));
-    this.collapsingUI.collapsedRowsStash.applyStash();
-    this.headersUI.updateRowHeaderWidth();
-  }
-
-  /**
-   * `beforeDetachChild` hook callback.
-   *
-   * @private
-   */
-  onBeforeDetachChild() {
-    this.collapsingUI.collapsedRowsStash.stash();
-  }
-
-  /**
-   * `afterDetachChild` hook callback.
-   *
-   * @private
-   * @param {object} parent Parent element.
-   * @param {object} element New child element.
-   * @param {number} finalElementRowIndex The final row index of the detached element.
-   */
-  onAfterDetachChild(parent, element, finalElementRowIndex) {
-    this.collapsingUI.collapsedRowsStash.shiftStash(finalElementRowIndex, null, -1);
-    this.collapsingUI.collapsedRowsStash.applyStash();
-    this.headersUI.updateRowHeaderWidth();
-  }
-
-  /**
-   * `afterCreateRow` hook callback.
-   *
-   * @private
-   */
-  onAfterCreateRow() {
-    this.dataManager.rewriteCache();
-  }
-
-  /**
-   * `afterInit` hook callback.
-   *
-   * @private
-   */
-  onAfterInit() {
-    this.headersUI.updateRowHeaderWidth();
-  }
-
-  /**
-   * `beforeViewRender` hook callback.
-   *
-   * @param {boolean} force Indicates if the render call was triggered by a change of settings or data.
-   * @param {object} skipRender An object, holder for skipRender functionality.
-   * @private
-   */
-  onBeforeViewRender(force, skipRender) {
-    const priv = privatePool.get(this);
-    if (priv.skipRender) {
-      skipRender.skipRender = true;
-    }
-  }
-
   /**
    * Destroys the plugin instance.
    */
   destroy() {
     super.destroy();
   }
-
-  /**
-   * `beforeLoadData` hook callback.
-   *
-   * @param {Array} data The source data.
-   * @private
-   */
-  onBeforeLoadData(data) {
-    if (!(0, _data.isArrayOfObjects)(data)) {
-      (0, _console.error)(WRONG_DATA_TYPE_ERROR);
-      this.hot.getSettings()[PLUGIN_KEY] = false;
-      this.disablePlugin();
-      return;
-    }
-    this.dataManager.setData(data);
-    this.dataManager.rewriteCache();
-  }
 }
 exports.NestedRows = NestedRows;
+function _onBeforeRowMove2(rows, finalIndex, dropIndex, movePossible) {
+  return this.rowMoveController.onBeforeRowMove(rows, finalIndex, dropIndex, movePossible);
+}
+function _onBeforeOnCellMouseDown2(event, coords, TD) {
+  this.collapsingUI.toggleState(event, coords, TD);
+}
+function _onFilterData2(index, amount, physicalRows) {
+  this.collapsingUI.collapsedRowsStash.stash();
+  this.collapsingUI.collapsedRowsStash.trimStash(physicalRows[0], amount);
+  this.collapsingUI.collapsedRowsStash.shiftStash(physicalRows[0], null, -1 * amount);
+  this.dataManager.filterData(index, amount, physicalRows);
+  (0, _classPrivateFieldSet2.default)(this, _skipRender, true);
+  return this.dataManager.getData().slice(); // Data contains reference sometimes.
+}
+function _onAfterContextMenuDefaultOptions2(defaultOptions) {
+  return this.contextMenuUI.appendOptions(defaultOptions);
+}
+function _onAfterGetRowHeader2(row, TH) {
+  this.headersUI.appendLevelIndicators(row, TH);
+}
+function _onModifyRowHeaderWidth2(rowHeaderWidth) {
+  return Math.max(this.headersUI.rowHeaderWidthCache, rowHeaderWidth);
+}
+function _onAfterRemoveRow2(index, amount, logicRows, source) {
+  if (source === this.pluginName) {
+    return;
+  }
+  this.hot._registerTimeout(() => {
+    (0, _classPrivateFieldSet2.default)(this, _skipRender, false);
+    this.headersUI.updateRowHeaderWidth();
+    this.collapsingUI.collapsedRowsStash.applyStash();
+  });
+}
+function _onBeforeRemoveRow2(index, amount, physicalRows) {
+  const modifiedPhysicalRows = Array.from(physicalRows.reduce((removedRows, physicalIndex) => {
+    if (this.dataManager.isParent(physicalIndex)) {
+      const children = this.dataManager.getDataObject(physicalIndex).__children;
+
+      // Preserve a parent in the list of removed rows.
+      removedRows.add(physicalIndex);
+      if (Array.isArray(children)) {
+        // Add a children to the list of removed rows.
+        children.forEach(child => removedRows.add(this.dataManager.getRowIndex(child)));
+      }
+      return removedRows;
+    }
+
+    // Don't modify list of removed rows when already checked element isn't a parent.
+    return removedRows.add(physicalIndex);
+  }, new Set()));
+
+  // Modifying hook's argument by the reference.
+  physicalRows.length = 0;
+  physicalRows.push(...modifiedPhysicalRows);
+}
+function _onBeforeAddChild2() {
+  this.collapsingUI.collapsedRowsStash.stash();
+}
+function _onAfterAddChild2(parent, element) {
+  this.collapsingUI.collapsedRowsStash.shiftStash(this.dataManager.getRowIndex(element));
+  this.collapsingUI.collapsedRowsStash.applyStash();
+  this.headersUI.updateRowHeaderWidth();
+}
+function _onBeforeDetachChild2() {
+  this.collapsingUI.collapsedRowsStash.stash();
+}
+function _onAfterDetachChild2(parent, element, finalElementRowIndex) {
+  this.collapsingUI.collapsedRowsStash.shiftStash(finalElementRowIndex, null, -1);
+  this.collapsingUI.collapsedRowsStash.applyStash();
+  this.headersUI.updateRowHeaderWidth();
+}
+function _onAfterCreateRow2() {
+  this.dataManager.rewriteCache();
+}
+function _onAfterInit2() {
+  this.headersUI.updateRowHeaderWidth();
+}
+function _onBeforeViewRender2(force, skipRender) {
+  if ((0, _classPrivateFieldGet2.default)(this, _skipRender)) {
+    skipRender.skipRender = true;
+  }
+}
+function _onBeforeLoadData2(data) {
+  if (!(0, _data.isArrayOfObjects)(data)) {
+    (0, _console.error)(WRONG_DATA_TYPE_ERROR);
+    this.hot.getSettings()[PLUGIN_KEY] = false;
+    this.disablePlugin();
+    return;
+  }
+  this.dataManager.setData(data);
+  this.dataManager.rewriteCache();
+}
 
 /***/ }),
 /* 649 */
@@ -83131,9 +84031,11 @@ exports.NestedRows = NestedRows;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
-var _number = __webpack_require__(137);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _number = __webpack_require__(141);
 var _object = __webpack_require__(117);
 var _array = __webpack_require__(113);
 /**
@@ -83148,36 +84050,38 @@ class DataManager {
      *
      * @type {object}
      */
-    this.hot = hotInstance;
+    (0, _defineProperty2.default)(this, "hot", void 0);
     /**
      * Reference to the source data object.
      *
      * @type {Handsontable.CellValue[][]|Handsontable.RowObject[]}
      */
-    this.data = null;
+    (0, _defineProperty2.default)(this, "data", null);
     /**
      * Reference to the NestedRows plugin.
      *
      * @type {object}
      */
-    this.plugin = nestedRowsPlugin;
+    (0, _defineProperty2.default)(this, "plugin", void 0);
     /**
      * Map of row object parents.
      *
      * @type {WeakMap}
      */
-    this.parentReference = new WeakMap();
+    (0, _defineProperty2.default)(this, "parentReference", new WeakMap());
     /**
      * Nested structure cache.
      *
      * @type {object}
      */
-    this.cache = {
+    (0, _defineProperty2.default)(this, "cache", {
       levels: [],
       levelCount: 0,
       rows: [],
       nodeInfo: new WeakMap()
-    };
+    });
+    this.hot = hotInstance;
+    this.plugin = nestedRowsPlugin;
   }
 
   /**
@@ -83272,7 +84176,7 @@ class DataManager {
    * @returns {object}
    */
   getDataObject(row) {
-    return row === null || row === void 0 ? null : this.cache.rows[row];
+    return row === null || row === undefined ? null : this.cache.rows[row];
   }
 
   /**
@@ -83299,13 +84203,13 @@ class DataManager {
       rootLevel = true;
       readNodesCount -= 1;
     }
-    if (neededIndex !== null && neededIndex !== void 0 && readNodesCount === neededIndex) {
+    if (neededIndex !== null && neededIndex !== undefined && readNodesCount === neededIndex) {
       return {
         result: parentObj,
         end: true
       };
     }
-    if (neededObject !== null && neededObject !== void 0 && parentObj === neededObject) {
+    if (neededObject !== null && neededObject !== undefined && parentObj === neededObject) {
       return {
         result: readNodesCount,
         end: true
@@ -83357,7 +84261,7 @@ class DataManager {
    * @returns {number} Row index.
    */
   getRowIndex(rowObj) {
-    return rowObj === null || rowObj === void 0 ? null : this.cache.nodeInfo.get(rowObj).row;
+    return rowObj === null || rowObj === undefined ? null : this.cache.nodeInfo.get(rowObj).row;
   }
 
   /**
@@ -83374,7 +84278,7 @@ class DataManager {
       rowObj = this.getDataObject(row);
     }
     const parent = this.getRowParent(row);
-    if (parent === null || parent === void 0) {
+    if (parent === null || parent === undefined) {
       return this.data.indexOf(rowObj);
     }
     return parent.__children.indexOf(rowObj);
@@ -83470,7 +84374,7 @@ class DataManager {
    * @returns {number} Row level.
    */
   getRowObjectLevel(rowObject) {
-    return rowObject === null || rowObject === void 0 ? null : this.cache.nodeInfo.get(rowObject).level;
+    return rowObject === null || rowObject === undefined ? null : this.cache.nodeInfo.get(rowObject).level;
   }
 
   /**
@@ -83657,7 +84561,7 @@ class DataManager {
     const grandparentRowIndex = this.getRowIndex(grandparent);
     let movedElementRowIndex = null;
     this.hot.runHooks('beforeDetachChild', parent, element);
-    if (indexWithinParent !== null && indexWithinParent !== void 0) {
+    if (indexWithinParent !== null && indexWithinParent !== undefined) {
       const removedRowIndexes = Array.from(new Array(childRowIndex + childCount + 1).keys()).splice(-1 * (childCount + 1));
       this.hot.runHooks('beforeRemoveRow', childRowIndex, childCount + 1, removedRowIndexes, this.plugin.pluginName);
       parent.__children.splice(indexWithinParent, 1);
@@ -83782,10 +84686,10 @@ class DataManager {
     const elemToMove = fromParent.__children.slice(indexInFromParent, indexInFromParent + 1);
     const movingUp = fromIndex > toIndex;
     let toParent = moveToLastRow ? this.getRowParent(toIndex - 1) : this.getRowParent(toIndex);
-    if (toParent === null || toParent === void 0) {
+    if (toParent === null || toParent === undefined) {
       toParent = this.getRowParent(toIndex - 1);
     }
-    if (toParent === null || toParent === void 0) {
+    if (toParent === null || toParent === undefined) {
       toParent = this.getDataObject(toIndex - 1);
     }
     if (!toParent) {
@@ -83846,9 +84750,9 @@ var _default = exports["default"] = DataManager;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
-var _event = __webpack_require__(122);
+var _event = __webpack_require__(126);
 var _array = __webpack_require__(113);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 var _element = __webpack_require__(107);
 var _base = _interopRequireDefault(__webpack_require__(651));
 var _headers = _interopRequireDefault(__webpack_require__(652));
@@ -83879,7 +84783,7 @@ class CollapsingUI extends _base.default {
       },
       shiftStash: function (baseIndex, targetIndex) {
         let delta = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
-        if (targetIndex === null || targetIndex === void 0) {
+        if (targetIndex === null || targetIndex === undefined) {
           targetIndex = Infinity;
         }
         (0, _array.arrayEach)(_this.lastCollapsedRows, (elem, i) => {
@@ -83891,7 +84795,7 @@ class CollapsingUI extends _base.default {
       applyStash: function () {
         let forceRender = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
         _this.collapseMultipleChildren(_this.lastCollapsedRows, forceRender);
-        _this.lastCollapsedRows = void 0;
+        _this.lastCollapsedRows = undefined;
       },
       trimStash: (realElementIndex, amount) => {
         (0, _number.rangeEach)(realElementIndex, realElementIndex + amount - 1, i => {
@@ -84313,12 +85217,14 @@ var _default = exports["default"] = CollapsingUI;
 
 /***/ }),
 /* 651 */
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 /**
  * Base class for the Nested Rows' UI sub-classes.
  *
@@ -84332,10 +85238,12 @@ class BaseUI {
      *
      * @type {Core}
      */
-    this.hot = hotInstance;
+    (0, _defineProperty2.default)(this, "hot", void 0);
     /**
      * Reference to the main plugin instance.
      */
+    (0, _defineProperty2.default)(this, "plugin", void 0);
+    this.hot = hotInstance;
     this.plugin = pluginInstance;
   }
 }
@@ -84351,7 +85259,7 @@ var _default = exports["default"] = BaseUI;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 var _array = __webpack_require__(113);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 var _element = __webpack_require__(107);
 var _base = _interopRequireDefault(__webpack_require__(651));
 var _a11y = __webpack_require__(114);
@@ -84486,16 +85394,19 @@ var _default = exports["default"] = HeadersUI;
 "use strict";
 
 
+__webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _number = __webpack_require__(137);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
+var _classPrivateFieldGet2 = _interopRequireDefault(__webpack_require__(133));
+var _number = __webpack_require__(141);
 var _array = __webpack_require__(113);
 var C = _interopRequireWildcard(__webpack_require__(245));
 var _base = _interopRequireDefault(__webpack_require__(651));
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && Object.prototype.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
-const privatePool = new WeakMap();
-
+function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
 /**
  * Class responsible for the Context Menu entries for the Nested Rows plugin.
  *
@@ -84503,25 +85414,29 @@ const privatePool = new WeakMap();
  * @class ContextMenuUI
  * @augments BaseUI
  */
+var _menuEntries = /*#__PURE__*/new WeakMap();
 class ContextMenuUI extends _base.default {
-  constructor(nestedRowsPlugin, hotInstance) {
-    super(nestedRowsPlugin, hotInstance);
-    privatePool.set(this, {
-      row_above: (key, selection) => {
-        const lastSelection = selection[selection.length - 1];
-        this.dataManager.addSibling(lastSelection.start.row, 'above');
-      },
-      row_below: (key, selection) => {
-        const lastSelection = selection[selection.length - 1];
-        this.dataManager.addSibling(lastSelection.start.row, 'below');
-      }
-    });
+  constructor() {
+    super(...arguments);
     /**
      * Reference to the DataManager instance connected with the Nested Rows plugin.
      *
      * @type {DataManager}
      */
-    this.dataManager = this.plugin.dataManager;
+    (0, _defineProperty2.default)(this, "dataManager", this.plugin.dataManager);
+    _classPrivateFieldInitSpec(this, _menuEntries, {
+      writable: true,
+      value: {
+        row_above: (key, selection) => {
+          const lastSelection = selection[selection.length - 1];
+          this.dataManager.addSibling(lastSelection.start.row, 'above');
+        },
+        row_below: (key, selection) => {
+          const lastSelection = selection[selection.length - 1];
+          this.dataManager.addSibling(lastSelection.start.row, 'below');
+        }
+      }
+    });
   }
   /**
    * Append options to the context menu. (Propagated from the `afterContextMenuDefaultOptions` hook callback)
@@ -84582,10 +85497,9 @@ class ContextMenuUI extends _base.default {
    * @returns {*}
    */
   modifyRowInsertingOptions(defaultOptions) {
-    const priv = privatePool.get(this);
     (0, _number.rangeEach)(0, defaultOptions.items.length - 1, i => {
-      const option = priv[defaultOptions.items[i].key];
-      if (option !== null && option !== void 0) {
+      const option = (0, _classPrivateFieldGet2.default)(this, _menuEntries)[defaultOptions.items[i].key];
+      if (option !== null && option !== undefined) {
         defaultOptions.items[i].callback = option;
       }
     });
@@ -84601,10 +85515,12 @@ var _default = exports["default"] = ContextMenuUI;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _mixed = __webpack_require__(110);
-var _console = __webpack_require__(125);
+var _console = __webpack_require__(129);
 var _templateLiteralTag = __webpack_require__(112);
 /**
  * Helper class for the row-move-related operations.
@@ -84619,24 +85535,28 @@ class RowMoveController {
      *
      * @type {NestedRows}
      */
-    this.plugin = plugin;
+    (0, _defineProperty2.default)(this, "plugin", void 0);
     /**
      * Reference to the Handsontable instance.
      *
      * @type {Handsontable.Core}
      */
-    this.hot = plugin.hot;
+    (0, _defineProperty2.default)(this, "hot", void 0);
     /**
      * Reference to the Data Manager class instance.
      *
      * @type {DataManager}
      */
-    this.dataManager = plugin.dataManager;
+    (0, _defineProperty2.default)(this, "dataManager", void 0);
     /**
      * Reference to the Collapsing UI class instance.
      *
      * @type {CollapsingUI}
      */
+    (0, _defineProperty2.default)(this, "collapsingUI", void 0);
+    this.plugin = plugin;
+    this.hot = plugin.hot;
+    this.dataManager = plugin.dataManager;
     this.collapsingUI = plugin.collapsingUI;
   }
 
@@ -84769,7 +85689,7 @@ class RowMoveController {
 
     // If we try to move an element to the place of a top-level parent, snap the element to the previous top-level
     // parent's children instead
-    if (targetParent === null || targetParent === void 0) {
+    if (targetParent === null || targetParent === undefined) {
       targetParent = this.dataManager.getRowParent(physicalDropIndex - 1);
     }
     return targetParent;
@@ -84909,9 +85829,10 @@ exports.PersistentState = _persistentState.PersistentState;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _base = __webpack_require__(423);
 var _storage = _interopRequireDefault(__webpack_require__(658));
-var _pluginHooks = _interopRequireDefault(__webpack_require__(124));
+var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 _pluginHooks.default.getSingleton().register('persistentStateSave');
 _pluginHooks.default.getSingleton().register('persistentStateLoad');
 _pluginHooks.default.getSingleton().register('persistentStateReset');
@@ -84946,23 +85867,22 @@ const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 0;
  *
  */
 class PersistentState extends _base.BasePlugin {
-  static get PLUGIN_KEY() {
-    return PLUGIN_KEY;
-  }
-  static get PLUGIN_PRIORITY() {
-    return PLUGIN_PRIORITY;
-  }
-  constructor(hotInstance) {
-    super(hotInstance);
+  constructor() {
+    super(...arguments);
     /**
      * Instance of {@link Storage}.
      *
      * @private
      * @type {Storage}
      */
-    this.storage = void 0;
+    (0, _defineProperty2.default)(this, "storage", void 0);
   }
-
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link PersistentState#enablePlugin} method is called.
@@ -84993,7 +85913,7 @@ class PersistentState extends _base.BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.storage = void 0;
+    this.storage = undefined;
     super.disablePlugin();
   }
 
@@ -85058,9 +85978,11 @@ exports.PersistentState = PersistentState;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(118);
 __webpack_require__(8);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _array = __webpack_require__(113);
 /**
  * @private
@@ -85075,20 +85997,21 @@ class Storage {
      *
      * @type {Window}
      */
-    this.rootWindow = rootWindow;
+    (0, _defineProperty2.default)(this, "rootWindow", void 0);
     /**
      * Prefix for key (id element).
      *
      * @type {string}
      */
-    this.prefix = prefix;
-
+    (0, _defineProperty2.default)(this, "prefix", void 0);
     /**
      * Saved keys.
      *
      * @type {Array}
      */
-    this.savedKeys = [];
+    (0, _defineProperty2.default)(this, "savedKeys", []);
+    this.rootWindow = rootWindow;
+    this.prefix = prefix;
     this.loadSavedKeys();
   }
 
@@ -85117,7 +86040,7 @@ class Storage {
   loadValue(key, defaultValue) {
     const itemKey = typeof key === 'undefined' ? defaultValue : key;
     const value = this.rootWindow.localStorage.getItem(`${this.prefix}_${itemKey}`);
-    return value === null ? void 0 : JSON.parse(value);
+    return value === null ? undefined : JSON.parse(value);
   }
 
   /**
@@ -85147,7 +86070,7 @@ class Storage {
    */
   loadSavedKeys() {
     const keysJSON = this.rootWindow.localStorage.getItem(`${this.prefix}__persistentStateKeys`);
-    const keys = typeof keysJSON === 'string' ? JSON.parse(keysJSON) : void 0;
+    const keys = typeof keysJSON === 'string' ? JSON.parse(keysJSON) : undefined;
     this.savedKeys = keys || [];
   }
 
@@ -85192,12 +86115,18 @@ exports.Search = _search.Search;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+__webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _base = __webpack_require__(423);
 var _object = __webpack_require__(117);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 var _mixed = __webpack_require__(110);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'search';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 190;
 const DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
@@ -85247,38 +86176,49 @@ const DEFAULT_QUERY_METHOD = function (query, value, cellProperties) {
  * searchPlugin.setSearchResultClass(customClass);
  * ```
  */
+var _onBeforeRenderer = /*#__PURE__*/new WeakSet();
 class Search extends _base.BasePlugin {
-  static get PLUGIN_KEY() {
-    return PLUGIN_KEY;
-  }
-  static get PLUGIN_PRIORITY() {
-    return PLUGIN_PRIORITY;
-  }
-  constructor(hotInstance) {
-    super(hotInstance);
+  constructor() {
+    super(...arguments);
+    /**
+     * The `beforeRenderer` hook callback.
+     *
+     * @param {HTMLTableCellElement} TD The rendered `TD` element.
+     * @param {number} row Visual row index.
+     * @param {number} col Visual column index.
+     * @param {string|number} prop Column property name or a column index, if datasource is an array of arrays.
+     * @param {string} value Value of the rendered cell.
+     * @param {object} cellProperties Object containing the cell's properties.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeRenderer);
     /**
      * Function called during querying for each cell from the {@link DataMap}.
      *
      * @private
      * @type {Function}
      */
-    this.callback = DEFAULT_CALLBACK;
+    (0, _defineProperty2.default)(this, "callback", DEFAULT_CALLBACK);
     /**
      * Query function is responsible for determining whether a query matches the value stored in a cell.
      *
      * @private
      * @type {Function}
      */
-    this.queryMethod = DEFAULT_QUERY_METHOD;
+    (0, _defineProperty2.default)(this, "queryMethod", DEFAULT_QUERY_METHOD);
     /**
      * Class name added to each cell that belongs to the searched query.
      *
      * @private
      * @type {string}
      */
-    this.searchResultClass = DEFAULT_SEARCH_RESULT_CLASS;
+    (0, _defineProperty2.default)(this, "searchResultClass", DEFAULT_SEARCH_RESULT_CLASS);
   }
-
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link AutoRowSize#enablePlugin} method is called.
@@ -85300,7 +86240,10 @@ class Search extends _base.BasePlugin {
     const searchSettings = this.hot.getSettings()[PLUGIN_KEY];
     this.updatePluginSettings(searchSettings);
     this.addHook('beforeRenderer', function () {
-      return _this.onBeforeRenderer(...arguments);
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+      return _classPrivateMethodGet(_this, _onBeforeRenderer, _onBeforeRenderer2).call(_this, ...args);
     });
     super.enablePlugin();
   }
@@ -85311,7 +86254,10 @@ class Search extends _base.BasePlugin {
   disablePlugin() {
     var _this2 = this;
     const beforeRendererCallback = function () {
-      return _this2.onBeforeRenderer(...arguments);
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+      return _classPrivateMethodGet(_this2, _onBeforeRenderer, _onBeforeRenderer2).call(_this2, ...args);
     };
     this.hot.addHook('beforeRenderer', beforeRendererCallback);
     this.hot.addHookOnce('afterViewRender', () => {
@@ -85443,37 +86389,6 @@ class Search extends _base.BasePlugin {
       }
     }
   }
-
-  /**
-   * The `beforeRenderer` hook callback.
-   *
-   * @private
-   * @param {HTMLTableCellElement} TD The rendered `TD` element.
-   * @param {number} row Visual row index.
-   * @param {number} col Visual column index.
-   * @param {string|number} prop Column property name or a column index, if datasource is an array of arrays.
-   * @param {string} value Value of the rendered cell.
-   * @param {object} cellProperties Object containing the cell's properties.
-   */
-  onBeforeRenderer(TD, row, col, prop, value, cellProperties) {
-    // TODO: #4972
-    const className = cellProperties.className || [];
-    let classArray = [];
-    if (typeof className === 'string') {
-      classArray = className.split(' ');
-    } else {
-      classArray.push(...className);
-    }
-    if (this.isEnabled() && cellProperties.isSearchResult) {
-      if (!classArray.includes(this.searchResultClass)) {
-        classArray.push(`${this.searchResultClass}`);
-      }
-    } else if (classArray.includes(this.searchResultClass)) {
-      classArray.splice(classArray.indexOf(this.searchResultClass), 1);
-    }
-    cellProperties.className = classArray.join(' ');
-  }
-
   /**
    * Destroys the plugin instance.
    */
@@ -85482,6 +86397,24 @@ class Search extends _base.BasePlugin {
   }
 }
 exports.Search = Search;
+function _onBeforeRenderer2(TD, row, col, prop, value, cellProperties) {
+  // TODO: #4972
+  const className = cellProperties.className || [];
+  let classArray = [];
+  if (typeof className === 'string') {
+    classArray = className.split(' ');
+  } else {
+    classArray.push(...className);
+  }
+  if (this.isEnabled() && cellProperties.isSearchResult) {
+    if (!classArray.includes(this.searchResultClass)) {
+      classArray.push(`${this.searchResultClass}`);
+    }
+  } else if (classArray.includes(this.searchResultClass)) {
+    classArray.splice(classArray.indexOf(this.searchResultClass), 1);
+  }
+  cellProperties.className = classArray.join(' ');
+}
 
 /***/ }),
 /* 661 */
@@ -85503,12 +86436,18 @@ exports.TouchScroll = _touchScroll.TouchScroll;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+__webpack_require__(78);
 __webpack_require__(8);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _element = __webpack_require__(107);
 var _array = __webpack_require__(113);
 var _base = __webpack_require__(423);
 var _feature = __webpack_require__(161);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'touchScroll';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 200;
 
@@ -85517,7 +86456,51 @@ const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 200;
  * @plugin TouchScroll
  * @class TouchScroll
  */
+var _onAfterViewRender = /*#__PURE__*/new WeakSet();
+var _onBeforeTouchScroll = /*#__PURE__*/new WeakSet();
+var _onAfterMomentumScroll = /*#__PURE__*/new WeakSet();
 class TouchScroll extends _base.BasePlugin {
+  constructor() {
+    super(...arguments);
+    /**
+     * After momentum scroll listener.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterMomentumScroll);
+    /**
+     * Touch scroll listener.
+     */
+    _classPrivateMethodInitSpec(this, _onBeforeTouchScroll);
+    /**
+     * After view render listener.
+     */
+    _classPrivateMethodInitSpec(this, _onAfterViewRender);
+    /**
+     * Collection of scrollbars to update.
+     *
+     * @type {Array}
+     */
+    (0, _defineProperty2.default)(this, "scrollbars", []);
+    /**
+     * Collection of overlays to update.
+     *
+     * @type {Array}
+     */
+    (0, _defineProperty2.default)(this, "clones", []);
+    /**
+     * Flag which determines if collection of overlays should be refilled on every table render.
+     *
+     * @type {boolean}
+     * @default false
+     */
+    (0, _defineProperty2.default)(this, "lockedCollection", false);
+    /**
+     * Flag which determines if walkontable should freeze overlays while scrolling.
+     *
+     * @type {boolean}
+     * @default false
+     */
+    (0, _defineProperty2.default)(this, "freezeOverlays", false);
+  }
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
@@ -85527,37 +86510,6 @@ class TouchScroll extends _base.BasePlugin {
   static get SETTING_KEYS() {
     return true;
   }
-  constructor(hotInstance) {
-    super(hotInstance);
-
-    /**
-     * Collection of scrollbars to update.
-     *
-     * @type {Array}
-     */
-    this.scrollbars = [];
-    /**
-     * Collection of overlays to update.
-     *
-     * @type {Array}
-     */
-    this.clones = [];
-    /**
-     * Flag which determines if collection of overlays should be refilled on every table render.
-     *
-     * @type {boolean}
-     * @default false
-     */
-    this.lockedCollection = false;
-    /**
-     * Flag which determines if walkontable should freeze overlays while scrolling.
-     *
-     * @type {boolean}
-     * @default false
-     */
-    this.freezeOverlays = false;
-  }
-
   /**
    * Check if plugin is enabled.
    *
@@ -85574,7 +86526,7 @@ class TouchScroll extends _base.BasePlugin {
     if (this.enabled) {
       return;
     }
-    this.addHook('afterViewRender', () => this.onAfterViewRender());
+    this.addHook('afterViewRender', () => _classPrivateMethodGet(this, _onAfterViewRender, _onAfterViewRender2).call(this));
     this.registerEvents();
     super.enablePlugin();
   }
@@ -85600,93 +86552,75 @@ class TouchScroll extends _base.BasePlugin {
    * @private
    */
   registerEvents() {
-    this.addHook('beforeTouchScroll', () => this.onBeforeTouchScroll());
-    this.addHook('afterMomentumScroll', () => this.onAfterMomentumScroll());
-  }
-
-  /**
-   * After view render listener.
-   *
-   * @private
-   */
-  onAfterViewRender() {
-    if (this.lockedCollection) {
-      return;
-    }
-    const {
-      topOverlay,
-      bottomOverlay,
-      inlineStartOverlay,
-      topInlineStartCornerOverlay,
-      bottomInlineStartCornerOverlay
-    } = this.hot.view._wt.wtOverlays;
-    this.lockedCollection = true;
-    this.scrollbars.length = 0;
-    this.scrollbars.push(topOverlay);
-    if (bottomOverlay.clone) {
-      this.scrollbars.push(bottomOverlay);
-    }
-    this.scrollbars.push(inlineStartOverlay);
-    if (topInlineStartCornerOverlay) {
-      this.scrollbars.push(topInlineStartCornerOverlay);
-    }
-    if (bottomInlineStartCornerOverlay && bottomInlineStartCornerOverlay.clone) {
-      this.scrollbars.push(bottomInlineStartCornerOverlay);
-    }
-    this.clones = [];
-    if (topOverlay.needFullRender) {
-      this.clones.push(topOverlay.clone.wtTable.holder.parentNode);
-    }
-    if (bottomOverlay.needFullRender) {
-      this.clones.push(bottomOverlay.clone.wtTable.holder.parentNode);
-    }
-    if (inlineStartOverlay.needFullRender) {
-      this.clones.push(inlineStartOverlay.clone.wtTable.holder.parentNode);
-    }
-    if (topInlineStartCornerOverlay) {
-      this.clones.push(topInlineStartCornerOverlay.clone.wtTable.holder.parentNode);
-    }
-    if (bottomInlineStartCornerOverlay && bottomInlineStartCornerOverlay.clone) {
-      this.clones.push(bottomInlineStartCornerOverlay.clone.wtTable.holder.parentNode);
-    }
-  }
-
-  /**
-   * Touch scroll listener.
-   *
-   * @private
-   */
-  onBeforeTouchScroll() {
-    this.freezeOverlays = true;
-    (0, _array.arrayEach)(this.clones, clone => {
-      (0, _element.addClass)(clone, 'hide-tween');
-    });
-  }
-
-  /**
-   * After momentum scroll listener.
-   *
-   * @private
-   */
-  onAfterMomentumScroll() {
-    this.freezeOverlays = false;
-    (0, _array.arrayEach)(this.clones, clone => {
-      (0, _element.removeClass)(clone, 'hide-tween');
-      (0, _element.addClass)(clone, 'show-tween');
-    });
-    this.hot._registerTimeout(() => {
-      (0, _array.arrayEach)(this.clones, clone => {
-        (0, _element.removeClass)(clone, 'show-tween');
-      });
-    }, 400);
-    (0, _array.arrayEach)(this.scrollbars, scrollbar => {
-      scrollbar.refresh();
-      scrollbar.resetFixedPosition();
-    });
-    this.hot.view._wt.wtOverlays.syncScrollWithMaster();
+    this.addHook('beforeTouchScroll', () => _classPrivateMethodGet(this, _onBeforeTouchScroll, _onBeforeTouchScroll2).call(this));
+    this.addHook('afterMomentumScroll', () => _classPrivateMethodGet(this, _onAfterMomentumScroll, _onAfterMomentumScroll2).call(this));
   }
 }
 exports.TouchScroll = TouchScroll;
+function _onAfterViewRender2() {
+  if (this.lockedCollection) {
+    return;
+  }
+  const {
+    topOverlay,
+    bottomOverlay,
+    inlineStartOverlay,
+    topInlineStartCornerOverlay,
+    bottomInlineStartCornerOverlay
+  } = this.hot.view._wt.wtOverlays;
+  this.lockedCollection = true;
+  this.scrollbars.length = 0;
+  this.scrollbars.push(topOverlay);
+  if (bottomOverlay.clone) {
+    this.scrollbars.push(bottomOverlay);
+  }
+  this.scrollbars.push(inlineStartOverlay);
+  if (topInlineStartCornerOverlay) {
+    this.scrollbars.push(topInlineStartCornerOverlay);
+  }
+  if (bottomInlineStartCornerOverlay && bottomInlineStartCornerOverlay.clone) {
+    this.scrollbars.push(bottomInlineStartCornerOverlay);
+  }
+  this.clones = [];
+  if (topOverlay.needFullRender) {
+    this.clones.push(topOverlay.clone.wtTable.holder.parentNode);
+  }
+  if (bottomOverlay.needFullRender) {
+    this.clones.push(bottomOverlay.clone.wtTable.holder.parentNode);
+  }
+  if (inlineStartOverlay.needFullRender) {
+    this.clones.push(inlineStartOverlay.clone.wtTable.holder.parentNode);
+  }
+  if (topInlineStartCornerOverlay) {
+    this.clones.push(topInlineStartCornerOverlay.clone.wtTable.holder.parentNode);
+  }
+  if (bottomInlineStartCornerOverlay && bottomInlineStartCornerOverlay.clone) {
+    this.clones.push(bottomInlineStartCornerOverlay.clone.wtTable.holder.parentNode);
+  }
+}
+function _onBeforeTouchScroll2() {
+  this.freezeOverlays = true;
+  (0, _array.arrayEach)(this.clones, clone => {
+    (0, _element.addClass)(clone, 'hide-tween');
+  });
+}
+function _onAfterMomentumScroll2() {
+  this.freezeOverlays = false;
+  (0, _array.arrayEach)(this.clones, clone => {
+    (0, _element.removeClass)(clone, 'hide-tween');
+    (0, _element.addClass)(clone, 'show-tween');
+  });
+  this.hot._registerTimeout(() => {
+    (0, _array.arrayEach)(this.clones, clone => {
+      (0, _element.removeClass)(clone, 'show-tween');
+    });
+  }, 400);
+  (0, _array.arrayEach)(this.scrollbars, scrollbar => {
+    scrollbar.refresh();
+    scrollbar.resetFixedPosition();
+  });
+  this.hot.view._wt.wtOverlays.syncScrollWithMaster();
+}
 
 /***/ }),
 /* 663 */
@@ -85708,11 +86642,17 @@ exports.TrimRows = _trimRows.TrimRows;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+__webpack_require__(78);
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(121));
 var _base = __webpack_require__(423);
 var _translations = __webpack_require__(221);
 var _array = __webpack_require__(113);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'trimRows';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 330;
 
@@ -85803,22 +86743,27 @@ const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 330;
  * ```
  * :::
  */
+var _onMapInit = /*#__PURE__*/new WeakSet();
 class TrimRows extends _base.BasePlugin {
-  static get PLUGIN_KEY() {
-    return PLUGIN_KEY;
-  }
-  static get PLUGIN_PRIORITY() {
-    return PLUGIN_PRIORITY;
-  }
-  constructor(hotInstance) {
-    super(hotInstance);
+  constructor() {
+    super(...arguments);
+    /**
+     * On map initialized hook callback.
+     */
+    _classPrivateMethodInitSpec(this, _onMapInit);
     /**
      * Map of skipped rows by the plugin.
      *
      * @private
      * @type {null|TrimmingMap}
      */
-    this.trimmedRowsMap = null;
+    (0, _defineProperty2.default)(this, "trimmedRowsMap", null);
+  }
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
   }
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -85838,7 +86783,7 @@ class TrimRows extends _base.BasePlugin {
       return;
     }
     this.trimmedRowsMap = this.hot.rowIndexMapper.registerMap('trimRows', new _translations.TrimmingMap());
-    this.trimmedRowsMap.addLocalHook('init', () => this.onMapInit());
+    this.trimmedRowsMap.addLocalHook('init', () => _classPrivateMethodGet(this, _onMapInit, _onMapInit2).call(this));
     super.enablePlugin();
   }
 
@@ -85994,23 +86939,6 @@ class TrimRows extends _base.BasePlugin {
     const sourceRows = this.hot.countSourceRows();
     return trimmedRows.every(trimmedRow => Number.isInteger(trimmedRow) && trimmedRow >= 0 && trimmedRow < sourceRows);
   }
-
-  /**
-   * On map initialized hook callback.
-   *
-   * @private
-   */
-  onMapInit() {
-    const trimmedRows = this.hot.getSettings()[PLUGIN_KEY];
-    if (Array.isArray(trimmedRows)) {
-      this.hot.batchExecution(() => {
-        (0, _array.arrayEach)(trimmedRows, physicalRow => {
-          this.trimmedRowsMap.setValueAtIndex(physicalRow, true);
-        });
-      }, true);
-    }
-  }
-
   /**
    * Destroys the plugin instance.
    */
@@ -86019,6 +86947,16 @@ class TrimRows extends _base.BasePlugin {
   }
 }
 exports.TrimRows = TrimRows;
+function _onMapInit2() {
+  const trimmedRows = this.hot.getSettings()[PLUGIN_KEY];
+  if (Array.isArray(trimmedRows)) {
+    this.hot.batchExecution(() => {
+      (0, _array.arrayEach)(trimmedRows, physicalRow => {
+        this.trimmedRowsMap.setValueAtIndex(physicalRow, true);
+      });
+    }, true);
+  }
+}
 
 /***/ }),
 /* 665 */
@@ -86044,9 +86982,9 @@ function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
-var _pluginHooks = _interopRequireDefault(__webpack_require__(124));
+var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 var _array = __webpack_require__(113);
-var _number = __webpack_require__(137);
+var _number = __webpack_require__(141);
 var _object = __webpack_require__(117);
 var _utils = __webpack_require__(461);
 const SHORTCUTS_GROUP = 'undoRedo';
@@ -86558,7 +87496,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function (instance, undoneCallback)
       changes.push([rowIndex, changedIndex, rowData[changedIndex]]);
     });
   });
-  instance.setSourceDataAtCell(changes, void 0, void 0, 'UndoRedo.undo');
+  instance.setSourceDataAtCell(changes, undefined, undefined, 'UndoRedo.undo');
   if (typeof this.headers !== 'undefined') {
     (0, _array.arrayEach)(sortedHeaders, (headerData, columnIndex) => {
       instance.getSettings().colHeaders[ascendingIndexes[columnIndex]] = headerData;
@@ -86653,7 +87591,7 @@ class MergeCellsAction extends UndoRedo.Action {
     instance.addHookOnce('afterViewRender', undoneCallback);
     mergeCellsPlugin.unmergeRange(this.cellRange, true);
     const topStartCorner = this.cellRange.getTopStartCorner();
-    instance.populateFromArray(topStartCorner.row, topStartCorner.col, this.rangeData, void 0, void 0, 'MergeCells');
+    instance.populateFromArray(topStartCorner.row, topStartCorner.col, this.rangeData, undefined, undefined, 'MergeCells');
   }
   redo(instance, redoneCallback) {
     const mergeCellsPlugin = instance.getPlugin('mergeCells');
@@ -86989,11 +87927,11 @@ var _base = _interopRequireWildcard(__webpack_require__(2));
 exports.CellCoords = _base.CellCoords;
 exports.CellRange = _base.CellRange;
 var _registry = __webpack_require__(347);
-var _eventManager = _interopRequireWildcard(__webpack_require__(127));
+var _eventManager = _interopRequireWildcard(__webpack_require__(131));
 var _translations = __webpack_require__(221);
 var _jquery = _interopRequireDefault(__webpack_require__(667));
 var _ghostTable = _interopRequireDefault(__webpack_require__(425));
-var parseTableHelpers = _interopRequireWildcard(__webpack_require__(134));
+var parseTableHelpers = _interopRequireWildcard(__webpack_require__(138));
 var arrayHelpers = _interopRequireWildcard(__webpack_require__(113));
 var browserHelpers = _interopRequireWildcard(__webpack_require__(116));
 var dataHelpers = _interopRequireWildcard(__webpack_require__(220));
@@ -87001,17 +87939,17 @@ var dateHelpers = _interopRequireWildcard(__webpack_require__(390));
 var featureHelpers = _interopRequireWildcard(__webpack_require__(161));
 var functionHelpers = _interopRequireWildcard(__webpack_require__(115));
 var mixedHelpers = _interopRequireWildcard(__webpack_require__(110));
-var numberHelpers = _interopRequireWildcard(__webpack_require__(137));
+var numberHelpers = _interopRequireWildcard(__webpack_require__(141));
 var objectHelpers = _interopRequireWildcard(__webpack_require__(117));
 var stringHelpers = _interopRequireWildcard(__webpack_require__(108));
-var unicodeHelpers = _interopRequireWildcard(__webpack_require__(121));
+var unicodeHelpers = _interopRequireWildcard(__webpack_require__(125));
 var domHelpers = _interopRequireWildcard(__webpack_require__(107));
-var domEventHelpers = _interopRequireWildcard(__webpack_require__(122));
-var _registry2 = __webpack_require__(123);
-var _registry3 = __webpack_require__(140);
-var _registry4 = __webpack_require__(141);
+var domEventHelpers = _interopRequireWildcard(__webpack_require__(126));
+var _registry2 = __webpack_require__(127);
+var _registry3 = __webpack_require__(144);
+var _registry4 = __webpack_require__(145);
 var _registry5 = __webpack_require__(269);
-var _registry6 = __webpack_require__(135);
+var _registry6 = __webpack_require__(139);
 var _base2 = __webpack_require__(423);
 var _Handsontable$cellTyp, _Handsontable$editors, _Handsontable$rendere, _Handsontable$validat, _Handsontable$plugins;
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
