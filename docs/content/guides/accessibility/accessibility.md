@@ -107,7 +107,7 @@ Handsontable is being tested with popular screen readers for compatibility. We s
 ## A demo configured for accessibility
 In the demo provided, you can toggle various options to adjust the accessibility support for users with disabilities. Handsontable demo configured for accessibility may vary based on the application you create. 
 
-::: example-without-tabs #example
+::: example #example --html 1 --css 2 --js 3
 
 ```html
 <div class="exampleContainer">
@@ -353,13 +353,15 @@ In the demo provided, you can toggle various options to adjust the accessibility
 
 ```css
 .exampleContainer {
-  margin-top: 3rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
   font-family: Inter var, ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif,
     Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+}
+.exampleContainer #handsontable { 
+  background: white;
 }
 
 /*
@@ -451,9 +453,7 @@ table.htCore tr.selected td {
 
 .placeholderInput {
   background: white;
-}
 
-input {
   max-width: 20rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
@@ -472,15 +472,194 @@ input {
   outline: none;
 }
 
+.optionLabel {
+  align-items: flex-start;
+}
+
 .optionLabel:focus-within {
   outline: 5px auto Highlight;
   outline: 5px auto -webkit-focus-ring-color;
+}
+
+html.theme-dark .optionLabel {
+  color: #e5ebf1 !important;
 }
 ```
 
 ```js
 import Handsontable from "handsontable";
 import "handsontable/dist/handsontable.min.css";
+
+// Get the DOM element with the ID 'handsontable' where the Handsontable will be rendered
+const app = document.getElementById("handsontable");
+
+// Define configuration options for the Handsontable
+const hotOptions = {
+  data,
+  height: 464,
+  colWidths: [140, 165, 100, 100, 100, 90, 90, 110, 178],
+  colHeaders: [
+    "Company name",
+    "Product name",
+    "Sell date",
+    "In stock",
+    "Qty",
+    "Progress",
+    "Rating",
+    "Order ID",
+    "Country",
+  ],
+  columns: [
+    { data: "companyName", type: "text" },
+    { data: "productName", type: "text" },
+    {
+      data: "sellDate",
+      type: "date",
+      allowInvalid: false,
+    },
+    {
+      data: "inStock",
+      type: "checkbox",
+      className: "htCenter",
+    },
+    { data: "qty", type: "numeric" },
+    {
+      data: "progress",
+      renderer: progressBarRenderer,
+      readOnly: true,
+      className: "htMiddle",
+    },
+    {
+      data: "rating",
+      renderer: starRenderer,
+      readOnly: true,
+      className: "star htCenter",
+    },
+    {
+      data: "orderId",
+      type: "text",
+    },
+    {
+      data: "country",
+      type: "dropdown",
+      source: countries,
+    },
+  ],
+  dropdownMenu: true,
+  hiddenColumns: {
+    indicators: true,
+  },
+  contextMenu: true,
+  navigableHeaders: true, // new a11y
+  disableTabNavigation: false, // new a11y
+  autoWrapRow: true,
+  autoWrapCol: true,
+  multiColumnSorting: true,
+  filters: true,
+  rowHeaders: true,
+  manualRowMove: true,
+  rowHeaders: true,
+  nestedRows: true,
+  afterGetColHeader: alignHeaders,
+  beforeRenderer: addClassesToRows,
+  licenseKey: "non-commercial-and-evaluation",
+};
+
+// Initialize the Handsontable instance with the specified configuration options
+let hotInstance = new Handsontable(app, hotOptions);
+
+// Helper function to set up checkbox event handling
+export const setupCheckbox = (element, callback) =>
+  element.addEventListener("click", (clickEvent) => callback(element.checked));
+
+// Set up event listeners for various checkboxes to update Handsontable settings
+setupCheckbox(document.querySelector("#enableTabNavigation"), (checked) => {
+  hotOptions.disableTabNavigation = !checked;
+  hotInstance.updateSettings({
+    disableTabNavigation: hotOptions.disableTabNavigation,
+  });
+  console.log(
+    `Updated setting: disableTabNavigation to`,
+    hotInstance.getSettings().disableTabNavigation
+  );
+});
+
+setupCheckbox(document.querySelector("#enableHeaderNavigation"), (checked) => {
+  hotOptions.navigableHeaders = checked;
+  hotInstance.updateSettings({
+    navigableHeaders: hotOptions.navigableHeaders,
+  });
+  console.log(
+    `Updated setting: navigableHeaders to`,
+    hotInstance.getSettings().navigableHeaders
+  );
+});
+
+setupCheckbox(
+  document.querySelector("#enableCellVirtualization"),
+  (checked) => {
+    hotInstance.destroy();
+    hotInstance = new Handsontable(document.getElementById("handsontable"), {
+      ...hotOptions,
+      renderAllRows: !checked,
+      viewportColumnRenderingOffset: checked ? "auto" : 9,
+    });
+    console.log(
+      `Updated setting: renderAllRows to`,
+      hotInstance.getSettings().renderAllRows
+    );
+  }
+);
+
+setupCheckbox(document.querySelector("#enableCellEnterEditing"), (checked) => {
+  hotOptions.enterBeginsEditing = checked;
+  hotInstance.updateSettings({
+    enterBeginsEditing: hotOptions.enterBeginsEditing,
+  });
+  console.log(
+    `Updated setting: enableCellEnterEditing to`,
+    hotInstance.getSettings().enterBeginsEditing
+  );
+});
+
+setupCheckbox(
+  document.querySelector("#enableArrowRLFirstLastColumn"),
+  (checked) => {
+    hotOptions.autoWrapRow = checked;
+    hotInstance.updateSettings({
+      autoWrapRow: hotOptions.autoWrapRow,
+    });
+    console.log(
+      `Updated setting: autoWrapRow to`,
+      hotInstance.getSettings().autoWrapRow
+    );
+  }
+);
+
+setupCheckbox(
+  document.querySelector("#enableArrowTDFirstLastColumn"),
+  (checked) => {
+    hotOptions.autoWrapCol = checked;
+    hotInstance.updateSettings({
+      autoWrapCol: hotOptions.autoWrapCol,
+    });
+    console.log(
+      `Updated setting: autoWrapCol to`,
+      hotInstance.getSettings().autoWrapCol
+    );
+  }
+);
+
+setupCheckbox(document.querySelector("#enableEnterFocusEditing"), (checked) => {
+  hotOptions.enterMoves = checked ? { col: 0, row: 1 } : { col: 0, row: 0 };
+  hotInstance.updateSettings({
+    enterMoves: hotOptions.enterMoves,
+  });
+  console.log(
+    `Updated setting: enterMoves to`,
+    hotInstance.getSettings().enterMoves
+  );
+});
 
 const data = [
   {
@@ -2240,16 +2419,16 @@ export function progressBarRenderer(
   value,
   cellProperties
 ) {
-    const div = document.createElement("div");
+  const div = document.createElement("div");
 
-    div.style.width = `${value * 10}px`;
-    div.ariaLabel = `${value * 10}%`;
+  div.style.width = `${value * 10}px`;
+  div.ariaLabel = `${value * 10}%`;
 
-    addClassWhenNeeded(td, cellProperties);
-    Handsontable.dom.addClass(div, "progressBar");
-    Handsontable.dom.empty(td);
+  addClassWhenNeeded(td, cellProperties);
+  Handsontable.dom.addClass(div, "progressBar");
+  Handsontable.dom.empty(td);
 
-    td.appendChild(div);
+  td.appendChild(div);
 }
 
 export function starRenderer(
@@ -2261,13 +2440,13 @@ export function starRenderer(
   value,
   cellProperties
 ) {
-    const div = document.createElement("div");
-    div.textContent = "★".repeat(value);
-    div.ariaLabel = `${value}`;
-    Handsontable.dom.addClass(div, "stars");
-    Handsontable.dom.empty(td);
+  const div = document.createElement("div");
+  div.textContent = "★".repeat(value);
+  div.ariaLabel = `${value}`;
+  Handsontable.dom.addClass(div, "stars");
+  Handsontable.dom.empty(td);
 
-    td.appendChild(div);
+  td.appendChild(div);
 }
 
 export const SELECTED_CLASS = "selected";
@@ -2325,174 +2504,7 @@ export function alignHeaders(column, TH) {
     }
   }
 }
-
-// Get the DOM element with the ID 'handsontable' where the Handsontable will be rendered
-
-const app = document.getElementById("handsontable");
-
-// Define configuration options for the Handsontable
-const hotOptions = {
-  data,
-  height: 464,
-  colWidths: [140, 165, 100, 100, 100, 90, 90, 110, 178],
-  colHeaders: [
-    "Company name",
-    "Product name",
-    "Sell date",
-    "In stock",
-    "Qty",
-    "Progress",
-    "Rating",
-    "Order ID",
-    "Country",
-  ],
-  columns: [
-    { data: "companyName", type: "text" },
-    { data: "productName", type: "text" },
-    {
-      data: "sellDate",
-      type: "date",
-      allowInvalid: false,
-    },
-    {
-      data: "inStock",
-      type: "checkbox",
-      className: "htCenter",
-    },
-    { data: "qty", type: "numeric" },
-    {
-      data: "progress",
-      renderer: progressBarRenderer,
-      readOnly: true,
-      className: "htMiddle",
-    },
-    {
-      data: "rating",
-      renderer: starRenderer,
-      readOnly: true,
-      className: "star htCenter",
-    },
-    {
-      data: "orderId",
-      type: "text",
-    },
-    {
-      data: "country",
-      type: "dropdown",
-      source: countries,
-    },
-  ],
-  dropdownMenu: true,
-  hiddenColumns: {
-    indicators: true,
-  },
-  contextMenu: true,
-  navigableHeaders: true, // new a11y
-  disableTabNavigation: false, // new a11y
-  autoWrapRow: true,
-  autoWrapCol: true,
-  multiColumnSorting: true,
-  filters: true,
-  rowHeaders: true,
-  manualRowMove: true,
-  rowHeaders: true,
-  nestedRows: true,
-  afterGetColHeader: alignHeaders,
-  beforeRenderer: addClassesToRows,
-  licenseKey: "non-commercial-and-evaluation",
-};
-
-// Initialize the Handsontable instance with the specified configuration options
-let hotInstance = new Handsontable(app, hotOptions);
-
-// Helper function to set up checkbox event handling
-export const setupCheckbox = (element, callback) =>
-  element.addEventListener("click", (clickEvent) => callback(element.checked));
-
-// Set up event listeners for various checkboxes to update Handsontable settings
-setupCheckbox(document.querySelector("#enableTabNavigation"), (checked) => {
-  hotOptions.disableTabNavigation = !checked;
-  hotInstance.updateSettings({
-    disableTabNavigation: hotOptions.disableTabNavigation,
-  });
-  console.log(
-    `Updated setting: disableTabNavigation to`,
-    hotInstance.getSettings().disableTabNavigation
-  );
-});
-setupCheckbox(document.querySelector("#enableHeaderNavigation"), (checked) => {
-  hotOptions.navigableHeaders = checked;
-  hotInstance.updateSettings({
-    navigableHeaders: hotOptions.navigableHeaders,
-  });
-  console.log(
-    `Updated setting: navigableHeaders to`,
-    hotInstance.getSettings().navigableHeaders
-  );
-});
-setupCheckbox(
-  document.querySelector("#enableCellVirtualization"),
-  (checked) => {
-    hotInstance.destroy();
-    hotInstance = new Handsontable(document.getElementById("handsontable"), {
-      ...hotOptions,
-      renderAllRows: !checked,
-      viewportColumnRenderingOffset: checked ? "auto" : 9,
-    });
-    console.log(
-      `Updated setting: renderAllRows to`,
-      hotInstance.getSettings().renderAllRows
-    );
-  }
-);
-setupCheckbox(document.querySelector("#enableCellEnterEditing"), (checked) => {
-  hotOptions.enterBeginsEditing = checked;
-  hotInstance.updateSettings({
-    enterBeginsEditing: hotOptions.enterBeginsEditing,
-  });
-  console.log(
-    `Updated setting: enableCellEnterEditing to`,
-    hotInstance.getSettings().enterBeginsEditing
-  );
-});
-setupCheckbox(
-  document.querySelector("#enableArrowRLFirstLastColumn"),
-  (checked) => {
-    hotOptions.autoWrapRow = checked;
-    hotInstance.updateSettings({
-      autoWrapRow: hotOptions.autoWrapRow,
-    });
-    console.log(
-      `Updated setting: autoWrapRow to`,
-      hotInstance.getSettings().autoWrapRow
-    );
-  }
-);
-setupCheckbox(
-  document.querySelector("#enableArrowTDFirstLastColumn"),
-  (checked) => {
-    hotOptions.autoWrapCol = checked;
-    hotInstance.updateSettings({
-      autoWrapCol: hotOptions.autoWrapCol,
-    });
-    console.log(
-      `Updated setting: autoWrapCol to`,
-      hotInstance.getSettings().autoWrapCol
-    );
-  }
-);
-setupCheckbox(document.querySelector("#enableEnterFocusEditing"), (checked) => {
-  hotOptions.enterMoves = checked ? { col: 0, row: 1 } : { col: 0, row: 0 };
-  hotInstance.updateSettings({
-    enterMoves: hotOptions.enterMoves,
-  });
-  console.log(
-    `Updated setting: enterMoves to`,
-    hotInstance.getSettings().enterMoves
-  );
-});
 ```
-
 :::
 ### Handsontable configuration options 
 Each feature within Handsontable is designed to accommodate specific needs. Below, we show key configuration options that offer flexibility and control over the grid's behavior. 
