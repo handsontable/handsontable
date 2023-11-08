@@ -4,34 +4,37 @@
     :class="[
       {
         collapsable,
-        'is-sub-group': depth !== 0
+        'is-sub-group': depth !== 0,
       },
-      `depth-${depth}`
+      `depth-${depth}`,
     ]"
   >
     <RouterLink
       v-if="item.path"
       class="sidebar-heading clickable"
       :class="{
-        open:isOpen,
-        'active': isActive($route, item.path)
+        open: isOpen,
+        active: isActive($route, item.path),
       }"
       :to="item.path"
       @click.native="toggleOpen()"
     >
-            <span
-              v-if="collapsable"
-              class="arrow"
-              :class="isOpen ? 'down' : 'right'"
-            />
+      <span
+        v-if="collapsable"
+        class="arrow"
+        :class="isOpen ? 'down' : 'right'"
+      />
       <span>{{ item.title }}</span>
     </RouterLink>
 
     <p
       v-else
       class="sidebar-heading"
-      :class="{ open:isOpen }"
+      :class="{ open: isOpen }"
       @click="toggleOpen()"
+      @keyup.enter="toggleOpen"
+      tabindex="0"
+      role="button"
     >
       <span
         v-if="collapsable"
@@ -55,46 +58,42 @@
 </template>
 
 <script>
-import DropdownTransition from '@theme/components/DropdownTransition.vue';
-import { isActive } from '@vuepress/theme-default/util';
+import DropdownTransition from "@theme/components/DropdownTransition.vue";
+import { isActive } from "@vuepress/theme-default/util";
 
 export default {
-  name: 'SidebarGroup',
+  name: "SidebarGroup",
 
   components: {
-    DropdownTransition
+    DropdownTransition,
   },
 
-  props: [
-    'item',
-    'open',
-    'collapsable',
-    'depth'
-  ],
+  props: ["item", "open", "collapsable", "depth"],
 
   // ref: https://vuejs.org/v2/guide/components-edge-cases.html#Circular-References-Between-Components
   beforeCreate() {
     // eslint-disable-next-line global-require
-    this.$options.components.SidebarLinks = require('@theme/components/SidebarLinks.vue').default;
+    this.$options.components.SidebarLinks =
+      require("@theme/components/SidebarLinks.vue").default;
   },
   data() {
     return {
-      isOpen: this.open
+      isOpen: this.open,
     };
   },
   methods: {
     isActive,
     toggleOpen() {
       this.isOpen = !this.isOpen;
-    }
+    },
   },
   watch: {
     open(val) {
       if (val) {
         this.isOpen = val;
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -153,5 +152,4 @@ export default {
   transition height .1s ease-out
   font-size 0.95em
   overflow hidden
-
 </style>
