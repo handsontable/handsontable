@@ -136,21 +136,16 @@ export function getExtendedEditorElement(children: React.ReactNode, editorCache:
   } as object);
 }
 
-/** 
- * Map of the TD elements to their portal containers, for reuse instead of creating a new portal container every render,
- * for every cell. WeakMap avoids memory leaks because it allows TDs and portal containers to be garbage collected.
- */
-const portalContainerCacheByTD = new WeakMap<HTMLTableCellElement, HTMLElement>();
-
 /**
  * Create a react component and render it to an external DOM done.
  *
  * @param {React.ReactElement} rElement React element to be used as a base for the component.
  * @param {Object} props Props to be passed to the cloned element.
  * @param {Document} [ownerDocument] The owner document to set the portal up into.
+ * @param {WeakMap} [portalContainerCacheByTD] Cache for the portal containers, mapped by the TD element.
  * @returns {{portal: React.ReactPortal, portalContainer: HTMLElement}} An object containing the portal and its container.
  */
-export function createPortal(rElement: React.ReactElement, props, ownerDocument: Document = document): {
+export function createPortal(rElement: React.ReactElement, props, ownerDocument: Document = document, portalContainerCacheByTD?: WeakMap<HTMLTableCellElement, HTMLElement>): {
   portal: React.ReactPortal,
   portalContainer: HTMLElement
 } {
@@ -163,12 +158,12 @@ export function createPortal(rElement: React.ReactElement, props, ownerDocument:
   }
 
   // reuse cached portalContainer, or create if not found, making sure props.TD is defined before using it as the key
-  let portalContainer = props.TD ? portalContainerCacheByTD.get(props.TD) : null;
+  let portalContainer = props.TD ? portalContainerCacheByTD?.get(props.TD) : null;
   if (!portalContainer) {
     portalContainer = ownerDocument.createElement("DIV");
     bulkComponentContainer.appendChild(portalContainer);
     
-    if (props.TD) {
+    if (props.TD && portalContainerCacheByTD) {
       portalContainerCacheByTD.set(props.TD, portalContainer);
     }
   }
