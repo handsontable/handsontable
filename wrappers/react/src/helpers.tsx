@@ -142,10 +142,10 @@ export function getExtendedEditorElement(children: React.ReactNode, editorCache:
  * @param {React.ReactElement} rElement React element to be used as a base for the component.
  * @param {Object} props Props to be passed to the cloned element.
  * @param {Document} [ownerDocument] The owner document to set the portal up into.
- * @param {WeakMap} [portalContainerCacheByTD] Cache for the portal containers, mapped by the TD element.
+ * @param {HTMLElement} [cachedPortalContainer] Optional reused portal container. Will be created if undefined.
  * @returns {{portal: React.ReactPortal, portalContainer: HTMLElement}} An object containing the portal and its container.
  */
-export function createPortal(rElement: React.ReactElement, props, ownerDocument: Document = document, portalContainerCacheByTD?: WeakMap<HTMLTableCellElement, HTMLElement>): {
+export function createPortal(rElement: React.ReactElement, props, ownerDocument: Document = document, cachedPortalContainer?: HTMLElement): {
   portal: React.ReactPortal,
   portalContainer: HTMLElement
 } {
@@ -157,15 +157,10 @@ export function createPortal(rElement: React.ReactElement, props, ownerDocument:
     bulkComponentContainer = ownerDocument.createDocumentFragment();
   }
 
-  // reuse cached portalContainer, or create if not found, making sure props.TD is defined before using it as the key
-  let portalContainer = props.TD ? portalContainerCacheByTD?.get(props.TD) : null;
+  let portalContainer = cachedPortalContainer;
   if (!portalContainer) {
     portalContainer = ownerDocument.createElement("DIV");
     bulkComponentContainer.appendChild(portalContainer);
-    
-    if (props.TD && portalContainerCacheByTD) {
-      portalContainerCacheByTD.set(props.TD, portalContainer);
-    }
   }
 
   const extendedRendererElement = React.cloneElement(rElement, {

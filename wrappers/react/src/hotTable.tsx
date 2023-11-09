@@ -215,14 +215,13 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * @param {React.ReactElement} rendererElement React renderer component.
    * @returns {Handsontable.renderers.Base} The Handsontable rendering function.
    */
-  getRendererWrapper(rendererElement: React.ReactElement): typeof Handsontable.renderers.BaseRenderer | any {
+  getRendererWrapper(rendererElement: React.ReactElement): typeof Handsontable.renderers.BaseRenderer {
     const hotTableComponent = this;
 
 
-    /**
-     * Map of the TD elements to their portal containers, for reuse instead of creating a new portal container every render,
-     * for every cell. WeakMap avoids memory leaks because it allows TDs and portal containers to be garbage collected.
-     */
+    
+    // Map of the TD elements to their portal containers, for reuse instead of creating a new portal container every render,
+    // for every cell. WeakMap avoids memory leaks because it allows TDs and portal containers to be garbage collected.
     const portalContainerCacheByTD = new WeakMap<HTMLTableCellElement, HTMLElement>();
 
     return function (instance, TD, row, col, prop, value, cellProperties) {
@@ -234,6 +233,8 @@ class HotTable extends React.Component<HotTableProps, {}> {
 
       if (TD && !TD.getAttribute('ghost-table')) {
 
+        const cachedPortalContainer = portalContainerCacheByTD.get(TD);
+
         const {portal, portalContainer} = createPortal(rendererElement, {
           TD,
           row,
@@ -242,7 +243,9 @@ class HotTable extends React.Component<HotTableProps, {}> {
           value,
           cellProperties,
           isRenderer: true
-        }, TD.ownerDocument, portalContainerCacheByTD);
+        }, TD.ownerDocument, cachedPortalContainer);
+
+        portalContainerCacheByTD.set(TD, portalContainer);
 
         // make sure TD has the portalContainer as its only child node
         if (TD.childNodes.length !== 1 || TD.firstChild !== portalContainer) {
