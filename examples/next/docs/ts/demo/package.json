@@ -10,7 +10,7 @@
     "test": "node -e 'console.log(\"No tests found\")'"
   },
   "dependencies": {
-    "handsontable": "latest",
+    "handsontable": "14.0.0-next-b24d538-20231108",
     "vite": "4.4.3"
   },
   "devDependencies": {
