@@ -19,9 +19,9 @@ export const data = [
     qty: randNumber({ max: 500 }),
     progress: randNumber({ max: 10 }),
     rating: randNumber({ max: 5 }),
-    orderId: `${randNumber({ max: 2, min: 2 })}-${randNumber({
-      max: 7,
-      min: 7,
+    orderId: `${randNumber({ max: 9, min: 0 })}${randNumber({ max: 9, min: 0 })}-${randNumber({
+      max: 9999999,
+      min: 1111111,
     })}`,
     country: "United Kingdom",
     __children: [
@@ -44,9 +44,9 @@ export const data = [
     qty: randNumber({ max: 500 }),
     progress: randNumber({ max: 10 }),
     rating: randNumber({ max: 5 }),
-    orderId: `${randNumber({ max: 2, min: 2 })}-${randNumber({
-      max: 7,
-      min: 7,
+    orderId: `${randNumber({ max: 9, min: 0 })}${randNumber({ max: 9, min: 0 })}-${randNumber({
+      max: 9999999,
+      min: 1111111,
     })}`,
     country: randCountry({ maxCharCount: 28 }),
   })),
