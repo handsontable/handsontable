@@ -1,13 +1,17 @@
 #root {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
+}
+
+#handsontable { 
+  background: white;
 }
 
 body {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
 }
 
 html {

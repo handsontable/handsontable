@@ -3,21 +3,18 @@ import { baseRenderer } from "handsontable/renderers";
 
 export const starsRenderer: typeof baseRenderer = function(
   this: Handsontable,
-  instance,
+  _instance,
   td,
-  row,
-  column,
-  prop,
-  value,
-  cellProperties
+  _row,
+  _column,
+  _prop,
+  value
 ) {
-  Handsontable.renderers.TextRenderer.apply(this, [
-    instance,
-    td,
-    row,
-    column,
-    prop,
-    "★".repeat(value),
-    cellProperties
-  ]);
+  const div = document.createElement("div");
+  div.textContent = "★".repeat(value);
+  div.ariaLabel = `${value}`;
+  Handsontable.dom.addClass(div, "stars");
+  Handsontable.dom.empty(td);
+
+  td.appendChild(div);
 };
