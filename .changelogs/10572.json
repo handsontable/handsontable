@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Reduce blank flashing in HotColumn renderer cells when scrolling",
+  "type": "fixed",
+  "issueOrPR": 10572,
+  "breaking": false,
+  "framework": "react"
+}
