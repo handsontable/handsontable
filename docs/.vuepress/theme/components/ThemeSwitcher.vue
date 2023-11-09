@@ -4,6 +4,7 @@
       <input
         type="checkbox"
         v-on:change="toggleTheme"
+        @keyup.enter="toggleTheme"
         :checked="isDarkTheme"
         :aria-label="isDarkTheme ? 'Use light mode' : 'Use dark mode'"
       />
