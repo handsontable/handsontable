@@ -2,7 +2,11 @@
 body {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
+}
+
+#handsontable { 
+  background: white;
 }
 
 html {
@@ -13,7 +17,7 @@ html {
   A stylesheet customizing app (custom renderers)
 */
 
-table.htCore td.star {
+table.htCore td .stars {
   color: #fcb515;
 }
 
@@ -109,10 +113,15 @@ input {
   border-style: solid;
   border-radius: 6px;
   border-width: 1px;
+  color: black;
 }
 
 .optionLabel > input:focus {
   outline: none;
+}
+
+.optionLabel {
+  align-items: flex-start;
 }
 
 .optionLabel:focus-within {
