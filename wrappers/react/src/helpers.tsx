@@ -136,6 +136,12 @@ export function getExtendedEditorElement(children: React.ReactNode, editorCache:
   } as object);
 }
 
+/** 
+ * Map of the TD elements to their portal containers, for reuse instead of creating a new portal container every render,
+ * for every cell. WeakMap avoids memory leaks because it allows TDs and portal containers to be garbage collected.
+ */
+const portalContainerCacheByTD = new WeakMap<HTMLTableCellElement, HTMLElement>();
+
 /**
  * Create a react component and render it to an external DOM done.
  *
@@ -156,8 +162,16 @@ export function createPortal(rElement: React.ReactElement, props, ownerDocument:
     bulkComponentContainer = ownerDocument.createDocumentFragment();
   }
 
-  const portalContainer = ownerDocument.createElement('DIV');
-  bulkComponentContainer.appendChild(portalContainer);
+  // reuse cached portalContainer, or create if not found, making sure props.TD is defined before using it as the key
+  let portalContainer = props.TD ? portalContainerCacheByTD.get(props.TD) : null;
+  if (!portalContainer) {
+    portalContainer = ownerDocument.createElement("DIV");
+    bulkComponentContainer.appendChild(portalContainer);
+    
+    if (props.TD) {
+      portalContainerCacheByTD.set(props.TD, portalContainer);
+    }
+  }
 
   const extendedRendererElement = React.cloneElement(rElement, {
     key: `${props.row}-${props.col}`,
