@@ -1,16 +1,16 @@
-const path = require("path");
-const stylusNodes = require("stylus/lib/nodes");
-const highlight = require("./highlight");
-const examples = require("./containers/examples");
-const exampleWithoutTabs = require("./containers/example-without-tabs");
-const sourceCodeLink = require("./containers/sourceCodeLink");
-const nginxRedirectsPlugin = require("./plugins/generate-nginx-redirects");
-const nginxVariablesPlugin = require("./plugins/generate-nginx-variables");
-const extendPageDataPlugin = require("./plugins/extend-page-data");
-const dumpDocsDataPlugin = require("./plugins/dump-docs-data");
-const dumpRedirectPageIdsPlugin = require("./plugins/dump-redirect-page-ids");
-const firstHeaderInjection = require("./plugins/markdown-it-header-injection");
-const conditionalContainer = require("./plugins/markdown-it-conditional-container");
+const path = require('path');
+const stylusNodes = require('stylus/lib/nodes');
+const highlight = require('./highlight');
+const examples = require('./containers/examples');
+const exampleWithoutTabs = require('./containers/example-without-tabs');
+const sourceCodeLink = require('./containers/sourceCodeLink');
+const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
+const nginxVariablesPlugin = require('./plugins/generate-nginx-variables');
+const extendPageDataPlugin = require('./plugins/extend-page-data');
+const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
+const dumpRedirectPageIdsPlugin = require('./plugins/dump-redirect-page-ids');
+const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
+const conditionalContainer = require('./plugins/markdown-it-conditional-container');
 const {
   createSymlinks,
   getDocsBase,
@@ -19,19 +19,19 @@ const {
   getIgnorePagesPatternList,
   getThisDocsVersion,
   MULTI_FRAMEWORKED_CONTENT_DIR,
-} = require("./helpers");
+} = require('./helpers');
 const {
   getPermalinkHrefMethod,
-} = require("./plugins/markdown-it-conditional-container/onlyForContainerHelpers");
+} = require('./plugins/markdown-it-conditional-container/onlyForContainerHelpers');
 
 const uniqueSlugs = new Set();
 const buildMode = process.env.BUILD_MODE;
-const isProduction = buildMode === "production";
+const isProduction = buildMode === 'production';
 const environmentHead = isProduction
   ? [
       // Google Tag Manager, an extra element within the `ssr.html` file.
       [
-        "script",
+        'script',
         {},
         `
       (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -50,47 +50,47 @@ createSymlinks();
 
 module.exports = {
   define: {
-    GA_ID: "UA-33932793-7",
+    GA_ID: 'UA-33932793-7',
   },
   patterns: [
     `${MULTI_FRAMEWORKED_CONTENT_DIR}/**/*.md`,
     ...getIgnorePagesPatternList(),
   ],
-  description: "Handsontable",
+  description: 'Handsontable',
   base: `${getDocsBase()}/`,
   head: [
     [
-      "link",
+      'link',
       {
-        rel: "icon",
-        href: "https://handsontable.com/static/images/template/ModCommon/favicon-32x32.png",
+        rel: 'icon',
+        href: 'https://handsontable.com/static/images/template/ModCommon/favicon-32x32.png',
       },
     ],
     [
-      "link",
+      'link',
       {
-        rel: "preload",
+        rel: 'preload',
         href: `${getDocsBaseFullUrl()}/data/common.json`,
-        as: "fetch",
-        crossorigin: "",
+        as: 'fetch',
+        crossorigin: '',
       },
     ],
     [
-      "meta",
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      'meta',
+      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
     ],
     // Cookiebot - cookie consent popup
     [
-      "script",
+      'script',
       {
-        id: "Cookiebot",
-        src: "https://consent.cookiebot.com/uc.js",
-        "data-cbid": "ef171f1d-a288-433f-b680-3cdbdebd5646",
+        id: 'Cookiebot',
+        src: 'https://consent.cookiebot.com/uc.js',
+        'data-cbid': 'ef171f1d-a288-433f-b680-3cdbdebd5646',
       },
     ],
-    ["script", {}, `const DOCS_VERSION = '${getThisDocsVersion()}';`],
+    ['script', {}, `const DOCS_VERSION = '${getThisDocsVersion()}';`],
     [
-      "script",
+      'script',
       {},
       `
       (function(w, d) {
@@ -115,28 +115,28 @@ module.exports = {
         '<div class="toc-container-header">In this article</div>',
     },
     anchor: {
-      permalinkSymbol: "",
+      permalinkSymbol: '',
       permalinkHref: getPermalinkHrefMethod(uniqueSlugs),
       permalinkAttrs: (slug) => ({
-        'tabindex': '-1',
+        tabindex: '-1',
         'aria-hidden': 'true',
       }),
       callback(token, slugInfo) {
         // The map is filled in before by a legacy `permalinkHref` method.
-        if (["h1", "h2", "h3"].includes(token.tag)) {
-          const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(token.attrGet("id"));
+        if (['h1', 'h2', 'h3'].includes(token.tag)) {
+          const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(token.attrGet('id'));
           const slugWithoutNumber = duplicatedSlugsMatch?.[1];
 
           if (slugWithoutNumber && uniqueSlugs.has(slugWithoutNumber)) {
-            token.attrSet("id", slugWithoutNumber);
+            token.attrSet('id', slugWithoutNumber);
             slugInfo.slug = slugWithoutNumber;
           }
         }
       },
     },
     externalLinks: {
-      target: "_blank",
-      rel: "nofollow noopener noreferrer",
+      target: '_blank',
+      rel: 'nofollow noopener noreferrer',
     },
     extendMarkdown(md) {
       md.use(conditionalContainer).use(firstHeaderInjection);
@@ -148,12 +148,12 @@ module.exports = {
     },
   },
   stylus: {
-    preferPathResolver: "webpack",
+    preferPathResolver: 'webpack',
     define: {
       url: (expression) => {
         return new stylusNodes.Literal(
           `url("${expression.string.replace(
-            "{{$basePath}}",
+            '{{$basePath}}',
             getDocsBaseFullUrl()
           )}")`
         );
@@ -162,20 +162,20 @@ module.exports = {
   },
   plugins: [
     extendPageDataPlugin,
-    "tabs",
+    'tabs',
     [
-      "sitemap",
+      'sitemap',
       {
         hostname: getDocsHostname(),
-        exclude: ["/404.html"],
+        exclude: ['/404.html'],
       },
     ],
-    ["container", examples(getThisDocsVersion(), getDocsBaseFullUrl())],
+    ['container', examples(getThisDocsVersion(), getDocsBaseFullUrl())],
     [
-      "container",
+      'container',
       exampleWithoutTabs(getThisDocsVersion(), getDocsBaseFullUrl()),
     ],
-    ["container", sourceCodeLink],
+    ['container', sourceCodeLink],
     {
       extendMarkdown(md) {
         const imageOrig = md.renderer.rules.image;
@@ -185,9 +185,9 @@ module.exports = {
         md.renderer.rules.image = function (tokens, ...rest) {
           tokens.forEach((token) => {
             token.attrs.forEach(([name, value], index) => {
-              if (name === "src") {
+              if (name === 'src') {
                 token.attrs[index][1] = decodeURIComponent(value).replace(
-                  "{{$basePath}}",
+                  '{{$basePath}}',
                   getDocsBaseFullUrl()
                 );
               }
@@ -201,14 +201,14 @@ module.exports = {
 
         md.renderer.rules.link_open = function (tokens, ...rest) {
           tokens.forEach((token) => {
-            if (token.type !== "link_open") {
+            if (token.type !== 'link_open') {
               return;
             }
 
             token.attrs.forEach(([name, value], index) => {
-              if (name === "href") {
+              if (name === 'href') {
                 token.attrs[index][1] = decodeURIComponent(value).replace(
-                  "{{$basePath}}",
+                  '{{$basePath}}',
                   getDocsBaseFullUrl()
                 );
               }
@@ -221,16 +221,16 @@ module.exports = {
         const render = function (tokens, options, env) {
           let i;
           let type;
-          let result = "";
+          let result = '';
           const rules = this.rules;
 
           for (i = 0; i < tokens.length; i++) {
             // overwritten here
             type = tokens[i].type;
 
-            if (type === "inline") {
+            if (type === 'inline') {
               result += this.renderInline(tokens[i].children, options, env);
-            } else if (typeof rules[type] !== "undefined") {
+            } else if (typeof rules[type] !== 'undefined') {
               result += rules[tokens[i].type](
                 tokens,
                 i,
@@ -257,23 +257,23 @@ module.exports = {
       },
       chainWebpack: (config) => {
         config.module
-          .rule("md")
+          .rule('md')
           .test(/\.md$/)
-          .use(path.resolve(__dirname, "docs-links"))
-          .loader(path.resolve(__dirname, "docs-links"))
+          .use(path.resolve(__dirname, 'docs-links'))
+          .loader(path.resolve(__dirname, 'docs-links'))
           .end();
       },
     },
     [
       dumpDocsDataPlugin,
       {
-        outputDir: path.resolve(__dirname, "./public/data/"),
+        outputDir: path.resolve(__dirname, './public/data/'),
       },
     ],
     [
       dumpRedirectPageIdsPlugin,
       {
-        outputFile: path.resolve(__dirname, "../docker/redirect-page-ids.json"),
+        outputFile: path.resolve(__dirname, '../docker/redirect-page-ids.json'),
       },
     ],
     [
@@ -281,51 +281,51 @@ module.exports = {
       {
         outputFile: path.resolve(
           __dirname,
-          "../docker/redirects-autogenerated.conf"
+          '../docker/redirects-autogenerated.conf'
         ),
       },
     ],
     [
       nginxVariablesPlugin,
       {
-        outputFile: path.resolve(__dirname, "../docker/variables.conf"),
+        outputFile: path.resolve(__dirname, '../docker/variables.conf'),
       },
     ],
   ],
   themeConfig: {
     nextLinks: true,
     prevLinks: true,
-    repo: "handsontable/handsontable",
-    docsRepo: "handsontable/handsontable",
-    docsDir: "docs/content",
-    docsBranch: "develop",
+    repo: 'handsontable/handsontable',
+    docsRepo: 'handsontable/handsontable',
+    docsDir: 'docs/content',
+    docsBranch: 'develop',
     editLinks: true,
-    editLinkText: "Suggest edits",
+    editLinkText: 'Suggest edits',
     lastUpdated: true,
     smoothScroll: false,
     nav: [
       // Guide & API Reference has been defined in theme/components/NavLinks.vue
-      { text: "GitHub", link: "https://github.com/handsontable/handsontable" },
+      { text: 'GitHub', link: 'https://github.com/handsontable/handsontable' },
       {
-        text: "Support",
+        text: 'Support',
         items: [
           {
-            text: "Contact support",
-            link: "https://handsontable.com/contact?category=technical_support",
+            text: 'Contact support',
+            link: 'https://handsontable.com/contact?category=technical_support',
           },
           {
-            text: "Report an issue",
-            link: "https://github.com/handsontable/handsontable/issues/new/choose",
+            text: 'Report an issue',
+            link: 'https://github.com/handsontable/handsontable/issues/new/choose',
           },
           {
-            text: "Handsontable forum",
-            link: "https://forum.handsontable.com",
+            text: 'Handsontable forum',
+            link: 'https://forum.handsontable.com',
           },
           {
-            text: "Ask on Stack Overflow",
-            link: "https://stackoverflow.com/questions/tagged/handsontable",
+            text: 'Ask on Stack Overflow',
+            link: 'https://stackoverflow.com/questions/tagged/handsontable',
           },
-          { text: "Blog", link: "https://handsontable.com/blog" },
+          { text: 'Blog', link: 'https://handsontable.com/blog' },
         ],
       },
     ],
@@ -334,23 +334,23 @@ module.exports = {
     sidebarDepth: 0,
     search: true,
     searchOptions: {
-      placeholder: "Search...",
+      placeholder: 'Search...',
       categoryPriorityList: [
         {
-          name: "Guides",
+          name: 'Guides',
           domainPriority: [],
           maxSuggestions: 5,
         },
         {
-          name: "API Reference",
+          name: 'API Reference',
           // The "domainPriority" list modifies the search results position. When the search phrase matches
           // the page titles, the search suggestions are placed before the rest results. The pages declared
           // in the array at the beginning have the highest display priority.
-          domainPriority: ["Configuration options", "Core", "Hooks"],
+          domainPriority: ['Configuration options', 'Core', 'Hooks'],
           maxSuggestions: 10,
         },
       ],
-      fuzzySearchDomains: ["Core", "Hooks", "Configuration options"],
+      fuzzySearchDomains: ['Core', 'Hooks', 'Configuration options'],
     },
   },
 };
