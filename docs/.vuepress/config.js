@@ -29,19 +29,19 @@ const buildMode = process.env.BUILD_MODE;
 const isProduction = buildMode === 'production';
 const environmentHead = isProduction
   ? [
-      // Google Tag Manager, an extra element within the `ssr.html` file.
-      [
-        'script',
-        {},
-        `
+    // Google Tag Manager, an extra element within the `ssr.html` file.
+    [
+      'script',
+      {},
+      `
       (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
         new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
         j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
       })(window,document,'script','dataLayer','GTM-55L5D3');
     `,
-      ],
-    ]
+    ],
+  ]
   : [];
 
 // The `vuepress dev` command needs placing directories in proper place. It's done by creating temporary directories
@@ -117,7 +117,7 @@ module.exports = {
     anchor: {
       permalinkSymbol: '',
       permalinkHref: getPermalinkHrefMethod(uniqueSlugs),
-      permalinkAttrs: (slug) => ({
+      permalinkAttrs: () => ({
         tabindex: '-1',
         'aria-hidden': 'true',
       }),
@@ -182,7 +182,7 @@ module.exports = {
 
         // Add support for markdown images and links to have ability to substitute the
         // docs latest version variable to the "src" or "href" attributes.
-        md.renderer.rules.image = function (tokens, ...rest) {
+        md.renderer.rules.image = function(tokens, ...rest) {
           tokens.forEach((token) => {
             token.attrs.forEach(([name, value], index) => {
               if (name === 'src') {
@@ -199,7 +199,7 @@ module.exports = {
 
         const linkOrig = md.renderer.rules.link_open;
 
-        md.renderer.rules.link_open = function (tokens, ...rest) {
+        md.renderer.rules.link_open = function(tokens, ...rest) {
           tokens.forEach((token) => {
             if (token.type !== 'link_open') {
               return;
@@ -218,7 +218,7 @@ module.exports = {
           return linkOrig(tokens, ...rest);
         };
 
-        const render = function (tokens, options, env) {
+        const render = function(tokens, options, env) {
           let i;
           let type;
           let result = '';

@@ -14,20 +14,20 @@
 </template>
 
 <script>
-const CLASS_THEME_DARK = "theme-dark";
-const STORAGE_KEY = "handsontable/docs::color-scheme";
+const CLASS_THEME_DARK = 'theme-dark';
+const STORAGE_KEY = 'handsontable/docs::color-scheme';
 // The "SELECTED_COLOR_SCHEME" const is defined in the script that is injected in the VuePress config.js file.
 // The script executes the logic before the VuePress app is initialized to prevent page flickering (#8288).
 const SELECTED_THEME =
-  typeof window === "undefined" ? undefined : window.SELECTED_COLOR_SCHEME;
+  typeof window === 'undefined' ? undefined : window.SELECTED_COLOR_SCHEME;
 
 export default {
-  name: "ThemeSwitcher",
+  name: 'ThemeSwitcher',
   methods: {
     toggleTheme() {
       this.isDarkTheme = !this.isDarkTheme;
 
-      localStorage.setItem(STORAGE_KEY, this.isDarkTheme ? "dark" : "light");
+      localStorage.setItem(STORAGE_KEY, this.isDarkTheme ? 'dark' : 'light');
 
       if (this.isDarkTheme) {
         document.documentElement.classList.add(CLASS_THEME_DARK);
@@ -43,8 +43,8 @@ export default {
     };
   },
   mounted() {
-    this.isDarkTheme = SELECTED_THEME === "dark";
-    this.isReady = typeof SELECTED_THEME === "string";
+    this.isDarkTheme = SELECTED_THEME === 'dark';
+    this.isReady = typeof SELECTED_THEME === 'string';
   },
 };
 </script>

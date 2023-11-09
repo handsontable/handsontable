@@ -58,23 +58,22 @@
 </template>
 
 <script>
-import DropdownTransition from "@theme/components/DropdownTransition.vue";
-import { isActive } from "@vuepress/theme-default/util";
+import DropdownTransition from '@theme/components/DropdownTransition.vue';
+import { isActive } from '@vuepress/theme-default/util';
 
 export default {
-  name: "SidebarGroup",
+  name: 'SidebarGroup',
 
   components: {
     DropdownTransition,
   },
 
-  props: ["item", "open", "collapsable", "depth"],
+  props: ['item', 'open', 'collapsable', 'depth'],
 
   // ref: https://vuejs.org/v2/guide/components-edge-cases.html#Circular-References-Between-Components
   beforeCreate() {
     // eslint-disable-next-line global-require
-    this.$options.components.SidebarLinks =
-      require("@theme/components/SidebarLinks.vue").default;
+    this.$options.components.SidebarLinks = require('@theme/components/SidebarLinks.vue').default;
   },
   data() {
     return {

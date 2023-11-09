@@ -9,7 +9,7 @@
 </template>
 
 <script>
-import DropdownLink from "@theme/components/DropdownLink.vue";
+import DropdownLink from '@theme/components/DropdownLink.vue';
 
 /**
  * Sets cookie bound to the docs URL domain and path.
@@ -19,45 +19,43 @@ import DropdownLink from "@theme/components/DropdownLink.vue";
  */
 function setCookie(name, value) {
   const hostname = window.location.hostname;
-  const urlParts = hostname.split(".");
+  const urlParts = hostname.split('.');
   let domainWithoutSubdomain = hostname;
 
   if (urlParts.length > 2) {
-    domainWithoutSubdomain = urlParts.slice(1).join(".");
+    domainWithoutSubdomain = urlParts.slice(1).join('.');
   }
   let str = `${name}=${value}`;
 
   str += `; Domain=${domainWithoutSubdomain}`;
-  str += "; Path=/docs";
-  str += `; Expires=${new Date(
-    Date.now() + 365 * 24 * 60 * 60 * 1000
-  ).toUTCString()}`; // 1 year
+  str += '; Path=/docs';
+  str += `; Expires=${new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)).toUTCString()}`; // 1 year
 
   document.cookie = str;
 }
 
 const frameworkIdToFullName = new Map([
-  ["javascript", { name: "JavaScript" }],
-  ["react", { name: "React" }],
+  ['javascript', { name: 'JavaScript' }],
+  ['react', { name: 'React' }],
   [
-    "angular",
+    'angular',
     {
-      name: "Angular",
-      homepage: "/javascript-data-grid/angular-installation/",
+      name: 'Angular',
+      homepage: '/javascript-data-grid/angular-installation/',
     },
   ],
   [
-    "vue",
-    { name: "Vue 2", homepage: "/javascript-data-grid/vue-installation/" },
+    'vue',
+    { name: 'Vue 2', homepage: '/javascript-data-grid/vue-installation/' },
   ],
   [
-    "vue3",
-    { name: "Vue 3", homepage: "/javascript-data-grid/vue3-installation/" },
+    'vue3',
+    { name: 'Vue 3', homepage: '/javascript-data-grid/vue3-installation/' },
   ],
 ]);
 
 export default {
-  name: "FrameworksDropdown",
+  name: 'FrameworksDropdown',
   components: {
     DropdownLink,
   },
@@ -73,7 +71,7 @@ export default {
   },
   methods: {
     onFrameworkClick(item) {
-      setCookie("docs_fw", item.id === "react" ? "react" : "javascript");
+      setCookie('docs_fw', item.id === 'react' ? 'react' : 'javascript');
     },
     detectLegacyFramework(path) {
       const frameworkMatch = path.match(
@@ -105,7 +103,7 @@ export default {
             id,
             text: name,
             link: this.getLink(id),
-            target: "_self",
+            target: '_self',
             isHtmlLink: true,
           };
         }
@@ -119,7 +117,7 @@ export default {
     imageUrl() {
       const frameworkWithoutNumber = (
         this.legacyFramework ?? this.$page.currentFramework
-      ).replace(/\d+$/, "");
+      ).replace(/\d+$/, '');
 
       return this.$withBase(
         `/img/pages/introduction/${frameworkWithoutNumber}.svg`
