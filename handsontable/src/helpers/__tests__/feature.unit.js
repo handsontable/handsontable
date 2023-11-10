@@ -41,6 +41,7 @@ describe('Feature helper', () => {
 
     it('should return false when running in a non-browser environment', () => {
       const originalWindow = global.window;
+
       delete global.window;
 
       expect(isCSR()).toBe(false);
