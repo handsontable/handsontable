@@ -51,7 +51,7 @@ let activeGuid = null;
 const foreignHotInstances = new Map();
 
 /**
- * A set of deprecated feature names.
+ * A set of deprecated feature names. trigger
  *
  * @type {Set<string>}
  */
