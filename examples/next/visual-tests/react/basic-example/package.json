@@ -18,7 +18,7 @@
     "test": "node spec/support/jasmine.config.js"
   },
   "dependencies": {
-    "@handsontable/react": "latest",
+    "@handsontable/react": "14.0.0-next-b24d538-20231108",
     "handsontable": "14.0.0-next-b24d538-20231108",
     "react": "17.0.2",
     "react-dom": "17.0.2",
