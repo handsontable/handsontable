@@ -13,6 +13,7 @@ import { applySpanProperties } from './utils';
 import './mergeCells.css';
 import { getStyle } from '../../helpers/dom/element';
 import { isChrome } from '../../helpers/browser';
+import { isDefined } from '../../helpers/mixed';
 
 Hooks.getSingleton().register('beforeMergeCells');
 Hooks.getSingleton().register('afterMergeCells');
@@ -152,6 +153,7 @@ export class MergeCells extends BasePlugin {
         return false;
       }
     });
+    this.addHook('beforePaste', (...args) => this.#onBeforePaste(...args));
 
     this.registerShortcuts();
 
@@ -476,12 +478,13 @@ export class MergeCells extends BasePlugin {
    * @private
    * @param {CellRange} cellRange Selection cell range.
    * @param {boolean} [auto=false] `true` if called automatically by the plugin.
+   * @param {boolean} [unmergePartials=false] If set to `true`, all the merged cells overlapping the range will be unmerged.
    *
    * @fires Hooks#beforeUnmergeCells
    * @fires Hooks#afterUnmergeCells
    */
-  unmergeRange(cellRange, auto = false) {
-    const mergedCells = this.mergedCellsCollection.getWithinRange(cellRange);
+  unmergeRange(cellRange, auto = false, unmergePartials = false) {
+    const mergedCells = this.mergedCellsCollection.getWithinRange(cellRange, unmergePartials);
 
     if (!mergedCells) {
       return;
@@ -1285,5 +1288,128 @@ export class MergeCells extends BasePlugin {
    */
   onBeforeRemoveCellClassNames() {
     return this.selectionCalculations.getSelectedMergedCellClassNameToRemove();
+  }
+
+  /**
+   * Creates cell range.
+   *
+   * @private
+   * @param {number} startRow Visual start row index for the range.
+   * @param {number} startColumn Visual start column index for the range.
+   * @param {number} numberOfRows Number of rows within the range.
+   * @param {number} numberOfColumns Number of columns within the range.
+   * @returns {CellRange}
+   */
+  getCellRange(startRow, startColumn, numberOfRows, numberOfColumns) {
+    const rangeStart = this.hot._createCellCoords(startRow, startColumn);
+    const rangeEnd = this.hot._createCellCoords(startRow + numberOfRows - 1, startColumn + numberOfColumns - 1);
+
+    return this.hot._createCellRange(rangeStart, rangeStart, rangeEnd);
+  }
+
+  /**
+   * Adjusting selection to select complete area of previously merged cells.
+   *
+   * @private
+   * @param {Array|boolean} listOfUnmergedCells Array of found merged cells of `false` if none were found.
+   * @param {CellRange} unmergedRange Range for unmerged cells.
+   */
+  adjustSelectionAfterPasting(listOfUnmergedCells, unmergedRange) {
+    if (listOfUnmergedCells === false) {
+      return;
+    }
+
+    listOfUnmergedCells.forEach((mergedCell) => {
+      const { row, col, rowspan, colspan } = mergedCell;
+      const mergeRange = this.getCellRange(row, col, rowspan, colspan);
+
+      unmergedRange.expandByRange(mergeRange);
+    });
+
+    this.hot.addHookOnce('afterPaste', () => {
+      this.hot.selectCell(unmergedRange.from.row, unmergedRange.from.col,
+        unmergedRange.to.row, unmergedRange.to.col);
+    });
+  }
+
+  /**
+   * Checks if unmerge should be performed.
+   *
+   * @private
+   * @param {Array<object>} mergedCells List of merged cells.
+   * @param {number} pastedRows Number of pasted data rows.
+   * @param {number} pastedColumns Number of pasted data columns.
+   * @returns {boolean}
+   */
+  shouldUnmerge(mergedCells, pastedRows, pastedColumns) {
+    const isCopiedWithMergedCell = isDefined(mergedCells);
+    const copiedOnlyMergedCell = isCopiedWithMergedCell
+      && mergedCells.length === 1 && mergedCells[0].rowspan === pastedRows
+      && mergedCells[0].colspan === pastedColumns;
+    const selectedRangeLast = this.hot.getSelectedRangeLast();
+    const pastingToMergedCell = this.mergedCellsCollection.getByRange(selectedRangeLast) !== false;
+
+    if (pastedRows === 1 && pastedColumns === 1 && pastingToMergedCell === true) {
+      return false;
+    }
+
+    return copiedOnlyMergedCell === false || pastingToMergedCell === false;
+  }
+
+  /**
+   * `beforePaste` hook callback. Used for manipulating with area of paste (by changing selection) and unmerging cells.
+   *
+   * @private
+   * @param {object} clipboardData Information about copy action which is going to happen.
+   * @param {Function} clipboardData.removeRow Remove row from the copied dataset.
+   * @param {Function} clipboardData.removeColumn Remove column from the copied dataset.
+   * @param {Function} clipboardData.insertAtRow Insert values at row index.
+   * @param {Function} clipboardData.insertAtColumn Insert values at column index.
+   * @param {Function} clipboardData.setCellAt Change headers or cells in the copied dataset.
+   * @param {Function} clipboardData.getCellAt Get headers or cells from the copied dataset.
+   * @param {Function} clipboardData.getData Gets copied data stored as array of arrays.
+   * @param {Function} clipboardData.getMetaInfo Gets meta information for the copied data.
+   * @param {Function} clipboardData.getRanges Returns ranges related to copied part of Handsontable.
+   */
+  #onBeforePaste(clipboardData) {
+    const selectedRangeLast = this.hot.getSelectedRangeLast();
+    const data = clipboardData.getData();
+    const pastedRows = data.length;
+    const pastedColumns = data[0].length;
+    const { row: selectionFromRow, col: selectionFromColumn } = selectedRangeLast.from;
+    const selectedRows = selectedRangeLast.getHeight();
+    const selectedColumns = selectedRangeLast.getWidth();
+
+    if (this.shouldUnmerge(clipboardData.getMetaInfo().mergeCells, pastedRows, pastedColumns) === false) {
+      return;
+    }
+
+    const pasteRange = this.getCellRange(selectionFromRow, selectionFromColumn, pastedRows, pastedColumns);
+    const populationRange = this.getCellRange(selectionFromRow, selectionFromColumn,
+      Math.max(pastedRows, selectedRows), Math.max(pastedColumns, selectedColumns));
+
+    let rangeToUnmerge = pasteRange;
+    const mergedCellsWithinPopulation = this.mergedCellsCollection.getWithinRange(populationRange, true);
+
+    // Nothing to unmerge.
+    if (mergedCellsWithinPopulation.length === 0) {
+      return;
+    }
+
+    if (mergedCellsWithinPopulation.length === 1) {
+      rangeToUnmerge = populationRange;
+    }
+
+    // Checking merged cells on unmerge range right before performing the unmerge.
+    const listOfUnmergedCells = this.mergedCellsCollection.getWithinRange(rangeToUnmerge, true);
+
+    this.unmergeRange(rangeToUnmerge, false, true);
+
+    // Changing selection (place where the data is populated) only for greater range (at least two merged cells).
+    if (rangeToUnmerge === pasteRange) {
+      this.hot.selectCell(selectionFromRow, selectionFromColumn, pasteRange.endRow, pasteRange.endCol);
+    }
+
+    this.adjustSelectionAfterPasting(listOfUnmergedCells, rangeToUnmerge);
   }
 }

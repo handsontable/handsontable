@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "The CopyPaste plugin works properly for merged cells (unmerge them when necessary)",
+  "type": "fixed",
+  "issueOrPR": 10444,
+  "breaking": false,
+  "framework": "none"
+}
