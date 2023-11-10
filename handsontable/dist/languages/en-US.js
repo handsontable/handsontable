@@ -152,9 +152,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_CANCEL]: 'Cancel',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Search',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Value',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Second value',
-  [C.CHECKBOX_CHECKED]: 'Checked',
-  [C.CHECKBOX_UNCHECKED]: 'Unchecked'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Second value'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = dictionary;

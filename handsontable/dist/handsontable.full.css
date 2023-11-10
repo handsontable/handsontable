@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 13.1.0
- * Release date: 31/08/2023 (built at 02/11/2023 13:42:38)
+ * Release date: 31/08/2023 (built at 31/08/2023 08:23:39)
  */
 /**
  * Fix for bootstrap styles
@@ -179,7 +179,6 @@
   background-color: #fff;
   vertical-align: top;
   overflow: hidden;
-  outline: none;
   outline-width: 0;
   white-space: pre-wrap;
 }
@@ -390,21 +389,11 @@ innerBorderBottom - Property controlled by bottom overlay
 
 .handsontable td.htInvalid {
   /*gives priority over td.area selection background*/
-  background-color: #ffbeba !important;
+  background-color: #ff4c42 !important;
 }
 
 .handsontable td.htNoWrap {
   white-space: nowrap;
-}
-
-.handsontable td.invisibleSelection,
-.handsontable th.invisibleSelection {
-  outline: none;
-}
-
-.handsontable td.invisibleSelection::selection,
-.handsontable th.invisibleSelection::selection {
-  background: rgba(255, 255, 255, 0);
 }
 
 .hot-display-license-info {
@@ -419,17 +408,6 @@ innerBorderBottom - Property controlled by bottom overlay
 .hot-display-license-info a {
   color: #104acc;
   font-size: 10px;
-}
-
-.handsontable .htFocusCatcher {
-  position: absolute;
-  z-index: -1;
-  opacity: 0;
-  border: 0;
-  margin: 0;
-  padding: 0;
-  width: 0;
-  height: 0;
 }
 
 /* plugins */
@@ -629,11 +607,6 @@ innerBorderBottom - Property controlled by bottom overlay
   opacity: 0.58;
 }
 
-.handsontable tbody th.current,
-.handsontable thead th.current {
-  box-shadow: inset 0 0 0 2px #4b89ff;
-}
-
 .handsontable tbody th.ht__highlight,
 .handsontable thead th.ht__highlight {
   background-color: #dcdcdc;
@@ -826,7 +799,7 @@ TextRenderer placeholder value
   cursor: pointer;
   -webkit-box-shadow: 0 0 0 6px rgb(238, 238, 238);
   -moz-box-shadow: 0 0 0 6px rgb(238, 238, 238);
-  box-shadow: 0 0 0 3px rgb(238, 238, 238);
+  box-shadow: 0 0 0 6px rgb(238, 238, 238);
   background: #eee;
   text-align: center;
 }
@@ -1127,7 +1100,7 @@ AutocompleteRenderer down arrow
 .handsontable .htAutocompleteArrow {
   float: right;
   font-size: 10px;
-  color: #bbbbbb;
+  color: #EEE;
   cursor: default;
   width: 16px;
   text-align: center;
@@ -1135,14 +1108,6 @@ AutocompleteRenderer down arrow
 
 [dir=rtl].handsontable .htAutocompleteArrow {
   float: left;
-}
-
-.handsontable td.htInvalid .htAutocompleteArrow {
-  color: #555555;
-}
-
-.handsontable td.htInvalid .htAutocompleteArrow:hover {
-  color: #1a1a1a;
 }
 
 .handsontable td .htAutocompleteArrow:hover {
@@ -1265,10 +1230,6 @@ CheckboxRenderer
   border-left-width: 2px;
 }
 
-.htContextMenu.handsontable:focus {
-  outline: none;
-}
-
 .htContextMenu .wtBorder {
   visibility: hidden;
 }
@@ -1300,7 +1261,8 @@ CheckboxRenderer
   color: #323232;
 }
 
-.htContextMenu table tbody tr td.current {
+.htContextMenu table tbody tr td.current,
+.htContextMenu table tbody tr td.zeroclipboard-is-hover {
   background: #f3f3f3;
 }
 
@@ -1418,10 +1380,6 @@ textarea.HandsontableCopyPaste {
   border-left-width: 2px;
 }
 
-.htDropdownMenu.handsontable:focus {
-  outline: none;
-}
-
 .htDropdownMenu .wtBorder {
   visibility: hidden;
 }
@@ -1453,7 +1411,8 @@ textarea.HandsontableCopyPaste {
   color: #323232;
 }
 
-.htDropdownMenu table tbody tr td.current {
+.htDropdownMenu table tbody tr td.current,
+.htDropdownMenu table tbody tr td.zeroclipboard-is-hover {
   background: #e9e9e9;
 }
 
@@ -1559,7 +1518,8 @@ textarea.HandsontableCopyPaste {
   color: #323232;
 }
 
-.htFiltersConditionsMenu table tbody tr td.current {
+.htFiltersConditionsMenu table tbody tr td.current,
+.htFiltersConditionsMenu table tbody tr td.zeroclipboard-is-hover {
   background: #e9e9e9;
 }
 
@@ -1705,6 +1665,10 @@ textarea.HandsontableCopyPaste {
 .handsontable .htUIInput input {
   border-radius: 2px;
   border: 1px solid #d2d1d1;
+}
+
+.handsontable .htUIInput input:focus {
+  outline: 0;
 }
 
 .handsontable .htUIInputIcon {
