@@ -84,12 +84,12 @@ export function getOriginalEditorClass(editorElement: HotEditorElement) {
 /**
  * Create an editor portal.
  *
- * @param {Document} [doc] Document to be used.
+ * @param {Document} doc Document to be used.
  * @param {React.ReactElement} editorElement Editor's element.
  * @returns {React.ReactPortal} The portal for the editor.
  */
-export function createEditorPortal(doc: Document = document, editorElement: HotEditorElement): React.ReactPortal | null {
-  if (editorElement === null) {
+export function createEditorPortal(doc: Document, editorElement: HotEditorElement): React.ReactPortal | null {
+  if (typeof doc === 'undefined' || editorElement === null) {
     return null;
   }
 
@@ -180,9 +180,22 @@ export function createPortal(rElement: React.ReactElement, props, ownerDocument:
  * component.
  */
 export function getContainerAttributesProps(props, randomizeId: boolean = true): {id: string, className: string, style: object} {
+  if (!isCSR() && !props.id && randomizeId) {
+    warn('You have to provide an `id` property for the `HotTable` component when using server-side rendering.');
+  }
+
   return {
     id: props.id || (randomizeId ? 'hot-' + Math.random().toString(36).substring(5) : void 0),
     className: props.className || '',
     style: props.style || {},
-  }
+  };
+}
+
+/**
+ * Checks if the environment that the code runs in is a browser.
+ *
+ * @returns {boolean}
+ */
+export function isCSR(): boolean {
+  return typeof window !== 'undefined';
 }

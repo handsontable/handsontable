@@ -20,6 +20,7 @@ import {
   getContainerAttributesProps,
   getExtendedEditorElement,
   getOriginalEditorClass,
+  isCSR,
   warn
 } from './helpers';
 import PropTypes from 'prop-types';
@@ -197,6 +198,10 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * @returns The `Document` object used by the component.
    */
   getOwnerDocument() {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
     return this.hotElementRef ? this.hotElementRef.ownerDocument : document;
   }
 
@@ -481,27 +486,31 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * Render the component.
    */
   render(): React.ReactElement {
+    let hotColumnClones = [];
+
+    if (isCSR()) {
+      const isHotColumn = (childNode: any) => childNode.type === HotColumn;
+      const children = React.Children.toArray(this.props.children);
+
+      // clone the HotColumn nodes and extend them with the callbacks
+      hotColumnClones = children
+        .filter((childNode: any) => isHotColumn(childNode))
+        .map((childNode: React.ReactElement, columnIndex: number) => {
+          return React.cloneElement(childNode, {
+            _componentRendererColumns: this.componentRendererColumns,
+            _emitColumnSettings: this.setHotColumnSettings.bind(this),
+            _columnIndex: columnIndex,
+            _getChildElementByType: getChildElementByType.bind(this),
+            _getRendererWrapper: this.getRendererWrapper.bind(this),
+            _getEditorClass: this.getEditorClass.bind(this),
+            _getOwnerDocument: this.getOwnerDocument.bind(this),
+            _getEditorCache: this.getEditorCache.bind(this),
+            children: childNode.props.children
+          } as object);
+        });
+    }
+
     const containerProps = getContainerAttributesProps(this.props);
-    const isHotColumn = (childNode: any) => childNode.type === HotColumn;
-    const children = React.Children.toArray(this.props.children);
-
-    // clone the HotColumn nodes and extend them with the callbacks
-    const hotColumnClones = children
-      .filter((childNode: any) => isHotColumn(childNode))
-      .map((childNode: React.ReactElement, columnIndex: number) => {
-        return React.cloneElement(childNode, {
-          _componentRendererColumns: this.componentRendererColumns,
-          _emitColumnSettings: this.setHotColumnSettings.bind(this),
-          _columnIndex: columnIndex,
-          _getChildElementByType: getChildElementByType.bind(this),
-          _getRendererWrapper: this.getRendererWrapper.bind(this),
-          _getEditorClass: this.getEditorClass.bind(this),
-          _getOwnerDocument: this.getOwnerDocument.bind(this),
-          _getEditorCache: this.getEditorCache.bind(this),
-          children: childNode.props.children
-        } as object);
-      });
-
     const editorPortal = createEditorPortal(this.getOwnerDocument(), this.getGlobalEditorElement());
 
     return (
