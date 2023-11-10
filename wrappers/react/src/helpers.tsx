@@ -7,6 +7,7 @@ import {
 } from './types';
 
 let bulkComponentContainer = null;
+let notifiedMissingIdWarn = false;
 
 /**
  * Warning message for the `autoRowSize`/`autoColumnSize` compatibility check.
@@ -180,8 +181,9 @@ export function createPortal(rElement: React.ReactElement, props, ownerDocument:
  * component.
  */
 export function getContainerAttributesProps(props, randomizeId: boolean = true): {id: string, className: string, style: object} {
-  if (!isCSR() && !props.id && randomizeId) {
-    warn('You have to provide an `id` property for the `HotTable` component when using server-side rendering.');
+  if (!notifiedMissingIdWarn && !props.id && randomizeId) {
+    notifiedMissingIdWarn = true;
+    warn('You have to provide an `id` property for the `HotTable` component.');
   }
 
   return {
