@@ -49,7 +49,7 @@ let activeGuid = null;
  * @type {Map<string, Core>}
  */
 const foreignHotInstances = new Map();
-
+// triggy
 /**
  * A set of deprecated feature names.
  *
