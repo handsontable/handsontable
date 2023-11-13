@@ -95,7 +95,7 @@ function DemoOptions({
               Enable navigation with the Tab key
             </label>
             <a
-              href="https://handsontable.com/docs/javascript-data-grid/api/options/#disableTabNavigation"
+              href="https://handsontable.com/docs/react-data-grid/api/options/#disableTabNavigation"
               target="_blank"
               className="external-link"
               rel="noopener noreferrer"
@@ -142,7 +142,7 @@ function DemoOptions({
               Enable navigation across headers
             </label>
             <a
-              href="https://handsontable.com/docs/javascript-data-grid/api/options/#navigableheaders"
+              href="https://handsontable.com/docs/react-data-grid/api/options/#navigableheaders"
               target="_blank"
               className="external-link"
               rel="noopener noreferrer"
@@ -189,7 +189,7 @@ function DemoOptions({
               Enable cells virtualization
             </label>
             <a
-              href="https://handsontable.com/docs/javascript-data-grid/api/options/#renderAllRows"
+              href="https://handsontable.com/docs/react-data-grid/api/options/#renderAllRows"
               target="_blank"
               className="external-link"
               rel="noopener noreferrer"
