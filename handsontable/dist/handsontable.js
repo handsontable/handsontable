@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.0.0
- * Release date: 15/11/2023 (built at 08/11/2023 10:15:52)
+ * Release date: 15/11/2023 (built at 13/11/2023 14:37:57)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -105,7 +105,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "08/11/2023 10:15:52";
+Handsontable.buildDate = "13/11/2023 14:37:57";
 Handsontable.version = "14.0.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -4253,14 +4253,29 @@ function Core(rootElement, userSettings) {
    * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
    * @returns {boolean} `true` if viewport was scrolled, `false` otherwise.
    */
-  this.scrollViewportTo = function () {
-    let {
+  this.scrollViewportTo = function (options) {
+    var _options;
+    // Support for backward compatibility arguments: (row, col, snapToBottom, snapToRight, considerHiddenIndexes)
+    if (typeof options === 'number') {
+      var _arguments$;
+      /* eslint-disable prefer-rest-params */
+      options = {
+        row: arguments[0],
+        col: arguments[1],
+        verticalSnap: arguments[2] ? 'bottom' : 'top',
+        horizontalSnap: arguments[3] ? 'end' : 'start',
+        considerHiddenIndexes: (_arguments$ = arguments[4]) !== null && _arguments$ !== void 0 ? _arguments$ : true
+      };
+      /* eslint-enable prefer-rest-params */
+    }
+
+    const {
       row,
       col,
       verticalSnap,
       horizontalSnap,
       considerHiddenIndexes
-    } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    } = (_options = options) !== null && _options !== void 0 ? _options : {};
     let snapToTop;
     let snapToBottom;
     let snapToInlineStart;
