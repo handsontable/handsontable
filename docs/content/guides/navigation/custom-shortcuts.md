@@ -14,6 +14,8 @@ tags:
   - accessibility
   - function key
   - commands
+  - custom shortcuts
+  - shortcut keys
 react:
   id: d5ay8gj1
   metaTitle: Custom shortcuts - React Data Grid | Handsontable
@@ -34,8 +36,7 @@ You can completely customize your keyboard shortcuts, using the [`ShortcutManage
 
 ::: tip
 
-To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading
-its `hotInstance` property.
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [Instance methods](@/guides/getting-started/react-methods.md) page.
 
@@ -88,8 +89,7 @@ Using the [`ShortcutManager`](@/api/shortcutManager.md) API methods, you can:
 - Get an already-registered context: [`getContext()`](@/api/shortcutManager.md#getcontext)
 - Create and register a new context: [`addContext()`](@/api/shortcutManager.md#addcontext)
 
-For example: if you're using a complex [custom editor](@/guides/cell-functions/cell-editor.md#how-to-create-a-custom-editor), you can create a new shortcut
-context to navigate your editor's UI with the arrow keys (normally, the arrow keys would navigate the grid instead).
+For example: if you're using a complex [custom editor](@/guides/cell-functions/cell-editor.md#how-to-create-a-custom-editor), you can create a new shortcut context to navigate your editor's UI with the arrow keys (normally, the arrow keys would navigate the grid instead).
 
 ## Add a custom keyboard shortcut
 
@@ -137,9 +137,7 @@ gridContext.addShortcut({
 
 You can assign multiple actions to a single keyboard shortcut.
 
-By default, when you assign a new action, it runs after any other actions that were assigned previously. To set your own order of actions, use the
-[`position`](@/api/shortcutContext.md#addshortcut) and [`relativeToGroup`](@/api/shortcutContext.md#addshortcut) parameters of the
-[`addShortcut()`](@/api/shortcutContext.md#addshortcut) method:
+By default, when you assign a new action, it runs after any other actions that were assigned previously. To set your own order of actions, use the [`position`](@/api/shortcutContext.md#addshortcut) and [`relativeToGroup`](@/api/shortcutContext.md#addshortcut) parameters of the [`addShortcut()`](@/api/shortcutContext.md#addshortcut) method:
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
@@ -243,8 +241,7 @@ hot.addHook('beforeKeyDown', (event) => {
 
 ## API reference
 
-For the list of [options](@/guides/getting-started/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks.md)
-related to keyboard navigation, see the following API reference pages:
+For the list of [options](@/guides/getting-started/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks.md) related to keyboard navigation, see the following API reference pages:
 
 - APIs:
   - [`ShortcutContext`](@/api/shortcutContext.md)
