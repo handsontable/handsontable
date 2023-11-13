@@ -7,7 +7,7 @@ import {
 } from './types';
 
 let bulkComponentContainer = null;
-let notifiedMissingIdWarn = false;
+let hasIdWarningBeenPrinted = false;
 
 /**
  * Warning message for the `autoRowSize`/`autoColumnSize` compatibility check.
@@ -181,8 +181,8 @@ export function createPortal(rElement: React.ReactElement, props, ownerDocument:
  * component.
  */
 export function getContainerAttributesProps(props, randomizeId: boolean = true): {id: string, className: string, style: object} {
-  if (!notifiedMissingIdWarn && !props.id && randomizeId) {
-    notifiedMissingIdWarn = true;
+  if (!hasIdWarningBeenPrinted && !props.id && randomizeId) {
+    hasIdWarningBeenPrinted = true;
     warn('You have to provide an `id` property for the `HotTable` component.');
   }
 
