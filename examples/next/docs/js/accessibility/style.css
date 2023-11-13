@@ -59,9 +59,9 @@ table.htCore tr.selected td {
 }
 
 .external-link {
+  margin-left: 0.5rem;
   position: relative;
   top: 2px;
-  margin-left: 0.5rem;
   color: black;
 }
 
@@ -74,9 +74,9 @@ table.htCore tr.selected td {
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
+  color: black;
   border: 1px solid #e4e4e7;
   border-radius: 6px;
-  color: black;
 }
 
 .option-label {

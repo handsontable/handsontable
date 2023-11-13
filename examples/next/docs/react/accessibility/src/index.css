@@ -59,9 +59,9 @@ table.htCore td .progress {
 }
 
 .external-link {
+  margin-left: 0.5rem;
   position: relative;
   top: 2px;
-  margin-left: 0.5rem;
   color: black;
 }
 
@@ -71,12 +71,12 @@ table.htCore td .progress {
 
 .placeholder-input {
   max-width: 20rem;
+  padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
-  padding: 0.5rem 0.75rem;
+  color: black;
   border: 1px solid #e4e4e7;
   border-radius: 6px;
-  color: black;
 }
 
 .option-label {
