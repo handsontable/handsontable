@@ -888,4 +888,48 @@ describe('Core.scrollViewportTo', () => {
     expect(scrollResult2).toBe(false);
     expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(-1);
   });
+
+  describe('using backward-compatible arguments', () => {
+    it('should scroll the viewport using default snapping (top, start)', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(50, 50),
+        width: 200,
+        height: 200,
+      });
+
+      spyOn(hot.view, 'scrollViewport');
+
+      scrollViewportTo(40, 45);
+
+      expect(hot.view.scrollViewport).toHaveBeenCalledWith(cellCoords(40, 45), true, false, false, true);
+    });
+
+    it('should scroll the viewport using bottom snapping', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(50, 50),
+        width: 200,
+        height: 200,
+      });
+
+      spyOn(hot.view, 'scrollViewport');
+
+      scrollViewportTo(40, 45, true, false);
+
+      expect(hot.view.scrollViewport).toHaveBeenCalledWith(cellCoords(40, 45), false, false, true, true);
+    });
+
+    it('should scroll the viewport using end (right) snapping', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(50, 50),
+        width: 200,
+        height: 200,
+      });
+
+      spyOn(hot.view, 'scrollViewport');
+
+      scrollViewportTo(40, 45, true, true);
+
+      expect(hot.view.scrollViewport).toHaveBeenCalledWith(cellCoords(40, 45), false, true, true, false);
+    });
+  });
 });
