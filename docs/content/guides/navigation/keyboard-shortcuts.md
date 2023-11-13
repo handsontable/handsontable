@@ -15,8 +15,8 @@ tags:
   - accessibility
   - function key
   - commands
+  - shortcut keys
 react:
-# added an extra 8, as I am unsure which keyboard-shortcuts file we want to keep
   id: ddjw4zt88
   metaTitle: Keyboard shortcuts - React Data Grid | Handsontable
 searchCategory: Guides
@@ -32,22 +32,9 @@ Access all Handsontable features using just your keyboard. Use shortcuts you kno
 
 This page lists all of Handsontable's default keyboard shortcuts.
 
-You can easily check if a keyboard shortcut's action is compatible with Microsoft Excel or Google Sheets:
-
-- Compatible: &check;
-- Not compatible: &cross;
-
-::: tip
-
-Handsontable doesn't detect data series (doesn't differentiate between blank cells and non-blank cells). For this reason, some keyboard shortcuts (e.g.,
-<kbd>**Cmd**</kbd> + Arrow keys) may behave differently than in Microsoft Excel or Google Sheets in certain situations.
-
-:::
-
 ## Navigation keyboard shortcuts
 
-These keyboard shortcuts work when you navigate the grid. They come from Handsontable's [`Core`](@/api/core.md), so they work out of the box, with no need for
-additional plugins.
+These keyboard shortcuts work when you navigate the grid. They come from Handsontable's [`Core`](@/api/core.md), so they work out of the box, with no need for additional plugins.
 
 | Windows                                      | macOS                                       | Action                                                                                          |  Excel  | Sheets  |
 | -------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------- | :-----: | :-----: |
@@ -74,8 +61,7 @@ additional plugins.
 
 ## Selection keyboard shortcuts
 
-These keyboard shortcuts help you select cells. They come from Handsontable's [`Core`](@/api/core.md), so they work out of the box, with no need for additional
-plugins.
+These keyboard shortcuts help you select cells. They come from Handsontable's [`Core`](@/api/core.md), so they work out of the box, with no need for additional plugins.
 
 | Windows                                                                                               | macOS                                                                                               | Action                                                                            |  Excel  | Sheets  |
 | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | :-----: | :-----: |
@@ -95,13 +81,11 @@ plugins.
 | <kbd>**Delete**</kbd>                                                                                 | <kbd>**Delete**</kbd>                                                                               | Clear the contents of the selected cells                                          | &check; | &check; |
 | <kbd>**Backspace**</kbd>                                                                              | <kbd>**Backspace**</kbd>                                                                            | Clear the contents of the selected cells                                          | &check; | &check; |
 
-<sup>\*</sup> This action depends on your layout direction.<br> <sup>\*\*</sup> In case of multiple selection layers, only the last selection layer gets
-extended.
+<sup>\*</sup> This action depends on your layout direction.<br> <sup>\*\*</sup> In case of multiple selection layers, only the last selection layer gets extended.
 
 ## Edition keyboard shortcuts
 
-These keyboard shortcuts work when you're editing a cell's contents. They come from Handsontable's [`Core`](@/api/core.md), so they work out of the box, with no
-need for additional plugins.
+These keyboard shortcuts work when you're editing a cell's contents. They come from Handsontable's [`Core`](@/api/core.md), so they work out of the box, with no need for additional plugins.
 
 | Windows                                               | macOS                                                       | Action                                                             |  Excel  | Sheets  |
 | ----------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------ | :-----: | :-----: |
@@ -192,8 +176,7 @@ These keyboard shortcuts work in context menus. To activate them, enable the [`C
 
 ### Column groups keyboard shortcuts
 
-These keyboard shortcuts work in [column groups](@/guides/columns/column-groups.md), also known as "nested headers". To activate them, enable the
-[`NestedHeaders`](@/api/nestedHeaders.md) plugin.
+These keyboard shortcuts work in [column groups](@/guides/columns/column-groups.md), also known as "nested headers". To activate them, enable the [`NestedHeaders`](@/api/nestedHeaders.md) plugin.
 
 | Windows              | macOS                | Action                              |  Excel  | Sheets  |
 | -------------------- | -------------------- | ----------------------------------- | :-----: | :-----: |
@@ -201,8 +184,7 @@ These keyboard shortcuts work in [column groups](@/guides/columns/column-groups.
 
 ### Row parent-child keyboard shortcuts
 
-These keyboard shortcuts work in [row groups](@/guides/rows/row-parent-child.md), also known as "nested rows". To activate them, enable the
-[`NestedRows`](@/api/nestedRows.md) plugin.
+These keyboard shortcuts work in [row groups](@/guides/rows/row-parent-child.md), also known as "nested rows". To activate them, enable the [`NestedRows`](@/api/nestedRows.md) plugin.
 
 | Windows              | macOS                | Action                           |  Excel  | Sheets  |
 | -------------------- | -------------------- | -------------------------------- | :-----: | :-----: |
@@ -210,8 +192,7 @@ These keyboard shortcuts work in [row groups](@/guides/rows/row-parent-child.md)
 
 ### Rows sorting keyboard shortcuts
 
-These keyboard shortcuts work with [rows sorting](@/guides/rows/rows-sorting.md). To activate them, enable the [`ColumnSorting`](@/api/columnSorting.md) plugin.
-, or the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin.
+These keyboard shortcuts work with [rows sorting](@/guides/rows/rows-sorting.md). To activate them, enable the [`ColumnSorting`](@/api/columnSorting.md), or the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin.
 
 | Windows                                  | macOS                                   | Action                                                                                                                                                   |  Excel  | Sheets  |
 | ---------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | :-----: | :-----: |
@@ -220,8 +201,7 @@ These keyboard shortcuts work with [rows sorting](@/guides/rows/rows-sorting.md)
 
 ### Column menu keyboard shortcuts
 
-These keyboard shortcuts work with the [column menu](@/guides/columns/column-menu.md). To activate them, enable the [`DropdownMenu`](@/api/dropdownMenu.md)
-plugin.
+These keyboard shortcuts work with the [column menu](@/guides/columns/column-menu.md). To activate them, enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin.
 
 | Windows                                                  | macOS                                                       | Action                                                                                                       |  Excel  | Sheets  |
 | -------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | :-----: | :-----: |
@@ -230,8 +210,7 @@ plugin.
 
 ### Column filter keyboard shortcuts
 
-These keyboard shortcuts work with the [column filter](@/guides/columns/column-filter.md). To activate them, enable the [`Filters`](@/api/filters.md) plugin and
-the [`DropdownMenu`](@/api/dropdownMenu.md) plugin.
+These keyboard shortcuts work with the [column filter](@/guides/columns/column-filter.md). To activate them, enable the [`Filters`](@/api/filters.md) plugin and the [`DropdownMenu`](@/api/dropdownMenu.md) plugin.
 
 | Windows                             | macOS                                  | Action            |  Excel  | Sheets  |
 | ----------------------------------- | -------------------------------------- | ----------------- | :-----: | :-----: |
@@ -251,8 +230,7 @@ These keyboard shortcuts work with [comments](@/guides/cell-features/comments.md
 
 ## API reference
 
-For the list of [options](@/guides/getting-started/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks.md)
-related to keyboard navigation, see the following API reference pages:
+For the list of [options](@/guides/getting-started/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks.md) related to keyboard navigation, see the following API reference pages:
 
 - APIs:
   - [`ShortcutContext`](@/api/shortcutContext.md)
