@@ -17,12 +17,12 @@ tags:
   - ada
   - compliance
   - vpat
-  - acr
 react:
   id: x82phf34
   metaTitle: Accessibility - React Data Grid | Handsontable
 searchCategory: Guides
 ---
+
 # Accessibility
 
 Handsontable is designed to be accessible, aligning with global standards. We prioritize inclusivity, ensuring web applications are usable by people with disabilities. 
@@ -33,79 +33,69 @@ Handsontable is designed to be accessible, aligning with global standards. We pr
 
 Accessibility features of Handsontable include:
 
-- [Keyboard navigation](@/guides/navigation/keyboard-navigation.md) that lets you access most of the features without using a mouse.
-- Support for the most popular [screen readers](#screen-readers).
-- Standards conforming to [WCAG 2.1 AA](https://www.w3.org/WAI/WCAG21/quickref/)
+- Keyboard navigation that lets you use the grid without a mouse.
+- Support for the most popular screen readers.
+- Flexible API to configure keyboard shortcuts and navigation methods.
 
 ## Conformance with standards
-Handsontable aligns with global standards and regulations. These standards, which are in accordance with the Web Content Accessibility Guidelines (WCAG), aim to make the web more inclusive for individuals with disabilities.
 
-A list of the most known accessibility standards are:
-<br> 
-
-- **Europe / EU:**
-  - [European Accessibility Act (EAA)](https://ec.europa.eu/social/main.jsp?catId=1202)
-  - [Web Accessibility Directive (WAD)](https://eur-lex.europa.eu/legal-content/EN/LSU/?uri=CELEX:32016L2102)
+Most global standards and regulations are created in accordance with WCAG (Web Content Accessibility Guidelines). Handsontable meets requirements outlined in the [WCAG 2.1 AA](https://www.w3.org/WAI/WCAG21/quickref/) guidelines, which makes it compatible with most local standards such as:
 
 - **United States:**
   - [Section 508 of the US Rehabilitation Act](https://www.section508.gov/)
   - [Americans with Disabilities Act (ADA)](https://www.ada.gov/resources/web-guidance/)
 
+- **Europe / European Union:**
+  - [European Accessibility Act (EAA)](https://ec.europa.eu/social/main.jsp?catId=1202)
+  - [Web Accessibility Directive (WAD)](https://eur-lex.europa.eu/legal-content/EN/LSU/?uri=CELEX:32016L2102)
+
 - **Canada:**
   - [Standard on Web Accessibility](https://www.tbs-sct.canada.ca/pol/doc-eng.aspx?id=23601)
 
-### VPAT and Accessibility Statement
-Accessibility Statement and VPAT (Voluntary Product Accessibility Template) for Handsontable outline how the product meets accessibility standards.
-
-<!-- Chris to send the documents VPAT and Accessibility statement -->
-
 ## Keyboard navigation
-Handsontable mainly uses keyboard navigation. This is critical for people who rely on a keyboard or other assistive technologies. 
-Importantly, depending on your needs, the navigation can be customized through the API.
+Handsontable does not require a mouse to navigate across the grid's elements. This is an important feature for certain users with temporary or permanent motor impairments, for whom following the tiny mouse cursor is difficult. Interestingly, some "power" users also find it easier to use the keyboard instead of the mouse.
 
-Learn more in the following sections:
+Our experience with hundreds of implementations of Handsontable has highlighted some typical patterns. It turns out that usually Handsontable is used as either a **spreadsheet application** or a **data grid component**. While the difference may seem subtle at first, it significantly impacts user expectations regarding navigation.
 
-- [Keyboard navigation](@/guides/navigation/keyboard-navigation.md)
-- [Default keyboard shortcuts](@/guides/navigation/keyboard-shortcuts.md)
-- [Custom shortcuts](@/guides/navigation/custom-shortcuts.md)
+In a typical spreadsheet application (think of Microsoft Excel or Google Sheets), you cannot move the focus onto headers. This makes it difficult to sort or filter data without knowing complex [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts.md). Additionally, opening a column menu is not trivial. Handsontable offers flexibility in this regard, allowing users to switch between data grid and spreadsheet "modes". To do that switch, you can use a combination of two options: [`navigableHeaders`](@/api/options.md#navigableheaders) to enable or disable moving focus onto headers, and [`tabMoves`](@/api/options.md#tabmoves) to decide if the <kbd>Tab</kbd> key can be used to navigate across cells and headers.
 
-### Navigation modes
-Handsontable works as both a spreadsheet application and a data grid. While the differences might seem minor at first, they significantly affect how users navigate using the keyboard. The following table provides a comparison between the two nodes for clearer understanding.
+The following table provides more details about these two scenarios:
+ 
+|                           | Data grid mode                                                                                                                                                                                                                                                                         | Spreadsheet mode (default)                                                                                                                                                         |
+|---------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Configuration options     | `navigableHeaders: true` <br>  `tabMoves: false`                                                                                                                                                                                                                                       | `navigableHeaders: false` <br> `tabMoves: true`                                                                                                                                    |
+| Primary navigation method | <kbd>Arrow keys</kbd>                                                                                                                                                                                                                                                                  | <kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd>                                                                                                                                 |
+| Description               | The <kbd>Arrow keys</kbd> are primarily used to navigate across the grid. Use simple shortcut keys such as <kbd>Enter</kbd> or <kbd>Space</kbd> to open menus or interact with headers, cells, or cell editors. <br><br>You cannot use <kbd>Tab</kbd> key to navigate across the grid. | The <kbd>Tab</kbd> key is primarily used to navigate across the grid.<br>This behavior is similar to Excel or Google Sheets. <br><br>To open menus use more complex shortcut keys. |
+| Focus order               | One <kbd>Tab</kbd> stop - the grid is included in the tab sequence within the page only once.                                                                                                                                                                                          | Multiple <kbd>Tab</kbd> stops - all the grid tabbable elements, such as cells or headers, are included in the page <kbd>Tab</kbd> sequence.                                        |
+| Navigable headers         | Yes                                                                                                                                                                                                                                                                                    | No                                                                                                                                                                                 |                                                                                              |
 
+## Shortcut keys
 
-|               | Data grid mode                                                                 | Spreadsheet mode (default)                                                                                           |
-|----------------------------------|--------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
-| Configuration options            | `navigableHeaders: true` <br>  `tabMoves: false`                                  | `navigableHeaders: false` <br> `tabMoves: true`                                                                        |
-| Brief description                | The <kbd>Arrow keys</kbd> are primarly used to navigate across the grid. Use simple shortcut keys such as <kbd>Enter</kbd> or <kbd>Space</kbd> to open menus or interact with headers, cells, or editors. <br>You cannot use <kbd>Tab</kbd> key to navigate across the grid.| The <kbd>Tab</kbd> key is primarily used to navigate across the grid.<br>This scenario provides an experience familiar to users of Excel or Google Sheets. To open menus users need to learn and use more complex shortcut keys. |
-| Primary navigation method        | <kbd>Arrow keys</kbd>                                                                     | <kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd>                                                                                                    |
-| <kbd>Tab</kbd> sequence within the page     | One <kbd>Tab</kbd> stop - the grid is included in the page sequence only once.            | Multiple <kbd>Tab</kbd> stops - all the grid tabbable elements are included in the page <kbd>Tab</kbd> sequence.                            |
-| Navigable headers                | Yes                                                                            | No                                                                                                                   |                                                                                              |
-### Shortcut keys configuration
-Hansontable includes a wide range of shortcut keys for quick navigation and offers customization options through API.
+Handsontable provides a wide range of [shortcut keys](@/guides/navigation/keyboard-shortcuts.md), but some of them seem to be more important for users not using a mouse for navigation. Specifically, actions triggered while navigating across headers involve simple combinations of keyboard keys, making them intuitive and useful. For more complex scenarios, you can also [customize the shortcuts keys](@/guides/navigation/custom-shortcuts.md) through the API.
 
-| Windows                                         | macOS                                           | Action                                      | Focus                    |
-|-------------------------------------------------|-------------------------------------------------|---------------------------------------------|-----------------------------|
-| <kbd>Shift</kbd> + <kbd>Alt</kbd> + <kbd>I</kbd>       | <kbd>Shift</kbd> + <kbd>Option</kbd> + <kbd>I</kbd>    | Open column menu       | Any table cell              |
-| <kbd>Ctrl</kbd> + <kbd>Enter</kbd>                    | <kbd>Cmd</kbd> + <kbd>Enter</kbd>                       | Open column menu           | Column header               |
-| <kbd>Shift</kbd> + <kbd>Enter</kbd>                   | <kbd>Shift</kbd> + <kbd>Enter</kbd>                     | Sort data                                  |    Column header             |
-| <kbd>Alt</kbd> + <kbd>A</kbd>                         | <kbd>Option</kbd> + <kbd>A</kbd>                        | Clear filters                              |      Any table cell            |
-| <kbd>Ctrl</kbd> + <kbd>Space</kbd>                    | <kbd>Cmd</kbd> + <kbd>Space</kbd>                       | Select the entire column                   | Any cell in a column        |
-| <kbd>Shift</kbd> + <kbd>Space</kbd>                   | <kbd>Shift</kbd> + <kbd>Space</kbd>                     | Select the entire row                      | Any cell in a row           |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd>      | <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> | Invoke context menu          |  Any table cell |
+| Windows                                                                                   | macOS                                                                                    | Action              | Focused element   |
+|-------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|---------------------|-------------------|
+| <kbd>Shift</kbd> + <kbd>Alt</kbd> + <kbd>I</kbd>                                          | <kbd>Shift</kbd> + <kbd>Option</kbd> + <kbd>I</kbd>                                      | Open a column menu  | Any cell     |
+| <kbd>Ctrl</kbd> + <kbd>Enter</kbd>                                                        | <kbd>Cmd</kbd> + <kbd>Enter</kbd>                                                        | Open a column menu  | Column header     |
+| <kbd>Shift</kbd> + <kbd>Enter</kbd>                                                       | <kbd>Shift</kbd> + <kbd>Enter</kbd>                                                      | Sort data           | Column header     |
+| <kbd>Alt</kbd> + <kbd>A</kbd>                                                             | <kbd>Option</kbd> + <kbd>A</kbd>                                                         | Clear filters       | Any cell     |
+| <kbd>Ctrl</kbd> + <kbd>Space</kbd>                                                        | <kbd>Cmd</kbd> + <kbd>Space</kbd>                                                        | Select a column     | Any cell |
+| <kbd>Shift</kbd> + <kbd>Space</kbd>                                                       | <kbd>Shift</kbd> + <kbd>Space</kbd>                                                      | Select a row        | Any cell    |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> | <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> | Open a context menu | Any cell     |
 
-For the full reference , go to the [shortcut keys](@/guides/navigation/keyboard-shortcuts.md) page.
-## Screen readers
-Handsontable incorporates ARIA attributes to make its content available to screen readers and other assistive technologies. 
+## Support for screen readers
 
-Handsontable is being tested with popular screen readers for compatibility. We specifically focus on testing with the following software:
+Although semantic HTML doesn't need any additional attributes to be properly interpreted by assistive technologies, some of Handsontable's complex features are not fully covered by the HTML specification. That's why Handsontable provides support for screen readers with ARIA attributes (Accessible Rich Internet Applications) applied to its HTML markup.
 
-* [JAWS](https://www.freedomscientific.com/products/software/jaws/) for Windows
-* [VoiceOver](https://www.apple.com/voiceover/info/guide/_1121.html) for macOS
-* [NVDA](https://www.nvaccess.org/) for Windows
+Each new version is thoroughly tested for accessibility with the following screen readers:
 
+- NVDA (Windows)
+- JAWS (Windows)
+- VoiceOver (macOS)
 
-## A demo configured for accessibility
-In the demo provided, you can toggle various options to adjust the accessibility support for users with disabilities. Handsontable demo configured for accessibility may vary based on the application you create. 
+## A demo of accessible data grid
+
+Check out the interactive demo below to see how different Handsontable settings impact its accessibility level and affect the user experience.
 
 ::: example #example --html 1 --css 2 --js 3
 
@@ -181,25 +171,7 @@ In the demo provided, you can toggle various options to adjust the accessibility
           rel="noopener noreferrer"
           aria-label="Learn more about Enter key cell editing (opens in a new window)"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="lucide lucide-external-link"
-            aria-hidden="true"
-          >
-            <path
-              d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
-            />
-            <polyline points="15 3 21 3 21 9" />
-            <line x1="10" x2="21" y1="14" y2="3" />
-          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg>
         </a>
       </div>
     </div>
@@ -225,25 +197,7 @@ In the demo provided, you can toggle various options to adjust the accessibility
           rel="noopener noreferrer"
           aria-label="Learn more about right/left arrow key behavior (opens in a new window)"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="lucide lucide-external-link"
-            aria-hidden="true"
-          >
-            <path
-              d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
-            />
-            <polyline points="15 3 21 3 21 9" />
-            <line x1="10" x2="21" y1="14" y2="3" />
-          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg>
         </a>
       </div>
       <div>
@@ -268,25 +222,7 @@ In the demo provided, you can toggle various options to adjust the accessibility
           rel="noopener noreferrer"
           aria-label="Learn more about up/down arrow key behavior (opens in a new window)"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="lucide lucide-external-link"
-            aria-hidden="true"
-          >
-            <path
-              d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
-            />
-            <polyline points="15 3 21 3 21 9" />
-            <line x1="10" x2="21" y1="14" y2="3" />
-          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg>
         </a>
       </div>
       <div>
@@ -311,25 +247,7 @@ In the demo provided, you can toggle various options to adjust the accessibility
           rel="noopener noreferrer"
           aria-label="Learn more about Enter key focus behavior (opens in a new window)"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="lucide lucide-external-link"
-            aria-hidden="true"
-          >
-            <path
-              d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
-            />
-            <polyline points="15 3 21 3 21 9" />
-            <line x1="10" x2="21" y1="14" y2="3" />
-          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg>
         </a>
       </div>
     </div>
@@ -351,21 +269,31 @@ In the demo provided, you can toggle various options to adjust the accessibility
 </div>
 ```
 
-```css
-.exampleContainer {
+```scss
+.checkboxContainer {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  font-family: Inter var, ui-sans-serif, system-ui, -apple-system,
-    BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif,
-    Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
-}
-.exampleContainer #handsontable { 
-  background: white;
+  line-height: 1.4;
+
+    .checkboxGroup {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .checkboxGroup > div {
+      display: flex;
+    }
+    
+    .checkboxGroup > div > label {
+      display: flex;
+      gap: 0.2rem;
+    }
 }
 
 /*
-  A stylesheet customizing app (custom renderers)
+  A stylesheet customizing the grid
 */
 
 table.htCore td .stars {
@@ -420,26 +348,6 @@ table.htCore tr.selected td {
   background: #fcb515;
 }
 
-.checkboxContainer {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.checkboxGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.checkboxGroup > div {
-  display: flex;
-}
-
-.checkboxGroup > div > label {
-  display: flex;
-  gap: 0.2rem;
-}
-
 .externalLink {
   color: black;
   position: relative;
@@ -490,7 +398,175 @@ html.theme-dark .optionLabel {
 import Handsontable from "handsontable";
 import "handsontable/dist/handsontable.min.css";
 
+// Get the DOM element with the ID 'handsontable' where the Handsontable will be rendered
+const app = document.getElementById("handsontable");
 
+// Define configuration options
+const hotOptions = {
+  data,
+  height: 464,
+  colWidths: [140, 165, 100, 100, 100, 90, 90, 110, 178],
+  colHeaders: [
+    "Company name",
+    "Product name",
+    "Sell date",
+    "In stock",
+    "Qty",
+    "Progress",
+    "Rating",
+    "Order ID",
+    "Country",
+  ],
+  columns: [
+    { data: "companyName", type: "text" },
+    { data: "productName", type: "text" },
+    {
+      data: "sellDate",
+      type: "date",
+      allowInvalid: false,
+    },
+    {
+      data: "inStock",
+      type: "checkbox",
+      className: "htCenter",
+    },
+    { data: "qty", type: "numeric" },
+    {
+      data: "progress",
+      renderer: progressBarRenderer,
+      readOnly: true,
+      className: "htMiddle",
+    },
+    {
+      data: "rating",
+      renderer: starRenderer,
+      readOnly: true,
+      className: "star htCenter",
+    },
+    {
+      data: "orderId",
+      type: "text",
+    },
+    {
+      data: "country",
+      type: "dropdown",
+      source: countries,
+    },
+  ],
+  dropdownMenu: true,
+  hiddenColumns: {
+    indicators: true,
+  },
+  contextMenu: true,
+  navigableHeaders: true,
+  disableTabNavigation: false,
+  autoWrapRow: true,
+  autoWrapCol: true,
+  multiColumnSorting: true,
+  filters: true,
+  rowHeaders: true,
+  manualRowMove: true,
+  nestedRows: true,
+  afterGetColHeader: alignHeaders,
+  beforeRenderer: addClassesToRows,
+  licenseKey: "non-commercial-and-evaluation",
+};
+
+// Initialize the Handsontable instance with the specified configuration options
+let hotInstance = new Handsontable(app, hotOptions);
+
+// Helper function to set up checkbox event handling
+export const setupCheckbox = (element, callback) =>
+  element.addEventListener("click", (clickEvent) => callback(element.checked));
+
+// Set up event listeners for various checkboxes to update Handsontable settings
+setupCheckbox(document.querySelector("#enableTabNavigation"), (checked) => {
+  hotOptions.disableTabNavigation = !checked;
+  hotInstance.updateSettings({
+    disableTabNavigation: hotOptions.disableTabNavigation,
+  });
+  console.log(
+    `Updated setting: disableTabNavigation to`,
+    hotInstance.getSettings().disableTabNavigation
+  );
+});
+
+setupCheckbox(document.querySelector("#enableHeaderNavigation"), (checked) => {
+  hotOptions.navigableHeaders = checked;
+  hotInstance.updateSettings({
+    navigableHeaders: hotOptions.navigableHeaders,
+  });
+  console.log(
+    `Updated setting: navigableHeaders to`,
+    hotInstance.getSettings().navigableHeaders
+  );
+});
+
+setupCheckbox(
+  document.querySelector("#enableCellVirtualization"),
+  (checked) => {
+    hotInstance.destroy();
+    hotInstance = new Handsontable(document.getElementById("handsontable"), {
+      ...hotOptions,
+      renderAllRows: !checked,
+      viewportColumnRenderingOffset: checked ? "auto" : 9,
+    });
+    console.log(
+      `Updated setting: renderAllRows to`,
+      hotInstance.getSettings().renderAllRows
+    );
+  }
+);
+
+setupCheckbox(document.querySelector("#enableCellEnterEditing"), (checked) => {
+  hotOptions.enterBeginsEditing = checked;
+  hotInstance.updateSettings({
+    enterBeginsEditing: hotOptions.enterBeginsEditing,
+  });
+  console.log(
+    `Updated setting: enableCellEnterEditing to`,
+    hotInstance.getSettings().enterBeginsEditing
+  );
+});
+
+setupCheckbox(
+  document.querySelector("#enableArrowRLFirstLastColumn"),
+  (checked) => {
+    hotOptions.autoWrapRow = checked;
+    hotInstance.updateSettings({
+      autoWrapRow: hotOptions.autoWrapRow,
+    });
+    console.log(
+      `Updated setting: autoWrapRow to`,
+      hotInstance.getSettings().autoWrapRow
+    );
+  }
+);
+
+setupCheckbox(
+  document.querySelector("#enableArrowTDFirstLastColumn"),
+  (checked) => {
+    hotOptions.autoWrapCol = checked;
+    hotInstance.updateSettings({
+      autoWrapCol: hotOptions.autoWrapCol,
+    });
+    console.log(
+      `Updated setting: autoWrapCol to`,
+      hotInstance.getSettings().autoWrapCol
+    );
+  }
+);
+
+setupCheckbox(document.querySelector("#enableEnterFocusEditing"), (checked) => {
+  hotOptions.enterMoves = checked ? { col: 0, row: 1 } : { col: 0, row: 0 };
+  hotInstance.updateSettings({
+    enterMoves: hotOptions.enterMoves,
+  });
+  console.log(
+    `Updated setting: enterMoves to`,
+    hotInstance.getSettings().enterMoves
+  );
+});
 
 const data = [
   {
@@ -2335,197 +2411,15 @@ export function alignHeaders(column, TH) {
     }
   }
 }
-
-// Get the DOM element with the ID 'handsontable' where the Handsontable will be rendered
-const app = document.getElementById("handsontable");
-
-// Define configuration options for the Handsontable
-const hotOptions = {
-  data,
-  height: 464,
-  colWidths: [140, 165, 100, 100, 100, 90, 90, 110, 178],
-  colHeaders: [
-    "Company name",
-    "Product name",
-    "Sell date",
-    "In stock",
-    "Qty",
-    "Progress",
-    "Rating",
-    "Order ID",
-    "Country",
-  ],
-  columns: [
-    { data: "companyName", type: "text" },
-    { data: "productName", type: "text" },
-    {
-      data: "sellDate",
-      type: "date",
-      allowInvalid: false,
-    },
-    {
-      data: "inStock",
-      type: "checkbox",
-      className: "htCenter",
-    },
-    { data: "qty", type: "numeric" },
-    {
-      data: "progress",
-      renderer: progressBarRenderer,
-      readOnly: true,
-      className: "htMiddle",
-    },
-    {
-      data: "rating",
-      renderer: starRenderer,
-      readOnly: true,
-      className: "star htCenter",
-    },
-    {
-      data: "orderId",
-      type: "text",
-    },
-    {
-      data: "country",
-      type: "dropdown",
-      source: countries,
-    },
-  ],
-  dropdownMenu: true,
-  hiddenColumns: {
-    indicators: true,
-  },
-  contextMenu: true,
-  navigableHeaders: true, // new a11y
-  disableTabNavigation: false, // new a11y
-  autoWrapRow: true,
-  autoWrapCol: true,
-  multiColumnSorting: true,
-  filters: true,
-  rowHeaders: true,
-  manualRowMove: true,
-  nestedRows: true,
-  afterGetColHeader: alignHeaders,
-  beforeRenderer: addClassesToRows,
-  licenseKey: "non-commercial-and-evaluation",
-};
-
-// Initialize the Handsontable instance with the specified configuration options
-let hotInstance = new Handsontable(app, hotOptions);
-
-// Helper function to set up checkbox event handling
-export const setupCheckbox = (element, callback) =>
-  element.addEventListener("click", (clickEvent) => callback(element.checked));
-
-// Set up event listeners for various checkboxes to update Handsontable settings
-setupCheckbox(document.querySelector("#enableTabNavigation"), (checked) => {
-  hotOptions.disableTabNavigation = !checked;
-  hotInstance.updateSettings({
-    disableTabNavigation: hotOptions.disableTabNavigation,
-  });
-  console.log(
-    `Updated setting: disableTabNavigation to`,
-    hotInstance.getSettings().disableTabNavigation
-  );
-});
-
-setupCheckbox(document.querySelector("#enableHeaderNavigation"), (checked) => {
-  hotOptions.navigableHeaders = checked;
-  hotInstance.updateSettings({
-    navigableHeaders: hotOptions.navigableHeaders,
-  });
-  console.log(
-    `Updated setting: navigableHeaders to`,
-    hotInstance.getSettings().navigableHeaders
-  );
-});
-
-setupCheckbox(
-  document.querySelector("#enableCellVirtualization"),
-  (checked) => {
-    hotInstance.destroy();
-    hotInstance = new Handsontable(document.getElementById("handsontable"), {
-      ...hotOptions,
-      renderAllRows: !checked,
-      viewportColumnRenderingOffset: checked ? "auto" : 9,
-    });
-    console.log(
-      `Updated setting: renderAllRows to`,
-      hotInstance.getSettings().renderAllRows
-    );
-  }
-);
-
-setupCheckbox(document.querySelector("#enableCellEnterEditing"), (checked) => {
-  hotOptions.enterBeginsEditing = checked;
-  hotInstance.updateSettings({
-    enterBeginsEditing: hotOptions.enterBeginsEditing,
-  });
-  console.log(
-    `Updated setting: enableCellEnterEditing to`,
-    hotInstance.getSettings().enterBeginsEditing
-  );
-});
-
-setupCheckbox(
-  document.querySelector("#enableArrowRLFirstLastColumn"),
-  (checked) => {
-    hotOptions.autoWrapRow = checked;
-    hotInstance.updateSettings({
-      autoWrapRow: hotOptions.autoWrapRow,
-    });
-    console.log(
-      `Updated setting: autoWrapRow to`,
-      hotInstance.getSettings().autoWrapRow
-    );
-  }
-);
-
-setupCheckbox(
-  document.querySelector("#enableArrowTDFirstLastColumn"),
-  (checked) => {
-    hotOptions.autoWrapCol = checked;
-    hotInstance.updateSettings({
-      autoWrapCol: hotOptions.autoWrapCol,
-    });
-    console.log(
-      `Updated setting: autoWrapCol to`,
-      hotInstance.getSettings().autoWrapCol
-    );
-  }
-);
-
-setupCheckbox(document.querySelector("#enableEnterFocusEditing"), (checked) => {
-  hotOptions.enterMoves = checked ? { col: 0, row: 1 } : { col: 0, row: 0 };
-  hotInstance.updateSettings({
-    enterMoves: hotOptions.enterMoves,
-  });
-  console.log(
-    `Updated setting: enterMoves to`,
-    hotInstance.getSettings().enterMoves
-  );
-});
-
 ```
 :::
-### Handsontable configuration options 
-Each feature within Handsontable is designed to accommodate specific needs. Below, we show key configuration options that offer flexibility and control over the grid's behavior. 
-| Option                                                                                          | Definition                                                                                                                                                                                                                                                                                                   |
-|:------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`navigableHeaders`](@/api/options.md#navigableheaders)                                         | The `navigableHeaders` option enables keyboard navigation across row and column headers using <kbd>Arrow keys</kbd> or <kbd>Tab</kbd> keys. <br><br> Default: `false`                                                                                                                                                                         |
-| [`tabMoves`](@/api/options.md#tabmoves)                                                         | The `tabMoves` option sets the cell movement behavior for pressing the <kbd>Tab</kbd> key in a grid, allowing specification of the number of rows and columns to navigate, which can be defined using an object or a function.                <br><br>Default: `{row: 0, col: 1}`                                          |
-| [`enterMoves`](@/api/options.md#entermoves)                                                     | The `enterMoves` option defines the navigation behavior upon pressing the <kbd>Enter</kbd> key in a grid, dictating the number of columns and rows the selection moves, which can be customized with an object or function, especially in relation to the `enterBeginsEditing` setting. <br><br> Default: `{col: 0, row: 1}`|
-| [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)                                     | The `enterBeginsEditing` option controls if pressing <kbd>Enter</kbd> key once starts editing the active cell (`true`, default) or moves to the next cell according to `enterMoves` settings (`false`). <br><br> Default: `true`                                                                                             |
-| [`autoWrapCol`](@/api/options.md#autowrapcol)                                                   | The `autoWrapCol` option toggles vertical wrapping in a grid, where pressing <kbd>↓</kbd> in the bottom-most cell moves to the top cell of the next column and pressing <kbd>↑</kbd> in the top-most cell moves to the bottom cell of the previous column.  <br><br> Default: `false`                                                   |
-| [`autoWrapRow`](@/api/options.md#autowraprow)                                                   | The `autoWrapRow` option enables or disables wrapping the selection from the first cell to the last of the previous row and from the last cell to the first of the next row when navigating with arrow keys.   <br><br> Default: `false`                                                                          |
-| [`renderAllRows`](@/api/options.md#renderallrows)                                               | The `renderAllRows` option determines if row virtualization is turned off (`true`) to render all rows simultaneously, or turned on (`false`, default) to render rows efficiently as needed.           <br><br> Default: `false`                                                                                   |
-| [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)               | The `viewportColumnRenderingOffset` option sets the quantity of columns that Handsontable pre-renders outside the visible grid area, with `auto` for automatic calculation or a specific number for manual configuration.  <br><br> Default: `auto`                                                               |
 
 ## High-contrast theme
-It's essential to make content easy to read and distinguish, particularly for users with visual impairments. High contrast between elements improves readability and user comfort during prolonged interaction. The recommended [minimum contrast ratio](https://www.w3.org/WAI/WCAG21/quickref/#contrast-minimum) for text against images or backgrounds is 4.5:1. To achieve this level of contrast with the default theme of Handsontable, you need to adjust it according to your end-users' needs by doing the following:
 
-* Override the grid's CSS with your own attributes.
-* Use third-party software, such as the [High Contrast](https://chrome.google.com/webstore/detail/high-contrast/djcfdncoelnlbldjfhinnjlhdjlikmph) extension offered by Google for Chrome.
+The recommended [minimum contrast ratio](https://www.w3.org/WAI/WCAG21/quickref/#contrast-minimum) for text against images or backgrounds is 4.5:1. To achieve this level of contrast with Handsontable's default theme, customize it to meet your end-users' needs by applying the following actions:
+
+- Override the grid's CSS with your own styles.
+- Use third-party software, such as the [High Contrast](https://chrome.google.com/webstore/detail/high-contrast/djcfdncoelnlbldjfhinnjlhdjlikmph) extension for Chrome, supported by Google.
 
 ## Requirements for the developers
 
@@ -2533,7 +2427,7 @@ When you customize Handsontable, it's you who is responsible for ensuring the ac
 
 Our recommendations for custom development:
 
-- Test your code against WCAG 2.1 requirements regulary.
+- Test your code against WCAG 2.1 requirements frequently.
 - Use proper color contrast, font size, and semantic HTML.
 - If needed, implement additional WAI-ARIA attributes.
 - Avoid flashing or blinking content.
@@ -2541,11 +2435,11 @@ Our recommendations for custom development:
 
 ::: tip
 
- The accessibility level of any component in your application may be decreased by a low accessibility level of the elements surrounding it. For this reason, make sure to always check the accessibility of the entire application, using tools such as [Lighthouse](https://developers.google.com/web/tools/lighthouse).
+The quality of custom modifications in Handsontable may impact your application's accessibility level. For this reason, make sure to actively check how these changes influence the overall accessibility of your application, using tools like [Lighthouse](https://developers.google.com/web/tools/lighthouse).
 
 :::
 
-## Accessibility testing
+## Ensuring Accessibility standards
 
 We make sure our data grid remains accessible by taking the following steps:
 
@@ -2555,20 +2449,19 @@ We make sure our data grid remains accessible by taking the following steps:
 - We use automated unit and end-to-end tests.
 
 ## Known limitations
-   - **Screen readers with frozen rows/columns:** Some screen readers may incorrectly read the number of rows and columns when frozen rows and columns are enabled.
-   - **Dynamic ARIA attributes:** Dynamic ARIA attributes are sometimes ommited by screen readers.
-   - **Access to actions:** Access to certain actions may require custom menu items; for example, sorting data in spreadsheet mode where headers are non-navigable, moving a column or row, resizing a column or row, and renaming a header name.
+
+- Some screen readers may incorrectly read the number of rows and columns when frozen rows and columns are enabled.
+- Dynamic ARIA attributes are sometimes omitted by screen readers.
 
 ## API reference
 
-For the list of [options](@/guides/getting-started/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks.md)
-related to accessibility, see the following API reference pages:
+For the list of [options](@/guides/getting-started/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks.md) related to accessibility, see the following API reference pages:
 
 - [`autoWrapCol`](@/api/options.md#autowrapcol)
 - [`autoWrapRow`](@/api/options.md#autowraprow)
+- [`disableTabNavigation`](@/api/options.md#disabletabnavigation)
 - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
 - [`enterMoves`](@/api/options.md#entermoves)
-- [`disableTabNavigation`](@/api/options.md#disabletabnavigation)
 - [`navigableHeaders`](@/api/options.md#navigableheaders)
 - [`renderAllRows`](@/api/options.md#renderallrows)
 - [`tabMoves`](@/api/options.md#tabmoves)
@@ -2578,6 +2471,7 @@ related to accessibility, see the following API reference pages:
 ## Troubleshooting
 
 Try the following links if you didn't find what you need:
+
 - [View related topics](https://github.com/handsontable/handsontable/labels/Accessibility) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
 - [Ask a question](https://stackoverflow.com/questions/tagged/handsontable) on Stack Overflow
