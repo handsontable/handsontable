@@ -4374,7 +4374,28 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
    * @returns {boolean} `true` if viewport was scrolled, `false` otherwise.
    */
-  this.scrollViewportTo = function({ row, col, verticalSnap, horizontalSnap, considerHiddenIndexes } = {}) {
+  this.scrollViewportTo = function(options) {
+    // Support for backward compatibility arguments: (row, col, snapToBottom, snapToRight, considerHiddenIndexes)
+    if (typeof options === 'number') {
+      /* eslint-disable prefer-rest-params */
+      options = {
+        row: arguments[0],
+        col: arguments[1],
+        verticalSnap: arguments[2] ? 'bottom' : 'top',
+        horizontalSnap: arguments[3] ? 'end' : 'start',
+        considerHiddenIndexes: arguments[4] ?? true,
+      };
+      /* eslint-enable prefer-rest-params */
+    }
+
+    const {
+      row,
+      col,
+      verticalSnap,
+      horizontalSnap,
+      considerHiddenIndexes
+    } = options ?? {};
+
     let snapToTop;
     let snapToBottom;
     let snapToInlineStart;
