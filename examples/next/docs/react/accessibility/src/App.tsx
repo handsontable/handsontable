@@ -1,4 +1,3 @@
-import "./App.css";
 import "handsontable/dist/handsontable.min.css";
 import { HotTable, HotColumn } from "@handsontable/react";
 import { useState } from "react";
@@ -7,10 +6,7 @@ import { StarsRenderer } from "./components/StarsRenderer";
 
 import { countries, data } from "./data";
 import DemoOptions from "./components/DemoOptions";
-import {
-  alignHeaders,
-  addClassesToRows, 
-} from "./hooksCallbacks";
+import { alignHeaders, addClassesToRows } from "./hooksCallbacks";
 
 const hotOptions = {
   data,
@@ -37,7 +33,7 @@ const hotOptions = {
   manualRowMove: true,
   nestedRows: true,
   afterGetColHeader: alignHeaders,
-  beforeRenderer: addClassesToRows, 
+  beforeRenderer: addClassesToRows,
   licenseKey: "non-commercial-and-evaluation",
 };
 
@@ -70,7 +66,11 @@ function App() {
         changeToggleOptions={setToggleableOptions}
         {...toggleableOptions}
       />
-      <input type="text" placeholder="Focusable text input" />
+      <input
+        className="placeholder-input"
+        type="text"
+        placeholder="Focusable text input"
+      />
       <HotTable
         // allows us to re-render on virtualization change
         key={String(toggleableOptions.renderAllRows)}
@@ -91,7 +91,11 @@ function App() {
         <HotColumn data="orderId" type="text" />
         <HotColumn data="country" type="dropdown" source={countries} />
       </HotTable>
-      <input type="text" placeholder="Focusable text input" />
+      <input
+        className="placeholder-input"
+        type="text"
+        placeholder="Focusable text input"
+      />
     </>
   );
 }

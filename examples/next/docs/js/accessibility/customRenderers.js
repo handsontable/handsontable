@@ -23,7 +23,7 @@ export function progressBarRenderer(
     div.ariaLabel = `${value * 10}%`;
   
     addClassWhenNeeded(td, cellProperties);
-    Handsontable.dom.addClass(div, "progressBar");
+    Handsontable.dom.addClass(div, "progress");
     Handsontable.dom.empty(td);
   
     td.appendChild(div);
@@ -42,6 +42,7 @@ export function starRenderer(
     div.textContent = "★".repeat(value);
     div.ariaLabel = `${value}`;
     Handsontable.dom.addClass(div, "stars");
+    Handsontable.dom.addClass(div, "htCenter");
     Handsontable.dom.empty(td);
   
     td.appendChild(div);
