@@ -12,11 +12,11 @@
     [contextMenu]="true"
     [multiColumnSorting]="true"
     [filters]="true"
-    [afterOnCellMouseDown]="changeCheckboxCell"
     [afterGetColHeader]="alignHeaders"
-    [afterGetRowHeader]="drawCheckboxInRowHeaders"
     [beforeRenderer]="addClassesToRows"
     [manualRowMove]="true"
+    [autoWrapRow]="true"
+    [navigableHeaders]="true"
     licenseKey="non-commercial-and-evaluation"
   >
     <hot-column data="1"></hot-column>

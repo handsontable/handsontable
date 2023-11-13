@@ -5,9 +5,7 @@ import { progressBarRenderer } from "./renderers/progressBar";
 
 import {
   alignHeaders,
-  drawCheckboxInRowHeaders,
-  addClassesToRows,
-  changeCheckboxCell
+  addClassesToRows, 
 } from "./utils/hooks-callbacks";
 
 @Component({
@@ -19,9 +17,7 @@ import {
 export class DataGridComponent {
   dataset = getData();
   alignHeaders = alignHeaders;
-  drawCheckboxInRowHeaders = drawCheckboxInRowHeaders;
   addClassesToRows = addClassesToRows;
-  changeCheckboxCell = changeCheckboxCell;
   progressBarRenderer = progressBarRenderer;
   starsRenderer = starsRenderer;
   colHeaders = [

@@ -30,6 +30,7 @@ export default {
           indicators: true,
         },
         contextMenu: true,
+        mergeCells: true,
         multiColumnSorting: true,
         filters: true,
         rowHeaders: true,
@@ -112,7 +113,7 @@ table.htCore {
     height: 10px;
   }
 
-  td.star {
+  td .stars {
     color: #fcb515;
   }
 }

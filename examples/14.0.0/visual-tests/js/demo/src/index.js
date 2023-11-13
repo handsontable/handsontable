@@ -26,6 +26,7 @@ import {
   HiddenColumns,
   HiddenRows,
   ManualRowMove,
+  MergeCells,
   MultiColumnSorting,
   UndoRedo,
 } from 'handsontable/plugins';
@@ -39,6 +40,7 @@ registerPlugin(Filters);
 registerPlugin(HiddenColumns);
 registerPlugin(HiddenRows);
 registerPlugin(ManualRowMove);
+registerPlugin(MergeCells);
 registerPlugin(MultiColumnSorting);
 registerPlugin(UndoRedo);
 
@@ -109,6 +111,7 @@ new Handsontable(example, {
     { data: 5, type: "text" },
     { data: 2, type: "text" }
   ],
+  mergeCells: true,
   dropdownMenu: true,
   hiddenColumns: {
     indicators: true
