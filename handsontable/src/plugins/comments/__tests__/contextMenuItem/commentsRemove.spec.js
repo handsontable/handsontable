@@ -14,6 +14,44 @@ describe('ContextMenu', () => {
 
   describe('delete comment', () => {
     describe('UI', () => {
+      it('should disable the item when all cells are selected (using keyboard shortcut)', () => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          comments: true,
+          colHeaders: true,
+          contextMenu: true,
+        });
+
+        selectCell(1, 1);
+        keyDownUp(['control/meta', 'a']);
+        contextMenu(getCell(1, 1));
+
+        const menuItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Delete comment';
+        });
+
+        expect(menuItem.hasClass('htDisabled')).toBe(true);
+      });
+
+      it('should disable the item when all cells are selected (using `selectAll` method)', () => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          comments: true,
+          colHeaders: true,
+          contextMenu: true,
+        });
+
+        selectCell(1, 1);
+        selectAll();
+        contextMenu(getCell(1, 1));
+
+        const menuItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Delete comment';
+        });
+
+        expect(menuItem.hasClass('htDisabled')).toBe(true);
+      });
+
       it('should disable the item when all rows are hidden', () => {
         handsontable({
           data: createSpreadsheetData(5, 5),
@@ -27,11 +65,11 @@ describe('ContextMenu', () => {
 
         contextMenu(getCell(-1, 1)); // Column header "B"
 
-        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+        const menuItem = $('.htContextMenu tbody tr td').filter(function() {
           return this.textContent === 'Delete comment';
         });
 
-        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+        expect(menuItem.hasClass('htDisabled')).toBe(true);
       });
 
       it('should disable the item when all columns are hidden', () => {
@@ -47,11 +85,11 @@ describe('ContextMenu', () => {
 
         contextMenu(getCell(1, -1)); // Row header "2"
 
-        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+        const menuItem = $('.htContextMenu tbody tr td').filter(function() {
           return this.textContent === 'Delete comment';
         });
 
-        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+        expect(menuItem.hasClass('htDisabled')).toBe(true);
       });
 
       it('should disable the item when all rows are trimmed', () => {
@@ -65,11 +103,11 @@ describe('ContextMenu', () => {
 
         contextMenu(getCell(-1, 1)); // Column header "B"
 
-        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+        const menuItem = $('.htContextMenu tbody tr td').filter(function() {
           return this.textContent === 'Delete comment';
         });
 
-        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+        expect(menuItem.hasClass('htDisabled')).toBe(true);
       });
 
       it('should disable the item when all columns are trimmed', () => {
@@ -83,11 +121,11 @@ describe('ContextMenu', () => {
 
         contextMenu(getCell(1, -1)); // Row header "2"
 
-        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+        const menuItem = $('.htContextMenu tbody tr td').filter(function() {
           return this.textContent === 'Delete comment';
         });
 
-        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+        expect(menuItem.hasClass('htDisabled')).toBe(true);
       });
 
       it('should be disabled when the single row header is selected', () => {
@@ -103,11 +141,11 @@ describe('ContextMenu', () => {
         selectCell(1, -1);
         getPlugin('contextMenu').open($(getCell(1, -1)).offset());
 
-        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+        const menuItem = $('.htContextMenu tbody tr td').filter(function() {
           return this.textContent === 'Delete comment';
         });
 
-        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+        expect(menuItem.hasClass('htDisabled')).toBe(true);
       });
 
       it('should be disabled when the single column header is selected', () => {
@@ -123,11 +161,11 @@ describe('ContextMenu', () => {
         selectCell(-1, 1);
         getPlugin('contextMenu').open($(getCell(-1, 1)).offset());
 
-        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+        const menuItem = $('.htContextMenu tbody tr td').filter(function() {
           return this.textContent === 'Delete comment';
         });
 
-        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+        expect(menuItem.hasClass('htDisabled')).toBe(true);
       });
 
       it('should be disabled when the single corner is selected', () => {
@@ -143,11 +181,11 @@ describe('ContextMenu', () => {
         selectCell(-1, -1);
         getPlugin('contextMenu').open($(getCell(-1, -1)).offset());
 
-        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+        const menuItem = $('.htContextMenu tbody tr td').filter(function() {
           return this.textContent === 'Delete comment';
         });
 
-        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+        expect(menuItem.hasClass('htDisabled')).toBe(true);
       });
     });
   });

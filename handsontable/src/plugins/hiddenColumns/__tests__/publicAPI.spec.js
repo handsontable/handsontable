@@ -164,13 +164,13 @@ describe('HiddenColumns', () => {
 
         expect(plugin.isValidConfig()).toBe(false);
         expect(plugin.isValidConfig(null)).toBe(false);
-        expect(plugin.isValidConfig(void 0)).toBe(false);
+        expect(plugin.isValidConfig(undefined)).toBe(false);
         expect(plugin.isValidConfig(1)).toBe(false);
         expect(plugin.isValidConfig({ index: 1 })).toBe(false);
         expect(plugin.isValidConfig([])).toBe(false);
         expect(plugin.isValidConfig([[]])).toBe(false);
         expect(plugin.isValidConfig([null])).toBe(false);
-        expect(plugin.isValidConfig([void 0])).toBe(false);
+        expect(plugin.isValidConfig([undefined])).toBe(false);
         expect(plugin.isValidConfig(['1'])).toBe(false);
         expect(plugin.isValidConfig([{ index: 1 }])).toBe(false);
       });

@@ -20,21 +20,27 @@ const {
   getThisDocsVersion,
   MULTI_FRAMEWORKED_CONTENT_DIR,
 } = require('./helpers');
-const { getPermalinkHrefMethod } = require('./plugins/markdown-it-conditional-container/onlyForContainerHelpers');
+const {
+  getPermalinkHrefMethod,
+} = require('./plugins/markdown-it-conditional-container/onlyForContainerHelpers');
 
 const uniqueSlugs = new Set();
 const buildMode = process.env.BUILD_MODE;
 const isProduction = buildMode === 'production';
-const environmentHead = isProduction ?
-  [
+const environmentHead = isProduction
+  ? [
     // Google Tag Manager, an extra element within the `ssr.html` file.
-    ['script', {}, `
+    [
+      'script',
+      {},
+      `
       (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
         new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
         j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
       })(window,document,'script','dataLayer','GTM-55L5D3');
-    `],
+    `,
+    ],
   ]
   : [];
 
@@ -53,25 +59,40 @@ module.exports = {
   description: 'Handsontable',
   base: `${getDocsBase()}/`,
   head: [
-    ['link', {
-      rel: 'icon',
-      href: 'https://handsontable.com/static/images/template/ModCommon/favicon-32x32.png'
-    }],
-    ['link', {
-      rel: 'preload',
-      href: `${getDocsBaseFullUrl()}/data/common.json`,
-      as: 'fetch',
-      crossorigin: ''
-    }],
-    ['meta', { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
+    [
+      'link',
+      {
+        rel: 'icon',
+        href: 'https://handsontable.com/static/images/template/ModCommon/favicon-32x32.png',
+      },
+    ],
+    [
+      'link',
+      {
+        rel: 'preload',
+        href: `${getDocsBaseFullUrl()}/data/common.json`,
+        as: 'fetch',
+        crossorigin: '',
+      },
+    ],
+    [
+      'meta',
+      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+    ],
     // Cookiebot - cookie consent popup
-    ['script', {
-      id: 'Cookiebot',
-      src: 'https://consent.cookiebot.com/uc.js',
-      'data-cbid': 'ef171f1d-a288-433f-b680-3cdbdebd5646'
-    }],
+    [
+      'script',
+      {
+        id: 'Cookiebot',
+        src: 'https://consent.cookiebot.com/uc.js',
+        'data-cbid': 'ef171f1d-a288-433f-b680-3cdbdebd5646',
+      },
+    ],
     ['script', {}, `const DOCS_VERSION = '${getThisDocsVersion()}';`],
-    ['script', {}, `
+    [
+      'script',
+      {},
+      `
       (function(w, d) {
         const osColorScheme = () => w.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
@@ -83,17 +104,23 @@ module.exports = {
 
         w.SELECTED_COLOR_SCHEME = preferredScheme;
       }(window, document));
-    `],
-    ...environmentHead
+    `,
+    ],
+    ...environmentHead,
   ],
   markdown: {
     toc: {
       includeLevel: [2, 3],
-      containerHeaderHtml: '<div class="toc-container-header">In this article</div>'
+      containerHeaderHtml:
+        '<div class="toc-container-header">In this article</div>',
     },
     anchor: {
       permalinkSymbol: '',
       permalinkHref: getPermalinkHrefMethod(uniqueSlugs),
+      permalinkAttrs: () => ({
+        tabindex: '-1',
+        'aria-hidden': 'true',
+      }),
       callback(token, slugInfo) {
         // The map is filled in before by a legacy `permalinkHref` method.
         if (['h1', 'h2', 'h3'].includes(token.tag)) {
@@ -105,39 +132,49 @@ module.exports = {
             slugInfo.slug = slugWithoutNumber;
           }
         }
-      }
+      },
     },
     externalLinks: {
       target: '_blank',
-      rel: 'nofollow noopener noreferrer'
+      rel: 'nofollow noopener noreferrer',
     },
     extendMarkdown(md) {
       md.use(conditionalContainer).use(firstHeaderInjection);
-    }
+    },
   },
   configureWebpack: {
     resolve: {
       symlinks: false,
-    }
+    },
   },
   stylus: {
     preferPathResolver: 'webpack',
     define: {
       url: (expression) => {
-        return new stylusNodes
-          .Literal(`url("${expression.string.replace('{{$basePath}}', getDocsBaseFullUrl())}")`);
+        return new stylusNodes.Literal(
+          `url("${expression.string.replace(
+            '{{$basePath}}',
+            getDocsBaseFullUrl()
+          )}")`
+        );
       },
-    }
+    },
   },
   plugins: [
     extendPageDataPlugin,
     'tabs',
-    ['sitemap', {
-      hostname: getDocsHostname(),
-      exclude: ['/404.html']
-    }],
+    [
+      'sitemap',
+      {
+        hostname: getDocsHostname(),
+        exclude: ['/404.html'],
+      },
+    ],
     ['container', examples(getThisDocsVersion(), getDocsBaseFullUrl())],
-    ['container', exampleWithoutTabs(getThisDocsVersion(), getDocsBaseFullUrl())],
+    [
+      'container',
+      exampleWithoutTabs(getThisDocsVersion(), getDocsBaseFullUrl()),
+    ],
     ['container', sourceCodeLink],
     {
       extendMarkdown(md) {
@@ -149,8 +186,9 @@ module.exports = {
           tokens.forEach((token) => {
             token.attrs.forEach(([name, value], index) => {
               if (name === 'src') {
-                token.attrs[index][1] = (
-                  decodeURIComponent(value).replace('{{$basePath}}', getDocsBaseFullUrl())
+                token.attrs[index][1] = decodeURIComponent(value).replace(
+                  '{{$basePath}}',
+                  getDocsBaseFullUrl()
                 );
               }
             });
@@ -169,8 +207,9 @@ module.exports = {
 
             token.attrs.forEach(([name, value], index) => {
               if (name === 'href') {
-                token.attrs[index][1] = (
-                  decodeURIComponent(value).replace('{{$basePath}}', getDocsBaseFullUrl())
+                token.attrs[index][1] = decodeURIComponent(value).replace(
+                  '{{$basePath}}',
+                  getDocsBaseFullUrl()
                 );
               }
             });
@@ -180,17 +219,26 @@ module.exports = {
         };
 
         const render = function(tokens, options, env) {
-          let i; let type;
+          let i;
+          let type;
           let result = '';
           const rules = this.rules;
 
-          for (i = 0; i < tokens.length; i++) { // overwritten here
+          for (i = 0; i < tokens.length; i++) {
+            // overwritten here
             type = tokens[i].type;
 
             if (type === 'inline') {
               result += this.renderInline(tokens[i].children, options, env);
             } else if (typeof rules[type] !== 'undefined') {
-              result += rules[tokens[i].type](tokens, i, options, env, this, getThisDocsVersion());
+              result += rules[tokens[i].type](
+                tokens,
+                i,
+                options,
+                env,
+                this,
+                getThisDocsVersion()
+              );
             } else {
               result += this.renderToken(tokens, i, options, env);
             }
@@ -200,14 +248,12 @@ module.exports = {
         };
 
         // overwrite markdown `render` function to allow extending tokens array (remove caching before loop).
-        md.renderer.render = (tokens, options, env) => render.call(md.renderer, tokens, options, env);
+        md.renderer.render = (tokens, options, env) =>
+          render.call(md.renderer, tokens, options, env);
       },
       chainMarkdown(config) {
         // inject custom markdown highlight with our snippet runner
-        config
-          .options
-          .highlight(highlight)
-          .end();
+        config.options.highlight(highlight).end();
       },
       chainWebpack: (config) => {
         config.module
@@ -218,18 +264,33 @@ module.exports = {
           .end();
       },
     },
-    [dumpDocsDataPlugin, {
-      outputDir: path.resolve(__dirname, './public/data/')
-    }],
-    [dumpRedirectPageIdsPlugin, {
-      outputFile: path.resolve(__dirname, '../docker/redirect-page-ids.json')
-    }],
-    [nginxRedirectsPlugin, {
-      outputFile: path.resolve(__dirname, '../docker/redirects-autogenerated.conf')
-    }],
-    [nginxVariablesPlugin, {
-      outputFile: path.resolve(__dirname, '../docker/variables.conf')
-    }]
+    [
+      dumpDocsDataPlugin,
+      {
+        outputDir: path.resolve(__dirname, './public/data/'),
+      },
+    ],
+    [
+      dumpRedirectPageIdsPlugin,
+      {
+        outputFile: path.resolve(__dirname, '../docker/redirect-page-ids.json'),
+      },
+    ],
+    [
+      nginxRedirectsPlugin,
+      {
+        outputFile: path.resolve(
+          __dirname,
+          '../docker/redirects-autogenerated.conf'
+        ),
+      },
+    ],
+    [
+      nginxVariablesPlugin,
+      {
+        outputFile: path.resolve(__dirname, '../docker/variables.conf'),
+      },
+    ],
   ],
   themeConfig: {
     nextLinks: true,
@@ -245,14 +306,27 @@ module.exports = {
     nav: [
       // Guide & API Reference has been defined in theme/components/NavLinks.vue
       { text: 'GitHub', link: 'https://github.com/handsontable/handsontable' },
-      { text: 'Support',
+      {
+        text: 'Support',
         items: [
-          { text: 'Contact support', link: 'https://handsontable.com/contact?category=technical_support' },
-          { text: 'Report an issue', link: 'https://github.com/handsontable/handsontable/issues/new/choose' },
-          { text: 'Handsontable forum', link: 'https://forum.handsontable.com' },
-          { text: 'Ask on Stack Overflow', link: 'https://stackoverflow.com/questions/tagged/handsontable' },
-          { text: 'Blog', link: 'https://handsontable.com/blog' }
-        ]
+          {
+            text: 'Contact support',
+            link: 'https://handsontable.com/contact?category=technical_support',
+          },
+          {
+            text: 'Report an issue',
+            link: 'https://github.com/handsontable/handsontable/issues/new/choose',
+          },
+          {
+            text: 'Handsontable forum',
+            link: 'https://forum.handsontable.com',
+          },
+          {
+            text: 'Ask on Stack Overflow',
+            link: 'https://stackoverflow.com/questions/tagged/handsontable',
+          },
+          { text: 'Blog', link: 'https://handsontable.com/blog' },
+        ],
       },
     ],
     displayAllHeaders: true, // collapse other pages
@@ -277,6 +351,6 @@ module.exports = {
         },
       ],
       fuzzySearchDomains: ['Core', 'Hooks', 'Configuration options'],
-    }
-  }
+    },
+  },
 };

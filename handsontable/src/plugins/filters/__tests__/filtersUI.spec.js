@@ -1037,7 +1037,7 @@ describe('Filters UI', () => {
     it('should display `undefined` values as "(Blank cells)"', () => {
       const data = getDataForFilters();
 
-      data[3].name = void 0;
+      data[3].name = undefined;
 
       handsontable({
         data: getDataForFilters(),
@@ -1061,7 +1061,7 @@ describe('Filters UI', () => {
     it('shouldn\'t break "by value" items in the next filter stacks', (done) => {
       const data = getDataForFilters();
 
-      data[3].name = void 0;
+      data[3].name = undefined;
 
       handsontable({
         data,
@@ -1420,7 +1420,7 @@ describe('Filters UI', () => {
     });
   });
 
-  describe('"action_bar" component', () => {
+  describe('"action_bar" (buttons bar) component', () => {
     it('should appear under dropdown menu', async() => {
       handsontable({
         data: getDataForFilters(),
@@ -1619,7 +1619,7 @@ describe('Filters UI', () => {
     });
   });
 
-  it('should deselect all values in "Filter by value" after clicking "Clear" link', (done) => {
+  it('should deselect all values in "Filter by value" after clicking "Clear" link', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -1631,15 +1631,14 @@ describe('Filters UI', () => {
 
     dropdownMenu(1);
 
-    setTimeout(() => {
-      $(dropdownMenuRootElement().querySelector('.htUIClearAll a')).simulate('click');
+    await sleep(100);
 
-      expect(byValueMultipleSelect().getItems().map(o => o.checked).indexOf(true)).toBe(-1);
-      done();
-    }, 100);
+    $(dropdownMenuRootElement().querySelector('.htUIClearAll a')).simulate('click');
+
+    expect(byValueMultipleSelect().getItems().map(o => o.checked).indexOf(true)).toBe(-1);
   });
 
-  it('should select all values in "Filter by value" after clicking "Select all" link', (done) => {
+  it('should select all values in "Filter by value" after clicking "Select all" link', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -1651,16 +1650,15 @@ describe('Filters UI', () => {
 
     dropdownMenu(1);
 
-    setTimeout(() => {
-      $(dropdownMenuRootElement().querySelector('.htUIClearAll a')).simulate('click');
+    await sleep(100);
 
-      expect(byValueMultipleSelect().getItems().map(o => o.checked).indexOf(true)).toBe(-1);
+    $(dropdownMenuRootElement().querySelector('.htUIClearAll a')).simulate('click');
 
-      $(dropdownMenuRootElement().querySelector('.htUISelectAll a')).simulate('click');
+    expect(byValueMultipleSelect().getItems().map(o => o.checked).indexOf(true)).toBe(-1);
 
-      expect(byValueMultipleSelect().getItems().map(o => o.checked).indexOf(false)).toBe(-1);
-      done();
-    }, 100);
+    $(dropdownMenuRootElement().querySelector('.htUISelectAll a')).simulate('click');
+
+    expect(byValueMultipleSelect().getItems().map(o => o.checked).indexOf(false)).toBe(-1);
   });
 
   it('should not reset the selection status of the "Filter by value" section after scrolling the table outside of' +
@@ -1911,35 +1909,65 @@ describe('Filters UI', () => {
     }
   });
 
-  describe('Simple filtering (one column)', () => {
-    it('should select the first visible row after filtering', () => {
-      handsontable({
-        data: getDataForFilters(),
-        columns: getColumnsForFilters(),
-        dropdownMenu: true,
-        filters: true,
-        width: 500,
-        height: 300
-      });
-
-      dropdownMenu(2);
-      openDropdownByConditionMenu();
-      selectDropdownByConditionMenuOption('Is empty');
-
-      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'))
-        .simulate('click');
-
-      expect(getSelected()).toBeUndefined();
-
-      dropdownMenu(2);
-      openDropdownByConditionMenu();
-      selectDropdownByConditionMenuOption('None');
-      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'))
-        .simulate('click');
-
-      expect(getSelected()).toEqual([[0, 2, 0, 2]]);
+  it('should select the first visible row after filtering (navigableHeaders: false)', () => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      dropdownMenu: true,
+      filters: true,
+      navigableHeaders: false,
+      width: 500,
+      height: 300
     });
 
+    dropdownMenu(2);
+    openDropdownByConditionMenu();
+    selectDropdownByConditionMenuOption('Is empty');
+
+    $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'))
+      .simulate('click');
+
+    expect(getSelectedRange()).toBeUndefined();
+
+    dropdownMenu(2);
+    openDropdownByConditionMenu();
+    selectDropdownByConditionMenuOption('None');
+    $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'))
+      .simulate('click');
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 0,2']);
+  });
+
+  it('should select the column header after filtering (navigableHeaders: true)', () => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      dropdownMenu: true,
+      filters: true,
+      navigableHeaders: true,
+      width: 500,
+      height: 300
+    });
+
+    dropdownMenu(2);
+    openDropdownByConditionMenu();
+    selectDropdownByConditionMenuOption('Is empty');
+
+    $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'))
+      .simulate('click');
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: -1,2']);
+
+    dropdownMenu(2);
+    openDropdownByConditionMenu();
+    selectDropdownByConditionMenuOption('None');
+    $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'))
+      .simulate('click');
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: -1,2']);
+  });
+
+  describe('Simple filtering (one column)', () => {
     it('should filter empty values and revert back after removing filter', () => {
       handsontable({
         data: getDataForFilters(),

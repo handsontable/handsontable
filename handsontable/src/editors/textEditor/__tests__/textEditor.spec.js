@@ -1660,7 +1660,7 @@ describe('TextEditor', () => {
       data: [
         ['', 5, 12, 13]
       ],
-      renderer(instance, td, row, col, prop, value) {
+      renderer(hotInstance, td, row, col, prop, value) {
         if (!value || value === '') {
           td.style.background = '#EEE';
         }
@@ -1927,13 +1927,13 @@ describe('TextEditor', () => {
     keyDownUp('enter');
     keyDownUp('enter');
 
-    expect(getActiveEditor()).not.toBe(void 0);
+    expect(getActiveEditor()).not.toBe(undefined);
 
     selectCell(0, 0);
 
     keyDownUp('enter');
 
-    expect(getActiveEditor()).toBe(void 0);
+    expect(getActiveEditor()).toBe(undefined);
   });
 
   it('should not prepare editor after the close editor and selecting the hidden cell', () => {
@@ -1951,13 +1951,13 @@ describe('TextEditor', () => {
     keyDownUp('enter');
     keyDownUp('enter');
 
-    expect(getActiveEditor()).not.toBe(void 0);
+    expect(getActiveEditor()).not.toBe(undefined);
 
     selectCell(1, 0); // select hidden row
 
     keyDownUp('enter');
 
-    expect(getActiveEditor()).toBe(void 0);
+    expect(getActiveEditor()).toBe(undefined);
   });
 
   it('should clear the active editor instance after the cell is hidden', () => {
@@ -1967,7 +1967,7 @@ describe('TextEditor', () => {
 
     selectCell(1, 0);
 
-    expect(getActiveEditor()).not.toBe(void 0);
+    expect(getActiveEditor()).not.toBe(undefined);
 
     // while the editor was prepared hide the editor's cell
     const hidingMap = hot.rowIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
@@ -1977,7 +1977,7 @@ describe('TextEditor', () => {
 
     keyDownUp('enter');
 
-    expect(getActiveEditor()).toBe(void 0);
+    expect(getActiveEditor()).toBe(undefined);
   });
 
   it('should render an editable editor\'s element without messing with "dir" attribute', () => {

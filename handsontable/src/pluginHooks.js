@@ -1289,6 +1289,40 @@ const REGISTERED_HOOKS = [
   'afterRender',
 
   /**
+   * When the focus position is moved to the next or previous row caused by the {@link Options#autoWrapRow} option
+   * the hook is triggered.
+   *
+   * @since 14.0.0
+   * @event Hooks#beforeRowWrap
+   * @param {boolean} isWrapEnabled Tells whether the row wrapping is going to happen.
+   * There may be situations where the option does not work even though it is enabled.
+   * This is due to the priority of other options that may block the feature.
+   * For example, when the {@link Options#minSpareCols} is defined, the {@link Options#autoWrapRow} option is not checked.
+   * Thus, row wrapping is off.
+   * @param {CellCoords} newCoords The new focus position.
+   * @param {boolean} isFlipped `true` if the row index was flipped, `false` otherwise.
+   * Flipped index means that the user reached the last row and the focus is moved to the first row or vice versa.
+   */
+  'beforeRowWrap',
+
+  /**
+   * When the focus position is moved to the next or previous column caused by the {@link Options#autoWrapCol} option
+   * the hook is triggered.
+   *
+   * @since 14.0.0
+   * @event Hooks#beforeColumnWrap
+   * @param {boolean} isWrapEnabled Tells whether the column wrapping is going to happen.
+   * There may be situations where the option does not work even though it is enabled.
+   * This is due to the priority of other options that may block the feature.
+   * For example, when the {@link Options#minSpareRows} is defined, the {@link Options#autoWrapCol} option is not checked.
+   * Thus, column wrapping is off.
+   * @param {CellCoords} newCoords The new focus position.
+   * @param {boolean} isFlipped `true` if the column index was flipped, `false` otherwise.
+   * Flipped index means that the user reached the last column and the focus is moved to the first column or vice versa.
+   */
+  'beforeColumnWrap',
+
+  /**
    * Fired before cell meta is changed.
    *
    * @event Hooks#beforeSetCellMeta
@@ -2737,16 +2771,18 @@ const REMOVED_HOOKS = new Map([
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 const DEPRECATED_HOOKS = new Map([
-  [
-    'beforeRemoveCellClassNames',
-    'The hook "beforeRemoveCellClassNames" is deprecated and will be removed in the next major release.'
-  ]
+  []
 ]);
 
 class Hooks {
   static getSingleton() {
     return getGlobalSingleton();
   }
+
+  /**
+   * @type {object}
+   */
+  globalBucket;
 
   /**
    *
@@ -2935,7 +2971,7 @@ class Hooks {
   has(key, context = null) {
     const bucket = this.getBucket(context);
 
-    return !!(bucket[key] !== void 0 && bucket[key].length);
+    return !!(bucket[key] !== undefined && bucket[key].length);
   }
 
   /**
@@ -2975,7 +3011,7 @@ class Hooks {
 
           const res = fastCall(globalHandlers[index], context, p1, p2, p3, p4, p5, p6);
 
-          if (res !== void 0) {
+          if (res !== undefined) {
             // eslint-disable-next-line no-param-reassign
             p1 = res;
           }
@@ -3003,7 +3039,7 @@ class Hooks {
 
           const res = fastCall(localHandlers[index], context, p1, p2, p3, p4, p5, p6);
 
-          if (res !== void 0) {
+          if (res !== undefined) {
             // eslint-disable-next-line no-param-reassign
             p1 = res;
           }

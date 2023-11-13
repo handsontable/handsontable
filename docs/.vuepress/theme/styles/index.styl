@@ -232,7 +232,11 @@ h1, h2, h3, h4, h5 {
 
   a.header-anchor::before {
     content: '#';
-    visibility: 'hidden';
+    visibility: 'hidden'; 
+  }
+
+  a.header-anchor:focus {
+    opacity: 1;
   }
 
   &:hover {

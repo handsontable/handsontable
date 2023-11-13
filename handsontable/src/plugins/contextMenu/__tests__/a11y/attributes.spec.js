@@ -180,4 +180,19 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     expect($expandableItem.get(0).getAttribute('aria-expanded')).toBe('false');
   });
+
+  it('should assing `aria-hidden` to the submenu indicators', () => {
+    const hot = handsontable({
+      contextMenu: ['remove_row', 'alignment']
+    });
+
+    contextMenu();
+
+    const cMenu = hot.getPlugin('contextMenu').menu;
+    const submenuIndicators = Array.from(cMenu.hotMenu.rootElement.querySelectorAll('.submenuIndicator'));
+
+    submenuIndicators.forEach((indicator) => {
+      expect(indicator.getAttribute('aria-hidden')).toEqual('true');
+    });
+  });
 });

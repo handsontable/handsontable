@@ -30,6 +30,8 @@ class CellCoords {
    */
   col = null;
   /**
+   * A flag which determines if the coordinates run in RTL mode.
+   *
    * @type {boolean}
    */
   #isRtl = false;
@@ -89,18 +91,18 @@ class CellCoords {
   }
 
   /**
-   * Checks if another set of coordinates (`cellCoords`)
+   * Checks if another set of coordinates (`coords`)
    * is equal to the coordinates in your `CellCoords` instance.
    *
-   * @param {CellCoords} cellCoords Coordinates to check.
+   * @param {CellCoords} coords Coordinates to check.
    * @returns {boolean}
    */
-  isEqual(cellCoords) {
-    if (cellCoords === this) {
+  isEqual(coords) {
+    if (coords === this) {
       return true;
     }
 
-    return this.row === cellCoords.row && this.col === cellCoords.col;
+    return this.row === coords.row && this.col === coords.col;
   }
 
   /**
@@ -121,6 +123,15 @@ class CellCoords {
    */
   isCell() {
     return this.row >= 0 && this.col >= 0;
+  }
+
+  /**
+   * Checks if the coordinates runs in RTL mode.
+   *
+   * @returns {boolean}
+   */
+  isRtl() {
+    return this.#isRtl;
   }
 
   /**
@@ -181,6 +192,29 @@ class CellCoords {
   normalize() {
     this.row = this.row === null ? this.row : Math.max(this.row, 0);
     this.col = this.col === null ? this.col : Math.max(this.col, 0);
+
+    return this;
+  }
+
+  /**
+   * Assigns the coordinates from another `CellCoords` instance (or compatible literal object)
+   * to your `CellCoords` instance.
+   *
+   * @param {CellCoords | { row: number | undefined, col: number | undefined }} coords The CellCoords
+   * instance or compatible literal object.
+   * @returns {CellCoords}
+   */
+  assign(coords) {
+    if (Number.isInteger(coords?.row)) {
+      this.row = coords.row;
+    }
+    if (Number.isInteger(coords?.col)) {
+      this.col = coords.col;
+    }
+
+    if (coords instanceof CellCoords) {
+      this.#isRtl = coords.isRtl();
+    }
 
     return this;
   }

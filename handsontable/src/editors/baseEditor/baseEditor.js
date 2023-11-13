@@ -31,88 +31,81 @@ export class BaseEditor {
   }
 
   /**
-   * @param {Handsontable} instance A reference to the source instance of the Handsontable.
+   * A reference to the source instance of the Handsontable.
+   *
+   * @type {Handsontable}
    */
-  constructor(instance) {
-    /**
-     * A reference to the source instance of the Handsontable.
-     *
-     * @type {Handsontable}
-     */
-    this.hot = instance;
-    /**
-     * A reference to the source instance of the Handsontable.
-     *
-     * @deprecated
-     *
-     * @type {Handsontable}
-     */
-    this.instance = instance;
-    /**
-     * Editor's state.
-     *
-     * @type {string}
-     */
-    this.state = EDITOR_STATE.VIRGIN;
-    /**
-     * Flag to store information about editor's opening status.
-     *
-     * @private
-     *
-     * @type {boolean}
-     */
-    this._opened = false;
-    /**
-     * Defines the editor's editing mode. When false, then an editor works in fast editing mode.
-     *
-     * @private
-     *
-     * @type {boolean}
-     */
-    this._fullEditMode = false;
-    /**
-     * Callback to call after closing editor.
-     *
-     * @type {Function}
-     */
-    this._closeCallback = null;
-    /**
-     * Currently rendered cell's TD element.
-     *
-     * @type {HTMLTableCellElement}
-     */
-    this.TD = null;
-    /**
-     * Visual row index.
-     *
-     * @type {number}
-     */
-    this.row = null;
-    /**
-     * Visual column index.
-     *
-     * @type {number}
-     */
-    this.col = null;
-    /**
-     * Column property name or a column index, if datasource is an array of arrays.
-     *
-     * @type {number|string}
-     */
-    this.prop = null;
-    /**
-     * Original cell's value.
-     *
-     * @type {*}
-     */
-    this.originalValue = null;
-    /**
-     * Object containing the cell's properties.
-     *
-     * @type {object}
-     */
-    this.cellProperties = null;
+  hot;
+  /**
+   * Editor's state.
+   *
+   * @type {string}
+   */
+  state = EDITOR_STATE.VIRGIN;
+  /**
+   * Flag to store information about editor's opening status.
+   *
+   * @private
+   *
+   * @type {boolean}
+   */
+  _opened = false;
+  /**
+   * Defines the editor's editing mode. When false, then an editor works in fast editing mode.
+   *
+   * @private
+   *
+   * @type {boolean}
+   */
+  _fullEditMode = false;
+  /**
+   * Callback to call after closing editor.
+   *
+   * @type {Function}
+   */
+  _closeCallback = null;
+  /**
+   * Currently rendered cell's TD element.
+   *
+   * @type {HTMLTableCellElement}
+   */
+  TD = null;
+  /**
+   * Visual row index.
+   *
+   * @type {number}
+   */
+  row = null;
+  /**
+   * Visual column index.
+   *
+   * @type {number}
+   */
+  col = null;
+  /**
+   * Column property name or a column index, if datasource is an array of arrays.
+   *
+   * @type {number|string}
+   */
+  prop = null;
+  /**
+   * Original cell's value.
+   *
+   * @type {*}
+   */
+  originalValue = null;
+  /**
+   * Object containing the cell's properties.
+   *
+   * @type {object}
+   */
+  cellProperties = null;
 
+  /**
+   * @param {Handsontable} hotInstance A reference to the source instance of the Handsontable.
+   */
+  constructor(hotInstance) {
+    this.hot = hotInstance;
     this.init();
   }
 

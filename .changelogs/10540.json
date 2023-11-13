@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added a11y attributes to all images and icons.",
+  "type": "added",
+  "issueOrPR": 10540,
+  "breaking": true,
+  "framework": "none"
+}

@@ -134,7 +134,7 @@ export class Filters extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     // One listener for the enable/disable functionality
-    this.hot.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
+    this.hot.addHook('afterGetColHeader', (col, TH) => this.#onAfterGetColHeader(col, TH));
   }
 
   /**
@@ -162,9 +162,9 @@ export class Filters extends BasePlugin {
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
     const menuContainer = (dropdownSettings && dropdownSettings.uiContainer) || this.hot.rootDocument.body;
     const addConfirmationHooks = (component) => {
-      component.addLocalHook('accept', () => this.onActionBarSubmit('accept'));
-      component.addLocalHook('cancel', () => this.onActionBarSubmit('cancel'));
-      component.addLocalHook('change', command => this.onComponentChange(component, command));
+      component.addLocalHook('accept', () => this.#onActionBarSubmit('accept'));
+      component.addLocalHook('cancel', () => this.#onActionBarSubmit('cancel'));
+      component.addLocalHook('change', command => this.#onComponentChange(component, command));
 
       return component;
     };
@@ -180,7 +180,7 @@ export class Filters extends BasePlugin {
         menuContainer
       });
 
-      conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
+      conditionComponent.addLocalHook('afterClose', () => this.#onSelectUIClosed());
 
       this.components.set('filter_by_condition', addConfirmationHooks(conditionComponent));
     }
@@ -200,7 +200,7 @@ export class Filters extends BasePlugin {
         menuContainer
       });
 
-      conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
+      conditionComponent.addLocalHook('afterClose', () => this.#onSelectUIClosed());
 
       this.components.set('filter_by_condition2', addConfirmationHooks(conditionComponent));
     }
@@ -229,16 +229,16 @@ export class Filters extends BasePlugin {
         this.conditionCollection,
         physicalColumn => this.getDataMapAtColumn(physicalColumn),
       );
-      this.conditionUpdateObserver.addLocalHook('update', conditionState => this.updateComponents(conditionState));
+      this.conditionUpdateObserver.addLocalHook('update', conditionState => this.#updateComponents(conditionState));
     }
 
     this.components.forEach(component => component.show());
 
     this.addHook('afterDropdownMenuDefaultOptions',
-      defaultOptions => this.onAfterDropdownMenuDefaultOptions(defaultOptions));
-    this.addHook('afterDropdownMenuShow', () => this.onAfterDropdownMenuShow());
-    this.addHook('afterDropdownMenuHide', () => this.onAfterDropdownMenuHide());
-    this.addHook('afterChange', changes => this.onAfterChange(changes));
+      defaultOptions => this.#onAfterDropdownMenuDefaultOptions(defaultOptions));
+    this.addHook('afterDropdownMenuShow', () => this.#onAfterDropdownMenuShow());
+    this.addHook('afterDropdownMenuHide', () => this.#onAfterDropdownMenuHide());
+    this.addHook('afterChange', changes => this.#onAfterChange(changes));
 
     // Temp. solution (extending menu items bug in contextMenu/dropdownMenu)
     if (this.hot.getSettings().dropdownMenu && this.dropdownMenuPlugin) {
@@ -318,8 +318,14 @@ export class Filters extends BasePlugin {
         keys: [['Alt', 'A']],
         stopPropagation: true,
         callback: () => {
+          const selection = this.hot.getSelected();
+
           this.clearConditions();
           this.filter();
+
+          if (selection) {
+            this.hot.selectCells(selection);
+          }
         },
         group: SHORTCUTS_GROUP,
       });
@@ -475,7 +481,7 @@ export class Filters extends BasePlugin {
    * @param {number} [column] Visual column index.
    */
   clearConditions(column) {
-    if (column === void 0) {
+    if (column === undefined) {
       this.conditionCollection.clean();
 
     } else {
@@ -492,6 +498,7 @@ export class Filters extends BasePlugin {
    * @fires Hooks#afterFilter
    */
   filter() {
+    const { navigableHeaders } = this.hot.getSettings();
     const dataFilter = this._createDataFilter();
     const needToFilter = !this.conditionCollection.isEmpty();
     let visibleVisualRows = [];
@@ -521,7 +528,7 @@ export class Filters extends BasePlugin {
           });
         }, true);
 
-        if (!visibleVisualRows.length) {
+        if (!navigableHeaders && !visibleVisualRows.length) {
           this.hot.deselectCell();
         }
       } else {
@@ -533,6 +540,13 @@ export class Filters extends BasePlugin {
 
     this.hot.view.adjustElementsSize(true);
     this.hot.render();
+
+    if (this.hot.selection.isSelected()) {
+      this.hot.selectCell(
+        navigableHeaders ? -1 : 0,
+        this.hot.getSelectedRangeLast().highlight.col,
+      );
+    }
   }
 
   /**
@@ -582,10 +596,9 @@ export class Filters extends BasePlugin {
   /**
    * `afterChange` listener.
    *
-   * @private
    * @param {Array} changes Array of changes.
    */
-  onAfterChange(changes) {
+  #onAfterChange(changes) {
     if (changes) {
       arrayEach(changes, (change) => {
         const [, prop] = change;
@@ -633,19 +646,15 @@ export class Filters extends BasePlugin {
 
   /**
    * After dropdown menu show listener.
-   *
-   * @private
    */
-  onAfterDropdownMenuShow() {
+  #onAfterDropdownMenuShow() {
     this.restoreComponents(Array.from(this.components.values()));
   }
 
   /**
    * After dropdown menu hide listener.
-   *
-   * @private
    */
-  onAfterDropdownMenuHide() {
+  #onAfterDropdownMenuHide() {
     this.components.get('filter_by_condition').getSelectElement().closeOptions();
     this.components.get('filter_by_condition2').getSelectElement().closeOptions();
   }
@@ -653,10 +662,9 @@ export class Filters extends BasePlugin {
   /**
    * After dropdown menu default options listener.
    *
-   * @private
    * @param {object} defaultOptions ContextMenu default item options.
    */
-  onAfterDropdownMenuDefaultOptions(defaultOptions) {
+  #onAfterDropdownMenuDefaultOptions(defaultOptions) {
     defaultOptions.items.push({ name: SEPARATOR });
 
     this.components.forEach((component) => {
@@ -696,7 +704,7 @@ export class Filters extends BasePlugin {
    * @private
    * @param {string} submitType The submit type.
    */
-  onActionBarSubmit(submitType) {
+  #onActionBarSubmit(submitType) {
     if (submitType === 'accept') {
       const selectedColumn = this.getSelectedColumn();
 
@@ -723,7 +731,7 @@ export class Filters extends BasePlugin {
       let columnStackPosition = this.conditionCollection.getColumnStackPosition(physicalIndex);
 
       if (columnStackPosition === -1) {
-        columnStackPosition = void 0;
+        columnStackPosition = undefined;
       }
 
       this.conditionCollection.removeConditions(physicalIndex);
@@ -744,7 +752,6 @@ export class Filters extends BasePlugin {
       this.components.forEach(component => component.saveState(physicalIndex));
       this.filtersRowsMap.clear();
       this.filter();
-      this.hot.selectCell(0, selectedColumn.visualIndex);
     }
 
     this.dropdownMenuPlugin?.close();
@@ -753,11 +760,10 @@ export class Filters extends BasePlugin {
   /**
    * On component change listener.
    *
-   * @private
    * @param {BaseComponent} component Component inheriting BaseComponent.
    * @param {object} command Menu item object (command).
    */
-  onComponentChange(component, command) {
+  #onComponentChange(component, command) {
     this.updateDependentComponentsVisibility();
 
     if (component.constructor === ConditionComponent && !command.inputsCount) {
@@ -767,10 +773,8 @@ export class Filters extends BasePlugin {
 
   /**
    * On component SelectUI closed listener.
-   *
-   * @private
    */
-  onSelectUIClosed() {
+  #onSelectUIClosed() {
     this.setListeningDropdownMenu();
   }
 
@@ -809,11 +813,10 @@ export class Filters extends BasePlugin {
   /**
    * On after get column header listener.
    *
-   * @private
    * @param {number} col Visual column index.
    * @param {HTMLTableCellElement} TH Header's TH element.
    */
-  onAfterGetColHeader(col, TH) {
+  #onAfterGetColHeader(col, TH) {
     const physicalColumn = this.hot.toPhysicalColumn(col);
 
     if (this.enabled && this.conditionCollection.hasConditions(physicalColumn)) {
@@ -839,10 +842,9 @@ export class Filters extends BasePlugin {
    * reacts to any condition added to the condition collection. It may be added through the UI
    * components or by API call.
    *
-   * @private
    * @param {object} conditionsState An object with the state generated by UI components.
    */
-  updateComponents(conditionsState) {
+  #updateComponents(conditionsState) {
     if (!this.dropdownMenuPlugin?.enabled) {
       return;
     }

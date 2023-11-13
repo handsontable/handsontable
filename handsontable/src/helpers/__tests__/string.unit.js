@@ -29,7 +29,7 @@ describe('String helper', () => {
       const vars = {
         zero: 0,
         empty: '',
-        undef: void 0,
+        undef: undefined,
         string1: 'foo;',
         string2: 'foo\nbar',
       };

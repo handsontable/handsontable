@@ -188,4 +188,39 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     expect($expandableItem.get(0).getAttribute('aria-expanded')).toBe('false');
   });
+
+  it('should add `aria-label` attribute to the menu-opening button in the column headers', () => {
+    const hot = handsontable({
+      colHeaders: true,
+      dropdownMenu: ['remove_col', 'alignment']
+    });
+    const dictionaryKeys = Handsontable.languages.dictionaryKeys;
+
+    expect(getCell(-1, 0).querySelector('button').getAttribute('aria-label')).toEqual(
+      hot.getTranslatedPhrase(dictionaryKeys.COLUMN_HEADER_LABEL_OPEN_MENU)
+    );
+    expect(getCell(-1, 1).querySelector('button').getAttribute('aria-label')).toEqual(
+      hot.getTranslatedPhrase(dictionaryKeys.COLUMN_HEADER_LABEL_OPEN_MENU)
+    );
+    expect(getCell(-1, 2).querySelector('button').getAttribute('aria-label')).toEqual(
+      hot.getTranslatedPhrase(dictionaryKeys.COLUMN_HEADER_LABEL_OPEN_MENU)
+    );
+  });
+
+  it('should add the `aria-haspopup` attribute to the column headers when the plugin is enabled', () => {
+    handsontable({
+      colHeaders: true,
+      dropdownMenu: ['remove_col', 'alignment']
+    });
+
+    expect(getCell(-1, 0).getAttribute('aria-haspopup')).toEqual('menu');
+    expect(getCell(-1, 1).getAttribute('aria-haspopup')).toEqual('menu');
+
+    updateSettings({
+      dropdownMenu: false
+    });
+
+    expect(getCell(-1, 0).getAttribute('aria-haspopup')).toEqual(null);
+    expect(getCell(-1, 1).getAttribute('aria-haspopup')).toEqual(null);
+  });
 });

@@ -98,7 +98,7 @@ const hasColHeaders: boolean = hot.hasColHeaders();
 const hasHook: boolean = hot.hasHook('afterChange');
 const hasRowHeaders: boolean = hot.hasRowHeaders();
 
-hot.init() === void 0;
+hot.init() === undefined;
 
 const isColumnModificationAllowed: boolean = hot.isColumnModificationAllowed();
 const isEmptyCol: boolean = hot.isEmptyCol(123);
@@ -134,6 +134,8 @@ hot.scrollViewportTo({ row: 0, col: 0, verticalSnap: 'bottom' });
 hot.scrollViewportTo({ row: 0, col: 0, horizontalSnap: 'start' });
 hot.scrollViewportTo({ row: 0, col: 0, horizontalSnap: 'end' });
 hot.scrollViewportTo({ row: 0, col: 0, considerHiddenIndexes: false });
+hot.scrollViewportTo(0, 10);
+hot.scrollViewportTo(0, 10, true, true, true);
 hot.scrollToFocusedCell();
 hot.scrollToFocusedCell(() => {});
 hot.selectAll();

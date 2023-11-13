@@ -308,8 +308,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     createCellRange: (highlight, from, to) => instance._createCellRange(highlight, from, to),
     visualToRenderableCoords,
     renderableToVisualCoords,
-    isDisabledCellSelection: (visualRow, visualColumn) =>
-      instance.getCellMeta(visualRow, visualColumn).disableVisualSelection
+    isDisabledCellSelection: (visualRow, visualColumn) => {
+      if (visualRow < 0 || visualColumn < 0) {
+        return instance.getSettings().disableVisualSelection;
+      }
+
+      return instance.getCellMeta(visualRow, visualColumn).disableVisualSelection;
+    }
   });
 
   this.selection = selection;
@@ -322,22 +327,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.columnIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
   this.rowIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
-
-  this.selection.addLocalHook('beforeHighlightSet', () => {
-    this.runHooks('beforeSelectionHighlightSet');
-  });
-
-  this.selection.addLocalHook('beforeSetRangeStart', (cellCoords) => {
-    this.runHooks('beforeSetRangeStart', cellCoords);
-  });
-
-  this.selection.addLocalHook('beforeSetRangeStartOnly', (cellCoords) => {
-    this.runHooks('beforeSetRangeStartOnly', cellCoords);
-  });
-
-  this.selection.addLocalHook('beforeSetRangeEnd', (cellCoords) => {
-    this.runHooks('beforeSetRangeEnd', cellCoords);
-  });
 
   this.selection.addLocalHook('afterSetRangeEnd', (cellCoords) => {
     const preventScrolling = createObjectPropListener(false);
@@ -431,23 +420,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
   });
 
-  this.selection.addLocalHook('beforeSelectColumns', (...args) => this.runHooks('beforeSelectColumns', ...args));
-  this.selection.addLocalHook('afterSelectColumns', (...args) => this.runHooks('afterSelectColumns', ...args));
-  this.selection.addLocalHook('beforeSelectRows', (...args) => this.runHooks('beforeSelectRows', ...args));
-  this.selection.addLocalHook('afterSelectRows', (...args) => this.runHooks('afterSelectRows', ...args));
-
-  this.selection.addLocalHook('beforeModifyTransformStart', (cellCoordsDelta) => {
-    this.runHooks('modifyTransformStart', cellCoordsDelta);
-  });
-  this.selection.addLocalHook('afterModifyTransformStart', (coords, rowTransformDir, colTransformDir) => {
-    this.runHooks('afterModifyTransformStart', coords, rowTransformDir, colTransformDir);
-  });
-  this.selection.addLocalHook('beforeModifyTransformEnd', (cellCoordsDelta) => {
-    this.runHooks('modifyTransformEnd', cellCoordsDelta);
-  });
-  this.selection.addLocalHook('afterModifyTransformEnd', (coords, rowTransformDir, colTransformDir) => {
-    this.runHooks('afterModifyTransformEnd', coords, rowTransformDir, colTransformDir);
-  });
   this.selection.addLocalHook('afterDeselect', () => {
     editorManager.destroyEditor();
 
@@ -456,12 +428,24 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     this.runHooks('afterDeselect');
   });
-  this.selection.addLocalHook('insertRowRequire', (totalRows) => {
-    this.alter('insert_row_above', totalRows, 1, 'auto');
-  });
-  this.selection.addLocalHook('insertColRequire', (totalCols) => {
-    this.alter('insert_col_start', totalCols, 1, 'auto');
-  });
+
+  this.selection
+    .addLocalHook('beforeHighlightSet', () => this.runHooks('beforeSelectionHighlightSet'))
+    .addLocalHook('beforeSetRangeStart', (...args) => this.runHooks('beforeSetRangeStart', ...args))
+    .addLocalHook('beforeSetRangeStartOnly', (...args) => this.runHooks('beforeSetRangeStartOnly', ...args))
+    .addLocalHook('beforeSetRangeEnd', (...args) => this.runHooks('beforeSetRangeEnd', ...args))
+    .addLocalHook('beforeSelectColumns', (...args) => this.runHooks('beforeSelectColumns', ...args))
+    .addLocalHook('afterSelectColumns', (...args) => this.runHooks('afterSelectColumns', ...args))
+    .addLocalHook('beforeSelectRows', (...args) => this.runHooks('beforeSelectRows', ...args))
+    .addLocalHook('afterSelectRows', (...args) => this.runHooks('afterSelectRows', ...args))
+    .addLocalHook('beforeModifyTransformStart', (...args) => this.runHooks('modifyTransformStart', ...args))
+    .addLocalHook('afterModifyTransformStart', (...args) => this.runHooks('afterModifyTransformStart', ...args))
+    .addLocalHook('beforeModifyTransformEnd', (...args) => this.runHooks('modifyTransformEnd', ...args))
+    .addLocalHook('afterModifyTransformEnd', (...args) => this.runHooks('afterModifyTransformEnd', ...args))
+    .addLocalHook('beforeRowWrap', (...args) => this.runHooks('beforeRowWrap', ...args))
+    .addLocalHook('beforeColumnWrap', (...args) => this.runHooks('beforeColumnWrap', ...args))
+    .addLocalHook('insertRowRequire', totalRows => this.alter('insert_row_above', totalRows, 1, 'auto'))
+    .addLocalHook('insertColRequire', totalCols => this.alter('insert_col_start', totalCols, 1, 'auto'));
 
   grid = {
     /**
@@ -1340,8 +1324,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         continue;
       }
 
-      if ((changes[i][2] === null || changes[i][2] === void 0)
-        && (changes[i][3] === null || changes[i][3] === void 0)) {
+      if ((changes[i][2] === null || changes[i][2] === undefined)
+        && (changes[i][3] === null || changes[i][3] === undefined)) {
         /* eslint-disable no-continue */
         continue;
       }
@@ -1350,7 +1334,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         while (changes[i][0] > instance.countRows() - 1) {
           const {
             delta: numberOfCreatedRows
-          } = datamap.createRow(void 0, void 0, { source });
+          } = datamap.createRow(undefined, undefined, { source });
 
           if (numberOfCreatedRows === 0) {
             skipThisChange = true;
@@ -1364,7 +1348,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
           const {
             delta: numberOfCreatedColumns
-          } = datamap.createCol(void 0, void 0, { source });
+          } = datamap.createCol(undefined, undefined, { source });
 
           if (numberOfCreatedColumns === 0) {
             skipThisChange = true;
@@ -2521,13 +2505,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     // Load data or create data map
-    if (settings.data === void 0 && tableMeta.data === void 0) {
+    if (settings.data === undefined && tableMeta.data === undefined) {
       dataUpdateFunction(null, 'updateSettings'); // data source created just now
 
-    } else if (settings.data !== void 0) {
+    } else if (settings.data !== undefined) {
       dataUpdateFunction(settings.data, 'updateSettings'); // data source given as option
 
-    } else if (settings.columns !== void 0) {
+    } else if (settings.columns !== undefined) {
       datamap.createMap();
 
       // The `column` property has changed - dataset may be expanded or narrowed down. The `loadData` do the same.
@@ -2543,7 +2527,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     // Clear cell meta cache
-    if (settings.cell !== void 0 || settings.cells !== void 0 || settings.columns !== void 0) {
+    if (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined) {
       metaManager.clearCache();
     }
 
@@ -2601,7 +2585,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         instance.rootElement.style.overflow = '';
       }
 
-    } else if (height !== void 0) {
+    } else if (height !== undefined) {
       instance.rootElement.style.height = isNaN(height) ? `${height}` : `${height}px`;
       instance.rootElement.style.overflow = 'hidden';
     }
@@ -2635,7 +2619,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       editorManager.unlockEditor();
     }
 
-    if (!init && instance.view && (currentHeight === '' || height === '' || height === void 0) &&
+    if (!init && instance.view && (currentHeight === '' || height === '' || height === undefined) &&
         currentHeight !== height) {
       instance.view._wt.wtOverlays.updateMainScrollableElements();
     }
@@ -3020,7 +3004,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.getSourceData = function(row, column, row2, column2) {
     let data;
 
-    if (row === void 0) {
+    if (row === undefined) {
       data = dataSource.getData();
     } else {
       data = dataSource
@@ -3049,7 +3033,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.getSourceDataArray = function(row, column, row2, column2) {
     let data;
 
-    if (row === void 0) {
+    if (row === undefined) {
       data = dataSource.getData(true);
     } else {
       data = dataSource
@@ -3183,17 +3167,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {string} Cell type (e.q: `'mixed'`, `'text'`, `'numeric'`, `'autocomplete'`).
    */
   this.getDataType = function(rowFrom, columnFrom, rowTo, columnTo) {
-    const coords = rowFrom === void 0 ?
+    const coords = rowFrom === undefined ?
       [0, 0, this.countRows(), this.countCols()] : [rowFrom, columnFrom, rowTo, columnTo];
     const [rowStart, columnStart] = coords;
     let [,, rowEnd, columnEnd] = coords;
     let previousType = null;
     let currentType = null;
 
-    if (rowEnd === void 0) {
+    if (rowEnd === undefined) {
       rowEnd = rowStart;
     }
-    if (columnEnd === void 0) {
+    if (columnEnd === undefined) {
       columnEnd = columnStart;
     }
     let type = 'mixed';
@@ -3627,17 +3611,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     let rowHeader = tableMeta.rowHeaders;
     let physicalRow = row;
 
-    if (physicalRow !== void 0) {
+    if (physicalRow !== undefined) {
       physicalRow = instance.runHooks('modifyRowHeader', physicalRow);
     }
 
-    if (physicalRow === void 0) {
+    if (physicalRow === undefined) {
       rowHeader = [];
       rangeEach(instance.countRows() - 1, (i) => {
         rowHeader.push(instance.getRowHeader(i));
       });
 
-    } else if (Array.isArray(rowHeader) && rowHeader[physicalRow] !== void 0) {
+    } else if (Array.isArray(rowHeader) && rowHeader[physicalRow] !== undefined) {
       rowHeader = rowHeader[physicalRow];
 
     } else if (isFunction(rowHeader)) {
@@ -3669,7 +3653,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {boolean} `true` if the instance has the column headers enabled, `false` otherwise.
    */
   this.hasColHeaders = function() {
-    if (tableMeta.colHeaders !== void 0 && tableMeta.colHeaders !== null) { // Polymer has empty value = null
+    if (tableMeta.colHeaders !== undefined && tableMeta.colHeaders !== null) { // Polymer has empty value = null
       return !!tableMeta.colHeaders;
     }
     for (let i = 0, ilen = instance.countCols(); i < ilen; i++) {
@@ -3723,7 +3707,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.getColHeader = function(column, headerLevel = -1) {
     const columnIndex = instance.runHooks('modifyColHeader', column);
 
-    if (columnIndex === void 0) {
+    if (columnIndex === undefined) {
       const out = [];
       const ilen = instance.countCols();
 
@@ -3764,7 +3748,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                tableMeta.columns[physicalColumn].title) {
       result = tableMeta.columns[physicalColumn].title;
 
-    } else if (Array.isArray(tableMeta.colHeaders) && tableMeta.colHeaders[physicalColumn] !== void 0) {
+    } else if (Array.isArray(tableMeta.colHeaders) && tableMeta.colHeaders[physicalColumn] !== undefined) {
       result = tableMeta.colHeaders[physicalColumn];
 
     } else if (isFunction(tableMeta.colHeaders)) {
@@ -3799,11 +3783,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       width = cellProperties.width;
     }
 
-    if (width === void 0 || width === tableMeta.width) {
+    if (width === undefined || width === tableMeta.width) {
       width = tableMeta.colWidths;
     }
 
-    if (width !== void 0 && width !== null) {
+    if (width !== undefined && width !== null) {
       switch (typeof width) {
         case 'object': // array
           width = width[col];
@@ -3837,7 +3821,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     width = instance.runHooks('modifyColWidth', width, column);
 
-    if (width === void 0) {
+    if (width === undefined) {
       width = ViewportColumnsCalculator.DEFAULT_WIDTH;
     }
 
@@ -3857,12 +3841,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     // let cellProperties = instance.getCellMeta(row, 0);
     // let height = cellProperties.height;
     //
-    // if (height === void 0 || height === tableMeta.height) {
+    // if (height === undefined || height === tableMeta.height) {
     //  height = cellProperties.rowHeights;
     // }
     let height = tableMeta.rowHeights;
 
-    if (height !== void 0 && height !== null) {
+    if (height !== undefined && height !== null) {
       switch (typeof height) {
         case 'object': // array
           height = height[row];
@@ -4390,7 +4374,28 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
    * @returns {boolean} `true` if viewport was scrolled, `false` otherwise.
    */
-  this.scrollViewportTo = function({ row, col, verticalSnap, horizontalSnap, considerHiddenIndexes } = {}) {
+  this.scrollViewportTo = function(options) {
+    // Support for backward compatibility arguments: (row, col, snapToBottom, snapToRight, considerHiddenIndexes)
+    if (typeof options === 'number') {
+      /* eslint-disable prefer-rest-params */
+      options = {
+        row: arguments[0],
+        col: arguments[1],
+        verticalSnap: arguments[2] ? 'bottom' : 'top',
+        horizontalSnap: arguments[3] ? 'end' : 'start',
+        considerHiddenIndexes: arguments[4] ?? true,
+      };
+      /* eslint-enable prefer-rest-params */
+    }
+
+    const {
+      row,
+      col,
+      verticalSnap,
+      horizontalSnap,
+      considerHiddenIndexes
+    } = options ?? {};
+
     let snapToTop;
     let snapToBottom;
     let snapToInlineStart;
@@ -4735,7 +4740,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function getTranslatedPhrase
    * @since 0.35.0
    * @param {string} dictionaryKey Constant which is dictionary key.
-   * @param {*} extraArguments Arguments which will be handled by formatters.
+   * @param {*} [extraArguments] Arguments which will be handled by formatters.
    * @returns {string}
    */
   this.getTranslatedPhrase = function(dictionaryKey, extraArguments) {

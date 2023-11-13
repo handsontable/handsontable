@@ -1,7 +1,13 @@
 <template>
   <label id="switch" class="switch" :class="{ ready: isReady }">
     <div class="inner" v-show="isReady">
-      <input type="checkbox" v-on:change="toggleTheme" :checked="isDarkTheme">
+      <input
+        type="checkbox"
+        v-on:change="toggleTheme"
+        @keyup.enter="toggleTheme"
+        :checked="isDarkTheme"
+        :aria-label="isDarkTheme ? 'Use light mode' : 'Use dark mode'"
+      />
       <span class="slider round"></span>
     </div>
   </label>
@@ -12,7 +18,8 @@ const CLASS_THEME_DARK = 'theme-dark';
 const STORAGE_KEY = 'handsontable/docs::color-scheme';
 // The "SELECTED_COLOR_SCHEME" const is defined in the script that is injected in the VuePress config.js file.
 // The script executes the logic before the VuePress app is initialized to prevent page flickering (#8288).
-const SELECTED_THEME = typeof window === 'undefined' ? undefined : window.SELECTED_COLOR_SCHEME;
+const SELECTED_THEME =
+  typeof window === 'undefined' ? undefined : window.SELECTED_COLOR_SCHEME;
 
 export default {
   name: 'ThemeSwitcher',
@@ -27,7 +34,7 @@ export default {
       } else {
         document.documentElement.classList.remove(CLASS_THEME_DARK);
       }
-    }
+    },
   },
   data() {
     return {
@@ -76,6 +83,11 @@ export default {
   /* Hide the theme switcher on narrow screen */
   @media (max-width: $large) {
     display none
+  }
+
+  &:focus-within {
+    outline: 5px auto Highlight;
+    outline: 5px auto -webkit-focus-ring-color;
   }
 }
 /* The switch - the box around the slider */
@@ -160,5 +172,4 @@ input:checked + .slider:before {
 .slider.round:before {
   border-radius: 50%;
 }
-
 </style>

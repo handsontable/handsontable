@@ -52,6 +52,60 @@ const MIN_WIDTH = 215;
  */
 export class Menu {
   /**
+   * The Handsontable instance.
+   *
+   * @type {Core}
+   */
+  hot;
+  /**
+   * The Menu options.
+   *
+   * @type {object}
+   */
+  options;
+  /**
+   * @type {EventManager}
+   */
+  eventManager = new EventManager(this);
+  /**
+   * The Menu container element.
+   *
+   * @type {HTMLElement}
+   */
+  container;
+  /**
+   * @type {Positioner}
+   */
+  positioner;
+  /**
+   * The instance of the Handsontable that is used as a menu.
+   *
+   * @type {Core}
+   */
+  hotMenu = null;
+  /**
+   * The collection of the Handsontable instances that are used as sub-menus.
+   *
+   * @type {object}
+   */
+  hotSubMenus = {};
+  /**
+   * If the menu acts as the sub-menu then this property contains the reference to the parent menu.
+   *
+   * @type {Menu}
+   */
+  parentMenu;
+  /**
+   * The menu items entries.
+   *
+   * @type {object[]}
+   */
+  menuItems = null;
+  /**
+   * @type {boolean}
+   */
+  origOutsideClickDeselects = null;
+  /**
    * The controller module that allows modifying the menu item selection positions.
    *
    * @type {Paginator}
@@ -79,14 +133,9 @@ export class Menu {
       minWidth: MIN_WIDTH,
       container: this.hot.rootDocument.documentElement,
     };
-    this.eventManager = new EventManager(this);
     this.container = this.createContainer(this.options.name);
     this.positioner = new Positioner(this.options.keepInViewport);
-    this.hotMenu = null;
-    this.hotSubMenus = {};
     this.parentMenu = this.options.parent || null;
-    this.menuItems = null;
-    this.origOutsideClickDeselects = null;
 
     this.registerEvents();
 

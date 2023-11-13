@@ -436,7 +436,7 @@ class Border {
         break;
       }
     }
-    if (fromRow === void 0 || fromColumn === void 0) {
+    if (fromRow === undefined || fromColumn === undefined) {
       this.disappear();
 
       return;

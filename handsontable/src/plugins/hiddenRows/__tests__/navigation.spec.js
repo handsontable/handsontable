@@ -566,7 +566,7 @@ describe('HiddenRows', () => {
        * @param {object} spyContext
        */
       function fixUndefinedArgs(spyContext) {
-        return spyContext.args.filter(arg => arg !== void 0);
+        return spyContext.args.filter(arg => arg !== undefined);
       }
 
       describe('without shift key pressed', () => {

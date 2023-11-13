@@ -108,7 +108,7 @@ describe('shortcutManager', () => {
         spy();
       },
       group: 'spy',
-      runOnlyIf: () => hot.getSelected() !== void 0,
+      runOnlyIf: () => hot.getSelected() !== undefined,
     });
 
     keyDownUp(['control', 'b']);
@@ -223,7 +223,7 @@ describe('shortcutManager', () => {
         text += '2';
       },
       group: 'spy',
-      runOnlyIf: () => hot.getSelected() !== void 0,
+      runOnlyIf: () => hot.getSelected() !== undefined,
     });
 
     selectCell(0, 0);
@@ -273,7 +273,7 @@ describe('shortcutManager', () => {
         text += '2';
       },
       group: 'spy',
-      runOnlyIf: () => hot.getSelected() !== void 0,
+      runOnlyIf: () => hot.getSelected() !== undefined,
     });
 
     selectCell(0, 0);
@@ -295,7 +295,7 @@ describe('shortcutManager', () => {
         text += '1';
       },
       group: 'spy',
-      runOnlyIf: () => hot.getSelected() !== void 0,
+      runOnlyIf: () => hot.getSelected() !== undefined,
     });
 
     gridContext.addShortcut({
@@ -306,7 +306,7 @@ describe('shortcutManager', () => {
         return false;
       },
       group: 'spy',
-      runOnlyIf: () => hot.getSelected() !== void 0,
+      runOnlyIf: () => hot.getSelected() !== undefined,
     });
 
     gridContext.addShortcut({
@@ -592,6 +592,91 @@ describe('shortcutManager', () => {
       keyDownUp('enter');
 
       expect(firstSpy).toHaveBeenCalledTimes(0);
+    });
+  });
+
+  describe('`runOnlyIf` option', () => {
+    it('should execute the shortcut action when the option is not defined', () => {
+      const callback = jasmine.createSpy('callback');
+
+      handsontable();
+
+      const shortcutManager = getShortcutManager();
+      const gridContext = shortcutManager.addContext('test');
+
+      gridContext.addShortcut({
+        keys: [['enter']],
+        group: 'spy',
+        callback,
+      });
+
+      shortcutManager.setActiveContextName('test');
+      listen();
+      keyDownUp('enter');
+
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should execute the shortcut action when the option returns `true`', () => {
+      const callback = jasmine.createSpy('callback');
+
+      handsontable();
+
+      const shortcutManager = getShortcutManager();
+      const gridContext = shortcutManager.addContext('test');
+
+      gridContext.addShortcut({
+        keys: [['enter']],
+        group: 'spy',
+        runOnlyIf: () => true,
+        callback,
+      });
+
+      shortcutManager.setActiveContextName('test');
+      listen();
+      keyDownUp('enter');
+
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not execute the shortcut action when the option returns different value than `true`', () => {
+      const callback = jasmine.createSpy('callback');
+      const runOnlyIf = jasmine.createSpy('runOnlyIf');
+
+      handsontable();
+
+      const shortcutManager = getShortcutManager();
+      const gridContext = shortcutManager.addContext('test');
+
+      gridContext.addShortcut({
+        keys: [['enter']],
+        group: 'spy',
+        runOnlyIf,
+        callback,
+      });
+
+      shortcutManager.setActiveContextName('test');
+      listen();
+
+      runOnlyIf.and.returnValue(false);
+      keyDownUp('enter');
+
+      expect(callback).toHaveBeenCalledTimes(0);
+
+      runOnlyIf.and.returnValue(null);
+      keyDownUp('enter');
+
+      expect(callback).toHaveBeenCalledTimes(0);
+
+      runOnlyIf.and.returnValue(undefined);
+      keyDownUp('enter');
+
+      expect(callback).toHaveBeenCalledTimes(0);
+
+      runOnlyIf.and.returnValue([]);
+      keyDownUp('enter');
+
+      expect(callback).toHaveBeenCalledTimes(0);
     });
   });
 });

@@ -5,6 +5,39 @@
  * @class Cursor
  */
 export class Cursor {
+  /**
+   * @type {number}
+   */
+  top;
+  /**
+   * @type {number}
+   */
+  topRelative;
+  /**
+   * @type {number}
+   */
+  left;
+  /**
+   * @type {number}
+   */
+  leftRelative;
+  /**
+   * @type {number}
+   */
+  scrollTop;
+  /**
+   * @type {number}
+   */
+  scrollLeft;
+  /**
+   * @type {number}
+   */
+  cellHeight;
+  /**
+   * @type {number}
+   */
+  cellWidth;
+
   constructor(object, rootWindow) {
     const windowScrollTop = rootWindow.scrollY;
     const windowScrollLeft = rootWindow.scrollX;

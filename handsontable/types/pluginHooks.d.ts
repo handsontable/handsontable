@@ -47,13 +47,11 @@ interface HookHighlightRowHeaderMeta {
   selectionType: string;
   rowCursor: number;
   selectionHeight: number;
-  classNames: string[];
 }
 interface HookHighlightColumnHeaderMeta {
   selectionType: string;
   columnCursor: number;
   selectionWidth: number;
-  classNames: string[];
 }
 
 export interface Events {
@@ -168,6 +166,7 @@ export interface Events {
   beforeColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean) => void | boolean;
   beforeColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void | number;
   beforeColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[]) => void | boolean;
+  beforeColumnWrap?: (isAutoWrapEnabled: boolean, newCoords: CellCoords, isColumnFlipped: boolean) => void;
   beforeColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean) => void | boolean;
   beforeContextMenuSetItems?: (menuItems: ContextMenuMenuItemConfig[]) => void;
   beforeContextMenuShow?: (context: ContextMenu) => void;
@@ -208,6 +207,7 @@ export interface Events {
   beforeRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number, value: CellValue, cellProperties: CellProperties) => void;
   beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean) => void;
   beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
+  beforeRowWrap?: (isAutoWrapEnabled: boolean, newCoords: CellCoords, isRowFlipped: boolean) => void;
   beforeSelectColumns?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
   beforeSelectionHighlightSet?: () => void;
   beforeSelectRows?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;

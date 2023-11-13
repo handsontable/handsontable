@@ -1,6 +1,7 @@
 import {
   empty,
-  setAttribute
+  setAttribute,
+  removeAttribute,
 } from './../../../../helpers/dom/element';
 import BaseRenderer from './_base';
 import {
@@ -100,6 +101,12 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
 
         TH.className = '';
         TH.removeAttribute('style');
+
+        // Remove all accessibility-related attributes for the header to start fresh.
+        removeAttribute(TH, [
+          new RegExp('aria-(.*)'),
+          new RegExp('role')
+        ]);
 
         if (this.table.isAriaEnabled()) {
           setAttribute(TH, [

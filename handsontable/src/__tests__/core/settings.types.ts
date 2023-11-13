@@ -112,7 +112,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     {row: -4, col: 1, collapsible: true},
     {row: -3, col: 5, collapsible: true}
   ]),
-  columnHeaderHeight: oneOf(35, [35, void 0, 55]),
+  columnHeaderHeight: oneOf(35, [35, undefined, 55]),
   columns: [
     { type: 'numeric', numericFormat: { pattern: '0,0.00 $' } },
     { type: 'text', readOnly: true }
@@ -131,7 +131,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
       customFunction: (endpoint) => 100
     }
   ],
-  colWidths: oneOf(100, '100px', [100, '100px'], ((index: number) => oneOf('100px', 100, void 0))),
+  colWidths: oneOf(100, '100px', [100, '100px'], ((index: number) => oneOf('100px', 100, undefined))),
   commentedCellClassName: 'foo',
   comments: oneOf(true, { displayDelay: 123 }),
   contextMenu: oneOf(true_or_false, contextMenuDemo) || [
@@ -502,6 +502,12 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeColumnMove: (columns, target) => {},
   beforeColumnResize: (newSize, column, isDoubleClick) => {},
   beforeColumnSort: (currentSortConfig, destinationSortConfigs) => {},
+  beforeColumnWrap: (isAutoWrapEnabled, newCoords, isColumnFlipped) => {
+    const _isAutoWrapEnabled: boolean = isAutoWrapEnabled;
+    const _isColumnFlipped: boolean = isColumnFlipped;
+
+    newCoords.clone();
+  },
   beforeColumnUnfreeze: (columnIndex, isFreezingPerformed) => false,
   beforeContextMenuSetItems: (menuItems) => {},
   beforeContextMenuShow: (context) => {},
@@ -517,8 +523,24 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeGetCellMeta: (row, col, cellProperties) => {},
   beforeHideColumns: (currentHideConfig, destinationHideConfig, actionPossible) => {},
   beforeHideRows: (currentHideConfig, destinationHideConfig, actionPossible) => {},
-  beforeHighlightingColumnHeader: (column, headerLevel, highlightMeta) => column,
-  beforeHighlightingRowHeader: (row, headerLevel, highlightMeta) => row,
+  beforeHighlightingColumnHeader: (column, headerLevel, highlightMeta) => {
+    const _column: number = column;
+    const _headerLevel: number = headerLevel;
+    const selectionType: string = highlightMeta.selectionType;
+    const columnCursor: number = highlightMeta.columnCursor;
+    const selectionWidth: number = highlightMeta.selectionWidth;
+
+    return 10;
+  },
+  beforeHighlightingRowHeader: (row, headerLevel, highlightMeta) => {
+    const _row: number = row;
+    const _headerLevel: number = headerLevel;
+    const selectionType: string = highlightMeta.selectionType;
+    const columnCursor: number = highlightMeta.rowCursor;
+    const selectionWidth: number = highlightMeta.selectionHeight;
+
+    return 10;
+  },
   beforeInit: () => {},
   beforeInitWalkontable: (walkontableConfig) => {},
   beforeKeyDown: (event) => {},
@@ -542,6 +564,12 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeRenderer: (TD, row, col, prop, value, cellProperties) => {},
   beforeRowMove: (movedRows, finalIndex, dropIndex, movePossible) => {},
   beforeRowResize: (newSize, row, isDoubleClick) => {},
+  beforeRowWrap: (isAutoWrapEnabled, newCoords, isRowFlipped) => {
+    const _isAutoWrapEnabled: boolean = isAutoWrapEnabled;
+    const _isRowFlipped: boolean = isRowFlipped;
+
+    newCoords.clone();
+  },
   beforeSelectColumns: (from, to, highlight) => {},
   beforeSelectionHighlightSet: () => {},
   beforeSelectRows: (from, to, highlight) => {},

@@ -816,7 +816,7 @@ describe('WalkontableEvent', () => {
       .simulate('click')
     ;
 
-    expect(onCellCornerMouseDown).toHaveBeenCalledWith(jasmine.any(MouseEvent), $el[0], void 0, void 0);
+    expect(onCellCornerMouseDown).toHaveBeenCalledWith(jasmine.any(MouseEvent), $el[0], undefined, undefined);
     expect(onCellCornerMouseDown).toHaveBeenCalledTimes(1);
   });
 

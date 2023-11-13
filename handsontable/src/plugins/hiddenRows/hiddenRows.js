@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { addClass } from '../../helpers/dom/element';
+import { addClass, appendElement } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
@@ -9,6 +9,11 @@ import Hooks from '../../pluginHooks';
 import hideRowItem from './contextMenuItem/hideRow';
 import showRowItem from './contextMenuItem/showRow';
 import { HidingMap } from '../../translations';
+import { A11Y_LABEL } from '../../helpers/a11y';
+import {
+  ROW_HEADER_LABEL_AFTER_HIDDEN_ROW,
+  ROW_HEADER_LABEL_BEFORE_HIDDEN_ROW,
+} from '../../i18n/constants';
 
 import './hiddenRows.css';
 
@@ -19,6 +24,9 @@ Hooks.getSingleton().register('afterUnhideRows');
 
 export const PLUGIN_KEY = 'hiddenRows';
 export const PLUGIN_PRIORITY = 320;
+
+const AFTER_INDICATOR_CLASSNAME = 'afterHiddenRowIndicator';
+const BEFORE_INDICATOR_CLASSNAME = 'beforeHiddenRowIndicator';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -179,14 +187,14 @@ export class HiddenRows extends BasePlugin {
     }
 
     this.#hiddenRowsMap = new HidingMap();
-    this.#hiddenRowsMap.addLocalHook('init', () => this.onMapInit());
+    this.#hiddenRowsMap.addLocalHook('init', () => this.#onMapInit());
     this.hot.rowIndexMapper.registerMap(this.pluginName, this.#hiddenRowsMap);
 
-    this.addHook('afterContextMenuDefaultOptions', (...args) => this.onAfterContextMenuDefaultOptions(...args));
-    this.addHook('afterGetCellMeta', (row, col, cellProperties) => this.onAfterGetCellMeta(row, col, cellProperties));
-    this.addHook('modifyRowHeight', (height, row) => this.onModifyRowHeight(height, row));
-    this.addHook('afterGetRowHeader', (...args) => this.onAfterGetRowHeader(...args));
-    this.addHook('modifyCopyableRange', ranges => this.onModifyCopyableRange(ranges));
+    this.addHook('afterContextMenuDefaultOptions', (...args) => this.#onAfterContextMenuDefaultOptions(...args));
+    this.addHook('afterGetCellMeta', (row, col, cellProperties) => this.#onAfterGetCellMeta(row, col, cellProperties));
+    this.addHook('modifyRowHeight', (height, row) => this.#onModifyRowHeight(height, row));
+    this.addHook('afterGetRowHeader', (...args) => this.#onAfterGetRowHeader(...args));
+    this.addHook('modifyCopyableRange', ranges => this.#onModifyCopyableRange(ranges));
 
     super.enablePlugin();
   }
@@ -208,8 +216,17 @@ export class HiddenRows extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    const clearRowHeader = (columnIndex, TH) => {
+      this.#clearIndicatorElements(TH);
+    };
+
     this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     this.#settings = {};
+
+    this.hot.addHook('afterGetRowHeader', clearRowHeader);
+    this.hot.addHookOnce('afterViewRender', () => {
+      this.hot.removeHook('afterGetRowHeader', clearRowHeader);
+    });
 
     super.disablePlugin();
     this.resetCellsMeta();
@@ -361,14 +378,26 @@ export class HiddenRows extends BasePlugin {
   }
 
   /**
+   * Remove the indicator elements from the provided row header element.
+   *
+   * @param {HTMLElement} TH Column header element.
+   */
+  #clearIndicatorElements(TH) {
+    Array.from(TH.querySelectorAll(
+      `.${AFTER_INDICATOR_CLASSNAME}, .${BEFORE_INDICATOR_CLASSNAME}`
+    )).forEach((element) => {
+      element.remove();
+    });
+  }
+
+  /**
    * Adds the additional row height for the hidden row indicators.
    *
-   * @private
    * @param {number|undefined} height Row height.
    * @param {number} row Visual row index.
    * @returns {number}
    */
-  onModifyRowHeight(height, row) {
+  #onModifyRowHeight(height, row) {
     // Hook is triggered internally only for the visible rows. Conditional will be handled for the API
     // calls of the `getRowHeight` function on not visible indexes.
     if (this.isHidden(row)) {
@@ -381,12 +410,11 @@ export class HiddenRows extends BasePlugin {
   /**
    * Sets the copy-related cell meta.
    *
-   * @private
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    * @param {object} cellProperties Object containing the cell properties.
    */
-  onAfterGetCellMeta(row, column, cellProperties) {
+  #onAfterGetCellMeta(row, column, cellProperties) {
     if (this.#settings.copyPasteEnabled === false && this.isHidden(row)) {
       // Cell property handled by the `Autofill` and the `CopyPaste` plugins.
       cellProperties.skipRowOnPaste = true;
@@ -416,11 +444,10 @@ export class HiddenRows extends BasePlugin {
   /**
    * Modifies the copyable range, accordingly to the provided config.
    *
-   * @private
    * @param {Array} ranges An array of objects defining copyable cells.
    * @returns {Array}
    */
-  onModifyCopyableRange(ranges) {
+  #onModifyCopyableRange(ranges) {
     // Ranges shouldn't be modified when `copyPasteEnabled` option is set to `true` (by default).
     if (this.#settings.copyPasteEnabled) {
       return ranges;
@@ -464,22 +491,52 @@ export class HiddenRows extends BasePlugin {
   /**
    * Adds the needed classes to the headers.
    *
-   * @private
    * @param {number} row Visual row index.
    * @param {HTMLElement} TH Header's TH element.
    */
-  onAfterGetRowHeader(row, TH) {
+  #onAfterGetRowHeader(row, TH) {
+    const areAriaTagsEnabled = this.hot.getSettings().ariaTags;
+    const beforeHiddenRowIndicatorElement = TH.querySelector('.beforeHiddenRowIndicator');
+    const afterHiddenRowIndicatorElement = TH.querySelector('.afterHiddenRowIndicator');
+
     if (!this.#settings.indicators || row < 0) {
+      beforeHiddenRowIndicatorElement?.remove();
+      afterHiddenRowIndicatorElement?.remove();
+
       return;
     }
 
     const classList = [];
 
     if (row >= 1 && this.isHidden(row - 1)) {
+      if (!afterHiddenRowIndicatorElement) {
+        const attributesToAdd = areAriaTagsEnabled
+          ? [A11Y_LABEL(this.hot.getTranslatedPhrase(ROW_HEADER_LABEL_AFTER_HIDDEN_ROW))]
+          : [];
+
+        appendElement(TH, {
+          tagName: 'div',
+          attributes: attributesToAdd,
+          className: AFTER_INDICATOR_CLASSNAME,
+        });
+      }
+
       classList.push('afterHiddenRow');
     }
 
     if (row < this.hot.countRows() - 1 && this.isHidden(row + 1)) {
+      if (!beforeHiddenRowIndicatorElement) {
+        const attributesToAdd = areAriaTagsEnabled
+          ? [A11Y_LABEL(this.hot.getTranslatedPhrase(ROW_HEADER_LABEL_BEFORE_HIDDEN_ROW))]
+          : [];
+
+        appendElement(TH, {
+          tagName: 'div',
+          attributes: attributesToAdd,
+          className: BEFORE_INDICATOR_CLASSNAME,
+        });
+      }
+
       classList.push('beforeHiddenRow');
     }
 
@@ -489,10 +546,9 @@ export class HiddenRows extends BasePlugin {
   /**
    * Add Show-hide rows to context menu.
    *
-   * @private
    * @param {object} options An array of objects containing information about the pre-defined Context Menu items.
    */
-  onAfterContextMenuDefaultOptions(options) {
+  #onAfterContextMenuDefaultOptions(options) {
     options.items.push(
       {
         name: SEPARATOR
@@ -504,10 +560,8 @@ export class HiddenRows extends BasePlugin {
 
   /**
    * On map initialized hook callback.
-   *
-   * @private
    */
-  onMapInit() {
+  #onMapInit() {
     if (Array.isArray(this.#settings.rows)) {
       this.hideRows(this.#settings.rows);
     }
