@@ -80,7 +80,7 @@ function DemoOptions({
         <div className="checkbox-group">
           <div>
             <label
-              className="optionLabel"
+              className="option-label"
               htmlFor="enable-tab-navigation"
               id="tab-navigation-label"
             >
@@ -125,7 +125,7 @@ function DemoOptions({
           </div>
           <div>
             <label
-              className="optionLabel"
+              className="option-label"
               htmlFor="enable-header-navigation"
               id="header-navigation-label"
             >
@@ -172,7 +172,7 @@ function DemoOptions({
           </div>
           <div>
             <label
-              className="optionLabel"
+              className="option-label"
               htmlFor="enable-cell-virtualization"
               id="cell-virtualization-label"
             >
@@ -219,7 +219,7 @@ function DemoOptions({
           </div>
           <div>
             <label
-              className="optionLabel"
+              className="option-label"
               htmlFor="enable-cell-enter-editing"
               id="cell-enter-editing-label"
             >
@@ -268,7 +268,7 @@ function DemoOptions({
         <div className="checkbox-group">
           <div>
             <label
-              className="optionLabel"
+              className="option-label"
               htmlFor="enable-arrow-rl-first-last-column"
               id="arrow-rl-first-last-column-label"
             >
@@ -315,7 +315,7 @@ function DemoOptions({
           </div>
           <div>
             <label
-              className="optionLabel"
+              className="option-label"
               htmlFor="enable-arrow-td-first-last-column"
               id="arrow-td-first-last-column-label"
             >
@@ -362,7 +362,7 @@ function DemoOptions({
           </div>
           <div>
             <label
-              className="optionLabel"
+              className="option-label"
               htmlFor="enable-enter-focus-editing"
               id="enter-focus-editing-label"
             >

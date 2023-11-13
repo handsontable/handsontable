@@ -81,14 +81,14 @@ table.htCore td .progress {
 
 .option-label {
   align-items: flex-start;
+}
 
-  /* 
+/* 
     We want the focus to be around input and label, in order to achieve this,
     we remove focus from the input and add it to the label (wrapper in this case)
     we then use the :focus-within pseudo class plus native focus styles
     https://css-tricks.com/copy-the-browsers-native-focus-styles/
-  */
-}
+*/
 
 .option-label:focus-within {
   outline: 5px auto Highlight;
