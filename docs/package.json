@@ -24,7 +24,8 @@
     "docs:api": "node .vuepress/tools/jsdoc-convert/index.mjs",
     "docs:check-links": "node .vuepress/tools/check-links.js",
     "docs:review": "./.vuepress/tools/review-commit.sh",
-    "docs:test:example-checker": "node .vuepress/tools/example-checker"
+    "docs:test:example-checker": "node .vuepress/tools/example-checker",
+    "postinstall": "patch-package"
   },
   "license": "CC BY 4.0",
   "devDependencies": {
@@ -72,5 +73,8 @@
     "last 1 version",
     "> 1%",
     "not dead"
-  ]
+  ],
+  "dependencies": {
+    "patch-package": "^8.0.0"
+  }
 }
