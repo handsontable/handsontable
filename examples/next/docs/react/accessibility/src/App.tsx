@@ -1,4 +1,4 @@
-import "handsontable/dist/handsontable.min.css";
+
 import { HotTable, HotColumn } from "@handsontable/react";
 import { useState } from "react";
 import { ProgressBarRenderer } from "./components/ProgressBarRenderer";
@@ -7,6 +7,9 @@ import { StarsRenderer } from "./components/StarsRenderer";
 import { countries, data } from "./data";
 import DemoOptions from "./components/DemoOptions";
 import { alignHeaders, addClassesToRows } from "./hooksCallbacks";
+
+import "handsontable/dist/handsontable.min.css";
+import "pikaday/css/pikaday.css";
 
 const hotOptions = {
   data,
@@ -79,7 +82,7 @@ function App() {
       >
         <HotColumn data="companyName" type="text" />
         <HotColumn data="productName" type="text" />
-        <HotColumn data="sellDate" type="date" allowInvalid={false} />
+        <HotColumn data="sellDate" dateFormat="DD/MM/YYYY" correctFormat type="date" allowInvalid={false} />
         <HotColumn data="inStock" type="checkbox" className="htCenter" />
         <HotColumn data="qty" type="numeric" />
         <HotColumn data="progress" readOnly={true} className="htMiddle">

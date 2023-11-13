@@ -19,7 +19,7 @@ export function progressBarRenderer(
 ) {
     const div = document.createElement("div");
 
-    div.style.width = `${value * 10}px`;
+    div.style.width = `${value * 10}%`;
     div.ariaLabel = `${value * 10}%`;
   
     addClassWhenNeeded(td, cellProperties);

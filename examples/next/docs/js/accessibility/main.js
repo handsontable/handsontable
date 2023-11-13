@@ -37,6 +37,7 @@ const hotOptions = {
     {
       data: "sellDate",
       type: "date",
+      dateFormat: "DD/MM/YYYY",
       allowInvalid: false,
     },
     {
