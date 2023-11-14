@@ -1,4 +1,3 @@
-# TEST
 # React Basic Example
 
 ## Description
