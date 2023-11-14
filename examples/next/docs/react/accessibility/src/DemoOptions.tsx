@@ -1,4 +1,4 @@
-import { ToggleableOptions } from "../App";
+import { ToggleableOptions } from "./App";
 
 type OptionCheckboxName =
   | "enable-tab-navigation"
@@ -9,10 +9,13 @@ type OptionCheckboxName =
   | "enable-arrow-td-first-last-column"
   | "enable-enter-focus-editing";
 
-interface DemoOptions extends ToggleableOptions {
+interface DemoOptionsProps extends ToggleableOptions {
   changeToggleOptions: React.Dispatch<React.SetStateAction<ToggleableOptions>>;
 }
 
+// Demo Options allows you to change the Handsontable options
+// This allows us to change the Handsontable settings from the UI, showcasing 
+// the flexibility of Handsontable in configuring according to your needs.
 function DemoOptions({
   disableTabNavigation,
   navigableHeaders,
@@ -22,7 +25,8 @@ function DemoOptions({
   autoWrapCol,
   enterMoves,
   changeToggleOptions,
-}: DemoOptions) {
+}: DemoOptionsProps) {
+  // on checkbox change, update handsontable option
   const handleCheckboxChange = (checkboxName: OptionCheckboxName) => {
     switch (checkboxName) {
       case "enable-tab-navigation":

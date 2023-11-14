@@ -9,29 +9,8 @@ html {
   gap: 1rem;
 }
 
-#handsontable {
+.handsontable table {
   background: white;
-}
-
-/*
-  A stylesheet customizing app (custom renderers)
-*/
-
-table.htCore div.star {
-  color: #fcb515;
-}
-
-table.htCore tr.odd td {
-  background: #fafbff;
-}
-
-table.htCore tr.selected td {
-  background: #edf3fd;
-}
-
-table.htCore td .progress {
-  background: #37bc6c;
-  height: 10px;
 }
 
 /*
@@ -89,7 +68,6 @@ table.htCore td .progress {
     we then use the :focus-within pseudo class plus native focus styles
     https://css-tricks.com/copy-the-browsers-native-focus-styles/
 */
-
 .option-label:focus-within {
   outline: 5px auto Highlight;
   outline: 5px auto -webkit-focus-ring-color;

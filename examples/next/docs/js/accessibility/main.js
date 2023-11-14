@@ -2,32 +2,24 @@ import Handsontable from "handsontable";
 import "handsontable/dist/handsontable.min.css";
 import "pikaday/css/pikaday.css";
 
+// Import sample data and helper functions
 import { data, countries } from "./data";
-import { progressBarRenderer, starRenderer } from "./customRenderers";
-
-import {
-  alignHeaders,
-  addClassesToRows,
-  changeCheckboxCell,
-} from "./hooksCallbacks";
+import { alignHeaders } from "./hooksCallbacks";
 
 // Get the DOM element with the ID 'handsontable' where the Handsontable will be rendered
-
 const app = document.getElementById("handsontable");
 
 // Define configuration options for the Handsontable
 const hotOptions = {
   data,
   height: 464,
-  colWidths: [140, 165, 100, 100, 100, 90, 90, 110, 178],
+  colWidths: [140, 165, 100, 100, 100, 110, 178],
   colHeaders: [
     "Company name",
     "Product name",
     "Sell date",
     "In stock",
     "Qty",
-    "Progress",
-    "Rating",
     "Order ID",
     "Country",
   ],
@@ -47,18 +39,6 @@ const hotOptions = {
     },
     { data: "qty", type: "numeric" },
     {
-      data: "progress",
-      renderer: progressBarRenderer,
-      readOnly: true,
-      className: "htMiddle",
-    },
-    {
-      data: "rating",
-      renderer: starRenderer,
-      readOnly: true,
-      className: "star htCenter",
-    },
-    {
       data: "orderId",
       type: "text",
     },
@@ -73,19 +53,16 @@ const hotOptions = {
     indicators: true,
   },
   contextMenu: true,
-  navigableHeaders: true, // new a11y
-  disableTabNavigation: false, // new a11y
+  navigableHeaders: true, // New accessibility feature
+  disableTabNavigation: false, // New accessibility feature
   autoWrapRow: true,
   autoWrapCol: true,
   multiColumnSorting: true,
   filters: true,
   rowHeaders: true,
   manualRowMove: true,
-  rowHeaders: true,
   nestedRows: true,
   afterGetColHeader: alignHeaders,
-  afterOnCellMouseDown: changeCheckboxCell,
-  beforeRenderer: addClassesToRows,
   licenseKey: "non-commercial-and-evaluation",
 };
 
@@ -96,7 +73,11 @@ let hotInstance = new Handsontable(app, hotOptions);
 export const setupCheckbox = (element, callback) =>
   element.addEventListener("click", (clickEvent) => callback(element.checked));
 
-// Set up event listeners for various checkboxes to update Handsontable settings
+// Set up event listeners for various checkboxes to update Handsontable settings.
+// This allows us to change the Handsontable settings from the UI, showcasing 
+// the flexibility of Handsontable in configuring according to your needs.
+
+// Checkbox: Enable/Disable Tab Navigation
 setupCheckbox(document.querySelector("#enable-tab-navigation"), (checked) => {
   hotOptions.disableTabNavigation = !checked;
   hotInstance.updateSettings({
@@ -108,6 +89,7 @@ setupCheckbox(document.querySelector("#enable-tab-navigation"), (checked) => {
   );
 });
 
+// Checkbox: Enable/Disable Header Navigation
 setupCheckbox(
   document.querySelector("#enable-header-navigation"),
   (checked) => {
@@ -122,6 +104,7 @@ setupCheckbox(
   }
 );
 
+// Checkbox: Enable/Disable Cell Virtualization
 setupCheckbox(
   document.querySelector("#enable-cell-virtualization"),
   (checked) => {
@@ -138,6 +121,7 @@ setupCheckbox(
   }
 );
 
+// Checkbox: Enable/Disable Cell Enter Editing
 setupCheckbox(
   document.querySelector("#enable-cell-enter-editing"),
   (checked) => {
@@ -152,6 +136,7 @@ setupCheckbox(
   }
 );
 
+// Checkbox: Enable/Disable Arrow Navigation for First/Last Row
 setupCheckbox(
   document.querySelector("#enable-arrow-rl-first-last-column"),
   (checked) => {
@@ -166,6 +151,7 @@ setupCheckbox(
   }
 );
 
+// Checkbox: Enable/Disable Arrow Navigation for First/Last Column
 setupCheckbox(
   document.querySelector("#enable-arrow-td-first-last-column"),
   (checked) => {
@@ -180,6 +166,7 @@ setupCheckbox(
   }
 );
 
+// Checkbox: Enable/Disable Enter Key Focus for Editing
 setupCheckbox(
   document.querySelector("#enable-enter-focus-editing"),
   (checked) => {

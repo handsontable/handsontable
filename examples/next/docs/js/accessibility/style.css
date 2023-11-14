@@ -9,29 +9,8 @@ body {
   gap: 1rem;
 }
 
-#handsontable {
+.handsontable table {
   background: white;
-}
-
-/*
-  A stylesheet customizing app (custom renderers)
-*/
-
-table.htCore td .stars {
-  color: #fcb515;
-}
-
-table.htCore tr.odd td {
-  background: #fafbff;
-}
-
-table.htCore td .progress {
-  height: 10px;
-  background: #37bc6c;
-}
-
-table.htCore tr.selected td {
-  background: #edf3fd;
 }
 
 /*
