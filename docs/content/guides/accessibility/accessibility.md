@@ -1226,7 +1226,7 @@ html.theme-dark .option-label {
   color: #e5ebf1 !important;
 }
 
-#example {
+#example1 {
   margin: 1rem 0;
 }
 ```
