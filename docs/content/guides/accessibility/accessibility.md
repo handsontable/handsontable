@@ -100,7 +100,7 @@ Check out the interactive demo below to see how different Handsontable settings 
 
 ::: only-for javascript angular vue
 
-::: example #example --html 1 --css 2 --js 3
+::: example #example1 --html 1 --css 2 --js 3
 
 ```html
 <div class="checkbox-container">
@@ -421,7 +421,7 @@ Check out the interactive demo below to see how different Handsontable settings 
   placeholder="Focusable text input"
 />
 
-<div id="example"></div>
+<div id="example1"></div>
 
 <input
   class="placeholder-input"
@@ -497,7 +497,7 @@ html.theme-dark .option-label {
   color: #e5ebf1 !important;
 }
 
-#example {
+#example1 {
   margin: 1rem 0;
 }
 ```
@@ -978,7 +978,7 @@ export const countries = data.reduce((acc, curr) => {
 /* end:skip-in-preview */
 
 // Get the DOM element with the ID 'example' where the Handsontable will be rendered
-const app = document.getElementById("example");
+const app = document.getElementById("example1");
 
 // Define configuration options for the Handsontable
 const hotOptions = {
@@ -1078,7 +1078,7 @@ setupCheckbox(
   document.querySelector("#enable-cell-virtualization"),
   (checked) => {
     hotInstance.destroy();
-    hotInstance = new Handsontable(document.getElementById("example"), {
+    hotInstance = new Handsontable(document.getElementById("example1"), {
       ...hotOptions,
       renderAllRows: !checked,
       viewportColumnRenderingOffset: checked ? "auto" : 9,
@@ -1157,7 +1157,7 @@ setupCheckbox(
 
 ::: only-for react
 
-::: example #example1 :react --css 1 --js 2
+::: example #example2 :react --css 1 --js 2
 
 ```css
 .checkbox-container {
@@ -1226,7 +1226,7 @@ html.theme-dark .option-label {
   color: #e5ebf1 !important;
 }
 
-#example1 {
+#example2 {
   margin: 1rem 0;
 }
 ```
@@ -2196,7 +2196,7 @@ function DemoOptions({
   );
 }
 
-ReactDOM.render(<App />, document.getElementById("example1"));
+ReactDOM.render(<App />, document.getElementById("example2"));
 ```
 
 :::
