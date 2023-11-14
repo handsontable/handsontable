@@ -65,7 +65,7 @@ For more information on Handsontable 14.0.0, see:
 - [Blog post (14.0.0)](https://handsontable.com/blog/handsontable-14-0-0-prioritizing-accessibility)
 - [Documentation (14.0)](https://handsontable.com/docs/14.0)
 - [Release notes (14.0.0)](https://handsontable.com/docs/release-notes/#_14-0-0)
-- [Migration guide (13.1 → 14.0)](https://handsontable.com/docs/migration-from-13.1-to-14.0/)
+- [Migration guide (13.1 → 14.0)](https://handsontable.com/docs/migration-from-13.1.0-to-14.0/)
 
 ## [13.1.0] - 2023-08-31
 

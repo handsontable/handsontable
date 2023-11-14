@@ -32,7 +32,7 @@ For more information on this release, see:
 
 - [Blog post (14.0.0)](https://handsontable.com/blog/handsontable-14-0-0-prioritizing-accessibility)
 - [Documentation (14.0)](https://handsontable.com/docs/14.0)
-- [Migration guide (13.1 → 14.0)](@/guides/upgrade-and-migration/migrating-from-13.1-to-14.0.md)
+- [Migration guide (13.1 → 14.0)](@/guides/upgrade-and-migration/migrating-from-13.1.0-to-14.0.md)
 
 ### Added
 - **Breaking change**: Added the accessibility-related attributes to all images and icons. [#10540](https://github.com/handsontable/handsontable/pull/10540)
