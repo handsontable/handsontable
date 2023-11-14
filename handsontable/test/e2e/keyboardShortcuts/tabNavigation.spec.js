@@ -820,4 +820,96 @@ describe('Core navigation keyboard shortcuts', () => {
       expect(hot1.isListening()).toBe(false);
     });
   });
+
+  it('should activate the table, reselect the recently selected cell without changing ' +
+     'the coords, and then leave the table (#dev-1546)', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(3, 3),
+      rowHeaders: true,
+      colHeaders: true,
+      navigableHeaders: true,
+      disableTabNavigation: true,
+      autoWrapRow: false,
+    });
+    const hot1 = handsontable({
+      data: createSpreadsheetData(3, 3),
+      rowHeaders: true,
+      colHeaders: true,
+      navigableHeaders: true,
+      disableTabNavigation: true,
+      autoWrapRow: false,
+    }, false, spec().$container1);
+
+    hot.selectCell(1, 1);
+    hot1.selectCell(0, 0);
+    hot.deselectCell();
+    hot1.deselectCell();
+
+    triggerTabNavigationFromTop(); // emulates native browser Tab navigation
+
+    expect(hot.getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
+    expect(hot1.getSelectedRange()).toBeUndefined();
+
+    keyDownUp('tab');
+    triggerTabNavigationFromTop(hot1); // emulates native browser Tab navigation
+
+    expect(hot.getSelectedRange()).toBeUndefined();
+    expect(hot1.getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 0,0']);
+
+    keyDownUp(['shift', 'tab']);
+    triggerTabNavigationFromBottom(); // emulates native browser Tab navigation
+
+    expect(hot.getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
+    expect(hot1.getSelectedRange()).toBeUndefined();
+
+    keyDownUp('tab');
+    triggerTabNavigationFromTop(hot1); // emulates native browser Tab navigation
+
+    expect(hot.getSelectedRange()).toBeUndefined();
+    expect(hot1.getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 0,0']);
+  });
+
+  it('should not scroll the viewport of the table after navigating between the tables', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(50, 30),
+      width: 200,
+      height: 200,
+      rowHeaders: true,
+      colHeaders: true,
+      disableTabNavigation: true,
+      autoWrapRow: true,
+    });
+    const hot1 = handsontable({
+      data: createSpreadsheetData(50, 30),
+      width: 200,
+      height: 200,
+      rowHeaders: true,
+      colHeaders: true,
+      disableTabNavigation: true,
+      autoWrapRow: true,
+    }, false, spec().$container1);
+
+    hot.selectCell(0, 0);
+    hot.deselectCell();
+    hot1.deselectCell();
+
+    triggerTabNavigationFromTop(); // emulates native browser Tab navigation
+
+    expect(hot.getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 0,0']);
+    expect(hot1.getSelectedRange()).toBeUndefined();
+
+    keyDownUp('tab');
+    triggerTabNavigationFromTop(hot1); // emulates native browser Tab navigation
+
+    expect(hot.getSelectedRange()).toBeUndefined();
+    expect(hot1.getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 0,0']);
+
+    keyDownUp(['shift', 'tab']);
+    triggerTabNavigationFromBottom(); // emulates native browser Tab navigation
+
+    expect(hot1.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
+    expect(hot1.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(0);
+    expect(hot.getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 0,0']);
+    expect(hot1.getSelectedRange()).toBeUndefined();
+  });
 });
