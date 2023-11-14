@@ -11,4 +11,6 @@ export const unescapeRedundant = text => text
   // remove redundant dot, which eslint enforce to add after list closing tag.
   .replace(/<\/ul>\./g, '</ul>')
   .replace(/&quot;&#x27;/g, '"')
-  .replace(/&#x27;&quot;/g, '"');
+  .replace(/&#x27;&quot;/g, '"')
+  .replace(/`&#x27;/g, "'")
+  .replace(/&#x27;`/g, "'")
