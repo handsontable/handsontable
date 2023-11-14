@@ -61,7 +61,6 @@ const hotOptions = {
   filters: true,
   rowHeaders: true,
   manualRowMove: true,
-  nestedRows: true,
   afterGetColHeader: alignHeaders,
   licenseKey: "non-commercial-and-evaluation",
 };
