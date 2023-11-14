@@ -26,7 +26,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 ## 14.0.0
 
-Released on November 15, 2023.
+Released on November 16, 2023.
 
 For more information on this release, see:
 
