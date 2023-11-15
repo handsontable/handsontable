@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Add a set of `angular@17` examples to ensure Handsontable works with that Angular version.",
+  "type": "added",
+  "issueOrPR": 10584,
+  "breaking": false,
+  "framework": "none"
+}
