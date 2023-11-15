@@ -58,17 +58,15 @@ export class ManualColumnMove extends BasePlugin {
   /**
    * Backlight UI object.
    *
-   * @private
    * @type {object}
    */
-  backlight = new BacklightUI(this.hot);
+  #backlight = new BacklightUI(this.hot);
   /**
    * Guideline UI object.
    *
-   * @private
    * @type {object}
    */
-  guideline = new GuidelineUI(this.hot);
+  #guideline = new GuidelineUI(this.hot);
   /**
    * @type {number[]}
    */
@@ -160,8 +158,8 @@ export class ManualColumnMove extends BasePlugin {
     removeClass(this.hot.rootElement, CSS_PLUGIN);
 
     this.unregisterEvents();
-    this.backlight.destroy();
-    this.guideline.destroy();
+    this.#backlight.destroy();
+    this.#guideline.destroy();
 
     super.disablePlugin();
   }
@@ -426,8 +424,8 @@ export class ManualColumnMove extends BasePlugin {
     let tdOffsetStart = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, this.#hoveredColumn - 1);
     const hiderWidth = wtTable.hider.offsetWidth;
     const tbodyOffsetLeft = wtTable.TBODY.offsetLeft;
-    const backlightElemMarginStart = this.backlight.getOffset().start;
-    const backlightElemWidth = this.backlight.getSize().width;
+    const backlightElemMarginStart = this.#backlight.getOffset().start;
+    const backlightElemWidth = this.#backlight.getSize().width;
     let rowHeaderWidth = 0;
     let mouseOffsetStart = 0;
 
@@ -499,8 +497,8 @@ export class ManualColumnMove extends BasePlugin {
       guidelineStart -= ((this.#rootElementOffset <= scrollableElement.scrollX) ? this.#rootElementOffset : 0);
     }
 
-    this.backlight.setPosition(null, backlightStart);
-    this.guideline.setPosition(null, guidelineStart);
+    this.#backlight.setPosition(null, backlightStart);
+    this.#guideline.setPosition(null, guidelineStart);
   }
 
   /**
@@ -548,12 +546,12 @@ export class ManualColumnMove extends BasePlugin {
       return;
     }
 
-    const guidelineIsNotReady = this.guideline.isBuilt() && !this.guideline.isAppended();
-    const backlightIsNotReady = this.backlight.isBuilt() && !this.backlight.isAppended();
+    const guidelineIsNotReady = this.#guideline.isBuilt() && !this.#guideline.isAppended();
+    const backlightIsNotReady = this.#backlight.isBuilt() && !this.#backlight.isAppended();
 
     if (guidelineIsNotReady && backlightIsNotReady) {
-      this.guideline.appendTo(wtTable.hider);
-      this.backlight.appendTo(wtTable.hider);
+      this.#guideline.appendTo(wtTable.hider);
+      this.#backlight.appendTo(wtTable.hider);
     }
 
     const { from, to } = selection;
@@ -585,9 +583,9 @@ export class ManualColumnMove extends BasePlugin {
       const inlinePos = this.getColumnsWidth(countColumnsFrom, start - 1) +
         (fixedColumnsStart ? horizontalScrollPosition : 0) + inlineOffset;
 
-      this.backlight.setPosition(topPos, inlinePos);
-      this.backlight.setSize(this.getColumnsWidth(start, end), wtTable.hider.offsetHeight - topPos);
-      this.backlight.setOffset(null, -inlineOffset);
+      this.#backlight.setPosition(topPos, inlinePos);
+      this.#backlight.setSize(this.getColumnsWidth(start, end), wtTable.hider.offsetHeight - topPos);
+      this.#backlight.setOffset(null, -inlineOffset);
 
       addClass(this.hot.rootElement, CSS_ON_MOVING);
 
@@ -689,8 +687,8 @@ export class ManualColumnMove extends BasePlugin {
     const scrollTop = wtTable.holder.scrollTop;
     const posTop = headerHeight + scrollTop;
 
-    this.backlight.setPosition(posTop);
-    this.backlight.setSize(null, wtTable.hider.offsetHeight - posTop);
+    this.#backlight.setPosition(posTop);
+    this.#backlight.setSize(null, wtTable.hider.offsetHeight - posTop);
   }
 
   /**
@@ -699,8 +697,8 @@ export class ManualColumnMove extends BasePlugin {
    * @private
    */
   buildPluginUI() {
-    this.backlight.build();
-    this.guideline.build();
+    this.#backlight.build();
+    this.#guideline.build();
   }
 
   /**
@@ -716,8 +714,8 @@ export class ManualColumnMove extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.backlight.destroy();
-    this.guideline.destroy();
+    this.#backlight.destroy();
+    this.#guideline.destroy();
 
     super.destroy();
   }
