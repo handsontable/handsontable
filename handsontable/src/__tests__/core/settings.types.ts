@@ -199,7 +199,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     }
   },
   defaultDate: 'foo',
-  disableTabNavigation: oneOf(true),
+  tabNavigation: oneOf(false),
   disableVisualSelection: oneOf(
     true,
     'current',
