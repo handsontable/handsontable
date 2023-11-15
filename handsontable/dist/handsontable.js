@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.0.0
- * Release date: 15/11/2023 (built at 13/11/2023 14:37:57)
+ * Release date: 16/11/2023 (built at 14/11/2023 17:30:43)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -105,7 +105,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "13/11/2023 14:37:57";
+Handsontable.buildDate = "14/11/2023 17:30:43";
 Handsontable.version = "14.0.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -8550,7 +8550,7 @@ function _injectProductInfo(key, element) {
   const schemaValidity = _checkKeySchema(key);
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      const releaseDate = (0, _moment.default)("15/11/2023", 'DD/MM/YYYY');
+      const releaseDate = (0, _moment.default)("16/11/2023", 'DD/MM/YYYY');
       const releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
       const keyValidityDays = _extractTime(key);
       keyValidityDate = (0, _moment.default)((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
@@ -41923,11 +41923,18 @@ function installFocusCatcher(hot) {
     wrapped: false,
     flipped: false
   };
+  let isSavingCoordsEnabled = true;
+  let isTabOrShiftTabPressed = false;
   hot.addHook('afterListen', () => deactivate());
   hot.addHook('afterUnlisten', () => activate());
-  hot.addHook('afterSelection', () => {
-    var _hot$getSelectedRange;
-    recentlyAddedFocusCoords = (_hot$getSelectedRange = hot.getSelectedRangeLast()) === null || _hot$getSelectedRange === void 0 ? void 0 : _hot$getSelectedRange.highlight;
+  hot.addHook('afterSelection', (row, column, row2, column2, preventScrolling) => {
+    if (isTabOrShiftTabPressed && rowWrapState.wrapped && rowWrapState.flipped) {
+      preventScrolling.value = true;
+    }
+    if (isSavingCoordsEnabled) {
+      var _hot$getSelectedRange;
+      recentlyAddedFocusCoords = (_hot$getSelectedRange = hot.getSelectedRangeLast()) === null || _hot$getSelectedRange === void 0 ? void 0 : _hot$getSelectedRange.highlight;
+    }
   });
   hot.addHook('beforeRowWrap', (isWrapEnabled, newCoords, isFlipped) => {
     rowWrapState.wrapped = true;
@@ -41943,13 +41950,32 @@ function installFocusCatcher(hot) {
     hot.deselectCell();
     hot.unlisten();
   }
-  hot.getShortcutManager().getContext('grid').addShortcut({
+  const shortcutOptions = {
     keys: [['Tab'], ['Shift', 'Tab']],
+    runOnlyIf: () => !hot.getSettings().minSpareCols,
+    preventDefault: false,
+    stopPropagation: false,
+    relativeToGroup: _shortcutContexts.GRID_GROUP,
+    group: 'focusCatcher'
+  };
+  hot.getShortcutManager().getContext('grid').addShortcuts([{
+    ...shortcutOptions,
+    callback: () => {
+      isTabOrShiftTabPressed = true;
+      if (hot.getSelectedRangeLast() && hot.getSettings().disableTabNavigation) {
+        isSavingCoordsEnabled = false;
+      }
+    },
+    position: 'before'
+  }, {
+    ...shortcutOptions,
     callback: event => {
       const {
         disableTabNavigation,
         autoWrapRow
       } = hot.getSettings();
+      isTabOrShiftTabPressed = false;
+      isSavingCoordsEnabled = true;
       if (disableTabNavigation || !hot.selection.isSelected() || autoWrapRow && rowWrapState.wrapped && rowWrapState.flipped || !autoWrapRow && rowWrapState.wrapped) {
         if (autoWrapRow && rowWrapState.wrapped && rowWrapState.flipped) {
           recentlyAddedFocusCoords = event.shiftKey ? getMostTopStartPosition(hot) : getMostBottomEndPosition(hot);
@@ -41961,13 +41987,8 @@ function installFocusCatcher(hot) {
       // if the selection is still within the table's range then prevent default action
       event.preventDefault();
     },
-    runOnlyIf: () => !hot.getSettings().minSpareCols,
-    preventDefault: false,
-    stopPropagation: false,
-    position: 'after',
-    relativeToGroup: _shortcutContexts.GRID_GROUP,
-    group: 'focusCatcher'
-  });
+    position: 'after'
+  }]);
 }
 
 /**
@@ -46494,7 +46515,7 @@ class HandsontableEditor extends _textEditor.TextEditor {
     }
     this.removeHooksByKey('beforeKeyDown');
     super.close();
-    if (this.hot.getSettings().ariaTags) {
+    if (this.TD && this.hot.getSettings().ariaTags) {
       (0, _element.setAttribute)(this.TD, [(0, _a11y.A11Y_EXPANDED)('false')]);
     }
   }
