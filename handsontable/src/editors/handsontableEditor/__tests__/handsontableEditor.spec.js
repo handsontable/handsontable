@@ -526,6 +526,38 @@ describe('HandsontableEditor', () => {
     window.onerror = prevError;
   });
 
+  it('should not throw an error while closing editor that is not visible in the viewport', async() => {
+    const spy = jasmine.createSpyObj('error', ['test']);
+    const prevError = window.onerror;
+
+    window.onerror = function() {
+      spy.test();
+
+      return true;
+    };
+    handsontable({
+      data: createSpreadsheetData(100, 1),
+      width: 300,
+      height: 200,
+      columns: [{
+        type: 'handsontable',
+        handsontable: {
+          data: [['Marque'], ['Country'], ['Parent company']]
+        }
+      }],
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+    scrollViewportTo({ row: 95 });
+
+    await sleep(100);
+
+    expect(spy.test.calls.count()).toBe(0);
+
+    window.onerror = prevError;
+  });
+
   it('Enter pressed in nested HT should set the value and hide the editor', () => {
     handsontable({
       columns: [

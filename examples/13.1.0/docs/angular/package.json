@@ -1,11 +1,11 @@
 {
-  "name": "examples-angular-13.1.0",
-  "version": "13.1.0",
+  "name": "examples-angular",
+  "version": "0.0.0",
   "private": true,
   "scripts": {
     "postinstall": "cd ../../.. && npm run link-packages -- --f angular --examples-version 13.1.0"
   },
   "workspaces": [
-    "@(!(node_modules))/"
+      "@(!(node_modules))/"
   ]
 }

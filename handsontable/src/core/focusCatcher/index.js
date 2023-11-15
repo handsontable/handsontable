@@ -38,11 +38,19 @@ export function installFocusCatcher(hot) {
     wrapped: false,
     flipped: false,
   };
+  let isSavingCoordsEnabled = true;
+  let isTabOrShiftTabPressed = false;
 
   hot.addHook('afterListen', () => deactivate());
   hot.addHook('afterUnlisten', () => activate());
-  hot.addHook('afterSelection', () => {
-    recentlyAddedFocusCoords = hot.getSelectedRangeLast()?.highlight;
+  hot.addHook('afterSelection', (row, column, row2, column2, preventScrolling) => {
+    if (isTabOrShiftTabPressed && rowWrapState.wrapped && rowWrapState.flipped) {
+      preventScrolling.value = true;
+    }
+
+    if (isSavingCoordsEnabled) {
+      recentlyAddedFocusCoords = hot.getSelectedRangeLast()?.highlight;
+    }
   });
   hot.addHook('beforeRowWrap', (isWrapEnabled, newCoords, isFlipped) => {
     rowWrapState.wrapped = true;
@@ -59,39 +67,59 @@ export function installFocusCatcher(hot) {
     hot.unlisten();
   }
 
+  const shortcutOptions = {
+    keys: [['Tab'], ['Shift', 'Tab']],
+    runOnlyIf: () => !hot.getSettings().minSpareCols,
+    preventDefault: false,
+    stopPropagation: false,
+    relativeToGroup: GRID_GROUP,
+    group: 'focusCatcher',
+  };
+
   hot.getShortcutManager()
     .getContext('grid')
-    .addShortcut({
-      keys: [['Tab'], ['Shift', 'Tab']],
-      callback: (event) => {
-        const { disableTabNavigation, autoWrapRow } = hot.getSettings();
+    .addShortcuts([
+      {
+        ...shortcutOptions,
+        callback: () => {
+          isTabOrShiftTabPressed = true;
 
-        if (
-          disableTabNavigation ||
-          !hot.selection.isSelected() ||
-          autoWrapRow && rowWrapState.wrapped && rowWrapState.flipped ||
-          !autoWrapRow && rowWrapState.wrapped
-        ) {
-          if (autoWrapRow && rowWrapState.wrapped && rowWrapState.flipped) {
-            recentlyAddedFocusCoords = event.shiftKey
-              ? getMostTopStartPosition(hot) : getMostBottomEndPosition(hot);
+          if (hot.getSelectedRangeLast() && (!hot.getSettings().tabNavigation)) {
+            isSavingCoordsEnabled = false;
+          }
+        },
+        position: 'before',
+      },
+      {
+        ...shortcutOptions,
+        callback: (event) => {
+          const { tabNavigation, autoWrapRow } = hot.getSettings();
+
+          isTabOrShiftTabPressed = false;
+          isSavingCoordsEnabled = true;
+
+          if (
+            !tabNavigation ||
+            !hot.selection.isSelected() ||
+            autoWrapRow && rowWrapState.wrapped && rowWrapState.flipped ||
+            !autoWrapRow && rowWrapState.wrapped
+          ) {
+            if (autoWrapRow && rowWrapState.wrapped && rowWrapState.flipped) {
+              recentlyAddedFocusCoords = event.shiftKey
+                ? getMostTopStartPosition(hot) : getMostBottomEndPosition(hot);
+            }
+
+            deactivateTable();
+
+            return false;
           }
 
-          deactivateTable();
-
-          return false;
-        }
-
-        // if the selection is still within the table's range then prevent default action
-        event.preventDefault();
-      },
-      runOnlyIf: () => !hot.getSettings().minSpareCols,
-      preventDefault: false,
-      stopPropagation: false,
-      position: 'after',
-      relativeToGroup: GRID_GROUP,
-      group: 'focusCatcher',
-    });
+          // if the selection is still within the table's range then prevent default action
+          event.preventDefault();
+        },
+        position: 'after',
+      }
+    ]);
 }
 
 /**

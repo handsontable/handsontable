@@ -1,29 +1,24 @@
-import "./App.css";
-import "handsontable/dist/handsontable.min.css";
 import { HotTable, HotColumn } from "@handsontable/react";
 import { useState } from "react";
-import { ProgressBarRenderer } from "./components/ProgressBarRenderer";
-import { StarsRenderer } from "./components/StarsRenderer";
 
 import { countries, data } from "./data";
-import DemoOptions from "./components/DemoOptions";
-import {
-  alignHeaders,
-  addClassesToRows, 
-} from "./hooksCallbacks";
+import DemoOptions from "./DemoOptions";
+import { alignHeaders } from "./hooksCallbacks";
 
+import "handsontable/dist/handsontable.min.css";
+import "pikaday/css/pikaday.css";
+
+// Handsontable options
 const hotOptions = {
   data,
   height: 464,
-  colWidths: [140, 165, 100, 100, 100, 90, 90, 110, 178],
+  colWidths: [140, 165, 100, 100, 100, 110, 178],
   colHeaders: [
     "Company name",
     "Product name",
     "Sell date",
     "In stock",
     "Qty",
-    "Progress",
-    "Rating",
     "Order ID",
     "Country",
   ],
@@ -35,9 +30,7 @@ const hotOptions = {
   filters: true,
   rowHeaders: true,
   manualRowMove: true,
-  nestedRows: true,
   afterGetColHeader: alignHeaders,
-  beforeRenderer: addClassesToRows, 
   licenseKey: "non-commercial-and-evaluation",
 };
 
@@ -66,32 +59,47 @@ function App() {
 
   return (
     <>
+      {/* DemoOptions component for changing Handsontable options */}
       <DemoOptions
         changeToggleOptions={setToggleableOptions}
         {...toggleableOptions}
       />
-      <input type="text" placeholder="Focusable text input" />
+       
+      <input
+        className="placeholder-input"
+        type="text"
+        placeholder="Focusable text input"
+      />
+      
+      {/* Handsontable component with dynamic options */}
       <HotTable
-        // allows us to re-render on virtualization change
+        // Handsontable needs to reload when changing virtualization
+        // by changing the key, we force the component to reload
         key={String(toggleableOptions.renderAllRows)}
         {...hotOptions}
+        // Pass in the options which can change for demo
         {...toggleableOptions}
       >
+        {/* Define HotColumns for the data */}
         <HotColumn data="companyName" type="text" />
         <HotColumn data="productName" type="text" />
-        <HotColumn data="sellDate" type="date" allowInvalid={false} />
+        <HotColumn
+          data="sellDate"
+          dateFormat="DD/MM/YYYY"
+          correctFormat
+          type="date"
+          allowInvalid={false}
+        />
         <HotColumn data="inStock" type="checkbox" className="htCenter" />
         <HotColumn data="qty" type="numeric" />
-        <HotColumn data="progress" readOnly={true} className="htMiddle">
-          <ProgressBarRenderer hot-renderer />
-        </HotColumn>
-        <HotColumn data="rating" readOnly={true} className="htCenter">
-          <StarsRenderer hot-renderer />
-        </HotColumn>
         <HotColumn data="orderId" type="text" />
         <HotColumn data="country" type="dropdown" source={countries} />
       </HotTable>
-      <input type="text" placeholder="Focusable text input" />
+      <input
+        className="placeholder-input"
+        type="text"
+        placeholder="Focusable text input"
+      />
     </>
   );
 }

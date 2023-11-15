@@ -66,7 +66,7 @@ export class HandsontableEditor extends TextEditor {
     this.removeHooksByKey('beforeKeyDown');
     super.close();
 
-    if (this.hot.getSettings().ariaTags) {
+    if (this.TD && this.hot.getSettings().ariaTags) {
       setAttribute(this.TD, [
         A11Y_EXPANDED('false'),
       ]);
