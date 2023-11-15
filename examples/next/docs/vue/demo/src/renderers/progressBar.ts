@@ -26,6 +26,7 @@ export const progressBarRenderer: typeof baseRenderer = (
   const div = document.createElement("div");
 
   div.style.width = `${value * 10}px`;
+  div.ariaLabel = `${value * 10}%`;
 
   addClassWhenNeeded(td, cellProperties);
   Handsontable.dom.addClass(div, "progressBar");

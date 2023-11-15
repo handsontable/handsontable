@@ -417,6 +417,14 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
 
 :::
 
+## Related keyboard shortcuts
+
+| Windows                                                 | macOS                                                      | Action                                  |  Excel  | Sheets  |
+| ------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------- | :-----: | :-----: |
+| <kbd>**Ctrl**</kbd>+<kbd>**Alt**</kbd>+<kbd>**M**</kbd> | <kbd>**Ctrl**</kbd>+<kbd>**Option**</kbd>+<kbd>**M**</kbd> | Add or edit a comment                   | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                | <kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd>                    | Save and exit the current comment       | &cross; | &check; |
+| <kbd>**Escape**</kbd>                                   | <kbd>**Escape**</kbd>                                      | Exit the current comment without saving | &cross; | &cross; |
+
 ## Related API reference
 
 - Configuration options:

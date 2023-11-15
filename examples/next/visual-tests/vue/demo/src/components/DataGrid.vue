@@ -113,7 +113,7 @@ table.htCore {
     height: 10px;
   }
 
-  td.star {
+  td .stars {
     color: #fcb515;
   }
 }

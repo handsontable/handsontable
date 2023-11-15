@@ -1,29 +1,29 @@
 <template>
   <div id="example">
-    <hot-table ref="hotTableComponent" :data="data" :settings="hotSettings"></hot-table>
+    <hot-table
+      ref="hotTableComponent"
+      :data="data"
+      :settings="hotSettings"
+    ></hot-table>
   </div>
 </template>
 
 <script lang="ts">
-import { HotTable } from '@handsontable/vue';
-import 'handsontable/dist/handsontable.full.css';
+import { HotTable } from "@handsontable/vue";
+import "handsontable/dist/handsontable.full.css";
 
 import { getData } from "../utils/constants";
 import { progressBarRenderer } from "../renderers/progressBar";
 import { starsRenderer } from "../renderers/stars";
 
-import {
-  alignHeaders,
-  drawCheckboxInRowHeaders,
-  addClassesToRows,
-  changeCheckboxCell
-} from "../utils/hooks-callbacks";
+import { alignHeaders, addClassesToRows } from "../utils/hooks-callbacks";
 
 export default {
-  name: 'DataGrid',
-  data: function() {
+  name: "DataGrid",
+  data: function () {
     return {
       hotSettings: {
+        navigableHeaders: true,
         height: 450,
         dropdownMenu: true,
         hiddenColumns: {
@@ -33,9 +33,7 @@ export default {
         multiColumnSorting: true,
         filters: true,
         rowHeaders: true,
-        afterOnCellMouseDown: changeCheckboxCell,
         afterGetColHeader: alignHeaders,
-        afterGetRowHeader: drawCheckboxInRowHeaders,
         beforeRenderer: addClassesToRows,
         colWidths: [140, 192, 100, 90, 90, 110, 97, 100, 126],
         colHeaders: [
@@ -47,7 +45,7 @@ export default {
           "Progress",
           "Rating",
           "Order ID",
-          "Country"
+          "Country",
         ],
         columns: [
           { data: 1, type: "text" },
@@ -55,22 +53,22 @@ export default {
           {
             data: 4,
             type: "date",
-            allowInvalid: false
+            allowInvalid: false,
           },
           {
             data: 6,
             type: "checkbox",
-            className: "htCenter"
+            className: "htCenter",
           },
           {
             data: 7,
-            type: "numeric"
+            type: "numeric",
           },
           {
             data: 8,
             renderer: progressBarRenderer,
             readOnly: true,
-            className: "htMiddle"
+            className: "htMiddle",
           },
           {
             data: 9,
@@ -79,17 +77,17 @@ export default {
             className: "star htCenter",
           },
           { data: 5, type: "text" },
-          { data: 2, type: "text" }
+          { data: 2, type: "text" },
         ],
         licenseKey: "non-commercial-and-evaluation",
       },
-      data: getData()
-    }
+      data: getData(),
+    };
   },
   components: {
-    HotTable
-  }
-}
+    HotTable,
+  },
+};
 </script>
 
 <style lang="scss">
@@ -111,7 +109,7 @@ table.htCore {
     height: 10px;
   }
 
-  td.star {
+  td .stars {
     color: #fcb515;
   }
 }
@@ -122,8 +120,8 @@ table.htCore {
 
 .handsontable {
   font-size: 13px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-  'Ubuntu', 'Helvetica Neue', Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Helvetica Neue", Arial, sans-serif;
   font-weight: 400;
 
   .collapsibleIndicator {

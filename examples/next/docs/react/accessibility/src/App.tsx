@@ -9,8 +9,7 @@ import { countries, data } from "./data";
 import DemoOptions from "./components/DemoOptions";
 import {
   alignHeaders,
-  addClassesToRows,
-  changeCheckboxCell,
+  addClassesToRows, 
 } from "./hooksCallbacks";
 
 const hotOptions = {
@@ -38,8 +37,7 @@ const hotOptions = {
   manualRowMove: true,
   nestedRows: true,
   afterGetColHeader: alignHeaders,
-  beforeRenderer: addClassesToRows,
-  afterOnCellMouseDown: changeCheckboxCell,
+  beforeRenderer: addClassesToRows, 
   licenseKey: "non-commercial-and-evaluation",
 };
 
