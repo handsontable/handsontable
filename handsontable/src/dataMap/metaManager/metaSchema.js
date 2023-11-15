@@ -3242,7 +3242,7 @@ export default () => {
      * @since 14.0.0
      * @memberof Options#
      * @type {boolean}
-     * @default false
+     * @default true
      * @category Core
      *
      * @example
