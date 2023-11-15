@@ -85,8 +85,8 @@ const updateFrameworkWorkspacesInformation = (projectDir, version) => {
   packageJson.version = version;
 
   if (packageJson.scripts?.postinstall) {
-    packageJson.scripts.postinstall = packageJson.scripts.postinstall.replace(
-      'examples-version next', `examples-version ${version}`);
+    // Remove the linking logic for the frozen-version examples.
+    delete packageJson.scripts.postinstall;
   }
 
   fs.writeJsonSync(packageJsonPath, packageJson, { spaces: 2 });
