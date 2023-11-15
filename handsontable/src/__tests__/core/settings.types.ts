@@ -502,10 +502,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeColumnMove: (columns, target) => {},
   beforeColumnResize: (newSize, column, isDoubleClick) => {},
   beforeColumnSort: (currentSortConfig, destinationSortConfigs) => {},
-  beforeColumnWrap: (isAutoWrapEnabled, newCoords, isColumnFlipped) => {
-    const _isAutoWrapEnabled: boolean = isAutoWrapEnabled;
+  beforeColumnWrap: (isActionInterrupted, newCoords, isColumnFlipped) => {
+    const _isActionInterrupted: boolean = isActionInterrupted.value;
     const _isColumnFlipped: boolean = isColumnFlipped;
 
+    isActionInterrupted.value = false;
     newCoords.clone();
   },
   beforeColumnUnfreeze: (columnIndex, isFreezingPerformed) => false,
@@ -564,10 +565,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeRenderer: (TD, row, col, prop, value, cellProperties) => {},
   beforeRowMove: (movedRows, finalIndex, dropIndex, movePossible) => {},
   beforeRowResize: (newSize, row, isDoubleClick) => {},
-  beforeRowWrap: (isAutoWrapEnabled, newCoords, isRowFlipped) => {
-    const _isAutoWrapEnabled: boolean = isAutoWrapEnabled;
+  beforeRowWrap: (isActionInterrupted, newCoords, isRowFlipped) => {
+    const _isActionInterrupted: boolean = isActionInterrupted.value;
     const _isRowFlipped: boolean = isRowFlipped;
 
+    isActionInterrupted.value = false;
     newCoords.clone();
   },
   beforeSelectColumns: (from, to, highlight) => {},
