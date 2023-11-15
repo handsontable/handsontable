@@ -56,17 +56,15 @@ export class ManualRowMove extends BasePlugin {
   /**
    * Backlight UI object.
    *
-   * @private
    * @type {object}
    */
-  backlight = new BacklightUI(this.hot);
+  #backlight = new BacklightUI(this.hot);
   /**
    * Guideline UI object.
    *
-   * @private
    * @type {object}
    */
-  guideline = new GuidelineUI(this.hot);
+  #guideline = new GuidelineUI(this.hot);
   /**
    * @type {number[]}
    */
@@ -138,8 +136,8 @@ export class ManualRowMove extends BasePlugin {
     removeClass(this.hot.rootElement, CSS_PLUGIN);
 
     this.unregisterEvents();
-    this.backlight.destroy();
-    this.guideline.destroy();
+    this.#backlight.destroy();
+    this.#guideline.destroy();
 
     super.disablePlugin();
   }
@@ -431,8 +429,8 @@ export class ManualRowMove extends BasePlugin {
     const pixelsRelToTableStart = this.#target.eventPageY - pixelsAbove + tableScroll;
     const hiderHeight = wtTable.hider.offsetHeight;
     const tbodyOffsetTop = wtTable.TBODY.offsetTop;
-    const backlightElemMarginTop = this.backlight.getOffset().top;
-    const backlightElemHeight = this.backlight.getSize().height;
+    const backlightElemMarginTop = this.#backlight.getOffset().top;
+    const backlightElemHeight = this.#backlight.getSize().height;
     const tdMiddle = (TD.offsetHeight / 2);
     const tdHeight = TD.offsetHeight;
     let tdStartPixel = this.hot.view.THEAD.offsetHeight + this.getRowsHeight(0, coords.row - 1);
@@ -473,8 +471,8 @@ export class ManualRowMove extends BasePlugin {
       guidelineTop = hiderHeight - 1;
     }
 
-    this.backlight.setPosition(backlightTop);
-    this.guideline.setPosition(guidelineTop);
+    this.#backlight.setPosition(backlightTop);
+    this.#guideline.setPosition(guidelineTop);
   }
 
   /**
@@ -520,12 +518,12 @@ export class ManualRowMove extends BasePlugin {
       return;
     }
 
-    const guidelineIsNotReady = this.guideline.isBuilt() && !this.guideline.isAppended();
-    const backlightIsNotReady = this.backlight.isBuilt() && !this.backlight.isAppended();
+    const guidelineIsNotReady = this.#guideline.isBuilt() && !this.#guideline.isAppended();
+    const backlightIsNotReady = this.#backlight.isBuilt() && !this.#backlight.isAppended();
 
     if (guidelineIsNotReady && backlightIsNotReady) {
-      this.guideline.appendTo(wtTable.hider);
-      this.backlight.appendTo(wtTable.hider);
+      this.#guideline.appendTo(wtTable.hider);
+      this.#backlight.appendTo(wtTable.hider);
     }
 
     const { from, to } = selection;
@@ -544,9 +542,9 @@ export class ManualRowMove extends BasePlugin {
       const leftPos = wtTable.holder.scrollLeft + wtViewport.getRowHeaderWidth();
       const topOffset = this.getRowsHeight(start, coords.row - 1) + event.offsetY;
 
-      this.backlight.setPosition(null, leftPos);
-      this.backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end));
-      this.backlight.setOffset(-topOffset, null);
+      this.#backlight.setPosition(null, leftPos);
+      this.#backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end));
+      this.#backlight.setOffset(-topOffset, null);
 
       addClass(this.hot.rootElement, CSS_ON_MOVING);
 
@@ -649,8 +647,8 @@ export class ManualRowMove extends BasePlugin {
     const scrollLeft = wtTable.holder.scrollLeft;
     const posLeft = headerWidth + scrollLeft;
 
-    this.backlight.setPosition(null, posLeft);
-    this.backlight.setSize(wtTable.hider.offsetWidth - posLeft);
+    this.#backlight.setPosition(null, posLeft);
+    this.#backlight.setSize(wtTable.hider.offsetWidth - posLeft);
   }
 
   /**
@@ -659,8 +657,8 @@ export class ManualRowMove extends BasePlugin {
    * @private
    */
   buildPluginUI() {
-    this.backlight.build();
-    this.guideline.build();
+    this.#backlight.build();
+    this.#guideline.build();
   }
 
   /**
@@ -674,8 +672,8 @@ export class ManualRowMove extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.backlight.destroy();
-    this.guideline.destroy();
+    this.#backlight.destroy();
+    this.#guideline.destroy();
 
     super.destroy();
   }
