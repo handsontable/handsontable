@@ -72,7 +72,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() dateFormat: Handsontable.GridSettings['dateFormat'];
   @Input() datePickerConfig: Handsontable.GridSettings['datePickerConfig'];
   @Input() defaultDate: Handsontable.GridSettings['defaultDate'];
-  @Input() disableTabNavigation: Handsontable.GridSettings['disableTabNavigation'];
+  @Input() tabNavigation: Handsontable.GridSettings['tabNavigation'];
   @Input() disableVisualSelection: Handsontable.GridSettings['disableVisualSelection'];
   @Input() dragToScroll: Handsontable.GridSettings['dragToScroll'];
   @Input() dropdownMenu: Handsontable.GridSettings['dropdownMenu'];

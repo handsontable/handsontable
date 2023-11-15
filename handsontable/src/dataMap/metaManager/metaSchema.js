@@ -3214,7 +3214,7 @@ export default () => {
     multiColumnSorting: undefined,
 
     /**
-     * When set to `true`, the `navigableHeaders` option lets you navigate [row headers](@/guides/rows/row-header.md) and [column headers](@/guides/columns/column-header.md), using the arrow keys or the <kbd>**Tab**</kbd> key (if the [`disableTabNavigation`](#disabletabnavigation) option is set to `false`).
+     * When set to `true`, the `navigableHeaders` option lets you navigate [row headers](@/guides/rows/row-header.md) and [column headers](@/guides/columns/column-header.md), using the arrow keys or the <kbd>**Tab**</kbd> key (if the [`tabNavigation`](#tabNavigation) option is set to `true`).
      *
      * @since 14.0.0
      * @memberof Options#
@@ -3234,9 +3234,9 @@ export default () => {
     navigableHeaders: false,
 
     /**
-     * When set to `true`, the `disableTabNavigation` option changes the behavior of the
+     * When set to `false`, the `tabNavigation` option changes the behavior of the
      * <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts. The Handsontable
-     * no more captures that shortcuts to make the grid navigation available (`disableTabNavigation: false`)
+     * no more captures that shortcuts to make the grid navigation available (`tabNavigation: true`)
      * but returns control to the browser so the native page navigation is possible.
      *
      * @since 14.0.0
@@ -3248,13 +3248,13 @@ export default () => {
      * @example
      * ```js
      * // you can't navigate row and column headers using <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts
-     * disableTabNavigation: true,
+     * tabNavigation: false,
      *
      * // default behavior: you can navigate row and column headers using <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts
-     * disableTabNavigation: false,
+     * tabNavigation: true,
      * ```
      */
-    disableTabNavigation: false,
+    tabNavigation: true,
 
     /**
      * @description
