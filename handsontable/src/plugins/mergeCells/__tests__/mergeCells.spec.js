@@ -451,7 +451,7 @@ describe('MergeCells', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A2');
     });
 
-    it('should select the cell in the top-left corner of the merged cell, when navigating down using the TAB key on the' +
+    it('should not select the cell in the top-left corner of the merged cell, when navigating down using the TAB key on the' +
       ' bottom edge of the table', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -475,12 +475,12 @@ describe('MergeCells', () => {
       keyDownUp('tab');
       keyDownUp('enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('');
 
       keyDownUp('tab');
       keyDownUp('enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('');
     });
 
     it('should select the cell in the top-left corner of the merged cell, when navigating down using the SHIFT + ENTER key on the' +
