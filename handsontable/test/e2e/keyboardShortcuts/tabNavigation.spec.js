@@ -21,7 +21,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: false,
-        disableTabNavigation: false,
+        tabNavigation: true,
         autoWrapRow: false,
       });
       const hot1 = handsontable({
@@ -29,7 +29,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: false,
-        disableTabNavigation: false,
+        tabNavigation: true,
         autoWrapRow: false,
       }, false, spec().$container1);
 
@@ -76,7 +76,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: true,
-        disableTabNavigation: false,
+        tabNavigation: true,
         autoWrapRow: false,
       });
       const hot1 = handsontable({
@@ -84,7 +84,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: true,
-        disableTabNavigation: false,
+        tabNavigation: true,
         autoWrapRow: false,
       }, false, spec().$container1);
 
@@ -141,7 +141,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: false,
-        disableTabNavigation: false,
+        tabNavigation: true,
         autoWrapRow: true,
       });
       const hot1 = handsontable({
@@ -149,7 +149,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: false,
-        disableTabNavigation: false,
+        tabNavigation: true,
         autoWrapRow: true,
       }, false, spec().$container1);
 
@@ -206,7 +206,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: false,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       });
       const hot1 = handsontable({
@@ -214,7 +214,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: false,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       }, false, spec().$container1);
 
@@ -241,7 +241,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: true,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       });
       const hot1 = handsontable({
@@ -249,7 +249,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: true,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       }, false, spec().$container1);
 
@@ -276,7 +276,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: true,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       });
       const hot1 = handsontable({
@@ -284,7 +284,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: true,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       }, false, spec().$container1);
 
@@ -316,7 +316,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: false,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       });
       const hot1 = handsontable({
@@ -324,7 +324,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: false,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       }, false, spec().$container1);
 
@@ -362,7 +362,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: true,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       });
       const hot1 = handsontable({
@@ -370,7 +370,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: true,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       }, false, spec().$container1);
 
@@ -403,7 +403,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: false,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       });
       const hot1 = handsontable({
@@ -411,7 +411,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: false,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       }, false, spec().$container1);
 
@@ -446,7 +446,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: false,
-        disableTabNavigation: false,
+        tabNavigation: true,
         autoWrapRow: false,
       });
       const hot1 = handsontable({
@@ -454,7 +454,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: false,
-        disableTabNavigation: false,
+        tabNavigation: true,
         autoWrapRow: false,
       }, false, spec().$container1);
 
@@ -502,7 +502,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: true,
-        disableTabNavigation: false,
+        tabNavigation: true,
         autoWrapRow: false,
       });
       const hot1 = handsontable({
@@ -511,7 +511,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: true,
-        disableTabNavigation: false,
+        tabNavigation: true,
         autoWrapRow: false,
       }, false, spec().$container1);
 
@@ -558,7 +558,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: false,
-        disableTabNavigation: false,
+        tabNavigation: true,
         autoWrapRow: true,
       });
       const hot1 = handsontable({
@@ -566,7 +566,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: false,
-        disableTabNavigation: false,
+        tabNavigation: true,
         autoWrapRow: true,
       }, false, spec().$container1);
 
@@ -623,7 +623,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: false,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       });
       const hot1 = handsontable({
@@ -631,7 +631,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: false,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       }, false, spec().$container1);
 
@@ -658,7 +658,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: true,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       });
       const hot1 = handsontable({
@@ -666,7 +666,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: true,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       }, false, spec().$container1);
 
@@ -698,7 +698,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: false,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       });
       const hot1 = handsontable({
@@ -706,7 +706,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: false,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       }, false, spec().$container1);
 
@@ -744,7 +744,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: true,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       });
       const hot1 = handsontable({
@@ -752,7 +752,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: true,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       }, false, spec().$container1);
 
@@ -785,7 +785,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: false,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       });
       const hot1 = handsontable({
@@ -793,7 +793,7 @@ describe('Core navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: false,
-        disableTabNavigation: true,
+        tabNavigation: false,
         autoWrapRow: false,
       }, false, spec().$container1);
 
@@ -828,7 +828,7 @@ describe('Core navigation keyboard shortcuts', () => {
       rowHeaders: true,
       colHeaders: true,
       navigableHeaders: true,
-      disableTabNavigation: true,
+      tabNavigation: false,
       autoWrapRow: false,
     });
     const hot1 = handsontable({
@@ -836,7 +836,7 @@ describe('Core navigation keyboard shortcuts', () => {
       rowHeaders: true,
       colHeaders: true,
       navigableHeaders: true,
-      disableTabNavigation: true,
+      tabNavigation: false,
       autoWrapRow: false,
     }, false, spec().$container1);
 
@@ -876,7 +876,7 @@ describe('Core navigation keyboard shortcuts', () => {
       height: 200,
       rowHeaders: true,
       colHeaders: true,
-      disableTabNavigation: true,
+      tabNavigation: false,
       autoWrapRow: true,
     });
     const hot1 = handsontable({
@@ -885,7 +885,7 @@ describe('Core navigation keyboard shortcuts', () => {
       height: 200,
       rowHeaders: true,
       colHeaders: true,
-      disableTabNavigation: true,
+      tabNavigation: false,
       autoWrapRow: true,
     }, false, spec().$container1);
 
