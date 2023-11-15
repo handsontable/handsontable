@@ -1,4 +1,4 @@
-import { mixin } from '../helpers/object';
+import { mixin, createObjectPropListener } from '../helpers/object';
 import localHooks from './../mixins/localHooks';
 
 /**
@@ -81,34 +81,43 @@ class Transformation {
       );
 
       if (zeroBasedCoords.row >= height) {
-        const autoInsertingMode = createMissingRecords && minSpareRows > 0 && fixedRowsBottom === 0;
-        const isWrapEnabled = !autoInsertingMode && autoWrapCol;
-
+        const isActionInterrupted = createObjectPropListener(
+          createMissingRecords && minSpareRows > 0 && fixedRowsBottom === 0
+        );
         const nextColumn = zeroBasedCoords.col + 1;
         const newCoords = this.#options.createCellCoords(
           zeroBasedCoords.row - height,
           nextColumn >= width ? nextColumn - width : nextColumn,
         );
 
-        this.runLocalHooks('beforeColumnWrap',
-          isWrapEnabled, this.#zeroBasedToVisualCoords(newCoords), nextColumn >= width);
+        this.runLocalHooks(
+          'beforeColumnWrap',
+          isActionInterrupted,
+          this.#zeroBasedToVisualCoords(newCoords),
+          nextColumn >= width,
+        );
 
-        if (autoInsertingMode) {
+        if (isActionInterrupted.value) {
           this.runLocalHooks('insertRowRequire', this.#options.countRenderableRows());
 
-        } else if (isWrapEnabled) {
+        } else if (autoWrapCol) {
           zeroBasedCoords.assign(newCoords);
         }
 
       } else if (zeroBasedCoords.row < 0) {
+        const isActionInterrupted = createObjectPropListener(autoWrapCol);
         const previousColumn = zeroBasedCoords.col - 1;
         const newCoords = this.#options.createCellCoords(
           height + zeroBasedCoords.row,
           previousColumn < 0 ? width + previousColumn : previousColumn,
         );
 
-        this.runLocalHooks('beforeColumnWrap',
-          autoWrapCol, this.#zeroBasedToVisualCoords(newCoords), previousColumn < 0);
+        this.runLocalHooks(
+          'beforeColumnWrap',
+          isActionInterrupted,
+          this.#zeroBasedToVisualCoords(newCoords),
+          previousColumn < 0,
+        );
 
         if (autoWrapCol) {
           zeroBasedCoords.assign(newCoords);
@@ -116,34 +125,43 @@ class Transformation {
       }
 
       if (zeroBasedCoords.col >= width) {
-        const autoInsertingMode = createMissingRecords && minSpareCols > 0;
-        const isWrapEnabled = !autoInsertingMode && autoWrapRow;
-
+        const isActionInterrupted = createObjectPropListener(
+          createMissingRecords && minSpareCols > 0
+        );
         const nextRow = zeroBasedCoords.row + 1;
         const newCoords = this.#options.createCellCoords(
           nextRow >= height ? nextRow - height : nextRow,
           zeroBasedCoords.col - width,
         );
 
-        this.runLocalHooks('beforeRowWrap',
-          isWrapEnabled, this.#zeroBasedToVisualCoords(newCoords), nextRow >= height);
+        this.runLocalHooks(
+          'beforeRowWrap',
+          isActionInterrupted,
+          this.#zeroBasedToVisualCoords(newCoords),
+          nextRow >= height,
+        );
 
-        if (autoInsertingMode) {
+        if (isActionInterrupted.value) {
           this.runLocalHooks('insertColRequire', this.#options.countRenderableColumns());
 
-        } else if (isWrapEnabled) {
+        } else if (autoWrapRow) {
           zeroBasedCoords.assign(newCoords);
         }
 
       } else if (zeroBasedCoords.col < 0) {
+        const isActionInterrupted = createObjectPropListener(autoWrapRow);
         const previousRow = zeroBasedCoords.row - 1;
         const newCoords = this.#options.createCellCoords(
           previousRow < 0 ? height + previousRow : previousRow,
           width + zeroBasedCoords.col,
         );
 
-        this.runLocalHooks('beforeRowWrap',
-          autoWrapRow, this.#zeroBasedToVisualCoords(newCoords), previousRow < 0);
+        this.runLocalHooks(
+          'beforeRowWrap',
+          isActionInterrupted,
+          this.#zeroBasedToVisualCoords(newCoords),
+          previousRow < 0,
+        );
 
         if (autoWrapRow) {
           zeroBasedCoords.assign(newCoords);

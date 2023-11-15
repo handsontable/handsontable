@@ -6,6 +6,6 @@ export const command = {
       ? settings.tabMoves(event)
       : settings.tabMoves;
 
-    hot.selection.transformStart(tabMoves.row, tabMoves.col, true);
+    hot.selection.transformStart(tabMoves.row, tabMoves.col);
   },
 };

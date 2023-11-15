@@ -447,6 +447,7 @@ export class TextEditor extends BaseEditor {
   registerShortcuts() {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
+    const gridContext = shortcutManager.getContext('grid');
     const contextConfig = {
       runOnlyIf: () => isDefined(this.hot.getSelected()),
       group: SHORTCUTS_GROUP,
@@ -457,27 +458,14 @@ export class TextEditor extends BaseEditor {
     };
 
     editorContext.addShortcuts([{
-      keys: [['Tab']],
-      // TODO: Duplicated part of code (callback to shortcut).
-      callback: (event) => {
-        const tableMeta = this.hot.getSettings();
-        const tabMoves = typeof tableMeta.tabMoves === 'function'
-          ? tableMeta.tabMoves(event)
-          : tableMeta.tabMoves;
-
-        this.hot.selection.transformStart(tabMoves.row, tabMoves.col, true);
-      },
-    }, {
-      keys: [['Shift', 'Tab']],
-      // TODO: Duplicated part of code (callback to shortcut).
-      callback: (event) => {
-        const tableMeta = this.hot.getSettings();
-        const tabMoves = typeof tableMeta.tabMoves === 'function'
-          ? tableMeta.tabMoves(event)
-          : tableMeta.tabMoves;
-
-        this.hot.selection.transformStart(-tabMoves.row, -tabMoves.col);
-      },
+      keys: [
+        ['Tab'],
+        ['Shift', 'Tab'],
+        ['PageUp'],
+        ['PageDown']
+      ],
+      forwardToContext: gridContext,
+      callback: () => {},
     }, {
       keys: [['Control', 'Enter']],
       callback: () => {
@@ -503,22 +491,6 @@ export class TextEditor extends BaseEditor {
 
         return false; // Will block closing editor.
       },
-    }, {
-      // TODO: Duplicated part of code (callback to shortcut)
-      keys: [
-        ['PageUp'],
-      ],
-      callback: () => {
-        this.hot.selection.transformStart(-this.hot.countVisibleRows(), 0);
-      },
-    }, {
-      // TODO: Duplicated part of code (callback to shortcut)
-      keys: [
-        ['PageDown'],
-      ],
-      callback: () => {
-        this.hot.selection.transformStart(this.hot.countVisibleRows(), 0);
-      }
     }, {
       keys: [['Home']],
       callback: (event, [keyName]) => {
