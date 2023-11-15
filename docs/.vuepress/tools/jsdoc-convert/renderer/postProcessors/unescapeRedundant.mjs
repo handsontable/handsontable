@@ -12,5 +12,7 @@ export const unescapeRedundant = text => text
   .replace(/<\/ul>\./g, '</ul>')
   .replace(/&quot;&#x27;/g, '"')
   .replace(/&#x27;&quot;/g, '"')
+  // eslint-disable-next-line quotes
   .replace(/`&#x27;/g, `\`'`)
+  // eslint-disable-next-line quotes
   .replace(/&#x27;`/g, `'\``);
