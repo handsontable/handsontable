@@ -83,7 +83,7 @@ export function installFocusCatcher(hot) {
         callback: () => {
           isTabOrShiftTabPressed = true;
 
-          if (hot.getSelectedRangeLast() && (!hot.getSettings().tabNavigation)) {
+          if (hot.getSelectedRangeLast() && !hot.getSettings().tabNavigation) {
             isSavingCoordsEnabled = false;
           }
         },
