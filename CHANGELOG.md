@@ -65,7 +65,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed a problem with the editor having incorrect width and height. [#10504](https://github.com/handsontable/handsontable/pull/10504)
 - Fixed visual glitches (unwanted pixels) of the `Autocomplete` editor's list in cases when there were no items. [#10506](https://github.com/handsontable/handsontable/pull/10506)
 - Fixed the Vue and React demo's dependencies to be able to use the demos with Stackblitz. [#10523](https://github.com/handsontable/handsontable/pull/10523)
-- Fixed a problem with the merged cells having wrong row heights. [#941](https://github.com/handsontable/handsontable/pull/941)
+- Fixed a problem with the merged cells having wrong row heights. [#10500](https://github.com/handsontable/handsontable/pull/10500)
+- Fixed the accessibility issues in the documentation. [#10574](https://github.com/handsontable/handsontable/pull/10574)
+- Updated the demos for better accessibility. [#10563](https://github.com/handsontable/handsontable/pull/10563)
 
 For more information on Handsontable 14.0.0, see:
 
