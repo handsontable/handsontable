@@ -98,8 +98,8 @@ const CHECK_TRIES = 20;
 
         // If the test fails, do another try after a timeout (some instances might have not been initialized yet).
         while (
-          (!pageEvaluation.result && tryCount < CHECK_TRIES) ||
-          pageEvaluation.elementsNotYetRendered
+          (tryCount < CHECK_TRIES) &&
+          (!pageEvaluation.result || pageEvaluation.elementsNotYetRendered)
         ) {
           tryCount += 1;
 
