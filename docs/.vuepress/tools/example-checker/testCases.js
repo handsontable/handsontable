@@ -31,6 +31,8 @@ const testCases = [
       // The demo page contains a rendered Handsontable instance which is not a part of any tabbed example.
       '/javascript-data-grid/demo': 1,
       '/react-data-grid/demo': 1,
+      // the a11y demo hot reloads handsontable, this makes the test detect an extra instance, we need to do -1 to make it pass
+      '/javascript-data-grid/accessibility' : -1,
     };
 
     /**
