@@ -84,7 +84,7 @@ export function installFocusCatcher(hot) {
         callback: () => {
           isTabOrShiftTabPressed = true;
 
-          if (hot.getSelectedRangeLast() && (hot.getSettings().tabNavigation === false)) {
+          if (hot.getSelectedRangeLast() && (!hot.getSettings().tabNavigation)) {
             isSavingCoordsEnabled = false;
           }
         },
@@ -99,7 +99,7 @@ export function installFocusCatcher(hot) {
           isSavingCoordsEnabled = true;
 
           if (
-            (tabNavigation === false) ||
+            !tabNavigation ||
             !hot.selection.isSelected() ||
             autoWrapRow && rowWrapState.wrapped && rowWrapState.flipped ||
             !autoWrapRow && rowWrapState.wrapped
