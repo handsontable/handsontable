@@ -1052,7 +1052,11 @@ describe('Transformation class', () => {
         transform.addLocalHook('beforeColumnWrap', hookListener.beforeColumnWrap);
         transform.transformStart(6, 0);
 
-        expect(hookListener.beforeColumnWrap).toHaveBeenCalledWith(true, new CellCoords(0, 5), false);
+        expect(hookListener.beforeColumnWrap).toHaveBeenCalledWith(
+          expect.objectContaining({ value: false }),
+          new CellCoords(0, 5),
+          false
+        );
       });
 
       it('should be fired when the new row index exceeds the first row of the headers', () => {
@@ -1068,7 +1072,11 @@ describe('Transformation class', () => {
         transform.addLocalHook('beforeColumnWrap', hookListener.beforeColumnWrap);
         transform.transformStart(-6, 0);
 
-        expect(hookListener.beforeColumnWrap).toHaveBeenCalledWith(true, new CellCoords(9, 4), false);
+        expect(hookListener.beforeColumnWrap).toHaveBeenCalledWith(
+          expect.objectContaining({ value: expect.any(Boolean) }),
+          new CellCoords(9, 4),
+          false
+        );
       });
 
       it('should be fired with 3rd argument as `true` when the coords are flipped (flip from bottom-right to top-left)', () => {
@@ -1084,7 +1092,11 @@ describe('Transformation class', () => {
         transform.addLocalHook('beforeColumnWrap', hookListener.beforeColumnWrap);
         transform.transformStart(1, 0);
 
-        expect(hookListener.beforeColumnWrap).toHaveBeenCalledWith(true, new CellCoords(0, 0), true);
+        expect(hookListener.beforeColumnWrap).toHaveBeenCalledWith(
+          expect.objectContaining({ value: false }),
+          new CellCoords(0, 0),
+          true
+        );
       });
 
       it('should be fired with 3rd argument as `true` when the coords are flipped (flip from top-left to bottom-right)', () => {
@@ -1100,7 +1112,11 @@ describe('Transformation class', () => {
         transform.addLocalHook('beforeColumnWrap', hookListener.beforeColumnWrap);
         transform.transformStart(-1, 0);
 
-        expect(hookListener.beforeColumnWrap).toHaveBeenCalledWith(true, new CellCoords(9, 9), true);
+        expect(hookListener.beforeColumnWrap).toHaveBeenCalledWith(
+          expect.objectContaining({ value: true }),
+          new CellCoords(9, 9),
+          true
+        );
       });
 
       it('should not be fired when the new row index not exceed dataset range', () => {
@@ -1131,15 +1147,23 @@ describe('Transformation class', () => {
         transform.addLocalHook('beforeColumnWrap', hookListener.beforeColumnWrap);
         transform.transformStart(6, 0);
 
-        expect(hookListener.beforeColumnWrap).toHaveBeenCalledWith(false, new CellCoords(0, 5), false);
+        expect(hookListener.beforeColumnWrap).toHaveBeenCalledWith(
+          expect.objectContaining({ value: false }),
+          new CellCoords(0, 5),
+          false
+        );
 
         hookListener.beforeColumnWrap.calls.reset();
         transform.transformStart(-6, 0);
 
-        expect(hookListener.beforeColumnWrap).toHaveBeenCalledWith(false, new CellCoords(8, 3), false);
+        expect(hookListener.beforeColumnWrap).toHaveBeenCalledWith(
+          expect.objectContaining({ value: false }),
+          new CellCoords(8, 3),
+          false
+        );
       });
 
-      it('should be fired with first argument as `false` when wrapping is interrupted', () => {
+      it('should be fired with first argument as `true` when wrapping is interrupted', () => {
         const hookListener = { beforeColumnWrap() {} };
 
         spyOn(hookListener, 'beforeColumnWrap');
@@ -1154,7 +1178,11 @@ describe('Transformation class', () => {
         transform.addLocalHook('beforeColumnWrap', hookListener.beforeColumnWrap);
         transform.transformStart(6, 0, true);
 
-        expect(hookListener.beforeColumnWrap).toHaveBeenCalledWith(false, new CellCoords(0, 5), false);
+        expect(hookListener.beforeColumnWrap).toHaveBeenCalledWith(
+          expect.objectContaining({ value: true }),
+          new CellCoords(0, 5),
+          false
+        );
       });
     });
 
@@ -1172,7 +1200,11 @@ describe('Transformation class', () => {
         transform.addLocalHook('beforeRowWrap', hookListener.beforeRowWrap);
         transform.transformStart(0, 6);
 
-        expect(hookListener.beforeRowWrap).toHaveBeenCalledWith(true, new CellCoords(5, 0), false);
+        expect(hookListener.beforeRowWrap).toHaveBeenCalledWith(
+          expect.objectContaining({ value: false }),
+          new CellCoords(5, 0),
+          false
+        );
       });
 
       it('should be fired when the new column index exceeds the first column of the headers', () => {
@@ -1188,7 +1220,11 @@ describe('Transformation class', () => {
         transform.addLocalHook('beforeRowWrap', hookListener.beforeRowWrap);
         transform.transformStart(0, -6);
 
-        expect(hookListener.beforeRowWrap).toHaveBeenCalledWith(true, new CellCoords(4, 9), false);
+        expect(hookListener.beforeRowWrap).toHaveBeenCalledWith(
+          expect.objectContaining({ value: true }),
+          new CellCoords(4, 9),
+          false
+        );
       });
 
       it('should be fired with 3rd argument as `true` when the coords are flipped (flip from bottom-right to top-left)', () => {
@@ -1204,7 +1240,11 @@ describe('Transformation class', () => {
         transform.addLocalHook('beforeRowWrap', hookListener.beforeRowWrap);
         transform.transformStart(0, 1);
 
-        expect(hookListener.beforeRowWrap).toHaveBeenCalledWith(true, new CellCoords(0, 0), true);
+        expect(hookListener.beforeRowWrap).toHaveBeenCalledWith(
+          expect.objectContaining({ value: false }),
+          new CellCoords(0, 0),
+          true
+        );
       });
 
       it('should be fired with 3rd argument as `true` when the coords are flipped (flip from top-left to bottom-right)', () => {
@@ -1220,7 +1260,11 @@ describe('Transformation class', () => {
         transform.addLocalHook('beforeRowWrap', hookListener.beforeRowWrap);
         transform.transformStart(0, -1);
 
-        expect(hookListener.beforeRowWrap).toHaveBeenCalledWith(true, new CellCoords(9, 9), true);
+        expect(hookListener.beforeRowWrap).toHaveBeenCalledWith(
+          expect.objectContaining({ value: true }),
+          new CellCoords(9, 9),
+          true
+        );
       });
 
       it('should not be fired when the new column index not exceed dataset range', () => {
@@ -1251,15 +1295,23 @@ describe('Transformation class', () => {
         transform.addLocalHook('beforeRowWrap', hookListener.beforeRowWrap);
         transform.transformStart(0, 6);
 
-        expect(hookListener.beforeRowWrap).toHaveBeenCalledWith(false, new CellCoords(5, 0), false);
+        expect(hookListener.beforeRowWrap).toHaveBeenCalledWith(
+          expect.objectContaining({ value: false }),
+          new CellCoords(5, 0),
+          false
+        );
 
         hookListener.beforeRowWrap.calls.reset();
         transform.transformStart(0, -6);
 
-        expect(hookListener.beforeRowWrap).toHaveBeenCalledWith(false, new CellCoords(3, 8), false);
+        expect(hookListener.beforeRowWrap).toHaveBeenCalledWith(
+          expect.objectContaining({ value: false }),
+          new CellCoords(3, 8),
+          false
+        );
       });
 
-      it('should be fired with first argument as `false` when wrapping is interrupted', () => {
+      it('should be fired with first argument as `true` when wrapping is interrupted', () => {
         const hookListener = { beforeRowWrap() {} };
 
         spyOn(hookListener, 'beforeRowWrap');
@@ -1273,7 +1325,11 @@ describe('Transformation class', () => {
         transform.addLocalHook('beforeRowWrap', hookListener.beforeRowWrap);
         transform.transformStart(0, 6, true);
 
-        expect(hookListener.beforeRowWrap).toHaveBeenCalledWith(false, new CellCoords(5, 0), false);
+        expect(hookListener.beforeRowWrap).toHaveBeenCalledWith(
+          expect.objectContaining({ value: true }),
+          new CellCoords(5, 0),
+          false
+        );
       });
     });
   });
