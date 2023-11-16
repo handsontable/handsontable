@@ -1361,7 +1361,8 @@ const REGISTERED_HOOKS = [
 
   /**
    * Fired before applying selection coordinates to the renderable coordinates for Walkontable (rendering engine).
-   * It is called even if cell coordinates do not change. 
+   * It occurs even when cell coordinates remain unchanged and activates during cell selection and drag selection.
+   * The behavior of Shift+Tab differs from Arrow Left when there's no further movement possible.
    *
    * @since 14.0.0
    * @event Hooks#beforeSelectionHighlightSet
