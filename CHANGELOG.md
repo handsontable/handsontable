@@ -9,6 +9,60 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [14.0.0] - 2023-11-22
+
+### Added
+- **Breaking change**: Added a11y attributes to all images and icons. [#10540](https://github.com/handsontable/handsontable/pull/10540)
+- Added Ctrl/Cmd+Shift+Space keyboard shortcut that allows selecting all cells. [#10237](https://github.com/handsontable/handsontable/pull/10237)
+- Added support for keyboard navigation in headers. [#10265](https://github.com/handsontable/handsontable/pull/10265)
+- Added support for keyboard shortcuts that allows selecting all rows and columns and add 4 new hooks [#10389](https://github.com/handsontable/handsontable/pull/10389)
+- Added support for collapsing/expanding columns using a keyboard shortcut. [#10404](https://github.com/handsontable/handsontable/pull/10404)
+- Added support for collapsing/expanding nested rows using a keyboard shortcut. [#10405](https://github.com/handsontable/handsontable/pull/10405)
+- Added support for column sorting using a keyboard shortcut. [#10410](https://github.com/handsontable/handsontable/pull/10410)
+- Added support for keyboard shortcuts that allow open column menu. [#10413](https://github.com/handsontable/handsontable/pull/10413)
+- Added support for keyboard shortcut that allows opening the context menu. [#10417](https://github.com/handsontable/handsontable/pull/10417)
+- Added support for new keyboard shortcut that allows scrolling the viewport [#10419](https://github.com/handsontable/handsontable/pull/10419)
+- Added support for keyboard shortcut that allows clearing the filters. [#10420](https://github.com/handsontable/handsontable/pull/10420)
+- Added a keyboard shortcut that allows managing the cell comments. [#10421](https://github.com/handsontable/handsontable/pull/10421)
+- Added the ability to traverse the grid using TAB key throughout the page and added new `disableTabNavigation` option. [#10430](https://github.com/handsontable/handsontable/pull/10430)
+- Added the ARIA tags to the table elements. [#10463](https://github.com/handsontable/handsontable/pull/10463)
+- Added a new `beforeSelectionHighlightSet` hook that allows modifying logical selection coordinates before they are applied to the rendering engine. [#10513](https://github.com/handsontable/handsontable/pull/10513)
+- Implemented the `select` renderer and cell type. [#10529](https://github.com/handsontable/handsontable/pull/10529)
+- add accessibility demo js/react [#10532](https://github.com/handsontable/handsontable/pull/10532)
+- Added `handsontable` and `date` renderers for their respective cell types, to allow adding of the a11y attributes. [#10535](https://github.com/handsontable/handsontable/pull/10535)
+- Added new `beforeColumnWrap` and `beforeRowWrap` hooks. [#10550](https://github.com/handsontable/handsontable/pull/10550)
+- Add a set of `angular@17` examples to ensure Handsontable works with that Angular version. [#10584](https://github.com/handsontable/handsontable/pull/10584)
+
+### Changed
+- **Breaking change**: Changed the behavior of selecting all cells feature. [#10461](https://github.com/handsontable/handsontable/pull/10461)
+- **Breaking change**: Extend the Core `scrollViewportTo` method for ability to disabling cell autosnapping [#10508](https://github.com/handsontable/handsontable/pull/10508)
+- **Breaking change**: Improved keyboard shortcuts navigation for the context and dropdown menus and add new `forwardToContext` option to the ShortcutManager. [#10519](https://github.com/handsontable/handsontable/pull/10519)
+- **Breaking change**: Changed the colors of the invalid cells and the arrow buttons of the autocomplete-typed cells. [#10520](https://github.com/handsontable/handsontable/pull/10520)
+- **Breaking change**: Improved the navigation and accessibility of the Dropdown Menu with filtering [#10530](https://github.com/handsontable/handsontable/pull/10530)
+- Upgrade monorepo to use Node 20 [#10468](https://github.com/handsontable/handsontable/pull/10468)
+- Improved DX by throwing an exception for developers who tries to active shortcut context that has been not yet registered. [#10476](https://github.com/handsontable/handsontable/pull/10476)
+- Improved the performance of the table in cases when the table is hiding [#10490](https://github.com/handsontable/handsontable/pull/10490)
+- Updated TS definition for the HiddenRows and HiddenColumns plugins [#10492](https://github.com/handsontable/handsontable/pull/10492)
+- Updated TS definition for the AutoRowSize and AutoColumnSize plugins [#10493](https://github.com/handsontable/handsontable/pull/10493)
+- Updated TS definition for Filters plugin and Core methods [#10494](https://github.com/handsontable/handsontable/pull/10494)
+- Fix typescript types [#10509](https://github.com/handsontable/handsontable/issues/10509)
+- Changed the default styling for the OK button in filters when focused. [#10558](https://github.com/handsontable/handsontable/pull/10558)
+- Update accessibility of demos [#1467](https://github.com/handsontable/handsontable/pull/1467)
+
+### Fixed
+- Fixed ampersand copy/paste issue; [#10472](https://github.com/handsontable/handsontable/pull/10472)
+- Fixed an issue related to the backlight position misalignment for the ManualRowMove and ManualColumnMove plugins. [#10475](https://github.com/handsontable/handsontable/pull/10475)
+- Fixed row header width jumping after adding/deleting rows to the dataset. [#10479](https://github.com/handsontable/handsontable/pull/10479)
+- Fixed offset() for elements within foreign object context [#10480](https://github.com/handsontable/handsontable/issues/10480)
+- Fixed table size and misalignment issue when the table runs in element that uses CSS `transform: scale` option. [#10482](https://github.com/handsontable/handsontable/pull/10482)
+- Added missing 'updateData' ChangeSource type [#10488](https://github.com/handsontable/handsontable/pull/10488)
+- Fixed a bug where pressing a Ctrl/Cmd does not trigger non-contiguous selection. [#10502](https://github.com/handsontable/handsontable/pull/10502)
+- Fixed editor incorrect width and height calculations. [#10504](https://github.com/handsontable/handsontable/pull/10504)
+- Fixed visual glitches (unwanted pixels) of the autocomplete editor's list in cases when there are no items. [#10506](https://github.com/handsontable/handsontable/pull/10506)
+- Fix vue/react demo deps for stackblitz [#10523](https://github.com/handsontable/handsontable/pull/10523)
+- Fix accessibility issues in the docs [#1434](https://github.com/handsontable/handsontable/pull/1434)
+- Fixed wrong row height calculations for merged cells. [#941](https://github.com/handsontable/handsontable/pull/941)
+
 ## [13.1.0] - 2023-08-31
 
 ### Changed

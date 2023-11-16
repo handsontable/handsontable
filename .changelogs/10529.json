@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Implemented the `select` renderer and cell type.",
-  "type": "added",
-  "issueOrPR": 10529,
-  "breaking": false,
-  "framework": "none"
-}

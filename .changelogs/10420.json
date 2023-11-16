@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added support for keyboard shortcut that allows clearing the filters.",
-  "type": "added",
-  "issueOrPR": 10420,
-  "breaking": false,
-  "framework": "none"
-}

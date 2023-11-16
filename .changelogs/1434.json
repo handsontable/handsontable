@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fix accessibility issues in the docs",
-  "type": "fixed",
-  "issueOrPR": 1434,
-  "breaking": false,
-  "framework": "none"
-}

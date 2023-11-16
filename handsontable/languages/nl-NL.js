@@ -154,8 +154,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Tweede waarde'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
-var _default = dictionary;
-exports["default"] = _default;
+var _default = exports["default"] = dictionary;
 })();
 
 __webpack_exports__ = __webpack_exports__.___;

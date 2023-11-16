@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fix vue/react demo deps for stackblitz",
-  "type": "fixed",
-  "issueOrPR": 10523,
-  "breaking": false,
-  "framework": "none"
-}
