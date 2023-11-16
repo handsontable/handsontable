@@ -1,11 +1,10 @@
 ---
-# added an extra v, as I am unsure which keyboard-shortcuts file we want to keep
-id: 5w6juytvv
+id: 5w6juytv
 title: Keyboard shortcuts
 metaTitle: Keyboard shortcuts - JavaScript Data Grid | Handsontable
 description: Access all Handsontable features using just your keyboard. Use shortcuts you know from Google Sheets or Microsoft Excel.
-permalink: /keyboard-shortcuts-v
-canonicalUrl: /keyboard-shortcuts-v
+permalink: /keyboard-shortcuts
+canonicalUrl: /keyboard-shortcuts
 tags:
   - key bindings
   - keymap
@@ -197,7 +196,7 @@ These keyboard shortcuts work with [rows sorting](@/guides/rows/rows-sorting.md)
 | Windows                                  | macOS                                   | Action                                                                                                                                                   |  Excel  | Sheets  |
 | ---------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | :-----: | :-----: |
 | <kbd>**Enter**</kbd>                     | <kbd>**Enter**</kbd>                    | Sort data by the selected column, in ascending, descending, or the original order                                                                        | &cross; | &cross; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd> | Sort data by multiple columns, in ascending, descending, or the original order. Requires the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin. | &cross; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | Sort data by multiple columns, in ascending, descending, or the original order. Requires the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin. | &cross; | &cross; |
 
 ### Column menu keyboard shortcuts
 
@@ -206,7 +205,7 @@ These keyboard shortcuts work with the [column menu](@/guides/columns/column-men
 | Windows                                                  | macOS                                                       | Action                                                                                                       |  Excel  | Sheets  |
 | -------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | :-----: | :-----: |
 | <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↓**</kbd> | <kbd>**Shift**</kbd>+<kbd>**Option**</kbd>+<kbd>**↓**</kbd> | Open the column menu. Works in any cell, if the respective column header displays the menu button.           | &cross; | &cross; |
-| <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>                | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>                   | Open the column menu. Works only when you're selecting a column header that displays the column menu button. | &cross; | &cross; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                | <kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd>                   | Open the column menu. Works only when you're selecting a column header that displays the column menu button. | &cross; | &cross; |
 
 ### Column filter keyboard shortcuts
 
