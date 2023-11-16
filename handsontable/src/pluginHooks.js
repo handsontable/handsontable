@@ -1361,6 +1361,7 @@ const REGISTERED_HOOKS = [
 
   /**
    * Fired before applying selection coordinates to the renderable coordinates for Walkontable (rendering engine).
+   * It is called even if cell coordinates do not change. 
    *
    * @since 14.0.0
    * @event Hooks#beforeSelectionHighlightSet
