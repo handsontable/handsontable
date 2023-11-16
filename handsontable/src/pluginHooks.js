@@ -1438,7 +1438,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#modifyFocusedElement
    * @param {number} row Row index.
    * @param {number} column Column index.
-   * @param {HTMLElement|undefined} focusedElement The element to be focused.
+   * @param {HTMLElement|undefined} focusedElement The element to be focused. `null` for focusedElement is intended when focused cell is hidden.
    */
   'modifyFocusedElement',
 
