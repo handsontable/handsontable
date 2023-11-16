@@ -1299,7 +1299,7 @@ const REGISTERED_HOOKS = [
    * This is due to the priority of other options that may block the feature.
    * For example, when the {@link Options#minSpareCols} is defined, the {@link Options#autoWrapRow} option is not checked.
    * Thus, row wrapping is off.
-   * @param {CellCoords} newCoords The new focus position.
+   * @param {CellCoords} newCoords The new focus position. It is an object with keys `row` and `col`, where a value of `-1` indicates a header.
    * @param {boolean} isFlipped `true` if the row index was flipped, `false` otherwise.
    * Flipped index means that the user reached the last row and the focus is moved to the first row or vice versa.
    */
@@ -1316,7 +1316,7 @@ const REGISTERED_HOOKS = [
    * This is due to the priority of other options that may block the feature.
    * For example, when the {@link Options#minSpareRows} is defined, the {@link Options#autoWrapCol} option is not checked.
    * Thus, column wrapping is off.
-   * @param {CellCoords} newCoords The new focus position.
+   * @param {CellCoords} newCoords The new focus position. It is an object with keys `row` and `col`, where a value of `-1` indicates a header.
    * @param {boolean} isFlipped `true` if the column index was flipped, `false` otherwise.
    * Flipped index means that the user reached the last column and the focus is moved to the first column or vice versa.
    */
