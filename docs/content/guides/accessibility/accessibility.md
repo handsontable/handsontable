@@ -83,6 +83,8 @@ Handsontable provides a wide range of [shortcut keys](@/guides/navigation/keyboa
 | <kbd>Shift</kbd> + <kbd>Space</kbd>                                                       | <kbd>Shift</kbd> + <kbd>Space</kbd>                                                      | Select a row        | Any cell    |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> | <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> | Open a context menu | Any cell     |
 
+*The keyboard shortcut for selecting an entire row, <kbd>Ctrl</kbd>+<kbd>Space</kbd>, in macOS be default selects the previous input source. To use this shortcut in Handsontable, go to macOS settings, then Keyboard > Input Sources and uncheck the corresponding checkbox.
+
 ## Support for screen readers
 
 Although semantic HTML doesn't need any additional attributes to be properly interpreted by assistive technologies, some of Handsontable's complex features are not fully covered by the HTML specification. That's why Handsontable provides support for screen readers with ARIA attributes (Accessible Rich Internet Applications) applied to its HTML markup.
