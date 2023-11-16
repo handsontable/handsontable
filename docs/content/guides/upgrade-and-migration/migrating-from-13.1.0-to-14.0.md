@@ -18,7 +18,7 @@ Migrate from Handsontable 13.1.0 to Handsontable 14.0, released on November 16th
 
 [[toc]]
 
-## `scrollViewportTo method change
+## `scrollViewportTo` method change
 
 The `scrollViewportTo` method in Handsontable has been updated, ensuing backward compatibility.
 
@@ -157,5 +157,4 @@ Review these changes for their impact on existing implementations and adapt thei
    - Updated the cell-targeting helper to use a `<0; n>` indexing system and to target only elements of the specified type.
 
 
-
-
+Mention https://github.com/handsontable/handsontable/pull/10540

@@ -981,7 +981,7 @@ export const countries = data.reduce((acc, curr) => {
 
 /* end:skip-in-preview */
 
-// Get the DOM element with the ID 'example' where the Handsontable will be rendered
+// Get the DOM element with the ID 'example1' where the Handsontable will be rendered
 const app = document.getElementById("example1");
 
 // Define configuration options for the Handsontable
