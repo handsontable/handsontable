@@ -47,6 +47,7 @@ The table below summarizes default keyboard shortcuts changes related to navigat
 ## Tab navigation updates and changes in Handsontable
 
 There have been changes to grid navigation using <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd>, aligning it with native browser focus order. Now, reaching the last cell in the table or row and pressing <kbd>Tab</kbd> will deactivate the table and move the focus to the next page element.
+/* tbd - more info on how this is configurable */ 
 
 ### API Changes
 1. **New Option: `disableTabNavigation`**
@@ -65,31 +66,6 @@ There have been changes to grid navigation using <kbd>Tab</kbd> and <kbd>Shift</
 - Review and adjust the `disableTabNavigation` setting as needed.
 - Consider using the `modifyFocusOnTabNavigation` hook for customized cell selection.
 - Update implementations involving multiple Handsontable instances to accommodate the improved `Core.listen` method.
-
-## Changes in image handling
-
-The updates have focused on enhancing accessibility by addressing how images are handled within Handsontable. 
-Review these changes for any impact on their implementations and ensure compliance with the updated accessibility standards.
-
-### Changes and Improvements
-
-1. **Base64 Images**
-   - Sorting indicators (arrow up and down) are now accessible, handled on the `feature/accessibility` branch with the `aria-sort` attribute.
-
-2. **CSS-Content Icons**
-   - `.htSubmenu` (arrow left and right): Icons are now wrapped in divs with `aria-hidden` attribute added.
-   - `.htUISelectDropdown` (filters input icon): Added `aria-hidden` attribute.
-   - `.changeType` (dropdown menu opener): Added `aria-label`.
-   - `th.beforeHiddenColumn` & `th.afterHiddenColumn` (hidden column indicators): Icons are now wrapped in divs with `aria-label` added.
-   - `th.beforeHiddenRow` & `th.afterHiddenRow` (hidden row indicators): Icons are now wrapped in divs with `aria-label` added.
-   - `.columnSorting.sort-X` (multi column sorting order indicators): Icons are now wrapped in divs with `aria-label` added.
-   - `div.ht_nestingButton.ht_nestingExpand` & `div.ht_nestingButton.ht_nestingCollapse` (nested rows expand/collapse button): Added `aria-hidden` and `aria-description` for the TH element.
-   - `span.ht_nestingLevel`: Removed as it was unused.
-   - `.htGhostTable .columnSorting`: Ignored as `htGhostTable` is never visible.
-
-3. **Other Elements**
-   - Collapsible column expand/collapse button (+/- icon): Added `aria-hidden` and `aria-description` for the TH element.
-   - `htUIInputIcon`: Removed as it was unused.
 
 ## Refactor Walkontable Selection rendering module
 
@@ -129,21 +105,10 @@ Review these changes for their impact on existing implementations and adapt thei
    - Removed the "focusable element" logic from the Copy/Paste plugin. The functionality now relies on the Clipboard API.
 
 2. **Focus Manager**
-   - Implemented a "focus manager" to direct browser focus to the last selection's highlight element (TD). This change enhances screen reader accessibility but impacts the fastEdit feature for IME users.
+   - Implemented a "focus manager" to direct browser focus to the last selection's highlight element (TD). This change enhances screen reader accessibility but impacts the fast edit feature for IME users.
 
 3. **New Option: imeFastEdit**
-   - To address the above issue, a new `imeFastEdit` option has been introduced. This option delays the focus shift from the TD element to the active editor's TEXTAREA (or a configured element), maintaining fastEdit functionality for IME users.
-
-### ARIA Tags and Testing Enhancements
-
-1. **Addition of ARIA Tags**
-   - Added ARIA tags to improve screen reader compatibility. More tags will be introduced in future updates.
-
-2. **Test Case Updates and Cleanup**
-   - Enhanced and streamlined existing test cases.
-
-3. **New Config Object for e2e Test Matchers**
-   - Introduced a config object for e2e tests' custom matchers. This can be set using `spec().matchersConfig['matcherName']`.
+   - To address the above issue, a new imeFastEdit option has been introduced. This option delays the focus shift from the TD element to the active editor's TEXTAREA (or a configured element), maintaining fast edit functionality for IME users.
 
 ### Test Matchers and Visual Test Adjustments
 
