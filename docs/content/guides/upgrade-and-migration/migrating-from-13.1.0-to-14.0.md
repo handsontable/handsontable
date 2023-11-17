@@ -18,17 +18,41 @@ Migrate from Handsontable 13.1.0 to Handsontable 14.0, released on November 16th
 
 [[toc]]
 
-## `scrollViewportTo` method change
+## `scrollViewportTo` method enhancement
 
-The `scrollViewportTo` method in Handsontable has been updated, ensuing backward compatibility.
+The `scrollViewportTo` method in core Handsontable has been enhanced to provide more fine-grained control over viewport positioning. Importantly, this improvement is fully backward compatible, meaning existing code utilizing this method will continue to function without requiring any migration.
+
+### Auto-Snapping Behavior
+The enhanced `scrollViewportTo` method introduces optional auto-snapping behavior. If users do not provide additional options when calling the method, the coordinates will be automatically snapped to the top-start position, preserving the previous behavior.
+
+If you wish to take advantage of the new auto-snapping behavior, you can provide additional options when calling the `scrollViewportTo` method. This allows for more control over the exact positioning of the viewport based on the specified coordinates.
 
 
-## Changed behavior of selecting all cells feature
+**Example**
+```js
+hot.scrollViewportTo({
+  row: 10,
+  col: 10,
+  verticalSnap: 'top',
+  horizontalSnap: 'start',
+});
+```
 
-From now on, pressing <kbd>Ctrl</kbd> / <kbd>Cmd</kbd> + <kbd>A</kbd> selects all cells, excluding headers. Additionally, when selecting all cells, the focus position remains unchanged.[#10464](https://github.com/handsontable/handsontable/pull/10464)
 
-## Keyboard shortcuts changes: Navigation
-The table below summarizes default keyboard shortcuts changes related to navigation:
+## Changes to selecting all cells feature
+
+The modifications to the "Select All Cells" feature bring about the following improvements:
+
+- Hitting <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>A</kbd> will now select all cells without including the headers in the selection.
+- Selecting all cells will no longer alter the focus position. The focus position remains stationary, providing a more predictable and user-friendly interaction.
+
+
+## Improved Keyboard Navigation through Context and Dropdown Menus
+Significant enhancements have been made to the keyboard navigation within the Menu module, benefiting both the `ContextMenu` and `DropdownMenu` plugins. These changes aim to elevate the overall user experience by introducing new shortcuts and refining existing ones.
+
+The introduction of a new option, `forwardToContext` in the `ShortcutManager`, facilitates forwarding keyboard events between different contexts within the same or separate Handsontable instances. Enabling you to react to keyboard shortcuts before executing the built-in action they trigger.
+
+The table below summarizes keyboard shortcuts changes related to navigation of Context and Dropdown Menus:
 
 | Shortcut | Description |
 |----------|-------------|
@@ -42,12 +66,12 @@ The table below summarizes default keyboard shortcuts changes related to navigat
 | <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>A</kbd> | Selects all cells and closes the menu while keeping the focus in its initial position |
 
 
-`forwardToContext` option in `ShortcutManager` allows forwarding keyboard events from one context to another within the same or separate Handsontable instance, enabling reactions to keyboard shortcuts before executing the built-in action they trigger.
 
-## Tab navigation updates and changes in Handsontable
+## Changes to tab navigation
+
+
 
 There have been changes to grid navigation using <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd>, aligning it with native browser focus order. Now, reaching the last cell in the table or row and pressing <kbd>Tab</kbd> will deactivate the table and move the focus to the next page element.
-/* tbd - more info on how this is configurable */ 
 
 ### API Changes
 1. **New Option: `disableTabNavigation`**
@@ -99,7 +123,7 @@ Review these changes for their impact on existing implementations and adapt thei
    - The `CellRange:isSingle()` method's functionality has been altered. With the new navigable headers feature, this method now returns true for the selection of a single header, in addition to a single cell.
 
 ## Changes in copy/paste, focus management, and testing
- Review these changes for their impact on existing implementations, especially regarding the new focus management and imeFastEdit option. Adaptations to the enhanced testing framework and ARIA tag usage are also recommended for improved accessibility and testing accuracy.
+ Review these changes for their impact on existing implementations, especially regarding the new focus management and imeFastEdit option.
 
 1. **Changed Copy/Paste Logic**
    - Removed the "focusable element" logic from the Copy/Paste plugin. The functionality now relies on the Clipboard API.
@@ -110,16 +134,8 @@ Review these changes for their impact on existing implementations and adapt thei
 3. **New Option: imeFastEdit**
    - To address the above issue, a new imeFastEdit option has been introduced. This option delays the focus shift from the TD element to the active editor's TEXTAREA (or a configured element), maintaining fast edit functionality for IME users.
 
-### Test Matchers and Visual Test Adjustments
 
-1. **Enhanced toMatchHTML Custom Matcher**
-   - Modified the `toMatchHTML` matcher to allow skipping HTML attributes in comparisons. This feature is configurable and aids in focusing tests on relevant attributes.
+<!-- Mention https://github.com/handsontable/handsontable/pull/10540
 
-2. **Visual Test Corrections**
-   - Adjusted the `type` method in visual tests for improved accuracy and consistency.
-
-3. **Cell-Targeting Helper in Visual Tests**
-   - Updated the cell-targeting helper to use a `<0; n>` indexing system and to target only elements of the specified type.
-
-
-Mention https://github.com/handsontable/handsontable/pull/10540
+Mention dom tree change
+ I’d mention only the changes that structurally changed the DOM tree, like wrapping icons in elements, as that potentially can affect the CSS selectors that some developers might have used to target those icons --> 
