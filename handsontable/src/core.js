@@ -4290,7 +4290,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Select the whole table.
+   * Select all cells.
    *
    * The previous selection is overwritten.
    *
@@ -4317,11 +4317,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {boolean} [includeColumnHeaders=false] `true` If the selection should include the column
    * headers, `false` otherwise.
    *
-   * @param {object} [options] Additional object with options.
+   * @param {object} [options] Additional object with options. Since 14.0.0
    * @param {{row: number, col: number} | boolean} [options.focusPosition] The argument allows changing the cell/header
    * focus position. The value takes an object with a `row` and `col` properties from -N to N, where
    * negative values point to the headers and positive values point to the cell range. If `false`, the focus
-   * position won't be changed.
+   * position won't be changed. Example:
+   * ```js
+   * hot.selectAll(0, 0, {
+   * focusPosition: { row: 0, col: 1 },
+   * disableHeadersHighlight: true
+   * })
+   * ```
+   * 
    * @param {boolean} [options.disableHeadersHighlight] If `true`, disables highlighting the headers even when
    * the logical coordinates points on them.
    */
