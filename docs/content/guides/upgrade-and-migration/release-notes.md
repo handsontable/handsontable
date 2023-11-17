@@ -26,7 +26,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 ## 14.0.0
 
-Released on November 16, 2023
+Released on November 22, 2023
 
 For more information on this release, see:
 - [Blog post (14.0.0)](https://handsontable.com/blog/handsontable-14-0-0-prioritizing-accessibility)
@@ -36,25 +36,12 @@ For more information on this release, see:
 ### Added
 
 - **Breaking change**: Added the accessibility-related attributes to all images and icons. [#10540](https://github.com/handsontable/handsontable/pull/10540)
-- Added a `Ctrl/Cmd + Shift + Space` keyboard shortcut for selecting all cells. [#10237](https://github.com/handsontable/handsontable/pull/10237)
-- Added support for keyboard navigation in the headers. [#10265](https://github.com/handsontable/handsontable/pull/10265)
-- Added keyboard shortcuts for selecting all rows and columns along with 4 new hooks. [#10389](https://github.com/handsontable/handsontable/pull/10389)
-- Added support for collapsing/expanding columns using a keyboard shortcut. [#10404](https://github.com/handsontable/handsontable/pull/10404)
-- Added support for collapsing/expanding nested rows using a keyboard shortcut. [#10405](https://github.com/handsontable/handsontable/pull/10405)
-- Added support for column sorting using a keyboard shortcut. [#10410](https://github.com/handsontable/handsontable/pull/10410)
-- Added keyboard shortcuts for opening the column menu. [#10413](https://github.com/handsontable/handsontable/pull/10413)
-- Added a keyboard shortcut for opening the context menu. [#10417](https://github.com/handsontable/handsontable/pull/10417)
-- Added a keyboard shortcut for scrolling the viewport [#10419](https://github.com/handsontable/handsontable/pull/10419)
-- Added a keyboard shortcut for clearing the filters. [#10420](https://github.com/handsontable/handsontable/pull/10420)
-- Added a keyboard shortcut for managing cell comments. [#10421](https://github.com/handsontable/handsontable/pull/10421)
+- Added multiple keyboard shortcuts. For more information, see the [release blogpost](https://handsontable.com/blog/handsontable-14-0-0-prioritizing-accessibility) and and the updated [Keyboard Shortcuts](https://handsontable.com/docs/javascript-data-grid/keyboard-shortcuts/) documentation page. 
+    [#10237](https://github.com/handsontable/handsontable/pull/10237) [#10389](https://github.com/handsontable/handsontable/pull/10389) [#10404](https://github.com/handsontable/handsontable/pull/10404)  [#10405](https://github.com/handsontable/handsontable/pull/10405) [#10410](https://github.com/handsontable/handsontable/pull/10410)  [#10413](https://github.com/handsontable/handsontable/pull/10413)  [#10417](https://github.com/handsontable/handsontable/pull/10417)  [#10419](https://github.com/handsontable/handsontable/pull/10419)  [#10420](https://github.com/handsontable/handsontable/pull/10420)  [#10421](https://github.com/handsontable/handsontable/pull/10421) [#10548](https://github.com/handsontable/handsontable/pull/10548)
+- Added ARIA tags to various elements of the table to to improve screen reader compatibility. 
+    [#10463](https://github.com/handsontable/handsontable/pull/10463)  [#10524](https://github.com/handsontable/handsontable/pull/10524)  [#10526](https://github.com/handsontable/handsontable/pull/10526)  [#10539](https://github.com/handsontable/handsontable/pull/10539) [#10548](https://github.com/handsontable/handsontable/pull/10548) [#10541](https://github.com/handsontable/handsontable/pull/10541)
+- Added the ability to navigate the headers with the keyboard by introducing a new `navigableHeaders` option along with other changes. [#10265](https://github.com/handsontable/handsontable/pull/10265)  [#10301](https://github.com/handsontable/handsontable/pull/10301)
 - Added the ability to traverse the grid within a webpage using the `TAB` key and introduced a new `disableTabNavigation` option. [#10430](https://github.com/handsontable/handsontable/pull/10430)
-- Added ARIA tags to the table elements. [#10463](https://github.com/handsontable/handsontable/pull/10463)
-- Added ARIA tags to the autocomplete editor. [#10524](https://github.com/handsontable/handsontable/pull/10524)
-- Added test cases to ensure the dropdown editor's ARIA tags are correct. [#10526](https://github.com/handsontable/handsontable/pull/10526)
-- Added the `aria-label` attribute to the checkbox renderer. [#10539](https://github.com/handsontable/handsontable/pull/10539)
-- Added keyboard shortcuts and `role` attributes to the filtering menu's links. [#10548](https://github.com/handsontable/handsontable/pull/10548)
-- Added ARIA tags and improved accessibility of the dropdown menu. [#10541](https://github.com/handsontable/handsontable/pull/10541)
-- Added the ability to navigate the headers with the keyboard by introducing a new `navigableHeaders` option along with other changes. [#10301](https://github.com/handsontable/handsontable/pull/10301)
 - Added a new `beforeSelectionHighlightSet` hook that allows modifying logical selection coordinates before they are applied to the rendering engine. [#10513](https://github.com/handsontable/handsontable/pull/10513)
 - Implemented the `select` renderer and cell type. [#10529](https://github.com/handsontable/handsontable/pull/10529)
 - Added an accessibility demo for javascript and React. [#10532](https://github.com/handsontable/handsontable/pull/10532)
@@ -71,10 +58,7 @@ For more information on this release, see:
 - Upgraded the monorepo to utilize Node 20. [#10468](https://github.com/handsontable/handsontable/pull/10468)
 - Improved DX by adding an exception to be thrown when trying to activate a shortcut context that has been not yet registered. [#10476](https://github.com/handsontable/handsontable/pull/10476)
 - Improved the performance of the table for cases when the table is hidden. [#10490](https://github.com/handsontable/handsontable/pull/10490)
-- Updated the TS definitions for the HiddenRows and HiddenColumns plugins. [#10492](https://github.com/handsontable/handsontable/pull/10492)
-- Updated the TS definitions for the AutoRowSize and AutoColumnSize plugins. [#10493](https://github.com/handsontable/handsontable/pull/10493)
-- Updated the TS definitions for the Filters plugin and the Core methods. [#10494](https://github.com/handsontable/handsontable/pull/10494)
-- Fixed the typescript type definitions in the packages' `package.json` files. [#10509](https://github.com/handsontable/handsontable/issues/10509)
+- Updated the TypeScript definitions.  [#10492](https://github.com/handsontable/handsontable/pull/10492) [#10493](https://github.com/handsontable/handsontable/pull/10493)  [#10494](https://github.com/handsontable/handsontable/pull/10494) [#10509](https://github.com/handsontable/handsontable/issues/10509)
 - Changed the default styling of the "OK" button in the Filtering Dropdown when it's focus. [#10558](https://github.com/handsontable/handsontable/issues/10558)
 
 ### Fixed
