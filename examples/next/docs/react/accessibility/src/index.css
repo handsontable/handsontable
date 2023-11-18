@@ -1,125 +1,78 @@
+html {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Helvetica Neue", Arial, sans-serif;
+}
+
 #root {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-#handsontable { 
+.handsontable table {
   background: white;
 }
 
-body {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-html {
-  font-family: Inter var, ui-sans-serif, system-ui, -apple-system,
-    BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans,
-    sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol,
-    Noto Color Emoji;
-}
-
 /*
-  A stylesheet customizing app (custom renderers)
+  toggle options and inputs
 */
 
-table.htCore div.star {
-  color: #fcb515;
-}
-
-table.htCore tr.odd td {
-  background: #fafbff;
-}
-
-table.htCore td .progressBar {
-  background: #37bc6c;
-  height: 10px;
-}
-
-table.htCore tr.selected td {
-  background: #edf3fd;
-}
-
-/*
-  A stylesheet customizing Handsontable style
-*/
-
-.collapsibleIndicator {
-  text-align: center;
-}
-
-.handsontable .htRight .changeType {
-  margin: 3px 1px 0 13px;
-}
-
-.handsontable .green {
-  background: #37bc6c;
-  font-weight: bold;
-}
-
-.handsontable .orange {
-  background: #fcb515;
-  font-weight: bold;
-}
-
-.btn {
-  padding: 20px;
-  font: 1.4em sans-serif;
-}
-
-[data-color="green"] {
-  background: #37bc6c;
-}
-
-[data-color="orange"] {
-  background: #fcb515;
-}
-
-.checkboxContainer {
+.checkbox-container {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.checkboxGroup {
+.checkbox-group {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.checkboxGroup > div {
+.checkbox-group > div {
   display: flex;
 }
 
-.checkboxGroup > div > label {
-  padding: 2px;
+.checkbox-group > div > label {
   display: flex;
   gap: 0.2rem;
 }
 
-.externalLink {
-  color: black;
+.external-link {
+  margin-left: 0.5rem;
   position: relative;
   top: 2px;
-  margin-left: 0.5rem;
+  color: black;
 }
 
-.externalLink:hover {
+.external-link:hover {
   color: #0000ee;
 }
 
-input {
+.placeholder-input {
   max-width: 20rem;
+  padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-  padding-left: 0.75rem;
-  padding-right: 0.75rem;
-  border-color: rgb(228, 228, 231);
-  border-image-outset: 0;
-  border-style: solid;
+  color: black;
+  border: 1px solid #e4e4e7;
   border-radius: 6px;
-  border-width: 1px;
+}
+
+.option-label {
+  align-items: flex-start;
+}
+
+/* 
+    We want the focus to be around input and label, in order to achieve this,
+    we remove focus from the input and add it to the label (wrapper in this case)
+    we then use the :focus-within pseudo class plus native focus styles
+    https://css-tricks.com/copy-the-browsers-native-focus-styles/
+*/
+.option-label:focus-within {
+  outline: 5px auto Highlight;
+  outline: 5px auto -webkit-focus-ring-color;
+}
+
+.option-label > input:focus {
+  outline: none;
 }

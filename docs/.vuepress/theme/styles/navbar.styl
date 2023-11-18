@@ -23,6 +23,10 @@ $navbar-horizontal-padding = 1.5rem
       margin-right 1.5rem
       top .4rem
     }
+    height $navbarHeight - 2.2rem
+    @media (max-width: $medium) {
+      height 1.2rem
+    }
   #handsontable-logo
     height $navbarHeight - 2.2rem
     @media (max-width: $medium) {
@@ -52,6 +56,8 @@ $navbar-horizontal-padding = 1.5rem
 .nav-links
   display inline-block
   a
+    outline-width: 1px;
+    outline-offset: -1px;
     line-height 1.4rem
     color inherit
     &:hover, &.router-link-active

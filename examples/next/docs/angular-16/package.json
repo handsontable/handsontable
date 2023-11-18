@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "postinstall": "cd ../../.. && npm run link-packages -- --f angular-16 --examples-version next"
   },
   "workspaces": [
     "@(!(node_modules))/"
