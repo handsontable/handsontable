@@ -220,20 +220,22 @@ class HotTable extends React.Component<HotTableProps, {}> {
 
 
     
-    // Map of the TD elements to their portal containers, for reuse instead of creating a new portal container every render,
-    // for every cell. WeakMap avoids memory leaks because it allows TDs and portal containers to be garbage collected.
-    const portalContainerCacheByTD = new WeakMap<HTMLTableCellElement, HTMLElement>();
+    // Map of the TD elements to their portal containers, for reuse instead of creating a new portal container every 
+    // render, for every cell. This reduces flashes of empty cells when re-rendering.
+    const portalContainerCache = new Map<string, HTMLElement>();
 
     return function (instance, TD, row, col, prop, value, cellProperties) {
       const renderedCellCache = hotTableComponent.getRenderedCellCache();
 
-      if (renderedCellCache.has(`${row}-${col}`)) {
-        TD.innerHTML = renderedCellCache.get(`${row}-${col}`).innerHTML;
+      const key = `${row}-${col}`;
+
+      if (renderedCellCache.has(key)) {
+        TD.innerHTML = renderedCellCache.get(key).innerHTML;
       }
 
       if (TD && !TD.getAttribute('ghost-table')) {
 
-        const cachedPortalContainer = portalContainerCacheByTD.get(TD);
+        const cachedPortalContainer = portalContainerCache.get(key);
 
         const {portal, portalContainer} = createPortal(rendererElement, {
           TD,
@@ -245,7 +247,7 @@ class HotTable extends React.Component<HotTableProps, {}> {
           isRenderer: true
         }, TD.ownerDocument, cachedPortalContainer);
 
-        portalContainerCacheByTD.set(TD, portalContainer);
+        portalContainerCache.set(key, portalContainer);
 
         // make sure TD has the portalContainer as its only child node
         if (TD.childNodes.length !== 1 || TD.firstChild !== portalContainer) {
@@ -259,7 +261,7 @@ class HotTable extends React.Component<HotTableProps, {}> {
         hotTableComponent.portalCacheArray.push(portal);
       }
 
-      renderedCellCache.set(`${row}-${col}`, TD);
+      renderedCellCache.set(key, TD);
 
       return TD;
     };
