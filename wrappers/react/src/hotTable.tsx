@@ -222,6 +222,7 @@ class HotTable extends React.Component<HotTableProps, {}> {
     
     // Map of the TD elements to their portal containers, for reuse instead of creating a new portal container every 
     // render, for every cell. This reduces flashes of empty cells when re-rendering.
+    // TODO upgrade typescript to be able to use WeakRef in case the HTMLElement could be GC'd before the renderer wrapper
     const portalContainerCache = new Map<string, HTMLElement>();
 
     return function (instance, TD, row, col, prop, value, cellProperties) {
@@ -234,8 +235,10 @@ class HotTable extends React.Component<HotTableProps, {}> {
       }
 
       if (TD && !TD.getAttribute('ghost-table')) {
+        // prevent table clones sharing portal containers by including the table clone's className in the key
+        const portalKey = `${TD.closest(".handsontable")?.className}__${key}`
 
-        const cachedPortalContainer = portalContainerCache.get(key);
+        const cachedPortalContainer = portalContainerCache.get(portalKey);
 
         const {portal, portalContainer} = createPortal(rendererElement, {
           TD,
@@ -247,7 +250,7 @@ class HotTable extends React.Component<HotTableProps, {}> {
           isRenderer: true
         }, TD.ownerDocument, cachedPortalContainer);
 
-        portalContainerCache.set(key, portalContainer);
+        portalContainerCache.set(portalKey, portalContainer);
 
         // make sure TD has the portalContainer as its only child node
         if (TD.childNodes.length !== 1 || TD.firstChild !== portalContainer) {
