@@ -2030,5 +2030,38 @@ describe('TextEditor', () => {
       expect($(textarea).width()).toBe(143);
       expect($(textarea).height()).toBe(23);
     });
+
+    it('should not select the TEXTAREA contents after double-clicking on a cell when `imeFastEdit` is enabled', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 2),
+        imeFastEdit: true,
+      });
+      const cell = $(getCell(0, 0));
+
+      selectCell(0, 0);
+      window.scrollTo(0, cell.offset().top);
+
+      await sleep(0);
+
+      cell
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      await sleep(100);
+
+      cell
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      await sleep(100);
+
+      const editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(Handsontable.dom.getCaretPosition(editor.TEXTAREA)).toBe(getDataAtCell(0, 0).length);
+      expect(Handsontable.dom.getSelectionEndPosition(editor.TEXTAREA)).toBe(getDataAtCell(0, 0).length);
+    });
   });
 });

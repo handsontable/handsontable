@@ -163,6 +163,7 @@ export class FocusManager {
     // Re-focus on the editor's `TEXTAREA` element (or a predefined element) if the `imeFastEdit` option is enabled.
     if (
       this.#hot.getSettings().imeFastEdit &&
+      !this.#hot.getActiveEditor()?.isOpened() &&
       !!refocusElement
     ) {
       this.#hot._registerTimeout(() => {
