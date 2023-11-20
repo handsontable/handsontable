@@ -52,6 +52,10 @@ export const helpers = {
     return `${this.selectors.cloneTopTable} > tr > th:nth-of-type(${col + 1}) button.changeType`;
   },
 
+  findCellEditor() {
+    return 'textarea.handsontableInput';
+  },
+
   testTitle(filename: string) {
     const title = filename.split('.spec.ts')[0].split('-').join(' ');
 
