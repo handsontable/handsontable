@@ -973,7 +973,7 @@ const data = [
   },
 ];
 
-export const countries = data.reduce((acc, curr) => {
+const countries = data.reduce((acc, curr) => {
   if (acc.includes(curr.country)) {
     return acc;
   }
@@ -1045,7 +1045,7 @@ const hotOptions = {
 let hotInstance = new Handsontable(app, hotOptions);
 
 // Helper function to set up checkbox event handling
-export const setupCheckbox = (element, callback) =>
+const setupCheckbox = (element, callback) =>
   element.addEventListener("click", (clickEvent) => callback(element.checked));
 
 // Set up event listeners for various checkboxes to update Handsontable settings.
