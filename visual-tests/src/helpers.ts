@@ -53,7 +53,7 @@ export const helpers = {
   },
 
   findCellEditor() {
-    return `textarea.handsontableInput`;
+    return 'textarea.handsontableInput';
   },
 
   testTitle(filename: string) {
