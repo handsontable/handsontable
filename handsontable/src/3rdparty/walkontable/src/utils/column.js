@@ -1,6 +1,7 @@
 import {
   getScrollbarWidth,
 } from './../../../../helpers/dom/element';
+import { ColumnStretching } from './columnStretching';
 
 /**
  * Column utils class contains all necessary information about sizes of the columns.
@@ -20,6 +21,10 @@ export default class ColumnUtils {
    * @type {Map<number, number>}
    */
   headerWidths = new Map();
+  /**
+   * @type {ColumnStretching}
+   */
+  stretching;
 
   /**
    * @param {TableDao} dataAccessObject The table Data Access Object.
@@ -28,6 +33,13 @@ export default class ColumnUtils {
   constructor(dataAccessObject, wtSettings) {
     this.dataAccessObject = dataAccessObject;
     this.wtSettings = wtSettings;
+
+    this.stretching = new ColumnStretching({
+      stretchMode: this.wtSettings.getSetting('stretchH'),
+      stretchingColumnWidthFn: (stretchedWidth, column) =>
+        this.wtSettings.getSetting('onBeforeStretchingColumnWidth', stretchedWidth, column),
+      columnWidthFn: sourceCol => this.dataAccessObject.wtTable.getColumnWidth(sourceCol),
+    });
   }
 
   /**
@@ -49,10 +61,13 @@ export default class ColumnUtils {
    */
   getStretchedColumnWidth(sourceIndex) {
     const calculator = this.dataAccessObject.wtViewport.columnsRenderCalculator;
+
     let width = this.getWidth(sourceIndex);
 
     if (calculator) {
-      const stretchedWidth = calculator.getStretchedColumnWidth(sourceIndex, width);
+      const stretchedWidth = this.stretching
+        .setCalculator(calculator)
+        .getStretchedColumnWidth(sourceIndex, width);
 
       if (stretchedWidth) {
         width = stretchedWidth;
@@ -99,7 +114,7 @@ export default class ColumnUtils {
     const scrollbarCompensation = mainHolder.offsetHeight < mainHolder.scrollHeight ? getScrollbarWidth() : 0;
     let rowHeaderWidthSetting = wtSettings.getSetting('rowHeaderWidth');
 
-    wtViewport.columnsRenderCalculator.refreshStretching(wtViewport.getViewportWidth() - scrollbarCompensation);
+    this.stretching.refreshStretching(wtViewport.getViewportWidth() - scrollbarCompensation);
 
     rowHeaderWidthSetting = wtSettings.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 

@@ -681,6 +681,7 @@ class TableView {
       },
       minSpareRows: () => this.settings.minSpareRows,
       renderAllRows: this.settings.renderAllRows,
+      renderAllColumns: this.settings.renderAllColumns,
       rowHeaders: () => {
         const headerRenderers = [];
 
@@ -1053,6 +1054,8 @@ class TableView {
         }
       },
       viewportRowCalculatorOverride: (calc) => {
+        console.log('viewportRowCalculatorOverride');
+
         let viewportOffset = this.settings.viewportRowRenderingOffset;
 
         if (viewportOffset === 'auto' && this.settings.fixedRowsTop) {
@@ -1078,6 +1081,8 @@ class TableView {
         this.hot.runHooks('afterViewportRowCalculatorOverride', calc);
       },
       viewportColumnCalculatorOverride: (calc) => {
+        console.log('viewportColumnCalculatorOverride');
+
         let viewportOffset = this.settings.viewportColumnRenderingOffset;
 
         if (viewportOffset === 'auto' && this.settings.fixedColumnsStart) {

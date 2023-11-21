@@ -9,6 +9,8 @@ import { objectEach } from '../../../helpers/object';
 import {
   RENDER_TYPE,
   FULLY_VISIBLE_TYPE,
+  RenderAllColumnsCalculator,
+  RenderAllRowsCalculator,
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
 } from './calculator';
@@ -294,17 +296,18 @@ class Viewport {
    */
   createRowsCalculator(calculationType = RENDER_TYPE) {
     const { wtSettings, wtTable } = this;
-    let height;
+
+    if (wtSettings.getSetting('renderAllRows') && calculationType === RENDER_TYPE) {
+      return new RenderAllRowsCalculator({
+        totalRows: wtSettings.getSetting('totalRows'),
+      });
+    }
+
+    let height = this.getViewportHeight();
     let scrollbarHeight;
     let fixedRowsHeight;
 
     this.rowHeaderWidth = NaN;
-
-    if (wtSettings.getSetting('renderAllRows') && calculationType === RENDER_TYPE) {
-      height = Infinity;
-    } else {
-      height = this.getViewportHeight();
-    }
 
     let pos = this.dataAccessObject.topScrollPosition - this.dataAccessObject.topParentOffset;
 
@@ -352,6 +355,13 @@ class Viewport {
    */
   createColumnsCalculator(calculationType = RENDER_TYPE) {
     const { wtSettings, wtTable } = this;
+
+    if (wtSettings.getSetting('renderAllColumns') && calculationType === RENDER_TYPE) {
+      return new RenderAllColumnsCalculator({
+        totalColumns: wtSettings.getSetting('totalColumns'),
+      });
+    }
+
     let width = this.getViewportWidth();
     let pos = Math.abs(this.dataAccessObject.inlineStartScrollPosition) - this.dataAccessObject.inlineStartParentOffset;
 
@@ -376,10 +386,6 @@ class Viewport {
       columnWidthFn: sourceCol => wtTable.getColumnWidth(sourceCol),
       overrideFn: wtSettings.getSettingPure('viewportColumnCalculatorOverride'),
       calculationType,
-      stretchMode: wtSettings.getSetting('stretchH'),
-      stretchingColumnWidthFn: (stretchedWidth, column) => {
-        return wtSettings.getSetting('onBeforeStretchingColumnWidth', stretchedWidth, column);
-      },
       inlineStartOffset: this.dataAccessObject.inlineStartParentOffset
     });
   }

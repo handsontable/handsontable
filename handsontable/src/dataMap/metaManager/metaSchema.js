@@ -3674,7 +3674,7 @@ export default () => {
      *
      * @memberof Options#
      * @type {boolean}
-     * @default undefined
+     * @default false
      * @category Core
      *
      * @example
@@ -3683,7 +3683,34 @@ export default () => {
      * renderAllRows: true,
      * ```
      */
-    renderAllRows: undefined,
+    renderAllRows: false,
+
+    /**
+     * The `renderAllColumns` option configures Handsontable's [column virtualization](@/guides/columns/column-virtualization.md).
+     *
+     * You can set the `renderAllColumns` option to one of the following:
+     *
+     * | Setting           | Description                                                                                        |
+     * | ----------------- | -------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | Enable [column virtualization](@/guides/columns/column-virtualization.md)                                   |
+     * | `true`            | Disable [column virtualization](@/guides/columns/column-virtualization.md)<br>(render all columns of the grid) |
+     *
+     * Read more:
+     * - [Row virtualization](@/guides/columns/column-virtualization.md)
+     *
+     * @since 14.1
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // disable column virtualization
+     * renderAllColumns: true,
+     * ```
+     */
+    renderAllColumns: false,
 
     /**
      * @description

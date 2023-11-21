@@ -1,7 +1,7 @@
+import BaseRenderer from './_base';
 import { warn } from './../../../../helpers/console';
 import { toSingleLine } from './../../../../helpers/templateLiteralTag';
 import { OrderView } from './../utils/orderView';
-import BaseRenderer from './_base';
 import { setAttribute } from '../../../../helpers/dom/element';
 import {
   A11Y_PRESENTATION,
@@ -59,8 +59,9 @@ export default class RowsRenderer extends BaseRenderer {
 
     if (!performanceWarningAppeared && rowsToRender > 1000) {
       performanceWarningAppeared = true;
-      warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting\x20
-        the number of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.`);
+      warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible rows.\x20
+        Consider limiting the number of rendered rows by specifying the table height and/or\x20
+        turning off the "renderAllRows" option.`);
     }
 
     if (this.table.isAriaEnabled()) {
