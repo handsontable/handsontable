@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem where clicking on a sorting indicator would not sort the column.",
-  "type": "fixed",
-  "issueOrPR": 10598,
-  "breaking": false,
-  "framework": "none"
-}
