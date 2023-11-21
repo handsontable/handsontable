@@ -3698,7 +3698,7 @@ export default () => {
      * Read more:
      * - [Row virtualization](@/guides/columns/column-virtualization.md)
      *
-     * @since 14.1
+     * @since 14.1.0
      * @memberof Options#
      * @type {boolean}
      * @default false

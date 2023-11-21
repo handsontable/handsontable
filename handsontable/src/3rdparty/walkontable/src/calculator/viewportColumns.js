@@ -19,7 +19,7 @@ import { RENDER_TYPE, FULLY_VISIBLE_TYPE } from './constants';
  *
  * @class ViewportColumnsCalculator
  */
-class ViewportColumnsCalculator {
+export class ViewportColumnsCalculator {
   /**
    * Default column width.
    *
@@ -208,5 +208,3 @@ class ViewportColumnsCalculator {
     return width;
   }
 }
-
-export default ViewportColumnsCalculator;

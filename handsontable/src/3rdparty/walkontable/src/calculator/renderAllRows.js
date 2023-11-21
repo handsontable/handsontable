@@ -7,7 +7,7 @@
  *
  * @class RenderAllRowsCalculator
  */
-class RenderAllRowsCalculator {
+export class RenderAllRowsCalculator {
   /**
    * Number of rendered/visible rows.
    *
@@ -15,13 +15,13 @@ class RenderAllRowsCalculator {
    */
   count = 0;
   /**
-   * Index of the first rendered/visible row (can be overwritten using overrideFn).
+   * Index of the first rendered/visible row.
    *
    * @type {number}
    */
   startRow = 0;
   /**
-   * Index of the last rendered/visible row (can be overwritten using overrideFn).
+   * Index of the last rendered/visible row.
    *
    * @type {number}
    */
@@ -37,9 +37,7 @@ class RenderAllRowsCalculator {
    * @param {RenderAllRowsCalculatorOptions} options Object with all options specified for row viewport calculation.
    */
   constructor(options) {
-    this.count = options.totalRows
+    this.count = options.totalRows;
     this.endRow = this.count - 1;
   }
 }
-
-export default RenderAllRowsCalculator;
