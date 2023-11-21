@@ -4328,7 +4328,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * disableHeadersHighlight: true
    * })
    * ```
-   * 
+   *
    * @param {boolean} [options.disableHeadersHighlight] If `true`, disables highlighting the headers even when
    * the logical coordinates points on them.
    */
