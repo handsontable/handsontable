@@ -59,7 +59,8 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
    const gridContext = hot.getShortcutManager().getContext('grid');
 
    gridContext.addShortcut({
-     group: 'group_ID',
+     group: 'group_ID', // a string value; the user can decide on its name. 
+     // Each shortcut should be assigned to the group.
      keys: [['enter']],
      callback: () => {},
    });
@@ -105,7 +106,8 @@ To add a custom keyboard shortcut:
    const gridContext = hot.getShortcutManager().getContext('grid');
 
    gridContext.addShortcut({
-     group: 'group_ID',
+     group: 'group_ID', // a string value; the user can decide on its name. 
+     // Each shortcut should be assigned to the group.
      keys: [['enter']],
      callback: () => {},
    });
@@ -126,7 +128,8 @@ To make a keyboard action run on a certain condition, set the [`runOnlyIf`](@/ap
 const gridContext = hot.getShortcutManager().getContext('grid');
 
 gridContext.addShortcut({
-  group: 'group_ID',
+  group: 'group_ID', // a string value; the user can decide on its name. 
+     // Each shortcut should be assigned to the group.
   runOnlyIf: () => hot.getSelected() !== void 0,
   keys: [['enter']],
   callback: () => {},
