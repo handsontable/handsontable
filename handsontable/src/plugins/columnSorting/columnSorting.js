@@ -1,6 +1,7 @@
 import {
   addClass,
   appendElement,
+  hasClass,
   removeClass,
   setAttribute,
 } from '../../helpers/dom/element';
@@ -13,6 +14,7 @@ import { IndexesSequence, PhysicalIndexToValueMap as IndexToValueMap } from '../
 import Hooks from '../../pluginHooks';
 import { ColumnStatesManager } from './columnStatesManager';
 import {
+  HEADER_SPAN_CLASS,
   getNextSortOrder,
   areValidSortStates,
   getHeaderSpanElement,
@@ -820,7 +822,10 @@ export class ColumnSorting extends BasePlugin {
     const pluginSettingsForColumn = this.getFirstCellSettings(column)[this.pluginKey];
     const headerActionEnabled = pluginSettingsForColumn.headerAction;
 
-    return headerActionEnabled && event.target.nodeName === 'SPAN';
+    return (
+      headerActionEnabled &&
+      (hasClass(event.target, HEADER_SPAN_CLASS) || hasClass(event.target, SORTING_INDICATOR_CLASS))
+    );
   }
 
   /**
