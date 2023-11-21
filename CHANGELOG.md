@@ -41,11 +41,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 - **Breaking change**: Changed the way the table reacts to using the "select all cells" methods and shortcuts. [#10461](https://github.com/handsontable/handsontable/pull/10461)
-- **Breaking change**: Extended the Core's `scrollViewportTo` method to allow disabling of cell auto-snapping. [#10508](https://github.com/handsontable/handsontable/pull/10508)
-- **Breaking change**: Improved the keyboard navigation for the context and dropdown menus and added a new `forwardToContext` option to the ShortcutManager. [#10519](https://github.com/handsontable/handsontable/pull/10519)
 - **Breaking change**: Changed the colors of the invalid cells and the arrow buttons of the autocomplete-typed cells. [#10520](https://github.com/handsontable/handsontable/pull/10520)
 - **Breaking change**: Improved the navigation and accessibility of the Filtering Dropdown Menu. [#10530](https://github.com/handsontable/handsontable/pull/10530)
 - **Breaking change**: Changed the way Handsontable handles focus by focusing the browser on cell elements. Introduced a new `imeFastEdit` option to minimize the negative effects affecting the "fast edit" feature for the IME users. [#10342](https://github.com/handsontable/handsontable/pull/10342)
+- Extended the Core's `scrollViewportTo` method to allow disabling of cell auto-snapping. [#10508](https://github.com/handsontable/handsontable/pull/10508)
+- Improved the keyboard navigation for the context and dropdown menus and added a new `forwardToContext` option to the ShortcutManager. [#10519](https://github.com/handsontable/handsontable/pull/10519)
 - Upgraded the monorepo to utilize Node 20. [#10468](https://github.com/handsontable/handsontable/pull/10468)
 - Improved DX by adding an exception to be thrown when trying to activate a shortcut context that has been not yet registered. [#10476](https://github.com/handsontable/handsontable/pull/10476)
 - Improved the performance of the table for cases when the table is hidden. [#10490](https://github.com/handsontable/handsontable/pull/10490)
