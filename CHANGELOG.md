@@ -24,7 +24,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Added a keyboard shortcut for scrolling the viewport [#10419](https://github.com/handsontable/handsontable/pull/10419)
 - Added a keyboard shortcut for clearing the filters. [#10420](https://github.com/handsontable/handsontable/pull/10420)
 - Added a keyboard shortcut for managing cell comments. [#10421](https://github.com/handsontable/handsontable/pull/10421)
-- Added the ability to traverse the grid within a webpage using the `TAB` key and introduced a new `disableTabNavigation` option. [#10430](https://github.com/handsontable/handsontable/pull/10430)
+- Added the ability to traverse the grid within a webpage using the `TAB` key and introduced a new `tabNavigation` option. [#10430](https://github.com/handsontable/handsontable/pull/10430) [#10585](https://github.com/handsontable/handsontable/pull/10585)
 - Added ARIA tags to the table elements. [#10463](https://github.com/handsontable/handsontable/pull/10463)
 - Added ARIA tags to the autocomplete editor. [#10524](https://github.com/handsontable/handsontable/pull/10524)
 - Added test cases to ensure the dropdown editor's ARIA tags are correct. [#10526](https://github.com/handsontable/handsontable/pull/10526)
