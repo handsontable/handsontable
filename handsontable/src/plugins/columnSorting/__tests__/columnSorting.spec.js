@@ -5,16 +5,18 @@ describe('ColumnSorting', () => {
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="overflow: auto; width: 300px; height: 200px;"></div>`).appendTo('body');
 
-    this.sortByClickOnColumnHeader = (columnIndex) => {
+    this.sortByClickOnColumnHeader = (columnIndex, useIndicator = false) => {
       const hot = this.$container.data('handsontable');
       const $columnHeader = $(hot.view._wt.wtTable.getColumnHeader(columnIndex));
       const $spanInsideHeader = $columnHeader.find('.columnSorting');
+      const $sortingIndicator = $columnHeader.find('.columnSortingIndicator');
+      const $clickableElement = useIndicator ? $sortingIndicator : $spanInsideHeader;
 
-      if ($spanInsideHeader.length === 0) {
+      if ($clickableElement.length === 0) {
         throw Error('Please check the test scenario. The header doesn\'t exist.');
       }
 
-      simulateClick($spanInsideHeader);
+      simulateClick($clickableElement);
     };
   });
 
@@ -70,6 +72,38 @@ describe('ColumnSorting', () => {
     expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('3');
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('0');
     expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('5');
+  });
+
+  it('should sort table by first visible column when clicking on the first column\'s sorting indicator', () => {
+    handsontable({
+      data: [
+        [1, 9, 3, 4, 5, 6, 7, 8, 9],
+        [9, 8, 7, 6, 5, 4, 3, 2, 1],
+        [8, 7, 6, 5, 4, 3, 3, 1, 9],
+        [0, 3, 0, 5, 6, 7, 8, 9, 1]
+      ],
+      colHeaders: true,
+      columnSorting: {
+        initialConfig: {
+          column: 0,
+          sortOrder: 'asc'
+        }
+      }
+    });
+
+    const htCore = getHtCore();
+
+    spec().sortByClickOnColumnHeader(0, true);
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('9');
+    expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('8');
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('7');
+    expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('6');
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('9');
+    expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('8');
+    expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
+    expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('0');
   });
 
   it('should not change row indexes in the sorted table after using `disablePlugin` until next render is called', () => {
