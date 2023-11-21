@@ -57,13 +57,13 @@ Handsontable does not require a mouse to navigate across the grid's elements. Th
 
 Our experience with hundreds of implementations of Handsontable has highlighted some typical patterns. It turns out that usually Handsontable is used as either a **spreadsheet application** or a **data grid component**. While the difference may seem subtle at first, it significantly impacts user expectations regarding navigation.
 
-In a typical spreadsheet application (think of Microsoft Excel or Google Sheets), you cannot move the focus onto headers. This makes it difficult to sort or filter data without knowing complex [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts.md). Additionally, opening a column menu is not trivial. Handsontable offers flexibility in this regard, allowing users to switch between data grid and spreadsheet "modes". To do that switch, you can use a combination of two options: [`navigableHeaders`](@/api/options.md#navigableheaders) to enable or disable moving focus onto headers, and [`disableTabNavigation`](@/api/options.md#disabletabnavigation) to decide if the <kbd>Tab</kbd> key can be used to navigate across cells and headers.
+In a typical spreadsheet application (think of Microsoft Excel or Google Sheets), you cannot move the focus onto headers. This makes it difficult to sort or filter data without knowing complex [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts.md). Additionally, opening a column menu is not trivial. Handsontable offers flexibility in this regard, allowing users to switch between data grid and spreadsheet "modes". To do that switch, you can use a combination of two options: [`navigableHeaders`](@/api/options.md#navigableheaders) to enable or disable moving focus onto headers, and [`tabNavigation`](@/api/options.md#tabNavigation) to decide if the <kbd>Tab</kbd> key can be used to navigate across cells and headers.
 
 The following table provides more details about these two scenarios:
  
 | Aspect                  | Data grid mode                                                                                                                                                                                                                                                                         | Spreadsheet mode (default)                                                                                                                                                         |
 |---------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Configuration options     | `navigableHeaders: true` <br>  `disabletabNavigation: false`                                                                                                                                                                                                                                       | `navigableHeaders: false` <br> `disableTabNavigation: false`                                                                                                                                    |
+| Configuration options     | `navigableHeaders: true` <br>  `tabNavigation: true`                                                                                                                                                                                                                                       | `navigableHeaders: false` <br> `tabNavigation: true`                                                                                                                                    |
 | Primary navigation method | <kbd>Arrow keys</kbd>                                                                                                                                                                                                                                                                  | <kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd>                                                                                                                                 |
 | Description               | The <kbd>Arrow keys</kbd> are primarily used to navigate across the grid. Use simple shortcut keys such as <kbd>Enter</kbd> or <kbd>Space</kbd> to open menus or interact with headers, cells, or cell editors. <br><br>You cannot use <kbd>Tab</kbd> key to navigate across the grid. | The <kbd>Tab</kbd> key is primarily used to navigate across the grid.<br>This behavior is similar to Excel or Google Sheets. <br><br>To open menus use more complex shortcut keys. |
 | Focus order               | One <kbd>Tab</kbd> stop - the grid is included in the tab sequence within the page only once.                                                                                                                                                                                          | Multiple <kbd>Tab</kbd> stops - all the grid tabbable elements, such as cells or headers, are included in the page <kbd>Tab</kbd> sequence.                                        |
@@ -123,7 +123,7 @@ Check out the interactive demo below to see how different Handsontable settings 
           Enable navigation with the Tab key
         </label>
         <a
-          href="https://handsontable.com/docs/javascript-data-grid/api/options/#disableTabNavigation"
+          href="https://handsontable.com/docs/javascript-data-grid/api/options/#tabNavigation"
           target="_blank"
           class="external-link"
           rel="noopener noreferrer"
@@ -1031,7 +1031,7 @@ const hotOptions = {
   },
   contextMenu: true,
   navigableHeaders: true, // New accessibility feature
-  disableTabNavigation: false, // New accessibility feature
+  tabNavigation: true, // New accessibility feature
   autoWrapRow: true,
   autoWrapCol: true,
   multiColumnSorting: true,
@@ -1054,13 +1054,13 @@ const setupCheckbox = (element, callback) =>
 
 // Checkbox: Enable/Disable Tab Navigation
 setupCheckbox(document.querySelector("#enable-tab-navigation"), (checked) => {
-  hotOptions.disableTabNavigation = !checked;
+  hotOptions.tabNavigation = !checked;
   hotInstance.updateSettings({
-    disableTabNavigation: hotOptions.disableTabNavigation,
+    tabNavigation: hotOptions.tabNavigation,
   });
   console.log(
-    `Updated setting: disableTabNavigation to`,
-    hotInstance.getSettings().disableTabNavigation
+    `Updated setting: tabNavigation to`,
+    hotInstance.getSettings().tabNavigation
   );
 });
 
@@ -1743,7 +1743,7 @@ const hotOptions = {
 
 function App() {
   const [toggleableOptions, setToggleableOptions] = useState({
-    disableTabNavigation: false,
+    tabNavigation: true,
     navigableHeaders: true,
     renderAllRows: false,
     enterBeginsEditing: true,
@@ -1803,7 +1803,7 @@ function App() {
 // This allows us to change the Handsontable settings from the UI, showcasing
 // the flexibility of Handsontable in configuring according to your needs.
 function DemoOptions({
-  disableTabNavigation,
+  tabNavigation,
   navigableHeaders,
   renderAllRows,
   enterBeginsEditing,
@@ -1818,7 +1818,7 @@ function DemoOptions({
       case "enable-tab-navigation":
         changeToggleOptions((existing) => ({
           ...existing,
-          disableTabNavigation: !disableTabNavigation,
+          tabNavigation: !tabNavigation,
         }));
         break;
       case "enable-header-navigation":
@@ -1875,7 +1875,7 @@ function DemoOptions({
               id="tab-navigation-label"
             >
               <input
-                checked={!disableTabNavigation}
+                checked={!tabNavigation}
                 type="checkbox"
                 id="enable-tab-navigation"
                 name="enable-tab-navigation"
@@ -1885,7 +1885,7 @@ function DemoOptions({
               Enable navigation with the Tab key
             </label>
             <a
-              href="https://handsontable.com/docs/react-data-grid/api/options/#disableTabNavigation"
+              href="https://handsontable.com/docs/react-data-grid/api/options/#tabNavigation"
               target="_blank"
               className="external-link"
               rel="noopener noreferrer"
@@ -2255,7 +2255,7 @@ For the list of [options](@/guides/getting-started/configuration-options.md), me
 
 - [`autoWrapCol`](@/api/options.md#autowrapcol)
 - [`autoWrapRow`](@/api/options.md#autowraprow)
-- [`disableTabNavigation`](@/api/options.md#disabletabnavigation)
+- [`tabNavigation`](@/api/options.md#tabNavigation)
 - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
 - [`enterMoves`](@/api/options.md#entermoves)
 - [`navigableHeaders`](@/api/options.md#navigableheaders)

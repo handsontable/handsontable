@@ -1,6 +1,6 @@
 ---
 id: migrating-13.1.0-to-14.0
-title: Migrating from 13.1.0 to 14.0
+title: Migrating from 13.1 to 14.0
 metaTitle: Migrating from 13.1.0 to 14.0 - JavaScript Data Grid | Handsontable
 description: Migrate from Handsontable 13.1.0 to Handsontable 14.0, released on November 15th, 2023.
 permalink: /migration-from-13.1.0-to-14.0
@@ -28,7 +28,7 @@ To utilize it in your implementation, set the `imeFastEdit` option to `true` in 
 
 ### Update the CSS selectors for your custom icons
 
-Handsontable 14.0.0 changes the DOM structure of some elements holding the icons used within the table. This change aims to equip those elements with all the attributes required by the accessibility standards.
+Handsontable 14.0 changes the DOM structure of some elements holding the icons used within the table. This change aims to equip those elements with all the attributes required by the accessibility standards.
 
 ##### The Context Menu submenu indicator
 
@@ -64,7 +64,7 @@ The new Handsontable version comes with an updated set of keyboard shortcuts. Mo
 | Before  | After  |
 | ------------ | ------------ |
 | Selects all cells and headers  | Selects all cells _without_ headers  |
-| Selection highlight moves to the top-left cell of the selection  | Selection highlight does not move  |
+| Selection highlight moves to the top-left cell of the selection  | Focused cell does not move  |
 
 ##### <kbd>TAB</kbd> in the Filtering menu
 
