@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.0.0
- * Release date: 22/11/2023 (built at 20/11/2023 12:27:46)
+ * Release date: 22/11/2023 (built at 21/11/2023 13:57:30)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -105,7 +105,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "20/11/2023 12:27:46";
+Handsontable.buildDate = "21/11/2023 13:57:30";
 Handsontable.version = "14.0.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -53830,7 +53830,7 @@ class ColumnSorting extends _base.BasePlugin {
   wasClickableHeaderClicked(event, column) {
     const pluginSettingsForColumn = this.getFirstCellSettings(column)[this.pluginKey];
     const headerActionEnabled = pluginSettingsForColumn.headerAction;
-    return headerActionEnabled && event.target.nodeName === 'SPAN';
+    return headerActionEnabled && ((0, _element.hasClass)(event.target, _utils.HEADER_SPAN_CLASS) || (0, _element.hasClass)(event.target, SORTING_INDICATOR_CLASS));
   }
   /**
    * Callback for the `onAfterOnCellMouseDown` hook.
