@@ -75,11 +75,11 @@ Handsontable provides a wide range of [shortcut keys](@/guides/navigation/keyboa
 
 | Windows                                                                                   | macOS                                                                                    | Action              | Focused element   |
 |-------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|---------------------|-------------------|
-| <kbd>Shift</kbd> + <kbd>Alt</kbd> + <kbd>I</kbd>                                          | <kbd>Shift</kbd> + <kbd>Option</kbd> + <kbd>I</kbd>                                      | Open a column menu  | Any cell     |
+| <kbd>Shift</kbd> + <kbd>Alt</kbd> + <kbd>↓</kbd>                                          | <kbd>Shift</kbd> + <kbd>Option</kbd> + <kbd>↓</kbd>                                      | Open a column menu  | Any cell     |
 | <kbd>Ctrl</kbd> + <kbd>Enter</kbd>                                                        | <kbd>Cmd</kbd> + <kbd>Enter</kbd>                                                        | Open a column menu  | Column header     |
-| <kbd>Shift</kbd> + <kbd>Enter</kbd>                                                       | <kbd>Shift</kbd> + <kbd>Enter</kbd>                                                      | Sort data           | Column header     |
+| <kbd>Enter</kbd>                                                        | <kbd>Enter</kbd>                                                       | Sort data           | Column header     |
 | <kbd>Alt</kbd> + <kbd>A</kbd>                                                             | <kbd>Option</kbd> + <kbd>A</kbd>                                                         | Clear filters       | Any cell     |
-| <kbd>Ctrl</kbd> + <kbd>Space</kbd>                                                        | <kbd>Cmd</kbd> + <kbd>Space</kbd> *                                                      | Select a column     | Any cell |
+| <kbd>Ctrl</kbd> + <kbd>Space</kbd>                                                        | <kbd>Ctrl</kbd> + <kbd>Space</kbd> *                                                      | Select a column     | Any cell |
 | <kbd>Shift</kbd> + <kbd>Space</kbd>                                                       | <kbd>Shift</kbd> + <kbd>Space</kbd>                                                      | Select a row        | Any cell    |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> | <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> | Open a context menu | Any cell     |
 
