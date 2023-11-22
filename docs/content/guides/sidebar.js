@@ -182,7 +182,7 @@ const upgradeAndMigrationItems = [
   { path: 'guides/upgrade-and-migration/migrating-from-10.0-to-11.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-11.1-to-12.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-12.4-to-13.0' },
-  { path: 'guides/upgrade-and-migration/migrating-from-13.1.0-to-14.0' },
+  { path: 'guides/upgrade-and-migration/migrating-from-13.1-to-14.0' },
 ];
 
 module.exports = {
