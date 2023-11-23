@@ -168,7 +168,6 @@ export class SelectionManager {
       const selection = selections[i];
       const {
         className,
-        cellAttributes,
         focusedHeaderAttributes,
         createLayers,
         selectionType,
