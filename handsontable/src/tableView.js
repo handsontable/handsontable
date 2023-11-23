@@ -1298,6 +1298,9 @@ class TableView {
 
       div.className = 'relative';
       span.className = 'colHeader';
+
+      setAttribute(div, ...A11Y_PRESENTATION());
+
       this.updateCellHeader(span, visualColumnIndex, label, headerLevel);
 
       div.appendChild(span);
