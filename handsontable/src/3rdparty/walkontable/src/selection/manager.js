@@ -187,29 +187,23 @@ export class SelectionManager {
         continue; // eslint-disable-line no-continue
       }
 
-      if (
-        className ||
-        cellAttributes ||
-        (selectionType === 'focus' && focusedHeaderAttributes)
-      ) {
+      if (className) {
         const elements = this.#scanner
           .setActiveSelection(selection)
           .scan();
 
         elements.forEach((element) => {
-          if (className) {
-            if (classNamesMap.has(element)) {
-              const classNamesLayers = classNamesMap.get(element);
+          if (classNamesMap.has(element)) {
+            const classNamesLayers = classNamesMap.get(element);
 
-              if (classNamesLayers.has(className) && createLayers === true) {
-                classNamesLayers.set(className, classNamesLayers.get(className) + 1);
-              } else {
-                classNamesLayers.set(className, 1);
-              }
-
+            if (classNamesLayers.has(className) && createLayers === true) {
+              classNamesLayers.set(className, classNamesLayers.get(className) + 1);
             } else {
-              classNamesMap.set(element, new Map([[className, 1]]));
+              classNamesLayers.set(className, 1);
             }
+
+          } else {
+            classNamesMap.set(element, new Map([[className, 1]]));
           }
 
           if (selectionType === 'focus' && focusedHeaderAttributes) {
