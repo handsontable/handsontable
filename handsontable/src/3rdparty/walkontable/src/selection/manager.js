@@ -212,7 +212,7 @@ export class SelectionManager {
             }
           }
 
-          if (selectionType === 'focus') {
+          if (selectionType === 'focus' && focusedHeaderAttributes) {
             if (!focusedHeaderAttributesMap.has(element)) {
               focusedHeaderAttributesMap.set(element, []);
             }
