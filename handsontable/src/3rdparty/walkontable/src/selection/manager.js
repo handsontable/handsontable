@@ -162,11 +162,14 @@ export class SelectionManager {
 
     const selections = Array.from(this.#selections);
     const classNamesMap = new Map();
+    const focusedHeaderAttributesMap = new Map();
 
     for (let i = 0; i < selections.length; i++) {
       const selection = selections[i];
       const {
         className,
+        cellAttributes,
+        focusedHeaderAttributes,
         createLayers,
         selectionType,
       } = selection.settings;
@@ -184,23 +187,39 @@ export class SelectionManager {
         continue; // eslint-disable-line no-continue
       }
 
-      if (className) {
+      if (
+        className ||
+        cellAttributes ||
+        (selectionType === 'focus' && focusedHeaderAttributes)
+      ) {
         const elements = this.#scanner
           .setActiveSelection(selection)
           .scan();
 
         elements.forEach((element) => {
-          if (classNamesMap.has(element)) {
-            const classNamesLayers = classNamesMap.get(element);
+          if (className) {
+            if (classNamesMap.has(element)) {
+              const classNamesLayers = classNamesMap.get(element);
 
-            if (classNamesLayers.has(className) && createLayers === true) {
-              classNamesLayers.set(className, classNamesLayers.get(className) + 1);
+              if (classNamesLayers.has(className) && createLayers === true) {
+                classNamesLayers.set(className, classNamesLayers.get(className) + 1);
+              } else {
+                classNamesLayers.set(className, 1);
+              }
+
             } else {
-              classNamesLayers.set(className, 1);
+              classNamesMap.set(element, new Map([[className, 1]]));
+            }
+          }
+
+          if (selectionType === 'focus') {
+            if (!focusedHeaderAttributesMap.has(element)) {
+              focusedHeaderAttributesMap.set(element, []);
             }
 
-          } else {
-            classNamesMap.set(element, new Map([[className, 1]]));
+            if (element.nodeName === 'TH') {
+              focusedHeaderAttributesMap.get(element).push(...focusedHeaderAttributes);
+            }
           }
         });
       }
@@ -231,9 +250,12 @@ export class SelectionManager {
       if (element.nodeName === 'TD' && Array.isArray(this.#selections.options?.cellAttributes)) {
         setAttribute(element, this.#selections.options.cellAttributes);
 
-      } else if (element.nodeName === 'TH' && Array.isArray(this.#selections.options?.headerAttributes)) {
-        setAttribute(element, this.#selections.options.headerAttributes);
       }
+    });
+
+    // Set the attributes for the headers if they're focused.
+    Array.from(focusedHeaderAttributesMap.keys()).forEach((element) => {
+      setAttribute(element, [...focusedHeaderAttributesMap.get(element)]);
     });
   }
 
