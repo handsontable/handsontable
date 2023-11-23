@@ -1300,6 +1300,7 @@ class TableView {
       span.className = 'colHeader';
 
       setAttribute(div, ...A11Y_PRESENTATION());
+      setAttribute(span, ...A11Y_PRESENTATION());
 
       this.updateCellHeader(span, visualColumnIndex, label, headerLevel);
 
