@@ -299,7 +299,8 @@ jobs:
       fail-fast: false
       matrix:
         version: ${{fromJson(needs.prepare-matrix.outputs.versions)}}
-        framework: [angular, angular-12, angular-13, angular-14, angular-15, angular-16, js, react, vue, vue3, ts]
+        framework: [angular, angular-12, angular-13, angular-14, angular-15, angular-16, angular-17, js, react, vue,
+                    vue3, ts]
 
     env:
       FRAMEWORK_EXAMPLES_PATH: examples/${{ matrix.version }}/docs/${{ matrix.framework }}

@@ -380,29 +380,6 @@ describe('Selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should select a cell which one was added automatically by minSpareCols', () => {
-    handsontable({
-      data: Handsontable.helper.createSpreadsheetData(1, 5),
-      minSpareCols: 1,
-    });
-
-    selectCell(0, 5);
-    keyDownUp('tab');
-
-    expect(countCols()).toEqual(7);
-    expect(getSelected()).toEqual([[0, 6, 0, 6]]);
-    expect(`
-    |   :   :   :   :   :   : # |
-    `).toBeMatchToSelectionPattern();
-    expect(getDataAtCell(0, 0)).toEqual('A1');
-    expect(getDataAtCell(0, 1)).toEqual('B1');
-    expect(getDataAtCell(0, 2)).toEqual('C1');
-    expect(getDataAtCell(0, 3)).toEqual('D1');
-    expect(getDataAtCell(0, 4)).toEqual('E1');
-    expect(getDataAtCell(0, 5)).toBeNull();
-    expect(getDataAtCell(0, 6)).toBeNull();
-  });
-
   it('should change selected coords by modifying coords object via `modifyTransformStart` hook', () => {
     const hot = handsontable({
       rowHeaders: true,

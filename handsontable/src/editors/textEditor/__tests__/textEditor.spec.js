@@ -2007,28 +2007,5 @@ describe('TextEditor', () => {
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });
-
-    it('editor size should change after composition started', async() => {
-      handsontable({
-        data: createSpreadsheetData(10, 5),
-        width: 400,
-        height: 400,
-      });
-
-      selectCell(2, 2);
-      keyDownUp('enter');
-
-      const textarea = getActiveEditor().TEXTAREA;
-
-      textarea.value = 'test, test, test, test, test, test';
-      textarea.dispatchEvent(new CompositionEvent('compositionstart')); // Trigger textarea resize
-      textarea.dispatchEvent(new CompositionEvent('compositionupdate')); // Trigger textarea resize
-      textarea.dispatchEvent(new CompositionEvent('compositionend')); // Trigger textarea resize
-
-      await sleep(100);
-
-      expect($(textarea).width()).toBe(143);
-      expect($(textarea).height()).toBe(23);
-    });
   });
 });

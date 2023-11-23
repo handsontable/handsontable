@@ -52,7 +52,7 @@ export function installFocusCatcher(hot) {
       recentlyAddedFocusCoords = hot.getSelectedRangeLast()?.highlight;
     }
   });
-  hot.addHook('beforeRowWrap', (isWrapEnabled, newCoords, isFlipped) => {
+  hot.addHook('beforeRowWrap', (interruptedByAutoInsertMode, newCoords, isFlipped) => {
     rowWrapState.wrapped = true;
     rowWrapState.flipped = isFlipped;
   });
@@ -69,7 +69,6 @@ export function installFocusCatcher(hot) {
 
   const shortcutOptions = {
     keys: [['Tab'], ['Shift', 'Tab']],
-    runOnlyIf: () => !hot.getSettings().minSpareCols,
     preventDefault: false,
     stopPropagation: false,
     relativeToGroup: GRID_GROUP,
@@ -84,7 +83,7 @@ export function installFocusCatcher(hot) {
         callback: () => {
           isTabOrShiftTabPressed = true;
 
-          if (hot.getSelectedRangeLast() && (!hot.getSettings().tabNavigation)) {
+          if (hot.getSelectedRangeLast() && !hot.getSettings().tabNavigation) {
             isSavingCoordsEnabled = false;
           }
         },
