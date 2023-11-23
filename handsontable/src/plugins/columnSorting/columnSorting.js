@@ -1,6 +1,5 @@
 import {
   addClass,
-  appendElement,
   hasClass,
   removeClass,
   setAttribute,
@@ -27,15 +26,13 @@ import {
 } from './domHelpers';
 import { rootComparator } from './rootComparator';
 import { registerRootComparator, sort } from './sortService';
-import { A11Y_DESCRIPTION, A11Y_HIDDEN, A11Y_SORT } from '../../helpers/a11y';
-import { COLUMN_HEADER_DESCRIPTION_SORT_ROWS } from '../../i18n/constants';
+import { A11Y_SORT } from '../../helpers/a11y';
 
 export const PLUGIN_KEY = 'columnSorting';
 export const PLUGIN_PRIORITY = 50;
 export const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 export const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
-const SORTING_INDICATOR_CLASS = 'columnSortingIndicator';
 
 registerRootComparator(PLUGIN_KEY, rootComparator);
 
@@ -715,10 +712,8 @@ export class ColumnSorting extends BasePlugin {
     }
 
     const pluginSettingsForColumn = this.getFirstCellSettings(column)[this.pluginKey];
-    const ariaTags = this.hot.getSettings().ariaTags;
     const showSortIndicator = pluginSettingsForColumn.indicator;
     const headerActionEnabled = pluginSettingsForColumn.headerAction;
-    const currentSortState = this.columnStatesManager.getSortOrderOfColumn(column);
 
     this.updateHeaderClasses(
       headerSpanElement,
@@ -728,13 +723,10 @@ export class ColumnSorting extends BasePlugin {
       headerActionEnabled
     );
 
-    this.updateSortingIndicator(column, headerSpanElement);
+    if (this.hot.getSettings().ariaTags) {
+      const currentSortState = this.columnStatesManager.getSortOrderOfColumn(column);
 
-    if (ariaTags) {
-      setAttribute(TH, [
-        A11Y_SORT(currentSortState ? `${currentSortState}ending` : 'none'),
-        A11Y_DESCRIPTION(this.hot.getTranslatedPhrase(COLUMN_HEADER_DESCRIPTION_SORT_ROWS)),
-      ]);
+      setAttribute(TH, ...A11Y_SORT(currentSortState ? `${currentSortState}ending` : 'none'));
     }
   }
 
@@ -750,29 +742,6 @@ export class ColumnSorting extends BasePlugin {
 
     if (this.enabled !== false) {
       addClass(headerSpanElement, getClassesToAdd(...args));
-    }
-  }
-
-  /**
-   * Update sorting indicator.
-   *
-   * @private
-   * @param {number} column Visual column index.
-   * @param {HTMLElement} headerSpanElement Header span element.
-   */
-  updateSortingIndicator(column, headerSpanElement) {
-    const pluginSettingsForColumn = this.getFirstCellSettings(column)[this.pluginKey];
-    const ariaTags = this.hot.getSettings().ariaTags;
-    const showSortIndicator = pluginSettingsForColumn.indicator;
-    const isColumnSorted = this.columnStatesManager.isColumnSorted(column);
-    const indicatorElement = headerSpanElement.querySelector(`.${SORTING_INDICATOR_CLASS}`);
-
-    if (showSortIndicator && isColumnSorted && !indicatorElement) {
-      appendElement(headerSpanElement, {
-        tagName: 'div',
-        className: SORTING_INDICATOR_CLASS,
-        attributes: (ariaTags ? [A11Y_HIDDEN()] : []),
-      });
     }
   }
 
@@ -823,8 +792,7 @@ export class ColumnSorting extends BasePlugin {
     const headerActionEnabled = pluginSettingsForColumn.headerAction;
 
     return (
-      headerActionEnabled &&
-      (hasClass(event.target, HEADER_SPAN_CLASS) || hasClass(event.target, SORTING_INDICATOR_CLASS))
+      headerActionEnabled && hasClass(event.target, HEADER_SPAN_CLASS)
     );
   }
 

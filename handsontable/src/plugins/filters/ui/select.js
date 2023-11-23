@@ -1,11 +1,9 @@
 import { Menu } from '../../../plugins/contextMenu/menu';
 import { clone, extend } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
-import { setAttribute } from '../../../helpers/dom/element';
 import * as C from '../../../i18n/constants';
 import { SEPARATOR } from '../../../plugins/contextMenu/predefinedItems';
 import { BaseUI } from './_base';
-import { A11Y_HIDDEN, A11Y_LISTBOX } from '../../../helpers/a11y';
 
 /**
  * @private
@@ -115,7 +113,6 @@ export class SelectUI extends BaseUI {
     const caption = new BaseUI(this.hot, {
       className: 'htUISelectCaption'
     });
-
     const dropdown = new BaseUI(this.hot, {
       className: 'htUISelectDropdown'
     });
@@ -123,16 +120,6 @@ export class SelectUI extends BaseUI {
     this.#caption = caption;
     this.#captionElement = caption.element;
     this.#dropdown = dropdown;
-
-    if (this.hot.getSettings().ariaTags) {
-      setAttribute(dropdown.element, [
-        A11Y_HIDDEN()
-      ]);
-
-      setAttribute(this._element, [
-        A11Y_LISTBOX()
-      ]);
-    }
 
     arrayEach([caption, dropdown], element => this._element.appendChild(element.element));
 

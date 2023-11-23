@@ -18,8 +18,7 @@ import {
 } from '../contextMenu/predefinedItems';
 
 import './dropdownMenu.scss';
-import { COLUMN_HEADER_LABEL_OPEN_MENU } from '../../i18n/constants';
-import { A11Y_LABEL, A11Y_HASPOPUP } from '../../helpers/a11y';
+import { A11Y_HASPOPUP, A11Y_HIDDEN } from '../../helpers/a11y';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 Hooks.getSingleton().register('beforeDropdownMenuShow');
@@ -471,7 +470,7 @@ export class DropdownMenu extends BasePlugin {
 
     if (this.hot.getSettings().ariaTags) {
       setAttribute(button, [
-        A11Y_LABEL(this.hot.getTranslatedPhrase(COLUMN_HEADER_LABEL_OPEN_MENU)),
+        A11Y_HIDDEN(),
       ]);
 
       setAttribute(TH, [
