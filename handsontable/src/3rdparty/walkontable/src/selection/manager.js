@@ -162,11 +162,13 @@ export class SelectionManager {
 
     const selections = Array.from(this.#selections);
     const classNamesMap = new Map();
+    const headerAttributesMap = new Map();
 
     for (let i = 0; i < selections.length; i++) {
       const selection = selections[i];
       const {
         className,
+        headerAttributes,
         createLayers,
         selectionType,
       } = selection.settings;
@@ -202,6 +204,16 @@ export class SelectionManager {
           } else {
             classNamesMap.set(element, new Map([[className, 1]]));
           }
+
+          if (headerAttributes) {
+            if (!headerAttributesMap.has(element)) {
+              headerAttributesMap.set(element, []);
+            }
+
+            if (element.nodeName === 'TH') {
+              headerAttributesMap.get(element).push(...headerAttributes);
+            }
+          }
         });
       }
 
@@ -231,9 +243,12 @@ export class SelectionManager {
       if (element.nodeName === 'TD' && Array.isArray(this.#selections.options?.cellAttributes)) {
         setAttribute(element, this.#selections.options.cellAttributes);
 
-      } else if (element.nodeName === 'TH' && Array.isArray(this.#selections.options?.headerAttributes)) {
-        setAttribute(element, this.#selections.options.headerAttributes);
       }
+    });
+
+    // Set the attributes for the headers if they're focused.
+    Array.from(headerAttributesMap.keys()).forEach((element) => {
+      setAttribute(element, [...headerAttributesMap.get(element)]);
     });
   }
 

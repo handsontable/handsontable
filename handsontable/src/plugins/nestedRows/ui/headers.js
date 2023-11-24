@@ -2,11 +2,7 @@ import { arrayEach } from '../../../helpers/array';
 import { rangeEach } from '../../../helpers/number';
 import { addClass, setAttribute } from '../../../helpers/dom/element';
 import BaseUI from './_base';
-import { A11Y_DESCRIPTION, A11Y_EXPANDED, A11Y_HIDDEN } from '../../../helpers/a11y';
-import {
-  ROW_HEADER_DESCRIPTION_COLLAPSE_ROW,
-  ROW_HEADER_DESCRIPTION_EXPAND_ROW,
-} from '../../../i18n/constants';
+import { A11Y_EXPANDED, A11Y_HIDDEN } from '../../../helpers/a11y';
 
 /**
  * Class responsible for the UI in the Nested Rows' row headers.
@@ -25,6 +21,7 @@ class HeadersUI extends BaseUI {
     return {
       indicatorContainer: 'ht_nestingLevels',
       parent: 'ht_nestingParent',
+      indicator: 'ht_nestingLevel',
       emptyIndicator: 'ht_nestingLevel_empty',
       button: 'ht_nestingButton',
       expandButton: 'ht_nestingExpand',
@@ -116,8 +113,7 @@ class HeadersUI extends BaseUI {
 
         if (ariaEnabled) {
           setAttribute(TH, [
-            A11Y_EXPANDED(false),
-            A11Y_DESCRIPTION(this.hot.getTranslatedPhrase(ROW_HEADER_DESCRIPTION_EXPAND_ROW)),
+            A11Y_EXPANDED(false)
           ]);
         }
 
@@ -126,8 +122,7 @@ class HeadersUI extends BaseUI {
 
         if (ariaEnabled) {
           setAttribute(TH, [
-            A11Y_EXPANDED(true),
-            A11Y_DESCRIPTION(this.hot.getTranslatedPhrase(ROW_HEADER_DESCRIPTION_COLLAPSE_ROW)),
+            A11Y_EXPANDED(true)
           ]);
         }
       }

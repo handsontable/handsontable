@@ -1148,30 +1148,3 @@ export function runWithSelectedContendEditableElement(element, callback, invisib
 
   removeContentEditableFromElementAndDeselect(element, invisibleSelection);
 }
-
-/**
- * Creates a new DOM element and appends it to the parent element with the provided class name(s) and attributes.
- *
- * @param {HTMLElement} parentElement The parent element.
- * @param {object} properties The properties object.
- * @param {string} properties.tagName The type of the new element.
- * @param {string|string[]} properties.className Class name as string or array of strings.
- * @param {Array[]} properties.attributes An array containing the attributes to be added. Each element of the array
- * should be an array in a form of `[attributeName, attributeValue]`.
- * @returns {HTMLElement} The created div element.
- */
-export function appendElement(parentElement, { tagName, className, attributes }) {
-  const element = parentElement.ownerDocument.createElement(tagName);
-
-  if (className) {
-    addClass(element, className);
-  }
-
-  if (attributes && attributes.length) {
-    setAttribute(element, attributes);
-  }
-
-  parentElement.appendChild(element);
-
-  return element;
-}
