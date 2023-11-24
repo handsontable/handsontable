@@ -40,10 +40,14 @@ export class InputUI extends BaseUI {
    */
   build() {
     super.build();
+    const icon = this.hot.rootDocument.createElement('div');
 
     this.#input = this._element.firstChild;
 
     addClass(this._element, 'htUIInput');
+    addClass(icon, 'htUIInputIcon');
+
+    this._element.appendChild(icon);
 
     this.update();
   }

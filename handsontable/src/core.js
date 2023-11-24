@@ -4740,7 +4740,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function getTranslatedPhrase
    * @since 0.35.0
    * @param {string} dictionaryKey Constant which is dictionary key.
-   * @param {*} [extraArguments] Arguments which will be handled by formatters.
+   * @param {*} extraArguments Arguments which will be handled by formatters.
    * @returns {string}
    */
   this.getTranslatedPhrase = function(dictionaryKey, extraArguments) {

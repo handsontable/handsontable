@@ -1,22 +1,19 @@
 describe('ColumnSorting', () => {
   const id = 'testContainer';
-  const getIndicator = parentEl => parentEl.querySelector('.columnSortingIndicator');
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="overflow: auto; width: 300px; height: 200px;"></div>`).appendTo('body');
 
-    this.sortByClickOnColumnHeader = (columnIndex, useIndicator = false) => {
+    this.sortByClickOnColumnHeader = (columnIndex) => {
       const hot = this.$container.data('handsontable');
       const $columnHeader = $(hot.view._wt.wtTable.getColumnHeader(columnIndex));
       const $spanInsideHeader = $columnHeader.find('.columnSorting');
-      const $sortingIndicator = $columnHeader.find('.columnSortingIndicator');
-      const $clickableElement = useIndicator ? $sortingIndicator : $spanInsideHeader;
 
-      if ($clickableElement.length === 0) {
+      if ($spanInsideHeader.length === 0) {
         throw Error('Please check the test scenario. The header doesn\'t exist.');
       }
 
-      simulateClick($clickableElement);
+      simulateClick($spanInsideHeader);
     };
   });
 
@@ -72,38 +69,6 @@ describe('ColumnSorting', () => {
     expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('3');
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('0');
     expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('5');
-  });
-
-  it('should sort table by first visible column when clicking on the first column\'s sorting indicator', () => {
-    handsontable({
-      data: [
-        [1, 9, 3, 4, 5, 6, 7, 8, 9],
-        [9, 8, 7, 6, 5, 4, 3, 2, 1],
-        [8, 7, 6, 5, 4, 3, 3, 1, 9],
-        [0, 3, 0, 5, 6, 7, 8, 9, 1]
-      ],
-      colHeaders: true,
-      columnSorting: {
-        initialConfig: {
-          column: 0,
-          sortOrder: 'asc'
-        }
-      }
-    });
-
-    const htCore = getHtCore();
-
-    spec().sortByClickOnColumnHeader(0, true);
-
-    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('9');
-    expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('8');
-    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('7');
-    expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('6');
-
-    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('9');
-    expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('8');
-    expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
-    expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('0');
   });
 
   it('should not change row indexes in the sorted table after using `disablePlugin` until next render is called', () => {
@@ -258,10 +223,8 @@ describe('ColumnSorting', () => {
 
       const sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
-      expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image'))
-        .toMatch(/url/);
-      expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('right'))
-        .toEqual('-9px');
+      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('right')).toEqual('-9px');
     });
   });
 
@@ -282,7 +245,7 @@ describe('ColumnSorting', () => {
 
     const sortedColumn = spec().$container.find('th span')[0];
 
-    expect(getIndicator(sortedColumn)).toBe(null);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
   });
 
   it('should render a correct number of TD elements after sorting', async() => {
@@ -2245,33 +2208,31 @@ describe('ColumnSorting', () => {
     let sortedColumn = spec().$container.find('th span.columnSorting')[2];
 
     // not sorted
-    expect(getIndicator(sortedColumn)).toBe(null);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
 
     spec().sortByClickOnColumnHeader(2);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
     // not sorted
-    expect(getIndicator(sortedColumn)).toBe(null);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
 
     spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // ascending
-    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image'))
-      .toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // descending
-    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image'))
-      .toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // not sorted
-    expect(getIndicator(sortedColumn)).toBe(null);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
   });
 
   it('should change sorting indicator state on every plugin API method (calling for different columns)', () => {
@@ -2294,43 +2255,37 @@ describe('ColumnSorting', () => {
     // ascending
     let sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
-    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image'))
-      .toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image'))
-      .toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image'))
-      .toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' });
 
     // descending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image'))
-      .toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' });
 
     // descending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image'))
-      .toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image'))
-      .toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
   });
 
   it('should change sorting indicator state when initial column sorting was provided', () => {
@@ -2355,34 +2310,31 @@ describe('ColumnSorting', () => {
     // descending
     let sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
-    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image'))
-      .toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort();
 
     // default
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(getIndicator(sortedColumn)).toBe(null);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image'))
-      .toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
 
     // descending
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(getIndicator(sortedColumn), ':before').getPropertyValue('background-image'))
-      .toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort();
 
     // default
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(getIndicator(sortedColumn)).toBe(null);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
   });
 
   it('should properly sort the table, when it\'s scrolled to the far right', () => {
