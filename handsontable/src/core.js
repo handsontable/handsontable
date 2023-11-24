@@ -4290,22 +4290,23 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Select all cells.
+   * Select all cells in the table excluding headers and corner elements.
    *
    * The previous selection is overwritten.
    *
    * ```js
-   * // select all cells in the table, including all headers and the corner cell
+   * // Select all cells in the table along with row headers, including all headers and the corner cell.
+   * // Doesn't select column headers and corner elements.
    * hot.selectAll();
    *
-   * // select all cells in the table, including row headers but excluding the corner cell
+   * // Select all cells in the table, including row headers but excluding the corner cell
    * hot.selectAll(true, false);
    *
-   * // select all cells in the table, including all headers and the corner cell, but move the focus
-   * // highlight to position -2, -1
-   * hot.selectAll(-2, -1);
+   * // Select all cells in the table, including all headers and the corner cell, but move the focus.
+   * // highlight to position 2, 1
+   * hot.selectAll(-2, -1); focusPosition { row: 2, col: 1 });
    *
-   * // select all cells in the table, without headers
+   * // Select all cells in the table, without headers and corner elements.
    * hot.selectAll(false);
    * ```
    *
