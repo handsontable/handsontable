@@ -162,13 +162,13 @@ export class SelectionManager {
 
     const selections = Array.from(this.#selections);
     const classNamesMap = new Map();
-    const focusedHeaderAttributesMap = new Map();
+    const headerAttributesMap = new Map();
 
     for (let i = 0; i < selections.length; i++) {
       const selection = selections[i];
       const {
         className,
-        focusedHeaderAttributes,
+        headerAttributes,
         createLayers,
         selectionType,
       } = selection.settings;
@@ -205,13 +205,13 @@ export class SelectionManager {
             classNamesMap.set(element, new Map([[className, 1]]));
           }
 
-          if (selectionType === 'focus' && focusedHeaderAttributes) {
-            if (!focusedHeaderAttributesMap.has(element)) {
-              focusedHeaderAttributesMap.set(element, []);
+          if (headerAttributes) {
+            if (!headerAttributesMap.has(element)) {
+              headerAttributesMap.set(element, []);
             }
 
             if (element.nodeName === 'TH') {
-              focusedHeaderAttributesMap.get(element).push(...focusedHeaderAttributes);
+              headerAttributesMap.get(element).push(...headerAttributes);
             }
           }
         });
@@ -247,8 +247,8 @@ export class SelectionManager {
     });
 
     // Set the attributes for the headers if they're focused.
-    Array.from(focusedHeaderAttributesMap.keys()).forEach((element) => {
-      setAttribute(element, [...focusedHeaderAttributesMap.get(element)]);
+    Array.from(headerAttributesMap.keys()).forEach((element) => {
+      setAttribute(element, [...headerAttributesMap.get(element)]);
     });
   }
 

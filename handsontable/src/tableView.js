@@ -1299,10 +1299,10 @@ class TableView {
       div.className = 'relative';
       span.className = 'colHeader';
 
-    if (this.settings.ariaTags) {
-      setAttribute(div, ...A11Y_PRESENTATION());
-      setAttribute(span, ...A11Y_PRESENTATION());
-    }
+      if (this.settings.ariaTags) {
+        setAttribute(div, ...A11Y_PRESENTATION());
+        setAttribute(span, ...A11Y_PRESENTATION());
+      }
 
       this.updateCellHeader(span, visualColumnIndex, label, headerLevel);
 
