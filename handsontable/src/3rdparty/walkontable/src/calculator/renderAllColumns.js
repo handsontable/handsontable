@@ -38,6 +38,6 @@ export class RenderAllColumnsCalculator {
    */
   constructor(options) {
     this.count = options.totalColumns;
-    this.endCol = this.count - 1;
+    this.endColumn = this.count - 1;
   }
 }

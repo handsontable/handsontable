@@ -114,7 +114,9 @@ export default class ColumnUtils {
     const scrollbarCompensation = mainHolder.offsetHeight < mainHolder.scrollHeight ? getScrollbarWidth() : 0;
     let rowHeaderWidthSetting = wtSettings.getSetting('rowHeaderWidth');
 
-    this.stretching.refreshStretching(wtViewport.getViewportWidth() - scrollbarCompensation);
+    this.stretching
+      .setCalculator(wtViewport.columnsRenderCalculator)
+      .refreshStretching(wtViewport.getViewportWidth() - scrollbarCompensation);
 
     rowHeaderWidthSetting = wtSettings.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 

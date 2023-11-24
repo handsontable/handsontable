@@ -399,27 +399,30 @@ class Viewport {
    * @returns {boolean} The fastDraw value, possibly modified.
    */
   createRenderCalculators(fastDraw = false) {
-    let runFastDraw = fastDraw;
+    const { wtSettings } = this;
 
-    if (runFastDraw) {
+    if (fastDraw && !wtSettings.getSetting('renderAllRows')) {
       const proposedRowsVisibleCalculator = this.createRowsCalculator(FULLY_VISIBLE_TYPE);
-      const proposedColumnsVisibleCalculator = this.createColumnsCalculator(FULLY_VISIBLE_TYPE);
 
-      if (!(this.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) &&
-          this.areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator))) {
-        runFastDraw = false;
-      }
+      fastDraw = this.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator);
     }
 
-    if (!runFastDraw) {
+    if (fastDraw && !wtSettings.getSetting('renderAllColumns')) {
+      const proposedColumnsVisibleCalculator = this.createColumnsCalculator(FULLY_VISIBLE_TYPE);
+
+      fastDraw = this.areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator);
+    }
+
+    if (!fastDraw) {
       this.rowsRenderCalculator = this.createRowsCalculator(RENDER_TYPE);
       this.columnsRenderCalculator = this.createColumnsCalculator(RENDER_TYPE);
     }
+
     // delete temporarily to make sure that renderers always use rowsRenderCalculator, not rowsVisibleCalculator
     this.rowsVisibleCalculator = null;
     this.columnsVisibleCalculator = null;
 
-    return runFastDraw;
+    return fastDraw;
   }
 
   /**

@@ -1,14 +1,8 @@
 /**
- * @typedef {object} ViewportColumnsCalculatorOptions
- * @property {number} viewportWidth Width of the viewport.
- * @property {number} scrollOffset Current horizontal scroll position of the viewport.
- * @property {number} totalColumns Total number of columns.
+ * @typedef {object} ColumnStretchingOptions
+ * @property {number} columnsCalculator Instance of the columns calculator.
  * @property {Function} columnWidthFn Function that returns the width of the column at a given index (in px).
- * @property {Function} overrideFn Function that changes calculated this.startRow, this.endRow (used by
- *   MergeCells plugin).
- * @property {string} calculationType String which describes types of calculation which will be performed.
- * @property {string} inlineStartOffset Inline-start offset of the parent container.
- * @property {string} stretchMode Stretch mode 'all' or 'last'.
+ * @property {'all' | 'last' | 'none'} stretchMode Stretch mode 'all', 'last' or 'none'.
  * @property {Function} stretchingColumnWidthFn Function that returns the new width of the stretched column.
  */
 /**
@@ -45,17 +39,32 @@ export class ColumnStretching {
    */
   #needVerifyLastColumnWidth = true;
   /**
-   * The calculator options.
+   * The columns calculator instance.
    *
-   * @type {ViewportColumnsCalculatorOptions}
+   * @type {object}
    */
   #columnsCalculator;
+  /**
+   * Function that returns the width of the column at a given index (in px).
+   *
+   * @type {Function}
+   */
   #stretchingColumnWidthFn;
+  /**
+   * Function that returns the new width of the stretched column.
+   *
+   * @type {Function}
+   */
   #columnWidthFn;
+  /**
+   * Stretch mode.
+   *
+   * @type {'all' | 'last' | 'none'}
+   */
   #stretchMode;
 
   /**
-   * @param {ViewportColumnsCalculatorOptions} options Object with all options specified for column viewport calculation.
+   * @param {ColumnStretchingOptions} options Object with all options specified for column viewport calculation.
    */
   constructor({ columnsCalculator, stretchMode, stretchingColumnWidthFn, columnWidthFn }) {
     this.#columnsCalculator = columnsCalculator;
@@ -64,6 +73,12 @@ export class ColumnStretching {
     this.#columnWidthFn = columnWidthFn;
   }
 
+  /**
+   * Sets the columns calculator instance.
+   *
+   * @param {object} calculator Instance of the columns calculator.
+   * @returns {ColumnStretching}
+   */
   setCalculator(calculator) {
     this.#columnsCalculator = calculator;
 
