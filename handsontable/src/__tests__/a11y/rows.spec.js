@@ -79,32 +79,32 @@ describe('Row-related a11y config', () => {
           indexesArray.push(trElem.getAttribute('aria-rowindex'));
         });
       };
-      const consecutiveNumbers = Array.from({ length: 51 }, (_, i) => `${i + 1}`);
+      const consecutiveNumbers = Array.from({ length: 50 }, (_, i) => `${i + 1}`);
       const indexes = [];
 
       gatherIndexes(getMaster().get(0), indexes);
 
-      expect(indexes).toEqual(consecutiveNumbers);
+      expect(indexes).toEqual(['-1', ...consecutiveNumbers]);
 
       gatherIndexes(getTopClone().get(0), indexes);
 
-      expect(indexes).toEqual(consecutiveNumbers.slice(0, 3));
+      expect(indexes).toEqual(['-1', ...consecutiveNumbers].slice(0, 3));
 
       gatherIndexes(getBottomClone().get(0), indexes);
 
-      expect(indexes).toEqual(consecutiveNumbers.slice(49, 51));
+      expect(indexes).toEqual(['-1', ...consecutiveNumbers].slice(49, 51));
 
       gatherIndexes(getInlineStartClone().get(0), indexes);
 
-      expect(indexes).toEqual(consecutiveNumbers);
+      expect(indexes).toEqual(['-1', ...consecutiveNumbers]);
 
       gatherIndexes(getTopInlineStartClone().get(0), indexes);
 
-      expect(indexes).toEqual(consecutiveNumbers.slice(0, 3));
+      expect(indexes).toEqual(['-1', ...consecutiveNumbers].slice(0, 3));
 
       gatherIndexes(getBottomInlineStartClone().get(0), indexes);
 
-      expect(indexes).toEqual(consecutiveNumbers.slice(49, 51));
+      expect(indexes).toEqual(['-1', ...consecutiveNumbers].slice(49, 51));
     });
   });
 });

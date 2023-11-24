@@ -31,7 +31,7 @@ describe('Root element-related a11y configuration', () => {
           data: Handsontable.helper.createSpreadsheetData(100, 50),
         });
 
-        expect(hot.rootElement.getAttribute('aria-rowcount')).toEqual('100');
+        expect(hot.rootElement.getAttribute('aria-rowcount')).toEqual('-1'); // temp value (#10607)
         expect(hot.rootElement.getAttribute('aria-colcount')).toEqual('50');
       });
 
@@ -41,24 +41,24 @@ describe('Root element-related a11y configuration', () => {
           data: Handsontable.helper.createSpreadsheetData(100, 50),
         });
 
-        expect(hot.rootElement.getAttribute('aria-rowcount')).toEqual('100');
+        expect(hot.rootElement.getAttribute('aria-rowcount')).toEqual('-1'); // temp value (#10607)
         expect(hot.rootElement.getAttribute('aria-colcount')).toEqual('50');
 
         hot.updateSettings({
           data: Handsontable.helper.createSpreadsheetData(50, 100),
         });
 
-        expect(hot.rootElement.getAttribute('aria-rowcount')).toEqual('50');
+        expect(hot.rootElement.getAttribute('aria-rowcount')).toEqual('-1'); // temp value (#10607)
         expect(hot.rootElement.getAttribute('aria-colcount')).toEqual('100');
 
         hot.loadData(Handsontable.helper.createSpreadsheetData(12, 21));
 
-        expect(hot.rootElement.getAttribute('aria-rowcount')).toEqual('12');
+        expect(hot.rootElement.getAttribute('aria-rowcount')).toEqual('-1'); // temp value (#10607)
         expect(hot.rootElement.getAttribute('aria-colcount')).toEqual('21');
 
         hot.updateData(Handsontable.helper.createSpreadsheetData(32, 23));
 
-        expect(hot.rootElement.getAttribute('aria-rowcount')).toEqual('32');
+        expect(hot.rootElement.getAttribute('aria-rowcount')).toEqual('-1'); // temp value (#10607)
         expect(hot.rootElement.getAttribute('aria-colcount')).toEqual('23');
       });
     });
