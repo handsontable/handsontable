@@ -24,13 +24,19 @@ const SHORTCUTS_MENU_CONTEXT = 'filters';
  * @returns {Paginator}
  */
 export function createMenuFocusController(mainMenu, menuItems) {
-  const navigator = createFocusNavigator(menuItems);
+  /**
+   * @type {number} The last selected menu item (before clearing the the menu state after going
+   * into the focus mode triggered by the TAB or SHIFT+TAB keys).
+   */
+  let lastSelectedMenuItem = -1;
+
+  const focusNavigator = createFocusNavigator(menuItems);
   const updateNavigatorPosition = element => () => {
     if (mainMenu.isOpened()) {
       mainMenu.getKeyboardShortcutsCtrl().listen(SHORTCUTS_MENU_CONTEXT);
     }
 
-    navigator.setCurrentPage(menuItems.indexOf(element));
+    focusNavigator.setCurrentPage(menuItems.indexOf(element));
   };
 
   // update navigator position (internal state) to element that was recently clicked or focused
@@ -44,7 +50,7 @@ export function createMenuFocusController(mainMenu, menuItems) {
 
   mainMenu.addLocalHook('afterSelectionChange', (selectedItem) => {
     if (!selectedItem.key.startsWith('filter_')) {
-      navigator.clear();
+      focusNavigator.clear();
     }
   });
 
@@ -57,7 +63,7 @@ export function createMenuFocusController(mainMenu, menuItems) {
     const mainMenuShortcutsCtrl = mainMenu.getKeyboardShortcutsCtrl();
     const currentMenuShortcutsCtrl = menu.getKeyboardShortcutsCtrl();
 
-    navigator.clear();
+    focusNavigator.clear();
 
     currentMenuShortcutsCtrl.addCustomShortcuts([{
       keys: [['Tab'], ['Shift', 'Tab']],
@@ -78,12 +84,18 @@ export function createMenuFocusController(mainMenu, menuItems) {
     mainMenuShortcutsCtrl.addCustomShortcuts([{
       keys: [['Tab'], ['Shift', 'Tab']],
       callback: (event) => {
-        mainMenu.getNavigator().clear();
+        const menuNavigator = mainMenu.getNavigator();
+
+        if (menuNavigator.getCurrentPage() > -1) {
+          lastSelectedMenuItem = menuNavigator.getCurrentPage();
+        }
+
+        menuNavigator.clear();
 
         if (event.shiftKey) {
-          navigator.toPreviousItem();
+          focusNavigator.toPreviousItem();
         } else {
-          navigator.toNextItem();
+          focusNavigator.toNextItem();
         }
       },
     }, {
@@ -95,7 +107,7 @@ export function createMenuFocusController(mainMenu, menuItems) {
       keys: [['Enter'], ['Space']],
       preventDefault: false,
       callback: (event) => {
-        const element = menuItems[navigator.getCurrentPage()];
+        const element = menuItems[focusNavigator.getCurrentPage()];
 
         if (element instanceof SelectUI) {
           element.openOptions();
@@ -126,8 +138,18 @@ export function createMenuFocusController(mainMenu, menuItems) {
     mainMenu.getKeyboardShortcutsCtrl().listen(SHORTCUTS_MENU_CONTEXT);
   }
 
+  /**
+   * Retrieves the last selected menu item (before clearing the state after going into the focus mode).
+   *
+   * @returns {number} The last selected menu item.
+   */
+  function getLastMenuPage() {
+    return lastSelectedMenuItem;
+  }
+
   return {
-    ...navigator,
+    ...focusNavigator,
     listen,
+    getLastMenuPage,
   };
 }
