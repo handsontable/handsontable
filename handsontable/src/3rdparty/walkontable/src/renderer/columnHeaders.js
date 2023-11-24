@@ -11,7 +11,7 @@ import {
   A11Y_ROW,
   A11Y_ROWINDEX,
   A11Y_SCOPE_COL,
-  A11Y_TABINDEX
+  A11Y_TABINDEX,
 } from '../../../../helpers/a11y';
 
 /**
@@ -112,10 +112,10 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
           setAttribute(TH, [
             A11Y_COLINDEX(renderedColumnIndex + 1 + this.table.rowHeadersCount),
             A11Y_TABINDEX(-1),
-            ...(renderedColumnIndex < 0 ? [A11Y_PRESENTATION()] : [
-              A11Y_COLUMNHEADER(),
-              A11Y_SCOPE_COL()
-            ]),
+            A11Y_COLUMNHEADER(),
+            ...(renderedColumnIndex >= 0 ? [
+              A11Y_SCOPE_COL(),
+            ] : []),
           ]);
         }
 
