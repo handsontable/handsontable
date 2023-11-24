@@ -2247,6 +2247,7 @@ We make sure our data grid remains accessible by taking the following steps:
 ## Known limitations
 
 - Some screen readers may incorrectly read the number of rows and columns when frozen rows and columns are enabled.
+- The `aria-rowcount` attribute is intentionally set to "-1" due to most screen readers either ignoring it or misinterpreting it. This setting is particularly aimed at ensuring accuracy with screen readers like VoiceOver. We plan to revise this approach once screen readers consistently handle the `aria-rowcount` attribute correctly.
 - Dynamic ARIA attributes are sometimes omitted by screen readers.
 
 ## API reference
