@@ -1,5 +1,6 @@
 import { HIGHLIGHT_FOCUS_TYPE } from '../../../3rdparty/walkontable/src';
 import VisualSelection from '../visualSelection';
+import { A11Y_SELECTED } from '../../../helpers/a11y';
 
 /**
  * Creates the new instance of Selection responsible for highlighting currently selected cell. This type of selection
@@ -12,6 +13,7 @@ import VisualSelection from '../visualSelection';
 export function createHighlight({ cellCornerVisible, ...restOptions }) {
   return new VisualSelection({
     className: 'current',
+    headerAttributes: [A11Y_SELECTED()],
     border: {
       width: 2,
       color: '#4b89ff',

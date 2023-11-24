@@ -106,19 +106,6 @@ const dictionary = {
 
   [C.CHECKBOX_CHECKED]: 'Zaznaczony',
   [C.CHECKBOX_UNCHECKED]: 'Odznaczony',
-
-  [C.COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN]: 'Naciśnij ENTER aby rozwinąć kolumnę.',
-  [C.COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN]: 'Naciśnij ENTER aby zwinąć kolumnę.',
-  [C.COLUMN_HEADER_DESCRIPTION_SORT_ROWS]: 'Naciśnij ENTER aby zmienić sortowanie.',
-  [C.COLUMN_HEADER_LABEL_MULTI_COLUMN_SORT_ORDER]: 'Kolejność w sortowaniu po wielu kolumnach:',
-  [C.COLUMN_HEADER_LABEL_OPEN_MENU]: 'Naciśnij CTRL/CMD+ENTER aby otworzyć menu kontekstowe.',
-  [C.COLUMN_HEADER_LABEL_BEFORE_HIDDEN_COLUMN]: 'Następna kolumna jest ukryta.',
-  [C.COLUMN_HEADER_LABEL_AFTER_HIDDEN_COLUMN]: 'Poprzednia kolumna jest ukryta.',
-
-  [C.ROW_HEADER_DESCRIPTION_EXPAND_ROW]: 'Naciśnij ENTER aby rozwinąć wiersz.',
-  [C.ROW_HEADER_DESCRIPTION_COLLAPSE_ROW]: 'Naciśnij ENTER aby zwinąć wiersz.',
-  [C.ROW_HEADER_LABEL_BEFORE_HIDDEN_ROW]: 'Następny wiersz jest ukryty.',
-  [C.ROW_HEADER_LABEL_AFTER_HIDDEN_ROW]: 'Poprzedni wiersz jest ukryty.',
 };
 
 export default dictionary;

@@ -178,6 +178,9 @@
   border-radius: 2px;
   border: 1px solid #d2d1d1;
 }
+.handsontable .htUIInputIcon {
+  position: absolute;
+}
 
 /* Button */
 .handsontable .htUIInput.htUIButton {
@@ -242,14 +245,14 @@
   border: 1px solid #b9b9b9;
 }
 .handsontable .htUISelectDropdown:after {
-  content: '\25B2'; // up-pointing triangle
+  content: '\25B2';
   font-size: 7px;
   position: absolute;
   right: 10px;
   top: 0;
 }
 .handsontable .htUISelectDropdown:before {
-  content: '\25BC'; // down-pointing triangle
+  content: '\25BC';
   font-size: 7px;
   position: absolute;
   right: 10px;

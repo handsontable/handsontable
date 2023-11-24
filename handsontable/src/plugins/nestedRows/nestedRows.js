@@ -135,8 +135,7 @@ export class NestedRows extends BasePlugin {
   /**
    * Updates the plugin's state.
    *
-   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the
-   * following configuration options:
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
    *  - [`nestedRows`](@/api/options.md#nestedrows)
    */
   updatePlugin() {

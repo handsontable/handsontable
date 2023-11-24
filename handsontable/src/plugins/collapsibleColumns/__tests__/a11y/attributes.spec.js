@@ -65,45 +65,4 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(getCell(-3, 1).querySelector('.collapsibleIndicator').getAttribute('aria-hidden')).toEqual('true');
     expect(getCell(-2, 1).querySelector('.collapsibleIndicator').getAttribute('aria-hidden')).toEqual('true');
   });
-
-  it('should add the `aria-description` attribute with the value depending of the expanded/collapsed state', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
-      rowHeaders: true,
-      colHeaders: true,
-      nestedHeaders: [
-        ['A0', { label: 'B0', colspan: 4 }, 'F0', 'G0', 'H0', 'I0', 'J0'],
-        ['A1', { label: 'B1', colspan: 2 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
-        ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
-      ],
-      collapsibleColumns: true
-    });
-    const dictionaryKeys = Handsontable.languages.dictionaryKeys;
-
-    expect(getCell(-3, 1).getAttribute('aria-description'))
-      .toEqual(hot.getTranslatedPhrase(dictionaryKeys.COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN));
-    expect(getCell(-2, 1).getAttribute('aria-description'))
-      .toEqual(hot.getTranslatedPhrase(dictionaryKeys.COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN));
-
-    hot.getPlugin('collapsibleColumns').collapseAll();
-
-    expect(getCell(-3, 1).getAttribute('aria-description'))
-      .toEqual(hot.getTranslatedPhrase(dictionaryKeys.COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN));
-    expect(getCell(-2, 1).getAttribute('aria-description'))
-      .toEqual(hot.getTranslatedPhrase(dictionaryKeys.COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN));
-
-    hot.getPlugin('collapsibleColumns').expandAll();
-
-    expect(getCell(-3, 1).getAttribute('aria-description'))
-      .toEqual(hot.getTranslatedPhrase(dictionaryKeys.COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN));
-    expect(getCell(-2, 1).getAttribute('aria-description'))
-      .toEqual(hot.getTranslatedPhrase(dictionaryKeys.COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN));
-
-    updateSettings({
-      collapsibleColumns: false
-    });
-
-    expect(getCell(-3, 1).getAttribute('aria-description')).toEqual(null);
-    expect(getCell(-2, 1).getAttribute('aria-description')).toEqual(null);
-  });
 });
