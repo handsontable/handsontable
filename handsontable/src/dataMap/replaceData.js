@@ -125,7 +125,7 @@ function replaceData(data, setDataMapFunction, callbackFunction, config) {
 
   if (hotInstance.getSettings().ariaTags) {
     setAttribute(hotInstance.rootElement, [
-      A11Y_ROWCOUNT(hotInstance.countRows()),
+      A11Y_ROWCOUNT(-1),
       A11Y_COLCOUNT(hotInstance.countCols()),
     ]);
   }

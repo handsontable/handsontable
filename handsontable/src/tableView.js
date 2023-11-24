@@ -260,7 +260,7 @@ class TableView {
 
       setAttribute(rootElement, [
         A11Y_TREEGRID(),
-        A11Y_ROWCOUNT(this.hot.countRows()),
+        A11Y_ROWCOUNT(-1),
         A11Y_COLCOUNT(this.hot.countCols()),
         A11Y_MULTISELECTABLE(),
       ]);
