@@ -3,6 +3,7 @@ export const A11Y_TREEGRID = () => ['role', 'treegrid'];
 export const A11Y_PRESENTATION = () => ['role', 'presentation'];
 export const A11Y_GRIDCELL = () => ['role', 'gridcell'];
 export const A11Y_ROWHEADER = () => ['role', 'rowheader'];
+export const A11Y_ROWGROUP = () => ['role', 'rowgroup'];
 export const A11Y_COLUMNHEADER = () => ['role', 'columnheader'];
 export const A11Y_ROW = () => ['role', 'row'];
 export const A11Y_MENU = () => ['role', 'menu'];

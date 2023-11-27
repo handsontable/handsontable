@@ -279,8 +279,8 @@ export class Overlay {
       wtSettings
     } = this.wot;
     const { rootDocument, rootWindow } = this.domBindings;
-    const clone = rootDocument.createElement('DIV');
-    const clonedTable = rootDocument.createElement('TABLE');
+    const clone = rootDocument.createElement('div');
+    const clonedTable = rootDocument.createElement('table');
     const tableParent = wtTable.wtRootElement.parentNode;
 
     clone.className = `${CLONE_CLASS_NAMES.get(this.type)} handsontable`;

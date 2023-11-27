@@ -1,6 +1,4 @@
 import { autocompleteRenderer } from '../autocompleteRenderer';
-import { A11Y_EXPANDED, A11Y_HASPOPUP } from '../../helpers/a11y';
-import { setAttribute } from '../../helpers/dom/element';
 
 export const RENDERER_TYPE = 'handsontable';
 
@@ -18,13 +16,6 @@ export const RENDERER_TYPE = 'handsontable';
  */
 export function handsontableRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
   autocompleteRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
-
-  if (hotInstance.getSettings().ariaTags) {
-    setAttribute(TD, [
-      A11Y_HASPOPUP('true'),
-      A11Y_EXPANDED('false'),
-    ]);
-  }
 }
 
 handsontableRenderer.RENDERER_TYPE = RENDERER_TYPE;

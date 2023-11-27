@@ -4,7 +4,7 @@ import EventManager from '../../eventManager';
 import { addClass, hasClass } from '../../helpers/dom/element';
 
 import './autocompleteRenderer.scss';
-import { A11Y_HASPOPUP, A11Y_HIDDEN } from '../../helpers/a11y';
+import { A11Y_HIDDEN } from '../../helpers/a11y';
 
 export const RENDERER_TYPE = 'autocomplete';
 
@@ -45,10 +45,6 @@ export function autocompleteRenderer(hotInstance, TD, row, col, prop, value, cel
   TD.insertBefore(ARROW, TD.firstChild);
 
   addClass(TD, 'htAutocomplete');
-
-  if (isAriaEnabled) {
-    TD.setAttribute(...A11Y_HASPOPUP('listbox'));
-  }
 
   if (!hotInstance.acArrowListener) {
     const eventManager = new EventManager(hotInstance);
