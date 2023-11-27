@@ -68,7 +68,7 @@ describe('Focus handling', () => {
       ));
     });
 
-    it('should correctly focus the cell element that was previously not rendered in the viewport ', async() => {
+    it('should correctly focus the cell element that was previously not rendered in the viewport', async() => {
       handsontable({
         data: createSpreadsheetData(100, 50),
         width: 100,
