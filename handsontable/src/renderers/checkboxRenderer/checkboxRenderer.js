@@ -339,7 +339,6 @@ function createInput(rootDocument) {
 
   input.className = 'htCheckboxRendererInput';
   input.type = 'checkbox';
-  input.setAttribute('autocomplete', 'off');
   input.setAttribute('tabindex', '-1');
 
   return input.cloneNode(false);
