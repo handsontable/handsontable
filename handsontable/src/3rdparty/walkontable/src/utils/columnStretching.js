@@ -94,9 +94,8 @@ export class ColumnStretching {
     if (this.#stretchMode === 'none') {
       return;
     }
-    let totalColumnsWidth = totalWidth;
 
-    this.#totalTargetWidth = totalColumnsWidth;
+    this.#totalTargetWidth = totalWidth;
 
     const totalColumns = this.#columnsCalculator.count;
     let sumAll = 0;
@@ -106,19 +105,19 @@ export class ColumnStretching {
       const permanentColumnWidth = this.#stretchingColumnWidthFn(undefined, i);
 
       if (typeof permanentColumnWidth === 'number') {
-        totalColumnsWidth -= permanentColumnWidth;
+        totalWidth -= permanentColumnWidth;
       } else {
         sumAll += columnWidth;
       }
     }
-    const remainingSize = totalColumnsWidth - sumAll;
+    const remainingSize = totalWidth - sumAll;
 
     if (this.#stretchMode === 'all' && remainingSize > 0) {
-      this.stretchAllRatio = totalColumnsWidth / sumAll;
+      this.stretchAllRatio = totalWidth / sumAll;
       this.stretchAllColumnsWidth = [];
       this.#needVerifyLastColumnWidth = true;
 
-    } else if (this.#stretchMode === 'last' && totalColumnsWidth !== Infinity) {
+    } else if (this.#stretchMode === 'last' && totalWidth !== Infinity) {
       const columnWidth = this._getColumnWidth(totalColumns - 1);
       const lastColumnWidth = remainingSize + columnWidth;
 

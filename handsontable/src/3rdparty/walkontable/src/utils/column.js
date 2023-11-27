@@ -105,18 +105,26 @@ export default class ColumnUtils {
   }
 
   /**
-   * Calculates column header widths that can be retrieved from the cache.
+   * Refreshes the stretching column width by recalculating the widths of the columns.
    */
-  calculateWidths() {
-    const { wtSettings } = this;
+  refreshStretching() {
     const { wtTable, wtViewport, cloneSource } = this.dataAccessObject;
     const mainHolder = cloneSource ? cloneSource.wtTable.holder : wtTable.holder;
     const scrollbarCompensation = mainHolder.offsetHeight < mainHolder.scrollHeight ? getScrollbarWidth() : 0;
-    let rowHeaderWidthSetting = wtSettings.getSetting('rowHeaderWidth');
 
     this.stretching
       .setCalculator(wtViewport.columnsRenderCalculator)
       .refreshStretching(wtViewport.getViewportWidth() - scrollbarCompensation);
+  }
+
+  /**
+   * Calculates column header widths that can be retrieved from the cache.
+   */
+  calculateWidths() {
+    const { wtSettings } = this;
+    let rowHeaderWidthSetting = wtSettings.getSetting('rowHeaderWidth');
+
+    this.refreshStretching();
 
     rowHeaderWidthSetting = wtSettings.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 
