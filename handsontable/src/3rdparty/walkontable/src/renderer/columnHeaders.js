@@ -91,7 +91,7 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
       if (this.table.isAriaEnabled()) {
         setAttribute(TR, [
           A11Y_ROW(),
-          A11Y_ROWINDEX(-1)
+          A11Y_ROWINDEX(rowHeaderIndex + 1),
         ]);
       }
 
