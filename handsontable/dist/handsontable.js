@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.0.0
- * Release date: 22/11/2023 (built at 21/11/2023 13:57:30)
+ * Release date: 29/11/2023 (built at 27/11/2023 11:10:27)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -105,7 +105,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "21/11/2023 13:57:30";
+Handsontable.buildDate = "27/11/2023 11:10:27";
 Handsontable.version = "14.0.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -4587,7 +4587,7 @@ function Core(rootElement, userSettings) {
    * @function getTranslatedPhrase
    * @since 0.35.0
    * @param {string} dictionaryKey Constant which is dictionary key.
-   * @param {*} [extraArguments] Arguments which will be handled by formatters.
+   * @param {*} extraArguments Arguments which will be handled by formatters.
    * @returns {string}
    */
   this.getTranslatedPhrase = function (dictionaryKey, extraArguments) {
@@ -7114,7 +7114,6 @@ module.exports = typeof Bun == 'function' && Bun && typeof Bun.version == 'strin
 exports.__esModule = true;
 exports.addClass = addClass;
 exports.addEvent = addEvent;
-exports.appendElement = appendElement;
 exports.clearTextSelection = clearTextSelection;
 exports.closest = closest;
 exports.closestDown = closestDown;
@@ -8249,34 +8248,6 @@ function runWithSelectedContendEditableElement(element, callback) {
   removeContentEditableFromElementAndDeselect(element, invisibleSelection);
 }
 
-/**
- * Creates a new DOM element and appends it to the parent element with the provided class name(s) and attributes.
- *
- * @param {HTMLElement} parentElement The parent element.
- * @param {object} properties The properties object.
- * @param {string} properties.tagName The type of the new element.
- * @param {string|string[]} properties.className Class name as string or array of strings.
- * @param {Array[]} properties.attributes An array containing the attributes to be added. Each element of the array
- * should be an array in a form of `[attributeName, attributeValue]`.
- * @returns {HTMLElement} The created div element.
- */
-function appendElement(parentElement, _ref) {
-  let {
-    tagName,
-    className,
-    attributes
-  } = _ref;
-  const element = parentElement.ownerDocument.createElement(tagName);
-  if (className) {
-    addClass(element, className);
-  }
-  if (attributes && attributes.length) {
-    setAttribute(element, attributes);
-  }
-  parentElement.appendChild(element);
-  return element;
-}
-
 /***/ }),
 /* 108 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
@@ -8550,7 +8521,7 @@ function _injectProductInfo(key, element) {
   const schemaValidity = _checkKeySchema(key);
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      const releaseDate = (0, _moment.default)("22/11/2023", 'DD/MM/YYYY');
+      const releaseDate = (0, _moment.default)("29/11/2023", 'DD/MM/YYYY');
       const releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
       const keyValidityDays = _extractTime(key);
       keyValidityDate = (0, _moment.default)((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
@@ -9000,6 +8971,8 @@ const A11Y_GRIDCELL = () => ['role', 'gridcell'];
 exports.A11Y_GRIDCELL = A11Y_GRIDCELL;
 const A11Y_ROWHEADER = () => ['role', 'rowheader'];
 exports.A11Y_ROWHEADER = A11Y_ROWHEADER;
+const A11Y_ROWGROUP = () => ['role', 'rowgroup'];
+exports.A11Y_ROWGROUP = A11Y_ROWGROUP;
 const A11Y_COLUMNHEADER = () => ['role', 'columnheader'];
 exports.A11Y_COLUMNHEADER = A11Y_COLUMNHEADER;
 const A11Y_ROW = () => ['role', 'row'];
@@ -9024,8 +8997,6 @@ const A11Y_TEXT = () => ['type', 'text'];
 exports.A11Y_TEXT = A11Y_TEXT;
 const A11Y_LABEL = val => ['aria-label', val];
 exports.A11Y_LABEL = A11Y_LABEL;
-const A11Y_DESCRIPTION = val => ['aria-description', val];
-exports.A11Y_DESCRIPTION = A11Y_DESCRIPTION;
 const A11Y_HIDDEN = () => ['aria-hidden', 'true'];
 exports.A11Y_HIDDEN = A11Y_HIDDEN;
 const A11Y_DISABLED = () => ['aria-disabled', 'true'];
@@ -15478,8 +15449,10 @@ var _src = _interopRequireDefault(__webpack_require__(147));
 var _mouseEventHandler = __webpack_require__(217);
 var _rootInstance = __webpack_require__(218);
 var _a11y = __webpack_require__(114);
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
 /**
  * @class TableView
  * @private
@@ -15491,11 +15464,25 @@ var _mouseDown = /*#__PURE__*/new WeakMap();
 var _table = /*#__PURE__*/new WeakMap();
 var _lastWidth = /*#__PURE__*/new WeakMap();
 var _lastHeight = /*#__PURE__*/new WeakMap();
+var _getAriaColcount = /*#__PURE__*/new WeakSet();
+var _updateAriaColcount = /*#__PURE__*/new WeakSet();
 class TableView {
   /**
    * @param {Hanstontable} hotInstance Instance of {@link Handsontable}.
    */
   constructor(hotInstance) {
+    /**
+     * Update the `aria-colcount` attribute by the provided value.
+     *
+     * @param {number} delta The number of columns to add or remove to the aria tag.
+     */
+    _classPrivateMethodInitSpec(this, _updateAriaColcount);
+    /**
+     * Return the value of the `aria-colcount` attribute.
+     *
+     * @returns {number} The value of the `aria-colcount` attribute.
+     */
+    _classPrivateMethodInitSpec(this, _getAriaColcount);
     /**
      * Instance of {@link Handsontable}.
      *
@@ -15732,7 +15719,7 @@ class TableView {
     }
     if (this.settings.ariaTags) {
       (0, _element.setAttribute)((0, _classPrivateFieldGet2.default)(this, _table), [(0, _a11y.A11Y_PRESENTATION)()]);
-      (0, _element.setAttribute)(rootElement, [(0, _a11y.A11Y_TREEGRID)(), (0, _a11y.A11Y_ROWCOUNT)(this.hot.countRows()), (0, _a11y.A11Y_COLCOUNT)(this.hot.countCols()), (0, _a11y.A11Y_MULTISELECTABLE)()]);
+      (0, _element.setAttribute)(rootElement, [(0, _a11y.A11Y_TREEGRID)(), (0, _a11y.A11Y_ROWCOUNT)(-1), (0, _a11y.A11Y_COLCOUNT)(this.hot.countCols()), (0, _a11y.A11Y_MULTISELECTABLE)()]);
     }
     this.THEAD = rootDocument.createElement('THEAD');
     (0, _classPrivateFieldGet2.default)(this, _table).appendChild(this.THEAD);
@@ -16125,6 +16112,13 @@ class TableView {
         }
         this.hot.runHooks('afterGetRowHeaderRenderers', headerRenderers);
         (0, _classPrivateFieldSet2.default)(this, _rowHeadersCount, headerRenderers.length);
+        if (this.hot.getSettings().ariaTags) {
+          // Update the aria-colcount attribute.
+          // Only needs to be done once after initialization/data update.
+          if (_classPrivateMethodGet(this, _getAriaColcount, _getAriaColcount2).call(this) === this.hot.countCols()) {
+            _classPrivateMethodGet(this, _updateAriaColcount, _updateAriaColcount2).call(this, (0, _classPrivateFieldGet2.default)(this, _rowHeadersCount));
+          }
+        }
         return headerRenderers;
       },
       columnHeaders: () => {
@@ -16617,6 +16611,10 @@ class TableView {
       const span = rootDocument.createElement('span');
       div.className = 'relative';
       span.className = 'colHeader';
+      if (this.settings.ariaTags) {
+        (0, _element.setAttribute)(div, ...(0, _a11y.A11Y_PRESENTATION)());
+        (0, _element.setAttribute)(span, ...(0, _a11y.A11Y_PRESENTATION)());
+      }
       this.updateCellHeader(span, visualColumnIndex, label, headerLevel);
       div.appendChild(span);
       TH.appendChild(div);
@@ -16760,7 +16758,6 @@ class TableView {
   getRowHeadersCount() {
     return (0, _classPrivateFieldGet2.default)(this, _rowHeadersCount);
   }
-
   /**
    * Destroys internal WalkOnTable's instance. Detaches all of the bonded listeners.
    *
@@ -16770,6 +16767,13 @@ class TableView {
     this._wt.destroy();
     this.eventManager.destroy();
   }
+}
+function _getAriaColcount2() {
+  return parseInt(this.hot.rootElement.getAttribute((0, _a11y.A11Y_COLCOUNT)()[0]), 10);
+}
+function _updateAriaColcount2(delta) {
+  const colCount = _classPrivateMethodGet(this, _getAriaColcount, _getAriaColcount2).call(this) + delta;
+  (0, _element.setAttribute)(this.hot.rootElement, ...(0, _a11y.A11Y_COLCOUNT)(colCount));
 }
 var _default = exports["default"] = TableView;
 
@@ -22407,7 +22411,7 @@ class ColumnHeadersRenderer extends _base.default {
       columnHeadersCount
     } = this.table;
     if (this.table.isAriaEnabled()) {
-      (0, _element.setAttribute)(this.rootNode, [(0, _a11y.A11Y_PRESENTATION)()]);
+      (0, _element.setAttribute)(this.rootNode, [(0, _a11y.A11Y_ROWGROUP)()]);
     }
     for (let rowHeaderIndex = 0; rowHeaderIndex < columnHeadersCount; rowHeaderIndex += 1) {
       const {
@@ -22429,7 +22433,7 @@ class ColumnHeadersRenderer extends _base.default {
         // Remove all accessibility-related attributes for the header to start fresh.
         (0, _element.removeAttribute)(TH, [new RegExp('aria-(.*)'), new RegExp('role')]);
         if (this.table.isAriaEnabled()) {
-          (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_COLINDEX)(renderedColumnIndex + 1 + this.table.rowHeadersCount), (0, _a11y.A11Y_TABINDEX)(-1), ...(renderedColumnIndex < 0 ? [(0, _a11y.A11Y_PRESENTATION)()] : [(0, _a11y.A11Y_COLUMNHEADER)(), (0, _a11y.A11Y_SCOPE_COL)()])]);
+          (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_COLINDEX)(renderedColumnIndex + 1 + this.table.rowHeadersCount), (0, _a11y.A11Y_TABINDEX)(-1), (0, _a11y.A11Y_COLUMNHEADER)(), ...(renderedColumnIndex >= 0 ? [(0, _a11y.A11Y_SCOPE_COL)()] : [])]);
         }
         columnHeaderFunctions[rowHeaderIndex](sourceColumnIndex, TH, rowHeaderIndex);
       }
@@ -22581,7 +22585,7 @@ class RowsRenderer extends _base.default {
         the number of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.`);
     }
     if (this.table.isAriaEnabled()) {
-      (0, _element.setAttribute)(this.rootNode, [(0, _a11y.A11Y_PRESENTATION)()]);
+      (0, _element.setAttribute)(this.rootNode, [(0, _a11y.A11Y_ROWGROUP)()]);
     }
     this.orderView.setSize(rowsToRender).setOffset(this.table.renderedRowToSource(0)).start();
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
@@ -23652,8 +23656,8 @@ class Overlay {
       rootDocument,
       rootWindow
     } = this.domBindings;
-    const clone = rootDocument.createElement('DIV');
-    const clonedTable = rootDocument.createElement('TABLE');
+    const clone = rootDocument.createElement('div');
+    const clonedTable = rootDocument.createElement('table');
     const tableParent = wtTable.wtRootElement.parentNode;
     clone.className = `${_constants.CLONE_CLASS_NAMES.get(this.type)} handsontable`;
     clone.setAttribute('dir', this.isRtl() ? 'rtl' : 'ltr');
@@ -25788,8 +25792,9 @@ const CORNER_DEFAULT_STYLE = exports.CORNER_DEFAULT_STYLE = Object.freeze({
 __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+__webpack_require__(8);
 __webpack_require__(205);
-var _classPrivateFieldGet8 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldGet7 = _interopRequireDefault(__webpack_require__(133));
 var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _element = __webpack_require__(107);
 var _scanner2 = __webpack_require__(206);
@@ -25886,9 +25891,9 @@ class SelectionManager {
    */
   setActiveOverlay(activeWot) {
     (0, _classPrivateFieldSet2.default)(this, _activeOverlaysWot, activeWot);
-    (0, _classPrivateFieldGet8.default)(this, _scanner).setActiveOverlay((0, _classPrivateFieldGet8.default)(this, _activeOverlaysWot));
-    if (!(0, _classPrivateFieldGet8.default)(this, _appliedClasses).has((0, _classPrivateFieldGet8.default)(this, _activeOverlaysWot))) {
-      (0, _classPrivateFieldGet8.default)(this, _appliedClasses).set((0, _classPrivateFieldGet8.default)(this, _activeOverlaysWot), new Set());
+    (0, _classPrivateFieldGet7.default)(this, _scanner).setActiveOverlay((0, _classPrivateFieldGet7.default)(this, _activeOverlaysWot));
+    if (!(0, _classPrivateFieldGet7.default)(this, _appliedClasses).has((0, _classPrivateFieldGet7.default)(this, _activeOverlaysWot))) {
+      (0, _classPrivateFieldGet7.default)(this, _appliedClasses).set((0, _classPrivateFieldGet7.default)(this, _activeOverlaysWot), new Set());
     }
     return this;
   }
@@ -25899,7 +25904,7 @@ class SelectionManager {
    * @returns {Selection|null}
    */
   getFocusSelection() {
-    return (0, _classPrivateFieldGet8.default)(this, _selections) !== null ? (0, _classPrivateFieldGet8.default)(this, _selections).getFocus() : null;
+    return (0, _classPrivateFieldGet7.default)(this, _selections) !== null ? (0, _classPrivateFieldGet7.default)(this, _selections).getFocus() : null;
   }
 
   /**
@@ -25908,7 +25913,7 @@ class SelectionManager {
    * @returns {Selection|null}
    */
   getAreaSelection() {
-    return (0, _classPrivateFieldGet8.default)(this, _selections) !== null ? (0, _classPrivateFieldGet8.default)(this, _selections).createLayeredArea() : null;
+    return (0, _classPrivateFieldGet7.default)(this, _selections) !== null ? (0, _classPrivateFieldGet7.default)(this, _selections).createLayeredArea() : null;
   }
 
   /**
@@ -25921,17 +25926,17 @@ class SelectionManager {
     if (!selection.settings.border) {
       return null;
     }
-    if ((0, _classPrivateFieldGet8.default)(this, _selectionBorders).has(selection)) {
-      const borders = (0, _classPrivateFieldGet8.default)(this, _selectionBorders).get(selection);
-      if (borders.has((0, _classPrivateFieldGet8.default)(this, _activeOverlaysWot))) {
-        return borders.get((0, _classPrivateFieldGet8.default)(this, _activeOverlaysWot));
+    if ((0, _classPrivateFieldGet7.default)(this, _selectionBorders).has(selection)) {
+      const borders = (0, _classPrivateFieldGet7.default)(this, _selectionBorders).get(selection);
+      if (borders.has((0, _classPrivateFieldGet7.default)(this, _activeOverlaysWot))) {
+        return borders.get((0, _classPrivateFieldGet7.default)(this, _activeOverlaysWot));
       }
-      const border = new _border.default((0, _classPrivateFieldGet8.default)(this, _activeOverlaysWot), selection.settings);
-      borders.set((0, _classPrivateFieldGet8.default)(this, _activeOverlaysWot), border);
+      const border = new _border.default((0, _classPrivateFieldGet7.default)(this, _activeOverlaysWot), selection.settings);
+      borders.set((0, _classPrivateFieldGet7.default)(this, _activeOverlaysWot), border);
       return border;
     }
-    const border = new _border.default((0, _classPrivateFieldGet8.default)(this, _activeOverlaysWot), selection.settings);
-    (0, _classPrivateFieldGet8.default)(this, _selectionBorders).set(selection, new Map([[(0, _classPrivateFieldGet8.default)(this, _activeOverlaysWot), border]]));
+    const border = new _border.default((0, _classPrivateFieldGet7.default)(this, _activeOverlaysWot), selection.settings);
+    (0, _classPrivateFieldGet7.default)(this, _selectionBorders).set(selection, new Map([[(0, _classPrivateFieldGet7.default)(this, _activeOverlaysWot), border]]));
     return border;
   }
 
@@ -25943,7 +25948,7 @@ class SelectionManager {
    */
   getBorderInstances(selection) {
     var _classPrivateFieldGet2, _classPrivateFieldGet3;
-    return Array.from((_classPrivateFieldGet2 = (_classPrivateFieldGet3 = (0, _classPrivateFieldGet8.default)(this, _selectionBorders).get(selection)) === null || _classPrivateFieldGet3 === void 0 ? void 0 : _classPrivateFieldGet3.values()) !== null && _classPrivateFieldGet2 !== void 0 ? _classPrivateFieldGet2 : []);
+    return Array.from((_classPrivateFieldGet2 = (_classPrivateFieldGet3 = (0, _classPrivateFieldGet7.default)(this, _selectionBorders).get(selection)) === null || _classPrivateFieldGet3 === void 0 ? void 0 : _classPrivateFieldGet3.values()) !== null && _classPrivateFieldGet2 !== void 0 ? _classPrivateFieldGet2 : []);
   }
 
   /**
@@ -25952,8 +25957,8 @@ class SelectionManager {
    * @param {Selection} selection The selection instance.
    */
   destroyBorders(selection) {
-    (0, _classPrivateFieldGet8.default)(this, _selectionBorders).get(selection).forEach(border => border.destroy());
-    (0, _classPrivateFieldGet8.default)(this, _selectionBorders).delete(selection);
+    (0, _classPrivateFieldGet7.default)(this, _selectionBorders).get(selection).forEach(border => border.destroy());
+    (0, _classPrivateFieldGet7.default)(this, _selectionBorders).delete(selection);
   }
 
   /**
@@ -25962,24 +25967,26 @@ class SelectionManager {
    * @param {boolean} fastDraw Indicates the render cycle type (fast/slow).
    */
   render(fastDraw) {
-    if ((0, _classPrivateFieldGet8.default)(this, _selections) === null) {
+    if ((0, _classPrivateFieldGet7.default)(this, _selections) === null) {
       return;
     }
     if (fastDraw) {
       // there was no rerender, so we need to remove classNames by ourselves
       _classPrivateMethodGet(this, _resetCells, _resetCells2).call(this);
     }
-    const selections = Array.from((0, _classPrivateFieldGet8.default)(this, _selections));
+    const selections = Array.from((0, _classPrivateFieldGet7.default)(this, _selections));
     const classNamesMap = new Map();
+    const headerAttributesMap = new Map();
     for (let i = 0; i < selections.length; i++) {
       const selection = selections[i];
       const {
         className,
+        headerAttributes,
         createLayers,
         selectionType
       } = selection.settings;
-      if (!(0, _classPrivateFieldGet8.default)(this, _destroyListeners).has(selection)) {
-        (0, _classPrivateFieldGet8.default)(this, _destroyListeners).add(selection);
+      if (!(0, _classPrivateFieldGet7.default)(this, _destroyListeners).has(selection)) {
+        (0, _classPrivateFieldGet7.default)(this, _destroyListeners).add(selection);
         selection.addLocalHook('destroy', () => this.destroyBorders(selection));
       }
       const borderInstance = this.getBorderInstance(selection);
@@ -25989,7 +25996,7 @@ class SelectionManager {
       }
 
       if (className) {
-        const elements = (0, _classPrivateFieldGet8.default)(this, _scanner).setActiveSelection(selection).scan();
+        const elements = (0, _classPrivateFieldGet7.default)(this, _scanner).setActiveSelection(selection).scan();
         elements.forEach(element => {
           if (classNamesMap.has(element)) {
             const classNamesLayers = classNamesMap.get(element);
@@ -26001,14 +26008,22 @@ class SelectionManager {
           } else {
             classNamesMap.set(element, new Map([[className, 1]]));
           }
+          if (headerAttributes) {
+            if (!headerAttributesMap.has(element)) {
+              headerAttributesMap.set(element, []);
+            }
+            if (element.nodeName === 'TH') {
+              headerAttributesMap.get(element).push(...headerAttributes);
+            }
+          }
         });
       }
       const corners = selection.getCorners();
-      (0, _classPrivateFieldGet8.default)(this, _activeOverlaysWot).getSetting('onBeforeDrawBorders', corners, selectionType);
+      (0, _classPrivateFieldGet7.default)(this, _activeOverlaysWot).getSetting('onBeforeDrawBorders', corners, selectionType);
       borderInstance === null || borderInstance === void 0 || borderInstance.appear(corners);
     }
     classNamesMap.forEach((classNamesLayers, element) => {
-      var _classPrivateFieldGet4, _classPrivateFieldGet5;
+      var _classPrivateFieldGet4;
       const classNames = Array.from(classNamesLayers).map(_ref => {
         let [className, occurrenceCount] = _ref;
         if (occurrenceCount === 1) {
@@ -26018,34 +26033,37 @@ class SelectionManager {
           length: occurrenceCount - 1
         }, (_, i) => `${className}-${i + 1}`)];
       }).flat();
-      classNames.forEach(className => (0, _classPrivateFieldGet8.default)(this, _appliedClasses).get((0, _classPrivateFieldGet8.default)(this, _activeOverlaysWot)).add(className));
+      classNames.forEach(className => (0, _classPrivateFieldGet7.default)(this, _appliedClasses).get((0, _classPrivateFieldGet7.default)(this, _activeOverlaysWot)).add(className));
       (0, _element.addClass)(element, classNames);
-      if (element.nodeName === 'TD' && Array.isArray((_classPrivateFieldGet4 = (0, _classPrivateFieldGet8.default)(this, _selections).options) === null || _classPrivateFieldGet4 === void 0 ? void 0 : _classPrivateFieldGet4.cellAttributes)) {
-        (0, _element.setAttribute)(element, (0, _classPrivateFieldGet8.default)(this, _selections).options.cellAttributes);
-      } else if (element.nodeName === 'TH' && Array.isArray((_classPrivateFieldGet5 = (0, _classPrivateFieldGet8.default)(this, _selections).options) === null || _classPrivateFieldGet5 === void 0 ? void 0 : _classPrivateFieldGet5.headerAttributes)) {
-        (0, _element.setAttribute)(element, (0, _classPrivateFieldGet8.default)(this, _selections).options.headerAttributes);
+      if (element.nodeName === 'TD' && Array.isArray((_classPrivateFieldGet4 = (0, _classPrivateFieldGet7.default)(this, _selections).options) === null || _classPrivateFieldGet4 === void 0 ? void 0 : _classPrivateFieldGet4.cellAttributes)) {
+        (0, _element.setAttribute)(element, (0, _classPrivateFieldGet7.default)(this, _selections).options.cellAttributes);
       }
+    });
+
+    // Set the attributes for the headers if they're focused.
+    Array.from(headerAttributesMap.keys()).forEach(element => {
+      (0, _element.setAttribute)(element, [...headerAttributesMap.get(element)]);
     });
   }
 }
 exports.SelectionManager = SelectionManager;
 function _resetCells2() {
-  const appliedOverlaysClasses = (0, _classPrivateFieldGet8.default)(this, _appliedClasses).get((0, _classPrivateFieldGet8.default)(this, _activeOverlaysWot));
-  const classesToRemove = (0, _classPrivateFieldGet8.default)(this, _activeOverlaysWot).wtSettings.getSetting('onBeforeRemoveCellClassNames');
+  const appliedOverlaysClasses = (0, _classPrivateFieldGet7.default)(this, _appliedClasses).get((0, _classPrivateFieldGet7.default)(this, _activeOverlaysWot));
+  const classesToRemove = (0, _classPrivateFieldGet7.default)(this, _activeOverlaysWot).wtSettings.getSetting('onBeforeRemoveCellClassNames');
   if (Array.isArray(classesToRemove)) {
     for (let i = 0; i < classesToRemove.length; i++) {
       appliedOverlaysClasses.add(classesToRemove[i]);
     }
   }
   appliedOverlaysClasses.forEach(className => {
-    var _classPrivateFieldGet6, _classPrivateFieldGet7;
-    const nodes = (0, _classPrivateFieldGet8.default)(this, _activeOverlaysWot).wtTable.TABLE.querySelectorAll(`.${className}`);
+    var _classPrivateFieldGet5, _classPrivateFieldGet6;
+    const nodes = (0, _classPrivateFieldGet7.default)(this, _activeOverlaysWot).wtTable.TABLE.querySelectorAll(`.${className}`);
     let cellAttributes = [];
-    if (Array.isArray((_classPrivateFieldGet6 = (0, _classPrivateFieldGet8.default)(this, _selections).options) === null || _classPrivateFieldGet6 === void 0 ? void 0 : _classPrivateFieldGet6.cellAttributes)) {
-      cellAttributes = (0, _classPrivateFieldGet8.default)(this, _selections).options.cellAttributes.map(el => el[0]);
+    if (Array.isArray((_classPrivateFieldGet5 = (0, _classPrivateFieldGet7.default)(this, _selections).options) === null || _classPrivateFieldGet5 === void 0 ? void 0 : _classPrivateFieldGet5.cellAttributes)) {
+      cellAttributes = (0, _classPrivateFieldGet7.default)(this, _selections).options.cellAttributes.map(el => el[0]);
     }
-    if (Array.isArray((_classPrivateFieldGet7 = (0, _classPrivateFieldGet8.default)(this, _selections).options) === null || _classPrivateFieldGet7 === void 0 ? void 0 : _classPrivateFieldGet7.headerAttributes)) {
-      cellAttributes = [...cellAttributes, ...(0, _classPrivateFieldGet8.default)(this, _selections).options.headerAttributes.map(el => el[0])];
+    if (Array.isArray((_classPrivateFieldGet6 = (0, _classPrivateFieldGet7.default)(this, _selections).options) === null || _classPrivateFieldGet6 === void 0 ? void 0 : _classPrivateFieldGet6.headerAttributes)) {
+      cellAttributes = [...cellAttributes, ...(0, _classPrivateFieldGet7.default)(this, _selections).options.headerAttributes.map(el => el[0])];
     }
     for (let i = 0, len = nodes.length; i < len; i++) {
       (0, _element.removeClass)(nodes[i], className);
@@ -31687,18 +31705,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Value',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Second value',
   [C.CHECKBOX_CHECKED]: 'Checked',
-  [C.CHECKBOX_UNCHECKED]: 'Unchecked',
-  [C.COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN]: 'Press ENTER to expand column.',
-  [C.COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN]: 'Press ENTER to collapse column.',
-  [C.COLUMN_HEADER_DESCRIPTION_SORT_ROWS]: 'Press ENTER to change sorting.',
-  [C.COLUMN_HEADER_LABEL_MULTI_COLUMN_SORT_ORDER]: 'Multi-column sorting order:',
-  [C.COLUMN_HEADER_LABEL_OPEN_MENU]: 'Press CTRL/CMD+ENTER to open menu.',
-  [C.COLUMN_HEADER_LABEL_BEFORE_HIDDEN_COLUMN]: 'The next column is hidden.',
-  [C.COLUMN_HEADER_LABEL_AFTER_HIDDEN_COLUMN]: 'The previous column is hidden.',
-  [C.ROW_HEADER_DESCRIPTION_EXPAND_ROW]: 'Press ENTER to expand row.',
-  [C.ROW_HEADER_DESCRIPTION_COLLAPSE_ROW]: 'Press ENTER to collapse row.',
-  [C.ROW_HEADER_LABEL_BEFORE_HIDDEN_ROW]: 'The next row is hidden.',
-  [C.ROW_HEADER_LABEL_AFTER_HIDDEN_ROW]: 'The previous row is hidden.'
+  [C.CHECKBOX_UNCHECKED]: 'Unchecked'
 };
 var _default = exports["default"] = dictionary;
 
@@ -31799,19 +31806,6 @@ const FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE = exports.FILTERS_BUTTONS_PLACEHO
 const CHECKBOX_RENDERER_NAMESPACE = exports.CHECKBOX_RENDERER_NAMESPACE = 'CheckboxRenderer:';
 const CHECKBOX_CHECKED = exports.CHECKBOX_CHECKED = `${CHECKBOX_RENDERER_NAMESPACE}checked`;
 const CHECKBOX_UNCHECKED = exports.CHECKBOX_UNCHECKED = `${CHECKBOX_RENDERER_NAMESPACE}unchecked`;
-const COLUMN_HEADER_NAMESPACE = exports.COLUMN_HEADER_NAMESPACE = 'ColumnHeader:';
-const COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN = exports.COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN = `${COLUMN_HEADER_NAMESPACE}description.expandColumn`;
-const COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN = exports.COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN = `${COLUMN_HEADER_NAMESPACE}description.collapseColumn`;
-const COLUMN_HEADER_DESCRIPTION_SORT_ROWS = exports.COLUMN_HEADER_DESCRIPTION_SORT_ROWS = `${COLUMN_HEADER_NAMESPACE}description.sortRows`;
-const COLUMN_HEADER_LABEL_MULTI_COLUMN_SORT_ORDER = exports.COLUMN_HEADER_LABEL_MULTI_COLUMN_SORT_ORDER = `${COLUMN_HEADER_NAMESPACE}label.multiColumnSortOrder`;
-const COLUMN_HEADER_LABEL_OPEN_MENU = exports.COLUMN_HEADER_LABEL_OPEN_MENU = `${COLUMN_HEADER_NAMESPACE}label.openMenu`;
-const COLUMN_HEADER_LABEL_BEFORE_HIDDEN_COLUMN = exports.COLUMN_HEADER_LABEL_BEFORE_HIDDEN_COLUMN = `${COLUMN_HEADER_NAMESPACE}label.beforeHiddenColumn`;
-const COLUMN_HEADER_LABEL_AFTER_HIDDEN_COLUMN = exports.COLUMN_HEADER_LABEL_AFTER_HIDDEN_COLUMN = `${COLUMN_HEADER_NAMESPACE}label.afterHiddenColumn`;
-const ROW_HEADER_NAMESPACE = exports.ROW_HEADER_NAMESPACE = 'RowHeader:';
-const ROW_HEADER_DESCRIPTION_EXPAND_ROW = exports.ROW_HEADER_DESCRIPTION_EXPAND_ROW = `${ROW_HEADER_NAMESPACE}description.expandRow`;
-const ROW_HEADER_DESCRIPTION_COLLAPSE_ROW = exports.ROW_HEADER_DESCRIPTION_COLLAPSE_ROW = `${ROW_HEADER_NAMESPACE}description.collapseRow`;
-const ROW_HEADER_LABEL_BEFORE_HIDDEN_ROW = exports.ROW_HEADER_LABEL_BEFORE_HIDDEN_ROW = `${ROW_HEADER_NAMESPACE}label.beforeHiddenRow`;
-const ROW_HEADER_LABEL_AFTER_HIDDEN_ROW = exports.ROW_HEADER_LABEL_AFTER_HIDDEN_ROW = `${ROW_HEADER_NAMESPACE}label.afterHiddenRow`;
 
 /***/ }),
 /* 246 */
@@ -31944,7 +31938,6 @@ class Selection {
     this.tableProps = tableProps;
     this.highlight = new _highlight.default({
       headerClassName: settings.currentHeaderClassName,
-      headerAttributes: [(0, _a11y.A11Y_SELECTED)()],
       activeHeaderClassName: settings.activeHeaderClassName,
       rowClassName: settings.currentRowClassName,
       columnClassName: settings.currentColClassName,
@@ -33540,6 +33533,7 @@ exports.__esModule = true;
 exports.createHighlight = createHighlight;
 var _src = __webpack_require__(147);
 var _visualSelection = _interopRequireDefault(__webpack_require__(250));
+var _a11y = __webpack_require__(114);
 /**
  * Creates the new instance of Selection responsible for highlighting currently selected cell. This type of selection
  * can present on the table only one at the time.
@@ -33555,6 +33549,7 @@ function createHighlight(_ref) {
   } = _ref;
   return new _visualSelection.default({
     className: 'current',
+    headerAttributes: [(0, _a11y.A11Y_SELECTED)()],
     border: {
       width: 2,
       color: '#4b89ff',
@@ -41655,7 +41650,9 @@ function replaceData(data, setDataMapFunction, callbackFunction, config) {
     hotInstance.render();
   }
   if (hotInstance.getSettings().ariaTags) {
-    (0, _element.setAttribute)(hotInstance.rootElement, [(0, _a11y.A11Y_ROWCOUNT)(hotInstance.countRows()), (0, _a11y.A11Y_COLCOUNT)(hotInstance.countCols())]);
+    (0, _element.setAttribute)(hotInstance.rootElement, [(0, _a11y.A11Y_ROWCOUNT)(-1),
+    // If run after initialization, add the number of row headers.
+    (0, _a11y.A11Y_COLCOUNT)(hotInstance.countCols() + (hotInstance.view ? hotInstance.countRowHeaders() : 0))]);
   }
 }
 
@@ -43419,7 +43416,7 @@ function createInputElement(hot) {
   input.type = 'text';
   input.classList.add('htFocusCatcher');
   if (hot.getSettings().ariaTags) {
-    (0, _element.setAttribute)(input, [(0, _a11y.A11Y_PRESENTATION)()]);
+    (0, _element.setAttribute)(input, [(0, _a11y.A11Y_PRESENTATION)(), (0, _a11y.A11Y_HIDDEN)()]);
   }
   return input;
 }
@@ -46440,7 +46437,6 @@ var _element = __webpack_require__(107);
 var _event = __webpack_require__(126);
 var _object = __webpack_require__(117);
 var _editorManager = __webpack_require__(120);
-var _a11y = __webpack_require__(114);
 const SHORTCUTS_GROUP = 'handsontableEditor';
 const EDITOR_TYPE = exports.EDITOR_TYPE = 'handsontable';
 
@@ -46476,9 +46472,6 @@ class HandsontableEditor extends _textEditor.TextEditor {
     }
     (0, _element.setCaretPosition)(this.TEXTAREA, 0, this.TEXTAREA.value.length);
     this.refreshDimensions();
-    if (this.hot.getSettings().ariaTags) {
-      (0, _element.setAttribute)(this.TD, [(0, _a11y.A11Y_EXPANDED)('true')]);
-    }
   }
 
   /**
@@ -46490,9 +46483,6 @@ class HandsontableEditor extends _textEditor.TextEditor {
     }
     this.removeHooksByKey('beforeKeyDown');
     super.close();
-    if (this.TD && this.hot.getSettings().ariaTags) {
-      (0, _element.setAttribute)(this.TD, [(0, _a11y.A11Y_EXPANDED)('false')]);
-    }
   }
 
   /**
@@ -46772,7 +46762,6 @@ var _pikaday = _interopRequireDefault(__webpack_require__(356));
 var _textEditor = __webpack_require__(335);
 var _eventManager = _interopRequireDefault(__webpack_require__(131));
 var _element = __webpack_require__(107);
-var _a11y = __webpack_require__(114);
 var _object = __webpack_require__(117);
 var _unicode = __webpack_require__(125);
 __webpack_require__(357);
@@ -46895,9 +46884,6 @@ class DateEditor extends _textEditor.TextEditor {
     const editorContext = shortcutManager.getContext('editor');
     super.open();
     this.showDatepicker(event);
-    if (this.hot.getSettings().ariaTags) {
-      (0, _element.setAttribute)(this.TD, [(0, _a11y.A11Y_EXPANDED)('true')]);
-    }
     editorContext.addShortcut({
       keys: [['Enter']],
       callback: keyboardEvent => {
@@ -46923,9 +46909,6 @@ class DateEditor extends _textEditor.TextEditor {
     this.hot._registerTimeout(() => {
       this.hot._refreshBorders();
     });
-    if (this.TD && this.hot.getSettings().ariaTags) {
-      (0, _element.setAttribute)(this.TD, [(0, _a11y.A11Y_EXPANDED)('false')]);
-    }
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
     editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_EDITOR);
@@ -47183,6 +47166,7 @@ exports.PasswordEditor = _passwordEditor.PasswordEditor;
 exports.__esModule = true;
 var _textEditor = __webpack_require__(335);
 var _element = __webpack_require__(107);
+var _a11y = __webpack_require__(114);
 const EDITOR_TYPE = exports.EDITOR_TYPE = 'password';
 
 /**
@@ -47202,6 +47186,9 @@ class PasswordEditor extends _textEditor.TextEditor {
     this.textareaStyle = this.TEXTAREA.style;
     this.textareaStyle.width = 0;
     this.textareaStyle.height = 0;
+    if (this.hot.getSettings().ariaTags) {
+      (0, _element.setAttribute)(this.TEXTAREA, [(0, _a11y.A11Y_HIDDEN)()]);
+    }
     (0, _element.empty)(this.TEXTAREA_PARENT);
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   }
@@ -47621,9 +47608,6 @@ function autocompleteRenderer(hotInstance, TD, row, col, prop, value, cellProper
 
   TD.insertBefore(ARROW, TD.firstChild);
   (0, _element.addClass)(TD, 'htAutocomplete');
-  if (isAriaEnabled) {
-    TD.setAttribute(...(0, _a11y.A11Y_HASPOPUP)('listbox'));
-  }
   if (!hotInstance.acArrowListener) {
     const eventManager = new _eventManager.default(hotInstance);
 
@@ -48007,7 +47991,6 @@ function createInput(rootDocument) {
   const input = rootDocument.createElement('input');
   input.className = 'htCheckboxRendererInput';
   input.type = 'checkbox';
-  input.setAttribute('autocomplete', 'off');
   input.setAttribute('tabindex', '-1');
   return input.cloneNode(false);
 }
@@ -48820,8 +48803,6 @@ exports.dateRenderer = _dateRenderer.dateRenderer;
 exports.__esModule = true;
 exports.dateRenderer = dateRenderer;
 var _autocompleteRenderer = __webpack_require__(369);
-var _a11y = __webpack_require__(114);
-var _element = __webpack_require__(107);
 const RENDERER_TYPE = exports.RENDERER_TYPE = 'date';
 
 /**
@@ -48838,9 +48819,6 @@ const RENDERER_TYPE = exports.RENDERER_TYPE = 'date';
  */
 function dateRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
   _autocompleteRenderer.autocompleteRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
-  if (hotInstance.getSettings().ariaTags) {
-    (0, _element.setAttribute)(TD, [(0, _a11y.A11Y_HASPOPUP)('dialog'), (0, _a11y.A11Y_EXPANDED)('false')]);
-  }
 }
 dateRenderer.RENDERER_TYPE = RENDERER_TYPE;
 
@@ -48928,8 +48906,6 @@ exports.handsontableRenderer = _handsontableRenderer.handsontableRenderer;
 exports.__esModule = true;
 exports.handsontableRenderer = handsontableRenderer;
 var _autocompleteRenderer = __webpack_require__(369);
-var _a11y = __webpack_require__(114);
-var _element = __webpack_require__(107);
 const RENDERER_TYPE = exports.RENDERER_TYPE = 'handsontable';
 
 /**
@@ -48946,9 +48922,6 @@ const RENDERER_TYPE = exports.RENDERER_TYPE = 'handsontable';
  */
 function handsontableRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
   _autocompleteRenderer.autocompleteRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
-  if (hotInstance.getSettings().ariaTags) {
-    (0, _element.setAttribute)(TD, [(0, _a11y.A11Y_HASPOPUP)('true'), (0, _a11y.A11Y_EXPANDED)('false')]);
-  }
 }
 handsontableRenderer.RENDERER_TYPE = RENDERER_TYPE;
 
@@ -49065,8 +49038,6 @@ exports.selectRenderer = _selectRenderer.selectRenderer;
 exports.__esModule = true;
 exports.selectRenderer = selectRenderer;
 var _textRenderer = __webpack_require__(342);
-var _a11y = __webpack_require__(114);
-var _element = __webpack_require__(107);
 const RENDERER_TYPE = exports.RENDERER_TYPE = 'select';
 
 /**
@@ -49081,9 +49052,6 @@ const RENDERER_TYPE = exports.RENDERER_TYPE = 'select';
  */
 function selectRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
   _textRenderer.textRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
-  if (hotInstance.getSettings().ariaTags) {
-    (0, _element.setAttribute)(TD, ...(0, _a11y.A11Y_HASPOPUP)('listbox'));
-  }
 }
 selectRenderer.RENDERER_TYPE = RENDERER_TYPE;
 
@@ -52515,7 +52483,6 @@ var _console = __webpack_require__(129);
 var _element = __webpack_require__(107);
 var _event = __webpack_require__(126);
 var _a11y = __webpack_require__(114);
-var _constants = __webpack_require__(245);
 function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
@@ -53046,7 +53013,7 @@ function _onAfterGetColHeader2(column, TH, headerLevel) {
 
       // Add ARIA tags
       if (isAriaTagsEnabled) {
-        (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_EXPANDED)(false), (0, _a11y.A11Y_DESCRIPTION)(this.hot.getTranslatedPhrase(_constants.COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN))]);
+        (0, _element.setAttribute)(TH, ...(0, _a11y.A11Y_EXPANDED)(false));
       }
     } else {
       (0, _element.addClass)(collapsibleElement, 'expanded');
@@ -53054,7 +53021,7 @@ function _onAfterGetColHeader2(column, TH, headerLevel) {
 
       // Add ARIA tags
       if (isAriaTagsEnabled) {
-        (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_EXPANDED)(true), (0, _a11y.A11Y_DESCRIPTION)(this.hot.getTranslatedPhrase(_constants.COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN))]);
+        (0, _element.setAttribute)(TH, ...(0, _a11y.A11Y_EXPANDED)(true));
       }
     }
     if (isAriaTagsEnabled) {
@@ -53128,7 +53095,6 @@ var _domHelpers = __webpack_require__(441);
 var _rootComparator = __webpack_require__(442);
 var _sortService = __webpack_require__(443);
 var _a11y = __webpack_require__(114);
-var _constants = __webpack_require__(245);
 function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
 function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
@@ -53137,7 +53103,6 @@ const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 50;
 const APPEND_COLUMN_CONFIG_STRATEGY = exports.APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 const REPLACE_COLUMN_CONFIG_STRATEGY = exports.REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
-const SORTING_INDICATOR_CLASS = 'columnSortingIndicator';
 (0, _sortService.registerRootComparator)(PLUGIN_KEY, _rootComparator.rootComparator);
 _pluginHooks.default.getSingleton().register('beforeColumnSort');
 _pluginHooks.default.getSingleton().register('afterColumnSort');
@@ -53781,28 +53746,6 @@ class ColumnSorting extends _base.BasePlugin {
   }
 
   /**
-   * Update sorting indicator.
-   *
-   * @private
-   * @param {number} column Visual column index.
-   * @param {HTMLElement} headerSpanElement Header span element.
-   */
-  updateSortingIndicator(column, headerSpanElement) {
-    const pluginSettingsForColumn = this.getFirstCellSettings(column)[this.pluginKey];
-    const ariaTags = this.hot.getSettings().ariaTags;
-    const showSortIndicator = pluginSettingsForColumn.indicator;
-    const isColumnSorted = this.columnStatesManager.isColumnSorted(column);
-    const indicatorElement = headerSpanElement.querySelector(`.${SORTING_INDICATOR_CLASS}`);
-    if (showSortIndicator && isColumnSorted && !indicatorElement) {
-      (0, _element.appendElement)(headerSpanElement, {
-        tagName: 'div',
-        className: SORTING_INDICATOR_CLASS,
-        attributes: ariaTags ? [(0, _a11y.A11Y_HIDDEN)()] : []
-      });
-    }
-  }
-
-  /**
    * Overwriting base plugin's `onUpdateSettings` method. Please keep in mind that `onAfterUpdateSettings` isn't called
    * for `updateSettings` in specific situations.
    *
@@ -53830,7 +53773,7 @@ class ColumnSorting extends _base.BasePlugin {
   wasClickableHeaderClicked(event, column) {
     const pluginSettingsForColumn = this.getFirstCellSettings(column)[this.pluginKey];
     const headerActionEnabled = pluginSettingsForColumn.headerAction;
-    return headerActionEnabled && ((0, _element.hasClass)(event.target, _utils.HEADER_SPAN_CLASS) || (0, _element.hasClass)(event.target, SORTING_INDICATOR_CLASS));
+    return headerActionEnabled && (0, _element.hasClass)(event.target, _utils.HEADER_SPAN_CLASS);
   }
   /**
    * Callback for the `onAfterOnCellMouseDown` hook.
@@ -53879,14 +53822,12 @@ function _onAfterGetColHeader2(column, TH) {
     return;
   }
   const pluginSettingsForColumn = this.getFirstCellSettings(column)[this.pluginKey];
-  const ariaTags = this.hot.getSettings().ariaTags;
   const showSortIndicator = pluginSettingsForColumn.indicator;
   const headerActionEnabled = pluginSettingsForColumn.headerAction;
-  const currentSortState = this.columnStatesManager.getSortOrderOfColumn(column);
   this.updateHeaderClasses(headerSpanElement, this.columnStatesManager, column, showSortIndicator, headerActionEnabled);
-  this.updateSortingIndicator(column, headerSpanElement);
-  if (ariaTags) {
-    (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_SORT)(currentSortState ? `${currentSortState}ending` : 'none'), (0, _a11y.A11Y_DESCRIPTION)(this.hot.getTranslatedPhrase(_constants.COLUMN_HEADER_DESCRIPTION_SORT_ROWS))]);
+  if (this.hot.getSettings().ariaTags) {
+    const currentSortState = this.columnStatesManager.getSortOrderOfColumn(column);
+    (0, _element.setAttribute)(TH, ...(0, _a11y.A11Y_SORT)(currentSortState ? `${currentSortState}ending` : 'none'));
   }
 }
 function _onAfterLoadData2(initialLoad) {
@@ -60422,8 +60363,6 @@ exports.createMenuItemRenderer = createMenuItemRenderer;
 var _utils = __webpack_require__(489);
 var _element = __webpack_require__(107);
 var _a11y = __webpack_require__(114);
-const SUBMENU_INDICATOR_CLASSNAME = 'submenuIndicator';
-
 /**
  * Creates the menu renderer function.
  *
@@ -60455,16 +60394,6 @@ function createMenuItemRenderer(mainTableHot) {
     if (mainTableHot.getSettings().ariaTags) {
       const isFocusable = !(0, _utils.isItemDisabled)(item, mainTableHot) && !(0, _utils.isItemSelectionDisabled)(item) && !(0, _utils.isItemSeparator)(item);
       (0, _element.setAttribute)(TD, [(0, _a11y.A11Y_MENU_ITEM)(), (0, _a11y.A11Y_LABEL)(itemValue), ...(isFocusable ? [(0, _a11y.A11Y_TABINDEX)(-1)] : []), ...((0, _utils.isItemDisabled)(item, mainTableHot) ? [(0, _a11y.A11Y_DISABLED)()] : []), ...((0, _utils.isItemSubMenu)(item) ? [(0, _a11y.A11Y_EXPANDED)(false)] : [])]);
-    }
-    if ((0, _utils.isItemSubMenu)(item)) {
-      const submenuIndicatorElement = TD.querySelector('.submenuIndicator');
-      if (!submenuIndicatorElement) {
-        (0, _element.appendElement)(TD, {
-          tagName: 'div',
-          attributes: mainTableHot.getSettings().ariaTags ? [(0, _a11y.A11Y_HIDDEN)()] : [],
-          className: SUBMENU_INDICATOR_CLASSNAME
-        });
-      }
     }
     TD.className = '';
     TD.appendChild(wrapper);
@@ -63396,7 +63325,6 @@ var _menu = __webpack_require__(483);
 var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 var _predefinedItems = __webpack_require__(458);
 __webpack_require__(518);
-var _constants = __webpack_require__(245);
 var _a11y = __webpack_require__(114);
 function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
@@ -63870,7 +63798,7 @@ function _onAfterGetColHeader2(col, TH) {
   button.type = 'button';
   button.tabIndex = -1;
   if (this.hot.getSettings().ariaTags) {
-    (0, _element.setAttribute)(button, [(0, _a11y.A11Y_LABEL)(this.hot.getTranslatedPhrase(_constants.COLUMN_HEADER_LABEL_OPEN_MENU))]);
+    (0, _element.setAttribute)(button, [(0, _a11y.A11Y_HIDDEN)(), (0, _a11y.A11Y_LABEL)(' ')]);
     (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_HASPOPUP)('menu')]);
   }
 
@@ -64808,7 +64736,16 @@ class Filters extends _base.BasePlugin {
       // A fake menu item that once focused allows escaping from the focus navigation (using Tab keys)
       // to the menu navigation using arrow keys.
       {
-        focus: () => mainMenu.focus()
+        focus: () => {
+          const menuNavigator = mainMenu.getNavigator();
+          const lastSelectedMenuItem = (0, _classPrivateFieldGet2.default)(this, _menuFocusNavigator).getLastMenuPage();
+          mainMenu.focus();
+          if (lastSelectedMenuItem > 0) {
+            menuNavigator.setCurrentPage(lastSelectedMenuItem);
+          } else {
+            menuNavigator.toFirstItem();
+          }
+        }
       }, ...Array.from(this.components).map(_ref => {
         let [, component] = _ref;
         return component.getElements();
@@ -67103,8 +67040,11 @@ class InputUI extends _base.BaseUI {
    */
   build() {
     super.build();
+    const icon = this.hot.rootDocument.createElement('div');
     (0, _classPrivateFieldSet2.default)(this, _input, this._element.firstChild);
     (0, _element.addClass)(this._element, 'htUIInput');
+    (0, _element.addClass)(icon, 'htUIInputIcon');
+    this._element.appendChild(icon);
     this.update();
   }
 
@@ -69435,12 +69375,17 @@ const SHORTCUTS_MENU_CONTEXT = 'filters';
  * @returns {Paginator}
  */
 function createMenuFocusController(mainMenu, menuItems) {
-  const navigator = (0, _focusNavigator.createFocusNavigator)(menuItems);
+  /**
+   * @type {number} The last selected menu item (before clearing the the menu state after going
+   * into the focus mode triggered by the TAB or SHIFT+TAB keys).
+   */
+  let lastSelectedMenuItem = -1;
+  const focusNavigator = (0, _focusNavigator.createFocusNavigator)(menuItems);
   const updateNavigatorPosition = element => () => {
     if (mainMenu.isOpened()) {
       mainMenu.getKeyboardShortcutsCtrl().listen(SHORTCUTS_MENU_CONTEXT);
     }
-    navigator.setCurrentPage(menuItems.indexOf(element));
+    focusNavigator.setCurrentPage(menuItems.indexOf(element));
   };
 
   // update navigator position (internal state) to element that was recently clicked or focused
@@ -69453,7 +69398,7 @@ function createMenuFocusController(mainMenu, menuItems) {
   });
   mainMenu.addLocalHook('afterSelectionChange', selectedItem => {
     if (!selectedItem.key.startsWith('filter_')) {
-      navigator.clear();
+      focusNavigator.clear();
     }
   });
 
@@ -69465,7 +69410,7 @@ function createMenuFocusController(mainMenu, menuItems) {
   function addKeyboardShortcuts(menu) {
     const mainMenuShortcutsCtrl = mainMenu.getKeyboardShortcutsCtrl();
     const currentMenuShortcutsCtrl = menu.getKeyboardShortcutsCtrl();
-    navigator.clear();
+    focusNavigator.clear();
     currentMenuShortcutsCtrl.addCustomShortcuts([{
       keys: [['Tab'], ['Shift', 'Tab']],
       forwardToContext: mainMenuShortcutsCtrl.getContext(SHORTCUTS_MENU_CONTEXT),
@@ -69482,11 +69427,15 @@ function createMenuFocusController(mainMenu, menuItems) {
     mainMenuShortcutsCtrl.addCustomShortcuts([{
       keys: [['Tab'], ['Shift', 'Tab']],
       callback: event => {
-        mainMenu.getNavigator().clear();
+        const menuNavigator = mainMenu.getNavigator();
+        if (menuNavigator.getCurrentPage() > -1) {
+          lastSelectedMenuItem = menuNavigator.getCurrentPage();
+        }
+        menuNavigator.clear();
         if (event.shiftKey) {
-          navigator.toPreviousItem();
+          focusNavigator.toPreviousItem();
         } else {
-          navigator.toNextItem();
+          focusNavigator.toNextItem();
         }
       }
     }, {
@@ -69498,7 +69447,7 @@ function createMenuFocusController(mainMenu, menuItems) {
       keys: [['Enter'], ['Space']],
       preventDefault: false,
       callback: event => {
-        const element = menuItems[navigator.getCurrentPage()];
+        const element = menuItems[focusNavigator.getCurrentPage()];
         if (element instanceof _select.SelectUI) {
           element.openOptions();
           event.preventDefault();
@@ -69524,9 +69473,19 @@ function createMenuFocusController(mainMenu, menuItems) {
     mainMenu.focus();
     mainMenu.getKeyboardShortcutsCtrl().listen(SHORTCUTS_MENU_CONTEXT);
   }
+
+  /**
+   * Retrieves the last selected menu item (before clearing the state after going into the focus mode).
+   *
+   * @returns {number} The last selected menu item.
+   */
+  function getLastMenuPage() {
+    return lastSelectedMenuItem;
+  }
   return {
-    ...navigator,
-    listen
+    ...focusNavigator,
+    listen,
+    getLastMenuPage
   };
 }
 
@@ -71926,8 +71885,6 @@ var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 var _hideColumn = _interopRequireDefault(__webpack_require__(583));
 var _showColumn = _interopRequireDefault(__webpack_require__(584));
 var _translations = __webpack_require__(221);
-var _a11y = __webpack_require__(114);
-var _constants = __webpack_require__(245);
 __webpack_require__(585);
 function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
@@ -71939,8 +71896,6 @@ _pluginHooks.default.getSingleton().register('beforeUnhideColumns');
 _pluginHooks.default.getSingleton().register('afterUnhideColumns');
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'hiddenColumns';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 310;
-const BEFORE_INDICATOR_CLASSNAME = 'beforeHiddenColumnIndicator';
-const AFTER_INDICATOR_CLASSNAME = 'afterHiddenColumnIndicator';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -72050,7 +72005,6 @@ const AFTER_INDICATOR_CLASSNAME = 'afterHiddenColumnIndicator';
  */
 var _settings = /*#__PURE__*/new WeakMap();
 var _hiddenColumnsMap = /*#__PURE__*/new WeakMap();
-var _clearIndicatorElements = /*#__PURE__*/new WeakSet();
 var _onModifyColWidth = /*#__PURE__*/new WeakSet();
 var _onAfterGetCellMeta = /*#__PURE__*/new WeakSet();
 var _onModifyCopyableRange = /*#__PURE__*/new WeakSet();
@@ -72100,12 +72054,6 @@ class HiddenColumns extends _base.BasePlugin {
      * @returns {number}
      */
     _classPrivateMethodInitSpec(this, _onModifyColWidth);
-    /**
-     * Remove the indicator elements from the provided column header element.
-     *
-     * @param {HTMLElement} TH Column header element.
-     */
-    _classPrivateMethodInitSpec(this, _clearIndicatorElements);
     /**
      * Cached plugin settings.
      *
@@ -72195,15 +72143,8 @@ class HiddenColumns extends _base.BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    const clearColHeader = (columnIndex, TH) => {
-      _classPrivateMethodGet(this, _clearIndicatorElements, _clearIndicatorElements2).call(this, TH);
-    };
     this.hot.columnIndexMapper.unregisterMap(this.pluginName);
     (0, _classPrivateFieldSet2.default)(this, _settings, {});
-    this.hot.addHook('afterGetColHeader', clearColHeader);
-    this.hot.addHookOnce('afterViewRender', () => {
-      this.hot.removeHook('afterGetColHeader', clearColHeader);
-    });
     super.disablePlugin();
     this.resetCellsMeta();
   }
@@ -72355,11 +72296,6 @@ class HiddenColumns extends _base.BasePlugin {
   }
 }
 exports.HiddenColumns = HiddenColumns;
-function _clearIndicatorElements2(TH) {
-  Array.from(TH.querySelectorAll(`.${AFTER_INDICATOR_CLASSNAME}, .${BEFORE_INDICATOR_CLASSNAME}`)).forEach(element => {
-    element.remove();
-  });
-}
 function _onModifyColWidth2(width, column) {
   // Hook is triggered internally only for the visible columns. Conditional will be handled for the API
   // calls of the `getColWidth` function on not visible indexes.
@@ -72431,35 +72367,14 @@ function _onModifyCopyableRange2(ranges) {
   return newRanges;
 }
 function _onAfterGetColHeader2(column, TH) {
-  const areAriaTagsEnabled = this.hot.getSettings().ariaTags;
-  const beforeHiddenColumnIndicatorElement = TH.querySelector('.beforeHiddenColumnIndicator');
-  const afterHiddenColumnIndicatorElement = TH.querySelector('.afterHiddenColumnIndicator');
   if (!(0, _classPrivateFieldGet2.default)(this, _settings).indicators || column < 0) {
-    beforeHiddenColumnIndicatorElement === null || beforeHiddenColumnIndicatorElement === void 0 || beforeHiddenColumnIndicatorElement.remove();
-    afterHiddenColumnIndicatorElement === null || afterHiddenColumnIndicatorElement === void 0 || afterHiddenColumnIndicatorElement.remove();
     return;
   }
   const classList = [];
   if (column >= 1 && this.isHidden(column - 1)) {
-    if (!afterHiddenColumnIndicatorElement) {
-      const attributesToAdd = areAriaTagsEnabled ? [(0, _a11y.A11Y_LABEL)(this.hot.getTranslatedPhrase(_constants.COLUMN_HEADER_LABEL_AFTER_HIDDEN_COLUMN))] : [];
-      (0, _element.appendElement)(TH, {
-        tagName: 'div',
-        attributes: attributesToAdd,
-        className: AFTER_INDICATOR_CLASSNAME
-      });
-    }
     classList.push('afterHiddenColumn');
   }
   if (column < this.hot.countCols() - 1 && this.isHidden(column + 1)) {
-    if (!beforeHiddenColumnIndicatorElement) {
-      const attributesToAdd = areAriaTagsEnabled ? [(0, _a11y.A11Y_LABEL)(this.hot.getTranslatedPhrase(_constants.COLUMN_HEADER_LABEL_BEFORE_HIDDEN_COLUMN))] : [];
-      (0, _element.appendElement)(TH, {
-        tagName: 'div',
-        attributes: attributesToAdd,
-        className: BEFORE_INDICATOR_CLASSNAME
-      });
-    }
     classList.push('beforeHiddenColumn');
   }
   (0, _element.addClass)(TH, classList);
@@ -72686,8 +72601,6 @@ var _pluginHooks = _interopRequireDefault(__webpack_require__(128));
 var _hideRow = _interopRequireDefault(__webpack_require__(588));
 var _showRow = _interopRequireDefault(__webpack_require__(589));
 var _translations = __webpack_require__(221);
-var _a11y = __webpack_require__(114);
-var _constants = __webpack_require__(245);
 __webpack_require__(590);
 function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
@@ -72699,8 +72612,6 @@ _pluginHooks.default.getSingleton().register('beforeUnhideRows');
 _pluginHooks.default.getSingleton().register('afterUnhideRows');
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'hiddenRows';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 320;
-const AFTER_INDICATOR_CLASSNAME = 'afterHiddenRowIndicator';
-const BEFORE_INDICATOR_CLASSNAME = 'beforeHiddenRowIndicator';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -72810,7 +72721,6 @@ const BEFORE_INDICATOR_CLASSNAME = 'beforeHiddenRowIndicator';
  */
 var _settings = /*#__PURE__*/new WeakMap();
 var _hiddenRowsMap = /*#__PURE__*/new WeakMap();
-var _clearIndicatorElements = /*#__PURE__*/new WeakSet();
 var _onModifyRowHeight = /*#__PURE__*/new WeakSet();
 var _onAfterGetCellMeta = /*#__PURE__*/new WeakSet();
 var _onModifyCopyableRange = /*#__PURE__*/new WeakSet();
@@ -72860,12 +72770,6 @@ class HiddenRows extends _base.BasePlugin {
      * @returns {number}
      */
     _classPrivateMethodInitSpec(this, _onModifyRowHeight);
-    /**
-     * Remove the indicator elements from the provided row header element.
-     *
-     * @param {HTMLElement} TH Column header element.
-     */
-    _classPrivateMethodInitSpec(this, _clearIndicatorElements);
     /**
      * Cached settings from Handsontable settings.
      *
@@ -72955,15 +72859,8 @@ class HiddenRows extends _base.BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    const clearRowHeader = (columnIndex, TH) => {
-      _classPrivateMethodGet(this, _clearIndicatorElements, _clearIndicatorElements2).call(this, TH);
-    };
     this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     (0, _classPrivateFieldSet2.default)(this, _settings, {});
-    this.hot.addHook('afterGetRowHeader', clearRowHeader);
-    this.hot.addHookOnce('afterViewRender', () => {
-      this.hot.removeHook('afterGetRowHeader', clearRowHeader);
-    });
     super.disablePlugin();
     this.resetCellsMeta();
   }
@@ -73112,11 +73009,6 @@ class HiddenRows extends _base.BasePlugin {
   }
 }
 exports.HiddenRows = HiddenRows;
-function _clearIndicatorElements2(TH) {
-  Array.from(TH.querySelectorAll(`.${AFTER_INDICATOR_CLASSNAME}, .${BEFORE_INDICATOR_CLASSNAME}`)).forEach(element => {
-    element.remove();
-  });
-}
 function _onModifyRowHeight2(height, row) {
   // Hook is triggered internally only for the visible rows. Conditional will be handled for the API
   // calls of the `getRowHeight` function on not visible indexes.
@@ -73183,35 +73075,14 @@ function _onModifyCopyableRange2(ranges) {
   return newRanges;
 }
 function _onAfterGetRowHeader2(row, TH) {
-  const areAriaTagsEnabled = this.hot.getSettings().ariaTags;
-  const beforeHiddenRowIndicatorElement = TH.querySelector('.beforeHiddenRowIndicator');
-  const afterHiddenRowIndicatorElement = TH.querySelector('.afterHiddenRowIndicator');
   if (!(0, _classPrivateFieldGet2.default)(this, _settings).indicators || row < 0) {
-    beforeHiddenRowIndicatorElement === null || beforeHiddenRowIndicatorElement === void 0 || beforeHiddenRowIndicatorElement.remove();
-    afterHiddenRowIndicatorElement === null || afterHiddenRowIndicatorElement === void 0 || afterHiddenRowIndicatorElement.remove();
     return;
   }
   const classList = [];
   if (row >= 1 && this.isHidden(row - 1)) {
-    if (!afterHiddenRowIndicatorElement) {
-      const attributesToAdd = areAriaTagsEnabled ? [(0, _a11y.A11Y_LABEL)(this.hot.getTranslatedPhrase(_constants.ROW_HEADER_LABEL_AFTER_HIDDEN_ROW))] : [];
-      (0, _element.appendElement)(TH, {
-        tagName: 'div',
-        attributes: attributesToAdd,
-        className: AFTER_INDICATOR_CLASSNAME
-      });
-    }
     classList.push('afterHiddenRow');
   }
   if (row < this.hot.countRows() - 1 && this.isHidden(row + 1)) {
-    if (!beforeHiddenRowIndicatorElement) {
-      const attributesToAdd = areAriaTagsEnabled ? [(0, _a11y.A11Y_LABEL)(this.hot.getTranslatedPhrase(_constants.ROW_HEADER_LABEL_BEFORE_HIDDEN_ROW))] : [];
-      (0, _element.appendElement)(TH, {
-        tagName: 'div',
-        attributes: attributesToAdd,
-        className: BEFORE_INDICATOR_CLASSNAME
-      });
-    }
     classList.push('beforeHiddenRow');
   }
   (0, _element.addClass)(TH, classList);
@@ -79697,8 +79568,6 @@ var _element = __webpack_require__(107);
 var _rootComparator = __webpack_require__(623);
 var _utils2 = __webpack_require__(624);
 var _domHelpers = __webpack_require__(625);
-var _a11y = __webpack_require__(114);
-var _constants = __webpack_require__(245);
 __webpack_require__(626);
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'multiColumnSorting';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 170;
@@ -79956,25 +79825,6 @@ class MultiColumnSorting extends _columnSorting.ColumnSorting {
     if (this.enabled !== false) {
       (0, _element.addClass)(headerSpanElement, (0, _domHelpers.getClassesToAdd)(...args));
     }
-  }
-
-  /**
-   * Update sorting indicator.
-   *
-   * @private
-   * @param {number} column Visual column index.
-   * @param {HTMLElement} headerSpanElement Header span element.
-   */
-  updateSortingIndicator(column, headerSpanElement) {
-    super.updateSortingIndicator(column, headerSpanElement);
-    const indicatorElement = headerSpanElement.querySelector('.columnSortingIndicator');
-    if (!indicatorElement || !this.hot.getSettings().ariaTags || !this.columnStatesManager.isColumnSorted(column) || this.columnStatesManager.getNumberOfSortedColumns() <= 1) {
-      return;
-    }
-    const multiColumnSortingOrder = this.columnStatesManager.getIndexOfColumnInSortQueue(column) + 1;
-    const a11yLabelAttribute = (0, _a11y.A11Y_LABEL)(`${this.hot.getTranslatedPhrase(_constants.COLUMN_HEADER_LABEL_MULTI_COLUMN_SORT_ORDER)} ${multiColumnSortingOrder}.`);
-    (0, _element.removeAttribute)(indicatorElement, (0, _a11y.A11Y_HIDDEN)()[0]);
-    (0, _element.setAttribute)(indicatorElement, ...a11yLabelAttribute);
   }
 
   /**
@@ -83950,8 +83800,7 @@ class NestedRows extends _base.BasePlugin {
   /**
    * Updates the plugin's state.
    *
-   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the
-   * following configuration options:
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
    *  - [`nestedRows`](@/api/options.md#nestedrows)
    */
   updatePlugin() {
@@ -84025,6 +83874,7 @@ class NestedRows extends _base.BasePlugin {
   /**
    * The modifyRowData hook callback.
    *
+   * @private
    * @param {number} row Visual row index.
    * @returns {boolean}
    */
@@ -84038,6 +83888,7 @@ class NestedRows extends _base.BasePlugin {
   /**
    * Modify the source data length to match the length of the nested structure.
    *
+   * @private
    * @returns {number}
    */
   onModifySourceLength() {
@@ -84048,6 +83899,7 @@ class NestedRows extends _base.BasePlugin {
   }
 
   /**
+   * @private
    * @param {number} index The index where the data was spliced.
    * @param {number} amount An amount of items to remove.
    * @param {object} element An element to add.
@@ -85400,7 +85252,6 @@ var _number = __webpack_require__(141);
 var _element = __webpack_require__(107);
 var _base = _interopRequireDefault(__webpack_require__(650));
 var _a11y = __webpack_require__(114);
-var _constants = __webpack_require__(245);
 /**
  * Class responsible for the UI in the Nested Rows' row headers.
  *
@@ -85418,6 +85269,7 @@ class HeadersUI extends _base.default {
     return {
       indicatorContainer: 'ht_nestingLevels',
       parent: 'ht_nestingParent',
+      indicator: 'ht_nestingLevel',
       emptyIndicator: 'ht_nestingLevel_empty',
       button: 'ht_nestingButton',
       expandButton: 'ht_nestingExpand',
@@ -85495,12 +85347,12 @@ class HeadersUI extends _base.default {
       if (this.collapsingUI.areChildrenCollapsed(rowIndex)) {
         (0, _element.addClass)(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${HeadersUI.CSS_CLASSES.expandButton}`);
         if (ariaEnabled) {
-          (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_EXPANDED)(false), (0, _a11y.A11Y_DESCRIPTION)(this.hot.getTranslatedPhrase(_constants.ROW_HEADER_DESCRIPTION_EXPAND_ROW))]);
+          (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_EXPANDED)(false)]);
         }
       } else {
         (0, _element.addClass)(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${HeadersUI.CSS_CLASSES.collapseButton}`);
         if (ariaEnabled) {
-          (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_EXPANDED)(true), (0, _a11y.A11Y_DESCRIPTION)(this.hot.getTranslatedPhrase(_constants.ROW_HEADER_DESCRIPTION_COLLAPSE_ROW))]);
+          (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_EXPANDED)(true)]);
         }
       }
       innerDiv.appendChild(buttonsContainer);
