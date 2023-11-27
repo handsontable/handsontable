@@ -130,24 +130,35 @@ export class FocusManager {
    * @param {HTMLTableCellElement} [selectedCell] The highlighted cell/header element.
    */
   focusOnHighlightedCell(selectedCell) {
-    const currentHighlightCoords = this.#getCurrentHighlightCoords();
-    const currentlySelectedHighlight = selectedCell || this.#getSelectedCell();
+    const focusElement = (element) => {
+      const currentHighlightCoords = this.#hot.getSelectedRangeLast()?.highlight;
 
-    let elementToBeFocused = this.#hot.runHooks(
-      'modifyFocusedElement', currentHighlightCoords.row, currentHighlightCoords.col, currentlySelectedHighlight
-    );
+      if (!currentHighlightCoords || !element) {
+        return;
+      }
 
-    if (!(elementToBeFocused instanceof HTMLElement)) {
-      elementToBeFocused = currentlySelectedHighlight;
-    }
+      let elementToBeFocused = this.#hot.runHooks(
+        'modifyFocusedElement', currentHighlightCoords.row, currentHighlightCoords.col, element
+      );
 
-    if (
-      elementToBeFocused &&
-      !this.#hot.getActiveEditor()?.isOpened()
-    ) {
-      elementToBeFocused.focus({
-        preventScroll: true
-      });
+      if (!(elementToBeFocused instanceof HTMLElement)) {
+        elementToBeFocused = element;
+      }
+
+      if (
+        elementToBeFocused &&
+        !this.#hot.getActiveEditor()?.isOpened()
+      ) {
+        elementToBeFocused.focus({
+          preventScroll: true
+        });
+      }
+    };
+
+    if (selectedCell) {
+      focusElement(selectedCell);
+    } else {
+      this.#getSelectedCell(element => focusElement(element));
     }
   }
 
@@ -173,26 +184,30 @@ export class FocusManager {
   }
 
   /**
-   * Get the coordinates of the highlight of the currently selected cell/header.
-   *
-   * @returns {CellCoords}
-   */
-  #getCurrentHighlightCoords() {
-    const lastSelectedRange = this.#hot.getSelectedRangeLast();
-
-    return lastSelectedRange.highlight;
-  }
-
-  /**
    * Get and return the currently selected and highlighted cell/header element.
    *
    * @private
-   * @returns {HTMLTableCellElement}
+   * @param {Function} [callback] Callback function to be called after the cell element is retrieved.
    */
-  #getSelectedCell() {
-    const selectedCellCoords = this.#getCurrentHighlightCoords();
+  #getSelectedCell(callback = () => {}) {
+    const highlight = this.#hot.getSelectedRangeLast()?.highlight;
 
-    return this.#hot.getCell(selectedCellCoords.row, selectedCellCoords.col, true);
+    if (!highlight) {
+      this.#hot._registerTimeout(() => callback(null));
+
+      return;
+    }
+
+    const cell = this.#hot.getCell(highlight.row, highlight.col, true);
+
+    if (cell === null) {
+      this.#hot.addHookOnce('afterScroll', () => {
+        callback(this.#hot.getCell(highlight.row, highlight.col, true));
+      });
+
+    } else {
+      callback(cell);
+    }
   }
 
   /**
@@ -201,27 +216,28 @@ export class FocusManager {
    * @private
    */
   #manageFocus() {
-    const selectedCell = this.#getSelectedCell();
-    const { activeElement } = this.#hot.rootDocument;
+    this.#getSelectedCell((selectedCell) => {
+      const { activeElement } = this.#hot.rootDocument;
 
-    // Blurring the `activeElement` removes the unwanted border around the focusable element (#6877)
-    // and resets the `document.activeElement` property. The blurring should happen only when the
-    // previously selected input element has not belonged to the Handsontable editor. If blurring is
-    // triggered for all elements, there is a problem with the disappearing IME editor (#9672).
-    if (activeElement && isOutsideInput(activeElement)) {
-      activeElement.blur();
-    }
+      // Blurring the `activeElement` removes the unwanted border around the focusable element (#6877)
+      // and resets the `document.activeElement` property. The blurring should happen only when the
+      // previously selected input element has not belonged to the Handsontable editor. If blurring is
+      // triggered for all elements, there is a problem with the disappearing IME editor (#9672).
+      if (activeElement && isOutsideInput(activeElement)) {
+        activeElement.blur();
+      }
 
-    this.focusOnHighlightedCell(selectedCell);
+      this.focusOnHighlightedCell(selectedCell);
 
-    if (
-      this.getFocusMode() === FOCUS_MODES.MIXED &&
-      selectedCell.nodeName === 'TD'
-    ) {
-      this.#hot.addHookOnce('afterSelectionEnd', () => {
-        this.refocusToEditorTextarea();
-      });
-    }
+      if (
+        this.getFocusMode() === FOCUS_MODES.MIXED &&
+        selectedCell.nodeName === 'TD'
+      ) {
+        this.#hot.addHookOnce('afterSelectionEnd', () => {
+          this.refocusToEditorTextarea();
+        });
+      }
+    });
   }
 
   /**
