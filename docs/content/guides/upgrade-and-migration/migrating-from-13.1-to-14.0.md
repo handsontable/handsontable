@@ -14,7 +14,7 @@ searchCategory: Guides
 
 # Migrate from 13.1.0 to 14.0
 
-Migrate from Handsontable 13.1.0 to Handsontable 14.0, released on November 16th, 2023.
+Migrate from Handsontable 13.1.0 to Handsontable 14.0, released on November 30th, 2023.
 
 [[toc]]
 
@@ -29,32 +29,6 @@ To utilize it in your implementation, set the `imeFastEdit` option to `true` in 
 ### Update the CSS selectors for your custom icons
 
 Handsontable 14.0 changes the DOM structure of some elements holding the icons used within the table. This change aims to equip those elements with all the attributes required by the accessibility standards.
-
-##### The Context Menu submenu indicator
-
-| Before  | After  |
-| ------------ | ------------ |
-| `td.htSubmenu > .htItemWrapper::after`  | `td.htSubmenu > .submenuIndicator::after`  |
-
-##### Hidden Rows and Hidden Column indicators
-
-| Before  | After  |
-| ------------ | ------------ |
-| `th.afterHiddenColumn::before`  | `th.afterHiddenColumn > .afterHiddenColumnIndicator::before`  |
-| `th.beforeHiddenColumn::after`  | `th.beforeHiddenColumn  > .beforeHiddenColumnIndicator::after`  |
-| `th.beforeHiddenRow::before`  | `th.beforeHiddenRow   > .beforeHiddenRowIndicator::before`  |
-| `th.afterHiddenRow::after`  | `th.afterHiddenRow   > .afterHiddenRowIndicator::after`  |
-
-##### Sorting indicators
-
-| Before  | After  |
-| ------------ | ------------ |
-| `th .columnSorting::before`  | `th .columnSorting > .columnSortingIndicator::before`  |
-| `th .columnSorting::after`  | `th .columnSorting > .columnSortingIndicator::after`  |
-
-Additionally, the `ht_nestingLevel` class was removed.
-
-More information: [handsontable#10540](https://github.com/handsontable/handsontable/pull/10540).
 
 ### Adjust your application to the modified keyboard shortcuts
 The new Handsontable version comes with an updated set of keyboard shortcuts. Most of them are new additions, but there have been some changes in the already-existing ones. Make sure to adjust your application to the current specification.

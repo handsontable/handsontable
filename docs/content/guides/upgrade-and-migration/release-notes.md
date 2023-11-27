@@ -26,7 +26,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 ## 14.0.0
 
-Released on November 22, 2023
+Released on November 30, 2023
 
 For more information on this release, see:
 - [Blog post (14.0.0)](https://handsontable.com/blog/handsontable-14-0-0-prioritizing-accessibility)
