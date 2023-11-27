@@ -701,7 +701,7 @@ class TableView {
         if (this.hot.getSettings().ariaTags) {
           // Update the aria-colcount attribute.
           // Only needs to be done once after initialization/data update.
-          if (this.#getAriaColcount() === `${this.hot.countCols()}`) {
+          if (this.#getAriaColcount() === this.hot.countCols()) {
             this.#updateAriaColcount(this.#rowHeadersCount);
           }
         }
@@ -1468,9 +1468,11 @@ class TableView {
 
   /**
    * Return the value of the `aria-colcount` attribute.
+   *
+   * @returns {number} The value of the `aria-colcount` attribute.
    */
   #getAriaColcount() {
-    return this.hot.rootElement.getAttribute(A11Y_COLCOUNT()[0]);
+    return parseInt(this.hot.rootElement.getAttribute(A11Y_COLCOUNT()[0]), 10);
   }
 
   /**
@@ -1479,7 +1481,7 @@ class TableView {
    * @param {number} delta The number of columns to add or remove to the aria tag.
    */
   #updateAriaColcount(delta) {
-    const colCount = parseInt(this.#getAriaColcount(), 10) + delta;
+    const colCount = this.#getAriaColcount() + delta;
 
     setAttribute(this.hot.rootElement, ...A11Y_COLCOUNT(colCount));
   }
