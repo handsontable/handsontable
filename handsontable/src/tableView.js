@@ -698,6 +698,14 @@ class TableView {
         this.hot.runHooks('afterGetRowHeaderRenderers', headerRenderers);
         this.#rowHeadersCount = headerRenderers.length;
 
+        if (this.hot.getSettings().ariaTags) {
+          // Update the aria-colcount attribute.
+          // Only needs to be done once after initialization/data update.
+          if (this.#getAriaColcount() === `${this.hot.countCols()}`) {
+            this.#updateAriaColcount(this.#rowHeadersCount);
+          }
+        }
+
         return headerRenderers;
       },
       columnHeaders: () => {
@@ -1456,6 +1464,24 @@ class TableView {
    */
   getRowHeadersCount() {
     return this.#rowHeadersCount;
+  }
+
+  /**
+   * Return the value of the `aria-colcount` attribute.
+   */
+  #getAriaColcount() {
+    return this.hot.rootElement.getAttribute(A11Y_COLCOUNT()[0]);
+  }
+
+  /**
+   * Update the `aria-colcount` attribute by the provided value.
+   *
+   * @param {number} delta The number of columns to add or remove to the aria tag.
+   */
+  #updateAriaColcount(delta) {
+    const colCount = parseInt(this.#getAriaColcount(), 10) + delta;
+
+    setAttribute(this.hot.rootElement, ...A11Y_COLCOUNT(colCount));
   }
 
   /**

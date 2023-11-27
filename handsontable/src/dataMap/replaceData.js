@@ -126,7 +126,8 @@ function replaceData(data, setDataMapFunction, callbackFunction, config) {
   if (hotInstance.getSettings().ariaTags) {
     setAttribute(hotInstance.rootElement, [
       A11Y_ROWCOUNT(-1),
-      A11Y_COLCOUNT(hotInstance.countCols()),
+      // If run after initialization, add the number of row headers.
+      A11Y_COLCOUNT(hotInstance.countCols() + (hotInstance.view ? hotInstance.countRowHeaders() : 0)),
     ]);
   }
 }
