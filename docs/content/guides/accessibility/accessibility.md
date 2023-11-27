@@ -57,7 +57,7 @@ Handsontable does not require a mouse to navigate across the grid's elements. Th
 
 Our experience with hundreds of implementations of Handsontable has highlighted some typical patterns. It turns out that usually Handsontable is used as either a **spreadsheet application** or a **data grid component**. While the difference may seem subtle at first, it significantly impacts user expectations regarding navigation.
 
-In a typical spreadsheet application (think of Microsoft Excel or Google Sheets), you cannot move the focus onto headers. This makes it difficult to sort or filter data without knowing complex [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts.md). Additionally, opening a column menu is not trivial. Handsontable offers flexibility in this regard, allowing users to switch between data grid and spreadsheet "modes". To do that switch, you can use a combination of two options: [`navigableHeaders`](@/api/options.md#navigableheaders) to enable or disable moving focus onto headers, and [`tabNavigation`](@/api/options.md#tabNavigation) to decide if the <kbd>Tab</kbd> key can be used to navigate across cells and headers.
+In a typical spreadsheet application (think of Microsoft Excel or Google Sheets), you cannot move the focus onto headers. This makes it difficult to sort or filter data without knowing complex [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts.md). Additionally, opening a column menu is not trivial. Handsontable offers flexibility in this regard, allowing users to switch between data grid and spreadsheet "modes". To do that switch, you can use a combination of two options: [`navigableHeaders`](@/api/options.md#navigableheaders) to enable or disable moving focus onto headers, and [`tabNavigation`](@/api/options.md#tabnavigation) to decide if the <kbd>Tab</kbd> key can be used to navigate across cells and headers.
 
 The following table provides more details about these two scenarios:
  
@@ -123,7 +123,7 @@ Check out the interactive demo below to see how different Handsontable settings 
           Enable navigation with the Tab key
         </label>
         <a
-          href="https://handsontable.com/docs/javascript-data-grid/api/options/#tabNavigation"
+          href="https://handsontable.com/docs/javascript-data-grid/api/options/#tabnavigation"
           target="_blank"
           class="external-link"
           rel="noopener noreferrer"
@@ -1885,7 +1885,7 @@ function DemoOptions({
               Enable navigation with the Tab key
             </label>
             <a
-              href="https://handsontable.com/docs/react-data-grid/api/options/#tabNavigation"
+              href="https://handsontable.com/docs/react-data-grid/api/options/#tabnavigation"
               target="_blank"
               className="external-link"
               rel="noopener noreferrer"
@@ -2256,7 +2256,7 @@ For the list of [options](@/guides/getting-started/configuration-options.md), me
 
 - [`autoWrapCol`](@/api/options.md#autowrapcol)
 - [`autoWrapRow`](@/api/options.md#autowraprow)
-- [`tabNavigation`](@/api/options.md#tabNavigation)
+- [`tabNavigation`](@/api/options.md#tabnavigation)
 - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
 - [`enterMoves`](@/api/options.md#entermoves)
 - [`navigableHeaders`](@/api/options.md#navigableheaders)
