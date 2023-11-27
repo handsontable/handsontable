@@ -16,12 +16,25 @@
   inset-inline-start: unset;
 }
 
+.handsontable th span.ht_nestingLevel {
+  display: inline-block;
+}
+
 .handsontable th span.ht_nestingLevel_empty {
   display: inline-block;
   width: 10px;
   height: 1px;
   float: inline-start;
 }
+
+.handsontable th span.ht_nestingLevel::after {
+  content: "\2510";
+  font-size: 9px;
+  display: inline-block;
+  position: relative;
+  bottom: 3px;
+}
+
 
 .handsontable th div.ht_nestingButton {
   display: inline-block;
@@ -32,11 +45,11 @@
 }
 
 .handsontable th div.ht_nestingButton.ht_nestingExpand::after {
-  content: "\002B"; // plus character
+  content: "\002B";
 }
 
 .handsontable th div.ht_nestingButton.ht_nestingCollapse::after {
-  content: "\002D"; // minus character
+  content: "\002D";
 }
 
 .handsontable.innerBorderInlineStart th div.ht_nestingButton,

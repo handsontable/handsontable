@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { addClass, appendElement } from '../../helpers/dom/element';
+import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
@@ -9,11 +9,6 @@ import Hooks from '../../pluginHooks';
 import hideRowItem from './contextMenuItem/hideRow';
 import showRowItem from './contextMenuItem/showRow';
 import { HidingMap } from '../../translations';
-import { A11Y_LABEL } from '../../helpers/a11y';
-import {
-  ROW_HEADER_LABEL_AFTER_HIDDEN_ROW,
-  ROW_HEADER_LABEL_BEFORE_HIDDEN_ROW,
-} from '../../i18n/constants';
 
 import './hiddenRows.css';
 
@@ -24,9 +19,6 @@ Hooks.getSingleton().register('afterUnhideRows');
 
 export const PLUGIN_KEY = 'hiddenRows';
 export const PLUGIN_PRIORITY = 320;
-
-const AFTER_INDICATOR_CLASSNAME = 'afterHiddenRowIndicator';
-const BEFORE_INDICATOR_CLASSNAME = 'beforeHiddenRowIndicator';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -216,17 +208,8 @@ export class HiddenRows extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    const clearRowHeader = (columnIndex, TH) => {
-      this.#clearIndicatorElements(TH);
-    };
-
     this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     this.#settings = {};
-
-    this.hot.addHook('afterGetRowHeader', clearRowHeader);
-    this.hot.addHookOnce('afterViewRender', () => {
-      this.hot.removeHook('afterGetRowHeader', clearRowHeader);
-    });
 
     super.disablePlugin();
     this.resetCellsMeta();
@@ -378,19 +361,6 @@ export class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Remove the indicator elements from the provided row header element.
-   *
-   * @param {HTMLElement} TH Column header element.
-   */
-  #clearIndicatorElements(TH) {
-    Array.from(TH.querySelectorAll(
-      `.${AFTER_INDICATOR_CLASSNAME}, .${BEFORE_INDICATOR_CLASSNAME}`
-    )).forEach((element) => {
-      element.remove();
-    });
-  }
-
-  /**
    * Adds the additional row height for the hidden row indicators.
    *
    * @param {number|undefined} height Row height.
@@ -495,48 +465,17 @@ export class HiddenRows extends BasePlugin {
    * @param {HTMLElement} TH Header's TH element.
    */
   #onAfterGetRowHeader(row, TH) {
-    const areAriaTagsEnabled = this.hot.getSettings().ariaTags;
-    const beforeHiddenRowIndicatorElement = TH.querySelector('.beforeHiddenRowIndicator');
-    const afterHiddenRowIndicatorElement = TH.querySelector('.afterHiddenRowIndicator');
-
     if (!this.#settings.indicators || row < 0) {
-      beforeHiddenRowIndicatorElement?.remove();
-      afterHiddenRowIndicatorElement?.remove();
-
       return;
     }
 
     const classList = [];
 
     if (row >= 1 && this.isHidden(row - 1)) {
-      if (!afterHiddenRowIndicatorElement) {
-        const attributesToAdd = areAriaTagsEnabled
-          ? [A11Y_LABEL(this.hot.getTranslatedPhrase(ROW_HEADER_LABEL_AFTER_HIDDEN_ROW))]
-          : [];
-
-        appendElement(TH, {
-          tagName: 'div',
-          attributes: attributesToAdd,
-          className: AFTER_INDICATOR_CLASSNAME,
-        });
-      }
-
       classList.push('afterHiddenRow');
     }
 
     if (row < this.hot.countRows() - 1 && this.isHidden(row + 1)) {
-      if (!beforeHiddenRowIndicatorElement) {
-        const attributesToAdd = areAriaTagsEnabled
-          ? [A11Y_LABEL(this.hot.getTranslatedPhrase(ROW_HEADER_LABEL_BEFORE_HIDDEN_ROW))]
-          : [];
-
-        appendElement(TH, {
-          tagName: 'div',
-          attributes: attributesToAdd,
-          className: BEFORE_INDICATOR_CLASSNAME,
-        });
-      }
-
       classList.push('beforeHiddenRow');
     }
 

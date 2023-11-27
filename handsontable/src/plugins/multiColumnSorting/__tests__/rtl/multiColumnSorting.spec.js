@@ -4,7 +4,6 @@ describe('MultiColumnSorting (RTL)', () => {
     { htmlDir: 'ltr', layoutDirection: 'rtl' },
   ], ({ htmlDir, layoutDirection }) => {
     const id = 'testContainer';
-    const getIndicator = parentEl => parentEl.querySelector('.columnSortingIndicator');
 
     beforeEach(function() {
       $('html').attr('dir', htmlDir);
@@ -66,9 +65,9 @@ describe('MultiColumnSorting (RTL)', () => {
           }
         });
 
-        expect(window.getComputedStyle(getIndicator(spec().$container.find('th span.columnSorting')[0]), ':after')
+        expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[0], ':after')
           .getPropertyValue('left')).toEqual('-15px');
-        expect(window.getComputedStyle(getIndicator(spec().$container.find('th span.columnSorting')[0]), ':after')
+        expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[0], ':after')
           .getPropertyValue('padding-right')).toEqual('5px');
       });
     });

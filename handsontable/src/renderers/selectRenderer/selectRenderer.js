@@ -1,6 +1,4 @@
 import { textRenderer } from '../textRenderer';
-import { A11Y_HASPOPUP } from '../../helpers/a11y';
-import { setAttribute } from '../../helpers/dom/element';
 
 export const RENDERER_TYPE = 'select';
 
@@ -16,10 +14,6 @@ export const RENDERER_TYPE = 'select';
  */
 export function selectRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
   textRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
-
-  if (hotInstance.getSettings().ariaTags) {
-    setAttribute(TD, ...A11Y_HASPOPUP('listbox'));
-  }
 }
 
 selectRenderer.RENDERER_TYPE = RENDERER_TYPE;
