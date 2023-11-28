@@ -1,5 +1,6 @@
 import { warn } from './helpers/console';
 import { isOutsideInput } from './helpers/dom/element';
+import { debounce } from './helpers/function';
 
 /**
  * Possible focus modes.
@@ -30,7 +31,7 @@ export class FocusManager {
    * - 'mixed' - The browser's focus switches from the lastly selected cell element to the currently active editor's
    * `TEXTAREA` element after a delay defined in the manager.
    *
-   * @type {string}
+   * @type {'cell' | 'mixed'}
    */
   #focusMode;
   /**
@@ -47,6 +48,12 @@ export class FocusManager {
    * @type {null|Function}
    */
   #refocusElementGetter = null;
+  /**
+   * Map of the debounced `select` functions.
+   *
+   * @type {Map<number, Function>}
+   */
+  #debouncedSelect = new Map();
 
   constructor(hotInstance) {
     const hotSettings = hotInstance.getSettings();
@@ -55,7 +62,8 @@ export class FocusManager {
     this.#focusMode = hotSettings.imeFastEdit ? FOCUS_MODES.MIXED : FOCUS_MODES.CELL;
 
     this.#hot.addHook('afterUpdateSettings', (...args) => this.#onUpdateSettings(...args));
-    this.#hot.addHook('afterSelection', (...args) => this.#manageFocus(...args));
+    this.#hot.addHook('afterSelection', (...args) => this.#focusCell(...args));
+    this.#hot.addHook('afterSelectionEnd', (...args) => this.#focusEditorElement(...args));
   }
 
   /**
@@ -166,7 +174,7 @@ export class FocusManager {
    * Set the focus to the active editor's `TEXTAREA` element after the provided delay. If no delay is provided, it
    * will be taken from the manager's configuration.
    *
-   * @param {number} delay Delay in milliseconds.
+   * @param {number} [delay] Delay in milliseconds.
    */
   refocusToEditorTextarea(delay = this.#refocusDelay) {
     const refocusElement = this.getRefocusElement();
@@ -177,23 +185,26 @@ export class FocusManager {
       !this.#hot.getActiveEditor()?.isOpened() &&
       !!refocusElement
     ) {
-      this.#hot._registerTimeout(() => {
-        refocusElement.select();
-      }, delay);
+      if (!this.#debouncedSelect.has(delay)) {
+        this.#debouncedSelect.set(delay, debounce(() => {
+          refocusElement.select();
+        }, delay));
+      }
+
+      this.#debouncedSelect.get(delay)();
     }
   }
 
   /**
    * Get and return the currently selected and highlighted cell/header element.
    *
-   * @private
-   * @param {Function} [callback] Callback function to be called after the cell element is retrieved.
+   * @param {Function} callback Callback function to be called after the cell element is retrieved.
    */
-  #getSelectedCell(callback = () => {}) {
+  #getSelectedCell(callback) {
     const highlight = this.#hot.getSelectedRangeLast()?.highlight;
 
     if (!highlight) {
-      this.#hot._registerTimeout(() => callback(null));
+      callback(null);
 
       return;
     }
@@ -211,11 +222,9 @@ export class FocusManager {
   }
 
   /**
-   * Manage the browser's focus after cell selection.
-   *
-   * @private
+   * Manage the browser's focus after each cell selection change.
    */
-  #manageFocus() {
+  #focusCell() {
     this.#getSelectedCell((selectedCell) => {
       const { activeElement } = this.#hot.rootDocument;
 
@@ -228,14 +237,19 @@ export class FocusManager {
       }
 
       this.focusOnHighlightedCell(selectedCell);
+    });
+  }
 
+  /**
+   * Manage the browser's focus after cell selection end.
+   */
+  #focusEditorElement() {
+    this.#getSelectedCell((selectedCell) => {
       if (
         this.getFocusMode() === FOCUS_MODES.MIXED &&
         selectedCell.nodeName === 'TD'
       ) {
-        this.#hot.addHookOnce('afterSelectionEnd', () => {
-          this.refocusToEditorTextarea();
-        });
+        this.refocusToEditorTextarea();
       }
     });
   }
@@ -243,7 +257,6 @@ export class FocusManager {
   /**
    * Update the manager configuration after calling `updateSettings`.
    *
-   * @private
    * @param {object} newSettings The new settings passed to the `updateSettings` method.
    */
   #onUpdateSettings(newSettings) {
