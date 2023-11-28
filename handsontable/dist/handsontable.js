@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.0.0
- * Release date: 29/11/2023 (built at 27/11/2023 11:10:27)
+ * Release date: 30/11/2023 (built at 28/11/2023 15:16:23)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -105,7 +105,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "27/11/2023 11:10:27";
+Handsontable.buildDate = "28/11/2023 15:16:23";
 Handsontable.version = "14.0.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -8521,7 +8521,7 @@ function _injectProductInfo(key, element) {
   const schemaValidity = _checkKeySchema(key);
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      const releaseDate = (0, _moment.default)("29/11/2023", 'DD/MM/YYYY');
+      const releaseDate = (0, _moment.default)("30/11/2023", 'DD/MM/YYYY');
       const releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
       const keyValidityDays = _extractTime(key);
       keyValidityDate = (0, _moment.default)((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
@@ -14182,10 +14182,11 @@ function getListenersCounter() {
 __webpack_require__(78);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _classPrivateFieldGet5 = _interopRequireDefault(__webpack_require__(133));
+var _classPrivateFieldGet7 = _interopRequireDefault(__webpack_require__(133));
 var _classPrivateFieldSet2 = _interopRequireDefault(__webpack_require__(136));
 var _console = __webpack_require__(129);
 var _element = __webpack_require__(107);
+var _function = __webpack_require__(115);
 function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
@@ -14210,9 +14211,10 @@ var _hot = /*#__PURE__*/new WeakMap();
 var _focusMode = /*#__PURE__*/new WeakMap();
 var _refocusDelay = /*#__PURE__*/new WeakMap();
 var _refocusElementGetter = /*#__PURE__*/new WeakMap();
-var _getCurrentHighlightCoords = /*#__PURE__*/new WeakSet();
+var _debouncedSelect = /*#__PURE__*/new WeakMap();
 var _getSelectedCell = /*#__PURE__*/new WeakSet();
-var _manageFocus = /*#__PURE__*/new WeakSet();
+var _focusCell = /*#__PURE__*/new WeakSet();
+var _focusEditorElement = /*#__PURE__*/new WeakSet();
 var _onUpdateSettings = /*#__PURE__*/new WeakSet();
 class FocusManager {
   constructor(hotInstance) {
@@ -14220,29 +14222,23 @@ class FocusManager {
     /**
      * Update the manager configuration after calling `updateSettings`.
      *
-     * @private
      * @param {object} newSettings The new settings passed to the `updateSettings` method.
      */
     _classPrivateMethodInitSpec(this, _onUpdateSettings);
     /**
-     * Manage the browser's focus after cell selection.
-     *
-     * @private
+     * Manage the browser's focus after cell selection end.
      */
-    _classPrivateMethodInitSpec(this, _manageFocus);
+    _classPrivateMethodInitSpec(this, _focusEditorElement);
+    /**
+     * Manage the browser's focus after each cell selection change.
+     */
+    _classPrivateMethodInitSpec(this, _focusCell);
     /**
      * Get and return the currently selected and highlighted cell/header element.
      *
-     * @private
-     * @returns {HTMLTableCellElement}
+     * @param {Function} callback Callback function to be called after the cell element is retrieved.
      */
     _classPrivateMethodInitSpec(this, _getSelectedCell);
-    /**
-     * Get the coordinates of the highlight of the currently selected cell/header.
-     *
-     * @returns {CellCoords}
-     */
-    _classPrivateMethodInitSpec(this, _getCurrentHighlightCoords);
     /**
      * The Handsontable instance.
      */
@@ -14258,7 +14254,7 @@ class FocusManager {
      * - 'mixed' - The browser's focus switches from the lastly selected cell element to the currently active editor's
      * `TEXTAREA` element after a delay defined in the manager.
      *
-     * @type {string}
+     * @type {'cell' | 'mixed'}
      */
     _classPrivateFieldInitSpec(this, _focusMode, {
       writable: true,
@@ -14284,20 +14280,35 @@ class FocusManager {
       writable: true,
       value: null
     });
+    /**
+     * Map of the debounced `select` functions.
+     *
+     * @type {Map<number, Function>}
+     */
+    _classPrivateFieldInitSpec(this, _debouncedSelect, {
+      writable: true,
+      value: new Map()
+    });
     const hotSettings = hotInstance.getSettings();
     (0, _classPrivateFieldSet2.default)(this, _hot, hotInstance);
     (0, _classPrivateFieldSet2.default)(this, _focusMode, hotSettings.imeFastEdit ? FOCUS_MODES.MIXED : FOCUS_MODES.CELL);
-    (0, _classPrivateFieldGet5.default)(this, _hot).addHook('afterUpdateSettings', function () {
+    (0, _classPrivateFieldGet7.default)(this, _hot).addHook('afterUpdateSettings', function () {
       for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
         args[_key] = arguments[_key];
       }
       return _classPrivateMethodGet(_this, _onUpdateSettings, _onUpdateSettings2).call(_this, ...args);
     });
-    (0, _classPrivateFieldGet5.default)(this, _hot).addHook('afterSelection', function () {
+    (0, _classPrivateFieldGet7.default)(this, _hot).addHook('afterSelection', function () {
       for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
         args[_key2] = arguments[_key2];
       }
-      return _classPrivateMethodGet(_this, _manageFocus, _manageFocus2).call(_this, ...args);
+      return _classPrivateMethodGet(_this, _focusCell, _focusCell2).call(_this, ...args);
+    });
+    (0, _classPrivateFieldGet7.default)(this, _hot).addHook('afterSelectionEnd', function () {
+      for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        args[_key3] = arguments[_key3];
+      }
+      return _classPrivateMethodGet(_this, _focusEditorElement, _focusEditorElement2).call(_this, ...args);
     });
   }
 
@@ -14307,7 +14318,7 @@ class FocusManager {
    * @returns {'cell' | 'mixed'}
    */
   getFocusMode() {
-    return (0, _classPrivateFieldGet5.default)(this, _focusMode);
+    return (0, _classPrivateFieldGet7.default)(this, _focusMode);
   }
 
   /**
@@ -14330,7 +14341,7 @@ class FocusManager {
    * @returns {number} Delay in milliseconds.
    */
   getRefocusDelay() {
-    return (0, _classPrivateFieldGet5.default)(this, _refocusDelay);
+    return (0, _classPrivateFieldGet7.default)(this, _refocusDelay);
   }
 
   /**
@@ -14358,11 +14369,11 @@ class FocusManager {
    * @returns {HTMLTextAreaElement|HTMLElement|undefined}
    */
   getRefocusElement() {
-    if (typeof (0, _classPrivateFieldGet5.default)(this, _refocusElementGetter) === 'function') {
-      return (0, _classPrivateFieldGet5.default)(this, _refocusElementGetter).call(this);
+    if (typeof (0, _classPrivateFieldGet7.default)(this, _refocusElementGetter) === 'function') {
+      return (0, _classPrivateFieldGet7.default)(this, _refocusElementGetter).call(this);
     } else {
       var _classPrivateFieldGet2;
-      return (_classPrivateFieldGet2 = (0, _classPrivateFieldGet5.default)(this, _hot).getActiveEditor()) === null || _classPrivateFieldGet2 === void 0 ? void 0 : _classPrivateFieldGet2.TEXTAREA;
+      return (_classPrivateFieldGet2 = (0, _classPrivateFieldGet7.default)(this, _hot).getActiveEditor()) === null || _classPrivateFieldGet2 === void 0 ? void 0 : _classPrivateFieldGet2.TEXTAREA;
     }
   }
 
@@ -14372,17 +14383,26 @@ class FocusManager {
    * @param {HTMLTableCellElement} [selectedCell] The highlighted cell/header element.
    */
   focusOnHighlightedCell(selectedCell) {
-    var _classPrivateFieldGet3;
-    const currentHighlightCoords = _classPrivateMethodGet(this, _getCurrentHighlightCoords, _getCurrentHighlightCoords2).call(this);
-    const currentlySelectedHighlight = selectedCell || _classPrivateMethodGet(this, _getSelectedCell, _getSelectedCell2).call(this);
-    let elementToBeFocused = (0, _classPrivateFieldGet5.default)(this, _hot).runHooks('modifyFocusedElement', currentHighlightCoords.row, currentHighlightCoords.col, currentlySelectedHighlight);
-    if (!(elementToBeFocused instanceof HTMLElement)) {
-      elementToBeFocused = currentlySelectedHighlight;
-    }
-    if (elementToBeFocused && !((_classPrivateFieldGet3 = (0, _classPrivateFieldGet5.default)(this, _hot).getActiveEditor()) !== null && _classPrivateFieldGet3 !== void 0 && _classPrivateFieldGet3.isOpened())) {
-      elementToBeFocused.focus({
-        preventScroll: true
-      });
+    const focusElement = element => {
+      var _classPrivateFieldGet3, _classPrivateFieldGet4;
+      const currentHighlightCoords = (_classPrivateFieldGet3 = (0, _classPrivateFieldGet7.default)(this, _hot).getSelectedRangeLast()) === null || _classPrivateFieldGet3 === void 0 ? void 0 : _classPrivateFieldGet3.highlight;
+      if (!currentHighlightCoords || !element) {
+        return;
+      }
+      let elementToBeFocused = (0, _classPrivateFieldGet7.default)(this, _hot).runHooks('modifyFocusedElement', currentHighlightCoords.row, currentHighlightCoords.col, element);
+      if (!(elementToBeFocused instanceof HTMLElement)) {
+        elementToBeFocused = element;
+      }
+      if (elementToBeFocused && !((_classPrivateFieldGet4 = (0, _classPrivateFieldGet7.default)(this, _hot).getActiveEditor()) !== null && _classPrivateFieldGet4 !== void 0 && _classPrivateFieldGet4.isOpened())) {
+        elementToBeFocused.focus({
+          preventScroll: true
+        });
+      }
+    };
+    if (selectedCell) {
+      focusElement(selectedCell);
+    } else {
+      _classPrivateMethodGet(this, _getSelectedCell, _getSelectedCell2).call(this, element => focusElement(element));
     }
   }
 
@@ -14390,49 +14410,63 @@ class FocusManager {
    * Set the focus to the active editor's `TEXTAREA` element after the provided delay. If no delay is provided, it
    * will be taken from the manager's configuration.
    *
-   * @param {number} delay Delay in milliseconds.
+   * @param {number} [delay] Delay in milliseconds.
    */
   refocusToEditorTextarea() {
-    var _classPrivateFieldGet4;
-    let delay = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : (0, _classPrivateFieldGet5.default)(this, _refocusDelay);
+    var _classPrivateFieldGet5;
+    let delay = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : (0, _classPrivateFieldGet7.default)(this, _refocusDelay);
     const refocusElement = this.getRefocusElement();
 
     // Re-focus on the editor's `TEXTAREA` element (or a predefined element) if the `imeFastEdit` option is enabled.
-    if ((0, _classPrivateFieldGet5.default)(this, _hot).getSettings().imeFastEdit && !((_classPrivateFieldGet4 = (0, _classPrivateFieldGet5.default)(this, _hot).getActiveEditor()) !== null && _classPrivateFieldGet4 !== void 0 && _classPrivateFieldGet4.isOpened()) && !!refocusElement) {
-      (0, _classPrivateFieldGet5.default)(this, _hot)._registerTimeout(() => {
-        refocusElement.select();
-      }, delay);
+    if ((0, _classPrivateFieldGet7.default)(this, _hot).getSettings().imeFastEdit && !((_classPrivateFieldGet5 = (0, _classPrivateFieldGet7.default)(this, _hot).getActiveEditor()) !== null && _classPrivateFieldGet5 !== void 0 && _classPrivateFieldGet5.isOpened()) && !!refocusElement) {
+      if (!(0, _classPrivateFieldGet7.default)(this, _debouncedSelect).has(delay)) {
+        (0, _classPrivateFieldGet7.default)(this, _debouncedSelect).set(delay, (0, _function.debounce)(() => {
+          refocusElement.select();
+        }, delay));
+      }
+      (0, _classPrivateFieldGet7.default)(this, _debouncedSelect).get(delay)();
     }
   }
 }
 exports.FocusManager = FocusManager;
-function _getCurrentHighlightCoords2() {
-  const lastSelectedRange = (0, _classPrivateFieldGet5.default)(this, _hot).getSelectedRangeLast();
-  return lastSelectedRange.highlight;
-}
-function _getSelectedCell2() {
-  const selectedCellCoords = _classPrivateMethodGet(this, _getCurrentHighlightCoords, _getCurrentHighlightCoords2).call(this);
-  return (0, _classPrivateFieldGet5.default)(this, _hot).getCell(selectedCellCoords.row, selectedCellCoords.col, true);
-}
-function _manageFocus2() {
-  const selectedCell = _classPrivateMethodGet(this, _getSelectedCell, _getSelectedCell2).call(this);
-  const {
-    activeElement
-  } = (0, _classPrivateFieldGet5.default)(this, _hot).rootDocument;
-
-  // Blurring the `activeElement` removes the unwanted border around the focusable element (#6877)
-  // and resets the `document.activeElement` property. The blurring should happen only when the
-  // previously selected input element has not belonged to the Handsontable editor. If blurring is
-  // triggered for all elements, there is a problem with the disappearing IME editor (#9672).
-  if (activeElement && (0, _element.isOutsideInput)(activeElement)) {
-    activeElement.blur();
+function _getSelectedCell2(callback) {
+  var _classPrivateFieldGet6;
+  const highlight = (_classPrivateFieldGet6 = (0, _classPrivateFieldGet7.default)(this, _hot).getSelectedRangeLast()) === null || _classPrivateFieldGet6 === void 0 ? void 0 : _classPrivateFieldGet6.highlight;
+  if (!highlight) {
+    callback(null);
+    return;
   }
-  this.focusOnHighlightedCell(selectedCell);
-  if (this.getFocusMode() === FOCUS_MODES.MIXED && selectedCell.nodeName === 'TD') {
-    (0, _classPrivateFieldGet5.default)(this, _hot).addHookOnce('afterSelectionEnd', () => {
-      this.refocusToEditorTextarea();
+  const cell = (0, _classPrivateFieldGet7.default)(this, _hot).getCell(highlight.row, highlight.col, true);
+  if (cell === null) {
+    (0, _classPrivateFieldGet7.default)(this, _hot).addHookOnce('afterScroll', () => {
+      callback((0, _classPrivateFieldGet7.default)(this, _hot).getCell(highlight.row, highlight.col, true));
     });
+  } else {
+    callback(cell);
   }
+}
+function _focusCell2() {
+  _classPrivateMethodGet(this, _getSelectedCell, _getSelectedCell2).call(this, selectedCell => {
+    const {
+      activeElement
+    } = (0, _classPrivateFieldGet7.default)(this, _hot).rootDocument;
+
+    // Blurring the `activeElement` removes the unwanted border around the focusable element (#6877)
+    // and resets the `document.activeElement` property. The blurring should happen only when the
+    // previously selected input element has not belonged to the Handsontable editor. If blurring is
+    // triggered for all elements, there is a problem with the disappearing IME editor (#9672).
+    if (activeElement && (0, _element.isOutsideInput)(activeElement)) {
+      activeElement.blur();
+    }
+    this.focusOnHighlightedCell(selectedCell);
+  });
+}
+function _focusEditorElement2() {
+  _classPrivateMethodGet(this, _getSelectedCell, _getSelectedCell2).call(this, selectedCell => {
+    if (this.getFocusMode() === FOCUS_MODES.MIXED && selectedCell.nodeName === 'TD') {
+      this.refocusToEditorTextarea();
+    }
+  });
 }
 function _onUpdateSettings2(newSettings) {
   if (newSettings.imeFastEdit && this.getFocusMode() !== FOCUS_MODES.MIXED) {
@@ -22433,7 +22467,10 @@ class ColumnHeadersRenderer extends _base.default {
         // Remove all accessibility-related attributes for the header to start fresh.
         (0, _element.removeAttribute)(TH, [new RegExp('aria-(.*)'), new RegExp('role')]);
         if (this.table.isAriaEnabled()) {
-          (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_COLINDEX)(renderedColumnIndex + 1 + this.table.rowHeadersCount), (0, _a11y.A11Y_TABINDEX)(-1), (0, _a11y.A11Y_COLUMNHEADER)(), ...(renderedColumnIndex >= 0 ? [(0, _a11y.A11Y_SCOPE_COL)()] : [])]);
+          (0, _element.setAttribute)(TH, [(0, _a11y.A11Y_COLINDEX)(renderedColumnIndex + 1 + this.table.rowHeadersCount), (0, _a11y.A11Y_TABINDEX)(-1), (0, _a11y.A11Y_COLUMNHEADER)(), ...(renderedColumnIndex >= 0 ? [(0, _a11y.A11Y_SCOPE_COL)()] : [
+          // Adding `role=row` to the corner headers to prevent
+          // https://github.com/handsontable/dev-handsontable/issues/1574
+          (0, _a11y.A11Y_ROW)()])]);
         }
         columnHeaderFunctions[rowHeaderIndex](sourceColumnIndex, TH, rowHeaderIndex);
       }
@@ -43904,6 +43941,7 @@ const getKeysList = normalizedKeys => {
  */
 exports.getKeysList = getKeysList;
 const codeToKeyRegExp = new RegExp('^(?:Key|Digit)([A-Z0-9])$');
+const keyCodeNames = new Set(['Backquote', 'Minus', 'Equal', 'BracketLeft', 'BracketRight', 'Backslash', 'Semicolon', 'Quote', 'Comma', 'Period', 'Slash']);
 
 /**
  * Normalizes a keyboard event key value to a key before its modification. When the keyboard event
@@ -43920,7 +43958,13 @@ const normalizeEventKey = _ref => {
     key,
     code
   } = _ref;
-  return (codeToKeyRegExp.test(code) ? code.replace(codeToKeyRegExp, '$1') : key).toLowerCase();
+  let normalizedKey = key;
+  if (codeToKeyRegExp.test(code)) {
+    normalizedKey = code.replace(codeToKeyRegExp, '$1');
+  } else if (keyCodeNames.has(code)) {
+    normalizedKey = code;
+  }
+  return normalizedKey.toLowerCase();
 };
 exports.normalizeEventKey = normalizeEventKey;
 
@@ -58215,7 +58259,7 @@ class ContextMenu extends _base.BasePlugin {
    */
   registerShortcuts() {
     this.hot.getShortcutManager().getContext('grid').addShortcut({
-      keys: [['Control/Meta', 'Shift', '\\'], ['Shift', 'F10']],
+      keys: [['Control/Meta', 'Shift', 'Backslash'], ['Shift', 'F10']],
       callback: () => {
         const {
           highlight
