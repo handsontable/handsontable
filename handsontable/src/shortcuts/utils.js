@@ -87,7 +87,7 @@ export const normalizeEventKey = ({ key, code }) => {
     normalizedKey = code.replace(codeToKeyRegExp, '$1');
 
   } else if (keyCodeNames.has(code)) {
-    normalizedKey = code.toLowerCase();
+    normalizedKey = code;
   }
 
   return normalizedKey.toLowerCase();
