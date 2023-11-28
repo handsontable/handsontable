@@ -11,7 +11,7 @@ describe('ContextMenu keyboard shortcut', () => {
   });
 
   using('', [
-    ['Shift', 'Control/Meta', '\\'],
+    ['Shift', 'Control/Meta', 'Backslash'],
     ['Shift', 'F10'],
   ], (keyboardShortcut) => {
     it('should not throw an error when triggered on selection that points on the hidden records', () => {
