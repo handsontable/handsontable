@@ -7,6 +7,7 @@ import BaseRenderer from './_base';
 import {
   A11Y_COLINDEX,
   A11Y_COLUMNHEADER,
+  A11Y_HIDDEN,
   A11Y_ROW,
   A11Y_ROWGROUP,
   A11Y_ROWINDEX,
@@ -115,7 +116,11 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
             A11Y_COLUMNHEADER(),
             ...(renderedColumnIndex >= 0 ? [
               A11Y_SCOPE_COL(),
-            ] : []),
+            ] : [
+              // Adding `aria-hidden` to the corner headers to prevent
+              // https://github.com/handsontable/dev-handsontable/issues/1574
+              A11Y_HIDDEN()
+            ]),
           ]);
         }
 
