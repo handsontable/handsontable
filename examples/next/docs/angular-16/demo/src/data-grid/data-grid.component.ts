@@ -1,7 +1,5 @@
 import { Component, ViewEncapsulation } from "@angular/core";
 import { getData } from "./utils/constants";
-import { starsRenderer } from "./renderers/stars";
-import { progressBarRenderer } from "./renderers/progressBar";
 
 import {
   alignHeaders,
@@ -18,16 +16,12 @@ export class DataGridComponent {
   dataset = getData();
   alignHeaders = alignHeaders;
   addClassesToRows = addClassesToRows;
-  progressBarRenderer = progressBarRenderer;
-  starsRenderer = starsRenderer;
   colHeaders = [
     "Company name",
     "Name",
     "Sell date",
     "In stock",
     "Qty",
-    "Progress",
-    "Rating",
     "Order ID",
     "Country"
   ];
