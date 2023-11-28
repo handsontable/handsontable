@@ -115,7 +115,11 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
             A11Y_COLUMNHEADER(),
             ...(renderedColumnIndex >= 0 ? [
               A11Y_SCOPE_COL(),
-            ] : []),
+            ] : [
+              // Adding `role=row` to the corner headers to prevent
+              // https://github.com/handsontable/dev-handsontable/issues/1574
+              A11Y_ROW()
+            ]),
           ]);
         }
 
