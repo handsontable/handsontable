@@ -10,5 +10,5 @@ focusManager.getRefocusDelay();
 focusManager.setRefocusDelay(23);
 focusManager.focusOnHighlightedCell();
 focusManager.refocusToEditorTextarea(23);
-focusManager.setRefocusElementGetter(() => document.createElement('INPUT'));
+focusManager.setRefocusElementGetter(() => document.createElement('input'));
 focusManager.getRefocusElement();
