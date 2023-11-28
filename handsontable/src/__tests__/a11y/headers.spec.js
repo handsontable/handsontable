@@ -131,7 +131,7 @@ describe('header-related a11y config', () => {
       });
 
       describe('column headers', () => {
-        it('should add the `role=columnheader` aria tag to every row headers in the table', () => {
+        it('should add the `role=columnheader` aria tag to every row headers in the table (except the corner header)', () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(50, 50),
             rowHeaders: true,
@@ -152,10 +152,10 @@ describe('header-related a11y config', () => {
             ).length;
           };
 
-          expect(countElementsWithAriaColumnHeader(getMaster())).toBe(51); // 50 + 1 for the corner header
-          expect(countElementsWithAriaColumnHeader(getInlineStartClone())).toBe(3); // 2 + 1 for the corner header
-          expect(countElementsWithAriaColumnHeader(getTopClone())).toBe(51); // 50 + 1 for the corner header
-          expect(countElementsWithAriaColumnHeader(getTopInlineStartClone())).toBe(3); // 2 + 1 for the corner header
+          expect(countElementsWithAriaColumnHeader(getMaster())).toBe(50);
+          expect(countElementsWithAriaColumnHeader(getInlineStartClone())).toBe(2);
+          expect(countElementsWithAriaColumnHeader(getTopClone())).toBe(50);
+          expect(countElementsWithAriaColumnHeader(getTopInlineStartClone())).toBe(2);
         });
 
         it('should add the `scope=col` aria tag to every row headers in the table', () => {
@@ -190,7 +190,9 @@ describe('header-related a11y config', () => {
       });
 
       describe('corner headers', () => {
-        it('should add the `role=columnheader` aria tag to the corner headers', () => {
+        // handsontable/dev-handsontable#1602
+        // handsontable/dev-handsontable#1574
+        it('should add the `role=row` aria tag to the corner headers', () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(50, 15),
             rowHeaders: true,
@@ -204,19 +206,19 @@ describe('header-related a11y config', () => {
 
           expect(
             getTopInlineStartClone().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toBe('columnheader');
+          ).toBe('row');
 
           expect(
             getMaster().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toBe('columnheader');
+          ).toBe('row');
 
           expect(
             getInlineStartClone().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toBe('columnheader');
+          ).toBe('row');
 
           expect(
             getTopClone().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toBe('columnheader');
+          ).toBe('row');
         });
       });
     });
