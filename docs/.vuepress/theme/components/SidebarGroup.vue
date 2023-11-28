@@ -46,8 +46,7 @@
 
     <DropdownTransition>
       <SidebarLinks
-        v-if="isOpen || !collapsable"
-        class="sidebar-group-items"
+        :class="{ 'd-none': isOpen === false, 'sidebar-group-items': true  }"
         :items="item.children"
         :sidebar-depth="item.sidebarDepth"
         :initial-open-group-index="item.initialOpenGroupIndex"
@@ -151,4 +150,7 @@ export default {
   transition height .1s ease-out
   font-size 0.95em
   overflow hidden
+
+  &.d-none
+    display: none
 </style>
