@@ -163,6 +163,19 @@ describe('ContextMenu keyboard shortcut', () => {
       });
     });
 
+    it('should open the menu and select the first item by default', () => {
+      handsontable({
+        contextMenu: true,
+      });
+
+      selectCell(1, 1);
+      keyDownUp(keyboardShortcut);
+
+      const firstItem = getPlugin('contextMenu').menu.hotMenu.getCell(0, 0);
+
+      expect(document.activeElement).toBe(firstItem);
+    });
+
     it('should scroll the viewport when the focused cell is outside the table and call the `open` method', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(500, 50),

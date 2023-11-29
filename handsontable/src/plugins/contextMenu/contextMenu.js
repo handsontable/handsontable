@@ -210,6 +210,9 @@ export class ContextMenu extends BasePlugin {
             left: rect.width,
             above: -rect.height,
           });
+          // Make sure the first item is selected (role=menuitem). Otherwise, screen readers
+          // will block the Esc key for the whole menu.
+          this.menu.getNavigator().toFirstItem();
         },
         runOnlyIf: () => {
           const highlight = this.hot.getSelectedRangeLast()?.highlight;
