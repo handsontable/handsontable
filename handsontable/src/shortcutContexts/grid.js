@@ -35,8 +35,11 @@ export function shortcutsGridContext(hot) {
   });
 
   context.addShortcuts([{
-    keys: [['Control/Meta', 'A'], ['Control/Meta', 'Shift', 'Space']],
-    callback: () => commandsPool.selectAll(),
+    keys: [['Control/Meta', 'A']],
+    callback: () => commandsPool.selectAllCells(),
+  }, {
+    keys: [['Control/Meta', 'Shift', 'Space']],
+    callback: () => commandsPool.selectAllCellsAndHeaders(),
   }, {
     keys: [['Control/Meta', 'Enter']],
     callback: () => commandsPool.populateSelectedCellsData(),
