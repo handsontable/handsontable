@@ -13,8 +13,6 @@ import { HotTable } from "@handsontable/vue";
 import "handsontable/dist/handsontable.full.css";
 
 import { getData } from "../utils/constants";
-import { progressBarRenderer } from "../renderers/progressBar";
-import { starsRenderer } from "../renderers/stars";
 
 import { alignHeaders, addClassesToRows } from "../utils/hooks-callbacks";
 
@@ -35,15 +33,13 @@ export default {
         rowHeaders: true,
         afterGetColHeader: alignHeaders,
         beforeRenderer: addClassesToRows,
-        colWidths: [140, 192, 100, 90, 90, 110, 97, 100, 126],
+        colWidths: [170, 222, 130, 120, 120, 130, 156],
         colHeaders: [
           "Company name",
           "Name",
           "Sell date",
           "In stock",
           "Qty",
-          "Progress",
-          "Rating",
           "Order ID",
           "Country",
         ],
@@ -63,18 +59,6 @@ export default {
           {
             data: 7,
             type: "numeric",
-          },
-          {
-            data: 8,
-            renderer: progressBarRenderer,
-            readOnly: true,
-            className: "htMiddle",
-          },
-          {
-            data: 9,
-            renderer: starsRenderer,
-            readOnly: true,
-            className: "star htCenter",
           },
           { data: 5, type: "text" },
           { data: 2, type: "text" },
@@ -98,19 +82,6 @@ export default {
 table.htCore {
   tr.odd td {
     background: #fafbff;
-  }
-
-  tr.selected td {
-    background: #edf3fd;
-  }
-
-  td .progressBar {
-    background: #37bc6c;
-    height: 10px;
-  }
-
-  td .stars {
-    color: #fcb515;
   }
 }
 
