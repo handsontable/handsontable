@@ -41,25 +41,25 @@ export class ColumnStretching {
   /**
    * The total number of columns.
    *
-   * @type {function() => number}
+   * @type {function(): number}
    */
   #totalColumns = () => 0;
   /**
    * Function that returns the width of the column at a given index (in px).
    *
-   * @type {function() => number}
+   * @type {function(): number}
    */
   #stretchingColumnWidthFn = width => width;
   /**
    * Function that returns the new width of the stretched column.
    *
-   * @type {function() => number}
+   * @type {function(): number}
    */
   #columnWidthFn = width => width;
   /**
    * Stretch mode.
    *
-   * @type {function() => 'all' | 'last' | 'none'}
+   * @type {function(): 'all' | 'last' | 'none'}
    */
   #stretchMode = () => 'none';
 
