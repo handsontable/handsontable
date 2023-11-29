@@ -35,7 +35,7 @@ const hotOptions = {
 };
 
 export interface ToggleableOptions {
-  disableTabNavigation: boolean;
+  tabNavigation: boolean;
   navigableHeaders: boolean;
   renderAllRows: boolean;
   enterBeginsEditing: boolean;
@@ -47,7 +47,7 @@ export interface ToggleableOptions {
 function App() {
   const [toggleableOptions, setToggleableOptions] = useState<ToggleableOptions>(
     {
-      disableTabNavigation: false,
+      tabNavigation: false,
       navigableHeaders: true,
       renderAllRows: false,
       enterBeginsEditing: true,

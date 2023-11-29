@@ -19,7 +19,7 @@ Migrate from Handsontable 13.1.0 to Handsontable 14.0, released on November 30th
 [[toc]]
 
 ### Changes to IME
-With the release of Handsontable 14.0, we change the way we manage the browser focus. Now the focus will be assigned to the cell/header elements, not an underlying `TEXTAREA` element, as it used to in versions <=13.1.0. The change was introduced to allow screen readers to recognize the table contents correctly.
+With the release of Handsontable 14.0, we change the way we manage the browser focus. Now the focus will be assigned to the cell/header elements, not an underlying `TEXTAREA` element, as it used to be in versions <=13.1.0. The change was introduced to allow screen readers to recognize the table contents correctly.
 However, this makes the IME editor not compatible with our "fast edit" functionality (the ability to start editing a cell without opening the editor first).
 
 To maintain the IME functionalities, we introduce the `imeFastEdit` option that swaps the browser focus to the editor's editable element after a small, configurable delay.
