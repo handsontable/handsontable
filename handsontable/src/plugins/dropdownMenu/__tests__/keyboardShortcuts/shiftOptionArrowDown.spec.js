@@ -68,6 +68,20 @@ describe('DropdownMenu keyboard shortcut', () => {
       expect(plugin.open).toHaveBeenCalledTimes(1);
     });
 
+    it('should open the menu and select the first item by default', () => {
+      handsontable({
+        colHeaders: true,
+        dropdownMenu: true,
+      });
+
+      selectCell(1, 1);
+      keyDownUp(['shift', 'alt', 'arrowdown']);
+
+      const firstItem = getPlugin('dropdownMenu').menu.hotMenu.getCell(0, 0);
+
+      expect(document.activeElement).toBe(firstItem);
+    });
+
     it('should be possible to open the dropdown menu in the correct position triggered from the single cell', () => {
       handsontable({
         data: createSpreadsheetData(3, 8),
