@@ -45,13 +45,13 @@ export class ColumnStretching {
    */
   #totalColumns = () => 0;
   /**
-   * Function that returns the width of the column at a given index (in px).
+   * Function that returns the width of the stretched column at a given index (in px).
    *
    * @type {function(): number}
    */
   #stretchingColumnWidthFn = width => width;
   /**
-   * Function that returns the new width of the stretched column.
+   * Function that returns the width of the column at a given index (in px).
    *
    * @type {function(): number}
    */
