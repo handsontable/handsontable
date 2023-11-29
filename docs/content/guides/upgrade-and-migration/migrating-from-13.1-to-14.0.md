@@ -1,20 +1,20 @@
 ---
-id: migrating-13.1.0-to-14.0
+id: migrating-13.1-to-14.0
 title: Migrating from 13.1 to 14.0
-metaTitle: Migrating from 13.1.0 to 14.0 - JavaScript Data Grid | Handsontable
-description: Migrate from Handsontable 13.1.0 to Handsontable 14.0, released on November 15th, 2023.
-permalink: /migration-from-13.1.0-to-14.0
-canonicalUrl: /migration-from-13.1.0-to-14.0
+metaTitle: Migrating from 13.1 to 14.0 - JavaScript Data Grid | Handsontable
+description: Migrate from Handsontable 13.1 to Handsontable 14.0, released on November 30th, 2023.
+permalink: /migration-from-13.1-to-14.0
+canonicalUrl: /migration-from-13.1-to-14.0
 pageClass: migration-guide
 react:
-  id: migrating-13.1.0-to-14.0-react
-  metaTitle: Migrate from 13.1.0 to 14.0 - React Data Grid | Handsontable
+  id: migrating-13.1-to-14.0-react
+  metaTitle: Migrate from 13.1 to 14.0 - React Data Grid | Handsontable
 searchCategory: Guides
 ---
 
-# Migrate from 13.1.0 to 14.0
+# Migrate from 13.1 to 14.0
 
-Migrate from Handsontable 13.1.0 to Handsontable 14.0, released on November 30th, 2023.
+Migrate from Handsontable 13.1 to Handsontable 14.0, released on November 30th, 2023.
 
 [[toc]]
 
