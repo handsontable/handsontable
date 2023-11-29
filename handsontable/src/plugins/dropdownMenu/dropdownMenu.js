@@ -261,6 +261,9 @@ export class DropdownMenu extends BasePlugin {
         }, {
           left: rect.width,
         });
+        // Make sure the first item is selected (role=menuitem). Otherwise, screen readers
+        // will block the Esc key for the whole menu.
+        this.menu.getNavigator().toFirstItem();
       }
     };
 
