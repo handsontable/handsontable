@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.0.0
- * Release date: 22/11/2023 (built at 16/11/2023 13:23:20)
+ * Release date: 30/11/2023 (built at 29/11/2023 11:18:54)
  */
 /**
  * Fix for bootstrap styles
@@ -504,10 +504,8 @@ innerBorderBottom - Property controlled by bottom overlay
 .handsontable .columnSorting.sortAction:hover {
   text-decoration: underline;
   cursor: pointer;
-}
-
-/* Arrow position */
-.handsontable span.colHeader.columnSorting .columnSortingIndicator::before {
+} /* Arrow position */
+.handsontable span.colHeader.columnSorting::before {
   /* Centering start */
   top: 50%;
   /* One extra pixel for purpose of proper positioning of sorting arrow, when `font-size` set to default */
@@ -527,7 +525,7 @@ innerBorderBottom - Property controlled by bottom overlay
   background-position-x: right;
 }
 
-[dir=rtl].handsontable span.colHeader.columnSorting .columnSortingIndicator::before {
+[dir=rtl].handsontable span.colHeader.columnSorting::before {
   /* Centering end */
   /* For purpose of continuous mouse over experience, when moving between the `span` and the `::before` elements */
   padding-right: 8px;
@@ -537,12 +535,12 @@ innerBorderBottom - Property controlled by bottom overlay
   background-position-x: left;
 }
 
-.handsontable span.colHeader.columnSorting.ascending .columnSortingIndicator::before {
+.handsontable span.colHeader.columnSorting.ascending::before {
   /* arrow up; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
   background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFNJREFUeAHtzjkSgCAUBNHPgsoy97+ulGXRqJE5L+xkxoYt2UdsLb5bqFINz+aLuuLn5rIu2RkO3fZpWENimNgiw6iBYRTPMLJjGFxQZ1hxxb/xBI1qC8k39CdKAAAAAElFTkSuQmCC);
 }
 
-.handsontable span.colHeader.columnSorting.descending .columnSortingIndicator::before {
+.handsontable span.colHeader.columnSorting.descending::before {
   /* arrow down; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
   background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFJJREFUeAHtzjkSgCAQRNFmQYUZ7n9dKUvru0TmvPAn3br0QfgdZ5xx6x+rQn23GqTYnq1FDcnuzZIO2WmedVqIRVxgGKEyjNgYRjKGkZ1hFIZ3I70LyM0VtU8AAAAASUVORK5CYII=);
 }
@@ -696,7 +694,7 @@ TextRenderer readOnly cell
   position: relative;
 }
 
-.handsontable .htSubmenu .submenuIndicator::after {
+.handsontable .htSubmenu :after {
   content: "▶";
   color: #777;
   position: absolute;
@@ -704,11 +702,11 @@ TextRenderer readOnly cell
   font-size: 9px;
 }
 
-[dir=rtl].handsontable .htSubmenu .submenuIndicator::after {
+[dir=rtl].handsontable .htSubmenu :after {
   content: "";
 }
 
-[dir=rtl].handsontable .htSubmenu .submenuIndicator::before {
+[dir=rtl].handsontable .htSubmenu :before {
   content: "◀";
   color: #777;
   position: absolute;
@@ -1709,6 +1707,10 @@ textarea.HandsontableCopyPaste {
   border: 1px solid #d2d1d1;
 }
 
+.handsontable .htUIInputIcon {
+  position: absolute;
+}
+
 /* Button */
 .handsontable .htUIInput.htUIButton {
   cursor: pointer;
@@ -1849,13 +1851,12 @@ textarea.HandsontableCopyPaste {
 /*
  * Handsontable HiddenColumns
  */
-.handsontable th.beforeHiddenColumn,
-.handsontable th.afterHiddenColumn {
+.handsontable th.beforeHiddenColumn {
   position: relative;
 }
 
-.handsontable th.beforeHiddenColumn .beforeHiddenColumnIndicator::after,
-.handsontable th.afterHiddenColumn .afterHiddenColumnIndicator::before {
+.handsontable th.beforeHiddenColumn::after,
+.handsontable th.afterHiddenColumn::before {
   color: #bbb;
   position: absolute;
   top: 50%;
@@ -1863,33 +1864,37 @@ textarea.HandsontableCopyPaste {
   transform: translateY(-50%);
 }
 
-.handsontable th.beforeHiddenColumn .beforeHiddenColumnIndicator::after {
-  right: 1px;
-  content: "◀";
+.handsontable th.afterHiddenColumn {
+  position: relative;
 }
 
-[dir=rtl].handsontable th.beforeHiddenColumn .beforeHiddenColumnIndicator::after {
+.handsontable th.beforeHiddenColumn::after {
+  right: 1px;
+  content: "◀"; /* left arrow */
+}
+
+[dir=rtl].handsontable th.beforeHiddenColumn::after {
   right: initial;
   left: 1px;
-  content: "▶";
+  content: "▶"; /* right arrow */
 }
 
-.handsontable th.afterHiddenColumn .afterHiddenColumnIndicator::before {
+.handsontable th.afterHiddenColumn::before {
   left: 1px;
-  content: "▶";
+  content: "▶"; /* right arrow */
 }
 
-[dir=rtl].handsontable th.afterHiddenColumn .afterHiddenColumnIndicator::before {
+[dir=rtl].handsontable th.afterHiddenColumn::before {
   right: 1px;
   left: initial;
-  content: "◀";
+  content: "◀"; /* left arrow */
 }
 @charset "UTF-8";
 /*!
  * Handsontable HiddenRows
  */
-.handsontable th.beforeHiddenRow .beforeHiddenRowIndicator::before,
-.handsontable th.afterHiddenRow .afterHiddenRowIndicator::after {
+.handsontable th.beforeHiddenRow::before,
+.handsontable th.afterHiddenRow::after {
   color: #bbb;
   font-size: 6pt;
   line-height: 6pt;
@@ -1902,18 +1907,18 @@ textarea.HandsontableCopyPaste {
   position: relative;
 }
 
-.handsontable th.beforeHiddenRow .beforeHiddenRowIndicator::before {
-  content: "▲"; /* up-pointing triangle */
+.handsontable th.beforeHiddenRow::before {
+  content: "▲";
   bottom: 2px;
 }
 
-.handsontable th.afterHiddenRow .afterHiddenRowIndicator::after {
-  content: "▼"; /* down-pointing triangle */
+.handsontable th.afterHiddenRow::after {
+  content: "▼";
   top: 2px;
 }
 
-.handsontable.ht__selection--rows tbody th.beforeHiddenRow.ht__highlight .beforeHiddenRowIndicator::before,
-.handsontable.ht__selection--rows tbody th.afterHiddenRow.ht__highlight .afterHiddenRowIndicator::after {
+.handsontable.ht__selection--rows tbody th.beforeHiddenRow.ht__highlight:before,
+.handsontable.ht__selection--rows tbody th.afterHiddenRow.ht__highlight:after {
   color: #eee;
 }
 
@@ -2066,7 +2071,7 @@ textarea.HandsontableCopyPaste {
   opacity: 0.58;
 }
 /* Column's number position */
-.handsontable span.colHeader.columnSorting .columnSortingIndicator::after {
+.handsontable span.colHeader.columnSorting::after {
   /* Centering start */
   top: 50%;
   /* Two extra pixels (-2 instead of -4) for purpose of proper positioning of numeric indicators, when `font-size` set to default */
@@ -2085,7 +2090,7 @@ textarea.HandsontableCopyPaste {
   text-decoration: underline;
 }
 
-[dir=rtl].handsontable span.colHeader.columnSorting .columnSortingIndicator::after {
+[dir=rtl].handsontable span.colHeader.columnSorting::after {
   left: -15px;
   right: unset;
   /* For purpose of continuous mouse over experience, when moving between the `::before` and the `::after` elements */
@@ -2094,41 +2099,41 @@ textarea.HandsontableCopyPaste {
 }
 
 /* Workaround for IE9 - IE11, https://stackoverflow.com/a/21902566, https://stackoverflow.com/a/32120247 */
-.handsontable span.colHeader.columnSorting .columnSortingIndicator::after {
+.handsontable span.colHeader.columnSorting::after {
   text-decoration: none;
 }
 
 /* We support up to 7 numeric indicators, describing order of column in sorted columns queue */
-.handsontable span.colHeader.columnSorting[class^=sort-] .columnSortingIndicator::after,
-.handsontable span.colHeader.columnSorting[class*=" sort-"] .columnSortingIndicator::after {
+.handsontable span.colHeader.columnSorting[class^=sort-]::after,
+.handsontable span.colHeader.columnSorting[class*=" sort-"]::after {
   content: "+";
 }
 
-.handsontable span.colHeader.columnSorting.sort-1 .columnSortingIndicator::after {
+.handsontable span.colHeader.columnSorting.sort-1::after {
   content: "1";
 }
 
-.handsontable span.colHeader.columnSorting.sort-2 .columnSortingIndicator::after {
+.handsontable span.colHeader.columnSorting.sort-2::after {
   content: "2";
 }
 
-.handsontable span.colHeader.columnSorting.sort-3 .columnSortingIndicator::after {
+.handsontable span.colHeader.columnSorting.sort-3::after {
   content: "3";
 }
 
-.handsontable span.colHeader.columnSorting.sort-4 .columnSortingIndicator::after {
+.handsontable span.colHeader.columnSorting.sort-4::after {
   content: "4";
 }
 
-.handsontable span.colHeader.columnSorting.sort-5 .columnSortingIndicator::after {
+.handsontable span.colHeader.columnSorting.sort-5::after {
   content: "5";
 }
 
-.handsontable span.colHeader.columnSorting.sort-6 .columnSortingIndicator::after {
+.handsontable span.colHeader.columnSorting.sort-6::after {
   content: "6";
 }
 
-.handsontable span.colHeader.columnSorting.sort-7 .columnSortingIndicator::after {
+.handsontable span.colHeader.columnSorting.sort-7::after {
   content: "7";
 }
 
@@ -2139,6 +2144,7 @@ textarea.HandsontableCopyPaste {
 .handsontable thead th.hiddenHeader:not(:first-of-type) {
   display: none;
 }
+@charset "UTF-8";
 .handsontable th.ht_nestingLevels {
   text-align: left;
   padding-left: 7px;
@@ -2172,6 +2178,10 @@ textarea.HandsontableCopyPaste {
   right: unset;
 }
 
+.handsontable th span.ht_nestingLevel {
+  display: inline-block;
+}
+
 .handsontable th span.ht_nestingLevel_empty {
   display: inline-block;
   width: 10px;
@@ -2181,6 +2191,14 @@ textarea.HandsontableCopyPaste {
 
 [dir=rtl].handsontable th span.ht_nestingLevel_empty {
   float: right;
+}
+
+.handsontable th span.ht_nestingLevel::after {
+  content: "┐";
+  font-size: 9px;
+  display: inline-block;
+  position: relative;
+  bottom: 3px;
 }
 
 .handsontable th div.ht_nestingButton {

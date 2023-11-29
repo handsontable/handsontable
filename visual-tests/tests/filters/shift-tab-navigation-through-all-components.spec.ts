@@ -69,7 +69,7 @@ test(__filename, async({ page }) => {
 
   await page.keyboard.press('Shift+Tab');
 
-  // take a screenshot of the focused menu
+  // take a screenshot of the focused menu with the last highlighted item
   await page.screenshot({ path: helpers.screenshotPath() });
 
   await page.keyboard.press('Shift+Tab');

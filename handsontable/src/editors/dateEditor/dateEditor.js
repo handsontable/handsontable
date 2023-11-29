@@ -2,8 +2,7 @@ import moment from 'moment';
 import Pikaday from 'pikaday';
 import { TextEditor } from '../textEditor';
 import EventManager from '../../eventManager';
-import { addClass, hasClass, outerHeight, outerWidth, setAttribute } from '../../helpers/dom/element';
-import { A11Y_EXPANDED } from '../../helpers/a11y';
+import { addClass, hasClass, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { deepExtend } from '../../helpers/object';
 import { isFunctionKey } from '../../helpers/unicode';
 
@@ -136,12 +135,6 @@ export class DateEditor extends TextEditor {
     super.open();
     this.showDatepicker(event);
 
-    if (this.hot.getSettings().ariaTags) {
-      setAttribute(this.TD, [
-        A11Y_EXPANDED('true'),
-      ]);
-    }
-
     editorContext.addShortcut({
       keys: [['Enter']],
       callback: (keyboardEvent) => {
@@ -167,12 +160,6 @@ export class DateEditor extends TextEditor {
     this.hot._registerTimeout(() => {
       this.hot._refreshBorders();
     });
-
-    if (this.TD && this.hot.getSettings().ariaTags) {
-      setAttribute(this.TD, [
-        A11Y_EXPANDED('false'),
-      ]);
-    }
 
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');

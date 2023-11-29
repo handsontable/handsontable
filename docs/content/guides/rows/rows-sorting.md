@@ -1608,8 +1608,8 @@ const configurationOptions = {
 
 The default sort icons (↑↓) are encoded in Base64. You can replace them by changing `background-image` for the following pseudo-elements of Handsontable's CSS:
 
-- `.columnSorting.ascending .columnSortingIndicator::before`
-- `.columnSorting.descending .columnSortingIndicator::before`
+- `.columnSorting.ascending::before`
+- `.columnSorting.descending::before`
 
 ::: only-for javascript
 
@@ -1725,8 +1725,8 @@ const handsontableInstance = new Handsontable(container, {
 
 ```css
 /* the icon for both ascending and descending order */
-.custom-sort-icon-example-1 span.colHeader.columnSorting.ascending .columnSortingIndicator::before,
-.custom-sort-icon-example-1 span.colHeader.columnSorting.descending .columnSortingIndicator::before {
+.custom-sort-icon-example-1 span.colHeader.columnSorting.ascending::before,
+.custom-sort-icon-example-1 span.colHeader.columnSorting.descending::before {
   background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pg0KPCEtLSBVcGxvYWRlZCB0bzogU1ZHIFJlcG8sIHd3dy5zdmdyZXBvLmNvbSwgR2VuZXJhdG9yOiBTVkcgUmVwbyBNaXhlciBUb29scyAtLT4NCjxzdmcgZmlsbD0iIzAwMDAwMCIgaGVpZ2h0PSI4MDBweCIgd2lkdGg9IjgwMHB4IiB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiANCgkgdmlld0JveD0iMCAwIDMzMCAzMzAiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHBhdGggaWQ9IlhNTElEXzIyNV8iIGQ9Ik0zMjUuNjA3LDc5LjM5M2MtNS44NTctNS44NTctMTUuMzU1LTUuODU4LTIxLjIxMywwLjAwMWwtMTM5LjM5LDEzOS4zOTNMMjUuNjA3LDc5LjM5Mw0KCWMtNS44NTctNS44NTctMTUuMzU1LTUuODU4LTIxLjIxMywwLjAwMWMtNS44NTgsNS44NTgtNS44NTgsMTUuMzU1LDAsMjEuMjEzbDE1MC4wMDQsMTUwYzIuODEzLDIuODEzLDYuNjI4LDQuMzkzLDEwLjYwNiw0LjM5Mw0KCXM3Ljc5NC0xLjU4MSwxMC42MDYtNC4zOTRsMTQ5Ljk5Ni0xNTBDMzMxLjQ2NSw5NC43NDksMzMxLjQ2NSw4NS4yNTEsMzI1LjYwNyw3OS4zOTN6Ii8+DQo8L3N2Zz4=) !important;
   /* minor adjustments, as the custom icon is of a different size than the original */
   top: 12px;
@@ -1737,7 +1737,7 @@ const handsontableInstance = new Handsontable(container, {
 }
 
 /* the same icon as for ascending order, but rotated 180 degrees */
-.custom-sort-icon-example-1 span.colHeader.columnSorting.descending .columnSortingIndicator:before {
+.custom-sort-icon-example-1 span.colHeader.columnSorting.descending:before {
   transform: scaleY(-1);
 }
 ```
@@ -1867,8 +1867,8 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomSortIcons'));
 
 ```css
 /* the icon for both ascending and descending order */
-.custom-sort-icon-example-1 span.colHeader.columnSorting.ascending .columnSortingIndicator::before,
-.custom-sort-icon-example-1 span.colHeader.columnSorting.descending .columnSortingIndicator::before {
+.custom-sort-icon-example-1 span.colHeader.columnSorting.ascending::before,
+.custom-sort-icon-example-1 span.colHeader.columnSorting.descending::before {
   background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pg0KPCEtLSBVcGxvYWRlZCB0bzogU1ZHIFJlcG8sIHd3dy5zdmdyZXBvLmNvbSwgR2VuZXJhdG9yOiBTVkcgUmVwbyBNaXhlciBUb29scyAtLT4NCjxzdmcgZmlsbD0iIzAwMDAwMCIgaGVpZ2h0PSI4MDBweCIgd2lkdGg9IjgwMHB4IiB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiANCgkgdmlld0JveD0iMCAwIDMzMCAzMzAiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHBhdGggaWQ9IlhNTElEXzIyNV8iIGQ9Ik0zMjUuNjA3LDc5LjM5M2MtNS44NTctNS44NTctMTUuMzU1LTUuODU4LTIxLjIxMywwLjAwMWwtMTM5LjM5LDEzOS4zOTNMMjUuNjA3LDc5LjM5Mw0KCWMtNS44NTctNS44NTctMTUuMzU1LTUuODU4LTIxLjIxMywwLjAwMWMtNS44NTgsNS44NTgtNS44NTgsMTUuMzU1LDAsMjEuMjEzbDE1MC4wMDQsMTUwYzIuODEzLDIuODEzLDYuNjI4LDQuMzkzLDEwLjYwNiw0LjM5Mw0KCXM3Ljc5NC0xLjU4MSwxMC42MDYtNC4zOTRsMTQ5Ljk5Ni0xNTBDMzMxLjQ2NSw5NC43NDksMzMxLjQ2NSw4NS4yNTEsMzI1LjYwNyw3OS4zOTN6Ii8+DQo8L3N2Zz4=) !important;
   /* minor adjustments, as the custom icon is of a different size than the original */
   top: 12px;
@@ -1879,7 +1879,7 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomSortIcons'));
 }
 
 /* the same icon as for ascending order, but rotated 180 degrees */
-.custom-sort-icon-example-1 span.colHeader.columnSorting.descending .columnSortingIndicator:before {
+.custom-sort-icon-example-1 span.colHeader.columnSorting.descending:before {
   transform: scaleY(-1);
 }
 ```
@@ -2004,13 +2004,13 @@ const handsontableInstance = new Handsontable(container, {
 
 ```css
 /* the icon for ascending order */
-.custom-sort-icon-example-2 span.colHeader.columnSorting.ascending .columnSortingIndicator::before {
+.custom-sort-icon-example-2 span.colHeader.columnSorting.ascending::before {
   content: '△';
   background-image: none !important;
 }
 
 /* the icon for descending order */
-.custom-sort-icon-example-2 span.colHeader.columnSorting.descending .columnSortingIndicator::before {
+.custom-sort-icon-example-2 span.colHeader.columnSorting.descending::before {
   content: '▽';
   background-image: none !important;
 }
@@ -2141,13 +2141,13 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomSortIcons2'));
 
 ```css
 /* the icon for ascending order */
-.custom-sort-icon-example-2 span.colHeader.columnSorting.ascending .columnSortingIndicator::before {
+.custom-sort-icon-example-2 span.colHeader.columnSorting.ascending::before {
   content: '△';
   background-image: none !important;
 }
 
 /* the icon for descending order */
-.custom-sort-icon-example-2 span.colHeader.columnSorting.descending .columnSortingIndicator::before {
+.custom-sort-icon-example-2 span.colHeader.columnSorting.descending::before {
   content: '▽';
   background-image: none !important;
 }
@@ -2158,7 +2158,7 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomSortIcons2'));
 :::
 
 To replace the icons that indicate sorting [by multiple columns](#sort-by-multiple-columns)
-(<sub>1</sub>, <sub>2</sub> etc.), change `content` for the `.columnSorting.sort-1 .columnSortingIndicator::after` and
+(<sub>1</sub>, <sub>2</sub> etc.), change `content` for the `.columnSorting.sort-1::after` and
 subsequent pseudo-elements:
 
 ::: only-for javascript
@@ -2311,35 +2311,35 @@ const handsontableInstance = new Handsontable(container, {
 ```
 
 ```css
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-1 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-1::after {
   content: '①';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-2 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-2::after {
   content: '②';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-3 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-3::after {
   content: '③';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-4 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-4::after {
   content: '④';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-5 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-5::after {
   content: '⑤';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-6 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-6::after {
   content: '⑥';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-7 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-7::after {
   content: '⑦';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting::after {
   right: -13px;
   top: 1px;
   zoom: 200%;
@@ -2506,35 +2506,35 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomSortIcons3'));
 ```
 
 ```css
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-1 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-1::after {
   content: '①';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-2 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-2::after {
   content: '②';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-3 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-3::after {
   content: '③';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-4 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-4::after {
   content: '④';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-5 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-5::after {
   content: '⑤';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-6 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-6::after {
   content: '⑥';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-7 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-7::after {
   content: '⑦';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting::after {
   right: -13px;
   top: 1px;
   zoom: 200%;

@@ -12,7 +12,11 @@ export function shortcutsEditorContext(hot) {
   const config = { group: EDITOR_EDIT_GROUP };
 
   context.addShortcuts([{
-    keys: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control/Meta'], ['Enter', 'Control/Meta', 'Shift']],
+    keys: [['Enter'], ['Enter', 'Shift']],
+    callback: (event, keys) => commandsPool.editorCloseAndSave(event, keys),
+  }, {
+    keys: [['Enter', 'Control/Meta'], ['Enter', 'Control/Meta', 'Shift']],
+    captureCtrl: true,
     callback: (event, keys) => commandsPool.editorCloseAndSave(event, keys),
   }, {
     keys: [['Escape'], ['Escape', 'Control/Meta']],

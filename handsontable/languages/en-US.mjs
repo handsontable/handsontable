@@ -86,18 +86,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Value',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Second value',
   [C.CHECKBOX_CHECKED]: 'Checked',
-  [C.CHECKBOX_UNCHECKED]: 'Unchecked',
-  [C.COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN]: 'Press ENTER to expand column.',
-  [C.COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN]: 'Press ENTER to collapse column.',
-  [C.COLUMN_HEADER_DESCRIPTION_SORT_ROWS]: 'Press ENTER to change sorting.',
-  [C.COLUMN_HEADER_LABEL_MULTI_COLUMN_SORT_ORDER]: 'Multi-column sorting order:',
-  [C.COLUMN_HEADER_LABEL_OPEN_MENU]: 'Press CTRL/CMD+ENTER to open menu.',
-  [C.COLUMN_HEADER_LABEL_BEFORE_HIDDEN_COLUMN]: 'The next column is hidden.',
-  [C.COLUMN_HEADER_LABEL_AFTER_HIDDEN_COLUMN]: 'The previous column is hidden.',
-  [C.ROW_HEADER_DESCRIPTION_EXPAND_ROW]: 'Press ENTER to expand row.',
-  [C.ROW_HEADER_DESCRIPTION_COLLAPSE_ROW]: 'Press ENTER to collapse row.',
-  [C.ROW_HEADER_LABEL_BEFORE_HIDDEN_ROW]: 'The next row is hidden.',
-  [C.ROW_HEADER_LABEL_AFTER_HIDDEN_ROW]: 'The previous row is hidden.'
+  [C.CHECKBOX_UNCHECKED]: 'Unchecked'
 };
 Handsontable.languages.registerLanguageDictionary(dictionary);
 export default dictionary;
