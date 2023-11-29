@@ -1,5 +1,5 @@
 export const command = {
-  name: 'selectAll',
+  name: 'selectAllCells',
   callback(hot) {
     hot.selection.selectAll(true, true, {
       disableHeadersHighlight: true,
