@@ -3,7 +3,7 @@ export const command = {
   callback(hot, event, keys) {
     const editorManager = hot._getEditorManager();
 
-    editorManager.closeEditorAndSaveChanges(hot.getShortcutManager().isCtrlPressed());
+    editorManager.closeEditorAndSaveChanges(event.ctrlKey || event.metaKey);
     editorManager.moveSelectionAfterEnter(keys.includes('shift'));
   },
 };
