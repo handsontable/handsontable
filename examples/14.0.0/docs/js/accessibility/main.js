@@ -54,7 +54,7 @@ const hotOptions = {
   },
   contextMenu: true,
   navigableHeaders: true, // New accessibility feature
-  tabNavigation: false, // New accessibility feature
+  tabNavigation: true, // New accessibility feature
   autoWrapRow: true,
   autoWrapCol: true,
   multiColumnSorting: true,
@@ -78,7 +78,7 @@ export const setupCheckbox = (element, callback) =>
 
 // Checkbox: Enable/Disable Tab Navigation
 setupCheckbox(document.querySelector("#enable-tab-navigation"), (checked) => {
-  hotOptions.tabNavigation = !checked;
+  hotOptions.tabNavigation = checked;
   hotInstance.updateSettings({
     tabNavigation: hotOptions.tabNavigation,
   });

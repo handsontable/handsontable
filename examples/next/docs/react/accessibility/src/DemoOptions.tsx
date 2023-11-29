@@ -89,7 +89,7 @@ function DemoOptions({
               id="tab-navigation-label"
             >
               <input
-                checked={!tabNavigation}
+                checked={tabNavigation}
                 type="checkbox"
                 id="enable-tab-navigation"
                 name="enable-tab-navigation"

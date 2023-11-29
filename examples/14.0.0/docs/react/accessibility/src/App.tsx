@@ -47,7 +47,7 @@ export interface ToggleableOptions {
 function App() {
   const [toggleableOptions, setToggleableOptions] = useState<ToggleableOptions>(
     {
-      tabNavigation: false,
+      tabNavigation: true,
       navigableHeaders: true,
       renderAllRows: false,
       enterBeginsEditing: true,

@@ -78,7 +78,7 @@ export const setupCheckbox = (element, callback) =>
 
 // Checkbox: Enable/Disable Tab Navigation
 setupCheckbox(document.querySelector("#enable-tab-navigation"), (checked) => {
-  hotOptions.tabNavigation = !checked;
+  hotOptions.tabNavigation = checked;
   hotInstance.updateSettings({
     tabNavigation: hotOptions.tabNavigation,
   });
