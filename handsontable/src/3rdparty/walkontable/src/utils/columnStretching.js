@@ -1,6 +1,6 @@
 /**
  * @typedef {object} ColumnStretchingOptions
- * @property {number} columnsCalculator Instance of the columns calculator.
+ * @property {number} totalColumns Total number of columns.
  * @property {Function} columnWidthFn Function that returns the width of the column at a given index (in px).
  * @property {'all' | 'last' | 'none'} stretchMode Stretch mode 'all', 'last' or 'none'.
  * @property {Function} stretchingColumnWidthFn Function that returns the new width of the stretched column.
@@ -37,52 +37,40 @@ export class ColumnStretching {
   /**
    * @type {boolean}
    */
-  #needVerifyLastColumnWidth = true;
+  needVerifyLastColumnWidth = true;
   /**
-   * The columns calculator instance.
+   * The total number of columns.
    *
-   * @type {object}
+   * @type {function() => number}
    */
-  #columnsCalculator;
+  #totalColumns = () => 0;
   /**
    * Function that returns the width of the column at a given index (in px).
    *
-   * @type {Function}
+   * @type {function() => number}
    */
-  #stretchingColumnWidthFn;
+  #stretchingColumnWidthFn = width => width;
   /**
    * Function that returns the new width of the stretched column.
    *
-   * @type {Function}
+   * @type {function() => number}
    */
-  #columnWidthFn;
+  #columnWidthFn = width => width;
   /**
    * Stretch mode.
    *
-   * @type {'all' | 'last' | 'none'}
+   * @type {function() => 'all' | 'last' | 'none'}
    */
-  #stretchMode;
+  #stretchMode = () => 'none';
 
   /**
    * @param {ColumnStretchingOptions} options Object with all options specified for column viewport calculation.
    */
-  constructor({ columnsCalculator, stretchMode, stretchingColumnWidthFn, columnWidthFn }) {
-    this.#columnsCalculator = columnsCalculator;
+  constructor({ totalColumns, stretchMode, stretchingColumnWidthFn, columnWidthFn }) {
+    this.#totalColumns = totalColumns;
     this.#stretchMode = stretchMode;
-    this.#stretchingColumnWidthFn = stretchingColumnWidthFn;
-    this.#columnWidthFn = columnWidthFn;
-  }
-
-  /**
-   * Sets the columns calculator instance.
-   *
-   * @param {object} calculator Instance of the columns calculator.
-   * @returns {ColumnStretching}
-   */
-  setCalculator(calculator) {
-    this.#columnsCalculator = calculator;
-
-    return this;
+    this.#stretchingColumnWidthFn = stretchingColumnWidthFn ?? this.#stretchingColumnWidthFn;
+    this.#columnWidthFn = columnWidthFn ?? this.#columnWidthFn;
   }
 
   /**
@@ -91,16 +79,15 @@ export class ColumnStretching {
    * @param {number} totalWidth The total width of the table.
    */
   refreshStretching(totalWidth) {
-    if (this.#stretchMode === 'none') {
+    if (this.#stretchMode() === 'none') {
       return;
     }
 
     this.#totalTargetWidth = totalWidth;
 
-    const totalColumns = this.#columnsCalculator.count;
     let sumAll = 0;
 
-    for (let i = 0; i < totalColumns; i++) {
+    for (let i = 0; i < this.#totalColumns(); i++) {
       const columnWidth = this._getColumnWidth(i);
       const permanentColumnWidth = this.#stretchingColumnWidthFn(undefined, i);
 
@@ -112,13 +99,13 @@ export class ColumnStretching {
     }
     const remainingSize = totalWidth - sumAll;
 
-    if (this.#stretchMode === 'all' && remainingSize > 0) {
+    if (this.#stretchMode() === 'all' && remainingSize > 0) {
       this.stretchAllRatio = totalWidth / sumAll;
       this.stretchAllColumnsWidth = [];
-      this.#needVerifyLastColumnWidth = true;
+      this.needVerifyLastColumnWidth = true;
 
-    } else if (this.#stretchMode === 'last' && totalWidth !== Infinity) {
-      const columnWidth = this._getColumnWidth(totalColumns - 1);
+    } else if (this.#stretchMode() === 'last' && totalWidth !== Infinity) {
+      const columnWidth = this._getColumnWidth(this.#totalColumns() - 1);
       const lastColumnWidth = remainingSize + columnWidth;
 
       this.stretchLastWidth = lastColumnWidth >= 0 ? lastColumnWidth : columnWidth;
@@ -135,10 +122,10 @@ export class ColumnStretching {
   getStretchedColumnWidth(column, baseWidth) {
     let result = null;
 
-    if (this.#stretchMode === 'all' && this.stretchAllRatio !== 0) {
+    if (this.#stretchMode() === 'all' && this.stretchAllRatio !== 0) {
       result = this._getStretchedAllColumnWidth(column, baseWidth);
 
-    } else if (this.#stretchMode === 'last' && this.stretchLastWidth !== 0) {
+    } else if (this.#stretchMode() === 'last' && this.stretchLastWidth !== 0) {
       result = this._getStretchedLastColumnWidth(column);
     }
 
@@ -153,7 +140,6 @@ export class ColumnStretching {
    */
   _getStretchedAllColumnWidth(column, baseWidth) {
     let sumRatioWidth = 0;
-    const totalColumns = this.#columnsCalculator.count;
 
     if (!this.stretchAllColumnsWidth[column]) {
       const stretchedWidth = Math.round(baseWidth * this.stretchAllRatio);
@@ -167,8 +153,8 @@ export class ColumnStretching {
       }
     }
 
-    if (this.stretchAllColumnsWidth.length === totalColumns && this.#needVerifyLastColumnWidth) {
-      this.#needVerifyLastColumnWidth = false;
+    if (this.stretchAllColumnsWidth.length === this.#totalColumns() && this.needVerifyLastColumnWidth) {
+      this.needVerifyLastColumnWidth = false;
 
       for (let i = 0; i < this.stretchAllColumnsWidth.length; i++) {
         sumRatioWidth += this.stretchAllColumnsWidth[i];
@@ -187,9 +173,7 @@ export class ColumnStretching {
    * @private
    */
   _getStretchedLastColumnWidth(column) {
-    const totalColumns = this.#columnsCalculator.count;
-
-    if (column === totalColumns - 1) {
+    if (column === this.#totalColumns() - 1) {
       return this.stretchLastWidth;
     }
 

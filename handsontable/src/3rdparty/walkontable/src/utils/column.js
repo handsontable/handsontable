@@ -35,7 +35,8 @@ export default class ColumnUtils {
     this.wtSettings = wtSettings;
 
     this.stretching = new ColumnStretching({
-      stretchMode: this.wtSettings.getSetting('stretchH'),
+      totalColumns: () => this.wtSettings.getSetting('totalColumns'),
+      stretchMode: () => this.wtSettings.getSetting('stretchH'),
       stretchingColumnWidthFn: (stretchedWidth, column) =>
         this.wtSettings.getSetting('onBeforeStretchingColumnWidth', stretchedWidth, column),
       columnWidthFn: sourceCol => this.dataAccessObject.wtTable.getColumnWidth(sourceCol),
@@ -60,18 +61,12 @@ export default class ColumnUtils {
    * @returns {number}
    */
   getStretchedColumnWidth(sourceIndex) {
-    const calculator = this.dataAccessObject.wtViewport.columnsRenderCalculator;
-
     let width = this.getWidth(sourceIndex);
 
-    if (calculator) {
-      const stretchedWidth = this.stretching
-        .setCalculator(calculator)
-        .getStretchedColumnWidth(sourceIndex, width);
+    const stretchedWidth = this.stretching.getStretchedColumnWidth(sourceIndex, width);
 
-      if (stretchedWidth) {
-        width = stretchedWidth;
-      }
+    if (stretchedWidth) {
+      width = stretchedWidth;
     }
 
     return width;
@@ -112,9 +107,7 @@ export default class ColumnUtils {
     const mainHolder = cloneSource ? cloneSource.wtTable.holder : wtTable.holder;
     const scrollbarCompensation = mainHolder.offsetHeight < mainHolder.scrollHeight ? getScrollbarWidth() : 0;
 
-    this.stretching
-      .setCalculator(wtViewport.columnsRenderCalculator)
-      .refreshStretching(wtViewport.getViewportWidth() - scrollbarCompensation);
+    this.stretching.refreshStretching(wtViewport.getViewportWidth() - scrollbarCompensation);
   }
 
   /**

@@ -71,11 +71,6 @@ export class ViewportColumnsCalculator {
    */
   constructor(options) {
     this.#options = options;
-
-    if (typeof this.#options.stretchingColumnWidthFn !== 'function') {
-      this.#options.stretchingColumnWidthFn = width => width;
-    }
-
     this.calculate();
   }
 
