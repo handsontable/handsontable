@@ -194,7 +194,7 @@ export class ContextMenu extends BasePlugin {
     this.hot.getShortcutManager()
       .getContext('grid')
       .addShortcut({
-        keys: [['Control/Meta', 'Shift', '\\'], ['Shift', 'F10']],
+        keys: [['Control/Meta', 'Shift', 'Backslash'], ['Shift', 'F10']],
         callback: () => {
           const { highlight } = this.hot.getSelectedRangeLast();
 
