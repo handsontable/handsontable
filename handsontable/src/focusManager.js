@@ -1,5 +1,6 @@
 import { warn } from './helpers/console';
 import { isOutsideInput } from './helpers/dom/element';
+import { debounce } from './helpers/function';
 
 /**
  * Possible focus modes.
@@ -30,7 +31,7 @@ export class FocusManager {
    * - 'mixed' - The browser's focus switches from the lastly selected cell element to the currently active editor's
    * `TEXTAREA` element after a delay defined in the manager.
    *
-   * @type {string}
+   * @type {'cell' | 'mixed'}
    */
   #focusMode;
   /**
@@ -47,6 +48,12 @@ export class FocusManager {
    * @type {null|Function}
    */
   #refocusElementGetter = null;
+  /**
+   * Map of the debounced `select` functions.
+   *
+   * @type {Map<number, Function>}
+   */
+  #debouncedSelect = new Map();
 
   constructor(hotInstance) {
     const hotSettings = hotInstance.getSettings();
@@ -55,7 +62,8 @@ export class FocusManager {
     this.#focusMode = hotSettings.imeFastEdit ? FOCUS_MODES.MIXED : FOCUS_MODES.CELL;
 
     this.#hot.addHook('afterUpdateSettings', (...args) => this.#onUpdateSettings(...args));
-    this.#hot.addHook('afterSelection', (...args) => this.#manageFocus(...args));
+    this.#hot.addHook('afterSelection', (...args) => this.#focusCell(...args));
+    this.#hot.addHook('afterSelectionEnd', (...args) => this.#focusEditorElement(...args));
   }
 
   /**
@@ -130,24 +138,35 @@ export class FocusManager {
    * @param {HTMLTableCellElement} [selectedCell] The highlighted cell/header element.
    */
   focusOnHighlightedCell(selectedCell) {
-    const currentHighlightCoords = this.#getCurrentHighlightCoords();
-    const currentlySelectedHighlight = selectedCell || this.#getSelectedCell();
+    const focusElement = (element) => {
+      const currentHighlightCoords = this.#hot.getSelectedRangeLast()?.highlight;
 
-    let elementToBeFocused = this.#hot.runHooks(
-      'modifyFocusedElement', currentHighlightCoords.row, currentHighlightCoords.col, currentlySelectedHighlight
-    );
+      if (!currentHighlightCoords) {
+        return;
+      }
 
-    if (!(elementToBeFocused instanceof HTMLElement)) {
-      elementToBeFocused = currentlySelectedHighlight;
-    }
+      let elementToBeFocused = this.#hot.runHooks(
+        'modifyFocusedElement', currentHighlightCoords.row, currentHighlightCoords.col, element
+      );
 
-    if (
-      elementToBeFocused &&
-      !this.#hot.getActiveEditor()?.isOpened()
-    ) {
-      elementToBeFocused.focus({
-        preventScroll: true
-      });
+      if (!(elementToBeFocused instanceof HTMLElement)) {
+        elementToBeFocused = element;
+      }
+
+      if (
+        elementToBeFocused &&
+        !this.#hot.getActiveEditor()?.isOpened()
+      ) {
+        elementToBeFocused.focus({
+          preventScroll: true
+        });
+      }
+    };
+
+    if (selectedCell) {
+      focusElement(selectedCell);
+    } else {
+      this.#getSelectedCell(element => focusElement(element));
     }
   }
 
@@ -155,7 +174,7 @@ export class FocusManager {
    * Set the focus to the active editor's `TEXTAREA` element after the provided delay. If no delay is provided, it
    * will be taken from the manager's configuration.
    *
-   * @param {number} delay Delay in milliseconds.
+   * @param {number} [delay] Delay in milliseconds.
    */
   refocusToEditorTextarea(delay = this.#refocusDelay) {
     const refocusElement = this.getRefocusElement();
@@ -166,68 +185,78 @@ export class FocusManager {
       !this.#hot.getActiveEditor()?.isOpened() &&
       !!refocusElement
     ) {
-      this.#hot._registerTimeout(() => {
-        refocusElement.select();
-      }, delay);
+      if (!this.#debouncedSelect.has(delay)) {
+        this.#debouncedSelect.set(delay, debounce(() => {
+          refocusElement.select();
+        }, delay));
+      }
+
+      this.#debouncedSelect.get(delay)();
     }
-  }
-
-  /**
-   * Get the coordinates of the highlight of the currently selected cell/header.
-   *
-   * @returns {CellCoords}
-   */
-  #getCurrentHighlightCoords() {
-    const lastSelectedRange = this.#hot.getSelectedRangeLast();
-
-    return lastSelectedRange.highlight;
   }
 
   /**
    * Get and return the currently selected and highlighted cell/header element.
    *
-   * @private
-   * @returns {HTMLTableCellElement}
+   * @param {Function} callback Callback function to be called after the cell element is retrieved.
    */
-  #getSelectedCell() {
-    const selectedCellCoords = this.#getCurrentHighlightCoords();
+  #getSelectedCell(callback) {
+    const highlight = this.#hot.getSelectedRangeLast()?.highlight;
 
-    return this.#hot.getCell(selectedCellCoords.row, selectedCellCoords.col, true);
+    if (!highlight || !this.#hot.selection.isCellVisible(highlight)) {
+      callback(null);
+
+      return;
+    }
+
+    const cell = this.#hot.getCell(highlight.row, highlight.col, true);
+
+    if (cell === null) {
+      this.#hot.addHookOnce('afterScroll', () => {
+        callback(this.#hot.getCell(highlight.row, highlight.col, true));
+      });
+
+    } else {
+      callback(cell);
+    }
   }
 
   /**
-   * Manage the browser's focus after cell selection.
-   *
-   * @private
+   * Manage the browser's focus after each cell selection change.
    */
-  #manageFocus() {
-    const selectedCell = this.#getSelectedCell();
-    const { activeElement } = this.#hot.rootDocument;
+  #focusCell() {
+    this.#getSelectedCell((selectedCell) => {
+      const { activeElement } = this.#hot.rootDocument;
 
-    // Blurring the `activeElement` removes the unwanted border around the focusable element (#6877)
-    // and resets the `document.activeElement` property. The blurring should happen only when the
-    // previously selected input element has not belonged to the Handsontable editor. If blurring is
-    // triggered for all elements, there is a problem with the disappearing IME editor (#9672).
-    if (activeElement && isOutsideInput(activeElement)) {
-      activeElement.blur();
-    }
+      // Blurring the `activeElement` removes the unwanted border around the focusable element (#6877)
+      // and resets the `document.activeElement` property. The blurring should happen only when the
+      // previously selected input element has not belonged to the Handsontable editor. If blurring is
+      // triggered for all elements, there is a problem with the disappearing IME editor (#9672).
+      if (activeElement && isOutsideInput(activeElement)) {
+        activeElement.blur();
+      }
 
-    this.focusOnHighlightedCell(selectedCell);
+      this.focusOnHighlightedCell(selectedCell);
+    });
+  }
 
-    if (
-      this.getFocusMode() === FOCUS_MODES.MIXED &&
-      selectedCell.nodeName === 'TD'
-    ) {
-      this.#hot.addHookOnce('afterSelectionEnd', () => {
+  /**
+   * Manage the browser's focus after cell selection end.
+   */
+  #focusEditorElement() {
+    this.#getSelectedCell((selectedCell) => {
+      if (
+        this.getFocusMode() === FOCUS_MODES.MIXED &&
+        selectedCell.nodeName === 'TD'
+      ) {
         this.refocusToEditorTextarea();
-      });
-    }
+      }
+    });
   }
 
   /**
    * Update the manager configuration after calling `updateSettings`.
    *
-   * @private
    * @param {object} newSettings The new settings passed to the `updateSettings` method.
    */
   #onUpdateSettings(newSettings) {

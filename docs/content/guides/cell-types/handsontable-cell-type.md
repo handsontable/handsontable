@@ -35,7 +35,7 @@ While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused 
 - <kbd>**Arrow Down**</kbd> - move the selection in HOT-in-HOT downwards. If the last row was selected, this has no effect.
 - <kbd>**Arrow Up**</kbd> - move the selection in HOT-in-HOT upwards. If the first row was selected, deselect. If HOT-in-HOT was deselected, behave as the <kbd>**Enter**</kbd> key but move the selection in the main HOT upwards.
 - <kbd>**Arrow Right**</kbd> - move the text cursor in the text field to the left. If the text cursor was at the start position, behave as the <kbd>**Enter**</kbd> key but move the selection in the main HOT to the left.
-- <kbd>**Arrow Left**</kbd> - move the text cursor in the text field to the right. If the text cursor was at the end position, behave as the TAB key.
+- <kbd>**Arrow Left**</kbd> - move the text cursor in the text field to the right. If the text cursor was at the end position, behave as the <kbd>**Tab**</kbd> key.
 
 ## Basic example
 

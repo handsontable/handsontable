@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed table size and misalignment issue when the table runs in element that uses CSS `transform: scale` option.",
-  "type": "fixed",
-  "issueOrPR": 10482,
-  "breaking": false,
-  "framework": "none"
-}

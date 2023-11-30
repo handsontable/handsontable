@@ -7,8 +7,8 @@ import BaseRenderer from './_base';
 import {
   A11Y_COLINDEX,
   A11Y_COLUMNHEADER,
-  A11Y_PRESENTATION,
   A11Y_ROW,
+  A11Y_ROWGROUP,
   A11Y_ROWINDEX,
   A11Y_SCOPE_COL,
   A11Y_TABINDEX,
@@ -80,7 +80,7 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
 
     if (this.table.isAriaEnabled()) {
       setAttribute(this.rootNode, [
-        A11Y_PRESENTATION()
+        A11Y_ROWGROUP()
       ]);
     }
 
@@ -91,7 +91,7 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
       if (this.table.isAriaEnabled()) {
         setAttribute(TR, [
           A11Y_ROW(),
-          A11Y_ROWINDEX(rowHeaderIndex + 1)
+          A11Y_ROWINDEX(rowHeaderIndex + 1),
         ]);
       }
 
@@ -115,7 +115,11 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
             A11Y_COLUMNHEADER(),
             ...(renderedColumnIndex >= 0 ? [
               A11Y_SCOPE_COL(),
-            ] : []),
+            ] : [
+              // Adding `role=row` to the corner headers to prevent
+              // https://github.com/handsontable/dev-handsontable/issues/1574
+              A11Y_ROW()
+            ]),
           ]);
         }
 
