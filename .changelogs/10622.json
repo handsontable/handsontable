@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed cells selection after closing the editor",
-  "type": "fixed",
-  "issueOrPR": 10622,
-  "breaking": false,
-  "framework": "none"
-}

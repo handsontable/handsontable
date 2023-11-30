@@ -74,6 +74,8 @@ For more information on this release, see:
 - Fixed a problem with the merged cells having wrong row heights. [#10500](https://github.com/handsontable/handsontable/pull/10500)
 - Fixed the accessibility issues in the documentation. [#10574](https://github.com/handsontable/handsontable/pull/10574)
 - Updated the demos for better accessibility. [#10563](https://github.com/handsontable/handsontable/pull/10563)
+- Fixed a problem with the text editor's width being calculated incorrectly. [#10590](https://github.com/handsontable/handsontable/pull/10590)
+- Fixed a problem with two cells being selected after `Ctrl/Cmd + Shift` key combination. [#10622](https://github.com/handsontable/handsontable/pull/10622)
 
 ## 13.1.0
 
