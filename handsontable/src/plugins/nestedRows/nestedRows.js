@@ -135,8 +135,7 @@ export class NestedRows extends BasePlugin {
   /**
    * Updates the plugin's state.
    *
-   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the
-   * following configuration options:
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
    *  - [`nestedRows`](@/api/options.md#nestedrows)
    */
   updatePlugin() {
@@ -247,6 +246,7 @@ export class NestedRows extends BasePlugin {
   /**
    * The modifyRowData hook callback.
    *
+   * @private
    * @param {number} row Visual row index.
    * @returns {boolean}
    */
@@ -261,6 +261,7 @@ export class NestedRows extends BasePlugin {
   /**
    * Modify the source data length to match the length of the nested structure.
    *
+   * @private
    * @returns {number}
    */
   onModifySourceLength() {
@@ -272,6 +273,7 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
+   * @private
    * @param {number} index The index where the data was spliced.
    * @param {number} amount An amount of items to remove.
    * @param {object} element An element to add.

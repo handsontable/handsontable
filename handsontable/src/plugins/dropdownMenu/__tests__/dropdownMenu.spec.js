@@ -117,6 +117,21 @@ describe('DropdownMenu', () => {
       expect($('.htDropdownMenu').is(':visible')).toBe(true);
     });
 
+    it('should open menu after click on table header button and do not select any items by default', () => {
+      handsontable({
+        dropdownMenu: true,
+        colHeaders: true,
+        height: 100
+      });
+
+      dropdownMenu(0);
+
+      const menu = getPlugin('dropdownMenu').menu;
+
+      expect(menu.getSelectedItem()).toBe(null);
+      expect(document.activeElement).toBe(menu.hotMenu.rootElement);
+    });
+
     it('should be possible to define a custom container for DropdownMenu\'s UI elements', () => {
       const uiContainer = $('<div/>').addClass('uiContainer');
 

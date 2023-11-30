@@ -252,7 +252,18 @@ export class Filters extends BasePlugin {
         // A fake menu item that once focused allows escaping from the focus navigation (using Tab keys)
         // to the menu navigation using arrow keys.
         {
-          focus: () => mainMenu.focus(),
+          focus: () => {
+            const menuNavigator = mainMenu.getNavigator();
+            const lastSelectedMenuItem = this.#menuFocusNavigator.getLastMenuPage();
+
+            mainMenu.focus();
+
+            if (lastSelectedMenuItem > 0) {
+              menuNavigator.setCurrentPage(lastSelectedMenuItem);
+            } else {
+              menuNavigator.toFirstItem();
+            }
+          },
         },
         ...Array.from(this.components)
           .map(([, component]) => component.getElements())

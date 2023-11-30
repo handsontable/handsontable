@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added the ARIA tags to the table elements.",
-  "type": "added",
-  "issueOrPR": 10463,
-  "breaking": false,
-  "framework": "none"
-}

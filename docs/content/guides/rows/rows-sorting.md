@@ -2,9 +2,7 @@
 id: 6o0zftmc
 title: Rows sorting
 metaTitle: Rows sorting - JavaScript Data Grid | Handsontable
-description:
-  Sort rows alphabetically or numerically, in ascending, descending or a custom order, by one or
-  multiple columns.
+description: Sort rows alphabetically or numerically, in ascending, descending or a custom order, by one or multiple columns.
 permalink: /rows-sorting
 canonicalUrl: /rows-sorting
 tags:
@@ -34,16 +32,14 @@ searchCategory: Guides
 
 # Rows sorting
 
-Sort data alphabetically or numerically, in ascending, descending or a custom order, by one or
-multiple columns.
+Sort data alphabetically or numerically, in ascending, descending or a custom order, by one or multiple columns.
 
 [[toc]]
 
 ## Overview
 
-With sorting, you can easily rearrange rows of data, based on the values in specific columns. This
-is particularly useful for analyzing and organizing large data sets, which helps you identify
-patterns and trends.
+With sorting, you can easily rearrange rows of data, based on the values in specific columns. This is particularly useful for analyzing and organizing large
+data sets, which helps you identify patterns and trends.
 
 You can sort data in different ways:
 
@@ -52,14 +48,12 @@ You can sort data in different ways:
 - By a single column, or by multiple columns
 - Using Handsontable's UI or API
 
-Handsontable sorts data only visually, so your source data remains in the original order. To save
-your sorting changes in the data source, see this guide:
+Handsontable sorts data only visually, so your source data remains in the original order. To save your sorting changes in the data source, see this guide:
 [Saving data](@/guides/getting-started/saving-data.md).
 
 ## Sorting demo
 
-Click on one of the column names to sort the values in ascending (↑) or descending (↓) order, or to
-go back to the original order.
+Click on one of the column names to sort the values in ascending (↑) or descending (↓) order, or to go back to the original order.
 
 ::: only-for javascript
 
@@ -319,8 +313,8 @@ const configurationOptions = {
 
 :::
 
-To enable sorting only for specific columns, set [`headerAction`](@/api/options.md#columnsorting) to
-`false` for those columns that you don't want to sort. In the following example, only columns **Model**, **Date** and **In stock** are sortable.
+To enable sorting only for specific columns, set [`headerAction`](@/api/options.md#columnsorting) to `false` for those columns that you don't want to sort. In
+the following example, only columns **Model**, **Date** and **In stock** are sortable.
 
 ::: only-for javascript
 
@@ -577,8 +571,7 @@ ReactDOM.render(<App />, document.getElementById('exampleEnableSortingForColumns
 
 ## Configure sorting
 
-You can configure the sorting UI, set an [initial sort order](#set-an-initial-sort-order), and
-implement your own [comparator](#add-a-custom-comparator).
+You can configure the sorting UI, set an [initial sort order](#set-an-initial-sort-order), and implement your own [comparator](#add-a-custom-comparator).
 
 By default:
 
@@ -653,13 +646,12 @@ const configurationOptions = {
 
 ## Sort different types of data
 
-Handsontable sorts different [types of data](@/guides/cell-types/cell-type.md#available-cell-types)
-automatically, based on which [`type`](@/api/options.md#type) you configure for each column.
+Handsontable sorts different [types of data](@/guides/cell-types/cell-type.md#available-cell-types) automatically, based on which
+[`type`](@/api/options.md#type) you configure for each column.
 
 You can configure the following types:
 
-- [`text`](@/guides/cell-types/cell-type.md) gets sorted by default, so you don't have to configure
-  it.
+- [`text`](@/guides/cell-types/cell-type.md) gets sorted by default, so you don't have to configure it.
 - [`numeric`](@/guides/cell-types/numeric-cell-type.md)
 - [`date`](@/guides/cell-types/date-cell-type.md)
 - [`time`](@/guides/cell-types/time-cell-type.md)
@@ -959,21 +951,17 @@ ReactDOM.render(<App />, document.getElementById('exampleSortDifferentTypes'));
 
 :::
 
-You can also create a custom type. For details, see this guide:
-[Cell type](@/guides/cell-types/cell-type.md).
+You can also create a custom type. For details, see this guide: [Cell type](@/guides/cell-types/cell-type.md).
 
 ## Sort by multiple columns
 
-You can sort data by more than one column, which lets you apply multiple sets of sort criteria at
-the same time.
+You can sort data by more than one column, which lets you apply multiple sets of sort criteria at the same time.
 
 To try out sorting by multiple columns, see the following demo:
 
 1. Click on the **Brand** column name. The data gets sorted by brand.
-2. Hold down <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> and click on the **Model** column name.<br> The
-   data gets sorted by model, but within each brand.
-3. Hold down <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> and click on the **Price** column name.<br> The
-   data gets sorted by price, but within each model.
+2. Hold down <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> and click on the **Model** column name.<br> The data gets sorted by model, but within each brand.
+3. Hold down <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> and click on the **Price** column name.<br> The data gets sorted by price, but within each model.
 
 ::: only-for javascript
 
@@ -1205,8 +1193,7 @@ ReactDOM.render(<App />, document.getElementById('exampleSortByMultipleColumns')
 
 :::
 
-To enable sorting by multiple columns, set
-[`multiColumnSorting`](@/api/options.md#multicolumnsorting) to `true`.
+To enable sorting by multiple columns, set [`multiColumnSorting`](@/api/options.md#multicolumnsorting) to `true`.
 
 ::: only-for javascript
 
@@ -1230,8 +1217,7 @@ const configurationOptions = {
 
 :::
 
-To select which columns can be sorted at the same time, set
-[`headerAction`](@/api/options.md#columnsorting) to `false` for those columns that you don't want to
+To select which columns can be sorted at the same time, set [`headerAction`](@/api/options.md#columnsorting) to `false` for those columns that you don't want to
 sort.
 
 ::: only-for javascript
@@ -1271,8 +1257,7 @@ const configurationOptions = {
 
 :::
 
-The [`columnSorting`](@/api/options.md#columnsorting) and
-[`multiColumnSorting`](@/api/options.md#multicolumnsorting) options override each other. If you use
+The [`columnSorting`](@/api/options.md#columnsorting) and [`multiColumnSorting`](@/api/options.md#multicolumnsorting) options override each other. If you use
 them both, the one defined later takes precedence.
 
 ## Set an initial sort order
@@ -1570,8 +1555,7 @@ const configurationOptions = {
 
 :::
 
-To initially sort data [by multiple columns](#sort-by-multiple-columns), set
-[`initialConfig`](@/api/options.md#columnsorting) to an array.
+To initially sort data [by multiple columns](#sort-by-multiple-columns), set [`initialConfig`](@/api/options.md#columnsorting) to an array.
 
 ::: only-for javascript
 
@@ -1622,11 +1606,10 @@ const configurationOptions = {
 
 ## Add custom sort icons
 
-The default sort icons (↑↓) are encoded in Base64. You can replace them by changing
-`background-image` for the following pseudo-elements of Handsontable's CSS:
+The default sort icons (↑↓) are encoded in Base64. You can replace them by changing `background-image` for the following pseudo-elements of Handsontable's CSS:
 
-- `.columnSorting.ascending .columnSortingIndicator::before`
-- `.columnSorting.descending .columnSortingIndicator::before`
+- `.columnSorting.ascending::before`
+- `.columnSorting.descending::before`
 
 ::: only-for javascript
 
@@ -1742,8 +1725,8 @@ const handsontableInstance = new Handsontable(container, {
 
 ```css
 /* the icon for both ascending and descending order */
-.custom-sort-icon-example-1 span.colHeader.columnSorting.ascending .columnSortingIndicator::before,
-.custom-sort-icon-example-1 span.colHeader.columnSorting.descending .columnSortingIndicator::before {
+.custom-sort-icon-example-1 span.colHeader.columnSorting.ascending::before,
+.custom-sort-icon-example-1 span.colHeader.columnSorting.descending::before {
   background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pg0KPCEtLSBVcGxvYWRlZCB0bzogU1ZHIFJlcG8sIHd3dy5zdmdyZXBvLmNvbSwgR2VuZXJhdG9yOiBTVkcgUmVwbyBNaXhlciBUb29scyAtLT4NCjxzdmcgZmlsbD0iIzAwMDAwMCIgaGVpZ2h0PSI4MDBweCIgd2lkdGg9IjgwMHB4IiB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiANCgkgdmlld0JveD0iMCAwIDMzMCAzMzAiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHBhdGggaWQ9IlhNTElEXzIyNV8iIGQ9Ik0zMjUuNjA3LDc5LjM5M2MtNS44NTctNS44NTctMTUuMzU1LTUuODU4LTIxLjIxMywwLjAwMWwtMTM5LjM5LDEzOS4zOTNMMjUuNjA3LDc5LjM5Mw0KCWMtNS44NTctNS44NTctMTUuMzU1LTUuODU4LTIxLjIxMywwLjAwMWMtNS44NTgsNS44NTgtNS44NTgsMTUuMzU1LDAsMjEuMjEzbDE1MC4wMDQsMTUwYzIuODEzLDIuODEzLDYuNjI4LDQuMzkzLDEwLjYwNiw0LjM5Mw0KCXM3Ljc5NC0xLjU4MSwxMC42MDYtNC4zOTRsMTQ5Ljk5Ni0xNTBDMzMxLjQ2NSw5NC43NDksMzMxLjQ2NSw4NS4yNTEsMzI1LjYwNyw3OS4zOTN6Ii8+DQo8L3N2Zz4=) !important;
   /* minor adjustments, as the custom icon is of a different size than the original */
   top: 12px;
@@ -1754,7 +1737,7 @@ const handsontableInstance = new Handsontable(container, {
 }
 
 /* the same icon as for ascending order, but rotated 180 degrees */
-.custom-sort-icon-example-1 span.colHeader.columnSorting.descending .columnSortingIndicator:before {
+.custom-sort-icon-example-1 span.colHeader.columnSorting.descending:before {
   transform: scaleY(-1);
 }
 ```
@@ -1884,8 +1867,8 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomSortIcons'));
 
 ```css
 /* the icon for both ascending and descending order */
-.custom-sort-icon-example-1 span.colHeader.columnSorting.ascending .columnSortingIndicator::before,
-.custom-sort-icon-example-1 span.colHeader.columnSorting.descending .columnSortingIndicator::before {
+.custom-sort-icon-example-1 span.colHeader.columnSorting.ascending::before,
+.custom-sort-icon-example-1 span.colHeader.columnSorting.descending::before {
   background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pg0KPCEtLSBVcGxvYWRlZCB0bzogU1ZHIFJlcG8sIHd3dy5zdmdyZXBvLmNvbSwgR2VuZXJhdG9yOiBTVkcgUmVwbyBNaXhlciBUb29scyAtLT4NCjxzdmcgZmlsbD0iIzAwMDAwMCIgaGVpZ2h0PSI4MDBweCIgd2lkdGg9IjgwMHB4IiB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiANCgkgdmlld0JveD0iMCAwIDMzMCAzMzAiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHBhdGggaWQ9IlhNTElEXzIyNV8iIGQ9Ik0zMjUuNjA3LDc5LjM5M2MtNS44NTctNS44NTctMTUuMzU1LTUuODU4LTIxLjIxMywwLjAwMWwtMTM5LjM5LDEzOS4zOTNMMjUuNjA3LDc5LjM5Mw0KCWMtNS44NTctNS44NTctMTUuMzU1LTUuODU4LTIxLjIxMywwLjAwMWMtNS44NTgsNS44NTgtNS44NTgsMTUuMzU1LDAsMjEuMjEzbDE1MC4wMDQsMTUwYzIuODEzLDIuODEzLDYuNjI4LDQuMzkzLDEwLjYwNiw0LjM5Mw0KCXM3Ljc5NC0xLjU4MSwxMC42MDYtNC4zOTRsMTQ5Ljk5Ni0xNTBDMzMxLjQ2NSw5NC43NDksMzMxLjQ2NSw4NS4yNTEsMzI1LjYwNyw3OS4zOTN6Ii8+DQo8L3N2Zz4=) !important;
   /* minor adjustments, as the custom icon is of a different size than the original */
   top: 12px;
@@ -1896,7 +1879,7 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomSortIcons'));
 }
 
 /* the same icon as for ascending order, but rotated 180 degrees */
-.custom-sort-icon-example-1 span.colHeader.columnSorting.descending .columnSortingIndicator:before {
+.custom-sort-icon-example-1 span.colHeader.columnSorting.descending:before {
   transform: scaleY(-1);
 }
 ```
@@ -2021,13 +2004,13 @@ const handsontableInstance = new Handsontable(container, {
 
 ```css
 /* the icon for ascending order */
-.custom-sort-icon-example-2 span.colHeader.columnSorting.ascending .columnSortingIndicator::before {
+.custom-sort-icon-example-2 span.colHeader.columnSorting.ascending::before {
   content: '△';
   background-image: none !important;
 }
 
 /* the icon for descending order */
-.custom-sort-icon-example-2 span.colHeader.columnSorting.descending .columnSortingIndicator::before {
+.custom-sort-icon-example-2 span.colHeader.columnSorting.descending::before {
   content: '▽';
   background-image: none !important;
 }
@@ -2158,13 +2141,13 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomSortIcons2'));
 
 ```css
 /* the icon for ascending order */
-.custom-sort-icon-example-2 span.colHeader.columnSorting.ascending .columnSortingIndicator::before {
+.custom-sort-icon-example-2 span.colHeader.columnSorting.ascending::before {
   content: '△';
   background-image: none !important;
 }
 
 /* the icon for descending order */
-.custom-sort-icon-example-2 span.colHeader.columnSorting.descending .columnSortingIndicator::before {
+.custom-sort-icon-example-2 span.colHeader.columnSorting.descending::before {
   content: '▽';
   background-image: none !important;
 }
@@ -2175,7 +2158,7 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomSortIcons2'));
 :::
 
 To replace the icons that indicate sorting [by multiple columns](#sort-by-multiple-columns)
-(<sub>1</sub>, <sub>2</sub> etc.), change `content` for the `.columnSorting.sort-1 .columnSortingIndicator::after` and
+(<sub>1</sub>, <sub>2</sub> etc.), change `content` for the `.columnSorting.sort-1::after` and
 subsequent pseudo-elements:
 
 ::: only-for javascript
@@ -2328,35 +2311,35 @@ const handsontableInstance = new Handsontable(container, {
 ```
 
 ```css
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-1 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-1::after {
   content: '①';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-2 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-2::after {
   content: '②';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-3 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-3::after {
   content: '③';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-4 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-4::after {
   content: '④';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-5 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-5::after {
   content: '⑤';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-6 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-6::after {
   content: '⑥';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-7 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-7::after {
   content: '⑦';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting::after {
   right: -13px;
   top: 1px;
   zoom: 200%;
@@ -2523,35 +2506,35 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomSortIcons3'));
 ```
 
 ```css
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-1 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-1::after {
   content: '①';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-2 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-2::after {
   content: '②';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-3 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-3::after {
   content: '③';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-4 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-4::after {
   content: '④';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-5 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-5::after {
   content: '⑤';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-6 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-6::after {
   content: '⑥';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-7 .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-7::after {
   content: '⑦';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting .columnSortingIndicator::after {
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting::after {
   right: -13px;
   top: 1px;
   zoom: 200%;
@@ -2568,14 +2551,12 @@ A comparator is a function that determines the sort order, based on specified cr
 
 Adding a custom comparator lets you go beyond Handsontable's built-in sorting features. You can:
 
-- Apply a custom sort order. For example, instead of sorting data alphabetically or numerically, you
-  can sort it by length or by the occurrence of a specific character.
-- Handle exceptions. For example, in a list of employees, you can exclude workers with a specific
-  job title from sorting.
+- Apply a custom sort order. For example, instead of sorting data alphabetically or numerically, you can sort it by length or by the occurrence of a specific
+  character.
+- Handle exceptions. For example, in a list of employees, you can exclude workers with a specific job title from sorting.
 - Implement a custom sorting logic based on your own criteria.
 
-To add a custom comparator, use the [`compareFunctionFactory`](@/api/options.md#columnsorting)
-option.
+To add a custom comparator, use the [`compareFunctionFactory`](@/api/options.md#columnsorting) option.
 
 ::: only-for javascript
 
@@ -2627,15 +2608,13 @@ const configurationOptions = {
 
 ## Use sorting hooks
 
-You can run your code before or after sorting, using the following
-[Handsontable hooks](@/guides/getting-started/events-and-hooks.md):
+You can run your code before or after sorting, using the following [Handsontable hooks](@/guides/getting-started/events-and-hooks.md):
 
 - [`beforeColumnSort()`](@/api/hooks.md#beforecolumnsort)
 - [`afterColumnSort()`](@/api/hooks.md#aftercolumnsort)
 
-For example, you can use [`beforeColumnSort()`](@/api/hooks.md#beforecolumnsort) for server-side
-sorting, or use [`afterColumnSort()`](@/api/hooks.md#aftercolumnsort) to
-[exclude rows from sorting](#exclude-rows-from-sorting).
+For example, you can use [`beforeColumnSort()`](@/api/hooks.md#beforecolumnsort) for server-side sorting, or use
+[`afterColumnSort()`](@/api/hooks.md#aftercolumnsort) to [exclude rows from sorting](#exclude-rows-from-sorting).
 
 ::: only-for javascript
 
@@ -2673,10 +2652,8 @@ const configurationOptions = {
 
 You can exclude any number of top or bottom rows from sorting.
 
-For example, if you [freeze](@/guides/rows/row-freezing.md) a row at the top (to display column
-names), and freeze a row at the bottom (to display
-[column summaries](@/guides/columns/column-summary.md)), you can prevent those frozen rows from
-getting sorted, so they always stay in place.
+For example, if you [freeze](@/guides/rows/row-freezing.md) a row at the top (to display column names), and freeze a row at the bottom (to display
+[column summaries](@/guides/columns/column-summary.md)), you can prevent those frozen rows from getting sorted, so they always stay in place.
 
 ::: only-for javascript
 
@@ -2866,10 +2843,7 @@ const handsontableInstance = new Handsontable(container, {
     handsontableInstance.rowIndexMapper.moveIndexes(handsontableInstance.toVisualRow(0), 0);
 
     // after each sorting, take row 16 and change its index to 15
-    handsontableInstance.rowIndexMapper.moveIndexes(
-      handsontableInstance.toVisualRow(lastRowIndex),
-      lastRowIndex
-    );
+    handsontableInstance.rowIndexMapper.moveIndexes(handsontableInstance.toVisualRow(lastRowIndex), lastRowIndex);
   },
   cells(row, col, prop) {
     const lastRowIndex = this.instance.countRows() - 1;
@@ -2939,10 +2913,7 @@ export const App = () => {
     // after each sorting, take row 1 and change its index to 0
     handsontableInstance.rowIndexMapper.moveIndexes(handsontableInstance.toVisualRow(0), 0);
     // after each sorting, take row 16 and change its index to 15
-    handsontableInstance.rowIndexMapper.moveIndexes(
-      handsontableInstance.toVisualRow(lastRowIndex),
-      lastRowIndex
-    );
+    handsontableInstance.rowIndexMapper.moveIndexes(handsontableInstance.toVisualRow(lastRowIndex), lastRowIndex);
   };
 
   return (
@@ -3171,28 +3142,24 @@ ReactDOM.render(<App />, document.getElementById('exampleExcludeRowsFromSorting'
 
 ## Control sorting programmatically
 
-You can control sorting at the grid's runtime by using Handsontable's
-[hooks](@/guides/getting-started/events-and-hooks.md) and
+You can control sorting at the grid's runtime by using Handsontable's [hooks](@/guides/getting-started/events-and-hooks.md) and
 [API methods](@/api/columnSorting.md#methods).
 
 This allows you to:
 
-- Enable or disable sorting depending on specified conditions. For example, you can disable sorting
-  for very large data sets.
-- Trigger sorting depending on the state of another component in your application. For example, you
-  can let the end user sort data by clicking on buttons outside of the grid.
+- Enable or disable sorting depending on specified conditions. For example, you can disable sorting for very large data sets.
+- Trigger sorting depending on the state of another component in your application. For example, you can let the end user sort data by clicking on buttons
+  outside of the grid.
 
 ::: only-for react
 
-To learn how to access Handsontable's API methods, see this guide:
-[Instance methods](@/guides/getting-started/react-methods.md).
+To learn how to access Handsontable's API methods, see this guide: [Instance methods](@/guides/getting-started/react-methods.md).
 
 :::
 
 ### Enable or disable sorting programmatically
 
-To enable or disable sorting programmatically, use the
-[`updateSettings()`](@/api/core.md#updatesettings) method.
+To enable or disable sorting programmatically, use the [`updateSettings()`](@/api/core.md#updatesettings) method.
 
 ::: only-for javascript
 
@@ -3280,11 +3247,9 @@ hotTableComponentRef.current.hotInstance.updateSettings({
 
 ### Sort data programmatically
 
-To sort data programmatically, use the [`columnSorting.sort()`](@/api/columnSorting.md#sort) method.
-Remember to [enable sorting](#enable-sorting) first.
+To sort data programmatically, use the [`columnSorting.sort()`](@/api/columnSorting.md#sort) method. Remember to [enable sorting](#enable-sorting) first.
 
-Mind that calling [`columnSorting.sort()`](@/api/columnSorting.md#sort) overwrites any previous sort
-orders.
+Mind that calling [`columnSorting.sort()`](@/api/columnSorting.md#sort) overwrites any previous sort orders.
 
 ::: only-for javascript
 
@@ -3618,12 +3583,10 @@ ReactDOM.render(<App />, document.getElementById('exampleSortByAPI'));
 
 ### Sort data programmatically by multiple columns
 
-To sort data programmatically [by multiple columns](#sort-by-multiple-columns), use the
-[`multiColumnSorting.sort()`](@/api/multiColumnSorting.md#sort) method. Remember to
-[enable](#sort-by-multiple-columns) sorting by multiple columns first.
+To sort data programmatically [by multiple columns](#sort-by-multiple-columns), use the [`multiColumnSorting.sort()`](@/api/multiColumnSorting.md#sort) method.
+Remember to [enable](#sort-by-multiple-columns) sorting by multiple columns first.
 
-Mind that calling [`multiColumnSorting.sort()`](@/api/multiColumnSorting.md#sort) overwrites any
-previous sort orders.
+Mind that calling [`multiColumnSorting.sort()`](@/api/multiColumnSorting.md#sort) overwrites any previous sort orders.
 
 ::: only-for javascript
 
@@ -3838,8 +3801,7 @@ export const App = () => {
   const hotTableComponentRef = useRef(null);
   const sort = () => {
     // get the `MultiColumnSorting` plugin
-    const multiColumnSorting =
-      hotTableComponentRef.current.hotInstance.getPlugin('multiColumnSorting');
+    const multiColumnSorting = hotTableComponentRef.current.hotInstance.getPlugin('multiColumnSorting');
 
     multiColumnSorting.sort([
       {
@@ -3965,14 +3927,12 @@ ReactDOM.render(<App />, document.getElementById('exampleSortByAPIMultipleColumn
 
 ## Import the sorting module
 
-You can reduce the size of your bundle by importing and registering only the
-[modules](@/guides/tools-and-building/modules.md) that you need.
+You can reduce the size of your bundle by importing and registering only the [modules](@/guides/tools-and-building/modules.md) that you need.
 
 To use sorting, you need only the following modules:
 
 - The [base module](@/guides/tools-and-building/modules.md#import-the-base-module)
-- The [`ColumnSorting`](@/api/columnSorting.md) module or the
-  [`MultiColumnSorting`](@/api/multiColumnSorting.md) module
+- The [`ColumnSorting`](@/api/columnSorting.md) module or the [`MultiColumnSorting`](@/api/multiColumnSorting.md) module
 
 ```js
 // import the base module
@@ -3988,11 +3948,17 @@ import { registerPlugin, ColumnSorting } from 'handsontable/plugins';
 registerPlugin(ColumnSorting);
 ```
 
+## Related keyboard shortcuts
+
+| Windows                                  | macOS                                   | Action                                                                                                                                                   |  Excel  | Sheets  |
+| ---------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**Enter**</kbd>                     | <kbd>**Enter**</kbd>                    | Sort data by the selected column, in ascending, descending, or the original order                                                                        | &cross; | &cross; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd> | Sort data by multiple columns, in ascending, descending, or the original order. Requires the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin. | &cross; | &cross; |
+
 ## API reference
 
-For the list of [options](@/guides/getting-started/configuration-options.md), methods, and
-[Handsontable hooks](@/guides/getting-started/events-and-hooks.md) related to sorting, see the
-following API reference pages:
+For the list of [options](@/guides/getting-started/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks.md)
+related to sorting, see the following API reference pages:
 
 - [`ColumnSorting`](@/api/columnSorting.md)
 - [`MultiColumnSorting`](@/api/multiColumnSorting.md)
@@ -4001,11 +3967,8 @@ following API reference pages:
 
 Didn't find what you need? Try this:
 
-- [View related topics](https://github.com/handsontable/handsontable/labels/Column%20sorting) on
-  GitHub
+- [View related topics](https://github.com/handsontable/handsontable/labels/Column%20sorting) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
 - [Ask a question](https://stackoverflow.com/questions/tagged/handsontable) on Stack Overflow
-- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's
-  forum
-- [Contact our technical support](https://handsontable.com/contact?category=technical_support) to
-  get help
+- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
+- [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help

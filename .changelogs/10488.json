@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added missing 'updateData' ChangeSource type",
-  "type": "fixed",
-  "issueOrPR": 10488,
-  "breaking": false,
-  "framework": "none"
-}

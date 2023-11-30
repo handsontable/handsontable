@@ -8,18 +8,13 @@ import {
   removeClass,
   fastInnerText,
   removeAttribute,
-  setAttribute,
+  setAttribute
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import {
-  A11Y_DESCRIPTION,
   A11Y_EXPANDED,
   A11Y_HIDDEN
 } from '../../helpers/a11y';
-import {
-  COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN,
-  COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN
-} from '../../i18n/constants';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
@@ -540,10 +535,7 @@ export class CollapsibleColumns extends BasePlugin {
 
         // Add ARIA tags
         if (isAriaTagsEnabled) {
-          setAttribute(TH, [
-            A11Y_EXPANDED(false),
-            A11Y_DESCRIPTION(this.hot.getTranslatedPhrase(COLUMN_HEADER_DESCRIPTION_EXPAND_COLUMN)),
-          ]);
+          setAttribute(TH, ...A11Y_EXPANDED(false));
         }
 
       } else {
@@ -553,10 +545,7 @@ export class CollapsibleColumns extends BasePlugin {
 
         // Add ARIA tags
         if (isAriaTagsEnabled) {
-          setAttribute(TH, [
-            A11Y_EXPANDED(true),
-            A11Y_DESCRIPTION(this.hot.getTranslatedPhrase(COLUMN_HEADER_DESCRIPTION_COLLAPSE_COLUMN)),
-          ]);
+          setAttribute(TH, ...A11Y_EXPANDED(true));
         }
       }
 

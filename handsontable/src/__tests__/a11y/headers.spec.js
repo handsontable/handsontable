@@ -47,17 +47,17 @@ describe('header-related a11y config', () => {
           ).length;
         };
 
-        expect(countElementsWithTabindex(getMaster())).toEqual(101);
+        expect(countElementsWithTabindex(getMaster())).toBe(101);
 
-        expect(countElementsWithTabindex(getInlineStartClone())).toEqual(53);
+        expect(countElementsWithTabindex(getInlineStartClone())).toBe(53);
 
-        expect(countElementsWithTabindex(getTopClone())).toEqual(53);
+        expect(countElementsWithTabindex(getTopClone())).toBe(53);
 
-        expect(countElementsWithTabindex(getTopInlineStartClone())).toEqual(5);
+        expect(countElementsWithTabindex(getTopInlineStartClone())).toBe(5);
 
-        expect(countElementsWithTabindex(getBottomInlineStartClone())).toEqual(2);
+        expect(countElementsWithTabindex(getBottomInlineStartClone())).toBe(2);
 
-        expect(countElementsWithTabindex(getBottomClone())).toEqual(2);
+        expect(countElementsWithTabindex(getBottomClone())).toBe(2);
       });
 
       describe('row headers', () => {
@@ -82,17 +82,17 @@ describe('header-related a11y config', () => {
             ).length;
           };
 
-          expect(countElementsWithAriaRowHeader(getMaster())).toEqual(50);
+          expect(countElementsWithAriaRowHeader(getMaster())).toBe(50);
 
-          expect(countElementsWithAriaRowHeader(getInlineStartClone())).toEqual(50);
+          expect(countElementsWithAriaRowHeader(getInlineStartClone())).toBe(50);
 
-          expect(countElementsWithAriaRowHeader(getTopClone())).toEqual(2);
+          expect(countElementsWithAriaRowHeader(getTopClone())).toBe(2);
 
-          expect(countElementsWithAriaRowHeader(getTopInlineStartClone())).toEqual(2);
+          expect(countElementsWithAriaRowHeader(getTopInlineStartClone())).toBe(2);
 
-          expect(countElementsWithAriaRowHeader(getBottomInlineStartClone())).toEqual(2);
+          expect(countElementsWithAriaRowHeader(getBottomInlineStartClone())).toBe(2);
 
-          expect(countElementsWithAriaRowHeader(getBottomClone())).toEqual(2);
+          expect(countElementsWithAriaRowHeader(getBottomClone())).toBe(2);
         });
 
         it('should add the `scope=row` aria tag to every row headers in the table', () => {
@@ -116,22 +116,22 @@ describe('header-related a11y config', () => {
             ).length;
           };
 
-          expect(countElementsWithAriaScopeRow(getMaster())).toEqual(50);
+          expect(countElementsWithAriaScopeRow(getMaster())).toBe(50);
 
-          expect(countElementsWithAriaScopeRow(getInlineStartClone())).toEqual(50);
+          expect(countElementsWithAriaScopeRow(getInlineStartClone())).toBe(50);
 
-          expect(countElementsWithAriaScopeRow(getTopClone())).toEqual(2);
+          expect(countElementsWithAriaScopeRow(getTopClone())).toBe(2);
 
-          expect(countElementsWithAriaScopeRow(getTopInlineStartClone())).toEqual(2);
+          expect(countElementsWithAriaScopeRow(getTopInlineStartClone())).toBe(2);
 
-          expect(countElementsWithAriaScopeRow(getBottomInlineStartClone())).toEqual(2);
+          expect(countElementsWithAriaScopeRow(getBottomInlineStartClone())).toBe(2);
 
-          expect(countElementsWithAriaScopeRow(getBottomClone())).toEqual(2);
+          expect(countElementsWithAriaScopeRow(getBottomClone())).toBe(2);
         });
       });
 
       describe('column headers', () => {
-        it('should add the `role=columnheader` aria tag to every row headers in the table', () => {
+        it('should add the `role=columnheader` aria tag to every row headers in the table (except the corner header)', () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(50, 50),
             rowHeaders: true,
@@ -152,13 +152,10 @@ describe('header-related a11y config', () => {
             ).length;
           };
 
-          expect(countElementsWithAriaColumnHeader(getMaster())).toEqual(50);
-
-          expect(countElementsWithAriaColumnHeader(getInlineStartClone())).toEqual(2);
-
-          expect(countElementsWithAriaColumnHeader(getTopClone())).toEqual(50);
-
-          expect(countElementsWithAriaColumnHeader(getTopInlineStartClone())).toEqual(2);
+          expect(countElementsWithAriaColumnHeader(getMaster())).toBe(50);
+          expect(countElementsWithAriaColumnHeader(getInlineStartClone())).toBe(2);
+          expect(countElementsWithAriaColumnHeader(getTopClone())).toBe(50);
+          expect(countElementsWithAriaColumnHeader(getTopInlineStartClone())).toBe(2);
         });
 
         it('should add the `scope=col` aria tag to every row headers in the table', () => {
@@ -182,18 +179,20 @@ describe('header-related a11y config', () => {
             ).length;
           };
 
-          expect(countElementsWithAriaScopeCol(getMaster())).toEqual(50);
+          expect(countElementsWithAriaScopeCol(getMaster())).toBe(50);
 
-          expect(countElementsWithAriaScopeCol(getInlineStartClone())).toEqual(2);
+          expect(countElementsWithAriaScopeCol(getInlineStartClone())).toBe(2);
 
-          expect(countElementsWithAriaScopeCol(getTopClone())).toEqual(50);
+          expect(countElementsWithAriaScopeCol(getTopClone())).toBe(50);
 
-          expect(countElementsWithAriaScopeCol(getTopInlineStartClone())).toEqual(2);
+          expect(countElementsWithAriaScopeCol(getTopInlineStartClone())).toBe(2);
         });
       });
 
       describe('corner headers', () => {
-        it('should add the `role=presentation` aria tag to the corner headers', () => {
+        // handsontable/dev-handsontable#1602
+        // handsontable/dev-handsontable#1574
+        it('should add the `role=row` aria tag to the corner headers', () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(50, 15),
             rowHeaders: true,
@@ -207,19 +206,19 @@ describe('header-related a11y config', () => {
 
           expect(
             getTopInlineStartClone().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toEqual('presentation');
+          ).toBe('row');
 
           expect(
             getMaster().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toEqual('presentation');
+          ).toBe('row');
 
           expect(
             getInlineStartClone().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toEqual('presentation');
+          ).toBe('row');
 
           expect(
             getTopClone().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toEqual('presentation');
+          ).toBe('row');
         });
       });
     });

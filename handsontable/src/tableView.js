@@ -260,7 +260,7 @@ class TableView {
 
       setAttribute(rootElement, [
         A11Y_TREEGRID(),
-        A11Y_ROWCOUNT(this.hot.countRows()),
+        A11Y_ROWCOUNT(-1),
         A11Y_COLCOUNT(this.hot.countCols()),
         A11Y_MULTISELECTABLE(),
       ]);
@@ -697,6 +697,14 @@ class TableView {
 
         this.hot.runHooks('afterGetRowHeaderRenderers', headerRenderers);
         this.#rowHeadersCount = headerRenderers.length;
+
+        if (this.hot.getSettings().ariaTags) {
+          // Update the aria-colcount attribute.
+          // Only needs to be done once after initialization/data update.
+          if (this.#getAriaColcount() === this.hot.countCols()) {
+            this.#updateAriaColcount(this.#rowHeadersCount);
+          }
+        }
 
         return headerRenderers;
       },
@@ -1298,6 +1306,12 @@ class TableView {
 
       div.className = 'relative';
       span.className = 'colHeader';
+
+      if (this.settings.ariaTags) {
+        setAttribute(div, ...A11Y_PRESENTATION());
+        setAttribute(span, ...A11Y_PRESENTATION());
+      }
+
       this.updateCellHeader(span, visualColumnIndex, label, headerLevel);
 
       div.appendChild(span);
@@ -1450,6 +1464,26 @@ class TableView {
    */
   getRowHeadersCount() {
     return this.#rowHeadersCount;
+  }
+
+  /**
+   * Return the value of the `aria-colcount` attribute.
+   *
+   * @returns {number} The value of the `aria-colcount` attribute.
+   */
+  #getAriaColcount() {
+    return parseInt(this.hot.rootElement.getAttribute(A11Y_COLCOUNT()[0]), 10);
+  }
+
+  /**
+   * Update the `aria-colcount` attribute by the provided value.
+   *
+   * @param {number} delta The number of columns to add or remove to the aria tag.
+   */
+  #updateAriaColcount(delta) {
+    const colCount = this.#getAriaColcount() + delta;
+
+    setAttribute(this.hot.rootElement, ...A11Y_COLCOUNT(colCount));
   }
 
   /**

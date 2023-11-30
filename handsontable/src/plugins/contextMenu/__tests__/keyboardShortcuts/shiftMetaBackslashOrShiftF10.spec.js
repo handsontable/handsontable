@@ -11,7 +11,7 @@ describe('ContextMenu keyboard shortcut', () => {
   });
 
   using('', [
-    ['Shift', 'Control/Meta', '\\'],
+    ['Shift', 'Control/Meta', 'Backslash'],
     ['Shift', 'F10'],
   ], (keyboardShortcut) => {
     it('should not throw an error when triggered on selection that points on the hidden records', () => {
@@ -161,6 +161,19 @@ describe('ContextMenu keyboard shortcut', () => {
         left: cellRect.width,
         above: -cellRect.height,
       });
+    });
+
+    it('should open the menu and select the first item by default', () => {
+      handsontable({
+        contextMenu: true,
+      });
+
+      selectCell(1, 1);
+      keyDownUp(keyboardShortcut);
+
+      const firstItem = getPlugin('contextMenu').menu.hotMenu.getCell(0, 0);
+
+      expect(document.activeElement).toBe(firstItem);
     });
 
     it('should scroll the viewport when the focused cell is outside the table and call the `open` method', async() => {

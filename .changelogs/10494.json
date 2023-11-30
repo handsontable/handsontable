@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Updated TS definition for Filters plugin and Core methods",
-  "type": "changed",
-  "issueOrPR": 10494,
-  "breaking": false,
-  "framework": "none"
-}

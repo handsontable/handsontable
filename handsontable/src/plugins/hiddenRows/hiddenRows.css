@@ -1,8 +1,8 @@
 /*!
  * Handsontable HiddenRows
  */
-.handsontable th.beforeHiddenRow .beforeHiddenRowIndicator::before,
-.handsontable th.afterHiddenRow .afterHiddenRowIndicator::after {
+.handsontable th.beforeHiddenRow::before,
+.handsontable th.afterHiddenRow::after {
   color: #bbb;
   font-size: 6pt;
   line-height: 6pt;
@@ -15,21 +15,19 @@
   position: relative;
 }
 
-.handsontable th.beforeHiddenRow .beforeHiddenRowIndicator::before {
-  content: '\25B2'; /* up-pointing triangle */
+.handsontable th.beforeHiddenRow::before {
+  content: '\25B2';
   bottom: 2px;
 }
 
-.handsontable th.afterHiddenRow .afterHiddenRowIndicator::after {
-  content: '\25BC'; /* down-pointing triangle */
+.handsontable th.afterHiddenRow::after {
+  content: '\25BC';
   top: 2px;
 }
-
-.handsontable.ht__selection--rows tbody th.beforeHiddenRow.ht__highlight .beforeHiddenRowIndicator::before,
-.handsontable.ht__selection--rows tbody th.afterHiddenRow.ht__highlight .afterHiddenRowIndicator::after {
+.handsontable.ht__selection--rows tbody th.beforeHiddenRow.ht__highlight:before,
+.handsontable.ht__selection--rows tbody th.afterHiddenRow.ht__highlight:after {
   color: #eee;
 }
-
 .handsontable td.afterHiddenRow.firstVisibleRow,
 .handsontable th.afterHiddenRow.firstVisibleRow {
   border-top: 1px solid #CCC;

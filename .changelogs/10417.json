@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added support for keyboard shortcut that allows opening the context menu.",
-  "type": "added",
-  "issueOrPR": 10417,
-  "breaking": false,
-  "framework": "none"
-}

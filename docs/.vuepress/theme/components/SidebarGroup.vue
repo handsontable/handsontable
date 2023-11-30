@@ -45,10 +45,11 @@
     </p>
 
     <DropdownTransition>
+      <!-- Node: Workaround for filtering an empty item element from an items array. Some warn is logged
+      in the console otherwise -->
       <SidebarLinks
-        v-if="isOpen || !collapsable"
-        class="sidebar-group-items"
-        :items="item.children"
+        :class="{ 'd-none': !isOpen && collapsable, 'sidebar-group-items': true  }"
+        :items="item.children.filter((child) => child.path)"
         :sidebar-depth="item.sidebarDepth"
         :initial-open-group-index="item.initialOpenGroupIndex"
         :depth="depth + 1"
@@ -151,4 +152,7 @@ export default {
   transition height .1s ease-out
   font-size 0.95em
   overflow hidden
+
+  &.d-none
+    display: none
 </style>

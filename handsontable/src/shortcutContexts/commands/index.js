@@ -3,7 +3,8 @@ import { getAllCommands as getAllSelectionExtendCommands } from './extendCellsSe
 import { getAllCommands as getAllSelectionMoveCommands } from './moveCellSelection';
 import { command as emptySelectedCells } from './emptySelectedCells';
 import { command as scrollToFocusedCell } from './scrollToFocusedCell';
-import { command as selectAll } from './selectAll';
+import { command as selectAllCells } from './selectAllCells';
+import { command as selectAllCellsAndHeaders } from './selectAllCellsAndHeaders';
 import { command as populateSelectedCellsData } from './populateSelectedCellsData';
 
 const allCommands = [
@@ -12,7 +13,8 @@ const allCommands = [
   ...getAllSelectionMoveCommands(),
   emptySelectedCells,
   scrollToFocusedCell,
-  selectAll,
+  selectAllCells,
+  selectAllCellsAndHeaders,
   populateSelectedCellsData,
 ];
 

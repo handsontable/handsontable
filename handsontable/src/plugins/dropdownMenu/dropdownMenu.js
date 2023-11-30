@@ -18,8 +18,7 @@ import {
 } from '../contextMenu/predefinedItems';
 
 import './dropdownMenu.scss';
-import { COLUMN_HEADER_LABEL_OPEN_MENU } from '../../i18n/constants';
-import { A11Y_LABEL, A11Y_HASPOPUP } from '../../helpers/a11y';
+import { A11Y_HASPOPUP, A11Y_HIDDEN, A11Y_LABEL } from '../../helpers/a11y';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 Hooks.getSingleton().register('beforeDropdownMenuShow');
@@ -262,6 +261,9 @@ export class DropdownMenu extends BasePlugin {
         }, {
           left: rect.width,
         });
+        // Make sure the first item is selected (role=menuitem). Otherwise, screen readers
+        // will block the Esc key for the whole menu.
+        this.menu.getNavigator().toFirstItem();
       }
     };
 
@@ -471,7 +473,8 @@ export class DropdownMenu extends BasePlugin {
 
     if (this.hot.getSettings().ariaTags) {
       setAttribute(button, [
-        A11Y_LABEL(this.hot.getTranslatedPhrase(COLUMN_HEADER_LABEL_OPEN_MENU)),
+        A11Y_HIDDEN(),
+        A11Y_LABEL(' '),
       ]);
 
       setAttribute(TH, [

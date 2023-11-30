@@ -1299,7 +1299,7 @@ const REGISTERED_HOOKS = [
    * This is due to the priority of other options that may block the feature.
    * For example, when the {@link Options#minSpareCols} is defined, the {@link Options#autoWrapRow} option is not checked.
    * Thus, row wrapping is off.
-   * @param {CellCoords} newCoords The new focus position.
+   * @param {CellCoords} newCoords The new focus position. It is an object with keys `row` and `col`, where a value of `-1` indicates a header.
    * @param {boolean} isFlipped `true` if the row index was flipped, `false` otherwise.
    * Flipped index means that the user reached the last row and the focus is moved to the first row or vice versa.
    */
@@ -1316,7 +1316,7 @@ const REGISTERED_HOOKS = [
    * This is due to the priority of other options that may block the feature.
    * For example, when the {@link Options#minSpareRows} is defined, the {@link Options#autoWrapCol} option is not checked.
    * Thus, column wrapping is off.
-   * @param {CellCoords} newCoords The new focus position.
+   * @param {CellCoords} newCoords The new focus position. It is an object with keys `row` and `col`, where a value of `-1` indicates a header.
    * @param {boolean} isFlipped `true` if the column index was flipped, `false` otherwise.
    * Flipped index means that the user reached the last column and the focus is moved to the first column or vice versa.
    */
@@ -1361,6 +1361,8 @@ const REGISTERED_HOOKS = [
 
   /**
    * Fired before applying selection coordinates to the renderable coordinates for Walkontable (rendering engine).
+   * It occurs even when cell coordinates remain unchanged and activates during cell selection and drag selection.
+   * The behavior of Shift+Tab differs from Arrow Left when there's no further movement possible.
    *
    * @since 14.0.0
    * @event Hooks#beforeSelectionHighlightSet
@@ -1438,7 +1440,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#modifyFocusedElement
    * @param {number} row Row index.
    * @param {number} column Column index.
-   * @param {HTMLElement|undefined} focusedElement The element to be focused.
+   * @param {HTMLElement|undefined} focusedElement The element to be focused. `null` for focusedElement is intended when focused cell is hidden.
    */
   'modifyFocusedElement',
 
