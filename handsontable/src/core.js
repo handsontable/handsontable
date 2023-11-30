@@ -4304,7 +4304,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * // Select all cells in the table, including all headers and the corner cell, but move the focus.
    * // highlight to position 2, 1
-   * hot.selectAll(-2, -1); focusPosition { row: 2, col: 1 });
+   * hot.selectAll(-2, -1, {
+   *    focusPosition: { row: 2, col: 1 }
+   * });
    *
    * // Select all cells in the table, without headers and corner elements.
    * hot.selectAll(false);
