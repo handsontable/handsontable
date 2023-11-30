@@ -54,7 +54,7 @@ const hotOptions = {
   },
   contextMenu: true,
   navigableHeaders: true, // New accessibility feature
-  disableTabNavigation: false, // New accessibility feature
+  tabNavigation: true, // New accessibility feature
   autoWrapRow: true,
   autoWrapCol: true,
   multiColumnSorting: true,
@@ -78,13 +78,13 @@ export const setupCheckbox = (element, callback) =>
 
 // Checkbox: Enable/Disable Tab Navigation
 setupCheckbox(document.querySelector("#enable-tab-navigation"), (checked) => {
-  hotOptions.disableTabNavigation = !checked;
+  hotOptions.tabNavigation = checked;
   hotInstance.updateSettings({
-    disableTabNavigation: hotOptions.disableTabNavigation,
+    tabNavigation: hotOptions.tabNavigation,
   });
   console.log(
-    `Updated setting: disableTabNavigation to`,
-    hotInstance.getSettings().disableTabNavigation
+    `Updated setting: tabNavigation to`,
+    hotInstance.getSettings().tabNavigation
   );
 });
 

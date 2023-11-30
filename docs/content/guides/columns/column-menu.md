@@ -170,6 +170,13 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 
 :::
 
+## Related keyboard shortcuts
+
+| Windows                                                  | macOS                                                       | Action                                                                                                       |  Excel  | Sheets  |
+| -------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | :-----: | :-----: |
+| <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↓**</kbd> | <kbd>**Shift**</kbd>+<kbd>**Option**</kbd>+<kbd>**↓**</kbd> | Open the column menu. Works in any cell, if the respective column header displays the menu button.           | &cross; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>                | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>                   | Open the column menu. Works only when you're selecting a column header that displays the column menu button. | &cross; | &cross; |
+
 ## Related articles
 
 ### Related guides

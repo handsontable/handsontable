@@ -17,7 +17,7 @@ interface DemoOptionsProps extends ToggleableOptions {
 // This allows us to change the Handsontable settings from the UI, showcasing 
 // the flexibility of Handsontable in configuring according to your needs.
 function DemoOptions({
-  disableTabNavigation,
+  tabNavigation,
   navigableHeaders,
   renderAllRows,
   enterBeginsEditing,
@@ -32,7 +32,7 @@ function DemoOptions({
       case "enable-tab-navigation":
         changeToggleOptions((existing) => ({
           ...existing,
-          disableTabNavigation: !disableTabNavigation,
+          tabNavigation: !tabNavigation,
         }));
         break;
       case "enable-header-navigation":
@@ -89,7 +89,7 @@ function DemoOptions({
               id="tab-navigation-label"
             >
               <input
-                checked={!disableTabNavigation}
+                checked={tabNavigation}
                 type="checkbox"
                 id="enable-tab-navigation"
                 name="enable-tab-navigation"
@@ -99,7 +99,7 @@ function DemoOptions({
               Enable navigation with the Tab key
             </label>
             <a
-              href="https://handsontable.com/docs/react-data-grid/api/options/#disableTabNavigation"
+              href="https://handsontable.com/docs/react-data-grid/api/options/#tabNavigation"
               target="_blank"
               className="external-link"
               rel="noopener noreferrer"

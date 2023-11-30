@@ -23,7 +23,7 @@ Copy data from selected cells to the system clipboard.
 
 ## Overview
 
-You can copy or cut data from Handsontable to the system clipboard, either manually (using the context menu or the <kbd>**Ctrl**</kbd> / <kbd>**Cmd**</kbd>  + <kbd>**C**</kbd> / <kbd>**X**</kbd> shortcuts) or programmatically (using Handsontable's API methods).
+You can copy or cut data from Handsontable to the system clipboard, either manually (using the context menu or the <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>/<kbd>**X**</kbd> shortcuts) or programmatically (using Handsontable's API methods).
 
 ## Copy & Cut
 
@@ -33,8 +33,8 @@ Copy & Cut actions allow exporting data from Handsontable to the system clipboar
 
 Available keyboard shortcuts:
 
-- <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd> - copies the content of the last cell in the selected range
-- <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**X**</kbd> - cuts the content of the last cell in the selected range
+- <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd> - copies the content of the last cell in the selected range
+- <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**X**</kbd> - cuts the content of the last cell in the selected range
 
 Available options in the browser's toolbar:
 
@@ -455,7 +455,7 @@ The `Paste` action allows the importing of data from external sources, using the
 
 Available keyboard shortcuts:
 
-- <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**V**</kbd> - paste the content into the last cell in the selected range
+- <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**V**</kbd> - paste the content into the last cell in the selected range
 
 Available options in the browser's toolbar:
 
@@ -488,9 +488,9 @@ Examples of how to use them are provided in their descriptions.
 
 | Windows                                | macOS                                 | Action                                                          |  Excel  | Sheets  |
 | -------------------------------------- | ------------------------------------- | --------------------------------------------------------------- | :-----: | :-----: |
-| <kbd>**Ctrl**</kbd> + <kbd>**X**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**X**</kbd> | Cut the contents of the selected cells to the system clipboard  | &check; | &check; |
-| <kbd>**Ctrl**</kbd> + <kbd>**C**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**C**</kbd> | Copy the contents of the selected cells to the system clipboard | &check; | &check; |
-| <kbd>**Ctrl**</kbd> + <kbd>**V**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**V**</kbd> | Paste from the system clipboard                                 | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**X**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**X**</kbd> | Cut the contents of the selected cells to the system clipboard  | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**C**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**C**</kbd> | Copy the contents of the selected cells to the system clipboard | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**V**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**V**</kbd> | Paste from the system clipboard                                 | &check; | &check; |
 
 ## Related API reference
 

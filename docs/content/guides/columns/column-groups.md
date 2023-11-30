@@ -277,6 +277,12 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
   limit of `colspan` to `1000`.
 - A nested column header can't be wider than its parent element (headers can't overlap).
 
+## Related keyboard shortcuts
+
+| Windows                                     | macOS                                        | Action                                                  |  Excel  | Sheets  |
+| ------------------------------------------- | -------------------------------------------- | ------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**Enter**</kbd>                        | <kbd>**Enter**</kbd>                         | Collapse or expand the selected column group            | &cross; | &cross; |
+
 ## Related API reference
 
 - Configuration options:
