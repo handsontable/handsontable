@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed visual glitches (unwanted pixels) of the autocomplete editor's list in cases when there are no items.",
-  "type": "fixed",
-  "issueOrPR": 10506,
-  "breaking": false,
-  "framework": "none"
-}

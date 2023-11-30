@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed ampersand copy/paste issue;",
-  "type": "fixed",
-  "issueOrPR": 10472,
-  "breaking": false,
-  "framework": "none"
-}

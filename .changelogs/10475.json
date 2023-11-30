@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an issue related to the backlight position misalignment for the ManualRowMove and ManualColumnMove plugins.",
-  "type": "fixed",
-  "issueOrPR": 10475,
-  "breaking": false,
-  "framework": "none"
-}

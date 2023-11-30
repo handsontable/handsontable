@@ -35,7 +35,7 @@ This feature is provided by the [`UndoRedo`](@/api/undoRedo.md) plugin, and is e
 
 ## Basic demo
 
-Make some changes to the grid below and the use the <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Z**</kbd> command to redo the previous state. Then, use <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Y**</kbd> (or <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**Z**</kbd>) to restore it.
+Make some changes to the grid below and the use the <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**Z**</kbd> command to redo the previous state. Then, use <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**Y**</kbd> (or <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Z**</kbd>) to restore it.
 
 ::: only-for javascript
 
@@ -129,9 +129,9 @@ Here's the list of all unsupported features:
 
 | Windows                                                       | macOS                                                        | Action               |  Excel  | Sheets  |
 | ------------------------------------------------------------- | ------------------------------------------------------------ | -------------------- | :-----: | :-----: |
-| <kbd>**Ctrl**</kbd> + <kbd>**Z**</kbd>                        | <kbd>**Cmd**</kbd> + <kbd>**Z**</kbd>                        | Undo the last action | &check; | &check; |
-| <kbd>**Ctrl**</kbd> + <kbd>**Y**</kbd>                        | <kbd>**Cmd**</kbd> + <kbd>**Y**</kbd>                        | Redo the last action | &check; | &check; |
-| <kbd>**Ctrl**</kbd> + <kbd>**Shift**</kbd> + <kbd>**Z**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**Z**</kbd> | Redo the last action | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Z**</kbd>                        | <kbd>**Cmd**</kbd>+<kbd>**Z**</kbd>                        | Undo the last action | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Y**</kbd>                        | <kbd>**Cmd**</kbd>+<kbd>**Y**</kbd>                        | Redo the last action | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Z**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Z**</kbd> | Redo the last action | &check; | &check; |
 
 ## Related API reference
 

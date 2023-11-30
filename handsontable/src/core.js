@@ -4290,22 +4290,25 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Select the whole table.
+   * Select all cells in the table excluding headers and corner elements.
    *
    * The previous selection is overwritten.
    *
    * ```js
-   * // select all cells in the table, including all headers and the corner cell
+   * // Select all cells in the table along with row headers, including all headers and the corner cell.
+   * // Doesn't select column headers and corner elements.
    * hot.selectAll();
    *
-   * // select all cells in the table, including row headers but excluding the corner cell
+   * // Select all cells in the table, including row headers but excluding the corner cell and column headers.
    * hot.selectAll(true, false);
    *
-   * // select all cells in the table, including all headers and the corner cell, but move the focus
-   * // highlight to position -2, -1
-   * hot.selectAll(-2, -1);
+   * // Select all cells in the table, including all headers and the corner cell, but move the focus.
+   * // highlight to position 2, 1
+   * hot.selectAll(-2, -1, {
+   *    focusPosition: { row: 2, col: 1 }
+   * });
    *
-   * // select all cells in the table, without headers
+   * // Select all cells in the table, without headers and corner elements.
    * hot.selectAll(false);
    * ```
    *
@@ -4317,11 +4320,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {boolean} [includeColumnHeaders=false] `true` If the selection should include the column
    * headers, `false` otherwise.
    *
-   * @param {object} [options] Additional object with options.
+   * @param {object} [options] Additional object with options. Since 14.0.0
    * @param {{row: number, col: number} | boolean} [options.focusPosition] The argument allows changing the cell/header
    * focus position. The value takes an object with a `row` and `col` properties from -N to N, where
    * negative values point to the headers and positive values point to the cell range. If `false`, the focus
-   * position won't be changed.
+   * position won't be changed. Example:
+   * ```js
+   * hot.selectAll(0, 0, {
+   * focusPosition: { row: 0, col: 1 },
+   * disableHeadersHighlight: true
+   * })
+   * ```
+   *
    * @param {boolean} [options.disableHeadersHighlight] If `true`, disables highlighting the headers even when
    * the logical coordinates points on them.
    */
