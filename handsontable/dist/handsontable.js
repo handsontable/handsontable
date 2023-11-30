@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.0.0
- * Release date: 30/11/2023 (built at 29/11/2023 11:18:54)
+ * Release date: 30/11/2023 (built at 30/11/2023 10:10:47)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -105,7 +105,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "29/11/2023 11:18:54";
+Handsontable.buildDate = "30/11/2023 10:10:47";
 Handsontable.version = "14.0.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -4167,22 +4167,25 @@ function Core(rootElement, userSettings) {
   };
 
   /**
-   * Select the whole table.
+   * Select all cells in the table excluding headers and corner elements.
    *
    * The previous selection is overwritten.
    *
    * ```js
-   * // select all cells in the table, including all headers and the corner cell
+   * // Select all cells in the table along with row headers, including all headers and the corner cell.
+   * // Doesn't select column headers and corner elements.
    * hot.selectAll();
    *
-   * // select all cells in the table, including row headers but excluding the corner cell
+   * // Select all cells in the table, including row headers but excluding the corner cell and column headers.
    * hot.selectAll(true, false);
    *
-   * // select all cells in the table, including all headers and the corner cell, but move the focus
-   * // highlight to position -2, -1
-   * hot.selectAll(-2, -1);
+   * // Select all cells in the table, including all headers and the corner cell, but move the focus.
+   * // highlight to position 2, 1
+   * hot.selectAll(-2, -1, {
+   *    focusPosition: { row: 2, col: 1 }
+   * });
    *
-   * // select all cells in the table, without headers
+   * // Select all cells in the table, without headers and corner elements.
    * hot.selectAll(false);
    * ```
    *
@@ -4194,11 +4197,18 @@ function Core(rootElement, userSettings) {
    * @param {boolean} [includeColumnHeaders=false] `true` If the selection should include the column
    * headers, `false` otherwise.
    *
-   * @param {object} [options] Additional object with options.
+   * @param {object} [options] Additional object with options. Since 14.0.0
    * @param {{row: number, col: number} | boolean} [options.focusPosition] The argument allows changing the cell/header
    * focus position. The value takes an object with a `row` and `col` properties from -N to N, where
    * negative values point to the headers and positive values point to the cell range. If `false`, the focus
-   * position won't be changed.
+   * position won't be changed. Example:
+   * ```js
+   * hot.selectAll(0, 0, {
+   * focusPosition: { row: 0, col: 1 },
+   * disableHeadersHighlight: true
+   * })
+   * ```
+   *
    * @param {boolean} [options.disableHeadersHighlight] If `true`, disables highlighting the headers even when
    * the logical coordinates points on them.
    */
@@ -12066,7 +12076,7 @@ const REGISTERED_HOOKS = [/* eslint-disable jsdoc/require-description-complete-s
  * This is due to the priority of other options that may block the feature.
  * For example, when the {@link Options#minSpareCols} is defined, the {@link Options#autoWrapRow} option is not checked.
  * Thus, row wrapping is off.
- * @param {CellCoords} newCoords The new focus position.
+ * @param {CellCoords} newCoords The new focus position. It is an object with keys `row` and `col`, where a value of `-1` indicates a header.
  * @param {boolean} isFlipped `true` if the row index was flipped, `false` otherwise.
  * Flipped index means that the user reached the last row and the focus is moved to the first row or vice versa.
  */
@@ -12082,7 +12092,7 @@ const REGISTERED_HOOKS = [/* eslint-disable jsdoc/require-description-complete-s
  * This is due to the priority of other options that may block the feature.
  * For example, when the {@link Options#minSpareRows} is defined, the {@link Options#autoWrapCol} option is not checked.
  * Thus, column wrapping is off.
- * @param {CellCoords} newCoords The new focus position.
+ * @param {CellCoords} newCoords The new focus position. It is an object with keys `row` and `col`, where a value of `-1` indicates a header.
  * @param {boolean} isFlipped `true` if the column index was flipped, `false` otherwise.
  * Flipped index means that the user reached the last column and the focus is moved to the first column or vice versa.
  */
@@ -12122,6 +12132,8 @@ const REGISTERED_HOOKS = [/* eslint-disable jsdoc/require-description-complete-s
 'beforeSetRangeEnd',
 /**
  * Fired before applying selection coordinates to the renderable coordinates for Walkontable (rendering engine).
+ * It occurs even when cell coordinates remain unchanged and activates during cell selection and drag selection.
+ * The behavior of Shift+Tab differs from Arrow Left when there's no further movement possible.
  *
  * @since 14.0.0
  * @event Hooks#beforeSelectionHighlightSet
@@ -12191,7 +12203,7 @@ const REGISTERED_HOOKS = [/* eslint-disable jsdoc/require-description-complete-s
  * @event Hooks#modifyFocusedElement
  * @param {number} row Row index.
  * @param {number} column Column index.
- * @param {HTMLElement|undefined} focusedElement The element to be focused.
+ * @param {HTMLElement|undefined} focusedElement The element to be focused. `null` for focusedElement is intended when focused cell is hidden.
  */
 'modifyFocusedElement',
 /**
@@ -14386,7 +14398,7 @@ class FocusManager {
     const focusElement = element => {
       var _classPrivateFieldGet3, _classPrivateFieldGet4;
       const currentHighlightCoords = (_classPrivateFieldGet3 = (0, _classPrivateFieldGet7.default)(this, _hot).getSelectedRangeLast()) === null || _classPrivateFieldGet3 === void 0 ? void 0 : _classPrivateFieldGet3.highlight;
-      if (!currentHighlightCoords || !element) {
+      if (!currentHighlightCoords) {
         return;
       }
       let elementToBeFocused = (0, _classPrivateFieldGet7.default)(this, _hot).runHooks('modifyFocusedElement', currentHighlightCoords.row, currentHighlightCoords.col, element);
@@ -14432,7 +14444,7 @@ exports.FocusManager = FocusManager;
 function _getSelectedCell2(callback) {
   var _classPrivateFieldGet6;
   const highlight = (_classPrivateFieldGet6 = (0, _classPrivateFieldGet7.default)(this, _hot).getSelectedRangeLast()) === null || _classPrivateFieldGet6 === void 0 ? void 0 : _classPrivateFieldGet6.highlight;
-  if (!highlight) {
+  if (!highlight || !(0, _classPrivateFieldGet7.default)(this, _hot).selection.isCellVisible(highlight)) {
     callback(null);
     return;
   }
@@ -37257,8 +37269,8 @@ var _default = () => {
      *
      * | Setting                                                                                                        | Description                                                                                                            |
      * | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-     * | `true` (default)                                                                                               | - On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>, add the cell's value to the clipboard         |
-     * | `false`<br>(default for the [`password`](@/guides/cell-types/password-cell-type.md) [cell type](#type))        | - On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>, add an empty string (`""`) to the clipboard   |
+     * | `true` (default)                                                                                               | - On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>, add the cell's value to the clipboard         |
+     * | `false`<br>(default for the [`password`](@/guides/cell-types/password-cell-type.md) [cell type](#type))        | - On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>, add an empty string (`""`) to the clipboard   |
      *
      * Read more:
      * - [Clipboard](@/guides/cell-features/clipboard.md)
@@ -38008,8 +38020,8 @@ var _default = () => {
      *
      * | Property | Type   | Description                                                                                                                                              |
      * | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `col`    | Number | - On pressing <kbd>**Enter**</kbd>, move selection `col` columns right<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>, move selection `col` columns left |
-     * | `row`    | Number | - On pressing <kbd>**Enter**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>, move selection `row` rows up          |
+     * | `col`    | Number | - On pressing <kbd>**Enter**</kbd>, move selection `col` columns right<br>- On pressing <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>, move selection `col` columns left |
+     * | `row`    | Number | - On pressing <kbd>**Enter**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>, move selection `row` rows up          |
      *
      * Read more:
      * - [`enterBeginsEditing`](#enterBeginsEditing)
@@ -39876,13 +39888,13 @@ var _default = () => {
      * | Option              | Possible settings | Description                                                                                          |
      * | ------------------- | ----------------- | ---------------------------------------------------------------------------------------------------- |
      * | `searchResultClass` | A string          | Add a custom CSS class name to search results                                                        |
-     * | `queryMethod`       | A function        | Add a [custom query method](@/guides/accessories-and-menus/searching-values.md#custom-query-method)  |
-     * | `callback`          | A function        | Add a [custom callback function](@/guides/accessories-and-menus/searching-values.md#custom-callback) |
+     * | `queryMethod`       | A function        | Add a [custom query method](@/guides/navigation/searching-values.md#custom-query-method)  |
+     * | `callback`          | A function        | Add a [custom callback function](@/guides/navigation/searching-values.md#custom-callback) |
      *
      * Read more:
-     * - [Searching values](@/guides/accessories-and-menus/searching-values.md)
-     * - [Searching values: Custom query method](@/guides/accessories-and-menus/searching-values.md#custom-query-method)
-     * - [Searching values: Custom callback](@/guides/accessories-and-menus/searching-values.md#custom-callback)
+     * - [Searching values](@/guides/navigation/searching-values.md)
+     * - [Searching values: Custom query method](@/guides/navigation/searching-values.md#custom-query-method)
+     * - [Searching values: Custom callback](@/guides/navigation/searching-values.md#custom-callback)
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -40295,8 +40307,8 @@ var _default = () => {
      *
      * | Property | Type   | Description                                                                                                                                              |
      * | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `row`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Tab**</kbd>, move selection `row` rows up              |
-     * | `col`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `col` columns right<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Tab**</kbd>, move selection `col` columns left     |
+     * | `row`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>, move selection `row` rows up              |
+     * | `col`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `col` columns right<br>- On pressing <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>, move selection `col` columns left     |
      *
      * @memberof Options#
      * @type {object|Function}
@@ -43510,7 +43522,7 @@ var _recorder = __webpack_require__(332);
 var _templateLiteralTag = __webpack_require__(112);
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
- * The `ShortcutManager` API lets you store and manage [keyboard shortcut contexts](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts) ([`ShortcutContext`](@/api/shortcutContext.md)).
+ * The `ShortcutManager` API lets you store and manage [keyboard shortcut contexts](@/guides/navigation/keyboard-shortcuts.md#keyboard-shortcut-contexts) ([`ShortcutContext`](@/api/shortcutContext.md)).
  *
  * Each `ShortcutManager` object:
  * - Stores and manages its own set of keyboard shortcut contexts.
@@ -43521,7 +43533,7 @@ var _templateLiteralTag = __webpack_require__(112);
  * @param {object} options The manager's options
  * @param {EventTarget} options.ownerWindow A starting `window` element
  * @param {Function} options.handleEvent A condition on which `event` is handled.
- * @param {Function} options.beforeKeyDown A hook fired before the `keydown` event is handled. You can use it to [block a keyboard shortcut's actions](@/guides/accessories-and-menus/keyboard-shortcuts.md#block-a-keyboard-shortcut-s-actions).
+ * @param {Function} options.beforeKeyDown A hook fired before the `keydown` event is handled. You can use it to [block a keyboard shortcut's actions](@/guides/navigation/keyboard-shortcuts.md#block-a-keyboard-shortcut-s-actions).
  * @param {Function} options.afterKeyDown A hook fired after the `keydown` event is handled
  */
 const createShortcutManager = _ref => {
@@ -43723,7 +43735,7 @@ function isContextObject(objectToCheck) {
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
- * The `ShortcutContext` API lets you store and manage [keyboard shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md) in a given [context](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts).
+ * The `ShortcutContext` API lets you store and manage [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts.md) in a given [context](@/guides/navigation/keyboard-shortcuts.md#keyboard-shortcut-contexts).
  *
  * Each `ShortcutContext` object stores and manages its own set of keyboard shortcuts.
  *
@@ -58299,6 +58311,9 @@ class ContextMenu extends _base.BasePlugin {
           left: rect.width,
           above: -rect.height
         });
+        // Make sure the first item is selected (role=menuitem). Otherwise, screen readers
+        // will block the Esc key for the whole menu.
+        this.menu.getNavigator().toFirstItem();
       },
       runOnlyIf: () => {
         var _this$hot$getSelected;
@@ -63674,6 +63689,9 @@ class DropdownMenu extends _base.BasePlugin {
         }, {
           left: rect.width
         });
+        // Make sure the first item is selected (role=menuitem). Otherwise, screen readers
+        // will block the Esc key for the whole menu.
+        this.menu.getNavigator().toFirstItem();
       }
     };
     gridContext.addShortcuts([{
@@ -77127,7 +77145,7 @@ class MergeCells extends _base.BasePlugin {
     _classPrivateMethodInitSpec(this, _onAfterDrawSelection);
     /**
      * `afterModifyTransformStart` hook callback. Fixes a problem with navigating through merged cells at the edges of
-     * the table with the ENTER/SHIFT+ENTER/TAB/SHIFT+TAB keys.
+     * the table with the <kbd>**Enter**</kbd>/<kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>/<kbd>**Tab**</kbd>/<kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> keys.
      *
      * @param {CellCoords} coords Coordinates of the to-be-selected cell.
      * @param {number} rowTransformDir Row transformation direction (negative value = up, 0 = none, positive value =
