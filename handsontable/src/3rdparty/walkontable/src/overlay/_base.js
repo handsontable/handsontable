@@ -2,6 +2,7 @@ import {
   getScrollableElement,
   getTrimmingContainer,
   getScrollbarWidth,
+  setAttribute,
 } from '../../../../helpers/dom/element';
 import { defineGetter } from '../../../../helpers/object';
 import { arrayEach } from '../../../../helpers/array';
@@ -13,6 +14,7 @@ import {
   CLONE_INLINE_START,
 } from './constants';
 import Clone from '../core/clone';
+import { A11Y_PRESENTATION } from '../../../../helpers/a11y';
 
 /**
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
@@ -272,10 +274,13 @@ export class Overlay {
     if (CLONE_TYPES.indexOf(this.type) === -1) {
       throw new Error(`Clone type "${this.type}" is not supported.`);
     }
-    const { wtTable } = this.wot;
+    const {
+      wtTable,
+      wtSettings
+    } = this.wot;
     const { rootDocument, rootWindow } = this.domBindings;
-    const clone = rootDocument.createElement('DIV');
-    const clonedTable = rootDocument.createElement('TABLE');
+    const clone = rootDocument.createElement('div');
+    const clonedTable = rootDocument.createElement('table');
     const tableParent = wtTable.wtRootElement.parentNode;
 
     clone.className = `${CLONE_CLASS_NAMES.get(this.type)} handsontable`;
@@ -290,7 +295,21 @@ export class Overlay {
       clone.style.left = 0;
     }
 
+    if (wtSettings.getSetting('ariaTags')) {
+      setAttribute(clone, [
+        A11Y_PRESENTATION()
+      ]);
+    }
+
     clonedTable.className = wtTable.TABLE.className;
+
+    // Clone the main table's `role` attribute to the cloned table.
+    const mainTableRole = wtTable.TABLE.getAttribute('role');
+
+    if (mainTableRole) {
+      clonedTable.setAttribute('role', wtTable.TABLE.getAttribute('role'));
+    }
+
     clone.appendChild(clonedTable);
 
     tableParent.appendChild(clone);
@@ -314,7 +333,7 @@ export class Overlay {
       overlay: this,
       viewport: this.wot.wtViewport, // todo ioc , or factor func if used only here
       event: this.wot.wtEvent, // todo ioc , or factory func if used only here
-      selections: this.wot.selections, // todo ioc , or factory func if used only here
+      selectionManager: this.wot.selectionManager, // todo ioc , or factory func if used only here
     });
   }
 

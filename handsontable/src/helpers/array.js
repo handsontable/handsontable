@@ -205,7 +205,7 @@ export function arraySum(array) {
  * @returns {number} Returns the highest value from an array.
  */
 export function arrayMax(array) {
-  return arrayReduce(array, (a, b) => (a > b ? a : b), Array.isArray(array) ? array[0] : void 0);
+  return arrayReduce(array, (a, b) => (a > b ? a : b), Array.isArray(array) ? array[0] : undefined);
 }
 
 /**
@@ -216,7 +216,7 @@ export function arrayMax(array) {
  * @returns {number} Returns the lowest value from an array.
  */
 export function arrayMin(array) {
-  return arrayReduce(array, (a, b) => (a < b ? a : b), Array.isArray(array) ? array[0] : void 0);
+  return arrayReduce(array, (a, b) => (a < b ? a : b), Array.isArray(array) ? array[0] : undefined);
 }
 
 /**

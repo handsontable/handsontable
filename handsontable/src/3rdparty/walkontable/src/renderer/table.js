@@ -43,114 +43,118 @@
  * @class {RowsRenderer}
  */
 export default class TableRenderer {
+  /**
+   * Table element which will be used to render the children element.
+   *
+   * @type {HTMLTableElement}
+   */
+  rootNode;
+  /**
+   * Document owner of the root node.
+   *
+   * @type {HTMLDocument}
+   */
+  rootDocument;
+  /**
+   * Renderer class responsible for rendering row headers.
+   *
+   * @type {RowsRenderer}
+   */
+  rowHeaders = null;
+  /**
+   * Renderer class responsible for rendering column headers.
+   *
+   * @type {ColumnHeadersRenderer}
+   */
+  columnHeaders = null;
+  /**
+   * Renderer class responsible for rendering col in colgroup.
+   *
+   * @type {ColGroupRenderer}
+   */
+  colGroup = null;
+  /**
+   * Renderer class responsible for rendering rows in tbody.
+   *
+   * @type {RowsRenderer}
+   */
+  rows = null;
+  /**
+   * Renderer class responsible for rendering cells.
+   *
+   * @type {CellsRenderer}
+   */
+  cells = null;
+  /**
+   * Row filter which contains all necessary information about row index transformation.
+   *
+   * @type {RowFilter}
+   */
+  rowFilter = null;
+  /**
+   * Column filter which contains all necessary information about column index transformation.
+   *
+   * @type {ColumnFilter}
+   */
+  columnFilter = null;
+  /**
+   * Row utils class which contains all necessary information about sizes of the rows.
+   *
+   * @type {RowUtils}
+   */
+  rowUtils = null;
+  /**
+   * Column utils class which contains all necessary information about sizes of the columns.
+   *
+   * @type {ColumnUtils}
+   */
+  columnUtils = null;
+  /**
+   * Indicates how much rows should be rendered to fill whole table viewport.
+   *
+   * @type {number}
+   */
+  rowsToRender = 0;
+  /**
+   * Indicates how much columns should be rendered to fill whole table viewport.
+   *
+   * @type {number}
+   */
+  columnsToRender = 0;
+  /**
+   * An array of functions to be used as a content factory to row headers.
+   *
+   * @type {Function[]}
+   */
+  rowHeaderFunctions = [];
+  /**
+   * Count of the function used to render row headers.
+   *
+   * @type {number}
+   */
+  rowHeadersCount = 0;
+  /**
+   * An array of functions to be used as a content factory to column headers.
+   *
+   * @type {Function[]}
+   */
+  columnHeaderFunctions = [];
+  /**
+   * Count of the function used to render column headers.
+   *
+   * @type {number}
+   */
+  columnHeadersCount = 0;
+  /**
+   * Cell renderer used to render cells content.
+   *
+   * @type {Function}
+   */
+  cellRenderer;
+
   constructor(rootNode, { cellRenderer } = {}) {
-    /**
-     * Table element which will be used to render the children element.
-     *
-     * @type {HTMLTableElement}
-     */
     this.rootNode = rootNode;
-    /**
-     * Document owner of the root node.
-     *
-     * @type {HTMLDocument}
-     */
     this.rootDocument = this.rootNode.ownerDocument;
-    /**
-     * Renderer class responsible for rendering row headers.
-     *
-     * @type {RowsRenderer}
-     */
-    this.rowHeaders = null;
-    /**
-     * Renderer class responsible for rendering column headers.
-     *
-     * @type {ColumnHeadersRenderer}
-     */
-    this.columnHeaders = null;
-    /**
-     * Renderer class responsible for rendering col in colgroup.
-     *
-     * @type {ColGroupRenderer}
-     */
-    this.colGroup = null;
-    /**
-     * Renderer class responsible for rendering rows in tbody.
-     *
-     * @type {RowsRenderer}
-     */
-    this.rows = null;
-    /**
-     * Renderer class responsible for rendering cells.
-     *
-     * @type {CellsRenderer}
-     */
-    this.cells = null;
-    /**
-     * Row filter which contains all necessary information about row index transformation.
-     *
-     * @type {RowFilter}
-     */
-    this.rowFilter = null;
-    /**
-     * Column filter which contains all necessary information about column index transformation.
-     *
-     * @type {ColumnFilter}
-     */
-    this.columnFilter = null;
-    /**
-     * Row utils class which contains all necessary information about sizes of the rows.
-     *
-     * @type {RowUtils}
-     */
-    this.rowUtils = null;
-    /**
-     * Column utils class which contains all necessary information about sizes of the columns.
-     *
-     * @type {ColumnUtils}
-     */
-    this.columnUtils = null;
-    /**
-     * Indicates how much rows should be rendered to fill whole table viewport.
-     *
-     * @type {number}
-     */
-    this.rowsToRender = 0;
-    /**
-     * Indicates how much columns should be rendered to fill whole table viewport.
-     *
-     * @type {number}
-     */
-    this.columnsToRender = 0;
-    /**
-     * An array of functions to be used as a content factory to row headers.
-     *
-     * @type {Function[]}
-     */
-    this.rowHeaderFunctions = [];
-    /**
-     * Count of the function used to render row headers.
-     *
-     * @type {number}
-     */
-    this.rowHeadersCount = 0;
-    /**
-     * An array of functions to be used as a content factory to column headers.
-     *
-     * @type {Function[]}
-     */
-    this.columnHeaderFunctions = [];
-    /**
-     * Count of the function used to render column headers.
-     *
-     * @type {number}
-     */
-    this.columnHeadersCount = 0;
-    /**
-     * Cell renderer used to render cells content.
-     *
-     * @type {Function}
-     */
     this.cellRenderer = cellRenderer;
   }
 
@@ -243,6 +247,15 @@ export default class TableRenderer {
    */
   renderedColumnToSource(columnIndex) {
     return this.columnFilter.renderedToSource(columnIndex);
+  }
+
+  /**
+   * Returns `true` if the accessibility-related ARIA tags should be added to the table, `false` otherwise.
+   *
+   * @returns {boolean}
+   */
+  isAriaEnabled() {
+    return this.rowUtils.wtSettings.getSetting('ariaTags');
   }
 
   /**

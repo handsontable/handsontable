@@ -179,14 +179,14 @@ export class HiddenRows extends BasePlugin {
     }
 
     this.#hiddenRowsMap = new HidingMap();
-    this.#hiddenRowsMap.addLocalHook('init', () => this.onMapInit());
+    this.#hiddenRowsMap.addLocalHook('init', () => this.#onMapInit());
     this.hot.rowIndexMapper.registerMap(this.pluginName, this.#hiddenRowsMap);
 
-    this.addHook('afterContextMenuDefaultOptions', (...args) => this.onAfterContextMenuDefaultOptions(...args));
-    this.addHook('afterGetCellMeta', (row, col, cellProperties) => this.onAfterGetCellMeta(row, col, cellProperties));
-    this.addHook('modifyRowHeight', (height, row) => this.onModifyRowHeight(height, row));
-    this.addHook('afterGetRowHeader', (...args) => this.onAfterGetRowHeader(...args));
-    this.addHook('modifyCopyableRange', ranges => this.onModifyCopyableRange(ranges));
+    this.addHook('afterContextMenuDefaultOptions', (...args) => this.#onAfterContextMenuDefaultOptions(...args));
+    this.addHook('afterGetCellMeta', (row, col, cellProperties) => this.#onAfterGetCellMeta(row, col, cellProperties));
+    this.addHook('modifyRowHeight', (height, row) => this.#onModifyRowHeight(height, row));
+    this.addHook('afterGetRowHeader', (...args) => this.#onAfterGetRowHeader(...args));
+    this.addHook('modifyCopyableRange', ranges => this.#onModifyCopyableRange(ranges));
 
     super.enablePlugin();
   }
@@ -363,12 +363,11 @@ export class HiddenRows extends BasePlugin {
   /**
    * Adds the additional row height for the hidden row indicators.
    *
-   * @private
    * @param {number|undefined} height Row height.
    * @param {number} row Visual row index.
    * @returns {number}
    */
-  onModifyRowHeight(height, row) {
+  #onModifyRowHeight(height, row) {
     // Hook is triggered internally only for the visible rows. Conditional will be handled for the API
     // calls of the `getRowHeight` function on not visible indexes.
     if (this.isHidden(row)) {
@@ -381,12 +380,11 @@ export class HiddenRows extends BasePlugin {
   /**
    * Sets the copy-related cell meta.
    *
-   * @private
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    * @param {object} cellProperties Object containing the cell properties.
    */
-  onAfterGetCellMeta(row, column, cellProperties) {
+  #onAfterGetCellMeta(row, column, cellProperties) {
     if (this.#settings.copyPasteEnabled === false && this.isHidden(row)) {
       // Cell property handled by the `Autofill` and the `CopyPaste` plugins.
       cellProperties.skipRowOnPaste = true;
@@ -416,11 +414,10 @@ export class HiddenRows extends BasePlugin {
   /**
    * Modifies the copyable range, accordingly to the provided config.
    *
-   * @private
    * @param {Array} ranges An array of objects defining copyable cells.
    * @returns {Array}
    */
-  onModifyCopyableRange(ranges) {
+  #onModifyCopyableRange(ranges) {
     // Ranges shouldn't be modified when `copyPasteEnabled` option is set to `true` (by default).
     if (this.#settings.copyPasteEnabled) {
       return ranges;
@@ -464,11 +461,10 @@ export class HiddenRows extends BasePlugin {
   /**
    * Adds the needed classes to the headers.
    *
-   * @private
    * @param {number} row Visual row index.
    * @param {HTMLElement} TH Header's TH element.
    */
-  onAfterGetRowHeader(row, TH) {
+  #onAfterGetRowHeader(row, TH) {
     if (!this.#settings.indicators || row < 0) {
       return;
     }
@@ -489,10 +485,9 @@ export class HiddenRows extends BasePlugin {
   /**
    * Add Show-hide rows to context menu.
    *
-   * @private
    * @param {object} options An array of objects containing information about the pre-defined Context Menu items.
    */
-  onAfterContextMenuDefaultOptions(options) {
+  #onAfterContextMenuDefaultOptions(options) {
     options.items.push(
       {
         name: SEPARATOR
@@ -504,10 +499,8 @@ export class HiddenRows extends BasePlugin {
 
   /**
    * On map initialized hook callback.
-   *
-   * @private
    */
-  onMapInit() {
+  #onMapInit() {
     if (Array.isArray(this.#settings.rows)) {
       this.hideRows(this.#settings.rows);
     }

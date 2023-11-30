@@ -4,17 +4,28 @@ import { arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import { clone } from '../../../helpers/object';
 import * as C from '../../../i18n/constants';
-import BaseComponent from './_base';
+import { BaseComponent } from './_base';
 import getOptionsList, { CONDITION_NONE } from '../constants';
-import InputUI from '../ui/input';
-import SelectUI from '../ui/select';
+import { InputUI } from '../ui/input';
+import { SelectUI } from '../ui/select';
 import { getConditionDescriptor } from '../conditionRegisterer';
 
 /**
  * @private
  * @class ConditionComponent
  */
-class ConditionComponent extends BaseComponent {
+export class ConditionComponent extends BaseComponent {
+  /**
+   * The name of the component.
+   *
+   * @type {string}
+   */
+  name = '';
+  /**
+   * @type {boolean}
+   */
+  addSeparator = false;
+
   constructor(hotInstance, options) {
     super(hotInstance, {
       id: options.id,
@@ -36,11 +47,13 @@ class ConditionComponent extends BaseComponent {
    * @private
    */
   registerHooks() {
-    this.getSelectElement().addLocalHook('select', command => this.onConditionSelect(command));
-    this.getSelectElement().addLocalHook('afterClose', () => this.onSelectUIClosed());
+    this.getSelectElement()
+      .addLocalHook('select', command => this.#onConditionSelect(command))
+      .addLocalHook('afterClose', () => this.runLocalHooks('afterClose'))
+      .addLocalHook('tabKeydown', event => this.runLocalHooks('selectTabKeydown', event));
 
     arrayEach(this.getInputElements(), (input) => {
-      input.addLocalHook('keydown', event => this.onInputKeyDown(event));
+      input.addLocalHook('keydown', event => this.#onInputKeyDown(event));
     });
   }
 
@@ -74,7 +87,7 @@ class ConditionComponent extends BaseComponent {
       element[copyOfCommand.inputsCount > index ? 'show' : 'hide']();
 
       if (!index) {
-        setTimeout(() => element.focus(), 10);
+        this.hot._registerTimeout(() => element.focus(), 10);
       }
     });
   }
@@ -176,9 +189,7 @@ class ConditionComponent extends BaseComponent {
 
         wrapper.appendChild(label);
 
-        if (!wrapper.parentNode.hasAttribute('ghost-table')) {
-          arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
-        }
+        arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
 
         return wrapper;
       }
@@ -208,15 +219,14 @@ class ConditionComponent extends BaseComponent {
   /**
    * On condition select listener.
    *
-   * @private
    * @param {object} command Menu item object (command).
    */
-  onConditionSelect(command) {
+  #onConditionSelect(command) {
     arrayEach(this.getInputElements(), (element, index) => {
       element[command.inputsCount > index ? 'show' : 'hide']();
 
       if (index === 0) {
-        setTimeout(() => element.focus(), 10);
+        this.hot._registerTimeout(() => element.focus(), 10);
       }
     });
 
@@ -224,30 +234,14 @@ class ConditionComponent extends BaseComponent {
   }
 
   /**
-   * On component SelectUI closed listener.
-   *
-   * @private
-   */
-  onSelectUIClosed() {
-    this.runLocalHooks('afterClose');
-  }
-
-  /**
    * Key down listener.
    *
-   * @private
    * @param {Event} event The DOM event object.
    */
-  onInputKeyDown(event) {
-    if (isKey(event.keyCode, 'ENTER')) {
-      this.runLocalHooks('accept');
-      stopImmediatePropagation(event);
-
-    } else if (isKey(event.keyCode, 'ESCAPE')) {
+  #onInputKeyDown(event) {
+    if (isKey(event.keyCode, 'ESCAPE')) {
       this.runLocalHooks('cancel');
       stopImmediatePropagation(event);
     }
   }
 }
-
-export default ConditionComponent;

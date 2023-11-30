@@ -15,7 +15,6 @@ Hooks.getSingleton().register('modifyAutoColumnSizeSeed');
 
 export const PLUGIN_KEY = 'autoColumnSize';
 export const PLUGIN_PRIORITY = 10;
-const privatePool = new WeakMap();
 const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -136,80 +135,79 @@ export class AutoColumnSize extends BasePlugin {
     return 50;
   }
 
+  /**
+   * Instance of {@link GhostTable} for rows and columns size calculations.
+   *
+   * @private
+   * @type {GhostTable}
+   */
+  ghostTable = new GhostTable(this.hot);
+  /**
+   * Instance of {@link SamplesGenerator} for generating samples necessary for columns width calculations.
+   *
+   * @private
+   * @type {SamplesGenerator}
+   * @fires Hooks#modifyAutoColumnSizeSeed
+   */
+  samplesGenerator = new SamplesGenerator((row, column) => {
+    const cellMeta = this.hot.getCellMeta(row, column);
+    let cellValue = '';
+
+    if (!cellMeta.spanned) {
+      cellValue = this.hot.getDataAtCell(row, column);
+    }
+
+    let bundleSeed = '';
+
+    if (this.hot.hasHook('modifyAutoColumnSizeSeed')) {
+      bundleSeed = this.hot.runHooks('modifyAutoColumnSizeSeed', bundleSeed, cellMeta, cellValue);
+    }
+
+    return { value: cellValue, bundleSeed };
+  });
+  /**
+   * `true` only if the first calculation was performed.
+   *
+   * @private
+   * @type {boolean}
+   */
+  firstCalculation = true;
+  /**
+   * `true` if the size calculation is in progress.
+   *
+   * @type {boolean}
+   */
+  inProgress = false;
+  /**
+   * Number of already measured columns (we already know their sizes).
+   *
+   * @type {number}
+   */
+  measuredColumns = 0;
+  /**
+   * PhysicalIndexToValueMap to keep and track widths for physical column indexes.
+   *
+   * @private
+   * @type {PhysicalIndexToValueMap}
+   */
+  columnWidthsMap = new IndexToValueMap();
+
+  /**
+   * Cached column header names. It is used to diff current column headers with previous state and detect which
+   * columns width should be updated.
+   *
+   * @type {Array}
+   */
+  #cachedColumnHeaders = [];
+
   constructor(hotInstance) {
     super(hotInstance);
-    privatePool.set(this, {
-      /**
-       * Cached column header names. It is used to diff current column headers with previous state and detect which
-       * columns width should be updated.
-       *
-       * @private
-       * @type {Array}
-       */
-      cachedColumnHeaders: [],
-    });
-    /**
-     * Instance of {@link GhostTable} for rows and columns size calculations.
-     *
-     * @private
-     * @type {GhostTable}
-     */
-    this.ghostTable = new GhostTable(this.hot);
-    /**
-     * Instance of {@link SamplesGenerator} for generating samples necessary for columns width calculations.
-     *
-     * @private
-     * @type {SamplesGenerator}
-     * @fires Hooks#modifyAutoColumnSizeSeed
-     */
-    this.samplesGenerator = new SamplesGenerator((row, column) => {
-      const cellMeta = this.hot.getCellMeta(row, column);
-      let cellValue = '';
-
-      if (!cellMeta.spanned) {
-        cellValue = this.hot.getDataAtCell(row, column);
-      }
-
-      let bundleSeed = '';
-
-      if (this.hot.hasHook('modifyAutoColumnSizeSeed')) {
-        bundleSeed = this.hot.runHooks('modifyAutoColumnSizeSeed', bundleSeed, cellMeta, cellValue);
-      }
-
-      return { value: cellValue, bundleSeed };
-    });
-    /**
-     * `true` only if the first calculation was performed.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.firstCalculation = true;
-    /**
-     * `true` if the size calculation is in progress.
-     *
-     * @type {boolean}
-     */
-    this.inProgress = false;
-    /**
-     * Number of already measured columns (we already know their sizes).
-     *
-     * @type {number}
-     */
-    this.measuredColumns = 0;
-    /**
-     * PhysicalIndexToValueMap to keep and track widths for physical column indexes.
-     *
-     * @private
-     * @type {PhysicalIndexToValueMap}
-     */
-    this.columnWidthsMap = new IndexToValueMap();
     this.hot.columnIndexMapper.registerMap(COLUMN_SIZE_MAP_NAME, this.columnWidthsMap);
 
     // Leave the listener active to allow auto-sizing the columns when the plugin is disabled.
     // This is necessary for width recalculation for resize handler doubleclick (ManualColumnResize).
     this.addHook('beforeColumnResize',
-      (size, column, isDblClick) => this.onBeforeColumnResize(size, column, isDblClick));
+      (size, column, isDblClick) => this.#onBeforeColumnResize(size, column, isDblClick));
   }
 
   /**
@@ -232,18 +230,18 @@ export class AutoColumnSize extends BasePlugin {
 
     const setting = this.hot.getSettings()[PLUGIN_KEY];
 
-    if (setting && setting.useHeaders !== null && setting.useHeaders !== void 0) {
+    if (setting && setting.useHeaders !== null && setting.useHeaders !== undefined) {
       this.ghostTable.setSetting('useHeaders', setting.useHeaders);
     }
 
     this.setSamplingOptions();
 
-    this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
-    this.addHook('beforeChangeRender', changes => this.onBeforeChange(changes));
-    this.addHook('afterFormulasValuesUpdate', changes => this.onAfterFormulasValuesUpdate(changes));
-    this.addHook('beforeViewRender', force => this.onBeforeViewRender(force));
+    this.addHook('afterLoadData', (...args) => this.#onAfterLoadData(...args));
+    this.addHook('beforeChangeRender', changes => this.#onBeforeChange(changes));
+    this.addHook('afterFormulasValuesUpdate', changes => this.#onAfterFormulasValuesUpdate(changes));
+    this.addHook('beforeViewRender', force => this.#onBeforeViewRender(force));
     this.addHook('modifyColWidth', (width, col) => this.getColumnWidth(col, width));
-    this.addHook('afterInit', () => this.onAfterInit());
+    this.addHook('afterInit', () => this.#onAfterInit());
     super.enablePlugin();
   }
 
@@ -270,7 +268,7 @@ export class AutoColumnSize extends BasePlugin {
     // Leave the listener active to allow auto-sizing the columns when the plugin is disabled.
     // This is necessary for width recalculation for resize handler doubleclick (ManualColumnResize).
     this.addHook('beforeColumnResize',
-      (size, column, isDblClick) => this.onBeforeColumnResize(size, column, isDblClick));
+      (size, column, isDblClick) => this.#onBeforeColumnResize(size, column, isDblClick));
   }
 
   /**
@@ -292,7 +290,7 @@ export class AutoColumnSize extends BasePlugin {
       return;
     }
 
-    this.calculateColumnsWidth({ from: firstVisibleColumn, to: lastVisibleColumn }, void 0, force);
+    this.calculateColumnsWidth({ from: firstVisibleColumn, to: lastVisibleColumn }, undefined, force);
   }
 
   /**
@@ -338,7 +336,7 @@ export class AutoColumnSize extends BasePlugin {
 
   /**
    * Calculates all columns width. The calculated column will be cached in the {@link AutoColumnSize#widths} property.
-   * To retrieve width for specified column use {@link AutoColumnSize#getColumnWidth} method.
+   * To retrieve width for specified column use {@link AutoColumnSize##getColumnWidth} method.
    *
    * @param {object|number} rowRange Row index or an object with `from` and `to` properties which define row range.
    */
@@ -401,9 +399,9 @@ export class AutoColumnSize extends BasePlugin {
   setSamplingOptions() {
     const setting = this.hot.getSettings()[PLUGIN_KEY];
     const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ?
-      setting.samplingRatio : void 0;
+      setting.samplingRatio : undefined;
     const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ?
-      setting.allowSampleDuplicates : void 0;
+      setting.allowSampleDuplicates : undefined;
 
     if (samplingRatio && !isNaN(samplingRatio)) {
       this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
@@ -458,10 +456,10 @@ export class AutoColumnSize extends BasePlugin {
    * @param {boolean} [keepMinimum=true] If `true` then returned value won't be smaller then 50 (default column width).
    * @returns {number}
    */
-  getColumnWidth(column, defaultWidth = void 0, keepMinimum = true) {
+  getColumnWidth(column, defaultWidth = undefined, keepMinimum = true) {
     let width = defaultWidth;
 
-    if (width === void 0) {
+    if (width === undefined) {
       width = this.columnWidthsMap.getValueAtIndex(this.hot.toPhysicalColumn(column));
 
       if (keepMinimum && typeof width === 'number') {
@@ -539,18 +537,17 @@ export class AutoColumnSize extends BasePlugin {
    */
   findColumnsWhereHeaderWasChanged() {
     const columnHeaders = this.hot.getColHeader();
-    const { cachedColumnHeaders } = privatePool.get(this);
 
     const changedColumns = arrayReduce(columnHeaders, (acc, columnTitle, physicalColumn) => {
-      const cachedColumnsLength = cachedColumnHeaders.length;
+      const cachedColumnsLength = this.#cachedColumnHeaders.length;
 
-      if (cachedColumnsLength - 1 < physicalColumn || cachedColumnHeaders[physicalColumn] !== columnTitle) {
+      if (cachedColumnsLength - 1 < physicalColumn || this.#cachedColumnHeaders[physicalColumn] !== columnTitle) {
         acc.push(physicalColumn);
       }
       if (cachedColumnsLength - 1 < physicalColumn) {
-        cachedColumnHeaders.push(columnTitle);
+        this.#cachedColumnHeaders.push(columnTitle);
       } else {
-        cachedColumnHeaders[physicalColumn] = columnTitle;
+        this.#cachedColumnHeaders[physicalColumn] = columnTitle;
       }
 
       return acc;
@@ -590,10 +587,8 @@ export class AutoColumnSize extends BasePlugin {
 
   /**
    * On before view render listener.
-   *
-   * @private
    */
-  onBeforeViewRender() {
+  #onBeforeViewRender() {
     this.calculateVisibleColumnsWidth();
 
     if (this.isNeedRecalculate() && !this.inProgress) {
@@ -603,10 +598,8 @@ export class AutoColumnSize extends BasePlugin {
 
   /**
    * On after load data listener.
-   *
-   * @private
    */
-  onAfterLoadData() {
+  #onAfterLoadData() {
     if (this.hot.view) {
       this.recalculateAllColumnsWidth();
     } else {
@@ -622,10 +615,9 @@ export class AutoColumnSize extends BasePlugin {
   /**
    * On before change listener.
    *
-   * @private
    * @param {Array} changes An array of modified data.
    */
-  onBeforeChange(changes) {
+  #onBeforeChange(changes) {
     const changedColumns = arrayMap(changes, ([, columnProperty]) => {
       return this.hot.toPhysicalColumn(this.hot.propToCol(columnProperty));
     });
@@ -636,19 +628,18 @@ export class AutoColumnSize extends BasePlugin {
   /**
    * On before column resize listener.
    *
-   * @private
    * @param {number} size Calculated new column width.
    * @param {number} column Visual index of the resized column.
    * @param {boolean} isDblClick  Flag that determines whether there was a double-click.
    * @returns {number}
    */
-  onBeforeColumnResize(size, column, isDblClick) {
+  #onBeforeColumnResize(size, column, isDblClick) {
     let newSize = size;
 
     if (isDblClick) {
-      this.calculateColumnsWidth(column, void 0, true);
+      this.calculateColumnsWidth(column, undefined, true);
 
-      newSize = this.getColumnWidth(column, void 0, false);
+      newSize = this.getColumnWidth(column, undefined, false);
     }
 
     return newSize;
@@ -656,20 +647,17 @@ export class AutoColumnSize extends BasePlugin {
 
   /**
    * On after Handsontable init fill plugin with all necessary values.
-   *
-   * @private
    */
-  onAfterInit() {
-    privatePool.get(this).cachedColumnHeaders = this.hot.getColHeader();
+  #onAfterInit() {
+    this.#cachedColumnHeaders = this.hot.getColHeader();
   }
 
   /**
    * After formulas values updated listener.
    *
-   * @private
    * @param {Array} changes An array of modified data.
    */
-  onAfterFormulasValuesUpdate(changes) {
+  #onAfterFormulasValuesUpdate(changes) {
     const filteredChanges = arrayFilter(changes, change => isDefined(change.address?.col));
     const changedColumns = arrayMap(filteredChanges, change => change.address.col);
 

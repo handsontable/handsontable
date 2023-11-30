@@ -14,8 +14,8 @@
     "docs:lint:fix": "eslint --ext .js,.vue,.mjs .vuepress content --fix",
     "docs:scripts:link-assets": "node .vuepress/tools/link-assets.mjs",
     "docs:scripts:generate-legacy-docs-versions": "node .vuepress/tools/generate-legacy-docs-versions.mjs",
-    "docs:start": "cross-env NODE_OPTIONS=--openssl-legacy-provider npm run docs:scripts:link-assets && node --experimental-fetch ./node_modules/.bin/vuepress dev ./",
-    "docs:start:no-cache": "cross-env NODE_OPTIONS=--openssl-legacy-provider npm run docs:scripts:link-assets && node --experimental-fetch ./node_modules/.bin/vuepress dev --no-cache ./",
+    "docs:start": "npm run docs:scripts:link-assets && cross-env NODE_OPTIONS=--openssl-legacy-provider node ./node_modules/.bin/vuepress dev ./",
+    "docs:start:no-cache": "npm run docs:scripts:link-assets && cross-env NODE_OPTIONS=--openssl-legacy-provider node ./node_modules/.bin/vuepress dev --no-cache ./",
     "docs:build": "cross-env NODE_OPTIONS=--openssl-legacy-provider node .vuepress/tools/build.mjs -- --no-cache",
     "docs:docker:build": "npm run docs:docker:build:testing",
     "docs:docker:build:testing": "npm run docs:scripts:link-assets && cross-env BUILD_MODE=testing npm run docs:build && docker build -f docker/Dockerfile -t docs-md ./",
@@ -24,7 +24,8 @@
     "docs:api": "node .vuepress/tools/jsdoc-convert/index.mjs",
     "docs:check-links": "node .vuepress/tools/check-links.js",
     "docs:review": "./.vuepress/tools/review-commit.sh",
-    "docs:test:example-checker": "node .vuepress/tools/example-checker"
+    "docs:test:example-checker": "node .vuepress/tools/example-checker",
+    "postinstall": "patch-package"
   },
   "license": "CC BY 4.0",
   "devDependencies": {
@@ -72,5 +73,8 @@
     "last 1 version",
     "> 1%",
     "not dead"
-  ]
+  ],
+  "dependencies": {
+    "patch-package": "^8.0.0"
+  }
 }

@@ -126,6 +126,7 @@ export function _dataToHTML(input) {
       const parsedCellData = isEmpty(cellData) ?
         '' :
         cellData.toString()
+          .replace(/&/g, '&amp;')
           .replace(/</g, '&lt;')
           .replace(/>/g, '&gt;')
           .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
@@ -286,7 +287,7 @@ export function htmlToGridSettings(element, rootDocument = document) {
         rowSpan: rowspan,
         colSpan: colspan,
       } = cell;
-      const col = dataArr[row].findIndex(value => value === void 0);
+      const col = dataArr[row].findIndex(value => value === undefined);
 
       if (nodeName === 'TD') {
         if (rowspan > 1 || colspan > 1) {

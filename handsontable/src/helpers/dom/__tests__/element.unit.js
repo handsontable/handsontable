@@ -5,9 +5,12 @@ import {
   getParent,
   hasClass,
   isInput,
+  removeAttribute,
   removeClass,
   selectElementIfAllowed,
+  setAttribute,
   fastInnerHTML,
+  isVisible,
 } from 'handsontable/helpers/dom/element';
 
 describe('DomElement helper', () => {
@@ -348,16 +351,38 @@ describe('DomElement helper', () => {
       expect(element.className).toBe('test3');
     });
 
+    it('should remove CSS class passed as a RegExp without removing rest CSS classes', () => {
+      removeClass(element, new RegExp('(.*)1'));
+
+      expect(element.className).toBe('test3');
+    });
+
     it('should remove multiple CSS classes (delimited by an empty space)', () => {
       removeClass(element, 'test2 test3 test1');
 
       expect(element.className).toBe('');
     });
 
-    it('should remove CSS multiple classes (passed as an array)', () => {
+    it('should remove multiple CSS classes (passed as an array)', () => {
       removeClass(element, ['test2', 'test3', 'test1']);
 
       expect(element.className).toBe('');
+    });
+
+    it('should remove multiple CSS classes passed as regexes (in an array)', () => {
+      element.className = 'test1 test2 test3 test4';
+
+      removeClass(element, [new RegExp('(.*)1'), new RegExp('(.*)3'), new RegExp('(.*)4')]);
+
+      expect(element.className).toBe('test2');
+    });
+
+    it('should remove CSS multiple classes passed as a mix of regexes and strings (in an array)', () => {
+      element.className = 'test1 test2 test3 test4';
+
+      removeClass(element, [new RegExp('(.*)1'), 'test3', new RegExp('(.*)4')]);
+
+      expect(element.className).toBe('test2');
     });
 
     it('should not touch the DOM element when the passed argument is empty', () => {
@@ -385,6 +410,155 @@ describe('DomElement helper', () => {
       removeClass(elementMock, ['']);
 
       expect(elementMock.classList.remove).not.toHaveBeenCalled();
+    });
+  });
+
+  /**
+   * Handsontable.helper.setAttribute
+   */
+  describe('setAttribute', () => {
+    let element = null;
+
+    beforeEach(() => {
+      element = document.createElement('div');
+      element.setAttribute('test1', 'test1-value');
+    });
+
+    afterEach(() => {
+      element = null;
+    });
+
+    it('should add a single attribute', () => {
+      setAttribute(element, 'test2', 'test2-value');
+
+      expect(element.attributes.length).toBe(2);
+      expect(element.attributes.test1.value).toBe('test1-value');
+      expect(element.attributes.test2.value).toBe('test2-value');
+    });
+
+    it('should add multiple attributes without removing old ones (passed as an array)', () => {
+      setAttribute(element, [
+        ['test2', 'test2-value'],
+        ['test4', 'test4-value'],
+        ['test3', 'test3-value'],
+      ]);
+
+      expect(element.attributes.length).toBe(4);
+      expect(element.attributes.test1.value).toBe('test1-value');
+      expect(element.attributes.test2.value).toBe('test2-value');
+      expect(element.attributes.test3.value).toBe('test3-value');
+      expect(element.attributes.test4.value).toBe('test4-value');
+    });
+
+    it('should not touch the DOM element when the passed argument is not provided or is an empty array', () => {
+      const elementMock = {
+        setAttribute: jasmine.createSpy('setAttribute'),
+      };
+
+      setAttribute(elementMock);
+
+      expect(elementMock.setAttribute).not.toHaveBeenCalled();
+
+      elementMock.setAttribute.calls.reset();
+      setAttribute(elementMock, '');
+
+      expect(elementMock.setAttribute).not.toHaveBeenCalled();
+
+      elementMock.setAttribute.calls.reset();
+      setAttribute(elementMock, []);
+
+      expect(elementMock.setAttribute).not.toHaveBeenCalled();
+
+      elementMock.setAttribute.calls.reset();
+      setAttribute(elementMock, ['']);
+
+      expect(elementMock.setAttribute).not.toHaveBeenCalled();
+    });
+  });
+
+  /**
+   * Handsontable.helper.removeAttribute
+   */
+  describe('removeAttribute', () => {
+    let element = null;
+
+    beforeEach(() => {
+      element = document.createElement('div');
+      element.setAttribute('test1', 'test1-value');
+      element.setAttribute('test2', 'test2-value');
+      element.setAttribute('test3', 'test3-value');
+      element.setAttribute('test4', 'test4-value');
+    });
+
+    afterEach(() => {
+      element = null;
+    });
+
+    it('should remove a single attribute', () => {
+      removeAttribute(element, 'test1');
+
+      expect(element.attributes.length).toBe(3);
+      expect(element.getAttributeNames()).toEqual(['test2', 'test3', 'test4']);
+    });
+
+    it('should remove attributes by passing a single regex', () => {
+      removeAttribute(element, new RegExp('(.*)1'));
+
+      expect(element.attributes.length).toBe(3);
+      expect(element.getAttributeNames()).toEqual(['test2', 'test3', 'test4']);
+    });
+
+    it('should remove multiple attributes (delimited by an empty space)', () => {
+      removeAttribute(element, 'test2 test3 test1');
+
+      expect(element.attributes.length).toBe(1);
+      expect(element.getAttributeNames()).toEqual(['test4']);
+    });
+
+    it('should remove multiple attributes (passed as an array)', () => {
+      removeAttribute(element, ['test2', 'test3', 'test1']);
+
+      expect(element.attributes.length).toBe(1);
+      expect(element.getAttributeNames()).toEqual(['test4']);
+    });
+
+    it('should remove multiple attributes by passing regexes in an array', () => {
+      removeAttribute(element, [new RegExp('(.*)1'), new RegExp('(.*)3'), new RegExp('(.*)4')]);
+
+      expect(element.attributes.length).toBe(1);
+      expect(element.getAttributeNames()).toEqual(['test2']);
+    });
+
+    it('should remove multiple attributes by passing as a mix of regexes and strings in an array', () => {
+      removeAttribute(element, [new RegExp('(.*)1'), 'test3', new RegExp('(.*)4')]);
+
+      expect(element.attributes.length).toBe(1);
+      expect(element.getAttributeNames()).toEqual(['test2']);
+    });
+
+    it('should not touch the DOM element when the passed argument is empty', () => {
+      const elementMock = {
+        removeAttribute: jasmine.createSpy('removeAttribute'),
+      };
+
+      removeAttribute(elementMock);
+
+      expect(elementMock.removeAttribute).not.toHaveBeenCalled();
+
+      elementMock.removeAttribute.calls.reset();
+      removeAttribute(elementMock, '');
+
+      expect(elementMock.removeAttribute).not.toHaveBeenCalled();
+
+      elementMock.removeAttribute.calls.reset();
+      removeAttribute(elementMock, []);
+
+      expect(elementMock.removeAttribute).not.toHaveBeenCalled();
+
+      elementMock.removeAttribute.calls.reset();
+      removeAttribute(elementMock, ['']);
+
+      expect(elementMock.removeAttribute).not.toHaveBeenCalled();
     });
   });
 
@@ -444,7 +618,7 @@ describe('DomElement helper', () => {
   });
 
   //
-  // Handsontable.helper.sanitize
+  // Handsontable.helper.fastInnerHTML
   //
   describe('fastInnerHTML', () => {
     it('should be possible to sanitize the HTML (by default the content is sanitized)', () => {
@@ -502,6 +676,70 @@ describe('DomElement helper', () => {
 
       expect(elementMock.innerHTML)
         .toBe('<meta http-equiv="refresh" content="30">This is my <a href="https://handsontable.com">link</a>');
+    });
+  });
+
+  //
+  // Handsontable.helper.isVisible
+  //
+  describe('isVisible', () => {
+    it('should return `false` when the element is detached from the DOM', () => {
+      const element = document.createElement('div');
+
+      expect(isVisible(element)).toBe(false);
+    });
+
+    it('should return `true` when the element is attached to the DOM', () => {
+      const element = document.createElement('div');
+
+      document.body.appendChild(element);
+
+      expect(isVisible(element)).toBe(true);
+
+      element.remove();
+    });
+
+    it('should return `false` when the element has "display: none"', () => {
+      const element = document.createElement('div');
+
+      element.style.display = 'none';
+      document.body.appendChild(element);
+
+      expect(isVisible(element)).toBe(false);
+
+      element.remove();
+    });
+
+    it('should return `true` when the element has other value than "display: none"', () => {
+      const element = document.createElement('div');
+
+      document.body.appendChild(element);
+      element.style.display = 'static';
+
+      expect(isVisible(element)).toBe(true);
+
+      element.style.display = 'absolute';
+
+      expect(isVisible(element)).toBe(true);
+
+      element.style.display = '';
+
+      expect(isVisible(element)).toBe(true);
+
+      element.remove();
+    });
+
+    it('should return `false` when the parent element has "display: none"', () => {
+      const elementParent = document.createElement('div');
+      const elementChild = document.createElement('div');
+
+      elementParent.append(elementChild);
+      elementParent.style.display = 'none';
+      document.body.appendChild(elementParent);
+
+      expect(isVisible(elementParent)).toBe(false);
+
+      elementParent.remove();
     });
   });
 });

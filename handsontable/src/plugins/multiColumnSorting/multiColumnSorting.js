@@ -1,4 +1,7 @@
-import { ColumnSorting } from '../columnSorting';
+import {
+  APPEND_COLUMN_CONFIG_STRATEGY,
+  ColumnSorting
+} from '../columnSorting';
 import { registerRootComparator } from '../columnSorting/sortService';
 import { wasHeaderClickedProperly } from '../columnSorting/utils';
 import { addClass, removeClass } from '../../helpers/dom/element';
@@ -10,8 +13,8 @@ import './multiColumnSorting.scss';
 
 export const PLUGIN_KEY = 'multiColumnSorting';
 export const PLUGIN_PRIORITY = 170;
-const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 const CONFLICTED_PLUGIN_KEY = 'columnSorting';
+const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 registerRootComparator(PLUGIN_KEY, rootComparator);
 
@@ -76,16 +79,13 @@ export class MultiColumnSorting extends ColumnSorting {
     return PLUGIN_PRIORITY;
   }
 
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * Main settings key designed for the plugin.
-     *
-     * @private
-     * @type {string}
-     */
-    this.pluginKey = PLUGIN_KEY;
-  }
+  /**
+   * Main settings key designed for the plugin.
+   *
+   * @private
+   * @type {string}
+   */
+  pluginKey = PLUGIN_KEY;
 
   /**
    * Checks if the plugin is enabled in the Handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -113,6 +113,45 @@ export class MultiColumnSorting extends ColumnSorting {
    */
   disablePlugin() {
     super.disablePlugin();
+  }
+
+  /**
+   * Register shortcuts responsible for toggling column sorting functionality.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    super.registerShortcuts();
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .addShortcut({
+        keys: [['Shift', 'Enter']],
+        callback: () => {
+          const { highlight } = this.hot.getSelectedRangeLast();
+
+          if (highlight.row === -1 && highlight.col >= 0) {
+            this.sort(this.getNextSortConfig(highlight.col, APPEND_COLUMN_CONFIG_STRATEGY));
+          }
+        },
+        runOnlyIf: () => {
+          const highlight = this.hot.getSelectedRangeLast()?.highlight;
+
+          return highlight && this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
+        },
+        group: SHORTCUTS_GROUP,
+      });
+  }
+
+  /**
+   * Unregister shortcuts responsible for toggling column sorting functionality.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    super.unregisterShortcuts();
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**

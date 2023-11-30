@@ -8,7 +8,7 @@ export const RENDERER_TYPE = 'numeric';
  * Numeric cell renderer.
  *
  * @private
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {HTMLTableCellElement} TD The rendered cell element.
  * @param {number} row The visual row index.
  * @param {number} col The visual column index.
@@ -16,7 +16,7 @@ export const RENDERER_TYPE = 'numeric';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-export function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
+export function numericRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
   let newValue = value;
 
   if (isNumeric(newValue)) {
@@ -53,7 +53,7 @@ export function numericRenderer(instance, TD, row, col, prop, value, cellPropert
     TD.dir = 'ltr';
   }
 
-  textRenderer(instance, TD, row, col, prop, newValue, cellProperties);
+  textRenderer(hotInstance, TD, row, col, prop, newValue, cellProperties);
 }
 
 numericRenderer.RENDERER_TYPE = RENDERER_TYPE;

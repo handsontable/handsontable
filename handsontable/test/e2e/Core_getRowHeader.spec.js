@@ -14,7 +14,7 @@ describe('Core.getRowHeader', () => {
 
   it('when not configured, should return undefined', () => {
     handsontable();
-    expect(getRowHeader(1)).toEqual(void 0);
+    expect(getRowHeader(1)).toEqual(undefined);
   });
 
   it('when configured as true, should return the index incremented by 1', () => {

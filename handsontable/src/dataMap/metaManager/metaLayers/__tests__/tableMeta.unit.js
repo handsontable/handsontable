@@ -260,8 +260,8 @@ describe('TableMeta', () => {
     meta.getMeta()._myCustomKey = { foo: 'bar' };
 
     expect(globalMeta.getMeta()).toHaveProperty('copyable', true);
-    expect(globalMeta.getMeta()).toHaveProperty('renderer', void 0);
-    expect(globalMeta.getMeta()).toHaveProperty('rowHeights', void 0);
-    expect(globalMeta.getMeta()).toHaveProperty('_myCustomKey', void 0);
+    expect(globalMeta.getMeta()).toHaveProperty('renderer', undefined);
+    expect(globalMeta.getMeta()).toHaveProperty('rowHeights', undefined);
+    expect(globalMeta.getMeta()).toHaveProperty('_myCustomKey', undefined);
   });
 });

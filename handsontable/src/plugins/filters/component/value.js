@@ -4,8 +4,8 @@ import { arrayEach, arrayFilter, arrayMap } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import * as C from '../../../i18n/constants';
 import { unifyColumnValues, intersectValues, toEmptyString } from '../utils';
-import BaseComponent from './_base';
-import MultipleSelectUI from '../ui/multipleSelect';
+import { BaseComponent } from './_base';
+import { MultipleSelectUI } from '../ui/multipleSelect';
 import { CONDITION_BY_VALUE, CONDITION_NONE } from '../constants';
 import { getConditionDescriptor } from '../conditionRegisterer';
 
@@ -13,7 +13,14 @@ import { getConditionDescriptor } from '../conditionRegisterer';
  * @private
  * @class ValueComponent
  */
-class ValueComponent extends BaseComponent {
+export class ValueComponent extends BaseComponent {
+  /**
+   * The name of the component.
+   *
+   * @type {string}
+   */
+  name = '';
+
   constructor(hotInstance, options) {
     super(hotInstance, {
       id: options.id,
@@ -21,7 +28,6 @@ class ValueComponent extends BaseComponent {
     });
 
     this.name = options.name;
-
     this.elements.push(new MultipleSelectUI(this.hot));
 
     this.registerHooks();
@@ -33,7 +39,25 @@ class ValueComponent extends BaseComponent {
    * @private
    */
   registerHooks() {
-    this.getMultipleSelectElement().addLocalHook('keydown', event => this.onInputKeyDown(event));
+    this.getMultipleSelectElement()
+      .addLocalHook('keydown', event => this.#onInputKeyDown(event))
+      .addLocalHook('listTabKeydown', event => this.runLocalHooks('listTabKeydown', event));
+  }
+
+  /**
+   * Gets the list of elements from which the component is built.
+   *
+   * @returns {BaseUI[]}
+   */
+  getElements() {
+    const selectElement = this.getMultipleSelectElement();
+
+    return [
+      selectElement.getSearchInputElement(),
+      selectElement.getSelectAllElement(),
+      selectElement.getClearAllElement(),
+      this.getMultipleSelectElement(),
+    ];
   }
 
   /**
@@ -176,9 +200,7 @@ class ValueComponent extends BaseComponent {
 
         wrapper.appendChild(label);
 
-        if (!wrapper.parentNode.hasAttribute('ghost-table')) {
-          arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
-        }
+        arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
 
         return wrapper;
       }
@@ -207,10 +229,9 @@ class ValueComponent extends BaseComponent {
   /**
    * Key down listener.
    *
-   * @private
    * @param {Event} event The DOM event object.
    */
-  onInputKeyDown(event) {
+  #onInputKeyDown(event) {
     if (isKey(event.keyCode, 'ESCAPE')) {
       this.runLocalHooks('cancel');
       stopImmediatePropagation(event);
@@ -233,5 +254,3 @@ class ValueComponent extends BaseComponent {
     return arrayMap(this.hot.getDataAtCol(selectedColumn.visualIndex), v => toEmptyString(v));
   }
 }
-
-export default ValueComponent;

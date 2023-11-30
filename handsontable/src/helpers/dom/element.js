@@ -1,4 +1,5 @@
 import { sanitize } from '../string';
+import { A11Y_HIDDEN } from '../a11y';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -31,6 +32,23 @@ export function getParent(element, level = 0) {
 }
 
 /**
+ * Check if the provided element is a child of the provided Handsontable container.
+ *
+ * @param {HTMLElement} element Element to be analyzed.
+ * @param {HTMLElement} thisHotContainer The Handsontable container.
+ * @returns {boolean}
+ */
+export function isThisHotChild(element, thisHotContainer) {
+  const closestHandsontableContainer = element.closest('.handsontable');
+
+  return !!closestHandsontableContainer &&
+    (
+      closestHandsontableContainer.parentNode === thisHotContainer ||
+      closestHandsontableContainer === thisHotContainer
+    );
+}
+
+/**
  * Gets `frameElement` of the specified frame. Returns null if it is a top frame or if script has no access to read property.
  *
  * @param {Window} frame Frame from which should be get frameElement in safe way.
@@ -43,7 +61,7 @@ export function getFrameElement(frame) {
 /**
  * Gets parent frame of the specified frame. Returns null if it is a top frame or if script has no access to read property.
  *
- * @param {Window} frame Frame from which should be get frameElement in safe way.
+ * @param {Window} frame Frame from which should get frameElement in a safe way.
  * @returns {Window|null}
  */
 export function getParentWindow(frame) {
@@ -53,7 +71,7 @@ export function getParentWindow(frame) {
 /**
  * Checks if script has access to read from parent frame of specified frame.
  *
- * @param {Window} frame Frame from which should be get frameElement in safe way.
+ * @param {Window} frame Frame from which should get frameElement in a safe way.
  * @returns {boolean}
  */
 export function hasAccessToParentWindow(frame) {
@@ -73,7 +91,7 @@ export function closest(element, nodes = [], until) {
   const { ELEMENT_NODE, DOCUMENT_FRAGMENT_NODE } = Node;
   let elementToCheck = element;
 
-  while (elementToCheck !== null && elementToCheck !== void 0 && elementToCheck !== until) {
+  while (elementToCheck !== null && elementToCheck !== undefined && elementToCheck !== until) {
     const { nodeType, nodeName } = elementToCheck;
 
     if (nodeType === ELEMENT_NODE && (nodes.includes(nodeName) || nodes.includes(elementToCheck))) {
@@ -195,7 +213,7 @@ export function overlayContainsElement(overlayType, element, root) {
 }
 
 /**
- * @param {string} classNames The element "class" attribute string.
+ * @param {string[]} classNames The element "class" attribute string.
  * @returns {string[]}
  */
 function filterEmptyClassNames(classNames) {
@@ -207,6 +225,37 @@ function filterEmptyClassNames(classNames) {
 }
 
 /**
+ * Filter out the RegExp entries from an array.
+ *
+ * @param {(string|RegExp)[]} list Array of either strings, Regexes or a mix of both.
+ * @param {boolean} [returnBoth] If `true`, both the array without regexes and an array of regexes will be returned.
+ * @returns {string[]|{regexFree: string[], regexes: RegExp[]}}
+ */
+function filterRegexes(list, returnBoth) {
+  if (!list || !list.length) {
+    return returnBoth ? { regexFree: [], regexes: [] } : [];
+  }
+
+  const regexes = [];
+  const regexFree = [];
+
+  regexFree.push(...list.filter((entry) => {
+    const isRegex = entry instanceof RegExp;
+
+    if (isRegex && returnBoth) {
+      regexes.push(entry);
+    }
+
+    return !isRegex;
+  }));
+
+  return returnBoth ? {
+    regexFree,
+    regexes
+  } : regexFree;
+}
+
+/**
  * Checks if element has class name.
  *
  * @param {HTMLElement} element An element to check.
@@ -214,7 +263,7 @@ function filterEmptyClassNames(classNames) {
  * @returns {boolean}
  */
 export function hasClass(element, className) {
-  if (element.classList === void 0 || typeof className !== 'string' || className === '') {
+  if (element.classList === undefined || typeof className !== 'string' || className === '') {
     return false;
   }
 
@@ -243,18 +292,93 @@ export function addClass(element, className) {
  * Remove class name from an element.
  *
  * @param {HTMLElement} element An element to process.
- * @param {string|Array} className Class name as string or array of strings.
+ * @param {string|Array<string|RegExp>} className Class name as string or array of strings.
  */
 export function removeClass(element, className) {
   if (typeof className === 'string') {
     className = className.split(' ');
+
+  } else if (className instanceof RegExp) {
+    className = [className];
   }
 
-  className = filterEmptyClassNames(className);
+  let {
+    regexFree: stringClasses,
+    // eslint-disable-next-line prefer-const
+    regexes: regexClasses
+  } = filterRegexes(className, true);
 
-  if (className.length > 0) {
-    element.classList.remove(...className);
+  stringClasses = filterEmptyClassNames(stringClasses);
+
+  if (stringClasses.length > 0) {
+    element.classList.remove(...stringClasses);
   }
+
+  regexClasses.forEach((regexClassName) => {
+    element.classList.forEach((currentClassName) => {
+      if (regexClassName.test(currentClassName)) {
+        element.classList.remove(currentClassName);
+      }
+    });
+  });
+}
+
+/**
+ * Set a single attribute or multiple attributes at once.
+ *
+ * @param {HTMLElement} domElement The HTML element to be modified.
+ * @param {Array[]|string} attributes If setting multiple attributes at once, `attributes` holds an array containing the
+ * attributes to be added. Each element of the array should be an array in a form of `[attributeName,
+ * attributeValue]`. If setting a single attribute, `attributes` holds the name of the attribute.
+ * @param {string|number|undefined} [attributeValue] If setting a single attribute, `attributeValue` holds the attribute
+ * value.
+ */
+export function setAttribute(domElement, attributes = [], attributeValue) {
+  if (!Array.isArray(attributes)) {
+    attributes = [[attributes, attributeValue]];
+  }
+
+  attributes.forEach((attributeInfo) => {
+    if (Array.isArray(attributeInfo) && attributeInfo[0] !== '') {
+      domElement.setAttribute(...attributeInfo);
+    }
+  });
+}
+
+/**
+ * Remove a single attribute or multiple attributes from the provided element at once.
+ *
+ * @param {HTMLElement} domElement The HTML element to be processed.
+ * @param {Array<string|RegExp>|string} attributesToRemove If removing multiple attributes, `attributesToRemove`
+ * holds an array of attribute names to be removed from the provided element. If removing a single attribute, it
+ * holds the attribute name.
+ */
+export function removeAttribute(domElement, attributesToRemove = []) {
+  if (typeof attributesToRemove === 'string') {
+    attributesToRemove = attributesToRemove.split(' ');
+
+  } else if (attributesToRemove instanceof RegExp) {
+    attributesToRemove = [attributesToRemove];
+  }
+
+  const {
+    regexFree: stringAttributes,
+    regexes: regexAttributes
+  } = filterRegexes(attributesToRemove, true);
+
+  stringAttributes.forEach((attributeNameToRemove) => {
+    if (attributeNameToRemove !== '') {
+      domElement.removeAttribute(attributeNameToRemove);
+    }
+  });
+
+  regexAttributes.forEach((attributeRegex) => {
+    domElement.getAttributeNames().forEach((attributeName) => {
+      if (attributeRegex.test(attributeName)) {
+        domElement.removeAttribute(attributeName);
+      }
+    });
+  });
 }
 
 /**
@@ -274,7 +398,7 @@ export function removeTextNodes(element) {
 }
 
 /**
- * Remove childs function
+ * Remove children function
  * WARNING - this doesn't unload events and data attached by jQuery
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/11 - no siginificant improvement with Chrome remove() method.
@@ -293,7 +417,7 @@ export function empty(element) {
 export const HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
 
 /**
- * Insert content into element trying avoid innerHTML method.
+ * Insert content into element trying to avoid innerHTML method.
  *
  * @param {HTMLElement} element An element to write into.
  * @param {string} content The text to write.
@@ -350,7 +474,6 @@ export function isVisible(element) {
 
         } else if (next.host) { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features enabled
           return isVisible(next.host);
-
         }
         throw new Error('Lost in Web Components world');
 
@@ -358,7 +481,7 @@ export function isVisible(element) {
         return false; // this is a node detached from document in IE8
       }
 
-    } else if (next.style && next.style.display === 'none') {
+    } else if (getComputedStyle(next).display === 'none') {
       return false;
     }
 
@@ -391,6 +514,11 @@ export function offset(element) {
   while (elementToCheck = elementToCheck.offsetParent) {
     // from my observation, document.body always has scrollLeft/scrollTop == 0
     if (elementToCheck === rootDocument.body) {
+      break;
+    }
+    // If the element is inside an SVG context, the `offsetParent` can be
+    // a <foreignObject> that does not have properties `offsetLeft` and `offsetTop` defined.
+    if (!('offsetLeft' in elementToCheck)) {
       break;
     }
     offsetLeft += elementToCheck.offsetLeft;
@@ -473,7 +601,7 @@ export function getScrollLeft(element, rootWindow = window) {
  */
 export function getScrollableElement(element) {
   let rootDocument = element.ownerDocument;
-  let rootWindow = rootDocument ? rootDocument.defaultView : void 0;
+  let rootWindow = rootDocument ? rootDocument.defaultView : undefined;
 
   if (!rootDocument) {
     rootDocument = element.document ? element.document : element;
@@ -572,13 +700,13 @@ export function getStyle(element, prop, rootWindow = window) {
 
   const styleProp = element.style[prop];
 
-  if (styleProp !== '' && styleProp !== void 0) {
+  if (styleProp !== '' && styleProp !== undefined) {
     return styleProp;
   }
 
   const computedStyle = getComputedStyle(element, rootWindow);
 
-  if (computedStyle[prop] !== '' && computedStyle[prop] !== void 0) {
+  if (computedStyle[prop] !== '' && computedStyle[prop] !== undefined) {
     return computedStyle[prop];
   }
 }
@@ -752,7 +880,7 @@ export function clearTextSelection(rootWindow = window) {
  * @param {number} endPos The selection end position.
  */
 export function setCaretPosition(element, pos, endPos) {
-  if (endPos === void 0) {
+  if (endPos === undefined) {
     endPos = pos;
   }
   if (element.setSelectionRange) {
@@ -822,7 +950,7 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
  */
 // eslint-disable-next-line no-restricted-globals
 export function getScrollbarWidth(rootDocument = document) {
-  if (cachedScrollbarWidth === void 0) {
+  if (cachedScrollbarWidth === undefined) {
     cachedScrollbarWidth = walkontableCalculateScrollbarWidth(rootDocument);
   }
 
@@ -950,4 +1078,73 @@ export function observeVisibilityChangeOnce(elementToBeObserved, callback) {
   });
 
   visibilityObserver.observe(elementToBeObserved);
+}
+
+/**
+ * Add a `contenteditable` attribute, select the contents and optionally add the `invisibleSelection`
+ * class to the provided element.
+ *
+ * @param {HTMLElement} element Element to be processed.
+ * @param {boolean} [invisibleSelection=true] `true` if the class should be added to the element.
+ * @param {boolean} [ariaHidden=true] `true` if the `aria-hidden` attribute should be added to the processed element.
+ */
+export function makeElementContentEditableAndSelectItsContent(element, invisibleSelection = true, ariaHidden = true) {
+  const ownerDocument = element.ownerDocument;
+  const range = ownerDocument.createRange();
+  const sel = ownerDocument.defaultView.getSelection();
+
+  setAttribute(element, 'contenteditable', true);
+
+  if (ariaHidden) {
+    setAttribute(element, ...A11Y_HIDDEN());
+  }
+
+  if (invisibleSelection) {
+    addClass(element, 'invisibleSelection');
+  }
+
+  range.selectNodeContents(element);
+
+  sel.removeAllRanges();
+
+  sel.addRange(range);
+}
+
+/**
+ * Remove the `contenteditable` attribute, deselect the contents and optionally remove the `invisibleSelection`
+ * class from the provided element.
+ *
+ * @param {HTMLElement} selectedElement The element to be deselected.
+ * @param {boolean} [removeInvisibleSelectionClass=true] `true` if the class should be removed from the element.
+ */
+export function removeContentEditableFromElementAndDeselect(selectedElement, removeInvisibleSelectionClass = true) {
+  const sel = selectedElement.ownerDocument.defaultView.getSelection();
+
+  if (selectedElement.hasAttribute('aria-hidden')) {
+    selectedElement.removeAttribute('aria-hidden');
+  }
+
+  sel.removeAllRanges();
+
+  if (removeInvisibleSelectionClass) {
+    removeClass(selectedElement, 'invisibleSelection');
+  }
+
+  selectedElement.removeAttribute('contenteditable');
+}
+
+/**
+ * Run the provided callback while the provided element is selected and modified to have the `contenteditable`
+ * attribute added. Optionally, the selection can be configured to be invisible.
+ *
+ * @param {HTMLElement} element Element to be selected.
+ * @param {Function} callback Callback to be called.
+ * @param {boolean} [invisibleSelection=true] `true` if the selection should be invisible.
+ */
+export function runWithSelectedContendEditableElement(element, callback, invisibleSelection = true) {
+  makeElementContentEditableAndSelectItsContent(element, invisibleSelection);
+
+  callback();
+
+  removeContentEditableFromElementAndDeselect(element, invisibleSelection);
 }

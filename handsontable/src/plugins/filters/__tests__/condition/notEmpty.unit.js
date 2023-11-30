@@ -20,6 +20,6 @@ describe('Filters condition (`not_empty`)', () => {
 
     expect(condition(data(''), [])).toBe(false);
     expect(condition(data(null), [])).toBe(false);
-    expect(condition(data(void 0), [])).toBe(false);
+    expect(condition(data(undefined), [])).toBe(false);
   });
 });

@@ -14,7 +14,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --port 8080",
-    "build": "ng build",
+    "build": "cross-env NODE_OPTIONS=--openssl-legacy-provider ng build",
     "test": "node spec/support/jasmine.config.js"
   },
   "dependencies": {
@@ -40,6 +40,7 @@
     "@angular/compiler-cli": "v12-lts",
     "@types/jasmine": "3.6.9",
     "@types/node": "12.20.7",
+    "cross-env": "^7.0.3",
     "jasmine": "3.7.0",
     "jasmine-console-reporter": "3.1.0",
     "puppeteer": "14.3.0",

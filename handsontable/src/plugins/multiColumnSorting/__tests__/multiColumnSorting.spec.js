@@ -1697,7 +1697,7 @@ describe('MultiColumnSorting', () => {
     expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
 
     updateSettings({
-      multiColumnSorting: void 0
+      multiColumnSorting: undefined
     });
 
     expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');

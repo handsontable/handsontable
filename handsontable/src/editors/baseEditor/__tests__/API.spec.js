@@ -84,7 +84,12 @@ describe('BaseEditor API', () => {
               fixedRowsTop: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo({
+              row: countRows() - 1,
+              col: countCols() - 1,
+              verticalSnap: 'top',
+              horizontalSnap: 'start',
+            });
             selectCell(1, countRows() - 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
@@ -93,7 +98,7 @@ describe('BaseEditor API', () => {
               width: 51,
               maxWidth: 51,
               height: 24,
-              // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              maxHeight: 162,
             }));
           });
 
@@ -111,7 +116,12 @@ describe('BaseEditor API', () => {
               fixedRowsTop: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo({
+              row: countRows() - 1,
+              col: countCols() - 1,
+              verticalSnap: 'top',
+              horizontalSnap: 'start',
+            });
             selectCell(1, countCols() - 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
@@ -120,7 +130,7 @@ describe('BaseEditor API', () => {
               width: 51,
               maxWidth: 50,
               height: 24,
-              // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              maxHeight: document.documentElement.clientHeight - 23,
             }));
           });
         });
@@ -183,16 +193,21 @@ describe('BaseEditor API', () => {
               fixedRowsTop: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo({
+              row: countRows() - 1,
+              col: countCols() - 1,
+              verticalSnap: 'top',
+              horizontalSnap: 'start',
+            });
             selectCell(1, 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
               start: 49,
               top: 23,
               width: 51,
-              // maxWidth: ?, // returns wrong value! it will be fixed within #9206
+              maxWidth: 236,
               height: 24,
-              // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              maxHeight: 162,
             }));
           });
 
@@ -205,16 +220,21 @@ describe('BaseEditor API', () => {
               fixedRowsTop: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo({
+              row: countRows() - 1,
+              col: countCols() - 1,
+              verticalSnap: 'top',
+              horizontalSnap: 'start',
+            });
             selectCell(1, 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
               start: document.documentElement.scrollLeft + 49, // 49 - the width of the first cell
               top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 23,
               width: 51,
-              // maxWidth: ?, // returns wrong value! it will be fixed within #9206
+              maxWidth: document.documentElement.clientWidth - 49,
               height: 24,
-              // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              maxHeight: document.documentElement.clientHeight - 23,
             }));
           });
         });
@@ -274,14 +294,19 @@ describe('BaseEditor API', () => {
               fixedColumnsStart: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo({
+              row: countRows() - 1,
+              col: countCols() - 1,
+              verticalSnap: 'top',
+              horizontalSnap: 'start',
+            });
             selectCell(countRows() - 1, 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
               start: 49,
               top: 161,
               width: 51,
-              // maxWidth: ?, // returns wrong value! it will be fixed within #9206
+              maxWidth: 236,
               height: 24,
               maxHeight: 24,
             }));
@@ -295,14 +320,19 @@ describe('BaseEditor API', () => {
               fixedColumnsStart: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo({
+              row: countRows() - 1,
+              col: countCols() - 1,
+              verticalSnap: 'top',
+              horizontalSnap: 'start',
+            });
             selectCell(countRows() - 1, 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
               start: document.documentElement.scrollLeft + 49, // 49 - the width of the first cell
               top: document.documentElement.offsetHeight - 24, // 24 - the height of the last cell
               width: 51,
-              // maxWidth: ?, // returns wrong value! it will be fixed within #9206
+              maxWidth: document.documentElement.clientWidth - 49,
               height: 24,
               maxHeight: 24,
             }));
@@ -329,7 +359,7 @@ describe('BaseEditor API', () => {
               width: 50,
               maxWidth: 285,
               height: 24,
-              // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              maxHeight: 47,
             }));
           });
 
@@ -350,7 +380,7 @@ describe('BaseEditor API', () => {
               width: 50,
               maxWidth: document.documentElement.clientWidth,
               height: 24,
-              // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              maxHeight: 62,
             }));
           });
         });
@@ -367,16 +397,21 @@ describe('BaseEditor API', () => {
               fixedRowsBottom: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo({
+              row: countRows() - 1,
+              col: countCols() - 1,
+              verticalSnap: 'top',
+              horizontalSnap: 'start',
+            });
             selectCell(countRows() - 2, 0);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
               start: 0,
               top: 138,
               width: 50,
-              // maxWidth: ?, // returns wrong value! it will be fixed within #9206
+              maxWidth: 285,
               height: 24,
-              // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              maxHeight: 47,
             }));
           });
 
@@ -389,16 +424,21 @@ describe('BaseEditor API', () => {
               fixedRowsBottom: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo({
+              row: countRows() - 1,
+              col: countCols() - 1,
+              verticalSnap: 'top',
+              horizontalSnap: 'start',
+            });
             selectCell(countRows() - 2, 0);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
               start: document.documentElement.scrollLeft,
               top: document.documentElement.offsetHeight - 47,
               width: 50,
-              // maxWidth: ?, // returns wrong value! it will be fixed within #9206
+              maxWidth: document.documentElement.clientWidth,
               height: 24,
-              // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              maxHeight: 62,
             }));
           });
         });
@@ -422,7 +462,7 @@ describe('BaseEditor API', () => {
               width: 50, // 48px (the default cell width closest to the left side of the table) - 8px (padding)
               maxWidth: 285,
               height: 24,
-              // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              maxHeight: 47,
             }));
           });
 
@@ -442,7 +482,7 @@ describe('BaseEditor API', () => {
               width: 50,
               maxWidth: document.documentElement.clientWidth,
               height: 24,
-              // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              maxHeight: 62,
             }));
           });
         });
@@ -458,7 +498,12 @@ describe('BaseEditor API', () => {
               fixedRowsBottom: 2,
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo({
+              row: countRows() - 1,
+              col: countCols() - 1,
+              verticalSnap: 'top',
+              horizontalSnap: 'start',
+            });
             selectCell(countRows() - 1, countCols() - 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
@@ -467,7 +512,7 @@ describe('BaseEditor API', () => {
               width: 51,
               maxWidth: 51,
               height: 24,
-              // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              maxHeight: 24,
             }));
           });
 
@@ -488,7 +533,12 @@ describe('BaseEditor API', () => {
               autoColumnSize: false
             });
 
-            scrollViewportTo(countRows() - 1, countCols() - 1);
+            scrollViewportTo({
+              row: countRows() - 1,
+              col: countCols() - 1,
+              verticalSnap: 'top',
+              horizontalSnap: 'start',
+            });
             selectCell(countRows() - 1, countCols() - 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
@@ -497,7 +547,7 @@ describe('BaseEditor API', () => {
               width: 51,
               maxWidth: 51,
               height: 24,
-              // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              maxHeight: 39, // returns wrong value! it will be fixed within #9206
             }));
           });
         });

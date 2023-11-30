@@ -60,7 +60,7 @@ export class ContextMenu extends BasePlugin {
 
   constructor(hotInstance: Core);
   isEnabled(): boolean;
-  open(event: Event): void;
+  open(position: { left: number, top: number } | Event, offset?: { above?: number, below?: number, left?: number, right?: number }): void;
   close(): void;
   executeCommand(commandName: string, ...params: any): void;
 }

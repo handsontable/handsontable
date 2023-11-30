@@ -206,7 +206,7 @@ describe('timeValidator', () => {
       setDataAtCell(1, 0);
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, void 0, 1, 'time');
+        expect(onAfterValidate).toHaveBeenCalledWith(false, undefined, 1, 'time');
         done();
       }, 100);
     });

@@ -93,6 +93,7 @@ export interface GridSettings extends Events {
   allowInvalid?: boolean;
   allowRemoveColumn?: boolean;
   allowRemoveRow?: boolean;
+  ariaTags?: boolean;
   autoColumnSize?: AutoColumnSizeSettings;
   autoRowSize?: AutoRowSizeSettings;
   autoWrapCol?: boolean;
@@ -124,6 +125,7 @@ export interface GridSettings extends Events {
   dateFormat?: string;
   datePickerConfig?: PikadayOptions;
   defaultDate?: string;
+  tabNavigation?: boolean;
   disableVisualSelection?: boolean | 'current' | 'area' | 'header' | Array<'current' | 'area' | 'header'>;
   dragToScroll?: boolean;
   dropdownMenu?: DropdownMenuSettings;
@@ -144,6 +146,7 @@ export interface GridSettings extends Events {
   hiddenColumns?: HiddenColumnsSettings;
   hiddenRows?: HiddenRowsSettings;
   invalidCellClassName?: string;
+  imeFastEdit?: boolean;
   isEmptyCol?: (this: Core, col: number) => boolean;
   isEmptyRow?: (this: Core, row: number) => boolean;
   label?: LabelOptions;
@@ -164,6 +167,7 @@ export interface GridSettings extends Events {
   minSpareCols?: number;
   minSpareRows?: number;
   multiColumnSorting?: MultiColumnSortingSettings;
+  navigableHeaders?: boolean;
   nestedHeaders?: NestedHeadersSettings;
   nestedRows?: boolean;
   noWordWrapClassName?: string;

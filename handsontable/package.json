@@ -10,7 +10,7 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "13.1.0",
+  "version": "14.0.0",
   "main": "index",
   "module": "index.mjs",
   "jsnext:main": "index.mjs",
@@ -191,12 +191,14 @@
       "./dist/**/*.+(js|css)",
       {
         ".": {
+          "types": "./index.d.ts",
           "import": "./index.mjs",
           "require": "./index.js"
         }
       },
       {
         "./base": {
+          "types": "./base.d.ts",
           "import": "./base.mjs",
           "require": "./base.js"
         }
@@ -209,6 +211,7 @@
       },
       {
         "./registry": {
+          "types": "./registry.d.ts",
           "import": "./registry.mjs",
           "require": "./registry.js"
         }

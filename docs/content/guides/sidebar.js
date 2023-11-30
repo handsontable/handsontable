@@ -118,11 +118,19 @@ const formulasItems = [
   { path: 'guides/formulas/formula-calculation' },
 ];
 
+const navigationItems = [
+  { path: 'guides/navigation/keyboard-shortcuts' },
+  { path: 'guides/navigation/custom-shortcuts' },
+  { path: 'guides/navigation/searching-values' },
+];
+
+const accessibilityItems = [
+  { path: 'guides/accessibility/accessibility' },
+];
+
 const accessoriesAndMenusItems = [
   { path: 'guides/accessories-and-menus/context-menu' },
   { path: 'guides/accessories-and-menus/undo-redo' },
-  { path: 'guides/accessories-and-menus/keyboard-shortcuts' },
-  { path: 'guides/accessories-and-menus/searching-values' },
   { path: 'guides/accessories-and-menus/icon-pack' },
   { path: 'guides/accessories-and-menus/export-to-csv' },
   // TODO { path: 'guides/accessories-and-menus/export-to-excel' },
@@ -174,6 +182,7 @@ const upgradeAndMigrationItems = [
   { path: 'guides/upgrade-and-migration/migrating-from-10.0-to-11.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-11.1-to-12.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-12.4-to-13.0' },
+  { path: 'guides/upgrade-and-migration/migrating-from-13.1-to-14.0' },
 ];
 
 module.exports = {
@@ -188,6 +197,8 @@ module.exports = {
     { title: 'Cell functions', children: cellFunctionsItems },
     { title: 'Cell types', children: cellTypesItems },
     { title: 'Formulas', children: formulasItems },
+    { title: 'Navigation', children: navigationItems },
+    { title: 'Accessibility', children: accessibilityItems },
     { title: 'Accessories and menus', children: accessoriesAndMenusItems },
     { title: 'Internationalization', children: internationalizationItems },
     { title: 'Tools and building', children: buildingAndToolingItems },

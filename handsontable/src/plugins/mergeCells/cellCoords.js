@@ -7,48 +7,55 @@ import { toSingleLine } from '../../helpers/templateLiteralTag';
  * @class MergedCellCoords
  */
 class MergedCellCoords {
+  /**
+   * The index of the topmost merged cell row.
+   *
+   * @type {number}
+   */
+  row;
+  /**
+   * The index of the leftmost column.
+   *
+   * @type {number}
+   */
+  col;
+  /**
+   * The `rowspan` value of the merged cell.
+   *
+   * @type {number}
+   */
+  rowspan;
+  /**
+   * The `colspan` value of the merged cell.
+   *
+   * @type {number}
+   */
+  colspan;
+  /**
+   * `true` only if the merged cell is bound to be removed.
+   *
+   * @type {boolean}
+   */
+  removed = false;
+  /**
+   * The CellCoords function factory.
+   *
+   * @type {Function}
+   */
+  cellCoordsFactory;
+  /**
+   * The CellRange function factory.
+   *
+   * @type {Function}
+   */
+  cellRangeFactory;
+
   constructor(row, column, rowspan, colspan, cellCoordsFactory, cellRangeFactory) {
-    /**
-     * The index of the topmost merged cell row.
-     *
-     * @type {number}
-     */
     this.row = row;
-    /**
-     * The index of the leftmost column.
-     *
-     * @type {number}
-     */
     this.col = column;
-    /**
-     * The `rowspan` value of the merged cell.
-     *
-     * @type {number}
-     */
     this.rowspan = rowspan;
-    /**
-     * The `colspan` value of the merged cell.
-     *
-     * @type {number}
-     */
     this.colspan = colspan;
-    /**
-     * `true` only if the merged cell is bound to be removed.
-     *
-     * @type {boolean}
-     */
-    this.removed = false;
-    /**
-     * The CellCoords function factory.
-     *
-     * @type {Function}
-     */
     this.cellCoordsFactory = cellCoordsFactory;
-    /**
-     * The CellRange function factory.
-     *
-     * @type {Function}
-     */
     this.cellRangeFactory = cellRangeFactory;
   }
 

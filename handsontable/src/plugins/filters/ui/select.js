@@ -1,49 +1,75 @@
-import Menu from '../../../plugins/contextMenu/menu';
+import { Menu } from '../../../plugins/contextMenu/menu';
 import { clone, extend } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
+import { setAttribute } from '../../../helpers/dom/element';
 import * as C from '../../../i18n/constants';
 import { SEPARATOR } from '../../../plugins/contextMenu/predefinedItems';
-import BaseUI from './_base';
-
-const privatePool = new WeakMap();
+import { BaseUI } from './_base';
+import { A11Y_HIDDEN, A11Y_LISTBOX } from '../../../helpers/a11y';
 
 /**
  * @private
  * @class SelectUI
  */
-class SelectUI extends BaseUI {
+export class SelectUI extends BaseUI {
   static get DEFAULTS() {
     return clone({
       className: 'htUISelect',
       wrapIt: false,
+      tabIndex: -1,
     });
   }
 
+  /**
+   * Instance of {@link Menu}.
+   *
+   * @type {Menu}
+   */
+  #menu = null;
+  /**
+   * List of available select options.
+   *
+   * @type {Array}
+   */
+  #items = [];
+  /**
+   * The reference to the BaseUI instance of the caption.
+   *
+   * @type {BaseUI}
+   */
+  #caption;
+  /**
+   * The reference to the table caption element.
+   *
+   * @type {HTMLTableCaptionElement}
+   */
+  #captionElement;
+  /**
+   * The reference to the BaseUI instance of the dropdown.
+   *
+   * @type {BaseUI}
+   */
+  #dropdown;
+
   constructor(hotInstance, options) {
     super(hotInstance, extend(SelectUI.DEFAULTS, options));
-
-    privatePool.set(this, {});
-    /**
-     * Instance of {@link Menu}.
-     *
-     * @type {Menu}
-     */
-    this.menu = null;
-    /**
-     * List of available select options.
-     *
-     * @type {Array}
-     */
-    this.items = [];
-
     this.registerHooks();
+  }
+
+  /**
+   * Gets the instance of the Menu.
+   *
+   * @returns {Menu}
+   */
+  getMenu() {
+    return this.#menu;
   }
 
   /**
    * Register all necessary hooks.
    */
   registerHooks() {
-    this.addLocalHook('click', () => this.onClick());
+    this.addLocalHook('click', () => this.#onClick());
   }
 
   /**
@@ -52,10 +78,10 @@ class SelectUI extends BaseUI {
    * @param {Array} items Array of objects with required keys `key` and `name`.
    */
   setItems(items) {
-    this.items = this.translateNames(items);
+    this.#items = this.translateNames(items);
 
-    if (this.menu) {
-      this.menu.setMenuItems(this.items);
+    if (this.#menu) {
+      this.#menu.setMenuItems(this.#items);
     }
   }
 
@@ -78,30 +104,40 @@ class SelectUI extends BaseUI {
    */
   build() {
     super.build();
-    this.menu = new Menu(this.hot, {
+    this.#menu = new Menu(this.hot, {
       className: 'htSelectUI htFiltersConditionsMenu',
       keepInViewport: false,
       standalone: true,
       container: this.options.menuContainer,
     });
-    this.menu.setMenuItems(this.items);
+    this.#menu.setMenuItems(this.#items);
 
     const caption = new BaseUI(this.hot, {
       className: 'htUISelectCaption'
     });
+
     const dropdown = new BaseUI(this.hot, {
       className: 'htUISelectDropdown'
     });
-    const priv = privatePool.get(this);
 
-    priv.caption = caption;
-    priv.captionElement = caption.element;
-    priv.dropdown = dropdown;
+    this.#caption = caption;
+    this.#captionElement = caption.element;
+    this.#dropdown = dropdown;
+
+    if (this.hot.getSettings().ariaTags) {
+      setAttribute(dropdown.element, [
+        A11Y_HIDDEN()
+      ]);
+
+      setAttribute(this._element, [
+        A11Y_LISTBOX()
+      ]);
+    }
 
     arrayEach([caption, dropdown], element => this._element.appendChild(element.element));
 
-    this.menu.addLocalHook('select', command => this.onMenuSelect(command));
-    this.menu.addLocalHook('afterClose', () => this.onMenuClosed());
+    this.#menu.addLocalHook('select', command => this.#onMenuSelect(command));
+    this.#menu.addLocalHook('afterClose', () => this.#onMenuClosed());
     this.update();
   }
 
@@ -119,10 +155,10 @@ class SelectUI extends BaseUI {
       conditionName = this.options.value.name;
 
     } else {
-      conditionName = this.menu.hot.getTranslatedPhrase(C.FILTERS_CONDITIONS_NONE);
+      conditionName = this.#menu.hot.getTranslatedPhrase(C.FILTERS_CONDITIONS_NONE);
     }
 
-    privatePool.get(this).captionElement.textContent = conditionName;
+    this.#captionElement.textContent = conditionName;
     super.update();
   }
 
@@ -132,14 +168,25 @@ class SelectUI extends BaseUI {
   openOptions() {
     const rect = this.element.getBoundingClientRect();
 
-    if (this.menu) {
-      this.menu.open();
-      this.menu.setPosition({
+    if (this.#menu) {
+      this.#menu.open();
+      this.#menu.setPosition({
         left: this.hot.isLtr() ? rect.left - 5 : rect.left - 31,
         top: rect.top - 1,
         width: rect.width,
-        height: rect.height
+        height: rect.height,
       });
+      this.#menu.getNavigator().toFirstItem();
+      this.#menu.getKeyboardShortcutsCtrl().addCustomShortcuts([{
+        keys: [['Tab'], ['Shift', 'Tab']],
+        callback: (event) => {
+          this.closeOptions();
+          this.runLocalHooks('tabKeydown', event);
+        },
+      }, {
+        keys: [['Control/Meta', 'A']],
+        callback: () => false,
+      }]);
     }
   }
 
@@ -147,18 +194,26 @@ class SelectUI extends BaseUI {
    * Close select dropdown menu.
    */
   closeOptions() {
-    if (this.menu) {
-      this.menu.close();
+    if (this.#menu) {
+      this.#menu.close();
+    }
+  }
+
+  /**
+   * Focus element.
+   */
+  focus() {
+    if (this.isBuilt()) {
+      this.element.focus();
     }
   }
 
   /**
    * On menu selected listener.
    *
-   * @private
    * @param {object} command Selected item.
    */
-  onMenuSelect(command) {
+  #onMenuSelect(command) {
     if (command.name !== SEPARATOR) {
       this.options.value = command;
       this.update();
@@ -168,10 +223,8 @@ class SelectUI extends BaseUI {
 
   /**
    * On menu closed listener.
-   *
-   * @private
    */
-  onMenuClosed() {
+  #onMenuClosed() {
     this.runLocalHooks('afterClose');
   }
 
@@ -180,7 +233,7 @@ class SelectUI extends BaseUI {
    *
    * @private
    */
-  onClick() {
+  #onClick() {
     this.openOptions();
   }
 
@@ -188,21 +241,18 @@ class SelectUI extends BaseUI {
    * Destroy instance.
    */
   destroy() {
-    if (this.menu) {
-      this.menu.destroy();
-      this.menu = null;
+    if (this.#menu) {
+      this.#menu.destroy();
+      this.#menu = null;
     }
-    const { caption, dropdown } = privatePool.get(this);
 
-    if (caption) {
-      caption.destroy();
+    if (this.#caption) {
+      this.#caption.destroy();
     }
-    if (dropdown) {
-      dropdown.destroy();
+    if (this.#dropdown) {
+      this.#dropdown.destroy();
     }
 
     super.destroy();
   }
 }
-
-export default SelectUI;

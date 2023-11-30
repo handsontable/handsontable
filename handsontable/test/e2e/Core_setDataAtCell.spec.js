@@ -272,7 +272,7 @@ describe('Core_setDataAtCell', () => {
 
     setDataAtRowProp(0, 'name', 'foo bar', 'customSource');
 
-    expect(_changes).toEqual([[0, 'name', void 0, 'foo bar']]);
+    expect(_changes).toEqual([[0, 'name', undefined, 'foo bar']]);
     expect(_source).toBe('customSource');
     expect(getDataAtCell(0, 0)).toBe('foo bar');
   });

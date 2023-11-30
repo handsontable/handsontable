@@ -11,7 +11,7 @@ describe('Filters condition (`false`)', () => {
     expect(condition(data('-5'))).toBe(false);
     expect(condition(data(null))).toBe(false);
     expect(condition(data('null'))).toBe(false);
-    expect(condition(data(void 0))).toBe(false);
+    expect(condition(data(undefined))).toBe(false);
     expect(condition(data(undefined))).toBe(false);
     expect(condition(data('undefined'))).toBe(false);
     expect(condition(data(''))).toBe(false);

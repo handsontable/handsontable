@@ -582,6 +582,37 @@ const REGISTERED_HOOKS = [
   'afterRowSequenceChange',
 
   /**
+   * Fired before the vertical viewport scroll. Triggered by the [`scrollViewportTo()`](@/api/core.md#scrollviewportto)
+   * method or table internals.
+   *
+   * @since 14.0.0
+   * @event Hooks#beforeViewportScrollVertically
+   * @param {number} visualRow Visual row index.
+   * @returns {number} Returns modified row index (or the same as passed in the method argument) to which the viewport will be scrolled.
+   */
+  'beforeViewportScrollVertically',
+
+  /**
+   * Fired before the horizontal viewport scroll. Triggered by the [`scrollViewportTo()`](@/api/core.md#scrollviewportto)
+   * method or table internals.
+   *
+   * @since 14.0.0
+   * @event Hooks#beforeViewportScrollHorizontally
+   * @param {number} visualColumn Visual column index.
+   * @returns {number} Returns modified column index (or the same as passed in the method argument) to which the viewport will be scrolled.
+   */
+  'beforeViewportScrollHorizontally',
+
+  /**
+   * Fired before the vertical or horizontal viewport scroll. Triggered by the [`scrollViewportTo()`](@/api/core.md#scrollviewportto)
+   * method or table internals.
+   *
+   * @since 14.0.0
+   * @event Hooks#beforeViewportScroll
+   */
+  'beforeViewportScroll',
+
+  /**
    * Fired after the horizontal scroll event.
    *
    * @event Hooks#afterScrollHorizontally
@@ -594,6 +625,14 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterScrollVertically
    */
   'afterScrollVertically',
+
+  /**
+   * Fired after the vertical or horizontal scroll event.
+   *
+   * @since 14.0.0
+   * @event Hooks#afterScroll
+   */
+  'afterScroll',
 
   /**
    * Fired after one or more cells are selected (e.g. During mouse move).
@@ -701,6 +740,98 @@ const REGISTERED_HOOKS = [
    * @param {number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    */
   'afterSelectionEndByProp',
+
+  /**
+   * Fired before one or more columns are selected (e.g. During mouse header click or {@link Core#selectColumns} API call).
+   *
+   * @since 14.0.0
+   * @event Hooks#beforeSelectColumns
+   * @param {CellCoords} from Selection start coords object.
+   * @param {CellCoords} to Selection end coords object.
+   * @param {CellCoords} highlight Selection cell focus coords object.
+   * @example
+   * ::: only-for javascript
+   * ```js
+   * new Handsontable(element, {
+   *   beforeSelectColumns: (from, to, highlight) => {
+   *     // Extend the column selection by one column left and one column right.
+   *     from.col = Math.max(from.col - 1, 0);
+   *     to.col = Math.min(to.col + 1, this.countCols() - 1);
+   *   }
+   * })
+   * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   beforeSelectColumns={(from, to, highlight) => {
+   *     // Extend the column selection by one column left and one column right.
+   *     from.col = Math.max(from.col - 1, 0);
+   *     to.col = Math.min(to.col + 1, this.countCols() - 1);
+   *   }}
+   * />
+   * ```
+   * :::
+   */
+  'beforeSelectColumns',
+
+  /**
+   * Fired after one or more columns are selected (e.g. During mouse header click or {@link Core#selectColumns} API call).
+   *
+   * @since 14.0.0
+   * @event Hooks#afterSelectColumns
+   * @param {CellCoords} from Selection start coords object.
+   * @param {CellCoords} to Selection end coords object.
+   * @param {CellCoords} highlight Selection cell focus coords object.
+   */
+  'afterSelectColumns',
+
+  /**
+   * Fired before one or more rows are selected (e.g. During mouse header click or {@link Core#selectRows} API call).
+   *
+   * @since 14.0.0
+   * @event Hooks#beforeSelectRows
+   * @param {CellCoords} from Selection start coords object.
+   * @param {CellCoords} to Selection end coords object.
+   * @param {CellCoords} highlight Selection cell focus coords object.
+   * @example
+   * ::: only-for javascript
+   * ```js
+   * new Handsontable(element, {
+   *   beforeSelectRows: (from, to, highlight) => {
+   *     // Extend the row selection by one row up and one row bottom more.
+   *     from.row = Math.max(from.row - 1, 0);
+   *     to.row = Math.min(to.row + 1, this.countRows() - 1);
+   *   }
+   * })
+   * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   beforeSelectRows={(from, to, highlight) => {
+   *     // Extend the row selection by one row up and one row bottom more.
+   *     from.row = Math.max(from.row - 1, 0);
+   *     to.row = Math.min(to.row + 1, this.countRows() - 1);
+   *   }}
+   * />
+   * ```
+   * :::
+   */
+  'beforeSelectRows',
+
+  /**
+   * Fired after one or more rows are selected (e.g. During mouse header click or {@link Core#selectRows} API call).
+   *
+   * @since 14.0.0
+   * @event Hooks#afterSelectRows
+   * @param {CellCoords} from Selection start coords object.
+   * @param {CellCoords} to Selection end coords object.
+   * @param {CellCoords} highlight Selection cell focus coords object.
+   */
+  'afterSelectRows',
 
   /**
    * Fired after cell meta is changed.
@@ -1158,6 +1289,40 @@ const REGISTERED_HOOKS = [
   'afterRender',
 
   /**
+   * When the focus position is moved to the next or previous row caused by the {@link Options#autoWrapRow} option
+   * the hook is triggered.
+   *
+   * @since 14.0.0
+   * @event Hooks#beforeRowWrap
+   * @param {boolean} isWrapEnabled Tells whether the row wrapping is going to happen.
+   * There may be situations where the option does not work even though it is enabled.
+   * This is due to the priority of other options that may block the feature.
+   * For example, when the {@link Options#minSpareCols} is defined, the {@link Options#autoWrapRow} option is not checked.
+   * Thus, row wrapping is off.
+   * @param {CellCoords} newCoords The new focus position. It is an object with keys `row` and `col`, where a value of `-1` indicates a header.
+   * @param {boolean} isFlipped `true` if the row index was flipped, `false` otherwise.
+   * Flipped index means that the user reached the last row and the focus is moved to the first row or vice versa.
+   */
+  'beforeRowWrap',
+
+  /**
+   * When the focus position is moved to the next or previous column caused by the {@link Options#autoWrapCol} option
+   * the hook is triggered.
+   *
+   * @since 14.0.0
+   * @event Hooks#beforeColumnWrap
+   * @param {boolean} isWrapEnabled Tells whether the column wrapping is going to happen.
+   * There may be situations where the option does not work even though it is enabled.
+   * This is due to the priority of other options that may block the feature.
+   * For example, when the {@link Options#minSpareRows} is defined, the {@link Options#autoWrapCol} option is not checked.
+   * Thus, column wrapping is off.
+   * @param {CellCoords} newCoords The new focus position. It is an object with keys `row` and `col`, where a value of `-1` indicates a header.
+   * @param {boolean} isFlipped `true` if the column index was flipped, `false` otherwise.
+   * Flipped index means that the user reached the last column and the focus is moved to the first column or vice versa.
+   */
+  'beforeColumnWrap',
+
+  /**
    * Fired before cell meta is changed.
    *
    * @event Hooks#beforeSetCellMeta
@@ -1193,6 +1358,16 @@ const REGISTERED_HOOKS = [
    * @param {CellCoords} coords CellCoords instance.
    */
   'beforeSetRangeEnd',
+
+  /**
+   * Fired before applying selection coordinates to the renderable coordinates for Walkontable (rendering engine).
+   * It occurs even when cell coordinates remain unchanged and activates during cell selection and drag selection.
+   * The behavior of Shift+Tab differs from Arrow Left when there's no further movement possible.
+   *
+   * @since 14.0.0
+   * @event Hooks#beforeSelectionHighlightSet
+   */
+  'beforeSelectionHighlightSet',
 
   /**
    * Fired before the logic of handling a touch scroll, when user started scrolling on a touch-enabled device.
@@ -1258,6 +1433,18 @@ const REGISTERED_HOOKS = [
   'modifyColWidth',
 
   /**
+   * Fired when focusing a cell or a header element. Allows replacing the element to be focused by returning a
+   * different HTML element.
+   *
+   * @since 14.0.0
+   * @event Hooks#modifyFocusedElement
+   * @param {number} row Row index.
+   * @param {number} column Column index.
+   * @param {HTMLElement|undefined} focusedElement The element to be focused. `null` for focusedElement is intended when focused cell is hidden.
+   */
+  'modifyFocusedElement',
+
+  /**
    * Fired when a row header index is about to be modified by a callback function.
    *
    * @event Hooks#modifyRowHeader
@@ -1319,6 +1506,17 @@ const REGISTERED_HOOKS = [
    * @returns {undefined|number[]}
    */
   'modifyGetCellCoords',
+
+  /**
+   * Used to modify the cell coordinates when the table is activated (going into the listen mode).
+   *
+   * @event Hooks#modifyFocusOnTabNavigation
+   * @since 14.0.0
+   * @param {'from_above' | 'from_below'} tabActivationDir The browsers Tab navigation direction. Depending on
+   * whether the user activated the table from the element above or below, another cell can be selected.
+   * @param {CellCoords} visualCoords The coords that will be used to select a cell.
+   */
+  'modifyFocusOnTabNavigation',
 
   /**
    * Allows modify the visual row index that is used to retrieve the row header element (TH) before it's
@@ -2574,12 +2772,19 @@ const REMOVED_HOOKS = new Map([
  * @type {Map<string, string>}
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
-const DEPRECATED_HOOKS = new Map([]);
+const DEPRECATED_HOOKS = new Map([
+  []
+]);
 
 class Hooks {
   static getSingleton() {
     return getGlobalSingleton();
   }
+
+  /**
+   * @type {object}
+   */
+  globalBucket;
 
   /**
    *
@@ -2768,7 +2973,7 @@ class Hooks {
   has(key, context = null) {
     const bucket = this.getBucket(context);
 
-    return !!(bucket[key] !== void 0 && bucket[key].length);
+    return !!(bucket[key] !== undefined && bucket[key].length);
   }
 
   /**
@@ -2808,7 +3013,7 @@ class Hooks {
 
           const res = fastCall(globalHandlers[index], context, p1, p2, p3, p4, p5, p6);
 
-          if (res !== void 0) {
+          if (res !== undefined) {
             // eslint-disable-next-line no-param-reassign
             p1 = res;
           }
@@ -2836,7 +3041,7 @@ class Hooks {
 
           const res = fastCall(localHandlers[index], context, p1, p2, p3, p4, p5, p6);
 
-          if (res !== void 0) {
+          if (res !== undefined) {
             // eslint-disable-next-line no-param-reassign
             p1 = res;
           }

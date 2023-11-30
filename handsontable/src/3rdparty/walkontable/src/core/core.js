@@ -4,6 +4,7 @@ import Settings from '../settings';
 import MasterTable from '../table/master';
 import Viewport from '../viewport';
 import CoreAbstract from './_base';
+import { SelectionManager } from '../selection/manager';
 import { objectEach } from '../../../../helpers/object';
 import { addClass, removeClass } from '../../../../helpers/dom/element';
 
@@ -24,9 +25,9 @@ export default class Walkontable extends CoreAbstract {
     this.wtViewport = new Viewport(
       this.getViewportDao(), this.domBindings, this.wtSettings, this.eventManager, this.wtTable
     );
-    this.selections = this.wtSettings.getSetting('selections');
+    this.selectionManager = new SelectionManager(this.wtSettings.getSetting('selections'));
     this.wtEvent = new Event(
-      facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable, this.selections
+      facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable, this.selectionManager
     );
     this.wtOverlays = new Overlays(
       // TODO create DAO and remove reference to the Walkontable instance.

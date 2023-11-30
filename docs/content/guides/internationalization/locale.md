@@ -26,7 +26,7 @@ Configure Handsontable's locale settings, to properly handle locale-related data
 
 Handsontable's locale settings affect certain actions performed on your data, such as:
 - [Filtering](@/guides/columns/column-filter.md)
-- [Searching](@/guides/accessories-and-menus/searching-values.md)
+- [Searching](@/guides/navigation/searching-values.md)
 - Comparing locale-based data
 
 Without a properly-set locale, the above operations can work incorrectly.

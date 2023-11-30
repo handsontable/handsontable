@@ -13,7 +13,7 @@ searchCategory: Guides
 
 # Merge cells
 
-Merge adjacent cells, using the <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> shortcut or the context menu. Control merged cells, using Handsontable's API.
+Merge adjacent cells, using the <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> shortcut or the context menu. Control merged cells, using Handsontable's API.
 
 [[toc]]
 
@@ -132,7 +132,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 | Windows                                | macOS                                  | Action                              |  Excel  | Sheets  |
 | -------------------------------------- | -------------------------------------- | ----------------------------------- | :-----: | :-----: |
-| <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> | <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> | Merge or unmerge the selected cells | &cross; | &cross; |
+| <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | Merge or unmerge the selected cells | &cross; | &cross; |
 
 ## Related API reference
 

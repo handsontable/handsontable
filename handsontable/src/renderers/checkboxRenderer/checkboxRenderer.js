@@ -1,11 +1,13 @@
 import { baseRenderer } from '../baseRenderer';
 import EventManager from '../../eventManager';
-import { empty, addClass } from '../../helpers/dom/element';
+import { empty, addClass, setAttribute } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
-import { SHORTCUTS_GROUP_EDITOR } from '../../editorManager';
+import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
+import Hooks from '../../pluginHooks';
+import { A11Y_CHECKBOX, A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
+import { CHECKBOX_CHECKED, CHECKBOX_UNCHECKED } from '../../i18n/constants';
 
 import './checkboxRenderer.css';
-import Hooks from '../../pluginHooks';
 
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap();
@@ -46,7 +48,7 @@ Hooks.getSingleton().add('modifyAutoColumnSizeSeed', function(bundleSeed, cellMe
  * Checkbox renderer.
  *
  * @private
- * @param {Core} instance The Handsontable instance.
+ * @param {Core} hotInstance The Handsontable instance.
  * @param {HTMLTableCellElement} TD The rendered cell element.
  * @param {number} row The visual row index.
  * @param {number} col The visual column index.
@@ -54,11 +56,12 @@ Hooks.getSingleton().add('modifyAutoColumnSizeSeed', function(bundleSeed, cellMe
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-export function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  const { rootDocument } = instance;
+export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
+  const { rootDocument } = hotInstance;
+  const ariaEnabled = hotInstance.getSettings().ariaTags;
 
-  baseRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
-  registerEvents(instance);
+  baseRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
+  registerEvents(hotInstance);
 
   let input = createInput(rootDocument);
   const labelOptions = cellProperties.label;
@@ -92,8 +95,21 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
     badValue = true;
   }
 
-  input.setAttribute(ATTR_ROW, row);
-  input.setAttribute(ATTR_COLUMN, col);
+  setAttribute(input, [
+    [ATTR_ROW, row],
+    [ATTR_COLUMN, col],
+  ]);
+
+  if (ariaEnabled) {
+    setAttribute(input, [
+      A11Y_LABEL(input.checked ?
+        hotInstance.getTranslatedPhrase(CHECKBOX_CHECKED) :
+        hotInstance.getTranslatedPhrase(CHECKBOX_UNCHECKED)
+      ),
+      A11Y_CHECKED(input.checked),
+      A11Y_CHECKBOX(),
+    ]);
+  }
 
   if (!badValue && labelOptions) {
     let labelText = '';
@@ -103,7 +119,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
         labelOptions.value.call(this, row, col, prop, value) : labelOptions.value;
 
     } else if (labelOptions.property) {
-      const labelValue = instance.getDataAtRowProp(row, labelOptions.property);
+      const labelValue = hotInstance.getDataAtRowProp(row, labelOptions.property);
 
       labelText = labelValue !== null ? labelValue : '';
     }
@@ -139,8 +155,8 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
     TD.appendChild(rootDocument.createTextNode('#bad-value#'));
   }
 
-  if (!isListeningKeyDownEvent.has(instance)) {
-    isListeningKeyDownEvent.set(instance, true);
+  if (!isListeningKeyDownEvent.has(hotInstance)) {
+    isListeningKeyDownEvent.set(hotInstance, true);
     registerShortcuts();
   }
 
@@ -150,7 +166,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
    * @private
    */
   function registerShortcuts() {
-    const shortcutManager = instance.getShortcutManager();
+    const shortcutManager = hotInstance.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
     const config = { group: SHORTCUTS_GROUP };
 
@@ -168,7 +184,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      runOnlyIf: () => instance.getSettings().enterBeginsEditing
+      runOnlyIf: () => hotInstance.getSettings().enterBeginsEditing
     }, {
       keys: [['delete'], ['backspace']],
       callback: () => {
@@ -188,7 +204,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
    * @param {boolean} [uncheckCheckbox=false] The new "checked" state for the checkbox elements.
    */
   function changeSelectedCheckboxesState(uncheckCheckbox = false) {
-    const selRange = instance.getSelectedRange();
+    const selRange = hotInstance.getSelectedRange();
 
     if (!selRange) {
       return;
@@ -201,7 +217,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
 
       for (let visualRow = startRow; visualRow <= endRow; visualRow += 1) {
         for (let visualColumn = startColumn; visualColumn <= endColumn; visualColumn += 1) {
-          const cachedCellProperties = instance.getCellMeta(visualRow, visualColumn);
+          const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
 
           if (cachedCellProperties.type !== 'checkbox') {
             return;
@@ -219,13 +235,13 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
             cachedCellProperties.uncheckedTemplate = false;
           }
 
-          const dataAtCell = instance.getDataAtCell(visualRow, visualColumn);
+          const dataAtCell = hotInstance.getDataAtCell(visualRow, visualColumn);
 
           if (uncheckCheckbox === false) {
             if ([cachedCellProperties.checkedTemplate, cachedCellProperties.checkedTemplate.toString()].includes(dataAtCell)) { // eslint-disable-line max-len
               changes.push([visualRow, visualColumn, cachedCellProperties.uncheckedTemplate]);
 
-            } else if ([cachedCellProperties.uncheckedTemplate, cachedCellProperties.uncheckedTemplate.toString(), null, void 0].includes(dataAtCell)) { // eslint-disable-line max-len
+            } else if ([cachedCellProperties.uncheckedTemplate, cachedCellProperties.uncheckedTemplate.toString(), null, undefined].includes(dataAtCell)) { // eslint-disable-line max-len
               changes.push([visualRow, visualColumn, cachedCellProperties.checkedTemplate]);
             }
 
@@ -236,7 +252,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
       }
 
       if (changes.length > 0) {
-        instance.setDataAtCell(changes);
+        hotInstance.setDataAtCell(changes);
       }
     }
   }
@@ -248,7 +264,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
    * @private
    */
   function areSelectedCheckboxCells() {
-    const selRange = instance.getSelectedRange();
+    const selRange = hotInstance.getSelectedRange();
 
     if (!selRange) {
       return;
@@ -260,15 +276,15 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
 
       for (let visualRow = topLeft.row; visualRow <= bottomRight.row; visualRow++) {
         for (let visualColumn = topLeft.col; visualColumn <= bottomRight.col; visualColumn++) {
-          const cachedCellProperties = instance.getCellMeta(visualRow, visualColumn);
+          const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
 
           if (cachedCellProperties.type !== 'checkbox') {
             return false;
           }
 
-          const cell = instance.getCell(visualRow, visualColumn);
+          const cell = hotInstance.getCell(visualRow, visualColumn);
 
-          if (cell === null || cell === void 0) {
+          if (cell === null || cell === undefined) {
             return true;
 
           } else {
@@ -323,7 +339,6 @@ function createInput(rootDocument) {
 
   input.className = 'htCheckboxRendererInput';
   input.type = 'checkbox';
-  input.setAttribute('autocomplete', 'off');
   input.setAttribute('tabindex', '-1');
 
   return input.cloneNode(false);
@@ -419,9 +434,9 @@ function onChange(event, instance) {
     let newCheckboxValue = null;
 
     if (event.target.checked) {
-      newCheckboxValue = cellProperties.uncheckedTemplate === void 0 ? true : cellProperties.checkedTemplate;
+      newCheckboxValue = cellProperties.uncheckedTemplate === undefined ? true : cellProperties.checkedTemplate;
     } else {
-      newCheckboxValue = cellProperties.uncheckedTemplate === void 0 ? false : cellProperties.uncheckedTemplate;
+      newCheckboxValue = cellProperties.uncheckedTemplate === undefined ? false : cellProperties.uncheckedTemplate;
     }
 
     instance.setDataAtCell(row, col, newCheckboxValue);

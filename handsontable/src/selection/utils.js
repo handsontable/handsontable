@@ -66,7 +66,9 @@ export function detectSelectionType(selectionRanges, _callSymbol = rootCall) {
  * Factory function designed for normalization data schema from different data structures of the selection ranges.
  *
  * @param {number} type Selection type which will be processed.
- * @param {object} [options] The normalization options.
+ * @param {object} options The normalization options.
+ * @param {function(number, number): CellCoords} options.createCellCoords The factory function that returns an instance of the `CellCoords` class.
+ * @param {function(CellCoords, CellCoords, CellCoords): CellRange} options.createCellRange The factory function that returns an instance of the `CellRange` class.
  * @param {boolean} [options.keepDirection=false] If `true`, the coordinates which contain the direction of the
  *                                                selected cells won't be changed. Otherwise, the selection will be
  *                                                normalized to values starting from top-left to bottom-right.
@@ -74,7 +76,12 @@ export function detectSelectionType(selectionRanges, _callSymbol = rootCall) {
  *                                       defined as props should be normalized to the numeric values.
  * @returns {number[]} Returns normalized data about selected range as an array (`[rowStart, columnStart, rowEnd, columnEnd]`).
  */
-export function normalizeSelectionFactory(type, { keepDirection = false, propToCol } = {}) {
+export function normalizeSelectionFactory(type, {
+  createCellCoords,
+  createCellRange,
+  keepDirection = false,
+  propToCol,
+} = {}) {
   if (!SELECTION_TYPES.includes(type)) {
     throw new Error('Unsupported selection ranges schema type was provided.');
   }
@@ -114,7 +121,10 @@ export function normalizeSelectionFactory(type, { keepDirection = false, propToC
       columnEnd = Math.max(origColumnStart, origColumnEnd);
     }
 
-    return [rowStart, columnStart, rowEnd, columnEnd];
+    const from = createCellCoords(rowStart, columnStart);
+    const to = createCellCoords(rowEnd, columnEnd);
+
+    return createCellRange(from, from, to);
   };
 }
 
@@ -124,27 +134,30 @@ export function normalizeSelectionFactory(type, { keepDirection = false, propToC
  * contains an array of arrays. The single item contains at index 0 visual column index from the selection was
  * started and at index 1 distance as a count of selected columns.
  *
- * @param {Array[]|CellRange[]} selectionRanges Selection ranges produced by Handsontable.
+ * @param {Core} hotInstance The Handsontable instance.
  * @returns {Array[]} Returns an array of arrays with ranges defines in that schema:
  *                   `[[visualColumnStart, distance], [visualColumnStart, distance], ...]`.
  *                   The column distances are always created starting from the left (zero index) to the
  *                   right (the latest column index).
  */
-export function transformSelectionToColumnDistance(selectionRanges) {
-  const selectionType = detectSelectionType(selectionRanges);
+export function transformSelectionToColumnDistance(hotInstance) {
+  const selectionType = detectSelectionType(hotInstance.getSelected());
 
   if (selectionType === SELECTION_TYPE_UNRECOGNIZED || selectionType === SELECTION_TYPE_EMPTY) {
     return [];
   }
 
-  const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType);
+  const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType, {
+    createCellCoords: hotInstance._createCellCoords.bind(hotInstance),
+    createCellRange: hotInstance._createCellRange.bind(hotInstance),
+  });
   const unorderedIndexes = new Set();
 
   // Iterate through all ranges and collect all column indexes which are not saved yet.
-  arrayEach(selectionRanges, (selection) => {
-    const [, columnStart,, columnEnd] = selectionSchemaNormalizer(selection);
-    const columnNonHeaderStart = Math.max(columnStart, 0);
-    const amount = columnEnd - columnNonHeaderStart + 1;
+  arrayEach(hotInstance.getSelected(), (selection) => {
+    const { from, to } = selectionSchemaNormalizer(selection);
+    const columnNonHeaderStart = Math.max(from.col, 0);
+    const amount = to.col - columnNonHeaderStart + 1;
 
     arrayEach(Array.from(new Array(amount), (_, i) => columnNonHeaderStart + i), (index) => {
       if (!unorderedIndexes.has(index)) {
@@ -175,27 +188,30 @@ export function transformSelectionToColumnDistance(selectionRanges) {
  * contains an array of arrays. The single item contains at index 0 visual column index from the selection was
  * started and at index 1 distance as a count of selected columns.
  *
- * @param {Array[]|CellRange[]} selectionRanges Selection ranges produced by Handsontable.
+ * @param {Core} hotInstance The Handsontable instance.
  * @returns {Array[]} Returns an array of arrays with ranges defines in that schema:
  *                   `[[visualColumnStart, distance], [visualColumnStart, distance], ...]`.
  *                   The column distances are always created starting from the left (zero index) to the
  *                   right (the latest column index).
  */
-export function transformSelectionToRowDistance(selectionRanges) {
-  const selectionType = detectSelectionType(selectionRanges);
+export function transformSelectionToRowDistance(hotInstance) {
+  const selectionType = detectSelectionType(hotInstance.getSelected());
 
   if (selectionType === SELECTION_TYPE_UNRECOGNIZED || selectionType === SELECTION_TYPE_EMPTY) {
     return [];
   }
 
-  const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType);
+  const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType, {
+    createCellCoords: hotInstance._createCellCoords.bind(hotInstance),
+    createCellRange: hotInstance._createCellRange.bind(hotInstance),
+  });
   const unorderedIndexes = new Set();
 
   // Iterate through all ranges and collect all column indexes which are not saved yet.
-  arrayEach(selectionRanges, (selection) => {
-    const [rowStart,, rowEnd] = selectionSchemaNormalizer(selection);
-    const rowNonHeaderStart = Math.max(rowStart, 0);
-    const amount = rowEnd - rowNonHeaderStart + 1;
+  arrayEach(hotInstance.getSelected(), (selection) => {
+    const { from, to } = selectionSchemaNormalizer(selection);
+    const rowNonHeaderStart = Math.max(from.row, 0);
+    const amount = to.row - rowNonHeaderStart + 1;
 
     arrayEach(Array.from(new Array(amount), (_, i) => rowNonHeaderStart + i), (index) => {
       if (!unorderedIndexes.has(index)) {
@@ -218,16 +234,4 @@ export function transformSelectionToRowDistance(selectionRanges) {
   }, []);
 
   return normalizedRowRanges;
-}
-
-/**
- * Check if passed value can be treated as valid cell coordinate. The second argument is
- * used to check if the value doesn't exceed the defined max table rows/columns count.
- *
- * @param {number} coord The coordinate to validate (row index or column index).
- * @param {number} maxTableItemsCount The value that declares the maximum coordinate that is still validatable.
- * @returns {boolean}
- */
-export function isValidCoord(coord, maxTableItemsCount = Infinity) {
-  return typeof coord === 'number' && coord >= 0 && coord < maxTableItemsCount;
 }

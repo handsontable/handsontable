@@ -5,18 +5,21 @@ import { arrayEach } from '../../helpers/array';
  * @class DataFilter
  */
 class DataFilter {
+  /**
+   * Reference to the instance of {ConditionCollection}.
+   *
+   * @type {ConditionCollection}
+   */
+  conditionCollection;
+  /**
+   * Function which provide source data factory for specified column.
+   *
+   * @type {Function}
+   */
+  columnDataFactory;
+
   constructor(conditionCollection, columnDataFactory = () => []) {
-    /**
-     * Reference to the instance of {ConditionCollection}.
-     *
-     * @type {ConditionCollection}
-     */
     this.conditionCollection = conditionCollection;
-    /**
-     * Function which provide source data factory for specified column.
-     *
-     * @type {Function}
-     */
     this.columnDataFactory = columnDataFactory;
   }
 
@@ -52,7 +55,7 @@ class DataFilter {
     const filteredData = [];
 
     arrayEach(dataSource, (dataRow) => {
-      if (dataRow !== void 0 && this.conditionCollection.isMatch(dataRow, column)) {
+      if (dataRow !== undefined && this.conditionCollection.isMatch(dataRow, column)) {
         filteredData.push(dataRow);
       }
     });
@@ -74,7 +77,7 @@ class DataFilter {
     arrayEach(needles, (needleRow) => {
       const row = needleRow.meta.visualRow;
 
-      if (data[row] !== void 0) {
+      if (data[row] !== undefined) {
         result[row] = data[row];
       }
     });
