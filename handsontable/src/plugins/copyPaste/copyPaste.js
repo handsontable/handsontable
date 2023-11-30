@@ -181,6 +181,12 @@ export class CopyPaste extends BasePlugin {
     countColumnHeaders: () => this.hot.view.getColumnHeadersCount(),
   });
   /**
+   * Flag that indicates if the viewport scroll should be prevented after pasting the data.
+   *
+   * @type {boolean}
+   */
+  #preventViewportScrollOnPaste = false;
+  /**
    * Ranges of the cells coordinates, which should be used to copy/cut/paste actions.
    *
    * @private
@@ -220,6 +226,7 @@ export class CopyPaste extends BasePlugin {
     }
 
     this.addHook('afterContextMenuDefaultOptions', options => this.#onAfterContextMenuDefaultOptions(options));
+    this.addHook('afterSelection', (...args) => this.#onAfterSelection(...args));
     this.addHook('afterSelectionEnd', () => this.#onAfterSelectionEnd());
 
     this.eventManager.addEventListener(this.hot.rootDocument, 'copy', (...args) => this.onCopy(...args));
@@ -561,6 +568,7 @@ export class CopyPaste extends BasePlugin {
       newRows.push(newRow);
     }
 
+    this.#preventViewportScrollOnPaste = true;
     this.hot.populateFromArray(startRow, startColumn, newRows, undefined, undefined, 'CopyPaste.paste', this.pasteMode);
 
     return [startRow, startColumn, lastVisualRow, lastVisualColumn];
@@ -766,6 +774,17 @@ export class CopyPaste extends BasePlugin {
     }
 
     options.items.push(cutItem(this));
+  }
+
+  /**
+   * Disables the viewport scroll after pasting the data.
+   */
+  #onAfterSelection(fromRow, fromColumn, toRow, toColumn, preventScrolling) {
+    if (this.#preventViewportScrollOnPaste) {
+      preventScrolling.value = true;
+    }
+
+    this.#preventViewportScrollOnPaste = false;
   }
 
   /**
