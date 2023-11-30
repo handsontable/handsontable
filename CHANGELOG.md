@@ -71,7 +71,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 For more information on Handsontable 14.0.0, see:
 
-- [Blog post (14.0.0)](https://handsontable.com/blog/handsontable-14-0-0-prioritizing-accessibility)
+- [Blog post (14.0.0)](https://handsontable.com/blog/whats-new-in-handsontable-14-improvements-to-accessibility)
 - [Documentation (14.0)](https://handsontable.com/docs/14.0)
 - [Release notes (14.0.0)](https://handsontable.com/docs/release-notes/#_14-0-0)
 - [Migration guide (13.1 → 14.0)](https://handsontable.com/docs/migration-from-13.1.0-to-14.0/)
