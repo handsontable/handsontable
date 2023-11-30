@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added support for collapsing/expanding columns using a keyboard shortcut.",
-  "type": "added",
-  "issueOrPR": 10404,
-  "breaking": false,
-  "framework": "none"
-}

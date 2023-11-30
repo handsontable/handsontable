@@ -290,7 +290,7 @@ ReactDOM.render(<App />, document.getElementById('exampleFilterBasicDemo'));
 To enable the filtering interface for all columns, you need to do two things:
 
 1. Set the `filters` option to `true`.
-2. Enable the interface by setting the `columnMenu` option to `true`.
+2. Enable the interface by setting the `dropdownMenu` option to `true`.
 
 Enabling the `filters` option without the interface can be useful if you plan to create your own
 custom interface for filtering by using the API.
@@ -3475,6 +3475,12 @@ At the moment, filtering comes with the following limitations:
 - There is no easy way to add custom filter operators to the user interface.
 - The list of values that you can filter by is generated automatically and there's no supported way
   of modifying it.
+
+## Related keyboard shortcuts
+
+| Windows                             | macOS                                  | Action            |  Excel  | Sheets  |
+| ----------------------------------- | -------------------------------------- | ----------------- | :-----: | :-----: |
+| <kbd>**Alt**</kbd>+<kbd>**A**</kbd> | <kbd>**Option**</kbd>+<kbd>**A**</kbd> | Clear all filters | &cross; | &cross; |
 
 ## API reference
 
