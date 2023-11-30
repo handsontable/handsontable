@@ -778,6 +778,12 @@ export class CopyPaste extends BasePlugin {
 
   /**
    * Disables the viewport scroll after pasting the data.
+   *
+   * @param {number} fromRow Selection start row visual index.
+   * @param {number} fromColumn Selection start column visual index.
+   * @param {number} toRow Selection end row visual index.
+   * @param {number} toColumn Selection end column visual index.
+   * @param {object} preventScrolling Object with `value` property. If `true`, the viewport scroll will be prevented.
    */
   #onAfterSelection(fromRow, fromColumn, toRow, toColumn, preventScrolling) {
     if (this.#preventViewportScrollOnPaste) {
