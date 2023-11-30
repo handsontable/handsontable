@@ -12,7 +12,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [14.0.0] - 2023-11-22
 
 ### Added
-- **Breaking change**: Added the accessibility-related attributes to all images and icons. [#10540](https://github.com/handsontable/handsontable/pull/10540)
 - Added a `Ctrl/Cmd + Shift + Space` keyboard shortcut for selecting all cells. [#10237](https://github.com/handsontable/handsontable/pull/10237)
 - Added support for keyboard navigation in the headers. [#10265](https://github.com/handsontable/handsontable/pull/10265)
 - Added keyboard shortcuts for selecting all rows and columns along with 4 new hooks. [#10389](https://github.com/handsontable/handsontable/pull/10389)

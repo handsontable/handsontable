@@ -35,7 +35,6 @@ For more information on this release, see:
 
 #### Added
 
-- **Breaking change**: Added the accessibility-related attributes to all images and icons. [#10540](https://github.com/handsontable/handsontable/pull/10540)
 - Added multiple keyboard shortcuts. For more information, see the [release blogpost](https://handsontable.com/blog/handsontable-14-0-0-prioritizing-accessibility) and and the updated [Keyboard Shortcuts](https://handsontable.com/docs/javascript-data-grid/keyboard-shortcuts/) documentation page. 
     [#10237](https://github.com/handsontable/handsontable/pull/10237) [#10389](https://github.com/handsontable/handsontable/pull/10389) [#10404](https://github.com/handsontable/handsontable/pull/10404)  [#10405](https://github.com/handsontable/handsontable/pull/10405) [#10410](https://github.com/handsontable/handsontable/pull/10410)  [#10413](https://github.com/handsontable/handsontable/pull/10413)  [#10417](https://github.com/handsontable/handsontable/pull/10417)  [#10419](https://github.com/handsontable/handsontable/pull/10419)  [#10420](https://github.com/handsontable/handsontable/pull/10420)  [#10421](https://github.com/handsontable/handsontable/pull/10421) [#10548](https://github.com/handsontable/handsontable/pull/10548)
 - Added ARIA tags to various elements of the table to improve screen reader compatibility. 
