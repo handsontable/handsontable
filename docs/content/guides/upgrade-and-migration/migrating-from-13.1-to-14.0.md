@@ -26,10 +26,6 @@ To maintain the IME functionalities, we introduce the `imeFastEdit` option that 
 
 To utilize it in your implementation, set the `imeFastEdit` option to `true` in your settings object.
 
-### Update the CSS selectors for your custom icons
-
-Handsontable 14.0 changes the DOM structure of some elements holding the icons used within the table. This change aims to equip those elements with all the attributes required by the accessibility standards.
-
 ### Adjust your application to the modified keyboard shortcuts
 The new Handsontable version comes with an updated set of keyboard shortcuts. Most of them are new additions, but there have been some changes in the already-existing ones. Make sure to adjust your application to the current specification.
 
