@@ -40,11 +40,13 @@ export function installFocusCatcher(hot) {
   };
   let isSavingCoordsEnabled = true;
   let isTabOrShiftTabPressed = false;
+  let preventViewportScroll = false;
 
   hot.addHook('afterListen', () => deactivate());
   hot.addHook('afterUnlisten', () => activate());
   hot.addHook('afterSelection', (row, column, row2, column2, preventScrolling) => {
-    if (isTabOrShiftTabPressed && rowWrapState.wrapped && rowWrapState.flipped) {
+    if (isTabOrShiftTabPressed && (rowWrapState.wrapped && rowWrapState.flipped || preventViewportScroll)) {
+      preventViewportScroll = false;
       preventScrolling.value = true;
     }
 
@@ -81,10 +83,16 @@ export function installFocusCatcher(hot) {
       {
         ...shortcutOptions,
         callback: () => {
+          const { tabNavigation } = hot.getSettings();
+
           isTabOrShiftTabPressed = true;
 
-          if (hot.getSelectedRangeLast() && !hot.getSettings().tabNavigation) {
+          if (hot.getSelectedRangeLast() && !tabNavigation) {
             isSavingCoordsEnabled = false;
+          }
+
+          if (!tabNavigation) {
+            preventViewportScroll = true;
           }
         },
         position: 'before',
