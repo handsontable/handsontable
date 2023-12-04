@@ -4450,4 +4450,32 @@ describe('Filters UI', () => {
 
     expect(byValueMultipleSelect().getItemsBox().getSettings().layoutDirection).toBe('ltr');
   });
+
+  it('should not throw an error after filtering the dataset when the UI is limited (#dev-1629)', () => {
+    const spy = jasmine.createSpyObj('error', ['test']);
+    const prevError = window.onerror;
+
+    window.onerror = function() {
+      spy.test();
+
+      return true;
+    };
+
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      dropdownMenu: ['filter_by_condition', 'filter_by_value', 'filter_action_bar'],
+      filters: true,
+      width: 500,
+      height: 300
+    });
+
+    dropdownMenu(0);
+    $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'))
+      .simulate('click');
+
+    expect(spy.test.calls.count()).toBe(0);
+
+    window.onerror = prevError;
+  });
 });
