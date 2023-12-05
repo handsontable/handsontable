@@ -9,11 +9,12 @@ import { installFocusDetector } from './focusDetector';
  * @param {Core} hot The Handsontable instance.
  */
 export function installFocusCatcher(hot) {
+  const clampCoordsIfNeeded = normalizeCoordsIfNeeded(hot);
   let recentlyAddedFocusCoords;
 
   const { activate, deactivate } = installFocusDetector(hot, {
     onFocusFromTop() {
-      const mostTopStartCoords = recentlyAddedFocusCoords ?? getMostTopStartPosition(hot);
+      const mostTopStartCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostTopStartPosition(hot);
 
       if (mostTopStartCoords) {
         hot.runHooks('modifyFocusOnTabNavigation', 'from_above', mostTopStartCoords);
@@ -23,7 +24,7 @@ export function installFocusCatcher(hot) {
       hot.listen();
     },
     onFocusFromBottom() {
-      const mostBottomEndCoords = recentlyAddedFocusCoords ?? getMostBottomEndPosition(hot);
+      const mostBottomEndCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostBottomEndPosition(hot);
 
       if (mostBottomEndCoords) {
         hot.runHooks('modifyFocusOnTabNavigation', 'from_below', mostBottomEndCoords);
@@ -180,4 +181,37 @@ function getMostBottomEndPosition(hot) {
     rowIndexMapper.getVisualFromRenderableIndex(bottomRow) ?? bottomRow,
     columnIndexMapper.getVisualFromRenderableIndex(endColumn) ?? endColumn,
   );
+}
+
+/**
+ * Normalizes the coordinates (clamps to nearest visible cell position within dataset range).
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @returns {function(Coords | undefined): Coords | null}
+ */
+function normalizeCoordsIfNeeded(hot) {
+  return (coords) => {
+    if (!coords) {
+      return null;
+    }
+
+    const mostTopStartCoords = getMostTopStartPosition(hot);
+    const mostBottomEndCoords = getMostBottomEndPosition(hot);
+
+    if (coords.col < mostTopStartCoords.col) {
+      coords.col = mostTopStartCoords.col;
+    }
+    if (coords.col > mostBottomEndCoords.col) {
+      coords.col = mostBottomEndCoords.col;
+    }
+
+    if (coords.row < mostTopStartCoords.row) {
+      coords.row = mostTopStartCoords.row;
+    }
+    if (coords.row > mostBottomEndCoords.row) {
+      coords.row = mostBottomEndCoords.row;
+    }
+
+    return coords;
+  };
 }
