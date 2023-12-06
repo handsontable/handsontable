@@ -3,7 +3,7 @@ import {
   FULLY_VISIBLE_TYPE,
   PARTIALLY_VISIBLE_TYPE,
   ViewportRowsCalculator,
-} from 'walkontable/calculator';
+} from '../../../src/calculator';
 
 describe('ViewportRowsCalculator', () => {
   function allRows20() {

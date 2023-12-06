@@ -126,6 +126,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() preventWheel: Handsontable.GridSettings['preventWheel'];
   @Input() readOnly: Handsontable.GridSettings['readOnly'];
   @Input() readOnlyCellClassName: Handsontable.GridSettings['readOnlyCellClassName'];
+  @Input() renderAllColumns: Handsontable.GridSettings['renderAllColumns'];
   @Input() renderAllRows: Handsontable.GridSettings['renderAllRows'];
   @Input() renderer: Handsontable.GridSettings['renderer'];
   @Input() rowHeaders: Handsontable.GridSettings['rowHeaders'];
