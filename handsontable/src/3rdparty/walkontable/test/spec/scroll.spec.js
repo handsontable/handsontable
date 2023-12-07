@@ -314,8 +314,8 @@ describe('WalkontableScroll', () => {
 
       expect(firstRow.find('td:first').text()).toBe('A45');
       expect(firstRow.find('td:last').text()).toBe('D45');
-      expect(lastRow.find('td:first').text()).toBe('A51');
-      expect(lastRow.find('td:last').text()).toBe('D51');
+      expect(lastRow.find('td:first').text()).toBe('A52');
+      expect(lastRow.find('td:last').text()).toBe('D52');
     });
 
     it('should scroll to the cell so that it sticks to the bottom edge of the viewport (forced by method flag)', () => {
