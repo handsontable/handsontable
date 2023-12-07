@@ -19,7 +19,7 @@ import { RENDER_TYPE, FULLY_VISIBLE_TYPE } from './constants';
  *
  * @class ViewportColumnsCalculator
  */
-class ViewportColumnsCalculator {
+export class ViewportColumnsCalculator {
   /**
    * Default column width.
    *
@@ -60,26 +60,6 @@ class ViewportColumnsCalculator {
    */
   isVisibleInTrimmingContainer = false;
   /**
-   * @type {number}
-   */
-  stretchAllRatio = 0;
-  /**
-   * @type {number}
-   */
-  stretchLastWidth = 0;
-  /**
-   * @type {number}
-   */
-  #totalTargetWidth = 0;
-  /**
-   * @type {boolean}
-   */
-  needVerifyLastColumnWidth = true;
-  /**
-   * @type {number[]}
-   */
-  stretchAllColumnsWidth = [];
-  /**
    * The calculator options.
    *
    * @type {ViewportColumnsCalculatorOptions}
@@ -91,11 +71,6 @@ class ViewportColumnsCalculator {
    */
   constructor(options) {
     this.#options = options;
-
-    if (typeof this.#options.stretchingColumnWidthFn !== 'function') {
-      this.#options.stretchingColumnWidthFn = width => width;
-    }
-
     this.calculate();
   }
 
@@ -214,118 +189,6 @@ class ViewportColumnsCalculator {
   }
 
   /**
-   * Recalculate columns stretching.
-   *
-   * @param {number} totalWidth The total width of the table.
-   */
-  refreshStretching(totalWidth) {
-    if (this.#options.stretchMode === 'none') {
-      return;
-    }
-    let totalColumnsWidth = totalWidth;
-
-    this.#totalTargetWidth = totalColumnsWidth;
-
-    const totalColumns = this.#options.totalColumns;
-    let sumAll = 0;
-
-    for (let i = 0; i < totalColumns; i++) {
-      const columnWidth = this._getColumnWidth(i);
-      const permanentColumnWidth = this.#options.stretchingColumnWidthFn(undefined, i);
-
-      if (typeof permanentColumnWidth === 'number') {
-        totalColumnsWidth -= permanentColumnWidth;
-      } else {
-        sumAll += columnWidth;
-      }
-    }
-    const remainingSize = totalColumnsWidth - sumAll;
-
-    if (this.#options.stretchMode === 'all' && remainingSize > 0) {
-      this.stretchAllRatio = totalColumnsWidth / sumAll;
-      this.stretchAllColumnsWidth = [];
-      this.needVerifyLastColumnWidth = true;
-
-    } else if (this.#options.stretchMode === 'last' && totalColumnsWidth !== Infinity) {
-      const columnWidth = this._getColumnWidth(totalColumns - 1);
-      const lastColumnWidth = remainingSize + columnWidth;
-
-      this.stretchLastWidth = lastColumnWidth >= 0 ? lastColumnWidth : columnWidth;
-    }
-  }
-
-  /**
-   * Get stretched column width based on stretchH (all or last) setting passed in handsontable instance.
-   *
-   * @param {number} column The visual column index.
-   * @param {number} baseWidth The default column width.
-   * @returns {number|null}
-   */
-  getStretchedColumnWidth(column, baseWidth) {
-    let result = null;
-
-    if (this.#options.stretchMode === 'all' && this.stretchAllRatio !== 0) {
-      result = this._getStretchedAllColumnWidth(column, baseWidth);
-
-    } else if (this.#options.stretchMode === 'last' && this.stretchLastWidth !== 0) {
-      result = this._getStretchedLastColumnWidth(column);
-    }
-
-    return result;
-  }
-
-  /**
-   * @param {number} column The visual column index.
-   * @param {number} baseWidth The default column width.
-   * @returns {number}
-   * @private
-   */
-  _getStretchedAllColumnWidth(column, baseWidth) {
-    let sumRatioWidth = 0;
-    const totalColumns = this.#options.totalColumns;
-
-    if (!this.stretchAllColumnsWidth[column]) {
-      const stretchedWidth = Math.round(baseWidth * this.stretchAllRatio);
-      const newStretchedWidth = this.#options.stretchingColumnWidthFn(stretchedWidth, column);
-
-      if (newStretchedWidth === undefined) {
-        this.stretchAllColumnsWidth[column] = stretchedWidth;
-      } else {
-        this.stretchAllColumnsWidth[column] = isNaN(newStretchedWidth)
-          ? this._getColumnWidth(column) : newStretchedWidth;
-      }
-    }
-
-    if (this.stretchAllColumnsWidth.length === totalColumns && this.needVerifyLastColumnWidth) {
-      this.needVerifyLastColumnWidth = false;
-
-      for (let i = 0; i < this.stretchAllColumnsWidth.length; i++) {
-        sumRatioWidth += this.stretchAllColumnsWidth[i];
-      }
-      if (sumRatioWidth !== this.#totalTargetWidth) {
-        this.stretchAllColumnsWidth[this.stretchAllColumnsWidth.length - 1] += this.#totalTargetWidth - sumRatioWidth;
-      }
-    }
-
-    return this.stretchAllColumnsWidth[column];
-  }
-
-  /**
-   * @param {number} column The visual column index.
-   * @returns {number|null}
-   * @private
-   */
-  _getStretchedLastColumnWidth(column) {
-    const totalColumns = this.#options.totalColumns;
-
-    if (column === totalColumns - 1) {
-      return this.stretchLastWidth;
-    }
-
-    return null;
-  }
-
-  /**
    * @param {number} column The visual column index.
    * @returns {number}
    * @private
@@ -340,5 +203,3 @@ class ViewportColumnsCalculator {
     return width;
   }
 }
-
-export default ViewportColumnsCalculator;
