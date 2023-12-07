@@ -998,4 +998,61 @@ describe('Core navigation keyboard shortcuts', () => {
     expect(hot.getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 0,2']);
     expect(hot1.getSelectedRange()).toBeUndefined();
   });
+
+  it('should not scroll the viewport of the table after navigating between the tables (navigableHeaders on)', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(50, 30),
+      width: 200,
+      height: 200,
+      rowHeaders: true,
+      colHeaders: true,
+      tabNavigation: false,
+      navigableHeaders: true,
+      autoWrapRow: true,
+    });
+    const hot1 = handsontable({
+      data: createSpreadsheetData(50, 30),
+      width: 200,
+      height: 200,
+      rowHeaders: true,
+      colHeaders: true,
+      tabNavigation: false,
+      navigableHeaders: true,
+      autoWrapRow: true,
+    }, false, spec().$container1);
+
+    hot.selectCell(0, -1);
+    hot.deselectCell();
+    hot1.selectCell(0, -1);
+    hot1.deselectCell();
+
+    triggerTabNavigationFromTop(); // emulates native browser Tab navigation
+
+    expect(hot.getSelectedRange()).toEqualCellRange(['highlight: 0,-1 from: 0,-1 to: 0,-1']);
+    expect(hot1.getSelectedRange()).toBeUndefined();
+    expect(topOverlay().getScrollPosition()).toBe(0);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+    expect(hot1.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
+    expect(hot1.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(0);
+
+    keyDownUp('tab');
+    triggerTabNavigationFromTop(hot1); // emulates native browser Tab navigation
+
+    expect(hot.getSelectedRange()).toBeUndefined();
+    expect(hot1.getSelectedRange()).toEqualCellRange(['highlight: 0,-1 from: 0,-1 to: 0,-1']);
+    expect(topOverlay().getScrollPosition()).toBe(0);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+    expect(hot1.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
+    expect(hot1.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(0);
+
+    keyDownUp(['shift', 'tab']);
+    triggerTabNavigationFromBottom(); // emulates native browser Tab navigation
+
+    expect(hot.getSelectedRange()).toEqualCellRange(['highlight: 0,-1 from: 0,-1 to: 0,-1']);
+    expect(hot1.getSelectedRange()).toBeUndefined();
+    expect(topOverlay().getScrollPosition()).toBe(0);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+    expect(hot1.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
+    expect(hot1.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(0);
+  });
 });
