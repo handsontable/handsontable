@@ -68,7 +68,7 @@ export class RadioInputUI extends BaseUI {
    * @returns {boolean}
    */
   isChecked() {
-    return this.#input.checked;
+    return this.isBuilt() ? this.#input.checked : false;
   }
 
   /**
