@@ -181,6 +181,7 @@ export interface GridSettings extends Events {
   preventWheel?: boolean;
   readOnly?: boolean;
   readOnlyCellClassName?: string;
+  renderAllColumns?: boolean;
   renderAllRows?: boolean;
   renderer?: RendererType | string | BaseRenderer;
   rowHeaders?: boolean | string[] | ((index: number) => string);

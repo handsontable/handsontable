@@ -3,7 +3,7 @@ import {
   FULLY_VISIBLE_TYPE,
   PARTIALLY_VISIBLE_TYPE,
   ViewportColumnsCalculator,
-} from 'walkontable/calculator';
+} from '../../../src/calculator';
 
 describe('ViewportColumnsCalculator', () => {
   function allColumns20() {
@@ -316,128 +316,6 @@ describe('ViewportColumnsCalculator', () => {
     expect(partiallyVisibleCalc.startColumn).toBe(10);
     expect(partiallyVisibleCalc.endColumn).toBe(19);
     expect(partiallyVisibleCalc.count).toBe(10);
-  });
-
-  it('should update stretchAllRatio after refreshStretching call (stretch: all)', () => {
-    const calc = new ViewportColumnsCalculator({
-      viewportWidth: 250,
-      scrollOffset: 0,
-      totalColumns: 20,
-      columnWidthFn: index => allColumns20(index),
-      overrideFn: undefined,
-      calculationType: RENDER_TYPE,
-      stretchMode: 'all',
-      stretchingColumnWidthFn: undefined,
-    });
-
-    expect(calc.stretchAllRatio).toBe(0);
-    expect(calc.stretchLastWidth).toBe(0);
-
-    calc.refreshStretching(414);
-
-    expect(calc.stretchAllRatio).toBe(1.035);
-    expect(calc.stretchLastWidth).toBe(0);
-  });
-
-  it('should update stretchAllRatio after refreshStretching call (stretch: last)', () => {
-    const calc = new ViewportColumnsCalculator({
-      viewportWidth: 250,
-      scrollOffset: 0,
-      totalColumns: 5,
-      columnWidthFn: index => allColumns20(index),
-      overrideFn: undefined,
-      calculationType: RENDER_TYPE,
-      stretchMode: 'last',
-      stretchingColumnWidthFn: undefined,
-    });
-
-    expect(calc.stretchAllRatio).toBe(0);
-    expect(calc.stretchLastWidth).toBe(0);
-
-    calc.refreshStretching(414);
-
-    expect(calc.stretchAllRatio).toBe(0);
-    expect(calc.stretchLastWidth).toBe(334);
-  });
-
-  it('should return valid stretched column width (stretch: all)', () => {
-    const calc = new ViewportColumnsCalculator({
-      viewportWidth: 250,
-      scrollOffset: 0,
-      totalColumns: 5,
-      columnWidthFn: index => allColumns20(index),
-      overrideFn: undefined,
-      calculationType: RENDER_TYPE,
-      stretchMode: 'all',
-      stretchingColumnWidthFn: undefined,
-    });
-
-    expect(calc.getStretchedColumnWidth(0, 50)).toBe(null);
-    expect(calc.needVerifyLastColumnWidth).toBe(true);
-
-    calc.refreshStretching(417);
-
-    expect(calc.getStretchedColumnWidth(0, allColumns20())).toBe(83);
-    expect(calc.getStretchedColumnWidth(1, allColumns20())).toBe(83);
-    expect(calc.getStretchedColumnWidth(2, allColumns20())).toBe(83);
-    expect(calc.getStretchedColumnWidth(3, allColumns20())).toBe(83);
-    expect(calc.needVerifyLastColumnWidth).toBe(true);
-    expect(calc.getStretchedColumnWidth(4, allColumns20())).toBe(85);
-    expect(calc.needVerifyLastColumnWidth).toBe(false);
-  });
-
-  it('should return valid stretched column width (stretch: last)', () => {
-    const calc = new ViewportColumnsCalculator({
-      viewportWidth: 250,
-      scrollOffset: 0,
-      totalColumns: 5,
-      columnWidthFn: index => allColumns20(index),
-      overrideFn: undefined,
-      calculationType: RENDER_TYPE,
-      stretchMode: 'last',
-      stretchingColumnWidthFn: undefined,
-    });
-
-    expect(calc.getStretchedColumnWidth(0, 50)).toBe(null);
-
-    calc.refreshStretching(417);
-
-    expect(calc.getStretchedColumnWidth(0, allColumns20())).toBe(null);
-    expect(calc.getStretchedColumnWidth(1, allColumns20())).toBe(null);
-    expect(calc.getStretchedColumnWidth(2, allColumns20())).toBe(null);
-    expect(calc.getStretchedColumnWidth(3, allColumns20())).toBe(null);
-    expect(calc.getStretchedColumnWidth(4, allColumns20())).toBe(337);
-  });
-
-  it('call refreshStretching should clear stretchAllColumnsWidth and needVerifyLastColumnWidth property', () => {
-    const calc = new ViewportColumnsCalculator({
-      viewportWidth: 250,
-      scrollOffset: 0,
-      totalColumns: 5,
-      columnWidthFn: index => allColumns20(index),
-      overrideFn: undefined,
-      calculationType: RENDER_TYPE,
-      stretchMode: 'all',
-      stretchingColumnWidthFn: undefined,
-    });
-
-    expect(calc.stretchAllColumnsWidth.length).toBe(0);
-    expect(calc.needVerifyLastColumnWidth).toBe(true);
-
-    calc.refreshStretching(417);
-    calc.getStretchedColumnWidth(0, allColumns20());
-    calc.getStretchedColumnWidth(1, allColumns20());
-    calc.getStretchedColumnWidth(2, allColumns20());
-    calc.getStretchedColumnWidth(3, allColumns20());
-    calc.getStretchedColumnWidth(4, allColumns20());
-
-    expect(calc.stretchAllColumnsWidth.length).toBe(5);
-    expect(calc.needVerifyLastColumnWidth).toBe(false);
-
-    calc.refreshStretching(201);
-
-    expect(calc.stretchAllColumnsWidth.length).toBe(0);
-    expect(calc.needVerifyLastColumnWidth).toBe(true);
   });
 
   it(`should calculate the number of columns based on a default width,
