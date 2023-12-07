@@ -29,6 +29,7 @@ import { objectEach } from '../../../helpers/object';
  * @property {Option} onBeforeStretchingColumnWidth Option `onBeforeStretchingColumnWidth`.
  * @property {Option} preventOverflow Option `preventOverflow`.
  * @property {Option} preventWheel Option `preventWheel`.
+ * @property {Option} renderAllColumns Option `renderAllColumns`.
  * @property {Option} renderAllRows Option `renderAllRows`.
  * @property {Option} rowHeaders Option `rowHeaders`.
  * @property {Option} rowHeight Option `,`.
@@ -226,6 +227,7 @@ export default class Settings {
       onWindowResize: null,
       onContainerElementResize: null,
 
+      renderAllColumns: false,
       renderAllRows: false,
       groups: false,
       rowHeaderWidth: null,

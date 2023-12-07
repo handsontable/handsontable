@@ -16,7 +16,7 @@ import { RENDER_TYPE, FULLY_VISIBLE_TYPE } from './constants';
  *
  * @class ViewportRowsCalculator
  */
-class ViewportRowsCalculator {
+export class ViewportRowsCalculator {
   /**
    * Default row height.
    *
@@ -175,5 +175,3 @@ class ViewportRowsCalculator {
     }
   }
 }
-
-export default ViewportRowsCalculator;
