@@ -4452,14 +4452,7 @@ describe('Filters UI', () => {
   });
 
   it('should not throw an error after filtering the dataset when the UI is limited (#dev-1629)', () => {
-    const spy = jasmine.createSpyObj('error', ['test']);
-    const prevError = window.onerror;
-
-    window.onerror = function() {
-      spy.test();
-
-      return true;
-    };
+    const onErrorSpy = spyOn(window, 'onerror').and.returnValue(true);
 
     handsontable({
       data: getDataForFilters(),
@@ -4474,8 +4467,6 @@ describe('Filters UI', () => {
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'))
       .simulate('click');
 
-    expect(spy.test.calls.count()).toBe(0);
-
-    window.onerror = prevError;
+    expect(onErrorSpy).not.toHaveBeenCalled();
   });
 });
