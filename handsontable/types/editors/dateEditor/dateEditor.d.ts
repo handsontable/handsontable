@@ -1,4 +1,4 @@
-import { PikadayOptions } from 'pikaday';
+import { PikadayOptions } from '@handsontable/pikaday';
 import Core from '../../core';
 import { TextEditor } from '../textEditor';
 

@@ -76,12 +76,11 @@
     "data-spreadsheet"
   ],
   "dependencies": {
-    "@types/pikaday": "1.7.4",
+    "@handsontable/pikaday": "http://localhost:4873/@handsontable/pikaday/-/pikaday-0.0.5.tgz",
     "core-js": "^3.31.1",
     "dompurify": "^2.1.1",
     "moment": "2.29.4",
-    "numbro": "2.1.2",
-    "pikaday": "1.8.2"
+    "numbro": "2.1.2"
   },
   "optionalDependencies": {
     "hyperformula": "^2.4.0"
