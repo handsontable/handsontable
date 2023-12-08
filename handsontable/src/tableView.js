@@ -681,6 +681,7 @@ class TableView {
       },
       minSpareRows: () => this.settings.minSpareRows,
       renderAllRows: this.settings.renderAllRows,
+      renderAllColumns: this.settings.renderAllColumns,
       rowHeaders: () => {
         const headerRenderers = [];
 

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the TypeError that was thrown in Filters plugin in some specific setup cases",
+  "type": "fixed",
+  "issueOrPR": 10637,
+  "breaking": false,
+  "framework": "none"
+}

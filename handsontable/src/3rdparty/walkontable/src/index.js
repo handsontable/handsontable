@@ -1,5 +1,7 @@
-import ViewportColumnsCalculator from './calculator/viewportColumns';
-import ViewportRowsCalculator from './calculator/viewportRows';
+import {
+  ViewportColumnsCalculator,
+  ViewportRowsCalculator,
+} from './calculator';
 
 import CellCoords from './cell/coords';
 import CellRange from './cell/range';

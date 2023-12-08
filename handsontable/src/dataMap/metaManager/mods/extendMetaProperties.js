@@ -46,6 +46,20 @@ export class ExtendMetaPropertiesMod {
         }
       }
     }],
+    ['renderAllColumns', {
+      onChange(propName, value, isInitialChange) {
+        if (!isInitialChange) {
+          throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
+        }
+      }
+    }],
+    ['renderAllRows', {
+      onChange(propName, value, isInitialChange) {
+        if (!isInitialChange) {
+          throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
+        }
+      }
+    }],
   ]);
 
   constructor(metaManager) {

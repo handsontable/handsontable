@@ -41,7 +41,7 @@ The new Handsontable version comes with an updated set of keyboard shortcuts. Mo
 | Before  | After  |
 | ------------ | ------------ |
 | Iterates through the content list  | Iterates through the menu items. When focused on the search input, the arrow keys allow iterating through the content list  |
-(@/guides/cell-types/cell-type.md)
+
 More information: [Keyboard Shortcuts page in the documentation](@/guides/navigation/keyboard-shortcuts.md)
 
 ### Check if your template looks fine with the updated colors
