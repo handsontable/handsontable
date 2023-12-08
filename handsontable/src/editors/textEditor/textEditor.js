@@ -11,8 +11,7 @@ import {
   setAttribute,
 } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
-import { KEY_CODES } from '../../helpers/unicode';
-import { autoResize } from '../../3rdparty/autoResize';
+import { createInputElementResizer } from '../../utils/autoResize';
 import { isDefined } from '../../helpers/mixed';
 import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
 import { SHORTCUTS_GROUP_EDITOR } from '../baseEditor/baseEditor';
@@ -38,59 +37,61 @@ export class TextEditor extends BaseEditor {
   }
 
   /**
-   * @param {Core} instance The Handsontable instance.
+   * Instance of {@link EventManager}.
+   *
+   * @private
+   * @type {EventManager}
    */
-  constructor(instance) {
-    super(instance);
-    /**
-     * Instance of {@link EventManager}.
-     *
-     * @private
-     * @type {EventManager}
-     */
+  eventManager = new EventManager(this);
+  /**
+   * Autoresize instance. Automagically resizes editor after changes.
+   *
+   * @private
+   * @type {Function}
+   */
+  autoResize = createInputElementResizer(this.hot.rootDocument);
+  /**
+   * An TEXTAREA element.
+   *
+   * @private
+   * @type {HTMLTextAreaElement}
+   */
+  TEXTAREA;
+  /**
+   * Style declaration object of the TEXTAREA element.
+   *
+   * @private
+   * @type {CSSStyleDeclaration}
+   */
+  textareaStyle;
+  /**
+   * Parent element of the TEXTAREA.
+   *
+   * @private
+   * @type {HTMLDivElement}
+   */
+  TEXTAREA_PARENT;
+  /**
+   * Style declaration object of the TEXTAREA_PARENT element.
+   *
+   * @private
+   * @type {CSSStyleDeclaration}
+   */
+  textareaParentStyle;
+  /**
+   * Z-index class style for the editor.
+   *
+   * @private
+   * @type {string}
+   */
+  layerClass;
+
+  /**
+   * @param {Core} hotInstance The Handsontable instance.
+   */
+  constructor(hotInstance) {
+    super(hotInstance);
     this.eventManager = new EventManager(this);
-    /**
-     * Autoresize instance. Automagically resizes editor after changes.
-     *
-     * @private
-     * @type {autoResize}
-     */
-    this.autoResize = autoResize();
-    /**
-     * An TEXTAREA element.
-     *
-     * @private
-     * @type {HTMLTextAreaElement}
-     */
-    this.TEXTAREA = void 0;
-    /**
-     * Style declaration object of the TEXTAREA element.
-     *
-     * @private
-     * @type {CSSStyleDeclaration}
-     */
-    this.textareaStyle = void 0;
-    /**
-     * Parent element of the TEXTAREA.
-     *
-     * @private
-     * @type {HTMLDivElement}
-     */
-    this.TEXTAREA_PARENT = void 0;
-    /**
-     * Style declaration object of the TEXTAREA_PARENT element.
-     *
-     * @private
-     * @type {CSSStyleDeclaration}
-     */
-    this.textareaParentStyle = void 0;
-    /**
-     * Z-index class style for the editor.
-     *
-     * @private
-     * @type {string}
-     */
-    this.layerClass = void 0;
 
     this.createElements();
     this.bindEvents();
@@ -122,13 +123,7 @@ export class TextEditor extends BaseEditor {
   open() {
     this.refreshDimensions(); // need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
     this.showEditableElement();
-
-    const shortcutManager = this.hot.getShortcutManager();
-
-    shortcutManager.setActiveContextName('editor');
-
-    this.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
-
+    this.hot.getShortcutManager().setActiveContextName('editor');
     this.registerShortcuts();
   }
 
@@ -144,7 +139,6 @@ export class TextEditor extends BaseEditor {
 
     this.hideEditableElement();
     this.unregisterShortcuts();
-    this.removeHooksByKey('afterDocumentKeyDown');
   }
 
   /**
@@ -445,6 +439,7 @@ export class TextEditor extends BaseEditor {
   registerShortcuts() {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
+    const gridContext = shortcutManager.getContext('grid');
     const contextConfig = {
       runOnlyIf: () => isDefined(this.hot.getSelected()),
       group: SHORTCUTS_GROUP,
@@ -455,27 +450,14 @@ export class TextEditor extends BaseEditor {
     };
 
     editorContext.addShortcuts([{
-      keys: [['Tab']],
-      // TODO: Duplicated part of code (callback to shortcut).
-      callback: (event) => {
-        const tableMeta = this.hot.getSettings();
-        const tabMoves = typeof tableMeta.tabMoves === 'function'
-          ? tableMeta.tabMoves(event)
-          : tableMeta.tabMoves;
-
-        this.hot.selection.transformStart(tabMoves.row, tabMoves.col, true);
-      },
-    }, {
-      keys: [['Shift', 'Tab']],
-      // TODO: Duplicated part of code (callback to shortcut).
-      callback: (event) => {
-        const tableMeta = this.hot.getSettings();
-        const tabMoves = typeof tableMeta.tabMoves === 'function'
-          ? tableMeta.tabMoves(event)
-          : tableMeta.tabMoves;
-
-        this.hot.selection.transformStart(-tabMoves.row, -tabMoves.col);
-      },
+      keys: [
+        ['Tab'],
+        ['Shift', 'Tab'],
+        ['PageUp'],
+        ['PageDown']
+      ],
+      forwardToContext: gridContext,
+      callback: () => {},
     }, {
       keys: [['Control', 'Enter']],
       callback: () => {
@@ -502,22 +484,6 @@ export class TextEditor extends BaseEditor {
         return false; // Will block closing editor.
       },
     }, {
-      // TODO: Duplicated part of code (callback to shortcut)
-      keys: [
-        ['PageUp'],
-      ],
-      callback: () => {
-        this.hot.selection.transformStart(-this.hot.countVisibleRows(), 0);
-      },
-    }, {
-      // TODO: Duplicated part of code (callback to shortcut)
-      keys: [
-        ['PageDown'],
-      ],
-      callback: () => {
-        this.hot.selection.transformStart(this.hot.countVisibleRows(), 0);
-      }
-    }, {
       keys: [['Home']],
       callback: (event, [keyName]) => {
         updateCaretPosition(keyName, this.TEXTAREA);
@@ -526,22 +492,6 @@ export class TextEditor extends BaseEditor {
       keys: [['End']],
       callback: (event, [keyName]) => {
         updateCaretPosition(keyName, this.TEXTAREA);
-      },
-    }, {
-      keys: [['Control/Meta', 'Z']],
-      preventDefault: false,
-      callback: () => {
-        this.hot._registerTimeout(() => {
-          this.autoResize.resize();
-        }, 10);
-      },
-    }, {
-      keys: [['Control/Meta', 'Shift', 'Z']],
-      preventDefault: false,
-      callback: () => {
-        this.hot._registerTimeout(() => {
-          this.autoResize.resize();
-        }, 10);
       },
     }], contextConfig);
   }
@@ -558,19 +508,5 @@ export class TextEditor extends BaseEditor {
     editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_NAVIGATION);
     editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
     editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_EDITOR);
-  }
-
-  /**
-   * OnAfterDocumentKeyDown callback.
-   *
-   * @private
-   * @param {KeyboardEvent} event The keyboard event object.
-   */
-  onAfterDocumentKeyDown(event) {
-    const arrowKeyCodes = [KEY_CODES.ARROW_UP, KEY_CODES.ARROW_RIGHT, KEY_CODES.ARROW_DOWN, KEY_CODES.ARROW_LEFT];
-
-    if (arrowKeyCodes.indexOf(event.keyCode) === -1) {
-      this.autoResize.resize(String.fromCharCode(event.keyCode));
-    }
   }
 }

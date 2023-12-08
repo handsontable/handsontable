@@ -8,53 +8,57 @@ import { warn } from '../../helpers/console';
  * @class Endpoints
  */
 class Endpoints {
+  /**
+   * The main plugin instance.
+   */
+  plugin;
+  /**
+   * Handsontable instance.
+   *
+   * @type {object}
+   */
+  hot;
+  /**
+   * Array of declared plugin endpoints (calculation destination points).
+   *
+   * @type {Array}
+   * @default {Array} Empty array.
+   */
+  endpoints = [];
+  /**
+   * The plugin settings, taken from Handsontable configuration.
+   *
+   * @type {object|Function}
+   * @default null
+   */
+  settings;
+  /**
+   * Settings type. Can be either 'array' or 'function'.
+   *
+   * @type {string}
+   * @default {'array'}
+   */
+  settingsType = 'array';
+  /**
+   * The current endpoint (calculation destination point) in question.
+   *
+   * @type {object}
+   * @default null
+   */
+  currentEndpoint = null;
+  /**
+   * Array containing a list of changes to be applied.
+   *
+   * @private
+   * @type {Array}
+   * @default {[]}
+   */
+  cellsToSetCache = [];
+
   constructor(plugin, settings) {
-    /**
-     * The main plugin instance.
-     */
     this.plugin = plugin;
-    /**
-     * Handsontable instance.
-     *
-     * @type {object}
-     */
     this.hot = this.plugin.hot;
-    /**
-     * Array of declared plugin endpoints (calculation destination points).
-     *
-     * @type {Array}
-     * @default {Array} Empty array.
-     */
-    this.endpoints = [];
-    /**
-     * The plugin settings, taken from Handsontable configuration.
-     *
-     * @type {object|Function}
-     * @default null
-     */
     this.settings = settings;
-    /**
-     * Settings type. Can be either 'array' or 'function.
-     *
-     * @type {string}
-     * @default {'array'}
-     */
-    this.settingsType = 'array';
-    /**
-     * The current endpoint (calculation destination point) in question.
-     *
-     * @type {object}
-     * @default null
-     */
-    this.currentEndpoint = null;
-    /**
-     * Array containing a list of changes to be applied.
-     *
-     * @private
-     * @type {Array}
-     * @default {[]}
-     */
-    this.cellsToSetCache = [];
   }
 
   /**
@@ -150,7 +154,7 @@ class Endpoints {
    * @param {object} defaultValue Default value for the settings.
    */
   assignSetting(settings, endpoint, name, defaultValue) {
-    if (name === 'ranges' && settings[name] === void 0) {
+    if (name === 'ranges' && settings[name] === undefined) {
       endpoint[name] = defaultValue;
 
       return;
@@ -158,7 +162,7 @@ class Endpoints {
       return;
     }
 
-    if (settings[name] === void 0) {
+    if (settings[name] === undefined) {
       if (defaultValue instanceof Error) {
         throw defaultValue;
 
@@ -285,8 +289,8 @@ class Endpoints {
    * @param {object} endpoint And endpoint object.
    */
   clearOffsetInformation(endpoint) {
-    endpoint.alterRowOffset = void 0;
-    endpoint.alterColumnOffset = void 0;
+    endpoint.alterRowOffset = undefined;
+    endpoint.alterColumnOffset = undefined;
   }
 
   /**
@@ -547,8 +551,8 @@ class Endpoints {
       this.cellsToSetCache.push([visualEndpointRowIndex, endpoint.destinationColumn, endpoint.result]);
     }
 
-    endpoint.alterRowOffset = void 0;
-    endpoint.alterColumnOffset = void 0;
+    endpoint.alterRowOffset = undefined;
+    endpoint.alterColumnOffset = undefined;
   }
 
   /**

@@ -30,6 +30,8 @@ class CellCoords {
    */
   col = null;
   /**
+   * A flag which determines if the coordinates run in RTL mode.
+   *
    * @type {boolean}
    */
   #isRtl = false;
@@ -89,18 +91,18 @@ class CellCoords {
   }
 
   /**
-   * Checks if another set of coordinates (`cellCoords`)
+   * Checks if another set of coordinates (`coords`)
    * is equal to the coordinates in your `CellCoords` instance.
    *
-   * @param {CellCoords} cellCoords Coordinates to check.
+   * @param {CellCoords} coords Coordinates to check.
    * @returns {boolean}
    */
-  isEqual(cellCoords) {
-    if (cellCoords === this) {
+  isEqual(coords) {
+    if (coords === this) {
       return true;
     }
 
-    return this.row === cellCoords.row && this.col === cellCoords.col;
+    return this.row === coords.row && this.col === coords.col;
   }
 
   /**

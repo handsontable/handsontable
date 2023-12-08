@@ -1299,7 +1299,7 @@ const REGISTERED_HOOKS = [
    * This is due to the priority of other options that may block the feature.
    * For example, when the {@link Options#minSpareCols} is defined, the {@link Options#autoWrapRow} option is not checked.
    * Thus, row wrapping is off.
-   * @param {CellCoords} newCoords The new focus position.
+   * @param {CellCoords} newCoords The new focus position. It is an object with keys `row` and `col`, where a value of `-1` indicates a header.
    * @param {boolean} isFlipped `true` if the row index was flipped, `false` otherwise.
    * Flipped index means that the user reached the last row and the focus is moved to the first row or vice versa.
    */
@@ -1316,7 +1316,7 @@ const REGISTERED_HOOKS = [
    * This is due to the priority of other options that may block the feature.
    * For example, when the {@link Options#minSpareRows} is defined, the {@link Options#autoWrapCol} option is not checked.
    * Thus, column wrapping is off.
-   * @param {CellCoords} newCoords The new focus position.
+   * @param {CellCoords} newCoords The new focus position. It is an object with keys `row` and `col`, where a value of `-1` indicates a header.
    * @param {boolean} isFlipped `true` if the column index was flipped, `false` otherwise.
    * Flipped index means that the user reached the last column and the focus is moved to the first column or vice versa.
    */
@@ -1361,6 +1361,8 @@ const REGISTERED_HOOKS = [
 
   /**
    * Fired before applying selection coordinates to the renderable coordinates for Walkontable (rendering engine).
+   * It occurs even when cell coordinates remain unchanged and activates during cell selection and drag selection.
+   * The behavior of Shift+Tab differs from Arrow Left when there's no further movement possible.
    *
    * @since 14.0.0
    * @event Hooks#beforeSelectionHighlightSet
@@ -1438,7 +1440,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#modifyFocusedElement
    * @param {number} row Row index.
    * @param {number} column Column index.
-   * @param {HTMLElement|undefined} focusedElement The element to be focused.
+   * @param {HTMLElement|undefined} focusedElement The element to be focused. `null` for focusedElement is intended when focused cell is hidden.
    */
   'modifyFocusedElement',
 
@@ -1622,7 +1624,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link CopyPaste} plugin before copying the values to the clipboard and before clearing values of
    * the selected cells. This hook is fired when {@link Options#copyPaste} option is enabled.
    *
-   * Note: Please keep in mind since @14.0.0 the method arguments has been changed.
+   * Note: Please keep in mind since @15.0.0 the method arguments has been changed.
    *
    * @event Hooks#beforeCut
    * @param {object} clipboardData Information about cut action which is going to happen.
@@ -1684,7 +1686,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link CopyPaste} plugin after data was cut out from the table. This hook is fired when
    * {@link Options#copyPaste} option is enabled.
    *
-   * Note: Please keep in mind since @14.0.0 the method arguments has been changed.
+   * Note: Please keep in mind since @15.0.0 the method arguments has been changed.
    *
    * @event Hooks#afterCut
    * @param {object} clipboardData Information about already performed cut action.
@@ -1704,7 +1706,7 @@ const REGISTERED_HOOKS = [
   /**
    * Fired before values are copied to the clipboard.
    *
-   * Note: Please keep in mind since @14.0.0 the method arguments has been changed.
+   * Note: Please keep in mind since @15.0.0 the method arguments has been changed.
    *
    * @event Hooks#beforeCopy
    * @param {object} clipboardData Information about copy action which is going to happen.
@@ -1777,7 +1779,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link CopyPaste} plugin after data are pasted into table. This hook is fired when {@link Options#copyPaste}
    * option is enabled.
    *
-   * Note: Please keep in mind since @14.0.0 the method arguments has been changed.
+   * Note: Please keep in mind since @15.0.0 the method arguments has been changed.
    *
    * @event Hooks#afterCopy
    * @param {object} clipboardData Information about already performed copy action.
@@ -1798,7 +1800,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link CopyPaste} plugin before values are pasted into table. This hook is fired when
    * {@link Options#copyPaste} option is enabled.
    *
-   * Note: Please keep in mind since @14.0.0 the method arguments has been changed.
+   * Note: Please keep in mind since @15.0.0 the method arguments has been changed.
    *
    * @event Hooks#beforePaste
    * @param {object} clipboardData Information about paste action which is going to happen.
@@ -1861,7 +1863,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link CopyPaste} plugin after values are pasted into table. This hook is fired when
    * {@link Options#copyPaste} option is enabled.
    *
-   * Note: Please keep in mind since @14.0.0 the method arguments has been changed.
+   * Note: Please keep in mind since @15.0.0 the method arguments has been changed.
    *
    * @event Hooks#afterPaste
    * @param {object} clipboardData Information about already performed paste action.
@@ -2840,6 +2842,11 @@ class Hooks {
   }
 
   /**
+   * @type {object}
+   */
+  globalBucket;
+
+  /**
    *
    */
   constructor() {
@@ -3026,7 +3033,7 @@ class Hooks {
   has(key, context = null) {
     const bucket = this.getBucket(context);
 
-    return !!(bucket[key] !== void 0 && bucket[key].length);
+    return !!(bucket[key] !== undefined && bucket[key].length);
   }
 
   /**
@@ -3066,7 +3073,7 @@ class Hooks {
 
           const res = fastCall(globalHandlers[index], context, p1, p2, p3, p4, p5, p6);
 
-          if (res !== void 0) {
+          if (res !== undefined) {
             // eslint-disable-next-line no-param-reassign
             p1 = res;
           }
@@ -3094,7 +3101,7 @@ class Hooks {
 
           const res = fastCall(localHandlers[index], context, p1, p2, p3, p4, p5, p6);
 
-          if (res !== void 0) {
+          if (res !== undefined) {
             // eslint-disable-next-line no-param-reassign
             p1 = res;
           }

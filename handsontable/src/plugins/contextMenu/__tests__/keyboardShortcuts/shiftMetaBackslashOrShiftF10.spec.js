@@ -11,9 +11,38 @@ describe('ContextMenu keyboard shortcut', () => {
   });
 
   using('', [
-    ['Shift', 'Control/Meta', '\\'],
+    ['Shift', 'Control/Meta', 'Backslash'],
     ['Shift', 'F10'],
   ], (keyboardShortcut) => {
+    it('should not throw an error when triggered on selection that points on the hidden records', () => {
+      const spy = jasmine.createSpyObj('error', ['test']);
+      const prevError = window.onerror;
+
+      window.onerror = function() {
+        spy.test();
+
+        return true;
+      };
+      handsontable({
+        contextMenu: true,
+      });
+
+      const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      hidingMap.setValueAtIndex(0, true);
+      hidingMap.setValueAtIndex(1, true);
+      hidingMap.setValueAtIndex(2, true);
+
+      render();
+      selectCell(1, 1);
+
+      keyDownUp(keyboardShortcut);
+
+      expect(spy.test.calls.count()).toBe(0);
+
+      window.onerror = prevError;
+    });
+
     it('should open a menu after `updateSettings` call', () => {
       handsontable({
         contextMenu: true,
@@ -132,6 +161,19 @@ describe('ContextMenu keyboard shortcut', () => {
         left: cellRect.width,
         above: -cellRect.height,
       });
+    });
+
+    it('should open the menu and select the first item by default', () => {
+      handsontable({
+        contextMenu: true,
+      });
+
+      selectCell(1, 1);
+      keyDownUp(keyboardShortcut);
+
+      const firstItem = getPlugin('contextMenu').menu.hotMenu.getCell(0, 0);
+
+      expect(document.activeElement).toBe(firstItem);
     });
 
     it('should scroll the viewport when the focused cell is outside the table and call the `open` method', async() => {

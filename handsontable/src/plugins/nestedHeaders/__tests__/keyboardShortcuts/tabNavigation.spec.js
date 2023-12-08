@@ -18,7 +18,7 @@ describe('NestedHeaders navigation keyboard shortcuts', () => {
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: true,
-        disableTabNavigation: false,
+        tabNavigation: true,
         nestedHeaders: [
           ['A', { label: 'B', colspan: 4 }],
         ],
@@ -26,7 +26,7 @@ describe('NestedHeaders navigation keyboard shortcuts', () => {
       const hot1 = handsontable({
         data: createSpreadsheetData(3, 5),
         navigableHeaders: false,
-        disableTabNavigation: false,
+        tabNavigation: true,
         nestedHeaders: [
           ['A', { label: 'B', colspan: 4 }],
         ],

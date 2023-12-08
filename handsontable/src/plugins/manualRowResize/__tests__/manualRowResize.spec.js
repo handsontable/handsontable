@@ -107,7 +107,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 2)).toEqual(80);
 
     updateSettings({
-      manualRowResize: void 0
+      manualRowResize: undefined
     });
 
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2); // + Double border
@@ -135,7 +135,7 @@ describe('manualRowResize', () => {
 
   it('should keep proper row heights after inserting row', () => {
     handsontable({
-      manualRowResize: [void 0, void 0, 120]
+      manualRowResize: [undefined, undefined, 120]
     });
 
     expect(rowHeight(spec().$container, 0)).toBe(defaultRowHeight + 2);
@@ -153,7 +153,7 @@ describe('manualRowResize', () => {
 
   it('should keep proper row heights after removing row', () => {
     handsontable({
-      manualRowResize: [void 0, void 0, 120]
+      manualRowResize: [undefined, undefined, 120]
     });
 
     expect(rowHeight(spec().$container, 0)).toBe(defaultRowHeight + 2);
@@ -197,7 +197,7 @@ describe('manualRowResize', () => {
 
     hot.addHook('beforeRowResize', () => 100);
     hot.addHook('beforeRowResize', () => 200);
-    hot.addHook('beforeRowResize', () => void 0);
+    hot.addHook('beforeRowResize', () => undefined);
 
     const $th = getInlineStartClone().find('tbody tr:eq(0) th:eq(0)');
 

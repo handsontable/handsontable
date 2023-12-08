@@ -9,13 +9,25 @@ import {
  */
 export default class ColumnUtils {
   /**
+   * @type {TableDao}
+   */
+  dataAccessObject;
+  /**
+   * @type {Settings}
+   */
+  wtSettings;
+  /**
+   * @type {Map<number, number>}
+   */
+  headerWidths = new Map();
+
+  /**
    * @param {TableDao} dataAccessObject The table Data Access Object.
    * @param {Settings} wtSettings The walkontable settings.
    */
   constructor(dataAccessObject, wtSettings) {
     this.dataAccessObject = dataAccessObject;
     this.wtSettings = wtSettings;
-    this.headerWidths = new Map();
   }
 
   /**
@@ -60,7 +72,7 @@ export default class ColumnUtils {
     let height = this.wtSettings.getSetting('defaultRowHeight');
     const oversizedHeight = this.dataAccessObject.wtViewport.oversizedColumnHeaders[level];
 
-    if (oversizedHeight !== void 0) {
+    if (oversizedHeight !== undefined) {
       height = height ? Math.max(height, oversizedHeight) : oversizedHeight;
     }
 
@@ -91,7 +103,7 @@ export default class ColumnUtils {
 
     rowHeaderWidthSetting = wtSettings.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 
-    if (rowHeaderWidthSetting !== null && rowHeaderWidthSetting !== void 0) {
+    if (rowHeaderWidthSetting !== null && rowHeaderWidthSetting !== undefined) {
       const rowHeadersCount = wtSettings.getSetting('rowHeaders').length;
       const defaultColumnWidth = wtSettings.getSetting('defaultColumnWidth');
 
@@ -99,7 +111,7 @@ export default class ColumnUtils {
         let width = Array.isArray(rowHeaderWidthSetting)
           ? rowHeaderWidthSetting[visibleColumnIndex] : rowHeaderWidthSetting;
 
-        width = (width === null || width === void 0) ? defaultColumnWidth : width;
+        width = (width === null || width === undefined) ? defaultColumnWidth : width;
 
         this.headerWidths.set(visibleColumnIndex, width);
       }

@@ -106,8 +106,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'القيمة الثانية'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
-var _default = dictionary;
-exports["default"] = _default;
+var _default = exports["default"] = dictionary;
 
 /***/ }),
 /* 1 */
@@ -223,8 +222,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druhá hodnota'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
-var _default = dictionary;
-exports["default"] = _default;
+var _default = exports["default"] = dictionary;
 
 /***/ }),
 /* 4 */
@@ -321,8 +319,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Alternativwert'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
-var _default = dictionary;
-exports["default"] = _default;
+var _default = exports["default"] = dictionary;
 
 /***/ }),
 /* 5 */
@@ -419,8 +416,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Alternativwert'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
-var _default = dictionary;
-exports["default"] = _default;
+var _default = exports["default"] = dictionary;
 
 /***/ }),
 /* 6 */
@@ -518,11 +514,12 @@ const dictionary = {
   [C.FILTERS_BUTTONS_CANCEL]: 'Cancel',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Search',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Value',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Second value'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Second value',
+  [C.CHECKBOX_CHECKED]: 'Checked',
+  [C.CHECKBOX_UNCHECKED]: 'Unchecked'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
-var _default = dictionary;
-exports["default"] = _default;
+var _default = exports["default"] = dictionary;
 
 /***/ }),
 /* 7 */
@@ -622,8 +619,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Valor secundario'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
-var _default = dictionary;
-exports["default"] = _default;
+var _default = exports["default"] = dictionary;
 
 /***/ }),
 /* 8 */
@@ -720,8 +716,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Valeur de remplacement'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
-var _default = dictionary;
-exports["default"] = _default;
+var _default = exports["default"] = dictionary;
 
 /***/ }),
 /* 9 */,
@@ -819,8 +814,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Sostituisci con'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
-var _default = dictionary;
-exports["default"] = _default;
+var _default = exports["default"] = dictionary;
 
 /***/ }),
 /* 11 */
@@ -920,8 +914,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: '値2'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
-var _default = dictionary;
-exports["default"] = _default;
+var _default = exports["default"] = dictionary;
 
 /***/ }),
 /* 12 */
@@ -1018,8 +1011,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: '두번째 값'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
-var _default = dictionary;
-exports["default"] = _default;
+var _default = exports["default"] = dictionary;
 
 /***/ }),
 /* 13 */
@@ -1120,8 +1112,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Otra vērtība'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
-var _default = dictionary;
-exports["default"] = _default;
+var _default = exports["default"] = dictionary;
 
 /***/ }),
 /* 14 */
@@ -1218,8 +1209,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Andre verdi'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
-var _default = dictionary;
-exports["default"] = _default;
+var _default = exports["default"] = dictionary;
 
 /***/ }),
 /* 15 */
@@ -1319,8 +1309,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Tweede waarde'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
-var _default = dictionary;
-exports["default"] = _default;
+var _default = exports["default"] = dictionary;
 
 /***/ }),
 /* 16 */
@@ -1418,11 +1407,12 @@ const dictionary = {
   [C.FILTERS_BUTTONS_CANCEL]: 'Anuluj',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Szukaj',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Wartość',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druga wartość'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druga wartość',
+  [C.CHECKBOX_CHECKED]: 'Zaznaczony',
+  [C.CHECKBOX_UNCHECKED]: 'Odznaczony'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
-var _default = dictionary;
-exports["default"] = _default;
+var _default = exports["default"] = dictionary;
 
 /***/ }),
 /* 17 */
@@ -1519,8 +1509,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Segundo valor'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
-var _default = dictionary;
-exports["default"] = _default;
+var _default = exports["default"] = dictionary;
 
 /***/ }),
 /* 18 */
@@ -1617,8 +1606,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Второе значение'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
-var _default = dictionary;
-exports["default"] = _default;
+var _default = exports["default"] = dictionary;
 
 /***/ }),
 /* 19 */
@@ -1716,8 +1704,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druga vrednost'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
-var _default = dictionary;
-exports["default"] = _default;
+var _default = exports["default"] = dictionary;
 
 /***/ }),
 /* 20 */
@@ -1817,8 +1804,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: '第二值'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
-var _default = dictionary;
-exports["default"] = _default;
+var _default = exports["default"] = dictionary;
 
 /***/ }),
 /* 21 */
@@ -1915,8 +1901,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: '第二值'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
-var _default = dictionary;
-exports["default"] = _default;
+var _default = exports["default"] = dictionary;
 
 /***/ })
 /******/ 	]);

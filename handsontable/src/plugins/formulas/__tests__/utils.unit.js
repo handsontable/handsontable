@@ -41,7 +41,7 @@ describe('Formulas utils', () => {
 
       expect(isDateValid({}, 'DD/MM/YYYY')).toBe(false);
       expect(isDateValid(null, 'DD/MM/YYYY')).toBe(false);
-      expect(isDateValid(void 0, 'DD/MM/YYYY')).toBe(false);
+      expect(isDateValid(undefined, 'DD/MM/YYYY')).toBe(false);
       expect(isDateValid('', 'DD/MM/YYYY')).toBe(false);
     });
   });

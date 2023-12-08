@@ -1,4 +1,3 @@
-import { CellCoords, CellRange } from './../3rdparty/walkontable/src';
 import Highlight, {
   AREA_TYPE,
   HEADER_TYPE,
@@ -89,7 +88,6 @@ class Selection {
     this.tableProps = tableProps;
     this.highlight = new Highlight({
       headerClassName: settings.currentHeaderClassName,
-      headerAttributes: [A11Y_SELECTED()],
       activeHeaderClassName: settings.activeHeaderClassName,
       rowClassName: settings.currentRowClassName,
       columnClassName: settings.currentColClassName,
@@ -601,6 +599,19 @@ class Selection {
   }
 
   /**
+   * Returns `true` if the cell coordinates are visible (renderable).
+   *
+   * @private
+   * @param {CellCoords} coords The cell coordinates to check.
+   * @returns {boolean}
+   */
+  isCellVisible(coords) {
+    const renderableCoords = this.tableProps.visualToRenderableCoords(coords);
+
+    return renderableCoords.row !== null && renderableCoords.col !== null;
+  }
+
+  /**
    * Returns `true` if the area corner should be visible.
    *
    * @param {number} layerLevel The layer level.
@@ -688,7 +699,7 @@ class Selection {
     const endCoords = this.tableProps.createCellCoords(nrOfRows - 1, nrOfColumns - 1);
 
     this.clear();
-    this.setRangeStartOnly(startCoords, void 0, highlight);
+    this.setRangeStartOnly(startCoords, undefined, highlight);
 
     if (columnFrom < 0) {
       this.selectedByRowHeader.add(this.getLayerLevel());
@@ -725,6 +736,8 @@ class Selection {
     }
 
     const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType, {
+      createCellCoords: (...args) => this.tableProps.createCellCoords(...args),
+      createCellRange: (...args) => this.tableProps.createCellRange(...args),
       propToCol: prop => this.tableProps.propToCol(prop),
       keepDirection: true,
     });
@@ -779,14 +792,15 @@ class Selection {
     const countColHeaders = this.tableProps.countColHeaders();
     const columnHeaderLastIndex = countColHeaders === 0 ? 0 : -countColHeaders;
 
-    const fromCoords = new CellCoords(columnHeaderLastIndex, start);
-    const toCoords = new CellCoords(countRows - 1, end);
-    const isValid = new CellRange(fromCoords, fromCoords, toCoords).isValid({
-      countRows,
-      countCols,
-      countRowHeaders: 0,
-      countColHeaders,
-    });
+    const fromCoords = this.tableProps.createCellCoords(columnHeaderLastIndex, start);
+    const toCoords = this.tableProps.createCellCoords(countRows - 1, end);
+    const isValid = this.tableProps.createCellRange(fromCoords, fromCoords, toCoords)
+      .isValid({
+        countRows,
+        countCols,
+        countRowHeaders: 0,
+        countColHeaders,
+      });
 
     if (isValid) {
       const fromRow = countColHeaders === 0 ? 0 : clamp(focusPosition, columnHeaderLastIndex, -1);
@@ -802,7 +816,7 @@ class Selection {
       from.row = fromRow;
       to.row = toRow;
 
-      this.setRangeStartOnly(from, void 0, highlight);
+      this.setRangeStartOnly(from, undefined, highlight);
       this.selectedByColumnHeader.add(this.getLayerLevel());
       this.setRangeEnd(to);
       this.runLocalHooks('afterSelectColumns', from, to, highlight);
@@ -828,14 +842,15 @@ class Selection {
     const countRowHeaders = this.tableProps.countRowHeaders();
     const rowHeaderLastIndex = countRowHeaders === 0 ? 0 : -countRowHeaders;
 
-    const fromCoords = new CellCoords(startRow, rowHeaderLastIndex);
-    const toCoords = new CellCoords(endRow, countCols - 1);
-    const isValid = new CellRange(fromCoords, fromCoords, toCoords).isValid({
-      countRows,
-      countCols,
-      countRowHeaders,
-      countColHeaders: 0,
-    });
+    const fromCoords = this.tableProps.createCellCoords(startRow, rowHeaderLastIndex);
+    const toCoords = this.tableProps.createCellCoords(endRow, countCols - 1);
+    const isValid = this.tableProps.createCellRange(fromCoords, fromCoords, toCoords)
+      .isValid({
+        countRows,
+        countCols,
+        countRowHeaders,
+        countColHeaders: 0,
+      });
 
     if (isValid) {
       const fromColumn = countRowHeaders === 0 ? 0 : clamp(focusPosition, rowHeaderLastIndex, -1);
@@ -851,7 +866,7 @@ class Selection {
       from.col = fromColumn;
       to.col = toColumn;
 
-      this.setRangeStartOnly(from, void 0, highlight);
+      this.setRangeStartOnly(from, undefined, highlight);
       this.selectedByRowHeader.add(this.getLayerLevel());
       this.setRangeEnd(to);
       this.runLocalHooks('afterSelectRows', from, to, highlight);

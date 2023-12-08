@@ -2,7 +2,6 @@ import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
 import { offset, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { arrayEach, arrayMap } from '../../helpers/array';
-import EventManager from '../../eventManager';
 import { getDragDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting } from './utils';
 
 Hooks.getSingleton().register('modifyAutofillRange');
@@ -46,57 +45,48 @@ export class Autofill extends BasePlugin {
     ];
   }
 
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * Event manager instance.
-     *
-     * @private
-     * @type {EventManager}
-     */
-    this.eventManager = new EventManager(this);
-    /**
-     * Specifies if adding new row started.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.addingStarted = false;
-    /**
-     * Specifies if there was mouse down on the cell corner.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.mouseDownOnCellCorner = false;
-    /**
-     * Specifies if mouse was dragged outside Handsontable.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.mouseDragOutside = false;
-    /**
-     * Specifies how many cell levels were dragged using the handle.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.handleDraggedCells = 0;
-    /**
-     * Specifies allowed directions of drag (`'horizontal'` or '`vertical`').
-     *
-     * @private
-     * @type {string[]}
-     */
-    this.directions = [];
-    /**
-     * Specifies if can insert new rows if needed.
-     *
-     * @type {boolean}
-     */
-    this.autoInsertRow = false;
-  }
+  /**
+   * Specifies if adding new row started.
+   *
+   * @private
+   * @type {boolean}
+   */
+  addingStarted = false;
+  /**
+   * Specifies if there was mouse down on the cell corner.
+   *
+   * @private
+   * @type {boolean}
+   */
+  mouseDownOnCellCorner = false;
+  /**
+   * Specifies if mouse was dragged outside Handsontable.
+   *
+   * @private
+   * @type {boolean}
+   */
+  mouseDragOutside = false;
+  /**
+   * Specifies how many cell levels were dragged using the handle.
+   *
+   * @private
+   * @type {boolean}
+   */
+  handleDraggedCells = 0;
+  /**
+   * Specifies allowed directions of drag (`'horizontal'` or '`vertical`').
+   *
+   * @private
+   * @type {string[]}
+   */
+  directions = [];
+  /**
+   * Specifies if can insert new rows if needed.
+   *
+   * @private
+   * @type {boolean}
+   */
+  autoInsertRow = false;
 
   /**
    * Checks if the plugin is enabled in the Handsontable settings.
@@ -118,9 +108,9 @@ export class Autofill extends BasePlugin {
     this.mapSettings();
     this.registerEvents();
 
-    this.addHook('afterOnCellCornerMouseDown', event => this.onAfterCellCornerMouseDown(event));
-    this.addHook('afterOnCellCornerDblClick', event => this.onCellCornerDblClick(event));
-    this.addHook('beforeOnCellMouseOver', (_, coords) => this.onBeforeCellMouseOver(coords));
+    this.addHook('afterOnCellCornerMouseDown', event => this.#onAfterCellCornerMouseDown(event));
+    this.addHook('afterOnCellCornerDblClick', event => this.#onCellCornerDblClick(event));
+    this.addHook('beforeOnCellMouseOver', (_, coords) => this.#onBeforeCellMouseOver(coords));
 
     super.enablePlugin();
   }
@@ -400,7 +390,7 @@ export class Autofill extends BasePlugin {
    */
   addRow() {
     this.hot._registerTimeout(() => {
-      this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME, void 0, 1, `${this.pluginName}.fill`);
+      this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME, undefined, 1, `${this.pluginName}.fill`);
 
       this.addingStarted = false;
     }, INTERVAL_FOR_ADDING_ROW);
@@ -493,7 +483,7 @@ export class Autofill extends BasePlugin {
     const cornersOfSelectedCells = this.hot.getSelectedLast();
     const lastFilledInRowIndex = this.getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells);
 
-    if (lastFilledInRowIndex === -1 || lastFilledInRowIndex === void 0) {
+    if (lastFilledInRowIndex === -1 || lastFilledInRowIndex === undefined) {
       return false;
     }
 
@@ -556,8 +546,8 @@ export class Autofill extends BasePlugin {
   registerEvents() {
     const { documentElement } = this.hot.rootDocument;
 
-    this.eventManager.addEventListener(documentElement, 'mouseup', () => this.onMouseUp());
-    this.eventManager.addEventListener(documentElement, 'mousemove', event => this.onMouseMove(event));
+    this.eventManager.addEventListener(documentElement, 'mouseup', () => this.#onMouseUp());
+    this.eventManager.addEventListener(documentElement, 'mousemove', event => this.#onMouseMove(event));
   }
 
   /**
@@ -565,7 +555,7 @@ export class Autofill extends BasePlugin {
    *
    * @private
    */
-  onCellCornerDblClick() {
+  #onCellCornerDblClick() {
     const selectionApplied = this.selectAdjacent();
 
     if (selectionApplied) {
@@ -575,10 +565,8 @@ export class Autofill extends BasePlugin {
 
   /**
    * On after cell corner mouse down listener.
-   *
-   * @private
    */
-  onAfterCellCornerMouseDown() {
+  #onAfterCellCornerMouseDown() {
     this.handleDraggedCells = 1;
     this.mouseDownOnCellCorner = true;
   }
@@ -586,10 +574,9 @@ export class Autofill extends BasePlugin {
   /**
    * On before cell mouse over listener.
    *
-   * @private
    * @param {CellCoords} coords `CellCoords` coord object.
    */
-  onBeforeCellMouseOver(coords) {
+  #onBeforeCellMouseOver(coords) {
     if (this.mouseDownOnCellCorner && !this.hot.view.isMouseDown() && this.handleDraggedCells) {
       this.handleDraggedCells += 1;
 
@@ -600,10 +587,8 @@ export class Autofill extends BasePlugin {
 
   /**
    * On mouse up listener.
-   *
-   * @private
    */
-  onMouseUp() {
+  #onMouseUp() {
     if (this.handleDraggedCells) {
       if (this.handleDraggedCells > 1) {
         this.fillIn();
@@ -617,10 +602,9 @@ export class Autofill extends BasePlugin {
   /**
    * On mouse move listener.
    *
-   * @private
    * @param {MouseEvent} event `mousemove` event properties.
    */
-  onMouseMove(event) {
+  #onMouseMove(event) {
     const mouseWasDraggedOutside = this.getIfMouseWasDraggedOutside(event);
 
     if (this.addingStarted === false && this.handleDraggedCells > 0 && mouseWasDraggedOutside) {

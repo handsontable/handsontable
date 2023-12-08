@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Updated TS definition for the AutoRowSize and AutoColumnSize plugins",
-  "type": "changed",
-  "issueOrPR": 10493,
-  "breaking": false,
-  "framework": "none"
-}

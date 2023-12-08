@@ -2845,7 +2845,7 @@ describe('Selection extending', () => {
   });
 
   describe('"Ctrl/Cmd + A"', () => {
-    it('should reset the current selection and select all cells with headers', () => {
+    it('should reset the current selection and select all cells without headers', () => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -2882,13 +2882,13 @@ describe('Selection extending', () => {
       keyDownUp(['control/meta', 'shift', 'space']);
 
       expect(`
-        |   ║ - : - : - : - : - |
+        | * ║ * : * : * : * : * |
         |===:===:===:===:===:===|
-        | - ║ 0 : 0 : 0 : 0 : 0 |
-        | - ║ 0 : 0 : 0 : 0 : 0 |
-        | - ║ 0 : 0 : A : 0 : 0 |
-        | - ║ 0 : 0 : 0 : 0 : 0 |
-        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : A : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: -1,-1 to: 4,4']);
     });

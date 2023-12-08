@@ -177,6 +177,20 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
+    it('should open menu after right click on table cell and do not select any items by default', () => {
+      handsontable({
+        contextMenu: true,
+        height: 100
+      });
+
+      contextMenu();
+
+      const menu = getPlugin('contextMenu').menu;
+
+      expect(menu.getSelectedItem()).toBe(null);
+      expect(document.activeElement).toBe(menu.hotMenu.rootElement);
+    });
+
     it('should not open context menu after right click on inner htCore', async() => {
       handsontable({
         contextMenu: true,
@@ -830,7 +844,7 @@ describe('ContextMenu', () => {
           items: {
             alignment: {
               name() {
-                return void 0;
+                return undefined;
               },
               submenu: {
                 items: [

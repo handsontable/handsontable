@@ -14,6 +14,13 @@ import { getConditionDescriptor } from '../conditionRegisterer';
  * @class ValueComponent
  */
 export class ValueComponent extends BaseComponent {
+  /**
+   * The name of the component.
+   *
+   * @type {string}
+   */
+  name = '';
+
   constructor(hotInstance, options) {
     super(hotInstance, {
       id: options.id,
@@ -21,7 +28,6 @@ export class ValueComponent extends BaseComponent {
     });
 
     this.name = options.name;
-
     this.elements.push(new MultipleSelectUI(this.hot));
 
     this.registerHooks();

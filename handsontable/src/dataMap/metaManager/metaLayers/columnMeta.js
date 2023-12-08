@@ -37,20 +37,23 @@ const COLUMNS_PROPS_CONFLICTS = ['data', 'width'];
  *                    +-------------+.
  */
 export default class ColumnMeta {
+  /**
+   * Reference to the GlobalMeta layer. While creating new column meta objects, all new objects
+   * inherit properties from the GlobalMeta layer.
+   *
+   * @type {GlobalMeta}
+   */
+  globalMeta;
+  /**
+   * The LazyFactoryMap structure, holder for column meta objects where each column meta is
+   * stored under the physical column index.
+   *
+   * @type {LazyFactoryMap}
+   */
+  metas = new LazyFactoryMap(() => this._createMeta());
+
   constructor(globalMeta) {
-    /**
-     * Reference to the GlobalMeta layer. While creating new column meta objects, all new objects
-     * inherit properties from the GlobalMeta layer.
-     *
-     * @type {GlobalMeta}
-     */
     this.globalMeta = globalMeta;
-    /**
-     * The LazyFactoryMap structure, holder for column meta objects where each column meta is
-     * stored under the physical column index.
-     *
-     * @type {LazyFactoryMap}
-     */
     this.metas = new LazyFactoryMap(() => this._createMeta());
   }
 

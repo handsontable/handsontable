@@ -4,11 +4,6 @@ describe('HiddenColumns', () => {
     { htmlDir: 'rtl', layoutDirection: 'ltr' },
   ], ({ htmlDir, layoutDirection }) => {
     const id = 'testContainer';
-    const getIndicator = (parentEl, direction) => {
-      return direction === 'after' ?
-        parentEl.querySelector('.afterHiddenColumnIndicator')
-        : parentEl.querySelector('.beforeHiddenColumnIndicator');
-    };
 
     beforeEach(function() {
       $('html').attr('dir', htmlDir);
@@ -37,17 +32,17 @@ describe('HiddenColumns', () => {
         });
 
         expect(getCell(-1, 0)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
-        expect(getIndicator(getCell(-1, 0), 'after')).toBe(null);
-        expect(getComputedStyle(getIndicator(getCell(-1, 0), 'before'), ':after').content).toBe('"◀"');
+        expect(getComputedStyle(getCell(-1, 0), ':before').content).toBe('none');
+        expect(getComputedStyle(getCell(-1, 0), ':after').content).toBe('"◀"');
         expect(getCell(-1, 1)).toBe(null);
         expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
         expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_COLUMN);
-        expect(getComputedStyle(getIndicator(getCell(-1, 2), 'after'), ':before').content).toBe('"▶"');
-        expect(getComputedStyle(getIndicator(getCell(-1, 2), 'before'), ':after').content).toBe('"◀"');
+        expect(getComputedStyle(getCell(-1, 2), ':before').content).toBe('"▶"');
+        expect(getComputedStyle(getCell(-1, 2), ':after').content).toBe('"◀"');
         expect(getCell(-1, 3)).toBe(null);
         expect(getCell(-1, 4)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_COLUMN);
-        expect(getComputedStyle(getIndicator(getCell(-1, 4), 'after'), ':before').content).toBe('"▶"');
-        expect(getIndicator(getCell(-1, 4), 'before')).toBe(null);
+        expect(getComputedStyle(getCell(-1, 4), ':before').content).toBe('"▶"');
+        expect(getComputedStyle(getCell(-1, 4), ':after').content).toBe('none');
       });
 
       it('should render indicators after enabling them in updateSettings', () => {
@@ -71,27 +66,6 @@ describe('HiddenColumns', () => {
 
         expect(getCell(-1, 1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
         expect(getCell(-1, 1)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_COLUMN);
-      });
-
-      it('should remove the indicator elements when the plugin was disabled', () => {
-        handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 3),
-          hiddenColumns: {
-            columns: [0, 2],
-            indicators: true
-          },
-          colHeaders: true,
-        });
-
-        expect(spec().$container.find('.afterHiddenColumnIndicator').size()).toEqual(2);
-        expect(spec().$container.find('.beforeHiddenColumnIndicator').size()).toEqual(2);
-
-        updateSettings({
-          hiddenColumns: false
-        });
-
-        expect(spec().$container.find('.afterHiddenColumnIndicator').size()).toEqual(0);
-        expect(spec().$container.find('.beforeHiddenColumnIndicator').size()).toEqual(0);
       });
     });
   });

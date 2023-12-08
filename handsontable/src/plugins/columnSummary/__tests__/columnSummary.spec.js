@@ -532,7 +532,7 @@ describe('ColumnSummarySpec', () => {
 
       hot.alter('insert_row_above', 0, 1);
       expect(getDataAtCell(0, 0)).toEqual(null);
-      expect(getCellMeta(0, 0).className).toEqual(void 0);
+      expect(getCellMeta(0, 0).className).toEqual(undefined);
       expect(getCellMeta(0, 0).readOnly).toEqual(false);
       expect(getDataAtCell(1, 0)).toEqual(14);
       expect(getCellMeta(1, 0).className).toEqual('columnSummaryResult');
@@ -557,7 +557,7 @@ describe('ColumnSummarySpec', () => {
 
       hot.alter('insert_col_start', 0, 1);
       expect(getDataAtCell(0, 0)).toEqual(null);
-      expect(getCellMeta(0, 0).className).toEqual(void 0);
+      expect(getCellMeta(0, 0).className).toEqual(undefined);
       expect(getCellMeta(0, 0).readOnly).toEqual(false);
       expect(getDataAtCell(0, 1)).toEqual(14);
       expect(getCellMeta(0, 1).className).toEqual('columnSummaryResult');
@@ -583,7 +583,7 @@ describe('ColumnSummarySpec', () => {
 
       hot.alter('remove_row', 0, 1);
       expect(getDataAtCell(14, 0)).toEqual(16);
-      expect(getCellMeta(14, 0).className).toEqual(void 0);
+      expect(getCellMeta(14, 0).className).toEqual(undefined);
       expect(getCellMeta(14, 0).readOnly).toEqual(false);
       expect(getDataAtCell(13, 0)).toEqual(14);
       expect(getCellMeta(13, 0).className).toEqual('columnSummaryResult');
@@ -608,7 +608,7 @@ describe('ColumnSummarySpec', () => {
 
       hot.alter('remove_col', 0, 1);
       expect(getDataAtCell(0, 3)).toEqual(1);
-      expect(getCellMeta(0, 3).className).toEqual(void 0);
+      expect(getCellMeta(0, 3).className).toEqual(undefined);
       expect(getCellMeta(0, 3).readOnly).toEqual(false);
       expect(getDataAtCell(0, 2)).toEqual(14);
       expect(getCellMeta(0, 2).className).toEqual('columnSummaryResult');

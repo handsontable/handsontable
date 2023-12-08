@@ -25,7 +25,7 @@ describe('Cell state-related a11y config', () => {
   });
 
   describe('cell states', () => {
-    it('should add a `aria-selection` attribute to the currently selected cell', () => {
+    it('should add a `aria-selection` attribute to the currently selected cell and not the headers', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(15, 15),
         rowHeaders: true,
@@ -51,35 +51,58 @@ describe('Cell state-related a11y config', () => {
 
       expect(countElementsWithAriaSelected(getMaster(), 'td')).toEqual(1);
 
-      expect(countElementsWithAriaSelected(getMaster(), 'th')).toEqual(2);
+      expect(countElementsWithAriaSelected(getMaster(), 'th')).toEqual(0);
 
       expect(countElementsWithAriaSelected(getTopClone(), 'td')).toEqual(1);
 
-      expect(countElementsWithAriaSelected(getTopClone(), 'th')).toEqual(2);
+      expect(countElementsWithAriaSelected(getTopClone(), 'th')).toEqual(0);
 
       expect(countElementsWithAriaSelected(getInlineStartClone(), 'td')).toEqual(1);
 
-      expect(countElementsWithAriaSelected(getInlineStartClone(), 'th')).toEqual(2);
+      expect(countElementsWithAriaSelected(getInlineStartClone(), 'th')).toEqual(0);
 
       expect(countElementsWithAriaSelected(getTopInlineStartClone(), 'td')).toEqual(1);
 
-      expect(countElementsWithAriaSelected(getTopInlineStartClone(), 'th')).toEqual(2);
+      expect(countElementsWithAriaSelected(getTopInlineStartClone(), 'th')).toEqual(0);
 
       expect(getCell(0, 0).getAttribute('aria-selected')).toEqual('true');
+
+      selectCell(0, 0, 1, 1);
+
+      expect(countElementsWithAriaSelected(getMaster(), 'td')).toEqual(4);
+
+      expect(countElementsWithAriaSelected(getMaster(), 'th')).toEqual(0);
+
+      expect(countElementsWithAriaSelected(getTopClone(), 'td')).toEqual(4);
+
+      expect(countElementsWithAriaSelected(getTopClone(), 'th')).toEqual(0);
+
+      expect(countElementsWithAriaSelected(getInlineStartClone(), 'td')).toEqual(4);
+
+      expect(countElementsWithAriaSelected(getInlineStartClone(), 'th')).toEqual(0);
+
+      expect(countElementsWithAriaSelected(getTopInlineStartClone(), 'td')).toEqual(4);
+
+      expect(countElementsWithAriaSelected(getTopInlineStartClone(), 'th')).toEqual(0);
+
+      expect(getCell(0, 0).getAttribute('aria-selected')).toEqual('true');
+      expect(getCell(0, 1).getAttribute('aria-selected')).toEqual('true');
+      expect(getCell(1, 0).getAttribute('aria-selected')).toEqual('true');
+      expect(getCell(1, 1).getAttribute('aria-selected')).toEqual('true');
 
       selectCell(5, 5);
 
       expect(countElementsWithAriaSelected(getMaster(), 'td')).toEqual(1);
 
-      expect(countElementsWithAriaSelected(getMaster(), 'th')).toEqual(2);
+      expect(countElementsWithAriaSelected(getMaster(), 'th')).toEqual(0);
 
       expect(countElementsWithAriaSelected(getTopClone(), 'td')).toEqual(0);
 
-      expect(countElementsWithAriaSelected(getTopClone(), 'th')).toEqual(1);
+      expect(countElementsWithAriaSelected(getTopClone(), 'th')).toEqual(0);
 
       expect(countElementsWithAriaSelected(getInlineStartClone(), 'td')).toEqual(0);
 
-      expect(countElementsWithAriaSelected(getInlineStartClone(), 'th')).toEqual(1);
+      expect(countElementsWithAriaSelected(getInlineStartClone(), 'th')).toEqual(0);
 
       expect(countElementsWithAriaSelected(getTopInlineStartClone(), 'td')).toEqual(0);
 

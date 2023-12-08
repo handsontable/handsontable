@@ -16,57 +16,61 @@ import { createArrayAssertion } from './utils';
  * @class ConditionUpdateObserver
  */
 class ConditionUpdateObserver {
-  constructor(hot, conditionCollection, columnDataFactory = () => []) {
-    /**
-     * Handsontable instance.
-     *
-     * @type {Core}
-     */
-    this.hot = hot;
-    /**
-     * Reference to the instance of {@link ConditionCollection}.
-     *
-     * @type {ConditionCollection}
-     */
-    this.conditionCollection = conditionCollection;
-    /**
-     * Function which provide source data factory for specified column.
-     *
-     * @type {Function}
-     */
-    this.columnDataFactory = columnDataFactory;
-    /**
-     * Collected changes when grouping is enabled.
-     *
-     * @type {Array}
-     * @default []
-     */
-    this.changes = [];
-    /**
-     * Flag which determines if grouping events is enabled.
-     *
-     * @type {boolean}
-     */
-    this.grouping = false;
-    /**
-     * The latest known position of edited conditions at specified column index.
-     *
-     * @type {number}
-     * @default -1
-     */
-    this.latestEditedColumnPosition = -1;
-    /**
-     * The latest known order of conditions stack.
-     *
-     * @type {Array}
-     */
-    this.latestOrderStack = [];
+  /**
+   * Handsontable instance.
+   *
+   * @type {Core}
+   */
+  hot;
+  /**
+   * Reference to the instance of {@link ConditionCollection}.
+   *
+   * @type {ConditionCollection}
+   */
+  conditionCollection;
+  /**
+   * Function which provide source data factory for specified column.
+   *
+   * @type {Function}
+   */
+  columnDataFactory;
+  /**
+   * Collected changes when grouping is enabled.
+   *
+   * @type {Array}
+   * @default []
+   */
+  changes = [];
+  /**
+   * Flag which determines if grouping events is enabled.
+   *
+   * @type {boolean}
+   */
+  grouping = false;
+  /**
+   * The latest known position of edited conditions at specified column index.
+   *
+   * @type {number}
+   * @default -1
+   */
+  latestEditedColumnPosition = -1;
+  /**
+   * The latest known order of conditions stack.
+   *
+   * @type {Array}
+   */
+  latestOrderStack = [];
 
-    this.conditionCollection.addLocalHook('beforeRemove', column => this._onConditionBeforeModify(column));
+  constructor(hot, conditionCollection, columnDataFactory = () => []) {
+    this.hot = hot;
+    this.conditionCollection = conditionCollection;
+    this.columnDataFactory = columnDataFactory;
+
+    this.conditionCollection.addLocalHook('beforeRemove', column => this.#onConditionBeforeModify(column));
     this.conditionCollection.addLocalHook('afterRemove', column => this.updateStatesAtColumn(column));
     this.conditionCollection.addLocalHook('afterAdd', column => this.updateStatesAtColumn(column));
-    this.conditionCollection.addLocalHook('beforeClean', () => this._onConditionBeforeClean());
-    this.conditionCollection.addLocalHook('afterClean', () => this._onConditionAfterClean());
+    this.conditionCollection.addLocalHook('beforeClean', () => this.#onConditionBeforeClean());
+    this.conditionCollection.addLocalHook('afterClean', () => this.#onConditionAfterClean());
   }
 
   /**
@@ -96,7 +100,7 @@ class ConditionUpdateObserver {
    * @param {number} column Column index.
    * @private
    */
-  _onConditionBeforeModify(column) {
+  #onConditionBeforeModify(column) {
     this.latestEditedColumnPosition = this.conditionCollection.getColumnStackPosition(column);
   }
 
@@ -177,7 +181,7 @@ class ConditionUpdateObserver {
    *
    * @private
    */
-  _onConditionBeforeClean() {
+  #onConditionBeforeClean() {
     this.latestOrderStack = this.conditionCollection.getFilteredColumns();
   }
 
@@ -186,7 +190,7 @@ class ConditionUpdateObserver {
    *
    * @private
    */
-  _onConditionAfterClean() {
+  #onConditionAfterClean() {
     arrayEach(this.latestOrderStack, (column) => {
       this.updateStatesAtColumn(column);
     });

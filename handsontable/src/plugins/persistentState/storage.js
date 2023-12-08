@@ -5,27 +5,31 @@ import { arrayEach } from '../../helpers/array';
  * @class Storage
  */
 class Storage {
+  /**
+   * Reference to proper window.
+   *
+   * @type {Window}
+   */
+  rootWindow;
+  /**
+   * Prefix for key (id element).
+   *
+   * @type {string}
+   */
+  prefix;
+
+  /**
+   * Saved keys.
+   *
+   * @type {Array}
+   */
+  savedKeys = [];
+
   // eslint-disable-next-line no-restricted-globals
   constructor(prefix, rootWindow = window) {
-    /**
-     * Reference to proper window.
-     *
-     * @type {Window}
-     */
     this.rootWindow = rootWindow;
-    /**
-     * Prefix for key (id element).
-     *
-     * @type {string}
-     */
     this.prefix = prefix;
 
-    /**
-     * Saved keys.
-     *
-     * @type {Array}
-     */
-    this.savedKeys = [];
     this.loadSavedKeys();
   }
 
@@ -56,7 +60,7 @@ class Storage {
     const itemKey = typeof key === 'undefined' ? defaultValue : key;
     const value = this.rootWindow.localStorage.getItem(`${this.prefix}_${itemKey}`);
 
-    return value === null ? void 0 : JSON.parse(value);
+    return value === null ? undefined : JSON.parse(value);
   }
 
   /**
@@ -87,7 +91,7 @@ class Storage {
    */
   loadSavedKeys() {
     const keysJSON = this.rootWindow.localStorage.getItem(`${this.prefix}__persistentStateKeys`);
-    const keys = typeof keysJSON === 'string' ? JSON.parse(keysJSON) : void 0;
+    const keys = typeof keysJSON === 'string' ? JSON.parse(keysJSON) : undefined;
 
     this.savedKeys = keys || [];
   }

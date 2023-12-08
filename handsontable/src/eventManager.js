@@ -15,6 +15,11 @@ let listenersCounter = 0;
  */
 class EventManager {
   /**
+   * @type {object}
+   */
+  context;
+
+  /**
    * @param {object} [context=null] An object to which event listeners will be stored.
    * @private
    */

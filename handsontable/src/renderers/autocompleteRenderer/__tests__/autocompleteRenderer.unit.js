@@ -44,7 +44,7 @@ describe('autocompleteRenderer', () => {
       const instance = getInstance();
       const cellMeta = {};
 
-      autocompleteRenderer(instance, TD, void 0, void 0, void 0, void 0, cellMeta);
+      autocompleteRenderer(instance, TD, undefined, undefined, undefined, undefined, cellMeta);
 
       expect(TD.outerHTML).toMatchHTML(
         '<td class="htAutocomplete"><div class="htAutocompleteArrow">▼</div></td>',

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed wrong row height calculations for merged cells.",
-  "type": "fixed",
-  "issueOrPR": 941,
-  "breaking": false,
-  "framework": "none"
-}

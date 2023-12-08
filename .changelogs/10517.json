@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Storing information about merged cells and nested headers in the clipboard + changed hooks",
-  "type": "changed",
-  "issueOrPR": 10517,
-  "breaking": true,
-  "framework": "none"
-}

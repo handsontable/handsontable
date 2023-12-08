@@ -3,7 +3,6 @@ import Hooks from '../../pluginHooks';
 import { arrayEach } from '../../helpers/array';
 import { objectEach } from '../../helpers/object';
 import { CommandExecutor } from './commandExecutor';
-import EventManager from '../../eventManager';
 import { ItemsFactory } from './itemsFactory';
 import {
   Menu,
@@ -97,39 +96,26 @@ export class ContextMenu extends BasePlugin {
   }
 
   /**
-   * @param {Core} hotInstance Handsontable instance.
+   * Instance of {@link CommandExecutor}.
+   *
+   * @private
+   * @type {CommandExecutor}
    */
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * Instance of {@link EventManager}.
-     *
-     * @private
-     * @type {EventManager}
-     */
-    this.eventManager = new EventManager(this);
-    /**
-     * Instance of {@link CommandExecutor}.
-     *
-     * @private
-     * @type {CommandExecutor}
-     */
-    this.commandExecutor = new CommandExecutor(this.hot);
-    /**
-     * Instance of {@link ItemsFactory}.
-     *
-     * @private
-     * @type {ItemsFactory}
-     */
-    this.itemsFactory = null;
-    /**
-     * Instance of {@link Menu}.
-     *
-     * @private
-     * @type {Menu}
-     */
-    this.menu = null;
-  }
+  commandExecutor = new CommandExecutor(this.hot);
+  /**
+   * Instance of {@link ItemsFactory}.
+   *
+   * @private
+   * @type {ItemsFactory}
+   */
+  itemsFactory = null;
+  /**
+   * Instance of {@link Menu}.
+   *
+   * @private
+   * @type {Menu}
+   */
+  menu = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -161,12 +147,12 @@ export class ContextMenu extends BasePlugin {
       container: settings.uiContainer || this.hot.rootDocument.body,
     });
 
-    this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());
-    this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
-    this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
+    this.menu.addLocalHook('beforeOpen', () => this.#onMenuBeforeOpen());
+    this.menu.addLocalHook('afterOpen', () => this.#onMenuAfterOpen());
+    this.menu.addLocalHook('afterClose', () => this.#onMenuAfterClose());
     this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
 
-    this.addHook('afterOnCellContextMenu', event => this.onAfterOnCellContextMenu(event));
+    this.addHook('afterOnCellContextMenu', event => this.#onAfterOnCellContextMenu(event));
 
     this.registerShortcuts();
     super.enablePlugin();
@@ -208,7 +194,7 @@ export class ContextMenu extends BasePlugin {
     this.hot.getShortcutManager()
       .getContext('grid')
       .addShortcut({
-        keys: [['Control/Meta', 'Shift', '\\'], ['Shift', 'F10']],
+        keys: [['Control/Meta', 'Shift', 'Backslash'], ['Shift', 'F10']],
         callback: () => {
           const { highlight } = this.hot.getSelectedRangeLast();
 
@@ -224,8 +210,15 @@ export class ContextMenu extends BasePlugin {
             left: rect.width,
             above: -rect.height,
           });
+          // Make sure the first item is selected (role=menuitem). Otherwise, screen readers
+          // will block the Esc key for the whole menu.
+          this.menu.getNavigator().toFirstItem();
         },
-        runOnlyIf: () => this.hot.getSelectedRangeLast() && !this.menu.isOpened(),
+        runOnlyIf: () => {
+          const highlight = this.hot.getSelectedRangeLast()?.highlight;
+
+          return highlight && this.hot.selection.isCellVisible(highlight) && !this.menu.isOpened();
+        },
         group: SHORTCUTS_GROUP,
       });
   }
@@ -344,10 +337,9 @@ export class ContextMenu extends BasePlugin {
   /**
    * On contextmenu listener.
    *
-   * @private
    * @param {Event} event The mouse event object.
    */
-  onAfterOnCellContextMenu(event) {
+  #onAfterOnCellContextMenu(event) {
     const settings = this.hot.getSettings();
     const showRowHeaders = settings.rowHeaders;
     const showColHeaders = settings.colHeaders;
@@ -387,28 +379,22 @@ export class ContextMenu extends BasePlugin {
 
   /**
    * On menu before open listener.
-   *
-   * @private
    */
-  onMenuBeforeOpen() {
+  #onMenuBeforeOpen() {
     this.hot.runHooks('beforeContextMenuShow', this);
   }
 
   /**
    * On menu after open listener.
-   *
-   * @private
    */
-  onMenuAfterOpen() {
+  #onMenuAfterOpen() {
     this.hot.runHooks('afterContextMenuShow', this);
   }
 
   /**
    * On menu after close listener.
-   *
-   * @private
    */
-  onMenuAfterClose() {
+  #onMenuAfterClose() {
     this.hot.listen();
     this.hot.runHooks('afterContextMenuHide', this);
   }

@@ -100,11 +100,13 @@ describe('selection utils', () => {
 
   describe('normalizeSelectionFactory', () => {
     it('should throw an exception on invalid type', () => {
-      expect(() => normalizeSelectionFactory()).toThrow();
-      expect(() => normalizeSelectionFactory(0)).toThrow();
-      expect(() => normalizeSelectionFactory('0')).toThrow();
-      expect(() => normalizeSelectionFactory(null)).toThrow();
-      expect(() => normalizeSelectionFactory('foo')).toThrow();
+      const message = 'Unsupported selection ranges schema type was provided.';
+
+      expect(() => normalizeSelectionFactory()).toThrowError(message);
+      expect(() => normalizeSelectionFactory(0)).toThrowError(message);
+      expect(() => normalizeSelectionFactory('0')).toThrowError(message);
+      expect(() => normalizeSelectionFactory(null)).toThrowError(message);
+      expect(() => normalizeSelectionFactory('foo')).toThrowError(message);
     });
 
     it('should create normalizer function', () => {
@@ -114,7 +116,10 @@ describe('selection utils', () => {
     });
 
     it('should create ARRAY normalizer function with default options (it modifies coordinates direction)', () => {
-      const normalizer = normalizeSelectionFactory(SELECTION_TYPE_ARRAY);
+      const normalizer = normalizeSelectionFactory(SELECTION_TYPE_ARRAY, {
+        createCellCoords: (...args) => coords(...args),
+        createCellRange: (...args) => new CellRange(...args),
+      });
 
       expect(normalizer([1, 1])).toEqual({
         highlight: { row: 1, col: 1 },
@@ -144,7 +149,10 @@ describe('selection utils', () => {
     });
 
     it('should create OBJECT normalizer function with default options (it modifies coordinates direction)', () => {
-      const normalizer = normalizeSelectionFactory(SELECTION_TYPE_OBJECT);
+      const normalizer = normalizeSelectionFactory(SELECTION_TYPE_OBJECT, {
+        createCellCoords: (...args) => coords(...args),
+        createCellRange: (...args) => new CellRange(...args),
+      });
 
       expect(normalizer(range(1, 1))).toEqual({
         highlight: { row: 1, col: 1 },
@@ -164,7 +172,11 @@ describe('selection utils', () => {
     });
 
     it('should create ARRAY normalizer function which keep origin coordinates direction', () => {
-      const normalizer = normalizeSelectionFactory(SELECTION_TYPE_ARRAY, { keepDirection: true });
+      const normalizer = normalizeSelectionFactory(SELECTION_TYPE_ARRAY, {
+        createCellCoords: (...args) => coords(...args),
+        createCellRange: (...args) => new CellRange(...args),
+        keepDirection: true,
+      });
 
       expect(normalizer([1, 1, 2, 2])).toEqual({
         highlight: { row: 1, col: 1 },
@@ -179,7 +191,11 @@ describe('selection utils', () => {
     });
 
     it('should create OBJECT normalizer function which keep origin coordinates direction', () => {
-      const normalizer = normalizeSelectionFactory(SELECTION_TYPE_OBJECT, { keepDirection: true });
+      const normalizer = normalizeSelectionFactory(SELECTION_TYPE_OBJECT, {
+        createCellCoords: (...args) => coords(...args),
+        createCellRange: (...args) => new CellRange(...args),
+        keepDirection: true,
+      });
 
       expect(normalizer(range(1, 1))).toEqual({
         highlight: { row: 1, col: 1 },
@@ -200,8 +216,11 @@ describe('selection utils', () => {
 
     it('should create ARRAY normalizer function which translates column string coordinates to visual indexes', () => {
       const propToColMap = new Map([['prop0', 9], ['prop1', 8], ['prop2', 7], ['prop3', 6]]);
-      const propToCol = prop => propToColMap.get(prop);
-      const normalizer = normalizeSelectionFactory(SELECTION_TYPE_ARRAY, { propToCol });
+      const normalizer = normalizeSelectionFactory(SELECTION_TYPE_ARRAY, {
+        createCellCoords: (...args) => coords(...args),
+        createCellRange: (...args) => new CellRange(...args),
+        propToCol: prop => propToColMap.get(prop),
+      });
 
       expect(normalizer([1, 1, 2, 2])).toEqual({
         highlight: { row: 1, col: 1 },
@@ -223,55 +242,161 @@ describe('selection utils', () => {
 
   describe('transformSelectionToColumnDistance', () => {
     it('should return an empty array when selection schema is unrecognized', () => {
-      expect(transformSelectionToColumnDistance()).toEqual([]);
-      expect(transformSelectionToColumnDistance(0)).toEqual([]);
-      expect(transformSelectionToColumnDistance(true)).toEqual([]);
-      expect(transformSelectionToColumnDistance([])).toEqual([]);
-      expect(transformSelectionToColumnDistance([1])).toEqual([]);
-      expect(transformSelectionToColumnDistance([[1], [3, 3, 3, 5]])).toEqual([]);
+      const hotMock = {
+        getSelected: jest.fn(),
+        _createCellCoords: (...args) => coords(...args),
+        _createCellRange: (...args) => new CellRange(...args),
+      };
+
+      hotMock.getSelected.mockReturnValue();
+
+      expect(transformSelectionToColumnDistance(hotMock)).toEqual([]);
+
+      hotMock.getSelected.mockReturnValue(0);
+
+      expect(transformSelectionToColumnDistance(hotMock)).toEqual([]);
+
+      hotMock.getSelected.mockReturnValue(true);
+
+      expect(transformSelectionToColumnDistance(hotMock)).toEqual([]);
+
+      hotMock.getSelected.mockReturnValue([]);
+
+      expect(transformSelectionToColumnDistance(hotMock)).toEqual([]);
+
+      hotMock.getSelected.mockReturnValue([1]);
+
+      expect(transformSelectionToColumnDistance(hotMock)).toEqual([]);
+
+      hotMock.getSelected.mockReturnValue([[1], [3, 3, 3, 5]]);
+
+      expect(transformSelectionToColumnDistance(hotMock)).toEqual([]);
     });
 
     it('should translate selection ranges passed as an array of arrays to column distances', () => {
-      expect(transformSelectionToColumnDistance([[1, 1, 2, 2]])).toEqual([[1, 2]]);
-      expect(transformSelectionToColumnDistance([[1, 1], [3, 3, 3, 5]])).toEqual([[1, 1], [3, 3]]);
-      expect(transformSelectionToColumnDistance([[-1, 1], [-3, -3, 3, 5]])).toEqual([[0, 6]]);
-      expect(transformSelectionToColumnDistance([[1, 1], [3, 3, 3, 5], [5, 1, 6, 3]])).toEqual([[1, 5]]);
-      expect(transformSelectionToColumnDistance([[1, 1], [3, 3, 3, 5], [5, 1, 6, 3], [5, 7, 5, 7]]))
-        .toEqual([[1, 5], [7, 1]]);
+      const hotMock = {
+        getSelected: jest.fn(),
+        _createCellCoords: (...args) => coords(...args),
+        _createCellRange: (...args) => new CellRange(...args),
+      };
+
+      hotMock.getSelected.mockReturnValue([[1, 1, 2, 2]]);
+
+      expect(transformSelectionToColumnDistance(hotMock)).toEqual([[1, 2]]);
+
+      hotMock.getSelected.mockReturnValue([[1, 1], [3, 3, 3, 5]]);
+
+      expect(transformSelectionToColumnDistance(hotMock)).toEqual([[1, 1], [3, 3]]);
+
+      hotMock.getSelected.mockReturnValue([[-1, 1], [-3, -3, 3, 5]]);
+
+      expect(transformSelectionToColumnDistance(hotMock)).toEqual([[0, 6]]);
+
+      hotMock.getSelected.mockReturnValue([[1, 1], [3, 3, 3, 5], [5, 1, 6, 3]]);
+
+      expect(transformSelectionToColumnDistance(hotMock)).toEqual([[1, 5]]);
+
+      hotMock.getSelected.mockReturnValue([[1, 1], [3, 3, 3, 5], [5, 1, 6, 3], [5, 7, 5, 7]]);
+
+      expect(transformSelectionToColumnDistance(hotMock)).toEqual([[1, 5], [7, 1]]);
     });
 
     it('should translate selection ranges passed as an array of CellRange objects to column distances', () => {
-      expect(transformSelectionToColumnDistance([range(1, 1, 1, 1, 2, 2)])).toEqual([[1, 2]]);
-      expect(transformSelectionToColumnDistance([range(0, 0, 1, 1, -2, -2)])).toEqual([[0, 2]]);
-      expect(transformSelectionToColumnDistance([range(1, 1, 1, 1, 2, 2), range(3, 3, 3, 3, 3, 5)]))
-        .toEqual([[1, 5]]);
+      const hotMock = {
+        getSelected: jest.fn(),
+        _createCellCoords: (...args) => coords(...args),
+        _createCellRange: (...args) => new CellRange(...args),
+      };
+
+      hotMock.getSelected.mockReturnValue([range(1, 1, 1, 1, 2, 2)]);
+
+      expect(transformSelectionToColumnDistance(hotMock)).toEqual([[1, 2]]);
+
+      hotMock.getSelected.mockReturnValue([range(0, 0, 1, 1, -2, -2)]);
+
+      expect(transformSelectionToColumnDistance(hotMock)).toEqual([[0, 2]]);
+
+      hotMock.getSelected.mockReturnValue([range(1, 1, 1, 1, 2, 2), range(3, 3, 3, 3, 3, 5)]);
+
+      expect(transformSelectionToColumnDistance(hotMock)).toEqual([[1, 5]]);
     });
   });
 
   describe('transformSelectionToRowDistance', () => {
     it('should return an empty array when selection schema is unrecognized', () => {
-      expect(transformSelectionToRowDistance()).toEqual([]);
-      expect(transformSelectionToRowDistance(0)).toEqual([]);
-      expect(transformSelectionToRowDistance(true)).toEqual([]);
-      expect(transformSelectionToRowDistance([])).toEqual([]);
-      expect(transformSelectionToRowDistance([1])).toEqual([]);
-      expect(transformSelectionToRowDistance([[1], [3, 3, 3, 5]])).toEqual([]);
+      const hotMock = {
+        getSelected: jest.fn(),
+        _createCellCoords: (...args) => coords(...args),
+        _createCellRange: (...args) => new CellRange(...args),
+      };
+
+      hotMock.getSelected.mockReturnValue(0);
+
+      expect(transformSelectionToRowDistance(hotMock)).toEqual([]);
+
+      hotMock.getSelected.mockReturnValue(true);
+
+      expect(transformSelectionToRowDistance(hotMock)).toEqual([]);
+
+      hotMock.getSelected.mockReturnValue([]);
+
+      expect(transformSelectionToRowDistance(hotMock)).toEqual([]);
+
+      hotMock.getSelected.mockReturnValue([1]);
+
+      expect(transformSelectionToRowDistance(hotMock)).toEqual([]);
+
+      hotMock.getSelected.mockReturnValue([[1], [3, 3, 3, 5]]);
+
+      expect(transformSelectionToRowDistance(hotMock)).toEqual([]);
     });
 
     it('should translate selection ranges passed as an array of arrays to row distances', () => {
-      expect(transformSelectionToRowDistance([[1, 1, 2, 2]])).toEqual([[1, 2]]);
-      expect(transformSelectionToRowDistance([[1, 1], [3, 3, 5, 3]])).toEqual([[1, 1], [3, 3]]);
-      expect(transformSelectionToRowDistance([[1, -1], [-3, -3, 5, 3]])).toEqual([[0, 6]]);
-      expect(transformSelectionToRowDistance([[1, 1], [3, 3, 5, 3], [1, 5, 3, 6]])).toEqual([[1, 5]]);
-      expect(transformSelectionToRowDistance([[1, 1], [3, 3, 5, 3], [1, 5, 3, 6], [7, 5, 7, 5]]))
-        .toEqual([[1, 5], [7, 1]]);
+      const hotMock = {
+        getSelected: jest.fn(),
+        _createCellCoords: (...args) => coords(...args),
+        _createCellRange: (...args) => new CellRange(...args),
+      };
+
+      hotMock.getSelected.mockReturnValue([[1, 1, 2, 2]]);
+
+      expect(transformSelectionToRowDistance(hotMock)).toEqual([[1, 2]]);
+
+      hotMock.getSelected.mockReturnValue([[1, 1], [3, 3, 5, 3]]);
+
+      expect(transformSelectionToRowDistance(hotMock)).toEqual([[1, 1], [3, 3]]);
+
+      hotMock.getSelected.mockReturnValue([[1, -1], [-3, -3, 5, 3]]);
+
+      expect(transformSelectionToRowDistance(hotMock)).toEqual([[0, 6]]);
+
+      hotMock.getSelected.mockReturnValue([[1, 1], [3, 3, 5, 3], [1, 5, 3, 6]]);
+
+      expect(transformSelectionToRowDistance(hotMock)).toEqual([[1, 5]]);
+
+      hotMock.getSelected.mockReturnValue([[1, 1], [3, 3, 5, 3], [1, 5, 3, 6], [7, 5, 7, 5]]);
+
+      expect(transformSelectionToRowDistance(hotMock)).toEqual([[1, 5], [7, 1]]);
     });
 
     it('should translate selection ranges passed as an array of CellRange objects to row distances', () => {
-      expect(transformSelectionToRowDistance([range(1, 1, 1, 1, 2, 2)])).toEqual([[1, 2]]);
-      expect(transformSelectionToRowDistance([range(0, 0, 1, 1, -2, -2)])).toEqual([[0, 2]]);
-      expect(transformSelectionToRowDistance([range(1, 1, 1, 1, 2, 2), range(3, 3, 3, 3, 5, 3)]))
-        .toEqual([[1, 5]]);
+      const hotMock = {
+        getSelected: jest.fn(),
+        _createCellCoords: (...args) => coords(...args),
+        _createCellRange: (...args) => new CellRange(...args),
+      };
+
+      hotMock.getSelected.mockReturnValue([range(1, 1, 1, 1, 2, 2)]);
+
+      expect(transformSelectionToRowDistance(hotMock)).toEqual([[1, 2]]);
+
+      hotMock.getSelected.mockReturnValue([range(0, 0, 1, 1, -2, -2)]);
+
+      expect(transformSelectionToRowDistance(hotMock)).toEqual([[0, 2]]);
+
+      hotMock.getSelected.mockReturnValue([range(1, 1, 1, 1, 2, 2), range(3, 3, 3, 3, 5, 3)]);
+
+      expect(transformSelectionToRowDistance(hotMock)).toEqual([[1, 5]]);
     });
   });
 

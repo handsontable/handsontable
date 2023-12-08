@@ -90,6 +90,7 @@ export const getDataAtProp = handsontableMethodFactory('getDataAtProp');
 export const getDataAtRow = handsontableMethodFactory('getDataAtRow');
 export const getDataAtRowProp = handsontableMethodFactory('getDataAtRowProp');
 export const getDataType = handsontableMethodFactory('getDataType');
+export const getFocusManager = handsontableMethodFactory('getFocusManager');
 export const getInstance = handsontableMethodFactory('getInstance');
 export const getPlugin = handsontableMethodFactory('getPlugin');
 export const getRowHeader = handsontableMethodFactory('getRowHeader');
@@ -609,8 +610,8 @@ export function dropdownMenuRootElement() {
  * @returns {Event}
  */
 export function serveImmediatePropagation(event) {
-  if ((event !== null || event !== void 0)
-    && (event.isImmediatePropagationEnabled === null || event.isImmediatePropagationEnabled === void 0)) {
+  if ((event !== null || event !== undefined)
+    && (event.isImmediatePropagationEnabled === null || event.isImmediatePropagationEnabled === undefined)) {
     event.stopImmediatePropagation = function() {
       this.isImmediatePropagationEnabled = false;
       this.cancelBubble = true;

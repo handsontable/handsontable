@@ -103,7 +103,7 @@ describe('manualRowMove', () => {
       expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
 
       updateSettings({
-        manualRowMove: void 0
+        manualRowMove: undefined
       });
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
@@ -192,8 +192,8 @@ describe('manualRowMove', () => {
           hot.rowIndexMapper.setIndexesSequence([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
           const result = hot.getPlugin('manualRowMove').moveRows([8, 9, 7], 0);
 
-          expect(beforeRowMoveCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, true);
-          expect(afterMoveRowCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, true, true);
+          expect(beforeRowMoveCallback).toHaveBeenCalledWith([8, 9, 7], 0, undefined, true);
+          expect(afterMoveRowCallback).toHaveBeenCalledWith([8, 9, 7], 0, undefined, true, true);
           expect(result).toBeTruthy();
         });
 

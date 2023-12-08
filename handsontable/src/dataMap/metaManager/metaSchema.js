@@ -105,7 +105,7 @@ export default () => {
      * @type {Set}
      * @default undefined
      */
-    _automaticallyAssignedMetaProps: void 0,
+    _automaticallyAssignedMetaProps: undefined,
 
     /**
      * The `activeHeaderClassName` option lets you add a CSS class name
@@ -388,7 +388,7 @@ export default () => {
      * },
      * ```
      */
-    autoColumnSize: void 0,
+    autoColumnSize: undefined,
 
     /**
      * The `autoRowSize` option configures the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
@@ -428,7 +428,7 @@ export default () => {
      * },
      * ```
      */
-    autoRowSize: void 0,
+    autoRowSize: undefined,
 
     /**
      * With [`autoWrapCol`](#autowrapcol) enabled:
@@ -517,7 +517,7 @@ export default () => {
      * bindRowsWithHeaders: true
      * ```
      */
-    bindRowsWithHeaders: void 0,
+    bindRowsWithHeaders: undefined,
 
     /**
      * The `cell` option lets you apply [configuration options](@/guides/getting-started/configuration-options.md) to individual cells.
@@ -590,7 +590,7 @@ export default () => {
      * },
      * ```
      */
-    cells: void 0,
+    cells: undefined,
 
     /**
      * The `checkedTemplate` option lets you configure what value
@@ -633,7 +633,7 @@ export default () => {
      * ],
      * ```
      */
-    checkedTemplate: void 0,
+    checkedTemplate: undefined,
 
     /**
      * The `className` option lets you add CSS class names to every currently-selected element.
@@ -681,7 +681,7 @@ export default () => {
      * className: ['first-class-name', 'second-class-name'],
      * ```
      */
-    className: void 0,
+    className: undefined,
 
     /**
      * The `colHeaders` option configures your grid's column headers.
@@ -751,7 +751,7 @@ export default () => {
      * ],
      * ```
      */
-    collapsibleColumns: void 0,
+    collapsibleColumns: undefined,
 
     /**
      * @description
@@ -778,7 +778,7 @@ export default () => {
      * columnHeaderHeight: [25, 30, 55],
      * ```
      */
-    columnHeaderHeight: void 0,
+    columnHeaderHeight: undefined,
 
     /**
      * @description
@@ -832,7 +832,7 @@ export default () => {
      * }
      * ```
      */
-    columns: void 0,
+    columns: undefined,
 
     /**
      * @description
@@ -912,7 +912,7 @@ export default () => {
      * }
      * ```
      */
-    columnSorting: void 0,
+    columnSorting: undefined,
 
     /**
      * @description
@@ -967,7 +967,7 @@ export default () => {
      * ],
      * ```
      */
-    columnSummary: void 0,
+    columnSummary: undefined,
 
     /**
      * The `colWidths` option sets columns' widths, in pixels.
@@ -1017,7 +1017,7 @@ export default () => {
      * },
      * ```
      */
-    colWidths: void 0,
+    colWidths: undefined,
 
     /**
      * The `commentedCellClassName` option lets you add a CSS class name to cells
@@ -1167,7 +1167,7 @@ export default () => {
      * },
      * ```
      */
-    contextMenu: void 0,
+    contextMenu: undefined,
 
     /**
      * @description
@@ -1177,8 +1177,8 @@ export default () => {
      *
      * | Setting                                                                                                        | Description                                                                                                            |
      * | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-     * | `true` (default)                                                                                               | - On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>, add the cell's value to the clipboard         |
-     * | `false`<br>(default for the [`password`](@/guides/cell-types/password-cell-type.md) [cell type](#type))        | - On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>, add an empty string (`""`) to the clipboard   |
+     * | `true` (default)                                                                                               | - On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>, add the cell's value to the clipboard         |
+     * | `false`<br>(default for the [`password`](@/guides/cell-types/password-cell-type.md) [cell type](#type))        | - On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>, add an empty string (`""`) to the clipboard   |
      *
      * Read more:
      * - [Clipboard](@/guides/cell-features/clipboard.md)
@@ -1365,7 +1365,7 @@ export default () => {
      * currentColClassName: 'your-class-name',
      * ```
      */
-    currentColClassName: void 0,
+    currentColClassName: undefined,
 
     /**
      * The `currentHeaderClassName` option lets you add a CSS class name
@@ -1424,7 +1424,7 @@ export default () => {
      * currentRowClassName: 'your-class-name',
      * ```
      */
-    currentRowClassName: void 0,
+    currentRowClassName: undefined,
 
     /**
      * @description
@@ -1581,7 +1581,7 @@ export default () => {
      * ]
      * ```
      */
-    data: void 0,
+    data: undefined,
 
     /**
      * @description
@@ -1620,7 +1620,7 @@ export default () => {
      * minSpareRows: 1
      * ```
      */
-    dataSchema: void 0,
+    dataSchema: undefined,
 
     /**
      * The `dateFormat` option configures the date format accepted by [`date`](@/guides/cell-types/date-cell-type.md) cells.
@@ -1681,7 +1681,7 @@ export default () => {
      * @default undefined
      * @category Core
      */
-    datePickerConfig: void 0,
+    datePickerConfig: undefined,
 
     /**
      * The `defaultDate` option configures the date displayed
@@ -1710,7 +1710,7 @@ export default () => {
      * ],
      * ```
      */
-    defaultDate: void 0,
+    defaultDate: undefined,
 
     /**
      * @description
@@ -1840,7 +1840,7 @@ export default () => {
      * },
      * ```
      */
-    dropdownMenu: void 0,
+    dropdownMenu: undefined,
 
     /**
      * The `editor` option sets a [cell editor](@/guides/cell-functions/cell-editor.md) for a cell.
@@ -1899,7 +1899,7 @@ export default () => {
      * ]
      * ```
      */
-    editor: void 0,
+    editor: undefined,
 
     /**
      * The `enterBeginsEditing` option configures the action of the <kbd>**Enter**</kbd> key.
@@ -1945,8 +1945,8 @@ export default () => {
      *
      * | Property | Type   | Description                                                                                                                                              |
      * | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `col`    | Number | - On pressing <kbd>**Enter**</kbd>, move selection `col` columns right<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>, move selection `col` columns left |
-     * | `row`    | Number | - On pressing <kbd>**Enter**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>, move selection `row` rows up          |
+     * | `col`    | Number | - On pressing <kbd>**Enter**</kbd>, move selection `col` columns right<br>- On pressing <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>, move selection `col` columns left |
+     * | `row`    | Number | - On pressing <kbd>**Enter**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>, move selection `row` rows up          |
      *
      * Read more:
      * - [`enterBeginsEditing`](#enterBeginsEditing)
@@ -2130,7 +2130,7 @@ export default () => {
      * filters: true,
      * ```
      */
-    filters: void 0,
+    filters: undefined,
 
     /**
      * `fixedColumnsLeft` is a legacy option.
@@ -2313,7 +2313,7 @@ export default () => {
      * }
      * ```
      */
-    formulas: void 0,
+    formulas: undefined,
 
     /**
      * The `fragmentSelection` option configures text selection settings.
@@ -2375,7 +2375,7 @@ export default () => {
      * },
      * ```
      */
-    height: void 0,
+    height: undefined,
 
     /**
      * The `hiddenColumns` option configures the [`HiddenColumns`](@/api/hiddenColumns.md) plugin.
@@ -2421,7 +2421,7 @@ export default () => {
      * }
      * ```
      */
-    hiddenColumns: void 0,
+    hiddenColumns: undefined,
 
     /**
      * The `hiddenRows` option configures the [`HiddenRows`](@/api/hiddenRows.md) plugin.
@@ -2467,7 +2467,7 @@ export default () => {
      * }
      * ```
      */
-    hiddenRows: void 0,
+    hiddenRows: undefined,
 
     /**
      * The `invalidCellClassName` option lets you add a CSS class name to cells
@@ -2623,7 +2623,7 @@ export default () => {
      * }],
      * ```
      */
-    label: void 0,
+    label: undefined,
 
     /**
      * The `language` option configures Handsontable's [language](@/guides/internationalization/language.md) settings.
@@ -2743,7 +2743,7 @@ export default () => {
      * licenseKey: 'non-commercial-and-evaluation',
      * ```
      */
-    licenseKey: void 0,
+    licenseKey: undefined,
 
     /**
      * The `locale` option configures Handsontable's [locale](@/guides/internationalization/locale.md) settings.
@@ -2806,7 +2806,7 @@ export default () => {
      * manualColumnFreeze: true,
      * ```
      */
-    manualColumnFreeze: void 0,
+    manualColumnFreeze: undefined,
 
     /**
      * The `manualColumnMove` option configures the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin.
@@ -2839,7 +2839,7 @@ export default () => {
      * manualColumnMove: [1, 4, 6],
      * ```
      */
-    manualColumnMove: void 0,
+    manualColumnMove: undefined,
 
     /**
      * @description
@@ -2873,7 +2873,7 @@ export default () => {
      * manualColumnResize: [40, 50, 60],
      * ```
      */
-    manualColumnResize: void 0,
+    manualColumnResize: undefined,
 
     /**
      * @description
@@ -2907,7 +2907,7 @@ export default () => {
      * manualColumnMove: [1, 4, 6],
      * ```
      */
-    manualRowMove: void 0,
+    manualRowMove: undefined,
 
     /**
      * @description
@@ -2941,7 +2941,7 @@ export default () => {
      * manualRowResize: [40, 50, 60],
      * ```
      */
-    manualRowResize: void 0,
+    manualRowResize: undefined,
 
     /**
      * The `maxCols` option sets a maximum number of columns.
@@ -3211,10 +3211,10 @@ export default () => {
      * }
      * ```
      */
-    multiColumnSorting: void 0,
+    multiColumnSorting: undefined,
 
     /**
-     * When set to `true`, the `navigableHeaders` option lets you navigate [row headers](@/guides/rows/row-header.md) and [column headers](@/guides/columns/column-header.md), using the arrow keys or the <kbd>**Tab**</kbd> key (if the [`disableTabNavigation`](#disabletabnavigation) option is set to `false`).
+     * When set to `true`, the `navigableHeaders` option lets you navigate [row headers](@/guides/rows/row-header.md) and [column headers](@/guides/columns/column-header.md), using the arrow keys or the <kbd>**Tab**</kbd> key (if the [`tabNavigation`](#tabNavigation) option is set to `true`).
      *
      * @since 14.0.0
      * @memberof Options#
@@ -3234,27 +3234,27 @@ export default () => {
     navigableHeaders: false,
 
     /**
-     * When set to `true`, the `disableTabNavigation` option changes the behavior of the
+     * When set to `false`, the `tabNavigation` option changes the behavior of the
      * <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts. The Handsontable
-     * no more captures that shortcuts to make the grid navigation available (`disableTabNavigation: false`)
+     * no more captures that shortcuts to make the grid navigation available (`tabNavigation: true`)
      * but returns control to the browser so the native page navigation is possible.
      *
      * @since 14.0.0
      * @memberof Options#
      * @type {boolean}
-     * @default false
+     * @default true
      * @category Core
      *
      * @example
      * ```js
      * // you can't navigate row and column headers using <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts
-     * disableTabNavigation: true,
+     * tabNavigation: false,
      *
      * // default behavior: you can navigate row and column headers using <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts
-     * disableTabNavigation: false,
+     * tabNavigation: true,
      * ```
      */
-    disableTabNavigation: false,
+    tabNavigation: true,
 
     /**
      * @description
@@ -3295,7 +3295,7 @@ export default () => {
      * ],
      * ```
      */
-    nestedHeaders: void 0,
+    nestedHeaders: undefined,
 
     /**
      * @description
@@ -3322,7 +3322,7 @@ export default () => {
      * @default false
      * @category NestedRows
      */
-    nestedRows: void 0,
+    nestedRows: undefined,
 
     /**
      * The `noWordWrapClassName` option lets you add a CSS class name
@@ -3397,7 +3397,7 @@ export default () => {
      * ],
      * ```
      */
-    numericFormat: void 0,
+    numericFormat: undefined,
 
     /**
      * If the `observeDOMVisibility` option is set to `true`,
@@ -3480,7 +3480,7 @@ export default () => {
      * persistentState: true,
      * ```
      */
-    persistentState: void 0,
+    persistentState: undefined,
 
     /**
      * The `placeholder` option lets you display placeholder text in every empty cell.
@@ -3518,7 +3518,7 @@ export default () => {
      * ],
      * ```
      */
-    placeholder: void 0,
+    placeholder: undefined,
 
     /**
      * The `placeholderCellClassName` option lets you add a CSS class name to cells
@@ -3683,7 +3683,7 @@ export default () => {
      * renderAllRows: true,
      * ```
      */
-    renderAllRows: void 0,
+    renderAllRows: undefined,
 
     /**
      * @description
@@ -3745,7 +3745,7 @@ export default () => {
      * ]
      * ```
      */
-    renderer: void 0,
+    renderer: undefined,
 
     /**
      * The `rowHeaders` option configures your grid's row headers.
@@ -3781,7 +3781,7 @@ export default () => {
      * },
      * ```
      */
-    rowHeaders: void 0,
+    rowHeaders: undefined,
 
     /**
      * @description
@@ -3808,7 +3808,7 @@ export default () => {
      * rowHeaderWidth: [25, 30, 55],
      * ```
      */
-    rowHeaderWidth: void 0,
+    rowHeaderWidth: undefined,
 
     /**
      * The `rowHeights` option sets rows' heights, in pixels.
@@ -3855,7 +3855,7 @@ export default () => {
      * },
      * ```
      */
-    rowHeights: void 0,
+    rowHeights: undefined,
 
     /**
      * @description
@@ -3874,13 +3874,13 @@ export default () => {
      * | Option              | Possible settings | Description                                                                                          |
      * | ------------------- | ----------------- | ---------------------------------------------------------------------------------------------------- |
      * | `searchResultClass` | A string          | Add a custom CSS class name to search results                                                        |
-     * | `queryMethod`       | A function        | Add a [custom query method](@/guides/accessories-and-menus/searching-values.md#custom-query-method)  |
-     * | `callback`          | A function        | Add a [custom callback function](@/guides/accessories-and-menus/searching-values.md#custom-callback) |
+     * | `queryMethod`       | A function        | Add a [custom query method](@/guides/navigation/searching-values.md#custom-query-method)  |
+     * | `callback`          | A function        | Add a [custom callback function](@/guides/navigation/searching-values.md#custom-callback) |
      *
      * Read more:
-     * - [Searching values](@/guides/accessories-and-menus/searching-values.md)
-     * - [Searching values: Custom query method](@/guides/accessories-and-menus/searching-values.md#custom-query-method)
-     * - [Searching values: Custom callback](@/guides/accessories-and-menus/searching-values.md#custom-callback)
+     * - [Searching values](@/guides/navigation/searching-values.md)
+     * - [Searching values: Custom query method](@/guides/navigation/searching-values.md#custom-query-method)
+     * - [Searching values: Custom callback](@/guides/navigation/searching-values.md#custom-callback)
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -3999,7 +3999,7 @@ export default () => {
      * ],
      * ```
      */
-    selectOptions: void 0,
+    selectOptions: undefined,
 
     /**
      * @description
@@ -4151,7 +4151,7 @@ export default () => {
      * }],
      * ```
      */
-    source: void 0,
+    source: undefined,
 
     /**
      * @description
@@ -4254,7 +4254,7 @@ export default () => {
      * ],
      * ```
      */
-    strict: void 0,
+    strict: undefined,
 
     /**
      * The `tableClassName` option lets you add CSS class names
@@ -4295,7 +4295,7 @@ export default () => {
      * tableClassName: ['first-class-name', 'second-class-name'],
      * ```
      */
-    tableClassName: void 0,
+    tableClassName: undefined,
 
     /**
      * The `tabMoves` option configures the action of the <kbd>**Tab**</kbd> key.
@@ -4305,8 +4305,8 @@ export default () => {
      *
      * | Property | Type   | Description                                                                                                                                              |
      * | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `row`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Tab**</kbd>, move selection `row` rows up              |
-     * | `col`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `col` columns right<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Tab**</kbd>, move selection `col` columns left     |
+     * | `row`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>, move selection `row` rows up              |
+     * | `col`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `col` columns right<br>- On pressing <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>, move selection `col` columns left     |
      *
      * @memberof Options#
      * @type {object|Function}
@@ -4360,7 +4360,7 @@ export default () => {
      * ],
      * ```
      */
-    title: void 0,
+    title: undefined,
 
     /**
      * The `trimDropdown` option configures the width of the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)
@@ -4433,7 +4433,7 @@ export default () => {
      * trimRows: [5, 10, 15],
      * ```
      */
-    trimRows: void 0,
+    trimRows: undefined,
 
     /**
      * The `trimWhitespace` option configures automatic whitespace removal. This option
@@ -4560,7 +4560,7 @@ export default () => {
      * ],
      * ```
      */
-    uncheckedTemplate: void 0,
+    uncheckedTemplate: undefined,
 
     /**
      * The `undo` option configures the [`UndoRedo`](@/api/undoRedo.md) plugin.
@@ -4591,7 +4591,7 @@ export default () => {
      * undo: true,
      * ```
      */
-    undo: void 0,
+    undo: undefined,
 
     /**
      * @description
@@ -4651,7 +4651,7 @@ export default () => {
      * ],
      * ```
      */
-    validator: void 0,
+    validator: undefined,
 
     /**
      * @description
@@ -4778,7 +4778,7 @@ export default () => {
      * },
      * ```
      */
-    width: void 0,
+    width: undefined,
 
     /**
      * The `wordWrap` option configures whether content that exceeds a column's width is wrapped or not.

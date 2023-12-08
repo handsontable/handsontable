@@ -1,6 +1,6 @@
 import {
   addClass,
-  appendElement,
+  hasClass,
   removeClass,
   setAttribute,
 } from '../../helpers/dom/element';
@@ -13,6 +13,7 @@ import { IndexesSequence, PhysicalIndexToValueMap as IndexToValueMap } from '../
 import Hooks from '../../pluginHooks';
 import { ColumnStatesManager } from './columnStatesManager';
 import {
+  HEADER_SPAN_CLASS,
   getNextSortOrder,
   areValidSortStates,
   getHeaderSpanElement,
@@ -25,15 +26,13 @@ import {
 } from './domHelpers';
 import { rootComparator } from './rootComparator';
 import { registerRootComparator, sort } from './sortService';
-import { A11Y_DESCRIPTION, A11Y_HIDDEN, A11Y_SORT } from '../../helpers/a11y';
-import { COLUMN_HEADER_DESCRIPTION_SORT_ROWS } from '../../i18n/constants';
+import { A11Y_SORT } from '../../helpers/a11y';
 
 export const PLUGIN_KEY = 'columnSorting';
 export const PLUGIN_PRIORITY = 50;
 export const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 export const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
-const SORTING_INDICATOR_CLASS = 'columnSortingIndicator';
 
 registerRootComparator(PLUGIN_KEY, rootComparator);
 
@@ -99,37 +98,34 @@ export class ColumnSorting extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * Instance of column state manager.
-     *
-     * @private
-     * @type {null|ColumnStatesManager}
-     */
-    this.columnStatesManager = null;
-    /**
-     * Cached column properties from plugin like i.e. `indicator`, `headerAction`.
-     *
-     * @private
-     * @type {null|PhysicalIndexToValueMap}
-     */
-    this.columnMetaCache = null;
-    /**
-     * Main settings key designed for the plugin.
-     *
-     * @private
-     * @type {string}
-     */
-    this.pluginKey = PLUGIN_KEY;
-    /**
-     * Plugin indexes cache.
-     *
-     * @private
-     * @type {null|IndexesSequence}
-     */
-    this.indexesSequenceCache = null;
-  }
+  /**
+   * Instance of column state manager.
+   *
+   * @private
+   * @type {null|ColumnStatesManager}
+   */
+  columnStatesManager = null;
+  /**
+   * Cached column properties from plugin like i.e. `indicator`, `headerAction`.
+   *
+   * @private
+   * @type {null|PhysicalIndexToValueMap}
+   */
+  columnMetaCache = null;
+  /**
+   * Main settings key designed for the plugin.
+   *
+   * @private
+   * @type {string}
+   */
+  pluginKey = PLUGIN_KEY;
+  /**
+   * Plugin indexes cache.
+   *
+   * @private
+   * @type {null|IndexesSequence}
+   */
+  indexesSequenceCache = null;
 
   /**
    * Checks if the plugin is enabled in the Handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -162,15 +158,15 @@ export class ColumnSorting extends BasePlugin {
     });
     this.hot.columnIndexMapper.registerMap(`${this.pluginKey}.columnMeta`, this.columnMetaCache);
 
-    this.addHook('afterGetColHeader', (column, TH) => this.onAfterGetColHeader(column, TH));
-    this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
+    this.addHook('afterGetColHeader', (column, TH) => this.#onAfterGetColHeader(column, TH));
+    this.addHook('beforeOnCellMouseDown', (...args) => this.#onBeforeOnCellMouseDown(...args));
     this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
-    this.addHook('afterInit', () => this.loadOrSortBySettings());
-    this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
+    this.addHook('afterInit', () => this.#loadOrSortBySettings());
+    this.addHook('afterLoadData', (...args) => this.#onAfterLoadData(...args));
 
     // TODO: Workaround? It should be refactored / described.
     if (this.hot.view) {
-      this.loadOrSortBySettings();
+      this.#loadOrSortBySettings();
     }
 
     this.registerShortcuts();
@@ -230,7 +226,11 @@ export class ColumnSorting extends BasePlugin {
             this.sort(this.getColumnNextConfig(highlight.col));
           }
         },
-        runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isHeader(),
+        runOnlyIf: () => {
+          const highlight = this.hot.getSelectedRangeLast()?.highlight;
+
+          return highlight && this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
+        },
         group: SHORTCUTS_GROUP,
       });
   }
@@ -661,10 +661,8 @@ export class ColumnSorting extends BasePlugin {
 
   /**
    * Load saved settings or sort by predefined plugin configuration.
-   *
-   * @private
    */
-  loadOrSortBySettings() {
+  #loadOrSortBySettings() {
     const storedAllSortSettings = this.getAllSavedSortSettings();
 
     if (isObject(storedAllSortSettings)) {
@@ -703,11 +701,10 @@ export class ColumnSorting extends BasePlugin {
   /**
    * Callback for the `onAfterGetColHeader` hook. Adds column sorting CSS classes.
    *
-   * @private
    * @param {number} column Visual column index.
    * @param {Element} TH TH HTML element.
    */
-  onAfterGetColHeader(column, TH) {
+  #onAfterGetColHeader(column, TH) {
     const headerSpanElement = getHeaderSpanElement(TH);
 
     if (isFirstLevelColumnHeader(column, TH) === false || headerSpanElement === null) {
@@ -715,10 +712,8 @@ export class ColumnSorting extends BasePlugin {
     }
 
     const pluginSettingsForColumn = this.getFirstCellSettings(column)[this.pluginKey];
-    const ariaTags = this.hot.getSettings().ariaTags;
     const showSortIndicator = pluginSettingsForColumn.indicator;
     const headerActionEnabled = pluginSettingsForColumn.headerAction;
-    const currentSortState = this.columnStatesManager.getSortOrderOfColumn(column);
 
     this.updateHeaderClasses(
       headerSpanElement,
@@ -728,13 +723,10 @@ export class ColumnSorting extends BasePlugin {
       headerActionEnabled
     );
 
-    this.updateSortingIndicator(column, headerSpanElement);
+    if (this.hot.getSettings().ariaTags) {
+      const currentSortState = this.columnStatesManager.getSortOrderOfColumn(column);
 
-    if (ariaTags) {
-      setAttribute(TH, [
-        A11Y_SORT(currentSortState ? `${currentSortState}ending` : 'none'),
-        A11Y_DESCRIPTION(this.hot.getTranslatedPhrase(COLUMN_HEADER_DESCRIPTION_SORT_ROWS)),
-      ]);
+      setAttribute(TH, ...A11Y_SORT(currentSortState ? `${currentSortState}ending` : 'none'));
     }
   }
 
@@ -750,29 +742,6 @@ export class ColumnSorting extends BasePlugin {
 
     if (this.enabled !== false) {
       addClass(headerSpanElement, getClassesToAdd(...args));
-    }
-  }
-
-  /**
-   * Update sorting indicator.
-   *
-   * @private
-   * @param {number} column Visual column index.
-   * @param {HTMLElement} headerSpanElement Header span element.
-   */
-  updateSortingIndicator(column, headerSpanElement) {
-    const pluginSettingsForColumn = this.getFirstCellSettings(column)[this.pluginKey];
-    const ariaTags = this.hot.getSettings().ariaTags;
-    const showSortIndicator = pluginSettingsForColumn.indicator;
-    const isColumnSorted = this.columnStatesManager.isColumnSorted(column);
-    const indicatorElement = headerSpanElement.querySelector(`.${SORTING_INDICATOR_CLASS}`);
-
-    if (showSortIndicator && isColumnSorted && !indicatorElement) {
-      appendElement(headerSpanElement, {
-        tagName: 'div',
-        className: SORTING_INDICATOR_CLASS,
-        attributes: (ariaTags ? [A11Y_HIDDEN()] : []),
-      });
     }
   }
 
@@ -799,14 +768,13 @@ export class ColumnSorting extends BasePlugin {
   /**
    * Callback for the `afterLoadData` hook.
    *
-   * @private
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
    */
-  onAfterLoadData(initialLoad) {
+  #onAfterLoadData(initialLoad) {
     if (initialLoad === true) {
       // TODO: Workaround? It should be refactored / described.
       if (this.hot.view) {
-        this.loadOrSortBySettings();
+        this.#loadOrSortBySettings();
       }
     }
   }
@@ -823,20 +791,21 @@ export class ColumnSorting extends BasePlugin {
     const pluginSettingsForColumn = this.getFirstCellSettings(column)[this.pluginKey];
     const headerActionEnabled = pluginSettingsForColumn.headerAction;
 
-    return headerActionEnabled && event.target.nodeName === 'SPAN';
+    return (
+      headerActionEnabled && hasClass(event.target, HEADER_SPAN_CLASS)
+    );
   }
 
   /**
    * Changes the behavior of selection / dragging.
    *
-   * @private
    * @param {MouseEvent} event The `mousedown` event.
    * @param {CellCoords} coords Visual coordinates.
    * @param {HTMLElement} TD The cell element.
    * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  onBeforeOnCellMouseDown(event, coords, TD, controller) {
+  #onBeforeOnCellMouseDown(event, coords, TD, controller) {
     if (wasHeaderClickedProperly(coords.row, coords.col, event) === false) {
       return;
     }

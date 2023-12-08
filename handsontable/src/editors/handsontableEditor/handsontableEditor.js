@@ -1,11 +1,10 @@
 import { TextEditor } from '../textEditor';
-import { setAttribute, setCaretPosition } from '../../helpers/dom/element';
+import { setCaretPosition } from '../../helpers/dom/element';
 import {
   stopImmediatePropagation,
 } from '../../helpers/dom/event';
 import { extend } from '../../helpers/object';
 import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
-import { A11Y_EXPANDED } from '../../helpers/a11y';
 
 const SHORTCUTS_GROUP = 'handsontableEditor';
 
@@ -47,12 +46,6 @@ export class HandsontableEditor extends TextEditor {
 
     setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
     this.refreshDimensions();
-
-    if (this.hot.getSettings().ariaTags) {
-      setAttribute(this.TD, [
-        A11Y_EXPANDED('true'),
-      ]);
-    }
   }
 
   /**
@@ -65,12 +58,6 @@ export class HandsontableEditor extends TextEditor {
 
     this.removeHooksByKey('beforeKeyDown');
     super.close();
-
-    if (this.hot.getSettings().ariaTags) {
-      setAttribute(this.TD, [
-        A11Y_EXPANDED('false'),
-      ]);
-    }
   }
 
   /**
@@ -105,10 +92,10 @@ export class HandsontableEditor extends TextEditor {
         const sourceValue = this.getSourceData(coords.row, coords.col);
 
         // if the value is undefined then it means we don't want to set the value
-        if (sourceValue !== void 0) {
+        if (sourceValue !== undefined) {
           parent.setValue(sourceValue);
         }
-        parent.instance.destroyEditor();
+        parent.hot.destroyEditor();
       },
       preventWheel: true,
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
@@ -166,7 +153,7 @@ export class HandsontableEditor extends TextEditor {
     if (this.htEditor && this.htEditor.getSelectedLast()) {
       const value = this.htEditor.getValue();
 
-      if (value !== void 0) { // if the value is undefined then it means we don't want to set the value
+      if (value !== undefined) { // if the value is undefined then it means we don't want to set the value
         this.setValue(value);
       }
     }
@@ -207,7 +194,7 @@ export class HandsontableEditor extends TextEditor {
     const action = (rowToSelect, event) => {
       const innerHOT = this.htEditor;
 
-      if (rowToSelect !== void 0) {
+      if (rowToSelect !== undefined) {
         if (rowToSelect < 0 || (innerHOT.flipped && rowToSelect > innerHOT.countRows() - 1)) {
           innerHOT.deselectCell();
         } else {

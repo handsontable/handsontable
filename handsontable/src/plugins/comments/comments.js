@@ -8,7 +8,6 @@ import {
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { deepClone, deepExtend, isObject } from '../../helpers/object';
-import EventManager from '../../eventManager';
 import { BasePlugin } from '../base';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
@@ -134,13 +133,6 @@ export class Comments extends BasePlugin {
    */
   range = {};
   /**
-   * Instance of {@link EventManager}.
-   *
-   * @protected
-   * @type {EventManager}
-   */
-  eventManager = null;
-  /**
    * Instance of {@link CommentEditor}.
    *
    * @private
@@ -213,20 +205,16 @@ export class Comments extends BasePlugin {
       this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl());
     }
 
-    if (!this.eventManager) {
-      this.eventManager = new EventManager(this);
-    }
-
     if (!this.#displaySwitch) {
       this.#displaySwitch = new DisplaySwitch(this.getDisplayDelaySetting());
     }
 
     this.addHook('afterContextMenuDefaultOptions', options => this.addToContextMenu(options));
     this.addHook('afterRenderer',
-      (TD, row, col, prop, value, cellProperties) => this.onAfterRenderer(TD, cellProperties));
-    this.addHook('afterScroll', () => this.onAfterScroll());
+      (TD, row, col, prop, value, cellProperties) => this.#onAfterRenderer(TD, cellProperties));
+    this.addHook('afterScroll', () => this.#onAfterScroll());
     this.addHook('afterBeginEditing', () => this.hide());
-    this.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
+    this.addHook('afterDocumentKeyDown', event => this.#onAfterDocumentKeyDown(event));
 
     this.#displaySwitch.addLocalHook('hide', () => this.hide());
     this.#displaySwitch.addLocalHook('show', (row, col) => this.showAtCell(row, col));
@@ -329,13 +317,13 @@ export class Comments extends BasePlugin {
     const { rootDocument } = this.hot;
     const editorElement = this.getEditorInputElement();
 
-    this.eventManager.addEventListener(rootDocument, 'mouseover', event => this.onMouseOver(event));
-    this.eventManager.addEventListener(rootDocument, 'mousedown', event => this.onMouseDown(event));
-    this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.onMouseUp());
-    this.eventManager.addEventListener(editorElement, 'focus', () => this.onEditorFocus());
-    this.eventManager.addEventListener(editorElement, 'blur', () => this.onEditorBlur());
-    this.eventManager.addEventListener(editorElement, 'mousedown', event => this.onEditorMouseDown(event));
-    this.eventManager.addEventListener(editorElement, 'mouseup', event => this.onEditorMouseUp(event));
+    this.eventManager.addEventListener(rootDocument, 'mouseover', event => this.#onMouseOver(event));
+    this.eventManager.addEventListener(rootDocument, 'mousedown', event => this.#onMouseDown(event));
+    this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.#onMouseUp());
+    this.eventManager.addEventListener(editorElement, 'focus', () => this.#onEditorFocus());
+    this.eventManager.addEventListener(editorElement, 'blur', () => this.#onEditorBlur());
+    this.eventManager.addEventListener(editorElement, 'mousedown', event => this.#onEditorMouseDown(event));
+    this.eventManager.addEventListener(editorElement, 'mouseup', event => this.#onEditorMouseUp(event));
   }
 
   /**
@@ -390,9 +378,9 @@ export class Comments extends BasePlugin {
     const editorValue = this.#editor.getValue();
     let comment = '';
 
-    if (value !== null && value !== void 0) {
+    if (value !== null && value !== undefined) {
       comment = value;
-    } else if (editorValue !== null && editorValue !== void 0) {
+    } else if (editorValue !== null && editorValue !== undefined) {
       comment = editorValue;
     }
 
@@ -652,7 +640,7 @@ export class Comments extends BasePlugin {
     const cellMeta = this.hot.getCellMeta(row, column);
 
     if (!cellMeta[META_COMMENT]) {
-      return void 0;
+      return undefined;
     }
 
     return cellMeta[META_COMMENT][property];
@@ -661,10 +649,9 @@ export class Comments extends BasePlugin {
   /**
    * `mousedown` event callback.
    *
-   * @private
    * @param {MouseEvent} event The `mousedown` event.
    */
-  onMouseDown(event) {
+  #onMouseDown(event) {
     if (!this.hot.view || !this.hot.view._wt) {
       return;
     }
@@ -687,10 +674,9 @@ export class Comments extends BasePlugin {
   /**
    * `mouseover` event callback.
    *
-   * @private
    * @param {MouseEvent} event The `mouseover` event.
    */
-  onMouseOver(event) {
+  #onMouseOver(event) {
     const { rootDocument } = this.hot;
 
     if (this.#preventEditorAutoSwitch || this.#editor.isFocused() || hasClass(event.target, 'wtBorder')
@@ -712,21 +698,18 @@ export class Comments extends BasePlugin {
 
   /**
    * `mouseup` event callback.
-   *
-   * @private
    */
-  onMouseUp() {
+  #onMouseUp() {
     this.#preventEditorAutoSwitch = false;
   }
 
   /**
    * The `afterRenderer` hook callback.
    *
-   * @private
    * @param {HTMLTableCellElement} TD The rendered `TD` element.
    * @param {object} cellProperties The rendered cell's property object.
    */
-  onAfterRenderer(TD, cellProperties) {
+  #onAfterRenderer(TD, cellProperties) {
     if (cellProperties[META_COMMENT] && cellProperties[META_COMMENT][META_COMMENT_VALUE]) {
       addClass(TD, cellProperties.commentedCellClassName);
     }
@@ -735,10 +718,8 @@ export class Comments extends BasePlugin {
   /**
    * Hook observer the "blur" event from the comments editor element. The hook clears the
    * editor content and gives back the keyboard shortcuts control by switching to the "grid" context.
-   *
-   * @private
    */
-  onEditorBlur() {
+  #onEditorBlur() {
     this.#commentValueBeforeSave = '';
     this.hot.getShortcutManager().setActiveContextName('grid');
     this.setComment();
@@ -747,10 +728,8 @@ export class Comments extends BasePlugin {
   /**
    * Hook observer the "focus" event from the comments editor element. The hook takes the control of
    * the keyboard shortcuts by switching the context to plugins one.
-   *
-   * @private
    */
-  onEditorFocus() {
+  #onEditorFocus() {
     this.#commentValueBeforeSave = this.getComment();
     this.hot.listen();
     this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
@@ -759,10 +738,9 @@ export class Comments extends BasePlugin {
   /**
    * `mousedown` hook. Along with `onEditorMouseUp` used to simulate the textarea resizing event.
    *
-   * @private
    * @param {MouseEvent} event The `mousedown` event.
    */
-  onEditorMouseDown(event) {
+  #onEditorMouseDown(event) {
     this.#tempEditorDimensions = {
       width: outerWidth(event.target),
       height: outerHeight(event.target)
@@ -772,10 +750,9 @@ export class Comments extends BasePlugin {
   /**
    * `mouseup` hook. Along with `onEditorMouseDown` used to simulate the textarea resizing event.
    *
-   * @private
    * @param {MouseEvent} event The `mouseup` event.
    */
-  onEditorMouseUp(event) {
+  #onEditorMouseUp(event) {
     const currentWidth = outerWidth(event.target);
     const currentHeight = outerHeight(event.target);
 
@@ -796,7 +773,7 @@ export class Comments extends BasePlugin {
    *
    * @param {Event} event The keydown event.
    */
-  onAfterDocumentKeyDown(event) {
+  #onAfterDocumentKeyDown(event) {
     if (this.#editor.isVisible()) {
       stopImmediatePropagation(event);
     }
@@ -805,7 +782,7 @@ export class Comments extends BasePlugin {
   /**
    * Observes the changes in the scroll position if triggered it hides the comment editor.
    */
-  onAfterScroll() {
+  #onAfterScroll() {
     if (!this.#preventEditorHiding) {
       this.hide();
     }

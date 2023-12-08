@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed offset() for elements within foreign object context",
-  "type": "fixed",
-  "issueOrPR": 10480,
-  "breaking": false,
-  "framework": "none"
-}

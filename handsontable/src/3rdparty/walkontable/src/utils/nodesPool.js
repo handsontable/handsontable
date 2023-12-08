@@ -4,12 +4,14 @@
  * @class {NodesPool}
  */
 export default class NodesPool {
+  /**
+   * Node type to generate (ew 'th', 'td').
+   *
+   * @type {string}
+   */
+  nodeType;
+
   constructor(nodeType) {
-    /**
-     * Node type to generate (ew 'th', 'td').
-     *
-     * @type {string}
-     */
     this.nodeType = nodeType.toUpperCase();
   }
 

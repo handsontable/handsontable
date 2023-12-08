@@ -56,6 +56,19 @@ export const getKeysList = (normalizedKeys) => {
  * the string.
  */
 const codeToKeyRegExp = new RegExp('^(?:Key|Digit)([A-Z0-9])$');
+const keyCodeNames = new Set([
+  'Backquote',
+  'Minus',
+  'Equal',
+  'BracketLeft',
+  'BracketRight',
+  'Backslash',
+  'Semicolon',
+  'Quote',
+  'Comma',
+  'Period',
+  'Slash',
+]);
 
 /**
  * Normalizes a keyboard event key value to a key before its modification. When the keyboard event
@@ -68,5 +81,14 @@ const codeToKeyRegExp = new RegExp('^(?:Key|Digit)([A-Z0-9])$');
  * @returns {string}
  */
 export const normalizeEventKey = ({ key, code }) => {
-  return (codeToKeyRegExp.test(code) ? code.replace(codeToKeyRegExp, '$1') : key).toLowerCase();
+  let normalizedKey = key;
+
+  if (codeToKeyRegExp.test(code)) {
+    normalizedKey = code.replace(codeToKeyRegExp, '$1');
+
+  } else if (keyCodeNames.has(code)) {
+    normalizedKey = code;
+  }
+
+  return normalizedKey.toLowerCase();
 };

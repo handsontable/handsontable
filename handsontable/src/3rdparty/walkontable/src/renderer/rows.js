@@ -4,8 +4,8 @@ import { OrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
 import { setAttribute } from '../../../../helpers/dom/element';
 import {
-  A11Y_PRESENTATION,
   A11Y_ROW,
+  A11Y_ROWGROUP,
   A11Y_ROWINDEX
 } from '../../../../helpers/a11y';
 
@@ -24,13 +24,16 @@ let performanceWarningAppeared = false;
  * @class {RowsRenderer}
  */
 export default class RowsRenderer extends BaseRenderer {
+  /**
+   * Cache for OrderView classes connected to specified node.
+   *
+   * @type {WeakMap}
+   */
+  orderView;
+
   constructor(rootNode) {
     super('TR', rootNode);
-    /**
-     * Cache for OrderView classes connected to specified node.
-     *
-     * @type {WeakMap}
-     */
+
     this.orderView = new OrderView(
       rootNode,
       sourceRowIndex => this.nodesPool.obtain(sourceRowIndex),
@@ -62,7 +65,7 @@ export default class RowsRenderer extends BaseRenderer {
 
     if (this.table.isAriaEnabled()) {
       setAttribute(this.rootNode, [
-        A11Y_PRESENTATION()
+        A11Y_ROWGROUP()
       ]);
     }
 
@@ -81,7 +84,7 @@ export default class RowsRenderer extends BaseRenderer {
         setAttribute(TR, [
           A11Y_ROW(),
           // `aria-rowindex` is incremented by both tbody and thead rows.
-          A11Y_ROWINDEX(sourceRowIndex + (this.table.rowUtils?.dataAccessObject?.columnHeaders.length ?? 0) + 1)
+          A11Y_ROWINDEX(sourceRowIndex + (this.table.rowUtils?.dataAccessObject?.columnHeaders.length ?? 0) + 1),
         ]);
       }
     }

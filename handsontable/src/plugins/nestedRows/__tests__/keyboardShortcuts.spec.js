@@ -13,6 +13,40 @@ describe('NestedRows keyboard shortcut', () => {
   });
 
   describe('"Enter"', () => {
+    it('should not be possible to collapse or expand non-visible row', () => {
+      handsontable({
+        data: getMoreComplexNestedData(),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        nestedRows: true
+      });
+
+      const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      hidingMap.setValueAtIndex(0, true);
+
+      render();
+      selectCell(0, -1);
+      keyDownUp('enter');
+
+      expect(getData()).toEqual([
+        ['a0', 'b0'],
+        ['a0-a0', 'b0-b0'],
+        ['a0-a1', 'b0-b1'],
+        ['a0-a2', 'b0-b2'],
+        ['a0-a2-a0', 'b0-b2-b0'],
+        ['a0-a2-a0-a0', 'b0-b2-b0-b0'],
+        ['a0-a3', 'b0-b3'],
+        ['a1', 'b1'],
+        ['a2', 'b2'],
+        ['a2-a0', 'b2-b0'],
+        ['a2-a1', 'b2-b1'],
+        ['a2-a1-a0', 'b2-b1-b0'],
+        ['a2-a1-a1', 'b2-b1-b1'],
+      ]);
+    });
+
     it('should be possible to collapse nested rows', () => {
       handsontable({
         data: getMoreComplexNestedData(),

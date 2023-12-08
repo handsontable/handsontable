@@ -18,6 +18,36 @@ describe('DropdownMenu keyboard shortcut', () => {
   }
 
   describe('"Shift" + "Alt/Option" + "ArrowDown"', () => {
+    it('should not throw an error when triggered on selection that points on the hidden records', () => {
+      const spy = jasmine.createSpyObj('error', ['test']);
+      const prevError = window.onerror;
+
+      window.onerror = function() {
+        spy.test();
+
+        return true;
+      };
+      handsontable({
+        colHeaders: true,
+        dropdownMenu: true,
+      });
+
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      hidingMap.setValueAtIndex(0, true);
+      hidingMap.setValueAtIndex(1, true);
+      hidingMap.setValueAtIndex(2, true);
+
+      render();
+      selectCell(1, 1);
+
+      keyDownUp(['shift', 'alt', 'arrowdown']);
+
+      expect(spy.test.calls.count()).toBe(0);
+
+      window.onerror = prevError;
+    });
+
     it('should open a menu after `updateSettings` call', () => {
       handsontable({
         colHeaders: true,
@@ -36,6 +66,20 @@ describe('DropdownMenu keyboard shortcut', () => {
       keyDownUp(['shift', 'alt', 'arrowdown']);
 
       expect(plugin.open).toHaveBeenCalledTimes(1);
+    });
+
+    it('should open the menu and select the first item by default', () => {
+      handsontable({
+        colHeaders: true,
+        dropdownMenu: true,
+      });
+
+      selectCell(1, 1);
+      keyDownUp(['shift', 'alt', 'arrowdown']);
+
+      const firstItem = getPlugin('dropdownMenu').menu.hotMenu.getCell(0, 0);
+
+      expect(document.activeElement).toBe(firstItem);
     });
 
     it('should be possible to open the dropdown menu in the correct position triggered from the single cell', () => {

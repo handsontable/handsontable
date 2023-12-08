@@ -2,8 +2,7 @@ import moment from 'moment';
 import Pikaday from 'pikaday';
 import { TextEditor } from '../textEditor';
 import EventManager from '../../eventManager';
-import { addClass, hasClass, outerHeight, outerWidth, setAttribute } from '../../helpers/dom/element';
-import { A11Y_EXPANDED } from '../../helpers/a11y';
+import { addClass, hasClass, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { deepExtend } from '../../helpers/object';
 import { isFunctionKey } from '../../helpers/unicode';
 
@@ -21,19 +20,23 @@ export class DateEditor extends TextEditor {
     return EDITOR_TYPE;
   }
 
+  // TODO: Move this option to general settings
   /**
-   * @param {Core} hotInstance Handsontable instance.
-   * @private
+   * @type {string}
    */
-  constructor(hotInstance) {
-    super(hotInstance);
-
-    // TODO: Move this option to general settings
-    this.defaultDateFormat = 'DD/MM/YYYY';
-    this.isCellEdited = false;
-    this.parentDestroyed = false;
-    this.$datePicker = null;
-  }
+  defaultDateFormat = 'DD/MM/YYYY';
+  /**
+   * @type {boolean}
+   */
+  isCellEdited = false;
+  /**
+   * @type {boolean}
+   */
+  parentDestroyed = false;
+  /**
+   * @type {Pikaday}
+   */
+  $datePicker = null;
 
   init() {
     if (typeof moment !== 'function') {
@@ -132,12 +135,6 @@ export class DateEditor extends TextEditor {
     super.open();
     this.showDatepicker(event);
 
-    if (this.hot.getSettings().ariaTags) {
-      setAttribute(this.TD, [
-        A11Y_EXPANDED('true'),
-      ]);
-    }
-
     editorContext.addShortcut({
       keys: [['Enter']],
       callback: (keyboardEvent) => {
@@ -164,12 +161,6 @@ export class DateEditor extends TextEditor {
       this.hot._refreshBorders();
     });
 
-    if (this.TD && this.hot.getSettings().ariaTags) {
-      setAttribute(this.TD, [
-        A11Y_EXPANDED('false'),
-      ]);
-    }
-
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
@@ -188,7 +179,7 @@ export class DateEditor extends TextEditor {
     if (restoreOriginalValue) { // pressed ESC, restore original value
       const value = this.originalValue;
 
-      if (value !== void 0) {
+      if (value !== undefined) {
         this.setValue(value);
       }
     }
