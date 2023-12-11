@@ -76,7 +76,7 @@
     "data-spreadsheet"
   ],
   "dependencies": {
-    "@handsontable/pikaday": "http://localhost:4873/@handsontable/pikaday/-/pikaday-0.0.5.tgz",
+    "@handsontable/pikaday": "1.0.0-beta.1",
     "core-js": "^3.31.1",
     "dompurify": "^2.1.1",
     "moment": "2.29.4",
