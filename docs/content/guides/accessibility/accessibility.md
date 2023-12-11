@@ -1069,9 +1069,8 @@ setupCheckbox(
   document.querySelector("#enable-header-navigation"),
   (checked) => {
     hotOptions.navigableHeaders = checked;
-    hotInstance.updateSettings({
-      navigableHeaders: hotOptions.navigableHeaders,
-    });
+    hotInstance.destroy();
+    hotInstance = new Handsontable(document.getElementById("example1"), hotOptions);
     console.log(
       `Updated setting: navigableHeaders to`,
       hotInstance.getSettings().navigableHeaders
@@ -1083,12 +1082,10 @@ setupCheckbox(
 setupCheckbox(
   document.querySelector("#enable-cell-virtualization"),
   (checked) => {
+    hotOptions.renderAllRows = !checked;
+    hotOptions.viewportColumnRenderingOffset = checked ? "auto" : 9;
     hotInstance.destroy();
-    hotInstance = new Handsontable(document.getElementById("example1"), {
-      ...hotOptions,
-      renderAllRows: !checked,
-      viewportColumnRenderingOffset: checked ? "auto" : 9,
-    });
+    hotInstance = new Handsontable(document.getElementById("example1"), hotOptions);
     console.log(
       `Updated setting: renderAllRows to`,
       hotInstance.getSettings().renderAllRows
@@ -1156,7 +1153,6 @@ setupCheckbox(
   }
 );
 ```
-
 :::
 
 :::
@@ -1768,9 +1764,9 @@ function App() {
 
       {/* Handsontable component with dynamic options */}
       <HotTable
-        // Handsontable needs to reload when changing virtualization
+        // Handsontable needs to reload when changing virtualization, navigable headers
         // by changing the key, we force the component to reload
-        key={String(toggleableOptions.renderAllRows)}
+        key={`${toggleableOptions.renderAllRows}-${toggleableOptions.navigableHeaders}`}
         {...hotOptions}
         // Pass in the options which can change for demo
         {...toggleableOptions}

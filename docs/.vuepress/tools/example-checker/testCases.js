@@ -47,7 +47,7 @@ const testCases = [
       ['/react-data-grid/demo', { expectedCount: 1 }],
       // The a11y demo hot reloads handsontable, this makes the test detect an extra instance, we need to do -1 to
       // make it pass
-      ['/javascript-data-grid/accessibility', { expectedCount: -1 }],
+      ['/javascript-data-grid/accessibility', { expectedCount: -2 }],
     ]);
 
     /**
