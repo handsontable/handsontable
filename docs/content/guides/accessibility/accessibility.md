@@ -1082,8 +1082,7 @@ setupCheckbox(
 setupCheckbox(
   document.querySelector("#enable-cell-virtualization"),
   (checked) => {
-
-    hotOptions.renderAllRows= !checked;
+    hotOptions.renderAllRows = !checked;
     hotOptions.viewportColumnRenderingOffset = checked ? "auto" : 9;
     hotInstance.destroy();
     hotInstance = new Handsontable(document.getElementById("example1"), hotOptions);
