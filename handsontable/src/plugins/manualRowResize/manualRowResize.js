@@ -351,9 +351,9 @@ export class ManualRowResize extends BasePlugin {
    * @returns {boolean}
    */
   checkIfRowHeader(element) {
-    const thElement = closest(element, ['TH'], this.hot.rootElement);
+    const tbody = closest(element, ['TBODY'], this.hot.rootElement);
 
-    return thElement && element.parentNode?.parentNode?.tagName === 'TBODY';
+    return tbody === this.hot.view._wt.wtOverlays.inlineStartOverlay.clone.wtTable.TBODY;
   }
 
   /**

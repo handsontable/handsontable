@@ -591,6 +591,40 @@ describe('manualRowResize', () => {
     window.onerror = nativeOnError;
   });
 
+  it('should not throw any errors, when the cell renderers use HTML table to present the value (#dev-1298)', () => {
+    const onErrorSpy = spyOn(window, 'onerror').and.returnValue(true);
+
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      rowHeaders: true,
+      manualRowResize: true,
+      renderer(hot, td, row, column, value) {
+        td.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>${value}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>${value}</th>
+              </tr>
+            </tbody>
+          </table>`;
+      }
+    });
+
+    const rendererTH = $(getCell(0, 0).querySelector('tbody th'));
+
+    rendererTH
+      .simulate('mouseover')
+      .simulate('mousedown')
+      .simulate('click');
+
+    expect(onErrorSpy).not.toHaveBeenCalled();
+  });
+
   describe('handle position in a table positioned using CSS\'s `transform`', () => {
     it('should display the handles in the correct position, with holder as a scroll parent', async() => {
       spec().$container.css('transform', 'translate(50px, 120px)');

@@ -393,7 +393,9 @@ export class ManualColumnResize extends BasePlugin {
    * @returns {boolean}
    */
   checkIfColumnHeader(element) {
-    return !!closest(element, ['THEAD'], this.hot.rootElement);
+    const thead = closest(element, ['THEAD'], this.hot.rootElement);
+
+    return thead === this.hot.view._wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
   }
 
   /**
