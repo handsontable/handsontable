@@ -27,7 +27,7 @@ Learn about the licensing terms of Handsontable's software dependencies.
 - **Pikaday** (displays a date picker)<br>
     Author: David Bushell<br>
     License: Open source (MIT)<br>
-    [https://github.com/dbushell/Pikaday](https://github.com/pikaday/pikaday)
+    [https://github.com/handsontable/pikaday](https://github.com/handsontable/pikaday)
 
 - **moment.js** (parses, validates and displays dates)<br>
     Author: Tim Wood, Tskren Chernev, Moment.js contributors<br>
