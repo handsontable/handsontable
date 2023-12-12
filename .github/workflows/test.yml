@@ -155,7 +155,7 @@ jobs:
           cd handsontable
           npm run build:es && npm run build:languages.es
           npm run build:commonjs
-          npm run postbuild
+          npm run postbuild --postbuild_silent=true
       - run: tar -zcf tmp.tar.gz ./handsontable/tmp
 
       - name: Upload the Handsontable ES + CJS build artifact.
@@ -481,7 +481,7 @@ jobs:
             npm run in handsontable build:commonjs
             npm run in handsontable build:languages.es
           fi
-          npm run in handsontable postbuild
+          npm run in handsontable postbuild --postbuild_silent=true
       - run: |
           if test -f "handsontable-build-umd/dist.tar.gz"; then
             tar -zxf handsontable-build-umd/dist.tar.gz ./handsontable/dist
