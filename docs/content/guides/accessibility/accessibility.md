@@ -53,52 +53,52 @@ Most global standards and regulations are created in accordance with WCAG (Web C
   - [Standard on Web Accessibility](https://www.tbs-sct.canada.ca/pol/doc-eng.aspx?id=23601)
 
 ## Keyboard navigation
-Handsontable does not require a mouse to navigate across the grid's elements. This is an important feature for certain users with temporary or permanent motor impairments, for whom following the tiny mouse cursor is difficult. Interestingly, some "power" users also find it easier to use the keyboard instead of the mouse.
 
-Our experience with hundreds of implementations of Handsontable has highlighted some typical patterns. It turns out that usually Handsontable is used as either a **spreadsheet application** or a **data grid component**. While the difference may seem subtle at first, it significantly impacts user expectations regarding navigation.
+Handsontable doesn't require a mouse to navigate across the grid's elements. This is an important feature for certain users with temporary or permanent motor impairments, for whom following the mouse cursor is difficult. Keyboard navigation is also a great way to improve productivity, which is why many users choose the keyboard over the mouse regardless of their accessibility needs.
 
-In a typical spreadsheet application (think of Microsoft Excel or Google Sheets), you cannot move the focus onto headers. This makes it difficult to sort or filter data without knowing complex [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts.md). Additionally, opening a column menu is not trivial. Handsontable offers flexibility in this regard, allowing users to switch between data grid and spreadsheet "modes". To do that switch, you can use a combination of two options: [`navigableHeaders`](@/api/options.md#navigableheaders) to enable or disable moving focus onto headers, and [`tabNavigation`](@/api/options.md#tabnavigation) to decide if the <kbd>Tab</kbd> key can be used to navigate across cells and headers.
+Our experience with hundreds of Handsontable implementations has highlighted some typical patterns. It turns out that usually Handsontable is used as either a **spreadsheet application** or a **data grid component**. While the difference may seem subtle at first, it significantly impacts user expectations regarding navigation.
+
+In a typical spreadsheet application (think of Microsoft Excel or Google Sheets), you can't move the focus onto headers. This makes it difficult to sort or filter data without knowing complex [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts.md). Additionally, opening a [column menu](@/guides/columns/column-menu.md) is not trivial. Handsontable offers flexibility in this regard, allowing users to switch between data grid and spreadsheet "modes". To do that switch, you can use a combination of two options: [`navigableHeaders`](@/api/options.md#navigableheaders) to enable or disable moving focus onto headers, and [`tabNavigation`](@/api/options.md#tabnavigation) to decide if the <kbd>**Tab**</kbd> key can be used to navigate across cells and headers.
 
 The following table provides more details about these two scenarios:
  
-| Aspect                    | Data grid mode                                                                                                                                                                                                                                                                         | Spreadsheet mode (default)                                                                                                                                                          |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Configuration options     | `navigableHeaders: true` <br>  `tabNavigation: false`                                                                                                                                                                                                                                  | `navigableHeaders: false` <br> `tabNavigation: true`                                                                                                                                |
-| Primary navigation method | <kbd>Arrow keys</kbd>                                                                                                                                                                                                                                                                  | <kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd>                                                                                                                                  |
-| Navigable headers         | Yes                                                                                                                                                                                                                                                                                    | No                                                                                                                                                                                  |  |
-| Description               | The <kbd>Arrow keys</kbd> are primarily used to navigate across the grid. Use simple shortcut keys such as <kbd>Enter</kbd> or <kbd>Space</kbd> to open menus or interact with headers, cells, or cell editors. <br><br>You cannot use <kbd>Tab</kbd> key to navigate across the grid. | The <kbd>Tab</kbd> key is primarily used to navigate across the grid.<br>This behavior is similar to Excel or Google Sheets. <br><br>To open menus, use more complex shortcut keys. |
-| Focus order               | One <kbd>Tab</kbd> stop - the grid is included in the tab sequence within the page only once.                                                                                                                                                                                          | Multiple <kbd>Tab</kbd> stops - all the grid tabbable elements, such as cells or headers, are included in the page <kbd>Tab</kbd> sequence.                                         |
+| Aspect                    | Data grid mode                                                                                                                                                                                                                                                                                            | Spreadsheet mode (default)                                                                                                                                                          |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Configuration options     | `navigableHeaders: true` <br>  `tabNavigation: false`                                                                                                                                                                                                                                                     | `navigableHeaders: false` <br> `tabNavigation: true`                                                                                                                                |
+| Primary navigation method | <kbd>**Arrow keys**</kbd>                                                                                                                                                                                                                                                                                 | <kbd>**Tab**</kbd> / <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>                                                                                                                        |
+| Navigable headers         | Yes                                                                                                                                                                                                                                                                                                       | No                                                                                                                                                                                  |
+| Navigation                | The <kbd>**Arrow keys**</kbd> are the main way of navigating across the grid. Use simple shortcut keys such as <kbd>**Enter**</kbd> or <kbd>**Space**</kbd> to open menus or interact with headers, cells, or cell editors. <br><br>You can't use the <kbd>**Tab**</kbd> key to navigate across the grid. | The <kbd>**Tab**</kbd> key is the main way of navigating across the grid.<br>This behavior is similar to Excel or Google Sheets. <br><br>To open menus, use more complex shortcuts. |
+| Focus order               | One tab stop: the grid is included in the page tab sequence only once.                                                                                                                                                                                                                                    | Multiple tab stops: all tabbable elements of the grid, such as cells or headers, are included in the page tab sequence.                                                             |
 
-## Shortcut keys
+## Keyboard shortcuts
 
-Handsontable provides a wide range of [shortcut keys](@/guides/navigation/keyboard-shortcuts.md), but some of them seem to be more important for users not using a mouse for navigation. Specifically, actions triggered while navigating across headers involve simple combinations of keyboard keys, making them intuitive and useful. For more complex scenarios, you can also [customize the shortcuts keys](@/guides/navigation/custom-shortcuts.md) through the API.
+Handsontable provides a wide range of [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts.md), but some of them are particularly important for users who don't use a mouse for navigation. For example, actions triggered while navigating across headers involve simple combinations of keyboard keys, making them intuitive and useful. For more complex scenarios, you can [customize the shortcuts keys](@/guides/navigation/custom-shortcuts.md) through the API.
 
-| Windows                                                                                   | macOS                                                                                    | Action              | Focused element |
-| ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------- | --------------- |
-| <kbd>Shift</kbd> + <kbd>Alt</kbd> + <kbd>↓</kbd>                                          | <kbd>Shift</kbd> + <kbd>Option</kbd> + <kbd>↓</kbd>                                      | Open a column menu  | Any cell        |
-| <kbd>Ctrl</kbd> + <kbd>Enter</kbd>                                                        | <kbd>Cmd</kbd> + <kbd>Enter</kbd>                                                        | Open a column menu  | Column header   |
-| <kbd>Enter</kbd>                                                                          | <kbd>Enter</kbd>                                                                         | Sort data           | Column header   |
-| <kbd>Alt</kbd> + <kbd>A</kbd>                                                             | <kbd>Option</kbd> + <kbd>A</kbd>                                                         | Clear filters       | Any cell        |
-| <kbd>Ctrl</kbd> + <kbd>Space</kbd>                                                        | <kbd>Ctrl</kbd> + <kbd>Space</kbd> *                                                     | Select a column     | Any cell        |
-| <kbd>Shift</kbd> + <kbd>Space</kbd>                                                       | <kbd>Shift</kbd> + <kbd>Space</kbd>                                                      | Select a row        | Any cell        |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> | <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>\\</kbd> <br> <kbd>Shift</kbd> + <kbd>F10</kbd> | Open a context menu | Any cell        |
+| Windows                                                                                                 | macOS                                                                                                  | Action              | Focused element |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------- | --------------- |
+| <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↓**</kbd>                                                | <kbd>**Shift**</kbd>+<kbd>**Option**</kbd>+<kbd>**↓**</kbd>                                            | Open a column menu  | Any cell        |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                                                                | <kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd>                                                                | Open a column menu  | Column header   |
+| <kbd>**Enter**</kbd>                                                                                    | <kbd>**Enter**</kbd>                                                                                   | Sort data           | Column header   |
+| <kbd>**Alt**</kbd>+<kbd>**A**</kbd>                                                                     | <kbd>**Option**</kbd>+<kbd>**A**</kbd>                                                                 | Clear filters       | Any cell        |
+| <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>                                                                | <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>*                                                              | Select a column     | Any cell        |
+| <kbd>**Shift**</kbd>+<kbd>**Space**</kbd>                                                               | <kbd>**Shift**</kbd>+<kbd>**Space**</kbd>                                                              | Select a row        | Any cell        |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**\\**</kbd> <br> <kbd>**Shift**</kbd>+<kbd>**F10**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**\\**</kbd> <br> <kbd>**Shift**</kbd>+<kbd>**F10**</kbd> | Open a context menu | Any cell        |
 
-*The keyboard shortcut for selecting an entire column, <kbd>Ctrl</kbd>+<kbd>Space</kbd>, in macOS by default selects the previous input source. To use this shortcut key in Handsontable, go to macOS settings, then `Keyboard / Input Sources` and uncheck the corresponding checkbox.
+*To use this shortcut, disable the default macOS behavior for the <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd> key combination, under **System Settings** > **Keyboard** > **Keyboard Shortcuts** > **Input Sources**.
 
 ## Support for screen readers
 
 Although semantic HTML doesn't need any additional attributes to be properly interpreted by assistive technologies, some of Handsontable's complex features are not fully covered by the HTML specification. That's why Handsontable provides support for screen readers with ARIA attributes (Accessible Rich Internet Applications) applied to its HTML markup.
 
-Each new version is thoroughly tested for accessibility with the following screen readers:
+Each new Handsontable version is thoroughly tested for accessibility with the following screen readers:
 
 - NVDA (Windows)
 - JAWS (Windows)
 - VoiceOver (macOS)
 
-## A demo of accessible data grid
+## Accessible data grid demo
 
-Check out the interactive demo below to see how different Handsontable settings impact its accessibility level and affect the user experience.
-
+Check out the interactive demo below to see how various Handsontable settings impact its accessibility level and affect the user experience.
 
 ::: only-for javascript angular vue
 
@@ -2212,14 +2212,14 @@ ReactDOM.render(<App />, document.getElementById("example2"));
 
 ## High-contrast theme
 
-The recommended [minimum contrast ratio](https://www.w3.org/WAI/WCAG21/quickref/#contrast-minimum) for text against images or backgrounds is 4.5:1. To achieve this level of contrast with Handsontable's default theme, customize it to meet your end-users' needs by applying the following actions:
+The recommended [minimum contrast ratio](https://www.w3.org/WAI/WCAG21/quickref/#contrast-minimum) for text against images or backgrounds is 4.5:1. To achieve this level of contrast with Handsontable's default theme, you can:
 
 - Override the grid's CSS with your own styles.
 - Use third-party software, such as the [High Contrast](https://chrome.google.com/webstore/detail/high-contrast/djcfdncoelnlbldjfhinnjlhdjlikmph) extension for Chrome, supported by Google.
 
 ## Requirements for the developers
 
-When you customize Handsontable, it's you who is responsible for ensuring the accessibility of your solution. Especially when you create [custom cell type](@/guides/cell-types/cell-type.md) or [custom plugin](@/guides/tools-and-building/custom-plugins.md), remember about making them accessible to everyone.
+When you customize Handsontable, it's you who is responsible for ensuring the accessibility of your solution. Especially when you create a [custom cell type](@/guides/cell-types/cell-type.md) or a [custom plugin](@/guides/tools-and-building/custom-plugins.md), remember to make them accessible to everyone.
 
 Our recommendations for custom development:
 
@@ -2227,15 +2227,15 @@ Our recommendations for custom development:
 - Use proper color contrast, font size, and semantic HTML.
 - If needed, implement additional WAI-ARIA attributes.
 - Avoid flashing or blinking content.
-- Test your customizations with real users who have different types of disabilities. If you don’t have access to real users, try [Funkify](https://www.funkify.org/), a disability simulator, which can help you step into disabled users' shoes.
+- Test your customizations with real users who have different types of disabilities. If you don’t have access to real users, try [Funkify](https://www.funkify.org/), a disability simulator, which can help you look at your application from the perspective of users with different disabilities.
 
 ::: tip
 
-The quality of custom modifications in Handsontable may impact your application's accessibility level. For this reason, make sure to actively check how these changes influence the overall accessibility of your application, using tools like [Lighthouse](https://developers.google.com/web/tools/lighthouse).
+The quality of custom modifications of Handsontable can impact your application's accessibility level. Make sure to actively check how your changes influence the overall accessibility of your application, using tools like [Lighthouse](https://developers.google.com/web/tools/lighthouse).
 
 :::
 
-## Ensuring Accessibility standards
+## Keeping accessibility standards
 
 We make sure our data grid remains accessible by taking the following steps:
 
@@ -2247,9 +2247,9 @@ We make sure our data grid remains accessible by taking the following steps:
 ## Known limitations
 
 - Some screen readers may incorrectly read the number of rows and columns when frozen rows and columns are enabled.
-- The `aria-rowcount` attribute is intentionally set to "-1" due to most screen readers either ignoring it or misinterpreting it. This setting is particularly aimed at ensuring accuracy with screen readers like VoiceOver. We plan to revise this approach once screen readers consistently handle the `aria-rowcount` attribute correctly.
+- The `aria-rowcount` attribute is intentionally set to `-1`, because most screen readers either ignore or misinterpret it. This configuration ensures accuracy with screen readers like VoiceOver. We plan to revise this approach once screen readers consistently handle the `aria-rowcount` attribute correctly.
 - Dynamic ARIA attributes are sometimes omitted by screen readers.
-- When using frozen rows and columns, NVDA and JAWS may incorrectly announce the current column header.
+- When using [frozen rows](@/guides/rows/row-freezing.md) and [columns](@/guides/columns/column-freezing.md), NVDA and JAWS may incorrectly announce the current column header.
 
 ## API reference
 
