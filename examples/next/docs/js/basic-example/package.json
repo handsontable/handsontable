@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "handsontable": "latest",
-    "pikaday": "1.8.2"
+    "@handsontable/pikaday": "^1.0.0"
   },
   "devDependencies": {
     "jasmine": "3.7.0",
