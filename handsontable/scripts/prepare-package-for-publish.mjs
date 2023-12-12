@@ -1,7 +1,16 @@
-import path from 'path';
+import path from 'node:path';
 import fse from 'fs-extra';
 import glob from 'glob';
-import { displayErrorMessage } from '../../scripts/utils/console.mjs';
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
+import { displayErrorMessage, displayWarningMessage } from '../../scripts/utils/console.mjs';
+
+const argv = yargs(hideBin(process.argv))
+  .boolean('silent')
+  .default('silent', false)
+  .describe('silent', '`true` silences the errors about missing files to copy from the "copy" field.')
+  .argv;
+
 
 const TARGET_PATH = './tmp/';
 const PACKAGE_PATH = path.resolve('package.json');
@@ -30,6 +39,12 @@ FILES_TO_COPY.forEach((fileToCopy) => {
 
   foundFiles.forEach((file) => {
     const from = path.resolve(`./${file}`);
+
+    if (!fse.existsSync(from) && argv.silent) {
+      displayWarningMessage(`File "${from}" does not exist.`);
+
+      return;
+    }
 
     if (isPatternMode) {
       file = path.join(...path.normalize(file).split(path.sep).slice(pathSlice));
