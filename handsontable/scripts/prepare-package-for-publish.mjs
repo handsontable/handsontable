@@ -11,7 +11,6 @@ const argv = yargs(hideBin(process.argv))
   .describe('silent', '`true` silences the errors about missing files to copy from the "copy" field.')
   .argv;
 
-
 const TARGET_PATH = './tmp/';
 const PACKAGE_PATH = path.resolve('package.json');
 const DEV_PACKAGE = fse.readJsonSync(PACKAGE_PATH, { encoding: 'utf-8' });
