@@ -18,13 +18,16 @@ Change the default language of the context menu from English to any of the built
 
 The following example implements the `@handsontable/vue3` component with the option to change the Context Menu language configured. Select a language from the selector above the table and open the Context Menu to see the result.
 
-:::tip
+::: tip
+
 Note that the `language` property is bound to the component separately using `language={this.language}"`, but it could be included in the `settings` property just as well.
+
 :::
 
 [Find out which Vue 3 versions are supported](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
 
 ::: example #example1 :vue3-languages --html 1 --js 2
+
 ```html
 <div id="example1" class="controls select-language">
   <label for="languages">Select language of the context menu:</label>
@@ -129,6 +132,7 @@ const app = createApp(ExampleComponent);
 app.mount('#example1');
 /* end:skip-in-preview */
 ```
+
 :::
 
 ## Related articles

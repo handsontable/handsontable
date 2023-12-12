@@ -42,9 +42,9 @@ describe('passwordRenderer', () => {
       const instance = getInstance();
       const cellMeta = {};
 
-      passwordRenderer(instance, TD, void 0, void 0, void 0, 'password', cellMeta);
+      passwordRenderer(instance, TD, undefined, undefined, undefined, 'password', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td>********</td>');
+      expect(TD.outerHTML).toMatchHTML('<td>********</td>');
     });
 
     it('should render custom symbols instead of value', () => {
@@ -54,9 +54,9 @@ describe('passwordRenderer', () => {
         hashSymbol: '!'
       };
 
-      passwordRenderer(instance, TD, void 0, void 0, void 0, 'password', cellMeta);
+      passwordRenderer(instance, TD, undefined, undefined, undefined, 'password', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td>!!!!!!!!</td>');
+      expect(TD.outerHTML).toMatchHTML('<td>!!!!!!!!</td>');
     });
 
     it('should render hashed value on the defined length', () => {
@@ -66,9 +66,9 @@ describe('passwordRenderer', () => {
         hashLength: 10
       };
 
-      passwordRenderer(instance, TD, void 0, void 0, void 0, 'password', cellMeta);
+      passwordRenderer(instance, TD, undefined, undefined, undefined, 'password', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td>**********</td>');
+      expect(TD.outerHTML).toMatchHTML('<td>**********</td>');
     });
   });
 });

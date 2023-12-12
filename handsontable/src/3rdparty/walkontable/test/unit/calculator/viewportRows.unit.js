@@ -3,7 +3,7 @@ import {
   FULLY_VISIBLE_TYPE,
   PARTIALLY_VISIBLE_TYPE,
   ViewportRowsCalculator,
-} from 'walkontable/calculator';
+} from '../../../src/calculator';
 
 describe('ViewportRowsCalculator', () => {
   function allRows20() {
@@ -12,13 +12,13 @@ describe('ViewportRowsCalculator', () => {
 
   it('should render first 5 rows in unscrolled container', () => {
     const options = {
-      viewportSize: 100,
+      viewportHeight: 100,
       scrollOffset: 0,
-      totalItems: 1000,
-      itemSizeFn: index => allRows20(index),
-      overrideFn: void 0,
+      totalRows: 1000,
+      rowHeightFn: index => allRows20(index),
+      overrideFn: undefined,
       calculationType: RENDER_TYPE,
-      scrollbarHeight: void 0,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -40,13 +40,13 @@ describe('ViewportRowsCalculator', () => {
 
   it('should render 6 rows, starting from 3 in container scrolled to half of fourth row', () => {
     const options = {
-      viewportSize: 100,
+      viewportHeight: 100,
       scrollOffset: 70,
-      totalItems: 1000,
-      itemSizeFn: index => allRows20(index),
-      overrideFn: void 0,
+      totalRows: 1000,
+      rowHeightFn: index => allRows20(index),
+      overrideFn: undefined,
       calculationType: RENDER_TYPE,
-      scrollbarHeight: void 0,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -72,13 +72,13 @@ describe('ViewportRowsCalculator', () => {
       calc.endRow += 2;
     };
     const options = {
-      viewportSize: 100,
+      viewportHeight: 100,
       scrollOffset: 70,
-      totalItems: 1000,
-      itemSizeFn: index => allRows20(index),
+      totalRows: 1000,
+      rowHeightFn: index => allRows20(index),
       overrideFn: calc => overrideFn(calc),
       calculationType: RENDER_TYPE,
-      scrollbarHeight: void 0,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -104,12 +104,12 @@ describe('ViewportRowsCalculator', () => {
       calc.endRow += 30;
     };
     const options = {
-      viewportSize: 100,
+      viewportHeight: 100,
       scrollOffset: 70,
-      totalItems: 8,
-      itemSizeFn: index => allRows20(index),
+      totalRows: 8,
+      rowHeightFn: index => allRows20(index),
       overrideFn: calc => overrideFn(calc),
-      scrollbarHeight: void 0,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -131,12 +131,12 @@ describe('ViewportRowsCalculator', () => {
 
   it('should return number of rendered rows', () => {
     const options = {
-      viewportSize: 100,
+      viewportHeight: 100,
       scrollOffset: 50,
-      totalItems: 1000,
-      itemSizeFn: index => allRows20(index),
-      overrideFn: void 0,
-      scrollbarHeight: void 0,
+      totalRows: 1000,
+      rowHeightFn: index => allRows20(index),
+      overrideFn: undefined,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -149,12 +149,12 @@ describe('ViewportRowsCalculator', () => {
 
   it('should render all rows if their size is smaller than viewport', () => {
     const options = {
-      viewportSize: 200,
+      viewportHeight: 200,
       scrollOffset: 0,
-      totalItems: 8,
-      itemSizeFn: index => allRows20(index),
-      overrideFn: void 0,
-      scrollbarHeight: void 0,
+      totalRows: 8,
+      rowHeightFn: index => allRows20(index),
+      overrideFn: undefined,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -175,12 +175,12 @@ describe('ViewportRowsCalculator', () => {
 
   it('should render all rows if their size is exactly the viewport', () => {
     const options = {
-      viewportSize: 200,
+      viewportHeight: 200,
       scrollOffset: 0,
-      totalItems: 10,
-      itemSizeFn: index => allRows20(index),
-      overrideFn: void 0,
-      scrollbarHeight: void 0,
+      totalRows: 10,
+      rowHeightFn: index => allRows20(index),
+      overrideFn: undefined,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -201,12 +201,12 @@ describe('ViewportRowsCalculator', () => {
 
   it('should render all rows if their size is slightly larger than viewport', () => {
     const options = {
-      viewportSize: 199,
+      viewportHeight: 199,
       scrollOffset: 0,
-      totalItems: 10,
-      itemSizeFn: index => allRows20(index),
-      overrideFn: void 0,
-      scrollbarHeight: void 0,
+      totalRows: 10,
+      rowHeightFn: index => allRows20(index),
+      overrideFn: undefined,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -227,12 +227,12 @@ describe('ViewportRowsCalculator', () => {
 
   it('should set null values if total rows is 0', () => {
     const options = {
-      viewportSize: 200,
+      viewportHeight: 200,
       scrollOffset: 0,
-      totalItems: 0,
-      itemSizeFn: index => allRows20(index),
-      overrideFn: void 0,
-      scrollbarHeight: void 0,
+      totalRows: 0,
+      rowHeightFn: index => allRows20(index),
+      overrideFn: undefined,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -258,12 +258,12 @@ describe('ViewportRowsCalculator', () => {
       myCalc.endRow = 0;
     };
     const options = {
-      viewportSize: 200,
+      viewportHeight: 200,
       scrollOffset: 0,
-      totalItems: 0,
-      itemSizeFn: index => allRows20(index),
+      totalRows: 0,
+      rowHeightFn: index => allRows20(index),
       overrideFn: calc => overrideFn(calc),
-      scrollbarHeight: void 0,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -285,12 +285,12 @@ describe('ViewportRowsCalculator', () => {
 
   it('should scroll backwards if total rows is reached', () => {
     const options = {
-      viewportSize: 190,
+      viewportHeight: 190,
       scrollOffset: 350,
-      totalItems: 20,
-      itemSizeFn: index => allRows20(index),
-      overrideFn: void 0,
-      scrollbarHeight: void 0,
+      totalRows: 20,
+      rowHeightFn: index => allRows20(index),
+      overrideFn: undefined,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
@@ -313,12 +313,12 @@ describe('ViewportRowsCalculator', () => {
   it(`should calculate the number of rows based on a default height,
       when the height returned from the function is not a number`, () => {
     const options = {
-      viewportSize: 100,
+      viewportHeight: 100,
       scrollOffset: 0,
-      totalItems: 1000,
-      itemSizeFn: () => (void 0 + 1),
-      overrideFn: void 0,
-      scrollbarHeight: void 0,
+      totalRows: 1000,
+      rowHeightFn: () => (undefined + 1),
+      overrideFn: undefined,
+      horizontalScrollbarHeight: undefined,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
     const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });

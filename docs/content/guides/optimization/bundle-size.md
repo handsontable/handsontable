@@ -26,6 +26,7 @@ To reduce the bundle size and JavaScript parsing time, import only those of Hand
 The following example shows how to import and register the [`ContextMenu`](@/api/contextMenu.md) plugin on top of the base module of Handsontable, without importing anything else.
 
 ::: only-for javascript
+
 ```js
 import Handsontable from 'handsontable/base';
 import { registerPlugin, ContextMenu } from 'handsontable/plugins';
@@ -36,9 +37,11 @@ new Handsontable(container, {
   contextMenu: true,
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```js
 import Handsontable from 'handsontable/base';
 import { HotTable } from '@handsontable/react';
@@ -54,6 +57,7 @@ const App = () => {
   );
 };
 ```
+
 :::
 
 ## Optimize Moment.js
@@ -77,6 +81,7 @@ module.exports = {
 And then explicitly load Moment.js, importing just those locales that you need:
 
 ::: only-for javascript
+
 ```js
 import Handsontable from 'handsontable/base';
 import { registerCellType, DateCellType } from 'handsontable/cellTypes';
@@ -94,6 +99,7 @@ new Handsontable(container, {
   type: 'date',
 });
 ```
+
 :::
 
 ::: only-for react
@@ -119,6 +125,7 @@ const App = () => {
   );
 };
 ```
+
 :::
 
 ## Related guides

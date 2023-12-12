@@ -15,11 +15,12 @@ describe('ContextMenu', () => {
   describe('clearColumn', () => {
     it('should not be possible to use the `clearColumn` option, when anything but entire columns was selected', () => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: ['clear_column'],
         height: 100,
         rowHeaders: true,
-        colHeaders: true
+        colHeaders: true,
+        navigableHeaders: true,
       });
 
       contextMenu();
@@ -62,6 +63,30 @@ describe('ContextMenu', () => {
 
       contextMenuPlugin.close();
 
+      hot.selectCell(-1, 1);
+
+      contextMenu();
+
+      expect(getClearColumnItem().hasClass('htDisabled')).toBe(true);
+
+      contextMenuPlugin.close();
+
+      hot.selectCell(1, -1);
+
+      contextMenu();
+
+      expect(getClearColumnItem().hasClass('htDisabled')).toBe(true);
+
+      contextMenuPlugin.close();
+
+      hot.selectCell(-1, -1);
+
+      contextMenu();
+
+      expect(getClearColumnItem().hasClass('htDisabled')).toBe(true);
+
+      contextMenuPlugin.close();
+
       hot.selectColumns(0);
 
       contextMenu();
@@ -80,42 +105,28 @@ describe('ContextMenu', () => {
     });
 
     it('should clear the data in the selected column(s)', async() => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+      handsontable({
+        data: createSpreadsheetData(4, 4),
         contextMenu: ['clear_column'],
         height: 100,
         rowHeaders: true,
         colHeaders: true
       });
 
-      hot.selectColumns(0);
+      selectColumns(0);
 
       contextMenu();
+      selectContextMenuOption('Clear column');
 
-      const contextMenuPlugin = hot.getPlugin('contextMenu');
-      const clearColumnTitle = hot.getTranslatedPhrase(
-        Handsontable.languages.dictionaryKeys.CONTEXTMENU_ITEMS_CLEAR_COLUMN
-      );
-      const getClearColumnItem = () => {
-        return $('.htContextMenu tbody tr td').filter(function() {
-          return this.textContent === clearColumnTitle;
-        });
-      };
-
-      simulateClick(getClearColumnItem());
-
-      contextMenuPlugin.close();
-
-      hot.selectColumns(2, 3);
+      selectColumns(2, 3);
 
       contextMenu();
+      selectContextMenuOption('Clear column');
 
-      simulateClick(getClearColumnItem());
-
-      expect(hot.getDataAtCol(0)).toEqual([null, null, null, null]);
-      expect(hot.getDataAtCol(1)).toEqual(['B1', 'B2', 'B3', 'B4']);
-      expect(hot.getDataAtCol(2)).toEqual([null, null, null, null]);
-      expect(hot.getDataAtCol(3)).toEqual([null, null, null, null]);
+      expect(getDataAtCol(0)).toEqual([null, null, null, null]);
+      expect(getDataAtCol(1)).toEqual(['B1', 'B2', 'B3', 'B4']);
+      expect(getDataAtCol(2)).toEqual([null, null, null, null]);
+      expect(getDataAtCol(3)).toEqual([null, null, null, null]);
     });
   });
 });

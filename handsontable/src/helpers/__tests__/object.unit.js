@@ -194,7 +194,7 @@ describe('Object helper', () => {
       const object1 = {};
       const object2 = {
         foo: false,
-        und: void 0,
+        und: undefined,
         bar: 0,
         baz: object1,
         func: function1,
@@ -364,10 +364,10 @@ describe('Object helper', () => {
     it('should detect change value to undefined', () => {
       const propListener = createObjectPropListener('foo');
 
-      propListener.value = void 0;
+      propListener.value = undefined;
 
       expect(propListener.isTouched()).toBe(true);
-      expect(propListener.value).toBe(void 0);
+      expect(propListener.value).toBe(undefined);
     });
   });
 

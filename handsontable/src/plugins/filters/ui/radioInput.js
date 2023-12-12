@@ -1,13 +1,11 @@
 import { clone, extend } from '../../../helpers/object';
-import BaseUI from './_base';
-
-const privatePool = new WeakMap();
+import { BaseUI } from './_base';
 
 /**
  * @private
  * @class RadioInputUI
  */
-class RadioInputUI extends BaseUI {
+export class RadioInputUI extends BaseUI {
   static get DEFAULTS() {
     return clone({
       type: 'radio',
@@ -17,10 +15,21 @@ class RadioInputUI extends BaseUI {
     });
   }
 
+  /**
+   * The reference to the input element.
+   *
+   * @type {HTMLInputElement}
+   */
+  #input;
+  /**
+   * The reference to the label element.
+   *
+   * @type {HTMLLabelElement}
+   */
+  #label;
+
   constructor(hotInstance, options) {
     super(hotInstance, extend(RadioInputUI.DEFAULTS, options));
-
-    privatePool.set(this, {});
   }
 
   /**
@@ -28,15 +37,14 @@ class RadioInputUI extends BaseUI {
    */
   build() {
     super.build();
-    const priv = privatePool.get(this);
-
-    priv.input = this._element.firstChild;
 
     const label = this.hot.rootDocument.createElement('label');
 
     label.textContent = this.translateIfPossible(this.options.label.textContent);
     label.htmlFor = this.translateIfPossible(this.options.label.htmlFor);
-    priv.label = label;
+    this.#label = label;
+    this.#input = this._element.firstChild;
+    this.#input.checked = this.options.checked;
 
     this._element.appendChild(label);
 
@@ -51,10 +59,7 @@ class RadioInputUI extends BaseUI {
       return;
     }
 
-    const priv = privatePool.get(this);
-
-    priv.input.checked = this.options.checked;
-    priv.label.textContent = this.translateIfPossible(this.options.label.textContent);
+    this.#label.textContent = this.translateIfPossible(this.options.label.textContent);
   }
 
   /**
@@ -63,7 +68,7 @@ class RadioInputUI extends BaseUI {
    * @returns {boolean}
    */
   isChecked() {
-    return this.options.checked;
+    return this.isBuilt() ? this.#input.checked : false;
   }
 
   /**
@@ -72,8 +77,9 @@ class RadioInputUI extends BaseUI {
    * @param {boolean} value Set the component state.
    */
   setChecked(value = true) {
-    this.options.checked = value;
-    this.update();
+    if (this.isBuilt()) {
+      this.#input.checked = value;
+    }
   }
 
   /**
@@ -81,10 +87,7 @@ class RadioInputUI extends BaseUI {
    */
   focus() {
     if (this.isBuilt()) {
-      privatePool.get(this).input.focus();
+      this.#input.focus();
     }
   }
-
 }
-
-export default RadioInputUI;

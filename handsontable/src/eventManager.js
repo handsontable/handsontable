@@ -1,4 +1,3 @@
-import { isPassiveEventSupported } from './helpers/feature';
 import { stopImmediatePropagation as _stopImmediatePropagation } from './helpers/dom/event';
 
 /**
@@ -15,6 +14,11 @@ let listenersCounter = 0;
  * @util
  */
 class EventManager {
+  /**
+   * @type {object}
+   */
+  context;
+
   /**
    * @param {object} [context=null] An object to which event listeners will be stored.
    * @private
@@ -43,10 +47,6 @@ class EventManager {
      */
     function callbackProxy(event) {
       callback.call(this, extendEvent(event));
-    }
-
-    if (typeof options !== 'boolean' && !isPassiveEventSupported()) {
-      options = false;
     }
 
     this.context.eventListeners.push({

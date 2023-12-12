@@ -17,13 +17,13 @@ searchCategory: Guides
 
 # Row virtualization
 
-Render thousands of rows without freezing the browser by using row virtualization.
+Render thousands of rows without freezing the browser, using row virtualization.
 
 [[toc]]
 
 ## Overview
 
-Virtualization allows Handsontable to process hundreds of thousands of records without causing the browser to hang. This technique draws only the visible part of the grid, displaying the minimum items physically rendered in the DOM. The elements outside the viewport are rendered when you scroll across the grid. Depending on your configuration, there might be a small offset of columns or rows rendered outside the viewport to make the scrolling performance smoother.
+Virtualization allows Handsontable to process hundreds of thousands of records without causing the browser to hang. This feature draws only the visible part of the grid, displaying the minimum items physically rendered in the DOM. The elements outside the viewport are rendered when you scroll across the grid. Depending on your configuration, there might be a small offset of columns or rows rendered outside the viewport to make the scrolling performance smoother.
 
 This feature is enabled by default and can be turned off by setting the [`renderAllRows`](@/api/options.md#renderallrows) option to `true`.
 
@@ -35,15 +35,17 @@ To make the grid scrollable, set the constant width and height to the same as th
 
 The scrolling performance depends mainly on four factors:
 
-* Number of cells - number of rows multiplied by the number of columns
-* Amount and complexity of custom renderers in cells
-* Number of options enabled in the configuration
-* Performance of your setup - physical machine and a browser
+- Number of cells - number of rows multiplied by the number of columns
+- Amount and complexity of custom renderers in cells
+- Number of options enabled in the configuration
+- Performance of your setup - physical machine and a browser
 
 The example below presents a data grid displaying 1 million cells (1000 rows x 1000 columns):
 
 ::: only-for javascript
+
 ::: example #example1
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -67,11 +69,15 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -106,9 +112,18 @@ export const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
-:::
+
 :::
 
+:::
+
+## Known limitations
+
+Using row virtualization has the following side effects:
+
+- The browser's native search will work only for the visible part of the grid.
+- Screen readers may announce the wrong total number of rows. Read more in the
+  [Accessibility](@/guides/accessibility/accessibility.md#configure-virtualization) guide.
 
 ## Related articles
 

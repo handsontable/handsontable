@@ -443,15 +443,15 @@ describe('MergeCells', () => {
       keyDownUp('enter');
       keyDownUp('enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       keyDownUp('enter');
       keyDownUp('enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A2');
     });
 
-    it('should select the cell in the top-left corner of the merged cell, when navigating down using the TAB key on the' +
+    it('should not select the cell in the top-left corner of the merged cell, when navigating down using the TAB key on the' +
       ' bottom edge of the table', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -475,12 +475,12 @@ describe('MergeCells', () => {
       keyDownUp('tab');
       keyDownUp('enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('');
 
       keyDownUp('tab');
       keyDownUp('enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('');
     });
 
     it('should select the cell in the top-left corner of the merged cell, when navigating down using the SHIFT + ENTER key on the' +
@@ -1531,7 +1531,7 @@ describe('MergeCells', () => {
 
       hot.selectColumns(5);
 
-      expect(hot.getSelectedLast()).toEqual([-1, 5, 9, 5]);
+      expect(hot.getSelectedLast()).toEqual([0, 5, 9, 5]);
 
       // it should work only for selecting the entire column
       hot.selectCell(4, 5, 7, 5);
@@ -1549,7 +1549,7 @@ describe('MergeCells', () => {
 
       hot.selectRows(5);
 
-      expect(hot.getSelectedLast()).toEqual([5, -1, 5, 9]);
+      expect(hot.getSelectedLast()).toEqual([5, 0, 5, 9]);
 
       // it should work only for selecting the entire row
       hot.selectCell(6, 3, 6, 7);
@@ -1720,5 +1720,40 @@ describe('MergeCells', () => {
       expect(columnOnCellMouseDown).toEqual(0);
       expect(coordsOnCellMouseDown).toEqual(jasmine.objectContaining({ row: 0, col: 0 }));
     });
+  });
+
+  it('should set/unset "copyable" cell meta attribute after performing merge/unmerge', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      mergeCells: true
+    });
+
+    selectCell(2, 2, 4, 4);
+    keyDownUp(['control', 'm']);
+
+    expect(getCellMeta(2, 2).copyable).toBe(true);
+    expect(getCellMeta(2, 3).copyable).toBe(false);
+    expect(getCellMeta(2, 4).copyable).toBe(false);
+    expect(getCellMeta(3, 3).copyable).toBe(false);
+    expect(getCellMeta(3, 4).copyable).toBe(false);
+    expect(getCellMeta(4, 4).copyable).toBe(false);
+
+    keyDownUp(['control', 'm']);
+
+    expect(getCellMeta(2, 2).copyable).toBe(true);
+    expect(getCellMeta(2, 3).copyable).toBe(true);
+    expect(getCellMeta(2, 4).copyable).toBe(true);
+    expect(getCellMeta(3, 3).copyable).toBe(true);
+    expect(getCellMeta(3, 4).copyable).toBe(true);
+    expect(getCellMeta(4, 4).copyable).toBe(true);
+
+    keyDownUp(['control', 'm']);
+
+    expect(getCellMeta(2, 2).copyable).toBe(true);
+    expect(getCellMeta(2, 3).copyable).toBe(false);
+    expect(getCellMeta(2, 4).copyable).toBe(false);
+    expect(getCellMeta(3, 3).copyable).toBe(false);
+    expect(getCellMeta(3, 4).copyable).toBe(false);
+    expect(getCellMeta(4, 4).copyable).toBe(false);
   });
 });

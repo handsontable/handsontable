@@ -3,18 +3,19 @@ import { arrayEach, arrayMap } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';
-import EventManager from '../../eventManager';
 import { addClass, removeClass } from '../../helpers/dom/element';
+import { isKey } from '../../helpers/unicode';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import * as constants from '../../i18n/constants';
-import ConditionComponent from './component/condition';
-import OperatorsComponent from './component/operators';
-import ValueComponent from './component/value';
-import ActionBarComponent from './component/actionBar';
+import { ConditionComponent } from './component/condition';
+import { OperatorsComponent } from './component/operators';
+import { ValueComponent } from './component/value';
+import { ActionBarComponent } from './component/actionBar';
 import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
 import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
+import { createMenuFocusController } from './menu/focusController';
 import {
   CONDITION_NONE,
   CONDITION_BY_VALUE,
@@ -28,6 +29,7 @@ import './filters.scss';
 
 export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
+const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 /**
  * @plugin Filters
@@ -81,59 +83,58 @@ export class Filters extends BasePlugin {
     ];
   }
 
+  /**
+   * Instance of {@link DropdownMenu}.
+   *
+   * @private
+   * @type {DropdownMenu}
+   */
+  dropdownMenuPlugin = null;
+  /**
+   * Instance of {@link ConditionCollection}.
+   *
+   * @private
+   * @type {ConditionCollection}
+   */
+  conditionCollection = null;
+  /**
+   * Instance of {@link ConditionUpdateObserver}.
+   *
+   * @private
+   * @type {ConditionUpdateObserver}
+   */
+  conditionUpdateObserver = null;
+  /**
+   * Map, where key is component identifier and value represent `BaseComponent` element or it derivatives.
+   *
+   * @private
+   * @type {Map}
+   */
+  components = new Map([
+    ['filter_by_condition', null],
+    ['filter_operators', null],
+    ['filter_by_condition2', null],
+    ['filter_by_value', null],
+    ['filter_action_bar', null]
+  ]);
+  /**
+   * Map of skipped rows by plugin.
+   *
+   * @private
+   * @type {null|TrimmingMap}
+   */
+  filtersRowsMap = null;
+  /**
+   * Menu focus navigator allows switching the focus position through Tab and Shift Tab keys.
+   *
+   * @type {MenuFocusNavigator|undefined}
+   */
+  #menuFocusNavigator;
+
   constructor(hotInstance) {
     super(hotInstance);
-    /**
-     * Instance of {@link EventManager}.
-     *
-     * @private
-     * @type {EventManager}
-     */
-    this.eventManager = new EventManager(this);
-    /**
-     * Instance of {@link DropdownMenu}.
-     *
-     * @private
-     * @type {DropdownMenu}
-     */
-    this.dropdownMenuPlugin = null;
-    /**
-     * Instance of {@link ConditionCollection}.
-     *
-     * @private
-     * @type {ConditionCollection}
-     */
-    this.conditionCollection = null;
-    /**
-     * Instance of {@link ConditionUpdateObserver}.
-     *
-     * @private
-     * @type {ConditionUpdateObserver}
-     */
-    this.conditionUpdateObserver = null;
-    /**
-     * Map, where key is component identifier and value represent `BaseComponent` element or it derivatives.
-     *
-     * @private
-     * @type {Map}
-     */
-    this.components = new Map([
-      ['filter_by_condition', null],
-      ['filter_operators', null],
-      ['filter_by_condition2', null],
-      ['filter_by_value', null],
-      ['filter_action_bar', null]
-    ]);
-    /**
-     * Map of skipped rows by plugin.
-     *
-     * @private
-     * @type {null|TrimmingMap}
-     */
-    this.filtersRowsMap = null;
-
     // One listener for the enable/disable functionality
-    this.hot.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
+    this.hot.addHook('afterGetColHeader', (col, TH) => this.#onAfterGetColHeader(col, TH));
   }
 
   /**
@@ -161,9 +162,9 @@ export class Filters extends BasePlugin {
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
     const menuContainer = (dropdownSettings && dropdownSettings.uiContainer) || this.hot.rootDocument.body;
     const addConfirmationHooks = (component) => {
-      component.addLocalHook('accept', () => this.onActionBarSubmit('accept'));
-      component.addLocalHook('cancel', () => this.onActionBarSubmit('cancel'));
-      component.addLocalHook('change', command => this.onComponentChange(component, command));
+      component.addLocalHook('accept', () => this.#onActionBarSubmit('accept'));
+      component.addLocalHook('cancel', () => this.#onActionBarSubmit('cancel'));
+      component.addLocalHook('change', command => this.#onComponentChange(component, command));
 
       return component;
     };
@@ -179,7 +180,7 @@ export class Filters extends BasePlugin {
         menuContainer
       });
 
-      conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
+      conditionComponent.addLocalHook('afterClose', () => this.#onSelectUIClosed());
 
       this.components.set('filter_by_condition', addConfirmationHooks(conditionComponent));
     }
@@ -199,7 +200,7 @@ export class Filters extends BasePlugin {
         menuContainer
       });
 
-      conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
+      conditionComponent.addLocalHook('afterClose', () => this.#onSelectUIClosed());
 
       this.components.set('filter_by_condition2', addConfirmationHooks(conditionComponent));
     }
@@ -228,17 +229,16 @@ export class Filters extends BasePlugin {
         this.conditionCollection,
         physicalColumn => this.getDataMapAtColumn(physicalColumn),
       );
-      this.conditionUpdateObserver.addLocalHook('update', conditionState => this.updateComponents(conditionState));
+      this.conditionUpdateObserver.addLocalHook('update', conditionState => this.#updateComponents(conditionState));
     }
 
     this.components.forEach(component => component.show());
 
-    this.addHook('beforeDropdownMenuSetItems', items => this.onBeforeDropdownMenuSetItems(items));
     this.addHook('afterDropdownMenuDefaultOptions',
-      defaultOptions => this.onAfterDropdownMenuDefaultOptions(defaultOptions));
-    this.addHook('afterDropdownMenuShow', () => this.onAfterDropdownMenuShow());
-    this.addHook('afterDropdownMenuHide', () => this.onAfterDropdownMenuHide());
-    this.addHook('afterChange', changes => this.onAfterChange(changes));
+      defaultOptions => this.#onAfterDropdownMenuDefaultOptions(defaultOptions));
+    this.addHook('afterDropdownMenuShow', () => this.#onAfterDropdownMenuShow());
+    this.addHook('afterDropdownMenuHide', () => this.#onAfterDropdownMenuHide());
+    this.addHook('afterChange', changes => this.#onAfterChange(changes));
 
     // Temp. solution (extending menu items bug in contextMenu/dropdownMenu)
     if (this.hot.getSettings().dropdownMenu && this.dropdownMenuPlugin) {
@@ -246,6 +246,52 @@ export class Filters extends BasePlugin {
       this.dropdownMenuPlugin.enablePlugin();
     }
 
+    if (!this.#menuFocusNavigator && this.dropdownMenuPlugin.enabled) {
+      const mainMenu = this.dropdownMenuPlugin.menu;
+      const focusableItems = [
+        // A fake menu item that once focused allows escaping from the focus navigation (using Tab keys)
+        // to the menu navigation using arrow keys.
+        {
+          focus: () => {
+            const menuNavigator = mainMenu.getNavigator();
+            const lastSelectedMenuItem = this.#menuFocusNavigator.getLastMenuPage();
+
+            mainMenu.focus();
+
+            if (lastSelectedMenuItem > 0) {
+              menuNavigator.setCurrentPage(lastSelectedMenuItem);
+            } else {
+              menuNavigator.toFirstItem();
+            }
+          },
+        },
+        ...Array.from(this.components)
+          .map(([, component]) => component.getElements())
+          .flat(),
+      ];
+
+      this.#menuFocusNavigator = createMenuFocusController(mainMenu, focusableItems);
+
+      const forwardToFocusNavigation = (event) => {
+        this.#menuFocusNavigator.listen();
+        event.preventDefault();
+
+        if (isKey(event.keyCode, 'TAB')) {
+          if (event.shiftKey) {
+            this.#menuFocusNavigator.toPreviousItem();
+          } else {
+            this.#menuFocusNavigator.toNextItem();
+          }
+        }
+      };
+
+      this.components.get('filter_by_value')
+        .addLocalHook('listTabKeydown', forwardToFocusNavigation);
+      this.components.get('filter_by_condition')
+        .addLocalHook('selectTabKeydown', forwardToFocusNavigation);
+    }
+
+    this.registerShortcuts();
     super.enablePlugin();
   }
 
@@ -267,7 +313,44 @@ export class Filters extends BasePlugin {
       this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     }
 
+    this.unregisterShortcuts();
     super.disablePlugin();
+  }
+
+  /**
+   * Register shortcuts responsible for clearing the filters.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .addShortcut({
+        keys: [['Alt', 'A']],
+        stopPropagation: true,
+        callback: () => {
+          const selection = this.hot.getSelected();
+
+          this.clearConditions();
+          this.filter();
+
+          if (selection) {
+            this.hot.selectCells(selection);
+          }
+        },
+        group: SHORTCUTS_GROUP,
+      });
+  }
+
+  /**
+   * Unregister shortcuts responsible for clearing the filters.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -409,7 +492,7 @@ export class Filters extends BasePlugin {
    * @param {number} [column] Visual column index.
    */
   clearConditions(column) {
-    if (column === void 0) {
+    if (column === undefined) {
       this.conditionCollection.clean();
 
     } else {
@@ -426,6 +509,7 @@ export class Filters extends BasePlugin {
    * @fires Hooks#afterFilter
    */
   filter() {
+    const { navigableHeaders } = this.hot.getSettings();
     const dataFilter = this._createDataFilter();
     const needToFilter = !this.conditionCollection.isEmpty();
     let visibleVisualRows = [];
@@ -455,7 +539,7 @@ export class Filters extends BasePlugin {
           });
         }, true);
 
-        if (!visibleVisualRows.length) {
+        if (!navigableHeaders && !visibleVisualRows.length) {
           this.hot.deselectCell();
         }
       } else {
@@ -467,7 +551,13 @@ export class Filters extends BasePlugin {
 
     this.hot.view.adjustElementsSize(true);
     this.hot.render();
-    this.clearColumnSelection();
+
+    if (this.hot.selection.isSelected()) {
+      this.hot.selectCell(
+        navigableHeaders ? -1 : 0,
+        this.hot.getSelectedRangeLast().highlight.col,
+      );
+    }
   }
 
   /**
@@ -488,19 +578,6 @@ export class Filters extends BasePlugin {
       visualIndex: highlight.col,
       physicalIndex: this.hot.toPhysicalColumn(highlight.col),
     };
-  }
-
-  /**
-   * Clears column selection.
-   *
-   * @private
-   */
-  clearColumnSelection() {
-    const selectedColumn = this.getSelectedColumn();
-
-    if (selectedColumn !== null) {
-      this.hot.selectCell(0, selectedColumn.visualIndex);
-    }
   }
 
   /**
@@ -530,10 +607,9 @@ export class Filters extends BasePlugin {
   /**
    * `afterChange` listener.
    *
-   * @private
    * @param {Array} changes Array of changes.
    */
-  onAfterChange(changes) {
+  #onAfterChange(changes) {
     if (changes) {
       arrayEach(changes, (change) => {
         const [, prop] = change;
@@ -581,43 +657,25 @@ export class Filters extends BasePlugin {
 
   /**
    * After dropdown menu show listener.
-   *
-   * @private
    */
-  onAfterDropdownMenuShow() {
+  #onAfterDropdownMenuShow() {
     this.restoreComponents(Array.from(this.components.values()));
   }
 
   /**
    * After dropdown menu hide listener.
-   *
-   * @private
    */
-  onAfterDropdownMenuHide() {
+  #onAfterDropdownMenuHide() {
     this.components.get('filter_by_condition').getSelectElement().closeOptions();
     this.components.get('filter_by_condition2').getSelectElement().closeOptions();
   }
 
   /**
-   * Before dropdown menu set menu items listener.
-   *
-   * @private
-   */
-  onBeforeDropdownMenuSetItems() {
-    if (this.dropdownMenuPlugin) {
-      this.dropdownMenuPlugin.menu.addLocalHook('afterOpen', () => {
-        this.dropdownMenuPlugin.menu.hotMenu.updateSettings({ hiddenRows: true });
-      });
-    }
-  }
-
-  /**
    * After dropdown menu default options listener.
    *
-   * @private
    * @param {object} defaultOptions ContextMenu default item options.
    */
-  onAfterDropdownMenuDefaultOptions(defaultOptions) {
+  #onAfterDropdownMenuDefaultOptions(defaultOptions) {
     defaultOptions.items.push({ name: SEPARATOR });
 
     this.components.forEach((component) => {
@@ -657,7 +715,7 @@ export class Filters extends BasePlugin {
    * @private
    * @param {string} submitType The submit type.
    */
-  onActionBarSubmit(submitType) {
+  #onActionBarSubmit(submitType) {
     if (submitType === 'accept') {
       const selectedColumn = this.getSelectedColumn();
 
@@ -684,7 +742,7 @@ export class Filters extends BasePlugin {
       let columnStackPosition = this.conditionCollection.getColumnStackPosition(physicalIndex);
 
       if (columnStackPosition === -1) {
-        columnStackPosition = void 0;
+        columnStackPosition = undefined;
       }
 
       this.conditionCollection.removeConditions(physicalIndex);
@@ -713,11 +771,10 @@ export class Filters extends BasePlugin {
   /**
    * On component change listener.
    *
-   * @private
    * @param {BaseComponent} component Component inheriting BaseComponent.
    * @param {object} command Menu item object (command).
    */
-  onComponentChange(component, command) {
+  #onComponentChange(component, command) {
     this.updateDependentComponentsVisibility();
 
     if (component.constructor === ConditionComponent && !command.inputsCount) {
@@ -727,10 +784,8 @@ export class Filters extends BasePlugin {
 
   /**
    * On component SelectUI closed listener.
-   *
-   * @private
    */
-  onSelectUIClosed() {
+  #onSelectUIClosed() {
     this.setListeningDropdownMenu();
   }
 
@@ -769,11 +824,10 @@ export class Filters extends BasePlugin {
   /**
    * On after get column header listener.
    *
-   * @private
    * @param {number} col Visual column index.
    * @param {HTMLTableCellElement} TH Header's TH element.
    */
-  onAfterGetColHeader(col, TH) {
+  #onAfterGetColHeader(col, TH) {
     const physicalColumn = this.hot.toPhysicalColumn(col);
 
     if (this.enabled && this.conditionCollection.hasConditions(physicalColumn)) {
@@ -799,10 +853,9 @@ export class Filters extends BasePlugin {
    * reacts to any condition added to the condition collection. It may be added through the UI
    * components or by API call.
    *
-   * @private
    * @param {object} conditionsState An object with the state generated by UI components.
    */
-  updateComponents(conditionsState) {
+  #updateComponents(conditionsState) {
     if (!this.dropdownMenuPlugin?.enabled) {
       return;
     }

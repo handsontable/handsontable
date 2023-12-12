@@ -12,7 +12,7 @@ const EVENTS_TO_REGISTER = ['click', 'input', 'keydown', 'keypress', 'keyup', 'f
 /**
  * @private
  */
-class BaseUI {
+export class BaseUI {
   static get DEFAULTS() {
     return clone({
       className: '',
@@ -23,38 +23,42 @@ class BaseUI {
     });
   }
 
+  /**
+   * Instance of Handsontable.
+   *
+   * @type {Core}
+   */
+  hot;
+  /**
+   * Instance of EventManager.
+   *
+   * @type {EventManager}
+   */
+  eventManager = new EventManager(this);
+  /**
+   * List of element options.
+   *
+   * @type {object}
+   */
+  options;
+  /**
+   * Build root DOM element.
+   *
+   * @type {Element}
+   * @private
+   */
+  _element;
+  /**
+   * Flag which determines build state of element.
+   *
+   * @type {string}
+   */
+  buildState;
+
   constructor(hotInstance, options) {
-    /**
-     * Instance of Handsontable.
-     *
-     * @type {Core}
-     */
     this.hot = hotInstance;
-    /**
-     * Instance of EventManager.
-     *
-     * @type {EventManager}
-     */
-    this.eventManager = new EventManager(this);
-    /**
-     * List of element options.
-     *
-     * @type {object}
-     */
     this.options = extend(BaseUI.DEFAULTS, options);
-    /**
-     * Build root DOM element.
-     *
-     * @type {Element}
-     * @private
-     */
     this._element = this.hot.rootDocument.createElement(this.options.wrapIt ? 'div' : this.options.tagName);
-    /**
-     * Flag which determines build state of element.
-     *
-     * @type {string}
-     */
-    this.buildState = null;
   }
 
   /**
@@ -125,23 +129,40 @@ class BaseUI {
    */
   build() {
     const registerEvent = (element, eventName) => {
-      this.eventManager.addEventListener(element, eventName, event => this.runLocalHooks(eventName, event, this));
+      this.eventManager
+        .addEventListener(element, eventName, event => this.runLocalHooks(eventName, event, this));
     };
 
     if (!this.buildState) {
       this.buildState = STATE_BUILDING;
     }
+
+    // prevents "hot.unlisten()" call when clicked
+    // (https://github.com/handsontable/handsontable/blob/master/handsontable/src/tableView.js#L317-L321)
+    this._element.setAttribute('data-hot-input', true);
+
+    if (this.options.tabIndex !== undefined) {
+      this._element.setAttribute('tabindex', this.options.tabIndex);
+    }
+    if (this.options.role !== undefined) {
+      this._element.setAttribute('role', this.options.role);
+    }
     if (this.options.className) {
       addClass(this._element, this.options.className);
     }
+
     if (this.options.children.length) {
       arrayEach(this.options.children, element => this._element.appendChild(element.element));
 
     } else if (this.options.wrapIt) {
       const element = this.hot.rootDocument.createElement(this.options.tagName);
 
+      // prevents "hot.unlisten()" call when clicked
+      // (https://github.com/handsontable/handsontable/blob/master/handsontable/src/tableView.js#L317-L321)
+      element.setAttribute('data-hot-input', true);
+
       objectEach(this.options, (value, key) => {
-        if (element[key] !== void 0 && key !== 'className' && key !== 'tagName' && key !== 'children') {
+        if (element[key] !== undefined && key !== 'className' && key !== 'tagName' && key !== 'children') {
           element[key] = this.translateIfPossible(value);
         }
       });
@@ -204,5 +225,3 @@ class BaseUI {
 }
 
 mixin(BaseUI, localHooks);
-
-export default BaseUI;

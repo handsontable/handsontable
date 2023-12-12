@@ -19,11 +19,21 @@
 
 .handsontable td.htInvalid {
   /*gives priority over td.area selection background*/
-  background-color: #ff4c42 !important;
+  background-color: #ffbeba !important;
 }
 
 .handsontable td.htNoWrap {
   white-space: nowrap;
+}
+
+.handsontable td.invisibleSelection,
+.handsontable th.invisibleSelection {
+  outline: none;
+}
+
+.handsontable td.invisibleSelection::selection,
+.handsontable th.invisibleSelection::selection {
+  background: rgb(255 255 255 / 0%);
 }
 
 .hot-display-license-info {
@@ -38,6 +48,17 @@
 .hot-display-license-info a {
   color: #104acc;
   font-size: 10px;
+}
+
+.handsontable .htFocusCatcher {
+  position: absolute;
+  z-index: -1;
+  opacity: 0;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  width: 0;
+  height: 0;
 }
 
 /* plugins */
@@ -138,7 +159,7 @@
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFJJREFUeAHtzjkSgCAQRNFmQYUZ7n9dKUvru0TmvPAn3br0QfgdZ5xx6x+rQn23GqTYnq1FDcnuzZIO2WmedVqIRVxgGKEyjNgYRjKGkZ1hFIZ3I70LyM0VtU8AAAAASUVORK5CYII=");
 }
 
-.htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::after {
+.htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::before {
   content: '*';
   display: inline-block;
   position: relative;
@@ -216,6 +237,11 @@
   opacity: 0.58;
 }
 
+.handsontable tbody th.current,
+.handsontable thead th.current {
+  box-shadow: inset 0 0 0 2px #4b89ff;
+}
+
 .handsontable tbody th.ht__highlight,
 .handsontable thead th.ht__highlight {
   background-color: #dcdcdc;
@@ -278,7 +304,7 @@ TextRenderer readOnly cell
 }
 
 .handsontable .htSubmenu :after {
-  content: '\25B6';
+  content: '\25B6'; // right-pointing triangle
   color: #777;
   position: absolute;
   right: 5px;
@@ -290,7 +316,7 @@ TextRenderer readOnly cell
 }
 
 [dir=rtl].handsontable .htSubmenu :before {
-  content: '\25C0';
+  content: '\25C0'; // left-pointing triangle
   color: #777;
   position: absolute;
   left: 5px;
@@ -405,7 +431,7 @@ TextRenderer placeholder value
   cursor: pointer;
   -webkit-box-shadow: 0 0 0 6px rgba(238,238,238,1);
   -moz-box-shadow: 0 0 0 6px rgba(238,238,238,1);
-  box-shadow: 0 0 0 6px rgba(238,238,238,1);
+  box-shadow: 0 0 0 3px rgba(238,238,238,1);
   background: #eee;
   text-align: center;
 }

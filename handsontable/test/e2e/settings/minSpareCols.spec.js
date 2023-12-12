@@ -13,6 +13,34 @@ describe('settings', () => {
       }
     });
 
+    it('should not create a new column after TAB hit', () => {
+      handsontable({
+        data: createSpreadsheetData(2, 5),
+        minSpareCols: 1,
+      });
+
+      selectCell(0, 5);
+      keyDownUp('tab');
+
+      expect(countCols()).toBe(6);
+      expect(getSelected()).toBeUndefined();
+    });
+
+    it('should create a new column after ENTER hit', () => {
+      handsontable({
+        data: createSpreadsheetData(2, 5),
+        minSpareCols: 1,
+      });
+
+      selectCell(0, 5);
+      keyDownUp('enter');
+      getActiveEditor().TEXTAREA.value = 'test';
+      keyDownUp('enter');
+
+      expect(countCols()).toBe(7);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,5 from: 1,5 to: 1,5']);
+    });
+
     describe('works on init', () => {
       it('should show data properly when `minSpareCols` is set to 0', () => {
         handsontable({

@@ -1,0 +1,11 @@
+{
+  "name": "examples-angular-17-14.0.0",
+  "version": "14.0.0",
+  "private": true,
+  "scripts": {
+    "postinstall": "cd ../../.. && npm run link-packages -- --f angular-17 --examples-version 14.0.0"
+  },
+  "workspaces": [
+    "@(!(node_modules))/"
+  ]
+}

@@ -379,7 +379,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 
 Mind that the [`numericFormat`](@/api/options.md#numericformat) option doesn't change the way
 numbers are presented or parsed by the [cell editor](@/guides/cell-functions/cell-editor.md). When
-you **edit** a numeric cell:
+you edit a numeric cell:
 
 - Regardless of the [`numericFormat`](@/api/options.md#numericformat) configuration, the number
   that's being edited displays its decimal separator as a period (`.`), and has no thousands

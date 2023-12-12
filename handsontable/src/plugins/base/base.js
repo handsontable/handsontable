@@ -5,6 +5,7 @@ import { hasCellType } from '../../cellTypes/registry';
 import { hasEditor } from '../../editors/registry';
 import { hasRenderer } from '../../renderers/registry';
 import { hasValidator } from '../../validators/registry';
+import EventManager from '../../eventManager';
 
 const DEPS_TYPE_CHECKERS = new Map([
   ['plugin', hasPlugin],
@@ -15,8 +16,7 @@ const DEPS_TYPE_CHECKERS = new Map([
 ]);
 
 export const PLUGIN_KEY = 'base';
-const privatePool = new WeakMap();
-const missingDependeciesMsgs = [];
+const missingDepsMsgs = [];
 let initializedPlugins = null;
 
 /**
@@ -44,6 +44,37 @@ export class BasePlugin {
   }
 
   /**
+   * The instance of the {@link EventManager} class.
+   *
+   * @type {EventManager}
+   */
+  eventManager = new EventManager(this);
+  /**
+   * @type {string}
+   */
+  pluginName = null;
+  /**
+   * @type {Function[]}
+   */
+  pluginsInitializedCallbacks = [];
+  /**
+   * @type {boolean}
+   */
+  isPluginsReady = false;
+  /**
+   * @type {boolean}
+   */
+  enabled = false;
+  /**
+   * @type {boolean}
+   */
+  initialized = false;
+  /**
+   * Collection of the reference to the plugins hooks.
+   */
+  #hooks = {};
+
+  /**
    * @param {object} hotInstance Handsontable instance.
    */
   constructor(hotInstance) {
@@ -56,14 +87,7 @@ export class BasePlugin {
       writable: false
     });
 
-    privatePool.set(this, { hooks: {} });
     initializedPlugins = null;
-
-    this.pluginName = null;
-    this.pluginsInitializedCallbacks = [];
-    this.isPluginsReady = false;
-    this.enabled = false;
-    this.initialized = false;
 
     this.hot.addHook('afterPluginsInitialized', () => this.onAfterPluginsInitialized());
     this.hot.addHook('afterUpdateSettings', newSettings => this.onUpdateSettings(newSettings));
@@ -74,12 +98,12 @@ export class BasePlugin {
     this.pluginName = this.hot.getPluginName(this);
 
     const pluginDeps = this.constructor.PLUGIN_DEPS;
-    const dependecies = Array.isArray(pluginDeps) ? pluginDeps : [];
+    const deps = Array.isArray(pluginDeps) ? pluginDeps : [];
 
-    if (dependecies.length > 0) {
+    if (deps.length > 0) {
       const missingDependencies = [];
 
-      dependecies.forEach((dependency) => {
+      deps.forEach((dependency) => {
         const [type, moduleName] = dependency.split(':');
 
         if (!DEPS_TYPE_CHECKERS.has(type)) {
@@ -97,7 +121,7 @@ export class BasePlugin {
           `${missingDependencies.join('\n')}\n`,
         ].join('');
 
-        missingDependeciesMsgs.push(errorMsg);
+        missingDepsMsgs.push(errorMsg);
       }
     }
 
@@ -125,9 +149,9 @@ export class BasePlugin {
     const isAllPluginsAreInitialized = initializedPlugins.length === 0;
 
     if (isAllPluginsAreInitialized) {
-      if (missingDependeciesMsgs.length > 0) {
+      if (missingDepsMsgs.length > 0) {
         const errorMsg = [
-          `${missingDependeciesMsgs.join('\n')}\n`,
+          `${missingDepsMsgs.join('\n')}\n`,
           'You have to import and register them manually.',
         ].join('');
 
@@ -151,9 +175,7 @@ export class BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
-    if (this.eventManager) {
-      this.eventManager.clear();
-    }
+    this.eventManager?.clear();
     this.clearHooks();
     this.enabled = false;
   }
@@ -165,13 +187,13 @@ export class BasePlugin {
    * @param {Function} callback The listener function to add.
    */
   addHook(name, callback) {
-    privatePool.get(this).hooks[name] = (privatePool.get(this).hooks[name] || []);
+    this.#hooks[name] = (this.#hooks[name] || []);
 
-    const hooks = privatePool.get(this).hooks[name];
+    const hooks = this.#hooks[name];
 
     this.hot.addHook(name, callback);
     hooks.push(callback);
-    privatePool.get(this).hooks[name] = hooks;
+    this.#hooks[name] = hooks;
   }
 
   /**
@@ -180,7 +202,7 @@ export class BasePlugin {
    * @param {string} name The hook name.
    */
   removeHooks(name) {
-    arrayEach(privatePool.get(this).hooks[name] || [], (callback) => {
+    arrayEach(this.#hooks[name] || [], (callback) => {
       this.hot.removeHook(name, callback);
     });
   }
@@ -189,7 +211,7 @@ export class BasePlugin {
    * Clear all hooks.
    */
   clearHooks() {
-    const hooks = privatePool.get(this).hooks;
+    const hooks = this.#hooks;
 
     objectEach(hooks, (callbacks, name) => this.removeHooks(name));
     hooks.length = 0;
@@ -233,7 +255,7 @@ export class BasePlugin {
     }
 
     for (let i = 0; i < settingKeys.length; i++) {
-      if (settings[settingKeys[i]] !== void 0) {
+      if (settings[settingKeys[i]] !== undefined) {
         return true;
       }
     }
@@ -293,9 +315,7 @@ export class BasePlugin {
    * Destroy plugin.
    */
   destroy() {
-    if (this.eventManager) {
-      this.eventManager.destroy();
-    }
+    this.eventManager?.destroy();
     this.clearHooks();
 
     objectEach(this, (value, property) => {

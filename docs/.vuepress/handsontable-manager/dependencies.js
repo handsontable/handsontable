@@ -22,7 +22,7 @@ const getPackageUrls = (packageName, version, fileSelection) => {
       js: 'react-handsontable.min.js'
     },
     '@handsontable/angular': {
-      js: 'handsontable-angular.umd.min.js',
+      js: 'handsontable-angular.umd.js',
       subDir: 'bundles/'
     },
     '@handsontable/vue': {
@@ -91,13 +91,14 @@ const buildDependencyGetter = (version) => {
       redux: ['https://cdn.jsdelivr.net/npm/redux@4/dist/redux.min.js', []],
       rxjs: ['https://cdn.jsdelivr.net/npm/rxjs@6/bundles/rxjs.umd.js', [/* todo */]],
       'core-js': ['https://cdn.jsdelivr.net/npm/core-js@2/client/core.min.js', [/* todo */]],
-      zone: ['https://cdn.jsdelivr.net/npm/zone.js@0.9/dist/zone.min.js', [/* todo */]],
-      'angular-compiler': ['https://cdn.jsdelivr.net/npm/@angular/compiler@8/bundles/compiler.umd.min.js', [/* todo */]],
-      'angular-core': ['https://cdn.jsdelivr.net/npm/@angular/core@8/bundles/core.umd.min.js', [/* todo */]],
-      'angular-common': ['https://cdn.jsdelivr.net/npm/@angular/common@8/bundles/common.umd.min.js', [/* todo */]],
-      'angular-forms': ['https://cdn.jsdelivr.net/npm/@angular/forms@7/bundles/forms.umd.min.js', [/* todo */]],
-      'angular-platform-browser': ['https://cdn.jsdelivr.net/npm/@angular/platform-browser@8/bundles/platform-browser.umd.min.js', [/* todo */]],
-      'angular-platform-browser-dynamic': ['https://cdn.jsdelivr.net/npm/@angular/platform-browser-dynamic@8/bundles/platform-browser-dynamic.umd.min.js', [/* todo */]],
+      zone: ['https://cdn.jsdelivr.net/npm/zone.js@0.11.4/dist/zone.min.js', [/* todo */]],
+      'angular-compiler': ['https://cdn.jsdelivr.net/npm/@angular/compiler@12/bundles/compiler.umd.min.js', [/* todo
+       */]],
+      'angular-core': ['https://cdn.jsdelivr.net/npm/@angular/core@12/bundles/core.umd.min.js', [/* todo */]],
+      'angular-common': ['https://cdn.jsdelivr.net/npm/@angular/common@12/bundles/common.umd.min.js', [/* todo */]],
+      'angular-forms': ['https://cdn.jsdelivr.net/npm/@angular/forms@12/bundles/forms.umd.min.js', [/* todo */]],
+      'angular-platform-browser': ['https://cdn.jsdelivr.net/npm/@angular/platform-browser@12/bundles/platform-browser.umd.min.js', [/* todo */]],
+      'angular-platform-browser-dynamic': ['https://cdn.jsdelivr.net/npm/@angular/platform-browser-dynamic@12/bundles/platform-browser-dynamic.umd.min.js', [/* todo */]],
       'hot-angular': [getPackageUrls('@handsontable/angular', version, 'js'), [/* todo */]],
       'hot-vue': [getPackageUrls('@handsontable/vue', version, 'js'), [/* todo */], null, 'hot-vue3'],
       'hot-vue3': [getPackageUrls('@handsontable/vue3', version, 'js'), [/* todo */], null, 'hot-vue'],

@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: 16
+  NODE_VERSION: 20
 
 jobs:
   check-scope:
@@ -37,6 +37,7 @@ jobs:
       test-react: ${{ steps.path-filter.outputs.test-react }}
       test-vue: ${{ steps.path-filter.outputs.test-vue }}
       test-vue3: ${{ steps.path-filter.outputs.test-vue3 }}
+      test-visual: ${{ steps.path-filter.outputs.test-visual }}
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
         if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
@@ -98,6 +99,9 @@ jobs:
             test-vue3:
               - *hot-shared
               - 'wrappers/vue3/**'
+            test-visual:
+              - './examples/next/visual-tests/**'
+              - './visual-tests/**'
 
   build-handsontable-umd:
     name: "[BUILD] Handsontable: UMD"
@@ -446,7 +450,8 @@ jobs:
         needs.test-angular.result == 'success' ||
         needs.test-react.result == 'success' ||
         needs.test-vue.result == 'success' ||
-        needs.test-vue3.result == 'success'
+        needs.test-vue3.result == 'success' ||
+        needs.check-scope.outputs.test-visual == 'true'
         )
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
@@ -472,23 +477,22 @@ jobs:
             tar -zxf handsontable-build-es-cjs/tmp.tar.gz ./handsontable/tmp
             rm -r handsontable-build-es-cjs
           else
-            cd handsontable
-            npm run build:es
-            npm run build:commonjs
-            npm run build:languages.es
-            npm run postbuild
+            npm run in handsontable build:es
+            npm run in handsontable build:commonjs
+            npm run in handsontable build:languages.es
           fi
+          npm run in handsontable postbuild
       - run: |
           if test -f "handsontable-build-umd/dist.tar.gz"; then
             tar -zxf handsontable-build-umd/dist.tar.gz ./handsontable/dist
             rm -r handsontable-build-umd
           else
-            cd handsontable
-            npm run build:umd
-            npm run build:umd.min
-            npm run build:languages
-            npm run build:languages.min
+            npm run in handsontable build:umd
+            npm run in handsontable build:umd.min
+            npm run in handsontable build:languages
+            npm run in handsontable build:languages.min
           fi
+          npm run in handsontable postbuild
 
       - name: Build wrappers and test examples
         run: npm run build -- -e handsontable

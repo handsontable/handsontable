@@ -4,34 +4,37 @@
     :class="[
       {
         collapsable,
-        'is-sub-group': depth !== 0
+        'is-sub-group': depth !== 0,
       },
-      `depth-${depth}`
+      `depth-${depth}`,
     ]"
   >
     <RouterLink
       v-if="item.path"
       class="sidebar-heading clickable"
       :class="{
-        open:isOpen,
-        'active': isActive($route, item.path)
+        open: isOpen,
+        active: isActive($route, item.path),
       }"
       :to="item.path"
       @click.native="toggleOpen()"
     >
-            <span
-              v-if="collapsable"
-              class="arrow"
-              :class="isOpen ? 'down' : 'right'"
-            />
+      <span
+        v-if="collapsable"
+        class="arrow"
+        :class="isOpen ? 'down' : 'right'"
+      />
       <span>{{ item.title }}</span>
     </RouterLink>
 
     <p
       v-else
       class="sidebar-heading"
-      :class="{ open:isOpen }"
+      :class="{ open: isOpen }"
       @click="toggleOpen()"
+      @keyup.enter="toggleOpen"
+      tabindex="0"
+      role="button"
     >
       <span
         v-if="collapsable"
@@ -42,10 +45,11 @@
     </p>
 
     <DropdownTransition>
+      <!-- Node: Workaround for filtering an empty item element from an items array. Some warn is logged
+      in the console otherwise -->
       <SidebarLinks
-        v-if="isOpen || !collapsable"
-        class="sidebar-group-items"
-        :items="item.children"
+        :class="{ 'd-none': !isOpen && collapsable, 'sidebar-group-items': true  }"
+        :items="item.children.filter((child) => child.path)"
         :sidebar-depth="item.sidebarDepth"
         :initial-open-group-index="item.initialOpenGroupIndex"
         :depth="depth + 1"
@@ -62,15 +66,10 @@ export default {
   name: 'SidebarGroup',
 
   components: {
-    DropdownTransition
+    DropdownTransition,
   },
 
-  props: [
-    'item',
-    'open',
-    'collapsable',
-    'depth'
-  ],
+  props: ['item', 'open', 'collapsable', 'depth'],
 
   // ref: https://vuejs.org/v2/guide/components-edge-cases.html#Circular-References-Between-Components
   beforeCreate() {
@@ -79,22 +78,22 @@ export default {
   },
   data() {
     return {
-      isOpen: this.open
+      isOpen: this.open,
     };
   },
   methods: {
     isActive,
     toggleOpen() {
       this.isOpen = !this.isOpen;
-    }
+    },
   },
   watch: {
     open(val) {
       if (val) {
         this.isOpen = val;
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -154,4 +153,6 @@ export default {
   font-size 0.95em
   overflow hidden
 
+  &.d-none
+    display: none
 </style>

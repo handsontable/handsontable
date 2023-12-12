@@ -87,7 +87,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 2)).toBe(180);
 
     updateSettings({
-      manualColumnResize: void 0
+      manualColumnResize: undefined
     });
 
     expect(colWidth(spec().$container, 0)).toBe(50);
@@ -115,7 +115,7 @@ describe('manualColumnResize', () => {
 
   it('should keep proper column widths after inserting column', () => {
     handsontable({
-      manualColumnResize: [void 0, void 0, 120]
+      manualColumnResize: [undefined, undefined, 120]
     });
 
     expect(colWidth(spec().$container, 0)).toBe(50);
@@ -157,7 +157,7 @@ describe('manualColumnResize', () => {
 
   it('should keep proper column widths after removing column', () => {
     handsontable({
-      manualColumnResize: [void 0, void 0, 120]
+      manualColumnResize: [undefined, undefined, 120]
     });
 
     expect(colWidth(spec().$container, 0)).toBe(50);
@@ -462,7 +462,7 @@ describe('manualColumnResize', () => {
     hot.addHook('beforeColumnResize', () => 100);
     hot.addHook('beforeColumnResize', () => 200);
 
-    hot.addHook('beforeColumnResize', () => void 0);
+    hot.addHook('beforeColumnResize', () => undefined);
 
     const $th = getTopClone().find('thead tr:eq(0) th:eq(0)');
 
@@ -1086,6 +1086,32 @@ describe('manualColumnResize', () => {
 
         expect($handle.css('z-index')).toBeGreaterThan(getTopClone().css('z-index'));
       });
+    });
+
+    it('should remove resize handler when user clicks RMB', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        colHeaders: true,
+        manualColumnResize: true
+      });
+
+      const $colHeader = getTopClone().find('thead tr:eq(0) th:eq(2)');
+
+      $colHeader.simulate('mouseover');
+
+      const $handle = spec().$container.find('.manualColumnResizer');
+      const resizerPosition = $handle.position();
+
+      $handle.simulate('mousedown', { clientX: resizerPosition.left });
+
+      // To watch whether color has changed.
+      expect(getComputedStyle($handle[0]).backgroundColor).toBe('rgb(52, 169, 219)');
+
+      $handle.simulate('contextmenu');
+
+      await sleep(0);
+
+      expect(getComputedStyle($handle[0]).backgroundColor).not.toBe('rgb(52, 169, 219)');
     });
   });
 });

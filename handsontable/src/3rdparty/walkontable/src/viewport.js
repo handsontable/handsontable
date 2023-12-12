@@ -9,6 +9,8 @@ import { objectEach } from '../../../helpers/object';
 import {
   RENDER_TYPE,
   FULLY_VISIBLE_TYPE,
+  RenderAllColumnsCalculator,
+  RenderAllRowsCalculator,
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
 } from './calculator';
@@ -294,17 +296,18 @@ class Viewport {
    */
   createRowsCalculator(calculationType = RENDER_TYPE) {
     const { wtSettings, wtTable } = this;
-    let height;
+
+    if (wtSettings.getSetting('renderAllRows') && calculationType === RENDER_TYPE) {
+      return new RenderAllRowsCalculator({
+        totalRows: wtSettings.getSetting('totalRows'),
+      });
+    }
+
+    let height = this.getViewportHeight();
     let scrollbarHeight;
     let fixedRowsHeight;
 
     this.rowHeaderWidth = NaN;
-
-    if (wtSettings.getSetting('renderAllRows') && calculationType === RENDER_TYPE) {
-      height = Infinity;
-    } else {
-      height = this.getViewportHeight();
-    }
 
     let pos = this.dataAccessObject.topScrollPosition - this.dataAccessObject.topParentOffset;
 
@@ -331,13 +334,13 @@ class Viewport {
     }
 
     return new ViewportRowsCalculator({
-      viewportSize: height,
+      viewportHeight: height,
       scrollOffset: pos,
-      totalItems: wtSettings.getSetting('totalRows'),
-      itemSizeFn: sourceRow => wtTable.getRowHeight(sourceRow),
+      totalRows: wtSettings.getSetting('totalRows'),
+      rowHeightFn: sourceRow => wtTable.getRowHeight(sourceRow),
       overrideFn: wtSettings.getSettingPure('viewportRowCalculatorOverride'),
       calculationType,
-      scrollbarHeight,
+      horizontalScrollbarHeight: scrollbarHeight,
     });
   }
 
@@ -352,6 +355,13 @@ class Viewport {
    */
   createColumnsCalculator(calculationType = RENDER_TYPE) {
     const { wtSettings, wtTable } = this;
+
+    if (wtSettings.getSetting('renderAllColumns') && calculationType === RENDER_TYPE) {
+      return new RenderAllColumnsCalculator({
+        totalColumns: wtSettings.getSetting('totalColumns'),
+      });
+    }
+
     let width = this.getViewportWidth();
     let pos = Math.abs(this.dataAccessObject.inlineStartScrollPosition) - this.dataAccessObject.inlineStartParentOffset;
 
@@ -370,16 +380,12 @@ class Viewport {
     }
 
     return new ViewportColumnsCalculator({
-      viewportSize: width,
+      viewportWidth: width,
       scrollOffset: pos,
-      totalItems: wtSettings.getSetting('totalColumns'),
-      itemSizeFn: sourceCol => wtTable.getColumnWidth(sourceCol),
+      totalColumns: wtSettings.getSetting('totalColumns'),
+      columnWidthFn: sourceCol => wtTable.getColumnWidth(sourceCol),
       overrideFn: wtSettings.getSettingPure('viewportColumnCalculatorOverride'),
       calculationType,
-      stretchMode: wtSettings.getSetting('stretchH'),
-      stretchingItemWidthFn: (stretchedWidth, column) => {
-        return wtSettings.getSetting('onBeforeStretchingColumnWidth', stretchedWidth, column);
-      },
       inlineStartOffset: this.dataAccessObject.inlineStartParentOffset
     });
   }
@@ -393,27 +399,30 @@ class Viewport {
    * @returns {boolean} The fastDraw value, possibly modified.
    */
   createRenderCalculators(fastDraw = false) {
-    let runFastDraw = fastDraw;
+    const { wtSettings } = this;
 
-    if (runFastDraw) {
+    if (fastDraw && !wtSettings.getSetting('renderAllRows')) {
       const proposedRowsVisibleCalculator = this.createRowsCalculator(FULLY_VISIBLE_TYPE);
-      const proposedColumnsVisibleCalculator = this.createColumnsCalculator(FULLY_VISIBLE_TYPE);
 
-      if (!(this.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) &&
-          this.areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator))) {
-        runFastDraw = false;
-      }
+      fastDraw = this.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator);
     }
 
-    if (!runFastDraw) {
+    if (fastDraw && !wtSettings.getSetting('renderAllColumns')) {
+      const proposedColumnsVisibleCalculator = this.createColumnsCalculator(FULLY_VISIBLE_TYPE);
+
+      fastDraw = this.areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator);
+    }
+
+    if (!fastDraw) {
       this.rowsRenderCalculator = this.createRowsCalculator(RENDER_TYPE);
       this.columnsRenderCalculator = this.createColumnsCalculator(RENDER_TYPE);
     }
+
     // delete temporarily to make sure that renderers always use rowsRenderCalculator, not rowsVisibleCalculator
     this.rowsVisibleCalculator = null;
     this.columnsVisibleCalculator = null;
 
-    return runFastDraw;
+    return fastDraw;
   }
 
   /**
@@ -497,7 +506,7 @@ class Viewport {
    */
   resetHasOversizedColumnHeadersMarked() {
     objectEach(this.hasOversizedColumnHeadersMarked, (value, key, object) => {
-      object[key] = void 0;
+      object[key] = undefined;
     });
   }
 }

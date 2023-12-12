@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added new afterColumnSequenceChange and afterRowSequenceChange hooks and synchronization of actions done on HOT with HF's engine",
-  "type": "added",
-  "issueOrPR": 10215,
-  "breaking": false,
-  "framework": "none"
-}

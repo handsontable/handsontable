@@ -6,15 +6,21 @@ import {
   addClass,
   hasClass,
   removeClass,
-  fastInnerText
+  fastInnerText,
+  removeAttribute,
+  setAttribute
 } from '../../helpers/dom/element';
-import EventManager from '../../eventManager';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
+import {
+  A11Y_EXPANDED,
+  A11Y_HIDDEN
+} from '../../helpers/a11y';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
 const SETTING_KEYS = ['nestedHeaders'];
 const COLLAPSIBLE_ELEMENT_CLASS = 'collapsibleIndicator';
+const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 const actionDictionary = new Map([
   ['collapse', {
@@ -130,13 +136,6 @@ export class CollapsibleColumns extends BasePlugin {
    */
   nestedHeadersPlugin = null;
   /**
-   * Event manager instance reference.
-   *
-   * @private
-   * @type {EventManager}
-   */
-  eventManager = new EventManager(this);
-  /**
    * The NestedHeaders plugin StateManager instance.
    *
    * @private
@@ -179,11 +178,12 @@ export class CollapsibleColumns extends BasePlugin {
     this.nestedHeadersPlugin = this.hot.getPlugin('nestedHeaders');
     this.headerStateManager = this.nestedHeadersPlugin.getStateManager();
 
-    this.addHook('init', () => this.onInit());
-    this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
-    this.addHook('afterGetColHeader', (...args) => this.onAfterGetColHeader(...args));
-    this.addHook('beforeOnCellMouseDown', (event, coords, TD) => this.onBeforeOnCellMouseDown(event, coords, TD));
+    this.addHook('init', () => this.#onInit());
+    this.addHook('afterLoadData', (...args) => this.#onAfterLoadData(...args));
+    this.addHook('afterGetColHeader', (...args) => this.#onAfterGetColHeader(...args));
+    this.addHook('beforeOnCellMouseDown', (event, coords, TD) => this.#onBeforeOnCellMouseDown(event, coords, TD));
 
+    this.registerShortcuts();
     super.enablePlugin();
     // @TODO: Workaround for broken plugin initialization abstraction (#6806).
     this.updatePlugin();
@@ -232,8 +232,53 @@ export class CollapsibleColumns extends BasePlugin {
     this.#collapsedColumnsMap = null;
     this.nestedHeadersPlugin = null;
 
+    this.unregisterShortcuts();
     this.clearButtons();
     super.disablePlugin();
+  }
+
+  /**
+   * Register shortcuts responsible for toggling collapsible columns.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .addShortcut({
+        keys: [['Enter']],
+        callback: () => {
+          const { row, col } = this.hot.getSelectedRangeLast().highlight;
+          const {
+            collapsible,
+            isCollapsed,
+            columnIndex,
+          } = this.headerStateManager.getHeaderTreeNodeData(row, col) ?? {};
+
+          if (!collapsible) {
+            return;
+          }
+
+          if (isCollapsed) {
+            this.expandSection({ row, col: columnIndex });
+          } else {
+            this.collapseSection({ row, col: columnIndex });
+          }
+        },
+        runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isHeader(),
+        group: SHORTCUTS_GROUP,
+      });
+  }
+
+  /**
+   * Unregister shortcuts responsible for toggling collapsible columns.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -454,21 +499,24 @@ export class CollapsibleColumns extends BasePlugin {
   /**
    * Adds the indicator to the headers.
    *
-   * @private
    * @param {number} column Column index.
    * @param {HTMLElement} TH TH element.
    * @param {number} headerLevel The index of header level counting from the top (positive
    *                             values counting from 0 to N).
    */
-  onAfterGetColHeader(column, TH, headerLevel) {
+  #onAfterGetColHeader(column, TH, headerLevel) {
     const {
       collapsible,
       origColspan,
       isCollapsed,
     } = this.headerStateManager.getHeaderSettings(headerLevel, column) ?? {};
-
     const isNodeCollapsible = collapsible && origColspan > 1 && column >= this.hot.getSettings().fixedColumnsStart;
+    const isAriaTagsEnabled = this.hot.getSettings().ariaTags;
     let collapsibleElement = TH.querySelector(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
+
+    removeAttribute(TH, [
+      A11Y_EXPANDED('')[0]
+    ]);
 
     if (isNodeCollapsible) {
       if (!collapsibleElement) {
@@ -482,12 +530,29 @@ export class CollapsibleColumns extends BasePlugin {
 
       if (isCollapsed) {
         addClass(collapsibleElement, 'collapsed');
+
         fastInnerText(collapsibleElement, '+');
+
+        // Add ARIA tags
+        if (isAriaTagsEnabled) {
+          setAttribute(TH, ...A11Y_EXPANDED(false));
+        }
 
       } else {
         addClass(collapsibleElement, 'expanded');
+
         fastInnerText(collapsibleElement, '-');
+
+        // Add ARIA tags
+        if (isAriaTagsEnabled) {
+          setAttribute(TH, ...A11Y_EXPANDED(true));
+        }
       }
+
+      if (isAriaTagsEnabled) {
+        setAttribute(collapsibleElement, ...A11Y_HIDDEN());
+      }
+
     } else {
       collapsibleElement?.remove();
     }
@@ -496,11 +561,10 @@ export class CollapsibleColumns extends BasePlugin {
   /**
    * Indicator mouse event callback.
    *
-   * @private
    * @param {object} event Mouse event.
    * @param {object} coords Event coordinates.
    */
-  onBeforeOnCellMouseDown(event, coords) {
+  #onBeforeOnCellMouseDown(event, coords) {
     if (hasClass(event.target, COLLAPSIBLE_ELEMENT_CLASS)) {
       if (hasClass(event.target, 'expanded')) {
         this.eventManager.fireEvent(event.target, 'mouseup');
@@ -517,10 +581,8 @@ export class CollapsibleColumns extends BasePlugin {
 
   /**
    * Updates the plugin state after HoT initialization.
-   *
-   * @private
    */
-  onInit() {
+  #onInit() {
     // @TODO: Workaround for broken plugin initialization abstraction (#6806).
     this.updatePlugin();
   }
@@ -528,12 +590,11 @@ export class CollapsibleColumns extends BasePlugin {
   /**
    * Updates the plugin state after new dataset load.
    *
-   * @private
    * @param {Array[]} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded
    *                              during the initialization.
    */
-  onAfterLoadData(sourceData, initialLoad) {
+  #onAfterLoadData(sourceData, initialLoad) {
     if (!initialLoad) {
       this.updatePlugin();
     }

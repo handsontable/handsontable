@@ -26,7 +26,7 @@ Configure Handsontable's locale settings, to properly handle locale-related data
 
 Handsontable's locale settings affect certain actions performed on your data, such as:
 - [Filtering](@/guides/columns/column-filter.md)
-- [Searching](@/guides/accessories-and-menus/searching-values.md)
+- [Searching](@/guides/navigation/searching-values.md)
 - Comparing locale-based data
 
 Without a properly-set locale, the above operations can work incorrectly.
@@ -44,21 +44,25 @@ You can configure the locale setting:
 To configure the locale of the entire grid, set the [`locale`](@/api/options.md#locale) configuration option as a top-level grid option:
 
 ::: only-for javascript
+
 ```js
 const hot = new Handsontable(container, {
   // set the entire grid's locale to Polish
   locale: 'pl-PL',
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   // set the entire grid's locale to Polish
   locale="pl-PL"
 />
 ```
+
 :::
 
 You can set the [`locale`](@/api/options.md#locale) option to any valid and canonicalized Unicode BCP 47 locale tag.
@@ -68,6 +72,7 @@ You can set the [`locale`](@/api/options.md#locale) option to any valid and cano
 To configure the locale of an individual column, set the [`locale`](@/api/options.md#locale) configuration option as a mid-level column option:
 
 ::: only-for javascript
+
 ```js
 const hot = new Handsontable(container, {
   columns: [
@@ -86,9 +91,11 @@ const hot = new Handsontable(container, {
   ],
 });
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   columns={[{
@@ -104,6 +111,7 @@ const hot = new Handsontable(container, {
   ]}
 />
 ```
+
 :::
 
 ## Related articles

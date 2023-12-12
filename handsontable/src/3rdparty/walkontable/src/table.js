@@ -2,7 +2,6 @@ import {
   hasClass,
   index,
   offset,
-  removeClass,
   removeTextNodes,
   overlayContainsElement,
   closest,
@@ -10,6 +9,7 @@ import {
   outerWidth,
   innerHeight,
   isVisible,
+  setAttribute,
 } from '../../../helpers/dom/element';
 import { isFunction } from '../../../helpers/function';
 import ColumnFilter from './filter/column';
@@ -24,6 +24,7 @@ import {
   CLONE_TOP_INLINE_START_CORNER,
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from './overlay';
+import { A11Y_PRESENTATION } from '../../../helpers/a11y';
 
 /**
  * @todo These mixes are never added to the class Table, however their members are used here.
@@ -188,7 +189,14 @@ class Table {
       }
       spreader.appendChild(table);
     }
+
     spreader.style.position = 'relative';
+
+    if (this.wtSettings.getSetting('ariaTags')) {
+      setAttribute(spreader, [
+        A11Y_PRESENTATION()
+      ]);
+    }
 
     return spreader;
   }
@@ -210,6 +218,12 @@ class Table {
         parent.insertBefore(hider, spreader);
       }
       hider.appendChild(spreader);
+    }
+
+    if (this.wtSettings.getSetting('ariaTags')) {
+      setAttribute(hider, [
+        A11Y_PRESENTATION()
+      ]);
     }
 
     return hider;
@@ -236,8 +250,20 @@ class Table {
       if (this.isMaster) {
         holder.parentNode.className += 'ht_master handsontable';
         holder.parentNode.setAttribute('dir', this.wtSettings.getSettingPure('rtlMode') ? 'rtl' : 'ltr');
+
+        if (this.wtSettings.getSetting('ariaTags')) {
+          setAttribute(holder.parentNode, [
+            A11Y_PRESENTATION()
+          ]);
+        }
       }
       holder.appendChild(hider);
+    }
+
+    if (this.wtSettings.getSetting('ariaTags')) {
+      setAttribute(holder, [
+        A11Y_PRESENTATION()
+      ]);
     }
 
     return holder;
@@ -399,7 +425,9 @@ class Table {
       wtOverlays.refreshAll(); // `refreshAll()` internally already calls `refreshSelections()` method
       wtOverlays.adjustElementsSize();
     } else {
-      this.refreshSelections(runFastDraw);
+      this.dataAccessObject.selectionManager
+        .setActiveOverlay(this.facadeGetter())
+        .render(runFastDraw);
     }
 
     if (syncScroll) {
@@ -441,7 +469,7 @@ class Table {
       }
 
       if (Array.isArray(columnHeaderHeightSetting)) {
-        if (columnHeaderHeightSetting[level] !== null && columnHeaderHeightSetting[level] !== void 0) {
+        if (columnHeaderHeightSetting[level] !== null && columnHeaderHeightSetting[level] !== undefined) {
           this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting[level];
         }
 
@@ -495,85 +523,9 @@ class Table {
         const sourceRow = this.rowFilter.renderedToSource(visibleRowIndex);
 
         if (wtViewport.oversizedRows && wtViewport.oversizedRows[sourceRow]) {
-          wtViewport.oversizedRows[sourceRow] = void 0;
+          wtViewport.oversizedRows[sourceRow] = undefined;
         }
       }
-    }
-  }
-
-  /**
-   * @param {string} className The CSS class name to remove from the table cells.
-   */
-  removeClassFromCells(className) {
-    const nodes = this.TABLE.querySelectorAll(`.${className}`);
-
-    for (let i = 0, len = nodes.length; i < len; i++) {
-      removeClass(nodes[i], className);
-    }
-  }
-
-  /**
-   * Refresh the table selection by re-rendering Selection instances connected with that instance.
-   *
-   * @param {boolean} fastDraw If fast drawing is enabled than additionally className clearing is applied.
-   */
-  refreshSelections(fastDraw) {
-    const { wtSettings } = this;
-    const { selections } = this.dataAccessObject;
-
-    if (!selections) {
-      return;
-    }
-    const highlights = Array.from(selections);
-    const len = highlights.length;
-
-    if (fastDraw) {
-      const classesToRemove = [];
-
-      for (let i = 0; i < len; i++) {
-        const {
-          highlightHeaderClassName,
-          highlightRowClassName,
-          highlightColumnClassName,
-        } = highlights[i].settings;
-        const classNames = highlights[i].classNames;
-        const classNamesLength = classNames.length;
-
-        for (let j = 0; j < classNamesLength; j++) {
-          if (!classesToRemove.includes(classNames[j])) {
-            classesToRemove.push(classNames[j]);
-          }
-        }
-
-        if (highlightHeaderClassName && !classesToRemove.includes(highlightHeaderClassName)) {
-          classesToRemove.push(highlightHeaderClassName);
-        }
-        if (highlightRowClassName && !classesToRemove.includes(highlightRowClassName)) {
-          classesToRemove.push(highlightRowClassName);
-        }
-        if (highlightColumnClassName && !classesToRemove.includes(highlightColumnClassName)) {
-          classesToRemove.push(highlightColumnClassName);
-        }
-      }
-
-      const additionalClassesToRemove = wtSettings.getSetting('onBeforeRemoveCellClassNames');
-
-      if (Array.isArray(additionalClassesToRemove)) {
-        for (let i = 0; i < additionalClassesToRemove.length; i++) {
-          classesToRemove.push(additionalClassesToRemove[i]);
-        }
-      }
-
-      const classesToRemoveLength = classesToRemove.length;
-
-      for (let i = 0; i < classesToRemoveLength; i++) {
-        // there was no rerender, so we need to remove classNames by ourselves
-        this.removeClassFromCells(classesToRemove[i]);
-      }
-    }
-
-    for (let i = 0; i < len; i++) {
-      highlights[i].draw(this.facadeGetter(), fastDraw);
     }
   }
 
@@ -657,7 +609,7 @@ class Table {
       parentElement = this.TBODY;
     }
 
-    if (renderedRowIndex !== void 0 && parentElement !== void 0) {
+    if (renderedRowIndex !== undefined && parentElement !== undefined) {
       if (parentElement.childNodes.length < renderedRowIndex + 1) {
         return false;
 
@@ -713,17 +665,16 @@ class Table {
    *   row headers`.
    */
   getRowHeader(row, level = 0) {
-    if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
-      return;
-    }
-
     const rowHeadersCount = this.wtSettings.getSetting('rowHeaders').length;
 
     if (level >= rowHeadersCount) {
       return;
     }
 
-    const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
+    const renderedRow = this.rowFilter.sourceToRendered(row);
+    const visibleRow = renderedRow < 0 ? this.rowFilter.sourceRowToVisibleColHeadedRow(row) : renderedRow;
+    const parentElement = renderedRow < 0 ? this.THEAD : this.TBODY;
+    const TR = parentElement.childNodes[visibleRow];
 
     return TR?.childNodes[level];
   }
@@ -735,10 +686,6 @@ class Table {
    * @returns {HTMLTableCellElement[]}
    */
   getRowHeaders(row) {
-    if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
-      return [];
-    }
-
     const THs = [];
     const rowHeadersCount = this.wtSettings.getSetting('rowHeaders').length;
 

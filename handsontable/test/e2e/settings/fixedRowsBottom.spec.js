@@ -91,7 +91,7 @@ describe('settings', () => {
         window.onerror = function() {
           spy.test();
         };
-        const hot = handsontable({
+        handsontable({
           data: Handsontable.helper.createSpreadsheetData(50, 50),
           width: 200,
           height: 200,
@@ -104,7 +104,12 @@ describe('settings', () => {
 
         await sleep(100);
 
-        hot.scrollViewportTo(30, 30);
+        scrollViewportTo({
+          row: 30,
+          col: 30,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
 
         await sleep(100);
 

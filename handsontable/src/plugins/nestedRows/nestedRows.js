@@ -12,11 +12,9 @@ import './nestedRows.scss';
 
 export const PLUGIN_KEY = 'nestedRows';
 export const PLUGIN_PRIORITY = 300;
-
-const privatePool = new WeakMap();
+const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * Error message for the wrong data type error.
  */
@@ -39,37 +37,39 @@ export class NestedRows extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * Reference to the DataManager instance.
-     *
-     * @private
-     * @type {object}
-     */
-    this.dataManager = null;
-
-    /**
-     * Reference to the HeadersUI instance.
-     *
-     * @private
-     * @type {object}
-     */
-    this.headersUI = null;
-    /**
-     * Map of skipped rows by plugin.
-     *
-     * @private
-     * @type {null|TrimmingMap}
-     */
-    this.collapsedRowsMap = null;
-
-    privatePool.set(this, {
-      movedToCollapsed: false,
-      skipRender: null,
-      skipCoreAPIModifiers: false
-    });
-  }
+  /**
+   * Reference to the DataManager instance.
+   *
+   * @private
+   * @type {object}
+   */
+  dataManager = null;
+  /**
+   * Reference to the HeadersUI instance.
+   *
+   * @private
+   * @type {object}
+   */
+  headersUI = null;
+  /**
+   * Map of skipped rows by plugin.
+   *
+   * @private
+   * @type {null|TrimmingMap}
+   */
+  collapsedRowsMap = null;
+  /**
+   * Allows skipping the render cycle if set as `true`.
+   *
+   * @type {boolean}
+   */
+  #skipRender = false;
+  /**
+   * Allows skipping the internal Core methods call if set as `true`.
+   *
+   * @type {boolean}
+   */
+  #skipCoreAPIModifiers = false;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -97,27 +97,28 @@ export class NestedRows extends BasePlugin {
     this.contextMenuUI = new ContextMenuUI(this, this.hot);
     this.rowMoveController = new RowMoveController(this);
 
-    this.addHook('afterInit', (...args) => this.onAfterInit(...args));
-    this.addHook('beforeViewRender', (...args) => this.onBeforeViewRender(...args));
+    this.addHook('afterInit', (...args) => this.#onAfterInit(...args));
+    this.addHook('beforeViewRender', (...args) => this.#onBeforeViewRender(...args));
     this.addHook('modifyRowData', (...args) => this.onModifyRowData(...args));
     this.addHook('modifySourceLength', (...args) => this.onModifySourceLength(...args));
     this.addHook('beforeDataSplice', (...args) => this.onBeforeDataSplice(...args));
-    this.addHook('filterData', (...args) => this.onFilterData(...args));
-    this.addHook('afterContextMenuDefaultOptions', (...args) => this.onAfterContextMenuDefaultOptions(...args));
-    this.addHook('afterGetRowHeader', (...args) => this.onAfterGetRowHeader(...args));
-    this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
-    this.addHook('beforeRemoveRow', (...args) => this.onBeforeRemoveRow(...args));
-    this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
-    this.addHook('beforeAddChild', (...args) => this.onBeforeAddChild(...args));
-    this.addHook('afterAddChild', (...args) => this.onAfterAddChild(...args));
-    this.addHook('beforeDetachChild', (...args) => this.onBeforeDetachChild(...args));
-    this.addHook('afterDetachChild', (...args) => this.onAfterDetachChild(...args));
-    this.addHook('modifyRowHeaderWidth', (...args) => this.onModifyRowHeaderWidth(...args));
-    this.addHook('afterCreateRow', (...args) => this.onAfterCreateRow(...args));
-    this.addHook('beforeRowMove', (...args) => this.onBeforeRowMove(...args));
-    this.addHook('beforeLoadData', data => this.onBeforeLoadData(data));
-    this.addHook('beforeUpdateData', data => this.onBeforeLoadData(data));
+    this.addHook('filterData', (...args) => this.#onFilterData(...args));
+    this.addHook('afterContextMenuDefaultOptions', (...args) => this.#onAfterContextMenuDefaultOptions(...args));
+    this.addHook('afterGetRowHeader', (...args) => this.#onAfterGetRowHeader(...args));
+    this.addHook('beforeOnCellMouseDown', (...args) => this.#onBeforeOnCellMouseDown(...args));
+    this.addHook('beforeRemoveRow', (...args) => this.#onBeforeRemoveRow(...args));
+    this.addHook('afterRemoveRow', (...args) => this.#onAfterRemoveRow(...args));
+    this.addHook('beforeAddChild', (...args) => this.#onBeforeAddChild(...args));
+    this.addHook('afterAddChild', (...args) => this.#onAfterAddChild(...args));
+    this.addHook('beforeDetachChild', (...args) => this.#onBeforeDetachChild(...args));
+    this.addHook('afterDetachChild', (...args) => this.#onAfterDetachChild(...args));
+    this.addHook('modifyRowHeaderWidth', (...args) => this.#onModifyRowHeaderWidth(...args));
+    this.addHook('afterCreateRow', (...args) => this.#onAfterCreateRow(...args));
+    this.addHook('beforeRowMove', (...args) => this.#onBeforeRowMove(...args));
+    this.addHook('beforeLoadData', data => this.#onBeforeLoadData(data));
+    this.addHook('beforeUpdateData', data => this.#onBeforeLoadData(data));
 
+    this.registerShortcuts();
     super.enablePlugin();
   }
 
@@ -127,6 +128,7 @@ export class NestedRows extends BasePlugin {
   disablePlugin() {
     this.hot.rowIndexMapper.unregisterMap('nestedRows');
 
+    this.unregisterShortcuts();
     super.disablePlugin();
   }
 
@@ -151,9 +153,51 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * `beforeRowMove` hook callback.
+   * Register shortcuts responsible for toggling collapsible columns.
    *
    * @private
+   */
+  registerShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .addShortcut({
+        keys: [['Enter']],
+        callback: () => {
+          const { highlight } = this.hot.getSelectedRangeLast();
+
+          if (highlight.col === -1 && highlight.row >= 0) {
+            const row = this.collapsingUI.translateTrimmedRow(highlight.row);
+
+            if (this.collapsingUI.areChildrenCollapsed(row)) {
+              this.collapsingUI.expandChildren(row);
+            } else {
+              this.collapsingUI.collapseChildren(row);
+            }
+          }
+        },
+        runOnlyIf: () => {
+          const highlight = this.hot.getSelectedRangeLast()?.highlight;
+
+          return highlight && this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
+        },
+        group: SHORTCUTS_GROUP,
+      });
+  }
+
+  /**
+   * Unregister shortcuts responsible for toggling collapsible columns.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .removeShortcutsByGroup(SHORTCUTS_GROUP);
+  }
+
+  /**
+   * `beforeRowMove` hook callback.
+   *
    * @param {Array} rows Array of visual row indexes to be moved.
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements
    *   will be placed after the moving action. To check the visualization of the final index, please take a look at
@@ -165,38 +209,37 @@ export class NestedRows extends BasePlugin {
    * @fires Hooks#afterRowMove
    * @returns {boolean}
    */
-  onBeforeRowMove(rows, finalIndex, dropIndex, movePossible) {
+  #onBeforeRowMove(rows, finalIndex, dropIndex, movePossible) {
     return this.rowMoveController.onBeforeRowMove(rows, finalIndex, dropIndex, movePossible);
   }
 
   /**
    * Enable the modify hook skipping flag - allows retrieving the data from Handsontable without this plugin's
    * modifications.
+   *
+   * @private
    */
   disableCoreAPIModifiers() {
-    const priv = privatePool.get(this);
-
-    priv.skipCoreAPIModifiers = true;
+    this.#skipCoreAPIModifiers = true;
   }
 
   /**
    * Disable the modify hook skipping flag.
+   *
+   * @private
    */
   enableCoreAPIModifiers() {
-    const priv = privatePool.get(this);
-
-    priv.skipCoreAPIModifiers = false;
+    this.#skipCoreAPIModifiers = false;
   }
 
   /**
    * `beforeOnCellMousedown` hook callback.
    *
-   * @private
    * @param {MouseEvent} event Mousedown event.
    * @param {object} coords Cell coords.
    * @param {HTMLElement} TD Clicked cell.
    */
-  onBeforeOnCellMouseDown(event, coords, TD) {
+  #onBeforeOnCellMouseDown(event, coords, TD) {
     this.collapsingUI.toggleState(event, coords, TD);
   }
 
@@ -208,9 +251,7 @@ export class NestedRows extends BasePlugin {
    * @returns {boolean}
    */
   onModifyRowData(row) {
-    const priv = privatePool.get(this);
-
-    if (priv.skipCoreAPIModifiers) {
+    if (this.#skipCoreAPIModifiers) {
       return;
     }
 
@@ -224,9 +265,7 @@ export class NestedRows extends BasePlugin {
    * @returns {number}
    */
   onModifySourceLength() {
-    const priv = privatePool.get(this);
-
-    if (priv.skipCoreAPIModifiers) {
+    if (this.#skipCoreAPIModifiers) {
       return;
     }
 
@@ -241,9 +280,7 @@ export class NestedRows extends BasePlugin {
    * @returns {boolean}
    */
   onBeforeDataSplice(index, amount, element) {
-    const priv = privatePool.get(this);
-
-    if (priv.skipCoreAPIModifiers || this.dataManager.isRowHighestLevel(index)) {
+    if (this.#skipCoreAPIModifiers || this.dataManager.isRowHighestLevel(index)) {
       return true;
     }
 
@@ -255,21 +292,18 @@ export class NestedRows extends BasePlugin {
   /**
    * Provide custom source data filtering. It's handled by core method and replaces the native filtering.
    *
-   * @private
    * @param {number} index The index where the data filtering starts.
    * @param {number} amount An amount of rows which filtering applies to.
    * @param {number} physicalRows Physical row indexes.
    * @returns {Array}
    */
-  onFilterData(index, amount, physicalRows) {
-    const priv = privatePool.get(this);
-
+  #onFilterData(index, amount, physicalRows) {
     this.collapsingUI.collapsedRowsStash.stash();
     this.collapsingUI.collapsedRowsStash.trimStash(physicalRows[0], amount);
     this.collapsingUI.collapsedRowsStash.shiftStash(physicalRows[0], null, (-1) * amount);
     this.dataManager.filterData(index, amount, physicalRows);
 
-    priv.skipRender = true;
+    this.#skipRender = true;
 
     return this.dataManager.getData().slice(); // Data contains reference sometimes.
   }
@@ -277,69 +311,62 @@ export class NestedRows extends BasePlugin {
   /**
    * `afterContextMenuDefaultOptions` hook callback.
    *
-   * @private
    * @param {object} defaultOptions The default context menu items order.
    * @returns {boolean}
    */
-  onAfterContextMenuDefaultOptions(defaultOptions) {
+  #onAfterContextMenuDefaultOptions(defaultOptions) {
     return this.contextMenuUI.appendOptions(defaultOptions);
   }
 
   /**
    * `afterGetRowHeader` hook callback.
    *
-   * @private
    * @param {number} row Row index.
    * @param {HTMLElement} TH Row header element.
    */
-  onAfterGetRowHeader(row, TH) {
+  #onAfterGetRowHeader(row, TH) {
     this.headersUI.appendLevelIndicators(row, TH);
   }
 
   /**
    * `modifyRowHeaderWidth` hook callback.
    *
-   * @private
    * @param {number} rowHeaderWidth The initial row header width(s).
    * @returns {number}
    */
-  onModifyRowHeaderWidth(rowHeaderWidth) {
-    return this.headersUI.rowHeaderWidthCache || rowHeaderWidth;
+  #onModifyRowHeaderWidth(rowHeaderWidth) {
+    return Math.max(this.headersUI.rowHeaderWidthCache, rowHeaderWidth);
   }
 
   /**
    * `onAfterRemoveRow` hook callback.
    *
-   * @private
    * @param {number} index Removed row.
    * @param {number} amount Amount of removed rows.
    * @param {Array} logicRows An array of the removed physical rows.
    * @param {string} source Source of action.
    */
-  onAfterRemoveRow(index, amount, logicRows, source) {
+  #onAfterRemoveRow(index, amount, logicRows, source) {
     if (source === this.pluginName) {
       return;
     }
 
-    const priv = privatePool.get(this);
-
-    setTimeout(() => {
-      priv.skipRender = null;
+    this.hot._registerTimeout(() => {
+      this.#skipRender = false;
       this.headersUI.updateRowHeaderWidth();
       this.collapsingUI.collapsedRowsStash.applyStash();
-    }, 0);
+    });
   }
 
   /**
    * Callback for the `beforeRemoveRow` change list of removed physical indexes by reference. Removing parent node
    * has effect in removing children nodes.
    *
-   * @private
    * @param {number} index Visual index of starter row.
    * @param {number} amount Amount of rows to be removed.
    * @param {Array} physicalRows List of physical indexes.
    */
-  onBeforeRemoveRow(index, amount, physicalRows) {
+  #onBeforeRemoveRow(index, amount, physicalRows) {
     const modifiedPhysicalRows = Array.from(physicalRows.reduce((removedRows, physicalIndex) => {
       if (this.dataManager.isParent(physicalIndex)) {
         const children = this.dataManager.getDataObject(physicalIndex).__children;
@@ -366,21 +393,18 @@ export class NestedRows extends BasePlugin {
 
   /**
    * `beforeAddChild` hook callback.
-   *
-   * @private
    */
-  onBeforeAddChild() {
+  #onBeforeAddChild() {
     this.collapsingUI.collapsedRowsStash.stash();
   }
 
   /**
    * `afterAddChild` hook callback.
    *
-   * @private
    * @param {object} parent Parent element.
    * @param {object} element New child element.
    */
-  onAfterAddChild(parent, element) {
+  #onAfterAddChild(parent, element) {
     this.collapsingUI.collapsedRowsStash.shiftStash(this.dataManager.getRowIndex(element));
     this.collapsingUI.collapsedRowsStash.applyStash();
 
@@ -389,22 +413,19 @@ export class NestedRows extends BasePlugin {
 
   /**
    * `beforeDetachChild` hook callback.
-   *
-   * @private
    */
-  onBeforeDetachChild() {
+  #onBeforeDetachChild() {
     this.collapsingUI.collapsedRowsStash.stash();
   }
 
   /**
    * `afterDetachChild` hook callback.
    *
-   * @private
    * @param {object} parent Parent element.
    * @param {object} element New child element.
    * @param {number} finalElementRowIndex The final row index of the detached element.
    */
-  onAfterDetachChild(parent, element, finalElementRowIndex) {
+  #onAfterDetachChild(parent, element, finalElementRowIndex) {
     this.collapsingUI.collapsedRowsStash.shiftStash(finalElementRowIndex, null, -1);
     this.collapsingUI.collapsedRowsStash.applyStash();
 
@@ -413,55 +434,36 @@ export class NestedRows extends BasePlugin {
 
   /**
    * `afterCreateRow` hook callback.
-   *
-   * @private
    */
-  onAfterCreateRow() {
+  #onAfterCreateRow() {
     this.dataManager.rewriteCache();
   }
 
   /**
    * `afterInit` hook callback.
-   *
-   * @private
    */
-  onAfterInit() {
-    const deepestLevel = Math.max(...this.dataManager.cache.levels);
-
-    if (deepestLevel > 0) {
-      this.headersUI.updateRowHeaderWidth(deepestLevel);
-    }
+  #onAfterInit() {
+    this.headersUI.updateRowHeaderWidth();
   }
 
   /**
    * `beforeViewRender` hook callback.
    *
-   * @param {boolean} force Indicates if the render call was trigered by a change of settings or data.
+   * @param {boolean} force Indicates if the render call was triggered by a change of settings or data.
    * @param {object} skipRender An object, holder for skipRender functionality.
-   * @private
    */
-  onBeforeViewRender(force, skipRender) {
-    const priv = privatePool.get(this);
-
-    if (priv.skipRender) {
+  #onBeforeViewRender(force, skipRender) {
+    if (this.#skipRender) {
       skipRender.skipRender = true;
     }
-  }
-
-  /**
-   * Destroys the plugin instance.
-   */
-  destroy() {
-    super.destroy();
   }
 
   /**
    * `beforeLoadData` hook callback.
    *
    * @param {Array} data The source data.
-   * @private
    */
-  onBeforeLoadData(data) {
+  #onBeforeLoadData(data) {
     if (!isArrayOfObjects(data)) {
       error(WRONG_DATA_TYPE_ERROR);
 
@@ -473,5 +475,12 @@ export class NestedRows extends BasePlugin {
 
     this.dataManager.setData(data);
     this.dataManager.rewriteCache();
+  }
+
+  /**
+   * Destroys the plugin instance.
+   */
+  destroy() {
+    super.destroy();
   }
 }

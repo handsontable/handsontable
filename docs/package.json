@@ -14,9 +14,9 @@
     "docs:lint:fix": "eslint --ext .js,.vue,.mjs .vuepress content --fix",
     "docs:scripts:link-assets": "node .vuepress/tools/link-assets.mjs",
     "docs:scripts:generate-legacy-docs-versions": "node .vuepress/tools/generate-legacy-docs-versions.mjs",
-    "docs:start": "npm run docs:scripts:link-assets && node --experimental-fetch ./node_modules/.bin/vuepress dev ./",
-    "docs:start:no-cache": "npm run docs:scripts:link-assets && node --experimental-fetch ./node_modules/.bin/vuepress dev --no-cache ./",
-    "docs:build": "node .vuepress/tools/build.mjs -- --no-cache",
+    "docs:start": "npm run docs:scripts:link-assets && cross-env NODE_OPTIONS=--openssl-legacy-provider node ./node_modules/.bin/vuepress dev ./",
+    "docs:start:no-cache": "npm run docs:scripts:link-assets && cross-env NODE_OPTIONS=--openssl-legacy-provider node ./node_modules/.bin/vuepress dev --no-cache ./",
+    "docs:build": "cross-env NODE_OPTIONS=--openssl-legacy-provider node .vuepress/tools/build.mjs -- --no-cache",
     "docs:docker:build": "npm run docs:docker:build:testing",
     "docs:docker:build:testing": "npm run docs:scripts:link-assets && cross-env BUILD_MODE=testing npm run docs:build && docker build -f docker/Dockerfile -t docs-md ./",
     "docs:docker:build:staging": "npm run docs:scripts:link-assets && cross-env BUILD_MODE=staging npm run docs:build && docker build -f docker/Dockerfile -t docs-md ./",
@@ -24,7 +24,8 @@
     "docs:api": "node .vuepress/tools/jsdoc-convert/index.mjs",
     "docs:check-links": "node .vuepress/tools/check-links.js",
     "docs:review": "./.vuepress/tools/review-commit.sh",
-    "docs:test:example-checker": "node .vuepress/tools/example-checker"
+    "docs:test:example-checker": "node .vuepress/tools/example-checker",
+    "postinstall": "patch-package"
   },
   "license": "CC BY 4.0",
   "devDependencies": {
@@ -37,8 +38,8 @@
     "@babel/preset-react": "^7.13.13",
     "@babel/preset-typescript": "^7.13.0",
     "@octokit/rest": "^18.6.7",
-    "@vuepress/plugin-active-header-links": "^1.8.2",
-    "@vuepress/shared-utils": "^1.8.2",
+    "@vuepress/plugin-active-header-links": "^1.9.10",
+    "@vuepress/shared-utils": "^1.9.10",
     "broken-link-checker": "^0.7.8",
     "chalk": "^4.1.1",
     "copy-webpack-plugin": "^5.1.2",
@@ -54,10 +55,11 @@
     "replace-in-files": "^3.0.0",
     "rimraf": "^3.0.2",
     "semver": "^5.7.1",
+    "vue": "^2.7.14",
     "vue-eslint-parser": "^7.6.0",
     "vue-router": "^3.5.1",
     "vue-tabs-component": "^1.5.0",
-    "vuepress": "^1.8.2",
+    "vuepress": "^1.9.10",
     "vuepress-plugin-sitemap": "^2.3.1",
     "vuepress-plugin-tabs": "^0.3.0",
     "xlsx-renderer": "^2.4.0"
@@ -66,5 +68,13 @@
     "vuepress-plugin-sitemap": {
       "chalk": "^4.1.1"
     }
+  },
+  "browserslist": [
+    "last 1 version",
+    "> 1%",
+    "not dead"
+  ],
+  "dependencies": {
+    "patch-package": "^8.0.0"
   }
 }

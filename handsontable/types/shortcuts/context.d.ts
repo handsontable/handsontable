@@ -8,6 +8,7 @@ interface Shortcut {
   stopPropagation?: boolean;
   relativeToGroup?: string;
   position?: 'before' | 'after';
+  forwardToContext?: Context;
 }
 
 export interface Context {

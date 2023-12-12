@@ -79,7 +79,7 @@ class Scroll {
 
     const firstVisibleColumn = this.getFirstVisibleColumn();
     const lastVisibleColumn = this.getLastVisibleColumn();
-    const autoSnapping = snapToRight === void 0 && snapToLeft === void 0;
+    const autoSnapping = snapToRight === undefined && snapToLeft === undefined;
     const {
       fixedColumnsStart,
       inlineStartOverlay,
@@ -92,6 +92,8 @@ class Scroll {
     }
 
     let result = false;
+
+    column = this.dataAccessObject.wtSettings.getSetting('onBeforeViewportScrollHorizontally', column);
 
     // if there is no fully visible columns use the supporting variable (lastScrolledColumnPos) to
     // determine the snapping direction (left or right)
@@ -134,7 +136,7 @@ class Scroll {
 
     const firstVisibleRow = this.getFirstVisibleRow();
     const lastVisibleRow = this.getLastVisibleRow();
-    const autoSnapping = snapToTop === void 0 && snapToBottom === void 0;
+    const autoSnapping = snapToTop === undefined && snapToBottom === undefined;
     const {
       fixedRowsBottom,
       fixedRowsTop,
@@ -148,6 +150,8 @@ class Scroll {
     }
 
     let result = false;
+
+    row = this.dataAccessObject.wtSettings.getSetting('onBeforeViewportScrollVertically', row);
 
     // if there is no fully visible rows use the supporting variable (lastScrolledRowPos) to
     // determine the snapping direction (top or bottom)

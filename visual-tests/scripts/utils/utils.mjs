@@ -1,5 +1,5 @@
-import psTree from 'ps-tree';
 import { promisify } from 'util';
+import psTree from 'ps-tree';
 import execa from 'execa';
 import { BASE_BRANCH, REFERENCE_FRAMEWORK, WRAPPERS } from '../../src/config.mjs';
 

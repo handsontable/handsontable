@@ -431,8 +431,8 @@ describe('HOT-based CRUD actions', () => {
     });
     const { hotInstance } = testWrapper.getComponent(HotTable).vm;
 
-    hotInstance.alter('insert_row', 2, 2);
-    hotInstance.alter('insert_col', 2, 2);
+    hotInstance.alter('insert_row_above', 2, 2);
+    hotInstance.alter('insert_col_end', 2, 2);
 
     await nextTick();
 

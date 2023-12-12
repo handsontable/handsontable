@@ -1,7 +1,7 @@
 {
   "name": "handsontable-visual-tests",
   "private": true,
-  "version": "0.0.0",
+  "version": "14.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -9,6 +9,7 @@
     "build": "node ./scripts/build.mjs",
     "test": "node ./scripts/run-tests.mjs",
     "upload": "node ./scripts/upload.mjs",
+    "serve-example-preview": "npm --prefix ../examples/next/visual-tests/js/demo run serve -- --port=8085",
     "install-system-dependencies": "npx --no playwright install --with-deps",
     "publish-package": "echo \"There is nothing to publish. Skipped.\"",
     "clean": "rimraf ./screenshots ./playwright-report"
@@ -16,7 +17,7 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "license": "CC BY 4.0",
   "devDependencies": {
-    "@argos-ci/cli": "^0.3.1",
+    "@argos-ci/cli": "^1.0.3",
     "@playwright/test": "1.28.1",
     "@typescript-eslint/eslint-plugin": "^5.48.1",
     "@typescript-eslint/parser": "^5.48.1",

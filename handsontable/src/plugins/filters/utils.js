@@ -72,7 +72,7 @@ export function createArrayAssertion(initialData) {
  * @returns {string}
  */
 export function toEmptyString(value) {
-  return value === null || value === void 0 ? '' : value;
+  return value === null || value === undefined ? '' : value;
 }
 
 /**

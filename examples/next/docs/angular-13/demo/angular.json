@@ -27,7 +27,7 @@
             "tsConfig": "tsconfig.app.json",
             "aot": true,
             "styles": [
-              "../node_modules/handsontable/dist/handsontable.full.css"
+              "node_modules/handsontable/dist/handsontable.full.css"
             ],
             "scripts": [],
             "preserveSymlinks": true,

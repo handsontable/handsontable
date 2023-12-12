@@ -50,7 +50,7 @@ class CellRange {
   #isRtl = false;
 
   constructor(highlight, from = highlight, to = highlight, isRtl = false) {
-    this.highlight = highlight.clone().normalize();
+    this.highlight = highlight.clone();
     this.from = from.clone();
     this.to = to.clone();
     this.#isRtl = isRtl;
@@ -63,7 +63,7 @@ class CellRange {
    * @returns {CellRange}
    */
   setHighlight(coords) {
-    this.highlight = coords.clone().normalize();
+    this.highlight = coords.clone();
 
     return this;
   }
@@ -94,15 +94,28 @@ class CellRange {
 
   /**
    * Checks if the coordinates in your `CellRange` instance are valid
-   * in the context of a given Walkontable instance.
+   * in the context of given table parameters.
    *
    * See the [`isValid()`](@/api/cellCoords.md#isvalid) method of the [`CellCoords`](@/api/cellCoords.md) class.
    *
-   * @param {Walkontable} wot A Walkontable instance.
+   * @param {object} tableParams An object with a defined table size.
+   * @param {number} tableParams.countRows The total number of rows.
+   * @param {number} tableParams.countCols The total number of columns.
+   * @param {number} tableParams.countRowHeaders A number of row headers.
+   * @param {number} tableParams.countColHeaders A number of column headers.
    * @returns {boolean}
    */
-  isValid(wot) {
-    return this.from.isValid(wot) && this.to.isValid(wot);
+  isValid(tableParams) {
+    return this.from.isValid(tableParams) && this.to.isValid(tableParams);
+  }
+
+  /**
+   * Checks if your range is just a single cell or header.
+   *
+   * @returns {boolean}
+   */
+  isSingle() {
+    return this.isSingleCell() || this.isSingleHeader();
   }
 
   /**
@@ -110,9 +123,28 @@ class CellRange {
    *
    * @returns {boolean}
    */
-  isSingle() {
+  isSingleCell() {
     return this.from.row >= 0 && this.from.row === this.to.row &&
            this.from.col >= 0 && this.from.col === this.to.col;
+  }
+
+  /**
+   * Checks if your range is just a single header.
+   *
+   * @returns {boolean}
+   */
+  isSingleHeader() {
+    return (this.from.row < 0 || this.from.col < 0) && this.from.row === this.to.row &&
+           this.from.col === this.to.col;
+  }
+
+  /**
+   * Checks if your range overlaps headers range (negative coordinates).
+   *
+   * @returns {boolean}
+   */
+  containsHeaders() {
+    return this.from.isHeader() || this.to.isHeader();
   }
 
   /**

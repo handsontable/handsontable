@@ -13,6 +13,21 @@ describe('settings', () => {
       }
     });
 
+    it('should create a new row after ENTER hit', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 2),
+        minSpareRows: 1,
+      });
+
+      selectCell(5, 0);
+      keyDownUp('enter');
+      getActiveEditor().TEXTAREA.value = 'test';
+      keyDownUp('enter');
+
+      expect(countRows()).toBe(7);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 6,0 from: 6,0 to: 6,0']);
+    });
+
     describe('works on init', () => {
       it('should show data properly when `minSpareRows` is set to 3', () => {
         handsontable({

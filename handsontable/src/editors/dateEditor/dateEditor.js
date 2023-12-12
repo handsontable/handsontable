@@ -2,7 +2,7 @@ import moment from 'moment';
 import Pikaday from 'pikaday';
 import { TextEditor } from '../textEditor';
 import EventManager from '../../eventManager';
-import { addClass, outerHeight, outerWidth } from '../../helpers/dom/element';
+import { addClass, hasClass, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { deepExtend } from '../../helpers/object';
 import { isFunctionKey } from '../../helpers/unicode';
 
@@ -20,19 +20,23 @@ export class DateEditor extends TextEditor {
     return EDITOR_TYPE;
   }
 
+  // TODO: Move this option to general settings
   /**
-   * @param {Core} hotInstance Handsontable instance.
-   * @private
+   * @type {string}
    */
-  constructor(hotInstance) {
-    super(hotInstance);
-
-    // TODO: Move this option to general settings
-    this.defaultDateFormat = 'DD/MM/YYYY';
-    this.isCellEdited = false;
-    this.parentDestroyed = false;
-    this.$datePicker = null;
-  }
+  defaultDateFormat = 'DD/MM/YYYY';
+  /**
+   * @type {boolean}
+   */
+  isCellEdited = false;
+  /**
+   * @type {boolean}
+   */
+  parentDestroyed = false;
+  /**
+   * @type {Pikaday}
+   */
+  $datePicker = null;
 
   init() {
     if (typeof moment !== 'function') {
@@ -43,7 +47,7 @@ export class DateEditor extends TextEditor {
       throw new Error('You need to include Pikaday to your project.');
     }
     super.init();
-    this.instance.addHook('afterDestroy', () => {
+    this.hot.addHook('afterDestroy', () => {
       this.parentDestroyed = true;
       this.destroyElements();
     });
@@ -72,7 +76,22 @@ export class DateEditor extends TextEditor {
     /**
      * Prevent recognizing clicking on datepicker as clicking outside of table.
      */
-    eventManager.addEventListener(this.datePicker, 'mousedown', event => event.stopPropagation());
+    eventManager.addEventListener(this.datePicker, 'mousedown', (event) => {
+      if (hasClass(event.target, 'pika-day')) {
+        this.hideDatepicker();
+      }
+
+      event.stopPropagation();
+    });
+
+    /**
+     * Prevent caret movement in the TEXTAREA when navigating over the date picker.
+     */
+    eventManager.addEventListener(this.TEXTAREA, 'keydown', (event) => {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) {
+        event.preventDefault();
+      }
+    });
   }
 
   /**
@@ -138,8 +157,8 @@ export class DateEditor extends TextEditor {
       this.$datePicker.destroy();
     }
 
-    this.instance._registerTimeout(() => {
-      this.instance._refreshBorders();
+    this.hot._registerTimeout(() => {
+      this.hot._refreshBorders();
     });
 
     const shortcutManager = this.hot.getShortcutManager();
@@ -158,10 +177,9 @@ export class DateEditor extends TextEditor {
    */
   finishEditing(restoreOriginalValue = false, ctrlDown = false) {
     if (restoreOriginalValue) { // pressed ESC, restore original value
-      // var value = this.instance.getDataAtCell(this.row, this.col);
       const value = this.originalValue;
 
-      if (value !== void 0) {
+      if (value !== undefined) {
         this.setValue(value);
       }
     }
@@ -177,7 +195,7 @@ export class DateEditor extends TextEditor {
   showDatepicker(event) {
     const offset = this.TD.getBoundingClientRect();
     const dateFormat = this.cellProperties.dateFormat || this.defaultDateFormat;
-    const isMouseDown = this.instance.view.isMouseDown();
+    const isMouseDown = this.hot.view.isMouseDown();
     const isMeta = event ? isFunctionKey(event.keyCode) : false;
     let dateStr;
 
@@ -270,8 +288,8 @@ export class DateEditor extends TextEditor {
       if (!isNaN(dateStr.getTime())) {
         dateStr = moment(dateStr).format(this.cellProperties.dateFormat || this.defaultDateFormat);
       }
+
       this.setValue(dateStr);
-      this.hideDatepicker();
 
       if (origOnSelect) {
         origOnSelect();

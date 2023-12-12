@@ -12,25 +12,28 @@ import { toSingleLine } from '../../helpers/templateLiteralTag';
  * @class MergedCellsCollection
  */
 class MergedCellsCollection {
-  constructor(plugin) {
-    /**
-     * Reference to the Merge Cells plugin.
-     *
-     * @type {MergeCells}
-     */
-    this.plugin = plugin;
-    /**
-     * Array of merged cells.
-     *
-     * @type {Array}
-     */
-    this.mergedCells = [];
-    /**
-     * The Handsontable instance.
-     *
-     * @type {Handsontable}
-     */
-    this.hot = plugin.hot;
+  /**
+   * Reference to the Merge Cells plugin.
+   *
+   * @type {MergeCells}
+   */
+  plugin;
+  /**
+   * Array of merged cells.
+   *
+   * @type {Array}
+   */
+  mergedCells = [];
+  /**
+   * The Handsontable instance.
+   *
+   * @type {Handsontable}
+   */
+  hot;
+
+  constructor(mergeCellsPlugin) {
+    this.plugin = mergeCellsPlugin;
+    this.hot = mergeCellsPlugin.hot;
   }
 
   /**

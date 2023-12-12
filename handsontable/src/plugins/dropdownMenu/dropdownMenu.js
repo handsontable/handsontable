@@ -1,10 +1,11 @@
 import { BasePlugin } from '../base';
 import { arrayEach } from '../../helpers/array';
-import CommandExecutor from '../contextMenu/commandExecutor';
-import EventManager from '../../eventManager';
-import { hasClass } from '../../helpers/dom/element';
-import ItemsFactory from '../contextMenu/itemsFactory';
-import Menu from '../contextMenu/menu';
+import { objectEach } from '../../helpers/object';
+import { CommandExecutor } from '../contextMenu/commandExecutor';
+import { getDocumentOffsetByElement } from '../contextMenu/utils';
+import { hasClass, setAttribute } from '../../helpers/dom/element';
+import { ItemsFactory } from '../contextMenu/itemsFactory';
+import { Menu } from '../contextMenu/menu';
 import Hooks from '../../pluginHooks';
 import {
   COLUMN_LEFT,
@@ -17,6 +18,7 @@ import {
 } from '../contextMenu/predefinedItems';
 
 import './dropdownMenu.scss';
+import { A11Y_HASPOPUP, A11Y_HIDDEN, A11Y_LABEL } from '../../helpers/a11y';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 Hooks.getSingleton().register('beforeDropdownMenuShow');
@@ -27,6 +29,7 @@ Hooks.getSingleton().register('afterDropdownMenuExecute');
 export const PLUGIN_KEY = 'dropdownMenu';
 export const PLUGIN_PRIORITY = 230;
 const BUTTON_CLASS_NAME = 'changeType';
+const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -114,39 +117,33 @@ export class DropdownMenu extends BasePlugin {
     ];
   }
 
+  /**
+   * Instance of {@link CommandExecutor}.
+   *
+   * @private
+   * @type {CommandExecutor}
+   */
+  commandExecutor = new CommandExecutor(this.hot);
+  /**
+   * Instance of {@link ItemsFactory}.
+   *
+   * @private
+   * @type {ItemsFactory}
+   */
+  itemsFactory = null;
+  /**
+   * Instance of {@link Menu}.
+   *
+   * @private
+   * @type {Menu}
+   */
+  menu = null;
+
   constructor(hotInstance) {
     super(hotInstance);
-    /**
-     * Instance of {@link EventManager}.
-     *
-     * @private
-     * @type {EventManager}
-     */
-    this.eventManager = new EventManager(this);
-    /**
-     * Instance of {@link CommandExecutor}.
-     *
-     * @private
-     * @type {CommandExecutor}
-     */
-    this.commandExecutor = new CommandExecutor(this.hot);
-    /**
-     * Instance of {@link ItemsFactory}.
-     *
-     * @private
-     * @type {ItemsFactory}
-     */
-    this.itemsFactory = null;
-    /**
-     * Instance of {@link Menu}.
-     *
-     * @private
-     * @type {Menu}
-     */
-    this.menu = null;
 
     // One listener for enable/disable functionality
-    this.hot.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
+    this.hot.addHook('afterGetColHeader', (col, TH) => this.#onAfterGetColHeader(col, TH));
   }
 
   /**
@@ -181,6 +178,8 @@ export class DropdownMenu extends BasePlugin {
     if (typeof settings.callback === 'function') {
       this.commandExecutor.setCommonCallback(settings.callback);
     }
+
+    this.registerShortcuts();
     super.enablePlugin();
 
     this.callOnPluginsReady(() => {
@@ -201,9 +200,10 @@ export class DropdownMenu extends BasePlugin {
 
       this.menu.setMenuItems(menuItems);
 
-      this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());
-      this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
-      this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
+      this.menu.addLocalHook('beforeOpen', () => this.#onMenuBeforeOpen());
+      this.menu.addLocalHook('afterOpen', () => this.#onMenuAfterOpen());
+      this.menu.addLocalHook('afterSubmenuOpen', subMenuInstance => this.#onSubMenuAfterOpen(subMenuInstance));
+      this.menu.addLocalHook('afterClose', () => this.#onMenuAfterClose());
       this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
 
       // Register all commands. Predefined and added by user or by plugins
@@ -232,7 +232,74 @@ export class DropdownMenu extends BasePlugin {
     if (this.menu) {
       this.menu.destroy();
     }
+
+    this.unregisterShortcuts();
     super.disablePlugin();
+  }
+
+  /**
+   * Register shortcuts responsible for toggling dropdown menu.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    const gridContext = this.hot.getShortcutManager().getContext('grid');
+    const callback = () => {
+      const { highlight } = this.hot.getSelectedRangeLast();
+
+      if ((highlight.isHeader() && highlight.row === -1 || highlight.isCell()) && highlight.col >= 0) {
+        this.hot.selectColumns(highlight.col, highlight.col, -1);
+
+        const { from } = this.hot.getSelectedRangeLast();
+        const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
+        const target = this.hot.getCell(-1, from.col, true);
+        const rect = target.getBoundingClientRect();
+
+        this.open({
+          left: rect.left + offset.left,
+          top: rect.top + target.offsetHeight + offset.top,
+        }, {
+          left: rect.width,
+        });
+        // Make sure the first item is selected (role=menuitem). Otherwise, screen readers
+        // will block the Esc key for the whole menu.
+        this.menu.getNavigator().toFirstItem();
+      }
+    };
+
+    gridContext.addShortcuts([{
+      keys: [['Shift', 'Alt', 'ArrowDown'], ['Control/Meta', 'Enter']],
+      callback,
+      runOnlyIf: () => {
+        const highlight = this.hot.getSelectedRangeLast()?.highlight;
+
+        return highlight && this.hot.selection.isCellVisible(highlight) &&
+          highlight.isHeader() && !this.menu.isOpened();
+      },
+      captureCtrl: true,
+      group: SHORTCUTS_GROUP,
+    }, {
+      keys: [['Shift', 'Alt', 'ArrowDown']],
+      callback,
+      runOnlyIf: () => {
+        const highlight = this.hot.getSelectedRangeLast()?.highlight;
+
+        return highlight && this.hot.selection.isCellVisible(highlight) &&
+          highlight.isCell() && !this.menu.isOpened();
+      },
+      group: SHORTCUTS_GROUP,
+    }]);
+  }
+
+  /**
+   * Unregister shortcuts responsible for toggling dropdown menu.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -241,30 +308,31 @@ export class DropdownMenu extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(this.hot.rootElement, 'click', event => this.onTableClick(event));
+    this.eventManager.addEventListener(this.hot.rootElement, 'click', event => this.#onTableClick(event));
   }
 
   /**
    * Opens menu and re-position it based on the passed coordinates.
    *
-   * @param {object|Event} position An object with `pageX` and `pageY` properties which contains values relative to
-   *                                the top left of the fully rendered content area in the browser or with `clientX`
-   *                                and `clientY`  properties which contains values relative to the upper left edge
-   *                                of the content area (the viewport) of the browser window. This object is structurally
-   *                                compatible with native mouse event so it can be used either.
+   * @param {{ top: number, left: number }|Event} position An object with `top` and `left` properties
+   * which contains coordinates relative to the browsers viewport (without included scroll offsets).
+   * Or if the native event is passed the menu will be positioned based on the `pageX` and `pageY`
+   * coordinates.
+   * @param {{ above: number, below: number, left: number, right: number }} offset An object allows applying
+   * the offset to the menu position.
    * @fires Hooks#beforeDropdownMenuShow
    * @fires Hooks#afterDropdownMenuShow
    */
-
-  open(position) {
-    if (!this.menu) {
+  open(position, offset = { above: 0, below: 0, left: 0, right: 0 }) {
+    if (this.menu?.isOpened()) {
       return;
     }
+
     this.menu.open();
 
-    if (position.width) {
-      this.menu.setOffset('left', position.width);
-    }
+    objectEach(offset, (value, key) => {
+      this.menu.setOffset(key, value);
+    });
     this.menu.setPosition(position);
   }
 
@@ -272,10 +340,7 @@ export class DropdownMenu extends BasePlugin {
    * Closes dropdown menu.
    */
   close() {
-    if (!this.menu) {
-      return;
-    }
-    this.menu.close();
+    this.menu?.close();
   }
 
   /**
@@ -329,33 +394,37 @@ export class DropdownMenu extends BasePlugin {
   }
 
   /**
+   * Add custom shortcuts to the provided menu instance.
+   *
+   * @param {Menu} menuInstance The menu instance.
+   */
+  #addCustomShortcuts(menuInstance) {
+    menuInstance
+      .getKeyboardShortcutsCtrl()
+      .addCustomShortcuts([{
+        keys: [['Control/Meta', 'A']],
+        callback: () => false,
+      }]);
+  }
+
+  /**
    * Table click listener.
    *
    * @private
    * @param {Event} event The mouse event object.
    */
-  onTableClick(event) {
+  #onTableClick(event) {
     event.stopPropagation();
 
-    if (hasClass(event.target, BUTTON_CLASS_NAME) && !this.menu.isOpened()) {
-      let offsetTop = 0;
-      let offsetLeft = 0;
-
-      if (this.hot.rootDocument !== this.menu.container.ownerDocument) {
-        const { frameElement } = this.hot.rootWindow;
-        const { top, left } = frameElement.getBoundingClientRect();
-
-        offsetTop = top;
-        offsetLeft = left;
-      }
-
+    if (hasClass(event.target, BUTTON_CLASS_NAME)) {
+      const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
       const rect = event.target.getBoundingClientRect();
 
       this.open({
-        left: rect.left + offsetLeft,
-        top: rect.top + event.target.offsetHeight + 3 + offsetTop,
-        width: rect.width,
-        height: rect.height,
+        left: rect.left + offset.left,
+        top: rect.top + event.target.offsetHeight + 3 + offset.top,
+      }, {
+        left: rect.width,
       });
     }
   }
@@ -367,7 +436,7 @@ export class DropdownMenu extends BasePlugin {
    * @param {number} col Visual column index.
    * @param {HTMLTableCellElement} TH Header's TH element.
    */
-  onAfterGetColHeader(col, TH) {
+  #onAfterGetColHeader(col, TH) {
     // Corner or a higher-level header
     const headerRow = TH.parentNode;
 
@@ -400,6 +469,18 @@ export class DropdownMenu extends BasePlugin {
 
     button.className = BUTTON_CLASS_NAME;
     button.type = 'button';
+    button.tabIndex = -1;
+
+    if (this.hot.getSettings().ariaTags) {
+      setAttribute(button, [
+        A11Y_HIDDEN(),
+        A11Y_LABEL(' '),
+      ]);
+
+      setAttribute(TH, [
+        A11Y_HASPOPUP('menu'),
+      ]);
+    }
 
     // prevent page reload on button click
     button.onclick = function() {
@@ -415,7 +496,7 @@ export class DropdownMenu extends BasePlugin {
    * @private
    * @fires Hooks#beforeDropdownMenuShow
    */
-  onMenuBeforeOpen() {
+  #onMenuBeforeOpen() {
     this.hot.runHooks('beforeDropdownMenuShow', this);
   }
 
@@ -425,8 +506,20 @@ export class DropdownMenu extends BasePlugin {
    * @private
    * @fires Hooks#afterDropdownMenuShow
    */
-  onMenuAfterOpen() {
+  #onMenuAfterOpen() {
     this.hot.runHooks('afterDropdownMenuShow', this);
+
+    this.#addCustomShortcuts(this.menu);
+  }
+
+  /**
+   * Listener for the `afterSubmenuOpen` hook.
+   *
+   * @private
+   * @param {Menu} subMenuInstance The opened sub menu instance.
+   */
+  #onSubMenuAfterOpen(subMenuInstance) {
+    this.#addCustomShortcuts(subMenuInstance);
   }
 
   /**
@@ -435,7 +528,7 @@ export class DropdownMenu extends BasePlugin {
    * @private
    * @fires Hooks#afterDropdownMenuHide
    */
-  onMenuAfterClose() {
+  #onMenuAfterClose() {
     this.hot.listen();
     this.hot.runHooks('afterDropdownMenuHide', this);
   }

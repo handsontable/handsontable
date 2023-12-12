@@ -2,9 +2,9 @@ import {
   addClass,
   removeClass,
 } from '../../helpers/dom/element';
-import { isNumeric } from '../../helpers/number';
-import { isLeftClick, isRightClick } from '../../helpers/dom/event';
+import { isNumeric, clamp } from '../../helpers/number';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
+import { isLeftClick, isRightClick } from '../../helpers/dom/event';
 import { warn } from '../../helpers/console';
 import {
   ACTIVE_HEADER_TYPE,
@@ -76,7 +76,6 @@ export class NestedHeaders extends BasePlugin {
   /**
    * The state manager for the nested headers.
    *
-   * @private
    * @type {StateManager}
    */
   #stateManager = new StateManager();
@@ -84,10 +83,21 @@ export class NestedHeaders extends BasePlugin {
    * The instance of the ChangesObservable class that allows track the changes that happens in the
    * column indexes.
    *
-   * @private
    * @type {ChangesObservable}
    */
   #hidingIndexMapObserver = null;
+  /**
+   * Holds the coords that points to the place where the column selection starts.
+   *
+   * @type {number|null}
+   */
+  #focusInitialCoords = null;
+  /**
+   * Determines if there is performed the column selection.
+   *
+   * @type {boolean}
+   */
+  #isColumnsSelectionInProgress = false;
   /**
    * Custom helper for getting widths of the nested headers.
    *
@@ -96,7 +106,6 @@ export class NestedHeaders extends BasePlugin {
    */
   // @TODO This should be changed after refactor handsontable/utils/ghostTable.
   ghostTable = new GhostTable(this.hot, (row, column) => this.getHeaderSettings(row, column));
-
   /**
    * The flag which determines that the nested header settings contains overlapping headers
    * configuration.
@@ -129,20 +138,29 @@ export class NestedHeaders extends BasePlugin {
                         passed as an array of arrays e.q. [['A1', { label: 'A2', colspan: 2 }]]`);
     }
 
-    this.addHook('init', () => this.onInit());
-    this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
-    this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
-    this.addHook('afterOnCellMouseDown', (...args) => this.onAfterOnCellMouseDown(...args));
-    this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
-    this.addHook('afterGetColumnHeaderRenderers', array => this.onAfterGetColumnHeaderRenderers(array));
-    this.addHook('modifyColWidth', (...args) => this.onModifyColWidth(...args));
-    this.addHook('modifyColumnHeaderValue', (...args) => this.onModifyColumnHeaderValue(...args));
-    this.addHook('beforeHighlightingColumnHeader', (...args) => this.onBeforeHighlightingColumnHeader(...args));
-    this.addHook('beforeCopy', (...args) => this.onBeforeCopy(...args));
+    this.addHook('init', () => this.#onInit());
+    this.addHook('afterLoadData', (...args) => this.#onAfterLoadData(...args));
+    this.addHook('beforeOnCellMouseDown', (...args) => this.#onBeforeOnCellMouseDown(...args));
+    this.addHook('afterOnCellMouseDown', (...args) => this.#onAfterOnCellMouseDown(...args));
+    this.addHook('beforeOnCellMouseOver', (...args) => this.#onBeforeOnCellMouseOver(...args));
+    this.addHook('beforeOnCellMouseUp', (...args) => this.#onBeforeOnCellMouseUp(...args));
+    this.addHook('beforeSelectionHighlightSet', (...args) => this.#onBeforeSelectionHighlightSet(...args));
+    this.addHook('modifyTransformStart', (...args) => this.#onModifyTransformStart(...args));
+    this.addHook('afterSelection', () => this.#updateFocusHighlightPosition());
+    this.addHook('beforeViewportScrollHorizontally', (...args) => this.#onBeforeViewportScrollHorizontally(...args));
+    this.addHook('afterGetColumnHeaderRenderers', array => this.#onAfterGetColumnHeaderRenderers(array));
+    this.addHook('modifyColWidth', (...args) => this.#onModifyColWidth(...args));
+    this.addHook('modifyColumnHeaderValue', (...args) => this.#onModifyColumnHeaderValue(...args));
+    this.addHook('beforeHighlightingColumnHeader', (...args) => this.#onBeforeHighlightingColumnHeader(...args));
+    this.addHook('beforeCopy', (...args) => this.#onBeforeCopy(...args));
+    this.addHook('beforeSelectColumns', (...args) => this.#onBeforeSelectColumns(...args));
     this.addHook(
       'afterViewportColumnCalculatorOverride',
-      (...args) => this.onAfterViewportColumnCalculatorOverride(...args)
+      (...args) => this.#onAfterViewportColumnCalculatorOverride(...args)
     );
+    this.addHook('modifyFocusedElement', (...args) => this.#onModifyFocusedElement(...args));
+    this.hot.columnIndexMapper.addLocalHook('cacheUpdated', () => this.#updateFocusHighlightPosition());
+    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', () => this.#updateFocusHighlightPosition());
 
     super.enablePlugin();
     this.updatePlugin(); // @TODO: Workaround for broken plugin initialization abstraction.
@@ -381,15 +399,75 @@ export class NestedHeaders extends BasePlugin {
   }
 
   /**
+   * Updates the selection focus highlight position to point to the nested header root element (TH)
+   * even when the logical coordinates point in-between the header.
+   */
+  #updateFocusHighlightPosition() {
+    const selection = this.hot?.getSelectedRangeLast();
+
+    if (!selection) {
+      return;
+    }
+
+    const { highlight } = selection;
+    const isNestedHeadersRange = highlight.isHeader() && highlight.col >= 0;
+
+    if (isNestedHeadersRange) {
+      const columnIndex = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
+      const focusHighlight = this.hot.selection.highlight.getFocus();
+
+      // Correct the highlight/focus selection to highlight the correct TH element
+      focusHighlight.visualCellRange.highlight.col = columnIndex;
+      focusHighlight.visualCellRange.from.col = columnIndex;
+      focusHighlight.visualCellRange.to.col = columnIndex;
+      focusHighlight.commit();
+    }
+  }
+
+  /**
+   * Allows to control to which column index the viewport will be scrolled. To ensure that the viewport
+   * is scrolled to the correct column for the nested header the most left and the most right visual column
+   * indexes are used.
+   *
+   * @param {number} visualColumn A visual column index to which the viewport will be scrolled.
+   * @returns {number}
+   */
+  #onBeforeViewportScrollHorizontally(visualColumn) {
+    const selection = this.hot.getSelectedRangeLast();
+
+    if (!selection) {
+      return visualColumn;
+    }
+
+    const { highlight } = selection;
+    const isNestedHeadersRange = highlight.isHeader() && highlight.col >= 0;
+
+    if (!isNestedHeadersRange) {
+      return visualColumn;
+    }
+
+    const firstColumn = this.hot.view.getFirstFullyVisibleColumn();
+    const lastColumn = this.hot.view.getLastFullyVisibleColumn();
+    const mostLeftColumnIndex = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
+    const mostRightColumnIndex = this.#stateManager.findRightMostColumnIndex(highlight.row, highlight.col);
+
+    // do not scroll the viewport when the header is wider than the viewport
+    if (mostLeftColumnIndex < firstColumn && mostRightColumnIndex > lastColumn) {
+      return visualColumn;
+    }
+
+    return mostLeftColumnIndex < firstColumn ? mostLeftColumnIndex : mostRightColumnIndex;
+  }
+
+  /**
    * Allows to control which header DOM element will be used to highlight.
    *
-   * @private
    * @param {number} visualColumn A visual column index of the highlighted row header.
    * @param {number} headerLevel A row header level that is currently highlighted.
    * @param {object} highlightMeta An object with meta data that describes the highlight state.
    * @returns {number}
    */
-  onBeforeHighlightingColumnHeader(visualColumn, headerLevel, highlightMeta) {
+  #onBeforeHighlightingColumnHeader(visualColumn, headerLevel, highlightMeta) {
     const headerNodeData = this.#stateManager.getHeaderTreeNodeData(headerLevel, visualColumn);
 
     if (!headerNodeData) {
@@ -397,7 +475,6 @@ export class NestedHeaders extends BasePlugin {
     }
 
     const {
-      classNames,
       columnCursor,
       selectionType,
       selectionWidth,
@@ -414,8 +491,8 @@ export class NestedHeaders extends BasePlugin {
 
     } else if (selectionType === ACTIVE_HEADER_TYPE) {
       if (colspan > selectionWidth - columnCursor || !isRoot) {
-        // Reset the class names array so the generated TH element won't be modified.
-        classNames.length = 0;
+        // Prevents adding any CSS class names to the TH element
+        return null;
       }
     }
 
@@ -434,7 +511,7 @@ export class NestedHeaders extends BasePlugin {
    * @param {{ columnHeadersCount: number }} copiedHeadersCount An object with keys that holds information with
    *                                                            the number of copied headers.
    */
-  onBeforeCopy(data, copyableRanges, { columnHeadersCount }) {
+  #onBeforeCopy(data, copyableRanges, { columnHeadersCount }) {
     if (columnHeadersCount === 0) {
       return;
     }
@@ -471,14 +548,13 @@ export class NestedHeaders extends BasePlugin {
   /**
    * Allows blocking the column selection that is controlled by the core Selection module.
    *
-   * @private
    * @param {MouseEvent} event Mouse event.
    * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
    * @param {CellCoords} TD The table cell or header element.
    * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  onBeforeOnCellMouseDown(event, coords, TD, controller) {
+  #onBeforeOnCellMouseDown(event, coords, TD, controller) {
     const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
 
     if (headerNodeData) {
@@ -491,16 +567,18 @@ export class NestedHeaders extends BasePlugin {
   /**
    * Allows to control how the column selection based on the coordinates and the nested headers is made.
    *
-   * @private
    * @param {MouseEvent} event Mouse event.
    * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
    */
-  onAfterOnCellMouseDown(event, coords) {
+  #onAfterOnCellMouseDown(event, coords) {
     const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
 
     if (!headerNodeData) {
       return;
     }
+
+    this.#focusInitialCoords = coords.clone();
+    this.#isColumnsSelectionInProgress = true;
 
     const { selection } = this.hot;
     const currentSelection = selection.isSelected() ? selection.getSelectedRange().current() : null;
@@ -538,14 +616,13 @@ export class NestedHeaders extends BasePlugin {
   /**
    * Makes the header-selection properly select the nested headers.
    *
-   * @private
    * @param {MouseEvent} event Mouse event.
    * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
    * @param {HTMLElement} TD The cell element.
    * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  onBeforeOnCellMouseOver(event, coords, TD, controller) {
+  #onBeforeOnCellMouseOver(event, coords, TD, controller) {
     if (!this.hot.view.isMouseDown()) {
       return;
     }
@@ -572,27 +649,153 @@ export class NestedHeaders extends BasePlugin {
     controller.cell = true;
 
     const columnsToSelect = [];
+    const headerLevel = clamp(coords.row, -Infinity, -1);
 
     if (coords.col < from.col) {
-      columnsToSelect.push(bottomEndCoords.col, columnIndex);
+      columnsToSelect.push(bottomEndCoords.col, columnIndex, headerLevel);
 
     } else if (coords.col > from.col) {
-      columnsToSelect.push(topStartCoords.col, columnIndex + origColspan - 1);
+      columnsToSelect.push(topStartCoords.col, columnIndex + origColspan - 1, headerLevel);
 
     } else {
-      columnsToSelect.push(columnIndex, columnIndex + origColspan - 1);
+      columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, headerLevel);
     }
 
-    this.hot.selectColumns(...columnsToSelect);
+    this.hot.selection.selectColumns(...columnsToSelect);
+  }
+
+  /**
+   * Switches internal flag about selection progress to `false`.
+   */
+  #onBeforeOnCellMouseUp() {
+    this.#isColumnsSelectionInProgress = false;
+  }
+
+  /**
+   * The hook checks and ensures that the focus position that depends on the selected columns
+   * range is always positioned within the range.
+   */
+  #onBeforeSelectionHighlightSet() {
+    const { navigableHeaders } = this.hot.getSettings();
+
+    if (!this.hot.view.isMouseDown() || !this.#isColumnsSelectionInProgress || !navigableHeaders) {
+      return;
+    }
+
+    const selectedRange = this.hot.getSelectedRangeLast();
+    const columnStart = selectedRange.getTopStartCorner().col;
+    const columnEnd = selectedRange.getBottomEndCorner().col;
+    const {
+      columnIndex,
+      origColspan,
+    } = this.#stateManager.getHeaderTreeNodeData(this.#focusInitialCoords.row, this.#focusInitialCoords.col);
+
+    selectedRange.setHighlight(this.#focusInitialCoords);
+
+    if (origColspan > selectedRange.getWidth() ||
+        columnIndex < columnStart ||
+        columnIndex + origColspan - 1 > columnEnd) {
+
+      const headerLevel = this.#stateManager
+        .findTopMostEntireHeaderLevel(
+          clamp(columnStart, columnIndex, columnIndex + origColspan - 1),
+          clamp(columnEnd, columnIndex, columnIndex + origColspan - 1),
+        );
+
+      selectedRange.highlight.row = headerLevel;
+      selectedRange.highlight.col = selectedRange.from.col;
+    }
+  }
+
+  /**
+   * `modifyTransformStart` hook is called every time the keyboard navigation is used.
+   *
+   * @param {object} delta The transformation delta.
+   */
+  #onModifyTransformStart(delta) {
+    const { highlight } = this.hot.getSelectedRangeLast();
+    const nextCoords = this.hot._createCellCoords(highlight.row + delta.row, highlight.col + delta.col);
+    const isNestedHeadersRange = nextCoords.isHeader() && nextCoords.col >= 0;
+
+    if (!isNestedHeadersRange) {
+      return;
+    }
+
+    const visualColumnIndexStart = this.#stateManager.findLeftMostColumnIndex(nextCoords.row, nextCoords.col);
+    const visualColumnIndexEnd = this.#stateManager.findRightMostColumnIndex(nextCoords.row, nextCoords.col);
+
+    if (delta.col < 0) {
+      const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ?
+        visualColumnIndexStart - 1 : visualColumnIndexEnd;
+      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, -1);
+
+      if (notHiddenColumnIndex === null) {
+        // There are no visible columns anymore, so move the selection out of the table edge. This will
+        // be processed by the selection Transformer class as a move selection to the previous row (if autoWrapRow is enabled).
+        delta.col = -this.hot.view.countRenderableColumnsInRange(0, highlight.col);
+      } else {
+        delta.col = -Math.max(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, highlight.col) - 1, 1);
+      }
+
+    } else if (delta.col > 0) {
+      const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ?
+        visualColumnIndexEnd + 1 : visualColumnIndexStart;
+      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, 1);
+
+      if (notHiddenColumnIndex === null) {
+        // There are no visible columns anymore, so move the selection out of the table edge. This will
+        // be processed by the selection Transformer class as a move selection to the next row (if autoWrapRow is enabled).
+        delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, this.hot.countCols());
+      } else {
+        delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1, 1);
+      }
+    }
+  }
+
+  /**
+   * The hook observes the column selection from the Selection API and modifies the column range to
+   * ensure that the whole nested column will be covered.
+   *
+   * @param {CellCoords} from The coords object where the selection starts.
+   * @param {CellCoords} to The coords object where the selection ends.
+   */
+  #onBeforeSelectColumns(from, to) {
+    const headerLevel = from.row;
+    const startNodeData = this._getHeaderTreeNodeDataByCoords({
+      row: headerLevel,
+      col: from.col,
+    });
+    const endNodeData = this._getHeaderTreeNodeDataByCoords({
+      row: headerLevel,
+      col: to.col,
+    });
+
+    if (to.col < from.col) { // Column selection from right to left
+      if (startNodeData) {
+        from.col = startNodeData.columnIndex + startNodeData.origColspan - 1;
+      }
+
+      if (endNodeData) {
+        to.col = endNodeData.columnIndex;
+      }
+
+    } else if (to.col >= from.col) { // Column selection from left to right or a single column selection
+      if (startNodeData) {
+        from.col = startNodeData.columnIndex;
+      }
+
+      if (endNodeData) {
+        to.col = endNodeData.columnIndex + endNodeData.origColspan - 1;
+      }
+    }
   }
 
   /**
    * `afterGetColumnHeader` hook callback - prepares the header structure.
    *
-   * @private
    * @param {Array} renderersArray Array of renderers.
    */
-  onAfterGetColumnHeaderRenderers(renderersArray) {
+  #onAfterGetColumnHeaderRenderers(renderersArray) {
     renderersArray.length = 0;
 
     for (let headerLayer = 0; headerLayer < this.#stateManager.getLayersCount(); headerLayer++) {
@@ -603,10 +806,9 @@ export class NestedHeaders extends BasePlugin {
   /**
    * Make the renderer render the first nested column in its entirety.
    *
-   * @private
    * @param {object} calc Viewport column calculator.
    */
-  onAfterViewportColumnCalculatorOverride(calc) {
+  #onAfterViewportColumnCalculatorOverride(calc) {
     const headerLayersCount = this.#stateManager.getLayersCount();
     let newStartColumn = calc.startColumn;
     let nonRenderable = !!headerLayersCount;
@@ -640,12 +842,11 @@ export class NestedHeaders extends BasePlugin {
   /**
    * `modifyColWidth` hook callback - returns width from cache, when is greater than incoming from hook.
    *
-   * @private
    * @param {number} width Width from hook.
    * @param {number} column Visual index of an column.
    * @returns {number}
    */
-  onModifyColWidth(width, column) {
+  #onModifyColWidth(width, column) {
     const cachedWidth = this.ghostTable.getWidth(column);
 
     return width > cachedWidth ? width : cachedWidth;
@@ -655,7 +856,6 @@ export class NestedHeaders extends BasePlugin {
    * Listens the `modifyColumnHeaderValue` hook that overwrites the column headers values based on
    * the internal state and settings of the plugin.
    *
-   * @private
    * @param {string} value The column header value.
    * @param {number} visualColumnIndex The visual column index.
    * @param {number} headerLevel The index of header level. The header level accepts positive (0 to N)
@@ -664,7 +864,7 @@ export class NestedHeaders extends BasePlugin {
    *                             header (the header closest to the cells).
    * @returns {string} Returns the column header value to update.
    */
-  onModifyColumnHeaderValue(value, visualColumnIndex, headerLevel) {
+  #onModifyColumnHeaderValue(value, visualColumnIndex, headerLevel) {
     const {
       label,
     } = this.#stateManager.getHeaderTreeNodeData(headerLevel, visualColumnIndex) ?? { label: '' };
@@ -673,11 +873,22 @@ export class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state after HoT initialization.
+   * `modifyFocusedElement` hook callback.
    *
-   * @private
+   * @param {number} row Row index.
+   * @param {number} column Column index.
+   * @returns {HTMLTableCellElement} The `TH` element to be focused.
    */
-  onInit() {
+  #onModifyFocusedElement(row, column) {
+    if (row < 0) {
+      return this.hot.getCell(row, this.#stateManager.findLeftMostColumnIndex(row, column), true);
+    }
+  }
+
+  /**
+   * Updates the plugin state after HoT initialization.
+   */
+  #onInit() {
     // @TODO: Workaround for broken plugin initialization abstraction.
     this.updatePlugin();
   }
@@ -685,12 +896,11 @@ export class NestedHeaders extends BasePlugin {
   /**
    * Updates the plugin state after new dataset load.
    *
-   * @private
    * @param {Array[]} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded
    *                              during the initialization.
    */
-  onAfterLoadData(sourceData, initialLoad) {
+  #onAfterLoadData(sourceData, initialLoad) {
     if (!initialLoad) {
       this.updatePlugin();
     }

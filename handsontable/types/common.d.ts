@@ -12,7 +12,7 @@ export type CellValue = any;
 /**
  * A cell change represented by `[row, column, prevValue, nextValue]`.
  */
-export type CellChange = [number, string | number, CellValue, CellValue];
+export type CellChange = [number, string | number | ColumnDataGetterSetterFunction, CellValue, CellValue];
 
 /**
  * A row object, one of the two ways to supply data to the table, the alternative being an array of values.
@@ -49,9 +49,9 @@ export interface RangeType {
 /**
  * The default sources for which the table triggers hooks.
  */
-export type ChangeSource = 'auto' | 'edit' | 'loadData' | 'populateFromArray' | 'spliceCol' |
+export type ChangeSource = 'auto' | 'edit' | 'loadData' | 'updateData' | 'populateFromArray' | 'spliceCol' |
                            'spliceRow' | 'timeValidate' | 'dateValidate' | 'validateCells' |
-                           'Autofill.fill' | 'ContextMenu.clearColumns' | 'ContextMenu.columnLeft' |
+                           'Autofill.fill' | 'ContextMenu.clearColumn' | 'ContextMenu.columnLeft' |
                            'ContextMenu.columnRight' | 'ContextMenu.removeColumn' |
                            'ContextMenu.removeRow' | 'ContextMenu.rowAbove' | 'ContextMenu.rowBelow' |
                            'CopyPaste.paste' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'ColumnSummary.set' |

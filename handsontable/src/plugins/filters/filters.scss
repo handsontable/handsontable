@@ -49,8 +49,7 @@
   color: #323232;
 }
 
-.htFiltersConditionsMenu table tbody tr td.current,
-.htFiltersConditionsMenu table tbody tr td.zeroclipboard-is-hover {
+.htFiltersConditionsMenu table tbody tr td.current {
   background: #e9e9e9;
 }
 
@@ -179,9 +178,6 @@
   border-radius: 2px;
   border: 1px solid #d2d1d1;
 }
-.handsontable .htUIInput input:focus {
-  outline: 0;
-}
 .handsontable .htUIInputIcon {
   position: absolute;
 }
@@ -215,6 +211,13 @@
   border-color: #18804e;
   color: #fff;
 }
+
+.handsontable .htUIInput.htUIButtonOK input:focus-visible {
+  background-color: #92dd8d;
+  border-color: #7cb878;
+  color: #000;
+}
+
 .handsontable .htUIInput.htUIButtonOK input:hover {
   border-color: #1a6f46;
 }
