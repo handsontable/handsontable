@@ -140,7 +140,6 @@ jobs:
           cd handsontable
           npm run build:es && npm run build:languages.es
           npm run build:commonjs
-          npm run postbuild
       - run: tar -zcf tmp.tar.gz -C ./handsontable/tmp ./
       - name: Upload the Handsontable ES + CJS build artifact.
         uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # https://github.com/actions/upload-artifact/releases/tag/v3.1.1
