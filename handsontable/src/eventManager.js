@@ -11,7 +11,6 @@ let listenersCounter = 0;
  * Event DOM manager for internal use in Handsontable.
  *
  * @class EventManager
- * @util
  */
 class EventManager {
   /**
@@ -43,6 +42,7 @@ class EventManager {
    */
   addEventListener(element, eventName, callback, options = false) {
     /**
+     * @private
      * @param {Event} event The event object.
      */
     function callbackProxy(event) {
@@ -220,6 +220,7 @@ function extendEvent(event) {
 export default EventManager;
 
 /**
+ * @private
  * @returns {number}
  */
 export function getListenersCounter() {
