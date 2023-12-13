@@ -20,6 +20,7 @@ export const buildParser = ({ logger, parseJsdoc }) => function* () {
     'utils/samplesGenerator.js',
     'pluginHooks.js',
     'core.js',
+    'eventManager.js',
     'editors/!(__tests__)/!(index).js',
     'plugins/!(__tests__)/!(index).js',
     'translations/maps/!(index).js',
