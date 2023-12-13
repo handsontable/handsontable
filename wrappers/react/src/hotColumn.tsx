@@ -1,108 +1,97 @@
-import React from 'react';
-import { HotTableProps, HotColumnProps } from './types';
+import React, { useEffect, useRef } from "react";
 import {
-  createEditorPortal,
-  getExtendedEditorElement,
-} from './helpers';
-import { SettingsMapper } from './settingsMapper';
-import Handsontable from 'handsontable/base';
+  HotTableProps,
+  HotColumnProps,
+  HotEditorCache,
+  EditorScopeIdentifier,
+} from "./types";
+import { createEditorPortal, getExtendedEditorElement } from "./helpers";
+import { SettingsMapper } from "./settingsMapper";
+import Handsontable from "handsontable/base";
 
-class HotColumn extends React.Component<HotColumnProps, {}> {
-  internalProps: string[];
+export interface HotColumn {
+  columnIndex: number;
+  children: React.ReactNode;
+  onColumnSettingsChange: (
+    columnSettings: Handsontable.ColumnSettings,
+    columnIndex: number
+  ) => void;
+  componentRendererColumns?: Map<number | string, boolean>;
+  getChildElementByType?: (
+    children: React.ReactNode,
+    type: string
+  ) => React.ReactElement;
+  getRendererWrapper?: (
+    rendererNode: React.ReactElement
+  ) => typeof Handsontable.renderers.BaseRenderer;
+  getEditorClass?: (
+    editorElement: React.ReactElement,
+    editorColumnScope: EditorScopeIdentifier
+  ) => typeof Handsontable.editors.BaseEditor;
+  getEditorCache?: () => HotEditorCache;
+  getOwnerDocument?: () => Document;
   columnSettings: Handsontable.ColumnSettings;
+}
 
-  /**
-   * Filter out all the internal properties and return an object with just the Handsontable-related props.
-   *
-   * @returns {Object}
-   */
-  getSettingsProps(): HotTableProps {
-    this.internalProps = ['_componentRendererColumns', '_emitColumnSettings', '_columnIndex', '_getChildElementByType', '_getRendererWrapper',
-      '_getEditorClass', '_getEditorCache', '_getOwnerDocument', 'hot-renderer', 'hot-editor', 'children'];
+const HotColumn = (props: HotColumn) => {
+  const prevPropsRef = useRef<HotColumnProps>();
+  const settingsPropsRef = useRef<HotColumnProps>();
+  const columnSettings = useRef<Handsontable.ColumnSettings>();
 
-    return Object.keys(this.props)
-      .filter(key => {
-        return !this.internalProps.includes(key);
-      })
-      .reduce((obj, key) => {
-        obj[key] = this.props[key];
+  useEffect(() => {
+    prevPropsRef.current = props;
+  });
 
-        return obj;
-      }, {});
-  }
+  const prevProps = prevPropsRef.current;
 
-  /**
-   * Get the editor element for the current column.
-   *
-   * @returns {React.ReactElement} React editor component element.
-   */
-  getLocalEditorElement(): React.ReactElement | null {
-    return getExtendedEditorElement(this.props.children, this.props._getEditorCache(), this.props._columnIndex);
-  }
+  useEffect(() => {
+    createColumnSettings();
+    emitColumnSettings();
+  }, [props, prevProps]);
 
-  /**
-   * Create the column settings based on the data provided to the `HotColumn` component and it's child components.
-   */
-  createColumnSettings(): void {
-    const rendererElement = this.props._getChildElementByType(this.props.children, 'hot-renderer');
-    const editorElement = this.getLocalEditorElement();
+  const createColumnSettings = () => {
+    const rendererElement = props.getChildElementByType(
+      props.children,
+      "hot-renderer"
+    );
+    const editorElement = getLocalEditorElement();
 
-    this.columnSettings = SettingsMapper.getSettings(this.getSettingsProps()) as unknown as Handsontable.ColumnSettings;
+    const currentColumnSettings = { ...props.columnSettings };
 
     if (rendererElement !== null) {
-      this.columnSettings.renderer = this.props._getRendererWrapper(rendererElement);
-      this.props._componentRendererColumns.set(this.props._columnIndex, true);
+      currentColumnSettings.renderer =
+        props.getRendererWrapper(rendererElement);
+      props.componentRendererColumns.set(props.columnIndex, true);
     }
 
     if (editorElement !== null) {
-      this.columnSettings.editor = this.props._getEditorClass(editorElement, this.props._columnIndex);
+        currentColumnSettings.editor = props.getEditorClass(
+        editorElement,
+        props.columnIndex
+      );
     }
-  }
+  };
 
-  /**
-   * Emit the column settings to the parent using a prop passed from the parent.
-   */
-  emitColumnSettings(): void {
-    this.props._emitColumnSettings(this.columnSettings, this.props._columnIndex);
-  }
+  const emitColumnSettings = () => {
+    props.onColumnSettingsChange(columnSettings, props.columnIndex);
+  };
 
-  /*
-  ---------------------------------------
-  ------- React lifecycle methods -------
-  ---------------------------------------
-  */
+  const getLocalEditorElement = () => {
+    return getExtendedEditorElement(
+      props.children,
+      props.getEditorCache(),
+      props.columnIndex
+    );
+  };
 
-  /**
-   * Logic performed after the mounting of the HotColumn component.
-   */
-  componentDidMount(): void {
-    this.createColumnSettings();
-    this.emitColumnSettings();
-  }
+  const ownerDocument = props.getOwnerDocument();
+  const editorPortal = createEditorPortal(
+    ownerDocument,
+    getLocalEditorElement()
+  );
 
-  /**
-   * Logic performed after the updating of the HotColumn component.
-   */
-  componentDidUpdate(): void {
-    this.createColumnSettings();
-    this.emitColumnSettings();
-  }
+  return <React.Fragment>{editorPortal}</React.Fragment>;
+};
 
-  /**
-   * Render the portals of the editors, if there are any.
-   *
-   * @returns {React.ReactElement}
-   */
-  render(): React.ReactElement {
-    const ownerDocument = this.props._getOwnerDocument();
-    const editorPortal = createEditorPortal(ownerDocument, this.getLocalEditorElement());
-
-    return (
-      <React.Fragment>
-        {editorPortal}
-      </React.Fragment>
-    )
-  }
-}
-
+export default HotColumn;
 export { HotColumn };
