@@ -2,7 +2,7 @@ import React from 'react';
 import Handsontable from 'handsontable/base';
 import { SettingsMapper } from './settingsMapper';
 import { RenderersPortalManager } from './renderersPortalManager';
-import { HotColumn } from './hotColumn';
+import { HotColumn, HotColumnProps } from './hotColumn';
 import * as packageJson from '../package.json';
 import {
   HotTableProps,
