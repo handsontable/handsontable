@@ -91,7 +91,7 @@ Handsontable provides a wide range of [keyboard shortcuts](@/guides/navigation/k
 
 Although semantic HTML doesn't need any additional attributes to be properly interpreted by assistive technologies, some of Handsontable's complex features are not fully covered by the HTML specification. That's why Handsontable provides support for screen readers with ARIA attributes (Accessible Rich Internet Applications) applied to its HTML markup.
 
-Each new Handsontable version is thoroughly tested for accessibility with the following screen readers:
+Each new version of Handsontable is thoroughly tested for accessibility with the following screen readers:
 
 - NVDA (Windows)
 - JAWS (Windows)
