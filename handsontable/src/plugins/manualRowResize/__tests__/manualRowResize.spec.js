@@ -496,6 +496,37 @@ describe('manualRowResize', () => {
     expect($rowsHeaders.eq(3).height()).toEqual(35);
   });
 
+  it('should show resizer for fixed rows', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 20),
+      colHeaders: true,
+      rowHeaders: true,
+      fixedRowsTop: 2,
+      manualRowResize: true
+    });
+
+    getInlineStartClone()
+      .find('tbody tr:eq(3) th:eq(0)')
+      .simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualRowResizer');
+
+    expect($resizer.position()).toEqual({
+      top: 113,
+      left: 0,
+    });
+
+    // after hovering over fixed row, resizer should be moved to the fixed row
+    getTopInlineStartClone()
+      .find('tbody tr:eq(1) th:eq(0)')
+      .simulate('mouseover');
+
+    expect($resizer.position()).toEqual({
+      top: 67,
+      left: 0,
+    });
+  });
+
   it('should resize proper row after resizing element adjacent to a selection', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),

@@ -394,8 +394,12 @@ export class ManualColumnResize extends BasePlugin {
    */
   checkIfColumnHeader(element) {
     const thead = closest(element, ['THEAD'], this.hot.rootElement);
+    const { topOverlay, topInlineStartCornerOverlay } = this.hot.view._wt.wtOverlays;
 
-    return thead === this.hot.view._wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
+    return [
+      topOverlay.clone.wtTable.THEAD,
+      topInlineStartCornerOverlay.clone.wtTable.THEAD,
+    ].includes(thead);
   }
 
   /**

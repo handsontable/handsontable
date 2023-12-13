@@ -244,6 +244,37 @@ describe('manualColumnResize', () => {
     expect($columnHeaders.eq(3).width()).toBe(34);
   });
 
+  it('should show resizer for fixed columns', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 20),
+      colHeaders: true,
+      rowHeaders: true,
+      fixedColumnsStart: 2,
+      manualColumnResize: true
+    });
+
+    getTopClone()
+      .find('thead tr:eq(0) th:eq(3)')
+      .simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualColumnResizer');
+
+    expect($resizer.position()).toEqual({
+      top: 0,
+      left: 194,
+    });
+
+    // after hovering over fixed column, resizer should be moved to the fixed column
+    getTopInlineStartClone()
+      .find('thead tr:eq(0) th:eq(1)')
+      .simulate('mouseover');
+
+    expect($resizer.position()).toEqual({
+      top: 0,
+      left: 94,
+    });
+  });
+
   it('should resize (expanding) selected columns', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
