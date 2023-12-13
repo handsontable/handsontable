@@ -139,5 +139,18 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
  * @returns {boolean} `true` if they're the same, `false` otherwise.
  */
 function simpleEqual(objectA, objectB) {
-  return JSON.stringify(objectA) === JSON.stringify(objectB);
+  const circularReplacer = (function() {
+    const seen = new WeakSet();
+
+    return function(key, value) {
+      if (typeof value === 'object' && value !== null) {
+        if (seen.has(value)) return;
+        seen.add(value);
+      }
+
+      return value;
+    };
+  }());
+
+  return JSON.stringify(objectA, circularReplacer) === JSON.stringify(objectB, circularReplacer);
 }
