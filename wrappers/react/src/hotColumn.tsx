@@ -1,15 +1,10 @@
-import React, { useEffect, useRef } from "react";
-import {
-  HotTableProps,
-  HotColumnProps,
-  HotEditorCache,
-  EditorScopeIdentifier,
-} from "./types";
+import React, { useEffect, useRef, useState } from "react";
+import { HotTableProps, HotEditorCache, EditorScopeIdentifier } from "./types";
 import { createEditorPortal, getExtendedEditorElement } from "./helpers";
 import { SettingsMapper } from "./settingsMapper";
 import Handsontable from "handsontable/base";
 
-export interface HotColumn {
+export interface HotColumnProps {
   columnIndex: number;
   children: React.ReactNode;
   onColumnSettingsChange: (
@@ -30,64 +25,57 @@ export interface HotColumn {
   ) => typeof Handsontable.editors.BaseEditor;
   getEditorCache?: () => HotEditorCache;
   getOwnerDocument?: () => Document;
-  columnSettings: Handsontable.ColumnSettings;
 }
 
-const HotColumn = (props: HotColumn) => {
-  const prevPropsRef = useRef<HotColumnProps>();
-  const settingsPropsRef = useRef<HotColumnProps>();
-  const columnSettings = useRef<Handsontable.ColumnSettings>();
+const HotColumn = (props: HotColumnProps) => {
+  const [editorElement, setEditorElement] = useState(
+    getExtendedEditorElement(
+      props.children,
+      props.getEditorCache(),
+      props.columnIndex
+    )
+  );
 
   useEffect(() => {
-    prevPropsRef.current = props;
-  });
-
-  const prevProps = prevPropsRef.current;
-
-  useEffect(() => {
-    createColumnSettings();
-    emitColumnSettings();
-  }, [props, prevProps]);
-
-  const createColumnSettings = () => {
     const rendererElement = props.getChildElementByType(
       props.children,
       "hot-renderer"
     );
-    const editorElement = getLocalEditorElement();
-
-    const currentColumnSettings = { ...props.columnSettings };
+    setEditorElement(
+      getExtendedEditorElement(
+        props.children,
+        props.getEditorCache(),
+        props.columnIndex
+      )
+    );
+    const columnSettings: Handsontable.ColumnSettings = {};
 
     if (rendererElement !== null) {
-      currentColumnSettings.renderer =
-        props.getRendererWrapper(rendererElement);
+      columnSettings.renderer = props.getRendererWrapper(rendererElement);
       props.componentRendererColumns.set(props.columnIndex, true);
     }
 
     if (editorElement !== null) {
-        currentColumnSettings.editor = props.getEditorClass(
+      columnSettings.editor = props.getEditorClass(
         editorElement,
         props.columnIndex
       );
     }
-  };
 
-  const emitColumnSettings = () => {
     props.onColumnSettingsChange(columnSettings, props.columnIndex);
-  };
-
-  const getLocalEditorElement = () => {
-    return getExtendedEditorElement(
-      props.children,
-      props.getEditorCache(),
-      props.columnIndex
-    );
-  };
+  }, [
+    props.getChildElementByType,
+    props.children,
+    props.columnIndex,
+    props.getRendererWrapper,
+    props.componentRendererColumns,
+    props.getEditorCache,
+  ]);
 
   const ownerDocument = props.getOwnerDocument();
   const editorPortal = createEditorPortal(
     ownerDocument,
-    getLocalEditorElement()
+    editorElement
   );
 
   return <React.Fragment>{editorPortal}</React.Fragment>;

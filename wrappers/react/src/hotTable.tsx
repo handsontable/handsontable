@@ -24,6 +24,7 @@ import {
   warn
 } from './helpers';
 import PropTypes from 'prop-types';
+import { Test } from './Test';
 
 /**
  * A Handsontable-ReactJS wrapper.
@@ -493,6 +494,17 @@ class HotTable extends React.Component<HotTableProps, {}> {
     const hotColumnClones = children
       .filter((childNode: any) => isHotColumn(childNode))
       .map((childNode: React.ReactElement, columnIndex: number) => {
+        const hotColumnProps: HotColumnProps =  {
+          columnIndex,
+          children: childNode.props.children,
+          onColumnSettingsChange: this.setHotColumnSettings.bind(this),
+          componentRendererColumns:  this.componentRendererColumns,
+          getChildElementByType:  getChildElementByType.bind(this),
+          getRendererWrapper: this.getEditorClass.bind(this),
+          getEditorClass: this.getEditorClass.bind(this),
+          getEditorCache: this.getEditorCache.bind(this),
+          getOwnerDocument: this.getOwnerDocument.bind(this)
+        }
         return React.cloneElement(childNode, {
           _componentRendererColumns: this.componentRendererColumns,
           _emitColumnSettings: this.setHotColumnSettings.bind(this),
@@ -516,6 +528,7 @@ class HotTable extends React.Component<HotTableProps, {}> {
         </div>
         <RenderersPortalManager ref={this.setRenderersPortalManagerRef.bind(this)} />
         {editorPortal}
+        <Test />
       </React.Fragment>
     )
   }
