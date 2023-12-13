@@ -505,17 +505,7 @@ class HotTable extends React.Component<HotTableProps, {}> {
           getEditorCache: this.getEditorCache.bind(this),
           getOwnerDocument: this.getOwnerDocument.bind(this)
         }
-        return React.cloneElement(childNode, {
-          _componentRendererColumns: this.componentRendererColumns,
-          _emitColumnSettings: this.setHotColumnSettings.bind(this),
-          _columnIndex: columnIndex,
-          _getChildElementByType: getChildElementByType.bind(this),
-          _getRendererWrapper: this.getRendererWrapper.bind(this),
-          _getEditorClass: this.getEditorClass.bind(this),
-          _getOwnerDocument: this.getOwnerDocument.bind(this),
-          _getEditorCache: this.getEditorCache.bind(this),
-          children: childNode.props.children
-        } as object);
+        return React.cloneElement(childNode, hotColumnProps);
       });
 
     const containerProps = getContainerAttributesProps(this.props);
