@@ -1,11 +1,12 @@
 import React, { useRef } from 'react';
-import { render, unmountComponentAtNode } from 'react-dom';
-import { act } from 'react-dom/test-utils';
+import { createRoot } from 'react-dom/client';
+import { act } from '@testing-library/react';
 import { HotTable } from '../src/hotTable';
 import { BaseEditorComponent } from '../src/baseEditorComponent';
 
 const SPEC = {
-  container: null
+  container: null,
+  root: null,
 };
 
 beforeEach(() => {
@@ -14,17 +15,21 @@ beforeEach(() => {
   container.id = 'hotContainer';
   document.body.appendChild(container);
   SPEC.container = container;
+  SPEC.root = createRoot(SPEC.container);
 });
 
 afterEach(() => {
   const container = document.querySelector('#hotContainer');
 
-  unmountComponentAtNode(container);
   container.parentNode.removeChild(container);
   SPEC.container = null;
+
+  act(() => {
+    SPEC.root.unmount();
+  });
 });
 
-export function mountComponent(Component, container = SPEC.container) {
+export function mountComponent(Component, strictMode = true) {
   let hotTableComponent = null;
 
   const App = () => {
@@ -42,7 +47,9 @@ export function mountComponent(Component, container = SPEC.container) {
   }
 
   act(() => {
-    render(<React.StrictMode><App/></React.StrictMode>, container);
+    SPEC.root.render(
+      strictMode ? <React.StrictMode><App/></React.StrictMode> : <App/>
+    );
   });
 
   return hotTableComponent?.current;

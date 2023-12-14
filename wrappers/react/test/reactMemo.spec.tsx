@@ -1,4 +1,5 @@
 import React from 'react';
+import { act } from '@testing-library/react';
 import {
   HotTable
 } from '../src/hotTable';
@@ -42,7 +43,9 @@ describe('React.memo', () => {
       </HotTable>
     )).hotInstance;
 
-    hotInstance.render();
+    await act(async () => {
+      hotInstance.render();
+    });
 
     await sleep(100);
 

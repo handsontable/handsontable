@@ -1,4 +1,5 @@
 import React, { Suspense, lazy } from 'react';
+import { act } from '@testing-library/react';
 import {
   HotTable
 } from '../src/hotTable';
@@ -55,9 +56,11 @@ describe('React.lazy', () => {
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>loading-message</div>');
 
-    promiseResolve({
-      default: RendererComponent2,
-      __esModule: true
+    await act(async () => {
+      promiseResolve({
+        default: RendererComponent2,
+        __esModule: true
+      });
     });
 
     await sleep(40);

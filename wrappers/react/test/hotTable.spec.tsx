@@ -1,4 +1,5 @@
 import React from 'react';
+import { act } from '@testing-library/react';
 import {
   HotTable
 } from '../src/hotTable';
@@ -64,7 +65,16 @@ describe('Updating the Handsontable settings', () => {
     });
 
     await sleep(300);
-    componentInstance.setState({hotSettings: {data: [[2]], contextMenu: true, readOnly: true}});
+
+    await act(async () => {
+      componentInstance.setState({
+        hotSettings: {
+          data: [[2]],
+          contextMenu: true,
+          readOnly: true
+        }
+      });
+    });
 
     expect(updateSettingsCount).toEqual(1);
   });
@@ -82,7 +92,16 @@ describe('Updating the Handsontable settings', () => {
     });
 
     await sleep(300);
-    componentInstance.setState({hotSettings: {data: [[2]], contextMenu: true, readOnly: true}});
+
+    await act(async () => {
+      componentInstance.setState({
+        hotSettings: {
+          data: [[2]],
+          contextMenu: true,
+          readOnly: true
+        }
+      });
+    });
 
     expect(updateSettingsCount).toEqual(1);
   });
@@ -99,7 +118,16 @@ describe('Updating the Handsontable settings', () => {
     expect(JSON.stringify(hotInstance.getSettings().data)).toEqual('[[null,null,null,null,null],[null,null,null,null,null],[null,null,null,null,null],[null,null,null,null,null],[null,null,null,null,null]]');
 
     await sleep(300);
-    componentInstance.setState({hotSettings: {data: [[2]], contextMenu: true, readOnly: true}});
+
+    await act(async () => {
+      componentInstance.setState({
+        hotSettings: {
+          data: [[2]],
+          contextMenu: true,
+          readOnly: true
+        }
+      });
+    });
 
     expect(hotInstance.getSettings().contextMenu).toBe(true);
     expect(hotInstance.getSettings().readOnly).toBe(true);
@@ -118,8 +146,16 @@ describe('Updating the Handsontable settings', () => {
     expect(JSON.stringify(hotInstance.getSettings().data)).toEqual('[[null,null,null,null,null],[null,null,null,null,null],[null,null,null,null,null],[null,null,null,null,null],[null,null,null,null,null]]');
 
     await sleep(300);
-    componentInstance.setState({hotSettings: {data: [[2]], contextMenu: true, readOnly: true}});
 
+    await act(async () => {
+      componentInstance.setState({
+        hotSettings: {
+          data: [[2]],
+          contextMenu: true,
+          readOnly: true
+        }
+      });
+    });
 
     expect(hotInstance.getSettings().contextMenu).toBe(true);
     expect(hotInstance.getSettings().readOnly).toBe(true);
@@ -148,21 +184,27 @@ describe('Renderer configuration using React components', () => {
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>value: A1</div>');
 
-    hotInstance.scrollViewportTo({
-      row: 99,
-      col: 0,
+    await act(async() => {
+      hotInstance.scrollViewportTo({
+        row: 99,
+        col: 0,
+      });
+      // For some reason it needs another render
+      hotInstance.render();
     });
-    // For some reason it needs another render
-    hotInstance.render();
+
     await sleep(100);
 
     expect(hotInstance.getCell(99, 1).innerHTML).toEqual('<div>value: B100</div>');
 
-    hotInstance.scrollViewportTo({
-      row: 99,
-      col: 99,
+    await act(async() => {
+      hotInstance.scrollViewportTo({
+        row: 99,
+        col: 99,
+      });
+      hotInstance.render();
     });
-    hotInstance.render();
+
     await sleep(100);
 
     expect(hotInstance.getCell(99, 99).innerHTML).toEqual('<div>value: CV100</div>');
@@ -209,18 +251,23 @@ describe('Editor configuration using React components', () => {
 
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
 
-    hotInstance.selectCell(0,0);
-    simulateKeyboardEvent('keydown', 13);
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
 
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('block');
+    expect(hotInstance.getDataAtCell(0, 0)).toEqual('A1');
 
-    expect(hotInstance.getDataAtCell(0,0)).toEqual('A1');
+    await act(async () => {
+      simulateMouseEvent(document.querySelector('#editorComponentContainer button'), 'click');
+    });
 
-    simulateMouseEvent(document.querySelector('#editorComponentContainer button'), 'click');
+    expect(hotInstance.getDataAtCell(0, 0)).toEqual('new-value');
 
-    expect(hotInstance.getDataAtCell(0,0)).toEqual('new-value');
-
-    hotInstance.getActiveEditor().close();
+    await act(async () => {
+      hotInstance.getActiveEditor().close();
+    });
 
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
   });
@@ -258,7 +305,9 @@ describe('Editor configuration using React components', () => {
 
     let hotInstance = (hotTableInstanceRef.current as any).hotInstance;
 
-    hotInstance.selectCell(0, 0);
+    await act(async() => {
+      hotInstance.selectCell(0, 0);
+    });
 
     {
       const activeEditor = hotInstance.getActiveEditor();
@@ -268,11 +317,15 @@ describe('Editor configuration using React components', () => {
       activeEditor.close();
     }
 
-    wrapperComponentInstance.setState({ editor: true });
+    await act(async() => {
+      wrapperComponentInstance.setState({ editor: true });
+    });
 
     await sleep(100);
 
-    hotInstance.selectCell(0, 0);
+    await act(async() => {
+      hotInstance.selectCell(0, 0);
+    });
 
     {
       const activeEditor = hotInstance.getActiveEditor();
@@ -283,11 +336,15 @@ describe('Editor configuration using React components', () => {
       activeEditor.close();
     }
 
-    wrapperComponentInstance.setState({ editor: false });
+    await act(async() => {
+      wrapperComponentInstance.setState({ editor: false });
+    });
 
     await sleep(100);
 
-    hotInstance.selectCell(0, 0);
+    await act(async() => {
+      hotInstance.selectCell(0, 0);
+    });
 
     {
       const activeEditor = hotInstance.getActiveEditor();

@@ -1,4 +1,5 @@
 import React from 'react';
+import { act } from '@testing-library/react';
 import { HotTable } from '../src/hotTable';
 import { HotColumn } from '../src/hotColumn';
 import {
@@ -65,12 +66,14 @@ describe('Subcomponent state', () => {
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>initial</div>');
     expect(hotInstance.getCell(0, 1).innerHTML).toEqual('<div>initial</div>');
 
-    zeroRendererInstance.setState({
-      value: 'altered'
-    });
+    await act(async () => {
+      zeroRendererInstance.setState({
+        value: 'altered'
+      });
 
-    oneRendererInstance.setState({
-      value: 'altered as well'
+      oneRendererInstance.setState({
+        value: 'altered as well'
+      });
     });
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>altered</div>');
@@ -125,12 +128,14 @@ describe('Subcomponent state', () => {
     expect(document.querySelector('#first-editor').innerHTML).toEqual('initial');
     expect(document.querySelector('#second-editor').innerHTML).toEqual('initial');
 
-    globalEditorInstance.setState({
-      value: 'altered'
-    });
+    await act(async () => {
+      globalEditorInstance.setState({
+        value: 'altered'
+      });
 
-    columnEditorInstance.setState({
-      value: 'altered as well'
+      columnEditorInstance.setState({
+        value: 'altered as well'
+      });
     });
 
     expect(document.querySelector('#first-editor').innerHTML).toEqual('altered');
@@ -200,7 +205,7 @@ describe('Component lifecyle', () => {
           }} hot-renderer></RendererComponent2>
         </HotColumn>
       </HotTable>
-    )).hotInstance;
+    ), false).hotInstance;
 
     rendererCounters.forEach((counters) => {
       expect(counters.didMount).toEqual(1);
@@ -209,7 +214,10 @@ describe('Component lifecyle', () => {
 
     secondGo = true;
 
-    hotInstance.render();
+    await act(async () => {
+      hotInstance.render();
+    });
+
     await sleep(300);
 
     rendererCounters.forEach((counters) => {
@@ -272,7 +280,7 @@ describe('Component lifecyle', () => {
                 }}>
         {childrenArray}
       </HotTable>
-    ));
+    ), false);
 
     editorCounters.forEach((counters) => {
       expect(counters.didMount).toEqual(1);
@@ -282,7 +290,11 @@ describe('Component lifecyle', () => {
     secondGo = true;
 
     childrenArray.length = 0;
-    hotTableInstance.forceUpdate();
+
+    await act(async () => {
+      hotTableInstance.forceUpdate();
+    });
+
     await sleep(100);
 
     editorCounters.forEach((counters) => {
