@@ -496,7 +496,7 @@ describe('manualRowResize', () => {
     expect($rowsHeaders.eq(3).height()).toEqual(35);
   });
 
-  it('should show resizer for fixed rows', () => {
+  it('should show resizer for fixed top rows', () => {
     handsontable({
       data: createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -523,6 +523,37 @@ describe('manualRowResize', () => {
 
     expect($resizer.position()).toEqual({
       top: 67,
+      left: 0,
+    });
+  });
+
+  it('should show resizer for fixed bottom rows', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 20),
+      colHeaders: true,
+      rowHeaders: true,
+      fixedRowsBottom: 2,
+      manualRowResize: true
+    });
+
+    getInlineStartClone()
+      .find('tbody tr:eq(3) th:eq(0)')
+      .simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualRowResizer');
+
+    expect($resizer.position()).toEqual({
+      top: 113,
+      left: 0,
+    });
+
+    // after hovering over fixed row, resizer should be moved to the fixed row
+    getBottomInlineStartClone()
+      .find('tbody tr:eq(0) th:eq(0)')
+      .simulate('mouseover');
+
+    expect($resizer.position()).toEqual({
+      top: 18,
       left: 0,
     });
   });
