@@ -1,3 +1,4 @@
+import CellRange from '../../3rdparty/walkontable/src/cell/range';
 import Core from '../../core';
 import { BasePlugin } from '../base';
 import { SimpleCellCoords } from "../../common";
