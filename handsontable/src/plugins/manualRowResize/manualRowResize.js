@@ -352,11 +352,12 @@ export class ManualRowResize extends BasePlugin {
    */
   checkIfRowHeader(element) {
     const tbody = closest(element, ['TBODY'], this.hot.rootElement);
-    const { inlineStartOverlay, topInlineStartCornerOverlay } = this.hot.view._wt.wtOverlays;
+    const { inlineStartOverlay, topInlineStartCornerOverlay, bottomInlineStartCornerOverlay } = this.hot.view._wt.wtOverlays;
 
     return [
       inlineStartOverlay.clone.wtTable.TBODY,
       topInlineStartCornerOverlay.clone.wtTable.TBODY,
+      bottomInlineStartCornerOverlay.clone.wtTable.TBODY,
     ].includes(tbody);
   }
 
