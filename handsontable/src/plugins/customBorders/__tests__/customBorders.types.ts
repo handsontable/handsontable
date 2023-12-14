@@ -66,6 +66,8 @@ customBorders.setBorders(hot.getSelectedRange()!, {
 });
 customBorders.clearBorders(hot.getSelected()!);
 customBorders.clearBorders(hot.getSelectedRange()!);
+customBorders.clearBorders();
 
 const borders1: ComputedBorder[] = customBorders.getBorders(hot.getSelected()!);
 const borders2: ComputedBorder[] = customBorders.getBorders(hot.getSelectedRange()!);
+const borders3: ComputedBorder[] = customBorders.getBorders();
