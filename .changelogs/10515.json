@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Improved TS typings for the CustomBorders plugin",
+  "type": "fixed",
+  "issueOrPR": 10515,
+  "breaking": false,
+  "framework": "none"
+}
