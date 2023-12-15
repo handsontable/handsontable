@@ -6,7 +6,7 @@ import {
 import {
   createSpreadsheetData,
   mockElementDimensions,
-  mountComponent,
+  mountComponentWithRef,
   sleep,
 } from './_helpers';
 
@@ -26,7 +26,7 @@ describe('React.memo', () => {
 
     const MemoizedRendererComponent2 = React.memo(RendererComponent2);
 
-    const hotInstance = mountComponent((
+    const hotInstance = mountComponentWithRef((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(1, 1)}

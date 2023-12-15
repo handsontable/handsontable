@@ -6,7 +6,7 @@ import {
 import {
   createSpreadsheetData,
   mockElementDimensions,
-  mountComponent,
+  mountComponentWithRef,
   sleep,
 } from './_helpers';
 
@@ -37,7 +37,7 @@ describe('React.lazy', () => {
       )
     }
 
-    const hotInstance = mountComponent((
+    const hotInstance = mountComponentWithRef((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(1, 1)}

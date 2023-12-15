@@ -11,7 +11,7 @@ import {
   EditorComponent,
   simulateKeyboardEvent,
   simulateMouseEvent,
-  mountComponent
+  mountComponentWithRef
 } from './_helpers';
 
 // register Handsontable's modules
@@ -19,7 +19,7 @@ registerAllModules();
 
 describe('Passing column settings using HotColumn', () => {
   it('should apply the Handsontable settings passed as HotColumn arguments to the Handsontable instance', async () => {
-    const hotInstance = mountComponent((
+    const hotInstance = mountComponentWithRef((
       <HotTable
         licenseKey="non-commercial-and-evaluation"
         id="test-hot" data={[[2]]}
@@ -41,7 +41,7 @@ describe('Passing column settings using HotColumn', () => {
 
   it('should allow to use data option as a string', async () => {
     const dataKeyCellValue = 'Value of key1 in row 0';
-    const hotInstance = mountComponent((
+    const hotInstance = mountComponentWithRef((
       <HotTable
         licenseKey="non-commercial-and-evaluation"
         id="test-hot" data={[{ key1: dataKeyCellValue }]}
@@ -57,7 +57,7 @@ describe('Passing column settings using HotColumn', () => {
 
 describe('Renderer configuration using React components', () => {
   it('should use the renderer component as Handsontable renderer, when it\'s nested under HotColumn and assigned the \'hot-renderer\' attribute', async () => {
-    const hotInstance = mountComponent((
+    const hotInstance = mountComponentWithRef((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(100, 2)}
@@ -97,7 +97,7 @@ describe('Renderer configuration using React components', () => {
 
 describe('Editor configuration using React components', () => {
   it('should use the editor component as Handsontable editor, when it\'s nested under HotTable and assigned the \'hot-editor\' attribute', async () => {
-    const hotInstance = mountComponent((
+    const hotInstance = mountComponentWithRef((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 2)}
@@ -152,7 +152,7 @@ describe('Editor configuration using React components', () => {
       }
     }
 
-    const hotInstance = mountComponent((
+    const hotInstance = mountComponentWithRef((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 2)}
@@ -256,7 +256,7 @@ describe('Dynamic HotColumn configuration changes', () => {
 
     let hotTableInstanceRef = React.createRef();
 
-    const wrapperComponentInstance = mountComponent((
+    const wrapperComponentInstance = mountComponentWithRef((
       <WrapperComponent/>
     ));
 
@@ -357,7 +357,7 @@ describe('Dynamic HotColumn configuration changes', () => {
 describe('Miscellaneous scenarios with `HotColumn` config', () => {
   it('should validate all cells correctly in a `dropdown`-typed column after populating data through it', async () => {
     const onAfterValidate = jasmine.createSpy('warn');
-    const hotInstance = mountComponent((
+    const hotInstance = mountComponentWithRef((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 data={[['yellow'], ['white'], ['orange']]}
                 afterValidate={onAfterValidate}

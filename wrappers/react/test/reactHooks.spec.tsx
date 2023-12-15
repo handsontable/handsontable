@@ -7,7 +7,7 @@ import {
   createSpreadsheetData,
   mockElementDimensions,
   simulateMouseEvent,
-  mountComponent
+  mountComponentWithRef
 } from './_helpers';
 
 describe('Using hooks within HotTable renderers', () => {
@@ -25,7 +25,7 @@ describe('Using hooks within HotTable renderers', () => {
       );
     }
 
-    const hotInstance = mountComponent((
+    const hotInstance = mountComponentWithRef((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 3)}

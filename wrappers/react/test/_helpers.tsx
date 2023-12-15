@@ -29,17 +29,11 @@ afterEach(() => {
   });
 });
 
-export function mountComponent(Component, strictMode = true) {
+export function mountComponentWithRef(Component, strictMode = true) {
   let hotTableComponent = null;
 
   const App = () => {
     hotTableComponent = useRef(null);
-
-    if (!Component.type.prototype || !Component.type.prototype.isReactComponent) {
-      return (
-        <Component.type {...Component.props}></Component.type>
-      );
-    }
 
     return (
       <Component.type {...Component.props} ref={hotTableComponent}></Component.type>
@@ -52,7 +46,19 @@ export function mountComponent(Component, strictMode = true) {
     );
   });
 
-  return hotTableComponent?.current;
+  return hotTableComponent.current;
+}
+
+export function mountComponent(Component) {
+  const App = () => {
+    return (
+      <Component.type {...Component.props}></Component.type>
+    );
+  }
+
+  act(() => {
+    SPEC.root.render(<React.StrictMode><App/></React.StrictMode>);
+  });
 }
 
 export function sleep(delay = 100) {

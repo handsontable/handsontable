@@ -13,12 +13,12 @@ import {
   sleep,
   simulateKeyboardEvent,
   simulateMouseEvent,
-  mountComponent
+  mountComponentWithRef
 } from './_helpers';
 
 describe('Handsontable initialization', () => {
   it('should render Handsontable when using the HotTable component', async () => {
-    const hotInstance = mountComponent((
+    const hotInstance = mountComponentWithRef((
       <HotTable
         id="test-hot"
         data={[[2]]}
@@ -33,7 +33,7 @@ describe('Handsontable initialization', () => {
   });
 
   it('should pass the provided properties to the Handsontable instance', async () => {
-    const hotInstance = mountComponent((
+    const hotInstance = mountComponentWithRef((
       <HotTable
         id="test-hot"
         contextMenu={true}
@@ -43,6 +43,7 @@ describe('Handsontable initialization', () => {
         licenseKey="non-commercial-and-evaluation"/>
     )).hotInstance;
 
+    expect(hotInstance.rootElement.id).toBe('test-hot');
     expect(hotInstance.getSettings().contextMenu).toBe(true);
     expect(hotInstance.getSettings().rowHeaders).toBe(true);
     expect(hotInstance.getSettings().colHeaders).toBe(true);
@@ -52,7 +53,7 @@ describe('Handsontable initialization', () => {
 
 describe('Updating the Handsontable settings', () => {
   it('should call the updateSettings method of Handsontable, when the component properties get updated (when providing properties individually)', async () => {
-    const componentInstance = mountComponent((
+    const componentInstance = mountComponentWithRef((
       <IndividualPropsWrapper/>
     ));
 
@@ -80,7 +81,7 @@ describe('Updating the Handsontable settings', () => {
   });
 
   it('should call the updateSettings method of Handsontable, when the component properties get updated (when providing properties as a single settings object)', async () => {
-    const componentInstance = mountComponent((
+    const componentInstance = mountComponentWithRef((
       <SingleObjectWrapper/>
     ));
 
@@ -107,7 +108,7 @@ describe('Updating the Handsontable settings', () => {
   });
 
   it('should update the Handsontable options, when the component properties get updated (when providing properties individually)', async () => {
-    const componentInstance = mountComponent((
+    const componentInstance = mountComponentWithRef((
       <IndividualPropsWrapper/>
     ));
 
@@ -135,7 +136,7 @@ describe('Updating the Handsontable settings', () => {
   });
 
   it('should update the Handsontable options, when the component properties get updated (when providing properties as a single settings object)', async () => {
-    const componentInstance = mountComponent((
+    const componentInstance = mountComponentWithRef((
       <SingleObjectWrapper/>
     ));
 
@@ -165,7 +166,7 @@ describe('Updating the Handsontable settings', () => {
 
 describe('Renderer configuration using React components', () => {
   it('should use the renderer component as Handsontable renderer, when it\'s nested under HotTable and assigned the \'hot-renderer\' attribute', async () => {
-    const hotInstance = mountComponent((
+    const hotInstance = mountComponentWithRef((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(100, 100)}
@@ -213,7 +214,7 @@ describe('Renderer configuration using React components', () => {
 
 describe('Editor configuration using React components', () => {
   it('should use the editor component as Handsontable editor and mount it in the root tree of the document', async () => {
-    mountComponent((
+    mountComponentWithRef((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 3)}
@@ -234,7 +235,7 @@ describe('Editor configuration using React components', () => {
   });
 
   it('should use the editor component as Handsontable editor, when it\'s nested under HotTable and assigned the \'hot-editor\' attribute', async () => {
-    const hotInstance = mountComponent((
+    const hotInstance = mountComponentWithRef((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 3)}
@@ -299,7 +300,7 @@ describe('Editor configuration using React components', () => {
       };
     }
 
-    const wrapperComponentInstance = mountComponent((
+    const wrapperComponentInstance = mountComponentWithRef((
       <WrapperComponent/>
     ));
 

@@ -5,7 +5,7 @@ import { HotColumn } from '../src/hotColumn';
 import {
   createSpreadsheetData,
   mockElementDimensions,
-  mountComponent,
+  mountComponentWithRef,
   sleep,
 } from './_helpers';
 import { HOT_DESTROYED_WARNING } from "../src/helpers";
@@ -34,7 +34,7 @@ describe('Subcomponent state', () => {
     let zeroRendererInstance = null;
     let oneRendererInstance = null;
 
-    const hotInstance = mountComponent((
+    const hotInstance = mountComponentWithRef((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 2)}
@@ -102,7 +102,7 @@ describe('Subcomponent state', () => {
     let globalEditorInstance = null;
     let columnEditorInstance = null;
 
-    mountComponent((
+    mountComponentWithRef((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 2)}
@@ -178,7 +178,7 @@ describe('Component lifecyle', () => {
     const rendererRefs = new Map();
     const rendererCounters = new Map();
 
-    const hotInstance = mountComponent((
+    const hotInstance = mountComponentWithRef((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 2)}
@@ -267,7 +267,7 @@ describe('Component lifecyle', () => {
       }} hot-editor key={Math.random()}></EditorComponent2>
     ];
 
-    const hotTableInstance = mountComponent((
+    const hotTableInstance = mountComponentWithRef((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 2)}
@@ -308,7 +308,7 @@ describe('Component lifecyle', () => {
     const warnFunc = console.warn;
     const warnCalls = [];
 
-    const componentInstance = mountComponent((
+    const componentInstance = mountComponentWithRef((
       <HotTable
         id="test-hot"
         data={[[2]]}
