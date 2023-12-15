@@ -1,3 +1,4 @@
+import CellRange from '../../3rdparty/walkontable/src/cell/range';
 import Core from '../../core';
 import { BasePlugin } from '../base';
 import { SimpleCellCoords } from "../../common";
@@ -13,6 +14,14 @@ export interface BorderRange {
     to: SimpleCellCoords;
   };
 }
+export interface BorderDescriptor {
+  start?: BorderOptions;
+  end?: BorderOptions;
+  left?: BorderOptions;
+  right?: BorderOptions;
+  top?: BorderOptions;
+  bottom?: BorderOptions;
+}
 export type DetailedSettings = (SimpleCellCoords | BorderRange) & {
   start?: BorderOptions | string;
   end?: BorderOptions | string;
@@ -24,17 +33,17 @@ export type DetailedSettings = (SimpleCellCoords | BorderRange) & {
 
 export type Settings = boolean | DetailedSettings[];
 
-export interface RangeType {
-  startRow: number;
-  startCol: number;
-  endRow: number;
-  endCol: number;
+export interface ComputedBorder extends BorderDescriptor {
+  id: string;
+  row: number;
+  col: number;
+  border?: BorderOptions;
 }
 
 export class CustomBorders extends BasePlugin {
   constructor(hotInstance: Core);
   isEnabled(): boolean;
-  setBorders(selectionRanges: RangeType[][] | Array<[number, number, number, number]>, borderObject: object): void;
-  getBorders(selectionRanges: RangeType[][] | Array<[number, number, number, number]>): Array<[object]>;
-  clearBorders(selectionRanges: RangeType[][] | Array<[number, number, number, number]>): void;
+  setBorders(selectionRanges: CellRange[] | Array<[number, number, number, number]>, borderObject: BorderDescriptor): void;
+  getBorders(selectionRanges?: CellRange[] | Array<[number, number, number, number]>): ComputedBorder[];
+  clearBorders(selectionRanges?: CellRange[] | Array<[number, number, number, number]>): void;
 }
