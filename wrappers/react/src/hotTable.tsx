@@ -1,19 +1,18 @@
 import React, { useId } from 'react';
 import Handsontable from 'handsontable/base';
-import { HotTableCB } from './hotTableClassBased';
+import { HotTableClass } from './hotTableClass';
 import {
   HotTableProps,
 } from './types';
 
 const HotTable = React.forwardRef<Handsontable, HotTableProps>(({ children, ...props }, ref) => {
-  if (!props.id) {
-    props.id = useId();
-  }
+  const generatedId = useId();
+  const componentId = props.id ?? generatedId;
 
   return (
-    <HotTableCB {...props} ref={ref}>
+    <HotTableClass id={componentId} {...props} ref={ref}>
       {children}
-    </HotTableCB>
+    </HotTableClass>
   );
 })
 

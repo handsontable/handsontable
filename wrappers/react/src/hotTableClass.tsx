@@ -47,7 +47,7 @@ import PropTypes from 'prop-types';
  *
  * @class HotTableCB
  */
-class HotTableCB extends React.Component<HotTableProps, {}> {
+class HotTableClass extends React.Component<HotTableProps, {}> {
   /**
    * The `id` of the main Handsontable DOM element.
    *
@@ -521,5 +521,5 @@ class HotTableCB extends React.Component<HotTableProps, {}> {
   }
 }
 
-export default HotTableCB;
-export { HotTableCB };
+export default HotTableClass;
+export { HotTableClass };
