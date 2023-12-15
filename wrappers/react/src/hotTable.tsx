@@ -1,8 +1,14 @@
-import React, { useId, forwardRef } from 'react';
+import React, { useId, forwardRef, ForwardRefExoticComponent, RefAttributes } from 'react';
 import { HotTableClass } from './hotTableClass';
 import { HotTableProps } from './types';
 
-const HotTable = forwardRef<HotTableClass, HotTableProps>(({ children, ...props }, ref) => {
+interface Version {
+  version?: string;
+}
+
+type HotTable = ForwardRefExoticComponent<HotTableProps & RefAttributes<HotTableClass>> & Version;
+
+const HotTable: HotTable = forwardRef<HotTableClass, HotTableProps>(({ children, ...props }, ref) => {
   const generatedId = useId();
   const componentId = props.id ?? generatedId;
 
@@ -12,6 +18,8 @@ const HotTable = forwardRef<HotTableClass, HotTableProps>(({ children, ...props 
     </HotTableClass>
   );
 })
+
+HotTable.version = HotTableClass.version;
 
 export default HotTable;
 export { HotTable };
