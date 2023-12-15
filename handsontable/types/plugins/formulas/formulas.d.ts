@@ -12,6 +12,7 @@ export interface HyperFormulaSettings extends Partial<ConfigParams> {
 }
 export interface DetailedSettings {
   engine: typeof HyperFormula | HyperFormula | HyperFormulaSettings;
+  sheetName?: string;
 }
 
 export type Settings = DetailedSettings;
