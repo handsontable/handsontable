@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved TS typings for the ExportFile plugin",
+  "type": "changed",
+  "issueOrPR": 10666,
+  "breaking": false,
+  "framework": "none"
+}
