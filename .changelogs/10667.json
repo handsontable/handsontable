@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved TS typings for AutoRowSize and AutoColumnSize plugins",
+  "type": "changed",
+  "issueOrPR": 10667,
+  "breaking": false,
+  "framework": "none"
+}
