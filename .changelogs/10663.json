@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved TS typings for the BindRowsWithHeaders plugin",
+  "type": "changed",
+  "issueOrPR": 10663,
+  "breaking": false,
+  "framework": "none"
+}
