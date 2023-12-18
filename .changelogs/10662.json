@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved TS typings for the `ColumnSummary` plugin",
+  "type": "changed",
+  "issueOrPR": 10662,
+  "breaking": false,
+  "framework": "none"
+}
