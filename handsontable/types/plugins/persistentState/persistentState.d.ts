@@ -2,7 +2,7 @@ import Core from '../../core';
 import { CellValue } from '../../common';
 import { BasePlugin } from '../base';
 
-export type ValueHolder = {
+export interface ValueHolder {
   value: any;
 }
 export type Settings = boolean;
