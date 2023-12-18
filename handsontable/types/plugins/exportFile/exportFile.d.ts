@@ -7,14 +7,14 @@ export interface ExportOptions {
   fileExtension?: string;
   filename?: string;
   encoding?: string;
-  bom?: boolean,
+  bom?: boolean;
   columnDelimiter?: string;
   rowDelimiter?: string;
-  columnHeaders?: boolean,
-  rowHeaders?: boolean,
-  exportHiddenColumns?: boolean,
-  exportHiddenRows?: boolean,
-  range?: number[],
+  columnHeaders?: boolean;
+  rowHeaders?: boolean;
+  exportHiddenColumns?: boolean;
+  exportHiddenRows?: boolean;
+  range?: number[];
 }
 export type Settings = boolean;
 
