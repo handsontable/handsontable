@@ -1,3 +1,4 @@
+import { ExportedChange } from 'hyperformula';
 import CellCoords from './3rdparty/walkontable/src/cell/coords';
 import CellRange from './3rdparty/walkontable/src/cell/range';
 import { ViewportColumnsCalculator } from './3rdparty/walkontable/src/calculator/viewportColumns';
@@ -86,10 +87,10 @@ export interface Events {
   afterDropdownMenuHide?: (instance: DropdownMenu) => void;
   afterDropdownMenuShow?: (instance: DropdownMenu) => void;
   afterFilter?: (conditionsStack: FiltersColumnConditions[]) => void;
-  afterFormulasValuesUpdate?: (changes: object[]) => void;
+  afterFormulasValuesUpdate?: (changes: ExportedChange[]) => void;
   afterGetCellMeta?: (row: number, column: number, cellProperties: CellProperties) => void;
   afterGetColHeader?: (column: number, TH: HTMLTableHeaderCellElement, headerLevel: number) => void;
-  afterGetColumnHeaderRenderers?: (renderers: Array<(col: number, TH: HTMLTableHeaderCellElement) => void>) => void;
+  afterGetColumnHeaderRenderers?: (renderers: Array<(column: number, TH: HTMLTableHeaderCellElement) => void>) => void;
   afterGetRowHeader?: (row: number, TH: HTMLTableHeaderCellElement) => void;
   afterGetRowHeaderRenderers?: (renderers: Array<(row: number, TH: HTMLTableHeaderCellElement) => void>) => void;
   afterHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
@@ -102,8 +103,8 @@ export interface Events {
   afterModifyTransformEnd?: (coords: CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
   afterModifyTransformStart?: (coords: CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
   afterMomentumScroll?: () => void;
-  afterNamedExpressionAdded?: (namedExpressionName: string, changes: object[]) => void;
-  afterNamedExpressionRemoved?: (namedExpressionName: string, changes: object[]) => void;
+  afterNamedExpressionAdded?: (namedExpressionName: string, changes: ExportedChange[]) => void;
+  afterNamedExpressionRemoved?: (namedExpressionName: string, changes: ExportedChange[]) => void;
   afterOnCellContextMenu?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellCornerDblClick?: (event: MouseEvent) => void;
   afterOnCellCornerMouseDown?: (event: MouseEvent) => void;
@@ -115,7 +116,7 @@ export interface Events {
   afterPluginsInitialized?: () => void;
   afterRedo?: (action: UndoRedoAction) => void;
   afterRedoStackChange?: (undoneActionsBefore: UndoRedoAction[], undoneActionsAfter: UndoRedoAction[]) => void;
-  afterRefreshDimensions?: (previousDimensions: object, currentDimensions: object, stateChanged: boolean) => void;
+  afterRefreshDimensions?: (previousDimensions: { width: number, height: number }, currentDimensions: { width: number, height: number }, stateChanged: boolean) => void;
   afterRemoveCellMeta?: (row: number, column: number, key: string, value: any) => void;
   afterRemoveCol?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
   afterRemoveRow?: (index: number, amount: number, physicalRows: number[], source?: ChangeSource) => void;
@@ -138,7 +139,7 @@ export interface Events {
   afterSetDataAtRowProp?: (changes: CellChange[], source?: ChangeSource) => void;
   afterSetSourceDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
   afterSheetAdded?: (addedSheetDisplayName: string) => void;
-  afterSheetRemoved?: (removedSheetDisplayName: string, changes: object[]) => void;
+  afterSheetRemoved?: (removedSheetDisplayName: string, changes: ExportedChange[]) => void;
   afterSheetRenamed?: (oldDisplayName: string, newDisplayName: string) => void;
   afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
   afterUndo?: (action: UndoRedoAction) => void;
@@ -179,7 +180,7 @@ export interface Events {
   beforeDropdownMenuSetItems?: (menuItems: ContextMenuMenuItemConfig[]) => void;
   beforeDropdownMenuShow?: (instance: DropdownMenu) => void;
   beforeFilter?: (conditionsStack: FiltersColumnConditions[]) => void | boolean;
-  beforeGetCellMeta?: (row: number, col: number, cellProperties: CellProperties) => void;
+  beforeGetCellMeta?: (row: number, column: number, cellProperties: CellProperties) => void;
   beforeHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
   beforeHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
   beforeHighlightingColumnHeader?: (column: number, headerLevel: number, highlightMeta: HookHighlightColumnHeaderMeta) => number | void;
@@ -198,7 +199,7 @@ export interface Events {
   beforePaste?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
   beforeRedo?: (action: UndoRedoAction) => void;
   beforeRedoStackChange?: (undoneActions: UndoRedoAction[]) => void;
-  beforeRefreshDimensions?: (previousDimensions: object, currentDimensions: object, actionPossible: boolean) => boolean | void;
+  beforeRefreshDimensions?: (previousDimensions: { width: number, height: number }, currentDimensions: { width: number, height: number }, actionPossible: boolean) => boolean | void;
   beforeRemoveCellClassNames?: () => string[] | void;
   beforeRemoveCellMeta?: (row: number, column: number, key: string, value: any) => void;
   beforeRemoveCol?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
@@ -211,7 +212,7 @@ export interface Events {
   beforeSelectColumns?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
   beforeSelectionHighlightSet?: () => void;
   beforeSelectRows?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
-  beforeSetCellMeta?: (row: number, col: number, key: string, value: any) => boolean | void;
+  beforeSetCellMeta?: (row: number, column: number, key: string, value: any) => boolean | void;
   beforeSetRangeEnd?: (coords: CellCoords) => void;
   beforeSetRangeStart?: (coords: CellCoords) => void;
   beforeSetRangeStartOnly?: (coords: CellCoords) => void;
