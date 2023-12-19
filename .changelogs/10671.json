@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved TS types of the Core related modules.",
+  "type": "changed",
+  "issueOrPR": 10671,
+  "breaking": false,
+  "framework": "none"
+}
