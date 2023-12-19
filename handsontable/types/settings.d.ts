@@ -147,7 +147,7 @@ export interface GridSettings extends Events {
   hiddenRows?: HiddenRowsSettings;
   invalidCellClassName?: string;
   imeFastEdit?: boolean;
-  isEmptyCol?: (this: Core, col: number) => boolean;
+  isEmptyCol?: (this: Core, column: number) => boolean;
   isEmptyRow?: (this: Core, row: number) => boolean;
   label?: LabelOptions;
   language?: string;
