@@ -19,5 +19,5 @@ export default class CellCoords {
   normalize(): CellCoords;
   assign(coords: CellCoords | { row?: number, col?: number }): CellCoords;
   clone(): CellCoords;
-  toObject(): any;
+  toObject(): { row: number, col: number };
 }
