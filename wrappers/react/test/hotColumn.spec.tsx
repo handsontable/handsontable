@@ -55,7 +55,7 @@ describe('Passing column settings using HotColumn', () => {
   });
 
   it('should apply column settings through the `settings` prop', async () => {
-    const hotInstance = mountComponent((
+    const hotInstance = mountComponentWithRef((
       <HotTable
         licenseKey="non-commercial-and-evaluation"
         colHeaders={true}
