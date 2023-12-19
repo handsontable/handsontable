@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved plugins TS types.",
+  "type": "changed",
+  "issueOrPR": 10670,
+  "breaking": false,
+  "framework": "none"
+}
