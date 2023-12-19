@@ -2595,6 +2595,128 @@ describe('UndoRedo', () => {
         }
       });
 
+      it('should undo/redo row removal with cell meta', () => {
+        const hot = handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          cells(row, column) {
+            const cellProperties = { readOnly: false };
+
+            if (row % 2 === 0 && column % 2 === 0) {
+              cellProperties.readOnly = true;
+            }
+
+            return cellProperties;
+          },
+        });
+
+        alter('remove_row', 0, 1);
+        alter('remove_row', 0, 2);
+        undo();
+        undo();
+
+        expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
+        expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(0, 2).readOnly).toBe(true);
+        expect(hot.getCellMeta(0, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(0, 4).readOnly).toBe(true);
+
+        expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 2).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 4).readOnly).toBe(false);
+
+        expect(hot.getCellMeta(2, 0).readOnly).toBe(true);
+        expect(hot.getCellMeta(2, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(2, 2).readOnly).toBe(true);
+        expect(hot.getCellMeta(2, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(2, 4).readOnly).toBe(true);
+
+        redo();
+        redo();
+        undo();
+        undo();
+
+        expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
+        expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(0, 2).readOnly).toBe(true);
+        expect(hot.getCellMeta(0, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(0, 4).readOnly).toBe(true);
+
+        expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 2).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 4).readOnly).toBe(false);
+
+        expect(hot.getCellMeta(2, 0).readOnly).toBe(true);
+        expect(hot.getCellMeta(2, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(2, 2).readOnly).toBe(true);
+        expect(hot.getCellMeta(2, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(2, 4).readOnly).toBe(true);
+      });
+
+      it('should undo/redo column removal with cell meta', () => {
+        const hot = handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          cells(row, column) {
+            const cellProperties = { readOnly: false };
+
+            if (row % 2 === 0 && column % 2 === 0) {
+              cellProperties.readOnly = true;
+            }
+
+            return cellProperties;
+          },
+        });
+
+        alter('remove_col', 0, 1);
+        alter('remove_col', 0, 2);
+        undo();
+        undo();
+
+        expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
+        expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(0, 2).readOnly).toBe(true);
+        expect(hot.getCellMeta(0, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(0, 4).readOnly).toBe(true);
+
+        expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 2).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 4).readOnly).toBe(false);
+
+        expect(hot.getCellMeta(2, 0).readOnly).toBe(true);
+        expect(hot.getCellMeta(2, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(2, 2).readOnly).toBe(true);
+        expect(hot.getCellMeta(2, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(2, 4).readOnly).toBe(true);
+
+        redo();
+        redo();
+        undo();
+        undo();
+
+        expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
+        expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(0, 2).readOnly).toBe(true);
+        expect(hot.getCellMeta(0, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(0, 4).readOnly).toBe(true);
+
+        expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 2).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 4).readOnly).toBe(false);
+
+        expect(hot.getCellMeta(2, 0).readOnly).toBe(true);
+        expect(hot.getCellMeta(2, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(2, 2).readOnly).toBe(true);
+        expect(hot.getCellMeta(2, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(2, 4).readOnly).toBe(true);
+      });
+
       it('should not throw an error after undoing the row header aligning', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(5, 5),
