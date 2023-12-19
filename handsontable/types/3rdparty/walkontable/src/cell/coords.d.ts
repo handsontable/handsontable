@@ -12,12 +12,12 @@ export default class CellCoords {
   }): boolean;
   isRtl(): boolean;
   isEqual(cellCoords: CellCoords): boolean;
-  isSouthEastOf(testedCoords: any): boolean;
-  isNorthWestOf(testedCoords: any): boolean;
-  isSouthWestOf(testedCoords: any): boolean;
-  isNorthEastOf(testedCoords: any): boolean;
+  isSouthEastOf(testedCoords: CellCoords): boolean;
+  isNorthWestOf(testedCoords: CellCoords): boolean;
+  isSouthWestOf(testedCoords: CellCoords): boolean;
+  isNorthEastOf(testedCoords: CellCoords): boolean;
   normalize(): CellCoords;
   assign(coords: CellCoords | { row?: number, col?: number }): CellCoords;
   clone(): CellCoords;
-  toObject(): any;
+  toObject(): { row: number, col: number };
 }
