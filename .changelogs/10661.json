@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added missing TS typing for `settings` prop",
+  "type": "fixed",
+  "issueOrPR": 10661,
+  "breaking": false,
+  "framework": "react"
+}

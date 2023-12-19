@@ -46,4 +46,7 @@ export class UndoRedo extends BasePlugin {
   constructor(hotInstance: Core);
   undo(): void;
   redo(): void;
+  isUndoAvailable(): boolean;
+  isRedoAvailable(): boolean;
+  clear(): void;
 }

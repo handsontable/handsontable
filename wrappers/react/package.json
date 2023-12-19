@@ -100,6 +100,7 @@
     "clean": "rimraf ./es/ && rimraf ./commonjs/ && rimraf ./dist/ && rimraf ./*.d.ts",
     "publish-package": "npm publish",
     "test": "jest",
+    "test.watch": "jest --watch",
     "watch:commonjs": "cross-env NODE_ENV=cjs rollup -c --watch",
     "watch:es": "cross-env NODE_ENV=es rollup -c --watch"
   },
