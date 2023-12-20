@@ -97,8 +97,10 @@ const hot = new Handsontable(container, {
         colHeaders: false,
         data: colorData
       }
-    }
-  ]
+    },
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -140,6 +142,8 @@ export const ExampleComponent = () => {
 
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         ['Tesla', 2017, 'black', 'black'],

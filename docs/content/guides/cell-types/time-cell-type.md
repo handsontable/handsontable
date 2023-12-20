@@ -75,7 +75,9 @@ const hot = new Handsontable(container, {
         pattern: '$ 0,0.00'
       }
     }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 
 hot.validateCells();
@@ -120,6 +122,8 @@ export const ExampleComponent = () => {
       colHeaders={['Car', 'Model', 'Registration time', 'Price']}
       columnSorting={true}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       columns={[{
           type: 'text',

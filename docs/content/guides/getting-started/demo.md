@@ -1521,6 +1521,8 @@ new Handsontable(example, {
   afterGetColHeader: alignHeaders,
   afterOnCellMouseDown: changeCheckboxCell,
   beforeRenderer: addClassesToRows,
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: "non-commercial-and-evaluation"
 });
 
@@ -2939,6 +2941,8 @@ const App = () => {
       afterGetRowHeader={drawCheckboxInRowHeaders}
       afterOnCellMouseDown={changeCheckboxCell}
       manualRowMove={true}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data={1} />

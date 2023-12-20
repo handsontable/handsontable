@@ -284,6 +284,8 @@ const config = {
   autoWrapRow: true,
   colHeaders: true,
   contextMenu: true,
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 };
 const example1Events = document.getElementById('example1_events');
@@ -461,6 +463,8 @@ const hot = new Handsontable(container, {
   beforeChange(changes, source) {
     lastChange = changes;
   },
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -559,6 +563,8 @@ export const ExampleComponent = () => {
       beforeChange={(changes, source) => {
         lastChange = changes;
       }}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       ref={hotRef}
     />

@@ -132,7 +132,9 @@ const ExampleComponent = {
     state: {
       hotData: null,
       hotSettings: {
-        readOnly: false
+        readOnly: false,
+        autoWrapRow: true,
+        autoWrapCol: true,
       }
     },
     mutations: {

@@ -103,7 +103,9 @@ const hot = new Handsontable(container, {
   // enable a few options that exemplify the layout direction
   dropdownMenu: true,
   filters: true,
-  contextMenu: true
+  contextMenu: true,
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -155,6 +157,8 @@ function generateArabicData() {
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={generateArabicData()}
       colHeaders={true}
@@ -242,6 +246,8 @@ const hot = new Handsontable(container, {
   // inherit Handsontable's layout direction
   // from the value of your HTML document's `dir` attribute
   layoutDirection: 'inherit',
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -265,6 +271,8 @@ export const ExampleComponent = () => {
   return (
     <section dir="rtl">
       <HotTable
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
         data={[
           ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
@@ -320,6 +328,8 @@ const hot = new Handsontable(container, {
   // render Handsontable from the right to the left
   // regardless of your HTML document's `dir`
   layoutDirection: 'rtl',
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -342,6 +352,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
@@ -396,6 +408,8 @@ const hot = new Handsontable(container, {
   // render Handsontable from the left to the right
   // regardless of your HTML document's `dir`
   layoutDirection: 'ltr',
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -418,6 +432,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
@@ -480,7 +496,9 @@ const hot = new Handsontable(container, {
     // align this column's text to the right
     { className: 'htRight' },
     {},
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -503,6 +521,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],

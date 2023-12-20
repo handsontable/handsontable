@@ -68,7 +68,9 @@ const hot = new Handsontable(container, {
       strict: false,
       trimDropdown: false
     }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true
 });
 ```
 
@@ -95,6 +97,8 @@ export const ExampleComponent = () => {
 
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         ['BMW', 2017, 'black', 'black'],
@@ -190,7 +194,9 @@ const hot = new Handsontable(container, {
       strict: true,
       allowInvalid: true //true is default
     }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true
 });
 ```
 
@@ -218,6 +224,8 @@ export const ExampleComponent = () => {
 
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         ['BMW', 2017, 'black', 'black'],
@@ -296,7 +304,9 @@ const hot = new Handsontable(container, {
     {}, // Year is a default text column
     {}, // Chassis color is a default text column
     {} // Bumper color is a default text column
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true
 });
 ```
 
@@ -319,6 +329,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         ['BMW', 2017, 'black', 'black'],

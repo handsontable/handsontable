@@ -111,6 +111,8 @@ new Handsontable(container1, {
     engine: hyperformulaInstance,
     sheetName: 'Sheet1',
   },
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 
@@ -124,6 +126,8 @@ new Handsontable(container2, {
     engine: hyperformulaInstance,
     sheetName: 'Sheet2',
   },
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -187,6 +191,8 @@ export const ExampleComponent = () => {
           engine: hyperformulaInstance,
           sheetName: 'Sheet1',
         }}
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
       <h3 className="demo-preview">Sheet 2</h3>
@@ -199,6 +205,8 @@ export const ExampleComponent = () => {
           engine: hyperformulaInstance,
           sheetName: 'Sheet2',
         }}
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
     </>
@@ -343,6 +351,8 @@ const hot = new Handsontable(container, {
   fixedRowsBottom: 2,
   stretchH: 'all',
   height: 500,
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -480,6 +490,8 @@ export const ExampleComponent = () => {
       fixedRowsBottom={2}
       stretchH="all"
       height={500}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -873,6 +885,8 @@ const hotNamedExpressions = new Handsontable(container, {
       },
     ],
   },
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 
@@ -949,6 +963,8 @@ export const ExampleComponent = () => {
             },
           ],
         }}
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">

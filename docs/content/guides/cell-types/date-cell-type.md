@@ -147,7 +147,9 @@ const hot = new Handsontable(container, {
         pattern: '$ 0,0.00'
       }
     }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -170,6 +172,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         ['Mercedes', 'A 160', '01/14/2021', 6999.95],
