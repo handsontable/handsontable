@@ -788,9 +788,9 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable 
-    autoWrapRow={true}
-    autoWrapCol={true}
-    licenseKey="non-commercial-and-evaluation" />
+      autoWrapRow={true}
+      autoWrapCol={true}
+      licenseKey="non-commercial-and-evaluation" />
   );
 };
 

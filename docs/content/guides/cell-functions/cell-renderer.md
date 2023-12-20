@@ -100,9 +100,9 @@ const hotData = [
 export const ExampleComponent = () => {
   return (
     <HotTable data={hotData}
-    autoWrapRow={true}
-    autoWrapCol={true}
-    licenseKey="non-commercial-and-evaluation">
+      autoWrapRow={true}
+      autoWrapCol={true}
+      licenseKey="non-commercial-and-evaluation">
       <HotColumn width={250}>
         {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
         <RendererComponent hot-renderer />

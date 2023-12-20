@@ -50,9 +50,9 @@ const secondColumnSettings = {
 export const ExampleComponent = () => {
   return (
     <HotTable data={hotData} 
-    autoWrapRow={true}
-    autoWrapCol={true}
-    licenseKey="non-commercial-and-evaluation">
+      autoWrapRow={true}
+      autoWrapCol={true}
+      licenseKey="non-commercial-and-evaluation">
       <HotColumn title="First column header" />
       <HotColumn settings={secondColumnSettings} />
     </HotTable>

@@ -89,7 +89,7 @@ export const ExampleComponent = () => {
       colWidths={100}
       manualColumnMove={true}
       autoWrapRow={true}
-      autoWrapCol={true }
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
