@@ -1,6 +1,6 @@
 <template>
   <nav class="nav-frameworks nav-links">
-    <img :src="imageUrl" :alt="alt" />
+    <i class="ico" :class="icon" :alt="alt"></i>
     <!-- user links -->
     <nav class="nav-item">
       <DropdownLink @item-click="onFrameworkClick" :item="item"></DropdownLink>
@@ -111,17 +111,10 @@ export default {
     },
   },
   computed: {
-    alt() {
-      return `${this.$page.frameworkName} data grid`;
-    },
-    imageUrl() {
-      const frameworkWithoutNumber = (
-        this.legacyFramework ?? this.$page.currentFramework
-      ).replace(/\d+$/, '');
+    icon() {
+      const frameworkWithoutNumber = (this.legacyFramework ?? this.$page.currentFramework).replace(/\d+$/, '');
 
-      return this.$withBase(
-        `/img/pages/introduction/${frameworkWithoutNumber}.svg`
-      );
+      return 'i-' + frameworkWithoutNumber ;
     },
     item() {
       return {

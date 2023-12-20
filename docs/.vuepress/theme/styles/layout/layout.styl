@@ -1,0 +1,35 @@
+body {
+  font-family: 'Inter', sans-serif;
+  font-size $font-size
+  line-height: $line-height
+  background: $bgColor
+  color: $textColor
+  font-smooth: auto
+}
+
+#app,
+.layout-container,
+.theme-container { 
+  min-height:100vh
+  min-height:100dvh
+}
+
+a { 
+  color: $accentColor 
+}
+
+* { 
+  outline: $accentColor solid 0 
+  outline-offset: -2px;
+}
+:focus-visible {
+  outline: $accentColor solid 1px 
+}
+
+#nprogress .bar { 
+  background: $accentColor 
+}
+.hidden { 
+  display:none
+}
+

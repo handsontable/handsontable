@@ -1,0 +1,456 @@
+html.theme-dark {
+    $accentColor        = var(--color-accentblue)
+    $textColor          = var(--color-white)
+    $text2Color         = var(--color-gray-400)
+    $borderColor        = var(--color-gray-800)
+    $bgColor            = var(--color-black)
+    $sideColor          = var(--color-gray-900)
+    $bgCode             = $borderColor 
+
+    i.Logo { background:  url('{{$basePath}}/img/logo-white.svg');}
+    i.ico { filter: brightness(0) invert(1)}
+
+    color-scheme dark
+
+    body {
+        background: $bgColor
+        color: $textColor
+    }
+
+    * { 
+        outline: $accentColor solid 0 ;
+    }
+    :focus-visible {
+        outline: $accentColor solid 1px ;
+    }
+
+    a { 
+        color: $accentColor 
+    }
+
+    #nprogress .bar { 
+        background: $accentColor 
+    }
+
+    /* Sidebar 
+    ------------------------------- */
+    .sidebar { 
+        background: $sideColor
+
+        .info-box { 
+            background: $bgColor
+
+            span { 
+                background-color: $borderColor
+                
+                i { 
+                    filter: hue-rotate(190deg) invert(1); /* 190 degrees shifts the hue towards #27C2FF */
+                }
+            }
+            div {
+                a { 
+                    color:$text2Color
+
+                    &:before {
+                        box-shadow: 0 0 0 1px $accentColor
+                    }
+                }
+            }
+        }
+        
+        .sidebar-links > li {
+            > a { 
+                color: $text2Color
+
+                &.active { 
+                    color: $textColor
+                    .i-arrow { 
+                        transform: rotate(180deg)
+                    }
+                }
+                @media (hover: hover) {
+                    &:hover { 
+                        color: $textColor
+                    }
+                }
+            }
+            > .sidebar-group {
+                p, a { 
+                    color:  $text2Color 
+
+                    &.open { 
+                        color: $textColor
+                    }
+
+                    @media (hover: hover) {
+                        &:hover { 
+                            color: $textColor
+                        }
+                    }
+                }
+                > .sidebar-links {
+                    a { 
+                        color: $text2Color
+
+                        &:after {
+                            border-color: $borderColor
+                        }
+
+                        &:before{ 
+                            background: $borderColor 
+                        }
+
+                        @media (hover: hover) {
+                            &:hover { 
+                                color: $textColor
+                            }
+                        }
+                        
+                        &.active {
+                            color: $textColor
+                            
+                            &:after {
+                                border-color: $accentColor
+                            }
+                        }
+
+                        .tag-update, .tag-new  { 
+                            background-color: $accentColor
+                            color: $bgColor
+                        }
+                        .tag-new {
+                            background-color: $successColor
+                        }
+                    }
+                }
+            }
+        }
+
+        .mobile-show {
+            .nav-links {
+                .nav-item {
+                    a, button { 
+                        color: $text2Color
+
+                        &.router-link-active { 
+                            color: $textColor
+                        }
+                    }
+
+                    button { 
+                        color: $text2Color
+                    }
+                }
+            }
+
+            .dropdown-wrapper { 
+                
+                .nav-dropdown { 
+                    background: $sideColor
+
+                    a { 
+                        color: $text2Color
+
+                        &:before { 
+                            background: $bgColor
+                        }
+
+                        @media (hover: hover) {
+                            &:hover { 
+                                color: $textColor
+                            }
+                        }
+                        
+                        &.active { 
+                            color: $textColor
+                        }  
+                    }
+                }
+            } 
+
+            //Icons
+            .icons-nav {
+                a, button, label {
+                    @media (hover: hover) {
+                        &:hover { 
+                            background: $borderColor
+                        }
+                    }
+                }
+            }   
+
+            //Search
+            .search-box { 
+                input { 
+                    color: $text2Color
+                }
+
+                .kbd-hint { 
+                    kbd { 
+                        background: $borderColor
+                        color: $text2Color
+                    }
+                }
+
+                .suggestions { 
+                    background: $sideColor
+
+                    li { color: $text2Color
+                        
+                        &:not(.suggestion) {
+                            border-bottom: 1px solid $borderColor
+                        }
+
+                        a { 
+                            color: $text2Color
+
+                            @media (hover: hover) {
+                                &:hover { 
+                                    background: $borderColor
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /* Navbar 
+    ------------------------------- */
+    .navbar {
+        .tag  { 
+            background-color: $accentColor
+            color: $bgColor
+        }  
+    }
+
+    .navbar-wrapper { 
+        background: rgba(0,0,0,.75)
+
+        .dropdown-wrapper { 
+            .nav-dropdown { 
+                background: $sideColor
+
+                a { 
+                    color: $text2Color
+
+                    &:before { 
+                        background: $bgColor
+                    }
+
+                    @media (hover: hover) {
+                        &:hover { 
+                            color: $textColor
+                        }
+                    }
+                }
+            }
+        }
+
+        .menu {
+            .nav-links {
+                .nav-item {
+                    a, button { 
+                        color: $text2Color
+
+                        &.router-link-active { 
+                            color: $textColor
+                        }
+                    }
+                }
+            }
+        }   
+
+        .icons-nav {
+            a, button, label {
+                @media (hover: hover) {
+                    &:hover { 
+                        background: $borderColor
+                    }
+                }
+            }
+        }   
+
+        .search-box { 
+            input { 
+                color: $text2Color
+                font-family: $font
+            }
+
+            .kbd-hint { 
+                kbd { 
+                    background: $borderColor
+                    color: $text2Color
+                }
+            }
+            .suggestions {
+                background: $sideColor
+
+                li { color: $text2Color
+                    &:not(.suggestion) {
+                        border-bottom: 1px solid $borderColor
+                    }
+                    a { 
+                        color: $text2Color
+
+                        @media (hover: hover) {
+                            &:hover { 
+                                background: $borderColor
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+    }
+
+    //Page
+    .page { 
+        #example1_events {
+            border: 1px solid $borderColor
+        }
+        
+        .theme-default-content {  
+            p {
+                color: $text2Color
+            }
+            ul, ol { 
+
+                li {
+                    color: $text2Color
+                }
+            }
+
+            pre { 
+                background: $sideColor 
+                border-radius: $radius
+            }
+            .language-bash:before { 
+                display: none
+            }
+            div[class*="language-"] { 
+                background: $sideColor 
+            }
+            code {
+                background: $sideColor 
+                color:$accentColor
+            }
+            .table-of-contents { 
+                ul { 
+                    border-left: 1px solid $borderColor
+                    li { 
+                        a { 
+                            color: $text2Color
+
+                            @media (hover: hover) {
+                                &:hover {  
+                                    background: $borderColor
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            .custom-block {
+                background: $sideColor
+                //border: 1px solid $borderColor
+
+                p { 
+                    a { 
+                        //color: $textColor 
+                    }
+                }
+            }
+        }
+
+        .page-nav {             
+            .inner { 
+                > span { 
+                    border: 1px solid $borderColor
+                    color: $accentColor
+
+                    &:before {
+                        color: $text2Color
+                    }
+                    
+                    @media (hover: hover) {
+                        &:hover { 
+                            a:after {
+                                background: $borderColor
+                            }
+                        }
+                    }
+
+                    a { 
+                        @media (hover: hover) {
+                            &:hover:after {  
+                                background: $borderColor
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        kbd {
+            border: 1px solid $borderColor
+            border-bottom: 2px solid $borderColor
+            background: $bgColor
+        }
+        
+        table { 
+            thead { 
+                tr { 
+                    th { 
+                        border-top:1px solid $borderColor
+                    }
+                }
+            }
+
+            tbody {
+                tr {
+                    background: $sideColor
+                    td {
+                        
+                    }
+                    &:nth-child(2n) { 
+                        background: $bgColor
+                    }
+                }
+            }
+        }
+        
+        .footer {
+            .footer-links { 
+                border-top: 1px solid $borderColor
+                color: $text2Color
+
+                div { 
+                    a { 
+                        color: $text2Color
+                    }
+                }
+            }
+
+            .footer-support { 
+                border-top: 1px solid $borderColor
+                color: $text2Color
+
+                .edit-link a { 
+                    i { filter: hue-rotate(190deg) invert(1) }
+                }
+            }
+        }
+    }
+
+    .handsontable-drawing p:last-child { 
+        display: block
+    }
+    .handsontable-drawing p:first-child { 
+        display: none
+    }
+}

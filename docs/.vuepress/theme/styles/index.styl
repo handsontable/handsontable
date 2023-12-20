@@ -2,14 +2,35 @@
 @import '~vuepress-plugin-tabs/dist/themes/default'
 @import 'vuepress-tabs-custom'
 
+/* Font Import */  
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+/* Abstract */  
+@import 'abstract/vars'
+
+/* Base */  
+@import 'base/reset'
+@import 'base/icons'
+
+/* Layout */  
+@import 'layout/layout'
+@import 'layout/navbar'
+@import 'layout/sidebar'
+@import 'layout/page'
+@import 'layout/footer'
+
+/* Theme */  
+@import 'theme/darkmode'
+
+// ------------------------------------//
 /* Scrollbar styles */
-@import 'scrollbar'
+//@import 'scrollbar'
 
 /* Code group tabs */
 @import 'code-group'
 
 /* Table of contents (menu) */
-@import 'table-of-contents'
+//@import 'table-of-contents'
 
 /* Forms */
 @import 'form'
@@ -18,10 +39,10 @@
 @import 'examples'
 
 /* Sidebar */
-@import 'sidebar'
+//@import 'sidebar'
 
 /* Navbar */
-@import 'navbar'
+//@import 'navbar'
 
 /* Cookiebot */
 @import 'cookiebot'
@@ -36,18 +57,21 @@
 @import 'handsontable'
 
 /* Themes */
-@import 'theme-dark'
+// @import 'theme-dark'
 
+
+
+
+//Base 
 html {
   color-scheme light
   /* Fix for anchor correct scroll positioning */
-  scroll-padding-top ($navbarHeight + 1.1rem)
+  //scroll-padding-top ($navbarHeight + 1.1rem)
 }
 
-body {
-  font-size 16px
-}
 
+
+/*
 body, html, #app {
   min-height 100vh
 }
@@ -61,7 +85,7 @@ body div {
 }
 
 /* Layout */
-
+/*
 .page {
   // limit the width for enormously big screens, this way it looks good
   max-width: $homePageWidth;
@@ -82,7 +106,7 @@ body div {
     float: left;
   }
 }
-
+/*
 a.source-code-link {
   font-size 12px
   float right
@@ -103,7 +127,7 @@ a.source-code-link {
 }
 
 /* Page elements */
-
+/*
 .page-top, .page-edit, .page-nav {
   margin: 0 auto;
   padding: 0;
@@ -128,7 +152,7 @@ a.source-code-link {
   padding-top: 2rem;
 }
 
-/* iFrames */
+/* iFrames *//*
 .iframe-container {
   overflow: hidden;
   // aspect ration of the video (for 16:9 it is 9/16= 0.5625)
@@ -157,6 +181,7 @@ a.source-code-link {
   TODO: It's workaround, and it should be removed. It seems that there is no option to disable title for a custom
   containers: https://v1.vuepress.vuejs.org/guide/markdown.html#custom-containers
 */
+/*
 .custom-block-title {
   display: none;
 }
@@ -165,6 +190,7 @@ a.source-code-link {
   TODO: It's workaround, and it should be removed. It seems that there is no option to disable title for a custom
   containers: https://v1.vuepress.vuejs.org/guide/markdown.html#custom-containers
 */
+/*
 .custom-block {
   border-radius: 6px;
 
@@ -188,6 +214,7 @@ a.source-code-link {
 }
 
 /* Larger bottom gap of H1, H2, H3 */
+/*
 h1 {
   font-size: 2rem;
   margin-bottom: 2rem !important;
@@ -227,7 +254,7 @@ h4 {
 h5 {
   font-size: 1em;
 }
-
+/*
 h1, h2, h3, h4, h5 {
 
   a.header-anchor::before {
@@ -243,7 +270,7 @@ h1, h2, h3, h4, h5 {
     visibility: 'visible';
   }
 }
-
+/*
 .page {
   ul, ol {
       padding-left: 2.2em;
@@ -260,6 +287,7 @@ a {
 }
 
 /* A div that makes the table scrollable used in the /setting-options page */
+/*
 .scrollable-table {
   height: 382px;
   overflow-x: scroll;
@@ -318,6 +346,7 @@ div.js-fiddle-link {
 }
 
 /* A navigation element containing clickable fields (columns) */
+/*
 .row-items-container {
   margin: 30px 0 30px;
   display: flex;
@@ -360,7 +389,7 @@ div.js-fiddle-link {
     }
   }
 }
-
+/*
 .theme-default-content code {
   color: $textColor;
   background-color: #eef0f7;
@@ -371,11 +400,13 @@ div.js-fiddle-link {
 }
 
 /* Table of contents */
+/*
 .table-of-contents {
   scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
 }
 
 /* Tabs component */
+/*
 .tabs-component {
   .tabs-component-tab {
     font-size: 15px;
@@ -403,6 +434,7 @@ div.js-fiddle-link {
 }
 
 /* Language specific code blocks */
+/*
 div[class*="language-"] {
   pre {
     scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
@@ -410,11 +442,13 @@ div[class*="language-"] {
 }
 
 /* Table styling starts */
+/*
 .scrollable-table {
   scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
 }
 
 /* Keyboard keys names formatting */
+/*
 kbd {
   padding: 0 0.25em;
   font-size: 13px;
@@ -432,7 +466,7 @@ kbd {
 }
 
 /* Styles for the icon-pack page */
-
+/*
 .icons-wrapper {
   margin-top: 30px;
   text-align: center;
@@ -459,7 +493,7 @@ kbd {
     text-align: center;
   }
 }
-
+/*
 @media (max-width: $extraLarge) {
   .icons-wrapper {
     > div {
@@ -474,14 +508,14 @@ kbd {
 }
 
 /* Code field styling */
-
+/*
 @media (max-width: $extraLarge) {
   .theme-default-content div[class*="language-"] {
     margin initial
   }
 }
 
-/* Handsontable drawing on the introduction page */
+/* Handsontable drawing on the introduction page 
 
 .handsontable-drawing {
   width: 90%;
@@ -493,3 +527,14 @@ kbd {
     }
   }
 }
+*/
+//
+/*.layout-container
+  min-height 100%
+
+.custom-block.tip.version-alert
+  position relative
+  top -34px
+  border-width 1px
+  border-style dashed
+*/
