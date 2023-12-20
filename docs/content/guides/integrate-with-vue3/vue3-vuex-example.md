@@ -54,7 +54,7 @@ const store = createStore({
     return {
       hotData: null,
       hotSettings: {
-        readOnly: false
+        readOnly: false,
         autoWrapRow: true,
         autoWrapCol: true,
       }
