@@ -56,7 +56,7 @@ Most global standards and regulations are created in accordance with WCAG (Web C
 
 Handsontable doesn't require a mouse to navigate across the grid's elements. This is an important feature for those users with temporary or permanent motor impairments for whom following the mouse cursor is difficult. Keyboard navigation is also a great way to improve productivity, which is why many users choose the keyboard over the mouse regardless of their accessibility needs.
 
-Our experience with hundreds of implementations shows that Handsontable tends to be used either as a **spreadsheet application** or a **data grid component**. While at first the difference may seem subtle, it significantly impacts user expectations regarding navigation.
+Our experience with hundreds of implementations shows that Handsontable tends to be used either as a **spreadsheet application** or a **data grid component**. While at first the difference seems subtle, it significantly impacts user expectations regarding navigation.
 
 In a typical spreadsheet application (think of Microsoft Excel or Google Sheets), you can't move the focus onto headers. This makes it difficult to sort or filter data without knowing complex [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts.md). Additionally, opening a [column menu](@/guides/columns/column-menu.md) is not trivial.
 Handsontable offers flexibility in this regard, allowing users to switch between data grid and spreadsheet "modes". To do that switch, you can use a combination of two options: [`navigableHeaders`](@/api/options.md#navigableheaders) to enable or disable moving focus onto headers, and [`tabNavigation`](@/api/options.md#tabnavigation) to decide if the <kbd>**Tab**</kbd> key can be used to navigate across cells and headers.
@@ -2232,7 +2232,7 @@ Our recommendations for custom development:
 
 ::: tip
 
-The quality of custom Handsontable modifications may impact your application's accessibility level. Make sure to actively check how your changes influence the overall accessibility of your application, using tools like [Lighthouse](https://developers.google.com/web/tools/lighthouse).
+The quality of custom Handsontable modifications can impact your application's accessibility level. Make sure to actively check how your changes influence the overall accessibility of your application, using tools like [Lighthouse](https://developers.google.com/web/tools/lighthouse).
 
 :::
 
@@ -2247,10 +2247,10 @@ We make sure our data grid remains accessible by taking the following measures:
 
 ## Known limitations
 
-- Some screen readers may incorrectly read the number of rows and columns when [frozen rows](@/guides/rows/row-freezing.md) and [columns](@/guides/columns/column-freezing.md) are enabled.
-- The `aria-rowcount` attribute is intentionally set to `-1`, as most screen readers either ignore or misinterpret it. This configuration ensures accuracy with screen readers such as VoiceOver. We plan to revise this approach once screen readers consistently handle the `aria-rowcount` attribute correctly.
+- When [frozen rows](@/guides/rows/row-freezing.md), [frozen columns](@/guides/columns/column-freezing.md), or both, are enabled, some screen readers may incorrectly read the total number of rows and columns.
+- When you select a cell that's part of a frozen row, frozen column, or both, NVDA and JAWS might incorrectly announce that cell's column header name.
 - Dynamic ARIA attributes are sometimes omitted by screen readers.
-- When using frozen rows and columns, NVDA and JAWS may incorrectly announce the current column header.
+- The `aria-rowcount` attribute is intentionally set to `-1`, as most screen readers either ignore or misinterpret it. This configuration ensures accuracy with screen readers such as VoiceOver. We plan to revise this approach once screen readers consistently handle the `aria-rowcount` attribute correctly.
 
 ## API reference
 
