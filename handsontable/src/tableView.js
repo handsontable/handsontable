@@ -327,7 +327,7 @@ class TableView {
 
       const isOutsideInputElement = isOutsideInput(rootDocument.activeElement);
 
-      if (!isOutsideInputElement) {
+      if (isInput(rootDocument.activeElement) && !isOutsideInputElement) {
         return;
       }
 

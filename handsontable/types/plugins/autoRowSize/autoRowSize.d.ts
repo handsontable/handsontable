@@ -15,8 +15,8 @@ export class AutoRowSize extends BasePlugin {
   measuredRows: number;
 
   isEnabled(): boolean;
-  calculateRowsHeight(rowRange?: number | object, colRange?: number | object, force?: boolean): void;
-  calculateAllRowsHeight(colRange?: number | object): void;
+  calculateRowsHeight(rowRange?: number | { from: number, to: number }, colRange?: number | { from: number, to: number }, force?: boolean): void;
+  calculateAllRowsHeight(colRange?: number | { from: number, to: number }): void;
   recalculateAllRowsHeight(): void;
   getSyncCalculationLimit(): number;
   getRowHeight(row: number, defaultHeight?: number): number;
@@ -24,6 +24,6 @@ export class AutoRowSize extends BasePlugin {
   getFirstVisibleRow(): number;
   getLastVisibleRow(): number;
   clearCache(): void;
-  clearCacheByRange(range: number | object): void;
+  clearCacheByRange(range: number | { from: number, to: number }): void;
   isNeedRecalculate(): boolean;
 }

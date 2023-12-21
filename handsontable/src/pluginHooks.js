@@ -2645,8 +2645,8 @@ const REGISTERED_HOOKS = [
    * Fired after the window was resized or the size of the Handsontable root element was changed.
    *
    * @event Hooks#afterRefreshDimensions
-   * @param {object} previousDimensions Previous dimensions of the container.
-   * @param {object} currentDimensions Current dimensions of the container.
+   * @param {{ width: number, height: number }} previousDimensions Previous dimensions of the container.
+   * @param {{ width: number, height: number }} currentDimensions Current dimensions of the container.
    * @param {boolean} stateChanged `true`, if the container was re-render, `false` otherwise.
    */
   'afterRefreshDimensions',
@@ -2656,8 +2656,8 @@ const REGISTERED_HOOKS = [
    * Handsontable root element, but before redrawing a table.
    *
    * @event Hooks#beforeRefreshDimensions
-   * @param {object} previousDimensions Previous dimensions of the container.
-   * @param {object} currentDimensions Current dimensions of the container.
+   * @param {{ width: number, height: number }} previousDimensions Previous dimensions of the container.
+   * @param {{ width: number, height: number }} currentDimensions Current dimensions of the container.
    * @param {boolean} actionPossible `true`, if current and previous dimensions are different, `false` otherwise.
    * @returns {undefined|boolean} If the callback returns `false`, the refresh action will not be completed.
    */
