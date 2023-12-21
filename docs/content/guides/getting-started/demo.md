@@ -2749,8 +2749,6 @@ const App = () => {
       rowHeaders={true}
       afterGetColHeader={alignHeaders}
       beforeRenderer={addClassesToRows}
-      afterGetRowHeader={drawCheckboxInRowHeaders}
-      afterOnCellMouseDown={changeCheckboxCell}
       manualRowMove={true}
       autoWrapRow={true}
       autoWrapCol={true}
