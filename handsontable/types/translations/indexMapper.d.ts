@@ -28,7 +28,7 @@ export class IndexMapper {
   getVisualFromPhysicalIndex(physicalIndex: number): number;
   getVisualFromRenderableIndex(renderableIndex: number): number;
   getRenderableFromVisualIndex(visualIndex: number): number;
-  getNearestNotHiddenIndex(fromVisualIndex: number, searchDirection: 1|-1,
+  getNearestNotHiddenIndex(fromVisualIndex: number, searchDirection: 1 | -1,
     searchAlsoOtherWayAround?: boolean): number | null;
   initToLength(length?: number): void;
   getIndexesSequence(): number[];

@@ -1,60 +1,26 @@
 diff --git a/node_modules/vue-tabs-component/dist/index.js b/node_modules/vue-tabs-component/dist/index.js
-index d285ef4..8216328 100644
+index d285ef4..89f4890 100644
 --- a/node_modules/vue-tabs-component/dist/index.js
 +++ b/node_modules/vue-tabs-component/dist/index.js
-@@ -361,10 +361,10 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
-             },
-             hash: function hash() {
-                 if (this.isDisabled) {
--                    return '#';
-+                    return '';
-                 }
- 
--                return '#' + this.computedId;
-+                return '' + this.computedId;
-             }
-         }
-     };
-@@ -499,8 +499,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
-                 return;
-             }
- 
--            if (this.options.defaultTabHash !== null && this.findTab("#" + this.options.defaultTabHash)) {
--                this.selectTab("#" + this.options.defaultTabHash);
-+            if (this.options.defaultTabHash !== null && this.findTab("" + this.options.defaultTabHash)) {
-+                this.selectTab("" + this.options.defaultTabHash);
-                 return;
-             }
- 
-diff --git a/node_modules/vue-tabs-component/src/components/Tab.vue b/node_modules/vue-tabs-component/src/components/Tab.vue
-index 31d7cc1..103c9f0 100644
---- a/node_modules/vue-tabs-component/src/components/Tab.vue
-+++ b/node_modules/vue-tabs-component/src/components/Tab.vue
-@@ -35,10 +35,10 @@
- 
-             hash() {
-                 if (this.isDisabled) {
--                    return '#';
-+                    return '';
-                 }
- 
--                return '#' + this.computedId;
-+                return '' + this.computedId;
-             },
-         },
-     };
+@@ -976,7 +976,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
+     }, [_c('a', {
+       staticClass: "tabs-component-tab-a",
+       attrs: {
+-        "aria-controls": tab.hash,
++        "aria-controls": tab.computedId,
+         "aria-selected": tab.isActive,
+         "href": tab.hash,
+         "role": "tab"
 diff --git a/node_modules/vue-tabs-component/src/components/Tabs.vue b/node_modules/vue-tabs-component/src/components/Tabs.vue
-index 2a87c6c..7d18a02 100644
+index 2a87c6c..dc311c7 100644
 --- a/node_modules/vue-tabs-component/src/components/Tabs.vue
 +++ b/node_modules/vue-tabs-component/src/components/Tabs.vue
-@@ -75,8 +75,8 @@
-                 return;
-             }
- 
--            if(this.options.defaultTabHash !== null && this.findTab("#" + this.options.defaultTabHash)) {
--                this.selectTab("#" + this.options.defaultTabHash);
-+            if(this.options.defaultTabHash !== null && this.findTab("" + this.options.defaultTabHash)) {
-+                this.selectTab("" + this.options.defaultTabHash);
-                 return;
-             }
- 
+@@ -10,7 +10,7 @@
+                 v-show="tab.isVisible"
+             >
+                 <a v-html="tab.header"
+-                   :aria-controls="tab.hash"
++                   :aria-controls="tab.computedId"
+                    :aria-selected="tab.isActive"
+                    @click="selectTab(tab.hash, $event)"
+                    :href="tab.hash"

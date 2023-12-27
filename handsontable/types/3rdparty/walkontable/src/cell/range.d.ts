@@ -65,5 +65,5 @@ export default class CellRange {
   getAll(): CellCoords[];
   forAll(callback: (row: number, column: number) => boolean): void;
   clone(): CellRange;
-  toObject(): { from: { row: number, col: number}, to: { row: number, col: number} };
+  toObject(): { from: { row: number, col: number }, to: { row: number, col: number } };
 }

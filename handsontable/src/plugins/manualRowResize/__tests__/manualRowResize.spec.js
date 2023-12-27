@@ -496,6 +496,68 @@ describe('manualRowResize', () => {
     expect($rowsHeaders.eq(3).height()).toEqual(35);
   });
 
+  it('should show resizer for fixed top rows', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 20),
+      colHeaders: true,
+      rowHeaders: true,
+      fixedRowsTop: 2,
+      manualRowResize: true
+    });
+
+    getInlineStartClone()
+      .find('tbody tr:eq(3) th:eq(0)')
+      .simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualRowResizer');
+
+    expect($resizer.position()).toEqual({
+      top: 113,
+      left: 0,
+    });
+
+    // after hovering over fixed row, resizer should be moved to the fixed row
+    getTopInlineStartClone()
+      .find('tbody tr:eq(1) th:eq(0)')
+      .simulate('mouseover');
+
+    expect($resizer.position()).toEqual({
+      top: 67,
+      left: 0,
+    });
+  });
+
+  it('should show resizer for fixed bottom rows', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 20),
+      colHeaders: true,
+      rowHeaders: true,
+      fixedRowsBottom: 2,
+      manualRowResize: true
+    });
+
+    getInlineStartClone()
+      .find('tbody tr:eq(3) th:eq(0)')
+      .simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualRowResizer');
+
+    expect($resizer.position()).toEqual({
+      top: 113,
+      left: 0,
+    });
+
+    // after hovering over fixed row, resizer should be moved to the fixed row
+    getBottomInlineStartClone()
+      .find('tbody tr:eq(0) th:eq(0)')
+      .simulate('mouseover');
+
+    expect($resizer.position()).toEqual({
+      top: 18,
+      left: 0,
+    });
+  });
+
   it('should resize proper row after resizing element adjacent to a selection', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -589,6 +651,40 @@ describe('manualRowResize', () => {
 
     // Reassign the native onerror handler.
     window.onerror = nativeOnError;
+  });
+
+  it('should not throw any errors, when the cell renderers use HTML table to present the value (#dev-1298)', () => {
+    const onErrorSpy = spyOn(window, 'onerror').and.returnValue(true);
+
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      rowHeaders: true,
+      manualRowResize: true,
+      renderer(hot, td, row, column, value) {
+        td.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>${value}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>${value}</th>
+              </tr>
+            </tbody>
+          </table>`;
+      }
+    });
+
+    const rendererTH = $(getCell(0, 0).querySelector('tbody th'));
+
+    rendererTH
+      .simulate('mouseover')
+      .simulate('mousedown')
+      .simulate('click');
+
+    expect(onErrorSpy).not.toHaveBeenCalled();
   });
 
   describe('handle position in a table positioned using CSS\'s `transform`', () => {
