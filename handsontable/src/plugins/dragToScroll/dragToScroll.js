@@ -97,9 +97,15 @@ export class DragToScroll extends BasePlugin {
   /**
    * Sets the value of the visible element.
    *
-   * @param {DOMRect} boundaries An object with coordinates compatible with DOMRect.
+   * @param {DOMRect|{left: number, right: number, top: number, bottom: number}} [boundaries] An object with
+   * coordinates. Contains the window boundaries by default. The object is compatible with DOMRect.
    */
-  setBoundaries(boundaries) {
+  setBoundaries(boundaries = {
+    left: 0,
+    right: this.hot.rootWindow.innerWidth,
+    top: 0,
+    bottom: this.hot.rootWindow.innerHeight,
+  }) {
     this.boundaries = boundaries;
   }
 
@@ -113,7 +119,7 @@ export class DragToScroll extends BasePlugin {
   }
 
   /**
-   * Checks if the mouse position (X, Y) is outside of the viewport and fires a callback with calculated X an Y diffs
+   * Checks if the mouse position (X, Y) is outside the viewport and fires a callback with calculated X an Y diffs
    * between passed boundaries.
    *
    * @param {number} x Mouse X coordinate to check.
@@ -210,28 +216,18 @@ export class DragToScroll extends BasePlugin {
       return;
     }
 
-    const scrollHandler = this.hot.view._wt.wtTable.holder; // native scroll
+    const scrollHandler = this.hot.view._wt.wtOverlays.topOverlay.mainTableScrollableElement;
 
-    if (scrollHandler === this.hot.rootWindow) {
-      // not much we can do currently
-      return;
-    }
+    this.setBoundaries(scrollHandler !== this.hot.rootWindow ? scrollHandler.getBoundingClientRect() : undefined);
 
-    this.setBoundaries(scrollHandler.getBoundingClientRect());
     this.setCallback((scrollX, scrollY) => {
-      if (scrollX < 0) {
-        scrollHandler.scrollLeft -= 50;
+      const horizontalScrollValue = scrollHandler.scrollLeft ?? scrollHandler.scrollX;
+      const verticalScrollValue = scrollHandler.scrollTop ?? scrollHandler.scrollY;
 
-      } else if (scrollX > 0) {
-        scrollHandler.scrollLeft += 50;
-      }
-
-      if (scrollY < 0) {
-        scrollHandler.scrollTop -= 20;
-
-      } else if (scrollY > 0) {
-        scrollHandler.scrollTop += 20;
-      }
+      scrollHandler.scroll(
+        horizontalScrollValue + (Math.sign(scrollX) * 50),
+        verticalScrollValue + (Math.sign(scrollY) * 20)
+      );
     });
 
     this.listen();
