@@ -177,42 +177,7 @@ class Scroll {
    * @returns {number}
    */
   getFirstVisibleRow() {
-    const {
-      topOverlay,
-      wtTable,
-      wtViewport,
-      totalRows,
-      fixedRowsTop,
-      rootWindow,
-    } = this.dataAccessObject;
-
-    let firstVisibleRow = wtTable.getFirstVisibleRow();
-
-    if (topOverlay.mainTableScrollableElement === rootWindow) {
-      const rootElementOffset = offset(wtTable.wtRootElement);
-      const totalTableHeight = innerHeight(wtTable.hider);
-      const windowHeight = innerHeight(rootWindow);
-      const windowScrollTop = getScrollTop(rootWindow, rootWindow);
-
-      // Only calculate firstVisibleRow when table didn't filled (from up) whole viewport space
-      if (rootElementOffset.top + totalTableHeight - windowHeight <= windowScrollTop) {
-        let rowsHeight = wtViewport.getColumnHeaderHeight();
-
-        rowsHeight += topOverlay.sumCellSizes(0, fixedRowsTop);
-
-        for (let row = totalRows; row > 0; row--) {
-          rowsHeight += topOverlay.sumCellSizes(row - 1, row);
-
-          if (rootElementOffset.top + totalTableHeight - rowsHeight <= windowScrollTop) {
-            // Return physical row + 1
-            firstVisibleRow = row;
-            break;
-          }
-        }
-      }
-    }
-
-    return firstVisibleRow;
+    return this.dataAccessObject.wtTable.getFirstVisibleRow();
   }
 
   /**
@@ -260,39 +225,7 @@ class Scroll {
    * @returns {number}
    */
   getFirstVisibleColumn() {
-    const {
-      inlineStartOverlay,
-      wtTable,
-      wtViewport,
-      totalColumns,
-      rootWindow,
-    } = this.dataAccessObject;
-
-    let firstVisibleColumn = wtTable.getFirstVisibleColumn();
-
-    if (inlineStartOverlay.mainTableScrollableElement === rootWindow) {
-      const rootElementOffset = offset(wtTable.wtRootElement);
-      const totalTableWidth = innerWidth(wtTable.hider);
-      const windowWidth = innerWidth(rootWindow);
-      const windowScrollLeft = Math.abs(getScrollLeft(rootWindow, rootWindow));
-
-      // Only calculate firstVisibleColumn when table didn't filled (from left) whole viewport space
-      if (rootElementOffset.left + totalTableWidth - windowWidth <= windowScrollLeft) {
-        let columnsWidth = wtViewport.getRowHeaderWidth();
-
-        for (let column = totalColumns; column > 0; column--) {
-          columnsWidth += inlineStartOverlay.sumCellSizes(column - 1, column);
-
-          if (rootElementOffset.left + totalTableWidth - columnsWidth <= windowScrollLeft) {
-            // Return physical column + 1
-            firstVisibleColumn = column;
-            break;
-          }
-        }
-      }
-    }
-
-    return firstVisibleColumn;
+    return this.dataAccessObject.wtTable.getFirstVisibleColumn();
   }
 
   /**

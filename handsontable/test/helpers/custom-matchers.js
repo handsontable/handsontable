@@ -87,8 +87,8 @@ beforeEach(function() {
     Object.keys(matchers).forEach((matcherName) => {
       const jasmineMatcher = matchers[matcherName];
 
-      matchers[matcherName] = (received, expected, ...args) => {
-        const jasmineMatcherResult = jasmineMatcher().compare(received, expected, ...args);
+      matchers[matcherName] = function(received, expected, ...args) {
+        const jasmineMatcherResult = jasmineMatcher().compare.call(this, received, expected, ...args);
 
         return {
           message: () => jasmineMatcherResult.message,
@@ -166,7 +166,7 @@ beforeEach(function() {
             actual.map(range => rangeToString(range)) : rangeToString(actual);
 
           return {
-            pass: jasmine.matchersUtil.equals(actualPattern, expected),
+            pass: (jasmine.matchersUtil ?? this).equals(actualPattern, expected),
             message: `Expected \`${JSON.stringify(actualPattern)}\` to match to the \`${JSON.stringify(expected)}\`
  cell range pattern.`,
           };
