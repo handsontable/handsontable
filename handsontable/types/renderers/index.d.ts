@@ -1,4 +1,5 @@
 import { autocompleteRenderer, RENDERER_TYPE as AUTOCOMPLETE_RENDERER } from './autocompleteRenderer';
+import { dropdownRenderer, RENDERER_TYPE as DROPDOWN_RENDERER } from './dropdownRenderer';
 import { baseRenderer, RENDERER_TYPE as BASE_RENDERER } from './baseRenderer';
 import { dateRenderer, RENDERER_TYPE as DATE_RENDERER } from './dateRenderer';
 import { checkboxRenderer, RENDERER_TYPE as CHECKBOX_RENDERER } from './checkboxRenderer';
@@ -14,6 +15,7 @@ export function registerAllRenderers(): void;
 
 export interface Renderers {
   autocomplete: typeof autocompleteRenderer;
+  dropdown: typeof dropdownRenderer;
   base: typeof baseRenderer;
   checkbox: typeof checkboxRenderer;
   date: typeof dateRenderer;
@@ -33,6 +35,7 @@ export type RendererType = keyof Renderers;
 
 export {
   autocompleteRenderer, AUTOCOMPLETE_RENDERER,
+  dropdownRenderer, DROPDOWN_RENDERER,
   baseRenderer, BASE_RENDERER,
   checkboxRenderer, CHECKBOX_RENDERER,
   dateRenderer, DATE_RENDERER,
