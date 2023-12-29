@@ -81,6 +81,8 @@ export const ExampleComponent = () => {
           <HotTable
             ref={hotTableComponentRef}
             beforeChange={onBeforeHotChange}
+            autoWrapRow={true}
+            autoWrapCol={true}
             {...hotSettings}
           />
         </div>
