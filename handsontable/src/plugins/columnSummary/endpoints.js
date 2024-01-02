@@ -134,7 +134,6 @@ class Endpoints {
       this.assignSetting(val, newEndpoint, 'type', 'sum');
       this.assignSetting(val, newEndpoint, 'forceNumeric', false);
       this.assignSetting(val, newEndpoint, 'suppressDataTypeErrors', true);
-      this.assignSetting(val, newEndpoint, 'suppressDataTypeErrors', true);
       this.assignSetting(val, newEndpoint, 'customFunction', null);
       this.assignSetting(val, newEndpoint, 'readOnly', true);
       this.assignSetting(val, newEndpoint, 'roundFloat', false);
