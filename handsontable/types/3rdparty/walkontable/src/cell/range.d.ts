@@ -30,8 +30,8 @@ export default class CellRange {
   includesRange(cellRange: CellRange): boolean;
   isEqual(cellRange: CellRange): boolean;
   overlaps(cellRange: CellRange): boolean;
-  isSouthEastOf(cellRange: CellRange): boolean;
-  isNorthWestOf(cellRange: CellRange): boolean;
+  isSouthEastOf(coords: CellCoords): boolean;
+  isNorthWestOf(coords: CellCoords): boolean;
   isOverlappingHorizontally(cellRange: CellRange): boolean;
   isOverlappingVertically(cellRange: CellRange): boolean;
   expand(cellCoords: CellCoords): boolean;
@@ -58,8 +58,8 @@ export default class CellRange {
   getOuterTopRightCorner(): CellCoords;
   getOuterBottomStartCorner(): CellCoords;
   getOuterBottomLeftCorner(): CellCoords;
-  isCorner(coords: CellCoords, expandedRange?: CellRange): boolean;
-  getOppositeCorner(coords: CellCoords, expandedRange?: CellRange): CellCoords;
+  isCorner(coords: CellCoords): boolean;
+  getOppositeCorner(coords: CellCoords): CellCoords;
   getBordersSharedWith(range: CellRange): Array<'top' | 'right' | 'bottom' | 'left'>;
   getInner(): CellCoords[];
   getAll(): CellCoords[];

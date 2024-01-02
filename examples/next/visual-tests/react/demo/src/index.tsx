@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import "pikaday/css/pikaday.css";
+import "@handsontable/pikaday/css/pikaday.css";
 import "./styles.css";
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from "@handsontable/react";

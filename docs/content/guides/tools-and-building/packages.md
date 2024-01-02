@@ -34,9 +34,9 @@ You can also use minified files:
 If you are a "Bob the Builder" kind of hacker, you will need to load Handsontable JS, CSS and their dependencies:
 ```html
 <!-- Required dependencies (as external scripts) -->
-<link href="https://cdn.jsdelivr.net/npm/pikaday@1.8.2/css/pikaday.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@handsontable/pikaday@1.0.0/css/pikaday.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pikaday@1.8.2/pikaday.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@handsontable/pikaday@1.0.0/pikaday.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/numbro@2.1.2/dist/numbro.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@2.4.5/dist/purify.js"></script>
 

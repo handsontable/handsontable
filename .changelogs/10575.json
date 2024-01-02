@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved support for SSR frameworks",
+  "type": "changed",
+  "issueOrPR": 10575,
+  "breaking": false,
+  "framework": "react"
+}

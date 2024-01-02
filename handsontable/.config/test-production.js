@@ -28,7 +28,7 @@ module.exports.create = function create(envArgs) {
         externalCssFiles: [
           'lib/normalize.css',
           '../dist/handsontable.full.min.css',
-          `${getClosest('../node_modules/pikaday', true)}/css/pikaday.css`,
+          `${getClosest('../node_modules/@handsontable/pikaday', true)}/css/pikaday.css`,
           'helpers/common.css',
         ],
         externalJsFiles: [
