@@ -69,6 +69,8 @@ Now, you can use the Handsontable component in your HTML files.
 <hot-table
   [colHeaders]="true"
   [rowHeaders]="true"
+  autoWrapRow={true}
+  autoWrapCol={true}
   licenseKey="non-commercial-and-evaluation">
 </hot-table>
 ```

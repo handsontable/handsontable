@@ -56,6 +56,8 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   fixedRowsTop: 2,
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -94,6 +96,8 @@ export const ExampleComponent = () => {
       rowHeaders={true}
       colHeaders={true}
       fixedRowsTop={2}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );

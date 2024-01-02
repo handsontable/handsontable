@@ -65,6 +65,8 @@ const ExampleComponent = defineComponent({
           }
         },
         height: 'auto',
+        autoWrapRow: true,
+        autoWrapCol: true,
         licenseKey: 'non-commercial-and-evaluation'
       }
     }

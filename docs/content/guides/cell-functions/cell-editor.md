@@ -161,6 +161,8 @@ export const ExampleComponent = () => {
     <HotTable
       data={data}
       rowHeaders={true}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn width={250}>
@@ -220,6 +222,8 @@ export const ExampleComponent = () => {
       ]}
       colHeaders={true}
       colWidths={200}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -769,7 +773,7 @@ const hot = new Handsontable(container, {
       // If you want to use string 'password' instead of passing
       // the actual editor class check out section "Registering editor"
     }
-  ]
+  ],
 });
 ```
 

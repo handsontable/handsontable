@@ -60,6 +60,8 @@ export const ExampleComponent = () => {
         data={data}
         colHeaders={true}
         height="auto"
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
