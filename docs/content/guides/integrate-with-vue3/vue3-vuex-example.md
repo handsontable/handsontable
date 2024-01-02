@@ -84,6 +84,8 @@ const ExampleComponent = defineComponent({
         rowHeaders: true,
         readOnly: true,
         height: 'auto',
+        autoWrapRow: true,
+        autoWrapCol: true,
         afterChange: () => {
           if (this.hotRef) {
             store.commit('updateData', this.hotRef.getSourceData());

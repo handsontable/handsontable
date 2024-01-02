@@ -149,6 +149,8 @@ export const ExampleComponent = () => {
         ['A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8', 'I8', 'J8'],
         ['A9', 'B9', 'C9', 'D9', 'E9', 'F9', 'G9', 'H9', 'I9', 'J9'],
       ],
+      autoWrapRow: true,
+      autoWrapCol: true,
       height: 220,
       licenseKey: 'non-commercial-and-evaluation'
     }

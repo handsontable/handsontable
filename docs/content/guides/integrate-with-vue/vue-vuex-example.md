@@ -65,6 +65,8 @@ const ExampleComponent = {
         rowHeaders: true,
         readOnly: true,
         height: 'auto',
+        autoWrapRow: true,
+        autoWrapCol: true,
         afterChange: () => {
           if (this.hotRef) {
             this.$store.commit('updateData', this.hotRef.getSourceData());

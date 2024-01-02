@@ -274,6 +274,8 @@ const hot = Handsontable(container, {
   ],
   rowHeaders: true,
   colHeaders: true,
+  autoWrapRow: true,
+  autoWrapCol: true,
   stretchH: 'all',
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
