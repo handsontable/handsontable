@@ -87,7 +87,9 @@ const hot = new Handsontable(container, {
   ],
   afterSetCellMeta(row, col, key, val) {
     console.log('cell meta changed', row, col, key, val);
-  }
+  },
+  autoWrapRow: true,
+  autoWrapCol: true
 });
 ```
 
@@ -124,6 +126,8 @@ export const ExampleComponent = () => {
       rowHeaders={true}
       colHeaders={true}
       contextMenu={true}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       mergeCells={[
         { row: 1, col: 1, rowspan: 3, colspan: 3 },

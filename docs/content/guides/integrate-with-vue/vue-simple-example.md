@@ -45,6 +45,8 @@ const ExampleComponent = {
         ],
         colHeaders: true,
         height: 'auto',
+        autoWrapRow: true,
+        autoWrapCol: true,
         licenseKey: 'non-commercial-and-evaluation'
       }
     };

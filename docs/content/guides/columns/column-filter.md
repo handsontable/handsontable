@@ -157,6 +157,8 @@ const handsontableInstance = new Handsontable(container, {
   // enable the column menu
   dropdownMenu: true,
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -271,6 +273,8 @@ export const App = () => {
       // enable the column menu
       dropdownMenu={true}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -429,6 +433,8 @@ const handsontableInstance = new Handsontable(container, {
   // enable the column menu, but display only the filter menu items
   dropdownMenu: ['filter_by_condition', 'filter_by_value', 'filter_action_bar'],
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -555,6 +561,8 @@ export const App = () => {
       // enable the column menu, but display only the filter menu items
       dropdownMenu={['filter_by_condition', 'filter_by_value', 'filter_action_bar']}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -717,6 +725,8 @@ const handsontableInstance = new Handsontable(container, {
   },
   height: 'auto',
   example: 'exampleEnableFilterInColumns',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -868,6 +878,8 @@ export const App = () => {
       // it's fired after Handsontable appends information about a column header to the table header
       afterGetColHeader={removeColumnMenuButton}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -1014,6 +1026,8 @@ const handsontableInstance = new Handsontable(container, {
   // enable the column menu
   dropdownMenu: true,
   height: 142,
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -1148,6 +1162,8 @@ export const App = () => {
       // enable the column menu
       dropdownMenu={true}
       height={142}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -1295,6 +1311,8 @@ const handsontableInstance = new Handsontable(container, {
     filters.filter();
   },
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -1428,6 +1446,8 @@ export const App = () => {
       // enable the column menu
       dropdownMenu={true}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -1565,6 +1585,8 @@ const handsontableInstance = new Handsontable(container, {
   height: 'auto',
   filters: true,
   className: 'exampleQuickFilter',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 
@@ -1744,6 +1766,8 @@ export const App = () => {
         filters={true}
         height="auto"
         className="exampleQuickFilter"
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
     </>
@@ -1886,6 +1910,8 @@ const handsontableInstance = new Handsontable(container, {
   // to differentiate this example's CSS from other examples on this page
   className: 'customFilterButtonExample1',
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -2018,6 +2044,8 @@ export const App = () => {
       // to differentiate this example's CSS from other examples on this page
       className="customFilterButtonExample1"
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -2158,6 +2186,8 @@ const handsontableInstance = new Handsontable(container, {
   // to differentiate this example's CSS from other examples on this page
   className: 'customFilterButtonExample2',
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -2285,6 +2315,8 @@ export const App = () => {
       // to differentiate this example's CSS from other examples on this page
       className="customFilterButtonExample2"
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -2518,6 +2550,8 @@ const handsontableInstance = new Handsontable(container, {
     filtersRowsMap.setValueAtIndex(0, false);
     filtersRowsMap.setValueAtIndex(filtersRowsMap.indexedValues.length - 1, false);
   },
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -2720,6 +2754,8 @@ export const App = () => {
       filters={true}
       dropdownMenu={true}
       afterFilter={exclude}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -2869,6 +2905,8 @@ const handsontableInstance = new Handsontable(container, {
     // return `false` to disable filtering on the client side
     return false;
   },
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -2997,6 +3035,8 @@ export const App = () => {
         // return `false` to disable filtering on the client side
         return false;
       }}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -3246,6 +3286,8 @@ const handsontableInstance = new Handsontable(container, {
   // enable the column menu
   dropdownMenu: true,
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 
@@ -3418,6 +3460,8 @@ export const App = () => {
         // enable the column menu
         dropdownMenu={true}
         height="auto"
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">

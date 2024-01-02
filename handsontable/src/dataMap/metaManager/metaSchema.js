@@ -431,16 +431,10 @@ export default () => {
     autoRowSize: undefined,
 
     /**
-     * With [`autoWrapCol`](#autowrapcol) enabled:
-     * - When you select a bottom-most cell, pressing <kbd>**↓**</kbd> takes you to the top-most cell of the next column.
-     * - When you select a top-most cell, pressing <kbd>**↑**</kbd> takes you to the bottom-most cell of the previous column.
-     *
-     * You can set the [`autoWrapCol`](#autowrapcol) option to one of the following:
-     *
      * | Setting           | Description                                                                                                                                                                                                                                  |
      * | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `true`            | When you select a bottom-most cell, pressing <kbd>**↓**</kbd> takes you to the top-most cell of the next column.<br><br>When you select a top-most cell, pressing <kbd>**↑**</kbd> takes you to the bottom-most cell of the previous column. |
      * | `false` (default) | When you select a bottom-most cell, pressing <kbd>**↓**</kbd> doesn't do anything.<br><br>When you select a top-most cell, pressing <kbd>**↑**</kbd> doesn't do anything.                                                                    |
+     * | `true`            | When you select a bottom-most cell, pressing <kbd>**↓**</kbd> takes you to the top-most cell of the next column.<br><br>When you select a top-most cell, pressing <kbd>**↑**</kbd> takes you to the bottom-most cell of the previous column. |
      *
      * @memberof Options#
      * @type {boolean}
@@ -461,18 +455,13 @@ export default () => {
     autoWrapCol: false,
 
     /**
-     * With [`autoWrapRow`](#autoWrapRow) enabled:
-     * - When you select the first cell of a row, pressing <kbd>**←**</kbd>* takes you to the last cell of the row above.
-     * - When you select the last cell of a row, pressing <kbd>**→**</kbd>* takes you to the first cell of the row below.
+     * | Setting           | Description                                                                                                                                                                                                                                                                                                        |
+     * | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+     * | `false` (default) | When you select the first cell of a row, pressing <kbd>**←**</kbd>* (or <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>\*\*) doesn't do anything.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* (or <kbd>**Tab**</kbd>**) doesn't do anything.                                                  |
+     * | `true`            | When you select the first cell of a row, pressing <kbd>**←**</kbd>* (or <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>\*\*) takes you to the last cell of the row above.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* (or <kbd>**Tab**</kbd>**) takes you to the first cell of the row below. |
      *
-     * You can set the [`autoWrapRow`](#autoWrapRow) option to one of the following:
-     *
-     * | Setting           | Description                                                                                                                                                                                                                              |
-     * | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `true`            | When you select the first cell of a row, pressing <kbd>**←**</kbd>* takes you to the last cell of the row above.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* takes you to the first cell of the row below. |
-     * | `false` (default) | When you select the first cell of a row, pressing <kbd>**←**</kbd>* doesn't do anything.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* doesn't do anything.                                                  |
-     *
-     * \* The exact key depends on your [`layoutDirection`](#layoutdirection) configuration.
+     * \* The exact key depends on your [`layoutDirection`](#layoutdirection) configuration.<br>
+     * \*\* Unless [`tabNavigation`](#tabnavigation) is set to `false`.
      *
      * @memberof Options#
      * @type {boolean}
@@ -481,12 +470,12 @@ export default () => {
      *
      * @example
      * ```js
-     * // when you select the first cell of a row, pressing ⬅ doesn't do anything
-     * // when you select the last cell of a row, pressing ➡️ doesn't do anything
+     * // when you select the first cell of a row, pressing ⬅ (or Shift+Tab) doesn't do anything
+     * // when you select the last cell of a row, pressing ➡ (or Tab) doesn't do anything
      * autoWrapRow: false, // default setting
      *
-     * // when you select the first cell of a row, pressing ⬅ takes you to the last cell of the row above
-     * // when you select the last cell of a row, pressing ➡️ takes you to the first cell of the row below
+     * // when you select the first cell of a row, pressing ⬅ (or Shift+Tab) takes you to the last cell of the row above
+     * // when you select the last cell of a row, pressing ➡ (or Tab) takes you to the first cell of the row below
      * autoWrapRow: true,
      * ```
      */

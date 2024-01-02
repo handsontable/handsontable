@@ -50,6 +50,8 @@ export class AppComponent {
     ],
     colHeaders: true,
     colWidths: 200,
+    autoWrapRow: true,
+    autoWrapCol: true,
     licenseKey: 'non-commercial-and-evaluation'
   };
 }

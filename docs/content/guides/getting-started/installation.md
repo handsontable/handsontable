@@ -170,6 +170,8 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
 });
 ```
@@ -243,6 +245,8 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
   rowHeaders={true}
   colHeaders={true}
   height="auto"
+  autoWrapRow={true}
+  autoWrapCol={true}
   licenseKey="non-commercial-and-evaluation" // for non-commercial use only
 />
 ```
@@ -272,6 +276,8 @@ export const ExampleComponent = () => {
         rowHeaders={true}
         colHeaders={true}
         height="auto"
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation" // for non-commercial use only
       />
   );

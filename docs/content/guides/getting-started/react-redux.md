@@ -81,6 +81,8 @@ export const ExampleComponent = () => {
           <HotTable
             ref={hotTableComponentRef}
             beforeChange={onBeforeHotChange}
+            autoWrapRow={true}
+            autoWrapCol={true}
             {...hotSettings}
           />
         </div>
@@ -428,6 +430,8 @@ export const ExampleComponent = () => {
         rowHeights={30}
         colHeaders={['Rating', 'Active star color', 'Inactive star color']}
         height="auto"
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       >
         <HotColumn width={100} type={'numeric'}>

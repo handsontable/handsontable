@@ -48,6 +48,8 @@ const ExampleComponent = defineComponent({
         startCols: 5,
         colHeaders: true,
         stretchH: 'all',
+        autoWrapRow: true,
+        autoWrapCol: true,
         licenseKey: 'non-commercial-and-evaluation'
       },
       id: 'my-custom-id',
