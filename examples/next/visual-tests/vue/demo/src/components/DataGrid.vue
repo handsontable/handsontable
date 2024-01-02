@@ -4,7 +4,7 @@
 
 <script lang="ts">
 import { HotTable } from '@handsontable/vue';
-import "pikaday/css/pikaday.css";
+import "@handsontable/pikaday/css/pikaday.css";
 import 'handsontable/dist/handsontable.css';
 
 import { getData } from "../utils/constants";

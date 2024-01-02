@@ -261,25 +261,25 @@ class CellRange {
   }
 
   /**
-   * Checks if another range (`cellRange`) is south-east of your range.
+   * Checks if coordinates point is south-east of your range.
    *
-   * @param {CellRange} cellRange A range to check.
+   * @param {CellCoords} cellCoords Coordinates to check.
    * @returns {boolean}
    */
-  isSouthEastOf(cellRange) {
-    return this.getOuterTopLeftCorner().isSouthEastOf(cellRange) ||
-           this.getOuterBottomRightCorner().isSouthEastOf(cellRange);
+  isSouthEastOf(cellCoords) {
+    return this.getOuterTopLeftCorner().isSouthEastOf(cellCoords) ||
+           this.getOuterBottomRightCorner().isSouthEastOf(cellCoords);
   }
 
   /**
-   * Checks if another range (`cellRange`) is north-west of your range.
+   * Checks if coordinates point is north-west of your range.
    *
-   * @param {CellRange} cellRange A range to check.
+   * @param {CellRange} cellCoords Coordinates to check.
    * @returns {boolean}
    */
-  isNorthWestOf(cellRange) {
-    return this.getOuterTopLeftCorner().isNorthWestOf(cellRange) ||
-           this.getOuterBottomRightCorner().isNorthWestOf(cellRange);
+  isNorthWestOf(cellCoords) {
+    return this.getOuterTopLeftCorner().isNorthWestOf(cellCoords) ||
+           this.getOuterBottomRightCorner().isNorthWestOf(cellCoords);
   }
 
   /**
@@ -292,10 +292,10 @@ class CellRange {
    * @returns {boolean}
    */
   isOverlappingHorizontally(cellRange) {
-    return (this.getOuterTopRightCorner().col >= cellRange.getOuterTopLeftCorner().col &&
-            this.getOuterTopRightCorner().col <= cellRange.getOuterTopRightCorner().col) ||
-           (this.getOuterTopLeftCorner().col <= cellRange.getOuterTopRightCorner().col &&
-            this.getOuterTopLeftCorner().col >= cellRange.getOuterTopLeftCorner().col);
+    return (this.getOuterTopEndCorner().col >= cellRange.getOuterTopStartCorner().col &&
+            this.getOuterTopEndCorner().col <= cellRange.getOuterTopEndCorner().col) ||
+           (this.getOuterTopStartCorner().col <= cellRange.getOuterTopEndCorner().col &&
+            this.getOuterTopStartCorner().col >= cellRange.getOuterTopStartCorner().col);
   }
 
   /**
@@ -308,10 +308,10 @@ class CellRange {
    * @returns {boolean}
    */
   isOverlappingVertically(cellRange) {
-    return (this.getOuterBottomRightCorner().row >= cellRange.getOuterTopRightCorner().row &&
-            this.getOuterBottomRightCorner().row <= cellRange.getOuterBottomRightCorner().row) ||
-           (this.getOuterTopRightCorner().row <= cellRange.getOuterBottomRightCorner().row &&
-            this.getOuterTopRightCorner().row >= cellRange.getOuterTopRightCorner().row);
+    return (this.getOuterBottomStartCorner().row >= cellRange.getOuterTopRightCorner().row &&
+            this.getOuterBottomStartCorner().row <= cellRange.getOuterBottomStartCorner().row) ||
+           (this.getOuterTopEndCorner().row <= cellRange.getOuterBottomStartCorner().row &&
+            this.getOuterTopEndCorner().row >= cellRange.getOuterTopRightCorner().row);
   }
 
   /**
@@ -699,18 +699,9 @@ class CellRange {
    * Checks if a set of coordinates (`coords`) matches one of the 4 corners of your range.
    *
    * @param {CellCoords} coords Coordinates to check.
-   * @param {CellRange} [expandedRange] A range to compare with.
    * @returns {boolean}
    */
-  isCorner(coords, expandedRange) {
-    if (expandedRange && expandedRange.includes(coords) &&
-       (this.getOuterTopLeftCorner().isEqual(this._createCellCoords(expandedRange.from.row, expandedRange.from.col)) ||
-       this.getOuterTopRightCorner().isEqual(this._createCellCoords(expandedRange.from.row, expandedRange.to.col)) ||
-       this.getOuterBottomLeftCorner().isEqual(this._createCellCoords(expandedRange.to.row, expandedRange.from.col)) ||
-       this.getOuterBottomRightCorner().isEqual(this._createCellCoords(expandedRange.to.row, expandedRange.to.col)))) {
-      return true;
-    }
-
+  isCorner(coords) {
     return coords.isEqual(this.getOuterTopLeftCorner()) || coords.isEqual(this.getOuterTopRightCorner()) ||
       coords.isEqual(this.getOuterBottomLeftCorner()) || coords.isEqual(this.getOuterBottomRightCorner());
   }
@@ -722,31 +713,11 @@ class CellRange {
    * the coordinates of the top-left corner of your range are returned.
    *
    * @param {CellCoords} coords Coordinates to check.
-   * @param {CellRange} [expandedRange] A range to compare with.
    * @returns {CellCoords}
    */
-  getOppositeCorner(coords, expandedRange) {
+  getOppositeCorner(coords) {
     if (!(coords instanceof CellCoords)) {
       return false;
-    }
-
-    if (expandedRange) {
-      const { from, to } = expandedRange;
-
-      if (expandedRange.includes(coords)) {
-        if (this.getOuterTopStartCorner().isEqual(this._createCellCoords(from.row, from.col))) {
-          return this.getOuterBottomEndCorner();
-        }
-        if (this.getOuterTopEndCorner().isEqual(this._createCellCoords(from.row, to.col))) {
-          return this.getOuterBottomStartCorner();
-        }
-        if (this.getOuterBottomStartCorner().isEqual(this._createCellCoords(to.row, from.col))) {
-          return this.getOuterTopEndCorner();
-        }
-        if (this.getOuterBottomEndCorner().isEqual(this._createCellCoords(to.row, to.col))) {
-          return this.getOuterTopStartCorner();
-        }
-      }
     }
 
     if (coords.isEqual(this.getOuterBottomEndCorner())) {
@@ -793,13 +764,13 @@ class CellRange {
       result.push('top');
     }
     if (thisBorders.right === rangeBorders.right) {
-      result.push('right');
+      result.push(this.#isRtl ? 'left' : 'right');
     }
     if (thisBorders.bottom === rangeBorders.bottom) {
       result.push('bottom');
     }
     if (thisBorders.left === rangeBorders.left) {
-      result.push('left');
+      result.push(this.#isRtl ? 'right' : 'left');
     }
 
     return result;
