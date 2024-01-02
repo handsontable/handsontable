@@ -1,5 +1,6 @@
 import {
   getComparisonFunction,
+  isCSR,
 } from 'handsontable/helpers/feature';
 
 describe('Feature helper', () => {
@@ -27,6 +28,25 @@ describe('Feature helper', () => {
       expect(comparisonFunction(1, 10)).toBe(-1);
       expect(comparisonFunction(10, 1)).toBe(1);
       expect(comparisonFunction(10, 10)).toBe(0);
+    });
+  });
+
+  //
+  // Handsontable.helper.isCSR
+  //
+  describe('isCSR', () => {
+    it('should return true when running in a browser environment', () => {
+      expect(isCSR()).toBe(true);
+    });
+
+    it('should return false when running in a non-browser environment', () => {
+      const originalWindow = global.window;
+
+      delete global.window;
+
+      expect(isCSR()).toBe(false);
+
+      global.window = originalWindow;
     });
   });
 });

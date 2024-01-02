@@ -8,7 +8,7 @@ import {
 import {
   createSpreadsheetData,
   mockElementDimensions,
-  mountComponent
+  mountComponentWithRef
 } from './_helpers';
 import { BaseEditorComponent } from '../src/baseEditorComponent';
 
@@ -57,7 +57,7 @@ describe('React Context', () => {
     }
     EditorComponent3.contextType = TestContext;
 
-    mountComponent((
+    mountComponentWithRef((
       <TestContext.Provider value={'testContextValue'}>
         <HotTable licenseKey="non-commercial-and-evaluation"
                   id="test-hot"
