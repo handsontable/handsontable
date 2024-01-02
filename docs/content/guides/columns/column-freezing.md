@@ -61,6 +61,8 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   fixedColumnsStart: 1,
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -99,6 +101,8 @@ export const ExampleComponent = () => {
       rowHeaders={true}
       colHeaders={true}
       fixedColumnsStart={1}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -146,6 +150,8 @@ const hot = new Handsontable(container, {
   fixedColumnsStart: 2,
   contextMenu: true,
   manualColumnFreeze: true,
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -186,6 +192,8 @@ export const ExampleComponent = () => {
       fixedColumnsStart={2}
       contextMenu={true}
       manualColumnFreeze={true}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );

@@ -73,6 +73,8 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   contextMenu: ['copy', 'cut'],
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -107,6 +109,8 @@ export const ExampleComponent = () => {
       colHeaders={true}
       contextMenu={['copy', 'cut']}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -180,6 +184,8 @@ const hot = new Handsontable(container, {
   ],
   outsideClickDeselects: false,
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -255,6 +261,8 @@ export const ExampleComponent = () => {
         ]}
         outsideClickDeselects={false}
         height="auto"
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
@@ -341,6 +349,8 @@ const hot = new Handsontable(container, {
     ['A', { label: 'B', colspan: 2 }, { label: 'C', colspan: 2 }, { label: 'D', colspan: 2 }, { label: 'E', colspan: 2 }, 'F'],
     ['G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P']
   ],
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -384,6 +394,8 @@ export const ExampleComponent = () => {
       ['A', { label: 'B', colspan: 2 }, { label: 'C', colspan: 2 }, { label: 'D', colspan: 2 }, { label: 'E', colspan: 2 }, 'F'],
       ['G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P']
     ]}
+    autoWrapRow={true}
+    autoWrapCol={true}
     licenseKey="non-commercial-and-evaluation"
       >
   </HotTable>

@@ -127,6 +127,8 @@ const hot = new Handsontable(container, {
   // enable the `Search` plugin
   search: true,
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -198,6 +200,8 @@ export const ExampleComponent = () => {
         colHeaders={true}
         search={true}
         height="auto"
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
     </>
@@ -260,6 +264,8 @@ const hot = new Handsontable(container, {
     searchResultClass: 'my-custom-search-result-class'
   },
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -333,6 +339,8 @@ export const ExampleComponent = () => {
           searchResultClass: 'my-custom-search-result-class'
         }}
         height="auto"
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
     </>
@@ -394,6 +402,8 @@ const hot = new Handsontable(container, {
     queryMethod: onlyExactMatch
   },
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -470,6 +480,8 @@ export const ExampleComponent = () => {
           queryMethod: onlyExactMatch
         }}
         height="auto"
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
     </>
@@ -544,6 +556,8 @@ const hot = new Handsontable(container, {
     callback: searchResultCounter
   },
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -633,6 +647,8 @@ export const ExampleComponent = () => {
           callback: searchResultCounter
         }}
         height="auto"
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
     </>

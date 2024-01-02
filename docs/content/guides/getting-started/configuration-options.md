@@ -60,6 +60,8 @@ To apply configuration options, pass them as individual props of the [`HotTable`
 
 ```jsx
 <HotTable
+  autoWrapRow={true}
+  autoWrapCol={true}
   licenseKey="non-commercial-and-evaluation"
   data={[
     ['A1', 'B1', 'C1', 'D1'],
@@ -230,7 +232,9 @@ const hot = new Handsontable(container, {
   width: 'auto',
   height: 'auto',
   rowHeaders: true,
-  colHeaders: true
+  colHeaders: true,
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 
 // check a cell's options
@@ -265,6 +269,8 @@ export const ExampleComponent = () => {
 
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={data}
       readOnly={true}
@@ -376,7 +382,9 @@ const hot = new Handsontable(container, {
       type: index > 0 ? 'numeric' : 'text',
       readOnly: index === 2 || index === 8
     }
-  }
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 
 // check a cell's options
@@ -414,6 +422,8 @@ export const ExampleComponent = () => {
 
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={data}
       width="auto"
@@ -546,6 +556,8 @@ const hot = new Handsontable(container, {
       };
     }
   },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 
 // check a cell's options
@@ -583,6 +595,8 @@ export const ExampleComponent = () => {
 
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={data}
       width="auto"
@@ -631,6 +645,8 @@ const hot = new Handsontable(container, {
       readOnly: true,
     }
   ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -709,7 +725,9 @@ const hot = new Handsontable(container, {
       col: 1,
       readOnly: true,
     }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 
 // check a cell's options
@@ -748,6 +766,8 @@ export const ExampleComponent = () => {
   return (
     <HotTable
       data={data}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       width="auto"
       height="auto"
@@ -1014,7 +1034,9 @@ const hot = new Handsontable(container, {
         readOnly: true,
       };
     }
-  }
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -1115,6 +1137,8 @@ const hot = new Handsontable(container, {
       }
     }
   },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -1145,6 +1169,8 @@ export const ExampleComponent = () => {
 
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={data}
       readOnly={true}

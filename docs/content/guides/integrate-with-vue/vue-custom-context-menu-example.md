@@ -62,6 +62,8 @@ const ExampleComponent = {
           }
         },
         height: 'auto',
+        autoWrapRow: true,
+        autoWrapCol: true,
         licenseKey: 'non-commercial-and-evaluation'
       }
     }
