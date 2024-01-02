@@ -80,13 +80,13 @@ module.exports.create = function create(envArgs) {
               force: true,
             },
             { // pikaday
-              from: `${getClosest('node_modules/pikaday/')}@(LICENSE|pikaday.js)`,
+              from: `${getClosest('node_modules/@handsontable/pikaday/')}@(LICENSE|pikaday.js)`,
               to: 'pikaday',
               flatten: true,
               force: true,
             },
             {
-              from: `${getClosest('node_modules/pikaday/')}css/pikaday.css`,
+              from: `${getClosest('node_modules/@handsontable/pikaday/')}css/pikaday.css`,
               to: 'pikaday',
               flatten: true,
               force: true,
