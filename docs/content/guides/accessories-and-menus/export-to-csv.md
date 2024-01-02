@@ -58,6 +58,8 @@ const hot = new Handsontable(container, {
   hiddenRows: { rows: [1, 3, 5], indicators: true },
   hiddenColumns: { columns: [1, 3, 5], indicators: true },
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -139,6 +141,8 @@ export const ExampleComponent = () => {
         hiddenRows={{ rows: [1, 3, 5], indicators: true }}
         hiddenColumns={{ columns: [1, 3, 5], indicators: true }}
         height="auto"
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
@@ -194,6 +198,8 @@ const hot = new Handsontable(container, {
   hiddenRows: { rows: [1, 3, 5], indicators: true },
   hiddenColumns: { columns: [1, 3, 5], indicators: true },
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -275,6 +281,8 @@ export const ExampleComponent = () => {
         hiddenRows={{ rows: [1, 3, 5], indicators: true }}
         hiddenColumns={{ columns: [1, 3, 5], indicators: true }}
         height="auto"
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
@@ -329,6 +337,8 @@ const hot = new Handsontable(container, {
   hiddenRows: { rows: [1, 3, 5], indicators: true },
   hiddenColumns: { columns: [1, 3, 5], indicators: true },
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -408,6 +418,8 @@ export const ExampleComponent = () => {
         hiddenRows={{ rows: [1, 3, 5], indicators: true }}
         hiddenColumns={{ columns: [1, 3, 5], indicators: true }}
         height="auto"
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">

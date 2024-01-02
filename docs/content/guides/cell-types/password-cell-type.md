@@ -44,7 +44,9 @@ const hot = new Handsontable(container, {
     { data: 'name.first' },
     { data: 'name.last' },
     { data: 'password', type: 'password' }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -74,6 +76,8 @@ export const ExampleComponent = () => {
       ]}
       colHeaders={['ID', 'First name', 'Last name', 'Password']}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       columns={[
         { data: 'id' },
@@ -121,7 +125,9 @@ const hot = new Handsontable(container, {
     { data: 'name.first' },
     { data: 'name.last' },
     { data: 'password', type: 'password', hashLength: 10 }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -151,6 +157,8 @@ export const ExampleComponent = () => {
       ]}
       colHeaders={['ID', 'First name', 'Last name', 'Password']}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       columns={[
         { data: 'id' },
@@ -198,7 +206,9 @@ const hot = new Handsontable(container, {
     { data: 'name.first' },
     { data: 'name.last' },
     { data: 'password', type: 'password', hashSymbol: '&#9632;' }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -228,6 +238,8 @@ export const ExampleComponent = () => {
       ]}
       colHeaders={['ID', 'First name', 'Last name', 'Password']}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       columns={[
         { data: 'id' },

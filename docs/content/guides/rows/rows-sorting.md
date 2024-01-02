@@ -159,6 +159,8 @@ const handsontableInstance = new Handsontable(container, {
   columnSorting: true,
   height: 'auto',
   stretchH: 'all',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -273,6 +275,8 @@ export const App = () => {
       columnSorting={true}
       height="auto"
       stretchH="all"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -431,6 +435,8 @@ const handsontableInstance = new Handsontable(container, {
   ],
   height: 'auto',
   stretchH: 'all',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -555,6 +561,8 @@ export const App = () => {
       ]}
       height="auto"
       stretchH="all"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -794,6 +802,8 @@ const handsontableInstance = new Handsontable(container, {
   columnSorting: true,
   height: 168,
   stretchH: 'all',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -937,6 +947,8 @@ export const App = () => {
       columnSorting={true}
       height={168}
       stretchH="all"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -1067,6 +1079,8 @@ const handsontableInstance = new Handsontable(container, {
   multiColumnSorting: true,
   height: 'auto',
   stretchH: 'all',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -1179,6 +1193,8 @@ export const App = () => {
       multiColumnSorting={true}
       height="auto"
       stretchH="all"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -1384,6 +1400,8 @@ const handsontableInstance = new Handsontable(container, {
   },
   height: 'auto',
   stretchH: 'all',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -1508,6 +1526,8 @@ export const App = () => {
       }}
       height="auto"
       stretchH="all"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -1719,6 +1739,8 @@ const handsontableInstance = new Handsontable(container, {
   },
   height: 'auto',
   stretchH: 'all',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -1855,6 +1877,8 @@ export const App = () => {
       className="custom-sort-icon-example-1"
       height="auto"
       stretchH="all"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -1998,6 +2022,8 @@ const handsontableInstance = new Handsontable(container, {
   },
   height: 'auto',
   stretchH: 'all',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -2129,6 +2155,8 @@ export const App = () => {
       className="custom-sort-icon-example-2"
       height="auto"
       stretchH="all"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -2305,7 +2333,8 @@ const handsontableInstance = new Handsontable(container, {
   },
   height: 'auto',
   stretchH: 'all',
-
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -2495,6 +2524,8 @@ export const App = () => {
       className="custom-sort-icon-example-3"
       height="auto"
       stretchH="all"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -2882,6 +2913,8 @@ const handsontableInstance = new Handsontable(container, {
       suppressDataTypeErrors: true,
     },
   ],
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -3126,6 +3159,8 @@ export const App = () => {
           suppressDataTypeErrors: true,
         },
       ]}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -3415,6 +3450,8 @@ const handsontableInstance = new Handsontable(container, {
   columnSorting: true,
   height: 'auto',
   stretchH: 'all',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 
@@ -3560,6 +3597,8 @@ export const App = () => {
         columnSorting={true}
         height="auto"
         stretchH="all"
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
@@ -3761,6 +3800,8 @@ const handsontableInstance = new Handsontable(container, {
   multiColumnSorting: true,
   height: 'auto',
   stretchH: 'all',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 
@@ -3907,6 +3948,8 @@ export const App = () => {
         multiColumnSorting={true}
         height="auto"
         stretchH="all"
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">

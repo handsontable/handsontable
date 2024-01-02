@@ -146,6 +146,8 @@ const hot = new Handsontable(container, {
   contextMenu: true,
   height: 'auto',
   language: 'de-DE',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -181,6 +183,8 @@ export const ExampleComponent = () => {
       contextMenu={true}
       height="auto"
       language="de-DE"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -287,6 +291,8 @@ export const ExampleComponent = () => {
         contextMenu={true}
         height="auto"
         language={language}
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
     </div>

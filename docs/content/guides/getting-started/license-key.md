@@ -97,7 +97,10 @@ const settings = {
 ::: only-for react
 
 ```jsx
-<HotTable licenseKey="non-commercial-and-evaluation" />
+<HotTable 
+  autoWrapRow={true}
+  autoWrapCol={true}
+  licenseKey="non-commercial-and-evaluation" />
 ```
 
 :::

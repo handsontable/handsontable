@@ -62,6 +62,8 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   rowHeights: 40,
   manualRowResize: true,
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -96,6 +98,8 @@ export const ExampleComponent = () => {
       rowHeaders={true}
       rowHeights={40}
       manualRowResize={true}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -136,6 +140,8 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   rowHeights: [40, 40, 40, 40],
   manualRowResize: true,
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -171,6 +177,8 @@ export const ExampleComponent = () => {
       rowHeaders={true}
       rowHeights={[40, 40, 40, 40]}
       manualRowResize={true}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -212,6 +220,8 @@ const hot = new Handsontable(container, {
     return (index + 1) * 20;
   },
   manualRowResize: true,
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -248,6 +258,8 @@ export const ExampleComponent = () => {
         return (index + 1) * 20;
       }}
       manualRowResize={true}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -290,6 +302,8 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   rowHeights: 40,
   manualRowResize: true,
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -325,6 +339,8 @@ export const ExampleComponent = () => {
       rowHeaders={true}
       rowHeights={40}
       manualRowResize={true}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
