@@ -6,7 +6,7 @@ import DemoOptions from "./DemoOptions";
 import { alignHeaders } from "./hooksCallbacks";
 
 import "handsontable/dist/handsontable.min.css";
-import "pikaday/css/pikaday.css";
+import "@handsontable/pikaday/css/pikaday.css";
 
 // Handsontable options
 const hotOptions = {
@@ -64,13 +64,13 @@ function App() {
         changeToggleOptions={setToggleableOptions}
         {...toggleableOptions}
       />
-       
+
       <input
         className="placeholder-input"
         type="text"
         placeholder="Focusable text input"
       />
-      
+
       {/* Handsontable component with dynamic options */}
       <HotTable
         // Handsontable needs to reload when changing virtualization

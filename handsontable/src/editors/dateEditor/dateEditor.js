@@ -1,12 +1,12 @@
 import moment from 'moment';
-import Pikaday from 'pikaday';
+import Pikaday from '@handsontable/pikaday';
 import { TextEditor } from '../textEditor';
 import EventManager from '../../eventManager';
 import { addClass, hasClass, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { deepExtend } from '../../helpers/object';
 import { isFunctionKey } from '../../helpers/unicode';
 
-import 'pikaday/css/pikaday.css';
+import '@handsontable/pikaday/css/pikaday.css';
 
 export const EDITOR_TYPE = 'date';
 const SHORTCUTS_GROUP_EDITOR = 'dateEditor';
@@ -202,6 +202,11 @@ export class DateEditor extends TextEditor {
     this.datePicker.style.display = 'block';
 
     this.$datePicker = new Pikaday(this.getDatePickerConfig());
+
+    if (typeof this.$datePicker.useMoment === 'function') {
+      this.$datePicker.useMoment(moment);
+    }
+
     this.$datePicker._onInputFocus = function() {};
 
     this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top + outerHeight(this.TD)}px`;

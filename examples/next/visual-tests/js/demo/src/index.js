@@ -1,6 +1,6 @@
 import Handsontable from "handsontable/base";
 import "handsontable/dist/handsontable.css";
-import "pikaday/css/pikaday.css";
+import "@handsontable/pikaday/css/pikaday.css";
 
 import { generateExampleData, isArabicDemoEnabled } from "./utils";
 import { progressBarRenderer, starRenderer } from "./customRenderers";

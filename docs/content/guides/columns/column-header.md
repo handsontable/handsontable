@@ -45,6 +45,8 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   rowHeaders: true,
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -76,6 +78,8 @@ export const ExampleComponent = () => {
       colHeaders={true}
       rowHeaders={true}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -111,6 +115,8 @@ const hot = new Handsontable(container, {
   colHeaders: ['ID', 'Full name', 'Position','Country', 'City', 'Address', 'Zip code', 'Mobile', 'E-mail'],
   rowHeaders: true,
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -142,6 +148,8 @@ export const ExampleComponent = () => {
       colHeaders={['ID', 'Full name', 'Position', 'Country', 'City', 'Address', 'Zip code', 'Mobile', 'E-mail']}
       rowHeaders={true}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -179,6 +187,8 @@ const hot = new Handsontable(container, {
   },
   rowHeaders: true,
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -212,6 +222,8 @@ export const ExampleComponent = () => {
       }}
       rowHeaders={true}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );

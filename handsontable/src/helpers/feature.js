@@ -25,6 +25,15 @@ export function isTouchSupported() {
   return ('ontouchstart' in window);
 }
 
+/**
+ * Checks if the environment that the code runs in is a browser.
+ *
+ * @returns {boolean}
+ */
+export function isCSR() {
+  return typeof window !== 'undefined';
+}
+
 let comparisonFunction;
 
 /**

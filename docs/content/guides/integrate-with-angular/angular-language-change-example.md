@@ -90,6 +90,8 @@ export class AppComponent {
     rowHeaders: true,
     contextMenu: true,
     height: 'auto',
+    autoWrapRow: true,
+    autoWrapCol: true,
     licenseKey: 'non-commercial-and-evaluation'
   };
   language = 'en-US';

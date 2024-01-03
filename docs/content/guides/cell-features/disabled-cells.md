@@ -73,7 +73,9 @@ const hot = new Handsontable(container, {
     {
       data: 'bumper'
     }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true
 });
 ```
 
@@ -104,6 +106,8 @@ export const ExampleComponent = () => {
       ]}
       height="auto"
       colHeaders={['Car', 'Year', 'Chassis color', 'Bumper color']}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       columns={[
         {
@@ -155,6 +159,8 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -218,6 +224,8 @@ export const ExampleComponent = () => {
       ]}
       colHeaders={['Car', 'Year', 'Chassis color', 'Bumper color']}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -276,7 +284,9 @@ const hot = new Handsontable(container, {
       data: 'bumper',
       editor: 'text'
     }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true
 });
 ```
 
@@ -307,6 +317,8 @@ export const ExampleComponent = () => {
       ]}
       height="auto"
       colHeaders={['Car', 'Year', 'Chassis color', 'Bumper color']}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       columns={[
         {
@@ -361,6 +373,8 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -430,6 +444,8 @@ export const ExampleComponent = () => {
       ]}
       colHeaders={['Car', 'Year', 'Chassis color', 'Bumper color']}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );

@@ -37,6 +37,8 @@ import { Component } from '@angular/core';
         [colHeaders]="true"
         [rowHeaders]="true"
         height="auto"
+        [autoWrapRow]="true"
+        [autoWrapCol]="true"
         licenseKey="non-commercial-and-evaluation">
           <hot-column data="id" [readOnly]="true" title="ID"></hot-column>
           <hot-column data="name" title="Full name"></hot-column>

@@ -112,7 +112,9 @@ const hot = new Handsontable(container, {
     }
 
     return cellProperties;
-  }
+  },
+  autoWrapRow: true,
+  autoWrapCol: true
 });
 ```
 
@@ -174,6 +176,8 @@ export const ExampleComponent = () => {
   return (
     <HotTable
       data={data}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       height="auto"
       afterSelection={function(row, col, row2, col2) {

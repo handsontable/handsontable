@@ -470,7 +470,9 @@ const hot = new Handsontable(container, {
     if (row === 0 && col === 0) {
       this.renderer = greenRenderer;
     }
-  }
+  },
+  autoWrapRow: true,
+  autoWrapCol: true
 });
 ```
 
@@ -517,6 +519,8 @@ export const ExampleComponent = () => {
         { id: 4, name: 'Ben', isActive: false, color: 'blue', date: null },
       ]}
       colHeaders={true}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       columns={[
         { data: 'id', type: 'text' },
@@ -602,6 +606,8 @@ const hot = new Handsontable(container, {
   ],
   preventOverflow: 'horizontal',
   colHeaders: ['value<br>underneath', 'type:text', 'type:numeric', 'type:checkbox', 'type:dropdown', 'type:password'],
+  autoWrapRow: true,
+  autoWrapCol: true
 });
 ```
 
@@ -624,6 +630,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         ['empty string', '', '', '', '', ''],

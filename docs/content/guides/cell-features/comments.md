@@ -31,7 +31,9 @@ const hot = new Handsontable(container, {
     ['A1', 'B1', 'C1'],
     ['A2', 'B2', 'C2'],
   ],
-  comments: true
+  comments: true,
+  autoWrapRow: true,
+  autoWrapCol: true
 });
 ```
 
@@ -114,6 +116,8 @@ const hot = new Handsontable(container, {
     { row: 2, col: 2, comment: { value: 'More comments' } }
   ],
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -154,6 +158,8 @@ export const ExampleComponent = () => {
         { row: 2, col: 2, comment: { value: 'More comments' } }
       ]}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -197,6 +203,8 @@ const hot = new Handsontable(container, {
     { row: 0, col: 3, comment: { value: 'You can edit this comment' } }
   ],
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -235,6 +243,8 @@ export const ExampleComponent = () => {
         { row: 0, col: 3, comment: { value: 'You can edit this comment' } }
       ]}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -279,6 +289,8 @@ const hot = new Handsontable(container, {
     { row: 2, col: 2, comment: { value: 'Comment 200x50 px', style: { width: 200, height: 50 } } }
   ],
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -318,6 +330,8 @@ export const ExampleComponent = () => {
         { row: 2, col: 2, comment: { value: 'Comment 200x50 px', style: { width: 200, height: 50 } } }
       ]}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -363,6 +377,8 @@ const hot = new Handsontable(container, {
     { row: 1, col: 1, comment: { value: 'Some comment' } },
   ],
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -403,6 +419,8 @@ export const ExampleComponent = () => {
         { row: 1, col: 1, comment: { value: 'Some comment' } },
       ]}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
