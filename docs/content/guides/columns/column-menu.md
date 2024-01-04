@@ -46,6 +46,8 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   dropdownMenu: true,
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -77,6 +79,8 @@ export const ExampleComponent = () => {
       colHeaders={true}
       dropdownMenu={true}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -119,7 +123,9 @@ const hot = new Handsontable(container, {
     'make_read_only',
     '---------',
     'alignment'
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -148,6 +154,8 @@ export const ExampleComponent = () => {
         ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3'],
       ]}
       colHeaders={true}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       height="auto"
       dropdownMenu={[

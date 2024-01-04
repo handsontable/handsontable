@@ -239,6 +239,8 @@ const hot = new Handsontable(container, {
   width: 'auto',
   height: 'auto',
   colHeaders: ['ID', 'Customer name', 'Product name', 'Size', 'qty', 'Return'],
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -382,6 +384,8 @@ export const ExampleComponent = () => {
         width="auto"
         height="auto"
         colHeaders={['ID', 'Customer name', 'Product name', 'Size', 'qty', 'Return']}
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">

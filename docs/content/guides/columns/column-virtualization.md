@@ -69,6 +69,8 @@ const hot = new Handsontable(container, {
   height: 320,
   rowHeaders: true,
   colHeaders: true,
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -99,7 +101,9 @@ const data = new Array(1000) // number of rows
   );
 
 export const ExampleComponent = () => {
-  return <HotTable data={data} colWidths={100} width="100%" height={320} rowHeaders={true} colHeaders={true} licenseKey="non-commercial-and-evaluation" />;
+  return <HotTable data={data} colWidths={100} width="100%" height={320} rowHeaders={true} colHeaders={true} autoWrapRow={true}
+    autoWrapCol={true}
+    licenseKey="non-commercial-and-evaluation" />;
 };
 
 /* start:skip-in-preview */

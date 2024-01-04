@@ -79,6 +79,8 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   selectionMode: 'multiple', // 'single', 'range' or 'multiple',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -149,6 +151,8 @@ export const ExampleComponent = () => {
         rowHeaders={true}
         colHeaders={true}
         selectionMode="multiple" // 'single', 'range' or 'multiple',
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
@@ -217,6 +221,8 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   outsideClickDeselects: false,
   selectionMode: 'multiple', // 'single', 'range' or 'multiple',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -297,6 +303,8 @@ export const ExampleComponent = () => {
         colHeaders={true}
         outsideClickDeselects={false}
         selectionMode="multiple" // 'single', 'range' or 'multiple',
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
       <output className="console" id="output">{output}</output>
@@ -367,6 +375,8 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   outsideClickDeselects: false,
   selectionMode: 'multiple', // 'single', 'range' or 'multiple',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -475,6 +485,8 @@ export const ExampleComponent = () => {
         colHeaders={true}
         outsideClickDeselects={false}
         selectionMode="multiple" // 'single', 'range' or 'multiple',
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">

@@ -66,6 +66,8 @@ export class AppComponent {
     colHeaders: true,
     rowHeights: 55,
     height: 'auto',
+    autoWrapRow: true,
+    autoWrapCol: true,
     licenseKey: 'non-commercial-and-evaluation'
   };
 }

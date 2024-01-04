@@ -59,6 +59,8 @@ const ExampleComponent = defineComponent({
           ['A10', 'B10'],
         ],
         height: 'auto',
+        autoWrapRow: true,
+        autoWrapCol: true,
         licenseKey: 'non-commercial-and-evaluation',
       },
       secondColumnSettings: {
@@ -127,6 +129,8 @@ data() {
       },
       settings: {
         height: 'auto',
+        autoWrapRow: true,
+        autoWrapCol: true,
         licenseKey: 'non-commercial-and-evaluation'
       },
     };

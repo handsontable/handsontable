@@ -1,6 +1,6 @@
 import Handsontable from "handsontable";
 import "handsontable/dist/handsontable.min.css";
-import "pikaday/css/pikaday.css";
+import "@handsontable/pikaday/css/pikaday.css";
 
 import { data } from "./constants";
 

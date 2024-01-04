@@ -93,7 +93,9 @@ const hot = new Handsontable(container, {
       destinationRow: 3,
       destinationColumn: 4
     }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -116,6 +118,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         [1, 2, 3, 4, 5],
@@ -218,7 +222,7 @@ const hot = new Handsontable(document.querySelector('#example'), {
   columnSummary: [
     {},
     {}
-  ]
+  ],
 });
 ```
 
@@ -237,6 +241,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         [1, 2, 3, 4, 5],
@@ -511,7 +517,9 @@ const hot = new Handsontable(container, {
       destinationRow: 0,
       destinationColumn: 1
     }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -534,6 +542,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         [1, 2, 3, 4, 5],
@@ -642,7 +652,9 @@ const hot = new Handsontable(container, {
     }
 
     return configArray;
-  }
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -681,6 +693,8 @@ export const ExampleComponent = () => {
 
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={generateData(5, 5, true)}
       height="auto"
@@ -793,7 +807,9 @@ const hot = new Handsontable(container, {
     }
 
     return endpoints;
-  }
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -816,6 +832,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[{
         value: null,
@@ -1043,7 +1061,9 @@ const hot = new Handsontable(container, {
       },
       forceNumeric: true
     }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -1082,6 +1102,8 @@ export const ExampleComponent = () => {
 
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={generateData(5, 7)}
       height="auto"
@@ -1182,7 +1204,9 @@ const hot = new Handsontable(container, {
       // round this column summary result to two digits after the decimal point
       roundFloat: 2
     }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -1205,6 +1229,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         [0.5, 0.5],
@@ -1300,7 +1326,9 @@ const hot = new Handsontable(container, {
       // force this column summary to treat non-numeric values as numeric values
       forceNumeric: true
     }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -1323,6 +1351,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         [0, 1, 2],
@@ -1404,7 +1434,9 @@ const hot = new Handsontable(container, {
       // enable throwing data type errors for this column summary
       suppressDataTypeErrors: false
     }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -1427,6 +1459,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         [0, 1, 2],
