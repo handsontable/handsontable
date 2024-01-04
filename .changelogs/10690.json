@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Maintain the last selected row/column selection after record removal",
+  "type": "changed",
+  "issueOrPR": 10690,
+  "breaking": false,
+  "framework": "none"
+}
