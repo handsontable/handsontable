@@ -102,8 +102,8 @@ describe('cellTypes', () => {
     expect(getCellType('date').validator).toBe(validators.DateValidator);
 
     expect(getCellType('dropdown').editor).toBe(editors.DropdownEditor);
-    expect(getCellType('dropdown').renderer).toBe(renderers.AutocompleteRenderer);
-    expect(getCellType('dropdown').validator).toBe(validators.AutocompleteValidator);
+    expect(getCellType('dropdown').renderer).toBe(renderers.DropdownRenderer);
+    expect(getCellType('dropdown').validator).toBe(validators.DropdownValidator);
 
     expect(getCellType('handsontable').editor).toBe(editors.HandsontableEditor);
     expect(getCellType('handsontable').renderer).toBe(renderers.HandsontableRenderer);

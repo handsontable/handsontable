@@ -100,6 +100,7 @@ describe('Public API', () => {
 
     it('should expose all registered renderer functions', () => {
       expect(Handsontable.renderers.AutocompleteRenderer).toBeFunction();
+      expect(Handsontable.renderers.DropdownRenderer).toBeFunction();
       expect(Handsontable.renderers.CheckboxRenderer).toBeFunction();
       expect(Handsontable.renderers.HtmlRenderer).toBeFunction();
       expect(Handsontable.renderers.NumericRenderer).toBeFunction();
@@ -120,6 +121,7 @@ describe('Public API', () => {
 
     it('should expose all registered validator functions', () => {
       expect(Handsontable.validators.AutocompleteValidator).toBeFunction();
+      expect(Handsontable.validators.DropdownValidator).toBeFunction();
       expect(Handsontable.validators.DateValidator).toBeFunction();
       expect(Handsontable.validators.NumericValidator).toBeFunction();
       expect(Handsontable.validators.TimeValidator).toBeFunction();
@@ -149,8 +151,8 @@ describe('Public API', () => {
       expect(Handsontable.cellTypes.date.validator).toBe(Handsontable.validators.DateValidator);
 
       expect(Handsontable.cellTypes.dropdown.editor).toBe(Handsontable.editors.DropdownEditor);
-      expect(Handsontable.cellTypes.dropdown.renderer).toBe(Handsontable.renderers.AutocompleteRenderer);
-      expect(Handsontable.cellTypes.dropdown.validator).toBe(Handsontable.validators.AutocompleteValidator);
+      expect(Handsontable.cellTypes.dropdown.renderer).toBe(Handsontable.renderers.DropdownRenderer);
+      expect(Handsontable.cellTypes.dropdown.validator).toBe(Handsontable.validators.DropdownValidator);
 
       expect(Handsontable.cellTypes.handsontable.editor).toBe(Handsontable.editors.HandsontableEditor);
       expect(Handsontable.cellTypes.handsontable.renderer).toBe(Handsontable.renderers.HandsontableRenderer);
