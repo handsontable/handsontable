@@ -1085,11 +1085,13 @@ setupCheckbox(
     hotInstance = new Handsontable(document.getElementById("example1"), {
       ...hotOptions,
       renderAllRows: !checked,
-      viewportColumnRenderingOffset: checked ? "auto" : 9,
+      renderAllColumns: !checked,
     });
     console.log(
       `Updated setting: renderAllRows to`,
       hotInstance.getSettings().renderAllRows
+      `Updated setting: renderAllColumns to`,
+      hotInstance.getSettings().renderAllColumns
     );
   }
 );
@@ -1744,6 +1746,7 @@ function App() {
     tabNavigation: true,
     navigableHeaders: true,
     renderAllRows: false,
+    renderAllColumns: false,
     enterBeginsEditing: true,
     autoWrapRow: true,
     autoWrapCol: true,
@@ -1804,6 +1807,7 @@ function DemoOptions({
   tabNavigation,
   navigableHeaders,
   renderAllRows,
+  renderAllColumns,
   enterBeginsEditing,
   autoWrapRow,
   autoWrapCol,
@@ -1829,7 +1833,7 @@ function DemoOptions({
         changeToggleOptions((existing) => ({
           ...existing,
           renderAllRows: !renderAllRows,
-          viewportColumnRenderingOffset: renderAllRows ? "auto" : 9,
+          renderAllColumns: !renderAllColumns,
         }));
         break;
       case "enable-cell-enter-editing":
@@ -2259,6 +2263,7 @@ For the list of [options](@/guides/getting-started/configuration-options.md), me
 - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
 - [`enterMoves`](@/api/options.md#entermoves)
 - [`navigableHeaders`](@/api/options.md#navigableheaders)
+- [`renderAllColumns`](@/api/options.md#renderallcolumns)
 - [`renderAllRows`](@/api/options.md#renderallrows)
 - [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
 - [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
