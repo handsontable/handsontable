@@ -3679,13 +3679,13 @@ export default () => {
      *
      * You can set the `renderAllColumns` option to one of the following:
      *
-     * | Setting           | Description                                                                                        |
-     * | ----------------- | -------------------------------------------------------------------------------------------------- |
-     * | `false` (default) | Enable [column virtualization](@/guides/columns/column-virtualization.md)                                   |
+     * | Setting           | Description                                                                                                    |
+     * | ----------------- | -------------------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | Enable [column virtualization](@/guides/columns/column-virtualization.md)                                      |
      * | `true`            | Disable [column virtualization](@/guides/columns/column-virtualization.md)<br>(render all columns of the grid) |
      *
      * Read more:
-     * - [Row virtualization](@/guides/columns/column-virtualization.md)
+     * - [Column virtualization](@/guides/columns/column-virtualization.md)
      *
      * @since 14.1.0
      * @memberof Options#
