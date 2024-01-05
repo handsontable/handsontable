@@ -39,18 +39,15 @@ Accessibility features of Handsontable include:
 
 ## Conformance with standards
 
-Most global standards and regulations are created in accordance with WCAG (Web Content Accessibility Guidelines). Handsontable meets requirements outlined in the [WCAG 2.1 AA](https://www.w3.org/WAI/WCAG21/quickref/) guidelines, which makes it compatible with most local standards such as:
+Most global standards and regulations are created in accordance with WCAG (Web Content Accessibility Guidelines).
+Handsontable meets requirements outlined in the [WCAG 2.1 AA](https://www.w3.org/WAI/WCAG21/quickref/) guidelines,
+which makes it compatible with most local standards, such as:
 
-- **United States:**
-  - [Section 508 of the US Rehabilitation Act](https://www.section508.gov/)
-  - [Americans with Disabilities Act (ADA)](https://www.ada.gov/resources/web-guidance/)
-
-- **Europe / European Union:**
-  - [European Accessibility Act (EAA)](https://ec.europa.eu/social/main.jsp?catId=1202)
-  - [Web Accessibility Directive (WAD)](https://eur-lex.europa.eu/legal-content/EN/LSU/?uri=CELEX:32016L2102)
-
-- **Canada:**
-  - [Standard on Web Accessibility](https://www.tbs-sct.canada.ca/pol/doc-eng.aspx?id=23601)
+| Region | Standards                                                                                                                                                                                        |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| USA    | [Section 508 of the US Rehabilitation Act](https://www.section508.gov/)<br>[Americans with Disabilities Act (ADA)](https://www.ada.gov/resources/web-guidance/)                                  |
+| Europe | [European Accessibility Act (EAA)](https://ec.europa.eu/social/main.jsp?catId=1202)<br>[Web Accessibility Directive (WAD)](https://eur-lex.europa.eu/legal-content/EN/LSU/?uri=CELEX:32016L2102) |
+| Canada | [Standard on Web Accessibility](https://www.tbs-sct.canada.ca/pol/doc-eng.aspx?id=23601)                                                                                                         |
 
 ## Keyboard navigation
 
