@@ -3290,4 +3290,81 @@ describe('UndoRedo', () => {
       expect(hot.getSettings().fixedColumnsStart).toBe(1);
     });
   });
+
+  describe('scroll', () => {
+    it('should move to the already changed cell only vertically', async() => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 50),
+        rowHeaders: true,
+        colHeaders: true,
+        width: 500,
+        height: 400,
+      });
+
+      selectCell(4, 4);
+      setDataAtCell(4, 4, 'aaaa');
+      selectCell(5, 4);
+      scrollViewportTo({ row: 25, col: 4, verticalSnap: 'top' });
+      undo();
+
+      expect(hot.view.getFirstFullyVisibleRow()).toBe(4);
+      expect(hot.view.getFirstFullyVisibleColumn()).toBe(0);
+    });
+
+    it('should move to the already changed cell only horizontally', async() => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 50),
+        rowHeaders: true,
+        colHeaders: true,
+        width: 500,
+        height: 400,
+      });
+
+      selectCell(4, 4);
+      setDataAtCell(4, 4, 'aaaa');
+      selectCell(5, 4);
+      scrollViewportTo({ row: 4, col: 25, horizontalSnap: 'start' });
+      undo();
+
+      expect(hot.view.getFirstFullyVisibleRow()).toBe(0);
+      expect(hot.view.getFirstFullyVisibleColumn()).toBe(4);
+    });
+
+    it('should move to the already changed cell on both axis', async() => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 50),
+        rowHeaders: true,
+        colHeaders: true,
+        width: 500,
+        height: 400,
+      });
+
+      selectCell(4, 4);
+      setDataAtCell(4, 4, 'aaaa');
+      selectCell(5, 4);
+      scrollViewportTo({ row: 25, col: 25 });
+      undo();
+
+      expect(hot.view.getFirstFullyVisibleRow()).toBe(4);
+      expect(hot.view.getFirstFullyVisibleColumn()).toBe(4);
+    });
+
+    it('should not move to the already changed cell when selection has not been changed', async() => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 50),
+        rowHeaders: true,
+        colHeaders: true,
+        width: 500,
+        height: 400,
+      });
+
+      selectCell(4, 4);
+      setDataAtCell(4, 4, 'aaaa');
+      scrollViewportTo({ row: 25, col: 25, horizontalSnap: 'start', verticalSnap: 'top' });
+      undo();
+
+      expect(hot.view.getFirstFullyVisibleRow()).toBe(25);
+      expect(hot.view.getFirstFullyVisibleColumn()).toBe(25);
+    });
+  });
 });
