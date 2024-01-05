@@ -1168,7 +1168,13 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example9'));
 
 You can round a column summary result to a specific number of digits after the decimal point.
 
-To enable this feature, set the [`roundFloat`](@/api/columnSummary.md) option to your preferred number of digits. For example:
+To enable this feature, set the [`roundFloat`](@/api/columnSummary.md) option to your preferred number of digits between 0 and 100.
+
+Note: 
+- Setting `roundFloat` to `true` will be synonymous to setting it to `0`. Setting it to less than `0` will round it up to `0` and setting it to more than `100` will round it up to `100`.
+- Enabling `roundFloat` will change the data type returned by Handsontable's data-retrieving methods (like [`getDataAtCell()`](@/api/core.md#getdataatcell)) from `number` to `string`.
+
+For example:
 
 ::: only-for javascript
 
