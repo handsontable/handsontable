@@ -299,7 +299,7 @@ You can set a cell's [`renderer`](@/api/options.md#renderer), [`editor`](@/api/o
 renderer: Handsontable.NumericRenderer,
 editor: Handsontable.editors.NumericEditor,
 validator: Handsontable.NumericValidator,
-type: 'numeric'
+type: 'numeric',
 ```
 
 :::
