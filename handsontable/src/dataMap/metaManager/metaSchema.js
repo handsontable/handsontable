@@ -3658,6 +3658,8 @@ export default () => {
      * | `false` (default) | Enable [row virtualization](@/guides/rows/row-virtualization.md)                                   |
      * | `true`            | Disable [row virtualization](@/guides/rows/row-virtualization.md)<br>(render all rows of the grid) |
      *
+     * Setting `renderAllRows` to `true` overwrites the [`viewportRowRenderingOffset`](#viewportRowRenderingOffset) setting.
+     *
      * Read more:
      * - [Row virtualization](@/guides/rows/row-virtualization.md)
      *
@@ -3683,6 +3685,8 @@ export default () => {
      * | ----------------- | -------------------------------------------------------------------------------------------------------------- |
      * | `false` (default) | Enable [column virtualization](@/guides/columns/column-virtualization.md)                                      |
      * | `true`            | Disable [column virtualization](@/guides/columns/column-virtualization.md)<br>(render all columns of the grid) |
+     *
+     * Setting `renderAllColumns` to `true` overwrites the [`viewportColumnRenderingOffset`](#viewportColumnRenderingOffset) setting.
      *
      * Read more:
      * - [Column virtualization](@/guides/columns/column-virtualization.md)
@@ -4681,6 +4685,8 @@ export default () => {
      * | `auto` (default)   | Use the offset calculated automatically by Handsontable |
      * | A number           | Set the offset manually                                 |
      *
+     * The `viewportColumnRenderingOffset` setting is ignored when [`renderAllColumns`](#renderAllColumns) is set to `true`.
+     *
      * Read more:
      * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      *
@@ -4708,6 +4714,8 @@ export default () => {
      * | ------------------ | ------------------------------------------------------- |
      * | `auto` (default)   | Use the offset calculated automatically by Handsontable |
      * | A number           | Set the offset manually                                 |
+     *
+     * The `viewportRowRenderingOffset` setting is ignored when [`renderAllRows`](#renderAllRows) is set to `true`.
      *
      * Read more:
      * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
