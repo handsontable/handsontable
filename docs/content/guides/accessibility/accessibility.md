@@ -2212,6 +2212,48 @@ ReactDOM.render(<App />, document.getElementById("example2"));
 
 :::
 
+## Disabling DOM virtualization for improved accessibility
+
+By default, Handsontable uses DOM virtualization to display only the [rows](@/guides/rows/row-virtualization.md)
+and [columns](@/guides/columns/column-virtualization.md) that are currently visible on the screen,
+plus a few extra cells outside the visible area to ensure a seamless scrolling experience.
+
+However, assistive technologies rely on the elements within the DOM appearing in the correct order.
+Otherwise, they require the use of [additional ARIA attributes](https://www.w3.org/WAI/ARIA/apg/practices/grid-and-table-properties),
+such as `row-colindex` or `aria-rowindex`, to understand the grid's structure and accurately announce (read) it to the user.
+
+We already use ARIA attributes to describe data sorting, hidden columns or rows, and merged cells.
+Unfortunately, our tests have discovered scenarios where screen readers either announce incorrect indices or omit the ARIA attributes altogether.
+To address this issue, we recommend disabling DOM virtualization, which entails loading all grid elements into the browser.
+This action creates a complete [Accessibility tree](https://developer.mozilla.org/en-US/docs/Glossary/Accessibility_tree) that can be easily parsed
+and interpreted by assistive technology.
+
+::: only-for javascript
+
+```js
+const hot = new Handsontable(container, {
+  // disable column virtualization
+  renderAllColumns: true,
+  // disable row virtualization
+  renderAllRows: true,
+});
+```
+
+:::
+
+::: only-for react
+
+```js
+<HotTable
+  // disable column virtualization
+  renderAllColumns={true}
+  // disable row virtualization
+  renderAllRows={true}
+/>
+```
+
+:::
+
 ## High-contrast theme
 
 The recommended [minimum contrast ratio](https://www.w3.org/WAI/WCAG21/quickref/#contrast-minimum) for text against images or backgrounds is 4.5:1. To achieve this level of contrast with Handsontable's default theme, you can:
