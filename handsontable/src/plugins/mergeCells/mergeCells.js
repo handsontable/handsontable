@@ -1263,12 +1263,13 @@ export class MergeCells extends BasePlugin {
   /**
    * Allows to prevent opening the editor while more than one merged cell is selected.
    *
-   * @param {CellCoords} coords Cell coords.
+   * @param {number} row Visual row index of the edited cell.
+   * @param {number} column Visual column index of the edited cell.
    * @param {string | null} initialValue The initial editor value.
    * @param {MouseEvent | KeyboardEvent} event The event which was responsible for opening the editor.
    * @returns {boolean | undefined}
    */
-  #onBeforeBeginEditing(coords, initialValue, event) {
+  #onBeforeBeginEditing(row, column, initialValue, event) {
     if (!(event instanceof MouseEvent)) {
       return;
     }

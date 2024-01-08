@@ -217,13 +217,13 @@ class EditorManager {
     );
 
     // If the above hook does not return boolean apply default behavior which disallows opening
-    // an editor for non-contiguous selection (while pressing Ctrl/Cmd) and for multiple selected
-    // cells (while pressing SHIFT).
+    // an editor after double mouse click for non-contiguous selection (while pressing Ctrl/Cmd) and
+    // for multiple selected cells (while pressing SHIFT).
     if (event instanceof MouseEvent && typeof allowOpening !== 'boolean') {
       allowOpening = this.hot.selection.getLayerLevel() === 0 && selection.isSingle();
     }
 
-    if (!allowOpening) {
+    if (allowOpening === false) {
       this.clearActiveEditor();
 
       return;
