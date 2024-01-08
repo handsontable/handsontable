@@ -61,7 +61,9 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 
 :::
 
-If, for some reason, you have to get the `renderer`, `editor` or `validator` function of specific cell you can use standard [`getCellMeta()`](@/api/core.md#getcellmeta) method to get all properties of particular cell and then refer to cell functions like so:
+If, for some reason, you need to get the `renderer`, `editor` or `validator` function of a specific cell,
+you can use the standard [`getCellMeta()`](@/api/core.md#getcellmeta) method to get all properties of a cell,
+and then refer to the cell functions like this:
 
 ```js
 // get cell properties for cell [0, 0]
@@ -70,9 +72,17 @@ const cellProperties = hot.getCellMeta(0, 0);
 cellProperties.renderer; // get cell renderer
 cellProperties.editor; // get cell editor
 cellProperties.validator; // get cell validator
+cellProperties.type; // get cell type
 ```
 
-However, you have to remember that [`getCellMeta()`](@/api/core.md#getcellmeta) return cell properties "as they are", which means that if you use cell type to set cell functions, instead of defining functions directly those cell functions will be `undefined`:
+You can also get specific cell functions by using the following getters:
+
+- [`getCellRenderer(row, col)`](@/api/core.md#getcellrenderer)
+- [`getCellEditor(row, col)`](@/api/core.md#getcelleditor)
+- [`getCellValidator(row, col)`](@/api/core.md#getcellvalidator)
+
+If a cell's functions are defined through a [cell type](#cell-type), the getters will return
+the `renderer`, `editor` or `validator` functions defined for that cell type. For example:
 
 ::: only-for javascript
 
@@ -83,6 +93,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 const container = document.querySelector('#container');
 const hot = new Handsontable(container, {
   columns: [{
+    // set a cell type for the entire grid
     type: 'numeric'
   }]
 });
@@ -90,9 +101,9 @@ const hot = new Handsontable(container, {
 // get cell properties for cell [0, 0]
 const cellProperties = hot.getCellMeta(0, 0);
 
-cellProperties.renderer; // undefined
-cellProperties.editor; // undefined
-cellProperties.validator; // undefined
+cellProperties.renderer; // "numeric"
+cellProperties.editor; // "numeric"
+cellProperties.validator; // "numeric"
 cellProperties.type; // "numeric"
 ```
 
@@ -110,32 +121,23 @@ export const ExampleComponent = () => {
     // get cell properties for cell [0, 0]
     const cellProperties = hot.getCellMeta(0, 0);
 
-    cellProperties.renderer; // undefined
-    cellProperties.editor; // undefined
-    cellProperties.validator; // undefined
+    cellProperties.renderer; // "numeric"
+    cellProperties.editor; // "numeric"
+    cellProperties.validator; // "numeric"
     cellProperties.type; // "numeric"
   });
 
   return (
     <HotTable
       ref={hotRef}
-      columns={[{
-        type: 'numeric'
-      }]}
+      // set a cell type for the entire grid
+      type="numeric"
     />
   );
 };
 ```
 
 :::
-
-To get the actual cell function use appropriate _cell function getter_:
-
-- [`getCellRenderer(row, col)`](@/api/core.md#getcellrenderer)
-- [`getCellEditor(row, col)`](@/api/core.md#getcelleditor)
-- [`getCellValidator(row, col)`](@/api/core.md#getcellvalidator)
-
-Those functions will always return an appropriate value, regardless of whether cell functions have been defined directly or using a cell type.
 
 ## Related articles
 
