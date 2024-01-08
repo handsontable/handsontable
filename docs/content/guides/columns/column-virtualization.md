@@ -27,7 +27,6 @@ To process a large number of columns in a browser Handsontable utilizes the virt
 offset for a better scrolling experience.
 
 This feature is enabled by default and can be turned off by setting the [`renderAllColumns`](@/api/options.md#renderallcolumns) option to `true`.
-You might want to consider turning it off for [accessibility](@/guides/accessibility/accessibility.md#disabling-dom-virtualization-for-improved-accessibility) reasons.
 
 ## Configure the column virtualization
 
