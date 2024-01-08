@@ -2788,4 +2788,22 @@ describe('CollapsibleColumns', () => {
       });
     });
   });
+
+  it('should not throw an error for configuration with columns beyond the table boundaries', () => {
+    expect(() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        colHeaders: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W'],
+        ],
+        collapsibleColumns: [
+          { row: -2, col: 1, collapsible: true },
+          { row: -1, col: 1, collapsible: true },
+          { row: -3, col: 1, collapsible: true },
+        ],
+      });
+    }).not.toThrow();
+  });
 });
