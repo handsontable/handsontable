@@ -97,6 +97,7 @@ describe('Hook', () => {
       selectCell(1, 2);
       keyDownUp('enter');
 
+      expect(isEditorVisible()).toBe(false);
       expect(getActiveEditor()).toBeUndefined();
     });
   });
