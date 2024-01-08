@@ -192,12 +192,6 @@ const hot = new Handsontable(container, {
 
 :::
 
-::: tip
-
-If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
-
-:::
-
 #### Example
 
 To configure each cell in the grid as read-only, apply the [`readOnly`](@/api/options.md#readonly) option as a top-level grid option.
@@ -331,12 +325,6 @@ Alternatively, you can use the [`HotColumn`](@/guides/columns/react-hot-column.m
   <HotColumn width={100}/>
 </HotTable>
 ```
-
-:::
-
-::: tip
-
-If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
 
 :::
 
@@ -512,12 +500,6 @@ The function can take three arguments:<br>
 
 :::
 
-::: tip
-
-If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
-
-:::
-
 #### Example
 
 In the example below, the [`cells`](@/api/options.md#cells) option sets each cell in the first and fourth row as [`readOnly`](@/api/options.md#readonly).
@@ -669,12 +651,6 @@ const hot = new Handsontable(container, {
   }
 ]}/>
 ```
-
-:::
-
-::: tip
-
-If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
 
 :::
 
