@@ -572,7 +572,7 @@ describe('AutoColumnSize', () => {
   it('should ignore calculate row heights for samples from hidden columns', () => {
     const data = createSpreadsheetData(5, 3);
 
-    data[2][0] = 'Very long text that causes the row to be high';
+    data[2][0] = 'Very long text that causes the column to be wide';
 
     handsontable({
       data,
