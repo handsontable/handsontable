@@ -186,37 +186,25 @@ class Scroll {
    * @returns {number}
    */
   getLastVisibleRow() {
-    const {
-      topOverlay,
-      wtTable,
-      wtViewport,
-      totalRows,
-      rootWindow,
-    } = this.dataAccessObject;
-    let lastVisibleRow = wtTable.getLastVisibleRow();
+    return this.#getLastRowIndex(this.dataAccessObject.wtTable.getLastVisibleRow());
+  }
 
-    if (topOverlay.mainTableScrollableElement === rootWindow) {
-      const rootElementOffset = offset(wtTable.wtRootElement);
-      const windowScrollTop = getScrollTop(rootWindow, rootWindow);
+  /**
+   * Get first partially visible row based on virtual dom and how table is visible in browser window viewport.
+   *
+   * @returns {number}
+   */
+  getFirstPartiallyVisibleRow() {
+    return this.dataAccessObject.wtTable.getFirstPartiallyVisibleRow();
+  }
 
-      // Only calculate lastVisibleRow when table didn't filled (from bottom) whole viewport space
-      if (rootElementOffset.top > windowScrollTop) {
-        const windowHeight = innerHeight(rootWindow);
-        let rowsHeight = wtViewport.getColumnHeaderHeight();
-
-        for (let row = 1; row <= totalRows; row++) {
-          rowsHeight += topOverlay.sumCellSizes(row - 1, row);
-
-          if (rootElementOffset.top + rowsHeight - windowScrollTop >= windowHeight) {
-            // Return physical row - 1 (-2 because rangeEach gives row index + 1 - sumCellSizes requirements)
-            lastVisibleRow = row - 2;
-            break;
-          }
-        }
-      }
-    }
-
-    return lastVisibleRow;
+  /**
+   * Get last visible row based on virtual dom and how table is visible in browser window viewport.
+   *
+   * @returns {number}
+   */
+  getLastPartiallyVisibleRow() {
+    return this.#getLastRowIndex(this.dataAccessObject.wtTable.getLastPartiallyVisibleRow());
   }
 
   /**
@@ -234,6 +222,34 @@ class Scroll {
    * @returns {number}
    */
   getLastVisibleColumn() {
+    return this.#getLastColumnIndex(this.dataAccessObject.wtTable.getLastVisibleColumn());
+  }
+
+  /**
+   * Get first partially visible column based on virtual dom and how table is visible in browser window viewport.
+   *
+   * @returns {number}
+   */
+  getFirstPartiallyVisibleColumn() {
+    return this.dataAccessObject.wtTable.getFirstPartiallyVisibleColumn();
+  }
+
+  /**
+   * Get last partially visible column based on virtual dom and how table is visible in browser window viewport.
+   *
+   * @returns {number}
+   */
+  getLastPartiallyVisibleColumn() {
+    return this.#getLastColumnIndex(this.dataAccessObject.wtTable.getLastPartiallyVisibleColumn());
+  }
+
+  /**
+   * Get last visible column based on virtual dom and how table is visible in browser window viewport.
+   *
+   * @param {number} lastVisibleColumn The last visible column index.
+   * @returns {number}
+   */
+  #getLastColumnIndex(lastVisibleColumn) {
     const {
       wtSettings,
       inlineStartOverlay,
@@ -242,8 +258,6 @@ class Scroll {
       totalColumns,
       rootWindow,
     } = this.dataAccessObject;
-
-    let lastVisibleColumn = wtTable.getLastVisibleColumn();
 
     if (inlineStartOverlay.mainTableScrollableElement === rootWindow) {
       const isRtl = wtSettings.getSetting('rtlMode');
@@ -282,6 +296,45 @@ class Scroll {
     }
 
     return lastVisibleColumn;
+  }
+
+  /**
+   * Get last visible row based on virtual dom and how table is visible in browser window viewport.
+   *
+   * @param {number} lastVisibleRow The last visible row index.
+   * @returns {number}
+   */
+  #getLastRowIndex(lastVisibleRow) {
+    const {
+      topOverlay,
+      wtTable,
+      wtViewport,
+      totalRows,
+      rootWindow,
+    } = this.dataAccessObject;
+
+    if (topOverlay.mainTableScrollableElement === rootWindow) {
+      const rootElementOffset = offset(wtTable.wtRootElement);
+      const windowScrollTop = getScrollTop(rootWindow, rootWindow);
+
+      // Only calculate lastVisibleRow when table didn't filled (from bottom) whole viewport space
+      if (rootElementOffset.top > windowScrollTop) {
+        const windowHeight = innerHeight(rootWindow);
+        let rowsHeight = wtViewport.getColumnHeaderHeight();
+
+        for (let row = 1; row <= totalRows; row++) {
+          rowsHeight += topOverlay.sumCellSizes(row - 1, row);
+
+          if (rootElementOffset.top + rowsHeight - windowScrollTop >= windowHeight) {
+            // Return physical row - 1 (-2 because rangeEach gives row index + 1 - sumCellSizes requirements)
+            lastVisibleRow = row - 2;
+            break;
+          }
+        }
+      }
+    }
+
+    return lastVisibleRow;
   }
 }
 

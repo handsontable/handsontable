@@ -1450,6 +1450,46 @@ class TableView {
   }
 
   /**
+   * Returns the first partially visible row in the table viewport.
+   *
+   * @returns {number}
+   */
+  getFirstPartiallyVisibleRow() {
+    return this.hot.rowIndexMapper
+      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getFirstPartiallyVisibleRow());
+  }
+
+  /**
+   * Returns the last partially visible row in the table viewport.
+   *
+   * @returns {number}
+   */
+  getLastPartiallyVisibleRow() {
+    return this.hot.rowIndexMapper
+      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getLastPartiallyVisibleRow());
+  }
+
+  /**
+   * Returns the first partially visible column in the table viewport.
+   *
+   * @returns {number}
+   */
+  getFirstPartiallyVisibleColumn() {
+    return this.hot.columnIndexMapper
+      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getFirstPartiallyVisibleColumn());
+  }
+
+  /**
+   * Returns the last partially visible column in the table viewport.
+   *
+   * @returns {number}
+   */
+  getLastPartiallyVisibleColumn() {
+    return this.hot.columnIndexMapper
+      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getLastPartiallyVisibleColumn());
+  }
+
+  /**
    * Returns the total count of the rendered column headers.
    *
    * @returns {number}

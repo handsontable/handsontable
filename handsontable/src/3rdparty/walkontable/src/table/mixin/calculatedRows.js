@@ -44,6 +44,22 @@ const calculatedRows = {
   },
 
   /**
+   * Get the source index of the first row partially visible in the viewport. If no rows are partially visible, returns an error code: -1.
+   *
+   * @returns {number}
+   * @this Table
+   */
+  getFirstPartiallyVisibleRow() {
+    const startRow = this.dataAccessObject.startRowPartiallyVisible;
+
+    if (startRow === null) {
+      return -1;
+    }
+
+    return startRow;
+  },
+
+  /**
    * Get the source index of the last rendered row. If no rows are rendered, returns an error code: -1.
    *
    * @returns {number}
@@ -67,6 +83,22 @@ const calculatedRows = {
    */
   getLastVisibleRow() {
     const endRow = this.dataAccessObject.endRowVisible;
+
+    if (endRow === null) {
+      return -1;
+    }
+
+    return endRow;
+  },
+
+  /**
+   * Get the source index of the last row partially visible in the viewport. If no rows are partially visible, returns an error code: -1.
+   *
+   * @returns {number}
+   * @this Table
+   */
+  getLastPartiallyVisibleRow() {
+    const endRow = this.dataAccessObject.endRowPartiallyVisible;
 
     if (endRow === null) {
       return -1;

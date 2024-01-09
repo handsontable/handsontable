@@ -34,7 +34,10 @@ import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
 import { Selection } from './selection';
 import { MetaManager, DynamicCellMetaMod, ExtendMetaPropertiesMod, replaceData } from './dataMap';
-import { installFocusCatcher } from './core/index';
+import {
+  installFocusCatcher,
+  createViewportScroller,
+} from './core/index';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
@@ -109,7 +112,6 @@ const deprecationWarns = new Set();
  * @param {boolean} [rootInstanceSymbol=false] Indicates if the instance is root of all later instances created.
  */
 export default function Core(rootElement, userSettings, rootInstanceSymbol = false) {
-  let preventScrollingToCell = false;
   let instance = this;
 
   const eventManager = new EventManager(instance);
@@ -118,6 +120,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   let grid;
   let editorManager;
   let focusManager;
+  let viewportScroller;
   let firstRun = true;
 
   if (hasValidParameter(rootInstanceSymbol)) {
@@ -335,51 +338,28 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const selectionLayerLevel = selectionRange.size() - 1;
 
     this.runHooks('afterSelection',
-      from.row, from.col, to.row, to.col, preventScrolling, selectionLayerLevel);
+      from.row,
+      from.col,
+      to.row,
+      to.col,
+      preventScrolling,
+      selectionLayerLevel
+    );
     this.runHooks('afterSelectionByProp',
-      from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), preventScrolling, selectionLayerLevel); // eslint-disable-line max-len
+      from.row,
+      instance.colToProp(from.col),
+      to.row,
+      instance.colToProp(to.col),
+      preventScrolling,
+      selectionLayerLevel
+    );
 
-    let scrollToCell = true;
-
-    if (preventScrollingToCell) {
-      scrollToCell = false;
+    if (!preventScrolling.isTouched() || preventScrolling.isTouched() && !preventScrolling.value) {
+      viewportScroller.scrollTo(cellCoords);
     }
 
-    if (preventScrolling.isTouched()) {
-      scrollToCell = !preventScrolling.value;
-    }
-
-    const currentSelectedRange = this.selection.selectedRange.current();
-    const isSelectedByAnyHeader = this.selection.isSelectedByAnyHeader();
-    const isSelectedByRowHeader = this.selection.isSelectedByRowHeader();
-    const isSelectedByColumnHeader = this.selection.isSelectedByColumnHeader();
-
-    if (scrollToCell !== false) {
-      if (!isSelectedByAnyHeader) {
-        if (currentSelectedRange && !this.selection.isMultiple()) {
-          const { row, col } = currentSelectedRange.from;
-
-          if (row < 0 && col >= 0) {
-            this.scrollViewportTo({ col });
-
-          } else if (col < 0 && row >= 0) {
-            this.scrollViewportTo({ row });
-
-          } else {
-            this.scrollViewportTo({ row, col });
-          }
-
-        } else {
-          this.scrollViewportTo(cellCoords.toObject());
-        }
-
-      } else if (isSelectedByRowHeader) {
-        this.scrollViewportTo({ row: cellCoords.row });
-
-      } else if (isSelectedByColumnHeader) {
-        this.scrollViewportTo({ col: cellCoords.col });
-      }
-    }
+    const isSelectedByRowHeader = selection.isSelectedByRowHeader();
+    const isSelectedByColumnHeader = selection.isSelectedByColumnHeader();
 
     // @TODO: These CSS classes are no longer needed anymore. They are used only as a indicator of the selected
     // rows/columns in the MergedCells plugin (via border.js#L520 in the walkontable module). After fixing
@@ -1170,7 +1150,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.view = new TableView(this);
 
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
-
+    viewportScroller = createViewportScroller(instance);
     focusManager = new FocusManager(instance);
 
     if (isRootInstance(this)) {
@@ -4211,7 +4191,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.selectCells = function(coords = [[]], scrollToCell = true, changeListener = true) {
     if (scrollToCell === false) {
-      preventScrollingToCell = true;
+      viewportScroller.skipNextScrollCycle();
     }
 
     const wasSelected = selection.selectCells(coords);
@@ -4219,7 +4199,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (wasSelected && changeListener) {
       instance.listen();
     }
-    preventScrollingToCell = false;
 
     return wasSelected;
   };
@@ -4345,9 +4324,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * the logical coordinates points on them.
    */
   this.selectAll = function(includeRowHeaders = true, includeColumnHeaders = includeRowHeaders, options) {
-    preventScrollingToCell = true;
+    viewportScroller.skipNextScrollCycle();
     selection.selectAll(includeRowHeaders, includeColumnHeaders, options);
-    preventScrollingToCell = false;
   };
 
   const getIndexToScroll = (indexMapper, visualIndex) => {

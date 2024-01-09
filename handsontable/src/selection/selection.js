@@ -82,6 +82,12 @@ class Selection {
    * @type {boolean}
    */
   #disableHeadersHighlight = false;
+  /**
+   * The source of the selection. It can be one of the following values: `mouse`, `touch`, `unknown` or any other string.
+   *
+   * @type {'mouse' | 'unknown' | string}
+   */
+  #selectionSource = 'unknown';
 
   constructor(settings, tableProps) {
     this.settings = settings;
@@ -145,6 +151,18 @@ class Selection {
    */
   getSelectedRange() {
     return this.selectedRange;
+  }
+
+  markSource(sourceName) {
+    this.#selectionSource = sourceName;
+  }
+
+  markEndSource() {
+    this.#selectionSource = 'unknown';
+  }
+
+  getSelectionSource() {
+    return this.#selectionSource;
   }
 
   /**
