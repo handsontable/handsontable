@@ -444,12 +444,6 @@ To apply configuration options to an individual row (or a range of rows), use th
 
 Any options modified through [`cells`](@/api/options.md#cells) overwrite all other options.
 
-::: tip
-
-The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/optimization/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#change-cell-options) method don't meet your needs.
-
-:::
-
 ::: only-for javascript
 
  The function can take three arguments:<br>
@@ -922,12 +916,6 @@ hot.getCellMeta(1, 1).readOnly;
 You can apply configuration options to individual grid elements (columns, rows, cells), based on any logic you implement, using the [`cells`](@/api/options.md#cells) option.
 
 The [`cells`](@/api/options.md#cells) option overwrites all other options.
-
-::: tip
-
-The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/optimization/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#change-cell-options) method don't meet your needs.
-
-:::
 
 ::: only-for javascript
 
