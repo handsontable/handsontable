@@ -126,7 +126,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
       reversedRowCoords: true,
       suppressDataTypeErrors: false,
       readOnly: true,
-      roundFloat: false,
+      roundFloat: oneOf(false, true, 5),
       type: 'custom',
       customFunction: (endpoint) => 100
     }

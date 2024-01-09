@@ -921,7 +921,7 @@ export default () => {
      * | `reversedRowCoords`      | `true`  \| `false`                                                      | [Reverse row coordinates](@/guides/columns/column-summary.md#step-5-make-room-for-the-destination-cell)                      |
      * | `suppressDataTypeErrors` | `true`  \| `false`                                                      | [Suppress data type errors](@/guides/columns/column-summary.md#throw-data-type-errors)                                    |
      * | `readOnly`               | `true`  \| `false`                                                      | Make summary cell read-only                                                                                                  |
-     * | `roundFloat`             | `true`  \| `false`                                                      | [Round summary result](@/guides/columns/column-summary.md#round-a-column-summary-result)                                  |
+     * | `roundFloat`             | `true`  \| `false`  \| A number                                         | [Round summary result](@/guides/columns/column-summary.md#round-a-column-summary-result)                                  |
      * | `customFunction`         | A function                                                              | [Custom summary function](@/guides/columns/column-summary.md#implement-a-custom-summary-function)                         |
      *
      * Read more:
@@ -2309,7 +2309,7 @@ export default () => {
      *
      * You can set the `fragmentSelection` option to one of the following:
      *
-     * | Setting           | Decription                                        |
+     * | Setting           | Description                                        |
      * | ----------------- | ------------------------------------------------- |
      * | `false` (default) | Disable text selection                            |
      * | `true`            | Enable text selection in multiple cells at a time |
@@ -3592,11 +3592,11 @@ export default () => {
 
     /**
      * @description
-     * The `readOnly` option determines whether a cell, column or comment is editable or not.
+     * The `readOnly` option determines whether a [cell](@/guides/cell-features/disabled-cells.md#read-only-specific-cells),
+     * [comment](@/guides/cell-features/comments.md#make-a-comment-read-only), [column](@/guides/cell-features/disabled-cells.md#read-only-columns)
+     * or the [entire grid](@/guides/cell-features/disabled-cells.md#read-only-grid) is editable or not. You can configure it as follows:
      *
-     * You can set the `readOnly` option to one of the following:
-     *
-     * | Setting           | Decription                                                                                                                |
+     * | Setting           | Description                                                                                                                |
      * | ----------------- | ------------------------------------------------------------------------------------------------------------------------- |
      * | `false` (default) | Set as editable                                                                                                           |
      * | `true`            | - Set as read-only<br>- Add the [`readOnlyCellClassName`](#readOnlyCellClassName) CSS class name (by default: `htDimmed`) |
@@ -3604,6 +3604,7 @@ export default () => {
      * `readOnly` cells can't be changed by the [`populateFromArray()`](@/api/core.md#populatefromarray) method.
      *
      * Read more:
+     * - [Disabled cells](@/guides/cell-features/disabled-cells.md)
      * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration)
      *
      * @memberof Options#
@@ -3613,8 +3614,31 @@ export default () => {
      *
      * @example
      * ```js
-     * // set as read-only
-     * readOnly: true,
+     * // make the entire grid read-only
+     * const configurationOptions = {
+     *   columnSorting: true,
+     * };
+     *
+     * // make the third column read-only
+     * const configurationOptions = {
+     *   columns: [
+     *     {},
+     *     {},
+     *     {
+     *       readOnly: true,
+     *     },
+     *   ],
+     * };
+     *
+     * // make a specific cell read-only
+     * const configurationOptions = {
+     *   cell: [
+     *     {
+     *       row: 0,
+     *       col: 0,
+     *       readOnly: true,
+     *     },
+     * };
      * ```
      */
     readOnly: false,

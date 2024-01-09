@@ -489,6 +489,37 @@ UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
     }
   }
 
+  const selectedLast = instance.getSelectedLast();
+
+  if (selectedLast !== undefined) {
+    const [changedRow, changedColumn] = data[0];
+    const [selectedRow, selectedColumn] = selectedLast;
+    const firstFullyVisibleRow = instance.view.getFirstFullyVisibleRow();
+    const firstFullyVisibleColumn = instance.view.getFirstFullyVisibleColumn();
+    const isInVerticalViewPort = changedRow >= firstFullyVisibleRow;
+    const isInHorizontalViewPort = changedColumn >= firstFullyVisibleColumn;
+    const isInViewport = isInVerticalViewPort && isInHorizontalViewPort;
+    const isChangedSelection = selectedRow !== changedRow || selectedColumn !== changedColumn;
+
+    // Performing scroll only when selection has been changed right after editing a cell.
+    if (isInViewport === false && isChangedSelection === true) {
+      const scrollConfig = {
+        row: changedRow,
+        col: changedColumn,
+      };
+
+      if (isInVerticalViewPort === false) {
+        scrollConfig.verticalSnap = 'top';
+      }
+
+      if (isInHorizontalViewPort === false) {
+        scrollConfig.horizontalSnap = 'start';
+      }
+
+      instance.scrollViewportTo(scrollConfig);
+    }
+  }
+
   instance.selectCells(this.selected, false, false);
 };
 UndoRedo.ChangeAction.prototype.redo = function(instance, onFinishCallback) {

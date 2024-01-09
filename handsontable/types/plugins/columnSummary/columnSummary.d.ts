@@ -8,7 +8,7 @@ export type DetailedSettings = {
   reversedRowCoords?: boolean;
   suppressDataTypeErrors?: boolean;
   readOnly?: boolean;
-  roundFloat?: boolean;
+  roundFloat?: boolean | number;
   ranges?: number[][];
   sourceColumn?: number;
 } & ({
@@ -27,7 +27,7 @@ export interface Endpoint {
   reversedRowCoords: boolean;
   suppressDataTypeErrors: boolean;
   readOnly: boolean;
-  roundFloat: boolean;
+  roundFloat: boolean | number;
   ranges: number[][];
   sourceColumn: number;
   type: 'sum' | 'min' | 'max' | 'count' | 'average' | 'custom';
