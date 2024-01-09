@@ -155,18 +155,17 @@ To find out if an option comes from a plugin, check the `Category` label in the 
 
 ## Set grid options
 
-To apply configuration options to the entire grid:
+
 
 ::: only-for javascript
 
-- Pass your options as a second argument of the Handsontable constructor, using the object literal notation.
+To apply configuration options to the entire grid, pass your options as a second argument of the Handsontable constructor, using the object literal notation.
 
 :::
 
 ::: only-for react
 
-- Pass your options as individual props of the [`HotTable`](@/guides/getting-started/installation.md#_4-use-the-hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
-- You can also pass your options as an object, using the `settings` prop.
+To apply configuration options to the entire grid, pass your options as individual props of the [`HotTable`](@/guides/getting-started/installation.md#_4-use-the-hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column.md) components. You can also pass your options as an object, using the `settings` prop.
 
 :::
 
@@ -189,12 +188,6 @@ const hot = new Handsontable(container, {
 ```jsx
 <HotTable width={400} height={300} />
 ```
-
-:::
-
-::: tip
-
-If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
 
 :::
 
@@ -334,12 +327,6 @@ Alternatively, you can use the [`HotColumn`](@/guides/columns/react-hot-column.m
 
 :::
 
-::: tip
-
-If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
-
-:::
-
 #### Example
 
 In the example below, the [`columns`](@/api/options.md#columns) option is set to a function.
@@ -456,12 +443,6 @@ To apply configuration options to an individual row (or a range of rows), use th
 
 Any options modified through [`cells`](@/api/options.md#cells) overwrite all other options.
 
-::: tip
-
-The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/optimization/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#change-cell-options) method don't meet your needs.
-
-:::
-
 ::: only-for javascript
 
  The function can take three arguments:<br>
@@ -509,12 +490,6 @@ The function can take three arguments:<br>
   }
 }}/>
 ```
-
-:::
-
-::: tip
-
-If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
 
 :::
 
@@ -669,12 +644,6 @@ const hot = new Handsontable(container, {
   }
 ]}/>
 ```
-
-:::
-
-::: tip
-
-If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
 
 :::
 
@@ -946,12 +915,6 @@ hot.getCellMeta(1, 1).readOnly;
 You can apply configuration options to individual grid elements (columns, rows, cells), based on any logic you implement, using the [`cells`](@/api/options.md#cells) option.
 
 The [`cells`](@/api/options.md#cells) option overwrites all other options.
-
-::: tip
-
-The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/optimization/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#change-cell-options) method don't meet your needs.
-
-:::
 
 ::: only-for javascript
 

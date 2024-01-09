@@ -34,6 +34,80 @@ Disabling a cell makes the cell read-only or non-editable. Both have similar out
 | Drag-to-fill doesn't work                                                    | Drag-to-fill works                                                         |
 | Can't be changed by [`populateFromArray()`](@/api/core.md#populatefromarray) | Can be changed by [`populateFromArray()`](@/api/core.md#populatefromarray) |
 
+## Read-only grid
+
+You can make the entire grid read-only by setting [`readOnly`](@/api/options.md#readonly) to `true` as a [top-level grid option](@/guides/getting-started/configuration-options.md#set-grid-options).
+
+::: only-for javascript
+
+::: example #exampleReadOnlyGrid
+
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const container = document.querySelector('#exampleReadOnlyGrid');
+const hot = new Handsontable(container, {
+  data: [
+    { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
+    { car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue' },
+    { car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black' },
+    { car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray' }
+  ],
+  height: 'auto',
+  colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
+  licenseKey: 'non-commercial-and-evaluation',
+  // make the entire grid read-only
+  readOnly: true,
+  autoWrapRow: true,
+  autoWrapCol: true
+});
+```
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleReadOnlyGrid :react
+
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={[
+        { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
+        { car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue' },
+        { car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black' },
+        { car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray' }
+      ]}
+      height="auto"
+      colHeaders={['Car', 'Year', 'Chassis color', 'Bumper color']}
+      autoWrapRow={true}
+      autoWrapCol={true}
+      licenseKey="non-commercial-and-evaluation"
+      readOnly={true}
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<ExampleComponent />, document.getElementById('exampleReadOnlyGrid'));
+/* end:skip-in-preview */
+```
+
+:::
+
+:::
+
 ## Read-only columns
 
 In many use cases, you will need to configure a certain column to be read-only. This column will be available for keyboard navigation and copying data (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>). Editing and pasting data will be disabled.
