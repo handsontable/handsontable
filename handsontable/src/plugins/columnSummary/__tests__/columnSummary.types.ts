@@ -51,6 +51,21 @@ const endpoint: Endpoint = {
   reversedRowCoords: false,
   suppressDataTypeErrors: false,
   readOnly: true,
+  roundFloat: 4,
+  ranges: [[1, 1, 2, 2]],
+  sourceColumn: 0,
+  type: 'sum',
+  result: 0,
+  customFunction: null,
+};
+
+const endpoint2: Endpoint = {
+  destinationRow: 0,
+  destinationColumn: 0,
+  forceNumeric: false,
+  reversedRowCoords: true,
+  suppressDataTypeErrors: true,
+  readOnly: true,
   roundFloat: false,
   ranges: [[1, 1, 2, 2]],
   sourceColumn: 0,
