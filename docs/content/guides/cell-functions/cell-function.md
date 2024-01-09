@@ -101,10 +101,10 @@ const hot = new Handsontable(container, {
 // get cell properties for cell [0, 0]
 const cellProperties = hot.getCellMeta(0, 0);
 
-cellProperties.renderer; // "numeric"
-cellProperties.editor; // "numeric"
-cellProperties.validator; // "numeric"
-cellProperties.type; // "numeric"
+cellProperties.renderer; // numericRenderer
+cellProperties.editor; // NumericEditor
+cellProperties.validator; // numericValidator
+cellProperties.type; // numeric
 ```
 
 :::
