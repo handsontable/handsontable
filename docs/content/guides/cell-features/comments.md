@@ -176,7 +176,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 ## Make a comment read-only
 
-By default, all comments are editable. To change this, set the [`readOnly`](@/api/options.md#comments) configuration option to `true` when adding a comment. This example makes the "Tesla" comment attached to a cell read-only, whereas the "Honda" comment attached to another cell is editable.
+By default, all comments are editable. To change this, set the [`readOnly`](@/api/options.md#readonly) configuration option to `true` when adding a comment. This example makes the "Tesla" comment attached to a cell read-only, whereas the "Honda" comment attached to another cell is editable.
 
 ::: only-for javascript
 
