@@ -9,6 +9,42 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [14.1.0] - 2024-01-16
+
+### Added
+- Added support for the ability to disable column virtualization via the new `renderAllColumns` option [#10599](https://github.com/handsontable/handsontable/pull/10599)
+- Undoing changes will scroll us back to the changed area in specific case [#10639](https://github.com/handsontable/handsontable/pull/10639)
+
+### Changed
+- Disabled table's viewport scrolling on data paste. [#10630](https://github.com/handsontable/handsontable/pull/10630)
+- Updated typings for the Formulas plugin [#10653](https://github.com/handsontable/handsontable/pull/10653)
+- Improved plugins TS types. [#10670](https://github.com/handsontable/handsontable/pull/10670)
+- Improved TS types of the Core related modules. [#10671](https://github.com/handsontable/handsontable/pull/10671)
+- Improved Select type cell editor [#10673](https://github.com/handsontable/handsontable/pull/10673)
+- Improved TS types for `CellCoords` and `CellRange` classes. [#10678](https://github.com/handsontable/handsontable/pull/10678)
+- Maintain the last selected row/column selection after record removal [#10690](https://github.com/handsontable/handsontable/pull/10690)
+- React: Improved support for SSR frameworks [#10575](https://github.com/handsontable/handsontable/pull/10575)
+
+### Fixed
+- Improved TS typings for the CustomBorders plugin [#10515](https://github.com/handsontable/handsontable/issues/10515)
+- Fixed editor's width miscalculations [#10590](https://github.com/handsontable/handsontable/pull/10590)
+- Fixed a problem with the text editor's TEXTAREA element's contents being selected after opening the editor with a double-click. [#10595](https://github.com/handsontable/handsontable/pull/10595)
+- Fixed cells selection after closing the editor [#10622](https://github.com/handsontable/handsontable/pull/10622)
+- Fixed an error that is thrown after TAB hit in editor [#10632](https://github.com/handsontable/handsontable/pull/10632)
+- Fixed table jumps after TAB hit [#10634](https://github.com/handsontable/handsontable/pull/10634)
+- Fixed the TypeError that was thrown in Filters plugin in some specific setup cases [#10637](https://github.com/handsontable/handsontable/pull/10637)
+- Fixed the focus position after Handsontable options or dataset change [#10642](https://github.com/handsontable/handsontable/pull/10642)
+- Fixed an issue related to the "listen/unlisten" table's state. [#10648](https://github.com/handsontable/handsontable/pull/10648)
+- Undoing/redoing removal of cells will restore also cell meta [#10649](https://github.com/handsontable/handsontable/pull/10649)
+- Fixed manual row and column resize plugins that throw an error when the cell renderer render the cell value in HTML table element. [#10650](https://github.com/handsontable/handsontable/pull/10650)
+- Fixed a problem where in specific situations the table was not being scrolled after navigating it with the keyboard, fixed an issue with the drag-to-scroll functionality not working for window-scrolled instances. [#10655](https://github.com/handsontable/handsontable/pull/10655)
+- Added a dropdown renderer and validator and resolved problems with their typescript types. [#10688](https://github.com/handsontable/handsontable/pull/10688)
+- Fixed problem with uncaught TypeError exception for some CollapsibleColumns plugin configurations [#10693](https://github.com/handsontable/handsontable/pull/10693)
+- Fixed a bug related to deleting all Date type editor content. [#10696](https://github.com/handsontable/handsontable/pull/10696)
+- Fixed several problems around ColumnSummary's roundFloat option. [#10701](https://github.com/handsontable/handsontable/pull/10701)
+- Vue: Fixed "TypeError: Converting circular structure to JSON" when passing `hyperformulaInstance` to `hotSettings` [#8728](https://github.com/handsontable/handsontable/pull/8728)
+- React: Added missing TS typing for `settings` prop [#10661](https://github.com/handsontable/handsontable/pull/10661)
+
 ## [14.0.0] - 2023-11-22
 
 ### Added

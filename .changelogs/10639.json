@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Undoing changes will scroll us back to the changed area in specific case",
-  "type": "added",
-  "issueOrPR": 10639,
-  "breaking": false,
-  "framework": "none"
-}

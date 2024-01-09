@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem where in specific situations the table was not being scrolled after navigating it with the keyboard, fixed an issue with the drag-to-scroll functionality not working for window-scrolled instances.",
-  "type": "fixed",
-  "issueOrPR": 10655,
-  "breaking": false,
-  "framework": "none"
-}

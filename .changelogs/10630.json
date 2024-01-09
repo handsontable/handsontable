@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Disabled table's viewport scrolling on data paste.",
-  "type": "changed",
-  "issueOrPR": 10630,
-  "breaking": false,
-  "framework": "none"
-}

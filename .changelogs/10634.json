@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed table jumps after TAB hit",
-  "type": "fixed",
-  "issueOrPR": 10634,
-  "breaking": false,
-  "framework": "none"
-}

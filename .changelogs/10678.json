@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Improved TS types for `CellCoords` and `CellRange` classes.",
-  "type": "changed",
-  "issueOrPR": 10678,
-  "breaking": false,
-  "framework": "none"
-}
