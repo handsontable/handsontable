@@ -569,6 +569,27 @@ describe('AutoColumnSize', () => {
     expect(calculateColumnsWidth).not.toHaveBeenCalled();
   });
 
+  it('should ignore calculate row heights for samples from hidden columns', () => {
+    const data = createSpreadsheetData(5, 3);
+
+    data[2][0] = 'Very long text that causes the row to be high';
+
+    handsontable({
+      data,
+      rowHeaders: true,
+      autoColumnSize: true,
+    });
+
+    const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(2, true);
+    render();
+
+    expect(getColWidth(0)).toBe(50);
+    expect(getColWidth(1)).toBe(50);
+    expect(getColWidth(2)).toBe(50);
+  });
+
   it('should keep proper column widths after inserting column', () => {
     handsontable({
       autoColumnSize: true,
