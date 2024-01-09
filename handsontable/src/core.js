@@ -843,10 +843,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
 
           if (selectionChanged) {
-            instance.selectCell(fromRow, fromCol, toRow, toCol);
+            if (fromCol < 0) {
+              instance.selectRows(fromRow, toRow, fromCol);
+
+            } else if (fromRow < 0) {
+              instance.selectColumns(fromCol, toCol, fromRow);
+
+            } else {
+              instance.selectCell(fromRow, fromCol, toRow, toCol);
+            }
           }
         });
       }
+
       if (instance.view) {
         instance.view.adjustElementsSize();
       }

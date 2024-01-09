@@ -23,9 +23,12 @@ describe('`registerAllRenderers`', () => {
       'autocomplete',
       'base',
       'checkbox',
+      'dropdown',
+      'handsontable',
       'html',
       'numeric',
       'password',
+      'select',
       'time',
     ]);
     expect(getRegisteredValidatorNames()).toEqual([]);

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added a dropdown renderer and validator and resolved problems with their typescript types.",
+  "type": "fixed",
+  "issueOrPR": 10688,
+  "breaking": false,
+  "framework": "none"
+}
