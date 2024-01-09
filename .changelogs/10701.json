@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed several problems around ColumnSummary's roundFloat option.",
+  "type": "fixed",
+  "issueOrPR": 10701,
+  "breaking": false,
+  "framework": "none"
+}
