@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "chore: update peerDependencies of vue3 wrapper",
+  "type": "fixed",
+  "issueOrPR": 10571,
+  "breaking": false,
+  "framework": "vue"
+}
