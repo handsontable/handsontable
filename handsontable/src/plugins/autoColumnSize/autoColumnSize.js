@@ -150,6 +150,13 @@ export class AutoColumnSize extends BasePlugin {
    * @fires Hooks#modifyAutoColumnSizeSeed
    */
   samplesGenerator = new SamplesGenerator((row, column) => {
+    const physicalRow = this.hot.toPhysicalRow(row);
+    const physicalColumn = this.hot.toPhysicalColumn(column);
+
+    if (this.hot.rowIndexMapper.isHidden(physicalRow) || this.hot.columnIndexMapper.isHidden(physicalColumn)) {
+      return false;
+    }
+
     const cellMeta = this.hot.getCellMeta(row, column);
     let cellValue = '';
 
