@@ -544,6 +544,7 @@ import {
   baseRenderer,
   autocompleteRenderer,
   checkboxRenderer,
+  dropdownRenderer,
   htmlRenderer,
   numericRenderer,
   passwordRenderer,
@@ -568,6 +569,7 @@ import {
 import {
   autocompleteValidator,
   dateValidator,
+  dropdownValidator,
   numericValidator,
   timeValidator,
 } from 'handsontable/validators';
@@ -714,6 +716,7 @@ import {
   baseRenderer,
   autocompleteRenderer,
   checkboxRenderer,
+  dropdownRenderer,
   htmlRenderer,
   numericRenderer,
   passwordRenderer,
@@ -740,6 +743,7 @@ import {
   registerValidator, // validators' registering function
   autocompleteValidator,
   dateValidator,
+  dropdownValidator,
   numericValidator,
   timeValidator,
 } from 'handsontable/validators';
@@ -819,6 +823,7 @@ registerCellType(TextCellType);
 registerRenderer(baseRenderer);
 registerRenderer(autocompleteRenderer);
 registerRenderer(checkboxRenderer);
+registerRenderer(dropdownRenderer);
 registerRenderer(htmlRenderer);
 registerRenderer(numericRenderer);
 registerRenderer(passwordRenderer);
@@ -839,6 +844,7 @@ registerEditor(TextEditor);
 // register individual validators
 registerValidator(autocompleteValidator);
 registerValidator(dateValidator);
+registerValidator(dropdownValidator);
 registerValidator(numericValidator);
 registerValidator(timeValidator);
 
@@ -923,6 +929,7 @@ import { registerRenderer } from 'handsontable/renderers/registry';
 import { autocompleteRenderer } from 'handsontable/renderers/autocompleteRenderer';
 import { baseRenderer } from 'handsontable/renderers/baseRenderer';
 import { checkboxRenderer } from 'handsontable/renderers/checkboxRenderer';
+import { dropdownRenderer } from 'handsontable/renderers/dropdownRenderer';
 import { htmlRenderer } from 'handsontable/renderers/htmlRenderer';
 import { numericRenderer } from 'handsontable/renderers/numericRenderer';
 import { passwordRenderer } from 'handsontable/renderers/passwordRenderer';
@@ -943,6 +950,7 @@ import { TextEditor } from 'handsontable/editors/textEditor';
 import { registerValidator } from 'handsontable/validators/registry';
 import { autocompleteValidator } from 'handsontable/validators/autocompleteValidator';
 import { dateValidator } from 'handsontable/validators/dateValidator';
+import { dropdownValidator } from 'handsontable/validators/dropdownValidator';
 import { numericValidator } from 'handsontable/validators/numericValidator';
 import { timeValidator } from 'handsontable/validators/timeValidator';
 
