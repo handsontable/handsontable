@@ -849,7 +849,17 @@ export class Formulas extends BasePlugin {
       sheet: this.sheetId
     };
     let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel like date).
-    const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
+
+    // TODO: Workaround. We use HOT's `getCellsMeta` method instead of HOT's `getCellMeta` method. Getting cell meta
+    // using the second method lead to execution of the `cells` method. Using the `getDataAtCell` (which may be useful)
+    // in a callback to the `cells` method leads to triggering the `modifyData` hook. Thus, the `onModifyData` callback
+    // is executed once again and it cause creation of an infinite loop.
+    let cellMeta = this.hot.getCellsMeta().find(singleCellMeta => singleCellMeta.visualRow === visualRow &&
+      singleCellMeta.visualCol === visualColumn);
+
+    if (cellMeta === undefined) {
+      cellMeta = {};
+    }
 
     if (cellMeta.type === 'date' && isNumeric(cellValue)) {
       cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat);
