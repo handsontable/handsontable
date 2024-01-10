@@ -1508,6 +1508,46 @@ class TableView {
   }
 
   /**
+   * Returns the table's viewport width. When the table has defined the size of the container,
+   * and the columns do not fill the entire viewport, the viewport width is equal to the sum of
+   * the columns' widths.
+   *
+   * @returns {number}
+   */
+  getViewportWidth() {
+    return this.hot.view._wt.wtViewport.getViewportWidth();
+  }
+
+  /**
+   * Returns the table's total width including the scrollbar width.
+   *
+   * @returns {number}
+   */
+  getWorkspaceWidth() {
+    return this.hot.view._wt.wtViewport.getWorkspaceWidth();
+  }
+
+  /**
+   * Returns the table's viewport height. When the table has defined the size of the container,
+   * and the rows do not fill the entire viewport, the viewport height is equal to the sum of
+   * the rows' heights.
+   *
+   * @returns {number}
+   */
+  getViewportHeight() {
+    return this.hot.view._wt.wtViewport.getViewportHeight();
+  }
+
+  /**
+   * Returns the table's total height including the scrollbar height.
+   *
+   * @returns {number}
+   */
+  getWorkspaceHeight() {
+    return this.hot.view._wt.wtViewport.getWorkspaceHeight();
+  }
+
+  /**
    * Return the value of the `aria-colcount` attribute.
    *
    * @returns {number} The value of the `aria-colcount` attribute.

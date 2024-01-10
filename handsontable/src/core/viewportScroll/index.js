@@ -1,10 +1,17 @@
+import { columnHeaderSelectionStrategy } from './strategies/columnHeaderSelection';
+import { cornerHeaderSelectionStrategy } from './strategies/cornerHeaderSelection';
+import { multipleSelectionStrategy } from './strategies/multipleSelection';
+import { rowHeaderSelectionStrategy } from './strategies/rowHeaderSelection';
+import { singleSelectionStrategy } from './strategies/singleSelection';
+
 /**
  * @typedef ViewportScroller
  * @property {function(): void} skipNextScrollCycle Skip the next scroll cycle.
  * @property {function(CellCoords): void} scrollTo Scroll the viewport to a given cell.
  */
 /**
- * Installs a viewport scroller module. The module is responsible for scrolling the viewport to a given cell.
+ * Installs a viewport scroller module. The module is responsible for scrolling the viewport to a given cell
+ * based on the selection type (single cell selection, multiple cells selection, header selection etc.).
  * It's triggered by the selection module via the `afterSetRangeEnd` hook every time the selection changes.
  *
  * @param {Core} hot The Handsontable instance.
@@ -25,45 +32,28 @@ export function createViewportScroller(hot) {
         return;
       }
 
-      const currentSelectedRange = selection.selectedRange.current();
-      const isSelectedByAnyHeader = selection.isSelectedByAnyHeader();
-      const isSelectedByRowHeader = selection.isSelectedByRowHeader();
-      const isSelectedByColumnHeader = selection.isSelectedByColumnHeader();
+      let scrollStrategy;
 
-      // console.log(selection.getSelectionSource());
+      if (selection.isSelectedByCorner()) {
+        scrollStrategy = cornerHeaderSelectionStrategy(hot);
 
-      if (!isSelectedByAnyHeader) {
-        if (currentSelectedRange && !selection.isMultiple()) {
-          const { row, col } = currentSelectedRange.from;
+      } else if (selection.isSelectedByRowHeader()) {
+        scrollStrategy = rowHeaderSelectionStrategy(hot);
 
-          if (row < 0 && col >= 0) {
-            hot.scrollViewportTo({ col });
+      } else if (selection.isSelectedByColumnHeader()) {
+        scrollStrategy = columnHeaderSelectionStrategy(hot);
 
-          } else if (col < 0 && row >= 0) {
-            hot.scrollViewportTo({ row });
+      } else if (selection.isSelected() && selection.isMultiple()) {
+        scrollStrategy = multipleSelectionStrategy(hot);
 
-          } else {
-            // const firstColumn = hot.view.getFirstPartiallyVisibleColumn();
-            // const lastColumn = hot.view.getLastPartiallyVisibleColumn();
+      } else if (selection.isSelected()) {
+        scrollStrategy = singleSelectionStrategy(hot);
+      }
 
-            // console.log(col, firstColumn, lastColumn);
+      const scrollCoords = scrollStrategy?.(cellCoords);
 
-            // if (lastColumn === null || col === lastColumn + 1) {
-            //   return false;
-            // }
-
-            hot.scrollViewportTo({ row, col });
-          }
-
-        } else {
-          hot.scrollViewportTo(cellCoords.toObject());
-        }
-
-      } else if (isSelectedByRowHeader) {
-        hot.scrollViewportTo({ row: cellCoords.row });
-
-      } else if (isSelectedByColumnHeader) {
-        hot.scrollViewportTo({ col: cellCoords.col });
+      if (scrollCoords) {
+        hot.scrollViewportTo(scrollCoords);
       }
     },
   };
