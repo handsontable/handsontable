@@ -54,7 +54,7 @@
   },
   "peerDependencies": {
     "handsontable": ">=14.0.0",
-    "vue": "next"
+    "vue": "^3.2.22"
   },
   "devDependencies": {
     "@babel/cli": "^7.11.0",
