@@ -155,18 +155,17 @@ To find out if an option comes from a plugin, check the `Category` label in the 
 
 ## Set grid options
 
-To apply configuration options to the entire grid:
+
 
 ::: only-for javascript
 
-- Pass your options as a second argument of the Handsontable constructor, using the object literal notation.
+To apply configuration options to the entire grid, pass your options as a second argument of the Handsontable constructor, using the object literal notation.
 
 :::
 
 ::: only-for react
 
-- Pass your options as individual props of the [`HotTable`](@/guides/getting-started/installation.md#_4-use-the-hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
-- You can also pass your options as an object, using the `settings` prop.
+To apply configuration options to the entire grid, pass your options as individual props of the [`HotTable`](@/guides/getting-started/installation.md#_4-use-the-hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column.md) components. You can also pass your options as an object, using the `settings` prop.
 
 :::
 

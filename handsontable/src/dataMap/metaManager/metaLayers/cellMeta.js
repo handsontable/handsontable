@@ -1,6 +1,7 @@
 import { extend } from '../../../helpers/object';
 import { extendByMetaType, assert, isUnsignedNumber } from '../utils';
 import LazyFactoryMap from '../lazyFactoryMap';
+import { isDefined } from '../../../helpers/mixed';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -169,7 +170,11 @@ export default class CellMeta {
     const rows = Array.from(this.metas.values());
 
     for (let row = 0; row < rows.length; row++) {
-      metas.push(...rows[row].values());
+      // Getting a meta for already added row (new row already exist - it has been added using `createRow` method).
+      // However, is not ready until the first `getMeta` call (lazy loading).
+      if (isDefined(rows[row])) {
+        metas.push(...rows[row].values());
+      }
     }
 
     return metas;
