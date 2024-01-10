@@ -685,6 +685,36 @@ describe('Formulas general', () => {
       expect(hot.getDataAtRow(3)).toEqual([2012, 6033, 8049, '#REF!', 12, '=SUM(E5)']);
     });
 
+    it('should not throw an error after removing all rows', () => {
+      expect(() => {
+        handsontable({
+          data: getDataSimpleExampleFormulas(),
+          formulas: {
+            engine: HyperFormula
+          },
+          width: 500,
+          height: 300
+        });
+
+        alter('remove_row', 0, 5);
+      }).not.toThrow();
+    });
+
+    it('should not throw an error after removing all columns', () => {
+      expect(() => {
+        handsontable({
+          data: getDataSimpleExampleFormulas(),
+          formulas: {
+            engine: HyperFormula
+          },
+          width: 500,
+          height: 300
+        });
+
+        alter('remove_col', 0, 6);
+      }).not.toThrow();
+    });
+
     it('should recalculate table and replace coordinates in formula expressions into #REF! value (removing 2 rows)',
       () => {
         const hot = handsontable({
