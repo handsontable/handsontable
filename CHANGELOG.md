@@ -15,24 +15,24 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Added a new configuration option, `renderAllColumns`, which lets you disable column virtualization for improved accessibility. [#10599](https://github.com/handsontable/handsontable/pull/10599)
 - Added a dedicated renderer (`DropdownRenderer`) and validator (`DropdownValidator`) for the dropdown cell type. [#10688](https://github.com/handsontable/handsontable/pull/10688)
-- Added support for the <kbd>Tab</kbd> key in the `select` editor. [#10673](https://github.com/handsontable/handsontable/pull/10673)
+- Added support for the <kbd>Tab</kbd> key in the select editor (`selectEditor`). [#10673](https://github.com/handsontable/handsontable/pull/10673)
 
 ### Changed
 
 - Improved how undoing changes affects the viewport. Now, when you undo a change, the view automatically scrolls back to the changed area. [#10639](https://github.com/handsontable/handsontable/pull/10639)
 - Improved how pasting data affects the viewport. Now, even when the size of the pasted data is larger than the viewport, the viewport stays in place. [#10630](https://github.com/handsontable/handsontable/pull/10630)
-- Improved how removing a row or column affects the selection. Now, when you remove a row or column, the selection moves to the nearest visible row or column. [#10690](
+- Improved how removing a row or column affects the selection. Now, when you remove a row or column, the selection moves to the nearest visible row or column. [#10690](https://github.com/handsontable/handsontable/pull/10690)
 - Improved TypeScript definitions for multiple plugins. [#10670](https://github.com/handsontable/handsontable/pull/10670)
-- Improved TypeScript definitions for core modules. [#10671](https://github.com/handsontable/handsontable/pull/10671)
+- Improved TypeScript definitions for the core modules. [#10671](https://github.com/handsontable/handsontable/pull/10671)
 - Improved TypeScript definitions for the `CellCoords` and `CellRange` classes. [#10678](https://github.com/handsontable/handsontable/pull/10678)
 - Improved TypeScript definitions for the `CustomBorders` plugin [#10659](https://github.com/handsontable/handsontable/pull/10659)
 - React: Improved support for SSR frameworks. [#10575](https://github.com/handsontable/handsontable/pull/10575)
 
 ### Fixed
 
-- Fixed an issue where double-clicking a cell automatically highlighted the cell's contents. [#10595](https://github.com/handsontable/handsontable/pull/10595)
+- Fixed an issue where double-clicking a cell resulted in highlighting the cell's contents. [#10595](https://github.com/handsontable/handsontable/pull/10595)
 - Fixed an issue where pressing the <kbd>Tab</kbd> key when editing a cell in the last column caused an error. [#10632](https://github.com/handsontable/handsontable/pull/10632)
-- Fixed an issue where pressing the <kbd>Tab</kbd> key with `tabNavigation` was set to `false`caused the grid to scroll. [#10634](https://github.com/handsontable/handsontable/pull/10634)
+- Fixed an issue where pressing the <kbd>Tab</kbd> key with `tabNavigation` set to `false`caused the grid to scroll. [#10634](https://github.com/handsontable/handsontable/pull/10634)
 - Fixed an issue where the `Filters` plugin threw the `TypeError` in specific setup cases. [#10637](https://github.com/handsontable/handsontable/pull/10637)
 - Fixed an issue where changing Handsontable's configuration or data broke the focus position. [#10642](https://github.com/handsontable/handsontable/pull/10642)
 - Fixed an issue where Handsontable didn't go into the "unlisten" state after clicking an element outside of the table. [#10648](https://github.com/handsontable/handsontable/pull/10648)
