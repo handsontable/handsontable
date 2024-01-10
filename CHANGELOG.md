@@ -12,10 +12,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [14.1.0] - 2024-01-16
 
 ### Added
-- Added support for the ability to disable column virtualization via the new `renderAllColumns` option [#10599](https://github.com/handsontable/handsontable/pull/10599)
+
+- Added support for disabling column virtualization, via the new `renderAllColumns` option. [#10599](https://github.com/handsontable/handsontable/pull/10599)
 - Undoing changes will scroll us back to the changed area in specific case [#10639](https://github.com/handsontable/handsontable/pull/10639)
 
 ### Changed
+
 - Disabled table's viewport scrolling on data paste. [#10630](https://github.com/handsontable/handsontable/pull/10630)
 - Updated typings for the Formulas plugin [#10653](https://github.com/handsontable/handsontable/pull/10653)
 - Improved plugins TS types. [#10670](https://github.com/handsontable/handsontable/pull/10670)
@@ -26,6 +28,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - React: Improved support for SSR frameworks [#10575](https://github.com/handsontable/handsontable/pull/10575)
 
 ### Fixed
+
 - Improved TS typings for the CustomBorders plugin [#10515](https://github.com/handsontable/handsontable/issues/10515)
 - Fixed a problem with the text editor's TEXTAREA element's contents being selected after opening the editor with a double-click. [#10595](https://github.com/handsontable/handsontable/pull/10595)
 - Fixed an error that is thrown after TAB hit in editor [#10632](https://github.com/handsontable/handsontable/pull/10632)
@@ -47,6 +50,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [14.0.0] - 2023-11-22
 
 ### Added
+
 - Added a `Ctrl/Cmd + Shift + Space` keyboard shortcut for selecting all cells. [#10237](https://github.com/handsontable/handsontable/pull/10237)
 - Added support for keyboard navigation in the headers. [#10265](https://github.com/handsontable/handsontable/pull/10265)
 - Added keyboard shortcuts for selecting all rows and columns along with 4 new hooks. [#10389](https://github.com/handsontable/handsontable/pull/10389)
@@ -74,6 +78,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Add a set of `angular@17` examples to ensure Handsontable works with that Angular version. [#10584](https://github.com/handsontable/handsontable/pull/10584)
 
 ### Changed
+
 - **Breaking change**: Changed the way the table reacts to using the "select all cells" methods and shortcuts. [#10461](https://github.com/handsontable/handsontable/pull/10461)
 - **Breaking change**: Changed the colors of the invalid cells and the arrow buttons of the autocomplete-typed cells. [#10520](https://github.com/handsontable/handsontable/pull/10520)
 - **Breaking change**: Improved the navigation and accessibility of the Filtering Dropdown Menu. [#10530](https://github.com/handsontable/handsontable/pull/10530)
@@ -90,6 +95,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Changed the default styling of the "OK" button in the Filtering Dropdown when it's focus. [#10558](https://github.com/handsontable/handsontable/issues/10558)
 
 ### Fixed
+
 - Fixed an issue where copying values containing an ampersand resulted in a wrong values being pasted. [#10472](https://github.com/handsontable/handsontable/pull/10472)
 - Fixed an issue related to the backlight position misalignment for the `ManualRowMove` and `ManualColumnMove` plugins. [#10475](https://github.com/handsontable/handsontable/pull/10475)
 - Fixed a problem with row header widths changing sizes after adding/deleting rows. [#10479](https://github.com/handsontable/handsontable/pull/10479)
@@ -116,10 +122,12 @@ For more information on Handsontable 14.0.0, see:
 ## [13.1.0] - 2023-08-31
 
 ### Changed
+
 - Optimized the transpilation process of the distribution files. [#10440](https://github.com/handsontable/handsontable/pull/10440)
 - Updated the internal monorepo scripts to utilize Node 20. [#10468](https://github.com/handsontable/handsontable/pull/10468)
 
 ### Fixed
+
 - Fixed a problem with errors being thrown when pressing `delete` or `backspace` keys after deselecting cells. [#10272](https://github.com/handsontable/handsontable/issues/10272)
 - Fixed problems with moving rows when there are trimmed rows in the table. [#10399](https://github.com/handsontable/handsontable/pull/10399)
 - Fixed a problem with the column resize handle being stuck after the user clicked the right mouse button.  [#10416](https://github.com/handsontable/handsontable/pull/10416)
