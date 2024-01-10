@@ -27,9 +27,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 - Improved TS typings for the CustomBorders plugin [#10515](https://github.com/handsontable/handsontable/issues/10515)
-- Fixed editor's width miscalculations [#10590](https://github.com/handsontable/handsontable/pull/10590)
 - Fixed a problem with the text editor's TEXTAREA element's contents being selected after opening the editor with a double-click. [#10595](https://github.com/handsontable/handsontable/pull/10595)
-- Fixed cells selection after closing the editor [#10622](https://github.com/handsontable/handsontable/pull/10622)
 - Fixed an error that is thrown after TAB hit in editor [#10632](https://github.com/handsontable/handsontable/pull/10632)
 - Fixed table jumps after TAB hit [#10634](https://github.com/handsontable/handsontable/pull/10634)
 - Fixed the TypeError that was thrown in Filters plugin in some specific setup cases [#10637](https://github.com/handsontable/handsontable/pull/10637)
@@ -44,6 +42,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed several problems around ColumnSummary's roundFloat option. [#10701](https://github.com/handsontable/handsontable/pull/10701)
 - Vue: Fixed "TypeError: Converting circular structure to JSON" when passing `hyperformulaInstance` to `hotSettings` [#8728](https://github.com/handsontable/handsontable/pull/8728)
 - React: Added missing TS typing for `settings` prop [#10661](https://github.com/handsontable/handsontable/pull/10661)
+- Vue: Updated the peer dependencies of the Vue3 wrapper with the latest version of Vue. [#10571](https://github.com/handsontable/handsontable/pull/10571)
 
 ## [14.0.0] - 2023-11-22
 
