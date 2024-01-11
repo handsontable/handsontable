@@ -1,8 +1,8 @@
-import { columnHeaderSelectionStrategy } from './strategies/columnHeaderSelection';
-import { cornerHeaderSelectionStrategy } from './strategies/cornerHeaderSelection';
-import { multipleSelectionStrategy } from './strategies/multipleSelection';
-import { rowHeaderSelectionStrategy } from './strategies/rowHeaderSelection';
-import { singleSelectionStrategy } from './strategies/singleSelection';
+import { columnHeaderScrollStrategy } from './scrollStrategies/columnHeaderScroll';
+import { cornerHeaderScrollStrategy } from './scrollStrategies/cornerHeaderScroll';
+import { multipleScrollStrategy } from './scrollStrategies/multipleScroll';
+import { rowHeaderScrollStrategy } from './scrollStrategies/rowHeaderScroll';
+import { singleScrollStrategy } from './scrollStrategies/singleScroll';
 
 /**
  * @typedef ViewportScroller
@@ -35,26 +35,22 @@ export function createViewportScroller(hot) {
       let scrollStrategy;
 
       if (selection.isSelectedByCorner()) {
-        scrollStrategy = cornerHeaderSelectionStrategy(hot);
+        scrollStrategy = cornerHeaderScrollStrategy(hot);
 
       } else if (selection.isSelectedByRowHeader()) {
-        scrollStrategy = rowHeaderSelectionStrategy(hot);
+        scrollStrategy = rowHeaderScrollStrategy(hot);
 
       } else if (selection.isSelectedByColumnHeader()) {
-        scrollStrategy = columnHeaderSelectionStrategy(hot);
+        scrollStrategy = columnHeaderScrollStrategy(hot);
 
       } else if (selection.isSelected() && selection.isMultiple()) {
-        scrollStrategy = multipleSelectionStrategy(hot);
+        scrollStrategy = multipleScrollStrategy(hot);
 
       } else if (selection.isSelected()) {
-        scrollStrategy = singleSelectionStrategy(hot);
+        scrollStrategy = singleScrollStrategy(hot);
       }
 
-      const scrollCoords = scrollStrategy?.(cellCoords);
-
-      if (scrollCoords) {
-        hot.scrollViewportTo(scrollCoords);
-      }
+      scrollStrategy?.(cellCoords);
     },
   };
 }

@@ -592,8 +592,12 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeUpdateData: (sourceData, firstTime, source) => {},
   beforeValidate: (value, row, prop, source) => {},
   beforeValueRender: (value) => {},
-  beforeViewportScrollVertically: (visualRow) => visualRow + 1,
-  beforeViewportScrollHorizontally: (visualColumn) => visualColumn + 1,
+  beforeViewportScrollVertically: (visualRow) => {
+    return visualRow === 0 ? visualRow + 1 : false;
+  },
+  beforeViewportScrollHorizontally: (visualColumn) => {
+    return visualColumn === 0 ? visualColumn + 1 : false;
+  },
   beforeViewportScroll: () => {},
   beforeViewRender: (isForced, skipRender) => {},
   construct: () => {},

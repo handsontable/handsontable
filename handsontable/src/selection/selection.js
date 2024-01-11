@@ -83,7 +83,7 @@ class Selection {
    */
   #disableHeadersHighlight = false;
   /**
-   * The source of the selection. It can be one of the following values: `mouse`, `touch`, `unknown` or any other string.
+   * The source of the selection. It can be one of the following values: `mouse`, `unknown` or any other string.
    *
    * @type {'mouse' | 'unknown' | string}
    */
@@ -153,14 +153,27 @@ class Selection {
     return this.selectedRange;
   }
 
+  /**
+   * Marks the source of the selection. It can be one of the following values: `mouse`, or any other string.
+   *
+   * @param {'mouse' | 'unknown' | string} sourceName The source name.
+   */
   markSource(sourceName) {
     this.#selectionSource = sourceName;
   }
 
+  /**
+   * Marks end of the selection source. It restores the selection source to default value which is 'unknown'.
+   */
   markEndSource() {
     this.#selectionSource = 'unknown';
   }
 
+  /**
+   * Returns the source of the selection.
+   *
+   * @returns {'mouse' | 'unknown' | string}
+   */
   getSelectionSource() {
     return this.#selectionSource;
   }

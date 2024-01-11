@@ -3,7 +3,7 @@
  *
  * @returns {function(): function(CellCoords): void}
  */
-export function cornerHeaderSelectionStrategy() {
+export function cornerHeaderScrollStrategy() {
   return () => {
     // do not scroll the viewport when the corner is clicked
   };

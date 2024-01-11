@@ -4,21 +4,20 @@
  * @param {Core} hot Handsontable instance.
  * @returns {function(): function(CellCoords): { row: number, col: number } | void }
  */
-export function singleSelectionStrategy(hot) {
+export function singleScrollStrategy(hot) {
   return (cellCoords) => {
     const selectionSource = hot.selection.getSelectionSource();
     const { row, col } = cellCoords;
-    let scrollCoords;
 
     // navigating through the column headers (when `navigableHeaders` is enabled)
     // scrolls the viewport horizontally only
     if (row < 0 && col >= 0) {
-      scrollCoords = { col };
+      hot.scrollViewportTo({ col });
 
     // navigating through the row headers (when `navigableHeaders` is enabled)
     // scrolls the viewport vertically only
     } else if (col < 0 && row >= 0) {
-      scrollCoords = { row };
+      hot.scrollViewportTo({ row });
 
     // navigating through the cells
     } else {
@@ -31,9 +30,7 @@ export function singleSelectionStrategy(hot) {
         }
       }
 
-      scrollCoords = { row, col };
+      hot.scrollViewportTo({ row, col });
     }
-
-    return scrollCoords;
   };
 }
