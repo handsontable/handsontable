@@ -142,6 +142,7 @@ export class MergeCells extends BasePlugin {
     this.addHook('beforeDrawBorders', (...args) => this.#onBeforeDrawAreaBorders(...args));
     this.addHook('afterDrawSelection', (...args) => this.#onAfterDrawSelection(...args));
     this.addHook('beforeRemoveCellClassNames', (...args) => this.#onBeforeRemoveCellClassNames(...args));
+    this.addHook('beforeBeginEditing', (...args) => this.#onBeforeBeginEditing(...args));
     this.addHook('beforeUndoStackChange', (action, source) => {
       if (source === 'MergeCells') {
         return false;
@@ -1257,5 +1258,40 @@ export class MergeCells extends BasePlugin {
    */
   #onBeforeRemoveCellClassNames() {
     return this.selectionCalculations.getSelectedMergedCellClassNameToRemove();
+  }
+
+  /**
+   * Allows to prevent opening the editor while more than one merged cell is selected.
+   *
+   * @param {number} row Visual row index of the edited cell.
+   * @param {number} column Visual column index of the edited cell.
+   * @param {string | null} initialValue The initial editor value.
+   * @param {MouseEvent | KeyboardEvent} event The event which was responsible for opening the editor.
+   * @returns {boolean | undefined}
+   */
+  #onBeforeBeginEditing(row, column, initialValue, event) {
+    if (!(event instanceof MouseEvent)) {
+      return;
+    }
+
+    const selection = this.hot.getSelectedRangeLast();
+    const mergeCell = this.mergedCellsCollection.getByRange(selection);
+
+    if (!mergeCell) {
+      return;
+    }
+
+    const from = this.hot._createCellCoords(
+      mergeCell.row,
+      mergeCell.col
+    );
+    const to = this.hot._createCellCoords(
+      mergeCell.row + mergeCell.rowspan - 1,
+      mergeCell.col + mergeCell.colspan - 1
+    );
+
+    return this.hot.selection.getLayerLevel() === 0 && selection.isEqual(
+      this.hot._createCellRange(from, from, to)
+    );
   }
 }
