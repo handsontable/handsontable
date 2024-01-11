@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed problems related to not syncing sheet rename from HF to HOT",
+  "type": "fixed",
+  "issueOrPR": 10719,
+  "breaking": false,
+  "framework": "none"
+}
