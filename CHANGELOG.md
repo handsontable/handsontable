@@ -49,6 +49,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Vue: Fixed an issue where passing `hyperformulaInstance` to `hotSettings` resulted in `TypeError: Converting circular structure to JSON`. [#8728](https://github.com/handsontable/handsontable/pull/8728)
 - Vue: Updated the peer dependencies of the Vue 3 wrapper with the latest version of Vue. [#10571](https://github.com/handsontable/handsontable/pull/10571)
 
+For more information on Handsontable 14.1.0, see:
+
+- Blog post PLACEHOLDER
+- [Documentation (14.1)](https://handsontable.com/docs/14.1)
+- [Release notes (14.1.0)](https://handsontable.com/docs/release-notes/#_14-1-0)
+
 ## [14.0.0] - 2023-11-22
 
 ### Added

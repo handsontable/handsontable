@@ -29,7 +29,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 Released on January 16, 2024
 
 For more information on this release, see:
-- [Blog post (14.1.0)](PLACEHOLDER)
+- PLACEHOLDER
 - [Documentation (14.1)](https://handsontable.com/docs/14.1)
 
 ### Added
