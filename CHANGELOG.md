@@ -25,7 +25,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Improved TypeScript definitions for multiple plugins. [#10670](https://github.com/handsontable/handsontable/pull/10670)
 - Improved TypeScript definitions for the core modules. [#10671](https://github.com/handsontable/handsontable/pull/10671)
 - Improved TypeScript definitions for the `CellCoords` and `CellRange` classes. [#10678](https://github.com/handsontable/handsontable/pull/10678)
-- Improved TypeScript definitions for the `CustomBorders` plugin [#10659](https://github.com/handsontable/handsontable/pull/10659)
+- Improved TypeScript definitions for the `CustomBorders` plugin. [#10659](https://github.com/handsontable/handsontable/pull/10659)
 - React: Improved support for SSR frameworks. [#10575](https://github.com/handsontable/handsontable/pull/10575)
 
 ### Fixed
