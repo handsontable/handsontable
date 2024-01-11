@@ -39,18 +39,15 @@ Accessibility features of Handsontable include:
 
 ## Conformance with standards
 
-Most global standards and regulations are created in accordance with WCAG (Web Content Accessibility Guidelines). Handsontable meets requirements outlined in the [WCAG 2.1 AA](https://www.w3.org/WAI/WCAG21/quickref/) guidelines, which makes it compatible with most local standards such as:
+Most global standards and regulations are created in accordance with WCAG (Web Content Accessibility Guidelines).
+Handsontable meets requirements outlined in the [WCAG 2.1 AA](https://www.w3.org/WAI/WCAG21/quickref/) guidelines,
+which makes it compatible with most local standards, such as:
 
-- **United States:**
-  - [Section 508 of the US Rehabilitation Act](https://www.section508.gov/)
-  - [Americans with Disabilities Act (ADA)](https://www.ada.gov/resources/web-guidance/)
-
-- **Europe / European Union:**
-  - [European Accessibility Act (EAA)](https://ec.europa.eu/social/main.jsp?catId=1202)
-  - [Web Accessibility Directive (WAD)](https://eur-lex.europa.eu/legal-content/EN/LSU/?uri=CELEX:32016L2102)
-
-- **Canada:**
-  - [Standard on Web Accessibility](https://www.tbs-sct.canada.ca/pol/doc-eng.aspx?id=23601)
+| <div style="width:365px">Region</div> | Standards                                                                                                                                                                                        |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| USA                                   | [Section 508 of the US Rehabilitation Act](https://www.section508.gov/)<br>[Americans with Disabilities Act (ADA)](https://www.ada.gov/resources/web-guidance/)                                  |
+| Europe                                | [European Accessibility Act (EAA)](https://ec.europa.eu/social/main.jsp?catId=1202)<br>[Web Accessibility Directive (WAD)](https://eur-lex.europa.eu/legal-content/EN/LSU/?uri=CELEX:32016L2102) |
+| Canada                                | [Standard on Web Accessibility](https://www.tbs-sct.canada.ca/pol/doc-eng.aspx?id=23601)                                                                                                         |
 
 ## Keyboard navigation
 
@@ -1088,11 +1085,13 @@ setupCheckbox(
     hotInstance = new Handsontable(document.getElementById("example1"), {
       ...hotOptions,
       renderAllRows: !checked,
-      viewportColumnRenderingOffset: checked ? "auto" : 9,
+      renderAllColumns: !checked,
     });
     console.log(
       `Updated setting: renderAllRows to`,
       hotInstance.getSettings().renderAllRows
+      `Updated setting: renderAllColumns to`,
+      hotInstance.getSettings().renderAllColumns
     );
   }
 );
@@ -1747,6 +1746,7 @@ function App() {
     tabNavigation: true,
     navigableHeaders: true,
     renderAllRows: false,
+    renderAllColumns: false,
     enterBeginsEditing: true,
     autoWrapRow: true,
     autoWrapCol: true,
@@ -1807,6 +1807,7 @@ function DemoOptions({
   tabNavigation,
   navigableHeaders,
   renderAllRows,
+  renderAllColumns,
   enterBeginsEditing,
   autoWrapRow,
   autoWrapCol,
@@ -1832,7 +1833,7 @@ function DemoOptions({
         changeToggleOptions((existing) => ({
           ...existing,
           renderAllRows: !renderAllRows,
-          viewportColumnRenderingOffset: renderAllRows ? "auto" : 9,
+          renderAllColumns: !renderAllColumns,
         }));
         break;
       case "enable-cell-enter-editing":
@@ -2211,6 +2212,48 @@ ReactDOM.render(<App />, document.getElementById("example2"));
 
 :::
 
+## Disabling DOM virtualization for improved accessibility
+
+By default, Handsontable uses DOM virtualization to display only the [rows](@/guides/rows/row-virtualization.md)
+and [columns](@/guides/columns/column-virtualization.md) that are currently visible on the screen,
+plus a few extra cells outside the visible area to ensure a seamless scrolling experience.
+
+However, assistive technologies rely on the elements within the DOM appearing in the correct order.
+Otherwise, they require the use of [additional ARIA attributes](https://www.w3.org/WAI/ARIA/apg/practices/grid-and-table-properties),
+such as `row-colindex` or `aria-rowindex`, to understand the grid's structure and accurately announce (read) it to the user.
+
+We already use ARIA attributes to describe data sorting, hidden columns or rows, and merged cells.
+Unfortunately, our tests have discovered scenarios where screen readers either announce incorrect indices or omit the ARIA attributes altogether.
+To address this issue, we recommend disabling DOM virtualization, which entails loading all grid elements into the browser.
+This action creates a complete [Accessibility tree](https://developer.mozilla.org/en-US/docs/Glossary/Accessibility_tree) that can be easily parsed
+and interpreted by assistive technology.
+
+::: only-for javascript
+
+```js
+const hot = new Handsontable(container, {
+  // disable column virtualization
+  renderAllColumns: true,
+  // disable row virtualization
+  renderAllRows: true,
+});
+```
+
+:::
+
+::: only-for react
+
+```js
+<HotTable
+  // disable column virtualization
+  renderAllColumns={true}
+  // disable row virtualization
+  renderAllRows={true}
+/>
+```
+
+:::
+
 ## High-contrast theme
 
 The recommended [minimum contrast ratio](https://www.w3.org/WAI/WCAG21/quickref/#contrast-minimum) for text against images or backgrounds is 4.5:1. To achieve this level of contrast with Handsontable's default theme, you can:
@@ -2262,6 +2305,7 @@ For the list of [options](@/guides/getting-started/configuration-options.md), me
 - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
 - [`enterMoves`](@/api/options.md#entermoves)
 - [`navigableHeaders`](@/api/options.md#navigableheaders)
+- [`renderAllColumns`](@/api/options.md#renderallcolumns)
 - [`renderAllRows`](@/api/options.md#renderallrows)
 - [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
 - [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)

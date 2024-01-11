@@ -3673,14 +3673,15 @@ export default () => {
     readOnlyCellClassName: 'htDimmed',
 
     /**
-     * The `renderAllRows` option configures Handsontable's [row virtualization](@/guides/rows/row-virtualization.md).
+     * The `renderAllRows` option controls Handsontable's [row virtualization](@/guides/rows/row-virtualization.md).
+     * You can configure it as follows:
      *
-     * You can set the `renderAllRows` option to one of the following:
+     * | Setting           | Description                                                                                                                                                                                     |
+     * | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | Enable [row virtualization](@/guides/rows/row-virtualization.md), rendering only the visible rows for optimal performance with large datasets.                                                  |
+     * | `true`            | Disable [row virtualization](@/guides/rows/row-virtualization.md)<br>(render all rows of the grid), rendering all rows in the dataset for consistent rendering and screen reader accessibility. |
      *
-     * | Setting           | Description                                                                                        |
-     * | ----------------- | -------------------------------------------------------------------------------------------------- |
-     * | `false` (default) | Enable [row virtualization](@/guides/rows/row-virtualization.md)                                   |
-     * | `true`            | Disable [row virtualization](@/guides/rows/row-virtualization.md)<br>(render all rows of the grid) |
+     * Setting `renderAllRows` to `true` overwrites the [`viewportRowRenderingOffset`](#viewportRowRenderingOffset) setting.
      *
      * Read more:
      * - [Row virtualization](@/guides/rows/row-virtualization.md)
@@ -3703,13 +3704,15 @@ export default () => {
      *
      * You can set the `renderAllColumns` option to one of the following:
      *
-     * | Setting           | Description                                                                                        |
-     * | ----------------- | -------------------------------------------------------------------------------------------------- |
-     * | `false` (default) | Enable [column virtualization](@/guides/columns/column-virtualization.md)                                   |
-     * | `true`            | Disable [column virtualization](@/guides/columns/column-virtualization.md)<br>(render all columns of the grid) |
+     * | Setting           | Description                                                                                                                                                                                                                      |
+     * | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | Enable [column virtualization](@/guides/columns/column-virtualization.md), rendering only visible columns for better performance with many columns.                                                                              |
+     * | `true`            | Disable [column virtualization](@/guides/columns/column-virtualization.md)<br>(render all columns of the grid), rendering all columns in the dataset, and ensuring all columns are available regardless of horizontal scrolling. |
+     *
+     * Setting `renderAllColumns` to `true` overwrites the [`viewportColumnRenderingOffset`](#viewportColumnRenderingOffset) setting.
      *
      * Read more:
-     * - [Row virtualization](@/guides/columns/column-virtualization.md)
+     * - [Column virtualization](@/guides/columns/column-virtualization.md)
      *
      * @since 14.1.0
      * @memberof Options#
@@ -4705,6 +4708,8 @@ export default () => {
      * | `auto` (default)   | Use the offset calculated automatically by Handsontable |
      * | A number           | Set the offset manually                                 |
      *
+     * The `viewportColumnRenderingOffset` setting is ignored when [`renderAllColumns`](#renderAllColumns) is set to `true`.
+     *
      * Read more:
      * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      *
@@ -4732,6 +4737,8 @@ export default () => {
      * | ------------------ | ------------------------------------------------------- |
      * | `auto` (default)   | Use the offset calculated automatically by Handsontable |
      * | A number           | Set the offset manually                                 |
+     *
+     * The `viewportRowRenderingOffset` setting is ignored when [`renderAllRows`](#renderAllRows) is set to `true`.
      *
      * Read more:
      * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
