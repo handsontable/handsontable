@@ -1266,6 +1266,8 @@ export class Formulas extends BasePlugin {
    * @param {string} newDisplayName The new name of the sheet.
    */
   #onEngineSheetRenamed(oldDisplayName, newDisplayName) {
+    this.sheetName = newDisplayName;
+
     this.hot.runHooks('afterSheetRenamed', oldDisplayName, newDisplayName);
   }
 

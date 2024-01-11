@@ -206,6 +206,29 @@ class EditorManager {
       return;
     }
 
+    const selection = this.hot.getSelectedRangeLast();
+    let allowOpening = this.hot.runHooks(
+      'beforeBeginEditing',
+      selection.highlight.row,
+      selection.highlight.col,
+      newInitialValue,
+      event,
+      enableFullEditMode,
+    );
+
+    // If the above hook does not return boolean apply default behavior which disallows opening
+    // an editor after double mouse click for non-contiguous selection (while pressing Ctrl/Cmd) and
+    // for multiple selected cells (while pressing SHIFT).
+    if (event instanceof MouseEvent && typeof allowOpening !== 'boolean') {
+      allowOpening = this.hot.selection.getLayerLevel() === 0 && selection.isSingle();
+    }
+
+    if (allowOpening === false) {
+      this.clearActiveEditor();
+
+      return;
+    }
+
     if (!this.activeEditor) {
       this.hot.scrollToFocusedCell();
       this.prepareEditor();
@@ -374,11 +397,9 @@ class EditorManager {
    *
    * @param {MouseEvent} event The mouse event object.
    * @param {object} coords The cell coordinates.
-   * @param {HTMLTableCellElement|HTMLTableHeaderCellElement} elem The element which triggers the action.
    */
-  #onCellDblClick(event, coords, elem) {
-    // may be TD or TH
-    if (elem.nodeName === 'TD') {
+  #onCellDblClick(event, coords) {
+    if (coords.isCell()) {
       this.openEditor(null, event, true);
     }
   }

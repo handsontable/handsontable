@@ -494,6 +494,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterViewRender: (isForced) => {},
   beforeAddChild: (parent, element, index) => {},
   beforeAutofill: (start, end, data) => {},
+  beforeBeginEditing: (row: number, column: number, initialValue, event, fullEditMode: boolean) => {
+    event.preventDefault();
+
+    return true;
+  },
   beforeCellAlignment: (stateBefore, range, type, alignmentClass) => {},
   beforeChange: (changes, source) => { if (changes?.[0] !== null) { changes[0][3] = 10; } return false; },
   beforeChangeRender: (changes, source) => {},
