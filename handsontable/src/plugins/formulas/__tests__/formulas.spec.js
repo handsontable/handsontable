@@ -2953,7 +2953,7 @@ describe('Formulas general', () => {
 
   describe('renaming sheet for HF instance', () => {
     it('should update HOT\'s plugin internal property', () => {
-      let hookTriggered = false;
+      let sheetNameInsideHook = '';
       const hfInstance = HyperFormula.buildEmpty({});
       const hot = handsontable({
         data: [
@@ -2971,15 +2971,13 @@ describe('Formulas general', () => {
       });
 
       hot.addHook('afterSheetRenamed', () => {
-        expect(hot.getPlugin('formulas').sheetName).toBe('Lorem Ipsum');
-
-        hookTriggered = true;
+        sheetNameInsideHook = hot.getPlugin('formulas').sheetName;
       });
 
       hfInstance.renameSheet(0, 'Lorem Ipsum');
 
       expect(hot.getPlugin('formulas').sheetName).toBe('Lorem Ipsum');
-      expect(hookTriggered).toBe(true);
+      expect(sheetNameInsideHook).toBe('Lorem Ipsum');
     });
 
     it('should not throw an error while performing actions on HOT with renamed sheet', () => {
