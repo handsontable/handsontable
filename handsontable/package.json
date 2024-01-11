@@ -80,14 +80,12 @@
     "core-js": "^3.31.1",
     "dompurify": "^2.1.1",
     "moment": "2.29.4",
-    "numbro": "2.1.2"
+    "numbro": "2.1.2",
+    "pikaday": "1.8.2",
+    "@types/pikaday": "1.7.4"
   },
   "optionalDependencies": {
     "hyperformula": "^2.4.0"
-  },
-  "peerDependencies": {
-    "pikaday": "1.8.2",
-    "@types/pikaday": "1.7.4"
   },
   "devDependencies": {
     "@babel/cli": "^7.8.3",
@@ -237,7 +235,6 @@
       "dependencies",
       "devDependencies",
       "optionalDependencies",
-      "peerDependencies",
       "license",
       "typings",
       "sideEffects"
