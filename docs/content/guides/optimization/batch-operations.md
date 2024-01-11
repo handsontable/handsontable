@@ -422,6 +422,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
   - [`maxCols`](@/api/options.md#maxcols)
   - [`maxRows`](@/api/options.md#maxrows)
   - [`observeDOMVisibility`](@/api/options.md#observedomvisibility)
+  - [`renderAllColumns`](@/api/options.md#renderallcolumns)
   - [`renderAllRows`](@/api/options.md#renderallrows)
 - Core methods:
   - [`batch()`](@/api/core.md#batch)

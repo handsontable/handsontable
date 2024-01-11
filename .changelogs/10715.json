@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added `pikaday` to `handsontable`'s `dependencies` to ensure the backward compatibility of `14.1.0`.",
+  "type": "changed",
+  "issueOrPR": 10715,
+  "breaking": false,
+  "framework": "none"
+}
