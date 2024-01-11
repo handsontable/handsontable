@@ -40,9 +40,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed problem with uncaught TypeError exception for some CollapsibleColumns plugin configurations [#10693](https://github.com/handsontable/handsontable/pull/10693)
 - Fixed a bug related to deleting all Date type editor content. [#10696](https://github.com/handsontable/handsontable/pull/10696)
 - Fixed several problems around ColumnSummary's roundFloat option. [#10701](https://github.com/handsontable/handsontable/pull/10701)
+- Added `pikaday` to `handsontable`'s `dependencies` to ensure the backward compatibility of `14.1.0`. [#10715](https://github.com/handsontable/handsontable/pull/10715)
 - Vue: Fixed "TypeError: Converting circular structure to JSON" when passing `hyperformulaInstance` to `hotSettings` [#8728](https://github.com/handsontable/handsontable/pull/8728)
-- React: Added missing TS typing for `settings` prop [#10661](https://github.com/handsontable/handsontable/pull/10661)
 - Vue: Updated the peer dependencies of the Vue3 wrapper with the latest version of Vue. [#10571](https://github.com/handsontable/handsontable/pull/10571)
+- React: Added missing TS typing for `settings` prop [#10661](https://github.com/handsontable/handsontable/pull/10661)
 
 ## [14.0.0] - 2023-11-22
 
