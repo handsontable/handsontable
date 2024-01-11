@@ -33,7 +33,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed an issue where double-clicking a cell resulted in highlighting the cell's contents. [#10595](https://github.com/handsontable/handsontable/pull/10595)
 - Fixed an issue where pressing the <kbd>Tab</kbd> key when editing a cell in the last column caused an error. [#10632](https://github.com/handsontable/handsontable/pull/10632)
 - Fixed an issue where pressing the <kbd>Tab</kbd> key with `tabNavigation` set to `false`caused the grid to scroll. [#10634](https://github.com/handsontable/handsontable/pull/10634)
-- Fixed an issue where the `Filters` plugin threw the `TypeError` in specific setup cases. [#10637](https://github.com/handsontable/handsontable/pull/10637)
+- Fixed an issue where the `Filters` plugin threw a `TypeError` in specific setup cases. [#10637](https://github.com/handsontable/handsontable/pull/10637)
 - Fixed an issue where changing Handsontable's configuration or data broke the focus position. [#10642](https://github.com/handsontable/handsontable/pull/10642)
 - Fixed an issue where Handsontable didn't go into the "unlisten" state after clicking an element outside of the table. [#10648](https://github.com/handsontable/handsontable/pull/10648)
 - Fixed an issue where recovering removed cells by using undo/redo didn't restore the cells' configuration options. [#10649](https://github.com/handsontable/handsontable/pull/10649)
