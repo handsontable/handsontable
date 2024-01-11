@@ -510,6 +510,38 @@ describe('Formulas general', () => {
     expect(hot.getDataAtCell(0, 1)).toBe('#CYCLE!');
   });
 
+  it('should get dates in proper format and do not throw an error while using `getDataAtCell` inside `cells` method', () => {
+    const data = [];
+
+    // Creating bigger dataset. Some of cells won't be rendered.
+    for (let i = 0; i < 50; i += 1) {
+      data.push(['28/02/1900', '=A1']);
+    }
+
+    handsontable({
+      data,
+      formulas: {
+        engine: HyperFormula
+      },
+      cells(row, col) {
+        const cellProperties = {};
+
+        expect(this.instance.getDataAtCell(row, col)).toBe('28/02/1900');
+
+        return cellProperties;
+      },
+      columns: [{
+        type: 'date',
+        dateFormat: 'DD/MM/YYYY'
+      }, {
+        type: 'date',
+        dateFormat: 'DD/MM/YYYY'
+      }],
+      width: 500,
+      height: 300
+    });
+  });
+
   // Discussion on why `null` instead of `#REF!` at
   // https://github.com/handsontable/handsontable/issues/7668
   describe('Out of range cells', () => {
