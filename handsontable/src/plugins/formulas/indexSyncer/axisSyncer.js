@@ -270,7 +270,7 @@ class AxisSyncer {
 
       const newSequence = this.#indexMapper.getIndexesSequence();
 
-      if (source === 'update') {
+      if (source === 'update' && newSequence.length > 0) {
         const relativeTransformation = this.#indexesSequence.map(index => newSequence.indexOf(index));
         const sheetDimensions = this.#indexSyncer.getEngine().getSheetDimensions(this.#indexSyncer.getSheetId());
         let sizeForAxis;
