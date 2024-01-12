@@ -1820,7 +1820,7 @@ describe('TextEditor', () => {
     expect($editorInput.height()).toBe(84);
   });
 
-  it('allow scrolling the editor if its content exceeds the viewport height', async () => {
+  it('allow scrolling the editor if its content exceeds the viewport height', async() => {
     spec().$container[0].style.width = '';
     spec().$container[0].style.height = '';
     spec().$container[0].style.overflow = '';
