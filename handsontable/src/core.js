@@ -354,7 +354,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       selectionLayerLevel
     );
 
-    if (!preventScrolling.isTouched() || preventScrolling.isTouched() && !preventScrolling.value) {
+    if (
+      // isLastSelectionLayer &&
+      (!preventScrolling.isTouched() || preventScrolling.isTouched() && !preventScrolling.value)
+    ) {
       viewportScroller.scrollTo(cellCoords);
     }
 
@@ -4191,7 +4194,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.selectCells = function(coords = [[]], scrollToCell = true, changeListener = true) {
     if (scrollToCell === false) {
-      viewportScroller.skipNextScrollCycle();
+      viewportScroller.suspend();
     }
 
     const wasSelected = selection.selectCells(coords);
@@ -4199,6 +4202,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (wasSelected && changeListener) {
       instance.listen();
     }
+    viewportScroller.resume();
 
     return wasSelected;
   };

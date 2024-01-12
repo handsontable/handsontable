@@ -78,7 +78,7 @@ export function simulateClick(element, buttonKey = 'LMB', eventProps = pressedMo
  * Simulate double click (all mouse events).
  *
  * @param {Element} element An element on which there will be performed mouse events.
- * @param {object} [eventProps] Addional object with props to merge with the event.
+ * @param {object} [eventProps] Additional object with props to merge with the event.
  */
 export function mouseDoubleClick(element, eventProps = pressedModifierKeys) {
   mouseDown(element, eventProps);

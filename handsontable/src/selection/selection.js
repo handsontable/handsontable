@@ -88,6 +88,13 @@ class Selection {
    * @type {'mouse' | 'unknown' | string}
    */
   #selectionSource = 'unknown';
+  /**
+   * The number of expected layers. It is used mostly to determine when the last selection layer of non-contiguous
+   * selection is applied.
+   *
+   * @param {number}
+   */
+  #expectedLayersCount = 1;
 
   constructor(settings, tableProps) {
     this.settings = settings;
@@ -179,6 +186,16 @@ class Selection {
   }
 
   /**
+   * Set the number of expected layers. The method is not obligatory to call. It is used mostly internally
+   * to determine when the last selection layer of non-contiguous is applied, thus the viewport scroll is triggered.
+   *
+   * @param {number} layersCount The number of expected layers.
+   */
+  setExpectedLayers(layersCount) {
+    this.#expectedLayersCount = layersCount;
+  }
+
+  /**
    * Indicate that selection process began. It sets internally `.inProgress` property to `true`.
    */
   begin() {
@@ -191,6 +208,7 @@ class Selection {
   finish() {
     this.runLocalHooks('afterSelectionFinished', Array.from(this.selectedRange));
     this.inProgress = false;
+    this.#expectedLayersCount = 1;
   }
 
   /**
@@ -454,7 +472,7 @@ class Selection {
       }
     }
 
-    this.runLocalHooks('afterSetRangeEnd', coords);
+    this.runLocalHooks('afterSetRangeEnd', coords, this.selectedRange.size() === this.#expectedLayersCount);
   }
 
   /**
@@ -791,14 +809,16 @@ class Selection {
 
     if (isValid) {
       this.clear();
+      this.setExpectedLayers(selectionRanges.length);
 
       arrayEach(selectionRanges, (selection) => {
         const { from, to } = selectionSchemaNormalizer(selection);
 
         this.setRangeStartOnly(from.clone(), false);
         this.setRangeEnd(to.clone());
-        this.finish();
       });
+
+      this.finish();
     }
 
     return isValid;

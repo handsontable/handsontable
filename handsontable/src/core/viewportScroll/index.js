@@ -1,6 +1,7 @@
 import { columnHeaderScrollStrategy } from './scrollStrategies/columnHeaderScroll';
 import { cornerHeaderScrollStrategy } from './scrollStrategies/cornerHeaderScroll';
 import { multipleScrollStrategy } from './scrollStrategies/multipleScroll';
+import { noncontiguousScrollStrategy } from './scrollStrategies/noncontiguousScroll';
 import { rowHeaderScrollStrategy } from './scrollStrategies/rowHeaderScroll';
 import { singleScrollStrategy } from './scrollStrategies/singleScroll';
 
@@ -20,13 +21,20 @@ import { singleScrollStrategy } from './scrollStrategies/singleScroll';
 export function createViewportScroller(hot) {
   const { selection } = hot;
   let skipNextCall = false;
+  let isSuspended = false;
 
   return {
+    resume() {
+      isSuspended = false;
+    },
+    suspend() {
+      isSuspended = true;
+    },
     skipNextScrollCycle() {
       skipNextCall = true;
     },
     scrollTo(cellCoords) {
-      if (skipNextCall) {
+      if (skipNextCall || isSuspended) {
         skipNextCall = false;
 
         return;
@@ -43,11 +51,14 @@ export function createViewportScroller(hot) {
       } else if (selection.isSelectedByColumnHeader()) {
         scrollStrategy = columnHeaderScrollStrategy(hot);
 
-      } else if (selection.isSelected() && selection.isMultiple()) {
+      } else if (selection.getSelectedRange().size() === 1 && selection.isMultiple()) {
         scrollStrategy = multipleScrollStrategy(hot);
 
-      } else if (selection.isSelected()) {
+      } else if (selection.getSelectedRange().size() === 1 && !selection.isMultiple()) {
         scrollStrategy = singleScrollStrategy(hot);
+
+      } else if (selection.getSelectedRange().size() > 1) {
+        scrollStrategy = noncontiguousScrollStrategy(hot);
       }
 
       scrollStrategy?.(cellCoords);
