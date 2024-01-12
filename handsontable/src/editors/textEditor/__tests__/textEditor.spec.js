@@ -1820,6 +1820,57 @@ describe('TextEditor', () => {
     expect($editorInput.height()).toBe(84);
   });
 
+  it('allow scrolling the editor if its content exceeds the viewport height', async () => {
+    spec().$container[0].style.width = '';
+    spec().$container[0].style.height = '';
+    spec().$container[0].style.overflow = '';
+
+    handsontable({
+      data: createSpreadsheetData(4, 4),
+      wordWrap: false,
+      height: 250
+    });
+
+    setDataAtCell(2, 2, `\
+    The Dude abides...
+
+    I don't know about you, but I take
+    comfort in that. It's good knowin'
+    he's out there, the Dude, takin'
+    her easy for all us sinners.
+    Shoosh. I sure hope he makes The
+    finals. Welp, that about does her,
+    wraps her all up. Things seem to've
+    worked out pretty good for the
+    Dude'n Walter, and it was a purt
+    good story, dontcha think? Made me
+    laugh to beat the band. Parts,
+    anyway. I didn't like seein' Donny
+    go. But then, I happen to know that
+    there's a little Lebowski on the
+    way. I guess that's the way the
+    whole durned human comedy keeps
+    perpetuatin' it-self, down through
+    the generations, westward the
+    wagons, across the sands a time
+    until we-- aw, look at me, I'm
+    ramblin' again. Wal, uh hope you
+    folks enjoyed yourselves.
+    `);
+
+    selectCell(2, 2);
+
+    await sleep(150);
+
+    keyDownUp('enter');
+
+    const textareaElement = document.querySelector('textarea.handsontableInput');
+
+    await sleep(150);
+
+    expect(textareaElement.style.overflowY).toEqual('visible');
+  });
+
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality.
   it('should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)', async() => {
     const hot = handsontable({
