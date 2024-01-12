@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a problem with the text editor missing the vertical scrollbar on cells with larger amounts of content.",
+  "type": "fixed",
+  "issueOrPR": 10722,
+  "breaking": false,
+  "framework": "none"
+}
