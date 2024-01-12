@@ -2576,6 +2576,25 @@ const REGISTERED_HOOKS = [
   'afterDetachChild',
 
   /**
+   * Fired before the editor is opened and rendered.
+   *
+   * @since 14.1.0
+   * @event Hooks#beforeBeginEditing
+   * @param {number} row Visual row index of the edited cell.
+   * @param {number} column Visual column index of the edited cell.
+   * @param {*} initialValue The initial editor value.
+   * @param {MouseEvent | KeyboardEvent} event The event which was responsible for opening the editor.
+   * @param {boolean} fullEditMode `true` if the editor is opened in full edit mode, `false` otherwise.
+   * Editor opened in full edit mode does not close after pressing Arrow keys.
+   * @returns {boolean | undefined} If the callback returns `false,` the editor won't be opened after
+   * the mouse double click or after pressing the Enter key. Returning `undefined` (or other value
+   * than boolean) will result in default behavior, which disallows opening an editor for non-contiguous
+   * selection (while pressing Ctrl/Cmd) and for multiple selected cells (while pressing SHIFT).
+   * Returning `true` removes those restrictions.
+   */
+  'beforeBeginEditing',
+
+  /**
    * Fired after the editor is opened and rendered.
    *
    * @event Hooks#afterBeginEditing

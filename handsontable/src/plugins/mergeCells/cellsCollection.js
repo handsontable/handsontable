@@ -75,7 +75,7 @@ class MergedCellsCollection {
   }
 
   /**
-   * Get a merged cell containing the provided range.
+   * Get the first-found merged cell containing the provided range.
    *
    * @param {CellRange|object} range The range to search merged cells for.
    * @returns {MergedCellCoords|boolean}

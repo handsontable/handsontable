@@ -2981,6 +2981,63 @@ describe('Formulas general', () => {
     ]);
   });
 
+  describe('renaming sheet for HF instance', () => {
+    it('should update HOT\'s plugin internal property', () => {
+      let sheetNameInsideHook = '';
+      const hfInstance = HyperFormula.buildEmpty({});
+      const hot = handsontable({
+        data: [
+          ['01/03/1900'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: hfInstance,
+          sheetName: 'Sheet1'
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      hot.addHook('afterSheetRenamed', () => {
+        sheetNameInsideHook = hot.getPlugin('formulas').sheetName;
+      });
+
+      hfInstance.renameSheet(0, 'Lorem Ipsum');
+
+      expect(hot.getPlugin('formulas').sheetName).toBe('Lorem Ipsum');
+      expect(sheetNameInsideHook).toBe('Lorem Ipsum');
+    });
+
+    it('should not throw an error while performing actions on HOT with renamed sheet', () => {
+      const hfInstance = HyperFormula.buildEmpty({});
+
+      handsontable({
+        data: [
+          ['01/03/1900'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: hfInstance,
+          sheetName: 'Sheet1'
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      hfInstance.renameSheet(0, 'Lorem Ipsum');
+
+      expect(() => {
+        setDataAtCell(0, 1, 'new value');
+      }).not.toThrow();
+
+      expect(getDataAtCell(0, 1)).toBe('new value');
+    });
+  });
+
   describe('handling dates', () => {
     it('should handle date functions properly', () => {
       handsontable({
