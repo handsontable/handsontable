@@ -24,7 +24,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
-## 14.0.0
+## 14.1.0
 
 Released on January 16, 2024
 
