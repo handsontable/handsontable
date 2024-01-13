@@ -51,7 +51,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 For more information on Handsontable 14.1.0, see:
 
-- Blog post PLACEHOLDER
+- [Blog post (14.1.0)](https://handsontable.com/blog/handsontable-14-1-0-typescript-ssr-improvements)
 - [Documentation (14.1)](https://handsontable.com/docs/14.1)
 - [Release notes (14.1.0)](https://handsontable.com/docs/release-notes/#_14-1-0)
 
