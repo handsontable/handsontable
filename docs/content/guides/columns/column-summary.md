@@ -187,7 +187,7 @@ To decide how a column summary is calculated, you can use one of the following s
 | `max`     | Returns the highest value in a column.                                                                 |
 | `count`   | Returns the number of all non-empty cells in a column.                                                 |
 | `average` | Returns the sum of all values in a column,<br>divided by the number of non-empty cells in that column. |
-| `custom`  | Lets you implement a [custom summary function](#implement-a-custom-summary-function).               |
+| `custom`  | Lets you implement a [custom summary function](#implement-a-custom-summary-function).                  |
 
 ### Column summary options
 
@@ -1169,12 +1169,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example9'));
 You can round a column summary result to a specific number of digits after the decimal point.
 
 To enable this feature, set the [`roundFloat`](@/api/columnSummary.md) option to your preferred number of digits between 0 and 100.
-
-Note: 
-- Setting `roundFloat` to `true` will be synonymous to setting it to `0`. Setting it to less than `0` will round it up to `0` and setting it to more than `100` will round it up to `100`.
-- Enabling `roundFloat` will change the data type returned by Handsontable's data-retrieving methods (like [`getDataAtCell()`](@/api/core.md#getdataatcell)) from `number` to `string`.
-
-For example:
+See the following example:
 
 ::: only-for javascript
 
@@ -1275,7 +1270,20 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example12'));
 
 :::
 
-## Deal with non-numeric values
+The [`roundFloat`](@/api/columnSummary.md) option accepts the following values:
+
+| Setting             | Description                                               |
+| ------------------- | --------------------------------------------------------- |
+| `false` (default)   | Don't round the column summary result.                    |
+| `true`              | Round the result to `0` digits after the decimal point.   |
+| Integer 0-100 (`n`) | Round the result to `n` digits after the decimal point.   |
+| Integer < 0         | Round the result to `0` digits after the decimal point.   |
+| Integer > 100       | Round the result to `100` digits after the decimal point. |
+
+When you enable [`roundFloat`](@/api/columnSummary.md), the data type returned by Handsontable's data-retrieving methods 
+(like [`getDataAtCell()`](@/api/core.md#getdataatcell)) changes from `number` to `string`.
+
+## Handle non-numeric values
 
 To summarize a column that contains non-numeric data, you can:
 
