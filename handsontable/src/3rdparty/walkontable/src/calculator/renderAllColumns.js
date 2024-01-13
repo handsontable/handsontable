@@ -3,7 +3,7 @@
  * @property {number} totalColumns Total number of columns.
  */
 /**
- * Holds all calculations needed to perform rendering of the all columns.
+ * Holds all calculations needed to perform the rendering of all columns.
  *
  * @class RenderAllColumnsCalculator
  */

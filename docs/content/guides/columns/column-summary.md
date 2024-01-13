@@ -1272,15 +1272,15 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example12'));
 
 The [`roundFloat`](@/api/columnSummary.md) option accepts the following values:
 
-| Setting             | Description                                               |
-| ------------------- | --------------------------------------------------------- |
-| `false` (default)   | Don't round the column summary result.                    |
-| `true`              | Round the result to `0` digits after the decimal point.   |
-| Integer 0-100 (`n`) | Round the result to `n` digits after the decimal point.   |
-| Integer < 0         | Round the result to `0` digits after the decimal point.   |
-| Integer > 100       | Round the result to `100` digits after the decimal point. |
+| Value             | Behavior                                                |
+| ----------------- | ------------------------------------------------------- |
+| `false` (default) | Don't round the column summary result.                  |
+| `true`            | Round the result to 0 digits after the decimal point.   |
+| Integer 0-100 (n) | Round the result to n digits after the decimal point.   |
+| Integer < 0       | Round the result to 0 digits after the decimal point.   |
+| Integer > 100     | Round the result to 100 digits after the decimal point. |
 
-When you enable [`roundFloat`](@/api/columnSummary.md), the data type returned by Handsontable's data-retrieving methods 
+If you enable [`roundFloat`](@/api/columnSummary.md), the data type returned by Handsontable's data-retrieving methods 
 (like [`getDataAtCell()`](@/api/core.md#getdataatcell)) changes from `number` to `string`.
 
 ## Handle non-numeric values
