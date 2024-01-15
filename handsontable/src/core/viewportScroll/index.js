@@ -7,6 +7,8 @@ import { singleScrollStrategy } from './scrollStrategies/singleScroll';
 
 /**
  * @typedef ViewportScroller
+ * @property {function(): void} resume Resumes the viewport scroller.
+ * @property {function(): void} suspend Suspends the viewport scroller until the `resume` method is called.
  * @property {function(): void} skipNextScrollCycle Skip the next scroll cycle.
  * @property {function(CellCoords): void} scrollTo Scroll the viewport to a given cell.
  */

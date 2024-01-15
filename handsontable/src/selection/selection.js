@@ -89,8 +89,8 @@ class Selection {
    */
   #selectionSource = 'unknown';
   /**
-   * The number of expected layers. It is used mostly to determine when the last selection layer of non-contiguous
-   * selection is applied.
+   * The number of expected layers. It is used mostly to track when the last selection layer of non-contiguous
+   * selection is applied, thus the viewport scroll is triggered.
    *
    * @param {number}
    */
