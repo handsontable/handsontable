@@ -331,7 +331,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.columnIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
   this.rowIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
 
-  this.selection.addLocalHook('afterSetRangeEnd', (cellCoords) => {
+  this.selection.addLocalHook('afterSetRangeEnd', (cellCoords, isLastSelectionLayer) => {
     const preventScrolling = createObjectPropListener(false);
     const selectionRange = this.selection.getSelectedRange();
     const { from, to } = selectionRange.current();
@@ -355,7 +355,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     );
 
     if (
-      // isLastSelectionLayer &&
+      isLastSelectionLayer &&
       (!preventScrolling.isTouched() || preventScrolling.isTouched() && !preventScrolling.value)
     ) {
       viewportScroller.scrollTo(cellCoords);

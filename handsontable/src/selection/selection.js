@@ -94,7 +94,7 @@ class Selection {
    *
    * @param {number}
    */
-  #expectedLayersCount = 1;
+  #expectedLayersCount = -1;
 
   constructor(settings, tableProps) {
     this.settings = settings;
@@ -208,7 +208,7 @@ class Selection {
   finish() {
     this.runLocalHooks('afterSelectionFinished', Array.from(this.selectedRange));
     this.inProgress = false;
-    this.#expectedLayersCount = 1;
+    this.#expectedLayersCount = -1;
   }
 
   /**
@@ -472,7 +472,9 @@ class Selection {
       }
     }
 
-    this.runLocalHooks('afterSetRangeEnd', coords, this.selectedRange.size() === this.#expectedLayersCount);
+    const isLastLayer = this.#expectedLayersCount === -1 || this.selectedRange.size() === this.#expectedLayersCount;
+
+    this.runLocalHooks('afterSetRangeEnd', coords, isLastLayer);
   }
 
   /**
