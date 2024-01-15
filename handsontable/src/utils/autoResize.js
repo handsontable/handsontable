@@ -197,7 +197,6 @@ export function createInputElementResizer(ownerDocument) {
 
     if (observedElement.nodeName === 'TEXTAREA') {
       observedElement.style.resize = 'none';
-      observedElement.style.overflowY = '';
       observedElement.style.height = `${defaults.minHeight}px`;
       observedElement.style.minWidth = `${defaults.minWidth}px`;
       observedElement.style.maxWidth = `${defaults.maxWidth}px`;
