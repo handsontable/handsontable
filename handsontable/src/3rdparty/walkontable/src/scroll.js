@@ -75,10 +75,6 @@ class Scroll {
 
     column = this.dataAccessObject.wtSettings.getSetting('onBeforeViewportScrollHorizontally', column);
 
-    if (!Number.isInteger(column) || column < 0 || column > totalColumns) {
-      return false;
-    }
-
     const firstColumn = this.getFirstVisibleColumn();
     const lastColumn = this.getLastVisibleColumn();
     let result = false;
@@ -126,10 +122,6 @@ class Scroll {
     }
 
     row = this.dataAccessObject.wtSettings.getSetting('onBeforeViewportScrollVertically', row);
-
-    if (!Number.isInteger(row) || row < 0 || row > totalRows) {
-      return false;
-    }
 
     const firstRow = this.getFirstVisibleRow();
     const lastRow = this.getLastVisibleRow();

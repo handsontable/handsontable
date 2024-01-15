@@ -138,12 +138,6 @@ export class DropdownMenu extends BasePlugin {
    * @type {Menu}
    */
   menu = null;
-  /**
-   * Flag which determines if the button that opens the menu was clicked.
-   *
-   * @type {boolean}
-   */
-  #isButtonClicked = false;
 
   constructor(hotInstance) {
     super(hotInstance);
@@ -172,9 +166,6 @@ export class DropdownMenu extends BasePlugin {
     if (this.enabled) {
       return;
     }
-
-    this.addHook('beforeOnCellMouseDown', (...args) => this.#onBeforeOnCellMouseDown(...args));
-    this.addHook('beforeViewportScrollHorizontally', (...args) => this.#onBeforeViewportScrollHorizontally(...args));
 
     this.itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS);
 
@@ -430,8 +421,6 @@ export class DropdownMenu extends BasePlugin {
       const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
       const rect = event.target.getBoundingClientRect();
 
-      this.#isButtonClicked = false;
-
       this.open({
         left: rect.left + offset.left,
         top: rect.top + event.target.offsetHeight + 3 + offset.top,
@@ -543,29 +532,6 @@ export class DropdownMenu extends BasePlugin {
   #onMenuAfterClose() {
     this.hot.listen();
     this.hot.runHooks('afterDropdownMenuHide', this);
-  }
-
-  /**
-   * Hook allows blocking horizontal scroll when the menu is opened by clicking on
-   * the column header button. This prevents from scrolling the viewport (jump effect) when
-   * the button is clicked.
-   *
-   * @param {number} visualColumn Visual column index.
-   * @returns {number | null}
-   */
-  #onBeforeViewportScrollHorizontally(visualColumn) {
-    return this.#isButtonClicked ? null : visualColumn;
-  }
-
-  /**
-   * Hook sets the internal flag to `true` when the button is clicked.
-   *
-   * @param {MouseEvent} event The mouse event object.
-   */
-  #onBeforeOnCellMouseDown(event) {
-    if (hasClass(event.target, BUTTON_CLASS_NAME)) {
-      this.#isButtonClicked = true;
-    }
   }
 
   /**
