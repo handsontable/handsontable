@@ -276,7 +276,6 @@ export class TextEditor extends BaseEditor {
     this.textareaParentStyle.opacity = '1';
 
     this.textareaStyle.textIndent = '';
-    this.textareaStyle.overflowY = 'hidden';
 
     const childNodes = this.TEXTAREA_PARENT.childNodes;
     let hasClassHandsontableEditor = false;
