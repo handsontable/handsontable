@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.1.0
- * Release date: 16/01/2024 (built at 11/01/2024 10:22:45)
+ * Release date: 16/01/2024 (built at 15/01/2024 15:24:35)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -107,7 +107,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "11/01/2024 10:22:45";
+Handsontable.buildDate = "15/01/2024 15:24:35";
 Handsontable.version = "14.1.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -16976,7 +16976,7 @@ var _defineProperty2 = _interopRequireDefault(__webpack_require__(122));
  * @property {number} totalColumns Total number of columns.
  */
 /**
- * Holds all calculations needed to perform rendering of the all columns.
+ * Holds all calculations needed to perform the rendering of all columns.
  *
  * @class RenderAllColumnsCalculator
  */
@@ -17030,7 +17030,7 @@ var _defineProperty2 = _interopRequireDefault(__webpack_require__(122));
  * @property {number} totalRows Total number of rows.
  */
 /**
- * Holds all calculations needed to perform rendering of the all rows.
+ * Holds all calculations needed to perform the rendering of all rows.
  *
  * @class RenderAllRowsCalculator
  */
@@ -39808,14 +39808,15 @@ var _default = () => {
      */
     readOnlyCellClassName: 'htDimmed',
     /**
-     * The `renderAllRows` option configures Handsontable's [row virtualization](@/guides/rows/row-virtualization.md).
+     * The `renderAllRows` option controls Handsontable's [row virtualization](@/guides/rows/row-virtualization.md).
+     * You can configure it as follows:
      *
-     * You can set the `renderAllRows` option to one of the following:
+     * | Setting           | Description                                                                                                                                                                                     |
+     * | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | Enable [row virtualization](@/guides/rows/row-virtualization.md), rendering only the visible rows for optimal performance with large datasets.                                                  |
+     * | `true`            | Disable [row virtualization](@/guides/rows/row-virtualization.md)<br>(render all rows of the grid), rendering all rows in the dataset for consistent rendering and screen reader accessibility. |
      *
-     * | Setting           | Description                                                                                        |
-     * | ----------------- | -------------------------------------------------------------------------------------------------- |
-     * | `false` (default) | Enable [row virtualization](@/guides/rows/row-virtualization.md)                                   |
-     * | `true`            | Disable [row virtualization](@/guides/rows/row-virtualization.md)<br>(render all rows of the grid) |
+     * Setting `renderAllRows` to `true` overwrites the [`viewportRowRenderingOffset`](#viewportRowRenderingOffset) setting.
      *
      * Read more:
      * - [Row virtualization](@/guides/rows/row-virtualization.md)
@@ -39837,13 +39838,15 @@ var _default = () => {
      *
      * You can set the `renderAllColumns` option to one of the following:
      *
-     * | Setting           | Description                                                                                        |
-     * | ----------------- | -------------------------------------------------------------------------------------------------- |
-     * | `false` (default) | Enable [column virtualization](@/guides/columns/column-virtualization.md)                                   |
-     * | `true`            | Disable [column virtualization](@/guides/columns/column-virtualization.md)<br>(render all columns of the grid) |
+     * | Setting           | Description                                                                                                                                                                                                                      |
+     * | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | Enable [column virtualization](@/guides/columns/column-virtualization.md), rendering only visible columns for better performance with many columns.                                                                              |
+     * | `true`            | Disable [column virtualization](@/guides/columns/column-virtualization.md)<br>(render all columns of the grid), rendering all columns in the dataset, and ensuring all columns are available regardless of horizontal scrolling. |
+     *
+     * Setting `renderAllColumns` to `true` overwrites the [`viewportColumnRenderingOffset`](#viewportColumnRenderingOffset) setting.
      *
      * Read more:
-     * - [Row virtualization](@/guides/columns/column-virtualization.md)
+     * - [Column virtualization](@/guides/columns/column-virtualization.md)
      *
      * @since 14.1.0
      * @memberof Options#
@@ -40816,6 +40819,8 @@ var _default = () => {
      * | `auto` (default)   | Use the offset calculated automatically by Handsontable |
      * | A number           | Set the offset manually                                 |
      *
+     * The `viewportColumnRenderingOffset` setting is ignored when [`renderAllColumns`](#renderAllColumns) is set to `true`.
+     *
      * Read more:
      * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      *
@@ -40842,6 +40847,8 @@ var _default = () => {
      * | ------------------ | ------------------------------------------------------- |
      * | `auto` (default)   | Use the offset calculated automatically by Handsontable |
      * | A number           | Set the offset manually                                 |
+     *
+     * The `viewportRowRenderingOffset` setting is ignored when [`renderAllRows`](#renderAllRows) is set to `true`.
      *
      * Read more:
      * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
@@ -42011,19 +42018,23 @@ class ExtendMetaPropertiesMod {
           throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
         }
       }
-    }], ['renderAllColumns', {
-      onChange(propName, value, isInitialChange) {
-        if (!isInitialChange) {
-          throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
-        }
-      }
-    }], ['renderAllRows', {
-      onChange(propName, value, isInitialChange) {
-        if (!isInitialChange) {
-          throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
-        }
-      }
-    }]]));
+    }]
+    // Temporary commented out due to the bug in the React wrapper.
+    // ['renderAllColumns', {
+    //   onChange(propName, value, isInitialChange) {
+    //     if (!isInitialChange) {
+    //       throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
+    //     }
+    //   }
+    // }],
+    // ['renderAllRows', {
+    //   onChange(propName, value, isInitialChange) {
+    //     if (!isInitialChange) {
+    //       throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
+    //     }
+    //   }
+    // }],
+    ]));
     this.metaManager = metaManager;
     this.extendMetaProps();
   }
