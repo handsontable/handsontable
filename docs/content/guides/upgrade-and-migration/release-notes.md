@@ -65,7 +65,7 @@ For more information on this release, see:
 - Fixed an issue where pressing the <kbd>**Backspace**</kbd> key in a date cell deleted the entire contents of the cell instead of a single character. [#10696](https://github.com/handsontable/handsontable/pull/10696)
 - Fixed several issues related to the `roundFloat` option of the [`ColumnSummary`](@/api/columnsummary.md) plugin. [#10701](https://github.com/handsontable/handsontable/pull/10701)
 - Fixed a missing TypeScript definition in the [`Formulas`](@/api/formulas.md) plugin.  [#10186](https://github.com/handsontable/handsontable/pull/10186)
-- Added `pikaday` to `peerDependencies`, to ensure backward compatibility of Handsontable 14.1.0. [#10715](https://github.com/handsontable/handsontable/pull/10715)
+- Added `pikaday` to `handsontable`s `dependencies`, to ensure backward compatibility of Handsontable 14.1.0. [#10715](https://github.com/handsontable/handsontable/pull/10715)
 - React: Fixed a missing TypeScript definition for the `settings` prop. [#10661](https://github.com/handsontable/handsontable/pull/10661)
 - Vue: Fixed an issue where passing `hyperformulaInstance` to `hotSettings` resulted in `TypeError: Converting circular structure to JSON`. [#8728](https://github.com/handsontable/handsontable/pull/8728)
 - Vue: Updated the peer dependencies of the Vue 3 wrapper with the latest version of Vue. [#10571](https://github.com/handsontable/handsontable/pull/10571)
