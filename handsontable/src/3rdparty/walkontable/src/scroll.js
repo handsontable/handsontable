@@ -95,6 +95,10 @@ class Scroll {
 
     column = this.dataAccessObject.wtSettings.getSetting('onBeforeViewportScrollHorizontally', column);
 
+    if (!Number.isInteger(column) || column < 0 || column > totalColumns) {
+      return false;
+    }
+
     // if there is no fully visible columns use the supporting variable (lastScrolledColumnPos) to
     // determine the snapping direction (left or right)
     if (firstVisibleColumn === -1) {
@@ -152,6 +156,10 @@ class Scroll {
     let result = false;
 
     row = this.dataAccessObject.wtSettings.getSetting('onBeforeViewportScrollVertically', row);
+
+    if (!Number.isInteger(row) || row < 0 || row > totalRows) {
+      return false;
+    }
 
     // if there is no fully visible rows use the supporting variable (lastScrolledRowPos) to
     // determine the snapping direction (top or bottom)

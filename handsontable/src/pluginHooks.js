@@ -588,7 +588,8 @@ const REGISTERED_HOOKS = [
    * @since 14.0.0
    * @event Hooks#beforeViewportScrollVertically
    * @param {number} visualRow Visual row index.
-   * @returns {number} Returns modified row index (or the same as passed in the method argument) to which the viewport will be scrolled.
+   * @returns {number | boolean} Returns modified row index (or the same as passed in the method argument) to which
+   * the viewport will be scrolled. If the returned value is `false`, the scrolling will be canceled.
    */
   'beforeViewportScrollVertically',
 
@@ -599,7 +600,8 @@ const REGISTERED_HOOKS = [
    * @since 14.0.0
    * @event Hooks#beforeViewportScrollHorizontally
    * @param {number} visualColumn Visual column index.
-   * @returns {number} Returns modified column index (or the same as passed in the method argument) to which the viewport will be scrolled.
+   * @returns {number | boolean} Returns modified column index (or the same as passed in the method argument) to which
+   * the viewport will be scrolled. If the returned value is `false`, the scrolling will be canceled.
    */
   'beforeViewportScrollHorizontally',
 
