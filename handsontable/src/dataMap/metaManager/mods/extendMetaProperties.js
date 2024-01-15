@@ -46,20 +46,21 @@ export class ExtendMetaPropertiesMod {
         }
       }
     }],
-    ['renderAllColumns', {
-      onChange(propName, value, isInitialChange) {
-        if (!isInitialChange) {
-          throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
-        }
-      }
-    }],
-    ['renderAllRows', {
-      onChange(propName, value, isInitialChange) {
-        if (!isInitialChange) {
-          throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
-        }
-      }
-    }],
+    // Temporary commented out due to the bug in the React wrapper.
+    // ['renderAllColumns', {
+    //   onChange(propName, value, isInitialChange) {
+    //     if (!isInitialChange) {
+    //       throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
+    //     }
+    //   }
+    // }],
+    // ['renderAllRows', {
+    //   onChange(propName, value, isInitialChange) {
+    //     if (!isInitialChange) {
+    //       throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
+    //     }
+    //   }
+    // }],
   ]);
 
   constructor(metaManager) {
