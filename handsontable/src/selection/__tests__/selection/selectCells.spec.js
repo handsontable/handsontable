@@ -1716,11 +1716,19 @@ describe('Selection', () => {
       expect(afterSelectionByProp.calls.argsFor(3)).toEqual([8, 'prop4', 0, 'prop4', jasmine.any(Object), 3]);
       expect(afterSelectionByProp.calls.argsFor(4)).toEqual([2, 'prop4', 2, 'prop4', jasmine.any(Object), 4]);
 
-      expect(afterSelectionEnd.calls.count()).toBe(1);
-      expect(afterSelectionEnd.calls.argsFor(0)).toEqual([2, 4, 2, 4, 4]);
+      expect(afterSelectionEnd.calls.count()).toBe(5);
+      expect(afterSelectionEnd.calls.argsFor(0)).toEqual([1, 2, 2, 4, 0]);
+      expect(afterSelectionEnd.calls.argsFor(1)).toEqual([2, 1, 3, 2, 1]);
+      expect(afterSelectionEnd.calls.argsFor(2)).toEqual([7, 7, 7, 7, 2]);
+      expect(afterSelectionEnd.calls.argsFor(3)).toEqual([8, 4, 0, 4, 3]);
+      expect(afterSelectionEnd.calls.argsFor(4)).toEqual([2, 4, 2, 4, 4]);
 
-      expect(afterSelectionEndByProp.calls.count()).toBe(1);
-      expect(afterSelectionEndByProp.calls.argsFor(0)).toEqual([2, 'prop4', 2, 'prop4', 4]);
+      expect(afterSelectionEndByProp.calls.count()).toBe(5);
+      expect(afterSelectionEndByProp.calls.argsFor(0)).toEqual([1, 'prop2', 2, 'prop4', 0]);
+      expect(afterSelectionEndByProp.calls.argsFor(1)).toEqual([2, 'prop1', 3, 'prop2', 1]);
+      expect(afterSelectionEndByProp.calls.argsFor(2)).toEqual([7, 'prop7', 7, 'prop7', 2]);
+      expect(afterSelectionEndByProp.calls.argsFor(3)).toEqual([8, 'prop4', 0, 'prop4', 3]);
+      expect(afterSelectionEndByProp.calls.argsFor(4)).toEqual([2, 'prop4', 2, 'prop4', 4]);
 
       expect(beforeSetRangeStart.calls.count()).toBe(0);
 
