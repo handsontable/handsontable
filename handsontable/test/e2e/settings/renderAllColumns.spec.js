@@ -26,17 +26,5 @@ describe('settings', () => {
 
       expect(hot.view._wt.getSetting('renderAllColumns')).toBe(true);
     });
-
-    it('should not be possible to change the value after table initialization', () => {
-      handsontable({
-        renderAllColumns: false,
-      });
-
-      expect(() => {
-        updateSettings({
-          renderAllColumns: true,
-        });
-      }).toThrowError('The `renderAllColumns` option can not be updated after the Handsontable is initialized.');
-    });
   });
 });
