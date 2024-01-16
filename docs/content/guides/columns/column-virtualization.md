@@ -123,7 +123,7 @@ Using column virtualization has the following side effects:
 
 - The browser's native search will work only for the visible part of the grid.
 - Screen readers may announce the wrong total number of columns. Read more in the
-  [Accessibility](@/guides/accessibility/accessibility.md#configure-virtualization) guide.
+  [Accessibility](@/guides/accessibility/accessibility.md#disabling-dom-virtualization-for-improved-accessibility) guide.
 
 ## Related articles
 

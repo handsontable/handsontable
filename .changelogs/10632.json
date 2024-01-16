@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an error that is thrown after TAB hit in editor",
-  "type": "fixed",
-  "issueOrPR": 10632,
-  "breaking": false,
-  "framework": "none"
-}

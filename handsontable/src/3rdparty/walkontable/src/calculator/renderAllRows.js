@@ -3,7 +3,7 @@
  * @property {number} totalRows Total number of rows.
  */
 /**
- * Holds all calculations needed to perform rendering of the all rows.
+ * Holds all calculations needed to perform the rendering of all rows.
  *
  * @class RenderAllRowsCalculator
  */
