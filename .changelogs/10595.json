@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem with the text editor's TEXTAREA element's contents being selected after opening the editor with a double-click.",
-  "type": "fixed",
-  "issueOrPR": 10595,
-  "breaking": false,
-  "framework": "none"
-}

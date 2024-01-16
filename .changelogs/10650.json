@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed manual row and column resize plugins that throw an error when the cell renderer render the cell value in HTML table element.",
-  "type": "fixed",
-  "issueOrPR": 10650,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Updated typings for the Formulas plugin",
-  "type": "changed",
-  "issueOrPR": 10653,
-  "breaking": false,
-  "framework": "none"
-}
