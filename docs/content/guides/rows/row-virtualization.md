@@ -66,6 +66,8 @@ const hot = new Handsontable(container, {
   height: 320,
   rowHeaders: true,
   colHeaders: true,
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -103,6 +105,8 @@ export const ExampleComponent = () => {
       height={320}
       rowHeaders={true}
       colHeaders={true}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -123,7 +127,7 @@ Using row virtualization has the following side effects:
 
 - The browser's native search will work only for the visible part of the grid.
 - Screen readers may announce the wrong total number of rows. Read more in the
-  [Accessibility](@/guides/accessibility/accessibility.md#configure-virtualization) guide.
+  [Accessibility](@/guides/accessibility/accessibility.md#disabling-dom-virtualization-for-improved-accessibility) guide.
 
 ## Related articles
 

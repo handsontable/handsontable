@@ -56,6 +56,8 @@ const ExampleComponent = {
           ['A10', 'B10'],
         ],
         height: 'auto',
+        autoWrapRow: true,
+        autoWrapCol: true,
         licenseKey: 'non-commercial-and-evaluation',
       },
       secondColumnSettings: {
@@ -119,6 +121,8 @@ new Vue({
       },
       settings: {
         height: 'auto',
+        autoWrapRow: true,
+        autoWrapCol: true,
         licenseKey: 'non-commercial-and-evaluation'
       }
     }
@@ -205,6 +209,8 @@ const App = new Vue({
         autoRowSize: false,
         autoColumnSize: false,
         height: 'auto',
+        autoWrapRow: true,
+        autoWrapCol: true,
         licenseKey: 'non-commercial-and-evaluation',
       }
     }
@@ -347,6 +353,8 @@ const App = new Vue({
         licenseKey: 'non-commercial-and-evaluation',
         rowHeaders: true,
         height: 'auto',
+        autoWrapRow: true,
+        autoWrapCol: true,
       }
     }
   },
@@ -429,6 +437,8 @@ const App = new Vue({
         autoRowSize: false,
         autoColumnSize: false,
         height: 'auto',
+        autoWrapRow: true,
+        autoWrapCol: true,
       },
       highlightedRows: ''
     }
@@ -649,6 +659,8 @@ const App = new Vue({
         colHeaders: ['Rating', 'Active star color', 'Inactive star color'],
         autoRowSize: false,
         autoColumnSize: false,
+        autoWrapRow: true,
+        autoWrapCol: true,
         height: 'auto',
       }
     };

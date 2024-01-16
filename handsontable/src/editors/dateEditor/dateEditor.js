@@ -1,12 +1,11 @@
 import moment from 'moment';
-import Pikaday from 'pikaday';
+import Pikaday from '@handsontable/pikaday';
 import { TextEditor } from '../textEditor';
-import EventManager from '../../eventManager';
 import { addClass, hasClass, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { deepExtend } from '../../helpers/object';
 import { isFunctionKey } from '../../helpers/unicode';
 
-import 'pikaday/css/pikaday.css';
+import '@handsontable/pikaday/css/pikaday.css';
 
 export const EDITOR_TYPE = 'date';
 const SHORTCUTS_GROUP_EDITOR = 'dateEditor';
@@ -25,10 +24,6 @@ export class DateEditor extends TextEditor {
    * @type {string}
    */
   defaultDateFormat = 'DD/MM/YYYY';
-  /**
-   * @type {boolean}
-   */
-  isCellEdited = false;
   /**
    * @type {boolean}
    */
@@ -71,26 +66,15 @@ export class DateEditor extends TextEditor {
     addClass(this.datePicker, 'htDatepickerHolder');
     this.hot.rootDocument.body.appendChild(this.datePicker);
 
-    const eventManager = new EventManager(this);
-
     /**
      * Prevent recognizing clicking on datepicker as clicking outside of table.
      */
-    eventManager.addEventListener(this.datePicker, 'mousedown', (event) => {
+    this.eventManager.addEventListener(this.datePicker, 'mousedown', (event) => {
       if (hasClass(event.target, 'pika-day')) {
         this.hideDatepicker();
       }
 
       event.stopPropagation();
-    });
-
-    /**
-     * Prevent caret movement in the TEXTAREA when navigating over the date picker.
-     */
-    eventManager.addEventListener(this.TEXTAREA, 'keydown', (event) => {
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) {
-        event.preventDefault();
-      }
     });
   }
 
@@ -135,13 +119,27 @@ export class DateEditor extends TextEditor {
     super.open();
     this.showDatepicker(event);
 
-    editorContext.addShortcut({
-      keys: [['Enter']],
-      callback: (keyboardEvent) => {
-        // Extra Pikaday's `onchange` listener captures events and performing extra `setDate` method call which causes
-        // flickering quite often.
-        keyboardEvent.stopPropagation();
+    editorContext.addShortcuts([{
+      keys: [['ArrowLeft']],
+      callback: () => {
+        this.$datePicker.adjustDate('subtract', 1);
       },
+    }, {
+      keys: [['ArrowRight']],
+      callback: () => {
+        this.$datePicker.adjustDate('add', 1);
+      },
+    }, {
+      keys: [['ArrowUp']],
+      callback: () => {
+        this.$datePicker.adjustDate('subtract', 7);
+      },
+    }, {
+      keys: [['ArrowDown']],
+      callback: () => {
+        this.$datePicker.adjustDate('add', 7);
+      },
+    }], {
       group: SHORTCUTS_GROUP_EDITOR,
     });
   }
@@ -176,14 +174,6 @@ export class DateEditor extends TextEditor {
    * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in the last selected range.
    */
   finishEditing(restoreOriginalValue = false, ctrlDown = false) {
-    if (restoreOriginalValue) { // pressed ESC, restore original value
-      const value = this.originalValue;
-
-      if (value !== undefined) {
-        this.setValue(value);
-      }
-    }
-
     super.finishEditing(restoreOriginalValue, ctrlDown);
   }
 
@@ -202,6 +192,11 @@ export class DateEditor extends TextEditor {
     this.datePicker.style.display = 'block';
 
     this.$datePicker = new Pikaday(this.getDatePickerConfig());
+
+    if (typeof this.$datePicker.useMoment === 'function') {
+      this.$datePicker.useMoment(moment);
+    }
+
     this.$datePicker._onInputFocus = function() {};
 
     this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top + outerHeight(this.TD)}px`;
@@ -276,6 +271,7 @@ export class DateEditor extends TextEditor {
     options.trigger = htInput;
     options.container = this.datePicker;
     options.bound = false;
+    options.keyboardInput = false;
     options.format = options.format || this.defaultDateFormat;
     options.reposition = options.reposition || false;
     // Set the RTL to `false`. Due to the https://github.com/Pikaday/Pikaday/issues/647 bug, the layout direction

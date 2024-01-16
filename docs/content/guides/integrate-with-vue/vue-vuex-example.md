@@ -65,6 +65,8 @@ const ExampleComponent = {
         rowHeaders: true,
         readOnly: true,
         height: 'auto',
+        autoWrapRow: true,
+        autoWrapCol: true,
         afterChange: () => {
           if (this.hotRef) {
             this.$store.commit('updateData', this.hotRef.getSourceData());
@@ -132,7 +134,9 @@ const ExampleComponent = {
     state: {
       hotData: null,
       hotSettings: {
-        readOnly: false
+        readOnly: false,
+        autoWrapRow: true,
+        autoWrapCol: true,
       }
     },
     mutations: {

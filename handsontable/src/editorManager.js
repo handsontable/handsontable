@@ -141,9 +141,9 @@ class EditorManager {
       return;
     }
 
-    const { highlight } = this.hot.getSelectedRangeLast();
+    const highlight = this.hot.getSelectedRangeLast()?.highlight;
 
-    if (highlight.isHeader()) {
+    if (!highlight || highlight.isHeader()) {
       return;
     }
 

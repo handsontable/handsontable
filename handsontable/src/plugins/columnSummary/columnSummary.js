@@ -7,6 +7,8 @@ import { isNullishOrNaN } from './utils';
 export const PLUGIN_KEY = 'columnSummary';
 export const PLUGIN_PRIORITY = 220;
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin ColumnSummary
  * @class ColumnSummary
@@ -30,7 +32,7 @@ export const PLUGIN_PRIORITY = 220;
  * | `reversedRowCoords` | No | Boolean | `false` | [Reverses row coordinates](@/guides/columns/column-summary.md#step-5-make-room-for-the-destination-cell) |
  * | `suppressDataTypeErrors` | No | Boolean | `true` | [Suppresses data type errors](@/guides/columns/column-summary.md#throw-data-type-errors) |
  * | `readOnly` | No | Boolean | `true` | Makes summary cell read-only |
- * | `roundFloat` | No | Number | - | [Rounds summary result](@/guides/columns/column-summary.md#round-a-column-summary-result) |
+ * | `roundFloat` | No | Number/<br>Boolean | - | [Rounds summary result](@/guides/columns/column-summary.md#round-a-column-summary-result) |
  * | `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary.md#implement-a-custom-summary-function) |
  *
  * @example
@@ -159,6 +161,23 @@ export class ColumnSummary extends BasePlugin {
     this.endpoints = null;
     this.settings = null;
     this.currentEndpoint = null;
+
+    super.disablePlugin();
+  }
+
+  /**
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`columnSummary`](@/api/options.md#columnsummary)
+   */
+  updatePlugin() {
+    this.disablePlugin();
+    this.enablePlugin();
+
+    this.endpoints.initEndpoints();
+
+    super.updatePlugin();
   }
 
   /**
@@ -426,8 +445,7 @@ export class ColumnSummary extends BasePlugin {
    * `afterInit` hook callback.
    */
   #onAfterInit() {
-    this.endpoints.endpoints = this.endpoints.parseSettings();
-    this.endpoints.refreshAllEndpoints(true);
+    this.endpoints.initEndpoints();
   }
 
   /**

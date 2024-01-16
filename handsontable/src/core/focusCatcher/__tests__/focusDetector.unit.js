@@ -42,4 +42,6 @@ describe('focusDetector', () => {
     expect(inputTrapBottom.getAttribute('role')).toBe('presentation');
     expect(inputTrapBottom.getAttribute('aria-hidden')).toBe('true');
   });
+
+  // More tests around the focusCatcher module you'll find here ./handsontable/test/e2e/keyboardShortcuts/tabNavigation.spec.js
 });

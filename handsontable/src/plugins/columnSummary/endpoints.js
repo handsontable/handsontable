@@ -62,6 +62,14 @@ class Endpoints {
   }
 
   /**
+   * Initialize the endpoints provided in the settings.
+   */
+  initEndpoints() {
+    this.endpoints = this.parseSettings();
+    this.refreshAllEndpoints();
+  }
+
+  /**
    * Get a single endpoint object.
    *
    * @param {number} index Index of the endpoint.
@@ -133,7 +141,6 @@ class Endpoints {
       this.assignSetting(val, newEndpoint, 'sourceColumn', val.destinationColumn);
       this.assignSetting(val, newEndpoint, 'type', 'sum');
       this.assignSetting(val, newEndpoint, 'forceNumeric', false);
-      this.assignSetting(val, newEndpoint, 'suppressDataTypeErrors', true);
       this.assignSetting(val, newEndpoint, 'suppressDataTypeErrors', true);
       this.assignSetting(val, newEndpoint, 'customFunction', null);
       this.assignSetting(val, newEndpoint, 'readOnly', true);
@@ -541,8 +548,22 @@ class Endpoints {
       }
     }
 
-    if (endpoint.roundFloat && !isNaN(endpoint.result)) {
-      endpoint.result = endpoint.result.toFixed(endpoint.roundFloat);
+    if (
+      (
+        endpoint.roundFloat === true ||
+        Number.isInteger(endpoint.roundFloat)
+      ) &&
+      !isNaN(endpoint.result)
+    ) {
+      const roundFloatValue = endpoint.roundFloat;
+      let decimalPlacesCount = 0;
+
+      // `toFixed` method accepts only values between 0 and 100
+      if (Number.isInteger(roundFloatValue)) {
+        decimalPlacesCount = Math.min(Math.max(0, roundFloatValue), 100);
+      }
+
+      endpoint.result = endpoint.result.toFixed(decimalPlacesCount);
     }
 
     if (render) {

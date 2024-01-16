@@ -126,7 +126,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
       reversedRowCoords: true,
       suppressDataTypeErrors: false,
       readOnly: true,
-      roundFloat: false,
+      roundFloat: oneOf(false, true, 5),
       type: 'custom',
       customFunction: (endpoint) => 100
     }
@@ -299,6 +299,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   preventWheel: true,
   readOnly: true,
   readOnlyCellClassName: 'foo',
+  renderAllColumns: true,
   renderAllRows: true,
   renderer: oneOf(
     'autocomplete', 'checkbox', 'html', 'numeric', 'password', 'text', 'time', 'custom.renderer',

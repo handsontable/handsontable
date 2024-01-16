@@ -431,16 +431,10 @@ export default () => {
     autoRowSize: undefined,
 
     /**
-     * With [`autoWrapCol`](#autowrapcol) enabled:
-     * - When you select a bottom-most cell, pressing <kbd>**↓**</kbd> takes you to the top-most cell of the next column.
-     * - When you select a top-most cell, pressing <kbd>**↑**</kbd> takes you to the bottom-most cell of the previous column.
-     *
-     * You can set the [`autoWrapCol`](#autowrapcol) option to one of the following:
-     *
      * | Setting           | Description                                                                                                                                                                                                                                  |
      * | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `true`            | When you select a bottom-most cell, pressing <kbd>**↓**</kbd> takes you to the top-most cell of the next column.<br><br>When you select a top-most cell, pressing <kbd>**↑**</kbd> takes you to the bottom-most cell of the previous column. |
      * | `false` (default) | When you select a bottom-most cell, pressing <kbd>**↓**</kbd> doesn't do anything.<br><br>When you select a top-most cell, pressing <kbd>**↑**</kbd> doesn't do anything.                                                                    |
+     * | `true`            | When you select a bottom-most cell, pressing <kbd>**↓**</kbd> takes you to the top-most cell of the next column.<br><br>When you select a top-most cell, pressing <kbd>**↑**</kbd> takes you to the bottom-most cell of the previous column. |
      *
      * @memberof Options#
      * @type {boolean}
@@ -461,18 +455,13 @@ export default () => {
     autoWrapCol: false,
 
     /**
-     * With [`autoWrapRow`](#autoWrapRow) enabled:
-     * - When you select the first cell of a row, pressing <kbd>**←**</kbd>* takes you to the last cell of the row above.
-     * - When you select the last cell of a row, pressing <kbd>**→**</kbd>* takes you to the first cell of the row below.
+     * | Setting           | Description                                                                                                                                                                                                                                                                                                        |
+     * | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+     * | `false` (default) | When you select the first cell of a row, pressing <kbd>**←**</kbd>* (or <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>\*\*) doesn't do anything.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* (or <kbd>**Tab**</kbd>**) doesn't do anything.                                                  |
+     * | `true`            | When you select the first cell of a row, pressing <kbd>**←**</kbd>* (or <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>\*\*) takes you to the last cell of the row above.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* (or <kbd>**Tab**</kbd>**) takes you to the first cell of the row below. |
      *
-     * You can set the [`autoWrapRow`](#autoWrapRow) option to one of the following:
-     *
-     * | Setting           | Description                                                                                                                                                                                                                              |
-     * | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `true`            | When you select the first cell of a row, pressing <kbd>**←**</kbd>* takes you to the last cell of the row above.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* takes you to the first cell of the row below. |
-     * | `false` (default) | When you select the first cell of a row, pressing <kbd>**←**</kbd>* doesn't do anything.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* doesn't do anything.                                                  |
-     *
-     * \* The exact key depends on your [`layoutDirection`](#layoutdirection) configuration.
+     * \* The exact key depends on your [`layoutDirection`](#layoutdirection) configuration.<br>
+     * \*\* Unless [`tabNavigation`](#tabnavigation) is set to `false`.
      *
      * @memberof Options#
      * @type {boolean}
@@ -481,12 +470,12 @@ export default () => {
      *
      * @example
      * ```js
-     * // when you select the first cell of a row, pressing ⬅ doesn't do anything
-     * // when you select the last cell of a row, pressing ➡️ doesn't do anything
+     * // when you select the first cell of a row, pressing ⬅ (or Shift+Tab) doesn't do anything
+     * // when you select the last cell of a row, pressing ➡ (or Tab) doesn't do anything
      * autoWrapRow: false, // default setting
      *
-     * // when you select the first cell of a row, pressing ⬅ takes you to the last cell of the row above
-     * // when you select the last cell of a row, pressing ➡️ takes you to the first cell of the row below
+     * // when you select the first cell of a row, pressing ⬅ (or Shift+Tab) takes you to the last cell of the row above
+     * // when you select the last cell of a row, pressing ➡ (or Tab) takes you to the first cell of the row below
      * autoWrapRow: true,
      * ```
      */
@@ -932,7 +921,7 @@ export default () => {
      * | `reversedRowCoords`      | `true`  \| `false`                                                      | [Reverse row coordinates](@/guides/columns/column-summary.md#step-5-make-room-for-the-destination-cell)                      |
      * | `suppressDataTypeErrors` | `true`  \| `false`                                                      | [Suppress data type errors](@/guides/columns/column-summary.md#throw-data-type-errors)                                    |
      * | `readOnly`               | `true`  \| `false`                                                      | Make summary cell read-only                                                                                                  |
-     * | `roundFloat`             | `true`  \| `false`                                                      | [Round summary result](@/guides/columns/column-summary.md#round-a-column-summary-result)                                  |
+     * | `roundFloat`             | `true`  \| `false`  \| A number                                         | [Round summary result](@/guides/columns/column-summary.md#round-a-column-summary-result)                                  |
      * | `customFunction`         | A function                                                              | [Custom summary function](@/guides/columns/column-summary.md#implement-a-custom-summary-function)                         |
      *
      * Read more:
@@ -3660,21 +3649,22 @@ export default () => {
     readOnlyCellClassName: 'htDimmed',
 
     /**
-     * The `renderAllRows` option configures Handsontable's [row virtualization](@/guides/rows/row-virtualization.md).
+     * The `renderAllRows` option controls Handsontable's [row virtualization](@/guides/rows/row-virtualization.md).
+     * You can configure it as follows:
      *
-     * You can set the `renderAllRows` option to one of the following:
+     * | Setting           | Description                                                                                                                                                                                     |
+     * | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | Enable [row virtualization](@/guides/rows/row-virtualization.md), rendering only the visible rows for optimal performance with large datasets.                                                  |
+     * | `true`            | Disable [row virtualization](@/guides/rows/row-virtualization.md)<br>(render all rows of the grid), rendering all rows in the dataset for consistent rendering and screen reader accessibility. |
      *
-     * | Setting           | Description                                                                                        |
-     * | ----------------- | -------------------------------------------------------------------------------------------------- |
-     * | `false` (default) | Enable [row virtualization](@/guides/rows/row-virtualization.md)                                   |
-     * | `true`            | Disable [row virtualization](@/guides/rows/row-virtualization.md)<br>(render all rows of the grid) |
+     * Setting `renderAllRows` to `true` overwrites the [`viewportRowRenderingOffset`](#viewportRowRenderingOffset) setting.
      *
      * Read more:
      * - [Row virtualization](@/guides/rows/row-virtualization.md)
      *
      * @memberof Options#
      * @type {boolean}
-     * @default undefined
+     * @default false
      * @category Core
      *
      * @example
@@ -3683,7 +3673,36 @@ export default () => {
      * renderAllRows: true,
      * ```
      */
-    renderAllRows: undefined,
+    renderAllRows: false,
+
+    /**
+     * The `renderAllColumns` option configures Handsontable's [column virtualization](@/guides/columns/column-virtualization.md).
+     *
+     * You can set the `renderAllColumns` option to one of the following:
+     *
+     * | Setting           | Description                                                                                                                                                                                                                      |
+     * | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | Enable [column virtualization](@/guides/columns/column-virtualization.md), rendering only visible columns for better performance with many columns.                                                                              |
+     * | `true`            | Disable [column virtualization](@/guides/columns/column-virtualization.md)<br>(render all columns of the grid), rendering all columns in the dataset, and ensuring all columns are available regardless of horizontal scrolling. |
+     *
+     * Setting `renderAllColumns` to `true` overwrites the [`viewportColumnRenderingOffset`](#viewportColumnRenderingOffset) setting.
+     *
+     * Read more:
+     * - [Column virtualization](@/guides/columns/column-virtualization.md)
+     *
+     * @since 14.1.0
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // disable column virtualization
+     * renderAllColumns: true,
+     * ```
+     */
+    renderAllColumns: false,
 
     /**
      * @description
@@ -4665,6 +4684,8 @@ export default () => {
      * | `auto` (default)   | Use the offset calculated automatically by Handsontable |
      * | A number           | Set the offset manually                                 |
      *
+     * The `viewportColumnRenderingOffset` setting is ignored when [`renderAllColumns`](#renderAllColumns) is set to `true`.
+     *
      * Read more:
      * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      *
@@ -4692,6 +4713,8 @@ export default () => {
      * | ------------------ | ------------------------------------------------------- |
      * | `auto` (default)   | Use the offset calculated automatically by Handsontable |
      * | A number           | Set the offset manually                                 |
+     *
+     * The `viewportRowRenderingOffset` setting is ignored when [`renderAllRows`](#renderAllRows) is set to `true`.
      *
      * Read more:
      * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns)

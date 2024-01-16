@@ -24,7 +24,9 @@ Render hundreds of columns without freezing the browser, using column virtualiza
 ## Overview
 
 To process a large number of columns in a browser Handsontable utilizes the virtualization process to display only the visible part of the grid with a small
-offset for a better scrolling experience. This feature is turned on by default and can be turned off only for rows, not columns.
+offset for a better scrolling experience.
+
+This feature is enabled by default and can be turned off by setting the [`renderAllColumns`](@/api/options.md#renderallcolumns) option to `true`.
 
 ## Configure the column virtualization
 
@@ -69,6 +71,8 @@ const hot = new Handsontable(container, {
   height: 320,
   rowHeaders: true,
   colHeaders: true,
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -99,7 +103,9 @@ const data = new Array(1000) // number of rows
   );
 
 export const ExampleComponent = () => {
-  return <HotTable data={data} colWidths={100} width="100%" height={320} rowHeaders={true} colHeaders={true} licenseKey="non-commercial-and-evaluation" />;
+  return <HotTable data={data} colWidths={100} width="100%" height={320} rowHeaders={true} colHeaders={true} autoWrapRow={true}
+    autoWrapCol={true}
+    licenseKey="non-commercial-and-evaluation" />;
 };
 
 /* start:skip-in-preview */
@@ -117,7 +123,7 @@ Using column virtualization has the following side effects:
 
 - The browser's native search will work only for the visible part of the grid.
 - Screen readers may announce the wrong total number of columns. Read more in the
-  [Accessibility](@/guides/accessibility/accessibility.md#configure-virtualization) guide.
+  [Accessibility](@/guides/accessibility/accessibility.md#disabling-dom-virtualization-for-improved-accessibility) guide.
 
 ## Related articles
 

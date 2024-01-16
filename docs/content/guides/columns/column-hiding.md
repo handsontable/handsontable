@@ -61,6 +61,8 @@ const hot = new Handsontable(container, {
     columns: [2, 4, 6],
     indicators: true,
   },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -83,6 +85,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'L1'],
@@ -153,6 +157,8 @@ const hot = new Handsontable(container, {
     // specify columns hidden by default
     columns: [3, 5, 9],
   },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -175,6 +181,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'L1'],
@@ -246,6 +254,8 @@ const hot = new Handsontable(container, {
     // show UI indicators to mark hidden columns
     indicators: true,
   },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -268,6 +278,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'L1'],
@@ -335,6 +347,8 @@ const hot = new Handsontable(container, {
     columns: [3, 5, 9],
     indicators: true,
   },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -357,6 +371,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'L1'],
@@ -422,6 +438,8 @@ const hot = new Handsontable(container, {
     columns: [3, 5, 9],
     indicators: true,
   },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -444,6 +462,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'L1'],
@@ -508,6 +528,8 @@ const hot = new Handsontable(container, {
     // exclude hidden columns from copying and pasting
     copyPasteEnabled: false,
   },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -530,6 +552,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'L1'],

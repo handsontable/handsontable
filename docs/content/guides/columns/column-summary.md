@@ -93,7 +93,9 @@ const hot = new Handsontable(container, {
       destinationRow: 3,
       destinationColumn: 4
     }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -116,6 +118,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         [1, 2, 3, 4, 5],
@@ -183,7 +187,7 @@ To decide how a column summary is calculated, you can use one of the following s
 | `max`     | Returns the highest value in a column.                                                                 |
 | `count`   | Returns the number of all non-empty cells in a column.                                                 |
 | `average` | Returns the sum of all values in a column,<br>divided by the number of non-empty cells in that column. |
-| `custom`  | Lets you implement a [custom summary function](#implement-a-custom-summary-function).               |
+| `custom`  | Lets you implement a [custom summary function](#implement-a-custom-summary-function).                  |
 
 ### Column summary options
 
@@ -218,7 +222,7 @@ const hot = new Handsontable(document.querySelector('#example'), {
   columnSummary: [
     {},
     {}
-  ]
+  ],
 });
 ```
 
@@ -237,6 +241,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         [1, 2, 3, 4, 5],
@@ -511,7 +517,9 @@ const hot = new Handsontable(container, {
       destinationRow: 0,
       destinationColumn: 1
     }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -534,6 +542,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         [1, 2, 3, 4, 5],
@@ -642,7 +652,9 @@ const hot = new Handsontable(container, {
     }
 
     return configArray;
-  }
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -681,6 +693,8 @@ export const ExampleComponent = () => {
 
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={generateData(5, 5, true)}
       height="auto"
@@ -793,7 +807,9 @@ const hot = new Handsontable(container, {
     }
 
     return endpoints;
-  }
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -816,6 +832,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[{
         value: null,
@@ -1043,7 +1061,9 @@ const hot = new Handsontable(container, {
       },
       forceNumeric: true
     }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -1082,6 +1102,8 @@ export const ExampleComponent = () => {
 
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={generateData(5, 7)}
       height="auto"
@@ -1146,7 +1168,8 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example9'));
 
 You can round a column summary result to a specific number of digits after the decimal point.
 
-To enable this feature, set the [`roundFloat`](@/api/columnSummary.md) option to your preferred number of digits. For example:
+To enable this feature, set the [`roundFloat`](@/api/columnSummary.md) option to your preferred number of digits between 0 and 100.
+See the following example:
 
 ::: only-for javascript
 
@@ -1182,7 +1205,9 @@ const hot = new Handsontable(container, {
       // round this column summary result to two digits after the decimal point
       roundFloat: 2
     }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -1205,6 +1230,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         [0.5, 0.5],
@@ -1243,7 +1270,20 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example12'));
 
 :::
 
-## Deal with non-numeric values
+The [`roundFloat`](@/api/columnSummary.md) option accepts the following values:
+
+| Value             | Behavior                                                |
+| ----------------- | ------------------------------------------------------- |
+| `false` (default) | Don't round the column summary result.                  |
+| `true`            | Round the result to 0 digits after the decimal point.   |
+| Integer 0-100 (n) | Round the result to n digits after the decimal point.   |
+| Integer < 0       | Round the result to 0 digits after the decimal point.   |
+| Integer > 100     | Round the result to 100 digits after the decimal point. |
+
+If you enable [`roundFloat`](@/api/columnSummary.md), the data type returned by Handsontable's data-retrieving methods 
+(like [`getDataAtCell()`](@/api/core.md#getdataatcell)) changes from `number` to `string`.
+
+## Handle non-numeric values
 
 To summarize a column that contains non-numeric data, you can:
 
@@ -1300,7 +1340,9 @@ const hot = new Handsontable(container, {
       // force this column summary to treat non-numeric values as numeric values
       forceNumeric: true
     }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -1323,6 +1365,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         [0, 1, 2],
@@ -1404,7 +1448,9 @@ const hot = new Handsontable(container, {
       // enable throwing data type errors for this column summary
       suppressDataTypeErrors: false
     }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -1427,6 +1473,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         [0, 1, 2],

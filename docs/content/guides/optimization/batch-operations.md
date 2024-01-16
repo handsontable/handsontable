@@ -239,6 +239,8 @@ const hot = new Handsontable(container, {
   width: 'auto',
   height: 'auto',
   colHeaders: ['ID', 'Customer name', 'Product name', 'Size', 'qty', 'Return'],
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -382,6 +384,8 @@ export const ExampleComponent = () => {
         width="auto"
         height="auto"
         colHeaders={['ID', 'Customer name', 'Product name', 'Size', 'qty', 'Return']}
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
@@ -418,6 +422,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
   - [`maxCols`](@/api/options.md#maxcols)
   - [`maxRows`](@/api/options.md#maxrows)
   - [`observeDOMVisibility`](@/api/options.md#observedomvisibility)
+  - [`renderAllColumns`](@/api/options.md#renderallcolumns)
   - [`renderAllRows`](@/api/options.md#renderallrows)
 - Core methods:
   - [`batch()`](@/api/core.md#batch)

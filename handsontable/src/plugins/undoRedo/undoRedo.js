@@ -70,9 +70,31 @@ function UndoRedo(instance) {
     plugin.done(() => new UndoRedo.CreateRowAction(index, amount), source);
   });
 
+  const getCellMetas = (fromRow, toRow, fromColumn, toColumn) => {
+    const genericKeys = ['visualRow', 'visualCol', 'row', 'col', 'prop'];
+    const genericKeysLength = genericKeys.length;
+    const cellMetas = [];
+
+    rangeEach(fromColumn, toColumn, (columnIndex) => {
+      rangeEach(fromRow, toRow, (rowIndex) => {
+        const cellMeta = instance.getCellMeta(rowIndex, columnIndex);
+
+        if (Object.keys(cellMeta).length !== genericKeysLength) {
+          const uniqueMeta =
+            Object.fromEntries(Object.entries(cellMeta).filter(([key]) => genericKeys.includes(key) === false));
+
+          cellMetas.push([cellMeta.visualRow, cellMeta.visualCol, uniqueMeta]);
+        }
+      });
+    });
+
+    return cellMetas;
+  };
+
   instance.addHook('beforeRemoveRow', (index, amount, logicRows, source) => {
     const wrappedAction = () => {
       const physicalRowIndex = instance.toPhysicalRow(index);
+      const lastRowIndex = physicalRowIndex + amount - 1;
       const removedData = deepClone(
         plugin.instance.getSourceData(
           physicalRowIndex, 0, physicalRowIndex + amount - 1, plugin.instance.countSourceCols() - 1
@@ -84,7 +106,8 @@ function UndoRedo(instance) {
         removedData,
         instance.getSettings().fixedRowsBottom,
         instance.getSettings().fixedRowsTop,
-        instance.rowIndexMapper.getIndexesSequence()
+        instance.rowIndexMapper.getIndexesSequence(),
+        getCellMetas(physicalRowIndex, lastRowIndex, 0, instance.countCols() - 1)
       );
     };
 
@@ -99,6 +122,7 @@ function UndoRedo(instance) {
     const wrappedAction = () => {
       const originalData = plugin.instance.getSourceDataArray();
       const columnIndex = (plugin.instance.countCols() + index) % plugin.instance.countCols();
+      const lastColumnIndex = columnIndex + amount - 1;
       const removedData = [];
       const headers = [];
       const indexes = [];
@@ -107,7 +131,7 @@ function UndoRedo(instance) {
         const column = [];
         const origRow = originalData[i];
 
-        rangeEach(columnIndex, columnIndex + (amount - 1), (j) => {
+        rangeEach(columnIndex, lastColumnIndex, (j) => {
           column.push(origRow[instance.toPhysicalColumn(j)]);
         });
 
@@ -128,7 +152,15 @@ function UndoRedo(instance) {
       const rowsMap = instance.rowIndexMapper.getIndexesSequence();
 
       return new UndoRedo.RemoveColumnAction(
-        columnIndex, indexes, removedData, headers, columnsMap, rowsMap, instance.getSettings().fixedColumnsStart);
+        columnIndex,
+        indexes,
+        removedData,
+        headers,
+        columnsMap,
+        rowsMap,
+        instance.getSettings().fixedColumnsStart,
+        getCellMetas(0, instance.countRows(), columnIndex, lastColumnIndex)
+      );
     };
 
     plugin.done(wrappedAction, source);
@@ -457,6 +489,37 @@ UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
     }
   }
 
+  const selectedLast = instance.getSelectedLast();
+
+  if (selectedLast !== undefined) {
+    const [changedRow, changedColumn] = data[0];
+    const [selectedRow, selectedColumn] = selectedLast;
+    const firstFullyVisibleRow = instance.view.getFirstFullyVisibleRow();
+    const firstFullyVisibleColumn = instance.view.getFirstFullyVisibleColumn();
+    const isInVerticalViewPort = changedRow >= firstFullyVisibleRow;
+    const isInHorizontalViewPort = changedColumn >= firstFullyVisibleColumn;
+    const isInViewport = isInVerticalViewPort && isInHorizontalViewPort;
+    const isChangedSelection = selectedRow !== changedRow || selectedColumn !== changedColumn;
+
+    // Performing scroll only when selection has been changed right after editing a cell.
+    if (isInViewport === false && isChangedSelection === true) {
+      const scrollConfig = {
+        row: changedRow,
+        col: changedColumn,
+      };
+
+      if (isInVerticalViewPort === false) {
+        scrollConfig.verticalSnap = 'top';
+      }
+
+      if (isInHorizontalViewPort === false) {
+        scrollConfig.horizontalSnap = 'start';
+      }
+
+      instance.scrollViewportTo(scrollConfig);
+    }
+  }
+
   instance.selectCells(this.selected, false, false);
 };
 UndoRedo.ChangeAction.prototype.redo = function(instance, onFinishCallback) {
@@ -513,14 +576,16 @@ UndoRedo.CreateRowAction.prototype.redo = function(instance, redoneCallback) {
  * @param {number} fixedRowsBottom Number of fixed rows on the bottom. Remove row action change it sometimes.
  * @param {number} fixedRowsTop Number of fixed rows on the top. Remove row action change it sometimes.
  * @param {Array} rowIndexesSequence Row index sequence taken from the row index mapper.
+ * @param {Array} removedCellMetas List of removed cell metas.
  */
-UndoRedo.RemoveRowAction = function(index, data, fixedRowsBottom, fixedRowsTop, rowIndexesSequence) {
+UndoRedo.RemoveRowAction = function(index, data, fixedRowsBottom, fixedRowsTop, rowIndexesSequence, removedCellMetas) {
   this.index = index;
   this.data = data;
   this.actionType = 'remove_row';
   this.fixedRowsBottom = fixedRowsBottom;
   this.fixedRowsTop = fixedRowsTop;
   this.rowIndexesSequence = rowIndexesSequence;
+  this.removedCellMetas = removedCellMetas;
 };
 inherit(UndoRedo.RemoveRowAction, UndoRedo.Action);
 
@@ -542,6 +607,10 @@ UndoRedo.RemoveRowAction.prototype.undo = function(instance, undoneCallback) {
   });
 
   instance.alter('insert_row_above', this.index, this.data.length, 'UndoRedo.undo');
+
+  this.removedCellMetas.forEach(([rowIndex, columnIndex, cellMeta]) => {
+    instance.setCellMetaObject(rowIndex, columnIndex, cellMeta);
+  });
 
   instance.addHookOnce('afterViewRender', undoneCallback);
 
@@ -589,8 +658,9 @@ UndoRedo.CreateColumnAction.prototype.redo = function(instance, redoneCallback) 
  * @param {number[]} columnPositions The column position.
  * @param {number[]} rowPositions The row position.
  * @param {number} fixedColumnsStart Number of fixed columns on the left. Remove column action change it sometimes.
+ * @param {Array} removedCellMetas List of removed cell metas.
  */
-UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPositions, rowPositions, fixedColumnsStart) { // eslint-disable-line max-len
+UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPositions, rowPositions, fixedColumnsStart, removedCellMetas) { // eslint-disable-line max-len
   this.index = index;
   this.indexes = indexes;
   this.data = data;
@@ -600,6 +670,7 @@ UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPosi
   this.rowPositions = rowPositions.slice(0);
   this.actionType = 'remove_col';
   this.fixedColumnsStart = fixedColumnsStart;
+  this.removedCellMetas = removedCellMetas;
 };
 inherit(UndoRedo.RemoveColumnAction, UndoRedo.Action);
 
@@ -639,6 +710,10 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
       instance.getSettings().colHeaders[ascendingIndexes[columnIndex]] = headerData;
     });
   }
+
+  this.removedCellMetas.forEach(([rowIndex, columnIndex, cellMeta]) => {
+    instance.setCellMetaObject(rowIndex, columnIndex, cellMeta);
+  });
 
   instance.batchExecution(() => {
     // Restore row sequence in a case when all columns are removed. the original

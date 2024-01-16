@@ -1,11 +1,12 @@
 import React from 'react';
+import { act } from '@testing-library/react';
 import {
   HotTable
 } from '../src/hotTable';
 import {
   createSpreadsheetData,
   mockElementDimensions,
-  mountComponent,
+  mountComponentWithRef,
   sleep,
 } from './_helpers';
 
@@ -25,7 +26,7 @@ describe('React.memo', () => {
 
     const MemoizedRendererComponent2 = React.memo(RendererComponent2);
 
-    const hotInstance = mountComponent((
+    const hotInstance = mountComponentWithRef((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(1, 1)}
@@ -42,7 +43,9 @@ describe('React.memo', () => {
       </HotTable>
     )).hotInstance;
 
-    hotInstance.render();
+    await act(async () => {
+      hotInstance.render();
+    });
 
     await sleep(100);
 
