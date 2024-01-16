@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed the focus position after Handsontable options or dataset change",
-  "type": "fixed",
-  "issueOrPR": 10642,
-  "breaking": false,
-  "framework": "none"
-}

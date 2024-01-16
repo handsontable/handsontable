@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed \"TypeError: Converting circular structure to JSON\" when passing `hyperformulaInstance` to `hotSettings`",
-  "type": "fixed",
-  "issueOrPR": 8728,
-  "breaking": false,
-  "framework": "vue"
-}

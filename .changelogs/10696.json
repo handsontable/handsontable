@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a bug related to deleting all Date type editor content.",
-  "type": "fixed",
-  "issueOrPR": 10696,
-  "breaking": false,
-  "framework": "none"
-}

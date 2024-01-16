@@ -32,7 +32,7 @@ export const PLUGIN_PRIORITY = 220;
  * | `reversedRowCoords` | No | Boolean | `false` | [Reverses row coordinates](@/guides/columns/column-summary.md#step-5-make-room-for-the-destination-cell) |
  * | `suppressDataTypeErrors` | No | Boolean | `true` | [Suppresses data type errors](@/guides/columns/column-summary.md#throw-data-type-errors) |
  * | `readOnly` | No | Boolean | `true` | Makes summary cell read-only |
- * | `roundFloat` | No | Number/Boolean | - | [Rounds summary result](@/guides/columns/column-summary.md#round-a-column-summary-result) |
+ * | `roundFloat` | No | Number/<br>Boolean | - | [Rounds summary result](@/guides/columns/column-summary.md#round-a-column-summary-result) |
  * | `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary.md#implement-a-custom-summary-function) |
  *
  * @example
