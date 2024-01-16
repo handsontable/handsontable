@@ -1087,12 +1087,10 @@ setupCheckbox(
       renderAllRows: !checked,
       renderAllColumns: !checked,
     });
-    console.log(
-      `Updated setting: renderAllRows to`,
-      hotInstance.getSettings().renderAllRows,
-      `Updated setting: renderAllColumns to`,
-      hotInstance.getSettings().renderAllColumns
-    );
+    console.log("Updated virtualization settings:", {
+      renderAllRows: hotInstance.getSettings().renderAllRows,
+      renderAllColumns: hotInstance.getSettings().renderAllColumns,
+});
   }
 );
 
