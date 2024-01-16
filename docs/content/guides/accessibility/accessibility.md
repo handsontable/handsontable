@@ -1089,7 +1089,7 @@ setupCheckbox(
     });
     console.log(
       `Updated setting: renderAllRows to`,
-      hotInstance.getSettings().renderAllRows
+      hotInstance.getSettings().renderAllRows,
       `Updated setting: renderAllColumns to`,
       hotInstance.getSettings().renderAllColumns
     );
