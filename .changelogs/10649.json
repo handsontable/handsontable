@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Undoing/redoing removal of cells will restore also cell meta",
-  "type": "fixed",
-  "issueOrPR": 10649,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added support for the ability to disable column virtualization via the new `renderAllColumns` option",
-  "type": "added",
-  "issueOrPR": 10599,
-  "breaking": false,
-  "framework": "none"
-}

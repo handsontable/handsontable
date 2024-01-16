@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed problem with uncaught TypeError exception for some CollapsibleColumns plugin configurations",
-  "type": "fixed",
-  "issueOrPR": 10693,
-  "breaking": false,
-  "framework": "none"
-}
