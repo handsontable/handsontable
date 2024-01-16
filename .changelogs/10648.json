@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an issue related to the \"listen/unlisten\" table's state.",
-  "type": "fixed",
-  "issueOrPR": 10648,
-  "breaking": false,
-  "framework": "none"
-}

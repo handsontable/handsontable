@@ -1,0 +1,30 @@
+{
+  "name": "vanilla-basic-example",
+  "private": true,
+  "version": "14.1.0",
+  "homepage": "https://handsontable.com/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/handsontable/handsontable.git"
+  },
+  "bugs": {
+    "url": "https://github.com/handsontable/handsontable/issues"
+  },
+  "author": "Handsoncode <hello@handsontable.com>",
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "test": "node spec/support/jasmine.config.js"
+  },
+  "dependencies": {
+    "handsontable": "14.1.0",
+    "@handsontable/pikaday": "^1.0.0"
+  },
+  "devDependencies": {
+    "jasmine": "3.7.0",
+    "jasmine-console-reporter": "3.1.0",
+    "puppeteer": "14.3.0",
+    "vite": "4.4.3"
+  },
+  "license": "SEE LICENSE IN LICENSE.txt"
+}
