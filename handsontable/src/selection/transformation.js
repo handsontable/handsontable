@@ -53,11 +53,6 @@ class Transformation {
    * @returns {CellCoords} Visual coordinates after transformation.
    */
   transformStart(rowDelta, colDelta, createMissingRecords = false) {
-    this.#setOffsetSize({
-      x: this.#options.navigableHeaders() ? this.#options.countRowHeaders() : 0,
-      y: this.#options.navigableHeaders() ? this.#options.countColHeaders() : 0,
-    });
-
     const delta = this.#options.createCellCoords(rowDelta, colDelta);
     let visualCoords = this.#range.current().highlight;
     const highlightRenderableCoords = this.#options.visualToRenderableCoords(visualCoords);
@@ -188,11 +183,6 @@ class Transformation {
    * @returns {CellCoords} Visual coordinates after transformation.
    */
   transformEnd(rowDelta, colDelta) {
-    this.#setOffsetSize({
-      x: this.#options.navigableHeaders() ? this.#options.countRowHeaders() : 0,
-      y: this.#options.navigableHeaders() ? this.#options.countColHeaders() : 0,
-    });
-
     const delta = this.#options.createCellCoords(rowDelta, colDelta);
     const cellRange = this.#range.current();
     const highlightRenderableCoords = this.#options.visualToRenderableCoords(cellRange.highlight);
@@ -235,7 +225,7 @@ class Transformation {
    *
    * @param {{x: number, y: number}} offset Offset as x and y properties.
    */
-  #setOffsetSize({ x, y }) {
+  setOffsetSize({ x, y }) {
     this.#offset = { x, y };
   }
 

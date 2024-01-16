@@ -6,6 +6,10 @@ export const command = {
       ? settings.tabMoves(event)
       : settings.tabMoves;
 
-    hot.selection.transformStart(tabMoves.row, tabMoves.col);
+    if (hot.selection.isMultiple()) {
+      hot.selection.transformFocus(tabMoves.row, tabMoves.col);
+    } else {
+      hot.selection.transformStart(tabMoves.row, tabMoves.col);
+    }
   },
 };

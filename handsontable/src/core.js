@@ -303,6 +303,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     countRenderableRows: () => this.view.countRenderableRows(),
     countRowHeaders: () => this.countRowHeaders(),
     countColHeaders: () => this.countColHeaders(),
+    countRenderableRowsInRange: (...args) => this.view.countRenderableRowsInRange(...args),
+    countRenderableColumnsInRange: (...args) => this.view.countRenderableColumnsInRange(...args),
     getShortcutManager: () => instance.getShortcutManager(),
     createCellCoords: (row, column) => instance._createCellCoords(row, column),
     createCellRange: (highlight, from, to) => instance._createCellRange(highlight, from, to),
@@ -399,6 +401,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
     }
 
+    this._refreshBorders(null);
+  });
+
+  this.selection.addLocalHook('afterSetFocus', () => {
     this._refreshBorders(null);
   });
 
