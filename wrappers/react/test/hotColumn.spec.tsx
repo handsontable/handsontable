@@ -53,20 +53,6 @@ describe('Passing column settings using HotColumn', () => {
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual(dataKeyCellValue);
   });
-
-  it('should apply column settings through the `settings` prop', async () => {
-    const hotInstance = mountComponentWithRef((
-      <HotTable
-        licenseKey="non-commercial-and-evaluation"
-        colHeaders={true}
-      >
-        <HotColumn settings={{ title: 'test', readOnly: true }}></HotColumn>
-      </HotTable>
-    )).hotInstance;
-
-    expect(hotInstance.getCellMeta(0, 0).readOnly).toBe(true);
-    expect(hotInstance.getCell(-1, 0).querySelector('span').innerHTML).toBe('test');
-  });
 });
 
 describe('Renderer configuration using React components', () => {

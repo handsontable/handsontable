@@ -205,32 +205,6 @@ class IndividualPropsWrapper extends React.Component<{ref?: string, id?: string}
 
 export { IndividualPropsWrapper };
 
-class SingleObjectWrapper extends React.Component<{ref?: string, id?: string}, {hotSettings?: object}> {
-  hotTable: typeof HotTable;
-  state = {};
-
-  private setHotElementRef(component: typeof HotTable): void {
-    this.hotTable = component;
-  }
-
-  render(): React.ReactElement {
-    return (
-      <div>
-        <HotTable
-          licenseKey="non-commercial-and-evaluation"
-          ref={this.setHotElementRef.bind(this)}
-          id="hot"
-          settings={this.state.hotSettings}
-          autoRowSize={false}
-          autoColumnSize={false}
-        />
-      </div>
-    );
-  }
-}
-
-export { SingleObjectWrapper };
-
 export class RendererComponent extends React.Component<any, any> {
   render(): React.ReactElement<string> {
     return (
