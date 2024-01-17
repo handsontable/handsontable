@@ -59,7 +59,7 @@ class GhostTable {
   /**
    * Add row.
    *
-   * @param {number} row Row index.
+   * @param {number} row Visual row index.
    * @param {Map} samples Samples Map object.
    */
   addRow(row, samples) {
@@ -112,7 +112,7 @@ class GhostTable {
   /**
    * Add column.
    *
-   * @param {number} column Column index.
+   * @param {number} column Visual column index.
    * @param {Map} samples A map with sampled table values.
    */
   addColumn(column, samples) {
@@ -251,7 +251,7 @@ class GhostTable {
   /**
    * Create table row element.
    *
-   * @param {number} row Row index.
+   * @param {number} row Visual row index.
    * @returns {DocumentFragment} Returns created table row elements.
    */
   createRow(row) {
@@ -326,7 +326,7 @@ class GhostTable {
   /**
    * Create table column elements.
    *
-   * @param {number} column Column index.
+   * @param {number} column Visual column index.
    * @returns {DocumentFragment} Returns created column table column elements.
    */
   createCol(column) {
@@ -410,11 +410,11 @@ class GhostTable {
       colspan = this.hot.getCellMeta(row, column).colspan;
     }
 
-    let width = this.hot.view._wt.wtTable.getStretchedColumnWidth(column);
+    let width = this.hot.getColWidth(column);
 
     if (colspan > 1) {
       for (let nextColumn = column + 1; nextColumn < column + colspan; nextColumn++) {
-        width += this.hot.view._wt.wtTable.getStretchedColumnWidth(nextColumn);
+        width += this.hot.getColWidth(nextColumn);
       }
     }
 
