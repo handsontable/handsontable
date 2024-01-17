@@ -29,11 +29,8 @@ function createTransformation(options) {
     countRenderableRows() { return options.countRenderableRows ?? 10; },
     countRenderableColumns() { return options.countRenderableColumns ?? 10; },
     fixedRowsBottom() { return options.fixedRowsBottom ?? 0; },
-    navigableHeaders() { return options.navigableHeaders ?? false; },
     minSpareRows() { return options.minSpareRows ?? 0; },
     minSpareCols() { return options.minSpareCols ?? 0; },
-    countRowHeaders() { return options.countRowHeaders ?? 0; },
-    countColHeaders() { return options.countColHeaders ?? 0; },
     autoWrapRow() { return options.autoWrapRow ?? false; },
     autoWrapCol() { return options.autoWrapCol ?? false; },
   });
@@ -123,12 +120,9 @@ describe('Transformation class', () => {
       expect(transform.transformStart(0, -999)).toEqual({ row: 9, col: 0 });
     });
 
-    it('should return coords that points to the first column when the `navigableHeaders` option is disabled', () => {
+    it('should return coords that points to the first column when the offset is not used', () => {
       const transform = createTransformation({
         range: createSelectionRange(5, 2),
-        navigableHeaders: false,
-        countRowHeaders: 3,
-        countColHeaders: 3,
       });
 
       expect(transform.transformStart(0, -3)).toEqual({ row: 5, col: 0 });
@@ -138,12 +132,9 @@ describe('Transformation class', () => {
       expect(transform.transformStart(0, -999)).toEqual({ row: 5, col: 0 });
     });
 
-    it('should return coords that points to the first row when the `navigableHeaders` option is disabled', () => {
+    it('should return coords that points to the first row when the offset is not used', () => {
       const transform = createTransformation({
         range: createSelectionRange(2, 5),
-        navigableHeaders: false,
-        countRowHeaders: 3,
-        countColHeaders: 3,
       });
 
       expect(transform.transformStart(-3, 0)).toEqual({ row: 0, col: 5 });
@@ -158,10 +149,7 @@ describe('Transformation class', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(5, 0),
-          navigableHeaders: false,
           autoWrapCol: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
         });
 
         expect(transform.transformStart(5, 0)).toEqual({ row: 0, col: 1 });
@@ -182,10 +170,7 @@ describe('Transformation class', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(5, 5),
-          navigableHeaders: false,
           autoWrapCol: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
         });
 
         expect(transform.transformStart(5, 0)).toEqual({ row: 0, col: 6 });
@@ -204,10 +189,7 @@ describe('Transformation class', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(5, 9),
-          navigableHeaders: false,
           autoWrapCol: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
         });
 
         expect(transform.transformStart(5, 0)).toEqual({ row: 0, col: 0 });
@@ -227,10 +209,7 @@ describe('Transformation class', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(5, 0),
-          navigableHeaders: false,
           autoWrapCol: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
         });
 
         expect(transform.transformStart(-6, 0)).toEqual({ row: 9, col: 9 });
@@ -251,10 +230,7 @@ describe('Transformation class', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(5, 5),
-          navigableHeaders: false,
           autoWrapCol: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
         });
 
         expect(transform.transformStart(-6, 0)).toEqual({ row: 9, col: 4 });
@@ -275,10 +251,7 @@ describe('Transformation class', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(5, 9),
-          navigableHeaders: false,
           autoWrapCol: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
         });
 
         expect(transform.transformStart(-6, 0)).toEqual({ row: 9, col: 8 });
@@ -303,10 +276,7 @@ describe('Transformation class', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(0, 5),
-          navigableHeaders: false,
           autoWrapRow: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
         });
 
         expect(transform.transformStart(0, 5)).toEqual({ row: 1, col: 0 });
@@ -327,10 +297,7 @@ describe('Transformation class', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(5, 5),
-          navigableHeaders: false,
           autoWrapRow: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
         });
 
         expect(transform.transformStart(0, 5)).toEqual({ row: 6, col: 0 });
@@ -349,10 +316,7 @@ describe('Transformation class', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(9, 5),
-          navigableHeaders: false,
           autoWrapRow: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
         });
 
         expect(transform.transformStart(0, 5)).toEqual({ row: 0, col: 0 });
@@ -372,10 +336,7 @@ describe('Transformation class', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(0, 5),
-          navigableHeaders: false,
           autoWrapRow: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
         });
 
         expect(transform.transformStart(0, -6)).toEqual({ row: 9, col: 9 });
@@ -396,10 +357,7 @@ describe('Transformation class', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(5, 5),
-          navigableHeaders: false,
           autoWrapRow: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
         });
 
         expect(transform.transformStart(0, -6)).toEqual({ row: 4, col: 9 });
@@ -420,10 +378,7 @@ describe('Transformation class', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(9, 5),
-          navigableHeaders: false,
           autoWrapRow: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
         });
 
         expect(transform.transformStart(0, -6)).toEqual({ row: 8, col: 9 });
@@ -443,12 +398,14 @@ describe('Transformation class', () => {
       }
     });
 
-    it('should return coords that points to the row header when the `navigableHeaders` option is enabled', () => {
+    it('should return coords that points to the row header when offset is used', () => {
       const transform = createTransformation({
         range: createSelectionRange(5, 2),
-        navigableHeaders: true,
-        countRowHeaders: 3,
-        countColHeaders: 3,
+      });
+
+      transform.setOffsetSize({
+        x: 3,
+        y: 0,
       });
 
       expect(transform.transformStart(0, -3)).toEqual({ row: 5, col: -1 });
@@ -458,12 +415,14 @@ describe('Transformation class', () => {
       expect(transform.transformStart(0, -999)).toEqual({ row: 5, col: -3 });
     });
 
-    it('should return coords that points to the column header when the `navigableHeaders` option is enabled', () => {
+    it('should return coords that points to the column header when offset is used', () => {
       const transform = createTransformation({
         range: createSelectionRange(2, 5),
-        navigableHeaders: true,
-        countRowHeaders: 3,
-        countColHeaders: 3,
+      });
+
+      transform.setOffsetSize({
+        x: 0,
+        y: 3,
       });
 
       expect(transform.transformStart(-3, 0)).toEqual({ row: -1, col: 5 });
@@ -474,14 +433,16 @@ describe('Transformation class', () => {
     });
 
     it('should return coords that points to the next column when the row delta is bigger than table total records count ' +
-       '(rows + column headers) and `autoWrapCol` is enabled', () => {
+       '(rows + column headers used as offset) and `autoWrapCol` is enabled', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(5, -3),
-          navigableHeaders: true,
           autoWrapCol: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
+        });
+
+        transform.setOffsetSize({
+          x: 3,
+          y: 3,
         });
 
         expect(transform.transformStart(5, 0)).toEqual({ row: -3, col: -2 });
@@ -502,10 +463,12 @@ describe('Transformation class', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(5, 5),
-          navigableHeaders: true,
           autoWrapCol: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
+        });
+
+        transform.setOffsetSize({
+          x: 3,
+          y: 3,
         });
 
         expect(transform.transformStart(5, 0)).toEqual({ row: -3, col: 6 });
@@ -525,10 +488,12 @@ describe('Transformation class', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(5, 9),
-          navigableHeaders: true,
           autoWrapCol: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
+        });
+
+        transform.setOffsetSize({
+          x: 3,
+          y: 3,
         });
 
         expect(transform.transformStart(5, 0)).toEqual({ row: -3, col: -3 });
@@ -548,14 +513,16 @@ describe('Transformation class', () => {
     });
 
     it('should return coords that points to the previous column when the row delta is lower than the table total records count ' +
-       '(rows + column headers) and `autoWrapCol` is enabled', () => {
+       '(rows + column headers used as offset) and `autoWrapCol` is enabled', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(5, -3),
-          navigableHeaders: true,
           autoWrapCol: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
+        });
+
+        transform.setOffsetSize({
+          x: 3,
+          y: 3,
         });
 
         expect(transform.transformStart(-9, 0)).toEqual({ row: 9, col: 9 });
@@ -576,10 +543,12 @@ describe('Transformation class', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(5, 5),
-          navigableHeaders: true,
           autoWrapCol: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
+        });
+
+        transform.setOffsetSize({
+          x: 3,
+          y: 3,
         });
 
         expect(transform.transformStart(-9, 0)).toEqual({ row: 9, col: 4 });
@@ -600,10 +569,12 @@ describe('Transformation class', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(5, 9),
-          navigableHeaders: true,
           autoWrapCol: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
+        });
+
+        transform.setOffsetSize({
+          x: 3,
+          y: 3,
         });
 
         expect(transform.transformStart(-9, 0)).toEqual({ row: 9, col: 8 });
@@ -624,14 +595,16 @@ describe('Transformation class', () => {
     });
 
     it('should return coords that points to the next row when the column delta is bigger than table total records count ' +
-       '(columns + row headers) and `autoWrapRow` is enabled', () => {
+       '(columns + row headers used as offset) and `autoWrapRow` is enabled', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(-3, 5),
-          navigableHeaders: true,
           autoWrapRow: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
+        });
+
+        transform.setOffsetSize({
+          x: 3,
+          y: 3,
         });
 
         expect(transform.transformStart(0, 5)).toEqual({ row: -2, col: -3 });
@@ -652,10 +625,12 @@ describe('Transformation class', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(5, 5),
-          navigableHeaders: true,
           autoWrapRow: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
+        });
+
+        transform.setOffsetSize({
+          x: 3,
+          y: 3,
         });
 
         expect(transform.transformStart(0, 5)).toEqual({ row: 6, col: -3 });
@@ -675,10 +650,12 @@ describe('Transformation class', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(9, 5),
-          navigableHeaders: true,
           autoWrapRow: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
+        });
+
+        transform.setOffsetSize({
+          x: 3,
+          y: 3,
         });
 
         expect(transform.transformStart(0, 5)).toEqual({ row: -3, col: -3 });
@@ -698,14 +675,16 @@ describe('Transformation class', () => {
     });
 
     it('should return coords that points to the previous row when the column delta is lower than the table total records count ' +
-       '(cells + headers) and `autoWrapRow` is enabled', () => {
+       '(cells + headers used as offset) and `autoWrapRow` is enabled', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(-3, 5),
-          navigableHeaders: true,
           autoWrapRow: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
+        });
+
+        transform.setOffsetSize({
+          x: 3,
+          y: 3,
         });
 
         expect(transform.transformStart(0, -9)).toEqual({ row: 9, col: 9 });
@@ -726,10 +705,12 @@ describe('Transformation class', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(5, 5),
-          navigableHeaders: true,
           autoWrapRow: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
+        });
+
+        transform.setOffsetSize({
+          x: 3,
+          y: 3,
         });
 
         expect(transform.transformStart(0, -9)).toEqual({ row: 4, col: 9 });
@@ -750,10 +731,12 @@ describe('Transformation class', () => {
       {
         const transform = createTransformation({
           range: createSelectionRange(9, 5),
-          navigableHeaders: true,
           autoWrapRow: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
+        });
+
+        transform.setOffsetSize({
+          x: 3,
+          y: 3,
         });
 
         expect(transform.transformStart(0, -9)).toEqual({ row: 8, col: 9 });
@@ -931,9 +914,11 @@ describe('Transformation class', () => {
 
         const transform = createTransformation({
           range: createSelectionRange(1, 1),
-          navigableHeaders: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
+        });
+
+        transform.setOffsetSize({
+          x: 3,
+          y: 3,
         });
 
         transform.addLocalHook('afterTransformStart', hookListener.afterTransformStart);
@@ -951,9 +936,11 @@ describe('Transformation class', () => {
 
           const transform = createTransformation({
             range: createSelectionRange(1, 1),
-            navigableHeaders: true,
-            countRowHeaders: 3,
-            countColHeaders: 3,
+          });
+
+          transform.setOffsetSize({
+            x: 3,
+            y: 3,
           });
 
           transform.addLocalHook('afterTransformStart', hookListener.afterTransformStart);
@@ -968,9 +955,6 @@ describe('Transformation class', () => {
 
           const transform = createTransformation({
             range: createSelectionRange(1, 1),
-            navigableHeaders: false,
-            countRowHeaders: 3,
-            countColHeaders: 3,
           });
 
           transform.addLocalHook('afterTransformStart', hookListener.afterTransformStart);
@@ -988,9 +972,11 @@ describe('Transformation class', () => {
 
         const transform = createTransformation({
           range: createSelectionRange(1, 1),
-          navigableHeaders: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
+        });
+
+        transform.setOffsetSize({
+          x: 3,
+          y: 3,
         });
 
         transform.addLocalHook('afterTransformStart', hookListener.afterTransformStart);
@@ -1008,9 +994,11 @@ describe('Transformation class', () => {
 
           const transform = createTransformation({
             range: createSelectionRange(1, 1),
-            navigableHeaders: true,
-            countRowHeaders: 3,
-            countColHeaders: 3,
+          });
+
+          transform.setOffsetSize({
+            x: 3,
+            y: 3,
           });
 
           transform.addLocalHook('afterTransformStart', hookListener.afterTransformStart);
@@ -1025,9 +1013,6 @@ describe('Transformation class', () => {
 
           const transform = createTransformation({
             range: createSelectionRange(1, 1),
-            navigableHeaders: false,
-            countRowHeaders: 3,
-            countColHeaders: 3,
           });
 
           transform.addLocalHook('afterTransformStart', hookListener.afterTransformStart);
@@ -1417,12 +1402,9 @@ describe('Transformation class', () => {
       expect(transform.transformEnd(0, -999)).toEqual({ row: 9, col: 0 });
     });
 
-    it('should return coords that points to the first column when the `navigableHeaders` option is disabled', () => {
+    it('should return coords that points to the first column when the offset is not used', () => {
       const transform = createTransformation({
         range: createSelectionRange(0, 0, 0, 0, 5, 2),
-        navigableHeaders: false,
-        countRowHeaders: 3,
-        countColHeaders: 3,
       });
 
       expect(transform.transformEnd(0, -3)).toEqual({ row: 5, col: 0 });
@@ -1432,12 +1414,9 @@ describe('Transformation class', () => {
       expect(transform.transformEnd(0, -999)).toEqual({ row: 5, col: 0 });
     });
 
-    it('should return coords that points to the first row when the `navigableHeaders` option is disabled', () => {
+    it('should return coords that points to the first row when the offset is not used', () => {
       const transform = createTransformation({
         range: createSelectionRange(0, 0, 0, 0, 2, 5),
-        navigableHeaders: false,
-        countRowHeaders: 3,
-        countColHeaders: 3,
       });
 
       expect(transform.transformEnd(-3, 0)).toEqual({ row: 0, col: 5 });
@@ -1447,12 +1426,14 @@ describe('Transformation class', () => {
       expect(transform.transformEnd(-999, 0)).toEqual({ row: 0, col: 5 });
     });
 
-    it('should return coords that points to the row header when the `navigableHeaders` option is enabled', () => {
+    it('should return coords that points to the row header when the offset is used', () => {
       const transform = createTransformation({
         range: createSelectionRange(0, 0, 0, 0, 5, 2),
-        navigableHeaders: true,
-        countRowHeaders: 3,
-        countColHeaders: 3,
+      });
+
+      transform.setOffsetSize({
+        x: 3,
+        y: 3,
       });
 
       expect(transform.transformEnd(0, -3)).toEqual({ row: 5, col: -1 });
@@ -1462,12 +1443,14 @@ describe('Transformation class', () => {
       expect(transform.transformEnd(0, -999)).toEqual({ row: 5, col: -3 });
     });
 
-    it('should return coords that points to the column header when the `navigableHeaders` option is enabled', () => {
+    it('should return coords that points to the column header when the offset is used', () => {
       const transform = createTransformation({
         range: createSelectionRange(0, 0, 0, 0, 2, 5),
-        navigableHeaders: true,
-        countRowHeaders: 3,
-        countColHeaders: 3,
+      });
+
+      transform.setOffsetSize({
+        x: 3,
+        y: 3,
       });
 
       expect(transform.transformEnd(-3, 0)).toEqual({ row: -1, col: 5 });
@@ -1518,9 +1501,11 @@ describe('Transformation class', () => {
 
         const transform = createTransformation({
           range: createSelectionRange(0, 0, 0, 0, 1, 1),
-          navigableHeaders: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
+        });
+
+        transform.setOffsetSize({
+          x: 3,
+          y: 3,
         });
 
         transform.addLocalHook('afterTransformEnd', hookListener.afterTransformEnd);
@@ -1538,9 +1523,11 @@ describe('Transformation class', () => {
 
           const transform = createTransformation({
             range: createSelectionRange(0, 0, 0, 0, 1, 1),
-            navigableHeaders: true,
-            countRowHeaders: 3,
-            countColHeaders: 3,
+          });
+
+          transform.setOffsetSize({
+            x: 3,
+            y: 3,
           });
 
           transform.addLocalHook('afterTransformEnd', hookListener.afterTransformEnd);
@@ -1555,9 +1542,6 @@ describe('Transformation class', () => {
 
           const transform = createTransformation({
             range: createSelectionRange(0, 0, 0, 0, 1, 1),
-            navigableHeaders: false,
-            countRowHeaders: 3,
-            countColHeaders: 3,
           });
 
           transform.addLocalHook('afterTransformEnd', hookListener.afterTransformEnd);
@@ -1575,9 +1559,11 @@ describe('Transformation class', () => {
 
         const transform = createTransformation({
           range: createSelectionRange(0, 0, 0, 0, 1, 1),
-          navigableHeaders: true,
-          countRowHeaders: 3,
-          countColHeaders: 3,
+        });
+
+        transform.setOffsetSize({
+          x: 3,
+          y: 3,
         });
 
         transform.addLocalHook('afterTransformEnd', hookListener.afterTransformEnd);
@@ -1595,9 +1581,11 @@ describe('Transformation class', () => {
 
           const transform = createTransformation({
             range: createSelectionRange(0, 0, 0, 0, 1, 1),
-            navigableHeaders: true,
-            countRowHeaders: 3,
-            countColHeaders: 3,
+          });
+
+          transform.setOffsetSize({
+            x: 3,
+            y: 3,
           });
 
           transform.addLocalHook('afterTransformEnd', hookListener.afterTransformEnd);
@@ -1612,9 +1600,6 @@ describe('Transformation class', () => {
 
           const transform = createTransformation({
             range: createSelectionRange(0, 0, 0, 0, 1, 1),
-            navigableHeaders: false,
-            countRowHeaders: 3,
-            countColHeaders: 3,
           });
 
           transform.addLocalHook('afterTransformEnd', hookListener.afterTransformEnd);

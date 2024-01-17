@@ -404,7 +404,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this._refreshBorders(null);
   });
 
-  this.selection.addLocalHook('afterSetFocus', () => {
+  this.selection.addLocalHook('afterSetFocus', (cellCoords) => {
+    this.runHooks('afterSelectionFocusSet', cellCoords);
     this._refreshBorders(null);
   });
 

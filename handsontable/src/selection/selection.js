@@ -57,11 +57,16 @@ class Selection {
    */
   highlight;
   /**
-   * The module for modifying coordinates.
+   * The module for modifying coordinates of the start and end selection.
    *
    * @type {Transformation}
    */
-  #startTransformation;
+  #transformation;
+  /**
+   * The module for modifying coordinates of the focus selection.
+   *
+   * @type {Transformation}
+   */
   #focusTransformation;
   /**
    * The collection of the selection layer levels where the whole row was selected using the row header or
@@ -103,7 +108,7 @@ class Selection {
       createCellCoords: (row, column) => this.tableProps.createCellCoords(row, column),
       createCellRange: (highlight, from, to) => this.tableProps.createCellRange(highlight, from, to),
     });
-    this.#startTransformation = new Transformation(this.selectedRange, {
+    this.#transformation = new Transformation(this.selectedRange, {
       rowIndexMapper: this.tableProps.rowIndexMapper,
       columnIndexMapper: this.tableProps.columnIndexMapper,
       countRenderableRows: () => this.tableProps.countRenderableRows(),
@@ -123,23 +128,13 @@ class Selection {
       countRenderableRows: () => {
         const range = this.selectedRange.current();
 
-        return this.tableProps.countRenderableRowsInRange(
-          // range.getOuterTopStartCorner().row,
-          0,
-          range.getOuterBottomEndCorner().row,
-        );
+        return this.tableProps.countRenderableRowsInRange(0, range.getOuterBottomEndCorner().row);
       },
       countRenderableColumns: () => {
         const range = this.selectedRange.current();
 
-        return this.tableProps.countRenderableColumnsInRange(
-          // range.getOuterTopStartCorner().col,
-          0,
-          range.getOuterBottomEndCorner().col,
-        );
+        return this.tableProps.countRenderableColumnsInRange(0, range.getOuterBottomEndCorner().col);
       },
-      // countRenderableRows: () => this.tableProps.countRenderableRows(),
-      // countRenderableColumns: () => this.tableProps.countRenderableColumns(),
       visualToRenderableCoords: coords => this.tableProps.visualToRenderableCoords(coords),
       renderableToVisualCoords: coords => this.tableProps.renderableToVisualCoords(coords),
       createCellCoords: (row, column) => this.tableProps.createCellCoords(row, column),
@@ -150,21 +145,21 @@ class Selection {
       autoWrapCol: () => true,
     });
 
-    this.#startTransformation.addLocalHook('beforeTransformStart',
+    this.#transformation.addLocalHook('beforeTransformStart',
       (...args) => this.runLocalHooks('beforeModifyTransformStart', ...args));
-    this.#startTransformation.addLocalHook('afterTransformStart',
+    this.#transformation.addLocalHook('afterTransformStart',
       (...args) => this.runLocalHooks('afterModifyTransformStart', ...args));
-    this.#startTransformation.addLocalHook('beforeTransformEnd',
+    this.#transformation.addLocalHook('beforeTransformEnd',
       (...args) => this.runLocalHooks('beforeModifyTransformEnd', ...args));
-    this.#startTransformation.addLocalHook('afterTransformEnd',
+    this.#transformation.addLocalHook('afterTransformEnd',
       (...args) => this.runLocalHooks('afterModifyTransformEnd', ...args));
-    this.#startTransformation.addLocalHook('insertRowRequire',
+    this.#transformation.addLocalHook('insertRowRequire',
       (...args) => this.runLocalHooks('insertRowRequire', ...args));
-    this.#startTransformation.addLocalHook('insertColRequire',
+    this.#transformation.addLocalHook('insertColRequire',
       (...args) => this.runLocalHooks('insertColRequire', ...args));
-    this.#startTransformation.addLocalHook('beforeRowWrap',
+    this.#transformation.addLocalHook('beforeRowWrap',
       (...args) => this.runLocalHooks('beforeRowWrap', ...args));
-    this.#startTransformation.addLocalHook('beforeColumnWrap',
+    this.#transformation.addLocalHook('beforeColumnWrap',
       (...args) => this.runLocalHooks('beforeColumnWrap', ...args));
   }
 
@@ -301,17 +296,7 @@ class Selection {
     }
 
     this.runLocalHooks('beforeHighlightSet');
-
-    const focusHighlight = this.highlight.getFocus();
-
-    focusHighlight.clear();
-
-    if (this.highlight.isEnabledFor(FOCUS_TYPE, cellRange.highlight)) {
-      focusHighlight
-        .add(this.selectedRange.current().highlight)
-        .commit()
-        .syncWith(cellRange);
-    }
+    this.setRangeFocus(this.selectedRange.current().highlight);
 
     const layerLevel = this.getLayerLevel();
 
@@ -474,16 +459,22 @@ class Selection {
         .syncWith(cellRange);
     }
 
-    this.runLocalHooks('afterSetFocus', coords);
+    if (!this.inProgress) {
+      this.runLocalHooks('afterSetFocus', coords);
+    }
   }
 
   /**
-   * Returns information if we have a multiselection. This method check multiselection only on the latest layer of
+   * Returns information if we have a multi-selection. This method check multi-selection only on the latest layer of
    * the selection.
    *
    * @returns {boolean}
    */
   isMultiple() {
+    if (!this.isSelected()) {
+      return false;
+    }
+
     const isMultipleListener = createObjectPropListener(!this.selectedRange.current().isSingle());
 
     this.runLocalHooks('afterIsMultipleSelection', isMultipleListener);
@@ -500,12 +491,12 @@ class Selection {
    * Otherwise, row/column will be created according to `minSpareRows/minSpareCols` settings of Handsontable.
    */
   transformStart(rowDelta, colDelta, createMissingRecords = false) {
-    this.#startTransformation.setOffsetSize({
+    this.#transformation.setOffsetSize({
       x: this.settings.navigableHeaders ? this.tableProps.countRowHeaders() : 0,
       y: this.settings.navigableHeaders ? this.tableProps.countColHeaders() : 0,
     });
 
-    this.setRangeStart(this.#startTransformation.transformStart(rowDelta, colDelta, createMissingRecords));
+    this.setRangeStart(this.#transformation.transformStart(rowDelta, colDelta, createMissingRecords));
   }
 
   /**
@@ -515,12 +506,12 @@ class Selection {
    * @param {number} colDelta Columns number to move, value can be passed as negative number.
    */
   transformEnd(rowDelta, colDelta) {
-    this.#startTransformation.setOffsetSize({
+    this.#transformation.setOffsetSize({
       x: this.settings.navigableHeaders ? this.tableProps.countRowHeaders() : 0,
       y: this.settings.navigableHeaders ? this.tableProps.countColHeaders() : 0,
     });
 
-    this.setRangeEnd(this.#startTransformation.transformEnd(rowDelta, colDelta));
+    this.setRangeEnd(this.#transformation.transformEnd(rowDelta, colDelta));
   }
 
   /**
