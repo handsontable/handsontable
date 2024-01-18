@@ -88,6 +88,19 @@ class Selection {
    * @type {boolean}
    */
   #disableHeadersHighlight = false;
+  /**
+   * The source of the selection. It can be one of the following values: `mouse`, `unknown` or any other string.
+   *
+   * @type {'mouse' | 'unknown' | string}
+   */
+  #selectionSource = 'unknown';
+  /**
+   * The number of expected layers. It is used mostly to track when the last selection layer of non-contiguous
+   * selection is applied, thus the viewport scroll is triggered.
+   *
+   * @param {number}
+   */
+  #expectedLayersCount = -1;
 
   constructor(settings, tableProps) {
     this.settings = settings;
@@ -173,6 +186,41 @@ class Selection {
   }
 
   /**
+   * Marks the source of the selection. It can be one of the following values: `mouse`, or any other string.
+   *
+   * @param {'mouse' | 'unknown' | string} sourceName The source name.
+   */
+  markSource(sourceName) {
+    this.#selectionSource = sourceName;
+  }
+
+  /**
+   * Marks end of the selection source. It restores the selection source to default value which is 'unknown'.
+   */
+  markEndSource() {
+    this.#selectionSource = 'unknown';
+  }
+
+  /**
+   * Returns the source of the selection.
+   *
+   * @returns {'mouse' | 'unknown' | string}
+   */
+  getSelectionSource() {
+    return this.#selectionSource;
+  }
+
+  /**
+   * Set the number of expected layers. The method is not obligatory to call. It is used mostly internally
+   * to determine when the last selection layer of non-contiguous is applied, thus the viewport scroll is triggered.
+   *
+   * @param {number} layersCount The number of expected layers.
+   */
+  setExpectedLayers(layersCount) {
+    this.#expectedLayersCount = layersCount;
+  }
+
+  /**
    * Indicate that selection process began. It sets internally `.inProgress` property to `true`.
    */
   begin() {
@@ -185,6 +233,7 @@ class Selection {
   finish() {
     this.runLocalHooks('afterSelectionFinished', Array.from(this.selectedRange));
     this.inProgress = false;
+    this.#expectedLayersCount = -1;
   }
 
   /**
@@ -438,7 +487,9 @@ class Selection {
       }
     }
 
-    this.runLocalHooks('afterSetRangeEnd', coords);
+    const isLastLayer = this.#expectedLayersCount === -1 || this.selectedRange.size() === this.#expectedLayersCount;
+
+    this.runLocalHooks('afterSetRangeEnd', coords, isLastLayer);
   }
 
   /**
@@ -847,6 +898,7 @@ class Selection {
 
     if (isValid) {
       this.clear();
+      this.setExpectedLayers(selectionRanges.length);
 
       arrayEach(selectionRanges, (selection) => {
         const { from, to } = selectionSchemaNormalizer(selection);

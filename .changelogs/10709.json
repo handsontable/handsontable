@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved behavior of the viewport scroll after a cell click.",
+  "type": "changed",
+  "issueOrPR": 10709,
+  "breaking": false,
+  "framework": "none"
+}

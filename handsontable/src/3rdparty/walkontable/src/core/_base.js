@@ -336,11 +336,17 @@ export default class CoreAbstract {
       get startColumnVisible() {
         return wot.wtViewport.columnsVisibleCalculator.startColumn;
       },
+      get startColumnPartiallyVisible() {
+        return wot.wtViewport.columnsPartiallyVisibleCalculator.startColumn;
+      },
       get endColumnRendered() {
         return wot.wtViewport.columnsRenderCalculator.endColumn;
       },
       get endColumnVisible() {
         return wot.wtViewport.columnsVisibleCalculator.endColumn;
+      },
+      get endColumnPartiallyVisible() {
+        return wot.wtViewport.columnsPartiallyVisibleCalculator.endColumn;
       },
       get countColumnsRendered() {
         return wot.wtViewport.columnsRenderCalculator.count;
@@ -354,11 +360,17 @@ export default class CoreAbstract {
       get startRowVisible() {
         return wot.wtViewport.rowsVisibleCalculator.startRow;
       },
+      get startRowPartiallyVisible() {
+        return wot.wtViewport.rowsPartiallyVisibleCalculator.startRow;
+      },
       get endRowRendered() {
         return wot.wtViewport.rowsRenderCalculator.endRow;
       },
       get endRowVisible() {
         return wot.wtViewport.rowsVisibleCalculator.endRow;
+      },
+      get endRowPartiallyVisible() {
+        return wot.wtViewport.rowsPartiallyVisibleCalculator.endRow;
       },
       get countRowsRendered() {
         return wot.wtViewport.rowsRenderCalculator.count;
