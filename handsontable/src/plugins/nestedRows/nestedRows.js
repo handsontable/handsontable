@@ -6,6 +6,7 @@ import ContextMenuUI from './ui/contextMenu';
 import { error } from '../../helpers/console';
 import { isArrayOfObjects } from '../../helpers/data';
 import { TrimmingMap } from '../../translations';
+import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
 import RowMoveController from './utils/rowMoveController';
 
 import './nestedRows.scss';
@@ -174,6 +175,9 @@ export class NestedRows extends BasePlugin {
               this.collapsingUI.collapseChildren(row);
             }
           }
+
+          // prevent default Enter behavior (move to the next row within a selection range)
+          return false;
         },
         runOnlyIf: () => {
           const highlight = this.hot.getSelectedRangeLast()?.highlight;
@@ -181,6 +185,8 @@ export class NestedRows extends BasePlugin {
           return highlight && this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
         },
         group: SHORTCUTS_GROUP,
+        relativeToGroup: SHORTCUTS_GROUP_EDITOR,
+        position: 'before',
       });
   }
 

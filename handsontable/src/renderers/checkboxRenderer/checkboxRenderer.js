@@ -168,7 +168,11 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
   function registerShortcuts() {
     const shortcutManager = hotInstance.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
-    const config = { group: SHORTCUTS_GROUP };
+    const config = {
+      group: SHORTCUTS_GROUP,
+      relativeToGroup: SHORTCUTS_GROUP_EDITOR,
+      position: 'before',
+    };
 
     gridContext.addShortcuts([{
       keys: [['space']],
@@ -184,7 +188,7 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      runOnlyIf: () => hotInstance.getSettings().enterBeginsEditing
+      runOnlyIf: () => hotInstance.getSettings().enterBeginsEditing,
     }, {
       keys: [['delete'], ['backspace']],
       callback: () => {
@@ -192,8 +196,6 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      relativeToGroup: SHORTCUTS_GROUP_EDITOR,
-      position: 'before',
     }], config);
   }
 

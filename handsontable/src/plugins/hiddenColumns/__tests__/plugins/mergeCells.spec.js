@@ -493,7 +493,7 @@ describe('HiddenColumns', () => {
       getPlugin('mergeCells').merge(0, 1, 0, 3);
 
       selectCell(0, 1);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       let editor = getActiveEditor();
 
@@ -510,7 +510,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 2);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -527,7 +527,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 3);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -565,7 +565,7 @@ describe('HiddenColumns', () => {
       getPlugin('mergeCells').merge(0, 0, 0, 3);
 
       selectCell(0, 0);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       let editor = getActiveEditor();
 
@@ -582,7 +582,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 1);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
@@ -595,7 +595,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 2);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -612,7 +612,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 3);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -650,7 +650,7 @@ describe('HiddenColumns', () => {
       getPlugin('mergeCells').merge(0, 1, 0, 4);
 
       selectCell(0, 1);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       let editor = getActiveEditor();
 
@@ -667,7 +667,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 2);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -684,7 +684,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 3);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -701,7 +701,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 4);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -739,7 +739,7 @@ describe('HiddenColumns', () => {
       getPlugin('mergeCells').merge(0, 0, 0, 4);
 
       selectCell(0, 0);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       let editor = getActiveEditor();
 
@@ -756,7 +756,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 1);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -773,7 +773,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 2);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -790,7 +790,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 3);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -807,7 +807,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 4);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 

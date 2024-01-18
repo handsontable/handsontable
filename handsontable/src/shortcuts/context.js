@@ -90,7 +90,8 @@ export const createContext = (name) => {
     };
 
     if (isDefined(relativeToGroup)) {
-      [newShortcut.relativeToGroup, newShortcut.position] = [relativeToGroup, position];
+      newShortcut.relativeToGroup = relativeToGroup;
+      newShortcut.position = position;
     }
 
     if (isContextObject(forwardToContext)) {

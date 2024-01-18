@@ -106,7 +106,7 @@ describe('TextEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp('enter');
+    keyDownUp('F2');
 
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
@@ -1345,7 +1345,7 @@ describe('TextEditor', () => {
 
     expect(getCell(0, 3)).toBeNull();
 
-    keyDownUp('enter');
+    keyDownUp('F2');
 
     expect(getCell(0, 3)).not.toBeNull();
     expect(isEditorVisible()).toBeTruthy();

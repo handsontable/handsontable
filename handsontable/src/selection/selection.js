@@ -491,10 +491,12 @@ class Selection {
    * Otherwise, row/column will be created according to `minSpareRows/minSpareCols` settings of Handsontable.
    */
   transformStart(rowDelta, colDelta, createMissingRecords = false) {
-    this.#transformation.setOffsetSize({
-      x: this.settings.navigableHeaders ? this.tableProps.countRowHeaders() : 0,
-      y: this.settings.navigableHeaders ? this.tableProps.countColHeaders() : 0,
-    });
+    if (this.settings.navigableHeaders) {
+      this.#transformation.setOffsetSize({
+        x: this.tableProps.countRowHeaders(),
+        y: this.tableProps.countColHeaders(),
+      });
+    }
 
     this.setRangeStart(this.#transformation.transformStart(rowDelta, colDelta, createMissingRecords));
   }
@@ -506,10 +508,12 @@ class Selection {
    * @param {number} colDelta Columns number to move, value can be passed as negative number.
    */
   transformEnd(rowDelta, colDelta) {
-    this.#transformation.setOffsetSize({
-      x: this.settings.navigableHeaders ? this.tableProps.countRowHeaders() : 0,
-      y: this.settings.navigableHeaders ? this.tableProps.countColHeaders() : 0,
-    });
+    if (this.settings.navigableHeaders) {
+      this.#transformation.setOffsetSize({
+        x: this.tableProps.countRowHeaders(),
+        y: this.tableProps.countColHeaders(),
+      });
+    }
 
     this.setRangeEnd(this.#transformation.transformEnd(rowDelta, colDelta));
   }

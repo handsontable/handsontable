@@ -613,12 +613,16 @@ export class MergeCells extends BasePlugin {
     if (isMultiple) {
       const mergedCells = this.mergedCellsCollection.mergedCells;
       const selectionRange = this.hot.getSelectedRangeLast();
+      const topStartCoords = selectionRange.getTopStartCorner();
+      const bottomEndCoords = selectionRange.getBottomEndCorner();
 
       for (let group = 0; group < mergedCells.length; group += 1) {
-        if (selectionRange.from.row === mergedCells[group].row &&
-          selectionRange.from.col === mergedCells[group].col &&
-          selectionRange.to.row === mergedCells[group].row + mergedCells[group].rowspan - 1 &&
-          selectionRange.to.col === mergedCells[group].col + mergedCells[group].colspan - 1) {
+        if (
+          topStartCoords.row === mergedCells[group].row &&
+          topStartCoords.col === mergedCells[group].col &&
+          bottomEndCoords.row === mergedCells[group].row + mergedCells[group].rowspan - 1 &&
+          bottomEndCoords.col === mergedCells[group].col + mergedCells[group].colspan - 1
+        ) {
           return false;
         }
       }
