@@ -268,4 +268,152 @@ describe('TableView', () => {
       expect(hot.view.countRenderableRowsInRange(-1, 3)).toBe(1);
     });
   });
+
+  describe('getFirstFullyVisibleRow()', () => {
+    it('should internally call `getFirstVisibleRow` method of the Scroll module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtScroll, 'getFirstVisibleRow').and.returnValue(1);
+      spyOn(hot.rowIndexMapper, 'getVisualFromRenderableIndex').and.returnValue(2);
+
+      expect(hot.view.getFirstFullyVisibleRow()).toBe(2);
+      expect(hot.view._wt.wtScroll.getFirstVisibleRow).toHaveBeenCalledTimes(1);
+      expect(hot.rowIndexMapper.getVisualFromRenderableIndex).toHaveBeenCalledOnceWith(1);
+    });
+  });
+
+  describe('getLastFullyVisibleRow()', () => {
+    it('should internally call `getLastVisibleRow` method of the Scroll module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtScroll, 'getLastVisibleRow').and.returnValue(1);
+      spyOn(hot.rowIndexMapper, 'getVisualFromRenderableIndex').and.returnValue(2);
+
+      expect(hot.view.getLastFullyVisibleRow()).toBe(2);
+      expect(hot.view._wt.wtScroll.getLastVisibleRow).toHaveBeenCalledTimes(1);
+      expect(hot.rowIndexMapper.getVisualFromRenderableIndex).toHaveBeenCalledOnceWith(1);
+    });
+  });
+
+  describe('getFirstFullyVisibleColumn()', () => {
+    it('should internally call `getFirstVisibleColumn` method of the Scroll module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtScroll, 'getFirstVisibleColumn').and.returnValue(1);
+      spyOn(hot.columnIndexMapper, 'getVisualFromRenderableIndex').and.returnValue(2);
+
+      expect(hot.view.getFirstFullyVisibleColumn()).toBe(2);
+      expect(hot.view._wt.wtScroll.getFirstVisibleColumn).toHaveBeenCalledTimes(1);
+      expect(hot.columnIndexMapper.getVisualFromRenderableIndex).toHaveBeenCalledOnceWith(1);
+    });
+  });
+
+  describe('getLastFullyVisibleColumn()', () => {
+    it('should internally call `getLastVisibleColumn` method of the Scroll module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtScroll, 'getLastVisibleColumn').and.returnValue(1);
+      spyOn(hot.columnIndexMapper, 'getVisualFromRenderableIndex').and.returnValue(2);
+
+      expect(hot.view.getLastFullyVisibleColumn()).toBe(2);
+      expect(hot.view._wt.wtScroll.getLastVisibleColumn).toHaveBeenCalledTimes(1);
+      expect(hot.columnIndexMapper.getVisualFromRenderableIndex).toHaveBeenCalledOnceWith(1);
+    });
+  });
+
+  describe('getFirstPartiallyVisibleRow()', () => {
+    it('should internally call `getFirstPartiallyVisibleRow` method of the Scroll module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtScroll, 'getFirstPartiallyVisibleRow').and.returnValue(1);
+      spyOn(hot.rowIndexMapper, 'getVisualFromRenderableIndex').and.returnValue(2);
+
+      expect(hot.view.getFirstPartiallyVisibleRow()).toBe(2);
+      expect(hot.view._wt.wtScroll.getFirstPartiallyVisibleRow).toHaveBeenCalledTimes(1);
+      expect(hot.rowIndexMapper.getVisualFromRenderableIndex).toHaveBeenCalledOnceWith(1);
+    });
+  });
+
+  describe('getLastPartiallyVisibleRow()', () => {
+    it('should internally call `getLastPartiallyVisibleRow` method of the Scroll module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtScroll, 'getLastPartiallyVisibleRow').and.returnValue(1);
+      spyOn(hot.rowIndexMapper, 'getVisualFromRenderableIndex').and.returnValue(2);
+
+      expect(hot.view.getLastPartiallyVisibleRow()).toBe(2);
+      expect(hot.view._wt.wtScroll.getLastPartiallyVisibleRow).toHaveBeenCalledTimes(1);
+      expect(hot.rowIndexMapper.getVisualFromRenderableIndex).toHaveBeenCalledOnceWith(1);
+    });
+  });
+
+  describe('getFirstPartiallyVisibleColumn()', () => {
+    it('should internally call `getFirstPartiallyVisibleColumn` method of the Scroll module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtScroll, 'getFirstPartiallyVisibleColumn').and.returnValue(1);
+      spyOn(hot.columnIndexMapper, 'getVisualFromRenderableIndex').and.returnValue(2);
+
+      expect(hot.view.getFirstPartiallyVisibleColumn()).toBe(2);
+      expect(hot.view._wt.wtScroll.getFirstPartiallyVisibleColumn).toHaveBeenCalledTimes(1);
+      expect(hot.columnIndexMapper.getVisualFromRenderableIndex).toHaveBeenCalledOnceWith(1);
+    });
+  });
+
+  describe('getLastPartiallyVisibleColumn()', () => {
+    it('should internally call `getLastPartiallyVisibleColumn` method of the Scroll module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtScroll, 'getLastPartiallyVisibleColumn').and.returnValue(1);
+      spyOn(hot.columnIndexMapper, 'getVisualFromRenderableIndex').and.returnValue(2);
+
+      expect(hot.view.getLastPartiallyVisibleColumn()).toBe(2);
+      expect(hot.view._wt.wtScroll.getLastPartiallyVisibleColumn).toHaveBeenCalledTimes(1);
+      expect(hot.columnIndexMapper.getVisualFromRenderableIndex).toHaveBeenCalledOnceWith(1);
+    });
+  });
+
+  describe('getViewportWidth()', () => {
+    it('should internally call `getViewportWidth` method of the Viewport module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtViewport, 'getViewportWidth').and.returnValue(100);
+
+      expect(hot.view.getViewportWidth()).toBe(100);
+      expect(hot.view._wt.wtViewport.getViewportWidth).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getWorkspaceWidth()', () => {
+    it('should internally call `getWorkspaceWidth` method of the Viewport module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtViewport, 'getWorkspaceWidth').and.returnValue(100);
+
+      expect(hot.view.getWorkspaceWidth()).toBe(100);
+      expect(hot.view._wt.wtViewport.getWorkspaceWidth).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getViewportHeight()', () => {
+    it('should internally call `getViewportHeight` method of the Viewport module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtViewport, 'getViewportHeight').and.returnValue(100);
+
+      expect(hot.view.getViewportHeight()).toBe(100);
+      expect(hot.view._wt.wtViewport.getViewportHeight).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getWorkspaceHeight()', () => {
+    it('should internally call `getWorkspaceHeight` method of the Viewport module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtViewport, 'getWorkspaceHeight').and.returnValue(100);
+
+      expect(hot.view.getWorkspaceHeight()).toBe(100);
+      expect(hot.view._wt.wtViewport.getWorkspaceHeight).toHaveBeenCalledTimes(1);
+    });
+  });
 });

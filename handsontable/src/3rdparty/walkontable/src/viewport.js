@@ -9,6 +9,7 @@ import { objectEach } from '../../../helpers/object';
 import {
   RENDER_TYPE,
   FULLY_VISIBLE_TYPE,
+  PARTIALLY_VISIBLE_TYPE,
   RenderAllColumnsCalculator,
   RenderAllRowsCalculator,
   ViewportColumnsCalculator,
@@ -432,6 +433,15 @@ class Viewport {
   createVisibleCalculators() {
     this.rowsVisibleCalculator = this.createRowsCalculator(FULLY_VISIBLE_TYPE);
     this.columnsVisibleCalculator = this.createColumnsCalculator(FULLY_VISIBLE_TYPE);
+  }
+
+  /**
+   * Creates rowsPartiallyVisibleCalculator and columnsPartiallyVisibleCalculator (after draw, to determine what are
+   * the actually partially visible rows and columns).
+   */
+  createPartiallyVisibleCalculators() {
+    this.rowsPartiallyVisibleCalculator = this.createRowsCalculator(PARTIALLY_VISIBLE_TYPE);
+    this.columnsPartiallyVisibleCalculator = this.createColumnsCalculator(PARTIALLY_VISIBLE_TYPE);
   }
 
   /**
