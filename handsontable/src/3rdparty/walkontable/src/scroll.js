@@ -79,10 +79,6 @@ class Scroll {
       return false;
     }
 
-    if (!Number.isInteger(column) || column < 0 || column > totalColumns) {
-      return false;
-    }
-
     const firstColumn = this.getFirstVisibleColumn();
     const lastColumn = this.getLastVisibleColumn();
     let result = false;
@@ -130,10 +126,6 @@ class Scroll {
     }
 
     row = this.dataAccessObject.wtSettings.getSetting('onBeforeViewportScrollVertically', row);
-
-    if (!Number.isInteger(row) || row < 0 || row > totalRows) {
-      return false;
-    }
 
     if (!Number.isInteger(row) || row < 0 || row > totalRows) {
       return false;
