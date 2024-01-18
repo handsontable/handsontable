@@ -166,6 +166,7 @@ export class DropdownMenu extends BasePlugin {
     if (this.enabled) {
       return;
     }
+
     this.itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS);
 
     const settings = this.hot.getSettings()[PLUGIN_KEY];

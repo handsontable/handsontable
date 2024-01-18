@@ -312,6 +312,7 @@ class Table {
       if (this.isMaster) {
         // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
         wtViewport.createVisibleCalculators();
+        wtViewport.createPartiallyVisibleCalculators();
       }
       if (wtOverlays) {
         wtOverlays.refresh(true);
@@ -371,6 +372,7 @@ class Table {
 
         if (this.isMaster) {
           this.dataAccessObject.wtViewport.createVisibleCalculators();
+          this.dataAccessObject.wtViewport.createPartiallyVisibleCalculators();
           this.dataAccessObject.wtOverlays.refresh(false);
           this.dataAccessObject.wtOverlays.applyToDOM();
 
