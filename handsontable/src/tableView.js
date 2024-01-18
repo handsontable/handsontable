@@ -1450,6 +1450,46 @@ class TableView {
   }
 
   /**
+   * Returns the first partially visible row in the table viewport.
+   *
+   * @returns {number}
+   */
+  getFirstPartiallyVisibleRow() {
+    return this.hot.rowIndexMapper
+      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getFirstPartiallyVisibleRow());
+  }
+
+  /**
+   * Returns the last partially visible row in the table viewport.
+   *
+   * @returns {number}
+   */
+  getLastPartiallyVisibleRow() {
+    return this.hot.rowIndexMapper
+      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getLastPartiallyVisibleRow());
+  }
+
+  /**
+   * Returns the first partially visible column in the table viewport.
+   *
+   * @returns {number}
+   */
+  getFirstPartiallyVisibleColumn() {
+    return this.hot.columnIndexMapper
+      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getFirstPartiallyVisibleColumn());
+  }
+
+  /**
+   * Returns the last partially visible column in the table viewport.
+   *
+   * @returns {number}
+   */
+  getLastPartiallyVisibleColumn() {
+    return this.hot.columnIndexMapper
+      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getLastPartiallyVisibleColumn());
+  }
+
+  /**
    * Returns the total count of the rendered column headers.
    *
    * @returns {number}
@@ -1465,6 +1505,46 @@ class TableView {
    */
   getRowHeadersCount() {
     return this.#rowHeadersCount;
+  }
+
+  /**
+   * Returns the table's viewport width. When the table has defined the size of the container,
+   * and the columns do not fill the entire viewport, the viewport width is equal to the sum of
+   * the columns' widths.
+   *
+   * @returns {number}
+   */
+  getViewportWidth() {
+    return this.hot.view._wt.wtViewport.getViewportWidth();
+  }
+
+  /**
+   * Returns the table's total width including the scrollbar width.
+   *
+   * @returns {number}
+   */
+  getWorkspaceWidth() {
+    return this.hot.view._wt.wtViewport.getWorkspaceWidth();
+  }
+
+  /**
+   * Returns the table's viewport height. When the table has defined the size of the container,
+   * and the rows do not fill the entire viewport, the viewport height is equal to the sum of
+   * the rows' heights.
+   *
+   * @returns {number}
+   */
+  getViewportHeight() {
+    return this.hot.view._wt.wtViewport.getViewportHeight();
+  }
+
+  /**
+   * Returns the table's total height including the scrollbar height.
+   *
+   * @returns {number}
+   */
+  getWorkspaceHeight() {
+    return this.hot.view._wt.wtViewport.getWorkspaceHeight();
   }
 
   /**

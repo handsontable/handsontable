@@ -172,6 +172,7 @@ export class DropdownMenu extends BasePlugin {
     if (this.enabled) {
       return;
     }
+
     this.itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS);
 
     this.addHook('beforeOnCellMouseDown', (...args) => this.#onBeforeOnCellMouseDown(...args));
