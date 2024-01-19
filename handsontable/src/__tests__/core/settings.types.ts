@@ -470,6 +470,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterSelectionByProp: (r, p, r2, p2, preventScrolling, selectionLayerLevel) => preventScrolling.value = true,
   afterSelectionEnd: (r, c, r2, c2, selectionLayerLevel) => {},
   afterSelectionEndByProp: (r, p, r2, p2, selectionLayerLevel) => {},
+  afterSelectionFocusSet: (row, column, preventScrolling) => {
+    row.toFixed();
+    column.toFixed();
+    preventScrolling.value = true;
+  },
   afterSelectRows: (from, to, highlight) => {},
   afterSetCellMeta: (row, col, key, value) => {},
   afterSetDataAtCell: (changes, source) => {},

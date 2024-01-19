@@ -83,6 +83,12 @@ class Selection {
    */
   selectedByColumnHeader = new Set();
   /**
+   * The flag which determines if the focus selection was changed.
+   *
+   * @type {boolean}
+   */
+  #isFocusSelectionChanged = false;
+  /**
    * When sets disable highlighting the headers even when the logical coordinates points on them.
    *
    * @type {boolean}
@@ -264,6 +270,7 @@ class Selection {
     // should be handled by next methods.
     const coordsClone = coords.clone();
 
+    this.#isFocusSelectionChanged = false;
     this.runLocalHooks(`beforeSetRangeStart${fragment ? 'Only' : ''}`, coordsClone);
 
     if (!isMultipleMode || (isMultipleMode && !isMultipleSelection && isUndefined(multipleSelection))) {
@@ -511,26 +518,9 @@ class Selection {
     }
 
     if (!this.inProgress) {
+      this.#isFocusSelectionChanged = true;
       this.runLocalHooks('afterSetFocus', coords);
     }
-  }
-
-  /**
-   * Returns information if we have a multi-selection. This method check multi-selection only on the latest layer of
-   * the selection.
-   *
-   * @returns {boolean}
-   */
-  isMultiple() {
-    if (!this.isSelected()) {
-      return false;
-    }
-
-    const isMultipleListener = createObjectPropListener(!this.selectedRange.current().isSingle());
-
-    this.runLocalHooks('afterIsMultipleSelection', isMultipleListener);
-
-    return isMultipleListener.value;
   }
 
   /**
@@ -616,6 +606,33 @@ class Selection {
    */
   isSelected() {
     return !this.selectedRange.isEmpty();
+  }
+
+  /**
+   * Returns information if we have a multi-selection. This method check multi-selection only on the latest layer of
+   * the selection.
+   *
+   * @returns {boolean}
+   */
+  isMultiple() {
+    if (!this.isSelected()) {
+      return false;
+    }
+
+    const isMultipleListener = createObjectPropListener(!this.selectedRange.current().isSingle());
+
+    this.runLocalHooks('afterIsMultipleSelection', isMultipleListener);
+
+    return isMultipleListener.value;
+  }
+
+  /**
+   * Checks if the last selection involves changing the focus cell position only.
+   *
+   * @returns {boolean}
+   */
+  isFocusSelectionChanged() {
+    return this.isSelected() && this.#isFocusSelectionChanged;
   }
 
   /**

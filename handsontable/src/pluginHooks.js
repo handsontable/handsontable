@@ -688,7 +688,9 @@ const REGISTERED_HOOKS = [
    * @param {string} prop Selection start data source object property name.
    * @param {number} row2 Selection end visual row index.
    * @param {string} prop2 Selection end data source object property name.
-   * @param {object} preventScrolling Object with `value` property where its value change will be observed.
+   * @param {object} preventScrolling A reference to the observable object with the `value` property.
+   *                                  Property `preventScrolling.value` expects a boolean value that
+   *                                  Handsontable uses to control scroll behavior after selection.
    * @param {number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    * @example
    * ```js
@@ -740,6 +742,47 @@ const REGISTERED_HOOKS = [
    * @param {number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    */
   'afterSelectionEndByProp',
+
+  /**
+   * Fired after the focus position within a selected range is changed.
+   *
+   * @since 14.2.0
+   * @event Hooks#afterSelectionFocusSet
+   * @param {number} row The focus visual row index position.
+   * @param {number} column The focus visual column index position.
+   * @param {object} preventScrolling A reference to the observable object with the `value` property.
+   *                                  Property `preventScrolling.value` expects a boolean value that
+   *                                  Handsontable uses to control scroll behavior after selection.
+   * @example
+   * ```js
+   * ::: only-for javascript
+   * new Handsontable(element, {
+   *   afterSelectionFocusSet: (row, column, preventScrolling) => {
+   *     // If set to `false` (default): when focused cell selection is outside the viewport,
+   *     // Handsontable scrolls the viewport to that cell.
+   *     // If set to `true`: when focused cell selection is outside the viewport,
+   *     // Handsontable doesn't scroll the viewport.
+   *     preventScrolling.value = true;
+   *   }
+   * })
+   * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   afterSelectionFocusSet={(row, column, preventScrolling) => {
+   *     // If set to `false` (default): when focused cell selection is outside the viewport,
+   *     // Handsontable scrolls the viewport to that cell.
+   *     // If set to `true`: when focused cell selection is outside the viewport,
+   *     // Handsontable doesn't scroll the viewport.
+   *     preventScrolling.value = true;
+   *   }}
+   * />
+   * ```
+   * :::
+   */
+  'afterSelectionFocusSet',
 
   /**
    * Fired before one or more columns are selected (e.g. During mouse header click or {@link Core#selectColumns} API call).

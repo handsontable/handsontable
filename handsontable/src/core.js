@@ -388,7 +388,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   });
 
   this.selection.addLocalHook('afterSetFocus', (cellCoords) => {
-    this.runHooks('afterSelectionFocusSet', cellCoords);
+    const preventScrolling = createObjectPropListener(false);
+
+    this.runHooks('afterSelectionFocusSet', cellCoords.row, cellCoords.col, preventScrolling);
+
+    if (!preventScrolling.isTouched() || preventScrolling.isTouched() && !preventScrolling.value) {
+      viewportScroller.scrollTo(cellCoords);
+    }
+
     this._refreshBorders(null);
   });
 

@@ -133,6 +133,7 @@ export interface Events {
   afterSelectionByProp?: (row: number, prop: string, row2: number, prop2: string, preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
   afterSelectionEnd?: (row: number, column: number, row2: number, column2: number, selectionLayerLevel: number) => void;
   afterSelectionEndByProp?: (row: number, prop: string, row2: number, prop2: string, selectionLayerLevel: number) => void;
+  afterSelectionFocusSet?: (row: number, column: number, preventScrolling: { value: boolean }) => void;
   afterSelectRows?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
   afterSetCellMeta?: (row: number, column: number, key: string, value: any) => void;
   afterSetDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
