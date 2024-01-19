@@ -36,6 +36,31 @@ describe('Hook', () => {
       expect(afterSelectionFocusSet).toHaveBeenCalledWith(4, 5, jasmine.any(Object));
     });
 
+    it('should be possible to prevent viewport scroll after focus position changed', () => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        width: 200,
+        height: 130,
+        colHeaders: true,
+        rowHeaders: true,
+        afterSelectionFocusSet(row, column, preventScrolling) {
+          preventScrolling.value = true;
+        }
+      });
+
+      selectColumns(1, 1, -1);
+      listen();
+
+      keyDownUp('enter');
+      keyDownUp('enter');
+      keyDownUp('enter');
+      keyDownUp('enter');
+      keyDownUp('enter');
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+    });
+
     it('should not be fired when single cell is selected', () => {
       handsontable({
         data: createSpreadsheetData(10, 10),

@@ -4,7 +4,7 @@
  * @param {Core} hot Handsontable instance.
  * @returns {function(): function(CellCoords): void}
  */
-export function focusChangeScrollStrategy(hot) {
+export function focusScrollStrategy(hot) {
   return (cellCoords) => {
     hot.scrollViewportTo(cellCoords.toObject());
   };
