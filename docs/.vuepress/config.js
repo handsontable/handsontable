@@ -79,13 +79,13 @@ module.exports = {
       'meta',
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
     ],
-        // Sentry monitoring
+    // Sentry monitoring
     [
       'script',
       {
         id: 'Sentry.io',
         src: 'https://js.sentry-cdn.com/493ec58fb6295a69f711573c5a04cf05.min.js',
-        'crossorigin': 'anonymous',
+        crossorigin: 'anonymous',
       },
     ],
     // Cookiebot - cookie consent popup
