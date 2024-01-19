@@ -818,8 +818,9 @@ class Selection {
 
         this.setRangeStartOnly(from.clone(), false);
         this.setRangeEnd(to.clone());
-        this.finish();
       });
+
+      this.finish();
     }
 
     return isValid;
