@@ -980,6 +980,8 @@ const countries = data.reduce((acc, curr) => {
 
 
 /* end:skip-in-preview */
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // Get the DOM element with the ID 'example1' where the Handsontable will be rendered
 const app = document.getElementById("example1");

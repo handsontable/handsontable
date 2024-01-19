@@ -51,6 +51,49 @@ export default {
     },
     isScriptLoaderActivated(exampleId) {
       return this.activatedExamples.includes(exampleId);
+    },
+    submitCodesandbox(submitEvent) {
+      // form data values
+      const html = submitEvent.target.elements.html.value;
+      const js = submitEvent.target.elements.js.value;
+
+      const hyperformula = js.includes('hyperformula') ? { hyperformula: 'latest' } : {};
+
+      // generate codesandbox demo id
+      fetch('https://codesandbox.io/api/v1/sandboxes/define?json=1', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          files: {
+            'package.json': {
+              content: {
+                dependencies: {
+                  handsontable: 'latest',
+                  ...hyperformula
+                }
+              },
+            },
+            'index.html': {
+              content: html,
+            },
+            'index.js': {
+              content: js,
+            },
+          },
+        }),
+      })
+        .then(x => x.json())
+        .then((data) => {
+          // redirect to codesandbox demo
+          if (data.sandbox_id) {
+            window.open(`https://codesandbox.io/p/sandbox/${data.sandbox_id}`, '_blank', 'noreferrer');
+          } else {
+            alert('Problem with creating a codesandbox.')
+          }
+        });
     }
   },
 };

@@ -7,6 +7,7 @@ const EXAMPLE_REGEX = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
 
 const { buildCode } = require('./code-builder');
 const { jsfiddle } = require('./jsfiddle');
+const { codesandbox } = require('./codesandbox');
 
 const tab = (tabName, token, id) => {
   if (!token) return [];
@@ -143,6 +144,7 @@ module.exports = function(docsVersion, base) {
         tokens.splice(index + 1, 0, ...newTokens);
 
         return `
+            ${!noEdit && preset.includes('hot') ? codesandbox(htmlContent, codeToCompile, cssContent) : ''}
             ${!noEdit ? jsfiddle(id, htmlContent, codeToCompile, cssContent, docsVersion, preset) : ''}
             <tabs
               :class="$parent.$parent.addClassIfPreviewTabIsSelected('${id}', 'selected-preview')"
