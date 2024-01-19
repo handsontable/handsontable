@@ -147,6 +147,8 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
 });
 ```
