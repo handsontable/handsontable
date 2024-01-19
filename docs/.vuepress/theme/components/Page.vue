@@ -90,8 +90,6 @@ export default {
           // redirect to codesandbox demo
           if (data.sandbox_id) {
             window.open(`https://codesandbox.io/p/sandbox/${data.sandbox_id}`, '_blank', 'noreferrer');
-          } else {
-            alert('Problem with creating a codesandbox.')
           }
         });
     }
