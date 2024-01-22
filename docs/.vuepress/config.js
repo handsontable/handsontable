@@ -82,6 +82,25 @@ module.exports = {
     // Sentry monitoring
     [
       'script',
+      {},
+      `
+      window.sentryOnLoad = function () {
+        Sentry.init({
+          integrations: [
+            // If you use a bundle with performance monitoring enabled, add the BrowserTracing integration
+            new Sentry.BrowserTracing(),
+            // If you use a bundle with session replay enabled, add the SessionReplay integration
+            new Sentry.Replay({
+              maskAllText: false,
+              blockAllMedia: false,
+            }),   
+          ],
+        });
+      };
+    `,
+    ],
+    [
+      'script',
       {
         id: 'Sentry.io',
         src: 'https://js.sentry-cdn.com/493ec58fb6295a69f711573c5a04cf05.min.js',
