@@ -12,29 +12,33 @@ It provides data binding, data validation, filtering, sorting, and CRUD operatio
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=handsontable_handsontable&metric=alert_status)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
 
 ---
-#### Get Started with Handsontable
+#### Get started with Handsontable
 
 <table border="0">
   <tr>
     <td>
       <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="14" height="14">
-      <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react"> <strong>React</strong></a>&nbsp;
+      <a href="https://codesandbox.io/s/handsontable-data-grid-v14-1-0-react-demo-73k3jz"> <strong>React</strong></a>&nbsp;
     </td>
     <td>
       <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="14" height="14">
-      <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular"> <strong>Angular</strong></a>&nbsp;
+      <a href="https://codesandbox.io/s/handsontable-data-grid-v14-1-0-angular-demo-j493nc"> <strong>Angular</strong></a>&nbsp;
     </td>
     <td>
       <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="14" height="14">
-      <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue"> <strong>Vue</strong></a>&nbsp;
+      <a href="https://codesandbox.io/s/handsontable-data-grid-v14-1-0-vue-2-demo-hdkkyf"> <strong>Vue</strong></a>&nbsp;
     </td>
     <td>
       <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="14" height="14">
-      <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue3"> <strong>Vue 3</strong></a>&nbsp;
+      <a href="https://codesandbox.io/s/handsontable-data-grid-v14-1-0-vue-3-demo-ypkddz"> <strong>Vue 3</strong></a>&nbsp;
+    </td>
+    <td>
+      <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/ts-logo-512.svg" width="14" height="14">&nbsp;
+      <a href="https://codesandbox.io/s/handsontable-data-grid-v14-1-0-typescript-demo-v8sfm6"> <strong>TypeScript</strong></a>&nbsp;
     </td>
     <td>
       <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/javascript-icon.svg" width="14" height="14">&nbsp;
-      <a href="#installation"> <strong>JavaScript</strong></a>&nbsp;
+      <a href="https://codesandbox.io/s/handsontable-data-grid-v14-1-0-javascript-demo-dqpqql"> <strong>JavaScript</strong></a>&nbsp;
     </td>
   </tr>
 </table>
@@ -72,46 +76,55 @@ The most popular features of Handsontable:
 
 <div id="installation"></div>
 
-## Get Started
-### Install with npm
+## Get started
 
-Run the following command in your terminal
-```
+### 1. Install Handsontable
+
+#### Using a package manager
+
+Get Handsontable from [npm](https://www.npmjs.com/package/handsontable), [Yarn](https://yarnpkg.com/package/handsontable) or [NuGet](https://www.nuget.org/packages/Handsontable).
+
+```bash
 npm install handsontable
 ```
 
-You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https://www.nuget.org/packages/Handsontable) or load the bundle directly from [jsDelivr](https://jsdelivr.com/package/npm/handsontable).
+```js
+import Handsontable from 'handsontable';
 
-### Create a placeholder
+import 'handsontable/dist/handsontable.full.min.css';
+```
 
-Create an HTML placeholder
+#### Using a CDN
+
+```html
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
+```
+
+### 2. Create a container
 
 ```html
 <div id="example"></div>
 ```
 
-Import Handsontable and its stylesheet
+### 3. Initialize your grid
+
 ```js
-import Handsontable from "handsontable";
-import 'handsontable/dist/handsontable.full.css';
-```
-
-### Initialize the grid
-
-Now turn your placeholder into a data grid with sample data.
-```js
-const data = [
-  ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-  ['2019', 10, 11, 12, 13],
-  ['2020', 20, 11, 14, 13],
-  ['2021', 30, 15, 12, 13]
-];
-
-const container = document.getElementById('example');
+const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
-  data: data,
+  data: [
+    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+    ['2019', 10, 11, 12, 13],
+    ['2020', 20, 11, 14, 13],
+    ['2021', 30, 15, 12, 13]
+  ],
   rowHeaders: true,
-  colHeaders: true
+  colHeaders: true,
+  height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
 });
 ```
 

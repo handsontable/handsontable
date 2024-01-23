@@ -18,23 +18,27 @@ It provides data binding, data validation, filtering, sorting, and CRUD operatio
   <tr>
     <td>
       <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="14" height="14">
-      <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react"> <strong>React</strong></a>&nbsp;
+      <a href="https://codesandbox.io/s/handsontable-data-grid-v14-1-0-react-demo-73k3jz"> <strong>React</strong></a>&nbsp;
     </td>
     <td>
       <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="14" height="14">
-      <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular"> <strong>Angular</strong></a>&nbsp;
+      <a href="https://codesandbox.io/s/handsontable-data-grid-v14-1-0-angular-demo-j493nc"> <strong>Angular</strong></a>&nbsp;
     </td>
     <td>
       <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="14" height="14">
-      <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue"> <strong>Vue</strong></a>&nbsp;
+      <a href="https://codesandbox.io/s/handsontable-data-grid-v14-1-0-vue-2-demo-hdkkyf"> <strong>Vue</strong></a>&nbsp;
     </td>
     <td>
       <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="14" height="14">
-      <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue3"> <strong>Vue 3</strong></a>&nbsp;
+      <a href="https://codesandbox.io/s/handsontable-data-grid-v14-1-0-vue-3-demo-ypkddz"> <strong>Vue 3</strong></a>&nbsp;
+    </td>
+    <td>
+      <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/ts-logo-512.svg" width="14" height="14">&nbsp;
+      <a href="https://codesandbox.io/s/handsontable-data-grid-v14-1-0-typescript-demo-v8sfm6"> <strong>TypeScript</strong></a>&nbsp;
     </td>
     <td>
       <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/javascript-icon.svg" width="14" height="14">&nbsp;
-      <a href="#installation"> <strong>JavaScript</strong></a>&nbsp;
+      <a href="https://codesandbox.io/s/handsontable-data-grid-v14-1-0-javascript-demo-dqpqql"> <strong>JavaScript</strong></a>&nbsp;
     </td>
   </tr>
 </table>
@@ -117,6 +121,9 @@ const hot = new Handsontable(container, {
   ],
   rowHeaders: true,
   colHeaders: true,
+  height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
 });
 ```
