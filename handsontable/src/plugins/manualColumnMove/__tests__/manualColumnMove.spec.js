@@ -1349,4 +1349,134 @@ describe('manualColumnMove', () => {
       });
     });
   });
+
+  describe('undoRedo', () => {
+    describe('should back changes', () => {
+      it('when moving single row from the left to the right', () => {
+        const hot = handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          colHeaders: true,
+          manualColumnMove: true,
+        });
+
+        hot.getPlugin('manualColumnMove').moveColumn(1, 4);
+        hot.render();
+
+        hot.undo();
+
+        expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+      });
+
+      it('when moving multiple columns from the left to the right', () => {
+        const hot = handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          colHeaders: true,
+          manualColumnMove: true,
+        });
+
+        hot.getPlugin('manualColumnMove').moveColumns([0, 1], 4);
+        hot.render();
+
+        hot.undo();
+
+        expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+      });
+
+      it('when moving multiple columns from the right to the left', () => {
+        const hot = handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          colHeaders: true,
+          manualColumnMove: true,
+        });
+
+        hot.getPlugin('manualColumnMove').moveColumns([4, 5], 1);
+        hot.render();
+
+        hot.undo();
+
+        expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+      });
+
+      it('when moving multiple columns with mixed indexes', () => {
+        const hot = handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          colHeaders: true,
+          manualColumnMove: true,
+        });
+
+        hot.getPlugin('manualColumnMove').moveColumns([0, 1, 8, 4, 7], 2);
+        hot.render();
+
+        hot.undo();
+
+        expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+      });
+    });
+
+    describe('should revert changes', () => {
+      it('when moving single row from the left to the right', () => {
+        const hot = handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          colHeaders: true,
+          manualColumnMove: true,
+        });
+
+        hot.getPlugin('manualColumnMove').moveColumn(1, 4);
+        hot.render();
+
+        hot.undo();
+        hot.redo();
+
+        expect(hot.getDataAtRow(0)).toEqual(['A1', 'C1', 'D1', 'E1', 'B1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+      });
+
+      it('when moving multiple columns from the left to the right', () => {
+        const hot = handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          colHeaders: true,
+          manualColumnMove: true,
+        });
+
+        hot.getPlugin('manualColumnMove').moveColumns([0, 1], 4);
+        hot.render();
+
+        hot.undo();
+        hot.redo();
+
+        expect(hot.getDataAtRow(0)).toEqual(['C1', 'D1', 'E1', 'F1', 'A1', 'B1', 'G1', 'H1', 'I1', 'J1']);
+      });
+
+      it('when moving multiple columns from the right to the left', () => {
+        const hot = handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          colHeaders: true,
+          manualColumnMove: true,
+        });
+
+        hot.getPlugin('manualColumnMove').moveColumns([4, 5], 1);
+        hot.render();
+
+        hot.undo();
+        hot.redo();
+
+        expect(hot.getDataAtRow(0)).toEqual(['A1', 'E1', 'F1', 'B1', 'C1', 'D1', 'G1', 'H1', 'I1', 'J1']);
+      });
+
+      it('when moving multiple columns with mixed indexes', () => {
+        const hot = handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          colHeaders: true,
+          manualColumnMove: true,
+        });
+
+        hot.getPlugin('manualColumnMove').moveColumns([0, 1, 8, 4, 7], 2);
+        hot.render();
+
+        hot.undo();
+        hot.redo();
+
+        expect(hot.getDataAtRow(0)).toEqual(['C1', 'D1', 'A1', 'B1', 'I1', 'E1', 'H1', 'F1', 'G1', 'J1']);
+      });
+    });
+  });
 });

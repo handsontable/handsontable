@@ -182,6 +182,14 @@ function UndoRedo(instance) {
     plugin.done(() => new UndoRedo.RowMoveAction(rows, finalIndex));
   });
 
+  instance.addHook('beforeColumnMove', (columns, finalIndex) => {
+    if (columns === false) {
+      return;
+    }
+
+    plugin.done(() => new UndoRedo.ColumnMoveAction(columns, finalIndex));
+  });
+
   instance.addHook('beforeMergeCells', (cellRange, auto) => {
     if (auto) {
       return;
@@ -887,7 +895,7 @@ UndoRedo.UnmergeCellsAction = UnmergeCellsAction;
  */
 UndoRedo.RowMoveAction = function(rows, finalIndex) {
   this.rows = rows.slice();
-  this.finalIndex = finalIndex;
+  this.finalRowIndex = finalIndex;
   this.actionType = 'row_move';
 };
 inherit(UndoRedo.RowMoveAction, UndoRedo.Action);
@@ -895,8 +903,8 @@ inherit(UndoRedo.RowMoveAction, UndoRedo.Action);
 UndoRedo.RowMoveAction.prototype.undo = function(instance, undoneCallback) {
   const manualRowMove = instance.getPlugin('manualRowMove');
   const copyOfRows = [].concat(this.rows);
-  const rowsMovedUp = copyOfRows.filter(a => a > this.finalIndex);
-  const rowsMovedDown = copyOfRows.filter(a => a <= this.finalIndex);
+  const rowsMovedUp = copyOfRows.filter(a => a > this.finalRowIndex);
+  const rowsMovedDown = copyOfRows.filter(a => a <= this.finalRowIndex);
   const allMovedRows = rowsMovedUp.sort((a, b) => b - a).concat(rowsMovedDown.sort((a, b) => a - b));
 
   instance.addHookOnce('afterViewRender', undoneCallback);
@@ -918,11 +926,58 @@ UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
   const manualRowMove = instance.getPlugin('manualRowMove');
 
   instance.addHookOnce('afterViewRender', redoneCallback);
-  manualRowMove.moveRows(this.rows.slice(), this.finalIndex);
+  manualRowMove.moveRows(this.rows.slice(), this.finalRowIndex);
   instance.render();
 
   instance.deselectCell();
-  instance.selectRows(this.finalIndex, this.finalIndex + this.rows.length - 1);
+  instance.selectRows(this.finalRowIndex, this.finalRowIndex + this.rows.length - 1);
+};
+
+/**
+ * ManualColumnMove action.
+ *
+ * @private
+ * @param {number[]} columns An array with moved columns.
+ * @param {number} finalIndex The destination index.
+ */
+UndoRedo.ColumnMoveAction = function(columns, finalIndex) {
+  this.columns = columns.slice();
+  this.finalColumnIndex = finalIndex;
+  this.actionType = 'col_move';
+};
+inherit(UndoRedo.ColumnMoveAction, UndoRedo.Action);
+
+UndoRedo.ColumnMoveAction.prototype.undo = function(instance, undoneCallback) {
+  const manualColumnMove = instance.getPlugin('manualColumnMove');
+  const copyOfColumns = [].concat(this.columns);
+  const columnsMovedLeft = copyOfColumns.filter(a => a > this.finalColumnIndex);
+  const rowsMovedRight = copyOfColumns.filter(a => a <= this.finalColumnIndex);
+  const allMovedColumns = columnsMovedLeft.sort((a, b) => b - a).concat(rowsMovedRight.sort((a, b) => a - b));
+
+  instance.addHookOnce('afterViewRender', undoneCallback);
+
+  // Moving columns from those with higher indexes to those with lower indexes when action was performed from right to left
+  // Moving columns from those with lower indexes to those with higher indexes when action was performed from left to right
+  for (let i = 0; i < allMovedColumns.length; i += 1) {
+    const newPhysicalColumn = instance.toVisualColumn(allMovedColumns[i]);
+
+    manualColumnMove.moveColumn(newPhysicalColumn, allMovedColumns[i]);
+  }
+
+  instance.render();
+
+  instance.deselectCell();
+  instance.selectColumns(this.columns[0], this.columns[0] + this.columns.length - 1);
+};
+UndoRedo.ColumnMoveAction.prototype.redo = function(instance, redoneCallback) {
+  const manualColumnMove = instance.getPlugin('manualColumnMove');
+
+  instance.addHookOnce('afterViewRender', redoneCallback);
+  manualColumnMove.moveColumns(this.columns.slice(), this.finalColumnIndex);
+  instance.render();
+
+  instance.deselectCell();
+  instance.selectColumns(this.finalColumnIndex, this.finalColumnIndex + this.columns.length - 1);
 };
 
 /**
