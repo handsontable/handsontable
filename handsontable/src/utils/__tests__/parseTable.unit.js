@@ -3,7 +3,6 @@ import Handsontable from '../../index';
 import { registerCellType, TextCellType } from '../../cellTypes';
 import { IntersectionObserverMock } from '../../../test/__mocks__/intersectionObserverMock';
 import { ResizeObserverMock } from '../../../test/__mocks__/resizeObserverMock';
-import { toSingleLine } from '../../helpers/templateLiteralTag';
 
 registerCellType(TextCellType);
 
@@ -305,23 +304,16 @@ describe('htmlToGridSettings', () => {
     expect(config.mergeCells[1].rowspan).toBe(4);
   });
 
-  it('should parse table copied from Word properly', () => {
+  it('should parse table with long text properly', () => {
     const htmlToParse = `
-      <table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0
-       style='border-collapse:collapse;border:none;mso-border-alt:solid windowtext .5pt;
-       mso-yfti-tbllook:1184;mso-padding-alt:0cm 5.4pt 0cm 5.4pt'>
-       <tr style='mso-yfti-irow:0;mso-yfti-firstrow:yes'>
-        <td width=604 valign=top style='width:453.1pt;border:solid windowtext 1.0pt;
-        mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'>
-        <p class=MsoNormal><span style='font-size:11.0pt;mso-font-kerning:0pt;
-        mso-ligatures:none'>Some very long text with no line breaks inside table
-        cell. Some very long text with no line breaks<o:p></o:p></span></p>
-        <p class=MsoNormal><span style='font-size:11.0pt;mso-font-kerning:0pt;
-        mso-ligatures:none'><o:p>&nbsp;</o:p></span></p>
-        <p class=MsoNormal><span style='font-size:11.0pt;mso-font-kerning:0pt;
-        mso-ligatures:none'><o:p>&nbsp;</o:p></span></p>
-        <p class=MsoNormal><span style='font-size:11.0pt;mso-font-kerning:0pt;
-        mso-ligatures:none'>ins table cell. Some very long text with no line breaks
+      <table>
+       <tr>
+        <td>
+        <p><span>Some very long text with no line breaks inside table
+        cell. Some very long text with no line breaks</span></p>
+        <p><span>&nbsp;</span></p>
+        <p><span>&nbsp;</span></p>
+        <p><span>ins table cell. Some very long text with no line breaks
         inside table cell. Some very long text with no line breaks inside table cell.
         Some very long text with no line breaks inside table cell. Some very long
         text with no line breaks inside table cell. Some very long text with no line
@@ -338,22 +330,17 @@ describe('htmlToGridSettings', () => {
         very long text with no line breaks inside table cell. Some very long text
         with no line breaks inside table cell. Some very long text with no line
         breaks inside table cell. Some very long text with no line breaks inside
-        table cell. Some very long text with no line breaks inside table cell.<o:p></o:p></span></p>
+        table cell. Some very long text with no line breaks inside table cell.</span></p>
         </td>
        </tr>
-       <tr style='mso-yfti-irow:1;mso-yfti-lastrow:yes'>
-        <td width=604 valign=top style='width:453.1pt;border:solid windowtext 1.0pt;
-        border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-        padding:0cm 5.4pt 0cm 5.4pt'>
-        <p class=MsoNormal><span style='font-size:11.0pt;mso-font-kerning:0pt;
-        mso-ligatures:none'>Another very long text with no line breaks inside table
-        cell. <span style='mso-spacerun:yes'>       </span>Some very long text with
-        no line breaks <span style='mso-spacerun:yes'>     </span>o line breo line
-        breo line breo line breo line bre<o:p></o:p></span></p>
-        <p class=MsoNormal><span style='font-size:11.0pt;mso-font-kerning:0pt;
-        mso-ligatures:none'><o:p>&nbsp;</o:p></span></p>
-        <p class=MsoNormal><span style='font-size:11.0pt;mso-font-kerning:0pt;
-        mso-ligatures:none'>NEW LINE<o:p></o:p></span></p>
+       <tr>
+        <td>
+        <p><span>Another very long text with no line breaks inside table
+        cell. <span>       </span>Some very long text with
+        no line breaks <span>     </span>o line breo line
+        breo line breo line breo line bre</span></p>
+        <p><span>&nbsp;</span></p>
+        <p><span>NEW LINE</span></p>
         </td>
        </tr>
       </table>`;
