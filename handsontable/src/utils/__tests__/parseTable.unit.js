@@ -305,6 +305,7 @@ describe('htmlToGridSettings', () => {
   });
 
   it('should parse table with long text properly', () => {
+    /* eslint-disable no-irregular-whitespace */
     const htmlToParse = `
       <table>
        <tr>
@@ -344,6 +345,7 @@ describe('htmlToGridSettings', () => {
         </td>
        </tr>
       </table>`;
+    /* eslint-enable */
 
     const config = htmlToGridSettings(htmlToParse);
 

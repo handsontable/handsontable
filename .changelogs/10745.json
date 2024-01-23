@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Cells pasted from clipboard's tables won't contain unnecessary line breaks",
+  "type": "fixed",
+  "issueOrPR": 10745,
+  "breaking": false,
+  "framework": "none"
+}
