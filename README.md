@@ -18,19 +18,19 @@ It provides data binding, data validation, filtering, sorting, and CRUD operatio
   <tr>
     <td>
       <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="14" height="14">
-      <a href="https://codesandbox.io/s/handsontable-data-grid-v14-1-0-react-demo-73k3jz"> <strong>React</strong></a>&nbsp;
+      <a href="https://handsontable.com/docs/react-data-grid/installation/"> <strong>React</strong></a>&nbsp;
     </td>
     <td>
       <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="14" height="14">
-      <a href="https://codesandbox.io/s/handsontable-data-grid-v14-1-0-angular-demo-j493nc"> <strong>Angular</strong></a>&nbsp;
+      <a href="https://handsontable.com/docs/javascript-data-grid/angular-installation/"> <strong>Angular</strong></a>&nbsp;
     </td>
     <td>
       <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="14" height="14">
-      <a href="https://codesandbox.io/s/handsontable-data-grid-v14-1-0-vue-2-demo-hdkkyf"> <strong>Vue</strong></a>&nbsp;
+      <a href="https://handsontable.com/docs/javascript-data-grid/vue-installation/"> <strong>Vue</strong></a>&nbsp;
     </td>
     <td>
       <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="14" height="14">
-      <a href="https://codesandbox.io/s/handsontable-data-grid-v14-1-0-vue-3-demo-ypkddz"> <strong>Vue 3</strong></a>&nbsp;
+      <a href="https://handsontable.com/docs/javascript-data-grid/vue3-installation/"> <strong>Vue 3</strong></a>&nbsp;
     </td>
     <td>
       <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/ts-logo-512.svg" width="14" height="14">&nbsp;
@@ -38,7 +38,7 @@ It provides data binding, data validation, filtering, sorting, and CRUD operatio
     </td>
     <td>
       <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/javascript-icon.svg" width="14" height="14">&nbsp;
-      <a href="https://codesandbox.io/s/handsontable-data-grid-v14-1-0-javascript-demo-dqpqql"> <strong>JavaScript</strong></a>&nbsp;
+      <a href="https://handsontable.com/docs/javascript-data-grid/installation/"> <strong>JavaScript</strong></a>&nbsp;
     </td>
   </tr>
 </table>
@@ -76,25 +76,17 @@ The most popular features of Handsontable:
 
 <div id="installation"></div>
 
-## Get started
+## Installation
 
-### 1. Install Handsontable
+#### NPM
 
-#### Using a package manager
-
-Get Handsontable from [npm](https://www.npmjs.com/package/handsontable), [Yarn](https://yarnpkg.com/package/handsontable) or [NuGet](https://www.nuget.org/packages/Handsontable).
+Get Handsontable from your package manager of choice
 
 ```bash
-npm install handsontable
+npm i handsontable
 ```
 
-```js
-import Handsontable from 'handsontable';
-
-import 'handsontable/dist/handsontable.full.min.css';
-```
-
-#### Using a CDN
+#### CDN
 
 ```html
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
@@ -102,16 +94,21 @@ import 'handsontable/dist/handsontable.full.min.css';
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
 ```
 
-### 2. Create a container
+### Quick Start
 
+Create a container
 ```html
 <div id="example"></div>
 ```
 
-### 3. Initialize your grid
+Initialize your grid
 
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 const container = document.querySelector('#example');
+
 const hot = new Handsontable(container, {
   data: [
     ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],

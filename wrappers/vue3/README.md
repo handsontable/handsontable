@@ -76,7 +76,7 @@ Use this data grid as you would any other component in your application. [Option
 **Vue 3 Component**
 ```vue
 <template>
-  <hot-table :data="data" :rowHeaders="true" :colHeaders="true"></hot-table>
+  <hot-table :data="data" :rowHeaders="true" :colHeaders="true" :autoWrapRow="true" :autoWrapCol="true"></hot-table>
 </template>
 
 <script>

@@ -113,7 +113,15 @@ export class AppComponent  {
 **Template**
 
 ```html
-<hot-table [data]="data" [colHeaders]="true" [rowHeaders]="true" [width]="600" [height]="300"></hot-table>
+<hot-table 
+  [data]="data" 
+  [colHeaders]="true" 
+  [rowHeaders]="true" 
+  [width]="600" 
+  [height]="300" 
+  [autoWrapRow] 
+  [autoWrapCol]="true">
+</hot-table>
 ```
 
 ### [View live demo](https://handsontable.com/docs/angular-simple-example/)
