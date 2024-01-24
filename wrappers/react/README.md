@@ -46,11 +46,9 @@ The most popular features of Handsontable for React:
 
 <div id="installation"></div>
 
-## Get started
+## Installation
 
-### 1. Install Handsontable
-
-Get Handsontable from [npm](https://www.npmjs.com/package/@handsontable/react) or [Yarn](https://yarnpkg.com/package/@handsontable/react).
+Get Handsontable from your package manager of choice
 
 ```bash
 npm install handsontable @handsontable/react

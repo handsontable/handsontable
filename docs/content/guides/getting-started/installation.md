@@ -99,7 +99,7 @@ If you're using Handsontable as a traditional UMD package, import the full distr
 Use the `script` tag. For example, if you're loading Handsontable's JavaScript from a CDN:
 
 ```html
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 ```
 
 ## 3. Import Handsontable's CSS

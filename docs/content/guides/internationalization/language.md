@@ -67,8 +67,8 @@ To properly use the internationalization feature, you need to load the language 
 
   Languages included this way are ready to use immediately after loading the file. Each file contains a UMD loader that looks for `Handsontable` in a global/externals context. If `Handsontable` is available then it registers itself in the proper context.
   ```html
-  <script type="text/javascript" src="dist/handsontable.full.js"></script>
-  <script type="text/javascript" src="dist/languages/de-DE.js"></script>
+  <script src="dist/handsontable.full.js"></script>
+  <script src="dist/languages/de-DE.js"></script>
   <script>
     const hot = new Handsontable(container, {
       language: 'de-DE',

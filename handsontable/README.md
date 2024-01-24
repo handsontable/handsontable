@@ -21,7 +21,7 @@ It provides data binding, data validation, filtering, sorting, and CRUD operatio
       <a href="https://handsontable.com/docs/react-data-grid/installation/"> <strong>React</strong></a>&nbsp;
     </td>
     <td>
-      <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="14" height="14">
+      <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.png" width="14" height="14">
       <a href="https://handsontable.com/docs/javascript-data-grid/angular-installation/"> <strong>Angular</strong></a>&nbsp;
     </td>
     <td>
@@ -32,10 +32,10 @@ It provides data binding, data validation, filtering, sorting, and CRUD operatio
       <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="14" height="14">
       <a href="https://handsontable.com/docs/javascript-data-grid/vue3-installation/"> <strong>Vue 3</strong></a>&nbsp;
     </td>
-    <td>
+    <!-- <td>
       <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/ts-logo-512.svg" width="14" height="14">&nbsp;
       <a href="https://codesandbox.io/s/handsontable-data-grid-v14-1-0-typescript-demo-v8sfm6"> <strong>TypeScript</strong></a>&nbsp;
-    </td>
+    </td> -->
     <td>
       <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/javascript-icon.svg" width="14" height="14">&nbsp;
       <a href="https://handsontable.com/docs/javascript-data-grid/installation/"> <strong>JavaScript</strong></a>&nbsp;
@@ -89,7 +89,7 @@ npm i handsontable
 #### CDN
 
 ```html
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
 ```

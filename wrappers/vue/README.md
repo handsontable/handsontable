@@ -46,15 +46,14 @@ The most popular features of Handsontable for Vue:
 
 <div id="installation"></div>
 
-## Get Started
-### Install with npm
+## Installation
 
-Run the following command in your terminal
+Get Handsontable from your package manager of choice
 ```
 npm install handsontable @handsontable/vue
 ```
 
-You can load it directly from [jsDelivr](https:jsdelivr.com/package/npm/@handsontable/vue) as well.
+CDN
 ```html
 <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@handsontable/vue/dist/vue-handsontable.min.js"></script>
