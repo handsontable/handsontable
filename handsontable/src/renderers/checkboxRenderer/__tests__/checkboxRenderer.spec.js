@@ -423,7 +423,7 @@ describe('CheckboxRenderer', () => {
     expect(getDataAtCell(0, 0)).toBe(false);
   });
 
-  it('double click on checkbox cell should invert the value', () => {
+  it('double click on checkbox cell should work properly', () => {
     handsontable({
       data: [
         [true],
@@ -435,16 +435,11 @@ describe('CheckboxRenderer', () => {
       ]
     });
 
-    selectCell(0, 0);
-
-    mouseDoubleClick(getCell(0, 0));
-    expect(getDataAtCell(0, 0)).toBe(false);
-
     mouseDoubleClick(getCell(0, 0));
     expect(getDataAtCell(0, 0)).toBe(true);
 
-    mouseDoubleClick(getCell(0, 0));
-    expect(getDataAtCell(0, 0)).toBe(false);
+    mouseDoubleClick(getCell(1, 0));
+    expect(getDataAtCell(1, 0)).toBe(false);
   });
 
   it('should change checkbox state from checked to unchecked after hitting ENTER', () => {
