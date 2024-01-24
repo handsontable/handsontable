@@ -4837,9 +4837,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this._refreshBorders = function(revertOriginal = false, prepareEditorIfNeeded = true) {
     editorManager.destroyEditor(revertOriginal);
-    // console.time('render');
     instance.view.render();
-    // console.timeEnd('render');
 
     if (prepareEditorIfNeeded && selection.isSelected()) {
       editorManager.prepareEditor();
