@@ -21,7 +21,7 @@ It provides data binding, data validation, filtering, sorting, and CRUD operatio
       <a href="https://handsontable.com/docs/react-data-grid/installation/"> <strong>React</strong></a>&nbsp;
     </td>
     <td>
-      <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.png" width="14" height="14">
+      <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="18" height="18">
       <a href="https://handsontable.com/docs/javascript-data-grid/angular-installation/"> <strong>Angular</strong></a>&nbsp;
     </td>
     <td>

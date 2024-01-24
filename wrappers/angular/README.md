@@ -2,7 +2,7 @@
 
 <a href="https://handsontable.com" rel="nofollow"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-blue.svg" alt="Handsontable - data grid for Angular" width="300"></a>
 
-# Data Grid for Angular <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.png" width="22" height="22">
+# Data Grid for Angular <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="32" height="32">
 
 Handsontable's wrapper for Angular combines data grid features with spreadsheet-like UX. <br>
 It provides data binding, data validation, filtering, sorting, and CRUD operations.
