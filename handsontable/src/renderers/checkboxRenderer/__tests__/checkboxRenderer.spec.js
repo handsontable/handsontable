@@ -423,7 +423,7 @@ describe('CheckboxRenderer', () => {
     expect(getDataAtCell(0, 0)).toBe(false);
   });
 
-  it('double click on checkbox cell should work properly', () => {
+  it('double click on checkbox cell should invert the value', () => {
     handsontable({
       data: [
         [true],
@@ -435,10 +435,36 @@ describe('CheckboxRenderer', () => {
       ]
     });
 
+    selectCell(0, 0);
+
+    mouseDoubleClick(getCell(0, 0));
+    expect(getDataAtCell(0, 0)).toBe(false);
+
     mouseDoubleClick(getCell(0, 0));
     expect(getDataAtCell(0, 0)).toBe(true);
 
-    mouseDoubleClick(getCell(1, 0));
+    mouseDoubleClick(getCell(0, 0));
+    expect(getDataAtCell(0, 0)).toBe(false);
+  });
+
+  it('double click on input[type=checkbox] element inside checkbox cell should not invert the value', () => {
+    handsontable({
+      data: [
+        [true],
+        [false],
+        [true]
+      ],
+      columns: [
+        { type: 'checkbox' }
+      ]
+    });
+
+    selectCell(0, 0);
+
+    mouseDoubleClick($(getCell(0, 0)).find('input[type=checkbox]'));
+    expect(getDataAtCell(0, 0)).toBe(true);
+
+    mouseDoubleClick($(getCell(1, 0)).find('input[type=checkbox]'));
     expect(getDataAtCell(1, 0)).toBe(false);
   });
 
