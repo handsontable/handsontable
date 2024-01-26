@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed unnatural checkbox behaviour after double click",
+  "type": "changed",
+  "issueOrPR": 10748,
+  "breaking": false,
+  "framework": "none"
+}
