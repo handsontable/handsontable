@@ -103,7 +103,7 @@ module.exports = {
       'script',
       {
         id: 'Sentry.io',
-        src: 'https://js.sentry-cdn.com/493ec58fb6295a69f711573c5a04cf05.min.js',
+        src: 'https://js.sentry-cdn.com/611b4dbe630c4a434fe1367b98ba3644.min.js',
         crossorigin: 'anonymous',
       },
     ],
