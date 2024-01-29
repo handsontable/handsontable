@@ -76,7 +76,7 @@ export function toEmptyString(value) {
 }
 
 /**
- * Unify column values (replace `null` and `undefined` values into empty string, unique values and sort them).
+ * Unify column values (remove duplicated values and sort them).
  *
  * @param {Array} values An array of values.
  * @returns {Array}

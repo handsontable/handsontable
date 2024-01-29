@@ -251,6 +251,6 @@ export class ValueComponent extends BaseComponent {
       return [];
     }
 
-    return arrayMap(this.hot.getDataAtCol(selectedColumn.visualIndex), v => toEmptyString(v));
+    return arrayMap(this.hot.getDisplayValuesAtCol(selectedColumn.visualIndex), v => toEmptyString(v));
   }
 }

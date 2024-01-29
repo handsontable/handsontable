@@ -1747,6 +1747,24 @@ export default () => {
 
     /**
      * @description
+     * The `displayValue` cell meta property defines a string that will be used to display the cell's contents
+     * in the Filters UI multi-selection module.
+     *
+     * For example, it can be utlized:
+     * - When the cell's underlying value is not easily readable.
+     * - With custom renderers.
+     *
+     * Currently used by default to display the numeric renderer's output.
+     *
+     * @memberof Options#
+     * @type {string}
+     * @default undefined
+     * @category Core
+     */
+    displayValue: undefined,
+
+    /**
+     * @description
      * The `dragToScroll` option configures the [`DragToScroll`](@/api/dragToScroll.md) plugin.
      *
      * You can set the `dragToScroll` option to one of the following:

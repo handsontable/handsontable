@@ -53,6 +53,8 @@ export function numericRenderer(hotInstance, TD, row, col, prop, value, cellProp
     TD.dir = 'ltr';
   }
 
+  cellProperties.displayValue = newValue;
+
   textRenderer(hotInstance, TD, row, col, prop, newValue, cellProperties);
 }
 
