@@ -100,6 +100,14 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
   portalCacheArray: React.ReactPortal[] = [];
 
   /**
+   * Portal Container Cache
+   *
+   * @private
+   * @type {Map}
+   */
+  private portalContainerCache: Map<string, HTMLElement> = new Map();
+
+  /**
    * The rendered cells cache.
    *
    * @private
@@ -167,6 +175,15 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
   };
 
   /**
+   * Get Portal Container Cache
+   *
+   * @returns {Map}
+   */
+  getPortalContainerCache(): Map<string, HTMLElement> {
+    return this.portalContainerCache;
+  }
+
+  /**
    * Get the rendered table cell cache.
    *
    * @returns {Map}
@@ -220,39 +237,51 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
    * @param {React.ReactElement} rendererElement React renderer component.
    * @returns {Handsontable.renderers.Base} The Handsontable rendering function.
    */
-  getRendererWrapper(rendererElement: React.ReactElement): typeof Handsontable.renderers.BaseRenderer | any {
+  getRendererWrapper(rendererElement: React.ReactElement): typeof Handsontable.renderers.BaseRenderer {
     const hotTableComponent = this;
 
     return function (instance, TD, row, col, prop, value, cellProperties) {
       const renderedCellCache = hotTableComponent.getRenderedCellCache();
+      const portalContainerCache = hotTableComponent.getPortalContainerCache()
+      const key = `${row}-${col}`;
 
-      if (renderedCellCache.has(`${row}-${col}`)) {
-        TD.innerHTML = renderedCellCache.get(`${row}-${col}`).innerHTML;
+      // Handsontable.Core type is mising guid
+      const portalContainerKey = `${(instance as unknown as { guid: string }).guid}${key}`
+
+      if (renderedCellCache.has(key)) {
+        TD.innerHTML = renderedCellCache.get(key).innerHTML;
       }
 
       if (TD && !TD.getAttribute('ghost-table')) {
-
-        const {portal, portalContainer} = createPortal(rendererElement, {
-          TD,
-          row,
-          col,
-          prop,
-          value,
-          cellProperties,
-          isRenderer: true
-        }, TD.ownerDocument);
+        const cachedPortal = hotTableComponent.portalCacheArray.find(portal => portal.key?.includes(key));
+        const cachedPortalContainer = portalContainerCache.get(portalContainerKey);
 
         while (TD.firstChild) {
           TD.removeChild(TD.firstChild);
         }
 
-        TD.appendChild(portalContainer);
+        // if portal already exists, do not recreate
+        if (cachedPortal && cachedPortalContainer) {
+          TD.appendChild(cachedPortalContainer);
+        } else {
+          const { portal, portalContainer } = createPortal(rendererElement, {
+            TD,
+            row,
+            col,
+            prop,
+            value,
+            cellProperties,
+            isRenderer: true
+          }, TD.ownerDocument, cachedPortalContainer);
 
-        hotTableComponent.portalCacheArray.push(portal);
+          hotTableComponent.getPortalContainerCache().set(portalContainerKey, portalContainer)
+          TD.appendChild(portalContainer);
+
+          hotTableComponent.portalCacheArray.push(portal);
+        }
       }
 
-      renderedCellCache.set(`${row}-${col}`, TD);
-
+      renderedCellCache.set(key, TD);
       return TD;
     };
   }

@@ -142,11 +142,12 @@ export function getExtendedEditorElement(children: React.ReactNode, editorCache:
  * @param {React.ReactElement} rElement React element to be used as a base for the component.
  * @param {Object} props Props to be passed to the cloned element.
  * @param {Document} [ownerDocument] The owner document to set the portal up into.
+ * @param {HTMLElement} [cachedContainer] The cached container to be used for the portal.
  * @returns {{portal: React.ReactPortal, portalContainer: HTMLElement}} An object containing the portal and its container.
  */
-export function createPortal(rElement: React.ReactElement, props, ownerDocument: Document = document): {
+export function createPortal(rElement: React.ReactElement, props, ownerDocument: Document = document, cachedContainer?: HTMLElement): {
   portal: React.ReactPortal,
-  portalContainer: HTMLElement
+  portalContainer: HTMLElement,
 } {
   if (!ownerDocument) {
     ownerDocument = document;
@@ -156,7 +157,7 @@ export function createPortal(rElement: React.ReactElement, props, ownerDocument:
     bulkComponentContainer = ownerDocument.createDocumentFragment();
   }
 
-  const portalContainer = ownerDocument.createElement('DIV');
+  const portalContainer = cachedContainer ?? ownerDocument.createElement('DIV');
   bulkComponentContainer.appendChild(portalContainer);
 
   const extendedRendererElement = React.cloneElement(rElement, {
