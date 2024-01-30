@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improve react portal caching",
+  "type": "changed",
+  "issueOrPR": 10758,
+  "breaking": false,
+  "framework": "react"
+}
