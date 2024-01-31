@@ -245,8 +245,10 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
       const portalContainerCache = hotTableComponent.getPortalContainerCache()
       const key = `${row}-${col}`;
 
+      const instanceGuid = (instance as unknown as { guid: string }).guid;
+
       // Handsontable.Core type is mising guid
-      const portalContainerKey = `${(instance as unknown as { guid: string }).guid}${key}`
+      const portalContainerKey = `${instanceGuid}${key}`
 
       if (renderedCellCache.has(key)) {
         TD.innerHTML = renderedCellCache.get(key).innerHTML;
@@ -272,7 +274,7 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
             value,
             cellProperties,
             isRenderer: true
-          }, TD.ownerDocument, cachedPortalContainer);
+          }, TD.ownerDocument, instanceGuid, cachedPortalContainer);
 
           hotTableComponent.getPortalContainerCache().set(portalContainerKey, portalContainer)
           TD.appendChild(portalContainer);
