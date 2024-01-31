@@ -1,7 +1,7 @@
 {
   "issuesOrigin": "private",
   "title": "Adds localization for Croatian language",
-  "type": "add",
+  "type": "added",
   "issueOrPR": 10762,
   "breaking": false,
   "framework": "none"
