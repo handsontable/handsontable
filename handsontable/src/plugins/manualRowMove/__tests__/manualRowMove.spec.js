@@ -897,6 +897,26 @@ describe('manualRowMove', () => {
 
         expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       });
+
+      it('when moving using few actions', () => {
+        const hot = handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          rowHeaders: true,
+          manualRowMove: true,
+        });
+
+        hot.getPlugin('manualRowMove').moveRow(0, 9);
+        hot.getPlugin('manualRowMove').moveRow(0, 9);
+        hot.render();
+
+        hot.undo();
+
+        expect(hot.getDataAtCol(0)).toEqual(['A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A1']);
+
+        hot.undo();
+
+        expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+      });
     });
 
     describe('should revert changes', () => {
@@ -962,6 +982,29 @@ describe('manualRowMove', () => {
         hot.redo();
 
         expect(hot.getDataAtCol(0)).toEqual(['A3', 'A4', 'A1', 'A2', 'A9', 'A5', 'A8', 'A6', 'A7', 'A10']);
+      });
+
+      it('when moving using few actions', () => {
+        const hot = handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          rowHeaders: true,
+          manualRowMove: true,
+        });
+
+        hot.getPlugin('manualRowMove').moveRow(0, 9);
+        hot.getPlugin('manualRowMove').moveRow(0, 9);
+        hot.render();
+
+        hot.undo();
+        hot.undo();
+
+        hot.redo();
+
+        expect(hot.getDataAtCol(0)).toEqual(['A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A1']);
+
+        hot.redo();
+
+        expect(hot.getDataAtCol(0)).toEqual(['A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A1', 'A2', ]);
       });
     });
   });

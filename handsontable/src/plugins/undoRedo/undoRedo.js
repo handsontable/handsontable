@@ -3,6 +3,7 @@ import { arrayMap, arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { inherit, deepClone } from '../../helpers/object';
 import { align } from '../contextMenu/utils';
+import { getMoves } from '../../helpers/moves';
 
 const SHORTCUTS_GROUP = 'undoRedo';
 
@@ -902,23 +903,20 @@ inherit(UndoRedo.RowMoveAction, UndoRedo.Action);
 
 UndoRedo.RowMoveAction.prototype.undo = function(instance, undoneCallback) {
   const manualRowMove = instance.getPlugin('manualRowMove');
-  const copyOfRows = [].concat(this.rows);
-  const rowsMovedUp = copyOfRows.filter(a => a > this.finalRowIndex);
-  const rowsMovedDown = copyOfRows.filter(a => a <= this.finalRowIndex);
-  const allMovedRows = rowsMovedUp.sort((a, b) => b - a).concat(rowsMovedDown.sort((a, b) => a - b));
 
   instance.addHookOnce('afterViewRender', undoneCallback);
 
-  // Moving rows from those with higher indexes to those with lower indexes when action was performed from bottom to top
-  // Moving rows from those with lower indexes to those with higher indexes when action was performed from top to bottom
-  for (let i = 0; i < allMovedRows.length; i += 1) {
-    const newPhysicalRow = instance.toVisualRow(allMovedRows[i]);
+  const rowMoves = getMoves(this.rows, this.finalRowIndex, instance.rowIndexMapper.getNumberOfIndexes());
 
-    manualRowMove.moveRow(newPhysicalRow, allMovedRows[i]);
-  }
+  rowMoves.reverse().forEach(({ from, to }) => {
+    if (from < to) {
+      to -= 1;
+    }
+
+    manualRowMove.moveRow(to, from);
+  });
 
   instance.render();
-
   instance.deselectCell();
   instance.selectRows(this.rows[0], this.rows[0] + this.rows.length - 1);
 };
@@ -949,23 +947,20 @@ inherit(UndoRedo.ColumnMoveAction, UndoRedo.Action);
 
 UndoRedo.ColumnMoveAction.prototype.undo = function(instance, undoneCallback) {
   const manualColumnMove = instance.getPlugin('manualColumnMove');
-  const copyOfColumns = [].concat(this.columns);
-  const columnsMovedLeft = copyOfColumns.filter(a => a > this.finalColumnIndex);
-  const rowsMovedRight = copyOfColumns.filter(a => a <= this.finalColumnIndex);
-  const allMovedColumns = columnsMovedLeft.sort((a, b) => b - a).concat(rowsMovedRight.sort((a, b) => a - b));
 
   instance.addHookOnce('afterViewRender', undoneCallback);
 
-  // Moving columns from those with higher indexes to those with lower indexes when action was performed from right to left
-  // Moving columns from those with lower indexes to those with higher indexes when action was performed from left to right
-  for (let i = 0; i < allMovedColumns.length; i += 1) {
-    const newPhysicalColumn = instance.toVisualColumn(allMovedColumns[i]);
+  const columnMoves = getMoves(this.columns, this.finalColumnIndex, instance.columnIndexMapper.getNumberOfIndexes());
 
-    manualColumnMove.moveColumn(newPhysicalColumn, allMovedColumns[i]);
-  }
+  columnMoves.reverse().forEach(({ from, to }) => {
+    if (from < to) {
+      to -= 1;
+    }
+
+    manualColumnMove.moveColumn(to, from);
+  });
 
   instance.render();
-
   instance.deselectCell();
   instance.selectColumns(this.columns[0], this.columns[0] + this.columns.length - 1);
 };
