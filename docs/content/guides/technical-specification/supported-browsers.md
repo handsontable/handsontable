@@ -29,7 +29,7 @@ We carefully test our code on the **two latest versions** of every modern browse
 
 Tests are run in [BrowserStack](https://www.browserstack.com/) as well as on a limited number of physical desktop and mobile devices. Access to physical machines gives us an opportunity to measure the performance better which is hard to do with virtual machines.
 
-## List of browsers
+## List of supported browsers
 
 | Desktop Browsers | Mobile Browsers     |
 | :--------------- | :------------------ |
@@ -39,9 +39,3 @@ Tests are run in [BrowserStack](https://www.browserstack.com/) as well as on a l
 | Edge             | Safari iOS          |
 | Opera            | Opera               |
 | QQ browser       | Samsung Internet    |
-
-::: tip
-
-Handsontable 11.x is the long-term support (LTS) version for Internet Explorer 11 and Edge Legacy (the non-Chromium version of Edge), until the end of 2023.
-
-:::
