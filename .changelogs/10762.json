@@ -1,4 +1,5 @@
 {
+  "issuesOrigin": "private",
   "title": "Adds localization for Croatian language",
   "type": "add",
   "issueOrPR": 10762,
