@@ -1,0 +1,7 @@
+{
+  "title": "Adds localization for Croatian language",
+  "type": "add",
+  "issueOrPR": 10762,
+  "breaking": false,
+  "framework": "none"
+}
