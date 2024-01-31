@@ -11,6 +11,7 @@ import {
   isOutsideInput,
   isVisible,
   setAttribute,
+  getParentWindow,
 } from './helpers/dom/element';
 import EventManager from './eventManager';
 import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
@@ -283,14 +284,13 @@ class TableView {
    * @private
    */
   registerEvents() {
-    const { rootElement, rootDocument, selection } = this.hot;
+    const { rootElement, rootDocument, selection, rootWindow } = this.hot;
     const documentElement = rootDocument.documentElement;
 
     this.eventManager.addEventListener(rootElement, 'mousedown', (event) => {
       this.#selectionMouseDown = true;
 
       if (!this.isTextSelectionAllowed(event.target)) {
-        const { rootWindow } = this.hot;
 
         clearTextSelection(rootWindow);
         event.preventDefault();
@@ -305,7 +305,7 @@ class TableView {
       if (this.#selectionMouseDown && !this.isTextSelectionAllowed(event.target)) {
         // Clear selection only when fragmentSelection is enabled, otherwise clearing selection breaks the IME editor.
         if (this.settings.fragmentSelection) {
-          clearTextSelection(this.hot.rootWindow);
+          clearTextSelection(rootWindow);
         }
         event.preventDefault();
       }
@@ -402,6 +402,16 @@ class TableView {
         this.hot.destroyEditor(false, false);
       }
     });
+
+    let parentWindow = getParentWindow(rootWindow);
+
+    while (parentWindow !== null) {
+      this.eventManager.addEventListener(parentWindow.document.documentElement, 'click', () => {
+        this.hot.unlisten();
+      });
+
+      parentWindow = getParentWindow(parentWindow);
+    }
 
     this.eventManager.addEventListener(this.#table, 'selectstart', (event) => {
       if (this.settings.fragmentSelection || isInput(event.target)) {
