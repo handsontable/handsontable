@@ -1004,7 +1004,7 @@ describe('manualRowMove', () => {
 
         hot.redo();
 
-        expect(hot.getDataAtCol(0)).toEqual(['A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A1', 'A2', ]);
+        expect(hot.getDataAtCol(0)).toEqual(['A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A1', 'A2']);
       });
     });
   });
