@@ -13,11 +13,12 @@ export class CheckboxEditor extends BaseEditor {
   }
 
   beginEditing(initialValue, event) {
-    // Just some events connected with checkbox editor are delegated here. Some `keydown` events like `enter` and `space` key press
-    // are handled inside `checkboxRenderer`. Some events come here from `editorManager`. Below `if` statement was created by author
-    // for purpose of handling only `doubleclick` event which may be done on a cell with checkbox.
+    // Just some events connected with the checkbox editor are delegated here. Some `keydown` events like `enter` and
+    // `space` key presses are handled inside `checkboxRenderer`. Some events come here from `editorManager`. The below
+    // `if` statement was created by the author for the purpose of handling only the `doubleclick` event on the TD
+    // element with a checkbox.
 
-    if (event && event.type === 'mouseup') {
+    if (event && event.type === 'mouseup' && event.target.nodeName === 'TD') {
       const checkbox = this.TD.querySelector('input[type="checkbox"]');
 
       if (!hasClass(checkbox, 'htBadValue')) {
