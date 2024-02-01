@@ -343,7 +343,6 @@ export class MultipleSelectUI extends BaseUI {
     for (let row = 0; row < sourceRowCount; row += 1) {
       const cellMeta = this.hot.getCellMeta(row, column);
       const {
-        renderer,
         prop,
         displayValue
       } = cellMeta;
@@ -354,7 +353,7 @@ export class MultipleSelectUI extends BaseUI {
 
       } else {
         // Render the cell in a mock element to try to get the display value (possibly applied in the renderer).
-        renderMockCell(this.hot.rootDocument, renderer, [
+        renderMockCell(this.hot.rootDocument, this.hot.getCellRenderer(row, column), [
           this.hot,
           row,
           column,
