@@ -2973,37 +2973,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the display values for all the cells at the given `column` visual index.
-   * If no display values are defined, the `data` values will be returned instead.
-   *
-   * @memberof Core#
-   * @function getDisplayValuesAtCol
-   * @since 14.2.0
-   * @param {number} column From visual column index.
-   * @returns {Array[]} Array containing the display values of all the cells in the column.
-   */
-  this.getDisplayValuesAtCol = function(column) {
-    const columnData = [];
-    let value;
-
-    for (let row = 0; row < tableMeta.data.length; row += 1) {
-      const cellMeta = this.getCellMeta(row, column);
-      const { displayValue } = cellMeta;
-
-      if (displayValue) {
-        value = displayValue;
-
-      } else {
-        value = this.getDataAtCell(row, column);
-      }
-
-      columnData.push(value);
-    }
-
-    return columnData;
-  };
-
-  /**
    * Returns a clone of the source data object.
    * Optionally you can provide a cell range by using the `row`, `column`, `row2`, `column2` arguments, to get only a
    * fragment of the table data.

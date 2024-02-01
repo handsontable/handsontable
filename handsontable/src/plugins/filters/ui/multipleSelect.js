@@ -1,4 +1,4 @@
-import { addClass, getScrollbarWidth } from '../../../helpers/dom/element';
+import { addClass, getScrollbarWidth, renderMockCell } from '../../../helpers/dom/element';
 import { clone, extend } from '../../../helpers/object';
 import { arrayFilter, arrayMap, arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
@@ -320,6 +320,57 @@ export class MultipleSelectUI extends BaseUI {
     this.#itemsBox = null;
     this.#items = null;
     super.destroy();
+  }
+
+  /**
+   * Returns the display values for all the cells at the given `column` visual index.
+   * If no display values are defined, the `source data` values will be returned instead.
+   *
+   * If the provided column index is not a valid integer, the method will return `null`.
+   *
+   * @param {number} column From visual column index.
+   * @returns {Array[]|null} Array containing the display values of all the cells in the column.
+   */
+  getDisplayValuesAtCol(column) {
+    if (!Number.isInteger(column)) {
+      return null;
+    }
+
+    const sourceRowCount = this.hot.countSourceRows();
+    const columnData = [];
+    let returnValue;
+
+    for (let row = 0; row < sourceRowCount; row += 1) {
+      const cellMeta = this.hot.getCellMeta(row, column);
+      const {
+        renderer,
+        prop,
+        displayValue
+      } = cellMeta;
+      const cellSourceData = this.hot.getSourceDataAtCell(row, column);
+
+      if (displayValue) {
+        returnValue = displayValue;
+
+      } else {
+        // Render the cell in a mock element to try to get the display value (possibly applied in the renderer).
+        renderMockCell(this.hot.rootDocument, renderer, [
+          this.hot,
+          row,
+          column,
+          prop,
+          cellSourceData,
+          cellMeta,
+        ]);
+
+        // Retry getting the display value.
+        returnValue = cellMeta.displayValue ?? cellSourceData;
+      }
+
+      columnData.push(returnValue);
+    }
+
+    return columnData;
   }
 
   /**

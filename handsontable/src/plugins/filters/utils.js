@@ -23,13 +23,17 @@ export function sortComparison(a, b) {
  *
  * @param {*} value The value to convert.
  * @param {string} defaultEmptyValue Default value for empty cells.
+ * @param {string} [displayValue] The display value.
  * @returns {*}
  */
-export function toVisualValue(value, defaultEmptyValue) {
+export function toVisualValue(value, defaultEmptyValue, displayValue) {
   let visualValue = value;
 
   if (visualValue === '') {
     visualValue = `(${defaultEmptyValue})`;
+
+  } else if (displayValue) {
+    visualValue = displayValue;
   }
 
   return visualValue;
@@ -105,15 +109,38 @@ export function unifyColumnValues(values) {
 }
 
 /**
+ * Synchronize display values with the provided unified values.
+ *
+ * @param {Array} displayValues An array of display values.
+ * @param {Array} values An array of source values.
+ * @param {Array} unifiedValues An array of unified values.
+ *
+ * @returns {Array} An array of synchronized display values.
+ */
+export function syncDisplayValuesToUnifiedValues(displayValues, values, unifiedValues) {
+  const syncedDisplayValues = [];
+
+  arrayEach(unifiedValues, (unifiedValue) => {
+    const index = values.indexOf(unifiedValue);
+    const displayValue = displayValues[index];
+
+    syncedDisplayValues.push(displayValue);
+  });
+
+  return syncedDisplayValues;
+}
+
+/**
  * Intersect 'base' values with 'selected' values and return an array of object.
  *
  * @param {Array} base An array of base values.
  * @param {Array} selected An array of selected values.
  * @param {string} defaultEmptyValue Default value for empty cells.
+ * @param {string[]} [displayValues] An array of display values.
  * @param {Function} [callback] A callback function which is invoked for every item in an array.
  * @returns {Array}
  */
-export function intersectValues(base, selected, defaultEmptyValue, callback) {
+export function intersectValues(base, selected, defaultEmptyValue, displayValues, callback) {
   const result = [];
   const same = base === selected;
   let selectedItemsAssertion;
@@ -122,14 +149,14 @@ export function intersectValues(base, selected, defaultEmptyValue, callback) {
     selectedItemsAssertion = createArrayAssertion(selected);
   }
 
-  arrayEach(base, (value) => {
+  arrayEach(base, (value, index) => {
     let checked = false;
 
     if (same || selectedItemsAssertion(value)) {
       checked = true;
     }
 
-    const item = { checked, value, visualValue: toVisualValue(value, defaultEmptyValue) };
+    const item = { checked, value, visualValue: toVisualValue(value, defaultEmptyValue, displayValues[index]) };
 
     if (callback) {
       callback(item);

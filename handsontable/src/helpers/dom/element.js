@@ -1148,3 +1148,21 @@ export function runWithSelectedContendEditableElement(element, callback, invisib
 
   removeContentEditableFromElementAndDeselect(element, invisibleSelection);
 }
+
+/**
+ * Return a `td` element rendered outside of the table with the provided renderer function.
+ *
+ * @param {Document} rootDocument Root document element.
+ * @param {Function} renderFunction The renderer function.
+ * @param {Array} renderArgs The renderer arguments.
+ * @returns {HTMLElement} The rendered `td` element.
+ */
+export function renderMockCell(rootDocument, renderFunction, renderArgs) {
+  const cell = rootDocument.createElement('td');
+
+  renderArgs.splice(1, 0, cell);
+
+  renderFunction.call(renderArgs.instance, ...renderArgs);
+
+  return cell;
+}

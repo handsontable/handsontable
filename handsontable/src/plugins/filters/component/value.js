@@ -3,7 +3,7 @@ import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import { arrayEach, arrayFilter, arrayMap } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import * as C from '../../../i18n/constants';
-import { unifyColumnValues, intersectValues, toEmptyString } from '../utils';
+import { unifyColumnValues, intersectValues, toEmptyString, syncDisplayValuesToUnifiedValues } from '../utils';
 import { BaseComponent } from './_base';
 import { MultipleSelectUI } from '../ui/multipleSelect';
 import { CONDITION_BY_VALUE, CONDITION_NONE } from '../constants';
@@ -101,6 +101,7 @@ export class ValueComponent extends BaseComponent {
    * `editedConditionStack`, `dependentConditionStacks`, `visibleDataFactory` and `conditionArgsChange`.
    */
   updateState(stateInfo) {
+    const multipleSelectComponent = this.getMultipleSelectElement();
     const updateColumnState = (
       physicalColumn,
       conditions,
@@ -113,9 +114,15 @@ export class ValueComponent extends BaseComponent {
       const defaultBlankCellValue = this.hot.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS);
 
       if (firstByValueCondition) {
-        const rowValues = unifyColumnValues(
-          arrayMap(filteredRowsFactory(physicalColumn, conditionsStack), row => row.value)
-        );
+        const filteredRows = filteredRowsFactory(physicalColumn, conditionsStack);
+        const rowValues = arrayMap(filteredRows, row => row.value);
+        const rowIndexes = arrayMap(filteredRows, row => row.meta.visualRow);
+        const unifiedRowValues = unifyColumnValues(rowValues);
+        const displayValues =
+          (multipleSelectComponent.getDisplayValuesAtCol(this.hot.toVisualColumn(physicalColumn)) || [])
+            .filter((value, index) => rowIndexes.includes(index));
+        const displayValuesSyncedWithUnifiedValues =
+          syncDisplayValuesToUnifiedValues(displayValues, rowValues, unifiedRowValues);
 
         if (conditionArgsChange) {
           firstByValueCondition.args[0] = conditionArgsChange;
@@ -123,9 +130,10 @@ export class ValueComponent extends BaseComponent {
 
         const selectedValues = [];
         const itemsSnapshot = intersectValues(
-          rowValues,
+          unifiedRowValues,
           firstByValueCondition.args[0],
           defaultBlankCellValue,
+          displayValuesSyncedWithUnifiedValues,
           (item) => {
             if (item.checked) {
               selectedValues.push(item.value);
@@ -211,15 +219,23 @@ export class ValueComponent extends BaseComponent {
    * Reset elements to their initial state.
    */
   reset() {
+    const multiSelectComponent = this.getMultipleSelectElement();
+    const selectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
     const defaultBlankCellValue = this.hot.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS);
-    const values = unifyColumnValues(this._getColumnVisibleValues());
-    const items = intersectValues(values, values, defaultBlankCellValue);
+    const values = this._getColumnVisibleValues();
+    const unifiedValues = unifyColumnValues(values);
+    const displayValues = multiSelectComponent.getDisplayValuesAtCol(selectedColumn?.visualIndex) || [];
+    const displayValuesSyncedWithUnifiedValues = syncDisplayValuesToUnifiedValues(displayValues, values, unifiedValues);
+    const items = intersectValues(
+      unifiedValues,
+      unifiedValues,
+      defaultBlankCellValue,
+      displayValuesSyncedWithUnifiedValues || []
+    );
 
     this.getMultipleSelectElement().setItems(items);
     super.reset();
-    this.getMultipleSelectElement().setValue(values);
-
-    const selectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
+    this.getMultipleSelectElement().setValue(unifiedValues);
 
     if (selectedColumn !== null) {
       this.getMultipleSelectElement().setLocale(this.hot.getCellMeta(0, selectedColumn.visualIndex).locale);
@@ -251,6 +267,6 @@ export class ValueComponent extends BaseComponent {
       return [];
     }
 
-    return arrayMap(this.hot.getDisplayValuesAtCol(selectedColumn.visualIndex), v => toEmptyString(v));
+    return arrayMap(this.hot.getDataAtCol(selectedColumn.visualIndex), v => toEmptyString(v));
   }
 }

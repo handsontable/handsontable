@@ -1058,6 +1058,39 @@ describe('Filters UI', () => {
       expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('(Blank cells)');
     });
 
+    it('should utilize the `displayValue` cell meta property to display the cell value', async() => {
+      const columnsSetting = getColumnsForFilters();
+
+      columnsSetting[1].renderer = (instance, td, row, col, prop, value, cellProperties) => {
+        cellProperties.displayValue = `Custom ${value}`;
+
+        Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, col, prop, value, cellProperties]);
+      };
+
+      handsontable({
+        data: getDataForFilters(),
+        columns: columnsSetting,
+        filters: true,
+        dropdownMenu: true,
+        width: 500,
+        height: 300
+      });
+
+      dropdownMenu(1);
+
+      await sleep(250);
+
+      const unifiedColDataSample = [
+        'Alice Blake', 'Alyssa Francis', 'Becky Ross', 'Bridges Sawyer', 'Burt Cash', 'Carissa Villarreal'
+      ];
+
+      for (let i = 0; i < unifiedColDataSample.length; i++) {
+        expect(
+          byValueMultipleSelect().element.querySelectorAll('.htCore td')[i].textContent
+        ).toBe(`Custom ${unifiedColDataSample[i]}`);
+      }
+    });
+
     it('shouldn\'t break "by value" items in the next filter stacks', (done) => {
       const data = getDataForFilters();
 
