@@ -1058,7 +1058,7 @@ describe('Filters UI', () => {
       expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('(Blank cells)');
     });
 
-    it('should utilize the `displayValue` cell meta property to display the cell value', async() => {
+    it('should utilize the `displayValue` cell meta property to display the cell value', () => {
       const columnsSetting = getColumnsForFilters();
 
       columnsSetting[1].renderer = (instance, td, row, col, prop, value, cellProperties) => {
@@ -1077,8 +1077,6 @@ describe('Filters UI', () => {
       });
 
       dropdownMenu(1);
-
-      await sleep(250);
 
       const unifiedColDataSample = [
         'Alice Blake', 'Alyssa Francis', 'Becky Ross', 'Bridges Sawyer', 'Burt Cash', 'Carissa Villarreal'
