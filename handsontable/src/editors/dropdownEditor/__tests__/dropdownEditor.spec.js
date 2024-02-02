@@ -319,6 +319,42 @@ describe('DropdownEditor', () => {
 
       window.onerror = prevError;
     });
+
+    it('should not throw any errors after opening the editor, when the saved value is represented by a option-cell ' +
+    'outside of the editor\'s initially loaded viewport', async() => {
+      const spy = jasmine.createSpyObj('error', ['test']);
+      const prevError = window.onerror;
+
+      window.onerror = function() {
+        spy.test();
+      };
+
+      handsontable({
+        data: [['49']],
+        columns: [
+          {
+            editor: 'dropdown',
+            source: (() => {
+              const arr = [];
+
+              for (let i = 0; i < 50; i++) {
+                arr.push(`${i}`);
+              }
+
+              return arr;
+            })(),
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+      await sleep(100);
+
+      expect(spy.test).not.toHaveBeenCalled();
+
+      window.onerror = prevError;
+    });
   });
 
   describe('closing the editor', () => {
