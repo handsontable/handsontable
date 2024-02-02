@@ -433,6 +433,7 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
    * Handsontable's `beforeViewRender` hook callback.
    */
   handsontableBeforeViewRender(): void {
+    this.portalCacheArray = [];
     this.getRenderedCellCache().clear();
   }
 
@@ -442,8 +443,6 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
   handsontableAfterViewRender(): void {
     this.renderersPortalManager.setState({
       portals: [...this.portalCacheArray]
-    }, () => {
-      this.portalCacheArray = [];
     });
   }
 
