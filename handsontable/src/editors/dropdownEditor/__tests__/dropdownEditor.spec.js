@@ -320,6 +320,7 @@ describe('DropdownEditor', () => {
       window.onerror = prevError;
     });
 
+    // https://github.com/handsontable/dev-handsontable/issues/1724
     it('should not throw any errors after opening the editor, when the saved value is represented by a option-cell ' +
     'outside of the editor\'s initially loaded viewport', async() => {
       const spy = jasmine.createSpyObj('error', ['test']);

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a problem with the dropdown editor throwing an error when the cell value was represented by a `td` outside of the initial editor viewport.",
+  "type": "fixed",
+  "issueOrPR": 10763,
+  "breaking": false,
+  "framework": "none"
+}
