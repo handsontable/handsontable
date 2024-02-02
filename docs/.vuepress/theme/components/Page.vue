@@ -79,7 +79,7 @@ export default {
           files: {
             'package.json': {
               content: {
-                name: "handsontable-demo",
+                name: 'handsontable-demo',
                 dependencies: {
                   handsontable: 'latest',
                   ...hyperformula

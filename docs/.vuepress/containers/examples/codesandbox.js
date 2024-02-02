@@ -2,8 +2,8 @@ const addStyleImport = (code, css) => {
   if (!css) return code;
 
   return code.replace(
-    "import 'handsontable/dist/handsontable.full.min.css';",
-    (match) => `${match}\nimport './style.css'`
+    'import \'handsontable/dist/handsontable.full.min.css\';',
+    match => `${match}\nimport './style.css'`
   );
 };
 
