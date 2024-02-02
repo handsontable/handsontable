@@ -56,8 +56,17 @@ export default {
       // form data values
       const html = submitEvent.target.elements.html.value;
       const js = submitEvent.target.elements.js.value;
+      const css = submitEvent.target.elements.css.value;
 
       const hyperformula = js.includes('hyperformula') ? { hyperformula: 'latest' } : {};
+
+      const cssObj = css
+        ? {
+          'style.css': {
+            content: css,
+          }
+        }
+        : {};
 
       // generate codesandbox demo id
       fetch('https://codesandbox.io/api/v1/sandboxes/define?json=1', {
@@ -70,18 +79,20 @@ export default {
           files: {
             'package.json': {
               content: {
+                name: "handsontable-demo",
                 dependencies: {
                   handsontable: 'latest',
                   ...hyperformula
                 }
               },
             },
-            'index.html': {
+            'public/index.html': {
               content: html,
             },
             'index.js': {
               content: js,
             },
+            ...cssObj
           },
         }),
       })

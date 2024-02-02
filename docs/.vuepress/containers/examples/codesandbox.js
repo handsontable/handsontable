@@ -1,13 +1,32 @@
+const addStyleImport = (code, css) => {
+  if (!css) return code;
+
+  return code.replace(
+    "import 'handsontable/dist/handsontable.full.min.css';",
+    (match) => `${match}\nimport './style.css'`
+  );
+};
+
 const codesandbox = (html, code, css) => {
+  const codeWithStyleImport = addStyleImport(code, css);
+
   return `
   <form class="form-codesandbox-external" @submit.prevent="$parent.$parent.submitCodesandbox">
     <textarea class="hidden" name="html" readOnly v-pre>
-${css ? `<style>
-${css}
-</style>
-` : ''}
-${html}</textarea>
-    <textarea class="hidden" name="js" readOnly v-pre>${code}</textarea>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Handontable example</title>
+  </head>
+<body>
+${html}
+</body>
+</html>
+    </textarea>
+    <textarea class="hidden" name="js" readOnly v-pre>${codeWithStyleImport}</textarea>
+    <textarea class="hidden" name="css" readOnly v-pre>${css}</textarea>
 
     <div class="js-codesandbox-link">
       <button type="submit" aria-label="Edit codesandbox">
