@@ -244,4 +244,41 @@ describe('MergeCells Selection', () => {
 
     expect($borderLeft.position().left).toBe(leftPositionBefore + 50);
   });
+
+  it('should correctly indicate that the selected merged cell is not multiple selection', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      colHeaders: true,
+      rowHeaders: true,
+      mergeCells: [
+        { row: 1, col: 1, rowspan: 2, colspan: 2 }
+      ]
+    });
+
+    selectCell(1, 1, 2, 2);
+
+    expect(hot.selection.isMultiple()).toBe(false);
+    expect(`
+      |   ║   : - : - :   :   |
+      |===:===:===:===:===:===|
+      |   ║   :   :   :   :   |
+      | - ║   : # :   :   :   |
+      | - ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    selectCell(2, 2, 1, 1);
+
+    expect(hot.selection.isMultiple()).toBe(false);
+    expect(`
+      |   ║   : - : - :   :   |
+      |===:===:===:===:===:===|
+      |   ║   :   :   :   :   |
+      | - ║   : # :   :   :   |
+      | - ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
 });
