@@ -180,6 +180,11 @@ class Selection {
       (...args) => this.runLocalHooks('beforeRowWrap', ...args));
     this.#transformation.addLocalHook('beforeColumnWrap',
       (...args) => this.runLocalHooks('beforeColumnWrap', ...args));
+
+    this.#focusTransformation.addLocalHook('beforeTransformStart',
+      (...args) => this.runLocalHooks('beforeModifyTransformStart', ...args));
+    this.#focusTransformation.addLocalHook('afterTransformStart',
+      (...args) => this.runLocalHooks('afterModifyTransformStart', ...args));
   }
 
   /**
