@@ -245,17 +245,18 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
       const portalContainerCache = hotTableComponent.getPortalContainerCache()
       const key = `${row}-${col}`;
 
+       // Handsontable.Core type is mising guid
       const instanceGuid = (instance as unknown as { guid: string }).guid;
 
-      // Handsontable.Core type is mising guid
       const portalContainerKey = `${instanceGuid}${key}`
+      const portalKey = `${key}-${instanceGuid}`
 
       if (renderedCellCache.has(key)) {
         TD.innerHTML = renderedCellCache.get(key).innerHTML;
       }
 
       if (TD && !TD.getAttribute('ghost-table')) {
-        const cachedPortal = hotTableComponent.portalCacheArray.find(portal => portal.key?.includes(key));
+        const cachedPortal = hotTableComponent.portalCacheArray.find(portal => portal.key === portalKey);
         const cachedPortalContainer = portalContainerCache.get(portalContainerKey);
 
         while (TD.firstChild) {
@@ -274,7 +275,7 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
             value,
             cellProperties,
             isRenderer: true
-          }, TD.ownerDocument, instanceGuid, cachedPortalContainer);
+          }, TD.ownerDocument, portalKey, cachedPortalContainer);
 
           hotTableComponent.getPortalContainerCache().set(portalContainerKey, portalContainer)
           TD.appendChild(portalContainer);

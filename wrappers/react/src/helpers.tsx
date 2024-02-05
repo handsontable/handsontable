@@ -142,10 +142,11 @@ export function getExtendedEditorElement(children: React.ReactNode, editorCache:
  * @param {React.ReactElement} rElement React element to be used as a base for the component.
  * @param {Object} props Props to be passed to the cloned element.
  * @param {Document} [ownerDocument] The owner document to set the portal up into.
+ * @param {String} portalKey The key to be used for the portal.
  * @param {HTMLElement} [cachedContainer] The cached container to be used for the portal.
  * @returns {{portal: React.ReactPortal, portalContainer: HTMLElement}} An object containing the portal and its container.
  */
-export function createPortal(rElement: React.ReactElement, props, ownerDocument: Document = document,guid: string, cachedContainer?: HTMLElement): {
+export function createPortal(rElement: React.ReactElement, props, ownerDocument: Document = document, portalKey: string, cachedContainer?: HTMLElement): {
   portal: React.ReactPortal,
   portalContainer: HTMLElement,
 } {
@@ -166,7 +167,7 @@ export function createPortal(rElement: React.ReactElement, props, ownerDocument:
   });
 
   return {
-    portal: ReactDOM.createPortal(extendedRendererElement, portalContainer, `${props.row}-${props.col}-${guid}`),
+    portal: ReactDOM.createPortal(extendedRendererElement, portalContainer, portalKey),
     portalContainer
   };
 }
