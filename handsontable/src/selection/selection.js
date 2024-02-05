@@ -505,6 +505,10 @@ class Selection {
    * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
    */
   setRangeFocus(coords) {
+    if (this.selectedRange.isEmpty()) {
+      return;
+    }
+
     const cellRange = this.selectedRange.current();
     const focusHighlight = this.highlight.getFocus();
 
