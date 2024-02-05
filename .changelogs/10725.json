@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `afterSelectionEnd` and `afterSelectionEndByProp` hooks overcall when the non-contiguous selection was applied",
+  "type": "fixed",
+  "issueOrPR": 10725,
+  "breaking": false,
+  "framework": "none"
+}

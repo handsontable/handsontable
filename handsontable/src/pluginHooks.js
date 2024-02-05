@@ -434,7 +434,7 @@ const REGISTERED_HOOKS = [
   'afterUpdateData',
 
   /**
-   * Fired after a scroll event, which is identified as a momentum scroll.
+   * Fired after a scroll event, which is identified as a momentum scroll (e.g. On an iPad).
    *
    * @event Hooks#afterMomentumScroll
    */
@@ -588,7 +588,8 @@ const REGISTERED_HOOKS = [
    * @since 14.0.0
    * @event Hooks#beforeViewportScrollVertically
    * @param {number} visualRow Visual row index.
-   * @returns {number} Returns modified row index (or the same as passed in the method argument) to which the viewport will be scrolled.
+   * @returns {number | boolean} Returns modified row index (or the same as passed in the method argument) to which
+   * the viewport will be scrolled. If the returned value is `false`, the scrolling will be canceled.
    */
   'beforeViewportScrollVertically',
 
@@ -599,7 +600,8 @@ const REGISTERED_HOOKS = [
    * @since 14.0.0
    * @event Hooks#beforeViewportScrollHorizontally
    * @param {number} visualColumn Visual column index.
-   * @returns {number} Returns modified column index (or the same as passed in the method argument) to which the viewport will be scrolled.
+   * @returns {number | boolean} Returns modified column index (or the same as passed in the method argument) to which
+   * the viewport will be scrolled. If the returned value is `false`, the scrolling will be canceled.
    */
   'beforeViewportScrollHorizontally',
 

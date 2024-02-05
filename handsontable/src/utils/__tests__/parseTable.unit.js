@@ -304,6 +304,75 @@ describe('htmlToGridSettings', () => {
     expect(config.mergeCells[1].rowspan).toBe(4);
   });
 
+  it('should parse table with long text properly', () => {
+    /* eslint-disable no-irregular-whitespace */
+    const htmlToParse = `
+      <table>
+       <tr>
+        <td>
+        <p><span>Some very long text with no line breaks inside table
+        cell. Some very long text with no line breaks</span></p>
+        <p><span>&nbsp;</span></p>
+        <p><span>&nbsp;</span></p>
+        <p><span>ins table cell. Some very long text with no line breaks
+        inside table cell. Some very long text with no line breaks inside table cell.
+        Some very long text with no line breaks inside table cell. Some very long
+        text with no line breaks inside table cell. Some very long text with no line
+        breaks inside table cell. Some very long text with no line breaks inside
+        table cell. Some very long text with no line breaks inside table cell. Some
+        very long text with no line breaks inside table cell. Some very long text
+        with no line breaks inside table cell. Some very long text with no line
+        breaks inside table cell. Some very long text with no line breaks inside
+        table cell. Some very long text with no line breaks inside table cell. Some
+        very long text with no line breaks inside table cell. Some very long text
+        with no line breaks inside table cell. Some very long text with no line
+        breaks inside table cell. Some very long text with no line breaks inside
+        table cell. Some very long text with no line breaks inside table cell. Some
+        very long text with no line breaks inside table cell. Some very long text
+        with no line breaks inside table cell. Some very long text with no line
+        breaks inside table cell. Some very long text with no line breaks inside
+        table cell. Some very long text with no line breaks inside table cell.</span></p>
+        </td>
+       </tr>
+       <tr>
+        <td>
+        <p><span>Another very long text with no line breaks inside table
+        cell. <span>       </span>Some very long text with
+        no line breaks <span>     </span>o line breo line
+        breo line breo line breo line bre</span></p>
+        <p><span>&nbsp;</span></p>
+        <p><span>NEW LINE</span></p>
+        </td>
+       </tr>
+      </table>`;
+    /* eslint-enable */
+
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data).toEqual([[
+      'Some very long text with no line breaks inside table cell. Some very long text with no line breaks' +
+      '\n\n\n' +
+      'ins table cell. Some very long text with no line breaks inside table cell. Some very long text with no line ' +
+      'breaks inside table cell. Some very long text with no line breaks inside table cell. Some very long text with ' +
+      'no line breaks inside table cell. Some very long text with no line breaks inside table cell. Some very long ' +
+      'text with no line breaks inside table cell. Some very long text with no line breaks inside table cell. Some ' +
+      'very long text with no line breaks inside table cell. Some very long text with no line breaks inside table ' +
+      'cell. Some very long text with no line breaks inside table cell. Some very long text with no line breaks ' +
+      'inside table cell. Some very long text with no line breaks inside table cell. Some very long text with no ' +
+      'line breaks inside table cell. Some very long text with no line breaks inside table cell. Some very long ' +
+      'text with no line breaks inside table cell. Some very long text with no line breaks inside table cell. Some ' +
+      'very long text with no line breaks inside table cell. Some very long text with no line breaks inside table ' +
+      'cell. Some very long text with no line breaks inside table cell. Some very long text with no line breaks ' +
+      'inside table cell. Some very long text with no line breaks inside table cell. Some very long text with no ' +
+      'line breaks inside table cell.'
+    ], [
+      'Another very long text with no line breaks inside table cell.        Some very long text with no line ' +
+      'breaks      o line breo line breo line breo line breo line bre' +
+      '\n\n' +
+      'NEW LINE'
+    ]]);
+  });
+
   describe('nestedHeaders', () => {
     it('should parse nested headers from HTML table', () => {
       const htmlToParse = [
