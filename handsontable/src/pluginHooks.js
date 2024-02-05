@@ -434,7 +434,7 @@ const REGISTERED_HOOKS = [
   'afterUpdateData',
 
   /**
-   * Fired after a scroll event, which is identified as a momentum scroll.
+   * Fired after a scroll event, which is identified as a momentum scroll (e.g. On an iPad).
    *
    * @event Hooks#afterMomentumScroll
    */
