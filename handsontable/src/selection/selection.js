@@ -576,24 +576,11 @@ class Selection {
    */
   transformFocus(rowDelta, colDelta) {
     const range = this.selectedRange.current();
-    let xOffset = 0;
-    let yOffset = 0;
-
-    if (this.isSelectedByRowHeader()) {
-      xOffset = this.settings.navigableHeaders ? this.tableProps.countRowHeaders() : 0;
-    } else {
-      xOffset = -this.tableProps.countRenderableColumnsInRange(0, range.getOuterTopStartCorner().col - 1);
-    }
-
-    if (this.isSelectedByColumnHeader()) {
-      yOffset = this.settings.navigableHeaders ? this.tableProps.countColHeaders() : 0;
-    } else {
-      yOffset = -this.tableProps.countRenderableRowsInRange(0, range.getOuterTopStartCorner().row - 1);
-    }
+    const { row, col } = range.getOuterTopStartCorner();
 
     this.#focusTransformation.setOffsetSize({
-      x: xOffset,
-      y: yOffset,
+      x: col < 0 ? Math.abs(col) : -this.tableProps.countRenderableColumnsInRange(0, col - 1),
+      y: row < 0 ? Math.abs(row) : -this.tableProps.countRenderableRowsInRange(0, row - 1),
     });
 
     this.setRangeFocus(this.#focusTransformation.transformStart(rowDelta, colDelta));
