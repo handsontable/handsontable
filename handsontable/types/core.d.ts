@@ -118,7 +118,7 @@ export default class Core {
   loadData(data: CellValue[][] | RowObject[], source?: string): void;
   populateFromArray(row: number, column: number, input: CellValue[][], endRow?: number,
     endColumn?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite'): void;
-  propToCol(prop: string | number): string | number;
+  propToCol<T extends number | string>(prop: string | number): T;
   redo(): void;
   refreshDimensions(): void;
   removeCellMeta(row: number, column: number, key: (keyof CellMeta) | string): void;
