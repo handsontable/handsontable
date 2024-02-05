@@ -112,7 +112,7 @@ displaySeparator();
   // Install the "next" package for examples
   await spawnProcess('npm run examples:install next');
 
-  // Build the examples/next directory.
+  // Build the examples directory.
   await spawnProcess('npm run in examples build');
 
   // Test all packages.
