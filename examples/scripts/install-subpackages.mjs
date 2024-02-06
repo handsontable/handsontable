@@ -16,33 +16,25 @@ const argv = yargs(hideBin(process.argv))
   .default('skip-clean', false)
   .argv;
 
-const [version] = argv._;
-
-if (!version) {
-  displayErrorMessage('Version for the examples was not provided.');
-
-  process.exit(1);
-}
-
 if (!argv.skipClean) {
   // Clean node_modules, package-lock and /dist/ for the versioned subpackages.
-  await spawnProcess(`node ./scripts/clean-subpackages.mjs ${version}`);
+  await spawnProcess(`node ./scripts/clean-subpackages.mjs `);
 }
 
 // Run `npm i` for all the examples in the versioned directory.
+
 for (const frameworkPackage of thisPackageJson.internal.framework_dirs) {
   const frameworkUrls = glob.sync(`${frameworkPackage}`);
+  console.log(frameworkUrls);
   const installs = [];
 
   for (const frameworkUrl of frameworkUrls) {
-    if ((version && frameworkUrl.startsWith(version))) {
       console.log(`\nRunning npm install for ${frameworkUrl}:\n`);
 
       installs.push(execa('npm', ['install', '--no-audit'], {
         cwd: frameworkUrl,
         stdio: 'inherit'
       }));
-    }
   }
 
   await Promise.all(installs);
@@ -51,7 +43,6 @@ for (const frameworkPackage of thisPackageJson.internal.framework_dirs) {
   // examples).
   await spawnProcess([
     'node ./scripts/link-packages.mjs',
-    '--f js ts angular angular-12 angular-13 angular-14 angular-15 angular-16 angular-17 react vue',
-    `--examples-version ${version}`,
+    '--f js ts react vue angular angular-17',
   ].join(' '));
 }

@@ -6,9 +6,9 @@
     "clean": "node ./scripts/clean-subpackages.mjs",
     "test": "cd .. && npm run examples:test next",
     "build": "cd .. && npm run examples:build next",
-    "install:version": "node ./scripts/install-subpackages.mjs",
+    "install:subpackages": "node ./scripts/install-subpackages.mjs",
     "link-packages": "node ./scripts/link-packages.mjs",
-    "prebuild": "npm run install:version next -- --skip-clean"
+    "prebuild": "npm run install:subpackages -- --skip-clean"
   },
   "eslintConfig": {
     "root": true,
@@ -18,7 +18,7 @@
   },
   "internal": {
     "framework_dirs": [
-      "@(next|@(+([0-9]).+([0-9]).+([0-9])*))/@(!(node_modules))/+(js|ts|angular|angular-*|react|vue)"
+      "+(docs|visual-tests)/+(js|ts|angular|angular-*|react|vue)"
     ]
   }
 }
