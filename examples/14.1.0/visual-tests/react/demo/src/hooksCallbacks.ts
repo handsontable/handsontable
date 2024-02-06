@@ -1,7 +1,7 @@
 import Handsontable from "handsontable";
-import { 
+import {
   SELECTED_CLASS,
-  ODD_ROW_CLASS 
+  ODD_ROW_CLASS
 } from "./constants";
 import { Events } from "handsontable/pluginHooks";
 
