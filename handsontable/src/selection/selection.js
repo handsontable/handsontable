@@ -577,13 +577,26 @@ class Selection {
   transformFocus(rowDelta, colDelta) {
     const range = this.selectedRange.current();
     const { row, col } = range.getOuterTopStartCorner();
+    const columnsInRange = this.tableProps.countRenderableColumnsInRange(0, col - 1);
+    const rowsInRange = this.tableProps.countRenderableRowsInRange(0, row - 1);
 
-    this.#focusTransformation.setOffsetSize({
-      x: col < 0 ? Math.abs(col) : -this.tableProps.countRenderableColumnsInRange(0, col - 1),
-      y: row < 0 ? Math.abs(row) : -this.tableProps.countRenderableRowsInRange(0, row - 1),
-    });
+    if (range.highlight.isHeader()) {
+      // for header focus selection calculate the new coords based on the selection including headers
+      this.#focusTransformation.setOffsetSize({
+        x: col < 0 ? Math.abs(col) : -columnsInRange,
+        y: row < 0 ? Math.abs(row) : -rowsInRange,
+      });
+    } else {
+      // for focus selection in cells calculate the new coords only based on the selected cells
+      this.#focusTransformation.setOffsetSize({
+        x: col < 0 ? 0 : -columnsInRange,
+        y: row < 0 ? 0 : -rowsInRange,
+      });
+    }
 
-    this.setRangeFocus(this.#focusTransformation.transformStart(rowDelta, colDelta));
+    const focusCoords = this.#focusTransformation.transformStart(rowDelta, colDelta);
+
+    this.setRangeFocus(focusCoords.normalize());
   }
 
   /**
