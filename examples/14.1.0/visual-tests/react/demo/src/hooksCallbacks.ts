@@ -45,21 +45,24 @@ export const addClassesToRows: Events["beforeRenderer"] = (
   }
 };
 
-export const drawCheckboxInRowHeaders: Events["afterGetRowHeader"] =
-  function drawCheckboxInRowHeaders(this: Handsontable, row, TH) {
-    const input = document.createElement("input");
+export const drawCheckboxInRowHeaders: Events["afterGetRowHeader"] = function drawCheckboxInRowHeaders(
+  this: Handsontable,
+  row,
+  TH
+) {
+  const input = document.createElement("input");
 
-    input.type = "checkbox";
-    input.tabIndex = -1;
+  input.type = "checkbox";
+  input.tabIndex = -1;
 
-    if (row >= 0 && this.getDataAtRowProp(row, "0")) {
-      input.checked = true;
-    }
+  if (row >= 0 && this.getDataAtRowProp(row, "0")) {
+    input.checked = true;
+  }
 
-    Handsontable.dom.empty(TH);
+  Handsontable.dom.empty(TH);
 
-    TH.appendChild(input);
-  };
+  TH.appendChild(input);
+};
 
 export const alignHeaders: Events["afterGetColHeader"] = function alignHeaders(
   this: Handsontable,
@@ -82,13 +85,16 @@ export const alignHeaders: Events["afterGetColHeader"] = function alignHeaders(
   }
 };
 
-export const changeCheckboxCell: Events["afterOnCellMouseDown"] =
-  function changeCheckboxCell(this: Handsontable, event, coords) {
-    const target = event.target as HTMLInputElement;
+export const changeCheckboxCell: Events["afterOnCellMouseDown"] = function changeCheckboxCell(
+  this: Handsontable,
+  event,
+  coords
+) {
+  const target = event.target as HTMLInputElement;
 
-    if (coords.col === -1 && event.target && target.nodeName === "INPUT") {
-      event.preventDefault(); // Handsontable will render checked/unchecked checkbox by it own.
+  if (coords.col === -1 && event.target && target.nodeName === "INPUT") {
+    event.preventDefault(); // Handsontable will render checked/unchecked checkbox by it own.
 
-      this.setDataAtRowProp(coords.row, "0", !target.checked);
-    }
-  };
+    this.setDataAtRowProp(coords.row, "0", !target.checked);
+  }
+};
