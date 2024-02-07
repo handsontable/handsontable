@@ -100,7 +100,7 @@ jobs:
               - *hot-shared
               - 'wrappers/vue3/**'
             test-visual:
-              - './examples/visual-tests/**'
+              - './examples/next/visual-tests/**'
               - './visual-tests/**'
 
   build-handsontable-umd:
