@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable/base';
 import React from 'react';
-import { EditorScopeIdentifier, HotEditorCache, HotEditorElement } from './types'
+import { EditorScopeIdentifier, HotEditorCache, HotEditorElement, HotRendererProps } from './types'
 import { createPortal, getOriginalEditorClass, GLOBAL_EDITOR_SCOPE } from './helpers'
 import { RenderersPortalManager } from './renderersPortalManager'
 
@@ -32,10 +32,10 @@ export interface HotTableContextImpl {
   /**
    * Return a renderer wrapper function for the provided renderer component.
    *
-   * @param {React.ReactElement} rendererElement React renderer component.
+   * @param {React.ComponentType<HotRendererProps>} Renderer React renderer component.
    * @returns {Handsontable.renderers.Base} The Handsontable rendering function.
    */
-  readonly getRendererWrapper: (rendererNode: React.ReactElement) => typeof Handsontable.renderers.BaseRenderer;
+  readonly getRendererWrapper: (Renderer: React.ComponentType<HotRendererProps>) => typeof Handsontable.renderers.BaseRenderer;
 
   /**
    * Clears portals cache.
@@ -60,7 +60,7 @@ export interface HotTableContextImpl {
   /**
    * Set the renderers portal manager ref.
    *
-   * @param {React.ReactComponent} pmComponent The PortalManager component.
+   * @param {RenderersPortalManager} pmComponent The PortalManager component.
    */
   readonly setRenderersPortalManagerRef: (pmComponent: RenderersPortalManager) => void;
 
@@ -135,7 +135,7 @@ const HotTableContextProvider: React.FC<React.PropsWithChildren> = ({ children }
   const clearPortalCache = React.useCallback(() => portalCache.current.clear(), []);
   const portalContainerCache = React.useRef<Map<string, HTMLElement>>(new Map());
 
-  const getRendererWrapper = React.useCallback((rendererElement: React.ReactElement): typeof Handsontable.renderers.BaseRenderer => {
+  const getRendererWrapper = React.useCallback((Renderer: React.ComponentType<HotRendererProps>): typeof Handsontable.renderers.BaseRenderer => {
     return function (instance, TD, row, col, prop, value, cellProperties) {
       const key = `${row}-${col}`;
 
@@ -161,15 +161,17 @@ const HotTableContextProvider: React.FC<React.PropsWithChildren> = ({ children }
         if (cachedPortal && cachedPortalContainer) {
           TD.appendChild(cachedPortalContainer);
         } else {
-          const { portal, portalContainer } = createPortal(rendererElement, {
-            TD,
-            row,
-            col,
-            prop,
-            value,
-            cellProperties,
-            isRenderer: true
-          }, TD.ownerDocument, portalKey, cachedPortalContainer);
+          const rendererElement = (
+            <Renderer instance={instance}
+                      TD={TD}
+                      row={row}
+                      col={col}
+                      prop={prop}
+                      value={value}
+                      cellProperties={cellProperties}/>
+          );
+
+          const {portal, portalContainer} = createPortal(rendererElement, TD.ownerDocument, portalKey, cachedPortalContainer);
 
           portalContainerCache.current.set(portalContainerKey, portalContainer);
           TD.appendChild(portalContainer);

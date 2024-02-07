@@ -1,8 +1,10 @@
 import React, { useRef } from 'react';
 import { createRoot } from 'react-dom/client';
+import Handsontable from 'handsontable';
 import { act } from '@testing-library/react';
 import { HotTable } from '../src/hotTable';
 import { BaseEditorComponent } from '../src/baseEditorComponent';
+import { HotRendererProps } from '../src/types'
 
 const SPEC = {
   container: null,
@@ -205,14 +207,15 @@ class IndividualPropsWrapper extends React.Component<{ref?: string, id?: string}
 
 export { IndividualPropsWrapper };
 
-export class RendererComponent extends React.Component<any, any> {
-  render(): React.ReactElement<string> {
-    return (
-      <>
-        value: {this.props.value}
-      </>
-    );
-  }
+export const RendererComponent: React.FC<HotRendererProps> = ({ value }) => (
+    <>
+      value: {value}
+    </>
+)
+
+export const customNativeRenderer: Handsontable.renderers.BaseRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+  Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, col, prop, `value: ${value}`, cellProperties]);
+  return td;
 }
 
 export class EditorComponent extends BaseEditorComponent<{}, {value?: any}> {

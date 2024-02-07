@@ -49,9 +49,8 @@ describe('React.lazy', () => {
                 autoColumnSize={false}
                 init={function () {
                   mockElementDimensions(this.rootElement, 300, 300);
-                }}>
-        <SuspendedRenderer hot-renderer/>
-      </HotTable>
+                }}
+                renderer={SuspendedRenderer}/>
     )).hotInstance;
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>loading-message</div>');

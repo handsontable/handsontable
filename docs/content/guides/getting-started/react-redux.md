@@ -434,19 +434,17 @@ export const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       >
-        <HotColumn width={100} type={'numeric'}>
-          {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
-          <StarRatingRenderer hot-renderer />
-        </HotColumn>
-        <HotColumn width={150}>
-          {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
+        {/* add the `renderer` prop to set the component as a Handsontable renderer */}
+        <HotColumn width={100} type={'numeric'} renderer={StarRatingRenderer} />
+        {/* add the `renderer` prop to set the component as a Handsontable renderer */}
+        <HotColumn width={150} renderer={ColorPicker}>
           {/* add the `hot-editor` attribute to mark the component as a Handsontable editor */}
-          <ColorPicker hot-renderer hot-editor />
+          <ColorPicker hot-editor />
         </HotColumn>
-        <HotColumn width={150}>
-          {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
+        {/* add the `renderer` prop to set the component as a Handsontable renderer */}
+        <HotColumn width={150} renderer={ColorPicker}>
           {/* add the `hot-editor` attribute to mark the component as a Handsontable editor */}
-          <ColorPicker hot-renderer hot-editor />
+          <ColorPicker hot-editor />
         </HotColumn>
       </HotTable>
     </Provider>

@@ -2,8 +2,8 @@ import React from 'react';
 import { HotTableProps, HotColumnProps } from './types';
 import {
   createEditorPortal,
-  getChildElementByType,
-  getExtendedEditorElement,
+  displayObsoleteRenderersWarning,
+  getExtendedEditorElement
 } from './helpers';
 import { SettingsMapper } from './settingsMapper';
 import Handsontable from 'handsontable/base';
@@ -12,7 +12,7 @@ import { useHotColumnContext } from './hotColumnContext'
 
 const isHotColumn = (childNode: any): childNode is React.ReactElement => childNode.type === HotColumn;
 
-const internalProps = ['_columnIndex', '_getOwnerDocument', 'hot-renderer', 'hot-editor', 'children'];
+const internalProps = ['_columnIndex', '_getOwnerDocument', 'hot-editor', 'children'];
 
 interface HotColumnInnerProps extends HotColumnProps {
   _columnIndex: number;
@@ -59,14 +59,15 @@ class HotColumnInner extends React.Component<HotColumnInnerProps, {}> {
    * Create the column settings based on the data provided to the `HotColumn` component and it's child components.
    */
   createColumnSettings(): void {
-    const rendererElement = getChildElementByType(this.props.children, 'hot-renderer');
     const editorElement = this.getLocalEditorElement();
 
     this.columnSettings = SettingsMapper.getSettings(this.getSettingsProps()) as unknown as Handsontable.ColumnSettings;
 
-    if (rendererElement !== null) {
-      this.columnSettings.renderer = this.context.getRendererWrapper(rendererElement);
+    if (this.props.renderer) {
+      this.columnSettings.renderer = this.context.getRendererWrapper(this.props.renderer);
       this.context.componentRendererColumns.set(this.props._columnIndex, true);
+    } else if (this.props.hotRenderer) {
+      this.columnSettings.renderer = this.props.hotRenderer;
     }
 
     if (editorElement !== null) {
@@ -93,6 +94,7 @@ class HotColumnInner extends React.Component<HotColumnInnerProps, {}> {
   componentDidMount(): void {
     this.createColumnSettings();
     this.emitColumnSettings();
+    displayObsoleteRenderersWarning(this.props.children);
   }
 
   /**
@@ -101,6 +103,7 @@ class HotColumnInner extends React.Component<HotColumnInnerProps, {}> {
   componentDidUpdate(): void {
     this.createColumnSettings();
     this.emitColumnSettings();
+    displayObsoleteRenderersWarning(this.props.children);
   }
 
   /**

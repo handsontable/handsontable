@@ -149,14 +149,10 @@ export const ExampleComponent = () => {
       {/* use the `data` prop to reference the column data */}
       <HotColumn data="id" />
       <HotColumn data="name" />
-      <HotColumn data="score">
-        {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
-        <ScoreRenderer hot-renderer />
-      </HotColumn>
-      <HotColumn data="isPromoted">
-        {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
-        <PromotionRenderer hot-renderer />
-      </HotColumn>
+      {/* add the `renderer` prop to set the component as a Handsontable renderer */}
+      <HotColumn data="score" renderer={ScoreRenderer} />
+      {/* add the `renderer` prop to set the component as a Handsontable renderer */}
+      <HotColumn data="isPromoted" renderer={PromotionRenderer} />
     </HotTable>
   );
 };

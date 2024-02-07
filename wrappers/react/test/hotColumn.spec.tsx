@@ -11,8 +11,10 @@ import {
   EditorComponent,
   simulateKeyboardEvent,
   simulateMouseEvent,
-  mountComponentWithRef
+  mountComponentWithRef,
+  customNativeRenderer
 } from './_helpers';
+import { OBSOLETE_HOTRENDERER_WARNING } from '../src/helpers'
 
 // register Handsontable's modules
 registerAllModules();
@@ -56,7 +58,117 @@ describe('Passing column settings using HotColumn', () => {
 });
 
 describe('Renderer configuration using React components', () => {
-  it('should use the renderer component as Handsontable renderer, when it\'s nested under HotColumn and assigned the \'hot-renderer\' attribute', async () => {
+  it('should use the renderer component as Handsontable renderer, when it\'s passed as component to HotColumn renderer prop', async () => {
+    const hotInstance = mountComponentWithRef((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(100, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                autoRowSize={false}
+                autoColumnSize={false}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }}>
+        <HotColumn/>
+        <HotColumn renderer={RendererComponent}/>
+      </HotTable>
+    )).hotInstance;
+
+    expect(hotInstance.getCell(0, 0).innerHTML).toEqual('A1');
+    expect(hotInstance.getCell(0, 1).innerHTML).toEqual('<div>value: B1</div>');
+
+    await act(async() => {
+      hotInstance.scrollViewportTo({
+        row: 99,
+        col: 0,
+      });
+      hotInstance.render();
+    });
+
+    await sleep(300);
+
+    expect(hotInstance.getCell(99, 0).innerHTML).toEqual('A100');
+    expect(hotInstance.getCell(99, 1).innerHTML).toEqual('<div>value: B100</div>');
+  });
+
+  it('should use the renderer component as Handsontable renderer, when it\'s passed inline to HotColumn renderer prop', async () => {
+    const hotInstance = mountComponentWithRef((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(100, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                autoRowSize={false}
+                autoColumnSize={false}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }}>
+        <HotColumn/>
+        <HotColumn renderer={(props) => <RendererComponent {...props} />}/>
+      </HotTable>
+    )).hotInstance;
+
+    expect(hotInstance.getCell(0, 0).innerHTML).toEqual('A1');
+    expect(hotInstance.getCell(0, 1).innerHTML).toEqual('<div>value: B1</div>');
+
+    await act(async() => {
+      hotInstance.scrollViewportTo({
+        row: 99,
+        col: 0,
+      });
+      hotInstance.render();
+    });
+
+    await sleep(300);
+
+    expect(hotInstance.getCell(99, 0).innerHTML).toEqual('A100');
+    expect(hotInstance.getCell(99, 1).innerHTML).toEqual('<div>value: B100</div>');
+  });
+
+  it('should use the renderer function as native Handsontable renderer, when it\'s passed to HotColumn hotRenderer prop', async () => {
+    const hotInstance = mountComponentWithRef((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(100, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                autoRowSize={false}
+                autoColumnSize={false}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }}>
+        <HotColumn/>
+        <HotColumn hotRenderer={customNativeRenderer}/>
+      </HotTable>
+    )).hotInstance;
+
+    expect(hotInstance.getCell(0, 0).innerHTML).toEqual('A1');
+    expect(hotInstance.getCell(0, 1).innerHTML).toEqual('value: B1');
+
+    await act(async() => {
+      hotInstance.scrollViewportTo({
+        row: 99,
+        col: 0,
+      });
+      hotInstance.render();
+    });
+
+    await sleep(300);
+
+    expect(hotInstance.getCell(99, 0).innerHTML).toEqual('A100');
+    expect(hotInstance.getCell(99, 1).innerHTML).toEqual('value: B100');
+  });
+
+  it('should issue a warning when the renderer component is nested under HotColumn and assigned the \'hot-renderer\' attribute', async () => {
+    console.warn = jasmine.createSpy('warn');
+
     const hotInstance = mountComponentWithRef((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
@@ -77,21 +189,9 @@ describe('Renderer configuration using React components', () => {
       </HotTable>
     )).hotInstance;
 
-    expect(hotInstance.getCell(0, 0).innerHTML).toEqual('A1');
-    expect(hotInstance.getCell(0, 1).innerHTML).toEqual('<div>value: B1</div>');
+    expect(hotInstance.getCell(0, 1).innerHTML).not.toEqual('<div>value: B1</div>');
 
-    await act(async() => {
-      hotInstance.scrollViewportTo({
-        row: 99,
-        col: 0,
-      });
-      hotInstance.render();
-    });
-
-    await sleep(300);
-
-    expect(hotInstance.getCell(99, 0).innerHTML).toEqual('A100');
-    expect(hotInstance.getCell(99, 1).innerHTML).toEqual('<div>value: B100</div>');
+    expect(console.warn).toHaveBeenCalledWith(OBSOLETE_HOTRENDERER_WARNING);
   });
 });
 
@@ -222,13 +322,10 @@ describe('Dynamic HotColumn configuration changes', () => {
 
         this.state = {
           setup: [
-            <RendererComponent hot-renderer key={'1'}/>,
             <HotColumn title="test title" className="first-column-class-name" key={'2'}>
               <EditorComponent className="editor-className-1" id="editor-id-1" style={{background: 'red'}} hot-editor/>
             </HotColumn>,
-            <HotColumn title="test title 2" key={'3'}>
-              <RendererComponent2 hot-renderer></RendererComponent2>
-            </HotColumn>
+            <HotColumn title="test title 2" key={'3'} renderer={RendererComponent2} />
           ]
         }
       }
@@ -247,6 +344,7 @@ describe('Dynamic HotColumn configuration changes', () => {
                     init={function () {
                       mockElementDimensions(this.rootElement, 300, 300);
                     }}
+                    renderer={(props) => <RendererComponent {...props} key={'1'}/>}
                     ref={hotTableInstanceRef}>
             {this.state.setup}
           </HotTable>
@@ -297,12 +395,8 @@ describe('Dynamic HotColumn configuration changes', () => {
       wrapperComponentInstance.setState({
         setup: [
           <EditorComponent className="editor-className-2" id="editor-id-2" style={{background: 'blue'}} hot-editor key={'1'}/>,
-          <HotColumn title="test title 2" key={'2'}>
-            <RendererComponent2 hot-renderer></RendererComponent2>
-          </HotColumn>,
-          <HotColumn title="test title" className="first-column-class-name" key={'3'}>
-            <RendererComponent hot-renderer/>
-          </HotColumn>
+          <HotColumn title="test title 2" key={'2'} renderer={RendererComponent2}/>,
+          <HotColumn title="test title" className="first-column-class-name" key={'3'} renderer={RendererComponent}/>
         ]
       });
     });

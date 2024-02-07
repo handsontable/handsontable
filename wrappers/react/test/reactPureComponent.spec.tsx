@@ -36,9 +36,8 @@ describe('React PureComponents', () => {
                 autoColumnSize={false}
                 init={function () {
                   mockElementDimensions(this.rootElement, 300, 300);
-                }}>
-        <RendererComponent2 hot-renderer/>
-      </HotTable>
+                }}
+                renderer={RendererComponent2}/>
     )).hotInstance;
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>value: A1</div>');

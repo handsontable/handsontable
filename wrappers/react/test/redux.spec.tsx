@@ -68,16 +68,15 @@ describe('Using Redux store within HotTable renderers and editors', () => {
                   autoColumnSize={false}
                   init={function () {
                     mockElementDimensions(this.rootElement, 300, 300);
-                  }}>
-          <ReduxEnabledRenderer ref={function (instance) {
-            if (instance === null) {
-              return instance;
-            }
+                  }}
+                  renderer={(props) => <ReduxEnabledRenderer {...props} ref={function (instance) {
+                    if (instance === null) {
+                      return instance;
+                    }
 
-            rendererInstances.set(`${instance.props.row}-${instance.props.col}`, instance);
-          }
-          } hot-renderer/>
-        </HotTable>
+                    rendererInstances.set(`${instance.props.row}-${instance.props.col}`, instance);
+                  }
+                  } />} />
       </Provider>
     ));
 

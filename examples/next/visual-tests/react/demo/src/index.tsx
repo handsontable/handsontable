@@ -56,14 +56,8 @@ const App = () => {
       <HotColumn data={4} type="date" allowInvalid={false} />
       <HotColumn data={6} type="checkbox" className="htCenter" />
       <HotColumn data={7} type="numeric" />
-      <HotColumn data={8} readOnly={true} className="htMiddle">
-        {/* @ts-ignore Element inherits some props. It's hard to type it. */}
-        <ProgressBarRenderer hot-renderer />
-      </HotColumn>
-      <HotColumn data={9} readOnly={true} className="htCenter">
-        {/* @ts-ignore Element inherits some props. It's hard to type it. */}
-        <StarsRenderer hot-renderer />
-      </HotColumn>
+      <HotColumn data={8} readOnly={true} className="htMiddle" renderer={ProgressBarRenderer} />
+      <HotColumn data={9} readOnly={true} className="htCenter" renderer={StarsRenderer} />
       <HotColumn data={5} />
       <HotColumn data={2} />
     </HotTable>

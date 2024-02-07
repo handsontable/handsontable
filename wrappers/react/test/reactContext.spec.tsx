@@ -1,16 +1,13 @@
 import React from 'react';
-import {
-  HotTable
-} from '../src/hotTable';
-import {
-  HotColumn
-} from '../src/hotColumn';
+import { HotTable } from '../src/hotTable';
+import { HotColumn } from '../src/hotColumn';
 import {
   createSpreadsheetData,
   mockElementDimensions,
   mountComponentWithRef
 } from './_helpers';
 import { BaseEditorComponent } from '../src/baseEditorComponent';
+import { HotRendererProps } from '../src'
 
 describe('React Context', () => {
   it('should be possible to declare a context and use it inside both renderers and editors', async () => {
@@ -35,7 +32,7 @@ describe('React Context', () => {
       }
     }
 
-    class RendererComponent3 extends React.Component {
+    class RendererComponent3 extends React.Component<HotRendererProps> {
       render() {
         return (
           <>
@@ -74,12 +71,10 @@ describe('React Context', () => {
                   ref={function (instance) {
                     hotTableInstance = instance;
                   }}>
-          <HotColumn>
-            <RendererComponent2 hot-renderer/>
+          <HotColumn renderer={RendererComponent2}>
             <EditorComponent2 hot-editor className="ec2"/>
           </HotColumn>
-          <HotColumn>
-            <RendererComponent3 hot-renderer/>
+          <HotColumn renderer={RendererComponent3}>
             <EditorComponent3 hot-editor className="ec3"/>
           </HotColumn>
         </HotTable>
