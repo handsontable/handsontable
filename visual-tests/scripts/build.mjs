@@ -9,14 +9,14 @@ import { getFrameworkList } from './utils/utils.mjs';
 
 const dirs = {
   monorepoRoot: '..',
-  examples: '../examples/visual-tests',
+  examples: '../examples/next/visual-tests',
   codeToRun: 'demo',
   screenshots: './screenshots',
 };
 
 console.log(chalk.green('Installing dependencies for Visual Tests Examples project...'));
 
-await execa.command('npm run examples:install visual-tests', {
+await execa.command('npm run examples:install next/visual-tests', {
   stdout: 'ignore',
   stderr: 'inherit',
   cwd: dirs.monorepoRoot
