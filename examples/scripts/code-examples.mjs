@@ -13,12 +13,13 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT_DIR = __dirname.split('examples')[0];
+const NEXT_EXAMPLES_DIR = path.join(REPO_ROOT_DIR, 'examples', 'next');
 const TMP_DIR_NAME = 'tmp';
 const TMP_DIR = path.join('examples', TMP_DIR_NAME);
 
 const HOT_WRAPPERS = ['@handsontable/react', '@handsontable/angular', '@handsontable/vue'];
-console.log(process.argv.slice(2));
-const [shellCommand] = process.argv.slice(2);
+
+const [shellCommand, hotVersion] = process.argv.slice(2);
 
 // Function search recursively in the provided `dirPath` for the package.json file
 // and gets the project directory path.
@@ -109,11 +110,52 @@ const runNpmCommandInExample = (exampleDir, command) => {
 
 // EXECUTE SCRIPTS
 
+if (!hotVersion) {
+  displayErrorMessage('You must provide the version of the Handsontable as the last parameter to the script.');
 
-const versionedDir = path.join(REPO_ROOT_DIR, 'examples');
+  process.exit(1);
+}
+
+const versionedDir = path.join(REPO_ROOT_DIR, 'examples', hotVersion);
 const versionedExamplesExist = fs.existsSync(versionedDir);
 
 switch (shellCommand) {
+  case 'version': { // npm run examples:version <version_number>
+    if (versionedExamplesExist) {
+      displayErrorMessage(`Examples already exist: ${path.join('examples', hotVersion)}.`);
+
+      process.exit(1);
+    }
+
+    rimraf(`${NEXT_EXAMPLES_DIR}/node_modules`, () => {
+      displayConfirmationMessage(`node_modules removed from: "${NEXT_EXAMPLES_DIR}/node_modules"`);
+
+      displayInfoMessage(`Start deleting node_modules from: "${NEXT_EXAMPLES_DIR}/**/node_modules"`);
+
+      rimraf(`${NEXT_EXAMPLES_DIR}/**/node_modules`, () => {
+        displayConfirmationMessage(`node_modules removed from: "${NEXT_EXAMPLES_DIR}/**/node_modules"`);
+
+        displayInfoMessage(`Start copying examples to: "${versionedDir}"`);
+        fs.copySync(NEXT_EXAMPLES_DIR, versionedDir);
+        displayConfirmationMessage(`Examples copied to: "${versionedDir}"`);
+
+        const versionedExamplesFolders = getExamplesFolders(versionedDir);
+        const workspaceConfigFolders = getWorkspaceConfigFolders(versionedDir);
+
+        versionedExamplesFolders.forEach((versionedExampleDir) => {
+          updatePackageJsonWithVersion(versionedExampleDir, hotVersion);
+        });
+        displayConfirmationMessage('package.json updated for code examples');
+
+        workspaceConfigFolders.forEach((frameworkFolder) => {
+          updateFrameworkWorkspacesInformation(frameworkFolder, hotVersion);
+        });
+        displayConfirmationMessage('package.json updated for examples workspaces');
+      });
+    });
+
+    break;
+  }
 
   case 'install': { // npm run examples:install <version_number>
     if (!versionedExamplesExist) {
@@ -122,7 +164,7 @@ switch (shellCommand) {
       process.exit(1);
     }
 
-    spawnProcess(`npm run install:subpackages`, {
+    spawnProcess(`npm run install:version ${hotVersion}`, {
       cwd: path.join(REPO_ROOT_DIR, 'examples')
     });
 

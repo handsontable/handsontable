@@ -20,13 +20,14 @@ const exampleFrameworkSubdirs = examplesPackageJson.internal.framework_dirs;
 const hotWorkspaces = mainPackageJson.workspaces;
 const isPackageRequired = (packageName, packageLocation) => {
   const frameworkName = packageName.split('/').pop() || null;
+  const isLegacyAngularExample = packageLocation.includes('/angular-9/') || packageLocation.includes('/angular-10/');
 
   return (
     // If the required package is handsontable
     packageName === 'handsontable' ||
     packageLocation.includes(frameworkName) ||
     // If the required package is @handsontable/angular
-    (frameworkName === 'angular' && packageName === '@handsontable/angular') ||
+    (frameworkName === 'angular' && packageName === '@handsontable/angular' && !isLegacyAngularExample) ||
     // If it's in the framework directory
     packageLocation.split('/').pop().includes(frameworkName) ||
     // If it's deeper in the framework directory
@@ -61,6 +62,7 @@ const linkPackage = (sourceLocation, linkLocation, packageName, exampleDir = fal
   }
 };
 const argv = yargs(hideBin(process.argv))
+  .describe('examples-version', 'Version of the examples package to do the linking in.')
   .alias('f', 'framework')
   .array('f')
   .describe('f', 'Target framework to the linking to take place in. Defaults to none.')
@@ -87,9 +89,14 @@ exampleFrameworkSubdirs.forEach((packagesLocation) => {
   subdirs.forEach((packageLocation) => {
     const frameworkLocationName = packageLocation.split('/').pop();
 
-   
+    if (
+      packageLocation.startsWith(`./${argv.examplesVersion}`) &&
+      ((argv.framework && argv.framework.includes(frameworkLocationName)) ||
+      !argv.framework)
+    ) {
 
       // Currently linking the live dependencies only for the 'next' directory.
+      if (argv.examplesVersion.startsWith('next')) {
         packagesToLink.forEach((packageName) => {
           linkPackage(
             path.resolve('../node_modules'),
@@ -97,9 +104,10 @@ exampleFrameworkSubdirs.forEach((packagesLocation) => {
             packageName
           );
         });
+      }
 
       // Additional linking to all the examples for Angular (required to load css files from `angular.json`)
-      if (/^angular(-(\d+))?$/.test(frameworkLocationName)) {
+      if (/^angular(-(\d+|next))?$/.test(frameworkLocationName)) {
         const angularPackageJson = fse.readJSONSync(`${packageLocation}/package.json`);
         const workspacesList = angularPackageJson?.workspaces.packages || angularPackageJson?.workspaces;
 
@@ -118,6 +126,6 @@ exampleFrameworkSubdirs.forEach((packagesLocation) => {
           });
         });
       }
-    })
+    }
   });
-
+});
