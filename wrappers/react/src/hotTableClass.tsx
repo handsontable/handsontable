@@ -353,17 +353,11 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
 
     if (globalEditorNode) {
       newSettings.editor = this.getEditorClass(globalEditorNode, GLOBAL_EDITOR_SCOPE);
-
-    } else {
-      newSettings.editor = this.props.editor || (this.props.settings ? this.props.settings.editor : void 0);
     }
 
     if (globalRendererNode) {
       newSettings.renderer = this.getRendererWrapper(globalRendererNode);
       this.componentRendererColumns.set('global', true);
-
-    } else {
-      newSettings.renderer = this.props.renderer || (this.props.settings ? this.props.settings.renderer : void 0);
     }
 
     return newSettings;
