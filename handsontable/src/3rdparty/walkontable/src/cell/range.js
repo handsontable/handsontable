@@ -139,6 +139,19 @@ class CellRange {
   }
 
   /**
+   * Checks if your range covers headers range (negative coordinates) and covers no cells.
+   *
+   * @returns {boolean}
+   */
+  isHeader() {
+    if (this.from.isHeader() && this.to.isHeader()) {
+      return true;
+    }
+
+    return this.from.col < 0 && this.to.col < 0 || this.from.row < 0 && this.to.row < 0;
+  }
+
+  /**
    * Checks if your range overlaps headers range (negative coordinates).
    *
    * @returns {boolean}

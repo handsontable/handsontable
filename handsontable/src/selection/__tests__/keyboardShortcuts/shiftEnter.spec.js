@@ -228,28 +228,6 @@ describe('Selection navigation', () => {
 
       keyDownUp(['shift', 'enter']);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,3 from: -2,2 to: 1,3']);
-      expect(`
-        |   ║   :   : * : * :   |
-        |   ║   :   : * : # :   |
-        |===:===:===:===:===:===|
-        | - ║   :   : 0 : 0 :   |
-        | - ║   :   : 0 : 0 :   |
-      `).toBeMatchToSelectionPattern();
-
-      keyDownUp(['shift', 'enter']);
-
-      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,3 from: -2,2 to: 1,3']);
-      expect(`
-        |   ║   :   : * : # :   |
-        |   ║   :   : * : * :   |
-        |===:===:===:===:===:===|
-        | - ║   :   : 0 : 0 :   |
-        | - ║   :   : 0 : 0 :   |
-      `).toBeMatchToSelectionPattern();
-
-      keyDownUp(['shift', 'enter']);
-
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: -2,2 to: 1,3']);
       expect(`
         |   ║   :   : * : * :   |
@@ -326,10 +304,6 @@ describe('Selection navigation', () => {
         |   :   ║   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDownUp(['shift', 'enter']);
-      keyDownUp(['shift', 'enter']);
-      keyDownUp(['shift', 'enter']);
-      keyDownUp(['shift', 'enter']);
       keyDownUp(['shift', 'enter']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,1 from: 2,-2 to: 3,1']);
@@ -412,7 +386,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the selection up when there is no columns (navigableHeaders on)', () => {
+    it('should not move the selection up when there is no columns (navigableHeaders on)', () => {
       handsontable({
         data: [[], [], [], [], []],
         rowHeaders: true,
@@ -422,27 +396,7 @@ describe('Selection navigation', () => {
       selectRows(1, 3, -1);
       listen();
       keyDownUp(['shift', 'enter']);
-
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,-1 from: 1,-1 to: 3,-1']);
-      expect(`
-        |   |
-        | * |
-        | * |
-        | # |
-        |   |
-      `).toBeMatchToSelectionPattern();
-
       keyDownUp(['shift', 'enter']);
-
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,-1 from: 1,-1 to: 3,-1']);
-      expect(`
-        |   |
-        | * |
-        | # |
-        | * |
-        |   |
-      `).toBeMatchToSelectionPattern();
-
       keyDownUp(['shift', 'enter']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 3,-1']);
@@ -455,7 +409,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the selection up when all columns are hidden (navigableHeaders on)', () => {
+    it('should not move the selection up when all columns are hidden (navigableHeaders on)', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -468,27 +422,7 @@ describe('Selection navigation', () => {
       selectRows(1, 3, -1);
       listen();
       keyDownUp(['shift', 'enter']);
-
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,-1 from: 1,-1 to: 3,4']);
-      expect(`
-        |   |
-        | * |
-        | * |
-        | # |
-        |   |
-      `).toBeMatchToSelectionPattern();
-
       keyDownUp(['shift', 'enter']);
-
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,-1 from: 1,-1 to: 3,4']);
-      expect(`
-        |   |
-        | * |
-        | # |
-        | * |
-        |   |
-      `).toBeMatchToSelectionPattern();
-
       keyDownUp(['shift', 'enter']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 3,4']);
@@ -501,7 +435,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the selection up when there is no rows (navigableHeaders on)', () => {
+    it('should not move the selection up when there is no rows (navigableHeaders on)', () => {
       handsontable({
         data: [],
         columns: [{}, {}, {}, {}, {}],
@@ -515,32 +449,7 @@ describe('Selection navigation', () => {
       selectColumns(1, 2, -2);
       listen();
       keyDownUp(['shift', 'enter']);
-
-      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -2,1 to: -1,2']);
-      expect(`
-        |   : * : * :   :   |
-        |   : * : # :   :   |
-        |===:===:===:===:===|
-      `).toBeMatchToSelectionPattern();
-
       keyDownUp(['shift', 'enter']);
-
-      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,2 from: -2,1 to: -1,2']);
-      expect(`
-        |   : * : # :   :   |
-        |   : * : * :   :   |
-        |===:===:===:===:===|
-      `).toBeMatchToSelectionPattern();
-
-      keyDownUp(['shift', 'enter']);
-
-      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -2,1 to: -1,2']);
-      expect(`
-        |   : * : * :   :   |
-        |   : # : * :   :   |
-        |===:===:===:===:===|
-      `).toBeMatchToSelectionPattern();
-
       keyDownUp(['shift', 'enter']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -2,1 from: -2,1 to: -1,2']);
@@ -549,18 +458,9 @@ describe('Selection navigation', () => {
         |   : * : * :   :   |
         |===:===:===:===:===|
       `).toBeMatchToSelectionPattern();
-
-      keyDownUp(['shift', 'enter']);
-
-      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -2,1 to: -1,2']);
-      expect(`
-        |   : * : * :   :   |
-        |   : * : # :   :   |
-        |===:===:===:===:===|
-      `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the selection up when all rows are hidden (navigableHeaders on)', () => {
+    it('should not move the selection up when all rows are hidden (navigableHeaders on)', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -576,32 +476,7 @@ describe('Selection navigation', () => {
       selectColumns(1, 2, -2);
       listen();
       keyDownUp(['shift', 'enter']);
-
-      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -2,1 to: 4,2']);
-      expect(`
-        |   : * : * :   :   |
-        |   : * : # :   :   |
-        |===:===:===:===:===|
-      `).toBeMatchToSelectionPattern();
-
       keyDownUp(['shift', 'enter']);
-
-      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,2 from: -2,1 to: 4,2']);
-      expect(`
-        |   : * : # :   :   |
-        |   : * : * :   :   |
-        |===:===:===:===:===|
-      `).toBeMatchToSelectionPattern();
-
-      keyDownUp(['shift', 'enter']);
-
-      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -2,1 to: 4,2']);
-      expect(`
-        |   : * : * :   :   |
-        |   : # : * :   :   |
-        |===:===:===:===:===|
-      `).toBeMatchToSelectionPattern();
-
       keyDownUp(['shift', 'enter']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -2,1 from: -2,1 to: 4,2']);

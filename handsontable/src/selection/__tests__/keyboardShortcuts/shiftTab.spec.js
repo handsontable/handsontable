@@ -248,17 +248,14 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
 
       keyDownUp(['shift', 'tab']);
-      keyDownUp(['shift', 'tab']);
-      keyDownUp(['shift', 'tab']);
-      keyDownUp(['shift', 'tab']);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,2 from: -2,2 to: 1,3']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,3 from: -2,2 to: 1,3']);
       expect(`
-        |   ║   :   : # : * :   |
+        |   ║   :   : * : * :   |
         |   ║   :   : * : * :   |
         |===:===:===:===:===:===|
         | - ║   :   : 0 : 0 :   |
-        | - ║   :   : 0 : 0 :   |
+        | - ║   :   : 0 : A :   |
       `).toBeMatchToSelectionPattern();
     });
 
@@ -304,27 +301,27 @@ describe('Selection navigation', () => {
 
       keyDownUp(['shift', 'tab']);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,-1 from: 2,-2 to: 3,1']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,1 from: 2,-2 to: 3,1']);
       expect(`
         |   :   ║ - : - |
         |===:===:===:===|
         |   :   ║   :   |
         |   :   ║   :   |
+        | * : * ║ 0 : A |
         | * : * ║ 0 : 0 |
-        | * : # ║ 0 : 0 |
         |   :   ║   :   |
       `).toBeMatchToSelectionPattern();
 
       keyDownUp(['shift', 'tab']);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,-2 from: 2,-2 to: 3,1']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-2 to: 3,1']);
       expect(`
         |   :   ║ - : - |
         |===:===:===:===|
         |   :   ║   :   |
         |   :   ║   :   |
+        | * : * ║ A : 0 |
         | * : * ║ 0 : 0 |
-        | # : * ║ 0 : 0 |
         |   :   ║   :   |
       `).toBeMatchToSelectionPattern();
     });
@@ -402,29 +399,31 @@ describe('Selection navigation', () => {
         data: [[], [], [], [], []],
         rowHeaders: true,
         navigableHeaders: true,
+        autoWrapRow: true,
+        autoWrapCol: true,
       });
 
-      selectRows(1, 3, -1);
+      selectRows(3, 1, -1);
       listen();
       keyDownUp(['shift', 'tab']);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,-1 from: 1,-1 to: 3,-1']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,-1 from: 2,-1 to: 2,-1']);
       expect(`
         |   |
-        | * |
-        | * |
+        |   |
         | # |
+        |   |
         |   |
       `).toBeMatchToSelectionPattern();
 
       keyDownUp(['shift', 'tab']);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,-1 from: 1,-1 to: 3,-1']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,-1']);
       expect(`
         |   |
-        | * |
         | # |
-        | * |
+        |   |
+        |   |
         |   |
       `).toBeMatchToSelectionPattern();
     });
@@ -434,32 +433,34 @@ describe('Selection navigation', () => {
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         navigableHeaders: true,
+        autoWrapRow: true,
+        autoWrapCol: true,
       });
 
       columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
       render();
 
-      selectRows(1, 3, -1);
+      selectRows(3, 1, -1);
       listen();
       keyDownUp(['shift', 'tab']);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,-1 from: 1,-1 to: 3,4']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,-1 from: 2,-1 to: 2,-1']);
       expect(`
         |   |
-        | * |
-        | * |
+        |   |
         | # |
+        |   |
         |   |
       `).toBeMatchToSelectionPattern();
 
       keyDownUp(['shift', 'tab']);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,-1 from: 1,-1 to: 3,4']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,-1']);
       expect(`
         |   |
-        | * |
         | # |
-        | * |
+        |   |
+        |   |
         |   |
       `).toBeMatchToSelectionPattern();
     });
@@ -475,41 +476,23 @@ describe('Selection navigation', () => {
         },
       });
 
-      selectColumns(1, 2, -2);
+      selectColumns(2, 3, -2);
       listen();
       keyDownUp(['shift', 'tab']);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -2,1 to: -1,2']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,1 from: -2,1 to: -2,1']);
       expect(`
-        |   : * : * :   :   |
-        |   : * : # :   :   |
+        |   : # :   :   :   |
+        |   :   :   :   :   |
         |===:===:===:===:===|
       `).toBeMatchToSelectionPattern();
 
       keyDownUp(['shift', 'tab']);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -2,1 to: -1,2']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,0 from: -2,0 to: -2,0']);
       expect(`
-        |   : * : * :   :   |
-        |   : # : * :   :   |
-        |===:===:===:===:===|
-      `).toBeMatchToSelectionPattern();
-
-      keyDownUp(['shift', 'tab']);
-
-      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,2 from: -2,1 to: -1,2']);
-      expect(`
-        |   : * : # :   :   |
-        |   : * : * :   :   |
-        |===:===:===:===:===|
-      `).toBeMatchToSelectionPattern();
-
-      keyDownUp(['shift', 'tab']);
-
-      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,1 from: -2,1 to: -1,2']);
-      expect(`
-        |   : # : * :   :   |
-        |   : * : * :   :   |
+        | # :   :   :   :   |
+        |   :   :   :   :   |
         |===:===:===:===:===|
       `).toBeMatchToSelectionPattern();
     });
@@ -527,41 +510,23 @@ describe('Selection navigation', () => {
       rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
       render();
 
-      selectColumns(1, 2, -2);
+      selectColumns(2, 3, -2);
       listen();
       keyDownUp(['shift', 'tab']);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -2,1 to: 4,2']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,1 from: -2,1 to: -2,1']);
       expect(`
-        |   : * : * :   :   |
-        |   : * : # :   :   |
+        |   : # :   :   :   |
+        |   :   :   :   :   |
         |===:===:===:===:===|
       `).toBeMatchToSelectionPattern();
 
       keyDownUp(['shift', 'tab']);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -2,1 to: 4,2']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,0 from: -2,0 to: -2,0']);
       expect(`
-        |   : * : * :   :   |
-        |   : # : * :   :   |
-        |===:===:===:===:===|
-      `).toBeMatchToSelectionPattern();
-
-      keyDownUp(['shift', 'tab']);
-
-      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,2 from: -2,1 to: 4,2']);
-      expect(`
-        |   : * : # :   :   |
-        |   : * : * :   :   |
-        |===:===:===:===:===|
-      `).toBeMatchToSelectionPattern();
-
-      keyDownUp(['shift', 'tab']);
-
-      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,1 from: -2,1 to: 4,2']);
-      expect(`
-        |   : # : * :   :   |
-        |   : * : * :   :   |
+        | # :   :   :   :   |
+        |   :   :   :   :   |
         |===:===:===:===:===|
       `).toBeMatchToSelectionPattern();
     });

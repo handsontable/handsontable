@@ -56,9 +56,9 @@ describe('Focus selection scroll', () => {
 
     expect(topOverlay().getScrollPosition()).toBe(0);
 
-    keyDownUp(['shift', 'enter']); // B (column header)
+    keyDownUp(['shift', 'enter']); // B50
 
-    expect(topOverlay().getScrollPosition()).toBe(0);
+    expect(topOverlay().getScrollPosition()).toBe(1062);
   });
 
   it('should scroll the viewport horizontally', () => {
@@ -100,8 +100,8 @@ describe('Focus selection scroll', () => {
 
     expect(inlineStartOverlay().getScrollPosition()).toBe(0);
 
-    keyDownUp(['shift', 'tab']); // 2 (row header)
+    keyDownUp(['shift', 'tab']); // E2
 
-    expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(115);
   });
 });

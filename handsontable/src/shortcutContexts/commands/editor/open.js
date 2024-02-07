@@ -4,10 +4,16 @@ export const command = {
   name: 'editorOpen',
   callback(hot, event, keys) {
     const editorManager = hot._getEditorManager();
-    const { highlight } = hot.getSelectedRangeLast();
+    const selectedRange = hot.getSelectedRangeLast();
+    const { highlight } = selectedRange;
 
     // supports for navigating with enter key when multiple cells are selected
-    if (hot.selection.isMultiple()) {
+    if (
+      hot.selection.isMultiple() &&
+      !selectedRange.isHeader() &&
+      hot.countRenderedCols() > 0 &&
+      hot.countRenderedRows() > 0
+    ) {
       const settings = hot.getSettings();
       const enterMoves = typeof settings.enterMoves === 'function'
         ? settings.enterMoves(event)
