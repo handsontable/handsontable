@@ -24,6 +24,8 @@ import {
   warn
 } from './helpers';
 import PropTypes from 'prop-types';
+import { getRenderer } from 'handsontable/renderers/registry';
+import { getEditor } from 'handsontable/editors/registry';
 
 /**
  * A Handsontable-ReactJS wrapper.
@@ -353,11 +355,23 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
 
     if (globalEditorNode) {
       newSettings.editor = this.getEditorClass(globalEditorNode, GLOBAL_EDITOR_SCOPE);
+    } else {
+      if (this.props.editor || this.props.settings?.editor) {
+        newSettings.editor = this.props.editor || this.props.settings.editor;
+      } else {
+        newSettings.editor = getEditor('text');
+      }
     }
 
     if (globalRendererNode) {
       newSettings.renderer = this.getRendererWrapper(globalRendererNode);
       this.componentRendererColumns.set('global', true);
+    } else {
+      if (this.props.renderer || this.props.settings?.renderer) {
+        newSettings.renderer = this.props.renderer || this.props.settings.renderer;
+      } else {
+        newSettings.renderer = getRenderer('text');
+      }
     }
 
     return newSettings;
