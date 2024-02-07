@@ -125,7 +125,7 @@ displaySeparator();
   await spawnProcess('npm run changelog consume', { stdin: 'pipe' });
 
   // Create the examples/[version] directory.
-  await spawnProcess(`npm run examples:version ${finalVersion}`);
+  // await spawnProcess(`npm run examples:version ${finalVersion}`);
 
   if (argv.commit === true) {
     // Commit the changes to the release branch.
