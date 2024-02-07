@@ -225,7 +225,7 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
   getRendererWrapper(rendererElement: React.ReactElement): typeof Handsontable.renderers.BaseRenderer | any {
     const hotTableComponent = this;
 
-    return function (instance, TD, row, col, prop, value, cellProperties) {
+    return function __internalRenderer(instance, TD, row, col, prop, value, cellProperties) {
       const renderedCellCache = hotTableComponent.getRenderedCellCache();
 
       if (renderedCellCache.has(`${row}-${col}`)) {

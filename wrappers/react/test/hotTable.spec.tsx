@@ -412,7 +412,7 @@ describe('Editor configuration using React components', () => {
     {
       const activeRenderer = hotInstance.getCellRenderer(0, 0);
 
-      expect(activeRenderer.name).toBe('');
+      expect(activeRenderer.name).toBe('__internalRenderer');
     }
 
     await act(async() => {
