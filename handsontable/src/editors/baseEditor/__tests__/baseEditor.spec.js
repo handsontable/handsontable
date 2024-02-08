@@ -88,44 +88,44 @@ describe('BaseEditor', () => {
       keyDownUp('F2');
       keyDownUp(['control/meta', 'enter']);
 
-      expect(getDataAtCell(1, 1)).toEqual('B2');
-      expect(getDataAtCell(1, 2)).toEqual('B2');
-      expect(getDataAtCell(2, 1)).toEqual('B2');
-      expect(getDataAtCell(2, 2)).toEqual('B2');
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,1 from: 2,1 to: 2,1']);
+      expect(getDataAtCell(1, 1)).toBe('B2');
+      expect(getDataAtCell(1, 2)).toBe('B2');
+      expect(getDataAtCell(2, 1)).toBe('B2');
+      expect(getDataAtCell(2, 2)).toBe('B2');
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,1 from: 1,1 to: 2,2']);
 
       loadData(createSpreadsheetData(6, 6));
       selectCell(1, 2, 2, 1);
       keyDownUp('F2');
       keyDownUp(['control/meta', 'enter']);
 
-      expect(getDataAtCell(1, 1)).toEqual('C2');
-      expect(getDataAtCell(1, 2)).toEqual('C2');
-      expect(getDataAtCell(2, 1)).toEqual('C2');
-      expect(getDataAtCell(2, 2)).toEqual('C2');
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
+      expect(getDataAtCell(1, 1)).toBe('C2');
+      expect(getDataAtCell(1, 2)).toBe('C2');
+      expect(getDataAtCell(2, 1)).toBe('C2');
+      expect(getDataAtCell(2, 2)).toBe('C2');
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 1,2 to: 2,1']);
 
       loadData(createSpreadsheetData(6, 6));
       selectCell(2, 2, 1, 1);
       keyDownUp('F2');
       keyDownUp(['control/meta', 'enter']);
 
-      expect(getDataAtCell(1, 1)).toEqual('C3');
-      expect(getDataAtCell(1, 2)).toEqual('C3');
-      expect(getDataAtCell(2, 1)).toEqual('C3');
-      expect(getDataAtCell(2, 2)).toEqual('C3');
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,2 from: 3,2 to: 3,2']);
+      expect(getDataAtCell(1, 1)).toBe('C3');
+      expect(getDataAtCell(1, 2)).toBe('C3');
+      expect(getDataAtCell(2, 1)).toBe('C3');
+      expect(getDataAtCell(2, 2)).toBe('C3');
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 2,2 to: 1,1']);
 
       loadData(createSpreadsheetData(6, 6));
       selectCell(2, 1, 1, 2);
       keyDownUp('F2');
       keyDownUp(['control/meta', 'enter']);
 
-      expect(getDataAtCell(1, 1)).toEqual('B3');
-      expect(getDataAtCell(1, 2)).toEqual('B3');
-      expect(getDataAtCell(2, 1)).toEqual('B3');
-      expect(getDataAtCell(2, 2)).toEqual('B3');
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,1 from: 3,1 to: 3,1']);
+      expect(getDataAtCell(1, 1)).toBe('B3');
+      expect(getDataAtCell(1, 2)).toBe('B3');
+      expect(getDataAtCell(2, 1)).toBe('B3');
+      expect(getDataAtCell(2, 2)).toBe('B3');
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 2,1 to: 1,2']);
     });
 
     it('Ctrl/Meta + Shift + Enter when editor is active', () => {
@@ -137,44 +137,44 @@ describe('BaseEditor', () => {
       keyDownUp('F2');
       keyDownUp(['control/meta', 'shift', 'enter']);
 
-      expect(getDataAtCell(1, 1)).toEqual('B2');
-      expect(getDataAtCell(1, 2)).toEqual('B2');
-      expect(getDataAtCell(2, 1)).toEqual('B2');
-      expect(getDataAtCell(2, 2)).toEqual('B2');
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
+      expect(getDataAtCell(1, 1)).toBe('B2');
+      expect(getDataAtCell(1, 2)).toBe('B2');
+      expect(getDataAtCell(2, 1)).toBe('B2');
+      expect(getDataAtCell(2, 2)).toBe('B2');
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 1,1 to: 2,2']);
 
       loadData(createSpreadsheetData(6, 6));
       selectCell(1, 2, 2, 1);
       keyDownUp('F2');
       keyDownUp(['control/meta', 'shift', 'enter']);
 
-      expect(getDataAtCell(1, 1)).toEqual('C2');
-      expect(getDataAtCell(1, 2)).toEqual('C2');
-      expect(getDataAtCell(2, 1)).toEqual('C2');
-      expect(getDataAtCell(2, 2)).toEqual('C2');
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 0,2']);
+      expect(getDataAtCell(1, 1)).toBe('C2');
+      expect(getDataAtCell(1, 2)).toBe('C2');
+      expect(getDataAtCell(2, 1)).toBe('C2');
+      expect(getDataAtCell(2, 2)).toBe('C2');
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,1 from: 1,2 to: 2,1']);
 
       loadData(createSpreadsheetData(6, 6));
       selectCell(2, 2, 1, 1);
       keyDownUp('F2');
       keyDownUp(['control/meta', 'shift', 'enter']);
 
-      expect(getDataAtCell(1, 1)).toEqual('C3');
-      expect(getDataAtCell(1, 2)).toEqual('C3');
-      expect(getDataAtCell(2, 1)).toEqual('C3');
-      expect(getDataAtCell(2, 2)).toEqual('C3');
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
+      expect(getDataAtCell(1, 1)).toBe('C3');
+      expect(getDataAtCell(1, 2)).toBe('C3');
+      expect(getDataAtCell(2, 1)).toBe('C3');
+      expect(getDataAtCell(2, 2)).toBe('C3');
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 2,2 to: 1,1']);
 
       loadData(createSpreadsheetData(6, 6));
       selectCell(2, 1, 1, 2);
       keyDownUp('F2');
       keyDownUp(['control/meta', 'shift', 'enter']);
 
-      expect(getDataAtCell(1, 1)).toEqual('B3');
-      expect(getDataAtCell(1, 2)).toEqual('B3');
-      expect(getDataAtCell(2, 1)).toEqual('B3');
-      expect(getDataAtCell(2, 2)).toEqual('B3');
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
+      expect(getDataAtCell(1, 1)).toBe('B3');
+      expect(getDataAtCell(1, 2)).toBe('B3');
+      expect(getDataAtCell(2, 1)).toBe('B3');
+      expect(getDataAtCell(2, 2)).toBe('B3');
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 2,1 to: 1,2']);
     });
   });
 

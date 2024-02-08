@@ -431,7 +431,6 @@ describe('MergeCells', () => {
       });
 
       hot.setDataAtCell(8, 8, 'top-left-corner!');
-
       hot.selectCell(7, 9);
 
       keyDownUp('enter');
@@ -463,7 +462,6 @@ describe('MergeCells', () => {
       });
 
       hot.setDataAtCell(8, 8, 'top-left-corner!');
-
       hot.selectCell(9, 7);
 
       keyDownUp('enter');

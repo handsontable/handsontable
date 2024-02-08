@@ -35,14 +35,14 @@ export const command = {
     // supports editor opening with enter key
     if (hot.getSettings().enterBeginsEditing) {
       if (editorManager.cellProperties.readOnly) {
-        editorManager.moveSelectionAfterEnter();
+        editorManager.moveSelectionAfterEnter(event);
 
       } else {
         editorManager.openEditor(null, event, true);
       }
 
     } else {
-      editorManager.moveSelectionAfterEnter(keys.includes('shift'));
+      editorManager.moveSelectionAfterEnter(event);
     }
 
     stopImmediatePropagation(event); // required by HandsontableEditor
