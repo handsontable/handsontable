@@ -1,6 +1,5 @@
 import { getComparisonFunction } from '../../helpers/feature';
 import { arrayUnique, arrayEach } from '../../helpers/array';
-import CellMeta from '../../dataMap/metaManager/metaLayers/cellMeta';
 
 const sortCompare = getComparisonFunction();
 
@@ -83,7 +82,6 @@ export function toEmptyString(value) {
  * @returns {Array}
  */
 export function unifyColumnValues(values) {
-  // let unifiedValues = values.map(val => (val?.value !== undefined ? val.value : val));
   let unifiedValues = values;
 
   if (SUPPORT_FAST_DEDUPE) {
@@ -105,8 +103,6 @@ export function unifyColumnValues(values) {
 
   return unifiedValues;
 }
-
-// TODO: Known limitation: different cells in a column with the same value will trigger the new hook just once, so if there are two cells with the same value, but different renderer, the displayed value will be from just one of them.
 
 /**
  * Intersect 'base' values with 'selected' values and return an array of object.

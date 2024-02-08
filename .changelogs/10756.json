@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Added a `displayValue` property to the cell meta and utilized it in the Filters' multi-selection component.",
+  "title": "Added a `modifyFiltersMultiSelectValue` plugin hook and utilized it in the Filters' multi-selection component.",
   "type": "added",
   "issueOrPR": 10756,
   "breaking": false,

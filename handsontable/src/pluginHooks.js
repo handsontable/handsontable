@@ -1439,11 +1439,11 @@ const REGISTERED_HOOKS = [
    * The hook allows modifying the displayed values in that component.
    *
    * @since 14.2.0
-   * @event Hooks#modifyFiltersMultipleSelectValue
+   * @event Hooks#modifyFiltersMultiSelectValue
    * @param {object} item The item in the list of values.
    * @param {object} basicMeta The trimmed-down version of the meta object.
    */
-  'modifyFiltersMultipleSelectValue',
+  'modifyFiltersMultiSelectValue',
 
   /**
    * Fired when focusing a cell or a header element. Allows replacing the element to be focused by returning a
