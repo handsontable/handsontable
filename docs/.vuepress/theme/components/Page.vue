@@ -57,6 +57,7 @@ export default {
       const html = submitEvent.target.elements.html.value;
       const js = submitEvent.target.elements.js.value;
       const css = submitEvent.target.elements.css.value;
+      const formatVersion = version => (/^\d+\.\d+$/.test(version) ? version : 'latest');
 
       const hyperformula = js.includes('hyperformula') ? { hyperformula: 'latest' } : {};
 
@@ -81,7 +82,7 @@ export default {
               content: {
                 name: 'handsontable-demo',
                 dependencies: {
-                  handsontable: 'latest',
+                  handsontable: formatVersion(DOCS_VERSION),
                   ...hyperformula
                 }
               },
