@@ -31,6 +31,7 @@ const cellRangeRTL = new CellRange(cellCoords, cellCoords, cellCoords, true);
 }
 const isSingleCell: boolean = cellRange.isSingleCell();
 const isSingleHeader: boolean = cellRange.isSingleHeader();
+const isHeader: boolean = cellRange.isHeader();
 const containsHeaders: boolean = cellRange.containsHeaders();
 const getOuterHeight: number = cellRange.getOuterHeight();
 const getOuterWidth: number = cellRange.getOuterWidth();

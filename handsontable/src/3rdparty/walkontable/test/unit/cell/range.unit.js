@@ -1509,6 +1509,39 @@ describe('CellRange', () => {
     });
   });
 
+  describe('isHeader()', () => {
+    it('should return `false` when one of the coordinates cover a cell', () => {
+      {
+        const range = createRange(0, -1, 0, -2, 3, 0);
+
+        expect(range.isHeader()).toBe(false);
+      }
+      {
+        const range = createRange(-1, 0, -2, 0, 0, 3);
+
+        expect(range.isHeader()).toBe(false);
+      }
+    });
+
+    it('should return `true` when only row headers are selected', () => {
+      const range = createRange(0, -1, 0, -2, 3, -1);
+
+      expect(range.isHeader()).toBe(true);
+    });
+
+    it('should return `true` when only column headers are selected', () => {
+      const range = createRange(-1, 0, -2, 0, -1, 3);
+
+      expect(range.isHeader()).toBe(true);
+    });
+
+    it('should return `true` when corner is selected', () => {
+      const range = createRange(-1, -1, -2, -2, -1, -1);
+
+      expect(range.isHeader()).toBe(true);
+    });
+  });
+
   describe('containsHeaders()', () => {
     it('should return `false` when `from` and `to` are not overlaps the header range', () => {
       {

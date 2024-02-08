@@ -139,7 +139,7 @@ class CellRange {
   }
 
   /**
-   * Checks if your range covers headers range (negative coordinates) and covers no cells.
+   * Checks if your range covers only headers range (negative coordinates, without any cells).
    *
    * @returns {boolean}
    */

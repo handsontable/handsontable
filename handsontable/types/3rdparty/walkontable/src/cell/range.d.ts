@@ -20,6 +20,7 @@ export default class CellRange {
   }): boolean;
   isSingleCell(): boolean;
   isSingleHeader(): boolean;
+  isHeader(): boolean;
   containsHeaders(): boolean;
   getOuterHeight(): number;
   getOuterWidth(): number;
