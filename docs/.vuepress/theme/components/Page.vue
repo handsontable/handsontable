@@ -82,6 +82,7 @@ export default {
               content: {
                 name: 'handsontable-demo',
                 dependencies: {
+                  // eslint-disable-next-line
                   handsontable: formatVersion(DOCS_VERSION),
                   ...hyperformula
                 }
