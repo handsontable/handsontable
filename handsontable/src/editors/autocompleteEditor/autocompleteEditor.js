@@ -187,7 +187,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
         TD.innerHTML = cellValue;
       },
-      afterSelection: (startRow, startCol) => {
+      afterSelectionEnd: (startRow, startCol) => {
         if (rootInstanceAriaTagsEnabled) {
           const TD = this.htEditor.getCell(startRow, startCol, true);
 
