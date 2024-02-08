@@ -1084,6 +1084,7 @@ describe('Filters UI', () => {
           byValueMultipleSelect().element.querySelectorAll('.htCore td')[i].textContent
         ).toBe(`Custom ${unifiedColDataSample[i]}`);
       }
+      expect(unifiedColDataSample.length).toBe(6);
     });
 
     it('should display the formatted renderer output in the multi-selection component if the column being filtered ' +
