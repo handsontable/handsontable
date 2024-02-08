@@ -1058,14 +1058,8 @@ describe('Filters UI', () => {
       expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('(Blank cells)');
     });
 
-    it('should utilize the `displayValue` cell meta property to display the cell value', () => {
+    it('should utilize the `modifyFiltersMultiSelectValue` hook to display the cell value', () => {
       const columnsSetting = getColumnsForFilters();
-
-      columnsSetting[1].renderer = (instance, td, row, col, prop, value, cellProperties) => {
-        cellProperties.displayValue = `Custom ${value}`;
-
-        Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, col, prop, value, cellProperties]);
-      };
 
       handsontable({
         data: getDataForFilters(),
@@ -1073,7 +1067,10 @@ describe('Filters UI', () => {
         filters: true,
         dropdownMenu: true,
         width: 500,
-        height: 300
+        height: 300,
+        modifyFiltersMultiSelectValue: (value) => {
+          return `Custom ${value}`;
+        },
       });
 
       dropdownMenu(1);
@@ -1086,6 +1083,34 @@ describe('Filters UI', () => {
         expect(
           byValueMultipleSelect().element.querySelectorAll('.htCore td')[i].textContent
         ).toBe(`Custom ${unifiedColDataSample[i]}`);
+      }
+    });
+
+    it('should display the formatted renderer output in the multi-selection component if the column being filtered ' +
+      'is numeric-typed', () => {
+      handsontable({
+        data: [
+          [1],
+          [2],
+          [3],
+          [4],
+          [5],
+        ],
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+        type: 'numeric',
+        numericFormat: {
+          pattern: '$0,0.00',
+        }
+      });
+
+      dropdownMenu(0);
+
+      for (let i = 0; i < 5; i++) {
+        expect(
+          byValueMultipleSelect().element.querySelectorAll('.htCore td')[i].textContent
+        ).toBe(`$${getDataAtCell(i, 0)}.00`);
       }
     });
 

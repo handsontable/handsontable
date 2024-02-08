@@ -1,5 +1,6 @@
 import { getComparisonFunction } from '../../helpers/feature';
 import { arrayUnique, arrayEach } from '../../helpers/array';
+import CellMeta from '../../dataMap/metaManager/metaLayers/cellMeta';
 
 const sortCompare = getComparisonFunction();
 
@@ -23,17 +24,13 @@ export function sortComparison(a, b) {
  *
  * @param {*} value The value to convert.
  * @param {string} defaultEmptyValue Default value for empty cells.
- * @param {string} [displayValue] The display value.
  * @returns {*}
  */
-export function toVisualValue(value, defaultEmptyValue, displayValue) {
+export function toVisualValue(value, defaultEmptyValue) {
   let visualValue = value;
 
   if (visualValue === '') {
     visualValue = `(${defaultEmptyValue})`;
-
-  } else if (displayValue) {
-    visualValue = displayValue;
   }
 
   return visualValue;
@@ -86,6 +83,7 @@ export function toEmptyString(value) {
  * @returns {Array}
  */
 export function unifyColumnValues(values) {
+  // let unifiedValues = values.map(val => (val?.value !== undefined ? val.value : val));
   let unifiedValues = values;
 
   if (SUPPORT_FAST_DEDUPE) {
@@ -108,27 +106,7 @@ export function unifyColumnValues(values) {
   return unifiedValues;
 }
 
-/**
- * Synchronize display values with the provided unified values.
- *
- * @param {Array} displayValues An array of display values.
- * @param {Array} values An array of source values.
- * @param {Array} unifiedValues An array of unified values.
- *
- * @returns {Array} An array of synchronized display values.
- */
-export function syncDisplayValuesToUnifiedValues(displayValues, values, unifiedValues) {
-  const syncedDisplayValues = [];
-
-  arrayEach(unifiedValues, (unifiedValue) => {
-    const index = values.indexOf(unifiedValue);
-    const displayValue = displayValues[index];
-
-    syncedDisplayValues.push(displayValue);
-  });
-
-  return syncedDisplayValues;
-}
+// TODO: Known limitation: different cells in a column with the same value will trigger the new hook just once, so if there are two cells with the same value, but different renderer, the displayed value will be from just one of them.
 
 /**
  * Intersect 'base' values with 'selected' values and return an array of object.
@@ -136,11 +114,10 @@ export function syncDisplayValuesToUnifiedValues(displayValues, values, unifiedV
  * @param {Array} base An array of base values.
  * @param {Array} selected An array of selected values.
  * @param {string} defaultEmptyValue Default value for empty cells.
- * @param {string[]} [displayValues] An array of display values.
  * @param {Function} [callback] A callback function which is invoked for every item in an array.
  * @returns {Array}
  */
-export function intersectValues(base, selected, defaultEmptyValue, displayValues, callback) {
+export function intersectValues(base, selected, defaultEmptyValue, callback) {
   const result = [];
   const same = base === selected;
   let selectedItemsAssertion;
@@ -149,14 +126,14 @@ export function intersectValues(base, selected, defaultEmptyValue, displayValues
     selectedItemsAssertion = createArrayAssertion(selected);
   }
 
-  arrayEach(base, (value, index) => {
+  arrayEach(base, (value) => {
     let checked = false;
 
     if (same || selectedItemsAssertion(value)) {
       checked = true;
     }
 
-    const item = { checked, value, visualValue: toVisualValue(value, defaultEmptyValue, displayValues[index]) };
+    const item = { checked, value, visualValue: toVisualValue(value, defaultEmptyValue) };
 
     if (callback) {
       callback(item);
@@ -166,4 +143,16 @@ export function intersectValues(base, selected, defaultEmptyValue, displayValues
   });
 
   return result;
+}
+
+/**
+ * Get a trimmed-down version of the cell meta object.
+ *
+ * @param {CellMeta} cellMeta The cell meta object.
+ * @returns {object} The trimmed-down version of the cell meta object.
+ */
+export function getBasicMeta(cellMeta) {
+  const { row, col, visualCol, visualRow, type, instance, dateFormat, locale, numericFormat } = cellMeta;
+
+  return { row, col, visualCol, visualRow, type, instance, dateFormat, locale, numericFormat };
 }

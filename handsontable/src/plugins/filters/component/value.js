@@ -3,11 +3,12 @@ import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import { arrayEach, arrayFilter, arrayMap } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import * as C from '../../../i18n/constants';
-import { unifyColumnValues, intersectValues, toEmptyString, syncDisplayValuesToUnifiedValues } from '../utils';
+import { getBasicMeta, unifyColumnValues, intersectValues, toEmptyString } from '../utils';
 import { BaseComponent } from './_base';
 import { MultipleSelectUI } from '../ui/multipleSelect';
 import { CONDITION_BY_VALUE, CONDITION_NONE } from '../constants';
 import { getConditionDescriptor } from '../conditionRegisterer';
+import { getRenderedValue as getRenderedNumericValue } from '../../../renderers/numericRenderer';
 
 /**
  * @private
@@ -42,6 +43,9 @@ export class ValueComponent extends BaseComponent {
     this.getMultipleSelectElement()
       .addLocalHook('keydown', event => this.#onInputKeyDown(event))
       .addLocalHook('listTabKeydown', event => this.runLocalHooks('listTabKeydown', event));
+
+    this.hot
+      .addHook('modifyFiltersMultiSelectValue', (value, basicMeta) => this.#modifyDisplayedValue(value, basicMeta));
   }
 
   /**
@@ -101,7 +105,6 @@ export class ValueComponent extends BaseComponent {
    * `editedConditionStack`, `dependentConditionStacks`, `visibleDataFactory` and `conditionArgsChange`.
    */
   updateState(stateInfo) {
-    const multipleSelectComponent = this.getMultipleSelectElement();
     const updateColumnState = (
       physicalColumn,
       conditions,
@@ -116,13 +119,8 @@ export class ValueComponent extends BaseComponent {
       if (firstByValueCondition) {
         const filteredRows = filteredRowsFactory(physicalColumn, conditionsStack);
         const rowValues = arrayMap(filteredRows, row => row.value);
-        const rowIndexes = arrayMap(filteredRows, row => row.meta.visualRow);
+        const rowMetaMap = new Map(filteredRows.map(row => [row.value, row.meta]));
         const unifiedRowValues = unifyColumnValues(rowValues);
-        const displayValues =
-          (multipleSelectComponent.getDisplayValuesAtCol(this.hot.toVisualColumn(physicalColumn)) || [])
-            .filter((value, index) => rowIndexes.includes(index));
-        const displayValuesSyncedWithUnifiedValues =
-          syncDisplayValuesToUnifiedValues(displayValues, rowValues, unifiedRowValues);
 
         if (conditionArgsChange) {
           firstByValueCondition.args[0] = conditionArgsChange;
@@ -133,11 +131,12 @@ export class ValueComponent extends BaseComponent {
           unifiedRowValues,
           firstByValueCondition.args[0],
           defaultBlankCellValue,
-          displayValuesSyncedWithUnifiedValues,
           (item) => {
             if (item.checked) {
               selectedValues.push(item.value);
             }
+
+            this.#triggerModifyMultipleSelectionValueHook(item, rowMetaMap);
           }
         );
 
@@ -219,23 +218,20 @@ export class ValueComponent extends BaseComponent {
    * Reset elements to their initial state.
    */
   reset() {
-    const multiSelectComponent = this.getMultipleSelectElement();
-    const selectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
     const defaultBlankCellValue = this.hot.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS);
-    const values = this._getColumnVisibleValues();
-    const unifiedValues = unifyColumnValues(values);
-    const displayValues = multiSelectComponent.getDisplayValuesAtCol(selectedColumn?.visualIndex) || [];
-    const displayValuesSyncedWithUnifiedValues = syncDisplayValuesToUnifiedValues(displayValues, values, unifiedValues);
-    const items = intersectValues(
-      unifiedValues,
-      unifiedValues,
-      defaultBlankCellValue,
-      displayValuesSyncedWithUnifiedValues || []
-    );
+    const rowEntries = this._getColumnVisibleValues();
+    const rowValues = rowEntries.map(entry => entry.value);
+    const rowMetaMap = new Map(rowEntries.map(row => [row.value, row.meta]));
+    const values = unifyColumnValues(rowValues);
+    const items = intersectValues(values, values, defaultBlankCellValue, (item) => {
+      this.#triggerModifyMultipleSelectionValueHook(item, rowMetaMap);
+    });
 
     this.getMultipleSelectElement().setItems(items);
     super.reset();
-    this.getMultipleSelectElement().setValue(unifiedValues);
+    this.getMultipleSelectElement().setValue(values);
+
+    const selectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
 
     if (selectedColumn !== null) {
       this.getMultipleSelectElement().setLocale(this.hot.getCellMeta(0, selectedColumn.visualIndex).locale);
@@ -255,6 +251,35 @@ export class ValueComponent extends BaseComponent {
   }
 
   /**
+   * Trigger the `modifyFiltersMultiSelectValue` hook.
+   *
+   * @param {object} item Item from the multiple select list.
+   * @param {object} basicMeta Map of row meta objects.
+   */
+  #triggerModifyMultipleSelectionValueHook(item, basicMeta) {
+    if (this.hot.hasHook('modifyFiltersMultiSelectValue')) {
+      item.visualValue =
+        this.hot.runHooks('modifyFiltersMultiSelectValue', item.visualValue, basicMeta.get(item.value));
+    }
+  }
+
+  /**
+   * Modify the value displayed in the multiple select list.
+   *
+   * @param {*} value Cell value.
+   * @param {object} basicMeta Trimmmed-down version of the cell meta object.
+   * @returns {*} Returns the modified value.
+   */
+  #modifyDisplayedValue(value, basicMeta) {
+    switch (basicMeta.type) {
+      case 'numeric':
+        return getRenderedNumericValue(value, basicMeta);
+      default:
+        return value;
+    }
+  }
+
+  /**
    * Get data for currently selected column.
    *
    * @returns {Array}
@@ -267,6 +292,11 @@ export class ValueComponent extends BaseComponent {
       return [];
     }
 
-    return arrayMap(this.hot.getDataAtCol(selectedColumn.visualIndex), v => toEmptyString(v));
+    return arrayMap(this.hot.getDataAtCol(selectedColumn.visualIndex), (v, rowIndex) => {
+      return {
+        value: toEmptyString(v),
+        meta: getBasicMeta(this.hot.getCellMeta(selectedColumn.visualIndex, rowIndex))
+      };
+    });
   }
 }

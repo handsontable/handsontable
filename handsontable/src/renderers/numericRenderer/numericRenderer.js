@@ -5,6 +5,36 @@ import { isNumeric } from '../../helpers/number';
 export const RENDERER_TYPE = 'numeric';
 
 /**
+ * Get the rendered value.
+ *
+ * @param {*} value Value to be rendered.
+ * @param {CellMeta} cellProperties Cell meta object.
+ * @returns {*} Returns the rendered value.
+ */
+export function getRenderedValue(value, cellProperties) {
+  if (isNumeric(value)) {
+    const numericFormat = cellProperties.numericFormat;
+    const cellCulture = numericFormat && numericFormat.culture || '-';
+    const cellFormatPattern = numericFormat && numericFormat.pattern;
+
+    if (typeof cellCulture !== 'undefined' && !numbro.languages()[cellCulture]) {
+      const shortTag = cellCulture.replace('-', '');
+      const langData = numbro.allLanguages ? numbro.allLanguages[cellCulture] : numbro[shortTag];
+
+      if (langData) {
+        numbro.registerLanguage(langData);
+      }
+    }
+
+    numbro.setLanguage(cellCulture);
+
+    value = numbro(value).format(cellFormatPattern || '0');
+  }
+
+  return value;
+}
+
+/**
  * Numeric cell renderer.
  *
  * @private
@@ -20,24 +50,10 @@ export function numericRenderer(hotInstance, TD, row, col, prop, value, cellProp
   let newValue = value;
 
   if (isNumeric(newValue)) {
-    const numericFormat = cellProperties.numericFormat;
-    const cellCulture = numericFormat && numericFormat.culture || '-';
-    const cellFormatPattern = numericFormat && numericFormat.pattern;
     const className = cellProperties.className || '';
     const classArr = className.length ? className.split(' ') : [];
 
-    if (typeof cellCulture !== 'undefined' && !numbro.languages()[cellCulture]) {
-      const shortTag = cellCulture.replace('-', '');
-      const langData = numbro.allLanguages ? numbro.allLanguages[cellCulture] : numbro[shortTag];
-
-      if (langData) {
-        numbro.registerLanguage(langData);
-      }
-    }
-
-    numbro.setLanguage(cellCulture);
-
-    newValue = numbro(newValue).format(cellFormatPattern || '0');
+    newValue = getRenderedValue(newValue, cellProperties);
 
     if (classArr.indexOf('htLeft') < 0 && classArr.indexOf('htCenter') < 0 &&
       classArr.indexOf('htRight') < 0 && classArr.indexOf('htJustify') < 0) {
@@ -52,8 +68,6 @@ export function numericRenderer(hotInstance, TD, row, col, prop, value, cellProp
 
     TD.dir = 'ltr';
   }
-
-  cellProperties.displayValue = newValue;
 
   textRenderer(hotInstance, TD, row, col, prop, newValue, cellProperties);
 }

@@ -139,26 +139,6 @@ describe('NumericRenderer', () => {
     instance.destroy();
   });
 
-  it('should assign the `displayValue` meta property to the render result for the cells with the numeric renderer', () => {
-    handsontable({
-      data: [
-        [1],
-        [2],
-        [3],
-        [4],
-        [5],
-      ],
-      renderer: 'numeric',
-      numericFormat: {
-        pattern: '$0,0.00',
-      }
-    });
-
-    for (let i = 0; i < 5; i++) {
-      expect(getCellMeta(i, 0).displayValue).toBe(`$${getDataAtCell(i, 0)}.00`);
-    }
-  });
-
   describe('NumericRenderer with ContextMenu', () => {
     it('should change class name from default `htRight` to `htLeft` after set align in contextMenu', (done) => {
       handsontable({
@@ -192,35 +172,6 @@ describe('NumericRenderer', () => {
         expect($('.handsontable.ht_master .htLeft:not(.htRight)').length).toBe(1);
         done();
       }, 500);
-    });
-  });
-
-  describe('NumericRenderer with Filters', () => {
-    it('should display the formatted renderer output in the Filters\' multi-selection component', () => {
-      handsontable({
-        data: [
-          [1],
-          [2],
-          [3],
-          [4],
-          [5],
-        ],
-        colHeaders: true,
-        dropdownMenu: true,
-        filters: true,
-        renderer: 'numeric',
-        numericFormat: {
-          pattern: '$0,0.00',
-        }
-      });
-
-      dropdownMenu(0);
-
-      for (let i = 0; i < 5; i++) {
-        expect(
-          byValueMultipleSelect().element.querySelectorAll('.htCore td')[i].textContent
-        ).toBe(`$${getDataAtCell(i, 0)}.00`);
-      }
     });
   });
 });
