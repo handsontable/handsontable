@@ -39,9 +39,3 @@ Tests are run in [BrowserStack](https://www.browserstack.com/) as well as on a l
 | Edge             | Safari iOS          |
 | Opera            | Opera               |
 | QQ browser       | Samsung Internet    |
-
-::: tip
-
-Handsontable doesn't support iPads.
-
-:::
