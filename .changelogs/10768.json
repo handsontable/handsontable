@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fix missing renderer and editor prop in react wrapper",
+  "title": "Fixed missing renderer and editor prop in react wrapper",
   "type": "fixed",
   "issueOrPR": 10768,
   "breaking": false,
