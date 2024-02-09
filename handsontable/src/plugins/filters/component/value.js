@@ -3,7 +3,7 @@ import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import { arrayEach, arrayFilter, arrayMap } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import * as C from '../../../i18n/constants';
-import { getBasicMeta, unifyColumnValues, intersectValues, toEmptyString } from '../utils';
+import { unifyColumnValues, intersectValues, toEmptyString } from '../utils';
 import { BaseComponent } from './_base';
 import { MultipleSelectUI } from '../ui/multipleSelect';
 import { CONDITION_BY_VALUE, CONDITION_NONE } from '../constants';
@@ -45,7 +45,7 @@ export class ValueComponent extends BaseComponent {
       .addLocalHook('listTabKeydown', event => this.runLocalHooks('listTabKeydown', event));
 
     this.hot
-      .addHook('modifyFiltersMultiSelectValue', (value, basicMeta) => this.#modifyDisplayedValue(value, basicMeta));
+      .addHook('modifyFiltersMultiSelectValue', (value, meta) => this.#onModifyDisplayedValue(value, meta));
   }
 
   /**
@@ -119,7 +119,9 @@ export class ValueComponent extends BaseComponent {
       if (firstByValueCondition) {
         const filteredRows = filteredRowsFactory(physicalColumn, conditionsStack);
         const rowValues = arrayMap(filteredRows, row => row.value);
-        const rowMetaMap = new Map(filteredRows.map(row => [row.value, row.meta]));
+        const rowMetaMap = new Map(
+          filteredRows.map(row => [row.value, this.hot.getCellMeta(row.meta.visualRow, row.meta.visualCol)])
+        );
         const unifiedRowValues = unifyColumnValues(rowValues);
 
         if (conditionArgsChange) {
@@ -254,12 +256,12 @@ export class ValueComponent extends BaseComponent {
    * Trigger the `modifyFiltersMultiSelectValue` hook.
    *
    * @param {object} item Item from the multiple select list.
-   * @param {object} basicMeta Map of row meta objects.
+   * @param {Map} metaMap Map of row meta objects.
    */
-  #triggerModifyMultipleSelectionValueHook(item, basicMeta) {
+  #triggerModifyMultipleSelectionValueHook(item, metaMap) {
     if (this.hot.hasHook('modifyFiltersMultiSelectValue')) {
       item.visualValue =
-        this.hot.runHooks('modifyFiltersMultiSelectValue', item.visualValue, basicMeta.get(item.value));
+        this.hot.runHooks('modifyFiltersMultiSelectValue', item.visualValue, metaMap.get(item.value));
     }
   }
 
@@ -267,13 +269,13 @@ export class ValueComponent extends BaseComponent {
    * Modify the value displayed in the multiple select list.
    *
    * @param {*} value Cell value.
-   * @param {object} basicMeta Trimmmed-down version of the cell meta object.
+   * @param {object} meta The cell meta object.
    * @returns {*} Returns the modified value.
    */
-  #modifyDisplayedValue(value, basicMeta) {
-    switch (basicMeta.type) {
+  #onModifyDisplayedValue(value, meta) {
+    switch (meta.type) {
       case 'numeric':
-        return getRenderedNumericValue(value, basicMeta);
+        return getRenderedNumericValue(value, meta);
       default:
         return value;
     }
@@ -295,7 +297,7 @@ export class ValueComponent extends BaseComponent {
     return arrayMap(this.hot.getDataAtCol(selectedColumn.visualIndex), (v, rowIndex) => {
       return {
         value: toEmptyString(v),
-        meta: getBasicMeta(this.hot.getCellMeta(selectedColumn.visualIndex, rowIndex))
+        meta: this.hot.getCellMeta(selectedColumn.visualIndex, rowIndex),
       };
     });
   }

@@ -14,7 +14,7 @@ import { ActionBarComponent } from './component/actionBar';
 import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
-import { createArrayAssertion, getBasicMeta, toEmptyString, unifyColumnValues } from './utils';
+import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
 import { createMenuFocusController } from './menu/focusController';
 import {
   CONDITION_NONE,
@@ -591,11 +591,12 @@ export class Filters extends BasePlugin {
     const data = [];
 
     arrayEach(this.hot.getSourceDataAtCol(visualColumn), (value, rowIndex) => {
-      const cellMeta = this.hot.getCellMeta(rowIndex, visualColumn);
+      const { row, col, visualCol, visualRow, type, instance, dateFormat, locale } =
+        this.hot.getCellMeta(rowIndex, visualColumn);
       const dataValue = this.hot.getDataAtCell(this.hot.toVisualRow(rowIndex), visualColumn) ?? value;
 
       data.push({
-        meta: getBasicMeta(cellMeta),
+        meta: { row, col, visualCol, visualRow, type, instance, dateFormat, locale },
         value: toEmptyString(dataValue),
       });
     });

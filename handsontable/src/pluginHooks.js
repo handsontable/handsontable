@@ -1441,7 +1441,7 @@ const REGISTERED_HOOKS = [
    * @since 14.2.0
    * @event Hooks#modifyFiltersMultiSelectValue
    * @param {object} item The item in the list of values.
-   * @param {object} basicMeta The trimmed-down version of the meta object.
+   * @param {object} meta The cell properties object.
    */
   'modifyFiltersMultiSelectValue',
 

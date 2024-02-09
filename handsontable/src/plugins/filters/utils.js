@@ -140,15 +140,3 @@ export function intersectValues(base, selected, defaultEmptyValue, callback) {
 
   return result;
 }
-
-/**
- * Get a trimmed-down version of the cell meta object.
- *
- * @param {CellMeta} cellMeta The cell meta object.
- * @returns {object} The trimmed-down version of the cell meta object.
- */
-export function getBasicMeta(cellMeta) {
-  const { row, col, visualCol, visualRow, type, instance, dateFormat, locale, numericFormat } = cellMeta;
-
-  return { row, col, visualCol, visualRow, type, instance, dateFormat, locale, numericFormat };
-}
