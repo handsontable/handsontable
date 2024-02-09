@@ -15,7 +15,7 @@ import { WRAPPERS, REFERENCE_FRAMEWORK, EXAMPLES_SERVER_PORT } from '../src/conf
 const playwrightVersion = mainPackageJSON.devDependencies.playwright;
 const pathToMount = path.resolve(process.cwd(), '..');
 const dirs = {
-  examples: '../examples/visual-tests',
+  examples: '../examples/next/visual-tests',
   codeToRun: 'demo',
   screenshots: './screenshots',
 };
