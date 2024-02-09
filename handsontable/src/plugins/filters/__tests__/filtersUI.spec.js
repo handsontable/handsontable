@@ -1091,27 +1091,32 @@ describe('Filters UI', () => {
       'is numeric-typed', () => {
       handsontable({
         data: [
-          [1],
-          [2],
-          [3],
-          [4],
-          [5],
+          [1, 6],
+          [2, 7],
+          [3, 8],
+          [4, 9],
+          [5, 10],
         ],
         colHeaders: true,
         dropdownMenu: true,
         filters: true,
-        type: 'numeric',
-        numericFormat: {
-          pattern: '$0,0.00',
-        }
+        columns: [
+          {},
+          {
+            type: 'numeric',
+            numericFormat: {
+              pattern: '$0,0.00',
+            }
+          }
+        ]
       });
 
-      dropdownMenu(0);
+      dropdownMenu(1);
 
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < countRows(); i++) {
         expect(
           byValueMultipleSelect().element.querySelectorAll('.htCore td')[i].textContent
-        ).toBe(`$${getDataAtCell(i, 0)}.00`);
+        ).toBe(`$${getDataAtCell(i, 1)}.00`);
       }
     });
 

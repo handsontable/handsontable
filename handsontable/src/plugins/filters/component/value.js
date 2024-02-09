@@ -297,7 +297,7 @@ export class ValueComponent extends BaseComponent {
     return arrayMap(this.hot.getDataAtCol(selectedColumn.visualIndex), (v, rowIndex) => {
       return {
         value: toEmptyString(v),
-        meta: this.hot.getCellMeta(selectedColumn.visualIndex, rowIndex),
+        meta: this.hot.getCellMeta(rowIndex, selectedColumn.visualIndex),
       };
     });
   }
