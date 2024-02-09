@@ -1,8 +1,0 @@
-{
-  "name": "examples-vue-11.0.1",
-  "version": "11.0.1",
-  "private": true,
-  "workspaces": [
-    "@(!(node_modules))/"
-  ]
-}
