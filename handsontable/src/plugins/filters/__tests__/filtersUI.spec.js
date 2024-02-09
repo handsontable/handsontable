@@ -1058,6 +1058,63 @@ describe('Filters UI', () => {
       expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('(Blank cells)');
     });
 
+    it('should utilize the `modifyFiltersMultiSelectValue` hook to display the cell value', () => {
+      const columnsSetting = getColumnsForFilters();
+
+      handsontable({
+        data: getDataForFilters(),
+        columns: columnsSetting,
+        filters: true,
+        dropdownMenu: true,
+        width: 500,
+        height: 300,
+        modifyFiltersMultiSelectValue: (value) => {
+          return `Custom ${value}`;
+        },
+      });
+
+      dropdownMenu(1);
+
+      const unifiedColDataSample = [
+        'Alice Blake', 'Alyssa Francis', 'Becky Ross', 'Bridges Sawyer', 'Burt Cash', 'Carissa Villarreal'
+      ];
+
+      for (let i = 0; i < unifiedColDataSample.length; i++) {
+        expect(
+          byValueMultipleSelect().element.querySelectorAll('.htCore td')[i].textContent
+        ).toBe(`Custom ${unifiedColDataSample[i]}`);
+      }
+      expect(unifiedColDataSample.length).toBe(6);
+    });
+
+    it('should display the formatted renderer output in the multi-selection component if the column being filtered ' +
+      'is numeric-typed', () => {
+      handsontable({
+        data: [
+          [1],
+          [2],
+          [3],
+          [4],
+          [5],
+        ],
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+        type: 'numeric',
+        numericFormat: {
+          pattern: '$0,0.00',
+        }
+      });
+
+      dropdownMenu(0);
+
+      for (let i = 0; i < 5; i++) {
+        expect(
+          byValueMultipleSelect().element.querySelectorAll('.htCore td')[i].textContent
+        ).toBe(`$${getDataAtCell(i, 0)}.00`);
+      }
+    });
+
     it('shouldn\'t break "by value" items in the next filter stacks', (done) => {
       const data = getDataForFilters();
 
