@@ -124,9 +124,6 @@ displaySeparator();
   // Generate the CHANGELOG.md file.
   await spawnProcess('npm run changelog consume', { stdin: 'pipe' });
 
-  // Create the examples/[version] directory.
-  // await spawnProcess(`npm run examples:version ${finalVersion}`);
-
   if (argv.commit === true) {
     // Commit the changes to the release branch.
     await spawnProcess('git add .');
