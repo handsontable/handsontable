@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed documentation console error",
-  "type": "fixed",
-  "issueOrPR": 10776,
-  "breaking": false,
-  "framework": "none"
-}
