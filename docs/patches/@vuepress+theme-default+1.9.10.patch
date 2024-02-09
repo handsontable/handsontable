@@ -1,0 +1,13 @@
+diff --git a/node_modules/@vuepress/theme-default/global-components/CodeGroup.vue b/node_modules/@vuepress/theme-default/global-components/CodeGroup.vue
+index ac6ec55..2e482dc 100644
+--- a/node_modules/@vuepress/theme-default/global-components/CodeGroup.vue
++++ b/node_modules/@vuepress/theme-default/global-components/CodeGroup.vue
+@@ -75,7 +75,7 @@ export default {
+         }
+       })
+ 
+-      if (this.codeTabs[index].elm) {
++      if (this.codeTabs[index]?.elm) {
+         this.codeTabs[index].elm.classList.add('theme-code-block__active')
+       }
+     }
