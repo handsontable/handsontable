@@ -177,7 +177,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,-1 from: 2,-1 to: 1,4']);
     });
 
-    it('should change the selection when column header is selected', () => {
+    it('should not change the selection when column header is selected', () => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -190,18 +190,18 @@ describe('Selection extending', () => {
       keyDownUp(['shift', 'arrowup']);
 
       expect(`
-        |   ║   : - :   :   :   |
+        |   ║   : * :   :   :   |
         |===:===:===:===:===:===|
         | - ║   : A :   :   :   |
         | - ║   : 0 :   :   :   |
         | - ║   : 0 :   :   :   |
         | - ║   : 0 :   :   :   |
-        |   ║   :   :   :   :   |
+        | - ║   : 0 :   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -1,1 to: 3,1']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -1,1 to: 4,1']);
     });
 
-    it('should change the selection when all cells are selected (triggered by corner click)', () => {
+    it('should not change the selection when all cells are selected (triggered by corner click)', () => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -214,15 +214,15 @@ describe('Selection extending', () => {
       keyDownUp(['shift', 'arrowup']);
 
       expect(`
-        |   ║ - : - : - : - : - |
+        | * ║ * : * : * : * : * |
         |===:===:===:===:===:===|
         | * ║ A : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 |
-        |   ║   :   :   :   :   |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 3,4']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 4,4']);
     });
 
     it('should not change the selection when the column header is highlighted', () => {

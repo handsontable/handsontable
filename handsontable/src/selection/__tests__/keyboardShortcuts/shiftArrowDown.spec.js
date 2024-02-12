@@ -49,6 +49,44 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 3,2']);
     });
 
+    it('should extend the cells selection down when focus is moved within a range', () => {
+      handsontable({
+        startRows: 6,
+        startCols: 5
+      });
+
+      selectCells([[4, 2, 1, 1]]);
+      keyDownUp(['shift', 'enter']); // move cell focus up
+      keyDownUp(['shift', 'enter']); // move cell focus up
+      keyDownUp(['shift', 'arrowdown']);
+
+      expect(`
+        |   :   :   :   :   |
+        |   :   :   :   :   |
+        |   : 0 : A :   :   |
+        |   : 0 : 0 :   :   |
+        |   : 0 : 0 :   :   |
+        |   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 4,2 to: 2,1']);
+
+      keyDownUp(['shift', 'arrowdown']);
+
+      expect(`
+        |   :   :   :   :   |
+        |   :   :   :   :   |
+        |   : 0 : A :   :   |
+        |   : 0 : 0 :   :   |
+        |   : 0 : 0 :   :   |
+        |   : 0 : 0 :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 5,1']);
+
+      keyDownUp(['shift', 'arrowdown']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 5,1']);
+    });
+
     it('should extend the row header selection down to the next row header', () => {
       handsontable({
         rowHeaders: true,
@@ -71,6 +109,51 @@ describe('Selection extending', () => {
         |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,-1 to: 2,4']);
+    });
+
+    it('should extend the row header selection down to the next row header when focus is moved within a range', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 6,
+        startCols: 5
+      });
+
+      selectRows(4, 1);
+      listen();
+      keyDownUp(['shift', 'enter']); // move cell focus up
+      keyDownUp(['shift', 'enter']); // move cell focus up
+      keyDownUp(['shift', 'arrowdown']);
+
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        | * ║ A : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 4,-1 to: 2,4']);
+
+      keyDownUp(['shift', 'arrowdown']);
+
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        | * ║ A : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-1 to: 5,4']);
+
+      keyDownUp(['shift', 'arrowdown']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-1 to: 5,4']);
     });
 
     it('should extend the row header selection down to the next visible row header', () => {

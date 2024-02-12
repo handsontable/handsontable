@@ -34,6 +34,32 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,3 from: -1,3 to: 4,3']);
     });
 
+    it('should select the column from selection without changing the focus position', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      selectCell(2, 2, 3, 3);
+      keyDownUp('tab'); // Move focus to the next cell
+      keyDownUp('tab'); // Move focus to the next cell
+      keyDownUp('tab'); // Move focus to the next cell
+      keyDownUp(['control', 'space']);
+
+      expect(`
+        |   ║   :   : * : * :   |
+        |===:===:===:===:===:===|
+        | - ║   :   : 0 : 0 :   |
+        | - ║   :   : 0 : 0 :   |
+        | - ║   :   : 0 : 0 :   |
+        | - ║   :   : 0 : A :   |
+        | - ║   :   : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,3 from: -1,2 to: 4,3']);
+    });
+
     it('should select the columns from multiple cells selection', () => {
       handsontable({
         rowHeaders: true,

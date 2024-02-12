@@ -193,8 +193,36 @@ class Transformation {
     this.runLocalHooks('beforeTransformEnd', delta);
 
     if (highlightRenderableCoords.row !== null && highlightRenderableCoords.col !== null) {
-      const { row, col } = this.#visualToZeroBasedCoords(cellRange.to);
-      const coords = this.#options.createCellCoords(row + delta.row, col + delta.col);
+      const {
+        row: toRow,
+        col: toColumn,
+      } = this.#visualToZeroBasedCoords(cellRange.to);
+      const {
+        row: highlightRow,
+        col: highlightColumn,
+      } = this.#visualToZeroBasedCoords(cellRange.highlight);
+      const coords = this.#options.createCellCoords(toRow + delta.row, toColumn + delta.col);
+
+      if (delta.col < 0) {
+        if (toColumn >= highlightColumn && coords.col < highlightColumn) {
+          coords.col = this.#visualToZeroBasedCoords(cellRange.getTopStartCorner()).col + delta.col;
+        }
+      } else if (delta.col > 0) {
+        if (toColumn <= highlightColumn && coords.col > highlightColumn) {
+          coords.col = this.#visualToZeroBasedCoords(cellRange.getTopEndCorner()).col + delta.col;
+        }
+      }
+
+      if (delta.row < 0) {
+        if (toRow >= highlightRow && coords.row < highlightRow) {
+          coords.row = this.#visualToZeroBasedCoords(cellRange.getTopStartCorner()).row + delta.row;
+        }
+      } else if (delta.row > 0) {
+        if (toRow <= highlightRow && coords.row > highlightRow) {
+          coords.row = this.#visualToZeroBasedCoords(cellRange.getBottomStartCorner()).row + delta.row;
+        }
+      }
+
       const { rowDir, colDir } = this.#clampCoords(coords);
 
       rowTransformDir = rowDir;

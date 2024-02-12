@@ -333,7 +333,7 @@ class Selection {
       return;
     }
 
-    this.runLocalHooks('beforeSetRangeEnd', coordsClone);
+    // this.runLocalHooks('beforeSetRangeEnd', coordsClone);
     this.begin();
 
     const cellRange = this.selectedRange.current();
@@ -345,8 +345,24 @@ class Selection {
     if (this.settings.selectionMode === 'single') {
       cellRange.setFrom(cellRange.highlight);
       cellRange.setTo(cellRange.highlight);
+
     } else {
+      const horizontalDir = cellRange.getHorizontalDirection();
+      const verticalDir = cellRange.getVerticalDirection();
+      const isMultiple = this.isMultiple();
+
       cellRange.setTo(coordsClone);
+
+      if (isMultiple && horizontalDir !== cellRange.getHorizontalDirection()) {
+        cellRange.from.assign({
+          col: cellRange.highlight.col
+        });
+      }
+      if (isMultiple && verticalDir !== cellRange.getVerticalDirection()) {
+        cellRange.from.assign({
+          row: cellRange.highlight.row
+        });
+      }
     }
 
     // Prevent creating "area" selection that overlaps headers.
@@ -969,12 +985,22 @@ class Selection {
       });
 
     if (isValid) {
-      const fromRow = countColHeaders === 0 ? 0 : clamp(focusPosition, columnHeaderLastIndex, -1);
+      let highlightRow = 0;
+      let highlightColumn = 0;
+
+      if (Number.isInteger(focusPosition?.row) && Number.isInteger(focusPosition?.col)) {
+        highlightRow = clamp(focusPosition.row, columnHeaderLastIndex, countRows - 1);
+        highlightColumn = clamp(focusPosition.col, Math.min(start, end), Math.max(start, end));
+      } else {
+        highlightRow = clamp(focusPosition, columnHeaderLastIndex, countRows - 1);
+        highlightColumn = start;
+      }
+
+      const highlight = this.tableProps.createCellCoords(highlightRow, highlightColumn);
+      const fromRow = countColHeaders === 0 ? 0 : clamp(highlight.row, columnHeaderLastIndex, -1);
       const toRow = countRows - 1;
       const from = this.tableProps.createCellCoords(fromRow, start);
       const to = this.tableProps.createCellCoords(toRow, end);
-      const highlight = this.tableProps
-        .createCellCoords(clamp(focusPosition, columnHeaderLastIndex, countRows - 1), start);
 
       this.runLocalHooks('beforeSelectColumns', from, to, highlight);
 
@@ -1019,12 +1045,22 @@ class Selection {
       });
 
     if (isValid) {
-      const fromColumn = countRowHeaders === 0 ? 0 : clamp(focusPosition, rowHeaderLastIndex, -1);
+      let highlightRow = 0;
+      let highlightColumn = 0;
+
+      if (Number.isInteger(focusPosition?.row) && Number.isInteger(focusPosition?.col)) {
+        highlightRow = clamp(focusPosition.row, Math.min(startRow, endRow), Math.max(startRow, endRow));
+        highlightColumn = clamp(focusPosition.col, rowHeaderLastIndex, countCols - 1);
+      } else {
+        highlightRow = startRow;
+        highlightColumn = clamp(focusPosition, rowHeaderLastIndex, countCols - 1);
+      }
+
+      const highlight = this.tableProps.createCellCoords(highlightRow, highlightColumn);
+      const fromColumn = countRowHeaders === 0 ? 0 : clamp(highlight.col, rowHeaderLastIndex, -1);
       const toColumn = countCols - 1;
       const from = this.tableProps.createCellCoords(startRow, fromColumn);
       const to = this.tableProps.createCellCoords(endRow, toColumn);
-      const highlight = this.tableProps
-        .createCellCoords(startRow, clamp(focusPosition, rowHeaderLastIndex, countCols - 1));
 
       this.runLocalHooks('beforeSelectRows', from, to, highlight);
 
