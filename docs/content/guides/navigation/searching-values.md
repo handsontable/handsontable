@@ -592,7 +592,7 @@ registerAllModules();
 
 export const ExampleComponent = () => {
   const hot4Ref = useRef(null);
-  const [output, setOutput] = useState('');
+  const [output, setOutput] = useState('0 results');
 
   const data = [
     ['Tesla', 2017, 'black', 'black'],
