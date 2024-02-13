@@ -592,7 +592,7 @@ registerAllModules();
 
 export const ExampleComponent = () => {
   const hot4Ref = useRef(null);
-  const [output, setOutput] = useState('0 results');
+  const [resultCount, setResultCounter] = useState(0);
 
   const data = [
     ['Tesla', 2017, 'black', 'black'],
@@ -600,8 +600,6 @@ export const ExampleComponent = () => {
     ['Chrysler', 2019, 'yellow', 'black'],
     ['Volvo', 2020, 'white', 'gray']
   ];
-  let searchResultCount = 0;
-  let searchFieldKeyupCallback;
 
   //  define your custom callback function
   function searchResultCounter(instance, row, col, value, result) {
@@ -612,31 +610,23 @@ export const ExampleComponent = () => {
     DEFAULT_CALLBACK.apply(this, arguments);
 
     if (result) {
-      searchResultCount++;
+      setResultCounter(count => count + 1);
     }
   }
 
-  useEffect(() => {
-    const hot4 = hot4Ref.current.hotInstance;
-
-    searchFieldKeyupCallback = function(event) {
-      searchResultCount = 0;
-
-      const search = hot4.getPlugin('search');
-      const queryResult = search.query(event.target.value);
-
-      console.log(queryResult);
-      setOutput(`${searchResultCount} results`);
-      hot4.render();
-    };
-  });
+  const handleKeyUp = (event) => {
+    setResultCounter(0);
+    const search = hot4Ref.current.hotInstance.getPlugin('search');
+    const queryResult = search.query(event.target.value);
+    hot4Ref.current.hotInstance.render();
+  }
 
   return (
     <>
       <div className="controls">
-        <input id="search_field4" type="search" placeholder="Search" onKeyUp={(...args) => searchFieldKeyupCallback(...args)}/>
+        <input id="search_field4" type="search" placeholder="Search" onKeyUp={handleKeyUp}/>
       </div>
-      <output className="console" id="output">{output}</output>
+      <output className="console" id="output">{resultCount} results</output>
       <HotTable
         ref={hot4Ref}
         data={data}
