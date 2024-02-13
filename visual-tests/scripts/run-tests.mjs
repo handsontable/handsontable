@@ -8,12 +8,9 @@ import path from 'path';
 import execa from 'execa';
 import fse from 'fs-extra';
 import chalk from 'chalk';
-import mainPackageJSON from '../package.json' assert { type: 'json' };
 import { isReferenceBranch, getFrameworkList, sleep, killProcess } from './utils/utils.mjs';
 import { WRAPPERS, REFERENCE_FRAMEWORK, EXAMPLES_SERVER_PORT } from '../src/config.mjs';
 
-const playwrightVersion = mainPackageJSON.devDependencies.playwright;
-const pathToMount = path.resolve(process.cwd(), '..');
 const dirs = {
   examples: '../examples/next/visual-tests',
   codeToRun: 'demo',
