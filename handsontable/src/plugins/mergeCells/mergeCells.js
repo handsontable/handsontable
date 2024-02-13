@@ -845,31 +845,31 @@ export class MergeCells extends BasePlugin {
    * @param {object} coords Cell coords.
    */
   #onBeforeSetRangeEnd(coords) {
-    const selRange = this.hot.getSelectedRangeLast();
+    // const selRange = this.hot.getSelectedRangeLast();
 
-    selRange.highlight = this.hot._createCellCoords(selRange.highlight.row, selRange.highlight.col); // clone in case we will modify its reference
-    selRange.to = coords;
-    let rangeExpanded = false;
+    // selRange.highlight = this.hot._createCellCoords(selRange.highlight.row, selRange.highlight.col); // clone in case we will modify its reference
+    // selRange.to = coords;
+    // let rangeExpanded = false;
 
-    if (this.hot.selection.isSelectedByColumnHeader() || this.hot.selection.isSelectedByRowHeader()) {
-      return;
-    }
+    // if (this.hot.selection.isSelectedByColumnHeader() || this.hot.selection.isSelectedByRowHeader()) {
+    //   return;
+    // }
 
-    do {
-      rangeExpanded = false;
+    // do {
+    //   rangeExpanded = false;
 
-      for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
-        const cellInfo = this.mergedCellsCollection.mergedCells[i];
-        const mergedCellRange = cellInfo.getRange();
+    //   for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
+    //     const cellInfo = this.mergedCellsCollection.mergedCells[i];
+    //     const mergedCellRange = cellInfo.getRange();
 
-        if (selRange.expandByRange(mergedCellRange)) {
-          coords.row = selRange.to.row;
-          coords.col = selRange.to.col;
+    //     if (selRange.expandByRange(mergedCellRange)) {
+    //       coords.row = selRange.to.row;
+    //       coords.col = selRange.to.col;
 
-          rangeExpanded = true;
-        }
-      }
-    } while (rangeExpanded);
+    //       rangeExpanded = true;
+    //     }
+    //   }
+    // } while (rangeExpanded);
   }
 
   /**

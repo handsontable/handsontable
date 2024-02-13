@@ -333,7 +333,7 @@ class Selection {
       return;
     }
 
-    // this.runLocalHooks('beforeSetRangeEnd', coordsClone);
+    this.runLocalHooks('beforeSetRangeEnd', coordsClone);
     this.begin();
 
     const cellRange = this.selectedRange.current();

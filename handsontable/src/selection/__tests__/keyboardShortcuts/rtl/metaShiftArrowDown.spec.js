@@ -110,7 +110,7 @@ describe('Selection extending (RTL mode)', () => {
         navigableHeaders: true,
       });
 
-      selectRows(1);
+      selectRows(1, 1, -1);
       listen();
       keyDownUp(['control/meta', 'shift', 'arrowdown']);
 
@@ -137,7 +137,7 @@ describe('Selection extending (RTL mode)', () => {
       columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
       render();
 
-      selectRows(1);
+      selectRows(1, 1, -1);
       listen();
       keyDownUp(['control/meta', 'shift', 'arrowdown']);
 

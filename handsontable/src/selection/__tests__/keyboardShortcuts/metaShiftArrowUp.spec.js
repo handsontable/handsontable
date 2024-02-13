@@ -30,6 +30,29 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,1 from: 3,1 to: 0,1']);
     });
 
+    it('should extend the cell selection to the first cell of the current column starting from the focus position', () => {
+      handsontable({
+        startRows: 5,
+        startCols: 5,
+        enterBeginsEditing: false,
+      });
+
+      selectCell(4, 1, 2, 3);
+      keyDownUp(['shift', 'enter']); // Move focus up
+      keyDownUp(['shift', 'enter']); // Move focus up
+      keyDownUp('tab'); // Move focus right
+      keyDownUp(['control/meta', 'shift', 'arrowup']);
+
+      expect(`
+        |   : 0 : 0 : 0 :   |
+        |   : 0 : 0 : 0 :   |
+        |   : 0 : A : 0 :   |
+        |   :   :   :   :   |
+        |   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,1 to: 0,3']);
+    });
+
     it('should extend the cell selection to the first cell of the current column when fixed overlays are enabled and the cell is selected', () => {
       handsontable({
         fixedColumnsStart: 2,
@@ -97,6 +120,32 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 3,-1 to: 0,4']);
     });
 
+    it('should extend the row header selection to the top-most row header starting from the focus position', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5,
+        enterBeginsEditing: false,
+      });
+
+      selectRows(3);
+      listen();
+      keyDownUp('tab'); // Move focus right
+      keyDownUp(['control/meta', 'shift', 'arrowup']);
+
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : A : 0 : 0 : 0 |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,1 from: 3,-1 to: 0,4']);
+    });
+
     it('should extend the row header selection to the top-most visible row', () => {
       handsontable({
         rowHeaders: true,
@@ -134,7 +183,7 @@ describe('Selection extending', () => {
         startCols: 5
       });
 
-      selectRows(3);
+      selectRows(3, 3, -1);
       listen();
       keyDownUp(['control/meta', 'shift', 'arrowup']);
 
@@ -185,7 +234,7 @@ describe('Selection extending', () => {
       columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
       render();
 
-      selectRows(3);
+      selectRows(3, 3, -1);
       listen();
       keyDownUp(['control/meta', 'shift', 'arrowup']);
 
