@@ -25,7 +25,7 @@ export const helpers = {
   expectedPageTitle: /Handsontable for .* example/,
 
   hotFramework: '',
-  testURL: `http://${process.env.CI ? 'localhost' : 'host.docker.internal'}:${EXAMPLES_SERVER_PORT}/`,
+  testURL: `http://localhost:${EXAMPLES_SERVER_PORT}/`,
   isMac: true,
   modifier: 'Meta' as 'Meta' | 'Control',
   screenshotsCount: 0,
