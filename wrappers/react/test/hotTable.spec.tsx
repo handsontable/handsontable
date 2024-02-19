@@ -9,7 +9,6 @@ import {
   mockElementDimensions,
   RendererComponent,
   EditorComponent,
-  SingleObjectWrapper,
   sleep,
   simulateKeyboardEvent,
   simulateMouseEvent,
@@ -52,7 +51,7 @@ describe('Handsontable initialization', () => {
 });
 
 describe('Updating the Handsontable settings', () => {
-  it('should call the updateSettings method of Handsontable, when the component properties get updated (when providing properties individually)', async () => {
+  it('should call the updateSettings method of Handsontable, when the component properties get updated', async () => {
     const componentInstance = mountComponentWithRef((
       <IndividualPropsWrapper/>
     ));
@@ -80,64 +79,9 @@ describe('Updating the Handsontable settings', () => {
     expect(updateSettingsCount).toEqual(1);
   });
 
-  it('should call the updateSettings method of Handsontable, when the component properties get updated (when providing properties as a single settings object)', async () => {
-    const componentInstance = mountComponentWithRef((
-      <SingleObjectWrapper/>
-    ));
-
-    const hotInstance = componentInstance.hotTable.hotInstance;
-    let updateSettingsCount = 0;
-
-    hotInstance.addHook('afterUpdateSettings', () => {
-      updateSettingsCount++;
-    });
-
-    await sleep(300);
-
-    await act(async () => {
-      componentInstance.setState({
-        hotSettings: {
-          data: [[2]],
-          contextMenu: true,
-          readOnly: true
-        }
-      });
-    });
-
-    expect(updateSettingsCount).toEqual(1);
-  });
-
-  it('should update the Handsontable options, when the component properties get updated (when providing properties individually)', async () => {
+  it('should update the Handsontable options, when the component properties get updated', async () => {
     const componentInstance = mountComponentWithRef((
       <IndividualPropsWrapper/>
-    ));
-
-    const hotInstance = componentInstance.hotTable.hotInstance;
-
-    expect(hotInstance.getSettings().contextMenu).toEqual(void 0);
-    expect(hotInstance.getSettings().readOnly).toEqual(false);
-    expect(JSON.stringify(hotInstance.getSettings().data)).toEqual('[[null,null,null,null,null],[null,null,null,null,null],[null,null,null,null,null],[null,null,null,null,null],[null,null,null,null,null]]');
-
-    await sleep(300);
-
-    await act(async () => {
-      componentInstance.setState({
-        hotSettings: {
-          data: [[2]],
-          contextMenu: true,
-          readOnly: true
-        }
-      });
-    });
-
-    expect(hotInstance.getSettings().contextMenu).toBe(true);
-    expect(hotInstance.getSettings().readOnly).toBe(true);
-    expect(JSON.stringify(hotInstance.getSettings().data)).toEqual('[[2]]');
-  });
-
-  it('should update the Handsontable options, when the component properties get updated (when providing properties as a single settings object)', async () => {
-    const componentInstance = mountComponentWithRef((
-      <SingleObjectWrapper/>
     ));
 
     const hotInstance = componentInstance.hotTable.hotInstance;
