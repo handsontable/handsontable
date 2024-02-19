@@ -23,7 +23,7 @@ export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this co
 /**
  * String identifier for the global-scoped editor components.
  */
-export const GLOBAL_EDITOR_SCOPE = 'global';
+export const GLOBAL_EDITOR_SCOPE: EditorScopeIdentifier = 'global';
 
 /**
  * Default classname given to the wrapper container.
