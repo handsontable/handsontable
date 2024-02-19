@@ -2268,7 +2268,7 @@ export default () => {
      *
      * formulas: {
      *   // set `engine` to a HyperFormula instance
-     *   engine: hyperFormulaInstance,
+     *   engine: hyperformulaInstance,
      *   sheetId: 1,
      *   sheetName: 'Sheet 1'
      * }
@@ -2277,7 +2277,7 @@ export default () => {
      * formulas: {
      *   // set `engine` to a HyperFormula configuration object
      *   engine: {
-     *     hyperformula: HyperFormula // or `engine: hyperFormulaInstance`
+     *     hyperformula: HyperFormula // or `engine: hyperformulaInstance`
      *     leapYear1900: false,       // this option comes from HyperFormula
      *     // add more HyperFormula configuration options
      *   },
