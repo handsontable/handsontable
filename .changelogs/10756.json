@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added a `modifyFiltersMultiSelectValue` plugin hook and utilized it in the Filters' multi-selection component.",
+  "type": "added",
+  "issueOrPR": 10756,
+  "breaking": false,
+  "framework": "none"
+}
