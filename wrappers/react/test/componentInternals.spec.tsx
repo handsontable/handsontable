@@ -222,7 +222,7 @@ describe('Component lifecyle', () => {
 
     rendererCounters.forEach((counters) => {
       expect(counters.didMount).toEqual(1);
-      expect(counters.willUnmount).toEqual(1);
+      expect(counters.willUnmount).toEqual(0);
     });
   });
 

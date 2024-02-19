@@ -242,6 +242,7 @@ export interface Events {
   modifyColumnHeaderValue?: (headerValue: string, visualColumnIndex: number, headerLevel: number) => void | string;
   modifyColWidth?: (width: number, column: number) => void;
   modifyCopyableRange?: (copyableRanges: RangeType[]) => void;
+  modifyFiltersMultiSelectValue?: (value: string, meta: CellProperties) => void | CellValue;
   modifyFocusedElement?: (row: number, column: number, focusedElement: HTMLElement) => void | HTMLElement;
   modifyData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
   modifyFocusOnTabNavigation?: (tabActivationDir: 'from_above' | 'from_below', visualCoords: CellCoords) => void;

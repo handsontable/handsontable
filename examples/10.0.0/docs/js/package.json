@@ -1,8 +1,0 @@
-{
-  "name": "examples-js-10.0.0",
-  "version": "10.0.0",
-  "private": true,
-  "workspaces": [
-    "@(!(node_modules))/"
-  ]
-}
