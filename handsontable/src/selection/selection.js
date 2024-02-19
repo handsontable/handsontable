@@ -534,17 +534,22 @@ class Selection {
     const focusHighlight = this.highlight.getFocus();
 
     focusHighlight.clear();
+    cellRange.setHighlight(coords);
+
+    if (!this.inProgress) {
+      this.runLocalHooks('beforeHighlightSet');
+    }
 
     if (this.highlight.isEnabledFor(FOCUS_TYPE, cellRange.highlight)) {
       focusHighlight
-        .add(coords)
+        .add(cellRange.highlight)
         .commit()
         .syncWith(cellRange);
     }
 
     if (!this.inProgress) {
       this.#isFocusSelectionChanged = true;
-      this.runLocalHooks('afterSetFocus', coords);
+      this.runLocalHooks('afterSetFocus', cellRange.highlight);
     }
   }
 

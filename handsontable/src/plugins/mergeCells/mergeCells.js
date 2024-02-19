@@ -93,7 +93,7 @@ export class MergeCells extends BasePlugin {
   /**
    * @type {CellCoords}
    */
-  #lastDesiredCoords = null;
+  #lastSelectedCoords = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -118,13 +118,18 @@ export class MergeCells extends BasePlugin {
     this.selectionCalculations = new SelectionCalculations(this);
 
     this.addHook('afterInit', (...args) => this.#onAfterInit(...args));
+
     this.addHook('modifyTransformStart', (...args) => this.#onModifyTransformStart(...args));
-    this.addHook('afterModifyTransformStart', (...args) => this.#onAfterModifyTransformStart(...args));
     this.addHook('modifyTransformEnd', (...args) => this.#onModifyTransformEnd(...args));
-    this.addHook('modifyGetCellCoords', (...args) => this.#onModifyGetCellCoords(...args));
+    this.addHook('beforeSelectionHighlightSet', (...args) => this.#onBeforeSelectionHighlightSet(...args));
+    // this.addHook('afterSelectionFocusSet', (...args) => this.#onAfterSelectionFocusSet(...args));
     this.addHook('beforeSetRangeStart', (...args) => this.#onBeforeSetRangeStart(...args));
-    this.addHook('beforeSetRangeStartOnly', (...args) => this.#onBeforeSetRangeStart(...args));
-    this.addHook('beforeSetRangeEnd', (...args) => this.#onBeforeSetRangeEnd(...args));
+
+    // this.addHook('afterModifyTransformStart', (...args) => this.#onAfterModifyTransformStart(...args));
+    // this.addHook('beforeSetRangeStartOnly', (...args) => this.#onBeforeSetRangeStart(...args));
+    // this.addHook('beforeSetRangeEnd', (...args) => this.#onBeforeSetRangeEnd(...args));
+
+    this.addHook('modifyGetCellCoords', (...args) => this.#onModifyGetCellCoords(...args));
     this.addHook('afterIsMultipleSelection', (...args) => this.#onAfterIsMultipleSelection(...args));
     this.addHook('afterRenderer', (...args) => this.#onAfterRenderer(...args));
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.#addMergeActionsToContextMenu(...args));
@@ -637,76 +642,78 @@ export class MergeCells extends BasePlugin {
    * @param {object} delta The transformation delta.
    */
   #onModifyTransformStart(delta) {
-    const currentlySelectedRange = this.hot.getSelectedRangeLast();
-    let newDelta = {
-      row: delta.row,
-      col: delta.col,
-    };
-    let nextPosition = null;
-    const currentPosition = this.hot._createCellCoords(currentlySelectedRange.highlight.row,
-      currentlySelectedRange.highlight.col);
-    const mergedParent = this.mergedCellsCollection.get(currentPosition.row, currentPosition.col);
+    const selectedRange = this.hot.getSelectedRangeLast();
+    const { highlight } = selectedRange;
 
-    if (!this.#lastDesiredCoords) {
-      this.#lastDesiredCoords = this.hot._createCellCoords(null, null);
+    if (this.#lastSelectedCoords) {
+      highlight.assign(this.#lastSelectedCoords);
+      this.#lastSelectedCoords = null;
     }
 
-    if (mergedParent) { // only merge selected
-      const mergeTopLeft = this.hot._createCellCoords(mergedParent.row, mergedParent.col);
-      const mergeBottomRight = this.hot._createCellCoords(
-        mergedParent.row + mergedParent.rowspan - 1,
-        mergedParent.col + mergedParent.colspan - 1
-      );
-      const mergeRange = this.hot._createCellRange(mergeTopLeft, mergeTopLeft, mergeBottomRight);
+    const mergedParent = this.mergedCellsCollection.get(highlight.row, highlight.col);
 
-      if (!mergeRange.includes(this.#lastDesiredCoords)) {
-        this.#lastDesiredCoords = this.hot._createCellCoords(null, null); // reset outdated version of lastDesiredCoords
+    if (!mergedParent) {
+      return;
+    }
+
+    const visualColumnIndexStart = mergedParent.col;
+    const visualColumnIndexEnd = mergedParent.col + mergedParent.colspan - 1;
+
+    if (delta.col < 0) {
+      const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ?
+        visualColumnIndexStart - 1 : visualColumnIndexEnd;
+      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, -1);
+
+      if (notHiddenColumnIndex === null) {
+        // There are no visible columns anymore, so move the selection out of the table edge. This will
+        // be processed by the selection Transformer class as a move selection to the previous row (if autoWrapRow is enabled).
+        delta.col = -this.hot.view.countRenderableColumnsInRange(0, highlight.col);
+      } else {
+        delta.col = -Math.max(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, highlight.col) - 1, 1);
       }
 
-      newDelta.row = this.#lastDesiredCoords.row ? this.#lastDesiredCoords.row - currentPosition.row : newDelta.row;
-      newDelta.col = this.#lastDesiredCoords.col ? this.#lastDesiredCoords.col - currentPosition.col : newDelta.col;
+    } else if (delta.col > 0) {
+      const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ?
+        visualColumnIndexEnd + 1 : visualColumnIndexStart;
+      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, 1);
 
-      if (delta.row > 0) { // moving down
-        newDelta.row = mergedParent.row + mergedParent.rowspan - 1 - currentPosition.row + delta.row;
-
-      } else if (delta.row < 0) { // moving up
-        newDelta.row = currentPosition.row - mergedParent.row + delta.row;
-      }
-
-      if (delta.col > 0) { // moving right
-        newDelta.col = mergedParent.col + mergedParent.colspan - 1 - currentPosition.col + delta.col;
-
-      } else if (delta.col < 0) { // moving left
-        newDelta.col = currentPosition.col - mergedParent.col + delta.col;
+      if (notHiddenColumnIndex === null) {
+        // There are no visible columns anymore, so move the selection out of the table edge. This will
+        // be processed by the selection Transformer class as a move selection to the next row (if autoWrapRow is enabled).
+        delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, this.hot.countCols());
+      } else {
+        delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1, 1);
       }
     }
 
-    nextPosition = this.hot._createCellCoords(
-      currentlySelectedRange.highlight.row + newDelta.row,
-      currentlySelectedRange.highlight.col + newDelta.col
-    );
+    const visualRowIndexStart = mergedParent.row;
+    const visualRowIndexEnd = mergedParent.row + mergedParent.rowspan - 1;
 
-    const nextPositionMergedCell = this.mergedCellsCollection.get(nextPosition.row, nextPosition.col);
+    if (delta.row < 0) {
+      const nextRow = highlight.row >= visualRowIndexStart && highlight.row <= visualRowIndexEnd ?
+        visualRowIndexStart - 1 : visualRowIndexEnd;
+      const notHiddenRowIndex = this.hot.rowIndexMapper.getNearestNotHiddenIndex(nextRow, -1);
 
-    if (nextPositionMergedCell) { // skipping the invisible cells in the merge range
-      const firstRenderableCoords = this.mergedCellsCollection.getFirstRenderableCoords(
-        nextPositionMergedCell.row,
-        nextPositionMergedCell.col
-      );
+      if (notHiddenRowIndex === null) {
+        // There are no visible rows anymore, so move the selection out of the table edge. This will
+        // be processed by the selection Transformer class as a move selection to the previous column (if autoWrapCol is enabled).
+        delta.row = -this.hot.view.countRenderableRowsInRange(0, highlight.row);
+      } else {
+        delta.row = -Math.max(this.hot.view.countRenderableRowsInRange(notHiddenRowIndex, highlight.row) - 1, 1);
+      }
 
-      this.#lastDesiredCoords = nextPosition;
+    } else if (delta.row > 0) {
+      const nextRow = highlight.row >= visualRowIndexStart && highlight.row <= visualRowIndexEnd ?
+        visualRowIndexEnd + 1 : visualRowIndexStart;
+      const notHiddenRowIndex = this.hot.rowIndexMapper.getNearestNotHiddenIndex(nextRow, 1);
 
-      newDelta = {
-        row: firstRenderableCoords.row - currentPosition.row,
-        col: firstRenderableCoords.col - currentPosition.col
-      };
-    }
-
-    if (newDelta.row !== 0) {
-      delta.row = newDelta.row;
-    }
-    if (newDelta.col !== 0) {
-      delta.col = newDelta.col;
+      if (notHiddenRowIndex === null) {
+        // There are no visible rows anymore, so move the selection out of the table edge. This will
+        // be processed by the selection Transformer class as a move selection to the next column (if autoWrapCol is enabled).
+        delta.row = this.hot.view.countRenderableRowsInRange(highlight.row, this.hot.countRows());
+      } else {
+        delta.row = Math.max(this.hot.view.countRenderableRowsInRange(highlight.row, notHiddenRowIndex) - 1, 1);
+      }
     }
   }
 
@@ -716,25 +723,117 @@ export class MergeCells extends BasePlugin {
    * @param {object} delta The transformation delta.
    */
   #onModifyTransformEnd(delta) {
-    const currentSelectionRange = this.hot.getSelectedRangeLast();
-    const newDelta = clone(delta);
-    const newSelectionRange = this.selectionCalculations.getUpdatedSelectionRange(currentSelectionRange, delta);
-    let tempDelta = clone(newDelta);
+    const selectedRange = this.hot.getSelectedRangeLast();
+    const { to } = selectedRange;
+    const nextTo = this.hot._createCellCoords(to.row + delta.row, to.col + delta.col);
+    const mergedParentCurrent = this.mergedCellsCollection.get(to.row, to.col);
+    const mergedParentNext = this.mergedCellsCollection.get(nextTo.row, nextTo.col);
 
-    const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(newSelectionRange, true);
+    if (!(mergedParentCurrent && mergedParentNext && mergedParentCurrent === mergedParentNext)) {
+      return;
+    }
 
-    do {
-      tempDelta = clone(newDelta);
-      this.selectionCalculations.getUpdatedSelectionRange(currentSelectionRange, newDelta);
+    const visualColumnIndexStart = mergedParentCurrent.col;
+    const visualColumnIndexEnd = mergedParentCurrent.col + mergedParentCurrent.colspan - 1;
 
-      arrayEach(mergedCellsWithinRange, (mergedCell) => {
-        this.selectionCalculations.snapDelta(newDelta, currentSelectionRange, mergedCell);
-      });
+    if (delta.col < 0) {
+      const nextColumn = nextTo.col >= visualColumnIndexStart && nextTo.col <= visualColumnIndexEnd ?
+        visualColumnIndexStart - 1 : visualColumnIndexEnd;
+      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, -1);
 
-    } while (newDelta.row !== tempDelta.row || newDelta.col !== tempDelta.col);
+      if (notHiddenColumnIndex === null) {
+        // There are no visible columns anymore, so move the selection out of the table edge. This will
+        // be processed by the selection Transformer class as a move selection to the previous row (if autoWrapRow is enabled).
+        delta.col = -this.hot.view.countRenderableColumnsInRange(0, to.col);
+      } else {
+        delta.col = -Math.max(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, to.col) - 1, 1);
+      }
 
-    delta.row = newDelta.row;
-    delta.col = newDelta.col;
+    } else if (delta.col > 0) {
+      const nextColumn = nextTo.col >= visualColumnIndexStart && nextTo.col <= visualColumnIndexEnd ?
+        visualColumnIndexEnd + 1 : visualColumnIndexStart;
+      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, 1);
+
+      if (notHiddenColumnIndex === null) {
+        // There are no visible columns anymore, so move the selection out of the table edge. This will
+        // be processed by the selection Transformer class as a move selection to the next row (if autoWrapRow is enabled).
+        delta.col = this.hot.view.countRenderableColumnsInRange(to.col, this.hot.countCols());
+      } else {
+        delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(to.col, notHiddenColumnIndex) - 1, 1);
+      }
+    }
+
+    const visualRowIndexStart = mergedParentCurrent.row;
+    const visualRowIndexEnd = mergedParentCurrent.row + mergedParentCurrent.rowspan - 1;
+
+    if (delta.row < 0) {
+      const nextRow = nextTo.row >= visualRowIndexStart && nextTo.row <= visualRowIndexEnd ?
+        visualRowIndexStart - 1 : visualRowIndexEnd;
+      const notHiddenRowIndex = this.hot.rowIndexMapper.getNearestNotHiddenIndex(nextRow, -1);
+
+      if (notHiddenRowIndex === null) {
+        // There are no visible rows anymore, so move the selection out of the table edge. This will
+        // be processed by the selection Transformer class as a move selection to the previous column (if autoWrapCol is enabled).
+        delta.row = -this.hot.view.countRenderableRowsInRange(0, to.row);
+      } else {
+        delta.row = -Math.max(this.hot.view.countRenderableRowsInRange(notHiddenRowIndex, to.row) - 1, 1);
+      }
+
+    } else if (delta.row > 0) {
+      const nextRow = nextTo.row >= visualRowIndexStart && nextTo.row <= visualRowIndexEnd ?
+        visualRowIndexEnd + 1 : visualRowIndexStart;
+      const notHiddenRowIndex = this.hot.rowIndexMapper.getNearestNotHiddenIndex(nextRow, 1);
+
+      if (notHiddenRowIndex === null) {
+        // There are no visible rows anymore, so move the selection out of the table edge. This will
+        // be processed by the selection Transformer class as a move selection to the next column (if autoWrapCol is enabled).
+        delta.row = this.hot.view.countRenderableRowsInRange(to.row, this.hot.countRows());
+      } else {
+        delta.row = Math.max(this.hot.view.countRenderableRowsInRange(to.row, notHiddenRowIndex) - 1, 1);
+      }
+    }
+  }
+
+  /**
+   * The hook corrects the range (before drawing it) after the selection was made on the merged cells.
+   * It expands the range to cover the entire area of the selected merged cells.
+   */
+  #onBeforeSelectionHighlightSet() {
+    if (this.hot.selection.isSelectedByColumnHeader() || this.hot.selection.isSelectedByRowHeader()) {
+      return;
+    }
+
+    const selectedRange = this.hot.getSelectedRangeLast();
+    const { highlight } = selectedRange;
+
+    for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
+      const cellInfo = this.mergedCellsCollection.mergedCells[i];
+
+      selectedRange.expandByRange(cellInfo.getRange());
+    }
+
+    const mergedParent = this.mergedCellsCollection.get(highlight.row, highlight.col);
+
+    this.#lastSelectedCoords = highlight.clone();
+
+    if (mergedParent) {
+      highlight.assign(mergedParent);
+    }
+  }
+
+  /**
+   * The hook corrects the logical focus position of the merged cell by moving it to the most top-start coords
+   * of the merged area.
+   */
+  #onAfterSelectionFocusSet() {
+    const selectedRange = this.hot.getSelectedRangeLast();
+    const { highlight } = selectedRange;
+    const mergedParent = this.mergedCellsCollection.get(highlight.row, highlight.col);
+
+    if (mergedParent && !highlight.isEqual(mergedParent)) {
+      this.#lastSelectedCoords = highlight.clone();
+      highlight.assign(mergedParent);
+    }
   }
 
   /**
@@ -762,7 +861,8 @@ export class MergeCells extends BasePlugin {
       mergeRow, mergeColumn,
       // Most bottom-right merged cell coords.
       mergeRow + rowspan - 1,
-      mergeColumn + colspan - 1];
+      mergeColumn + colspan - 1
+    ];
   }
 
   /**
@@ -819,20 +919,19 @@ export class MergeCells extends BasePlugin {
   /**
    * `beforeSetRangeStart` and `beforeSetRangeStartOnly` hook callback.
    * A selection within merge area should be rewritten to the start of merge area.
-   *
-   * @param {object} coords Cell coords.
    */
-  #onBeforeSetRangeStart(coords) {
+  #onBeforeSetRangeStart() {
     // TODO: It is a workaround, but probably this hook may be needed. Every selection on the merge area
     // could set start point of the selection to the start of the merge area. However, logic inside `expandByRange` need
     // an initial start point. Click on the merge cell when there are some hidden indexes break the logic in some cases.
     // Please take a look at #7010 for more information. I'm not sure if selection directions are calculated properly
     // and what was idea for flipping direction inside `expandByRange` method.
-    if (this.mergedCellsCollection.isFirstRenderableMergedCell(coords.row, coords.col)) {
-      const mergeParent = this.mergedCellsCollection.get(coords.row, coords.col);
+    // if (this.mergedCellsCollection.isFirstRenderableMergedCell(coords.row, coords.col)) {
+    //   const mergeParent = this.mergedCellsCollection.get(coords.row, coords.col);
 
-      [coords.row, coords.col] = [mergeParent.row, mergeParent.col];
-    }
+    //   [coords.row, coords.col] = [mergeParent.row, mergeParent.col];
+    // }
+    this.#lastSelectedCoords = null;
   }
 
   /**
@@ -841,10 +940,23 @@ export class MergeCells extends BasePlugin {
    * merged cell.
    *
    * Note: Please keep in mind that callback may modify both start and end range coordinates by the reference.
-   *
-   * @param {object} coords Cell coords.
    */
-  #onBeforeSetRangeEnd(coords) {
+  #onBeforeSetRangeEnd() {
+    // for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
+    //   const cellInfo = this.mergedCellsCollection.mergedCells[i];
+    //   const mergedCellRange = cellInfo.getRange();
+
+    //   window.aaa = mergedCellRange;
+
+    //   if (mergedCellRange.includes(coords)) {
+    //     // const a = selRange.expand(mergedCellRange.);
+
+    //     console.log(mergedCellRange, mergedCellRange.getOppositeCorner(coords));
+
+    //     coords.assign(mergedCellRange.getOppositeCorner(coords));
+    //   }
+    // }
+
     // const selRange = this.hot.getSelectedRangeLast();
 
     // selRange.highlight = this.hot._createCellCoords(selRange.highlight.row, selRange.highlight.col); // clone in case we will modify its reference

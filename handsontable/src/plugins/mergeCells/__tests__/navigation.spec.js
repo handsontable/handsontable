@@ -51,7 +51,7 @@ describe('MergeCells Navigation', () => {
     selectCell(2, 4);
     keyDownUp(['shift', 'tab']);
 
-    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 3,3']);
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,3 to: 3,1']);
 
     keyDownUp(['shift', 'tab']);
 
@@ -105,7 +105,7 @@ describe('MergeCells Navigation', () => {
     selectCell(4, 2);
     keyDownUp(['shift', 'enter']);
 
-    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 3,3']);
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 3,1 to: 1,3']);
 
     keyDownUp(['shift', 'enter']);
 
@@ -143,7 +143,7 @@ describe('MergeCells Navigation', () => {
 
     keyDownUp('tab');
 
-    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 3,3']);
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 3,1 to: 1,3']);
 
     keyDownUp('tab');
 
@@ -169,7 +169,7 @@ describe('MergeCells Navigation', () => {
     selectCell(2, 4);
     keyDownUp(['shift', 'tab']);
 
-    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 3,3']);
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,3 to: 3,1']);
 
     keyDownUp(['shift', 'tab']);
 
@@ -181,7 +181,7 @@ describe('MergeCells Navigation', () => {
 
     keyDownUp(['shift', 'tab']);
 
-    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 3,3']);
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,3 to: 3,1']);
 
     keyDownUp(['shift', 'tab']);
 
@@ -220,7 +220,7 @@ describe('MergeCells Navigation', () => {
 
     keyDownUp('enter');
 
-    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 3,3']);
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,3 to: 3,1']);
 
     keyDownUp('enter');
 
@@ -247,7 +247,7 @@ describe('MergeCells Navigation', () => {
     selectCell(4, 2);
     keyDownUp(['shift', 'enter']);
 
-    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 3,3']);
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 3,1 to: 1,3']);
 
     keyDownUp(['shift', 'enter']);
 
@@ -259,7 +259,7 @@ describe('MergeCells Navigation', () => {
 
     keyDownUp(['shift', 'enter']);
 
-    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 3,3']);
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 3,1 to: 1,3']);
 
     keyDownUp(['shift', 'enter']);
 
@@ -356,6 +356,7 @@ describe('MergeCells Navigation', () => {
 
     selectCell(1, 1, 5, 5);
     hot.selection.setRangeFocus(cellCoords(1, 3));
+
     keyDownUp('enter');
 
     expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 1,1 to: 5,5']);
