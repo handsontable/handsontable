@@ -215,6 +215,8 @@ import { HotTable } from '@handsontable/react';
 import {
   registerLanguageDictionary,
   getLanguagesDictionaries,
+  arAR,
+  csCZ,
   deCH,
   deDE,
   esMX,
@@ -228,6 +230,7 @@ import {
   plPL,
   ptBR,
   ruRU,
+  srSP,
   zhCN,
   zhTW
 } from 'handsontable/i18n';
@@ -237,6 +240,8 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
+registerLanguageDictionary(arAR);
+registerLanguageDictionary(csCZ);
 registerLanguageDictionary(deCH);
 registerLanguageDictionary(deDE);
 registerLanguageDictionary(esMX);
@@ -250,6 +255,7 @@ registerLanguageDictionary(nlNL);
 registerLanguageDictionary(plPL);
 registerLanguageDictionary(ptBR);
 registerLanguageDictionary(ruRU);
+registerLanguageDictionary(srSP);
 registerLanguageDictionary(zhCN);
 registerLanguageDictionary(zhTW);
 
