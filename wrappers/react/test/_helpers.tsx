@@ -207,11 +207,15 @@ class IndividualPropsWrapper extends React.Component<{ref?: string, id?: string}
 
 export { IndividualPropsWrapper };
 
-export const RendererComponent: React.FC<HotRendererProps> = ({ value }) => (
+export const RendererComponent: React.FC<HotRendererProps & { tap?: (props: HotRendererProps) => void }> = ({ tap, ...props }) => {
+  tap?.(props);
+
+  return (
     <>
-      value: {value}
+      value: {props.value}
     </>
-)
+  );
+}
 
 export const customNativeRenderer: Handsontable.renderers.BaseRenderer = function (instance, td, row, col, prop, value, cellProperties) {
   Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, col, prop, `value: ${value}`, cellProperties]);
