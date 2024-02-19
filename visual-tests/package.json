@@ -18,13 +18,12 @@
   "license": "CC BY 4.0",
   "devDependencies": {
     "@argos-ci/cli": "^1.0.3",
-    "@playwright/test": "1.28.1",
+    "@playwright/test": "1.41.x",
     "@typescript-eslint/eslint-plugin": "^5.48.1",
     "@typescript-eslint/parser": "^5.48.1",
     "chalk": "^4.1.0",
     "execa": "^5.0.0",
     "fs-extra": "^4.0.2",
-    "playwright": "1.28.1",
     "ps-tree": "^1.2.0",
     "rimraf": "^4.1.2"
   }
