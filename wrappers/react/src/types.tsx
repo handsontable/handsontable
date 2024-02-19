@@ -1,21 +1,10 @@
 import Handsontable from 'handsontable/base';
 import React from 'react';
-import { ConnectedComponent } from 'react-redux';
 
 /**
- * Type of the editor component's ReactElement.
+ * Type of the identifier under which the cached components are stored.
  */
-export type HotEditorElement = React.ReactElement<{}, ConnectedComponent<React.FunctionComponent, any> | any>;
-
-/**
- * Type of the identifier under which the cached editor components are stored.
- */
-export type EditorScopeIdentifier = 'global' | number;
-
-/**
- * Type of the cache map for the Handsontable editor components.
- */
-export type HotEditorCache = Map<Function, Map<EditorScopeIdentifier, React.Component>>;
+export type ScopeIdentifier = 'global' | number;
 
 /**
  * Interface for the props of the component-based renderers.
@@ -31,19 +20,26 @@ export interface HotRendererProps {
 }
 
 /**
+ * Interface for component-based editor overridden hooks object.
+ */
+export type HotEditorHooks = Partial<Handsontable.editors.BaseEditor> & { hotCustomEditorInstance?: Handsontable.editors.BaseEditor };
+
+/**
  * Helper type to expose GridSettings/ColumnSettings props with native renderers/editors separately
  *  from component-based render prop.
  */
-type ReplaceRenderers<T extends Pick<Handsontable.GridSettings, 'renderer'>> = Omit<T, 'renderer'> & {
+type ReplaceRenderersEditors<T extends Pick<Handsontable.GridSettings, 'renderer' | 'editor'>> = Omit<T, 'renderer' | 'editor'> & {
   hotRenderer?: T['renderer'],
   renderer?: React.ComponentType<HotRendererProps>,
+  hotEditor?: T['editor'],
+  editor?: React.ComponentType,
 }
 
 /**
  * Interface for the `prop` of the HotTable component - extending the default Handsontable settings with additional,
  * component-related properties.
  */
-export interface HotTableProps extends ReplaceRenderers<Handsontable.GridSettings> {
+export interface HotTableProps extends ReplaceRenderersEditors<Handsontable.GridSettings> {
   id?: string,
   className?: string,
   style?: React.CSSProperties,
@@ -51,18 +47,8 @@ export interface HotTableProps extends ReplaceRenderers<Handsontable.GridSetting
 }
 
 /**
- * Interface for the props of the component-based editors.
- */
-export interface HotEditorProps {
-  "hot-editor": any,
-  id?: string,
-  className?: string,
-  style?: React.CSSProperties,
-}
-
-/**
  * Properties related to the HotColumn architecture.
  */
-export interface HotColumnProps extends ReplaceRenderers<Handsontable.ColumnSettings> {
+export interface HotColumnProps extends ReplaceRenderersEditors<Handsontable.ColumnSettings> {
   children?: React.ReactNode;
 }

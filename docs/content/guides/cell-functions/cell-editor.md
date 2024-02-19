@@ -28,7 +28,7 @@ This tutorial will give you a comprehensive understanding of how the whole proce
 
 ## Component-based editors
 
-You can use React components to create custom editors. To do so, you'll need to create a component compatible with Handsontable's editor class structure. The easiest way to do so is to extend `BaseEditorComponent` - a base editor component exported from `@handsontable/react`.
+You can use React components to create custom editors. To do so, you'll need to create a component that provides a set of Handsontable's editor class functions that you need to override with your custom behaviors using `useHotEditor` hook that is exported from `@handsontable/react`.
 
 This will give you a solid base to build on. Note that the editor component needs to tick all of the boxes that a regular editor does, such as defining the `getValue`, `setValue`, `open`, `close`, and `focus` methods, which are abstract in the `BaseEditor`. For more info, check the section on [creating custom editors from scratch](#how-to-create-a-custom-editor).
 
@@ -43,108 +43,98 @@ Note that in case of React 16 and older, it wouldn't work out of the box because
 
 ```jsx
 import React from 'react';
-import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/react';
+import { HotTable, HotColumn, useHotEditor } from '@handsontable/react';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// an editor component
-class EditorComponent extends BaseEditorComponent {
-  constructor(props) {
-    super(props);
+// an editor component 
+const EditorComponent = (props) => {
+  const mainElementRef = React.useRef();
+  const containerStyle = {
+    display: 'none',
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    background: '#fff',
+    border: '1px solid #000',
+    padding: '15px',
+    zIndex: 999
+  };
+  
+  // Let's use ref instead of state to apply the changes immediately, 
+  // without waiting for the next component rerender.
+  const valueRef = React.useRef('');
 
-    this.mainElementRef = React.createRef();
-    this.containerStyle = {
-      display: 'none',
-      position: 'absolute',
-      left: 0,
-      top: 0,
-      background: '#fff',
-      border: '1px solid #000',
-      padding: '15px',
-      zIndex: 999
-    };
-    this.state = {
-      value: ''
-    };
-  }
+  // A hook that takes a factory function that provides the set of methods
+  // from BaseEditor that your custom editor needs to override. It also provides the editor instance
+  // reference in case other functions need to access its methods, like `finishEditing`.
+  const hotCustomEditorInstanceRef = useHotEditor((runSuper) => ({
+    setValue(value) {
+      valueRef.current = value;
+    },
 
-  setValue(value, callback) {
-    this.setState((state, props) => {
-      return { value: value };
-    }, callback);
-  }
+    getValue() {
+      return valueRef.current;
+    },
 
-  getValue() {
-    return this.state.value;
-  }
+    open() {
+      mainElementRef.current.style.display = 'block';
+    },
 
-  open() {
-    this.mainElementRef.current.style.display = 'block';
-  }
+    close() {
+      mainElementRef.current.style.display = 'none';
+    },
 
-  close() {
-    this.mainElementRef.current.style.display = 'none';
-  }
+    prepare(row, col, prop, td, originalValue, cellProperties) {
+      // We'll need to call the `prepare` method from
+      // the editor instance base class, as it provides
+      // the component with the information needed to use the editor
+      // (hotInstance, row, col, prop, TD, originalValue, cellProperties)
+      runSuper().prepare(row, col, prop, td, originalValue, cellProperties);
 
-  prepare(row, col, prop, td, originalValue, cellProperties) {
-    // We'll need to call the `prepare` method from
-    // the `BaseEditorComponent` class, as it provides
-    // the component with the information needed to use the editor
-    // (hotInstance, row, col, prop, TD, originalValue, cellProperties)
-    super.prepare(row, col, prop, td, originalValue, cellProperties);
+      const tdPosition = td.getBoundingClientRect();
 
-    const tdPosition = td.getBoundingClientRect();
+      // As the `prepare` method is triggered after selecting
+      // any cell, we're updating the styles for the editor element,
+      // so it shows up in the correct position.
+      mainElementRef.current.style.left = tdPosition.left + window.pageXOffset + 'px';
+      mainElementRef.current.style.top = tdPosition.top + window.pageYOffset + 'px';
+    }
+  }), [valueRef]);
 
-    // As the `prepare` method is triggered after selecting
-    // any cell, we're updating the styles for the editor element,
-    // so it shows up in the correct position.
-    this.mainElementRef.current.style.left = tdPosition.left + window.pageXOffset + 'px';
-    this.mainElementRef.current.style.top = tdPosition.top + window.pageYOffset + 'px';
-  }
+  const setLowerCase = React.useCallback(() => {
+    valueRef.current = valueRef.current.toString().toLowerCase();
+    
+    // Close the editor by accessing the underlying editor instance.
+    hotCustomEditorInstanceRef.current.finishEditing();
+  }, [valueRef, hotCustomEditorInstanceRef]);
 
-  setLowerCase() {
-    this.setState(
-      (state, props) => {
-        return { value: this.state.value.toString().toLowerCase() };
-      },
-      () => {
-        this.finishEditing();
-      }
-    );
-  }
+  const setUpperCase = React.useCallback(() => {
+    valueRef.current = valueRef.current.toString().toUpperCase();
+    
+    // Close the editor by accessing the underlying editor instance.
+    hotCustomEditorInstanceRef.current.finishEditing();
+  }, [valueRef, hotCustomEditorInstanceRef]);
 
-  setUpperCase() {
-    this.setState(
-      (state, props) => {
-        return { value: this.state.value.toString().toUpperCase() };
-      },
-      () => {
-        this.finishEditing();
-      }
-    );
-  }
-
-  stopMousedownPropagation(e) {
+  const stopMousedownPropagation = React.useCallback((e) => {
     e.stopPropagation();
-  }
+  }, []);
 
-  render() {
-    return (
-        <div
-          style={this.containerStyle}
-          ref={this.mainElementRef}
-          onMouseDown={this.stopMousedownPropagation}
-          id="editorElement"
-        >
-          <button onClick={this.setLowerCase.bind(this)}>
-            {this.state.value.toLowerCase()}
-          </button>
-          <button onClick={this.setUpperCase.bind(this)}>
-            {this.state.value.toUpperCase()}
-          </button>
-        </div>
-    );
-  }
-}
+  return (
+      <div
+        style={containerStyle}
+        ref={mainElementRef}
+        onMouseDown={stopMousedownPropagation}
+        id="editorElement"
+      >
+        <button onClick={setLowerCase}>
+          {valueRef.current.toLowerCase()}
+        </button>
+        <button onClick={setUpperCase}>
+          {valueRef.current.toUpperCase()}
+        </button>
+      </div>
+  );
+};
 
 const data = [
     ['Obrien Fischer'],
@@ -165,10 +155,8 @@ export const ExampleComponent = () => {
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     >
-      <HotColumn width={250}>
-        {/* add the `hot-editor` attribute to mark the component as a Handsontable editor */}
-        <EditorComponent hot-editor />
-      </HotColumn>
+      {/* add the `editor` prop to set the component as a Handsontable editor */}
+      <HotColumn width={250} editor={EditorComponent} />
     </HotTable>
   );
 };

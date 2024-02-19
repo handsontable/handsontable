@@ -44,6 +44,6 @@ describe('React PureComponents', () => {
   });
 
   /*
-    Editors cannot be declared as PureComponents, as they're derived from the BaseEditorComponent class.
+    Editors cannot be declared as PureComponents, as they need to be functional components.
    */
 });

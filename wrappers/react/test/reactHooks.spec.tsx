@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { act } from '@testing-library/react';
 import {
   HotTable
@@ -10,10 +10,10 @@ import {
   mountComponentWithRef
 } from './_helpers';
 
-describe('Using hooks within HotTable renderers', () => {
+describe('Using hooks within HotTable', () => {
   it('should be possible to use hook-enabled components as renderers', async () => {
     function HookEnabledRenderer(props) {
-      const [count, setCount] = useState(0);
+      const [count, setCount] = React.useState(0);
 
       return (
         <div className={'hook-enabled-renderer-container'}>
@@ -57,8 +57,9 @@ describe('Using hooks within HotTable renderers', () => {
     expect(hotInstance.getCell(0, 0).querySelector('span').innerHTML).toEqual('3');
     expect(hotInstance.getCell(1, 1).querySelector('span').innerHTML).toEqual('0');
   });
+
+  /*
+   Editor components are always used with React Hooks as they need to use useHotEditorHooks - tested everywhere else.
+   */
 });
 
-/*
- Editor components cannot be used with React Hooks, as they need to be classes derived from BaseEditorComponent.
- */

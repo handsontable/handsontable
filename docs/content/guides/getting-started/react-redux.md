@@ -197,7 +197,7 @@ import { HexColorPicker } from 'react-colorful';
 import StarRatingComponent from 'react-star-rating-component';
 import { Provider, connect } from 'react-redux';
 import { createStore, combineReducers } from 'redux';
-import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/react';
+import { HotTable, HotColumn, useHotEditor } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -205,125 +205,112 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 // a custom editor component
-class UnconnectedColorPicker extends BaseEditorComponent {
-  constructor(props) {
-    super(props);
+const UnconnectedColorPicker = (props) => {
+  const editorRef = React.useRef(null);
 
-    this.editorRef = React.createRef(null);
+  const editorContainerStyle = {
+    display: 'none',
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    zIndex: 999,
+    background: '#fff',
+    padding: '15px',
+    border: '1px solid #cecece'
+  };
 
-    this.editorContainerStyle = {
-      display: 'none',
-      position: 'absolute',
-      left: 0,
-      top: 0,
-      zIndex: 999,
-      background: '#fff',
-      padding: '15px',
-      border: '1px solid #cecece'
-    };
+  const valueRef = React.useRef('');
 
-    this.state = {
-      renderResult: null,
-      value: ''
-    };
-  }
-
-  stopMousedownPropagation(e) {
+  const stopMousedownPropagation = React.useCallback((e) => {
     e.stopPropagation();
-  }
+  }, []);
 
-  setValue(value, callback) {
-    this.setState((state, props) => {
-      return { value: value };
-    }, callback);
-  }
+  const hotCustomEditorInstanceRef = useHotEditor((runSuper) => {
+    setValue(value) {
+      valueRef.current = value;
+    },
 
-  getValue() {
-    return this.state.value;
-  }
+    getValue() {
+      return valueRef.current;
+    },
 
-  open() {
-    this.editorRef.current.style.display = 'block';
-  }
+    open() {
+      editorRef.current.style.display = 'block';
+    },
 
-  close() {
-    this.editorRef.current.style.display = 'none';
+    close() {
+      editorRef.current.style.display = 'none';
+    },
 
-    this.setState({
-      pickedColor: null
-    });
-  }
+    prepare(row, col, prop, td, originalValue, cellProperties) {
+      runSuper().prepare(row, col, prop, td, originalValue, cellProperties);
 
-  prepare(row, col, prop, td, originalValue, cellProperties) {
-    super.prepare(row, col, prop, td, originalValue, cellProperties);
+      const tdPosition = td.getBoundingClientRect();
 
-    const tdPosition = td.getBoundingClientRect();
+      editorRef.current.style.left = tdPosition.left + window.pageXOffset + 'px';
+      editorRef.current.style.top = tdPosition.top + window.pageYOffset + 'px';
+    }
+  }, [valueRef]);
 
-    this.editorRef.current.style.left = tdPosition.left + window.pageXOffset + 'px';
-    this.editorRef.current.style.top = tdPosition.top + window.pageYOffset + 'px';
-  }
+  const onPickedColor = React.useCallback((color) => {
+    valueRef.current = color;
+  }, [valueRef]);
 
-  onPickedColor(color) {
-    this.setValue(color);
-  }
+  const applyColor = React.useCallback(() => {
+    const dispatch = props.dispatch;
 
-  applyColor() {
-    const dispatch = this.props.dispatch;
-
-    if (this.col === 1) {
+    if (hotCustomEditorInstanceRef.current.col === 1) {
       dispatch({
         type: 'updateActiveStarColor',
-        row: this.row,
-        hexColor: this.getValue()
+        row: hotCustomEditorInstanceRef.current.row,
+        hexColor: hotCustomEditorInstanceRef.current.getValue()
       });
-    } else if (this.col === 2) {
+    } else if (hotCustomEditorInstanceRef.current.col === 2) {
       dispatch({
         type: 'updateInactiveStarColor',
-        row: this.row,
-        hexColor: this.getValue()
+        row: hotCustomEditorInstanceRef.current.row,
+        hexColor: hotCustomEditorInstanceRef.current.getValue()
       });
     }
-    this.finishEditing();
+    hotCustomEditorInstanceRef.current.finishEditing();
+  }, [props.dispatch, hotCustomEditorInstanceRef]);
+
+  let renderResult = null;
+
+  if (props.isEditor) {
+    renderResult = (
+      <div style={editorContainerStyle} ref={editorRef} onMouseDown={stopMousedownPropagation}>
+          <HexColorPicker
+            color={valueRef.current}
+            onChange={onPickedColor}
+          />
+          <button
+            style={{ width: '100%', height: '33px', marginTop: '10px' }}
+            onClick={applyColor}
+          >
+            Apply
+          </button>
+      </div>
+    );
+  } else if (props.isRenderer) {
+    const colorboxStyle = {
+      background: props.value,
+      width: '21px',
+      height: '21px',
+      float: 'left',
+      marginRight: '5px'
+    };
+
+    renderResult = (
+      <>
+        <div style={colorboxStyle} />
+        <div>{valueRef.current}</div>
+      </>
+    );
   }
 
-  render() {
-    let renderResult = null;
-
-    if (this.props.isEditor) {
-      renderResult = (
-        <div style={this.editorContainerStyle} ref={this.editorRef} onMouseDown={this.stopMousedownPropagation}>
-            <HexColorPicker
-              color={this.state.pickedColor || this.state.value}
-              onChange={this.onPickedColor.bind(this)}
-            />
-            <button
-              style={{ width: '100%', height: '33px', marginTop: '10px' }}
-              onClick={this.applyColor.bind(this)}
-            >
-              Apply
-            </button>
-        </div>
-      );
-    } else if (this.props.isRenderer) {
-      const colorboxStyle = {
-        background: this.props.value,
-        width: '21px',
-        height: '21px',
-        float: 'left',
-        marginRight: '5px'
-      };
-
-      renderResult = (
-        <>
-          <div style={colorboxStyle} />
-          <div>{this.props.value}</div>
-        </>
-      );
-    }
-
-    return <>{renderResult}</>;
-  }
-}
+  return <>{renderResult}</>;
+};
 
 const ColorPicker = connect(function(state) {
   return {
@@ -443,16 +430,13 @@ export const ExampleComponent = () => {
       >
         {/* add the `renderer` prop to set the component as a Handsontable renderer */}
         <HotColumn width={100} type={'numeric'} renderer={StarRatingRenderer} />
-        {/* add the `renderer` prop to set the component as a Handsontable renderer */}
-        <HotColumn width={150} renderer={ColorPicker}>
-          {/* add the `hot-editor` attribute to mark the component as a Handsontable editor */}
-          <ColorPicker hot-editor />
-        </HotColumn>
-        {/* add the `renderer` prop to set the component as a Handsontable renderer */}
-        <HotColumn width={150} renderer={ColorPicker}>
-          {/* add the `hot-editor` attribute to mark the component as a Handsontable editor */}
-          <ColorPicker hot-editor />
-        </HotColumn>
+        {/* add the `renderer` and `editor` props to set the component as a Handsontable renderer and editor */}
+        <HotColumn width={150} 
+                   renderer={(props) => <ColorPicker {...props} isRenderer />} 
+                   editor={(props) => <ColorPicker {...props} isEditor />} />
+        <HotColumn width={150} 
+                   renderer={(props) => <ColorPicker {...props} isRenderer />} 
+                   editor={(props) => <ColorPicker {...props} isEditor />} />
       </HotTable>
     </Provider>
   );
