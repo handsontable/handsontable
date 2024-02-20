@@ -397,7 +397,7 @@ describe('Editor configuration using React components', () => {
 
     {
       const activeEditor = hotInstance.getActiveEditor();
-
+      
       expect(activeEditor.constructor.name).toBe('CustomEditor');
       expect(activeEditor.editorComponent.__proto__.constructor.name).toBe('EditorComponent');
 
@@ -422,4 +422,81 @@ describe('Editor configuration using React components', () => {
       activeEditor.close();
     }
   });
+
+  it('should use the correct renderer inside HotTable component depends on its mount state', async () => {
+    let hotTableInstanceRef = React.createRef();
+
+    class WrapperComponent extends React.Component<any, any> {
+      state = {
+        renderer: false,
+      }
+
+      render() {
+        return (
+          <HotTable licenseKey="non-commercial-and-evaluation"
+                    id="test-hot"
+                    data={createSpreadsheetData(3, 3)}
+                    width={300}
+                    height={300}
+                    rowHeights={23}
+                    colWidths={50}
+                    init={function () {
+                      mockElementDimensions(this.rootElement, 300, 300);
+                    }}
+                    ref={hotTableInstanceRef}>
+            {this.state.renderer ?  <RendererComponent hot-renderer /> : null}
+          </HotTable>
+        );
+      };
+    }
+
+    const wrapperComponentInstance = mountComponentWithRef((
+      <WrapperComponent/>
+    ));
+
+    let hotInstance = (hotTableInstanceRef.current as any).hotInstance;
+
+    await act(async() => {
+      hotInstance.selectCell(0, 0);
+    });
+
+    {
+      const activeRenderer = hotInstance.getCellRenderer(0, 0);
+
+      expect(activeRenderer.name).toBe('textRenderer');
+    }
+
+    await act(async() => {
+      wrapperComponentInstance.setState({ renderer: true });
+    });
+
+    await sleep(100);
+
+    await act(async() => {
+      hotInstance.selectCell(0, 0);
+    });
+
+    {
+      const activeRenderer = hotInstance.getCellRenderer(0, 0);
+
+      expect(activeRenderer.name).toBe('__internalRenderer');
+    }
+
+    await act(async() => {
+      wrapperComponentInstance.setState({ renderer: false });
+    });
+
+    await sleep(100);
+
+    await act(async() => {
+      hotInstance.selectCell(0, 0);
+    });
+
+    {
+      const activeRenderer = hotInstance.getCellRenderer(0, 0);
+
+      expect(activeRenderer.name).toBe('textRenderer');
+    }
+  });
 });
+

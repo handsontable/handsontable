@@ -7,6 +7,13 @@ permalink: /redux
 canonicalUrl: /redux
 react:
   metaTitle: Integration with Redux - React Data Grid | Handsontable
+  tags:
+    - state manager
+    - react redux
+    - connect component
+    - immutable data
+    - redux
+    - state management
 searchCategory: Guides
 ---
 
