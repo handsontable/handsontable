@@ -12,7 +12,7 @@ describe('MemoryLeakTest', () => {
     expect(document.querySelectorAll('#testContainer').length).toBe(0);
   });
 
-  it('should not leave any any DOM containers, except for those created by Jasmine', async() => {
+  it('should not leave any any DOM containers, except for those created by Jasmine', () => {
     let leftoverNodesCount = 0;
 
     Array.from(document.body.children).forEach((child) => {
