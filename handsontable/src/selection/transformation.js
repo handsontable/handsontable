@@ -202,24 +202,26 @@ class Transformation {
         col: highlightColumn,
       } = this.#visualToZeroBasedCoords(cellRange.highlight);
       const coords = this.#options.createCellCoords(toRow + delta.row, toColumn + delta.col);
+      const columnDeltaRest = coords.col - highlightColumn;
+      const rowDeltaRest = coords.row - highlightRow;
 
       if (delta.col < 0) {
         if (toColumn >= highlightColumn && coords.col < highlightColumn) {
-          coords.col = this.#visualToZeroBasedCoords(cellRange.getTopStartCorner()).col + delta.col;
+          coords.col = this.#visualToZeroBasedCoords(cellRange.getTopStartCorner()).col + columnDeltaRest;
         }
       } else if (delta.col > 0) {
         if (toColumn <= highlightColumn && coords.col > highlightColumn) {
-          coords.col = this.#visualToZeroBasedCoords(cellRange.getTopEndCorner()).col + delta.col;
+          coords.col = this.#visualToZeroBasedCoords(cellRange.getTopEndCorner()).col + columnDeltaRest;
         }
       }
 
       if (delta.row < 0) {
         if (toRow >= highlightRow && coords.row < highlightRow) {
-          coords.row = this.#visualToZeroBasedCoords(cellRange.getTopStartCorner()).row + delta.row;
+          coords.row = this.#visualToZeroBasedCoords(cellRange.getTopStartCorner()).row + rowDeltaRest;
         }
       } else if (delta.row > 0) {
         if (toRow <= highlightRow && coords.row > highlightRow) {
-          coords.row = this.#visualToZeroBasedCoords(cellRange.getBottomStartCorner()).row + delta.row;
+          coords.row = this.#visualToZeroBasedCoords(cellRange.getBottomStartCorner()).row + rowDeltaRest;
         }
       }
 

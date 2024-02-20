@@ -1436,6 +1436,8 @@ describe('Transformation class', () => {
         y: 3,
       });
 
+      expect(transform.transformEnd(0, -1)).toEqual({ row: 5, col: 1 });
+      expect(transform.transformEnd(0, -2)).toEqual({ row: 5, col: 0 });
       expect(transform.transformEnd(0, -3)).toEqual({ row: 5, col: -1 });
       expect(transform.transformEnd(0, -4)).toEqual({ row: 5, col: -2 });
       expect(transform.transformEnd(0, -5)).toEqual({ row: 5, col: -3 });
@@ -1453,6 +1455,8 @@ describe('Transformation class', () => {
         y: 3,
       });
 
+      expect(transform.transformEnd(-1, 0)).toEqual({ row: 1, col: 5 });
+      expect(transform.transformEnd(-2, 0)).toEqual({ row: 0, col: 5 });
       expect(transform.transformEnd(-3, 0)).toEqual({ row: -1, col: 5 });
       expect(transform.transformEnd(-4, 0)).toEqual({ row: -2, col: 5 });
       expect(transform.transformEnd(-5, 0)).toEqual({ row: -3, col: 5 });

@@ -189,10 +189,12 @@ describe('MergeCells Selection', () => {
       colHeaders: true,
       rowHeaders: true,
       mergeCells: true,
+      contextMenu: true,
     });
 
     selectColumns(0, 2);
-    getPlugin('mergeCells').toggleMergeOnSelection();
+    contextMenu();
+    selectContextMenuOption('Merge cells');
 
     expect(getSelected()).toEqual([[-1, 0, 4, 2]]);
     expect(`
