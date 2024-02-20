@@ -4236,6 +4236,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.selectColumns(1, 2, -1);
    * // Select range of columns using visual indexes and mark the second cell as highlighted.
    * hot.selectColumns(2, 1, 1);
+   * // Select range of columns using visual indexes and move the focus position somewhere in the middle of the range.
+   * hot.selectColumns(2, 5, { row: 2, col: 3 });
    * // Select range of columns using column properties.
    * hot.selectColumns('id', 'last_name');
    * ```
@@ -4245,10 +4247,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function selectColumns
    * @param {number} startColumn The visual column index from which the selection starts.
    * @param {number} [endColumn=startColumn] The visual column index to which the selection finishes. If `endColumn`
-   *                                         is not defined the column defined by `startColumn` will be selected.
-   * @param {number} [focusPosition=0] The argument allows changing the cell/header focus position.
-   *                                   The value can take visual row index from -N to N, where negative values
-   *                                   point to the headers and positive values point to the cell range.
+   * is not defined the column defined by `startColumn` will be selected.
+   * @param {number | { row: number, col: number } | CellCoords} [focusPosition=0] The argument allows changing the cell/header focus
+   * position. The value can take visual row index from -N to N, where negative values point to the headers and positive
+   * values point to the cell range. An object with `row` and `col` properties also can be passed to change the focus
+   * position horizontally.
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectColumns = function(startColumn, endColumn = startColumn, focusPosition) {
@@ -4268,6 +4271,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.selectRows(1, 2, -1);
    * // Select range of rows using visual indexes and mark the second cell as highlighted.
    * hot.selectRows(2, 1, 1);
+   * // Select range of rows using visual indexes and move the focus position somewhere in the middle of the range.
+   * hot.selectRows(2, 5, { row: 2, col: 3 });
    * ```
    *
    * @memberof Core#
@@ -4275,10 +4280,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function selectRows
    * @param {number} startRow The visual row index from which the selection starts.
    * @param {number} [endRow=startRow] The visual row index to which the selection finishes. If `endRow`
-   *                                   is not defined the row defined by `startRow` will be selected.
-   * @param {number} [focusPosition=0] The argument allows changing the cell/header focus position.
-   *                                   The value can take visual column index from -N to N, where negative values
-   *                                   point to the headers and positive values point to the cell range.
+   * is not defined the row defined by `startRow` will be selected.
+   * @param {number | { row: number, col: number } | CellCoords} [focusPosition=0] The argument allows changing the cell/header focus
+   * position. The value can take visual row index from -N to N, where negative values point to the headers and positive
+   * values point to the cell range. An object with `row` and `col` properties also can be passed to change the focus
+   * position vertically.
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectRows = function(startRow, endRow = startRow, focusPosition) {
