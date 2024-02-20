@@ -150,7 +150,7 @@ export class ExportFile extends BasePlugin {
     const a = rootDocument.createElement('a');
     const name = `${formatter.options.filename}.${formatter.options.fileExtension}`;
 
-    if (a.download !== void 0) {
+    if (a.download !== undefined) {
       const url = URL.createObjectURL(blob);
 
       a.style.display = 'none';

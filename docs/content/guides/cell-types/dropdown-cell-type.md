@@ -66,6 +66,8 @@ const hot = new Handsontable(container, {
       source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
     }
   ],
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -108,6 +110,8 @@ export const ExampleComponent = () => {
           source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
         }
       ]}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );

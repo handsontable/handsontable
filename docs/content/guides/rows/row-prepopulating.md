@@ -110,7 +110,9 @@ const hot = new Handsontable(container, {
         }
       }
     }
-  }
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 
 // or, use `updateData()` to replace `data` without resetting states
@@ -187,6 +189,8 @@ export const ExampleComponent = () => {
         minSpareRows={1}
         contextMenu={true}
         height="auto"
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
         cells={function(row, col, prop) {
           const cellProperties = {};

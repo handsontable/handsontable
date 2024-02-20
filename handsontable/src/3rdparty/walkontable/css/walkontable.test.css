@@ -7,3 +7,25 @@ body > .handsontable {
 .testOverflowHidden {
   overflow: hidden;
 }
+
+.current {
+  background-color: #007069 !important;
+}
+.area {
+  background-color: #8a4182 !important;
+}
+.ht__highlight {
+  background-color: #bababa !important;
+}
+.ht__active_highlight {
+  background-color: #005eff !important;
+}
+.row {
+  background-color: #ce3b3b !important;
+}
+.column {
+  background-color: #ce3b3b !important;
+}
+.custom {
+  background-color: #ce6b6b !important;
+}

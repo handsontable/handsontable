@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added an ability to prevent viewport scroll via `beforeViewportScrollVertically` and `beforeViewportScrollHorizontally` hooks.",
+  "type": "added",
+  "issueOrPR": 10724,
+  "breaking": false,
+  "framework": "none"
+}

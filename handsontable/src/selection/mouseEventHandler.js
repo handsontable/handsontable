@@ -18,6 +18,8 @@ export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selec
   const selectedCorner = selection.isSelectedByCorner();
   const selectedRow = selection.isSelectedByRowHeader();
 
+  selection.markSource('mouse');
+
   if (isShiftKey && currentSelection) {
     if (coords.row >= 0 && coords.col >= 0 && !controller.cell) {
       selection.setRangeEnd(coords);
@@ -61,9 +63,14 @@ export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selec
         selection.setRangeStart(coords);
       }
     } else if (coords.col < 0 && coords.row < 0) {
-      selection.selectAll(true, true);
+      selection.selectAll(true, true, {
+        disableHeadersHighlight: true,
+        focusPosition: { row: 0, col: 0 },
+      });
     }
   }
+
+  selection.markEndSource();
 }
 
 /**
@@ -87,6 +94,8 @@ export function mouseOver({ isLeftClick, coords, selection, controller, cellCoor
   const countCols = selection.tableProps.countCols();
   const countRows = selection.tableProps.countRows();
 
+  selection.markSource('mouse');
+
   if (selectedColumn && !controller.column) {
     selection.setRangeEnd(cellCoordsFactory(countRows - 1, coords.col));
 
@@ -96,6 +105,8 @@ export function mouseOver({ isLeftClick, coords, selection, controller, cellCoor
   } else if (!controller.cell) {
     selection.setRangeEnd(coords);
   }
+
+  selection.markEndSource();
 }
 
 const handlers = new Map([

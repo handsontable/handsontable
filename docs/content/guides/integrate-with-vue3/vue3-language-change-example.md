@@ -42,6 +42,8 @@ import { HotTable } from '@handsontable/vue3';
 import {
   registerLanguageDictionary,
   getLanguagesDictionaries,
+  arAR,
+  csCZ,
   deCH,
   deDE,
   esMX,
@@ -55,12 +57,15 @@ import {
   plPL,
   ptBR,
   ruRU,
+  srSP,
   zhCN,
   zhTW
 } from 'handsontable/i18n';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.css';
 
+registerLanguageDictionary(arAR);
+registerLanguageDictionary(csCZ);
 registerLanguageDictionary(deCH);
 registerLanguageDictionary(deDE);
 registerLanguageDictionary(esMX);
@@ -74,6 +79,7 @@ registerLanguageDictionary(nlNL);
 registerLanguageDictionary(plPL);
 registerLanguageDictionary(ptBR);
 registerLanguageDictionary(ruRU);
+registerLanguageDictionary(srSP);
 registerLanguageDictionary(zhCN);
 registerLanguageDictionary(zhTW);
 
@@ -95,6 +101,8 @@ const ExampleComponent = defineComponent({
         rowHeaders: true,
         contextMenu: true,
         height: 'auto',
+        autoWrapRow: true,
+        autoWrapCol: true,
         licenseKey: 'non-commercial-and-evaluation'
       },
       language: 'en-US'

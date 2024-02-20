@@ -1,6 +1,7 @@
 import { extend } from '../../../helpers/object';
 import { extendByMetaType, assert, isUnsignedNumber } from '../utils';
 import LazyFactoryMap from '../lazyFactoryMap';
+import { isDefined } from '../../../helpers/mixed';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -33,22 +34,24 @@ import LazyFactoryMap from '../lazyFactoryMap';
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 export default class CellMeta {
+  /**
+   * Reference to the ColumnMeta layer. While creating new cell meta objects, all new objects
+   * inherit properties from the ColumnMeta layer.
+   *
+   * @type {ColumnMeta}
+   */
+  columnMeta;
+  /**
+   * Holder for cell meta objects, organized as a grid of LazyFactoryMap of LazyFactoryMaps.
+   * The access to the cell meta object is done through access to the row defined by the physical
+   * row index and then by accessing the second LazyFactory Map under the physical column index.
+   *
+   * @type {LazyFactoryMap<number, LazyFactoryMap<number, object>>}
+   */
+  metas = new LazyFactoryMap(() => this._createRow());
+
   constructor(columnMeta) {
-    /**
-     * Reference to the ColumnMeta layer. While creating new cell meta objects, all new objects
-     * inherit properties from the ColumnMeta layer.
-     *
-     * @type {ColumnMeta}
-     */
     this.columnMeta = columnMeta;
-    /**
-     * Holder for cell meta objects, organized as a grid of LazyFactoryMap of LazyFactoryMaps.
-     * The access to the cell meta object is done through access to the row defined by the physical
-     * row index and then by accessing the second LazyFactory Map under the physical column index.
-     *
-     * @type {LazyFactoryMap<number, LazyFactoryMap<number, object>>}
-     */
-    this.metas = new LazyFactoryMap(() => this._createRow());
   }
 
   /**
@@ -120,7 +123,7 @@ export default class CellMeta {
   getMeta(physicalRow, physicalColumn, key) {
     const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
 
-    if (key === void 0) {
+    if (key === undefined) {
       return cellMeta;
     }
 
@@ -167,7 +170,11 @@ export default class CellMeta {
     const rows = Array.from(this.metas.values());
 
     for (let row = 0; row < rows.length; row++) {
-      metas.push(...rows[row].values());
+      // Getting a meta for already added row (new row already exist - it has been added using `createRow` method).
+      // However, is not ready until the first `getMeta` call (lazy loading).
+      if (isDefined(rows[row])) {
+        metas.push(...rows[row].values());
+      }
     }
 
     return metas;

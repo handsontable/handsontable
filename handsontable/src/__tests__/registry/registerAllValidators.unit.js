@@ -23,6 +23,7 @@ describe('`registerAllValidators`', () => {
     ]);
     expect(getRegisteredValidatorNames()).toEqual([
       'autocomplete',
+      'dropdown',
       'date',
       'numeric',
       'time',

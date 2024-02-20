@@ -1,4 +1,3 @@
-import { getValidSelection } from '../utils';
 import { transformSelectionToRowDistance } from '../../../selection/utils';
 import * as C from '../../../i18n/constants';
 
@@ -31,12 +30,16 @@ export default function removeRowItem() {
     callback() {
       // TODO: Please keep in mind that below `1` may be improper. The table's way of work, before change `f1747b3912ea3b21fe423fd102ca94c87db81379` was restored.
       // There is still problem when removing more than one row.
-      this.alter('remove_row', transformSelectionToRowDistance(this.getSelected()), 1, 'ContextMenu.removeRow');
+      this.alter('remove_row', transformSelectionToRowDistance(this), 1, 'ContextMenu.removeRow');
     },
     disabled() {
-      const selected = getValidSelection(this);
+      const range = this.getSelectedRangeLast();
 
-      if (!selected) {
+      if (!range) {
+        return true;
+      }
+
+      if (range.isSingleHeader() && range.highlight.row < 0) {
         return true;
       }
 

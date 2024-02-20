@@ -63,6 +63,8 @@ const hot = new Handsontable(container, {
       type: 'checkbox'
     }
   ],
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -107,6 +109,8 @@ export const ExampleComponent = () => {
           type: 'checkbox'
         }
       ]}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -162,6 +166,8 @@ const hot = new Handsontable(container, {
       uncheckedTemplate: 'no'
     }
   ],
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -208,6 +214,8 @@ export const ExampleComponent = () => {
           uncheckedTemplate: 'no'
         }
       ]}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -271,6 +279,8 @@ const hot = new Handsontable(container, {
       },
     },
   ],
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -325,6 +335,8 @@ export const ExampleComponent = () => {
           },
         },
       ]}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );

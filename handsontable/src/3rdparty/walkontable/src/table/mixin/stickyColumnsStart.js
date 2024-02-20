@@ -39,6 +39,17 @@ const stickyColumnsStart = {
   },
 
   /**
+   * Get the source index of the first column partially visible in the viewport. If no columns are partially visible, returns an error code: -1.
+   * Assumes that all rendered columns are fully visible.
+   *
+   * @returns {number}
+   * @this Table
+   */
+  getFirstPartiallyVisibleColumn() {
+    return this.getFirstRenderedColumn();
+  },
+
+  /**
    * Get the source index of the last rendered column. If no columns are rendered, returns an error code: -1.
    *
    * @returns {number}
@@ -56,6 +67,17 @@ const stickyColumnsStart = {
    * @this Table
    */
   getLastVisibleColumn() {
+    return this.getLastRenderedColumn();
+  },
+
+  /**
+   * Get the source index of the last column partially visible in the viewport. If no columns are partially visible, returns an error code: -1.
+   * Assumes that all rendered columns are fully visible.
+   *
+   * @returns {number}
+   * @this Table
+   */
+  getLastPartiallyVisibleColumn() {
     return this.getLastRenderedColumn();
   },
 
@@ -80,7 +102,17 @@ const stickyColumnsStart = {
    */
   getVisibleColumnsCount() {
     return this.getRenderedColumnsCount();
-  }
+  },
+
+  /**
+   * Get the number of rendered row headers.
+   *
+   * @returns {number}
+   * @this Table
+   */
+  getRowHeadersCount() {
+    return this.dataAccessObject.rowHeaders.length;
+  },
 };
 
 defineGetter(stickyColumnsStart, 'MIXIN_NAME', MIXIN_NAME, {

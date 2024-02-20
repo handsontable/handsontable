@@ -85,6 +85,8 @@ const hot = new Handsontable(container, {
     ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
     ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W'],
   ],
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -124,6 +126,8 @@ export const ExampleComponent = () => {
         ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
         ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W'],
       ]}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     ></HotTable>
   );
@@ -214,6 +218,8 @@ const hot = new Handsontable(container, {
     { row: -2, col: 1, collapsible: true },
     { row: -2, col: 3, collapsible: true },
   ],
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -260,6 +266,8 @@ export const ExampleComponent = () => {
         { row: -2, col: 1, collapsible: true },
         { row: -2, col: 3, collapsible: true },
       ]}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     ></HotTable>
   );
@@ -282,6 +290,12 @@ root.render(<ExampleComponent />);
 - A column header can span up to 1000 columns, as the [HTML table specification](https://html.spec.whatwg.org/multipage/tables.html#dom-tdth-colspan) sets the
   limit of `colspan` to `1000`.
 - A nested column header can't be wider than its parent element (headers can't overlap).
+
+## Related keyboard shortcuts
+
+| Windows                                     | macOS                                        | Action                                                  |  Excel  | Sheets  |
+| ------------------------------------------- | -------------------------------------------- | ------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**Enter**</kbd>                        | <kbd>**Enter**</kbd>                         | Collapse or expand the selected column group            | &cross; | &cross; |
 
 ## Related API reference
 

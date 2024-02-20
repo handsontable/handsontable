@@ -33,7 +33,7 @@ describe('cellTypes', () => {
         this.TEXTAREA_PARENT = document.createElement('DIV');
 
         this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
-        this.instance.rootElement.appendChild(this.TEXTAREA_PARENT);
+        this.hot.rootElement.appendChild(this.TEXTAREA_PARENT);
       }
       getValue() {
         return `**${this.TEXTAREA.value}**`;
@@ -98,15 +98,15 @@ describe('cellTypes', () => {
     expect(getCellType('checkbox').validator).not.toBeDefined();
 
     expect(getCellType('date').editor).toBe(editors.DateEditor);
-    expect(getCellType('date').renderer).toBe(renderers.AutocompleteRenderer);
+    expect(getCellType('date').renderer).toBe(renderers.DateRenderer);
     expect(getCellType('date').validator).toBe(validators.DateValidator);
 
     expect(getCellType('dropdown').editor).toBe(editors.DropdownEditor);
-    expect(getCellType('dropdown').renderer).toBe(renderers.AutocompleteRenderer);
-    expect(getCellType('dropdown').validator).toBe(validators.AutocompleteValidator);
+    expect(getCellType('dropdown').renderer).toBe(renderers.DropdownRenderer);
+    expect(getCellType('dropdown').validator).toBe(validators.DropdownValidator);
 
     expect(getCellType('handsontable').editor).toBe(editors.HandsontableEditor);
-    expect(getCellType('handsontable').renderer).toBe(renderers.AutocompleteRenderer);
+    expect(getCellType('handsontable').renderer).toBe(renderers.HandsontableRenderer);
     expect(getCellType('handsontable').validator).not.toBeDefined();
 
     expect(getCellType('numeric').editor).toBe(editors.NumericEditor);
@@ -118,6 +118,10 @@ describe('cellTypes', () => {
     expect(getCellType('password').renderer).toBe(renderers.PasswordRenderer);
     expect(getCellType('password').validator).not.toBeDefined();
     expect(getCellType('password').copyable).toBe(false);
+
+    expect(getCellType('select').editor).toBe(editors.SelectEditor);
+    expect(getCellType('select').renderer).toBe(renderers.SelectRenderer);
+    expect(getCellType('select').validator).not.toBeDefined();
 
     expect(getCellType('text').editor).toBe(editors.TextEditor);
     expect(getCellType('text').renderer).toBe(renderers.TextRenderer);

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Changed margins for context-menu in RTL mode and fixed problem with wrong position for check inside Read only entry",
-  "type": "fixed",
-  "issueOrPR": 10375,
-  "breaking": false,
-  "framework": "none"
-}

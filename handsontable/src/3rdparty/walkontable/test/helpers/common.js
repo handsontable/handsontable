@@ -1,5 +1,3 @@
-import { normalize, pretty } from './htmlNormalize';
-
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * The function allows you to run the test suites based on different parameters (object configuration, datasets etc).
@@ -159,64 +157,6 @@ export function wheelOnElement(elem, deltaX = 0, deltaY = 0) {
 
 beforeEach(function() {
   specContext.spec = this;
-
-  const matchers = {
-    toBeInArray() {
-      return {
-        compare(actual, expected) {
-          return {
-            pass: Array.isArray(expected) && expected.indexOf(actual) > -1
-          };
-        }
-      };
-    },
-    toBeFunction() {
-      return {
-        compare(actual) {
-          return {
-            pass: typeof actual === 'function'
-          };
-        }
-      };
-    },
-    toMatchHTML() {
-      return {
-        compare(actual, expected) {
-          const actualHTML = pretty(normalize(actual));
-          const expectedHTML = pretty(normalize(expected));
-
-          const result = {
-            pass: actualHTML === expectedHTML,
-          };
-
-          result.message = `Expected ${actualHTML} NOT to be ${expectedHTML}`;
-
-          return result;
-        }
-      };
-    },
-    toBeAroundValue() {
-      return {
-        compare(actual, expected, diff = 1) {
-          const pass = actual >= expected - diff && actual <= expected + diff;
-          let message = `Expected ${actual} to be around ${expected}
- (between ${expected - diff} and ${expected + diff})`;
-
-          if (!pass) {
-            message = `Expected ${actual} NOT to be around ${expected}
- (between ${expected - diff} and ${expected + diff})`;
-          }
-
-          return {
-            pass,
-            message
-          };
-        }
-      };
-    }
-  };
-
-  jasmine.addMatchers(matchers);
 });
 
 afterEach(() => {
@@ -281,107 +221,115 @@ export function range(start, end) {
  * Creates the selection controller necessary for the Walkontable to make selections typical for Handsontable such as
  * current selection, area selection, selection for autofill and custom borders.
  *
- * @param {object} selections An object with custom selection instances.
- * @param {Selection} [selections.current] An optional instance of the current selection.
- * @param {Selection} [selections.area] An optional instance of the area selection.
- * @param {Selection} [selections.fill] An optional instance of the fill selection.
- * @param {Selection} [selections.custom] An optional instance of the custom selection.
- * @param {Selection} [selections.activeHeader] An optional instance of the active header selection.
- * @param {Selection} [selections.header] An optional instance of the header selection.
+ * @param {object} options An object with custom selection instances.
  * @returns {object} Selection controller.
  */
-export function createSelectionController({ current, area, fill, custom, activeHeader, header } = {}) {
-  const currentCtrl = current || createSelection({
+export function createSelectionController(options = {}) {
+  const focusCtrl = createSelection({
+    selectionType: 'focus',
     className: 'current',
-    selectionType: 'cell',
     border: {
       width: 2,
       color: '#4b89ff',
     },
+    ...options,
   });
-  const areaCtrl = area || createSelection({
-    markIntersections: true,
-    layerLevel: 1,
-    className: 'area',
-    selectionType: 'area',
-    border: {
-      width: 1,
-      color: '#4b89ff',
-    },
-  });
-
-  const areaControllers = new Map([
-    [areaCtrl.layerLevel || 1, areaCtrl]
-  ]);
-
-  const fillCtrl = fill || createSelection({
-    className: 'fill',
+  const fillCtrl = createSelection({
     selectionType: 'fill',
+    className: 'fill',
     border: {
       width: 1,
       color: '#ff0000',
     },
   });
-  const activeHeaderCtrl = activeHeader || createSelection({
-    highlightHeaderClassName: 'active_highlight',
-    selectionType: 'active-header',
-  });
-  const headerCtrl = header || createSelection({
-    highlightHeaderClassName: 'highlight',
-    selectionType: 'header',
-  });
-  const customCtrl = custom || [];
+
+  const areaCtrl = [];
+  const headerCtrl = [];
+  const activeHeaderCtrl = [];
+  const rowHighlightCtrl = [];
+  const columnHighlightCtrl = [];
+  const customHighlightCtrl = [];
 
   return {
-    getCell() {
-      return currentCtrl;
-    },
-    getHeader() {
-      return headerCtrl;
-    },
-    getActiveHeader() {
-      return activeHeaderCtrl;
-    },
-    createOrGetArea(options = {}) {
-      const optionsWithDefaults = {
-        markIntersections: true,
-        layerLevel: 1,
-        border: {
-          width: 1,
-          color: '#4b89ff',
-        },
-        ...options,
-        className: 'area',
-        selectionType: 'area',
-      };
-
-      if (areaControllers.has(optionsWithDefaults.layerLevel)) {
-        return areaControllers.get(optionsWithDefaults.layerLevel);
-      }
-
-      const newArea = createSelection(optionsWithDefaults);
-
-      areaControllers.set(optionsWithDefaults.layerLevel, newArea);
-
-      return newArea;
-    },
-    getAreas() {
-      return Array.from(areaControllers.values());
+    getFocus() {
+      return focusCtrl;
     },
     getFill() {
       return fillCtrl;
     },
+    createLayeredArea() {
+      return areaCtrl.at(-1) ?? { cellRange: null };
+    },
+    getArea(selectionOptions = {}) {
+      return addSelectionToCollection(areaCtrl, {
+        selectionType: 'area',
+        className: 'area',
+        createLayers: true,
+        border: {
+          width: 1,
+          color: '#4b89ff',
+        },
+        ...selectionOptions,
+      });
+    },
+    getHeader() {
+      return addSelectionToCollection(headerCtrl, {
+        selectionType: 'header',
+        className: 'ht__highlight'
+      });
+    },
+    getActiveHeader() {
+      return addSelectionToCollection(activeHeaderCtrl, {
+        selectionType: 'active-header',
+        className: 'ht__active_highlight'
+      });
+    },
+    getRowHighlight() {
+      return addSelectionToCollection(rowHighlightCtrl, {
+        selectionType: 'row',
+        className: 'row'
+      });
+    },
+    getColumnHighlight() {
+      return addSelectionToCollection(columnHighlightCtrl, {
+        selectionType: 'column',
+        className: 'column'
+      });
+    },
+    getCustomHighlight() {
+      return addSelectionToCollection(customHighlightCtrl, {
+        selectionType: 'custom',
+        className: 'custom'
+      });
+    },
     [Symbol.iterator]() {
       return [
-        currentCtrl,
+        focusCtrl,
         fillCtrl,
-        ...this.getAreas(),
-        headerCtrl,
-        activeHeaderCtrl,
-        ...customCtrl,
+        ...areaCtrl,
+        ...headerCtrl,
+        ...activeHeaderCtrl,
+        ...rowHighlightCtrl,
+        ...columnHighlightCtrl,
+        ...customHighlightCtrl,
       ][Symbol.iterator]();
     },
   };
+}
+
+/**
+ * Internally creates, adds to the collection and returns the Selection instance.
+ *
+ * @param {Selection[]} collection The collection to update.
+ * @param {object} options Additional options passed to the Selection constructor.
+ * @returns {Selection}
+ */
+function addSelectionToCollection(collection, options) {
+  const selection = createSelection({ ...options });
+
+  collection.push(selection);
+
+  return selection;
 }
 
 /**
@@ -523,7 +471,7 @@ let cachedScrollbarWidth;
  * @returns {number}
  */
 export function getScrollbarWidth() {
-  if (cachedScrollbarWidth === void 0) {
+  if (cachedScrollbarWidth === undefined) {
     cachedScrollbarWidth = walkontableCalculateScrollbarWidth();
   }
 

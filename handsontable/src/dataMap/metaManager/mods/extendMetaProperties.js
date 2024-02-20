@@ -2,42 +2,69 @@
  * @class ExtendMetaPropertiesMod
  */
 export class ExtendMetaPropertiesMod {
-  constructor(metaManager) {
-    /**
-     * @type {MetaManager}
-     */
-    this.metaManager = metaManager;
-    /**
-     * @type {Set}
-     */
-    this.usageTracker = new Set();
-    /**
-     * @type {Map}
-     */
-    this.propDescriptors = new Map([
-      ['fixedColumnsLeft', {
-        target: 'fixedColumnsStart',
-        onChange(propName) {
-          const isRtl = this.metaManager.hot.isRtl();
-
-          if (isRtl && propName === 'fixedColumnsLeft') {
-            throw new Error('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
-          }
-
-          if (this.usageTracker.has('fixedColumnsLeft') && this.usageTracker.has('fixedColumnsStart')) {
-            throw new Error('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together. ' +
-              'Please use only the option `fixedColumnsStart`.');
-          }
-        }
-      }],
-      ['layoutDirection', {
+  /**
+   * @type {MetaManager}
+   */
+  metaManager;
+  /**
+   * @type {Set}
+   */
+  usageTracker = new Set();
+  /**
+   * @type {Map}
+   */
+  propDescriptors = new Map([
+    [
+      'ariaTags', {
         onChange(propName, value, isInitialChange) {
           if (!isInitialChange) {
-            throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
+            throw new Error(
+              `The \`${propName}\` option can not be updated after the Handsontable instance was initialized.`
+            );
           }
         }
       }],
-    ]);
+    ['fixedColumnsLeft', {
+      target: 'fixedColumnsStart',
+      onChange(propName) {
+        const isRtl = this.metaManager.hot.isRtl();
+
+        if (isRtl && propName === 'fixedColumnsLeft') {
+          throw new Error('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
+        }
+
+        if (this.usageTracker.has('fixedColumnsLeft') && this.usageTracker.has('fixedColumnsStart')) {
+          throw new Error('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together. ' +
+            'Please use only the option `fixedColumnsStart`.');
+        }
+      }
+    }],
+    ['layoutDirection', {
+      onChange(propName, value, isInitialChange) {
+        if (!isInitialChange) {
+          throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
+        }
+      }
+    }],
+    // Temporary commented out due to the bug in the React wrapper.
+    // ['renderAllColumns', {
+    //   onChange(propName, value, isInitialChange) {
+    //     if (!isInitialChange) {
+    //       throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
+    //     }
+    //   }
+    // }],
+    // ['renderAllRows', {
+    //   onChange(propName, value, isInitialChange) {
+    //     if (!isInitialChange) {
+    //       throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
+    //     }
+    //   }
+    // }],
+  ]);
+
+  constructor(metaManager) {
+    this.metaManager = metaManager;
 
     this.extendMetaProps();
   }

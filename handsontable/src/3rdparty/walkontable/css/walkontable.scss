@@ -84,6 +84,7 @@
   background-color: #fff;
   vertical-align: top;
   overflow: hidden;
+  outline: none;
   outline-width: 0;
   white-space: pre-wrap;
 }
@@ -229,9 +230,9 @@ innerBorderBottom - Property controlled by bottom overlay
   overflow: auto;
 }
 
-.handsontable .ht_master thead,
-.handsontable .ht_master tr th,
-.handsontable .ht_clone_inline_start thead {
+.handsontable .ht_master table.htCore > thead,
+.handsontable .ht_master table.htCore > tbody > tr > th,
+.handsontable .ht_clone_inline_start table.htCore > thead {
   visibility: hidden;
 }
 

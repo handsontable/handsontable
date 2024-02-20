@@ -5,7 +5,13 @@ import CoreAbstract from './_base';
  * @class Walkontable
  */
 export default class Clone extends CoreAbstract {
+  /**
+   * @type {Walkontable}
+   */
   cloneSource;
+  /**
+   * @type {Overlay}
+   */
   cloneOverlay;
 
   /**
@@ -22,9 +28,10 @@ export default class Clone extends CoreAbstract {
     this.cloneOverlay = clone.overlay;
     this.wtTable = this.cloneOverlay.createTable(this.getTableDao(), facadeGetter, this.domBindings, this.wtSettings);
     this.wtViewport = clone.viewport;
-    this.selections = clone.selections;
+    this.selectionManager = clone.selectionManager;
     this.wtEvent = new Event(
-      facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable, this.selections, clone.event
+      facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable,
+      this.selectionManager, clone.event
     );
 
     this.findOriginalHeaders();

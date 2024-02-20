@@ -45,6 +45,7 @@ To test the IME support, you will need to change your language preferences for y
   - [`language`](@/api/options.md#language)
   - [`layoutDirection`](@/api/options.md#layoutdirection)
   - [`locale`](@/api/options.md#locale)
+  - [`imeFastEdit`](@/api/options.md#imefastedit)
 - Core methods:
   - [`getDirectionFactor()`](@/api/core.md#getdirectionfactor)
   - [`getTranslatedPhrase()`](@/api/core.md#gettranslatedphrase)

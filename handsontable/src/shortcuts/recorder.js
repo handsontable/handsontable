@@ -6,6 +6,7 @@ import { isMacOS } from '../helpers/browser';
 
 const MODIFIER_KEYS = ['meta', 'alt', 'shift', 'control'];
 const modifierKeysObserver = createKeysObserver();
+let instanceCounter = 0;
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -89,13 +90,10 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
       return;
     }
 
-    const pressedKey = normalizeEventKey(event.key);
+    const pressedKey = normalizeEventKey(event);
     let extraModifierKeys = [];
 
-    if (isModifierKey(pressedKey)) {
-      modifierKeysObserver.press(pressedKey);
-
-    } else {
+    if (!isModifierKey(pressedKey)) {
       extraModifierKeys = getPressedModifierKeys(event);
     }
 
@@ -112,23 +110,31 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
   };
 
   /**
-   * `KeyboardEvent`'s callback function
+   * `KeyboardEvent`'s callback function for observing the pressed state of the mod keys.
    *
    * @private
    * @param {KeyboardEvent} event The event object
    */
-  const onkeyup = (event) => {
-    if (handleEvent(event) === false) {
-      return;
+  const onkeydownForModKeys = (event) => {
+    const pressedKey = normalizeEventKey(event);
+
+    if (isModifierKey(pressedKey)) {
+      modifierKeysObserver.press(pressedKey);
     }
+  };
 
-    const pressedKey = normalizeEventKey(event.key);
+  /**
+   * `KeyboardEvent`'s callback function for observing the pressed state of the mod keys.
+   *
+   * @private
+   * @param {KeyboardEvent} event The event object
+   */
+  const onkeyupForModKeys = (event) => {
+    const pressedKey = normalizeEventKey(event);
 
-    if (isModifierKey(pressedKey) === false) {
-      return;
+    if (isModifierKey(pressedKey)) {
+      modifierKeysObserver.release(pressedKey);
     }
-
-    modifierKeysObserver.release(pressedKey);
   };
 
   /**
@@ -146,9 +152,15 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
   const mount = () => {
     let eventTarget = ownerWindow;
 
+    instanceCounter += 1;
+
     while (eventTarget) {
+      if (instanceCounter === 1) {
+        eventTarget.document.documentElement.addEventListener('keydown', onkeydownForModKeys);
+        eventTarget.document.documentElement.addEventListener('keyup', onkeyupForModKeys);
+      }
+
       eventTarget.document.documentElement.addEventListener('keydown', onkeydown);
-      eventTarget.document.documentElement.addEventListener('keyup', onkeyup);
       eventTarget.document.documentElement.addEventListener('blur', onblur);
 
       eventTarget = getParentWindow(eventTarget);
@@ -161,9 +173,15 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
   const unmount = () => {
     let eventTarget = ownerWindow;
 
+    instanceCounter -= 1;
+
     while (eventTarget) {
+      if (instanceCounter === 0) {
+        eventTarget.document.documentElement.removeEventListener('keydown', onkeydownForModKeys);
+        eventTarget.document.documentElement.removeEventListener('keyup', onkeyupForModKeys);
+      }
+
       eventTarget.document.documentElement.removeEventListener('keydown', onkeydown);
-      eventTarget.document.documentElement.removeEventListener('keyup', onkeyup);
       eventTarget.document.documentElement.removeEventListener('blur', onblur);
 
       eventTarget = getParentWindow(eventTarget);

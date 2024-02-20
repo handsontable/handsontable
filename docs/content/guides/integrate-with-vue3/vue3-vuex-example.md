@@ -54,7 +54,9 @@ const store = createStore({
     return {
       hotData: null,
       hotSettings: {
-        readOnly: false
+        readOnly: false,
+        autoWrapRow: true,
+        autoWrapCol: true,
       }
     };
   },
@@ -82,6 +84,8 @@ const ExampleComponent = defineComponent({
         rowHeaders: true,
         readOnly: true,
         height: 'auto',
+        autoWrapRow: true,
+        autoWrapCol: true,
         afterChange: () => {
           if (this.hotRef) {
             store.commit('updateData', this.hotRef.getSourceData());

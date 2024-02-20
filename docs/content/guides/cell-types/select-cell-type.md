@@ -45,11 +45,13 @@ const hot = new Handsontable(container, {
   columns: [
     {},
     {
-      editor: 'select',
+      type: 'select',
       selectOptions: ['Kia', 'Nissan', 'Toyota', 'Honda']
     },
     {}
   ],
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -83,11 +85,13 @@ export const ExampleComponent = () => {
       columns={[
         {},
         {
-          editor: 'select',
+          type: 'select',
           selectOptions: ['Kia', 'Nissan', 'Toyota', 'Honda']
         },
         {}
       ]}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );

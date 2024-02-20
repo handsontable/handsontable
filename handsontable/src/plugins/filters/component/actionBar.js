@@ -1,14 +1,21 @@
 import { addClass } from '../../../helpers/dom/element';
 import { arrayEach } from '../../../helpers/array';
 import * as C from '../../../i18n/constants';
-import BaseComponent from './_base';
-import InputUI from '../ui/input';
+import { BaseComponent } from './_base';
+import { InputUI } from '../ui/input';
 
 /**
  * @private
  * @class ActionBarComponent
  */
-class ActionBarComponent extends BaseComponent {
+export class ActionBarComponent extends BaseComponent {
+  /**
+   * The name of the component.
+   *
+   * @type {string}
+   */
+  name = '';
+
   static get BUTTON_OK() {
     return 'ok';
   }
@@ -50,7 +57,7 @@ class ActionBarComponent extends BaseComponent {
    */
   registerHooks() {
     arrayEach(this.elements, (element) => {
-      element.addLocalHook('click', (event, button) => this.onButtonClick(event, button));
+      element.addLocalHook('click', (event, button) => this.#onButtonClick(event, button));
     });
   }
 
@@ -68,10 +75,7 @@ class ActionBarComponent extends BaseComponent {
       hidden: () => this.isHidden(),
       renderer: (hot, wrapper) => {
         addClass(wrapper.parentNode, 'htFiltersMenuActionBar');
-
-        if (!wrapper.parentNode.hasAttribute('ghost-table')) {
-          arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
-        }
+        arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
 
         return wrapper;
       }
@@ -95,11 +99,10 @@ class ActionBarComponent extends BaseComponent {
   /**
    * On button click listener.
    *
-   * @private
    * @param {Event} event DOM event.
    * @param {InputUI} button InputUI object.
    */
-  onButtonClick(event, button) {
+  #onButtonClick(event, button) {
     if (button.options.identifier === ActionBarComponent.BUTTON_OK) {
       this.accept();
     } else {
@@ -107,5 +110,3 @@ class ActionBarComponent extends BaseComponent {
     }
   }
 }
-
-export default ActionBarComponent;

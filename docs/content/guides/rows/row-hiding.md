@@ -62,7 +62,9 @@ const hot = new Handsontable(container, {
     rows: [3, 5, 9],
     // show UI indicators to mark hidden rows
     indicators: true
-  }
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -85,6 +87,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         ['A1', 'B1', 'C1', 'D1', 'E1'],
@@ -168,7 +172,9 @@ const hot = new Handsontable(container, {
   hiddenRows: {
     // specify rows hidden by default
     rows: [3, 5, 9]
-  }
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -191,6 +197,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         ['A1', 'B1', 'C1', 'D1', 'E1'],
@@ -273,7 +281,9 @@ const hot = new Handsontable(container, {
     rows: [3, 5, 9],
     // show UI indicators to mark hidden rows
     indicators: true
-  }
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -296,6 +306,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         ['A1', 'B1', 'C1', 'D1', 'E1'],
@@ -376,7 +388,9 @@ const hot = new Handsontable(container, {
   hiddenRows: {
     rows: [3, 5, 9],
     indicators: true
-  }
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -399,6 +413,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         ['A1', 'B1', 'C1', 'D1', 'E1'],
@@ -473,7 +489,9 @@ const hot = new Handsontable(container, {
   hiddenRows: {
     rows: [3, 5, 9],
     indicators: true
-  }
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -496,6 +514,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         ['A1', 'B1', 'C1', 'D1', 'E1'],
@@ -575,7 +595,9 @@ const hot = new Handsontable(container, {
     indicators: true,
     // exclude hidden rows from copying and pasting
     copyPasteEnabled: false
-  }
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -598,6 +620,8 @@ registerAllModules();
 export const ExampleComponent = () => {
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
         ['A1', 'B1', 'C1', 'D1', 'E1'],

@@ -18,6 +18,8 @@ import {
 registerCellType(TextCellType);
 
 describe('numericRenderer', () => {
+  const toMatchHTMLConfig = ['dir', 'class'];
+
   describe('registering', () => {
     it('should throw an error if renderer is not registered', () => {
       expect(getRegisteredRendererNames()).toEqual(['text']);
@@ -55,9 +57,9 @@ describe('numericRenderer', () => {
 
         numbro.registerLanguage(deDE);
 
-        numericRenderer(instance, TD, void 0, void 0, void 0, 1.002, cellMeta);
+        numericRenderer(instance, TD, undefined, undefined, undefined, 1.002, cellMeta);
 
-        expect(TD.outerHTML).toBe('<td dir="ltr" class="htRight htNumeric">1,00€</td>');
+        expect(TD.outerHTML).toMatchHTML('<td dir="ltr" class="htRight htNumeric">1,00€</td>', toMatchHTMLConfig);
       });
     });
 
@@ -67,9 +69,9 @@ describe('numericRenderer', () => {
         const instance = getInstance();
         const cellMeta = {};
 
-        numericRenderer(instance, TD, void 0, void 0, void 0, 1, cellMeta);
+        numericRenderer(instance, TD, undefined, undefined, undefined, 1, cellMeta);
 
-        expect(TD.outerHTML).toBe('<td dir="ltr" class="htRight htNumeric">1</td>');
+        expect(TD.outerHTML).toMatchHTML('<td dir="ltr" class="htRight htNumeric">1</td>', toMatchHTMLConfig);
       });
 
       it('should add default class names for numeric values passed as a string', () => {
@@ -77,9 +79,9 @@ describe('numericRenderer', () => {
         const instance = getInstance();
         const cellMeta = {};
 
-        numericRenderer(instance, TD, void 0, void 0, void 0, '100', cellMeta);
+        numericRenderer(instance, TD, undefined, undefined, undefined, '100', cellMeta);
 
-        expect(TD.outerHTML).toBe('<td dir="ltr" class="htRight htNumeric">100</td>');
+        expect(TD.outerHTML).toMatchHTML('<td dir="ltr" class="htRight htNumeric">100</td>', toMatchHTMLConfig);
       });
 
       it('should add default class names only if value is numeric', () => {
@@ -87,9 +89,9 @@ describe('numericRenderer', () => {
         const instance = getInstance();
         const cellMeta = {};
 
-        numericRenderer(instance, TD, void 0, void 0, void 0, 'A', cellMeta);
+        numericRenderer(instance, TD, undefined, undefined, undefined, 'A', cellMeta);
 
-        expect(TD.outerHTML).toBe('<td>A</td>');
+        expect(TD.outerHTML).toMatchHTML('<td>A</td>');
       });
 
       it('should add only htNumeric class name if any alignment was defined', () => {
@@ -99,9 +101,9 @@ describe('numericRenderer', () => {
           className: 'htCenter'
         };
 
-        numericRenderer(instance, TD, void 0, void 0, void 0, 1, cellMeta);
+        numericRenderer(instance, TD, undefined, undefined, undefined, 1, cellMeta);
 
-        expect(TD.outerHTML).toBe('<td dir="ltr" class="htCenter htNumeric">1</td>');
+        expect(TD.outerHTML).toMatchHTML('<td dir="ltr" class="htCenter htNumeric">1</td>', toMatchHTMLConfig);
       });
     });
   });

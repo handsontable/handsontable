@@ -37,6 +37,6 @@ describe('Filters condition (`neq`)', () => {
 
     expect(condition(data(null), [null])).toBe(false);
     expect(condition(data(null), [''])).toBe(false);
-    expect(condition(data(null), [void 0])).toBe(false);
+    expect(condition(data(null), [undefined])).toBe(false);
   });
 });

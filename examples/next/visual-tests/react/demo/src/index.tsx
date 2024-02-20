@@ -1,6 +1,6 @@
 import React from "react";
-import { createRoot } from "react-dom/client";
-import "pikaday/css/pikaday.css";
+import ReactDOM from "react-dom";
+import "@handsontable/pikaday/css/pikaday.css";
 import "./styles.css";
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from "@handsontable/react";
@@ -15,7 +15,7 @@ import {
   alignHeaders
 } from "./hooksCallbacks";
 
-import "handsontable/dist/handsontable.min.css";
+import "handsontable/dist/handsontable.css";
 
 const App = () => {
   return (
@@ -46,7 +46,9 @@ const App = () => {
       beforeRenderer={addClassesToRows}
       afterGetRowHeader={drawCheckboxInRowHeaders}
       afterOnCellMouseDown={changeCheckboxCell}
+      mergeCells={true}
       manualRowMove={true}
+      navigableHeaders={true}
       licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data={1} />
@@ -55,11 +57,9 @@ const App = () => {
       <HotColumn data={6} type="checkbox" className="htCenter" />
       <HotColumn data={7} type="numeric" />
       <HotColumn data={8} readOnly={true} className="htMiddle">
-        {/* @ts-ignore Element inherits some props. It's hard to type it. */}
         <ProgressBarRenderer hot-renderer />
       </HotColumn>
       <HotColumn data={9} readOnly={true} className="htCenter">
-        {/* @ts-ignore Element inherits some props. It's hard to type it. */}
         <StarsRenderer hot-renderer />
       </HotColumn>
       <HotColumn data={5} />

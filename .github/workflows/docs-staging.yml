@@ -3,7 +3,7 @@ name: Docs Staging Deployment
 env:
   GHA_DOCKER_TAG_NEXT: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:next
   GHA_DOCKER_TAG_SHA: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:${{ github.sha }}
-  NODE_VERSION: 16
+  NODE_VERSION: 20
 
 on:
   push:

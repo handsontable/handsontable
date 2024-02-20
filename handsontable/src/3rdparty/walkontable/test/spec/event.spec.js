@@ -663,24 +663,22 @@ describe('WalkontableEvent', () => {
 
   it('border click should call `onCellDblClick` callback', () => {
     const onCellDblClick = jasmine.createSpy('onCellDblClick');
+    const selections = createSelectionController({
+      border: {
+        width: 1,
+        color: 'red',
+        style: 'solid'
+      }
+    });
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      selections: createSelectionController({
-        current: createSelection({
-          className: 'current',
-          border: {
-            width: 1,
-            color: 'red',
-            style: 'solid'
-          }
-        })
-      }),
+      selections,
       onCellDblClick,
     });
 
-    wt.selections.getCell().add(new Walkontable.CellCoords(1, 1));
+    selections.getFocus().add(new Walkontable.CellCoords(1, 1));
     wt.draw();
 
     const $td = spec().$table.find('tbody tr:eq(1) td:eq(1)');
@@ -709,24 +707,22 @@ describe('WalkontableEvent', () => {
 
   it('border click should call `onCellMouseDown` callback', () => {
     const onCellMouseDown = jasmine.createSpy('onCellMouseDown');
+    const selections = createSelectionController({
+      border: {
+        width: 1,
+        color: 'red',
+        style: 'solid'
+      }
+    });
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      selections: createSelectionController({
-        current: createSelection({
-          className: 'current',
-          border: {
-            width: 1,
-            color: 'red',
-            style: 'solid'
-          }
-        })
-      }),
+      selections,
       onCellMouseDown,
     });
 
-    wt.selections.getCell().add(new Walkontable.CellCoords(1, 1));
+    selections.getFocus().add(new Walkontable.CellCoords(1, 1));
     wt.draw();
 
     const $td = spec().$table.find('tbody tr:eq(1) td:eq(1)');
@@ -751,24 +747,22 @@ describe('WalkontableEvent', () => {
 
   it('border click should call `onCellMouseUp` callback', () => {
     const onCellMouseUp = jasmine.createSpy('onCellMouseUp');
+    const selections = createSelectionController({
+      border: {
+        width: 1,
+        color: 'red',
+        style: 'solid'
+      }
+    });
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      selections: createSelectionController({
-        current: createSelection({
-          className: 'current',
-          border: {
-            width: 1,
-            color: 'red',
-            style: 'solid'
-          }
-        })
-      }),
+      selections,
       onCellMouseUp,
     });
 
-    wt.selections.getCell().add(new Walkontable.CellCoords(1, 1));
+    selections.getFocus().add(new Walkontable.CellCoords(1, 1));
     wt.draw();
 
     const $td = spec().$table.find('tbody tr:eq(1) td:eq(1)');
@@ -794,24 +788,22 @@ describe('WalkontableEvent', () => {
   // corner
   it('border click should call `onCellCornerMouseDown` callback', () => {
     const onCellCornerMouseDown = jasmine.createSpy('onCellCornerMouseDown');
+    const selections = createSelectionController({
+      border: {
+        width: 1,
+        color: 'red',
+        style: 'solid'
+      }
+    });
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      selections: createSelectionController({
-        current: createSelection({
-          className: 'current',
-          border: {
-            width: 1,
-            color: 'red',
-            style: 'solid'
-          }
-        })
-      }),
+      selections,
       onCellCornerMouseDown,
     });
 
-    wt.selections.getCell().add(new Walkontable.CellCoords(10, 2));
+    selections.getFocus().add(new Walkontable.CellCoords(10, 2));
     wt.draw();
 
     const $el = spec().$table.parents('.wtHolder').find('.current.corner');
@@ -824,29 +816,27 @@ describe('WalkontableEvent', () => {
       .simulate('click')
     ;
 
-    expect(onCellCornerMouseDown).toHaveBeenCalledWith(jasmine.any(MouseEvent), $el[0], void 0, void 0);
+    expect(onCellCornerMouseDown).toHaveBeenCalledWith(jasmine.any(MouseEvent), $el[0], undefined, undefined);
     expect(onCellCornerMouseDown).toHaveBeenCalledTimes(1);
   });
 
   it('border click should call `onCellCornerDblClick` callback, even when it is set only after first click', () => {
     const onCellCornerDblClick = jasmine.createSpy('onCellCornerDblClick');
+    const selections = createSelectionController({
+      border: {
+        width: 1,
+        color: 'red',
+        style: 'solid'
+      }
+    });
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      selections: createSelectionController({
-        current: createSelection({
-          className: 'current',
-          border: {
-            width: 1,
-            color: 'red',
-            style: 'solid'
-          }
-        })
-      }),
+      selections,
     });
 
-    wt.selections.getCell().add(new Walkontable.CellCoords(10, 2));
+    selections.getFocus().add(new Walkontable.CellCoords(10, 2));
     wt.draw();
 
     const $td = spec().$table.parents('.wtHolder').find('.current.corner');

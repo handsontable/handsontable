@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { createRoot } from 'react-dom/client';
-import { act } from 'react-dom/test-utils';
+import { act } from '@testing-library/react';
 import { HotTable } from '../src/hotTable';
 import { BaseEditorComponent } from '../src/baseEditorComponent';
 
@@ -15,27 +15,25 @@ beforeEach(() => {
   container.id = 'hotContainer';
   document.body.appendChild(container);
   SPEC.container = container;
+  SPEC.root = createRoot(SPEC.container);
 });
 
 afterEach(() => {
   const container = document.querySelector('#hotContainer');
 
-  SPEC.root.unmount();
   container.parentNode.removeChild(container);
   SPEC.container = null;
+
+  act(() => {
+    SPEC.root.unmount();
+  });
 });
 
-export function mountComponent(Component, container = SPEC.container) {
+export function mountComponentWithRef(Component, strictMode = true) {
   let hotTableComponent = null;
 
   const App = () => {
     hotTableComponent = useRef(null);
-
-    if (!Component.type.prototype || !Component.type.prototype.isReactComponent) {
-      return (
-        <Component.type {...Component.props}></Component.type>
-      );
-    }
 
     return (
       <Component.type {...Component.props} ref={hotTableComponent}></Component.type>
@@ -43,11 +41,24 @@ export function mountComponent(Component, container = SPEC.container) {
   }
 
   act(() => {
-    SPEC.root = createRoot(container);
-    SPEC.root.render(<React.StrictMode><App/></React.StrictMode>);
+    SPEC.root.render(
+      strictMode ? <React.StrictMode><App/></React.StrictMode> : <App/>
+    );
   });
 
-  return hotTableComponent?.current;
+  return hotTableComponent.current;
+}
+
+export function mountComponent(Component) {
+  const App = () => {
+    return (
+      <Component.type {...Component.props}></Component.type>
+    );
+  }
+
+  act(() => {
+    SPEC.root.render(<React.StrictMode><App/></React.StrictMode>);
+  });
 }
 
 export function sleep(delay = 100) {

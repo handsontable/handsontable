@@ -146,6 +146,8 @@ const hot = new Handsontable(container, {
   contextMenu: true,
   height: 'auto',
   language: 'de-DE',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -181,6 +183,8 @@ export const ExampleComponent = () => {
       contextMenu={true}
       height="auto"
       language="de-DE"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -214,6 +218,8 @@ import { HotTable } from '@handsontable/react';
 import {
   registerLanguageDictionary,
   getLanguagesDictionaries,
+  arAR,
+  csCZ,
   deCH,
   deDE,
   esMX,
@@ -227,6 +233,7 @@ import {
   plPL,
   ptBR,
   ruRU,
+  srSP,
   zhCN,
   zhTW
 } from 'handsontable/i18n';
@@ -236,6 +243,8 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
+registerLanguageDictionary(arAR);
+registerLanguageDictionary(csCZ);
 registerLanguageDictionary(deCH);
 registerLanguageDictionary(deDE);
 registerLanguageDictionary(esMX);
@@ -249,6 +258,7 @@ registerLanguageDictionary(nlNL);
 registerLanguageDictionary(plPL);
 registerLanguageDictionary(ptBR);
 registerLanguageDictionary(ruRU);
+registerLanguageDictionary(srSP);
 registerLanguageDictionary(zhCN);
 registerLanguageDictionary(zhTW);
 
@@ -290,6 +300,8 @@ export const ExampleComponent = () => {
         contextMenu={true}
         height="auto"
         language={language}
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
     </div>

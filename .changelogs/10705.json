@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed row/column size calculations for hidden indexes",
+  "type": "fixed",
+  "issueOrPR": 10705,
+  "breaking": false,
+  "framework": "none"
+}

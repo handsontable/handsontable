@@ -23,14 +23,36 @@ class CommentEditor {
     return 'htCommentCell';
   }
 
+  /**
+   * @type {HTMLDocument}
+   */
+  rootDocument;
+  /**
+   * @type {boolean}
+   */
+  isRtl = false;
+  /**
+   * @type {HTMLElement}
+   */
+  container = null;
+  /**
+   * @type {HTMLElement}
+   */
+  editor;
+  /**
+   * @type {CSSStyleDeclaration}
+   */
+  editorStyle;
+  /**
+   * @type {boolean}
+   */
+  hidden = true;
+
   constructor(rootDocument, isRtl) {
     this.rootDocument = rootDocument;
     this.isRtl = isRtl;
-    this.container = null;
     this.editor = this.createEditor();
     this.editorStyle = this.editor.style;
-
-    this.hidden = true;
 
     this.hide();
   }
@@ -178,6 +200,7 @@ class CommentEditor {
 
     addClass(editor, CommentEditor.CLASS_EDITOR);
     addClass(textArea, CommentEditor.CLASS_INPUT);
+    textArea.setAttribute('data-hot-input', true);
 
     editor.appendChild(textArea);
     this.container.appendChild(editor);

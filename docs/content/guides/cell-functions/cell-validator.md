@@ -236,7 +236,9 @@ const hot = new Handsontable(container, {
     { data: 'name.last' },
     { data: 'ip', validator: ipValidatorRegexp, allowInvalid: true },
     { data: 'email', validator: emailValidator, allowInvalid: false }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true
 });
 ```
 
@@ -313,6 +315,8 @@ export const ExampleComponent = () => {
         }}
         colHeaders={['ID', 'First name', 'Last name', 'IP', 'E-mail']}
         height="auto"
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
         columns={[
           { data: 'id', type: 'numeric' },

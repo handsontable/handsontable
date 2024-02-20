@@ -161,6 +161,8 @@ export const ExampleComponent = () => {
     <HotTable
       data={data}
       rowHeaders={true}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn width={250}>
@@ -223,6 +225,8 @@ export const ExampleComponent = () => {
       ]}
       colHeaders={true}
       colWidths={200}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -323,7 +327,7 @@ When [`EditorManager`](@/api/baseEditor.md) obtain editor class instance (editor
 When editor is prepared the [`EditorManager`](@/api/baseEditor.md) waits for user event that triggers cell edition. Those events are:
 
 - Pressing <kbd>**Enter**</kbd>
-- Pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>
+- Pressing <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>
 - double clicking cell
 - Pressing <kbd>**F2**</kbd>
 
@@ -344,11 +348,11 @@ When editor is opened the [`EditorManager`](@/api/baseEditor.md) waits for user 
 
 - Clicking on another cell (saves changes)
 - Pressing <kbd>**Enter**</kbd> (saves changes and moves selection one cell down)
-- Pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd> (saves changes and moves selection one cell up)
-- Pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Enter**</kbd> or <kbd>**Alt**</kbd>/<kbd>**Option**</kbd> + <kbd>**Enter**</kbd> (adds a new line inside the cell)
+- Pressing <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> (saves changes and moves selection one cell up)
+- Pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd> or <kbd>**Alt**</kbd>/<kbd>**Option**</kbd>+<kbd>**Enter**</kbd> (adds a new line inside the cell)
 - Pressing <kbd>**Escape**</kbd> (aborts changes)
 - Pressing <kbd>**Tab**</kbd> (saves changes and moves one cell to the right or to the left, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
-- Pressing <kbd>**Shift**</kbd> + <kbd>**Tab**</kbd> (saves changes and moves one cell to the left or to the right, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
+- Pressing <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> (saves changes and moves one cell to the left or to the right, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
 - Pressing <kbd>**Page Up**</kbd>, <kbd>**Page Down**</kbd> (saves changes and moves one screen up/down)
 
 If any of those events is triggered, [`EditorManager`](@/api/baseEditor.md) calls editor's [`finishEditing()`](@/api/baseEditor.md#finishediting) method, which should try to save changes (unless ESC key has been pressed) and close the editor.
@@ -775,7 +779,7 @@ const hot = new Handsontable(container, {
       // If you want to use string 'password' instead of passing
       // the actual editor class check out section "Registering editor"
     }
-  ]
+  ],
 });
 ```
 
@@ -1380,19 +1384,19 @@ const hot = new Handsontable(container, {
 | Arrow keys                                              | Arrow keys                                                      | Move the cursor through the text                                  | &check; | &check; |
 | Alphanumeric keys                                       | Alphanumeric keys                                               | Enter the pressed key's value into the cell                       | &check; | &check; |
 | <kbd>**Enter**</kbd>                                    | <kbd>**Enter**</kbd>                                            | Complete the cell entry and move to the cell below                | &check; | &check; |
-| <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>             | <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>                     | Complete the cell entry and move to the cell above                | &check; | &check; |
+| <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>             | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>                     | Complete the cell entry and move to the cell above                | &check; | &check; |
 | <kbd>**Tab**</kbd>                                      | <kbd>**Tab**</kbd>                                              | Complete the cell entry and move to the next cell<sup>*</sup>     | &check; | &check; |
-| <kbd>**Shift**</kbd> + <kbd>**Tab**</kbd>               | <kbd>**Shift**</kbd> + <kbd>**Tab**</kbd>                       | Complete the cell entry and move to the previous cell<sup>*</sup> | &check; | &check; |
+| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>               | <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>                       | Complete the cell entry and move to the previous cell<sup>*</sup> | &check; | &check; |
 | <kbd>**Delete**</kbd>                                   | <kbd>**Delete**</kbd>                                           | Delete one character after the cursor<sup>*</sup>                 | &check; | &check; |
 | <kbd>**Backspace**</kbd>                                | <kbd>**Backspace**</kbd>                                        | Delete one character before the cursor<sup>*</sup>                | &check; | &check; |
 | <kbd>**Home**</kbd>                                     | <kbd>**Home**</kbd>                                             | Move the cursor to the beginning of the text<sup>*</sup>          | &check; | &check; |
 | <kbd>**End**</kbd>                                      | <kbd>**End**</kbd>                                              | Move the cursor to the end of the text<sup>*</sup>                | &check; | &check; |
 | <kbd>**Ctrl**</kbd> + Arrow keys                        | <kbd>**Cmd**</kbd> + Arrow keys                                 | Move the cursor to the beginning or to the end of the text        | &check; | &check; |
-| <kbd>**Ctrl**</kbd> + <kbd>**Shift**</kbd> + Arrow keys | <kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + Arrow keys          | Extend the selection to the beginning or to the end of the text   | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd> + Arrow keys | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd> + Arrow keys          | Extend the selection to the beginning or to the end of the text   | &check; | &check; |
 | <kbd>**Page Up**</kbd>                                  | <kbd>**Page Up**</kbd>                                          | Complete the cell entry and move one screen up                    | &check; | &check; |
 | <kbd>**Page Down**</kbd>                                | <kbd>**Page Down**</kbd>                                        | Complete the cell entry and move one screen down                  | &check; | &check; |
-| <kbd>**Alt**</kbd> + <kbd>**Enter**</kbd>               | <kbd>**Option**</kbd> + <kbd>**Enter**</kbd>                    | Insert a line break                                               | &cross; | &check; |
-| <kbd>**Ctrl**</kbd> + <kbd>**Enter**</kbd>              | <kbd>**Ctrl**</kbd> / <kbd>**Cmd**</kbd> + <kbd>**Enter**</kbd> | Insert a line break                                               | &cross; | &check; |
+| <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>               | <kbd>**Option**</kbd>+<kbd>**Enter**</kbd>                    | Insert a line break                                               | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>              | <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd> | Insert a line break                                               | &cross; | &check; |
 | <kbd>**Escape**</kbd>                                   | <kbd>**Escape**</kbd>                                           | Cancel the cell entry and exit the editing mode                   | &check; | &check; |
 
 <sup>*</sup> This action depends on your [layout direction](@/guides/internationalization/layout-direction.md).

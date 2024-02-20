@@ -1,4 +1,3 @@
-import { getValidSelection } from '../utils';
 import { transformSelectionToColumnDistance } from '../../../selection/utils';
 import * as C from '../../../i18n/constants';
 
@@ -29,17 +28,20 @@ export default function removeColumnItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COLUMN, pluralForm);
     },
     callback() {
-      this.alter('remove_col',
-        transformSelectionToColumnDistance(this.getSelected()), null, 'ContextMenu.removeColumn');
+      this.alter('remove_col', transformSelectionToColumnDistance(this), null, 'ContextMenu.removeColumn');
     },
     disabled() {
       if (!this.isColumnModificationAllowed()) {
         return true;
       }
 
-      const selected = getValidSelection(this);
+      const range = this.getSelectedRangeLast();
 
-      if (!selected) {
+      if (!range) {
+        return true;
+      }
+
+      if (range.isSingleHeader() && range.highlight.col < 0) {
         return true;
       }
 

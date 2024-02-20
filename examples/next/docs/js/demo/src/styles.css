@@ -2,21 +2,8 @@
   A stylesheet customizing app (custom renderers)
 */
 
-table.htCore td.star {
-  color: #fcb515;
-}
-
 table.htCore tr.odd td {
   background: #fafbff;
-}
-
-table.htCore td .progressBar {
-  background: #37bc6c;
-  height: 10px;
-}
-
-table.htCore tr.selected td {
-  background: #edf3fd;
 }
 
 /*

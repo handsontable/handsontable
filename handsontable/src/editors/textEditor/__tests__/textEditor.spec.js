@@ -662,7 +662,7 @@ describe('TextEditor', () => {
   });
 
   it('should hide editor when quick navigation by click scrollbar was triggered', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(50, 50),
       rowHeaders: true,
       colHeaders: true
@@ -673,7 +673,7 @@ describe('TextEditor', () => {
 
     keyDownUp('enter');
     keyUp(['enter']);
-    hot.scrollViewportTo(49);
+    scrollViewportTo({ row: 49 });
 
     await sleep(100);
 
@@ -905,8 +905,58 @@ describe('TextEditor', () => {
     selectCell(2, 2);
 
     expect(isEditorVisible()).toEqual(false);
+
     keyDownUp('f2');
+
     expect(isEditorVisible()).toEqual(true);
+  });
+
+  it('should open editor after hitting any other printable character', () => {
+    handsontable();
+    selectCell(2, 2);
+
+    expect(isEditorVisible()).toBe(false);
+
+    keyDownUp('z');
+
+    expect(isEditorVisible()).toBe(true);
+
+    keyDownUp('escape');
+
+    expect(isEditorVisible()).toBe(false);
+
+    keyDownUp('1');
+
+    expect(isEditorVisible()).toBe(true);
+  });
+
+  it('should not open editor after hitting any other printable character when header is highlighted', () => {
+    handsontable({
+      rowHeaders: true,
+      colHeaders: true,
+      navigableHeaders: true,
+    });
+
+    expect(selectCell(-1, 2)).toBe(true);
+    expect(isEditorVisible()).toBe(false);
+
+    keyDownUp('z');
+
+    expect(isEditorVisible()).toBe(false);
+
+    expect(selectCell(2, -1)).toBe(true);
+    expect(isEditorVisible()).toBe(false);
+
+    keyDownUp('1');
+
+    expect(isEditorVisible()).toBe(false);
+
+    expect(selectCell(-1, -1)).toBe(true);
+    expect(isEditorVisible()).toBe(false);
+
+    keyDownUp('.');
+
+    expect(isEditorVisible()).toBe(false);
   });
 
   it('should close editor after hitting ESC', () => {
@@ -914,9 +964,13 @@ describe('TextEditor', () => {
     selectCell(2, 2);
 
     expect(isEditorVisible()).toEqual(false);
+
     keyDownUp('f2');
+
     expect(isEditorVisible()).toEqual(true);
+
     keyDownUp('escape');
+
     expect(isEditorVisible()).toEqual(false);
   });
 
@@ -925,7 +979,9 @@ describe('TextEditor', () => {
     selectCell(2, 2);
 
     expect(isEditorVisible()).toEqual(false);
+
     keyDownUp('capslock');
+
     expect(isEditorVisible()).toEqual(false);
   });
 
@@ -934,11 +990,17 @@ describe('TextEditor', () => {
     selectCell(2, 2);
 
     expect(isEditorVisible()).toEqual(false);
+
     keyDownUp('f2');
+
     expect(isEditorVisible()).toEqual(true);
+
     keyDownUp('escape');
+
     expect(isEditorVisible()).toEqual(false);
+
     keyDownUp('f2');
+
     expect(isEditorVisible()).toEqual(true);
   });
 
@@ -1598,7 +1660,7 @@ describe('TextEditor', () => {
       data: [
         ['', 5, 12, 13]
       ],
-      renderer(instance, td, row, col, prop, value) {
+      renderer(hotInstance, td, row, col, prop, value) {
         if (!value || value === '') {
           td.style.background = '#EEE';
         }
@@ -1719,8 +1781,8 @@ describe('TextEditor', () => {
     expect($editorInput.outerWidth())
       .toEqual(hot.view._wt.wtTable.holder.clientWidth - $editedCell.position().left + 1);
 
-    hot.scrollViewportTo(void 0, 3);
-    hot.render();
+    scrollViewportTo({ col: 3 });
+    render();
 
     expect($editorInput.width() + $editorInput.offset().left)
       .toBeLessThan(hot.view._wt.wtTable.holder.clientWidth);
@@ -1758,13 +1820,68 @@ describe('TextEditor', () => {
     expect($editorInput.height()).toBe(84);
   });
 
+  it('allow scrolling the editor if its content exceeds the viewport height', async() => {
+    spec().$container[0].style.width = '';
+    spec().$container[0].style.height = '';
+    spec().$container[0].style.overflow = '';
+
+    handsontable({
+      data: createSpreadsheetData(4, 4),
+      wordWrap: false,
+      height: 250
+    });
+
+    setDataAtCell(2, 2, `\
+    The Dude abides...
+
+    I don't know about you, but I take
+    comfort in that. It's good knowin'
+    he's out there, the Dude, takin'
+    her easy for all us sinners.
+    Shoosh. I sure hope he makes The
+    finals. Welp, that about does her,
+    wraps her all up. Things seem to've
+    worked out pretty good for the
+    Dude'n Walter, and it was a purt
+    good story, dontcha think? Made me
+    laugh to beat the band. Parts,
+    anyway. I didn't like seein' Donny
+    go. But then, I happen to know that
+    there's a little Lebowski on the
+    way. I guess that's the way the
+    whole durned human comedy keeps
+    perpetuatin' it-self, down through
+    the generations, westward the
+    wagons, across the sands a time
+    until we-- aw, look at me, I'm
+    ramblin' again. Wal, uh hope you
+    folks enjoyed yourselves.
+    `);
+
+    selectCell(2, 2);
+
+    await sleep(150);
+
+    keyDownUp('enter');
+
+    const textareaElement = document.querySelector('textarea.handsontableInput');
+
+    await sleep(150);
+
+    expect(textareaElement.style.overflowY).toEqual('visible');
+  });
+
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality.
-  it('should not lose the focus on input element while inserting new characters (#839)', async() => {
+  it('should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)', async() => {
     const hot = handsontable({
       data: [['']],
+      imeFastEdit: true,
     });
 
     selectCell(0, 0);
+
+    // The `imeFastEdit` timeout is set to 50ms.
+    await sleep(55);
 
     const activeElement = hot.getActiveEditor().TEXTAREA;
 
@@ -1861,13 +1978,13 @@ describe('TextEditor', () => {
     keyDownUp('enter');
     keyDownUp('enter');
 
-    expect(getActiveEditor()).not.toBe(void 0);
+    expect(getActiveEditor()).not.toBe(undefined);
 
     selectCell(0, 0);
 
     keyDownUp('enter');
 
-    expect(getActiveEditor()).toBe(void 0);
+    expect(getActiveEditor()).toBe(undefined);
   });
 
   it('should not prepare editor after the close editor and selecting the hidden cell', () => {
@@ -1885,13 +2002,13 @@ describe('TextEditor', () => {
     keyDownUp('enter');
     keyDownUp('enter');
 
-    expect(getActiveEditor()).not.toBe(void 0);
+    expect(getActiveEditor()).not.toBe(undefined);
 
     selectCell(1, 0); // select hidden row
 
     keyDownUp('enter');
 
-    expect(getActiveEditor()).toBe(void 0);
+    expect(getActiveEditor()).toBe(undefined);
   });
 
   it('should clear the active editor instance after the cell is hidden', () => {
@@ -1901,7 +2018,7 @@ describe('TextEditor', () => {
 
     selectCell(1, 0);
 
-    expect(getActiveEditor()).not.toBe(void 0);
+    expect(getActiveEditor()).not.toBe(undefined);
 
     // while the editor was prepared hide the editor's cell
     const hidingMap = hot.rowIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
@@ -1911,7 +2028,7 @@ describe('TextEditor', () => {
 
     keyDownUp('enter');
 
-    expect(getActiveEditor()).toBe(void 0);
+    expect(getActiveEditor()).toBe(undefined);
   });
 
   it('should render an editable editor\'s element without messing with "dir" attribute', () => {
@@ -1928,38 +2045,18 @@ describe('TextEditor', () => {
   });
 
   describe('IME support', () => {
-    it('should focus editable element after selecting the cell', async() => {
+    it('should focus editable element after a timeout when selecting the cell if `imeFastEdit` is enabled', async() => {
       handsontable({
         type: 'text',
+        imeFastEdit: true,
       });
+
       selectCell(0, 0, 0, 0, true, false);
 
-      await sleep(10);
+      // The `imeFastEdit` timeout is set to 50ms.
+      await sleep(55);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
-    });
-
-    it('editor size should change after composition started', async() => {
-      handsontable({
-        data: createSpreadsheetData(10, 5),
-        width: 400,
-        height: 400,
-      });
-
-      selectCell(2, 2);
-      keyDownUp('enter');
-
-      const textarea = getActiveEditor().TEXTAREA;
-
-      textarea.value = 'test, test, test, test, test, test';
-      textarea.dispatchEvent(new CompositionEvent('compositionstart')); // Trigger textarea resize
-      textarea.dispatchEvent(new CompositionEvent('compositionupdate')); // Trigger textarea resize
-      textarea.dispatchEvent(new CompositionEvent('compositionend')); // Trigger textarea resize
-
-      await sleep(100);
-
-      expect($(textarea).width()).toBe(143);
-      expect($(textarea).height()).toBe(23);
     });
   });
 });

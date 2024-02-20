@@ -1,5 +1,5 @@
-import fse from 'fs-extra';
 import path from 'path';
+import fse from 'fs-extra';
 import glob from 'glob';
 import { displayErrorMessage } from '../../scripts/utils/console.mjs';
 
@@ -45,7 +45,12 @@ FILES_TO_COPY.forEach((fileToCopy) => {
 /**
  * Prepare exports basing on wildcards in paths.
  */
-const regexpJSFiles = /\.(m|)js$/;
+const regexpJSFiles = /\.(m?js|d\.ts)$/;
+const entrypointMap = {
+  '.mjs': 'import',
+  '.js': 'require',
+  '.ts': 'types',
+};
 const groupedExports = EXPORTS_RULES.flatMap((rule) => {
   if (typeof rule !== 'string') {
     return rule;
@@ -62,9 +67,7 @@ const groupedExports = EXPORTS_RULES.flatMap((rule) => {
         rules[cleanPath] = {};
       }
 
-      const key = filePath.endsWith('.mjs') ? 'import' : 'require';
-
-      rules[cleanPath][key] = filePath;
+      rules[cleanPath][entrypointMap[path.extname(filePath)]] = filePath;
 
     } else {
       rules[filePath] = filePath;

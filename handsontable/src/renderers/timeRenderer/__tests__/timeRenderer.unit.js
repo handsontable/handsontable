@@ -16,6 +16,8 @@ import {
 registerCellType(TextCellType);
 
 describe('timeRenderer', () => {
+  const toMatchHTMLConfig = ['dir'];
+
   describe('registering', () => {
     it('should throw an error if renderer is not registered', () => {
       expect(getRegisteredRendererNames()).toEqual(['text']);
@@ -44,9 +46,9 @@ describe('timeRenderer', () => {
         placeholder: 'Placeholder'
       };
 
-      timeRenderer(instance, TD, void 0, void 0, void 0, '', cellMeta);
+      timeRenderer(instance, TD, undefined, undefined, undefined, '', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td dir="ltr">Placeholder</td>');
+      expect(TD.outerHTML).toMatchHTML('<td dir="ltr">Placeholder</td>', toMatchHTMLConfig);
     });
 
     it('should replace white spaces with nbsp entity', () => {
@@ -57,9 +59,9 @@ describe('timeRenderer', () => {
       });
       const cellMeta = {};
 
-      timeRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
+      timeRenderer(instance, TD, undefined, undefined, undefined, 'Long   text ', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td dir="ltr">Long   text </td>');
+      expect(TD.outerHTML).toMatchHTML('<td dir="ltr">Long   text </td>', toMatchHTMLConfig);
     });
 
     it('should trim whitespaces if trimWhitespace is set as true', () => {
@@ -69,9 +71,9 @@ describe('timeRenderer', () => {
       });
       const cellMeta = { trimWhitespace: true }; // cell meta layer has priority
 
-      timeRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
+      timeRenderer(instance, TD, undefined, undefined, undefined, 'Long   text ', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td dir="ltr">Long   text</td>');
+      expect(TD.outerHTML).toMatchHTML('<td dir="ltr">Long   text</td>', toMatchHTMLConfig);
     });
 
     it('should trim whitespaces if wordWrap is set as true and trimWhitespace is set as true', () => {
@@ -82,9 +84,9 @@ describe('timeRenderer', () => {
       });
       const cellMeta = { trimWhitespace: true }; // cell meta layer has priority
 
-      timeRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
+      timeRenderer(instance, TD, undefined, undefined, undefined, 'Long   text ', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td dir="ltr">Long   text</td>');
+      expect(TD.outerHTML).toMatchHTML('<td dir="ltr">Long   text</td>', toMatchHTMLConfig);
     });
 
     it('should insert stringified value', () => {
@@ -93,9 +95,9 @@ describe('timeRenderer', () => {
       const value = [1, 2, 3];
       const cellMeta = {};
 
-      timeRenderer(instance, TD, void 0, void 0, void 0, value, cellMeta);
+      timeRenderer(instance, TD, undefined, undefined, undefined, value, cellMeta);
 
-      expect(TD.outerHTML).toBe('<td dir="ltr">1,2,3</td>');
+      expect(TD.outerHTML).toMatchHTML('<td dir="ltr">1,2,3</td>', toMatchHTMLConfig);
     });
 
     it('should apply "dir" attribute as "ltr" to the TD element', () => {
@@ -104,7 +106,7 @@ describe('timeRenderer', () => {
       const value = [1, 2, 3];
       const cellMeta = {};
 
-      timeRenderer(instance, TD, void 0, void 0, void 0, value, cellMeta);
+      timeRenderer(instance, TD, undefined, undefined, undefined, value, cellMeta);
 
       expect(TD.dir).toBe('ltr');
     });

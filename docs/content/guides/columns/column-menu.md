@@ -46,6 +46,8 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   dropdownMenu: true,
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -77,6 +79,8 @@ export const ExampleComponent = () => {
       colHeaders={true}
       dropdownMenu={true}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -122,7 +126,9 @@ const hot = new Handsontable(container, {
     'make_read_only',
     '---------',
     'alignment'
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -151,6 +157,8 @@ export const ExampleComponent = () => {
         ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3'],
       ]}
       colHeaders={true}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       height="auto"
       dropdownMenu={[
@@ -175,6 +183,13 @@ root.render(<ExampleComponent />);
 :::
 
 :::
+
+## Related keyboard shortcuts
+
+| Windows                                                  | macOS                                                       | Action                                                                                                       |  Excel  | Sheets  |
+| -------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | :-----: | :-----: |
+| <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↓**</kbd> | <kbd>**Shift**</kbd>+<kbd>**Option**</kbd>+<kbd>**↓**</kbd> | Open the column menu. Works in any cell, if the respective column header displays the menu button.           | &cross; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>                | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>                   | Open the column menu. Works only when you're selecting a column header that displays the column menu button. | &cross; | &cross; |
 
 ## Related articles
 

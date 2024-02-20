@@ -184,6 +184,8 @@ const hot = new Handsontable(example, {
   height: '100%',
   rowHeights: 23,
   colWidths: 100,
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -255,6 +257,8 @@ export const ExampleComponent = () => {
           height="100%"
           rowHeights={23}
           colWidths={100}
+          autoWrapRow={true}
+          autoWrapCol={true}
           licenseKey="non-commercial-and-evaluation"
           ref={hotRef}
         />

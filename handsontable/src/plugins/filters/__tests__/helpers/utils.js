@@ -10,11 +10,11 @@ export function conditionMenuRootElements() {
 
   if (plugin) {
     if (plugin.components.has('filter_by_condition')) {
-      root.first = plugin.components.get('filter_by_condition').getSelectElement().menu.container;
+      root.first = plugin.components.get('filter_by_condition').getSelectElement().getMenu().container;
     }
 
     if (plugin.components.has('filter_by_condition2')) {
-      root.second = plugin.components.get('filter_by_condition2').getSelectElement().menu.container;
+      root.second = plugin.components.get('filter_by_condition2').getSelectElement().getMenu().container;
     }
   }
 
@@ -67,7 +67,7 @@ export function byValueBoxRootElement() {
   let root;
 
   if (plugin) {
-    root = byValueMultipleSelect().itemsBox.rootElement;
+    root = byValueMultipleSelect().getItemsBox().rootElement;
   }
 
   return root;

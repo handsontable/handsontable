@@ -84,7 +84,9 @@ const hot = new Handsontable(container, {
         exampleConsole.innerText = `Autosaved (${change.length} cell${change.length > 1 ? 's' : ''})`;
         console.log('The POST request is only used here for the demo purposes');
       });
-  }
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 
 load.addEventListener('click', () => {
@@ -195,6 +197,8 @@ export const ExampleComponent = () => {
         rowHeaders={true}
         colHeaders={true}
         height="auto"
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
         afterChange={function(change, source) {
           if (source === 'loadData') {

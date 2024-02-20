@@ -1,6 +1,6 @@
 {
   "name": "@handsontable/react",
-  "version": "12.4.0",
+  "version": "14.1.0",
   "description": "Best Data Grid for React with Spreadsheet Look and Feel.",
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "homepage": "https://handsontable.com",
@@ -14,6 +14,7 @@
     "./dist/react-handsontable.js": "./dist/react-handsontable.js",
     "./dist/react-handsontable.min.js": "./dist/react-handsontable.min.js",
     ".": {
+      "types": "./index.d.ts",
       "import": "./es/react-handsontable.mjs",
       "require": "./commonjs/react-handsontable.js"
     }
@@ -60,13 +61,14 @@
     "@babel/preset-react": "^7.9.4",
     "@babel/preset-typescript": "^7.9.0",
     "@babel/runtime": "^7.9.2",
-    "@types/react": "^18.2.14",
-    "@types/react-dom": "^18.2.6",
+    "@testing-library/react": "^14.1.2",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
     "@types/react-redux": "^7.1.7",
     "babel-core": "^7.0.0-bridge.0",
     "cpy-cli": "^3.1.1",
     "cross-env": "^7.0.3",
-    "handsontable": "^12.0.0",
+    "handsontable": "^14.0.0",
     "jest": "^25.1.0",
     "prop-types": "^15.7.2",
     "react": "^18.2.0",
@@ -87,7 +89,7 @@
     "uglify-js": "^3.4.9"
   },
   "peerDependencies": {
-    "handsontable": ">=12.0.0"
+    "handsontable": ">=14.0.0"
   },
   "scripts": {
     "build": "npm run clean && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:min",
@@ -98,6 +100,7 @@
     "clean": "rimraf ./es/ && rimraf ./commonjs/ && rimraf ./dist/ && rimraf ./*.d.ts",
     "publish-package": "npm publish",
     "test": "jest",
+    "test.watch": "jest --watch",
     "watch:commonjs": "cross-env NODE_ENV=cjs rollup -c --watch",
     "watch:es": "cross-env NODE_ENV=es rollup -c --watch"
   },

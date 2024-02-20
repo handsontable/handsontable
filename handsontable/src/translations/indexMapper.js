@@ -44,127 +44,127 @@ const deprecationWarns = new Set();
  * These are: {@link IndexesSequence}, {@link PhysicalIndexToValueMap}, {@link LinkedPhysicalIndexToValueMap}, {@link HidingMap}, and {@link TrimmingMap}.
  */
 export class IndexMapper {
-  constructor() {
-    /**
-     * Map for storing the sequence of indexes.
-     *
-     * It is registered by default and may be used from API methods.
-     *
-     * @private
-     * @type {IndexesSequence}
-     */
-    this.indexesSequence = new IndexesSequence();
-    /**
-     * Collection for different trimming maps. Indexes marked as trimmed in any map WILL NOT be included in
-     * the {@link DataMap} and won't be rendered.
-     *
-     * @private
-     * @type {MapCollection}
-     */
-    this.trimmingMapsCollection = new AggregatedCollection(
-      valuesForIndex => valuesForIndex.some(value => value === true), false);
-    /**
-     * Collection for different hiding maps. Indexes marked as hidden in any map WILL be included in the {@link DataMap},
-     * but won't be rendered.
-     *
-     * @private
-     * @type {MapCollection}
-     */
-    this.hidingMapsCollection = new AggregatedCollection(
-      valuesForIndex => valuesForIndex.some(value => value === true), false);
-    /**
-     * Collection for another kind of maps. There are stored mappings from indexes (visual or physical) to values.
-     *
-     * @private
-     * @type {MapCollection}
-     */
-    this.variousMapsCollection = new MapCollection();
-    /**
-     * The class instance collects row and column index changes that happen while the Handsontable
-     * is running. The object allows creating observers that you can subscribe. Each event represents
-     * the index change (e.g., insert, removing, change index value), which can be consumed by a
-     * developer to update its logic.
-     *
-     * @private
-     * @type {ChangesObservable}
-     */
-    this.hidingChangesObservable = new ChangesObservable({
-      initialIndexValue: false,
-    });
-    /**
-     * Cache for list of not trimmed indexes, respecting the indexes sequence (physical indexes).
-     *
-     * Note: Please keep in mind that trimmed index can be also hidden.
-     *
-     * @private
-     * @type {Array}
-     */
-    this.notTrimmedIndexesCache = [];
-    /**
-     * Cache for list of not hidden indexes, respecting the indexes sequence (physical indexes).
-     *
-     * Note: Please keep in mind that hidden index can be also trimmed.
-     *
-     * @private
-     * @type {Array}
-     */
-    this.notHiddenIndexesCache = [];
-    /**
-     * Flag determining whether actions performed on index mapper have been batched. It's used for cache management.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.isBatched = false;
-    /**
-     * Flag determining whether any action on indexes sequence has been performed. It's used for cache management.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.indexesSequenceChanged = false;
-    /**
-     * Flag informing about source of the change.
-     *
-     * @type {undefined|string}
-     */
-    this.indexesChangeSource = void 0;
-    /**
-     * Flag determining whether any action on trimmed indexes has been performed. It's used for cache management.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.trimmedIndexesChanged = false;
-    /**
-     * Flag determining whether any action on hidden indexes has been performed. It's used for cache management.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.hiddenIndexesChanged = false;
-    /**
-     * Physical indexes (respecting the sequence of indexes) which may be rendered (when they are in a viewport).
-     *
-     * @private
-     * @type {Array}
-     */
-    this.renderablePhysicalIndexesCache = [];
-    /**
-     * Visual indexes (native map's value) corresponding to physical indexes (native map's index).
-     *
-     * @private
-     * @type {Map}
-     */
-    this.fromPhysicalToVisualIndexesCache = new Map();
-    /**
-     * Visual indexes (native map's value) corresponding to physical indexes (native map's index).
-     *
-     * @private
-     * @type {Map}
-     */
-    this.fromVisualToRenderableIndexesCache = new Map();
+  /**
+   * Map for storing the sequence of indexes.
+   *
+   * It is registered by default and may be used from API methods.
+   *
+   * @private
+   * @type {IndexesSequence}
+   */
+  indexesSequence = new IndexesSequence();
+  /**
+   * Collection for different trimming maps. Indexes marked as trimmed in any map WILL NOT be included in
+   * the {@link DataMap} and won't be rendered.
+   *
+   * @private
+   * @type {MapCollection}
+   */
+  trimmingMapsCollection = new AggregatedCollection(
+    valuesForIndex => valuesForIndex.some(value => value === true), false);
+  /**
+   * Collection for different hiding maps. Indexes marked as hidden in any map WILL be included in the {@link DataMap},
+   * but won't be rendered.
+   *
+   * @private
+   * @type {MapCollection}
+   */
+  hidingMapsCollection = new AggregatedCollection(
+    valuesForIndex => valuesForIndex.some(value => value === true), false);
+  /**
+   * Collection for another kind of maps. There are stored mappings from indexes (visual or physical) to values.
+   *
+   * @private
+   * @type {MapCollection}
+   */
+  variousMapsCollection = new MapCollection();
+  /**
+   * The class instance collects row and column index changes that happen while the Handsontable
+   * is running. The object allows creating observers that you can subscribe. Each event represents
+   * the index change (e.g., insert, removing, change index value), which can be consumed by a
+   * developer to update its logic.
+   *
+   * @private
+   * @type {ChangesObservable}
+   */
+  hidingChangesObservable = new ChangesObservable({
+    initialIndexValue: false,
+  });
+  /**
+   * Cache for list of not trimmed indexes, respecting the indexes sequence (physical indexes).
+   *
+   * Note: Please keep in mind that trimmed index can be also hidden.
+   *
+   * @private
+   * @type {Array}
+   */
+  notTrimmedIndexesCache = [];
+  /**
+   * Cache for list of not hidden indexes, respecting the indexes sequence (physical indexes).
+   *
+   * Note: Please keep in mind that hidden index can be also trimmed.
+   *
+   * @private
+   * @type {Array}
+   */
+  notHiddenIndexesCache = [];
+  /**
+   * Flag determining whether actions performed on index mapper have been batched. It's used for cache management.
+   *
+   * @private
+   * @type {boolean}
+   */
+  isBatched = false;
+  /**
+   * Flag determining whether any action on indexes sequence has been performed. It's used for cache management.
+   *
+   * @private
+   * @type {boolean}
+   */
+  indexesSequenceChanged = false;
+  /**
+   * Flag informing about source of the change.
+   *
+   * @type {undefined|string}
+   */
+  indexesChangeSource = undefined;
+  /**
+   * Flag determining whether any action on trimmed indexes has been performed. It's used for cache management.
+   *
+   * @private
+   * @type {boolean}
+   */
+  trimmedIndexesChanged = false;
+  /**
+   * Flag determining whether any action on hidden indexes has been performed. It's used for cache management.
+   *
+   * @private
+   * @type {boolean}
+   */
+  hiddenIndexesChanged = false;
+  /**
+   * Physical indexes (respecting the sequence of indexes) which may be rendered (when they are in a viewport).
+   *
+   * @private
+   * @type {Array}
+   */
+  renderablePhysicalIndexesCache = [];
+  /**
+   * Visual indexes (native map's value) corresponding to physical indexes (native map's index).
+   *
+   * @private
+   * @type {Map}
+   */
+  fromPhysicalToVisualIndexesCache = new Map();
+  /**
+   * Visual indexes (native map's value) corresponding to physical indexes (native map's index).
+   *
+   * @private
+   * @type {Map}
+   */
+  fromVisualToRenderableIndexesCache = new Map();
 
+  constructor() {
     this.indexesSequence.addLocalHook('change', () => {
       this.indexesSequenceChanged = true;
 
@@ -437,7 +437,7 @@ export class IndexMapper {
     this.suspendOperations();
     this.indexesChangeSource = 'init';
     this.indexesSequence.init(length);
-    this.indexesChangeSource = void 0;
+    this.indexesChangeSource = undefined;
     this.trimmingMapsCollection.initEvery(length);
     this.resumeOperations();
 
@@ -487,14 +487,14 @@ export class IndexMapper {
    * @param {Array} indexes Physical indexes.
    */
   setIndexesSequence(indexes) {
-    if (this.indexesChangeSource === void 0) {
+    if (this.indexesChangeSource === undefined) {
       this.indexesChangeSource = 'update';
     }
 
     this.indexesSequence.setValues(indexes);
 
     if (this.indexesChangeSource === 'update') {
-      this.indexesChangeSource = void 0;
+      this.indexesChangeSource = undefined;
     }
   }
 
@@ -607,26 +607,27 @@ export class IndexMapper {
     const notTrimmedIndexesLength = this.getNotTrimmedIndexesLength();
     const movedIndexesLength = movedIndexes.length;
 
-    // Removing indexes without re-indexing.
-    const listWithRemovedItems = getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes);
+    // Removing moved indexes without re-indexing.
+    const notMovedIndexes = getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes);
+    const notTrimmedNotMovedItems = notMovedIndexes.filter(index => this.isTrimmed(index) === false);
 
     // When item(s) are moved after the last visible item we assign the last possible index.
-    let destinationPosition = notTrimmedIndexesLength - movedIndexesLength;
+    let destinationPosition = notMovedIndexes.indexOf(notTrimmedNotMovedItems[notTrimmedNotMovedItems.length - 1]) + 1;
 
     // Otherwise, we find proper index for inserted item(s).
     if (finalIndex + movedIndexesLength < notTrimmedIndexesLength) {
       // Physical index at final index position.
-      const physicalIndex = listWithRemovedItems.filter(index => this.isTrimmed(index) === false)[finalIndex];
+      const physicalIndex = notTrimmedNotMovedItems[finalIndex];
 
-      destinationPosition = listWithRemovedItems.indexOf(physicalIndex);
+      destinationPosition = notMovedIndexes.indexOf(physicalIndex);
     }
 
     this.indexesChangeSource = 'move';
 
     // Adding indexes without re-indexing.
-    this.setIndexesSequence(getListWithInsertedItems(listWithRemovedItems, destinationPosition, physicalMovedIndexes));
+    this.setIndexesSequence(getListWithInsertedItems(notMovedIndexes, destinationPosition, physicalMovedIndexes));
 
-    this.indexesChangeSource = void 0;
+    this.indexesChangeSource = undefined;
   }
 
   /**
@@ -667,7 +668,7 @@ export class IndexMapper {
     this.suspendOperations();
     this.indexesChangeSource = 'insert';
     this.indexesSequence.insert(insertionIndex, insertedIndexes);
-    this.indexesChangeSource = void 0;
+    this.indexesChangeSource = undefined;
     this.trimmingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
     this.hidingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
     this.variousMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
@@ -684,7 +685,7 @@ export class IndexMapper {
     this.suspendOperations();
     this.indexesChangeSource = 'remove';
     this.indexesSequence.remove(removedIndexes);
-    this.indexesChangeSource = void 0;
+    this.indexesChangeSource = undefined;
     this.trimmingMapsCollection.removeFromEvery(removedIndexes);
     this.hidingMapsCollection.removeFromEvery(removedIndexes);
     this.variousMapsCollection.removeFromEvery(removedIndexes);

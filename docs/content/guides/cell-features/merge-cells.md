@@ -13,7 +13,7 @@ searchCategory: Guides
 
 # Merge cells
 
-Merge adjacent cells, using the <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> shortcut or the context menu. Control merged cells, using Handsontable's API.
+Merge adjacent cells, using the <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> shortcut or the context menu. Control merged cells, using Handsontable's API.
 
 [[toc]]
 
@@ -72,6 +72,8 @@ const hot = new Handsontable(container, {
     { row: 3, col: 4, rowspan: 2, colspan: 2 },
     { row: 5, col: 6, rowspan: 3, colspan: 3 }
   ],
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -114,6 +116,8 @@ export const ExampleComponent = () => {
         { row: 3, col: 4, rowspan: 2, colspan: 2 },
         { row: 5, col: 6, rowspan: 3, colspan: 3 }
       ]}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -135,7 +139,7 @@ root.render(<ExampleComponent />);
 
 | Windows                                | macOS                                  | Action                              |  Excel  | Sheets  |
 | -------------------------------------- | -------------------------------------- | ----------------------------------- | :-----: | :-----: |
-| <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> | <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> | Merge or unmerge the selected cells | &cross; | &cross; |
+| <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | Merge or unmerge the selected cells | &cross; | &cross; |
 
 ## Related API reference
 

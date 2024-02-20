@@ -60,6 +60,8 @@ To apply configuration options, pass them as individual props of the [`HotTable`
 
 ```jsx
 <HotTable
+  autoWrapRow={true}
+  autoWrapCol={true}
   licenseKey="non-commercial-and-evaluation"
   data={[
     ['A1', 'B1', 'C1', 'D1'],
@@ -153,18 +155,17 @@ To find out if an option comes from a plugin, check the `Category` label in the 
 
 ## Set grid options
 
-To apply configuration options to the entire grid:
+
 
 ::: only-for javascript
 
-- Pass your options as a second argument of the Handsontable constructor, using the object literal notation.
+To apply configuration options to the entire grid, pass your options as a second argument of the Handsontable constructor, using the object literal notation.
 
 :::
 
 ::: only-for react
 
-- Pass your options as individual props of the [`HotTable`](@/guides/getting-started/installation.md#_4-use-the-hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
-- You can also pass your options as an object, using the `settings` prop.
+To apply configuration options to the entire grid, pass your options as individual props of the [`HotTable`](@/guides/getting-started/installation.md#_4-use-the-hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column.md) components. You can also pass your options as an object, using the `settings` prop.
 
 :::
 
@@ -187,12 +188,6 @@ const hot = new Handsontable(container, {
 ```jsx
 <HotTable width={400} height={300} />
 ```
-
-:::
-
-::: tip
-
-If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
 
 :::
 
@@ -230,7 +225,9 @@ const hot = new Handsontable(container, {
   width: 'auto',
   height: 'auto',
   rowHeaders: true,
-  colHeaders: true
+  colHeaders: true,
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 
 // check a cell's options
@@ -265,6 +262,8 @@ export const ExampleComponent = () => {
 
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={data}
       readOnly={true}
@@ -331,12 +330,6 @@ Alternatively, you can use the [`HotColumn`](@/guides/columns/react-hot-column.m
 
 :::
 
-::: tip
-
-If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
-
-:::
-
 #### Example
 
 In the example below, the [`columns`](@/api/options.md#columns) option is set to a function.
@@ -379,7 +372,9 @@ const hot = new Handsontable(container, {
       type: index > 0 ? 'numeric' : 'text',
       readOnly: index === 2 || index === 8
     }
-  }
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 
 // check a cell's options
@@ -417,6 +412,8 @@ export const ExampleComponent = () => {
 
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={data}
       width="auto"
@@ -451,12 +448,6 @@ root.render(<ExampleComponent />);
 To apply configuration options to an individual row (or a range of rows), use the [`cells`](@/api/options.md#cells) option.
 
 Any options modified through [`cells`](@/api/options.md#cells) overwrite all other options.
-
-::: tip
-
-The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/optimization/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#change-cell-options) method don't meet your needs.
-
-:::
 
 ::: only-for javascript
 
@@ -508,12 +499,6 @@ The function can take three arguments:<br>
 
 :::
 
-::: tip
-
-If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
-
-:::
-
 #### Example
 
 In the example below, the [`cells`](@/api/options.md#cells) option sets each cell in the first and fourth row as [`readOnly`](@/api/options.md#readonly).
@@ -552,6 +537,8 @@ const hot = new Handsontable(container, {
       };
     }
   },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 
 // check a cell's options
@@ -589,6 +576,8 @@ export const ExampleComponent = () => {
 
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={data}
       width="auto"
@@ -640,6 +629,8 @@ const hot = new Handsontable(container, {
       readOnly: true,
     }
   ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -662,12 +653,6 @@ const hot = new Handsontable(container, {
   }
 ]}/>
 ```
-
-:::
-
-::: tip
-
-If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
 
 :::
 
@@ -718,7 +703,9 @@ const hot = new Handsontable(container, {
       col: 1,
       readOnly: true,
     }
-  ]
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 
 // check a cell's options
@@ -757,6 +744,8 @@ export const ExampleComponent = () => {
   return (
     <HotTable
       data={data}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       width="auto"
       height="auto"
@@ -939,12 +928,6 @@ You can apply configuration options to individual grid elements (columns, rows, 
 
 The [`cells`](@/api/options.md#cells) option overwrites all other options.
 
-::: tip
-
-The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/optimization/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#change-cell-options) method don't meet your needs.
-
-:::
-
 ::: only-for javascript
 
 The function can take three arguments:<br>
@@ -1026,7 +1009,9 @@ const hot = new Handsontable(container, {
         readOnly: true,
       };
     }
-  }
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -1127,6 +1112,8 @@ const hot = new Handsontable(container, {
       }
     }
   },
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -1157,6 +1144,8 @@ export const ExampleComponent = () => {
 
   return (
     <HotTable
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={data}
       readOnly={true}

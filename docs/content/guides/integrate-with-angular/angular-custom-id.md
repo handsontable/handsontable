@@ -48,6 +48,8 @@ export class AppComponent {
     colHeaders: true,
     stretchH: 'all',
     height: 'auto',
+    autoWrapRow: true,
+    autoWrapCol: true,
     licenseKey: 'non-commercial-and-evaluation'
   };
   id = 'my-custom-id';

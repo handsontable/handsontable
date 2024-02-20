@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Removing all columns/rows when HyperFormula is enabled won't cause an error ",
+  "type": "fixed",
+  "issueOrPR": 10720,
+  "breaking": false,
+  "framework": "none"
+}

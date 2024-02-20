@@ -99,7 +99,10 @@ const hotData = [
 
 export const ExampleComponent = () => {
   return (
-    <HotTable data={hotData} licenseKey="non-commercial-and-evaluation">
+    <HotTable data={hotData}
+      autoWrapRow={true}
+      autoWrapCol={true}
+      licenseKey="non-commercial-and-evaluation">
       <HotColumn width={250}>
         {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
         <RendererComponent hot-renderer />
@@ -245,6 +248,8 @@ export const ExampleComponent = () => {
       colHeaders={true}
       rowHeights={55}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -303,7 +308,7 @@ You can set a cell's [`renderer`](@/api/options.md#renderer), [`editor`](@/api/o
 renderer: Handsontable.NumericRenderer,
 editor: Handsontable.editors.NumericEditor,
 validator: Handsontable.NumericValidator,
-type: 'numeric'
+type: 'numeric',
 ```
 
 :::
@@ -504,6 +509,8 @@ const hot = new Handsontable(container, {
     { data: 'comments', renderer: safeHtmlRenderer },
     { data: 'cover', renderer: coverRenderer }
   ],
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -599,6 +606,8 @@ export const ExampleComponent = () => {
         { data: 'comments', renderer: safeHtmlRenderer },
         { data: 'cover', renderer: coverRenderer }
       ]}
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -672,6 +681,8 @@ const hot = new Handsontable(container, {
         return `Some <input type="checkbox" class="checker" ${isChecked ? `checked="checked"` : ''}> checkbox`;
     }
   },
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -759,6 +770,8 @@ export const ExampleComponent = () => {
             return `Some <input type="checkbox" class="checker" ${isChecked ? `checked="checked"` : ''}> checkbox`;
           }
         }}
+        autoWrapRow={true}
+        autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
     </div>

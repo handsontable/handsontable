@@ -31,7 +31,9 @@ const hot = new Handsontable(container, {
     ['A1', 'B1', 'C1'],
     ['A2', 'B2', 'C2'],
   ],
-  comments: true
+  comments: true,
+  autoWrapRow: true,
+  autoWrapCol: true
 });
 ```
 
@@ -114,6 +116,8 @@ const hot = new Handsontable(container, {
     { row: 2, col: 2, comment: { value: 'More comments' } }
   ],
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -154,6 +158,8 @@ export const ExampleComponent = () => {
         { row: 2, col: 2, comment: { value: 'More comments' } }
       ]}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -173,7 +179,7 @@ root.render(<ExampleComponent />);
 
 ## Make a comment read-only
 
-By default, all comments are editable. To change this, set the [`readOnly`](@/api/options.md#comments) configuration option to `true` when adding a comment. This example makes the "Tesla" comment attached to a cell read-only, whereas the "Honda" comment attached to another cell is editable.
+By default, all comments are editable. To change this, set the [`readOnly`](@/api/options.md#readonly) configuration option to `true` when adding a comment. This example makes the "Tesla" comment attached to a cell read-only, whereas the "Honda" comment attached to another cell is editable.
 
 ::: only-for javascript
 
@@ -200,6 +206,8 @@ const hot = new Handsontable(container, {
     { row: 0, col: 3, comment: { value: 'You can edit this comment' } }
   ],
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -238,6 +246,8 @@ export const ExampleComponent = () => {
         { row: 0, col: 3, comment: { value: 'You can edit this comment' } }
       ]}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -285,6 +295,8 @@ const hot = new Handsontable(container, {
     { row: 2, col: 2, comment: { value: 'Comment 200x50 px', style: { width: 200, height: 50 } } }
   ],
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -324,6 +336,8 @@ export const ExampleComponent = () => {
         { row: 2, col: 2, comment: { value: 'Comment 200x50 px', style: { width: 200, height: 50 } } }
       ]}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -372,6 +386,8 @@ const hot = new Handsontable(container, {
     { row: 1, col: 1, comment: { value: 'Some comment' } },
   ],
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -412,6 +428,8 @@ export const ExampleComponent = () => {
         { row: 1, col: 1, comment: { value: 'Some comment' } },
       ]}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -428,6 +446,14 @@ root.render(<ExampleComponent />);
 :::
 
 :::
+
+## Related keyboard shortcuts
+
+| Windows                                                 | macOS                                                      | Action                                  |  Excel  | Sheets  |
+| ------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------- | :-----: | :-----: |
+| <kbd>**Ctrl**</kbd>+<kbd>**Alt**</kbd>+<kbd>**M**</kbd> | <kbd>**Ctrl**</kbd>+<kbd>**Option**</kbd>+<kbd>**M**</kbd> | Add or edit a comment                   | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                | <kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd>                    | Save and exit the current comment       | &cross; | &check; |
+| <kbd>**Escape**</kbd>                                   | <kbd>**Escape**</kbd>                                      | Exit the current comment without saving | &cross; | &cross; |
 
 ## Related API reference
 

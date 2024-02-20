@@ -3,8 +3,13 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     constructor() {
       this.rootDocument = document;
     }
+
     renderedColumnToSource(visibleColumnIndex) {
       return visibleColumnIndex;
+    }
+
+    isAriaEnabled() {
+      return true;
     }
   }
 
@@ -28,6 +33,15 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
 
     return { renderer, tableMock, columnUtilsMock, rootNode };
   }
+
+  beforeEach(function() {
+    // Matchers configuration.
+    this.matchersConfig = {
+      toMatchHTML: {
+        keepAttributes: ['class', 'style']
+      }
+    };
+  });
 
   it('should generate as many COLs as the `columnsToRender` and `rowHeadersCount` is set', () => {
     const { renderer, tableMock, rootNode } = createRenderer();

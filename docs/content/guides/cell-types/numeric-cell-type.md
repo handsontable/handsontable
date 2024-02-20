@@ -83,6 +83,8 @@ const hot = new Handsontable(container, {
       },
     },
   ],
+  autoWrapRow: true,
+  autoWrapCol: true,
 });
 ```
 
@@ -120,6 +122,8 @@ export const ExampleComponent = () => {
       colHeaders={['Car', 'Year', 'Price ($)', 'Price (€)']}
       columnSorting={true}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       columns={[
         {
@@ -299,6 +303,8 @@ const hot = new Handsontable(container, {
   columnSorting: true,
   colHeaders: ['Product name', 'Price in Japan', 'Price in Turkey'],
   height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -362,6 +368,8 @@ export const ExampleComponent = () => {
       columnSorting={true}
       colHeaders={['Product name', 'Price in Japan', 'Price in Turkey']}
       height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data="productName" type="text" width="120" />

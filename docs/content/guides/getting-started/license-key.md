@@ -79,7 +79,7 @@ To use it with a framework, pass the string to a [`licenseKey`](@/api/options.md
 
 :::
 
-## Free license
+## Non-Commercial license
 
 If you use Handsontable for purposes not intended toward monetary compensation such as, but not limited to, teaching, academic research, evaluation, testing and experimentation, pass the string  `'non-commercial-and-evaluation'`.
 
@@ -97,7 +97,10 @@ const settings = {
 ::: only-for react
 
 ```jsx
-<HotTable licenseKey="non-commercial-and-evaluation" />
+<HotTable 
+  autoWrapRow={true}
+  autoWrapCol={true}
+  licenseKey="non-commercial-and-evaluation" />
 ```
 
 :::
