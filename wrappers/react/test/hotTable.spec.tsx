@@ -397,7 +397,7 @@ describe('Editor configuration using React components', () => {
 
     {
       const activeEditor = hotInstance.getActiveEditor();
-      
+
       expect(activeEditor.constructor.name).toBe('CustomEditor');
       expect(activeEditor.editorComponent.__proto__.constructor.name).toBe('EditorComponent');
 
@@ -443,9 +443,8 @@ describe('Editor configuration using React components', () => {
                     init={function () {
                       mockElementDimensions(this.rootElement, 300, 300);
                     }}
-                    ref={hotTableInstanceRef}>
-            {this.state.renderer ?  <RendererComponent hot-renderer /> : null}
-          </HotTable>
+                    renderer={this.state.renderer ? RendererComponent : null}
+                    ref={hotTableInstanceRef} />
         );
       };
     }

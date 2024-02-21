@@ -136,7 +136,7 @@ const HotTableContextProvider: React.FC<React.PropsWithChildren> = ({ children }
   const portalContainerCache = React.useRef<Map<string, HTMLElement>>(new Map());
 
   const getRendererWrapper = React.useCallback((Renderer: React.ComponentType<HotRendererProps>): typeof Handsontable.renderers.BaseRenderer => {
-    return function (instance, TD, row, col, prop, value, cellProperties) {
+    return function __internalRenderer(instance, TD, row, col, prop, value, cellProperties) {
       const key = `${row}-${col}`;
 
       // Handsontable.Core type is missing guid
