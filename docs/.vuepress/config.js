@@ -86,6 +86,8 @@ module.exports = {
       `
       window.sentryOnLoad = function () {
         Sentry.init({
+          replaysSessionSampleRate: 0,
+          replaysOnErrorSampleRate: 1.0,
           integrations: [
             // If you use a bundle with performance monitoring enabled, add the BrowserTracing integration
             new Sentry.BrowserTracing(),
