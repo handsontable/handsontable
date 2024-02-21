@@ -1,5 +1,5 @@
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import "@handsontable/pikaday/css/pikaday.css";
 import "./styles.css";
 import Handsontable from 'handsontable';
@@ -69,7 +69,7 @@ const App = () => {
 };
 
 const container = document.getElementById("container");
-const root = createRoot(container);
+const root = createRoot(container!);
 
 root.render(<App />);
 
