@@ -13,9 +13,11 @@ import {
   simulateMouseEvent,
   mountComponentWithRef,
   customNativeRenderer,
-  CustomNativeEditor
+  CustomNativeEditor,
+  renderHotTableWithProps
 } from './_helpers';
 import { OBSOLETE_HOTEDITOR_WARNING, OBSOLETE_HOTRENDERER_WARNING } from '../src/helpers'
+import { HotTableProps } from '../src/types'
 
 // register Handsontable's modules
 registerAllModules();
@@ -390,49 +392,34 @@ describe('Dynamic HotColumn configuration changes', () => {
       );
     }
 
-    class WrapperComponent extends React.Component<any, any> {
-      constructor(props) {
-        super(props);
+    const hotTableInstanceRef = React.createRef();
 
-        this.state = {
-          setup: [
-            <HotColumn title="test title" className="first-column-class-name" key={'2'}
-                       editor={() => <EditorComponent className="editor-className-1" background='red' />} />,
-            <HotColumn title="test title 2" key={'3'} renderer={RendererComponent2} />
-          ]
-        }
-      }
+    const hotSettings: HotTableProps = {
+      licenseKey: "non-commercial-and-evaluation",
+      id: "test-hot",
+      data: createSpreadsheetData(3, 2),
+      width: 300,
+      height: 300,
+      rowHeights: 23,
+      colWidths: 50,
+      readOnly: false,
+      autoRowSize: false,
+      autoColumnSize: false,
+      init: function () {
+        mockElementDimensions(this.rootElement, 300, 300);
+      },
+      renderer: (props) => <RendererComponent {...props} key={'1'}/>,
+      children: [
+        <HotColumn title="test title" className="first-column-class-name" key={'2'}
+                   editor={() => <EditorComponent className="editor-className-1" background='red' />} />,
+        <HotColumn title="test title 2" key={'3'} renderer={RendererComponent2} />
+      ]
+    };
 
-      render() {
-        return (
-          <HotTable licenseKey="non-commercial-and-evaluation" id="test-hot"
-                    data={createSpreadsheetData(3, 2)}
-                    width={300}
-                    height={300}
-                    rowHeights={23}
-                    colWidths={50}
-                    readOnly={false}
-                    autoRowSize={false}
-                    autoColumnSize={false}
-                    init={function () {
-                      mockElementDimensions(this.rootElement, 300, 300);
-                    }}
-                    renderer={(props) => <RendererComponent {...props} key={'1'}/>}
-                    editor={this.state.globalEditor}
-                    ref={hotTableInstanceRef}>
-            {this.state.setup}
-          </HotTable>
-        );
-      };
-    }
+    renderHotTableWithProps(hotSettings, false, hotTableInstanceRef);
 
-    let hotTableInstanceRef = React.createRef();
+    const hotInstance = hotTableInstanceRef.current.hotInstance;
 
-    const wrapperComponentInstance = mountComponentWithRef((
-      <WrapperComponent/>
-    ));
-
-    let hotInstance = (hotTableInstanceRef.current as any).hotInstance;
     let editorElement = document.querySelector('#editorComponentContainer');
 
     expect(hotInstance.getSettings().columns[0].title).toEqual('test title');
@@ -462,14 +449,14 @@ describe('Dynamic HotColumn configuration changes', () => {
     expect(hotInstance.getActiveEditor().constructor.name).toEqual('TextEditor');
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
 
-    await act(async() => {
-      wrapperComponentInstance.setState({
-        globalEditor: () => <EditorComponent className="editor-className-2" background='blue' key={'1'} />,
-        setup: [
-          <HotColumn title="test title 2" key={'2'} renderer={RendererComponent2}/>,
-          <HotColumn title="test title" className="first-column-class-name" key={'3'} renderer={RendererComponent}/>
-        ]
-      });
+    act(() => {
+      hotSettings.editor = () => <EditorComponent className="editor-className-2" background='blue' key={'1'} />;
+      hotSettings.children = [
+        <HotColumn title="test title 2" key={'2'} renderer={RendererComponent2}/>,
+        <HotColumn title="test title" className="first-column-class-name" key={'3'} renderer={RendererComponent}/>
+      ];
+
+      renderHotTableWithProps(hotSettings, false, hotTableInstanceRef);
     });
 
     await sleep(100);
