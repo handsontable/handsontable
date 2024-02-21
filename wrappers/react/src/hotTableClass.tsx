@@ -4,26 +4,22 @@ import { SettingsMapper } from './settingsMapper';
 import { RenderersPortalManager } from './renderersPortalManager';
 import { isHotColumn } from './hotColumn';
 import * as packageJson from '../package.json';
-import {
-  HotTableProps,
-  HotEditorElement,
-} from './types';
+import { HotEditorHooks, HotTableProps } from './types';
 import {
   HOT_DESTROYED_WARNING,
   AUTOSIZE_WARNING,
-  GLOBAL_EDITOR_SCOPE,
   createEditorPortal,
   getContainerAttributesProps,
-  getExtendedEditorElement,
   isCSR,
   warn,
-  displayObsoleteRenderersWarning
+  displayObsoleteRenderersEditorsWarning
 } from './helpers';
 import PropTypes from 'prop-types';
 import { getRenderer } from 'handsontable/renderers/registry';
 import { getEditor } from 'handsontable/editors/registry';
 import { HotTableContext } from './hotTableContext'
 import { HotColumnContextProvider } from './hotColumnContext'
+import { EditorContextProvider, makeEditorClass } from "./hotEditor";
 
 /**
  * A Handsontable-ReactJS wrapper.
@@ -79,6 +75,18 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
    * @type {React.CSSProperties}
    */
   style: React.CSSProperties;
+
+  /**
+   * Reference to component-based editor overridden hooks object.
+   * @private
+   */
+  private globalEditorHooksRef = React.createRef<HotEditorHooks>();
+
+  /**
+   * Reference to HOT-native custom editor class instance.
+   * @private
+   */
+  private globalEditorClassInstance = React.createRef<Handsontable.editors.BaseEditor>();
 
   /**
    * Package version getter.
@@ -160,37 +168,26 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
   }
 
   /**
-   * Get the editor element for the entire HotTable instance.
-   *
-   * @param {React.ReactNode} [children] Children of the HotTable instance. Defaults to `this.props.children`.
-   * @returns {React.ReactElement} React editor component element.
-   */
-  getGlobalEditorElement(): HotEditorElement | null {
-    return getExtendedEditorElement(this.props.children, this.context.editorCache);
-  }
-
-  /**
    * Create a new settings object containing the column settings and global editors and renderers.
    *
    * @returns {Handsontable.GridSettings} New global set of settings for Handsontable.
    */
   createNewGlobalSettings(): Handsontable.GridSettings {
     const newSettings = SettingsMapper.getSettings(this.props);
-    const globalEditorNode = this.getGlobalEditorElement();
 
     newSettings.columns = this.context.columnsSettings.length ? this.context.columnsSettings : newSettings.columns;
-
-    if (globalEditorNode) {
-      newSettings.editor = this.context.getEditorClass(globalEditorNode, GLOBAL_EDITOR_SCOPE);
-    } else {
-      newSettings.editor = getEditor('text');
-    }
 
     if (this.props.renderer) {
       newSettings.renderer = this.context.getRendererWrapper(this.props.renderer);
       this.context.componentRendererColumns.set('global', true);
     } else {
       newSettings.renderer = this.props.hotRenderer || getRenderer('text');
+    }
+
+    if (this.props.editor) {
+      newSettings.editor = makeEditorClass(this.globalEditorHooksRef, this.globalEditorClassInstance);
+    } else {
+      newSettings.editor = this.props.hotEditor || getEditor('text');
     }
 
     return newSettings;
@@ -262,7 +259,7 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
     (this.hotInstance as any).init();
 
     this.displayAutoSizeWarning(newGlobalSettings);
-    displayObsoleteRenderersWarning(this.props.children);
+    displayObsoleteRenderersEditorsWarning(this.props.children);
   }
 
   /**
@@ -275,7 +272,7 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
 
     this.updateHot(newGlobalSettings);
     this.displayAutoSizeWarning(newGlobalSettings);
-    displayObsoleteRenderersWarning(this.props.children);
+    displayObsoleteRenderersEditorsWarning(this.props.children);
   }
 
   /**
@@ -304,7 +301,7 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
       ));
 
     const containerProps = getContainerAttributesProps(this.props);
-    const editorPortal = createEditorPortal(this.getOwnerDocument(), this.getGlobalEditorElement());
+    const editorPortal = createEditorPortal(this.getOwnerDocument(), this.props.editor);
 
     return (
       <React.Fragment>
@@ -312,7 +309,10 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
           {hotColumnWrapped}
         </div>
         <RenderersPortalManager ref={this.context.setRenderersPortalManagerRef} />
-        {editorPortal}
+        <EditorContextProvider hooksRef={this.globalEditorHooksRef}
+                               hotCustomEditorInstanceRef={this.globalEditorClassInstance}>
+          {editorPortal}
+        </EditorContextProvider>
       </React.Fragment>
     )
   }

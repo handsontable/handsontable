@@ -6,7 +6,6 @@ import {
   mockElementDimensions,
   mountComponentWithRef
 } from './_helpers';
-import { BaseEditorComponent } from '../src/baseEditorComponent';
 import { HotRendererProps } from '../src'
 
 describe('React Context', () => {
@@ -22,14 +21,14 @@ describe('React Context', () => {
       );
     }
 
-    class EditorComponent2 extends BaseEditorComponent {
-      render(): React.ReactElement<string> {
-        return (
-            <TestContext.Consumer>
-              {(context) => <>{context}</>}
-            </TestContext.Consumer>
-        );
-      }
+    const EditorComponent2 = ({ className }) => {
+      return (
+        <div className={className}>
+          <TestContext.Consumer>
+            {(context) => <>{context}</>}
+          </TestContext.Consumer>
+        </div>
+      );
     }
 
     class RendererComponent3 extends React.Component<HotRendererProps> {
@@ -43,12 +42,14 @@ describe('React Context', () => {
     }
     RendererComponent3.contextType = TestContext;
 
-    class EditorComponent3 extends React.Component {
+    class EditorComponent3 extends React.Component<{ className: string }> {
+      context: string;
+
       render() {
         return (
-          <>
+          <div className={this.props.className}>
             {this.context}
-          </>
+          </div>
         )
       }
     }
@@ -71,12 +72,10 @@ describe('React Context', () => {
                   ref={function (instance) {
                     hotTableInstance = instance;
                   }}>
-          <HotColumn renderer={RendererComponent2}>
-            <EditorComponent2 hot-editor className="ec2"/>
-          </HotColumn>
-          <HotColumn renderer={RendererComponent3}>
-            <EditorComponent3 hot-editor className="ec3"/>
-          </HotColumn>
+          <HotColumn renderer={RendererComponent2}
+                     editor={() => <EditorComponent2 className="ec2" />} />
+          <HotColumn renderer={RendererComponent3}
+                     editor={() => <EditorComponent3 className="ec3" />} />
         </HotTable>
       </TestContext.Provider>
     ));

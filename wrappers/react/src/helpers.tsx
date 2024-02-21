@@ -1,10 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {
-  EditorScopeIdentifier,
-  HotEditorCache,
-  HotEditorElement
-} from './types';
+import { HotTableProps } from './types';
 
 let bulkComponentContainer = null;
 
@@ -21,15 +17,16 @@ export const OBSOLETE_HOTRENDERER_WARNING = 'Providing a component-based rendere
   'Pass your component using `renderer` prop of the `HotTable` or `HotColumn` component instead.';
 
 /**
+ * Warning message for the `hot-editor` obsolete editor passing method.
+ */
+export const OBSOLETE_HOTEDITOR_WARNING = 'Providing a component-based editor using `hot-editor`-annotated component is no longer supported. ' +
+  'Pass your component using `editor` prop of the `HotTable` or `HotColumn` component instead.';
+
+/**
  * Message for the warning thrown if the Handsontable instance has been destroyed.
  */
 export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this component was destroyed and cannot be' +
   ' used properly.';
-
-/**
- * String identifier for the global-scoped editor components.
- */
-export const GLOBAL_EDITOR_SCOPE: EditorScopeIdentifier = 'global';
 
 /**
  * Default classname given to the wrapper container.
@@ -48,66 +45,45 @@ export function warn(...args) {
 }
 
 /**
- * Detect if `hot-renderer` is defined, and if so, throw an incompatibility warning.
+ * Detect if `hot-renderer` or `hot-editor` is defined, and if so, throw an incompatibility warning.
  */
-export function displayObsoleteRenderersWarning(children: React.ReactNode): void {
-  if (getChildElementByType(children, 'hot-renderer')) {
+export function displayObsoleteRenderersEditorsWarning(children: React.ReactNode): void {
+  if (hasChildElementOfType(children, 'hot-renderer')) {
     warn(OBSOLETE_HOTRENDERER_WARNING);
+  }
+  if (hasChildElementOfType(children, 'hot-editor')) {
+    warn(OBSOLETE_HOTEDITOR_WARNING);
   }
 }
 
 /**
- * Filter out and return elements of the provided `type` from the `HotColumn` component's children.
+ * Check the existence of elements of the provided `type` from the `HotColumn` component's children.
  *
  * @param {React.ReactNode} children HotTable children array.
  * @param {String} type Either `'hot-renderer'` or `'hot-editor'`.
- * @returns {Object|null} A child (React node) or `null`, if no child of that type was found.
+ * @returns {boolean} `true` if the child of that type was found, `false` otherwise.
  */
-function getChildElementByType(children: React.ReactNode, type: 'hot-renderer' | 'hot-editor'): React.ReactElement | null {
+function hasChildElementOfType(children: React.ReactNode, type: 'hot-renderer' | 'hot-editor'): boolean {
   const childrenArray: React.ReactNode[] = React.Children.toArray(children);
-  const childrenCount: number = React.Children.count(children);
-  let wantedChild: React.ReactNode | null = null;
 
-  if (childrenCount !== 0) {
-    if (childrenCount === 1 && (childrenArray[0] as React.ReactElement).props[type]) {
-      wantedChild = childrenArray[0];
-
-    } else {
-      wantedChild = childrenArray.find((child) => {
+  return childrenArray.some((child) => {
       return (child as React.ReactElement).props[type] !== void 0;
   });
-    }
-  }
-
-  return (wantedChild as React.ReactElement) || null;
-}
-
-/**
- * Get the reference to the original editor class.
- *
- * @param {React.ReactElement} editorElement React element of the editor class.
- * @returns {Function} Original class of the editor component.
- */
-export function getOriginalEditorClass(editorElement: HotEditorElement) {
-  if (!editorElement) {
-    return null;
-  }
-
-  return editorElement.type.WrappedComponent ? editorElement.type.WrappedComponent : editorElement.type;
 }
 
 /**
  * Create an editor portal.
  *
  * @param {Document} doc Document to be used.
- * @param {React.ReactElement} editorElement Editor's element.
+ * @param {React.ComponentType} Editor Editor component or render function.
  * @returns {React.ReactPortal} The portal for the editor.
  */
-export function createEditorPortal(doc: Document, editorElement: HotEditorElement): React.ReactPortal | null {
-  if (typeof doc === 'undefined' || editorElement === null) {
+export function createEditorPortal(doc: Document, Editor: HotTableProps['editor'] | undefined): React.ReactPortal | null {
+  if (typeof doc === 'undefined' || !Editor) {
     return null;
   }
 
+  const editorElement = <Editor />;
   const containerProps = getContainerAttributesProps(editorElement.props, false);
 
   containerProps.className = `${DEFAULT_CLASSNAME} ${containerProps.className}`;
@@ -117,38 +93,6 @@ export function createEditorPortal(doc: Document, editorElement: HotEditorElemen
       {editorElement}
     </div>
     , doc.body);
-}
-
-/**
- * Get an editor element extended with an instance-emitting method.
- *
- * @param {React.ReactNode} children Component children.
- * @param {Map} editorCache Component's editor cache.
- * @param {EditorScopeIdentifier} [editorColumnScope] The editor scope (column index or a 'global' string). Defaults to
- * 'global'.
- * @returns {React.ReactElement} An editor element containing the additional methods.
- */
-export function getExtendedEditorElement(children: React.ReactNode, editorCache: HotEditorCache, editorColumnScope: EditorScopeIdentifier = GLOBAL_EDITOR_SCOPE): React.ReactElement | null {
-  const editorElement = getChildElementByType(children, 'hot-editor');
-  const editorClass = getOriginalEditorClass(editorElement);
-
-  if (!editorElement) {
-    return null;
-  }
-
-  return React.cloneElement(editorElement, {
-    emitEditorInstance: (editorInstance, editorColumnScope) => {
-      if (!editorCache.get(editorClass)) {
-        editorCache.set(editorClass, new Map());
-      }
-
-      const cacheEntry = editorCache.get(editorClass);
-
-      cacheEntry.set(editorColumnScope ?? GLOBAL_EDITOR_SCOPE, editorInstance);
-    },
-    editorColumnScope,
-    isEditor: true
-  } as object);
 }
 
 /**
@@ -205,4 +149,25 @@ export function getContainerAttributesProps(props, randomizeId: boolean = true):
  */
 export function isCSR(): boolean {
   return typeof window !== 'undefined';
+}
+
+/**
+ * Creates a copy of the class instance that is still bound to this but allows calling its super (prototype) methods.
+ *
+ * @param {T} that An instance to look for prototype methods.
+ * @returns {T} Copy of the instance with super methods access.
+ */
+export function superBound<T>(that: T): T {
+  const proto = Object.getPrototypeOf(Object.getPrototypeOf(that));
+  const superBoundObj = {} as T;
+
+  Object.getOwnPropertyNames(proto).forEach((key) => {
+    if (typeof proto[key] === 'function') {
+      superBoundObj[key] = proto[key].bind(that);
+    } else {
+      superBoundObj[key] = proto[key];
+    }
+  })
+
+  return superBoundObj;
 }

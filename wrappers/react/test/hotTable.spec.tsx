@@ -14,9 +14,10 @@ import {
   simulateKeyboardEvent,
   simulateMouseEvent,
   mountComponentWithRef,
-  customNativeRenderer
+  customNativeRenderer,
+  CustomNativeEditor
 } from './_helpers';
-import { OBSOLETE_HOTRENDERER_WARNING } from '../src/helpers'
+import { OBSOLETE_HOTEDITOR_WARNING, OBSOLETE_HOTRENDERER_WARNING } from '../src/helpers'
 
 // register Handsontable's modules
 registerAllModules();
@@ -291,9 +292,8 @@ describe('Editor configuration using React components', () => {
                 colWidths={50}
                 init={function () {
                   mockElementDimensions(this.rootElement, 300, 300);
-                }}>
-        <EditorComponent hot-editor></EditorComponent>
-      </HotTable>
+                }}
+                editor={EditorComponent} />
     )).hotInstance;
 
     const editorElement = document.querySelector('#editorComponentContainer');
@@ -301,7 +301,7 @@ describe('Editor configuration using React components', () => {
     expect(editorElement.parentElement.parentElement).toBe(document.body);
   });
 
-  it('should use the editor component as Handsontable editor, when it\'s nested under HotTable and assigned the \'hot-editor\' attribute', async () => {
+  it('should use the editor component as Handsontable editor, when it\'s passed as component to HotTable editor prop', async () => {
     const hotInstance = mountComponentWithRef((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
@@ -312,9 +312,8 @@ describe('Editor configuration using React components', () => {
                 colWidths={50}
                 init={function () {
                   mockElementDimensions(this.rootElement, 300, 300);
-                }}>
-        <EditorComponent hot-editor></EditorComponent>
-      </HotTable>
+                }}
+                editor={EditorComponent} />
     )).hotInstance;
 
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
@@ -340,6 +339,69 @@ describe('Editor configuration using React components', () => {
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
   });
 
+  it('should use the editor component as Handsontable editor, when it\'s passed inline to HotTable editor prop', async () => {
+    const hotInstance = mountComponentWithRef((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 3)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }}
+                editor={() => <EditorComponent /> } />
+    )).hotInstance;
+
+    expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('block');
+    expect(hotInstance.getDataAtCell(0, 0)).toEqual('A1');
+
+    await act(async () => {
+      simulateMouseEvent(document.querySelector('#editorComponentContainer button'), 'click');
+    });
+
+    expect(hotInstance.getDataAtCell(0, 0)).toEqual('new-value');
+
+    await act(async () => {
+      hotInstance.getActiveEditor().close();
+    });
+
+    expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
+  });
+
+  it('should use the editor class as native Handsontable editor, when it\'s passed to HotTable hotEditor prop', async () => {
+    const hotInstance = mountComponentWithRef((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 3)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }}
+                hotEditor={CustomNativeEditor} />
+    )).hotInstance;
+
+    await act(async () => {
+      hotInstance.selectCell(0, 1);
+      simulateKeyboardEvent('keydown', 13);
+      document.activeElement.value = 'hello';
+      hotInstance.getActiveEditor().finishEditing(false);
+    });
+
+    expect(hotInstance.getDataAtCell(0, 1)).toEqual('--hello--');
+  });
+
   it('should use the correct editor inside HotTable component depends on its mount state', async () => {
     let hotTableInstanceRef = React.createRef();
 
@@ -360,9 +422,8 @@ describe('Editor configuration using React components', () => {
                     init={function () {
                       mockElementDimensions(this.rootElement, 300, 300);
                     }}
-                    ref={hotTableInstanceRef}>
-            {this.state.editor ? <EditorComponent hot-editor></EditorComponent> : null}
-          </HotTable>
+                    ref={hotTableInstanceRef}
+                    editor={this.state.editor ? EditorComponent : undefined} />
         );
       };
     }
@@ -399,7 +460,6 @@ describe('Editor configuration using React components', () => {
       const activeEditor = hotInstance.getActiveEditor();
 
       expect(activeEditor.constructor.name).toBe('CustomEditor');
-      expect(activeEditor.editorComponent.__proto__.constructor.name).toBe('EditorComponent');
 
       activeEditor.close();
     }
@@ -496,6 +556,29 @@ describe('Editor configuration using React components', () => {
 
       expect(activeRenderer.name).toBe('textRenderer');
     }
+  });
+
+  it('should issue a warning when the editor component is nested under HotTable and assigned the \'hot-editor\' attribute', async () => {
+    console.warn = jasmine.createSpy('warn');
+
+    mountComponentWithRef((
+        <HotTable licenseKey="non-commercial-and-evaluation"
+                  id="test-hot"
+                  data={createSpreadsheetData(3, 2)}
+                  width={300}
+                  height={300}
+                  rowHeights={23}
+                  colWidths={50}
+                  init={function () {
+                      mockElementDimensions(this.rootElement, 300, 300);
+                  }}>
+            {/* @ts-ignore */}
+            <EditorComponent hot-editor></EditorComponent>
+        </HotTable>
+    )).hotInstance;
+
+    expect(document.querySelector('#editorComponentContainer')).not.toBeTruthy();
+    expect(console.warn).toHaveBeenCalledWith(OBSOLETE_HOTEDITOR_WARNING);
   });
 });
 

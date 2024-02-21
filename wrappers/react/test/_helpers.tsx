@@ -1,10 +1,10 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { createRoot } from 'react-dom/client';
 import Handsontable from 'handsontable';
 import { act } from '@testing-library/react';
 import { HotTable } from '../src/hotTable';
-import { BaseEditorComponent } from '../src/baseEditorComponent';
 import { HotRendererProps } from '../src/types'
+import { useHotEditor } from "../src/hotEditor";
 
 const SPEC = {
   container: null,
@@ -35,7 +35,7 @@ export function mountComponentWithRef(Component, strictMode = true) {
   let hotTableComponent = null;
 
   const App = () => {
-    hotTableComponent = useRef(null);
+    hotTableComponent = React.useRef(null);
 
     return (
       <Component.type {...Component.props} ref={hotTableComponent}></Component.type>
@@ -49,6 +49,14 @@ export function mountComponentWithRef(Component, strictMode = true) {
   });
 
   return hotTableComponent.current;
+}
+
+export function renderComponentWithProps<P>(ComponentType: React.ComponentType<P>, props: P, strictMode = true) {
+  act(() => {
+    SPEC.root.render(
+      strictMode ? <React.StrictMode><ComponentType {...props} /></React.StrictMode> : <ComponentType {...props} />
+    );
+  });
 }
 
 export function mountComponent(Component) {
@@ -222,53 +230,74 @@ export const customNativeRenderer: Handsontable.renderers.BaseRenderer = functio
   return td;
 }
 
-export class EditorComponent extends BaseEditorComponent<{}, {value?: any}> {
-  mainElementRef: any;
-  containerStyle: any;
+interface EditorComponentProps {
+  className?: string
+  background?: string
+  tap?: (props: EditorComponentProps) => void
+}
 
-  constructor(props) {
-    super(props);
+export const EditorComponent: React.FC<EditorComponentProps> = ({ tap, ...props }) => {
+  const mainElementRef = React.useRef<HTMLDivElement>(null)
+  const containerStyle = {
+    display: 'none'
+  };
 
-    this.mainElementRef = React.createRef();
+  const valueRef = React.useRef('');
 
-    this.state = {
-      value: ''
-    };
+  const hotCustomEditorInstanceRef = useHotEditor((runSuper) => ({
+    getValue() {
+      return valueRef.current;
+    },
 
-    this.containerStyle = {
-      display: 'none'
-    };
+    setValue(value) {
+      valueRef.current = value;
+    },
+
+    prepare(row, col, prop, TD, originalValue, cellProperties): any {
+      runSuper().prepare(row, col, prop, TD, originalValue, cellProperties)
+      mainElementRef.current.style.backgroundColor = props.background;
+    },
+
+    open() {
+      mainElementRef.current.style.display = 'block';
+    },
+
+    close() {
+      mainElementRef.current.style.display = 'none';
+    }
+  }), [valueRef]);
+
+  const setNewValue = React.useCallback(() => {
+    valueRef.current = 'new-value';
+    hotCustomEditorInstanceRef.current.finishEditing();
+  }, [valueRef, mainElementRef]);
+
+  tap?.(props);
+
+  return (
+    <div style={containerStyle} ref={mainElementRef} id="editorComponentContainer" className={props.className}>
+      <button onClick={setNewValue}></button>
+    </div>
+  );
+};
+
+export class CustomNativeEditor extends Handsontable.editors.BaseEditor {
+  init() {
+    this.TEXTAREA = document.createElement('TEXTAREA');
+    this.TEXTAREA_PARENT = document.createElement('DIV');
+
+    this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
+    this.hot.rootElement.appendChild(this.TEXTAREA_PARENT);
   }
-
   getValue() {
-    return this.state.value;
+    return `--${this.TEXTAREA.value}--`;
   }
-
-  setValue(value, callback) {
-    this.setState((state, props) => {
-      return {value: value};
-    }, callback);
+  setValue(value) {
+    this.TEXTAREA.value = value;
   }
-
-  setNewValue() {
-    this.setValue('new-value', () => {
-      this.finishEditing();
-    })
-  }
-
-  open() {
-    this.mainElementRef.current.style.display = 'block';
-  }
-
-  close() {
-    this.mainElementRef.current.style.display = 'none';
-  }
-
-  render(): React.ReactElement<string> {
-    return (
-      <div style={this.containerStyle} ref={this.mainElementRef} id="editorComponentContainer">
-        <button onClick={this.setNewValue.bind(this)}></button>
-      </div>
-    );
+  open() {}
+  close() {}
+  focus() {
+    this.TEXTAREA.focus();
   }
 }
