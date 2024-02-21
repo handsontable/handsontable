@@ -3,7 +3,7 @@ import Handsontable from 'handsontable/base';
 import { SettingsMapper } from './settingsMapper';
 import { RenderersPortalManager } from './renderersPortalManager';
 import { isHotColumn } from './hotColumn';
-import { HotEditorHooks, HotTableProps } from './types';
+import { HotEditorHooks, HotTableProps, HotTableRef } from './types';
 import {
   HOT_DESTROYED_WARNING,
   AUTOSIZE_WARNING,
@@ -21,15 +21,7 @@ import { useHotTableContext } from './hotTableContext'
 import { HotColumnContextProvider } from './hotColumnContext'
 import { EditorContextProvider, makeEditorClass } from "./hotEditor";
 
-/**
- * Type of interface exposed to parent components by HotTable instance via React ref
- */
-interface HotTableRef {
-  hotElementRef: HTMLElement
-  hotInstance: Handsontable | null
-}
-
-const HotTableClass = React.forwardRef<HotTableRef, HotTableProps>((props, ref) => {
+const HotTableInner = React.forwardRef<HotTableRef, HotTableProps>((props, ref) => {
 
   /**
    * Reference to the Handsontable instance.
@@ -233,11 +225,11 @@ const HotTableClass = React.forwardRef<HotTableRef, HotTableProps>((props, ref) 
 /**
  * Prop types to be checked at runtime.
  */
-HotTableClass.propTypes = {
+HotTableInner.propTypes = {
   style: PropTypes.object,
   id: PropTypes.string,
   className: PropTypes.string
 };
 
-export default HotTableClass;
-export { HotTableClass, HotTableRef };
+export default HotTableInner;
+export { HotTableInner };

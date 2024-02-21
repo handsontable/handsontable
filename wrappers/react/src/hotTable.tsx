@@ -1,7 +1,7 @@
 import React, { ForwardRefExoticComponent, RefAttributes } from 'react';
 import * as packageJson from '../package.json';
-import { HotTableClass, HotTableRef } from './hotTableClass';
-import { HotTableProps } from './types';
+import { HotTableInner } from './hotTableInner';
+import { HotTableProps, HotTableRef } from './types';
 import { HotTableContextProvider } from './hotTableContext';
 
 interface Version {
@@ -36,9 +36,9 @@ const HotTable: HotTable = React.forwardRef<HotTableRef, HotTableProps>(({ child
 
   return (
     <HotTableContextProvider>
-      <HotTableClass id={componentId} {...props} ref={ref}>
+      <HotTableInner id={componentId} {...props} ref={ref}>
         {children}
-      </HotTableClass>
+      </HotTableInner>
     </HotTableContextProvider>
   );
 })
