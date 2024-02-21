@@ -149,4 +149,13 @@ const HotTableContextProvider: React.FC<React.PropsWithChildren> = ({ children }
   );
 };
 
-export { HotTableContext, HotTableContextProvider };
+/**
+ * Exposes the table context object to components
+ *
+ * @returns HotTableContext
+ */
+function useHotTableContext() {
+  return React.useContext(HotTableContext);
+}
+
+export { HotTableContextProvider, useHotTableContext };

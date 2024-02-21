@@ -171,3 +171,21 @@ export function superBound<T>(that: T): T {
 
   return superBoundObj;
 }
+
+/**
+ * A variant of React.useEffect hook that does not trigger on initial mount, only updates
+ *
+ * @param effect Effect function
+ * @param deps Effect dependencies
+ */
+export function useUpdateEffect(effect: React.EffectCallback, deps?: React.DependencyList): void {
+  const notInitialRender = React.useRef(false);
+
+  React.useEffect(() => {
+    if (notInitialRender.current) {
+      return effect();
+    } else {
+      notInitialRender.current = true;
+    }
+  }, deps);
+}
