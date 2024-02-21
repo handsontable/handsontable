@@ -10,6 +10,7 @@ import {
 } from './_helpers';
 import { HOT_DESTROYED_WARNING } from "../src/helpers";
 import { BaseEditorComponent } from '../src/baseEditorComponent';
+import { HotRendererProps } from '../src'
 
 describe('Subcomponent state', () => {
   it('should be possible to set the state of the renderer components passed to HotTable and HotColumn', async () => {
@@ -46,20 +47,18 @@ describe('Subcomponent state', () => {
                 autoColumnSize={false}
                 init={function () {
                   mockElementDimensions(this.rootElement, 300, 300);
-                }}>
-        <RendererComponent2 ref={function (instance) {
-          if (instance && instance.props.row === 0 && instance.props.col === 0) {
-            zeroRendererInstance = instance;
-          }
-        }} hot-renderer></RendererComponent2>
+                }}
+                renderer={(props) => <RendererComponent2 {...props} ref={function (instance) {
+                  if (instance && props.row === 0 && props.col === 0) {
+                    zeroRendererInstance = instance;
+                  }
+                }} />}>
         <HotColumn/>
-        <HotColumn>
-          <RendererComponent2 ref={function (instance) {
-            if (instance && instance.props.row === 0 && instance.props.col === 1) {
-              oneRendererInstance = instance;
-            }
-          }} hot-renderer></RendererComponent2>
-        </HotColumn>
+        <HotColumn renderer={(props) => <RendererComponent2 {...props} ref={function (instance) {
+          if (instance && props.row === 0 && props.col === 1) {
+            oneRendererInstance = instance;
+          }
+        }} />}/>
       </HotTable>
     )).hotInstance;
 
@@ -145,7 +144,7 @@ describe('Subcomponent state', () => {
 
 describe('Component lifecyle', () => {
   it('renderer components should trigger their lifecycle methods', async () => {
-    class RendererComponent2 extends React.Component<any, any, any> {
+    class RendererComponent2 extends React.Component<HotRendererProps, any, any> {
       constructor(props) {
         super(props);
 
@@ -190,20 +189,18 @@ describe('Component lifecyle', () => {
                 autoColumnSize={false}
                 init={function () {
                   mockElementDimensions(this.rootElement, 300, 300);
-                }}>
-        <RendererComponent2 ref={function (instance) {
-          if (!secondGo && instance) {
-            rendererRefs.set(`${instance.props.row}-${instance.props.col}`, instance);
-          }
-        }} hot-renderer></RendererComponent2>
+                }}
+                renderer={(props) => <RendererComponent2 {...props} ref={function (instance) {
+                  if (!secondGo && instance) {
+                    rendererRefs.set(`${props.row}-${props.col}`, instance);
+                  }
+                }} />}>
         <HotColumn/>
-        <HotColumn>
-          <RendererComponent2 ref={function (instance) {
-            if (!secondGo && instance) {
-              rendererRefs.set(`${instance.props.row}-${instance.props.col}`, instance);
-            }
-          }} hot-renderer></RendererComponent2>
-        </HotColumn>
+        <HotColumn renderer={(props) => <RendererComponent2 {...props} ref={function (instance) {
+          if (!secondGo && instance) {
+            rendererRefs.set(`${props.row}-${props.col}`, instance);
+          }
+        }} />}/>
       </HotTable>
     ), false).hotInstance;
 

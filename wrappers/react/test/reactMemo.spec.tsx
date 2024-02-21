@@ -38,9 +38,8 @@ describe('React.memo', () => {
                 autoColumnSize={false}
                 init={function () {
                   mockElementDimensions(this.rootElement, 300, 300);
-                }}>
-        <MemoizedRendererComponent2 hot-renderer/>
-      </HotTable>
+                }}
+                renderer={MemoizedRendererComponent2}/>
     )).hotInstance;
 
     await act(async () => {

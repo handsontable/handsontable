@@ -15,6 +15,12 @@ export const AUTOSIZE_WARNING = 'Your `HotTable` configuration includes `autoRow
   ' the component-based renderers`. Disable `autoRowSize` and `autoColumnSize` to prevent row and column misalignment.';
 
 /**
+ * Warning message for the `hot-renderer` obsolete renderer passing method.
+ */
+export const OBSOLETE_HOTRENDERER_WARNING = 'Providing a component-based renderer using `hot-renderer`-annotated component is no longer supported. ' +
+  'Pass your component using `renderer` prop of the `HotTable` or `HotColumn` component instead.';
+
+/**
  * Message for the warning thrown if the Handsontable instance has been destroyed.
  */
 export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this component was destroyed and cannot be' +
@@ -42,13 +48,22 @@ export function warn(...args) {
 }
 
 /**
+ * Detect if `hot-renderer` is defined, and if so, throw an incompatibility warning.
+ */
+export function displayObsoleteRenderersWarning(children: React.ReactNode): void {
+  if (getChildElementByType(children, 'hot-renderer')) {
+    warn(OBSOLETE_HOTRENDERER_WARNING);
+  }
+}
+
+/**
  * Filter out and return elements of the provided `type` from the `HotColumn` component's children.
  *
  * @param {React.ReactNode} children HotTable children array.
  * @param {String} type Either `'hot-renderer'` or `'hot-editor'`.
  * @returns {Object|null} A child (React node) or `null`, if no child of that type was found.
  */
-export function getChildElementByType(children: React.ReactNode, type: string): React.ReactElement | null {
+function getChildElementByType(children: React.ReactNode, type: 'hot-renderer' | 'hot-editor'): React.ReactElement | null {
   const childrenArray: React.ReactNode[] = React.Children.toArray(children);
   const childrenCount: number = React.Children.count(children);
   let wantedChild: React.ReactNode | null = null;
@@ -59,8 +74,8 @@ export function getChildElementByType(children: React.ReactNode, type: string): 
 
     } else {
       wantedChild = childrenArray.find((child) => {
-        return (child as React.ReactElement).props[type] !== void 0;
-      });
+      return (child as React.ReactElement).props[type] !== void 0;
+  });
     }
   }
 
@@ -137,16 +152,15 @@ export function getExtendedEditorElement(children: React.ReactNode, editorCache:
 }
 
 /**
- * Create a react component and render it to an external DOM done.
+ * Render a cell component to an external DOM node.
  *
  * @param {React.ReactElement} rElement React element to be used as a base for the component.
- * @param {Object} props Props to be passed to the cloned element.
  * @param {Document} [ownerDocument] The owner document to set the portal up into.
  * @param {String} portalKey The key to be used for the portal.
  * @param {HTMLElement} [cachedContainer] The cached container to be used for the portal.
  * @returns {{portal: React.ReactPortal, portalContainer: HTMLElement}} An object containing the portal and its container.
  */
-export function createPortal(rElement: React.ReactElement, props, ownerDocument: Document = document, portalKey: string, cachedContainer?: HTMLElement): {
+export function createPortal(rElement: React.ReactElement, ownerDocument: Document = document, portalKey: string, cachedContainer?: HTMLElement): {
   portal: React.ReactPortal,
   portalContainer: HTMLElement,
 } {
@@ -161,13 +175,8 @@ export function createPortal(rElement: React.ReactElement, props, ownerDocument:
   const portalContainer = cachedContainer ?? ownerDocument.createElement('DIV');
   bulkComponentContainer.appendChild(portalContainer);
 
-  const extendedRendererElement = React.cloneElement(rElement, {
-    key: `${props.row}-${props.col}`,
-    ...props
-  });
-
   return {
-    portal: ReactDOM.createPortal(extendedRendererElement, portalContainer, portalKey),
+    portal: ReactDOM.createPortal(rElement, portalContainer, portalKey),
     portalContainer
   };
 }

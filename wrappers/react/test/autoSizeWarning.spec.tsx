@@ -34,9 +34,8 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
                 height={300}
                 init={function () {
                   mockElementDimensions(this.rootElement, 300, 300);
-                }}>
-        <RendererComponent hot-renderer></RendererComponent>
-      </HotTable>
+                }}
+                renderer={RendererComponent}/>
     ));
 
     expect(console.warn).toHaveBeenCalledWith(AUTOSIZE_WARNING);
@@ -60,9 +59,8 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
                 autoColumnSize={true}
                 init={function () {
                   mockElementDimensions(this.rootElement, 300, 300);
-                }}>
-        <RendererComponent hot-renderer></RendererComponent>
-      </HotTable>
+                }}
+                renderer={RendererComponent}/>
     ));
 
     expect(console.warn).toHaveBeenCalledWith(AUTOSIZE_WARNING);
@@ -86,9 +84,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
                   mockElementDimensions(this.rootElement, 300, 300);
                 }}>
         <HotColumn/>
-        <HotColumn>
-          <RendererComponent hot-renderer></RendererComponent>
-        </HotColumn>
+        <HotColumn renderer={RendererComponent}/>
         <HotColumn/>
       </HotTable>
     ));
@@ -116,9 +112,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
                   mockElementDimensions(this.rootElement, 300, 300);
                 }}>
         <HotColumn/>
-        <HotColumn>
-          <RendererComponent hot-renderer></RendererComponent>
-        </HotColumn>
+        <HotColumn renderer={RendererComponent}/>
         <HotColumn/>
       </HotTable>
     ));
@@ -150,9 +144,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
                   mockElementDimensions(this.rootElement, 300, 300);
                 }}>
         <HotColumn/>
-        <HotColumn>
-          <RendererComponent hot-renderer/>
-        </HotColumn>
+        <HotColumn renderer={RendererComponent}/>
         <HotColumn/>
       </HotTable>
     ));
@@ -171,7 +163,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
                 height={300}
                 autoRowSize={true}
                 autoColumnSize={false}
-                renderer={function() {}}
+                hotRenderer={function() {}}
                 init={function () {
                   mockElementDimensions(this.rootElement, 300, 300);
                 }}>

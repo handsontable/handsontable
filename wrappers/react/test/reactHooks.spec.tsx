@@ -37,9 +37,8 @@ describe('Using hooks within HotTable renderers', () => {
                 autoColumnSize={false}
                 init={function () {
                   mockElementDimensions(this.rootElement, 300, 300);
-                }}>
-        <HookEnabledRenderer hot-renderer></HookEnabledRenderer>
-      </HotTable>
+                }}
+                renderer={HookEnabledRenderer}/>
     )).hotInstance;
 
     expect(hotInstance.getCell(0, 0).querySelectorAll('.hook-enabled-renderer-container').length).toEqual(1);

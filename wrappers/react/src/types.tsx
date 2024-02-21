@@ -18,10 +18,32 @@ export type EditorScopeIdentifier = 'global' | number;
 export type HotEditorCache = Map<Function, Map<EditorScopeIdentifier, React.Component>>;
 
 /**
+ * Interface for the props of the component-based renderers.
+ */
+export interface HotRendererProps {
+  instance: Handsontable.Core,
+  TD: HTMLTableCellElement,
+  row: number,
+  col: number,
+  prop: string | number,
+  value: any,
+  cellProperties: Handsontable.CellProperties
+}
+
+/**
+ * Helper type to expose GridSettings/ColumnSettings props with native renderers/editors separately
+ *  from component-based render prop.
+ */
+type ReplaceRenderers<T extends Pick<Handsontable.GridSettings, 'renderer'>> = Omit<T, 'renderer'> & {
+  hotRenderer?: T['renderer'],
+  renderer?: React.ComponentType<HotRendererProps>,
+}
+
+/**
  * Interface for the `prop` of the HotTable component - extending the default Handsontable settings with additional,
  * component-related properties.
  */
-export interface HotTableProps extends Handsontable.GridSettings {
+export interface HotTableProps extends ReplaceRenderers<Handsontable.GridSettings> {
   id?: string,
   className?: string,
   style?: React.CSSProperties,
@@ -41,14 +63,6 @@ export interface HotEditorProps {
 /**
  * Properties related to the HotColumn architecture.
  */
-export interface HotColumnProps extends Handsontable.ColumnSettings {
-  _componentRendererColumns?: Map<number | string, boolean>;
-  _emitColumnSettings?: (columnSettings: Handsontable.ColumnSettings, columnIndex: number) => void;
-  _columnIndex?: number,
-  _getChildElementByType?: (children: React.ReactNode, type: string) => React.ReactElement;
-  _getRendererWrapper?: (rendererNode: React.ReactElement) => typeof Handsontable.renderers.BaseRenderer;
-  _getEditorClass?: (editorElement: React.ReactElement, editorColumnScope: EditorScopeIdentifier) => typeof Handsontable.editors.BaseEditor;
-  _getEditorCache?: () => HotEditorCache;
-  _getOwnerDocument?: () => Document;
+export interface HotColumnProps extends ReplaceRenderers<Handsontable.ColumnSettings> {
   children?: React.ReactNode;
 }
