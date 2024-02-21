@@ -183,7 +183,7 @@ describe('MergeCells Selection', () => {
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
   });
 
-  it('should keep headers\' selection after toggleMergeOnSelection call', () => {
+  it('should keep headers\' selection after merging', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
       colHeaders: true,
@@ -200,11 +200,11 @@ describe('MergeCells Selection', () => {
     expect(`
     |   ║ * : * : * :   :   |
     |===:===:===:===:===:===|
-    | - ║ A :   :   :   :   |
-    | - ║   :   :   :   :   |
-    | - ║   :   :   :   :   |
-    | - ║   :   :   :   :   |
-    | - ║   :   :   :   :   |
+    | - ║ A         :   :   |
+    | - ║           :   :   |
+    | - ║           :   :   |
+    | - ║           :   :   |
+    | - ║           :   :   |
     `).toBeMatchToSelectionPattern();
   });
 
@@ -264,8 +264,8 @@ describe('MergeCells Selection', () => {
       |   ║   : - : - :   :   |
       |===:===:===:===:===:===|
       |   ║   :   :   :   :   |
-      | - ║   : # :   :   :   |
-      | - ║   :   :   :   :   |
+      | - ║   : #     :   :   |
+      | - ║   :       :   :   |
       |   ║   :   :   :   :   |
       |   ║   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
@@ -277,8 +277,8 @@ describe('MergeCells Selection', () => {
       |   ║   : - : - :   :   |
       |===:===:===:===:===:===|
       |   ║   :   :   :   :   |
-      | - ║   : # :   :   :   |
-      | - ║   :   :   :   :   |
+      | - ║   : #     :   :   |
+      | - ║   :       :   :   |
       |   ║   :   :   :   :   |
       |   ║   :   :   :   :   |
     `).toBeMatchToSelectionPattern();

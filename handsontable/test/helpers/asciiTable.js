@@ -115,6 +115,17 @@ export function generateASCIITable(context) {
           headerRootSymbol = symbol;
         }
 
+      } else if (
+        cellElement.nodeName === 'TD' &&
+        (cellElement.colSpan > 1 || cellElement.style.display === 'none' &&
+        (!nextCellElement || nextCellElement.style.display === 'none'))
+      ) {
+        separatorSymbol = ' ';
+
+        if (cellElement.colSpan > 1) {
+          headerRootSymbol = symbol;
+        }
+
       } else if (c === leftHeadersCount - 1) {
         separatorSymbol = ROW_HEADER_SEPARATOR;
 

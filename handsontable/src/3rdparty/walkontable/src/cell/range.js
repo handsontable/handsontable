@@ -356,9 +356,11 @@ class CellRange {
    * Expand your range with another range (`expandingRange`).
    *
    * @param {CellRange} expandingRange A new range.
+   * @param {boolean} [changeDirection=true] If `true`, the direction of your range is changed to the direction
+   * of the `expandingRange` range.
    * @returns {boolean}
    */
-  expandByRange(expandingRange) {
+  expandByRange(expandingRange, changeDirection = true) {
     if (this.includesRange(expandingRange) || !this.overlaps(expandingRange)) {
       return false;
     }
@@ -383,12 +385,14 @@ class CellRange {
 
     this.setDirection(initialDirection);
 
-    if (this.highlight.row === this.getOuterBottomRightCorner().row && this.getVerticalDirection() === 'N-S') {
-      this.flipDirectionVertically();
-    }
+    if (changeDirection) {
+      if (this.highlight.row === this.getOuterBottomRightCorner().row && this.getVerticalDirection() === 'N-S') {
+        this.flipDirectionVertically();
+      }
 
-    if (this.highlight.col === this.getOuterTopRightCorner().col && this.getHorizontalDirection() === 'W-E') {
-      this.flipDirectionHorizontally();
+      if (this.highlight.col === this.getOuterTopRightCorner().col && this.getHorizontalDirection() === 'W-E') {
+        this.flipDirectionHorizontally();
+      }
     }
 
     return true;

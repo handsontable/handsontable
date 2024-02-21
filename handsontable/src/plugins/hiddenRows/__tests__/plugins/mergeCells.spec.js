@@ -386,7 +386,7 @@ describe('HiddenRows', () => {
       deselectCell();
       selectCell(4, 0);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 4,0 to: 1,0']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 4,0']);
       expect(`
         | - ║ # |
         | - ║   |
@@ -449,7 +449,7 @@ describe('HiddenRows', () => {
       |   ║   |
       |   ║   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 0,0']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 0,0 to: 1,0']);
       expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-0')).toBeFalse();
@@ -486,7 +486,7 @@ describe('HiddenRows', () => {
       | A |
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange([
-        'highlight: 1,0 from: 1,0 to: 0,0',
+        'highlight: 1,0 from: 0,0 to: 1,0',
         'highlight: 4,0 from: 4,0 to: 4,0',
       ]);
       expect($mergeArea.hasClass('area')).toBeTrue();
@@ -1246,8 +1246,8 @@ describe('HiddenRows', () => {
       |   ║   : - : - : - :   |
       |===:===:===:===:===:===|
       |   ║   :   :   :   :   |
-      | - ║   : # :   :   :   |
-      | - ║   :   :   :   :   |
+      | - ║   : #         :   |
+      | - ║   :           :   |
       |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,1 from: 1,1 to: 3,3']);

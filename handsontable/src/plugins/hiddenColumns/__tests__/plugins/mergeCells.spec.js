@@ -299,7 +299,7 @@ describe('HiddenColumns', () => {
 
       // Second and third columns are not displayed (CSS - display: none).
       expect(`
-      | # :   :   |
+      | #         |
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,4']);
       expect($mergeArea.hasClass('area')).toBeFalse();
@@ -319,7 +319,7 @@ describe('HiddenColumns', () => {
 
       // Second and third columns are not displayed (CSS - display: none).
       expect(`
-      | # :   :   |
+      | #         |
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,4']);
       expect($mergeArea.hasClass('area')).toBeFalse();
@@ -339,7 +339,7 @@ describe('HiddenColumns', () => {
 
       // Second and third columns are not displayed (CSS - display: none).
       expect(`
-      | # :   :   |
+      | #         |
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,4']);
       expect($mergeArea.hasClass('area')).toBeFalse();
@@ -358,9 +358,9 @@ describe('HiddenColumns', () => {
       selectCell(0, 4);
 
       expect(`
-      | # :   :   |
+      | #         |
       `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,4 to: 0,1']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,4']);
       expect($mergeArea.hasClass('area')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
@@ -413,7 +413,7 @@ describe('HiddenColumns', () => {
       expect(`
       | # :   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,0']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,0 to: 0,1']);
       expect($mergeArea.hasClass('area')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
@@ -448,7 +448,7 @@ describe('HiddenColumns', () => {
       | 0 :   :   : A |
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange([
-        'highlight: 0,1 from: 0,1 to: 0,0',
+        'highlight: 0,1 from: 0,0 to: 0,1',
         'highlight: 0,4 from: 0,4 to: 0,4',
       ]);
       expect($mergeArea.hasClass('area')).toBeTrue();
@@ -1208,9 +1208,9 @@ describe('HiddenColumns', () => {
       |   ║   : - : - :   |
       |===:===:===:===:===|
       |   ║   :   :   :   |
-      | - ║   : # :   :   |
-      | - ║   :   :   :   |
-      | - ║   :   :   :   |
+      | - ║   : #     :   |
+      | - ║   :       :   |
+      | - ║   :       :   |
       |   ║   :   :   :   |
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,1 to: 3,3']);
@@ -1253,7 +1253,7 @@ describe('HiddenColumns', () => {
       |   ║ - : - : - :   |
       |===:===:===:===:===|
       |   ║   :   :   :   |
-      | - ║ A : 0 :   :   |
+      | - ║ A : 0     :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
@@ -1298,7 +1298,7 @@ describe('HiddenColumns', () => {
       |   ║   : - : - :   |
       |===:===:===:===:===|
       | - ║   : A : 0 :   |
-      | - ║   : 0 :   :   |
+      | - ║   : 0     :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
@@ -1344,7 +1344,7 @@ describe('HiddenColumns', () => {
       |   ║   : - : - : - |
       |===:===:===:===:===|
       |   ║   :   :   :   |
-      | - ║   : 0 :   : A |
+      | - ║   : 0     : A |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
@@ -1390,7 +1390,7 @@ describe('HiddenColumns', () => {
       |   ║   : - : - :   |
       |===:===:===:===:===|
       |   ║   :   :   :   |
-      | - ║   : 0 :   :   |
+      | - ║   : 0     :   |
       | - ║   : A : 0 :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
@@ -1436,7 +1436,7 @@ describe('HiddenColumns', () => {
       |   ║   : - : - : - |
       |===:===:===:===:===|
       |   ║   :   :   :   |
-      | - ║   : A :   : 0 |
+      | - ║   : A     : 0 |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
@@ -1482,7 +1482,7 @@ describe('HiddenColumns', () => {
       |   ║   : - : - :   |
       |===:===:===:===:===|
       |   ║   :   :   :   |
-      | - ║   : A :   :   |
+      | - ║   : A     :   |
       | - ║   : 0 : 0 :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
@@ -1527,7 +1527,7 @@ describe('HiddenColumns', () => {
       |   ║ - : - : - :   |
       |===:===:===:===:===|
       |   ║   :   :   :   |
-      | - ║ 0 : A :   :   |
+      | - ║ 0 : A     :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
@@ -1547,7 +1547,7 @@ describe('HiddenColumns', () => {
     });
 
     it('should select cells properly when there is a merged area within the selection' +
-      '(selecting from the merged cell to non-merged cell; from the bottom to the top', () => {
+      '(selecting from the merged cell to non-merged cell; from the bottom to the top)', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1572,7 +1572,7 @@ describe('HiddenColumns', () => {
       |   ║   : - : - :   |
       |===:===:===:===:===|
       | - ║   : 0 : 0 :   |
-      | - ║   : A :   :   |
+      | - ║   : A     :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
@@ -1612,7 +1612,7 @@ describe('HiddenColumns', () => {
       |   ║   : * : * :   |
       |===:===:===:===:===|
       | - ║   : A : 0 :   |
-      | - ║   : 0 :   :   |
+      | - ║   : 0     :   |
       | - ║   : 0 : 0 :   |
       | - ║   : 0 : 0 :   |
       | - ║   : 0 : 0 :   |
@@ -1635,7 +1635,7 @@ describe('HiddenColumns', () => {
       |   ║   : * : * :   |
       |===:===:===:===:===|
       | - ║   : A : 0 :   |
-      | - ║   : 0 :   :   |
+      | - ║   : 0     :   |
       | - ║   : 0 : 0 :   |
       | - ║   : 0 : 0 :   |
       | - ║   : 0 : 0 :   |
@@ -1676,7 +1676,7 @@ describe('HiddenColumns', () => {
       |   ║   : - : - :   |
       |===:===:===:===:===|
       | - ║   : C : 2 :   |
-      | - ║   : 2 :   :   |
+      | - ║   : 2     :   |
       | - ║   : 2 : 2 :   |
       | - ║   : 2 : 2 :   |
       | - ║   : 2 : 2 :   |
@@ -1732,7 +1732,7 @@ describe('HiddenColumns', () => {
       |   ║   : * : * :   |
       |===:===:===:===:===|
       | - ║   : A : 0 :   |
-      | - ║   : 1 :   :   |
+      | - ║   : 1     :   |
       | - ║   : 0 : 0 :   |
       | - ║   : 0 : 0 :   |
       | - ║   : 0 : 0 :   |

@@ -787,7 +787,7 @@ export class MergeCells extends BasePlugin {
     for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
       const cellInfo = this.mergedCellsCollection.mergedCells[i];
 
-      selectedRange.expandByRange(cellInfo.getRange());
+      selectedRange.expandByRange(cellInfo.getRange(), false);
     }
 
     const mergedParent = this.mergedCellsCollection.get(highlight.row, highlight.col);
