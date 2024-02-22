@@ -51,6 +51,7 @@ To jump straight into the sample code, open the demo app at CodeSandbox:
 - [React demo](https://codesandbox.io/s/handsontable-react-data-grid-hello-world-app-14-0-0-xr7mj2)
 - [Angular demo](https://codesandbox.io/s/handsontable-angular-data-grid-hello-world-app-14-0-0-c54xw9)
 - [Vue 2 demo](https://codesandbox.io/s/handsontable-vue-data-grid-hello-world-app-14-0-0-zm9nz6)
+- [Vue 3 demo](https://codesandbox.io/p/sandbox/handsontable-data-grid-v14-1-0-vue-3-demo-ypkddz)
 - [TypeScript demo](https://codesandbox.io/s/handsontable-typescript-data-grid-hello-world-app-14-0-0-3f4lss)
 :::
 
