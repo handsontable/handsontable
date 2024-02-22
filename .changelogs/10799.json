@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Rewrite HotTable & HotColumn into functional components",
+  "type": "changed",
+  "issueOrPR": 10799,
+  "breaking": true,
+  "framework": "react"
+}

@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import Handsontable from 'handsontable';
 import { act } from '@testing-library/react';
 import { HotTable } from '../src/hotTable';
-import { HotRendererProps } from '../src/types'
+import { HotRendererProps, HotTableRef, HotTableProps } from '../src/types'
 import { useHotEditor } from "../src/hotEditor";
 
 const SPEC = {
@@ -51,12 +51,16 @@ export function mountComponentWithRef(Component, strictMode = true) {
   return hotTableComponent.current;
 }
 
-export function renderComponentWithProps<P>(ComponentType: React.ComponentType<P>, props: P, strictMode = true) {
+export function renderHotTableWithProps(props: HotTableProps, strictMode = true, hotTableRef: React.RefObject<HotTableRef> = React.createRef()): React.RefObject<HotTableRef> {
   act(() => {
     SPEC.root.render(
-      strictMode ? <React.StrictMode><ComponentType {...props} /></React.StrictMode> : <ComponentType {...props} />
+      strictMode
+          ? <React.StrictMode><HotTable {...props} ref={hotTableRef} /></React.StrictMode>
+          : <HotTable {...props} ref={hotTableRef} />
     );
   });
+
+  return hotTableRef;
 }
 
 export function mountComponent(Component) {
@@ -189,31 +193,6 @@ export function simulateMouseEvent(element, type) {
 
   element.dispatchEvent(event);
 }
-
-class IndividualPropsWrapper extends React.Component<{ref?: string, id?: string}, {hotSettings?: object}> {
-  hotTable: typeof HotTable;
-  state = {};
-
-  private setHotElementRef(component: typeof HotTable): void {
-    this.hotTable = component;
-  }
-
-  render(): React.ReactElement {
-    return (
-      <div>
-        <HotTable
-          licenseKey="non-commercial-and-evaluation"
-          ref={this.setHotElementRef.bind(this)}
-          id="hot" {...this.state.hotSettings}
-          autoRowSize={false}
-          autoColumnSize={false}
-        />
-      </div>
-    );
-  }
-}
-
-export { IndividualPropsWrapper };
 
 export const RendererComponent: React.FC<HotRendererProps & { tap?: (props: HotRendererProps) => void }> = ({ tap, ...props }) => {
   tap?.(props);

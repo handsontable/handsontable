@@ -52,3 +52,19 @@ export interface HotTableProps extends ReplaceRenderersEditors<Handsontable.Grid
 export interface HotColumnProps extends ReplaceRenderersEditors<Handsontable.ColumnSettings> {
   children?: React.ReactNode;
 }
+
+
+/**
+ * Type of interface exposed to parent components by HotTable instance via React ref
+ */
+export interface HotTableRef {
+  /**
+   * Reference to the main Handsontable DOM element.
+   */
+  hotElementRef: HTMLElement
+
+  /**
+   * Reference to the Handsontable instance.
+   */
+  hotInstance: Handsontable | null
+}

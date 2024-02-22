@@ -6,7 +6,7 @@ import {
   createSpreadsheetData,
   mockElementDimensions,
   mountComponentWithRef,
-  renderComponentWithProps,
+  renderHotTableWithProps,
   sleep,
 } from './_helpers';
 import { HOT_DESTROYED_WARNING } from "../src/helpers";
@@ -14,33 +14,24 @@ import { HotTableProps, HotRendererProps } from '../src'
 
 describe('Component lifecyle', () => {
   it('renderer components should trigger their lifecycle methods', async () => {
-    class RendererComponent2 extends React.Component<HotRendererProps, any, any> {
-      constructor(props) {
-        super(props);
-
-        rendererCounters.set(`${this.props.row}-${this.props.col}`, {
-          didMount: 0,
+    function RendererComponent2(props: HotRendererProps) {
+      React.useEffect(() => {
+        rendererCounters.set(`${props.row}-${props.col}`, {
+          didMount: 1,
           willUnmount: 0
         });
-      }
 
-      componentDidMount(): void {
-        const counters = rendererCounters.get(`${this.props.row}-${this.props.col}`);
-        counters.didMount++;
-      }
+        return () => {
+          const counters = rendererCounters.get(`${props.row}-${props.col}`);
+          counters.willUnmount++;
+        };
+      }, []);
 
-      componentWillUnmount(): void {
-        const counters = rendererCounters.get(`${this.props.row}-${this.props.col}`);
-        counters.willUnmount++;
-      }
-
-      render(): React.ReactElement<string> {
-        return (
-          <>
-            test
-          </>
-        );
-      }
+      return (
+        <>
+          test
+        </>
+      );
     }
 
     let secondGo = false;
@@ -129,13 +120,13 @@ describe('Component lifecyle', () => {
       editor: (props) => <EditorComponent2 {...props} key={Math.random()} />
     };
 
-    renderComponentWithProps(HotTable, props, false);
+    renderHotTableWithProps(props, false);
 
     expect(editorCounters.didMount).toEqual(1);
     expect(editorCounters.willUnmount).toEqual(0);
 
     // rerender
-    renderComponentWithProps(HotTable, { ...props, editor: undefined }, false);
+    renderHotTableWithProps({ ...props, editor: undefined }, false);
 
     expect(editorCounters.didMount).toEqual(1);
     expect(editorCounters.willUnmount).toEqual(1);

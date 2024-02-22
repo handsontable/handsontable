@@ -2,7 +2,7 @@ import Handsontable from 'handsontable/base';
 import React from 'react';
 import { ScopeIdentifier, HotRendererProps } from './types'
 import { createPortal } from './helpers'
-import { RenderersPortalManager } from './renderersPortalManager'
+import { RenderersPortalManagerRef } from './renderersPortalManager'
 
 export interface HotTableContextImpl {
   /**
@@ -43,11 +43,11 @@ export interface HotTableContextImpl {
   readonly clearRenderedCellCache: () => void;
 
   /**
-   * Set the renderers portal manager ref.
+   * Set the renderers portal manager dispatch function.
    *
-   * @param {RenderersPortalManager} pmComponent The PortalManager component.
+   * @param {RenderersPortalManagerRef} pm The PortalManager dispatch function.
    */
-  readonly setRenderersPortalManagerRef: (pmComponent: RenderersPortalManager) => void;
+  readonly setRenderersPortalManagerRef: (pm: RenderersPortalManagerRef) => void;
 
   /**
    * Puts cell portals into portal manager and purges portals cache.
@@ -121,16 +121,14 @@ const HotTableContextProvider: React.FC<React.PropsWithChildren> = ({ children }
     };
   }, []);
 
-  const renderersPortalManager = React.useRef<RenderersPortalManager | null>(null);
+  const renderersPortalManager = React.useRef<RenderersPortalManagerRef>(() => undefined);
 
-  const setRenderersPortalManagerRef = React.useCallback((pmComponent: RenderersPortalManager) => {
+  const setRenderersPortalManagerRef = React.useCallback((pmComponent: RenderersPortalManagerRef) => {
     renderersPortalManager.current = pmComponent;
   }, []);
 
   const pushCellPortalsIntoPortalManager = React.useCallback(() => {
-    renderersPortalManager.current!.setState({
-      portals: [...portalCache.current.values()]
-    });
+    renderersPortalManager.current!([...portalCache.current.values()]);
   }, []);
 
   const contextImpl: HotTableContextImpl = React.useMemo(() => ({
@@ -142,11 +140,20 @@ const HotTableContextProvider: React.FC<React.PropsWithChildren> = ({ children }
     clearRenderedCellCache,
     setRenderersPortalManagerRef,
     pushCellPortalsIntoPortalManager
-  }), [setHotColumnSettings, getRendererWrapper, clearRenderedCellCache, setRenderersPortalManagerRef]);
+  }), [setHotColumnSettings, getRendererWrapper, clearRenderedCellCache, setRenderersPortalManagerRef, pushCellPortalsIntoPortalManager]);
 
   return (
     <HotTableContext.Provider value={contextImpl}>{children}</HotTableContext.Provider>
   );
 };
 
-export { HotTableContext, HotTableContextProvider };
+/**
+ * Exposes the table context object to components
+ *
+ * @returns HotTableContext
+ */
+function useHotTableContext() {
+  return React.useContext(HotTableContext);
+}
+
+export { HotTableContextProvider, useHotTableContext };

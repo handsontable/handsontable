@@ -6,7 +6,6 @@ import {
 } from '../src/hotTable';
 import {
   createSpreadsheetData,
-  IndividualPropsWrapper,
   mockElementDimensions,
   RendererComponent,
   EditorComponent,
@@ -15,9 +14,11 @@ import {
   simulateMouseEvent,
   mountComponentWithRef,
   customNativeRenderer,
-  CustomNativeEditor
+  CustomNativeEditor,
+  renderHotTableWithProps
 } from './_helpers';
 import { OBSOLETE_HOTEDITOR_WARNING, OBSOLETE_HOTRENDERER_WARNING } from '../src/helpers'
+import { HotTableProps } from '../src/types'
 
 // register Handsontable's modules
 registerAllModules();
@@ -59,13 +60,17 @@ describe('Handsontable initialization', () => {
 
 describe('Updating the Handsontable settings', () => {
   it('should call the updateSettings method of Handsontable, when the component properties get updated', async () => {
-    const componentInstance = mountComponentWithRef((
-      <IndividualPropsWrapper/>
-    ));
+    const hotSettings: HotTableProps = {
+      licenseKey: "non-commercial-and-evaluation",
+      id: "hot",
+      autoRowSize: false,
+      autoColumnSize: false,
+    };
 
-    const hotInstance = componentInstance.hotTable.hotInstance;
+    const hotTableRef = renderHotTableWithProps(hotSettings, false);
+    const hotInstance = hotTableRef.current.hotInstance;
+
     let updateSettingsCount = 0;
-
 
     hotInstance.addHook('afterUpdateSettings', () => {
       updateSettingsCount++;
@@ -73,25 +78,27 @@ describe('Updating the Handsontable settings', () => {
 
     await sleep(300);
 
-    await act(async () => {
-      componentInstance.setState({
-        hotSettings: {
-          data: [[2]],
-          contextMenu: true,
-          readOnly: true
-        }
-      });
+    act(() => {
+      hotSettings.data = [[2]];
+      hotSettings.contextMenu = true;
+      hotSettings.readOnly = true;
+
+      renderHotTableWithProps(hotSettings, false, hotTableRef);
     });
 
     expect(updateSettingsCount).toEqual(1);
   });
 
   it('should update the Handsontable options, when the component properties get updated', async () => {
-    const componentInstance = mountComponentWithRef((
-      <IndividualPropsWrapper/>
-    ));
+    const hotSettings: HotTableProps = {
+      licenseKey: "non-commercial-and-evaluation",
+      id: "hot",
+      autoRowSize: false,
+      autoColumnSize: false,
+    };
 
-    const hotInstance = componentInstance.hotTable.hotInstance;
+    const hotTableRef = renderHotTableWithProps(hotSettings, false);
+    const hotInstance = hotTableRef.current.hotInstance;
 
     expect(hotInstance.getSettings().contextMenu).toEqual(void 0);
     expect(hotInstance.getSettings().readOnly).toEqual(false);
@@ -99,14 +106,12 @@ describe('Updating the Handsontable settings', () => {
 
     await sleep(300);
 
-    await act(async () => {
-      componentInstance.setState({
-        hotSettings: {
-          data: [[2]],
-          contextMenu: true,
-          readOnly: true
-        }
-      });
+    act(() => {
+      hotSettings.data = [[2]];
+      hotSettings.contextMenu = true;
+      hotSettings.readOnly = true;
+
+      renderHotTableWithProps(hotSettings, false, hotTableRef);
     });
 
     expect(hotInstance.getSettings().contextMenu).toBe(true);
@@ -403,36 +408,24 @@ describe('Editor configuration using React components', () => {
   });
 
   it('should use the correct editor inside HotTable component depends on its mount state', async () => {
-    let hotTableInstanceRef = React.createRef();
+    const hotTableInstanceRef = React.createRef();
 
-    class WrapperComponent extends React.Component<any, any> {
-      state = {
-        editor: false,
-      }
+    const hotSettings: HotTableProps = {
+      licenseKey: "non-commercial-and-evaluation",
+      id: "test-hot",
+      data: createSpreadsheetData(3, 3),
+      width: 300,
+      height: 300,
+      rowHeights: 23,
+      colWidths: 50,
+      init: function () {
+        mockElementDimensions(this.rootElement, 300, 300);
+      },
+    };
 
-      render() {
-        return (
-          <HotTable licenseKey="non-commercial-and-evaluation"
-                    id="test-hot"
-                    data={createSpreadsheetData(3, 3)}
-                    width={300}
-                    height={300}
-                    rowHeights={23}
-                    colWidths={50}
-                    init={function () {
-                      mockElementDimensions(this.rootElement, 300, 300);
-                    }}
-                    ref={hotTableInstanceRef}
-                    editor={this.state.editor ? EditorComponent : undefined} />
-        );
-      };
-    }
+    renderHotTableWithProps(hotSettings, false, hotTableInstanceRef);
 
-    const wrapperComponentInstance = mountComponentWithRef((
-      <WrapperComponent/>
-    ));
-
-    let hotInstance = (hotTableInstanceRef.current as any).hotInstance;
+    const hotInstance = hotTableInstanceRef.current.hotInstance;
 
     await act(async() => {
       hotInstance.selectCell(0, 0);
@@ -446,8 +439,9 @@ describe('Editor configuration using React components', () => {
       activeEditor.close();
     }
 
-    await act(async() => {
-      wrapperComponentInstance.setState({ editor: true });
+    act(() => {
+      hotSettings.editor = EditorComponent;
+      renderHotTableWithProps(hotSettings, false, hotTableInstanceRef);
     });
 
     await sleep(100);
@@ -464,8 +458,9 @@ describe('Editor configuration using React components', () => {
       activeEditor.close();
     }
 
-    await act(async() => {
-      wrapperComponentInstance.setState({ editor: false });
+    act(() => {
+      hotSettings.editor = undefined;
+      renderHotTableWithProps(hotSettings, false, hotTableInstanceRef);
     });
 
     await sleep(100);
@@ -484,36 +479,23 @@ describe('Editor configuration using React components', () => {
   });
 
   it('should use the correct renderer inside HotTable component depends on its mount state', async () => {
-    let hotTableInstanceRef = React.createRef();
+    const hotTableInstanceRef = React.createRef();
 
-    class WrapperComponent extends React.Component<any, any> {
-      state = {
-        renderer: false,
-      }
+    const hotSettings: HotTableProps = {
+      licenseKey: "non-commercial-and-evaluation",
+      id: "test-hot",
+      width: 300,
+      height: 300,
+      rowHeights: 23,
+      colWidths: 50,
+      init: function () {
+        mockElementDimensions(this.rootElement, 300, 300);
+      },
+    };
 
-      render() {
-        return (
-          <HotTable licenseKey="non-commercial-and-evaluation"
-                    id="test-hot"
-                    data={createSpreadsheetData(3, 3)}
-                    width={300}
-                    height={300}
-                    rowHeights={23}
-                    colWidths={50}
-                    init={function () {
-                      mockElementDimensions(this.rootElement, 300, 300);
-                    }}
-                    renderer={this.state.renderer ? RendererComponent : null}
-                    ref={hotTableInstanceRef} />
-        );
-      };
-    }
+    renderHotTableWithProps(hotSettings, false, hotTableInstanceRef);
 
-    const wrapperComponentInstance = mountComponentWithRef((
-      <WrapperComponent/>
-    ));
-
-    let hotInstance = (hotTableInstanceRef.current as any).hotInstance;
+    const hotInstance = hotTableInstanceRef.current.hotInstance;
 
     await act(async() => {
       hotInstance.selectCell(0, 0);
@@ -525,8 +507,9 @@ describe('Editor configuration using React components', () => {
       expect(activeRenderer.name).toBe('textRenderer');
     }
 
-    await act(async() => {
-      wrapperComponentInstance.setState({ renderer: true });
+    act(() => {
+      hotSettings.renderer = RendererComponent;
+      renderHotTableWithProps(hotSettings, false, hotTableInstanceRef);
     });
 
     await sleep(100);
@@ -542,7 +525,8 @@ describe('Editor configuration using React components', () => {
     }
 
     await act(async() => {
-      wrapperComponentInstance.setState({ renderer: false });
+      hotSettings.renderer = undefined;
+      renderHotTableWithProps(hotSettings, false, hotTableInstanceRef);
     });
 
     await sleep(100);
