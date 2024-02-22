@@ -23,12 +23,6 @@ Conditional formatting can be used to set the font, color, typeface, etc., for c
 
 ## Example of conditional formatting
 
-<style>
-.make-me-red {
-  color: #FF5A12;
-}
-</style>
-
 This demo shows how to use the cell type renderer feature to make some conditional formatting:
 
 1. The first row is read-only and formatted as bold green text.
@@ -38,7 +32,13 @@ This demo shows how to use the cell type renderer feature to make some condition
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --css 1 --js 2
+
+```css
+.make-me-red {
+  color: #FF5A12;
+}
+```
 
 ```js
 import Handsontable from 'handsontable';
@@ -124,7 +124,13 @@ const hot = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --css 1 --js 2
+
+```css
+.make-me-red {
+  color: #FF5A12;
+}
+```
 
 ```jsx
 import { HotTable } from '@handsontable/react';
