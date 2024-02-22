@@ -12,7 +12,8 @@ import {
   isCSR,
   warn,
   displayObsoleteRenderersEditorsWarning,
-  useUpdateEffect
+  useUpdateEffect,
+  displayNonHotColumnChildWarning
 } from './helpers';
 import PropTypes from 'prop-types';
 import { getRenderer } from 'handsontable/renderers/registry';
@@ -154,7 +155,10 @@ const HotTableInner = React.forwardRef<HotTableRef, HotTableProps>((props, ref) 
     __hotInstance.current.init();
 
     displayAutoSizeWarning(__hotInstance.current);
-    displayObsoleteRenderersEditorsWarning(props.children);
+
+    if (!displayObsoleteRenderersEditorsWarning(props.children)) {
+      displayNonHotColumnChildWarning(props.children);
+    }
 
     /**
      * Destroy the Handsontable instance when the parent component unmounts.

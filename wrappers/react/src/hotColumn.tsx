@@ -2,6 +2,7 @@ import React from 'react';
 import { HotTableProps, HotColumnProps, HotEditorHooks } from './types';
 import {
   createEditorPortal,
+  displayChildrenWarning,
   displayObsoleteRenderersEditorsWarning
 } from './helpers';
 import { SettingsMapper } from './settingsMapper';
@@ -71,7 +72,10 @@ const HotColumn: React.FC<HotColumnProps> = (props) => {
 
     const columnSettings = createColumnSettings();
     emitColumnSettings(columnSettings, columnIndex);
-    displayObsoleteRenderersEditorsWarning(props.children);
+
+    if (!displayObsoleteRenderersEditorsWarning(props.children)) {
+      displayChildrenWarning(props.children);
+    }
   });
 
   const editorPortal = createEditorPortal(getOwnerDocument(), props.editor);

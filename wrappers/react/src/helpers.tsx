@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTableProps } from './types';
+import { isHotColumn } from './hotColumn'
 
 let bulkComponentContainer = null;
 
@@ -21,6 +22,18 @@ export const OBSOLETE_HOTRENDERER_WARNING = 'Providing a component-based rendere
  */
 export const OBSOLETE_HOTEDITOR_WARNING = 'Providing a component-based editor using `hot-editor`-annotated component is no longer supported. ' +
   'Pass your component using `editor` prop of the `HotTable` or `HotColumn` component instead.';
+
+/**
+ * Warning message for the unexpected children of HotTable component.
+ */
+export const UNEXPECTED_HOTTABLE_CHILDREN_WARNING = 'Unexpected children nodes found in HotTable component. ' +
+    'Only HotColumn components are allowed.';
+
+/**
+ * Warning message for the unexpected children of HotColumn component.
+ */
+export const UNEXPECTED_HOTCOLUMN_CHILDREN_WARNING = 'Unexpected children nodes found in HotColumn component. ' +
+    'HotColumn components do not support any children.';
 
 /**
  * Message for the warning thrown if the Handsontable instance has been destroyed.
@@ -46,14 +59,52 @@ export function warn(...args) {
 
 /**
  * Detect if `hot-renderer` or `hot-editor` is defined, and if so, throw an incompatibility warning.
+ *
+ * @returns {boolean} 'true' if the warning was issued
  */
-export function displayObsoleteRenderersEditorsWarning(children: React.ReactNode): void {
+export function displayObsoleteRenderersEditorsWarning(children: React.ReactNode): boolean {
   if (hasChildElementOfType(children, 'hot-renderer')) {
     warn(OBSOLETE_HOTRENDERER_WARNING);
+    return true;
   }
   if (hasChildElementOfType(children, 'hot-editor')) {
     warn(OBSOLETE_HOTEDITOR_WARNING);
+    return true;
   }
+
+  return false
+}
+
+/**
+ * Detect if non-HotColumn children is defined, and if so, throw an incompatibility warning.
+ *
+ * @returns {boolean} 'true' if the warning was issued
+ */
+export function displayNonHotColumnChildWarning(children: React.ReactNode): boolean {
+  const childrenArray: React.ReactNode[] = React.Children.toArray(children);
+
+  if (childrenArray.some((child) => !isHotColumn(child))) {
+    warn(UNEXPECTED_HOTTABLE_CHILDREN_WARNING);
+    return true;
+  }
+
+  return false
+}
+
+/**
+ * Detect if children is defined, and if so, throw an incompatibility warning.
+ *
+ * @returns {boolean} 'true' if the warning was issued
+ */
+export function displayChildrenWarning(children: React.ReactNode): boolean {
+  const childrenArray: React.ReactNode[] = React.Children.toArray(children);
+
+  if (childrenArray.length) {
+    warn(UNEXPECTED_HOTCOLUMN_CHILDREN_WARNING);
+    return true;
+  }
+
+  return false
 }
 
 /**

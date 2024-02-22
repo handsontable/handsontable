@@ -1,9 +1,7 @@
 import React from 'react';
 import { act } from '@testing-library/react';
 import { registerAllModules } from 'handsontable/registry';
-import {
-  HotTable
-} from '../src/hotTable';
+import { HotTable } from '../src/hotTable';
 import {
   createSpreadsheetData,
   mockElementDimensions,
@@ -17,8 +15,13 @@ import {
   CustomNativeEditor,
   renderHotTableWithProps
 } from './_helpers';
-import { OBSOLETE_HOTEDITOR_WARNING, OBSOLETE_HOTRENDERER_WARNING } from '../src/helpers'
+import {
+  OBSOLETE_HOTEDITOR_WARNING,
+  OBSOLETE_HOTRENDERER_WARNING,
+  UNEXPECTED_HOTTABLE_CHILDREN_WARNING
+} from '../src/helpers'
 import { HotTableProps } from '../src/types'
+import { HotColumn } from '../src/hotColumn'
 
 // register Handsontable's modules
 registerAllModules();
@@ -559,10 +562,56 @@ describe('Editor configuration using React components', () => {
             {/* @ts-ignore */}
             <EditorComponent hot-editor></EditorComponent>
         </HotTable>
-    )).hotInstance;
+    ));
 
     expect(document.querySelector('#editorComponentContainer')).not.toBeTruthy();
     expect(console.warn).toHaveBeenCalledWith(OBSOLETE_HOTEDITOR_WARNING);
+    expect(console.warn).not.toHaveBeenCalledWith(UNEXPECTED_HOTTABLE_CHILDREN_WARNING);
   });
 });
 
+describe('Passing children', () => {
+  it('should not issue a warning when only HotColumn components are nested under HotTable', async () => {
+    console.warn = jasmine.createSpy('warn');
+
+    mountComponentWithRef((
+        <HotTable licenseKey="non-commercial-and-evaluation"
+                  id="test-hot"
+                  data={createSpreadsheetData(3, 2)}
+                  width={300}
+                  height={300}
+                  rowHeights={23}
+                  colWidths={50}
+                  init={function () {
+                    mockElementDimensions(this.rootElement, 300, 300);
+                  }}>
+          <HotColumn />
+          <HotColumn />
+        </HotTable>
+    ));
+
+    expect(console.warn).not.toHaveBeenCalledWith(UNEXPECTED_HOTTABLE_CHILDREN_WARNING);
+  });
+
+  it('should issue a warning when the unknown component is nested under HotTable', async () => {
+    console.warn = jasmine.createSpy('warn');
+
+    mountComponentWithRef((
+        <HotTable licenseKey="non-commercial-and-evaluation"
+                  id="test-hot"
+                  data={createSpreadsheetData(3, 2)}
+                  width={300}
+                  height={300}
+                  rowHeights={23}
+                  colWidths={50}
+                  init={function () {
+                    mockElementDimensions(this.rootElement, 300, 300);
+                  }}>
+          <HotColumn />
+          <div>Something unexpected</div>
+        </HotTable>
+    ));
+
+    expect(console.warn).toHaveBeenCalledWith(UNEXPECTED_HOTTABLE_CHILDREN_WARNING);
+  });
+});
