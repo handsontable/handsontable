@@ -321,7 +321,7 @@ describe('MergeCells', () => {
 
     });
 
-    // TODO: After some changes please take a look at #7010.
+    // TODO: After some changes please take a look at #7010 (test for unspecified behavior)
     it('should select cells in the correct direction when changing selections around a merged range', () => {
       handsontable({
         data: createSpreadsheetObjectData(10, 10),
@@ -332,9 +332,9 @@ describe('MergeCells', () => {
 
       selectCell(5, 5, 5, 2);
 
-      expect(getSelectedRangeLast().getDirection()).toEqual('SE-NW');
+      expect(getSelectedRangeLast().getDirection()).toEqual('NE-SW');
       // Rectangular area from the marginal cell to the cell on the opposite.
-      expect(getSelected()).toEqual([[5, 5, 4, 2]]);
+      expect(getSelected()).toEqual([[4, 5, 5, 2]]);
 
       // What about, for example: selectCell(5, 4, 5, 2);
       // Is it specified properly?
@@ -351,9 +351,9 @@ describe('MergeCells', () => {
 
       selectCell(4, 5, 7, 5);
 
-      expect(getSelectedRangeLast().getDirection()).toEqual('NE-SW');
+      expect(getSelectedRangeLast().getDirection()).toEqual('NW-SE');
       // It flips the selection direction horizontally.
-      expect(getSelected()).toEqual([[4, 5, 7, 4]]);
+      expect(getSelected()).toEqual([[4, 4, 7, 5]]);
     });
 
     it('should not add an area class to the selected cell if a single merged cell is selected', () => {

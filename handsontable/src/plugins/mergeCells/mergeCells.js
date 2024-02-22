@@ -622,9 +622,17 @@ export class MergeCells extends BasePlugin {
   #onModifyTransformStart(delta) {
     const selectedRange = this.hot.getSelectedRangeLast();
     const { highlight } = selectedRange;
+    const { columnIndexMapper, rowIndexMapper } = this.hot;
 
     if (this.#lastSelectedCoords) {
-      highlight.assign(this.#lastSelectedCoords);
+      if (rowIndexMapper.getRenderableFromVisualIndex(this.#lastSelectedCoords.row) !== null) {
+        highlight.row = this.#lastSelectedCoords.row;
+      }
+
+      if (columnIndexMapper.getRenderableFromVisualIndex(this.#lastSelectedCoords.col) !== null) {
+        highlight.col = this.#lastSelectedCoords.col;
+      }
+
       this.#lastSelectedCoords = null;
     }
 
@@ -640,7 +648,7 @@ export class MergeCells extends BasePlugin {
     if (delta.col < 0) {
       const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ?
         visualColumnIndexStart - 1 : visualColumnIndexEnd;
-      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, -1);
+      const notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(nextColumn, -1);
 
       if (notHiddenColumnIndex === null) {
         // There are no visible columns anymore, so move the selection out of the table edge. This will
@@ -653,7 +661,7 @@ export class MergeCells extends BasePlugin {
     } else if (delta.col > 0) {
       const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ?
         visualColumnIndexEnd + 1 : visualColumnIndexStart;
-      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, 1);
+      const notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(nextColumn, 1);
 
       if (notHiddenColumnIndex === null) {
         // There are no visible columns anymore, so move the selection out of the table edge. This will
@@ -670,7 +678,7 @@ export class MergeCells extends BasePlugin {
     if (delta.row < 0) {
       const nextRow = highlight.row >= visualRowIndexStart && highlight.row <= visualRowIndexEnd ?
         visualRowIndexStart - 1 : visualRowIndexEnd;
-      const notHiddenRowIndex = this.hot.rowIndexMapper.getNearestNotHiddenIndex(nextRow, -1);
+      const notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(nextRow, -1);
 
       if (notHiddenRowIndex === null) {
         // There are no visible rows anymore, so move the selection out of the table edge. This will
@@ -683,7 +691,7 @@ export class MergeCells extends BasePlugin {
     } else if (delta.row > 0) {
       const nextRow = highlight.row >= visualRowIndexStart && highlight.row <= visualRowIndexEnd ?
         visualRowIndexEnd + 1 : visualRowIndexStart;
-      const notHiddenRowIndex = this.hot.rowIndexMapper.getNearestNotHiddenIndex(nextRow, 1);
+      const notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(nextRow, 1);
 
       if (notHiddenRowIndex === null) {
         // There are no visible rows anymore, so move the selection out of the table edge. This will
@@ -703,6 +711,7 @@ export class MergeCells extends BasePlugin {
   #onModifyTransformEnd(delta) {
     const selectedRange = this.hot.getSelectedRangeLast();
     const { to } = selectedRange;
+    const { columnIndexMapper, rowIndexMapper } = this.hot;
     const nextTo = this.hot._createCellCoords(to.row + delta.row, to.col + delta.col);
     const mergedParentCurrent = this.mergedCellsCollection.get(to.row, to.col);
     const mergedParentNext = this.mergedCellsCollection.get(nextTo.row, nextTo.col);
@@ -717,7 +726,7 @@ export class MergeCells extends BasePlugin {
     if (delta.col < 0) {
       const nextColumn = nextTo.col >= visualColumnIndexStart && nextTo.col <= visualColumnIndexEnd ?
         visualColumnIndexStart - 1 : visualColumnIndexEnd;
-      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, -1);
+      const notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(nextColumn, -1);
 
       if (notHiddenColumnIndex === null) {
         // There are no visible columns anymore, so move the selection out of the table edge. This will
@@ -730,7 +739,7 @@ export class MergeCells extends BasePlugin {
     } else if (delta.col > 0) {
       const nextColumn = nextTo.col >= visualColumnIndexStart && nextTo.col <= visualColumnIndexEnd ?
         visualColumnIndexEnd + 1 : visualColumnIndexStart;
-      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, 1);
+      const notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(nextColumn, 1);
 
       if (notHiddenColumnIndex === null) {
         // There are no visible columns anymore, so move the selection out of the table edge. This will
@@ -747,7 +756,7 @@ export class MergeCells extends BasePlugin {
     if (delta.row < 0) {
       const nextRow = nextTo.row >= visualRowIndexStart && nextTo.row <= visualRowIndexEnd ?
         visualRowIndexStart - 1 : visualRowIndexEnd;
-      const notHiddenRowIndex = this.hot.rowIndexMapper.getNearestNotHiddenIndex(nextRow, -1);
+      const notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(nextRow, -1);
 
       if (notHiddenRowIndex === null) {
         // There are no visible rows anymore, so move the selection out of the table edge. This will
@@ -760,7 +769,7 @@ export class MergeCells extends BasePlugin {
     } else if (delta.row > 0) {
       const nextRow = nextTo.row >= visualRowIndexStart && nextTo.row <= visualRowIndexEnd ?
         visualRowIndexEnd + 1 : visualRowIndexStart;
-      const notHiddenRowIndex = this.hot.rowIndexMapper.getNearestNotHiddenIndex(nextRow, 1);
+      const notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(nextRow, 1);
 
       if (notHiddenRowIndex === null) {
         // There are no visible rows anymore, so move the selection out of the table edge. This will
