@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTableProps } from './types';
-import { isHotColumn } from './hotColumn'
 
 let bulkComponentContainer = null;
 
@@ -76,14 +75,16 @@ export function displayObsoleteRenderersEditorsWarning(children: React.ReactNode
 }
 
 /**
- * Detect if non-HotColumn children is defined, and if so, throw an incompatibility warning.
+ * Detect if children of specified type are defined, and if so, throw an incompatibility warning.
  *
+ * @param {React.ReactNode} children Component children nodes
+ * @param {React.ComponentType} Component Component type to check
  * @returns {boolean} 'true' if the warning was issued
  */
-export function displayNonHotColumnChildWarning(children: React.ReactNode): boolean {
+export function displayChildrenOfTypeWarning(children: React.ReactNode, Component: React.ComponentType): boolean {
   const childrenArray: React.ReactNode[] = React.Children.toArray(children);
 
-  if (childrenArray.some((child) => !isHotColumn(child))) {
+  if (childrenArray.some((child) => (child as React.ReactElement).type !== Component)) {
     warn(UNEXPECTED_HOTTABLE_CHILDREN_WARNING);
     return true;
   }
@@ -94,9 +95,10 @@ export function displayNonHotColumnChildWarning(children: React.ReactNode): bool
 /**
  * Detect if children is defined, and if so, throw an incompatibility warning.
  *
+ * @param {React.ReactNode} children Component children nodes
  * @returns {boolean} 'true' if the warning was issued
  */
-export function displayChildrenWarning(children: React.ReactNode): boolean {
+export function displayAnyChildrenWarning(children: React.ReactNode): boolean {
   const childrenArray: React.ReactNode[] = React.Children.toArray(children);
 
   if (childrenArray.length) {

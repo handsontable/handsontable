@@ -2,7 +2,7 @@ import React from 'react';
 import Handsontable from 'handsontable/base';
 import { SettingsMapper } from './settingsMapper';
 import { RenderersPortalManager } from './renderersPortalManager';
-import { isHotColumn } from './hotColumn';
+import { HotColumn, isHotColumn } from './hotColumn';
 import { HotEditorHooks, HotTableProps, HotTableRef } from './types';
 import {
   HOT_DESTROYED_WARNING,
@@ -13,7 +13,7 @@ import {
   warn,
   displayObsoleteRenderersEditorsWarning,
   useUpdateEffect,
-  displayNonHotColumnChildWarning
+  displayChildrenOfTypeWarning
 } from './helpers';
 import PropTypes from 'prop-types';
 import { getRenderer } from 'handsontable/renderers/registry';
@@ -157,7 +157,7 @@ const HotTableInner = React.forwardRef<HotTableRef, HotTableProps>((props, ref) 
     displayAutoSizeWarning(__hotInstance.current);
 
     if (!displayObsoleteRenderersEditorsWarning(props.children)) {
-      displayNonHotColumnChildWarning(props.children);
+      displayChildrenOfTypeWarning(props.children, HotColumn);
     }
 
     /**
