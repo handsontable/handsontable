@@ -16,7 +16,11 @@ import {
   CustomNativeEditor,
   renderHotTableWithProps
 } from './_helpers';
-import { OBSOLETE_HOTEDITOR_WARNING, OBSOLETE_HOTRENDERER_WARNING } from '../src/helpers'
+import {
+  OBSOLETE_HOTEDITOR_WARNING,
+  OBSOLETE_HOTRENDERER_WARNING,
+  UNEXPECTED_HOTCOLUMN_CHILDREN_WARNING
+} from '../src/helpers'
 import { HotTableProps } from '../src/types'
 
 // register Handsontable's modules
@@ -381,6 +385,7 @@ describe('Editor configuration using React components', () => {
 
     expect(document.querySelector('#editorComponentContainer')).not.toBeTruthy();
     expect(console.warn).toHaveBeenCalledWith(OBSOLETE_HOTEDITOR_WARNING);
+    expect(console.warn).not.toHaveBeenCalledWith(UNEXPECTED_HOTCOLUMN_CHILDREN_WARNING);
   });
 });
 
@@ -525,5 +530,31 @@ describe('Miscellaneous scenarios with `HotColumn` config', () => {
     expect(onAfterValidate).toHaveBeenCalledWith(false, 'test3', 2, 0, 'populateFromArray');
     expect(onAfterValidate).toHaveBeenCalledWith(false, 'test2', 1, 0, 'populateFromArray');
     expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 0, 0, 'populateFromArray');
+  });
+});
+
+
+describe('Passing children', () => {
+  it('should issue a warning when anything is nested under HotColumn', async () => {
+    console.warn = jasmine.createSpy('warn');
+
+    mountComponentWithRef((
+        <HotTable licenseKey="non-commercial-and-evaluation"
+                  id="test-hot"
+                  data={createSpreadsheetData(3, 2)}
+                  width={300}
+                  height={300}
+                  rowHeights={23}
+                  colWidths={50}
+                  init={function () {
+                    mockElementDimensions(this.rootElement, 300, 300);
+                  }}>
+          <HotColumn>
+            <div>Something unexpected</div>
+          </HotColumn>
+        </HotTable>
+    ));
+
+    expect(console.warn).toHaveBeenCalledWith(UNEXPECTED_HOTCOLUMN_CHILDREN_WARNING);
   });
 });

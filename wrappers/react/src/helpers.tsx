@@ -23,6 +23,18 @@ export const OBSOLETE_HOTEDITOR_WARNING = 'Providing a component-based editor us
   'Pass your component using `editor` prop of the `HotTable` or `HotColumn` component instead.';
 
 /**
+ * Warning message for the unexpected children of HotTable component.
+ */
+export const UNEXPECTED_HOTTABLE_CHILDREN_WARNING = 'Unexpected children nodes found in HotTable component. ' +
+    'Only HotColumn components are allowed.';
+
+/**
+ * Warning message for the unexpected children of HotColumn component.
+ */
+export const UNEXPECTED_HOTCOLUMN_CHILDREN_WARNING = 'Unexpected children nodes found in HotColumn component. ' +
+    'HotColumn components do not support any children.';
+
+/**
  * Message for the warning thrown if the Handsontable instance has been destroyed.
  */
 export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this component was destroyed and cannot be' +
@@ -46,14 +58,55 @@ export function warn(...args) {
 
 /**
  * Detect if `hot-renderer` or `hot-editor` is defined, and if so, throw an incompatibility warning.
+ *
+ * @returns {boolean} 'true' if the warning was issued
  */
-export function displayObsoleteRenderersEditorsWarning(children: React.ReactNode): void {
+export function displayObsoleteRenderersEditorsWarning(children: React.ReactNode): boolean {
   if (hasChildElementOfType(children, 'hot-renderer')) {
     warn(OBSOLETE_HOTRENDERER_WARNING);
+    return true;
   }
   if (hasChildElementOfType(children, 'hot-editor')) {
     warn(OBSOLETE_HOTEDITOR_WARNING);
+    return true;
   }
+
+  return false
+}
+
+/**
+ * Detect if children of specified type are defined, and if so, throw an incompatibility warning.
+ *
+ * @param {React.ReactNode} children Component children nodes
+ * @param {React.ComponentType} Component Component type to check
+ * @returns {boolean} 'true' if the warning was issued
+ */
+export function displayChildrenOfTypeWarning(children: React.ReactNode, Component: React.ComponentType): boolean {
+  const childrenArray: React.ReactNode[] = React.Children.toArray(children);
+
+  if (childrenArray.some((child) => (child as React.ReactElement).type !== Component)) {
+    warn(UNEXPECTED_HOTTABLE_CHILDREN_WARNING);
+    return true;
+  }
+
+  return false
+}
+
+/**
+ * Detect if children is defined, and if so, throw an incompatibility warning.
+ *
+ * @param {React.ReactNode} children Component children nodes
+ * @returns {boolean} 'true' if the warning was issued
+ */
+export function displayAnyChildrenWarning(children: React.ReactNode): boolean {
+  const childrenArray: React.ReactNode[] = React.Children.toArray(children);
+
+  if (childrenArray.length) {
+    warn(UNEXPECTED_HOTCOLUMN_CHILDREN_WARNING);
+    return true;
+  }
+
+  return false
 }
 
 /**
