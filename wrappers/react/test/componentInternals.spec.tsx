@@ -34,8 +34,6 @@ describe('Component lifecyle', () => {
       );
     }
 
-    let secondGo = false;
-    const rendererRefs = new Map();
     const rendererCounters = new Map();
 
     const hotInstance = mountComponentWithRef((
@@ -51,17 +49,9 @@ describe('Component lifecyle', () => {
                 init={function () {
                   mockElementDimensions(this.rootElement, 300, 300);
                 }}
-                renderer={(props) => <RendererComponent2 {...props} ref={function (instance) {
-                  if (!secondGo && instance) {
-                    rendererRefs.set(`${props.row}-${props.col}`, instance);
-                  }
-                }} />}>
+                renderer={(props) => <RendererComponent2 {...props} />}>
         <HotColumn/>
-        <HotColumn renderer={(props) => <RendererComponent2 {...props} ref={function (instance) {
-          if (!secondGo && instance) {
-            rendererRefs.set(`${props.row}-${props.col}`, instance);
-          }
-        }} />}/>
+        <HotColumn renderer={(props) => <RendererComponent2 {...props} />}/>
       </HotTable>
     ), false).hotInstance;
 
@@ -71,8 +61,6 @@ describe('Component lifecyle', () => {
       expect(counters.didMount).toEqual(1);
       expect(counters.willUnmount).toEqual(0);
     });
-
-    secondGo = true;
 
     await act(async () => {
       hotInstance.render();
