@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Add a check that only HotColumn instances are children of HotTable",
+  "type": "added",
+  "issueOrPR": 10805,
+  "breaking": false,
+  "framework": "react"
+}
