@@ -24,6 +24,8 @@ import {
   warn
 } from './helpers';
 import PropTypes from 'prop-types';
+import { getRenderer } from 'handsontable/renderers/registry';
+import { getEditor } from 'handsontable/editors/registry';
 
 /**
  * A Handsontable-ReactJS wrapper.
@@ -241,7 +243,7 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
   getRendererWrapper(rendererElement: React.ReactElement): typeof Handsontable.renderers.BaseRenderer {
     const hotTableComponent = this;
 
-    return function (instance, TD, row, col, prop, value, cellProperties) {
+    return function __internalRenderer(instance, TD, row, col, prop, value, cellProperties) {
       const renderedCellCache = hotTableComponent.getRenderedCellCache();
       const portalContainerCache = hotTableComponent.getPortalContainerCache()
       const key = `${row}-${col}`;
@@ -386,17 +388,23 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
 
     if (globalEditorNode) {
       newSettings.editor = this.getEditorClass(globalEditorNode, GLOBAL_EDITOR_SCOPE);
-
     } else {
-      newSettings.editor = this.props.editor || (this.props.settings ? this.props.settings.editor : void 0);
+      if (this.props.editor || this.props.settings?.editor) {
+        newSettings.editor = this.props.editor || this.props.settings.editor;
+      } else {
+        newSettings.editor = getEditor('text');
+      }
     }
 
     if (globalRendererNode) {
       newSettings.renderer = this.getRendererWrapper(globalRendererNode);
       this.componentRendererColumns.set('global', true);
-
     } else {
-      newSettings.renderer = this.props.renderer || (this.props.settings ? this.props.settings.renderer : void 0);
+      if (this.props.renderer || this.props.settings?.renderer) {
+        newSettings.renderer = this.props.renderer || this.props.settings.renderer;
+      } else {
+        newSettings.renderer = getRenderer('text');
+      }
     }
 
     return newSettings;
