@@ -28,11 +28,11 @@ export type HotEditorHooks = Partial<Handsontable.editors.BaseEditor> & { hotCus
  * Helper type to expose GridSettings/ColumnSettings props with native renderers/editors separately
  *  from component-based render prop.
  */
-type ReplaceRenderersEditors<T extends Pick<Handsontable.GridSettings, 'renderer' | 'editor'>> = Omit<T, 'renderer' | 'editor' | 'init'> & {
+type ReplaceRenderersEditors<T extends Pick<Handsontable.GridSettings, 'renderer' | 'editor'>> = Omit<T, 'renderer' | 'editor'> & {
   hotRenderer?: T['renderer'],
   renderer?: React.ComponentType<HotRendererProps>,
   hotEditor?: T['editor'],
-  editor?: React.ComponentType
+  editor?: React.ComponentType,
 }
 
 /**
