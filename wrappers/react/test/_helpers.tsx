@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import Handsontable from 'handsontable';
+import { BaseRenderer } from 'handsontable/renderers';
 import { act } from '@testing-library/react';
 import { HotTable } from '../src/hotTable';
 import { HotRendererProps, HotTableRef, HotTableProps } from '../src/types'
@@ -104,7 +105,7 @@ export function spreadsheetColumnLabel(index: number): string {
   while (dividend > 0) {
     modulo = (dividend - 1) % 26;
     columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
-    dividend = (dividend - modulo) / 26;
+    dividend = Math.floor((dividend - modulo) / 26)
   }
 
   return columnLabel;
@@ -165,13 +166,13 @@ export function simulateKeyboardEvent(type: string, keyCode: number): void {
   // Chromium Hack
   Object.defineProperty(newEvent, 'keyCode', {
     get: function () {
-        return this.keyCodeVal;
+      return this.keyCodeVal;
     }
   });
   Object.defineProperty(newEvent, 'which', {
-      get: function () {
-          return this.keyCodeVal;
-      }
+    get: function () {
+      return this.keyCodeVal;
+    }
   });
   Object.defineProperty(newEvent, 'key', {
     get: function () {
@@ -207,7 +208,7 @@ export const RendererComponent: React.FC<HotRendererProps & { tap?: (props: HotR
   );
 }
 
-export const customNativeRenderer: Handsontable.renderers.BaseRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+export const customNativeRenderer: BaseRenderer = function (this: BaseRenderer, instance, td, row, col, prop, value, cellProperties) {
   Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, col, prop, `value: ${value}`, cellProperties]);
   return td;
 }
@@ -264,9 +265,12 @@ export const EditorComponent: React.FC<EditorComponentProps> = ({ tap, ...props 
 };
 
 export class CustomNativeEditor extends Handsontable.editors.BaseEditor {
+  declare TEXTAREA: HTMLTextAreaElement
+  declare TEXTAREA_PARENT: HTMLElement
+
   init() {
-    this.TEXTAREA = document.createElement('TEXTAREA');
-    this.TEXTAREA_PARENT = document.createElement('DIV');
+    this.TEXTAREA = document.createElement('textarea');
+    this.TEXTAREA_PARENT = document.createElement('div');
 
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
     this.hot.rootElement.appendChild(this.TEXTAREA_PARENT);
@@ -274,7 +278,7 @@ export class CustomNativeEditor extends Handsontable.editors.BaseEditor {
   getValue() {
     return `--${this.TEXTAREA.value}--`;
   }
-  setValue(value) {
+  setValue(value: string) {
     this.TEXTAREA.value = value;
   }
   open() {}

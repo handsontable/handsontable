@@ -1,6 +1,6 @@
 import React from 'react';
 import { act } from '@testing-library/react';
-import { createStore, combineReducers } from 'redux';
+import { createStore, combineReducers, AnyAction } from 'redux';
 import { Provider, connect } from 'react-redux';
 import { HotTable } from '../src/hotTable';
 import {
@@ -16,7 +16,7 @@ const initialReduxStoreState = {
   hexColor: '#fff'
 };
 
-const appReducer = (state = initialReduxStoreState, action) => {
+const appReducer = (state = initialReduxStoreState, action: AnyAction) => {
   switch (action.type) {
     case 'updateColor':
       const newColor = action.hexColor;
@@ -117,6 +117,7 @@ describe('Using Redux store within HotTable renderers and editors', () => {
                     mockElementDimensions(this.rootElement, 300, 300);
                   }}
                   editor={() => <ReduxEnabledEditor tap={(props) => {
+                    console.log('oo', props)
                     editorInstances.set(`${props.row}-${props.col}`, props);
                   }
                   } />} />
