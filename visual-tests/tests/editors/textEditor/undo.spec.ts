@@ -1,24 +1,20 @@
 import { test } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
+import { HotPage } from '../../../src/hotPage';
 
 /**
  * Checks whether Control+Z undoes the last action.
  */
 test(__filename, async({ page }) => {
-  const table = page.locator(helpers.selectors.mainTable);
+  const hot = new HotPage(page);
 
-  await table.waitFor();
+  await hot.loadTable();
+  const cell = await hot.selectCell(1, 1);
 
-  const tbody = table.locator(helpers.selectors.mainTableBody);
+  await hot.openEditor(cell);
 
-  const cell = tbody.locator(helpers.findCell({ row: 1, column: 1, cellType: 'td' }));
+  const cellEditor = await hot.selectEditor();
 
-  await cell.click();
-  await cell.press('Enter');
-
-  const cellEditor = table.locator(helpers.findCellEditor());
-
-  await cellEditor.waitFor();
   await cellEditor.type('test');
 
   await page.screenshot({ path: helpers.screenshotPath() });
