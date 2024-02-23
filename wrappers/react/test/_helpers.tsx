@@ -131,7 +131,7 @@ export function createSpreadsheetData(rows = 100, columns = 4) {
   return _rows;
 }
 
-export function mockElementDimensions(element, width, height) {
+export function mockElementDimensions(element, width: number, height: number) {
   Object.defineProperty(element, 'clientWidth', {
     value: width
   });

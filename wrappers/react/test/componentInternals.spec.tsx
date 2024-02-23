@@ -1,5 +1,6 @@
 import React from 'react';
 import { act } from '@testing-library/react';
+import Handsontable from 'handsontable'
 import { HotTable } from '../src/hotTable';
 import { HotColumn } from '../src/hotColumn';
 import {
