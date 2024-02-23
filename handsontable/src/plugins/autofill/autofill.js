@@ -426,13 +426,14 @@ export class Autofill extends BasePlugin {
   getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells) {
     const data = this.hot.getData();
     const nrOfTableRows = this.hot.countRows();
+    const isEmptyCell = cellContent => cellContent === null || cellContent === void 0 || cellContent === '';
     let lastFilledInRowIndex;
 
     for (let rowIndex = cornersOfSelectedCells[2] + 1; rowIndex < nrOfTableRows; rowIndex++) {
       for (let columnIndex = cornersOfSelectedCells[1]; columnIndex <= cornersOfSelectedCells[3]; columnIndex++) {
         const dataInCell = data[rowIndex][columnIndex];
 
-        if (dataInCell) {
+        if (!isEmptyCell(dataInCell)) {
           return -1;
         }
       }
@@ -440,7 +441,7 @@ export class Autofill extends BasePlugin {
       const dataInNextLeftCell = data[rowIndex][cornersOfSelectedCells[1] - 1];
       const dataInNextRightCell = data[rowIndex][cornersOfSelectedCells[3] + 1];
 
-      if (!!dataInNextLeftCell || !!dataInNextRightCell) {
+      if (!isEmptyCell(dataInNextLeftCell) || !isEmptyCell(dataInNextRightCell)) {
         lastFilledInRowIndex = rowIndex;
       }
     }
