@@ -32,10 +32,7 @@ type ReplaceRenderersEditors<T extends Pick<Handsontable.GridSettings, 'renderer
   hotRenderer?: T['renderer'],
   renderer?: React.ComponentType<HotRendererProps>,
   hotEditor?: T['editor'],
-  editor?: React.ComponentType,
-
-// TMP
-  init?: (this: Handsontable.Core) => void
+  editor?: React.ComponentType
 }
 
 /**
