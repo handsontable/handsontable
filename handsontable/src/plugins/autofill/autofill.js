@@ -426,7 +426,7 @@ export class Autofill extends BasePlugin {
   getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells) {
     const data = this.hot.getData();
     const nrOfTableRows = this.hot.countRows();
-    const isEmptyCell = cellContent => cellContent === null || cellContent === void 0 || cellContent === '';
+    const isEmptyCell = cellContent => cellContent === null || cellContent === undefined || cellContent === '';
     let lastFilledInRowIndex;
 
     for (let rowIndex = cornersOfSelectedCells[2] + 1; rowIndex < nrOfTableRows; rowIndex++) {
