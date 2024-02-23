@@ -1016,7 +1016,8 @@ To find out which HyperFormula version to use, see the table below:
 | [`9.x.x`](https://github.com/handsontable/handsontable/releases/tag/9.0.0)              | [`0.6.2`](https://github.com/handsontable/hyperformula/releases/tag/0.6.2)                                     |
 | [`10.x.x`](https://github.com/handsontable/handsontable/releases/tag/10.0.0)            | [`^1.2.0`](https://github.com/handsontable/hyperformula/releases/tag/1.2.0)                                    |
 | [`11.x.x`](https://github.com/handsontable/handsontable/releases/tag/11.0.0)            | [`^1.2.0`](https://github.com/handsontable/hyperformula/releases/tag/1.2.0)                                    |
-| [`12.x.x`](https://github.com/handsontable/handsontable/releases/tag/12.0.0) and higher | [`^2.0.0`](https://github.com/handsontable/hyperformula/releases/tag/2.0.0)                                    |
+| [`12.x.x`](https://github.com/handsontable/handsontable/releases/tag/12.0.0)            | [`^2.0.0`](https://github.com/handsontable/hyperformula/releases/tag/2.0.0)                                    |
+| [`13.x.x`](https://github.com/handsontable/handsontable/releases/tag/13.0.0) and higher | [`^2.4.0`](https://github.com/handsontable/hyperformula/releases/tag/2.4.0)                                    |
 
 ::: tip
 
