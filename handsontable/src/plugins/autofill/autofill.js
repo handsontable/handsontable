@@ -2,6 +2,7 @@ import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
 import { offset, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { arrayEach, arrayMap } from '../../helpers/array';
+import { isEmpty } from '../../helpers/mixed';
 import { getDragDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting } from './utils';
 
 Hooks.getSingleton().register('modifyAutofillRange');
@@ -426,14 +427,13 @@ export class Autofill extends BasePlugin {
   getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells) {
     const data = this.hot.getData();
     const nrOfTableRows = this.hot.countRows();
-    const isEmptyCell = cellContent => cellContent === null || cellContent === undefined || cellContent === '';
     let lastFilledInRowIndex;
 
     for (let rowIndex = cornersOfSelectedCells[2] + 1; rowIndex < nrOfTableRows; rowIndex++) {
       for (let columnIndex = cornersOfSelectedCells[1]; columnIndex <= cornersOfSelectedCells[3]; columnIndex++) {
         const dataInCell = data[rowIndex][columnIndex];
 
-        if (!isEmptyCell(dataInCell)) {
+        if (!isEmpty(dataInCell)) {
           return -1;
         }
       }
@@ -441,7 +441,7 @@ export class Autofill extends BasePlugin {
       const dataInNextLeftCell = data[rowIndex][cornersOfSelectedCells[1] - 1];
       const dataInNextRightCell = data[rowIndex][cornersOfSelectedCells[3] + 1];
 
-      if (!isEmptyCell(dataInNextLeftCell) || !isEmptyCell(dataInNextRightCell)) {
+      if (!isEmpty(dataInNextLeftCell) || !isEmpty(dataInNextRightCell)) {
         lastFilledInRowIndex = rowIndex;
       }
     }
