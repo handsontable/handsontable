@@ -102,7 +102,7 @@ describe('Using Redux store within HotTable renderers and editors', () => {
         forwardRef: true
       })(EditorComponent);
 
-    const editorInstances = new Map();
+    let editorProps: any;
 
     mountComponent((
       <Provider store={reduxStore}>
@@ -117,8 +117,7 @@ describe('Using Redux store within HotTable renderers and editors', () => {
                     mockElementDimensions(this.rootElement, 300, 300);
                   }}
                   editor={() => <ReduxEnabledEditor tap={(props) => {
-                    console.log('oo', props)
-                    editorInstances.set(`${props.row}-${props.col}`, props);
+                    editorProps = props
                   }
                   } />} />
       </Provider>
@@ -126,11 +125,7 @@ describe('Using Redux store within HotTable renderers and editors', () => {
 
     await sleep(100);
 
-    expect(editorInstances.size).not.toEqual(0);
-
-    editorInstances.forEach((props) => {
-      expect(props.bgColor).toEqual('#fff');
-    });
+    expect(editorProps.bgColor).toEqual('#fff');
 
     await act(async () => {
       reduxStore.dispatch({
@@ -139,8 +134,6 @@ describe('Using Redux store within HotTable renderers and editors', () => {
       });
     });
 
-    editorInstances.forEach((props) => {
-      expect(props.bgColor).toEqual('#B57267');
-    });
+    expect(editorProps.bgColor).toEqual('#B57267');
   });
 });

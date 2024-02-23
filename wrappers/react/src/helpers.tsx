@@ -157,7 +157,7 @@ export function createEditorPortal(doc: Document | null, Editor: HotTableProps['
  * @param {HTMLElement} [cachedContainer] The cached container to be used for the portal.
  * @returns {{portal: React.ReactPortal, portalContainer: HTMLElement}} An object containing the portal and its container.
  */
-export function createPortal(rElement: React.ReactElement, ownerDocument: Document = document, portalKey: string, cachedContainer?: HTMLElement): {
+export function createPortal(rElement: React.ReactElement, ownerDocument: Document | null = document, portalKey: string, cachedContainer?: HTMLElement): {
   portal: React.ReactPortal,
   portalContainer: HTMLElement,
 } {
