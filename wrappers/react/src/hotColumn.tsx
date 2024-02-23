@@ -22,12 +22,12 @@ const HotColumn: React.FC<HotColumnProps> = (props) => {
   /**
    * Reference to component-based editor overridden hooks object.
    */
-  const localEditorHooksRef = React.useRef<HotEditorHooks>();
+  const localEditorHooksRef = React.useRef<HotEditorHooks | null>(null);
 
   /**
    * Reference to HOT-native custom editor class instance.
    */
-  const localEditorClassInstance = React.useRef<Handsontable.editors.BaseEditor>();
+  const localEditorClassInstance = React.useRef<Handsontable.editors.BaseEditor | null>(null);
 
   /**
    * Logic performed after mounting & updating of the HotColumn component.
@@ -42,8 +42,8 @@ const HotColumn: React.FC<HotColumnProps> = (props) => {
     const getSettingsProps = (): HotTableProps => {
       return Object.keys(props)
         .filter(key => !internalProps.includes(key))
-        .reduce((obj, key) => {
-          obj[key] = props[key];
+        .reduce<HotTableProps>((obj, key) => {
+          (obj as any)[key] = props[key];
           return obj;
         }, {});
     };

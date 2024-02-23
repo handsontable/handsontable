@@ -8,6 +8,7 @@
     "esModuleInterop": true,
     "sourceMap": true,
     "baseUrl": ".",
+    "declaration": true,
     "declarationDir": ".",
     "strict": true
   },

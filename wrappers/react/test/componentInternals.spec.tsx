@@ -1,6 +1,5 @@
 import React from 'react';
 import { act } from '@testing-library/react';
-import Handsontable from 'handsontable'
 import { HotTable } from '../src/hotTable';
 import { HotColumn } from '../src/hotColumn';
 import {
@@ -11,7 +10,7 @@ import {
   sleep,
 } from './_helpers';
 import { HOT_DESTROYED_WARNING } from "../src/helpers";
-import { HotTableProps, HotRendererProps } from '../src'
+import { HotTableProps, HotRendererProps, HotTableRef } from '../src/types'
 
 describe('Component lifecyle', () => {
   it('renderer components should trigger their lifecycle methods', async () => {
@@ -37,7 +36,7 @@ describe('Component lifecyle', () => {
 
     const rendererCounters = new Map();
 
-    const hotInstance = mountComponentWithRef((
+    const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 2)}
@@ -54,7 +53,7 @@ describe('Component lifecyle', () => {
         <HotColumn/>
         <HotColumn renderer={(props) => <RendererComponent2 {...props} />}/>
       </HotTable>
-    ), false).hotInstance;
+    ), false).hotInstance!;
 
     expect(rendererCounters.size).toEqual(3 * 2);
 
@@ -124,9 +123,9 @@ describe('Component lifecyle', () => {
   it('should display a warning and not throw any errors, when the underlying Handsontable instance ' +
     'has been destroyed', async () => {
     const warnFunc = console.warn;
-    const warnCalls = [];
+    const warnCalls: string[] = [];
 
-    const componentInstance = mountComponentWithRef((
+    const componentInstance = mountComponentWithRef<HotTableRef>((
       <HotTable
         id="test-hot"
         data={[[2]]}
@@ -134,13 +133,13 @@ describe('Component lifecyle', () => {
       />
     ));
 
-    console.warn = (warningMessage) => {
+    console.warn = (warningMessage: string) => {
       warnCalls.push(warningMessage);
     };
 
-    expect(componentInstance.hotInstance.isDestroyed).toEqual(false);
+    expect(componentInstance.hotInstance!.isDestroyed).toEqual(false);
 
-    componentInstance.hotInstance.destroy();
+    componentInstance.hotInstance!.destroy();
 
     expect(componentInstance.hotInstance).toEqual(null);
 

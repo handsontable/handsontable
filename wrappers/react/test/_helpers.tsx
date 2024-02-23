@@ -1,14 +1,19 @@
 import React from 'react';
-import { createRoot } from 'react-dom/client';
+import { createRoot, Root } from 'react-dom/client';
 import Handsontable from 'handsontable';
 import { act } from '@testing-library/react';
 import { HotTable } from '../src/hotTable';
 import { HotRendererProps, HotTableRef, HotTableProps } from '../src/types'
 import { useHotEditor } from "../src/hotEditor";
 
-const SPEC = {
-  container: null,
-  root: null,
+interface Spec {
+  container: HTMLElement
+  root: Root
+}
+
+const SPEC: Spec = {
+  container: null!,
+  root: null!,
 };
 
 beforeEach(() => {
@@ -21,18 +26,18 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  const container = document.querySelector('#hotContainer');
+  const container = document.querySelector('#hotContainer')!;
 
-  container.parentNode.removeChild(container);
-  SPEC.container = null;
+  container.parentNode!.removeChild(container);
+  SPEC.container = null!;
 
   act(() => {
     SPEC.root.unmount();
   });
 });
 
-export function mountComponentWithRef(Component, strictMode = true) {
-  let hotTableComponent = null;
+export function mountComponentWithRef<T>(Component: React.ReactElement, strictMode = true): T {
+  let hotTableComponent: React.RefObject<T> | null = null;
 
   const App = () => {
     hotTableComponent = React.useRef(null);
@@ -48,7 +53,7 @@ export function mountComponentWithRef(Component, strictMode = true) {
     );
   });
 
-  return hotTableComponent.current;
+  return hotTableComponent!.current!;
 }
 
 export function renderHotTableWithProps(props: HotTableProps, strictMode = true, hotTableRef: React.RefObject<HotTableRef> = React.createRef()): React.RefObject<HotTableRef> {
@@ -63,7 +68,7 @@ export function renderHotTableWithProps(props: HotTableProps, strictMode = true,
   return hotTableRef;
 }
 
-export function mountComponent(Component) {
+export function mountComponent(Component: React.ReactElement): void {
   const App = () => {
     return (
       <Component.type {...Component.props}></Component.type>
@@ -75,14 +80,12 @@ export function mountComponent(Component) {
   });
 }
 
-export function sleep(delay = 100) {
-  return Promise.resolve({
-    then(resolve) {
-      if (delay === 0) {
-        setImmediate(resolve);
-      } else {
-        setTimeout(resolve, delay);
-      }
+export function sleep(delay = 100): Promise<void> {
+  return new Promise((resolve) => {
+    if (delay === 0) {
+      setImmediate(resolve);
+    } else {
+      setTimeout(resolve, delay);
     }
   });
 }
@@ -93,15 +96,15 @@ export function sleep(delay = 100) {
  * @param {number} index Column index.
  * @returns {string}
  */
-export function spreadsheetColumnLabel(index) {
+export function spreadsheetColumnLabel(index: number): string {
   let dividend = index + 1;
   let columnLabel = '';
-  let modulo;
+  let modulo: number;
 
   while (dividend > 0) {
     modulo = (dividend - 1) % 26;
     columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
-    dividend = parseInt((dividend - modulo) / 26, 10);
+    dividend = (dividend - modulo) / 26;
   }
 
   return columnLabel;
@@ -114,7 +117,7 @@ export function spreadsheetColumnLabel(index) {
  * @param {number} columns Number of columns to generate.
  * @returns {Array}
  */
-export function createSpreadsheetData(rows = 100, columns = 4) {
+export function createSpreadsheetData(rows = 100, columns = 4): string[][] {
   const _rows = [];
   let i;
   let j;
@@ -131,7 +134,7 @@ export function createSpreadsheetData(rows = 100, columns = 4) {
   return _rows;
 }
 
-export function mockElementDimensions(element, width: number, height: number) {
+export function mockElementDimensions(element: HTMLElement, width: number, height: number): void {
   Object.defineProperty(element, 'clientWidth', {
     value: width
   });
@@ -147,9 +150,9 @@ export function mockElementDimensions(element, width: number, height: number) {
   });
 }
 
-export function simulateKeyboardEvent(type, keyCode) {
-  const newEvent = document.createEvent('KeyboardEvent');
-  const KEY_CODES = {
+export function simulateKeyboardEvent(type: string, keyCode: number): void {
+  const newEvent: any = document.createEvent('KeyboardEvent');
+  const KEY_CODES: Record<number, string> = {
     8: 'backspace',
     9: 'tab',
     13: 'enter',
@@ -161,22 +164,22 @@ export function simulateKeyboardEvent(type, keyCode) {
 
   // Chromium Hack
   Object.defineProperty(newEvent, 'keyCode', {
-    get : function() {
+    get: function () {
         return this.keyCodeVal;
     }
   });
   Object.defineProperty(newEvent, 'which', {
-      get : function() {
+      get: function () {
           return this.keyCodeVal;
       }
   });
   Object.defineProperty(newEvent, 'key', {
-    get : function() {
+    get: function () {
       return KEY_CODES[this.keyCodeVal] ?? String.fromCharCode(this.keyCodeVal).toLowerCase();
     }
   });
 
-  if ((newEvent as any).initKeyboardEvent !== void 0) {
+  if (newEvent.initKeyboardEvent !== void 0) {
     newEvent.initKeyboardEvent(type, true, true, window, keyCode, keyCode, '', '', false, '');
   } else {
     newEvent.initKeyEvent(type, true, true, window, false, false, false, false, keyCode, 0);
@@ -184,14 +187,14 @@ export function simulateKeyboardEvent(type, keyCode) {
 
   newEvent.keyCodeVal = keyCode;
 
-  document.activeElement.dispatchEvent(newEvent);
+  document.activeElement!.dispatchEvent(newEvent);
 }
 
-export function simulateMouseEvent(element, type) {
+export function simulateMouseEvent(element: Element | null, type: string): void {
   const event = document.createEvent('Events');
   event.initEvent(type, true, false);
 
-  element.dispatchEvent(event);
+  element!.dispatchEvent(event);
 }
 
 export const RendererComponent: React.FC<HotRendererProps & { tap?: (props: HotRendererProps) => void }> = ({ tap, ...props }) => {
@@ -234,21 +237,21 @@ export const EditorComponent: React.FC<EditorComponentProps> = ({ tap, ...props 
 
     prepare(row, col, prop, TD, originalValue, cellProperties): any {
       runSuper().prepare(row, col, prop, TD, originalValue, cellProperties)
-      mainElementRef.current.style.backgroundColor = props.background;
+      mainElementRef.current!.style.backgroundColor = props.background!;
     },
 
     open() {
-      mainElementRef.current.style.display = 'block';
+      mainElementRef.current!.style.display = 'block';
     },
 
     close() {
-      mainElementRef.current.style.display = 'none';
+      mainElementRef.current!.style.display = 'none';
     }
   }), [valueRef]);
 
   const setNewValue = React.useCallback(() => {
     valueRef.current = 'new-value';
-    hotCustomEditorInstanceRef.current.finishEditing();
+    hotCustomEditorInstanceRef.current!.finishEditing();
   }, [valueRef, mainElementRef]);
 
   tap?.(props);

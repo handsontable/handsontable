@@ -152,8 +152,8 @@ const HotTableContextProvider: React.FC<React.PropsWithChildren> = ({ children }
  *
  * @returns HotTableContext
  */
-function useHotTableContext() {
-  return React.useContext(HotTableContext);
+function useHotTableContext(): HotTableContextImpl {
+  return React.useContext(HotTableContext)!;
 }
 
 export { HotTableContextProvider, useHotTableContext };

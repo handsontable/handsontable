@@ -13,7 +13,7 @@ export class SettingsMapper {
 
     for (const key in properties) {
       if (key !== 'children' && properties.hasOwnProperty(key)) {
-        newSettings[key] = properties[key];
+        (newSettings as any)[key] = properties[key as keyof HotTableProps];
       }
     }
 
