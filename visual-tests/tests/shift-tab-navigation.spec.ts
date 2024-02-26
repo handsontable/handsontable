@@ -15,6 +15,7 @@ test(__filename, async({ page }) => {
   await page.locator('html').press('Shift+Tab');
   await page.locator('html').press('Shift+Tab');
   await page.locator('html').press('Shift+Tab');
+  await page.locator('html').press('Shift+Tab');
 
   // The table should be still focused and the first cell of the last row should be selected
   await page.screenshot({ path: helpers.screenshotPath() });
