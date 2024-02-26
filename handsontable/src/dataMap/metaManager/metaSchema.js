@@ -3298,7 +3298,7 @@ export default () => {
      * | `true`            | Enable the [`NestedRows`](@/api/nestedRows.md) plugin  |
      *
      * Read more:
-     * - [Plugins: `NestedRows`](@/api/nestedRows.md)
+     * - [Plugins: `NestedRows`](@/guides/rows/row-parent-child.md)
      *
      * @example
      * ```js

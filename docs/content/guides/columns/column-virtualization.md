@@ -136,3 +136,4 @@ Using column virtualization has the following side effects:
 
 - Configuration options:
   - [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
+  - [`renderAllColumns`](@/api/options.md#renderallcolumns)
