@@ -3,6 +3,8 @@ import Handsontable from 'handsontable/base';
 import { HotEditorHooks } from './types';
 import { superBound } from "./helpers";
 
+type HookPropName = (keyof Handsontable.editors.BaseEditor & keyof HotEditorHooks) | 'constructor'
+
 /**
  * Create a class to be passed to the Handsontable's settings.
  *
@@ -10,19 +12,19 @@ import { superBound } from "./helpers";
  * @param {React.RefObject} instanceRef Reference to Handsontable-native custom editor class instance.
  * @returns {Function} A class to be passed to the Handsontable editor settings.
  */
-export function makeEditorClass(hooksRef: React.MutableRefObject<HotEditorHooks>, instanceRef: React.MutableRefObject<Handsontable.editors.BaseEditor>): typeof Handsontable.editors.BaseEditor {
+export function makeEditorClass(hooksRef: React.MutableRefObject<HotEditorHooks | null>, instanceRef: React.MutableRefObject<Handsontable.editors.BaseEditor | null>): typeof Handsontable.editors.BaseEditor {
   return class CustomEditor extends Handsontable.editors.BaseEditor implements Handsontable.editors.BaseEditor {
     constructor(hotInstance: Handsontable.Core) {
       super(hotInstance);
       instanceRef.current = this;
 
-      Object.getOwnPropertyNames(Handsontable.editors.BaseEditor.prototype).forEach(propName => {
+      (Object.getOwnPropertyNames(Handsontable.editors.BaseEditor.prototype) as HookPropName[]).forEach((propName) => {
         if (propName === 'constructor') {
           return;
         }
 
         const baseMethod = Handsontable.editors.BaseEditor.prototype[propName];
-        CustomEditor.prototype[propName] = function (...args) {
+        (CustomEditor.prototype as any)[propName] = function (this: CustomEditor, ...args: any[]) {
           if (hooksRef.current?.[propName]) {
             return hooksRef.current[propName].call(this, ...args);
           } else {
@@ -87,8 +89,8 @@ export const EditorContextProvider: React.FC<EditorContextProviderProps> = ({ ho
  * @returns {React.RefObject} Reference to Handsontable-native editor instance.
  */
 export function useHotEditor(overriddenHooks?: (runSuper: () => Handsontable.editors.BaseEditor) => HotEditorHooks, deps?: React.DependencyList): React.RefObject<Handsontable.editors.BaseEditor> {
-  const { hooksRef, hotCustomEditorInstanceRef } = React.useContext(EditorContext);
-  const runSuper = () => superBound(hotCustomEditorInstanceRef.current);
+  const { hooksRef, hotCustomEditorInstanceRef } = React.useContext(EditorContext)!;
+  const runSuper = () => superBound(hotCustomEditorInstanceRef.current!);
   React.useImperativeHandle(hooksRef, () => overriddenHooks?.(runSuper) || {}, deps);
   return hotCustomEditorInstanceRef;
 }

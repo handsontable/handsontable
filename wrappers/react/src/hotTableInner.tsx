@@ -37,12 +37,12 @@ const HotTableInner = React.forwardRef<HotTableRef, HotTableProps>((props, ref) 
   /**
    * Reference to component-based editor overridden hooks object.
    */
-  const globalEditorHooksRef = React.useRef<HotEditorHooks>();
+  const globalEditorHooksRef = React.useRef<HotEditorHooks | null>(null);
 
   /**
    * Reference to HOT-native custom editor class instance.
    */
-  const globalEditorClassInstance = React.useRef<Handsontable.editors.BaseEditor>();
+  const globalEditorClassInstance = React.useRef<Handsontable.editors.BaseEditor | null>(null);
 
   /**
    * HotTable context exposing helper functions.
@@ -115,7 +115,7 @@ const HotTableInner = React.forwardRef<HotTableRef, HotTableProps>((props, ref) 
   /**
    * Detect if `autoRowSize` or `autoColumnSize` is defined, and if so, throw an incompatibility warning.
    */
-  const displayAutoSizeWarning = (hotInstance?: Handsontable): void => {
+  const displayAutoSizeWarning = (hotInstance: Handsontable | null): void => {
     if (
       hotInstance &&
       (
@@ -135,7 +135,7 @@ const HotTableInner = React.forwardRef<HotTableRef, HotTableProps>((props, ref) 
   React.useEffect(() => {
     const newGlobalSettings = createNewGlobalSettings();
 
-    __hotInstance.current = new Handsontable.Core(hotElementRef.current, newGlobalSettings);
+    __hotInstance.current = new Handsontable.Core(hotElementRef.current!, newGlobalSettings);
 
     /**
      * Handsontable's `beforeViewRender` hook callback.
@@ -189,7 +189,7 @@ const HotTableInner = React.forwardRef<HotTableRef, HotTableProps>((props, ref) 
    */
   React.useImperativeHandle(ref, () => ({
     get hotElementRef() {
-      return hotElementRef.current;
+      return hotElementRef.current!;
     },
     get hotInstance() {
       return getHotInstance();

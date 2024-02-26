@@ -13,6 +13,7 @@ import {
   simulateKeyboardEvent,
   simulateMouseEvent
 } from './_helpers';
+import { HotTableRef } from '../src/types'
 
 /**
  * Worth noting, that although it's possible to use React.memo on renderer components, it doesn't do much, as currently they're recreated on every
@@ -22,7 +23,7 @@ describe('React.memo', () => {
   it('should be possible to use React.memo on renderer components.', async () => {
     const MemoizedRendererComponent = React.memo(RendererComponent);
 
-    const hotInstance = mountComponentWithRef((
+    const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(1, 1)}
@@ -36,7 +37,7 @@ describe('React.memo', () => {
                   mockElementDimensions(this.rootElement, 300, 300);
                 }}
                 renderer={MemoizedRendererComponent}/>
-    )).hotInstance;
+    )).hotInstance!;
 
     await act(async () => {
       hotInstance.render();
@@ -44,13 +45,13 @@ describe('React.memo', () => {
 
     await sleep(100);
 
-    expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>value: A1</div>');
+    expect(hotInstance.getCell(0, 0)!.innerHTML).toEqual('<div>value: A1</div>');
   });
 
   it('should be possible to use React.memo on editor components.', async () => {
     const MemoizedEditorComponent = React.memo(EditorComponent);
 
-    const hotInstance = mountComponentWithRef((
+    const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(1, 1)}
@@ -64,7 +65,7 @@ describe('React.memo', () => {
                   mockElementDimensions(this.rootElement, 300, 300);
                 }}
                 editor={MemoizedEditorComponent}/>
-    )).hotInstance;
+    )).hotInstance!;
 
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
 
@@ -83,7 +84,7 @@ describe('React.memo', () => {
     expect(hotInstance.getDataAtCell(0, 0)).toEqual('new-value');
 
     await act(async () => {
-      hotInstance.getActiveEditor().close();
+      hotInstance.getActiveEditor()!.close();
     });
 
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');

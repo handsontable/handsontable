@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTableProps } from './types';
 
-let bulkComponentContainer = null;
+let bulkComponentContainer: DocumentFragment | null = null;
 
 /**
  * Warning message for the `autoRowSize`/`autoColumnSize` compatibility check.
@@ -50,7 +50,7 @@ export const DEFAULT_CLASSNAME = 'hot-wrapper-editor-container';
  *
  * @param {...*} args Values which will be logged.
  */
-export function warn(...args) {
+export function warn(...args: any[]) {
   if (typeof console !== 'undefined') {
     console.warn(...args);
   }
@@ -131,13 +131,13 @@ function hasChildElementOfType(children: React.ReactNode, type: 'hot-renderer' |
  * @param {React.ComponentType} Editor Editor component or render function.
  * @returns {React.ReactPortal} The portal for the editor.
  */
-export function createEditorPortal(doc: Document, Editor: HotTableProps['editor'] | undefined): React.ReactPortal | null {
-  if (typeof doc === 'undefined' || !Editor) {
+export function createEditorPortal(doc: Document | null, Editor: HotTableProps['editor'] | undefined): React.ReactPortal | null {
+  if (!doc || !Editor) {
     return null;
   }
 
   const editorElement = <Editor />;
-  const containerProps = getContainerAttributesProps(editorElement.props, false);
+  const containerProps = getContainerAttributesProps({}, false);
 
   containerProps.className = `${DEFAULT_CLASSNAME} ${containerProps.className}`;
 
@@ -157,7 +157,7 @@ export function createEditorPortal(doc: Document, Editor: HotTableProps['editor'
  * @param {HTMLElement} [cachedContainer] The cached container to be used for the portal.
  * @returns {{portal: React.ReactPortal, portalContainer: HTMLElement}} An object containing the portal and its container.
  */
-export function createPortal(rElement: React.ReactElement, ownerDocument: Document = document, portalKey: string, cachedContainer?: HTMLElement): {
+export function createPortal(rElement: React.ReactElement, ownerDocument: Document | null = document, portalKey: string, cachedContainer?: HTMLElement): {
   portal: React.ReactPortal,
   portalContainer: HTMLElement,
 } {
@@ -182,12 +182,12 @@ export function createPortal(rElement: React.ReactElement, ownerDocument: Docume
  * Get an object containing the `id`, `className` and `style` keys, representing the corresponding props passed to the
  * component.
  *
- * @param {Object} props Object containing the react element props.
+ * @param {HotTableProps} props Object containing the React element props.
  * @param {Boolean} randomizeId If set to `true`, the function will randomize the `id` property when no `id` was present in the `prop` object.
  * @returns An object containing the `id`, `className` and `style` keys, representing the corresponding props passed to the
  * component.
  */
-export function getContainerAttributesProps(props, randomizeId: boolean = true): {id: string, className: string, style: object} {
+export function getContainerAttributesProps(props: HotTableProps, randomizeId: boolean = true): {id?: string, className: string, style: React.CSSProperties} {
   return {
     id: props.id || (randomizeId ? 'hot-' + Math.random().toString(36).substring(5) : undefined),
     className: props.className || '',
@@ -214,7 +214,7 @@ export function superBound<T>(that: T): T {
   const proto = Object.getPrototypeOf(Object.getPrototypeOf(that));
   const superBoundObj = {} as T;
 
-  Object.getOwnPropertyNames(proto).forEach((key) => {
+  (Object.getOwnPropertyNames(proto) as (keyof T)[]).forEach((key: keyof T) => {
     if (typeof proto[key] === 'function') {
       superBoundObj[key] = proto[key].bind(that);
     } else {

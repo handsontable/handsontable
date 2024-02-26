@@ -28,6 +28,6 @@ const HotColumnContextProvider: React.FC<React.PropsWithChildren<HotColumnContex
   );
 };
 
-const useHotColumnContext = () => React.useContext(HotColumnContext);
+const useHotColumnContext = () => React.useContext(HotColumnContext)!;
 
 export { useHotColumnContext, HotColumnContextProvider };

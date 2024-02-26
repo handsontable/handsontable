@@ -6,11 +6,11 @@ import {
   mockElementDimensions,
   mountComponentWithRef
 } from './_helpers';
-import { HotRendererProps } from '../src'
+import { HotRendererProps, HotTableRef } from '../src/types'
 
 describe('React Context', () => {
   it('should be possible to declare a context and use it inside both renderers and editors', async () => {
-    let hotTableInstance = null;
+    let hotTableInstance: HotTableRef = null!;
     const TestContext = React.createContext('def-test-val');
 
     function RendererComponent2() {
@@ -21,7 +21,7 @@ describe('React Context', () => {
       );
     }
 
-    const EditorComponent2 = ({ className }) => {
+    const EditorComponent2 = ({ className }: { className?: string }) => {
       return (
         <div className={className}>
           <TestContext.Consumer>
@@ -43,7 +43,7 @@ describe('React Context', () => {
     RendererComponent3.contextType = TestContext;
 
     class EditorComponent3 extends React.Component<{ className: string }> {
-      context: string;
+      declare context: string;
 
       render() {
         return (
@@ -55,7 +55,7 @@ describe('React Context', () => {
     }
     EditorComponent3.contextType = TestContext;
 
-    mountComponentWithRef((
+    mountComponentWithRef<HotTableRef>((
       <TestContext.Provider value={'testContextValue'}>
         <HotTable licenseKey="non-commercial-and-evaluation"
                   id="test-hot"
@@ -70,7 +70,7 @@ describe('React Context', () => {
                     mockElementDimensions(this.rootElement, 300, 300);
                   }}
                   ref={function (instance) {
-                    hotTableInstance = instance;
+                    hotTableInstance = instance!;
                   }}>
           <HotColumn renderer={RendererComponent2}
                      editor={() => <EditorComponent2 className="ec2" />} />
@@ -80,16 +80,16 @@ describe('React Context', () => {
       </TestContext.Provider>
     ));
 
-    const hotInstance = hotTableInstance.hotInstance;
+    const hotInstance = hotTableInstance.hotInstance!;
 
-    expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>testContextValue</div>');
-    expect(hotInstance.getCell(1, 0).innerHTML).toEqual('<div>testContextValue</div>');
+    expect(hotInstance.getCell(0, 0)!.innerHTML).toEqual('<div>testContextValue</div>');
+    expect(hotInstance.getCell(1, 0)!.innerHTML).toEqual('<div>testContextValue</div>');
 
-    expect(document.querySelector('.ec2').innerHTML).toEqual('testContextValue');
+    expect(document.querySelector('.ec2')!.innerHTML).toEqual('testContextValue');
 
-    expect(hotInstance.getCell(0, 1).innerHTML).toEqual('<div>testContextValue</div>');
-    expect(hotInstance.getCell(1, 1).innerHTML).toEqual('<div>testContextValue</div>');
+    expect(hotInstance.getCell(0, 1)!.innerHTML).toEqual('<div>testContextValue</div>');
+    expect(hotInstance.getCell(1, 1)!.innerHTML).toEqual('<div>testContextValue</div>');
 
-    expect(document.querySelector('.ec3').innerHTML).toEqual('testContextValue');
+    expect(document.querySelector('.ec3')!.innerHTML).toEqual('testContextValue');
   });
 });

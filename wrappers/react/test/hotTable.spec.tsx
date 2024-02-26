@@ -20,7 +20,7 @@ import {
   OBSOLETE_HOTRENDERER_WARNING,
   UNEXPECTED_HOTTABLE_CHILDREN_WARNING
 } from '../src/helpers'
-import { HotTableProps } from '../src/types'
+import { HotTableProps, HotTableRef } from '../src/types'
 import { HotColumn } from '../src/hotColumn'
 
 // register Handsontable's modules
@@ -28,22 +28,22 @@ registerAllModules();
 
 describe('Handsontable initialization', () => {
   it('should render Handsontable when using the HotTable component', async () => {
-    const hotInstance = mountComponentWithRef((
+    const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable
         id="test-hot"
         data={[[2]]}
         licenseKey="non-commercial-and-evaluation"
       />
-    )).hotInstance;
+    )).hotInstance!;
 
-    expect(hotInstance).not.toBe(null);
-    expect(hotInstance).not.toBe(void 0);
+    expect(hotInstance as any).not.toBe(null);
+    expect(hotInstance as any).not.toBe(void 0);
 
     expect(hotInstance.rootElement.id).toEqual('test-hot');
   });
 
   it('should pass the provided properties to the Handsontable instance', async () => {
-    const hotInstance = mountComponentWithRef((
+    const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable
         id="test-hot"
         contextMenu={true}
@@ -51,7 +51,7 @@ describe('Handsontable initialization', () => {
         colHeaders={true}
         data={[[2]]}
         licenseKey="non-commercial-and-evaluation"/>
-    )).hotInstance;
+    )).hotInstance!;
 
     expect(hotInstance.rootElement.id).toBe('test-hot');
     expect(hotInstance.getSettings().contextMenu).toBe(true);
@@ -71,7 +71,7 @@ describe('Updating the Handsontable settings', () => {
     };
 
     const hotTableRef = renderHotTableWithProps(hotSettings, false);
-    const hotInstance = hotTableRef.current.hotInstance;
+    const hotInstance = hotTableRef.current!.hotInstance!;
 
     let updateSettingsCount = 0;
 
@@ -101,7 +101,7 @@ describe('Updating the Handsontable settings', () => {
     };
 
     const hotTableRef = renderHotTableWithProps(hotSettings, false);
-    const hotInstance = hotTableRef.current.hotInstance;
+    const hotInstance = hotTableRef.current!.hotInstance!;
 
     expect(hotInstance.getSettings().contextMenu).toEqual(void 0);
     expect(hotInstance.getSettings().readOnly).toEqual(false);
@@ -125,7 +125,7 @@ describe('Updating the Handsontable settings', () => {
 
 describe('Renderer configuration using React components', () => {
   it('should use the renderer component as Handsontable renderer, when it\'s passed as component to HotTable renderer prop', async () => {
-    const hotInstance = mountComponentWithRef((
+    const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(100, 100)}
@@ -140,9 +140,9 @@ describe('Renderer configuration using React components', () => {
                 }}
                 renderer={RendererComponent}>
       </HotTable>
-    )).hotInstance;
+    )).hotInstance!;
 
-    expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>value: A1</div>');
+    expect(hotInstance.getCell(0, 0)!.innerHTML).toEqual('<div>value: A1</div>');
 
     await act(async() => {
       hotInstance.scrollViewportTo({
@@ -155,7 +155,7 @@ describe('Renderer configuration using React components', () => {
 
     await sleep(100);
 
-    expect(hotInstance.getCell(99, 1).innerHTML).toEqual('<div>value: B100</div>');
+    expect(hotInstance.getCell(99, 1)!.innerHTML).toEqual('<div>value: B100</div>');
 
     await act(async() => {
       hotInstance.scrollViewportTo({
@@ -167,11 +167,11 @@ describe('Renderer configuration using React components', () => {
 
     await sleep(100);
 
-    expect(hotInstance.getCell(99, 99).innerHTML).toEqual('<div>value: CV100</div>');
+    expect(hotInstance.getCell(99, 99)!.innerHTML).toEqual('<div>value: CV100</div>');
   });
 
   it('should use the renderer component as Handsontable renderer, when it\'s passed inline to HotTable renderer prop', async () => {
-    const hotInstance = mountComponentWithRef((
+    const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(100, 100)}
@@ -186,9 +186,9 @@ describe('Renderer configuration using React components', () => {
                 }}
                 renderer={(props) => <RendererComponent {...props} />}>
       </HotTable>
-    )).hotInstance;
+    )).hotInstance!;
 
-    expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>value: A1</div>');
+    expect(hotInstance.getCell(0, 0)!.innerHTML).toEqual('<div>value: A1</div>');
 
     await act(async() => {
       hotInstance.scrollViewportTo({
@@ -201,7 +201,7 @@ describe('Renderer configuration using React components', () => {
 
     await sleep(100);
 
-    expect(hotInstance.getCell(99, 1).innerHTML).toEqual('<div>value: B100</div>');
+    expect(hotInstance.getCell(99, 1)!.innerHTML).toEqual('<div>value: B100</div>');
 
     await act(async() => {
       hotInstance.scrollViewportTo({
@@ -213,11 +213,11 @@ describe('Renderer configuration using React components', () => {
 
     await sleep(100);
 
-    expect(hotInstance.getCell(99, 99).innerHTML).toEqual('<div>value: CV100</div>');
+    expect(hotInstance.getCell(99, 99)!.innerHTML).toEqual('<div>value: CV100</div>');
   });
 
   it('should use the renderer function as native Handsontable renderer, when it\'s passed to HotTable hotRenderer prop', async () => {
-    const hotInstance = mountComponentWithRef((
+    const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(100, 100)}
@@ -232,9 +232,9 @@ describe('Renderer configuration using React components', () => {
                 }}
                 hotRenderer={customNativeRenderer}>
       </HotTable>
-    )).hotInstance;
+    )).hotInstance!;
 
-    expect(hotInstance.getCell(0, 0).innerHTML).toEqual('value: A1');
+    expect(hotInstance.getCell(0, 0)!.innerHTML).toEqual('value: A1');
 
     await act(async() => {
       hotInstance.scrollViewportTo({
@@ -247,7 +247,7 @@ describe('Renderer configuration using React components', () => {
 
     await sleep(100);
 
-    expect(hotInstance.getCell(99, 1).innerHTML).toEqual('value: B100');
+    expect(hotInstance.getCell(99, 1)!.innerHTML).toEqual('value: B100');
 
     await act(async() => {
       hotInstance.scrollViewportTo({
@@ -259,13 +259,13 @@ describe('Renderer configuration using React components', () => {
 
     await sleep(100);
 
-    expect(hotInstance.getCell(99, 99).innerHTML).toEqual('value: CV100');
+    expect(hotInstance.getCell(99, 99)!.innerHTML).toEqual('value: CV100');
   });
 
   it('should issue a warning when the renderer component is nested under HotTable and assigned the \'hot-renderer\' attribute', async () => {
     console.warn = jasmine.createSpy('warn');
 
-    const hotInstance = mountComponentWithRef((
+    const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(100, 100)}
@@ -278,11 +278,12 @@ describe('Renderer configuration using React components', () => {
                 init={function () {
                   mockElementDimensions(this.rootElement, 300, 300);
                 }}>
+        {/* @ts-ignore */}
         <RendererComponent hot-renderer></RendererComponent>
       </HotTable>
-    )).hotInstance;
+    )).hotInstance!;
 
-    expect(hotInstance.getCell(0, 0).innerHTML).not.toEqual('<div>value: A1</div>');
+    expect(hotInstance.getCell(0, 0)!.innerHTML).not.toEqual('<div>value: A1</div>');
 
     expect(console.warn).toHaveBeenCalledWith(OBSOLETE_HOTRENDERER_WARNING);
   });
@@ -290,7 +291,7 @@ describe('Renderer configuration using React components', () => {
 
 describe('Editor configuration using React components', () => {
   it('should use the editor component as Handsontable editor and mount it in the root tree of the document', async () => {
-    mountComponentWithRef((
+    mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 3)}
@@ -302,15 +303,15 @@ describe('Editor configuration using React components', () => {
                   mockElementDimensions(this.rootElement, 300, 300);
                 }}
                 editor={EditorComponent} />
-    )).hotInstance;
+    ));
 
-    const editorElement = document.querySelector('#editorComponentContainer');
+    const editorElement = document.querySelector('#editorComponentContainer')!;
 
-    expect(editorElement.parentElement.parentElement).toBe(document.body);
+    expect(editorElement.parentElement!.parentElement).toBe(document.body);
   });
 
   it('should use the editor component as Handsontable editor, when it\'s passed as component to HotTable editor prop', async () => {
-    const hotInstance = mountComponentWithRef((
+    const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 3)}
@@ -322,7 +323,7 @@ describe('Editor configuration using React components', () => {
                   mockElementDimensions(this.rootElement, 300, 300);
                 }}
                 editor={EditorComponent} />
-    )).hotInstance;
+    )).hotInstance!;
 
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
 
@@ -341,14 +342,14 @@ describe('Editor configuration using React components', () => {
     expect(hotInstance.getDataAtCell(0, 0)).toEqual('new-value');
 
     await act(async () => {
-      hotInstance.getActiveEditor().close();
+      hotInstance.getActiveEditor()!.close();
     });
 
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
   });
 
   it('should use the editor component as Handsontable editor, when it\'s passed inline to HotTable editor prop', async () => {
-    const hotInstance = mountComponentWithRef((
+    const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 3)}
@@ -360,7 +361,7 @@ describe('Editor configuration using React components', () => {
                   mockElementDimensions(this.rootElement, 300, 300);
                 }}
                 editor={() => <EditorComponent /> } />
-    )).hotInstance;
+    )).hotInstance!;
 
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
 
@@ -379,14 +380,14 @@ describe('Editor configuration using React components', () => {
     expect(hotInstance.getDataAtCell(0, 0)).toEqual('new-value');
 
     await act(async () => {
-      hotInstance.getActiveEditor().close();
+      hotInstance.getActiveEditor()!.close();
     });
 
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
   });
 
   it('should use the editor class as native Handsontable editor, when it\'s passed to HotTable hotEditor prop', async () => {
-    const hotInstance = mountComponentWithRef((
+    const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 3)}
@@ -398,20 +399,20 @@ describe('Editor configuration using React components', () => {
                   mockElementDimensions(this.rootElement, 300, 300);
                 }}
                 hotEditor={CustomNativeEditor} />
-    )).hotInstance;
+    )).hotInstance!;
 
     await act(async () => {
       hotInstance.selectCell(0, 1);
       simulateKeyboardEvent('keydown', 13);
-      document.activeElement.value = 'hello';
-      hotInstance.getActiveEditor().finishEditing(false);
+      (document.activeElement as HTMLInputElement).value = 'hello';
+      hotInstance.getActiveEditor()!.finishEditing(false);
     });
 
     expect(hotInstance.getDataAtCell(0, 1)).toEqual('--hello--');
   });
 
   it('should use the correct editor inside HotTable component depends on its mount state', async () => {
-    const hotTableInstanceRef = React.createRef();
+    const hotTableInstanceRef = React.createRef<HotTableRef>();
 
     const hotSettings: HotTableProps = {
       licenseKey: "non-commercial-and-evaluation",
@@ -428,14 +429,14 @@ describe('Editor configuration using React components', () => {
 
     renderHotTableWithProps(hotSettings, false, hotTableInstanceRef);
 
-    const hotInstance = hotTableInstanceRef.current.hotInstance;
+    const hotInstance = hotTableInstanceRef.current!.hotInstance!;
 
     await act(async() => {
       hotInstance.selectCell(0, 0);
     });
 
     {
-      const activeEditor = hotInstance.getActiveEditor();
+      const activeEditor = hotInstance.getActiveEditor()!;
 
       expect(activeEditor.constructor.name).toBe('TextEditor');
 
@@ -454,7 +455,7 @@ describe('Editor configuration using React components', () => {
     });
 
     {
-      const activeEditor = hotInstance.getActiveEditor();
+      const activeEditor = hotInstance.getActiveEditor()!;
 
       expect(activeEditor.constructor.name).toBe('CustomEditor');
 
@@ -473,7 +474,7 @@ describe('Editor configuration using React components', () => {
     });
 
     {
-      const activeEditor = hotInstance.getActiveEditor();
+      const activeEditor = hotInstance.getActiveEditor()!;
 
       expect(activeEditor.constructor.name).toBe('TextEditor');
 
@@ -482,7 +483,7 @@ describe('Editor configuration using React components', () => {
   });
 
   it('should use the correct renderer inside HotTable component depends on its mount state', async () => {
-    const hotTableInstanceRef = React.createRef();
+    const hotTableInstanceRef = React.createRef<HotTableRef>();
 
     const hotSettings: HotTableProps = {
       licenseKey: "non-commercial-and-evaluation",
@@ -498,7 +499,7 @@ describe('Editor configuration using React components', () => {
 
     renderHotTableWithProps(hotSettings, false, hotTableInstanceRef);
 
-    const hotInstance = hotTableInstanceRef.current.hotInstance;
+    const hotInstance = hotTableInstanceRef.current!.hotInstance!;
 
     await act(async() => {
       hotInstance.selectCell(0, 0);

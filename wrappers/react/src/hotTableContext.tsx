@@ -28,7 +28,7 @@ export interface HotTableContextImpl {
    * Return a renderer wrapper function for the provided renderer component.
    *
    * @param {React.ComponentType<HotRendererProps>} Renderer React renderer component.
-   * @returns {Handsontable.renderers.Base} The Handsontable rendering function.
+   * @returns {Handsontable.renderers.BaseRenderer} The Handsontable rendering function.
    */
   readonly getRendererWrapper: (Renderer: React.ComponentType<HotRendererProps>) => typeof Handsontable.renderers.BaseRenderer;
 
@@ -82,7 +82,7 @@ const HotTableContextProvider: React.FC<React.PropsWithChildren> = ({ children }
       const portalKey = `${key}-${instanceGuid}`
 
       if (renderedCellCache.current.has(key)) {
-        TD.innerHTML = renderedCellCache.current.get(key).innerHTML;
+        TD.innerHTML = renderedCellCache.current.get(key)!.innerHTML;
       }
 
       if (TD && !TD.getAttribute('ghost-table')) {
@@ -152,8 +152,8 @@ const HotTableContextProvider: React.FC<React.PropsWithChildren> = ({ children }
  *
  * @returns HotTableContext
  */
-function useHotTableContext() {
-  return React.useContext(HotTableContext);
+function useHotTableContext(): HotTableContextImpl {
+  return React.useContext(HotTableContext)!;
 }
 
 export { HotTableContextProvider, useHotTableContext };

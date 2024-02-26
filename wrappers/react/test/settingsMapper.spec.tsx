@@ -4,15 +4,13 @@ import { HotTableProps } from '../src/types';
 describe('Settings mapper unit tests', () => {
   describe('getSettings', () => {
     it('should return a valid settings object, when provided an object with settings (including the hooks)', () => {
-      const settingsMapper = new SettingsMapper();
-
       const initial: HotTableProps = {
         width: 300,
         height: 300,
         contextMenu: true,
         columns: [
-          {label: 'first label'},
-          {label: 'second label'}
+          { label: { value: 'first label' }},
+          { label: { value: 'second label' }}
         ],
         afterChange: () => {
           return 'works!';
@@ -21,7 +19,7 @@ describe('Settings mapper unit tests', () => {
           return 'also works!';
         }
       };
-      const result: {[key: string]: any} = SettingsMapper.getSettings(initial);
+      const result = SettingsMapper.getSettings(initial);
 
       expect(!!result.width && !!result.height && !!result.contextMenu && !!result.columns && !!result.afterChange && !!result.afterRender).toEqual(true);
       expect(Object.keys(initial).length).toEqual(Object.keys(result).length);
@@ -31,8 +29,8 @@ describe('Settings mapper unit tests', () => {
       expect(JSON.stringify(initial.columns)).toEqual(JSON.stringify(result.columns));
       expect(JSON.stringify(result.afterChange)).toEqual(JSON.stringify(initial.afterChange));
       expect(JSON.stringify(result.afterRender)).toEqual(JSON.stringify(initial.afterRender));
-      expect(result.afterChange()).toEqual('works!');
-      expect(result.afterRender()).toEqual('also works!');
+      expect((result.afterChange as any)()).toEqual('works!');
+      expect((result.afterRender as any)()).toEqual('also works!');
     });
   });
 });
