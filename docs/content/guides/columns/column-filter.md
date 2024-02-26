@@ -1917,7 +1917,7 @@ const handsontableInstance = new Handsontable(container, {
 ```
 
 ```css
-.customFilterButtonExample1 .changeType {
+.handsontable.customFilterButtonExample1 .changeType {
   background: #e2e2e2;
   border-radius: 100%;
   width: 16px;
@@ -1927,7 +1927,7 @@ const handsontableInstance = new Handsontable(container, {
   border: none;
 }
 
-.customFilterButtonExample1 .changeType::before {
+.handsontable.customFilterButtonExample1 .changeType::before {
   content: '▼ ';
   zoom: 0.9;
 }
@@ -2057,7 +2057,7 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomFilterButton'));
 ```
 
 ```css
-.customFilterButtonExample1 .changeType {
+.handsontable.customFilterButtonExample1 .changeType {
   background: #e2e2e2;
   border-radius: 100%;
   width: 16px;
@@ -2067,7 +2067,7 @@ ReactDOM.render(<App />, document.getElementById('exampleCustomFilterButton'));
   border: none;
 }
 
-.customFilterButtonExample1 .changeType::before {
+.handsontable.customFilterButtonExample1 .changeType::before {
   content: '▼ ';
   zoom: 0.9;
 }

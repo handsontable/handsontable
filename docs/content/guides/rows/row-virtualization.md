@@ -140,4 +140,4 @@ Using row virtualization has the following side effects:
 
 - Configuration options:
   - [`renderAllRows`](@/api/options.md#renderallrows)
-  - [`viewportRowsRenderingOffset`](@/api/options.md#viewportrowsrenderingoffset)
+  - [`viewportRowsRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
