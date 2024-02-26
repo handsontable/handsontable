@@ -107,9 +107,9 @@ export class CopyPaste extends BasePlugin {
   rowsLimit = Infinity;
   /**
    * When pasting:
-   * - `'overwrite'`: overwrite the currently-selected cells
-   * - `'shift_down'`: move currently-selected cells down
-   * - `'shift_right'`: move currently-selected cells to the right
+   * - `'overwrite'` - overwrite the currently-selected cells
+   * - `'shift_down'` - move currently-selected cells down
+   * - `'shift_right'` - move currently-selected cells to the right
    *
    * @type {string}
    * @default 'overwrite'
