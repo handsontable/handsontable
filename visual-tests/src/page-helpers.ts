@@ -134,7 +134,6 @@ export async function makeSelectionFromCell(cell:Locator, size:number) {
     cellCoordinates!.y + (cellCoordinates!.height / 2) + size
   );
   await page.mouse.up();
-  await page.screenshot({ path: helpers.screenshotPath() });
 }
 
 /**
