@@ -3,7 +3,7 @@ import { helpers } from '../src/helpers';
 import { openHeaderDropdownMenu, selectFromDropdownMenu } from '../src/page-helpers';
 
 test(__filename, async({ page }) => {
-  openHeaderDropdownMenu(2);
+  await openHeaderDropdownMenu(2);
 
   // The dropdown menu should be open
   await page.screenshot({ path: helpers.screenshotPath() });

@@ -95,12 +95,23 @@ export async function createSelection(cellFrom:Locator, cellTo:Locator) {
 /**
  * @param {Locator} cell Cell locator.
  */
-export async function clickWithModifiers(cell:Locator) {
+export async function clickWithPositionAndModifiers(cell:Locator) {
 
   await cell
     .click({
       position: { x: 1, y: 1 },
       modifiers: [helpers.modifier],
+    });
+}
+
+/**
+ * @param {Locator} cell Cell locator.
+ */
+export async function clickWithPosition(cell:Locator) {
+
+  await cell
+    .click({
+      position: { x: 1, y: 1 },
     });
 }
 

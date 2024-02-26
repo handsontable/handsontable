@@ -23,11 +23,10 @@ export async function test(filename: string, callback: (pageInfo: { page: Page }
 
     await page.goto(helpers.testURL);
     await expect(page).toHaveTitle(helpers.expectedPageTitle);
+    stylesToAdd.forEach(item => page.addStyleTag({ path: helpers.cssPath(item) }));
     const table = page.locator(helpers.selectors.mainTable);
 
     await table.waitFor();
-    stylesToAdd.forEach(item => page.addStyleTag({ path: helpers.cssPath(item) }));
-
     await callback({ page });
   });
 }

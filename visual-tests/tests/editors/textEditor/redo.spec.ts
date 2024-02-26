@@ -13,7 +13,7 @@ test(__filename, async({ page }) => {
 
   const cellEditor = await selectEditor();
 
-  await cellEditor.fill('test');
+  await cellEditor.type('test');
 
   await page.screenshot({ path: helpers.screenshotPath() });
 
