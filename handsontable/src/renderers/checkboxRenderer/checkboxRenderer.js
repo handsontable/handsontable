@@ -213,11 +213,15 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
     for (let key = 0; key < selRange.length; key++) {
       const { row: startRow, col: startColumn } = selRange[key].getTopStartCorner();
       const { row: endRow, col: endColumn } = selRange[key].getBottomEndCorner();
-      const changes = [];
+      let changes = [];
 
       for (let visualRow = startRow; visualRow <= endRow; visualRow += 1) {
         for (let visualColumn = startColumn; visualColumn <= endColumn; visualColumn += 1) {
           const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
+          const templates = {
+            checkedTemplate: cachedCellProperties.checkedTemplate,
+            uncheckedTemplate: cachedCellProperties.uncheckedTemplate,
+          };
 
           if (cachedCellProperties.type !== 'checkbox') {
             return;
@@ -239,16 +243,24 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
 
           if (uncheckCheckbox === false) {
             if ([cachedCellProperties.checkedTemplate, cachedCellProperties.checkedTemplate.toString()].includes(dataAtCell)) { // eslint-disable-line max-len
-              changes.push([visualRow, visualColumn, cachedCellProperties.uncheckedTemplate]);
+              changes.push([visualRow, visualColumn, cachedCellProperties.uncheckedTemplate, templates]);
 
             } else if ([cachedCellProperties.uncheckedTemplate, cachedCellProperties.uncheckedTemplate.toString(), null, undefined].includes(dataAtCell)) { // eslint-disable-line max-len
-              changes.push([visualRow, visualColumn, cachedCellProperties.checkedTemplate]);
+              changes.push([visualRow, visualColumn, cachedCellProperties.checkedTemplate, templates]);
             }
 
           } else {
-            changes.push([visualRow, visualColumn, cachedCellProperties.uncheckedTemplate]);
+            changes.push([visualRow, visualColumn, cachedCellProperties.uncheckedTemplate, templates]);
           }
         }
+      }
+
+      if (!changes.every(([, , cellValue]) => cellValue === changes[0][2])) {
+        changes = changes.map(
+          ([visualRow, visualColumn, , templates]) => [visualRow, visualColumn, templates.checkedTemplate]
+        );
+      } else {
+        changes = changes.map(([visualRow, visualColumn, cellValue]) => [visualRow, visualColumn, cellValue]);
       }
 
       if (changes.length > 0) {
