@@ -1801,7 +1801,7 @@ export default () => {
      *
      * // enable the `DropdownMenu` plugin
      * // and modify individual context menu options
-     * dropdownMenu: ['row_above', 'row_below', '---------', 'undo', 'redo'],
+     * dropdownMenu: ['---------', 'undo', 'redo'],
      *
      * // enable the `DropdownMenu` plugin
      * // and apply a custom dropdown menu configuration
