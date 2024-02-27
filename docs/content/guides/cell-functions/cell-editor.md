@@ -186,7 +186,7 @@ You can also declare a custom editor for the `HotTable` component by declaring i
 
 The following example implements the `@handsontable/react` component with a custom editor added, utilizing the `placeholder` attribute in the editor's `input` element.
 
-::: example #example2 :react  --no-edit
+::: example #example2 :react 
 
 ```jsx
 import { HotTable } from '@handsontable/react';
