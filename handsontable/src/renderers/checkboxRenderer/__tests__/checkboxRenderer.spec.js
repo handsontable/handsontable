@@ -370,8 +370,8 @@ describe('CheckboxRenderer', () => {
     ], 'edit');
   });
 
-  it('should reverse checkboxes state within sub-selection after hitting space, when multiple non-contiguous cells are ' +
-  'selected and all of the cells in their respective selection share the same value', () => {
+  it('should reverse checkboxes state after hitting space, when multiple non-contiguous cells are ' +
+  'selected and all of the cells in the entire selection share the same value', () => {
     handsontable({
       data: [[true, true], [true, true]],
       columns: [
@@ -405,7 +405,7 @@ describe('CheckboxRenderer', () => {
     expect(getData()).toEqual([[false, false], [false, false]]);
     expect(afterChangeCallback1.calls.count()).toEqual(2);
 
-    updateData([[true, true], [false, false]]);
+    updateData([[false, false], [false, false]]);
 
     const afterChangeCallback2 = jasmine.createSpy('afterChangeCallback');
 
@@ -413,11 +413,11 @@ describe('CheckboxRenderer', () => {
 
     checkboxes = spec().$container.find(':checkbox');
 
-    expect(checkboxes.eq(0).prop('checked')).toBe(true);
-    expect(checkboxes.eq(1).prop('checked')).toBe(true);
+    expect(checkboxes.eq(0).prop('checked')).toBe(false);
+    expect(checkboxes.eq(1).prop('checked')).toBe(false);
     expect(checkboxes.eq(2).prop('checked')).toBe(false);
     expect(checkboxes.eq(3).prop('checked')).toBe(false);
-    expect(getData()).toEqual([[true, true], [false, false]]);
+    expect(getData()).toEqual([[false, false], [false, false]]);
 
     selectCells([[0, 0, 0, 1], [1, 0, 1, 1]]);
 
@@ -425,17 +425,18 @@ describe('CheckboxRenderer', () => {
 
     checkboxes = spec().$container.find(':checkbox');
 
-    expect(checkboxes.eq(0).prop('checked')).toBe(false);
-    expect(checkboxes.eq(1).prop('checked')).toBe(false);
+    expect(checkboxes.eq(0).prop('checked')).toBe(true);
+    expect(checkboxes.eq(1).prop('checked')).toBe(true);
     expect(checkboxes.eq(2).prop('checked')).toBe(true);
     expect(checkboxes.eq(3).prop('checked')).toBe(true);
-    expect(getData()).toEqual([[false, false], [true, true]]);
+    expect(getData()).toEqual([[true, true], [true, true]]);
     expect(afterChangeCallback2.calls.count()).toEqual(2);
   });
 
-  it('should make appropriate changes to the checkboxes\' states within their own respective sub-selections', () => {
+  it('should check all the checkboxes in the enteire selection after hitting space, when multiple non-contiguous cells ' +
+  'are selected and they vary in value', () => {
     handsontable({
-      data: [[true, false], [true, true]],
+      data: [[true, true], [true, false]],
       columns: [
         { type: 'checkbox' },
         { type: 'checkbox' },
@@ -449,10 +450,10 @@ describe('CheckboxRenderer', () => {
     let checkboxes = spec().$container.find(':checkbox');
 
     expect(checkboxes.eq(0).prop('checked')).toBe(true);
-    expect(checkboxes.eq(1).prop('checked')).toBe(false);
+    expect(checkboxes.eq(1).prop('checked')).toBe(true);
     expect(checkboxes.eq(2).prop('checked')).toBe(true);
-    expect(checkboxes.eq(3).prop('checked')).toBe(true);
-    expect(getData()).toEqual([[true, false], [true, true]]);
+    expect(checkboxes.eq(3).prop('checked')).toBe(false);
+    expect(getData()).toEqual([[true, true], [true, false]]);
 
     selectCells([[0, 0, 0, 1], [1, 0, 1, 1]]);
 
@@ -462,15 +463,16 @@ describe('CheckboxRenderer', () => {
 
     expect(checkboxes.eq(0).prop('checked')).toBe(true);
     expect(checkboxes.eq(1).prop('checked')).toBe(true);
-    expect(checkboxes.eq(2).prop('checked')).toBe(false);
-    expect(checkboxes.eq(3).prop('checked')).toBe(false);
-    expect(getData()).toEqual([[true, true], [false, false]]);
+    expect(checkboxes.eq(2).prop('checked')).toBe(true);
+    expect(checkboxes.eq(3).prop('checked')).toBe(true);
+    expect(getData()).toEqual([[true, true], [true, true]]);
     expect(afterChangeCallback1.calls.count()).toEqual(2);
   });
 
-  it('should reverse checkboxes state after hitting enter, when multiple non-contiguous cells are selected', () => {
+  it('should reverse checkboxes state after hitting enter, when multiple non-contiguous cells are selected and they ' +
+  'share the same value', () => {
     handsontable({
-      data: [[false], [true], [true]],
+      data: [[true], [true], [true]],
       columns: [
         { type: 'checkbox' }
       ]
@@ -482,10 +484,10 @@ describe('CheckboxRenderer', () => {
 
     let checkboxes = spec().$container.find(':checkbox');
 
-    expect(checkboxes.eq(0).prop('checked')).toBe(false);
+    expect(checkboxes.eq(0).prop('checked')).toBe(true);
     expect(checkboxes.eq(1).prop('checked')).toBe(true);
     expect(checkboxes.eq(2).prop('checked')).toBe(true);
-    expect(getData()).toEqual([[false], [true], [true]]);
+    expect(getData()).toEqual([[true], [true], [true]]);
 
     selectCells([[0, 0], [2, 0]]);
 
@@ -493,10 +495,10 @@ describe('CheckboxRenderer', () => {
 
     checkboxes = spec().$container.find(':checkbox');
 
-    expect(checkboxes.eq(0).prop('checked')).toBe(true);
+    expect(checkboxes.eq(0).prop('checked')).toBe(false);
     expect(checkboxes.eq(1).prop('checked')).toBe(true);
     expect(checkboxes.eq(2).prop('checked')).toBe(false);
-    expect(getData()).toEqual([[true], [true], [false]]);
+    expect(getData()).toEqual([[false], [true], [false]]);
     expect(afterChangeCallback.calls.count()).toEqual(2);
   });
 
