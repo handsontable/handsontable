@@ -228,12 +228,16 @@ const hot = new Handsontable(container, {
 
 getButton.addEventListener('click', event => {
   const selected = hot.getSelected() || [];
-  const data = [];
+  let data = [];
+	
+  if (selected.length === 1) {
+  	data = hot.getData(...selected[0]);
+  } else {
+    for (let i = 0; i < selected.length; i += 1) {
+      const item = selected[i];
 
-  for (let i = 0; i < selected.length; i += 1) {
-    const item = selected[i];
-
-    data.push(hot.getData(...item));
+      data.push(hot.getData(...item));
+    }
   }
 
   output.innerText = JSON.stringify(data);
