@@ -134,6 +134,7 @@ class Selection {
       countRenderableColumns: () => this.tableProps.countRenderableColumns(),
       visualToRenderableCoords: coords => this.tableProps.visualToRenderableCoords(coords),
       renderableToVisualCoords: coords => this.tableProps.renderableToVisualCoords(coords),
+      findFirstNonHiddenCoords: (...args) => this.tableProps.findFirstNonHiddenCoords(...args),
       createCellCoords: (row, column) => this.tableProps.createCellCoords(row, column),
       fixedRowsBottom: () => settings.fixedRowsBottom,
       minSpareRows: () => settings.minSpareRows,
@@ -156,6 +157,7 @@ class Selection {
       },
       visualToRenderableCoords: coords => this.tableProps.visualToRenderableCoords(coords),
       renderableToVisualCoords: coords => this.tableProps.renderableToVisualCoords(coords),
+      findFirstNonHiddenCoords: (...args) => this.tableProps.findFirstNonHiddenCoords(...args),
       createCellCoords: (row, column) => this.tableProps.createCellCoords(row, column),
       fixedRowsBottom: () => 0,
       minSpareRows: () => 0,
@@ -170,6 +172,8 @@ class Selection {
       (...args) => this.runLocalHooks('afterModifyTransformStart', ...args));
     this.#transformation.addLocalHook('beforeTransformEnd',
       (...args) => this.runLocalHooks('beforeModifyTransformEnd', ...args));
+    this.#transformation.addLocalHook('modifyTransformEndRestDelta',
+      (...args) => this.runLocalHooks('modifyTransformEndRestDelta', ...args));
     this.#transformation.addLocalHook('afterTransformEnd',
       (...args) => this.runLocalHooks('afterModifyTransformEnd', ...args));
     this.#transformation.addLocalHook('insertRowRequire',

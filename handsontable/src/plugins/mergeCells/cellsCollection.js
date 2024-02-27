@@ -303,6 +303,82 @@ class MergedCellsCollection {
     return this.hot._createCellCoords(firstRenderableRow, firstRenderableColumn);
   }
 
+  getStartMostColumnIndex(range, visualColumnIndex) {
+    let result = null;
+
+    for (let i = 0; i < this.mergedCells.length; i++) {
+      const mergedCell = this.mergedCells[i];
+      const topStartCorner = range.getTopStartCorner();
+      const bottomStartCorner = range.getBottomStartCorner();
+
+      if (
+        mergedCell.row >= topStartCorner.row && mergedCell.row + mergedCell.rowspan - 1 <= bottomStartCorner.row &&
+        mergedCell.col <= visualColumnIndex && mergedCell.col + mergedCell.colspan - 1 >= visualColumnIndex
+      ) {
+        result = Math.min(mergedCell.col, result ?? Infinity);
+      }
+    }
+
+    return result ?? visualColumnIndex;
+  }
+
+  getEndMostColumnIndex(range, visualColumnIndex) {
+    let result = null;
+
+    for (let i = 0; i < this.mergedCells.length; i++) {
+      const mergedCell = this.mergedCells[i];
+      const topStartCorner = range.getTopStartCorner();
+      const bottomStartCorner = range.getBottomStartCorner();
+
+      if (
+        mergedCell.row >= topStartCorner.row && mergedCell.row + mergedCell.rowspan - 1 <= bottomStartCorner.row &&
+        mergedCell.col <= visualColumnIndex && mergedCell.col + mergedCell.colspan - 1 >= visualColumnIndex
+      ) {
+        result = Math.max(mergedCell.col + mergedCell.colspan - 1, result ?? 0);
+      }
+    }
+
+    return result ?? visualColumnIndex;
+  }
+
+  getStartMostRowIndex(range, visualRowIndex) {
+    let result = null;
+
+    for (let i = 0; i < this.mergedCells.length; i++) {
+      const mergedCell = this.mergedCells[i];
+      const topStartCorner = range.getTopStartCorner();
+      const topEndCorner = range.getTopEndCorner();
+
+      if (
+        mergedCell.col >= topStartCorner.col && mergedCell.col + mergedCell.colspan - 1 <= topEndCorner.col &&
+        mergedCell.row <= visualRowIndex && mergedCell.row + mergedCell.rowspan - 1 >= visualRowIndex
+      ) {
+        result = Math.min(mergedCell.row, result ?? Infinity);
+      }
+    }
+
+    return result ?? visualRowIndex;
+  }
+
+  getEndMostRowIndex(range, visualRowIndex) {
+    let result = null;
+
+    for (let i = 0; i < this.mergedCells.length; i++) {
+      const mergedCell = this.mergedCells[i];
+      const topStartCorner = range.getTopStartCorner();
+      const topEndCorner = range.getTopEndCorner();
+
+      if (
+        mergedCell.col >= topStartCorner.col && mergedCell.col + mergedCell.colspan - 1 <= topEndCorner.col &&
+        mergedCell.row <= visualRowIndex && mergedCell.row + mergedCell.rowspan - 1 >= visualRowIndex
+      ) {
+        result = Math.max(mergedCell.row + mergedCell.rowspan - 1, result ?? 0);
+      }
+    }
+
+    return result ?? visualRowIndex;
+  }
+
   /**
    * Shift the merged cell in the direction and by an offset defined in the arguments.
    *

@@ -614,6 +614,15 @@ class TableView {
       }
     }
 
+    // const columnMax = Math.max(columnStart, columnEnd);
+    // let count = 0;
+
+    // for (let column = Math.min(columnStart, columnEnd); column <= columnMax; column++) {
+    //   if (this.hot.columnIndexMapper.getRenderableFromVisualIndex(column) !== null) {
+    //     count += 1;
+    //   }
+    // }
+
     return count;
   }
 
@@ -632,6 +641,15 @@ class TableView {
         count += 1;
       }
     }
+
+    // const rowMax = Math.max(rowStart, rowEnd);
+    // let count = 0;
+
+    // for (let row = Math.min(rowStart, rowEnd); row <= rowMax; row++) {
+    //   if (this.hot.rowIndexMapper.getRenderableFromVisualIndex(row) !== null) {
+    //     count += 1;
+    //   }
+    // }
 
     return count;
   }

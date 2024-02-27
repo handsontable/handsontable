@@ -124,6 +124,7 @@ export class MergeCells extends BasePlugin {
 
     this.addHook('modifyTransformStart', (...args) => this.#onModifyTransformStart(...args));
     this.addHook('modifyTransformEnd', (...args) => this.#onModifyTransformEnd(...args));
+    this.addHook('modifyTransformEndRestDelta', (...args) => this.#onModifyTransformEndRestDelta(...args));
     this.addHook('beforeSelectionHighlightSet', (...args) => this.#onBeforeSelectionHighlightSet(...args));
     this.addHook('beforeSetRangeStart', (...args) => this.#onBeforeSetRangeStart(...args));
     this.addHook('beforeSetRangeStartOnly', (...args) => this.#onBeforeSetRangeStart(...args));
@@ -710,75 +711,134 @@ export class MergeCells extends BasePlugin {
    */
   #onModifyTransformEnd(delta) {
     const selectedRange = this.hot.getSelectedRangeLast();
+    const cloneRange = selectedRange.clone();
     const { to } = selectedRange;
     const { columnIndexMapper, rowIndexMapper } = this.hot;
-    const nextTo = this.hot._createCellCoords(to.row + delta.row, to.col + delta.col);
-    const mergedParentCurrent = this.mergedCellsCollection.get(to.row, to.col);
-    const mergedParentNext = this.mergedCellsCollection.get(nextTo.row, nextTo.col);
-
-    if (!(mergedParentCurrent && mergedParentNext && mergedParentCurrent === mergedParentNext)) {
-      return;
-    }
-
-    const visualColumnIndexStart = mergedParentCurrent.col;
-    const visualColumnIndexEnd = mergedParentCurrent.col + mergedParentCurrent.colspan - 1;
 
     if (delta.col < 0) {
-      const nextColumn = nextTo.col >= visualColumnIndexStart && nextTo.col <= visualColumnIndexEnd ?
-        visualColumnIndexStart - 1 : visualColumnIndexEnd;
-      const notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(nextColumn, -1);
+      if (selectedRange.getHorizontalDirection() === 'W-E') {
+        const nextColumn = this.mergedCellsCollection.getStartMostColumnIndex(selectedRange, to.col) + delta.col;
+        const notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(nextColumn, 1);
 
-      if (notHiddenColumnIndex === null) {
-        // There are no visible columns anymore, so move the selection out of the table edge. This will
-        // be processed by the selection Transformer class as a move selection to the previous row (if autoWrapRow is enabled).
-        delta.col = -this.hot.view.countRenderableColumnsInRange(0, to.col);
-      } else {
-        delta.col = -Math.max(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, to.col) - 1, 1);
+        if (notHiddenColumnIndex !== null) {
+          delta.col = -Math.max(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, to.col) - 1, 1);
+        }
+      } else { // E-W
+        const nextColumn = this.mergedCellsCollection.getStartMostColumnIndex(selectedRange, to.col) + delta.col;
+
+        cloneRange.expand(this.hot._createCellCoords(to.row, nextColumn));
+
+        for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
+          cloneRange.expandByRange(this.mergedCellsCollection.mergedCells[i].getRange());
+        }
+
+        const notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(cloneRange.getTopStartCorner().col, 1);
+
+        if (notHiddenColumnIndex !== null) {
+          delta.col = -Math.max(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, to.col) - 1, 1);
+        }
       }
 
     } else if (delta.col > 0) {
-      const nextColumn = nextTo.col >= visualColumnIndexStart && nextTo.col <= visualColumnIndexEnd ?
-        visualColumnIndexEnd + 1 : visualColumnIndexStart;
-      const notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(nextColumn, 1);
+      if (selectedRange.getHorizontalDirection() === 'W-E') {
+        const nextColumn = this.mergedCellsCollection.getEndMostColumnIndex(selectedRange, to.col) + delta.col;
 
-      if (notHiddenColumnIndex === null) {
-        // There are no visible columns anymore, so move the selection out of the table edge. This will
-        // be processed by the selection Transformer class as a move selection to the next row (if autoWrapRow is enabled).
-        delta.col = this.hot.view.countRenderableColumnsInRange(to.col, this.hot.countCols());
-      } else {
-        delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(to.col, notHiddenColumnIndex) - 1, 1);
+        cloneRange.expand(this.hot._createCellCoords(to.row, nextColumn));
+
+        for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
+          cloneRange.expandByRange(this.mergedCellsCollection.mergedCells[i].getRange(), false);
+        }
+
+        const notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(cloneRange.getTopEndCorner().col, -1);
+
+        if (notHiddenColumnIndex !== null) {
+          delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(to.col, notHiddenColumnIndex) - 1, 1);
+        }
+      } else { // E-W
+        const nextColumn = this.mergedCellsCollection.getEndMostColumnIndex(selectedRange, to.col) + delta.col;
+        const notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(nextColumn, 1);
+
+        if (notHiddenColumnIndex !== null) {
+          delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(to.col, notHiddenColumnIndex) - 1, 1);
+        }
       }
     }
 
-    const visualRowIndexStart = mergedParentCurrent.row;
-    const visualRowIndexEnd = mergedParentCurrent.row + mergedParentCurrent.rowspan - 1;
-
     if (delta.row < 0) {
-      const nextRow = nextTo.row >= visualRowIndexStart && nextTo.row <= visualRowIndexEnd ?
-        visualRowIndexStart - 1 : visualRowIndexEnd;
-      const notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(nextRow, -1);
+      if (selectedRange.getVerticalDirection() === 'N-S') {
+        const nextRow = this.mergedCellsCollection.getStartMostRowIndex(selectedRange, to.row) + delta.row;
+        const notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(nextRow, 1);
 
-      if (notHiddenRowIndex === null) {
-        // There are no visible rows anymore, so move the selection out of the table edge. This will
-        // be processed by the selection Transformer class as a move selection to the previous column (if autoWrapCol is enabled).
-        delta.row = -this.hot.view.countRenderableRowsInRange(0, to.row);
-      } else {
-        delta.row = -Math.max(this.hot.view.countRenderableRowsInRange(notHiddenRowIndex, to.row) - 1, 1);
+        if (notHiddenRowIndex !== null) {
+          delta.row = -Math.max(this.hot.view.countRenderableRowsInRange(notHiddenRowIndex, to.row) - 1, 1);
+        }
+      } else { // S-N
+        const nextRow = this.mergedCellsCollection.getStartMostRowIndex(selectedRange, to.row) + delta.row;
+
+        cloneRange.expand(this.hot._createCellCoords(nextRow, to.col));
+
+        for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
+          cloneRange.expandByRange(this.mergedCellsCollection.mergedCells[i].getRange());
+        }
+
+        const notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(cloneRange.getTopStartCorner().row, 1);
+
+        if (notHiddenRowIndex !== null) {
+          delta.row = -Math.max(this.hot.view.countRenderableRowsInRange(notHiddenRowIndex, to.row) - 1, 1);
+        }
       }
 
     } else if (delta.row > 0) {
-      const nextRow = nextTo.row >= visualRowIndexStart && nextTo.row <= visualRowIndexEnd ?
-        visualRowIndexEnd + 1 : visualRowIndexStart;
-      const notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(nextRow, 1);
+      if (selectedRange.getVerticalDirection() === 'N-S') {
+        const nextRow = this.mergedCellsCollection.getEndMostRowIndex(selectedRange, to.row) + delta.row;
 
-      if (notHiddenRowIndex === null) {
-        // There are no visible rows anymore, so move the selection out of the table edge. This will
-        // be processed by the selection Transformer class as a move selection to the next column (if autoWrapCol is enabled).
-        delta.row = this.hot.view.countRenderableRowsInRange(to.row, this.hot.countRows());
-      } else {
-        delta.row = Math.max(this.hot.view.countRenderableRowsInRange(to.row, notHiddenRowIndex) - 1, 1);
+        cloneRange.expand(this.hot._createCellCoords(nextRow, to.col));
+
+        for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
+          cloneRange.expandByRange(this.mergedCellsCollection.mergedCells[i].getRange(), false);
+        }
+
+        const notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(cloneRange.getBottomStartCorner().row, -1);
+
+        if (notHiddenRowIndex !== null) {
+          delta.row = Math.max(this.hot.view.countRenderableRowsInRange(to.row, notHiddenRowIndex) - 1, 1);
+        }
+      } else { // S-N
+        const nextRow = this.mergedCellsCollection.getEndMostRowIndex(selectedRange, to.row) + delta.row;
+        const notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(nextRow, 1);
+
+        if (notHiddenRowIndex !== null) {
+          delta.row = Math.max(this.hot.view.countRenderableRowsInRange(to.row, notHiddenRowIndex) - 1, 1);
+        }
       }
     }
+  }
+
+  #onModifyTransformEndRestDelta(restDelta, delta, coords) {
+    const selectedRange = this.hot.getSelectedRangeLast();
+    const { highlight } = selectedRange;
+
+    const mergeParent = this.mergedCellsCollection.get(highlight.row, highlight.col);
+
+    if (!mergeParent) {
+      return;
+    }
+
+    if (delta.col > 0) {
+      restDelta.col = coords.col - selectedRange.getTopEndCorner().col;
+
+    } else if (delta.col < 0) {
+      restDelta.col = coords.col - selectedRange.getTopStartCorner().col;
+    }
+
+    if (delta.row > 0) {
+      restDelta.row = coords.row - selectedRange.getBottomStartCorner().row;
+
+    } else if (delta.row < 0) {
+      restDelta.row = coords.row - selectedRange.getTopStartCorner().row;
+    }
+
+    // console.log('restDelta', restDelta);
   }
 
   /**
@@ -794,9 +854,7 @@ export class MergeCells extends BasePlugin {
     const { highlight } = selectedRange;
 
     for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
-      const cellInfo = this.mergedCellsCollection.mergedCells[i];
-
-      selectedRange.expandByRange(cellInfo.getRange(), false);
+      selectedRange.expandByRange(this.mergedCellsCollection.mergedCells[i].getRange(), false);
     }
 
     const mergedParent = this.mergedCellsCollection.get(highlight.row, highlight.col);

@@ -186,42 +186,50 @@ class Transformation {
     const delta = this.#options.createCellCoords(rowDelta, colDelta);
     const cellRange = this.#range.current();
     const highlightRenderableCoords = this.#options.visualToRenderableCoords(cellRange.highlight);
+    const {
+      row: toRow,
+      col: toColumn,
+    } = this.#findFirstNonHiddenZeroBasedCoords(cellRange.to);
     const visualCoords = cellRange.to.clone();
     let rowTransformDir = 0;
     let colTransformDir = 0;
 
     this.runLocalHooks('beforeTransformEnd', delta);
 
-    if (highlightRenderableCoords.row !== null && highlightRenderableCoords.col !== null) {
-      const {
-        row: toRow,
-        col: toColumn,
-      } = this.#visualToZeroBasedCoords(cellRange.to);
+    if (
+      highlightRenderableCoords.row !== null && highlightRenderableCoords.col !== null &&
+      toRow !== null && toColumn !== null
+    ) {
       const {
         row: highlightRow,
         col: highlightColumn,
       } = this.#visualToZeroBasedCoords(cellRange.highlight);
       const coords = this.#options.createCellCoords(toRow + delta.row, toColumn + delta.col);
-      const columnDeltaRest = coords.col - highlightColumn;
-      const rowDeltaRest = coords.row - highlightRow;
+      const restDelta = {
+        row: coords.row - highlightRow,
+        col: coords.col - highlightColumn,
+      };
+
+      // this.runLocalHooks('modifyTransformEndRestDelta', restDelta, delta, coords);
+      // console.log('restDelta', restDelta);
 
       if (delta.col < 0) {
         if (toColumn >= highlightColumn && coords.col < highlightColumn) {
-          coords.col = this.#visualToZeroBasedCoords(cellRange.getTopStartCorner()).col + columnDeltaRest;
+          coords.col = this.#visualToZeroBasedCoords(cellRange.getTopStartCorner()).col + restDelta.col;
         }
       } else if (delta.col > 0) {
         if (toColumn <= highlightColumn && coords.col > highlightColumn) {
-          coords.col = this.#visualToZeroBasedCoords(cellRange.getTopEndCorner()).col + columnDeltaRest;
+          coords.col = this.#visualToZeroBasedCoords(cellRange.getTopEndCorner()).col + restDelta.col;
         }
       }
 
       if (delta.row < 0) {
         if (toRow >= highlightRow && coords.row < highlightRow) {
-          coords.row = this.#visualToZeroBasedCoords(cellRange.getTopStartCorner()).row + rowDeltaRest;
+          coords.row = this.#visualToZeroBasedCoords(cellRange.getTopStartCorner()).row + restDelta.row;
         }
       } else if (delta.row > 0) {
         if (toRow <= highlightRow && coords.row > highlightRow) {
-          coords.row = this.#visualToZeroBasedCoords(cellRange.getBottomStartCorner()).row + rowDeltaRest;
+          coords.row = this.#visualToZeroBasedCoords(cellRange.getBottomStartCorner()).row + restDelta.row;
         }
       }
 
@@ -302,6 +310,31 @@ class Transformation {
       width: this.#offset.x + this.#options.countRenderableColumns(),
       height: this.#offset.y + this.#options.countRenderableRows(),
     };
+  }
+
+  #findFirstNonHiddenZeroBasedCoords(visualCoords) {
+    const range = this.#range.current();
+    const verticalDir = range.getVerticalDirection() === 'N-S' ? -1 : 1;
+    const horizontalDir = range.getHorizontalDirection() === 'W-E' ? -1 : 1;
+    let { row, col } = this.#options.findFirstNonHiddenCoords(visualCoords, verticalDir, horizontalDir);
+
+    if (row === null || col === null) {
+      return this.#options.createCellCoords(null, null);
+    }
+
+    if (verticalDir === 1) {
+      row = Math.min(range.getBottomStartCorner().row, row);
+    } else {
+      row = Math.max(range.getTopStartCorner().row, row);
+    }
+
+    if (horizontalDir === 1) {
+      col = Math.min(range.getTopEndCorner().col, col);
+    } else {
+      col = Math.max(range.getTopStartCorner().col, col);
+    }
+
+    return this.#options.createCellCoords(this.#offset.y + row, this.#offset.x + col);
   }
 
   /**

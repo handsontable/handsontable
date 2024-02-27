@@ -295,6 +295,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     );
   };
 
+  const findFirstNonHiddenCoords = (coords, verticalDir, horizontalDir) => {
+    return instance._createCellCoords(
+      instance.rowIndexMapper.getNearestNotHiddenIndex(coords.row, verticalDir),
+      instance.columnIndexMapper.getNearestNotHiddenIndex(coords.col, horizontalDir),
+    );
+  };
+
   let selection = new Selection(tableMeta, {
     rowIndexMapper: instance.rowIndexMapper,
     columnIndexMapper: instance.columnIndexMapper,
@@ -313,6 +320,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     createCellRange: (highlight, from, to) => instance._createCellRange(highlight, from, to),
     visualToRenderableCoords,
     renderableToVisualCoords,
+    findFirstNonHiddenCoords,
     isDisabledCellSelection: (visualRow, visualColumn) => {
       if (visualRow < 0 || visualColumn < 0) {
         return instance.getSettings().disableVisualSelection;
@@ -439,6 +447,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     .addLocalHook('afterModifyTransformStart', (...args) => this.runHooks('afterModifyTransformStart', ...args))
     .addLocalHook('beforeModifyTransformEnd', (...args) => this.runHooks('modifyTransformEnd', ...args))
     .addLocalHook('afterModifyTransformEnd', (...args) => this.runHooks('afterModifyTransformEnd', ...args))
+    .addLocalHook('modifyTransformEndRestDelta', (...args) => this.runHooks('modifyTransformEndRestDelta', ...args))
     .addLocalHook('beforeRowWrap', (...args) => this.runHooks('beforeRowWrap', ...args))
     .addLocalHook('beforeColumnWrap', (...args) => this.runHooks('beforeColumnWrap', ...args))
     .addLocalHook('insertRowRequire', totalRows => this.alter('insert_row_above', totalRows, 1, 'auto'))

@@ -26,6 +26,9 @@ function createTransformation(options) {
     renderableToVisualCoords(coords) {
       return coords.clone();
     },
+    findFirstNonHiddenCoords(coords) {
+      return coords.clone();
+    },
     countRenderableRows() { return options.countRenderableRows ?? 10; },
     countRenderableColumns() { return options.countRenderableColumns ?? 10; },
     fixedRowsBottom() { return options.fixedRowsBottom ?? 0; },
