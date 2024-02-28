@@ -54,7 +54,7 @@ Hooks.getSingleton().add('modifyAutoColumnSizeSeed', function(bundleSeed, cellMe
  * @param {number} col The visual column index.
  * @param {number|string} prop The column property (passed when datasource is an array of objects).
  * @param {*} value The rendered value.
- * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
+ * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
  */
 export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
   const { rootDocument } = hotInstance;
@@ -205,6 +205,9 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
    */
   function changeSelectedCheckboxesState(uncheckCheckbox = false) {
     const selRange = hotInstance.getSelectedRange();
+    const changesPerSubSelection = [];
+    let changes = [];
+    let changeCounter = 0;
 
     if (!selRange) {
       return;
@@ -213,11 +216,14 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
     for (let key = 0; key < selRange.length; key++) {
       const { row: startRow, col: startColumn } = selRange[key].getTopStartCorner();
       const { row: endRow, col: endColumn } = selRange[key].getBottomEndCorner();
-      const changes = [];
 
       for (let visualRow = startRow; visualRow <= endRow; visualRow += 1) {
         for (let visualColumn = startColumn; visualColumn <= endColumn; visualColumn += 1) {
           const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
+          const templates = {
+            checkedTemplate: cachedCellProperties.checkedTemplate,
+            uncheckedTemplate: cachedCellProperties.uncheckedTemplate,
+          };
 
           if (cachedCellProperties.type !== 'checkbox') {
             return;
@@ -239,21 +245,40 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
 
           if (uncheckCheckbox === false) {
             if ([cachedCellProperties.checkedTemplate, cachedCellProperties.checkedTemplate.toString()].includes(dataAtCell)) { // eslint-disable-line max-len
-              changes.push([visualRow, visualColumn, cachedCellProperties.uncheckedTemplate]);
+              changes.push([visualRow, visualColumn, cachedCellProperties.uncheckedTemplate, templates]);
 
             } else if ([cachedCellProperties.uncheckedTemplate, cachedCellProperties.uncheckedTemplate.toString(), null, undefined].includes(dataAtCell)) { // eslint-disable-line max-len
-              changes.push([visualRow, visualColumn, cachedCellProperties.checkedTemplate]);
+              changes.push([visualRow, visualColumn, cachedCellProperties.checkedTemplate, templates]);
             }
 
           } else {
-            changes.push([visualRow, visualColumn, cachedCellProperties.uncheckedTemplate]);
+            changes.push([visualRow, visualColumn, cachedCellProperties.uncheckedTemplate, templates]);
           }
+
+          changeCounter += 1;
         }
       }
 
-      if (changes.length > 0) {
-        hotInstance.setDataAtCell(changes);
-      }
+      changesPerSubSelection.push(changeCounter);
+      changeCounter = 0;
+    }
+
+    if (!changes.every(([, , cellValue]) => cellValue === changes[0][2])) {
+      changes = changes.map(
+        ([visualRow, visualColumn, , templates]) => [visualRow, visualColumn, templates.checkedTemplate]
+      );
+    } else {
+      changes = changes.map(([visualRow, visualColumn, cellValue]) => [visualRow, visualColumn, cellValue]);
+    }
+
+    if (changes.length > 0) {
+      // TODO: This is workaround for handsontable/dev-handsontable#1747 not being a breaking change.
+      // Technically, the changes don't need to be split into chunks when sent to `setDataAtCell`.
+      changesPerSubSelection.forEach((changesCount) => {
+        const changesChunk = changes.splice(0, changesCount);
+
+        hotInstance.setDataAtCell(changesChunk);
+      });
     }
   }
 
