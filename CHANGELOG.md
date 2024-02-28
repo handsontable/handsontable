@@ -9,6 +9,44 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [14.2.0] - 2024-03-06
+
+### Added
+- Added new `beforeBeginEditing` hook [#10699](https://github.com/handsontable/handsontable/pull/10699)
+- Added an ability to prevent viewport scroll via `beforeViewportScrollVertically` and `beforeViewportScrollHorizontally` hooks. [#10724](https://github.com/handsontable/handsontable/pull/10724)
+- Undo will work for moving columns [#10746](https://github.com/handsontable/handsontable/pull/10746)
+- Added a `modifyFiltersMultiSelectValue` plugin hook and utilized it in the Filters' multi-selection component. [#10756](https://github.com/handsontable/handsontable/pull/10756)
+- Adds localization for Croatian language [#10762](https://github.com/handsontable/handsontable/pull/10762)
+
+### Changed
+- Improved behavior of the viewport scroll after a cell click. [#10709](https://github.com/handsontable/handsontable/pull/10709)
+- Added `pikaday` to `handsontable`'s `dependencies` to ensure the backward compatibility of `14.1.0`. [#10715](https://github.com/handsontable/handsontable/pull/10715)
+- Changed unnatural checkbox behaviour after double click [#10748](https://github.com/handsontable/handsontable/pull/10748)
+- Changed the way checkbox-typed cells react to pressing `SPACE` and `ENTER` keys. [#10802](https://github.com/handsontable/handsontable/pull/10802)
+- React: Improve react portal caching [#10758](https://github.com/handsontable/handsontable/pull/10758)
+
+### Removed
+- removed versioned examples and gh workflow for publishing [#10766](https://github.com/handsontable/handsontable/pull/10766)
+
+### Fixed
+- Fixed propToCol return type inference [#10631](https://github.com/handsontable/handsontable/issues/10631)
+- Fixed row/column size calculations for hidden indexes [#10705](https://github.com/handsontable/handsontable/pull/10705)
+- Execution of data getters in cells method won't throw an error anymore in specific situation [#10710](https://github.com/handsontable/handsontable/pull/10710)
+- Fixed problems related to not syncing sheet rename from HF to HOT [#10719](https://github.com/handsontable/handsontable/pull/10719)
+- Removing all columns/rows when HyperFormula is enabled won't cause an error  [#10720](https://github.com/handsontable/handsontable/pull/10720)
+- Fixed a problem with the text editor missing the vertical scrollbar on cells with larger amounts of content. [#10722](https://github.com/handsontable/handsontable/pull/10722)
+- Fixed the `afterSelectionEnd` and `afterSelectionEndByProp` hooks overcall when the non-contiguous selection was applied [#10725](https://github.com/handsontable/handsontable/pull/10725)
+- Cells pasted from clipboard's tables won't contain unnecessary line breaks [#10745](https://github.com/handsontable/handsontable/pull/10745)
+- Focus on the Handsontable instance within the iframe won't persist for clicking outside the iframe [#10752](https://github.com/handsontable/handsontable/pull/10752)
+- Hovering "handsontable" cell type header handles won't throw an error [#10761](https://github.com/handsontable/handsontable/pull/10761)
+- Fixed a problem with the dropdown editor throwing an error when the cell value was represented by a `td` outside of the initial editor viewport. [#10763](https://github.com/handsontable/handsontable/pull/10763)
+- Fixed input problems when using the browser's autocomplete + fixed an event listener leak. [#10795](https://github.com/handsontable/handsontable/pull/10795)
+- Fixed a problem where the mobile selection handles were displayed on the context menus/dropdown menus. [#10816](https://github.com/handsontable/handsontable/pull/10816)
+- Fixed a problem where the Autofill plugin's double-click feature treated cells filled with `0`s as empty. [#10817](https://github.com/handsontable/handsontable/pull/10817)
+- Vue: chore: update peerDependencies of vue3 wrapper [#10571](https://github.com/handsontable/handsontable/issues/10571)
+- React: Export HotTableClass from React wrapper [#10736](https://github.com/handsontable/handsontable/issues/10736)
+- React: Fixed missing renderer and editor prop in react wrapper [#10768](https://github.com/handsontable/handsontable/pull/10768)
+
 ## [14.1.0] - 2024-01-16
 
 ### Added

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Export HotTableClass from React wrapper",
-  "type": "fixed",
-  "issueOrPR": 10736,
-  "breaking": false,
-  "framework": "react"
-}
