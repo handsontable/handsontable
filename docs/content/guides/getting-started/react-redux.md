@@ -204,8 +204,26 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
+// a custom renderer component
+const ColorPickerRenderer = (props) => {
+  const colorboxStyle = {
+    background: props.value,
+    width: '21px',
+    height: '21px',
+    float: 'left',
+    marginRight: '5px'
+  };
+  
+  return (
+    <>
+      <div style={colorboxStyle} />
+      <div>{props.value}</div>
+    </>
+  );
+};
+
 // a custom editor component
-const UnconnectedColorPicker = (props) => {
+const UnconnectedColorPickerEditor = (props) => {
   const editorRef = React.useRef(null);
 
   const editorContainerStyle = {
@@ -274,50 +292,29 @@ const UnconnectedColorPicker = (props) => {
     }
     hotCustomEditorInstanceRef.current.finishEditing();
   }, [props.dispatch, hotCustomEditorInstanceRef]);
-
-  let renderResult = null;
-
-  if (props.isEditor) {
-    renderResult = (
-      <div style={editorContainerStyle} ref={editorRef} onMouseDown={stopMousedownPropagation}>
-          <HexColorPicker
-            color={valueRef.current}
-            onChange={onPickedColor}
-          />
-          <button
-            style={{ width: '100%', height: '33px', marginTop: '10px' }}
-            onClick={applyColor}
-          >
-            Apply
-          </button>
-      </div>
-    );
-  } else if (props.isRenderer) {
-    const colorboxStyle = {
-      background: props.value,
-      width: '21px',
-      height: '21px',
-      float: 'left',
-      marginRight: '5px'
-    };
-
-    renderResult = (
-      <>
-        <div style={colorboxStyle} />
-        <div>{valueRef.current}</div>
-      </>
-    );
-  }
-
-  return <>{renderResult}</>;
+  
+  return (
+    <div style={editorContainerStyle} ref={editorRef} onMouseDown={stopMousedownPropagation}>
+      <HexColorPicker
+        color={valueRef.current}
+        onChange={onPickedColor}
+      />
+      <button
+        style={{ width: '100%', height: '33px', marginTop: '10px' }}
+        onClick={applyColor}
+      >
+        Apply
+      </button>
+    </div>
+  );
 };
 
-const ColorPicker = connect(function(state) {
+const ColorPickerEditor = connect(function(state) {
   return {
     activeColors: state.appReducer.activeColors,
     inactiveColors: state.appReducer.inactiveColors
   };
-})(UnconnectedColorPicker);
+})(UnconnectedColorPickerEditor);
 
 // a Redux component
 const initialReduxStoreState = {
@@ -372,6 +369,7 @@ const appReducer = (state = initialReduxStoreState, action) => {
       return state;
   }
 };
+
 const actionReducers = combineReducers({ appReducer });
 const reduxStore = createStore(actionReducers);
 
@@ -432,11 +430,11 @@ export const ExampleComponent = () => {
         <HotColumn width={100} type={'numeric'} renderer={StarRatingRenderer} />
         {/* add the `renderer` and `editor` props to set the component as a Handsontable renderer and editor */}
         <HotColumn width={150} 
-                   renderer={(props) => <ColorPicker {...props} isRenderer />} 
-                   editor={(props) => <ColorPicker {...props} isEditor />} />
+                   renderer={ColorPickerRenderer} 
+                   editor={ColorPickerEditor} />
         <HotColumn width={150} 
-                   renderer={(props) => <ColorPicker {...props} isRenderer />} 
-                   editor={(props) => <ColorPicker {...props} isEditor />} />
+                   renderer={ColorPickerRenderer} 
+                   edidtor={ColorPickerEditor} />
       </HotTable>
     </Provider>
   );
