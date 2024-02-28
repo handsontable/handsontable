@@ -225,7 +225,7 @@ const UnconnectedColorPicker = (props) => {
     e.stopPropagation();
   }, []);
 
-  const hotCustomEditorInstanceRef = useHotEditor((runSuper) => {
+  const hotCustomEditorInstanceRef = useHotEditor((runSuper) => ({
     setValue(value) {
       valueRef.current = value;
     },
@@ -250,7 +250,7 @@ const UnconnectedColorPicker = (props) => {
       editorRef.current.style.left = tdPosition.left + window.pageXOffset + 'px';
       editorRef.current.style.top = tdPosition.top + window.pageYOffset + 'px';
     }
-  }, [valueRef]);
+  }), [valueRef]);
 
   const onPickedColor = React.useCallback((color) => {
     valueRef.current = color;
