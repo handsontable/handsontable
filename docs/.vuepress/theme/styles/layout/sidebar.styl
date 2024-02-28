@@ -1,16 +1,19 @@
 .sidebar { 
     position fixed
-    top: 0
     left: 0
-    width: 320px; 
-    background: $sideColor
-    top:0
+    width: 360px
+    top:81px
     border:0
     z-index: 100
+    padding-top: 24px
+    background: $bgColor
+    border-right: 1px solid $borderColor;
+    padding-bottom: 32px
 
     .home-link { 
         display: block;
         padding: 24px
+        display: none 
 
         .Logo { 
             height: 22px 
@@ -23,15 +26,15 @@
 
     .info-box { 
         position relative
-        padding: 8px
-        margin:0 24px 8px
-        background: $bgColor
-        border-radius: $radius
+        padding: 12px
+        margin:0 28px 16px
+        background: $borderColor
+        border-radius: $radius-l
         display: flex
         gap: 8px
 
         span { 
-            background-color: $borderColor
+            background-color: $bgColor
             border-radius: $radius
             padding: 12px
             
@@ -46,8 +49,8 @@
 
             p { 
                 display: block
-                font-size: $font-size-xs
-                line-height: $line-height-xs
+                font-size: $font-size-s
+                line-height: $line-height-s
             }
             > a { 
                 cursor: pointer
@@ -95,7 +98,7 @@
                 display: flex
                 gap: 8px
                 align-items: center
-                padding: 16px 24px
+                padding: 16px 32px
                 font-size: $font-size-s
                 line-height: $line-height-s
                 font-weight: 400
@@ -135,11 +138,11 @@
                     display: flex
                     gap: 8px
                     align-items: center
-                    padding: 16px 24px
+                    padding: 16px 32px
                     font-size: $font-size-s
                     line-height: $line-height-s
                     font-weight: 400
-                    color: $text2Color
+                    color: $textColor
                     transition all $t ease
                     cursor: pointer
 
@@ -162,32 +165,46 @@
                         .i-arrow { 
                             transform: rotate(180deg)
                         }
+
+                        + ul {
+                            max-height: 100vh 
+                            height: auto
+                            opacity: 1
+                            padding-bottom: 24px
+                        }
                     }
                     @media (hover: hover) {
                         &:hover { 
                             color: $textColor
                         }
                     }
+
+                    + ul { 
+                        transition: all .2s ease-in-out
+                        max-height: 0 
+                        overflow: hidden
+                        opacity 0
+                    }
                 }
             
                 > .sidebar-links {
                     a { 
                         color: $text2Color
-                        font-size: $font-size-xs
-                        line-height: $line-height-xs
-                        padding: 8px 32px 8px 48px
+                        font-size: $font-size-s
+                        line-height: $line-height-s
+                        padding: 8px 32px 8px 56px
                         border:0
                         position: relative
                         transition all $t ease
                         display: flex;
                         align-items: center;
-                        justify-content: space-between;
+                        //justify-content: space-between;
 
                         &:before { 
                             content: ''
                             display: block
                             position absolute
-                            inset: 0 24px
+                            inset: 0 24px 0 32px
                             background: $borderColor
                             z-index -1
                             border-radius: $radius
@@ -200,7 +217,7 @@
                             display: block
                             position absolute
                             top 0    
-                            left: 32px
+                            left:40px
                             bottom: 0
                             border-left: 1px solid $borderColor
                             transition all $t ease
@@ -235,15 +252,15 @@
                             font-size: $font-size-xxs
                             line-height: $line-height-xxs
                             display: block;
-                            border-radius: $radius-s
+                            border-radius: $radius
                             padding: 2px 8px;
-                            background-color: $accentColor
+                            background-color: $successColor
                             color: $bgColor
                             margin:-1px 0;
                             width:auto
                         }
                         .tag-new { 
-                            background-color: $successColor
+                            background-color: $accentColor
                         }
                     }
                 }
@@ -259,8 +276,8 @@
 
             .nav-item {
                 a, button { 
-                    font-size:14px
-                    line-height: 20px
+                    font-size: $font-size-s
+                    line-height: $font-size-s
                     color: $text2Color
                     padding: 16px 32px
                     display: block

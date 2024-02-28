@@ -3,17 +3,22 @@
     <div class="navbar-wrapper">
       <Logo />
       
-      <div class="framework-and-version">
+      <!--<div class="framework-and-version">
         <FrameworksDropdown/>
         <VersionsDropdown></VersionsDropdown>
       </div>
+    -->
+
+      <SearchBox/>
 
       <div class="menu">
+      <!--
         <NavLinks/>
         <ExternalNavLinks/>
-        <SearchBox/>
+      -->
+        
         <nav class="icons-nav">
-          <button><i class="ico i-bell"></i></button>
+          
           <ThemeSwitcher />
           <a href="https://github.com/handsontable/handsontable"><i class="ico i-github"></i></a>
           

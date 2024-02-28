@@ -1,9 +1,10 @@
 .navbar {  
-    position: sticky
+    position: fixed
     top: 0
-    margin: 0 0 0 320px
+    margin: 0 0 0 0
     background: none
-    border: none
+    border: none 
+    height: auto  
 
 
     .tag  { 
@@ -20,11 +21,19 @@
     .navbar-wrapper {
         display: flex
         justify-content: space-between;
-        backdrop-filter: blur(8px);
-        background: rgba(255,255,255,.75)
+        border-bottom: 1px solid $borderColor;
+        background: $bgColor
+        height: 80px
+        //backdrop-filter: blur(8px);
+        //background: rgba(255,255,255,.75)
 
         .Logo { 
-            display: none
+            margin: 32px 32px 24px
+            height: 24px 
+            width: 145px
+            display: block
+            background-repeat: no-repeat
+            background-size: 100%
         }
 
         .menu {
@@ -35,8 +44,8 @@
 
                 .nav-item {
                     a, button { 
-                        font-size:14px
-                        line-height: 20px
+                        font-size:$font-size-s
+                        line-height: $font-size-s
                         color: $text2Color
                         padding: 22px 16px
                         display: block
@@ -66,8 +75,8 @@
         }
 
         .framework-and-version { 
-            display: flex
-
+            //display: flex
+            display: none
             > nav > i {
                 margin-right -16px
                 z-index 1
@@ -119,15 +128,15 @@
 
             &.open { 
                 > button { 
-                        i { 
-                            transform:rotate(-180deg)
-                        }
-
-                        & + .nav-dropdown {
-                            visibility: visible
-                            opacity 1
-                        }
+                    i { 
+                        transform:rotate(-180deg)
                     }
+
+                    & + .nav-dropdown {
+                        visibility: visible
+                        opacity 1
+                    }
+                }
             }
             @media (hover: hover) {
                 &:hover { 
@@ -160,8 +169,8 @@
 
                 a { 
                     color: $text2Color
-                    font-size: $font-size-xs
-                    line-height: $line-height-xs
+                    font-size: $font-size-s
+                    line-height: $line-height-s
                     padding: 4px 8px 
                     border:0
                     position: relative
@@ -208,7 +217,7 @@
         //Icons
         .icons-nav {
             display: flex
-            padding: 12px
+            padding: 20px
             
             a {
                 display: block
@@ -239,28 +248,37 @@
 
         //Search
         .search-box { 
-            position: relative
+            position: absolute;
             display: flex
             padding: 16px
+            top:0; 
+            left: 50%
+            width: auto
+            transform: translateX(-50%)
 
             > i { 
                 position: absolute
-                top: 24px
-                left: 24px
+                top: 32px
+                left: 32px
             }
 
             input { 
-                width:160px
-                border-radius: 4px
-                background: none
+                width: 360px;
+                box-sizing: border-box;
+                border-radius: $radius-l
+                background: $borderColor
                 border: none
-                padding: 4px 8px 4px 32px
+                padding: 14px 16px 14px 48px
                 font-size: $font-size-s
                 line-height: $line-height-s
                 color: $text2Color
                 font-family: $font
+                transition all $t ease
 
                 &:focus { 
+                    box-shadow: 0 0 0 1px $accentColor
+                    width: 480px
+
                     + .kbd-hint { 
                         opacity 0 
                     }
@@ -271,17 +289,17 @@
                 transition all $t ease
                 position:absolute
                 display: 
-                flex; gap:4px
-                right: 22px
-                top:22px
+                flex; gap:6px
+                right: 28px
+                top:28px
 
                 kbd { 
                     display: block
-                    line-height: 20px
-                    width: 20px
-                    border-radius: 4px
+                    line-height: 24px
+                    width: 24px
+                    border-radius: $radius
                     text-align: center
-                    background: $borderColor
+                    background: $bgColor
                     color: $text2Color
                     font-size: $font-size-xs
                 }
@@ -311,8 +329,8 @@
 
                     a { 
                         color: $text2Color
-                        font-size: $font-size-xs
-                        line-height: $line-height-xs
+                        font-size: $font-size-s
+                        line-height: $line-height-s
                         padding: 4px 8px 
                         margin: 0 -8px
                         border:0
@@ -337,8 +355,8 @@
                         }
 
                         .header { 
-                            font-size: $font-size-xs
-                            line-height: $line-height-xs
+                            font-size: $font-size-s
+                            line-height: $line-height-s
                             display: inline-flex;
                         }
 
@@ -400,7 +418,7 @@
 
             .Logo { 
                 margin: 24px
-                height: 22px 
+                height: 24x 
                 width: 145px
                 display: block
                 background-repeat: no-repeat

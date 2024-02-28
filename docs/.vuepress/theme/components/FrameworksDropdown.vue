@@ -1,11 +1,12 @@
 <template>
+  <!--
   <nav class="nav-frameworks nav-links">
     <i class="ico" :class="icon" :alt="alt"></i>
-    <!-- user links -->
     <nav class="nav-item">
       <DropdownLink @item-click="onFrameworkClick" :item="item"></DropdownLink>
     </nav>
   </nav>
+  -->
 </template>
 
 <script>

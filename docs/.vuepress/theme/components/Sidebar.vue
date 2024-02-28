@@ -67,17 +67,17 @@ export default {
 
   mounted() {
     // TEMP Tags 
-    const selector1 = document.querySelector('.sidebar > ul > li:first-child li:first-child a');
+    //const selector1 = document.querySelector('.sidebar > ul > li:first-child li:first-child a');
     const selector2 = document.querySelector('.sidebar > ul > li:first-child li:nth-child(2) a ');
-    const chips1 = document.createElement('span');
+    //const chips1 = document.createElement('span');
     const chips2 = document.createElement('span');
     
-    selector1.appendChild(chips1);
+    //selector1.appendChild(chips1);
     selector2.appendChild(chips2);
 
-    chips1.classList.add('tag-update');
+    //chips1.classList.add('tag-update');
     chips2.classList.add('tag-new');
-    chips1.textContent = 'Updated';
+    //chips1.textContent = 'Updated';
     chips2.textContent = 'New';
   },
 
