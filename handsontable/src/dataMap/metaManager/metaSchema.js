@@ -1197,9 +1197,9 @@ export default () => {
      * ]
      *
      * // enable copying for specific cells
-     * cells: [
+     * cell: [
      *   {
-     *     cell: 0,
+     *     coll: 0,
      *     row: 0,
      *     // disable copying for cell (0, 0)
      *     copyable: false,
@@ -3298,7 +3298,7 @@ export default () => {
      * | `true`            | Enable the [`NestedRows`](@/api/nestedRows.md) plugin  |
      *
      * Read more:
-     * - [Plugins: `NestedRows`](@/api/nestedRows.md)
+     * - [Plugins: `NestedRows`](@/guides/rows/row-parent-child.md)
      *
      * @example
      * ```js
