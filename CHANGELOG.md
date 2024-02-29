@@ -20,7 +20,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 - Improved behavior of the viewport scroll after a cell click. [#10709](https://github.com/handsontable/handsontable/pull/10709)
-- Added `pikaday` to `handsontable`'s `dependencies` to ensure the backward compatibility of `14.1.0`. [#10715](https://github.com/handsontable/handsontable/pull/10715)
 - Changed unnatural checkbox behaviour after double click [#10748](https://github.com/handsontable/handsontable/pull/10748)
 - Changed the way checkbox-typed cells react to pressing `SPACE` and `ENTER` keys. [#10802](https://github.com/handsontable/handsontable/pull/10802)
 - React: Improve react portal caching [#10758](https://github.com/handsontable/handsontable/pull/10758)
@@ -43,7 +42,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed input problems when using the browser's autocomplete + fixed an event listener leak. [#10795](https://github.com/handsontable/handsontable/pull/10795)
 - Fixed a problem where the mobile selection handles were displayed on the context menus/dropdown menus. [#10816](https://github.com/handsontable/handsontable/pull/10816)
 - Fixed a problem where the Autofill plugin's double-click feature treated cells filled with `0`s as empty. [#10817](https://github.com/handsontable/handsontable/pull/10817)
-- Vue: chore: update peerDependencies of vue3 wrapper [#10571](https://github.com/handsontable/handsontable/issues/10571)
 - React: Export HotTableClass from React wrapper [#10736](https://github.com/handsontable/handsontable/issues/10736)
 - React: Fixed missing renderer and editor prop in react wrapper [#10768](https://github.com/handsontable/handsontable/pull/10768)
 
