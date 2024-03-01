@@ -41,12 +41,6 @@ export default {
         text: 'API'
       };
     },
-    changelogLink() {
-      return {
-        link: `${this.frameworkUrlPrefix}/release-notes/`,
-        text: 'Changelog'
-      };
-    },
     pricingLink() {
       return {
         link: `https://handsontable.com/pricing/`,
@@ -55,4 +49,13 @@ export default {
     }
   }
 };
+
+/*
+    changelogLink() {
+      return {
+        link: `${this.frameworkUrlPrefix}/release-notes/`,
+        text: 'Changelog'
+      };
+    }
+*/
 </script>

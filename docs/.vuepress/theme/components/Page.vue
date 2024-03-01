@@ -1,8 +1,7 @@
 <template>
   <main class="page" v-bind:class="{ 'api': isApi }">
-    <slot name="top" />
-
     <Content class="theme-default-content" />
+    <slot name="top" />
     <PageNav v-bind="{ sidebarItems }" />
     <PageEdit />
 

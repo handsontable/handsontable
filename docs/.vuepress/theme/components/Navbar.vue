@@ -1,32 +1,37 @@
 <template>
   <header class="navbar">
     <div class="navbar-wrapper">
-      <Logo />
+      <RouterLink
+          :to="frameworkUrlPrefix"
+          class="home-link"
+      >
+        <Logo />
+      </RouterLink>
       
-      <!--<div class="framework-and-version">
-        <FrameworksDropdown/>
-        <VersionsDropdown></VersionsDropdown>
-      </div>
-    -->
+      <div class="top-bar">
+        <div class="top-bar_left">
+          <SearchBox/>
+          <div class="framework-and-version">
+            <FrameworksDropdown/>
+            <!--<VersionsDropdown></VersionsDropdown>-->
+          </div>
+        </div>
 
-      <SearchBox/>
-
-      <div class="menu">
-      <!--
-        <NavLinks/>
-        <ExternalNavLinks/>
-      -->
+        <div class="menu">
+          <NavLinks/>
+          <ExternalNavLinks/>
         
-        <nav class="icons-nav">
-          
-          <ThemeSwitcher />
-          <a href="https://github.com/handsontable/handsontable"><i class="ico i-github"></i></a>
-          
-          <button @click="$emit('toggle-sidebar')" class="menuButton">
-            <i class="ico i-menu"></i>
-            <i class="ico i-close"></i>
-          </button>
-        </nav>
+          <nav class="icons-nav">
+            <!--<ThemeSwitcher />-->
+            <a href="https://github.com/handsontable/handsontable"><i class="ico i-bell"></i></a>
+            <a href="https://github.com/handsontable/handsontable"><i class="ico i-github"></i></a>
+
+            <button @click="$emit('toggle-sidebar')" class="menuButton">
+              <i class="ico i-menu"></i>
+              <i class="ico i-close"></i>
+            </button>
+          </nav>
+        </div>
       </div>
       
     </div>
@@ -61,6 +66,11 @@ export default {
     return {
       linksWrapMaxWidth: null
     };
+  },
+  computed: {
+    frameworkUrlPrefix() {
+      return `/${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
+    }
   }
 };
 </script>

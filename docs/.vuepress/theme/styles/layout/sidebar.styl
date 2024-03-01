@@ -1,12 +1,13 @@
 .sidebar { 
     position fixed
     left: 0
-    width: 360px
+    width: 320px
     top:81px
     border:0
     z-index: 100
     padding-top: 24px
-    background: $bgColor
+    background: transparent;
+    //background: $bgColor
     border-right: 1px solid $borderColor;
     padding-bottom: 32px
 
@@ -29,7 +30,7 @@
         padding: 12px
         margin:0 28px 16px
         background: $borderColor
-        border-radius: $radius-l
+        border-radius: $radius-xl
         display: flex
         gap: 8px
 
@@ -49,8 +50,8 @@
 
             p { 
                 display: block
-                font-size: $font-size-s
-                line-height: $line-height-s
+                font-size: $font-size-xs
+                line-height: $line-height-xs
             }
             > a { 
                 cursor: pointer
@@ -64,7 +65,7 @@
                     display: bottom 
                     position absolute
                     inset: 0 
-                    border-radius: $radius
+                    border-radius: $radius-xl
                     box-shadow: 0 0 0 1px $accentColor
                     opacity 0
                     transition all $t ease
@@ -99,8 +100,8 @@
                 gap: 8px
                 align-items: center
                 padding: 16px 32px
-                font-size: $font-size-s
-                line-height: $line-height-s
+                font-size: $font-size-xs
+                line-height: $line-height-xs
                 font-weight: 400
                 color: $text2Color
                 transition all $t ease
@@ -134,17 +135,19 @@
                 }
             }
             > .sidebar-group {
+                
                 p, a { 
                     display: flex
                     gap: 8px
                     align-items: center
                     padding: 16px 32px
-                    font-size: $font-size-s
-                    line-height: $line-height-s
+                    font-size: $font-size-xs
+                    line-height: $line-height-xs
                     font-weight: 400
                     color: $textColor
                     transition all $t ease
                     cursor: pointer
+                    
 
                     span {
                         width: 100%
@@ -186,12 +189,13 @@
                         opacity 0
                     }
                 }
+                p { font-weight: 500}
             
                 > .sidebar-links {
                     a { 
                         color: $text2Color
-                        font-size: $font-size-s
-                        line-height: $line-height-s
+                        font-size: $font-size-xs
+                        line-height: $line-height-xs
                         padding: 8px 32px 8px 56px
                         border:0
                         position: relative
@@ -276,8 +280,8 @@
 
             .nav-item {
                 a, button { 
-                    font-size: $font-size-s
-                    line-height: $font-size-s
+                    font-size: $font-size-xs
+                    line-height: $font-size-xs
                     color: $text2Color
                     padding: 16px 32px
                     display: block
@@ -492,8 +496,8 @@
                 background: none
                 border: none
                 padding: 4px 8px 4px 32px
-                font-size: $font-size-s
-                line-height: $line-height-s
+                font-size: $font-size-xs
+                line-height: $line-height-xs
                 color: $text2Color
                 font-family: $font
 

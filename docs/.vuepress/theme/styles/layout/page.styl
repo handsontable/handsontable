@@ -1,6 +1,17 @@
+.theme-default-content:not(.custom) > h1, 
+.theme-default-content:not(.custom) > h2, 
+.theme-default-content:not(.custom) > h3, 
+.theme-default-content:not(.custom) > h4, 
+.theme-default-content:not(.custom) > h5, 
+.theme-default-content:not(.custom) > h6 {
+    padding: 0;
+    margin: 0;
+}
+.header-framework {display: none !important}
 .page { 
-    margin: 64px 0 0 320px
-    padding: 64px 0 0 0
+    opacity .1
+    margin: 0 360px
+    padding: 160px 0 0 0
 
     .theme-default-content {
         &:not(.custom) { 
@@ -10,8 +21,8 @@
         }
 
         .header-framework { 
-            font-size: $font-size-xs
-            line-height: $line-height-xs
+            font-size: $font-size-s
+            line-height: $line-height-s
             display: block
             font-weight: 400
             padding-bottom: 8px
@@ -23,14 +34,24 @@
             line-height: $line-height-xl
             font-weight: 600
             margin:0 !important
-            padding: 0
+            padding: 16px 0 8px
             position: relative
         }
 
         h2 { 
-            padding-top: 40px
+            padding-top: 56px
+            padding-bottom: 0
             font-size: $font-size-l
             line-height: $line-height-l
+            font-weight: 600
+            margin: 0
+        }
+
+        h3 { 
+            padding-top: 40px
+            padding-bottom: 8px
+            font-size: $font-size
+            line-height: $line-height
             font-weight: 600
             margin: 0
         }
@@ -39,7 +60,7 @@
             font-size: $font-size-s
             line-height: $line-height-s
             font-weight: 400
-            padding: 16px 0
+            padding: 16px 0 0 
             color: $text2Color
 
             &:empty { 
@@ -66,20 +87,24 @@
         }
 
         a { 
-            text-decoration: underline 
+            text-decoration: none 
             font-weight: 400
         }
 
         pre { 
+            margin-top: 16px
             background: $editorColor 
-            padding: 24px
-            margin: 16px 0
-            border-radius: $radius
-            margin: 0
+            padding: 16px 24px
+            margin: 16px 0 0 0
+            border-radius: $radius-l
+            
         }
+
         div[class*="language-"] {
             background: $editorColor 
+            border-radius: $radius-l
         }
+        
         .theme-code-group__nav { 
             background: $editorHeadColor 
             margin:0
@@ -96,19 +121,25 @@
         }
         code { 
             background: $sideColor 
-            font-size: $font-size-s
-            line-height: $line-height-s
+            font-size: $font-size-xs
+            line-height: $line-height-xs
             font-weight: 400
+            vertical-align: middle
             //color:$accentColor
         }
 
         .table-of-contents { 
+            position fixed
+            width: 360px
+            top:80px
+            right: 0
+            bottom: 0
             margin-top: 24px
             margin-bottom: 24px
 
             .toc-container-header { 
-                font-size: $font-size-m
-                line-height: $line-height-m
+                font-size: $font-size-xs
+                line-height: $line-height-xs
                 font-weight: 600
                 padding-bottom: 16px
             }
@@ -140,11 +171,12 @@
         }
 
         .custom-block {
-            background: $sideColor
+            background: $borderColor
             border-radius: $radius
             margin:0
-            padding: 24px
-            border: 0px solid $borderColor
+            padding: 16px 24px
+            border:0
+            margin-top: 16px
 
             &.tip { }
             

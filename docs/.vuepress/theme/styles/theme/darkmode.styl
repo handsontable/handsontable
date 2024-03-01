@@ -1,11 +1,12 @@
 html.theme-dark {
     $accentColor        = var(--color-accentblue)
-    $textColor          = var(--color-white)
-    $text2Color         = var(--color-gray-400)
+    $textColor          = #D1D1D2
+    $text2Color         = #898A8B
     $borderColor        = var(--color-gray-800)
     $bgColor            = var(--color-gray-900)
     $sideColor          = var(--color-gray-900)
     $bgCode             = $borderColor 
+    $onsurfaceColor     = var(--color-gray-700)
 
     i.Logo { background:  url('{{$basePath}}/img/logo-white.svg');}
     i.ico { filter: brightness(0) invert(1)}
@@ -13,7 +14,7 @@ html.theme-dark {
     color-scheme dark
 
     body {
-        background: $bgColor
+        background: $bgColor url('{{$basePath}}/img/noise.png') repeat
         color: $textColor
     }
 
@@ -35,7 +36,7 @@ html.theme-dark {
     /* Sidebar 
     ------------------------------- */
     .sidebar { 
-        background: $bgColor
+        //background: $bgColor
         border-right: 1px solid $borderColor;
 
         .info-box { 
@@ -45,7 +46,7 @@ html.theme-dark {
                 background-color: $bgColor
                 
                 i { 
-                    filter: hue-rotate(190deg) invert(1); /* 190 degrees shifts the hue towards #27C2FF */
+                    //filter: hue-rotate(190deg) invert(1); /* 190 degrees shifts the hue towards #27C2FF */
                 }
             }
             div {
@@ -120,7 +121,8 @@ html.theme-dark {
                             color: $bgColor
                         }
                         .tag-new {
-                            background-color: $accentColor
+                            background: $gradient
+                            color: $textColor
                         }
                     }
                 }
@@ -221,6 +223,7 @@ html.theme-dark {
     /* Navbar 
     ------------------------------- */
     .navbar {
+        background: rgba(18,19,22,.15)
         .tag  { 
             background-color: $accentColor
             color: $bgColor
@@ -228,18 +231,19 @@ html.theme-dark {
     }
 
     .navbar-wrapper { 
-        background: $bgColor
+        //background: $bgColor
         border-bottom: 1px solid $borderColor
 
         .dropdown-wrapper { 
             .nav-dropdown { 
-                background: $sideColor
+                background: $borderColor
+                border:0
 
                 a { 
                     color: $text2Color
 
                     &:before { 
-                        background: $bgColor
+                        background: $onsurfaceColor
                     }
 
                     @media (hover: hover) {
@@ -259,6 +263,16 @@ html.theme-dark {
 
                         &.router-link-active { 
                             color: $textColor
+
+                            &:before {
+                                background: $accentColor    
+                            }
+                        }
+
+                        @media (hover: hover) {
+                            &:hover { 
+                                color: $textColor
+                            }
                         }
                     }
                 }
@@ -332,17 +346,16 @@ html.theme-dark {
             }
 
             pre { 
-                background: $sideColor 
-                border-radius: $radius
+                background: $borderColor 
             }
             .language-bash:before { 
                 display: none
             }
             div[class*="language-"] { 
-                background: $sideColor 
+                background: $borderColor 
             }
             code {
-                background: $sideColor 
+                background: $borderColor 
                 color:$accentColor
             }
             .table-of-contents { 
@@ -363,7 +376,7 @@ html.theme-dark {
             }
             
             .custom-block {
-                background: $sideColor
+                background: $borderColor
                 //border: 1px solid $borderColor
 
                 p { 

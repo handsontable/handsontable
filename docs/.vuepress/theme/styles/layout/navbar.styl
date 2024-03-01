@@ -4,8 +4,9 @@
     margin: 0 0 0 0
     background: none
     border: none 
-    height: auto  
-
+    height: auto
+    backdrop-filter: blur(14px)
+    
 
     .tag  { 
         font-size: $font-size-xxs
@@ -20,12 +21,26 @@
 
     .navbar-wrapper {
         display: flex
-        justify-content: space-between;
-        border-bottom: 1px solid $borderColor;
-        background: $bgColor
+        border-bottom: 1px solid $borderColor
+        //background: $bgColor
         height: 80px
         //backdrop-filter: blur(8px);
         //background: rgba(255,255,255,.75)
+
+        .top-bar {
+            display: flex
+            justify-content: space-between
+            width:100%
+
+            .top-bar_left { 
+                display: flex
+                gap:16px
+            }
+        }
+
+        .home-link {
+            width: 360px
+        }
 
         .Logo { 
             margin: 32px 32px 24px
@@ -38,14 +53,15 @@
 
         .menu {
             display: flex
+            padding: 12px
 
             .nav-links {
                 display: flex
 
                 .nav-item {
                     a, button { 
-                        font-size:$font-size-s
-                        line-height: $font-size-s
+                        font-size:$font-size-xs
+                        line-height: $font-size-xs
                         color: $text2Color
                         padding: 22px 16px
                         display: block
@@ -55,7 +71,27 @@
                         font-weight: 400
 
                         &.router-link-active { 
+                            position relative
+                            
+                            &:before { 
+                                width: 16px
+                                position: absolute
+                                bottom: 12px
+                                left: 50%
+                                transform: translateX(-50%)
+                                display: block
+                                content: ''
+                                background: $accentColor
+                                height: 1px
+
+                            }
                             color: $textColor
+                        }
+
+                        @media (hover: hover) {
+                            &:hover { 
+                                color: $textColor
+                            }
                         }
                     }
 
@@ -68,15 +104,23 @@
                     }
 
                     .nav-dropdown {
-                        a { padding: 4px 8px}    
+                        a { 
+                            padding: 4px 8px
+                            font-size:$font-size-xs
+                            line-height: $line-height-xs
+                        }    
+                    }
+
+                    .external span { 
+                        display:none
                     }
                 }
             }
         }
 
         .framework-and-version { 
-            //display: flex
-            display: none
+            display: flex
+            //display: none
             > nav > i {
                 margin-right -16px
                 z-index 1
@@ -84,10 +128,10 @@
             } 
             
             .nav-frameworks { 
-                padding-left: 24px
                 display: flex
                 align-items: center
                 gap: 8px
+                margin: 0
 
                 .dropdown-wrapper > button { 
                     display: flex
@@ -162,15 +206,15 @@
                 top: 48px
                 left: 0
                 background: $sideColor
-                padding: 8px 8px
-                border-radius: $radius
+                padding: 12px 8px
+                border-radius: $radius-l
                 //right: 0
-                min-width: 96px
+                min-width: 120px
 
                 a { 
                     color: $text2Color
-                    font-size: $font-size-s
-                    line-height: $line-height-s
+                    font-size: $font-size-xs
+                    line-height: $line-height-xs
                     padding: 4px 8px 
                     border:0
                     position: relative
@@ -185,7 +229,7 @@
                         display: block
                         position absolute
                         inset: 0 0
-                        background: $bgColor
+                        background: $onsurfaceColor
                         z-index -1
                         border-radius: $radius
                         opacity: 0
@@ -217,7 +261,7 @@
         //Icons
         .icons-nav {
             display: flex
-            padding: 20px
+            padding: 8px
             
             a {
                 display: block
@@ -248,13 +292,11 @@
 
         //Search
         .search-box { 
-            position: absolute;
+            position: relative;
             display: flex
             padding: 16px
-            top:0; 
-            left: 50%
-            width: auto
-            transform: translateX(-50%)
+            width: 260px
+            //transform: translateX(-50%)
 
             > i { 
                 position: absolute
@@ -269,8 +311,8 @@
                 background: $borderColor
                 border: none
                 padding: 14px 16px 14px 48px
-                font-size: $font-size-s
-                line-height: $line-height-s
+                font-size: $font-size-xs
+                line-height: $line-height-xs
                 color: $text2Color
                 font-family: $font
                 transition all $t ease
@@ -301,7 +343,7 @@
                     text-align: center
                     background: $bgColor
                     color: $text2Color
-                    font-size: $font-size-xs
+                    font-size: $font-size-xxs
                 }
             }
 
@@ -316,8 +358,8 @@
                 list-style: none
 
                 li { color: $text2Color
-                    font-size: $font-size-s
-                    line-height: $line-height-s
+                    font-size: $font-size-xxs
+                    line-height: $line-height-xxs
                     padding: 2px 8px 
                     
 
@@ -355,8 +397,8 @@
                         }
 
                         .header { 
-                            font-size: $font-size-s
-                            line-height: $line-height-s
+                            font-size: $font-size-xs
+                            line-height: $line-height-xs
                             display: inline-flex;
                         }
 
@@ -418,7 +460,7 @@
 
             .Logo { 
                 margin: 24px
-                height: 24x 
+                height: 24px 
                 width: 145px
                 display: block
                 background-repeat: no-repeat

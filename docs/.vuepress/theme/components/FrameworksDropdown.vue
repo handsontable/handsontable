@@ -1,12 +1,12 @@
 <template>
-  <!--
+  
   <nav class="nav-frameworks nav-links">
     <i class="ico" :class="icon" :alt="alt"></i>
     <nav class="nav-item">
       <DropdownLink @item-click="onFrameworkClick" :item="item"></DropdownLink>
     </nav>
   </nav>
-  -->
+  
 </template>
 
 <script>
@@ -37,22 +37,7 @@ function setCookie(name, value) {
 
 const frameworkIdToFullName = new Map([
   ['javascript', { name: 'JavaScript' }],
-  ['react', { name: 'React' }],
-  [
-    'angular',
-    {
-      name: 'Angular',
-      homepage: '/javascript-data-grid/angular-installation/',
-    },
-  ],
-  [
-    'vue',
-    { name: 'Vue 2', homepage: '/javascript-data-grid/vue-installation/' },
-  ],
-  [
-    'vue3',
-    { name: 'Vue 3', homepage: '/javascript-data-grid/vue3-installation/' },
-  ],
+  ['react', { name: 'React' }]
 ]);
 
 export default {
@@ -130,52 +115,23 @@ export default {
     this.detectLegacyFramework(this.$route.fullPath);
   },
 };
+
+/*
+,
+  [
+    'angular',
+    {
+      name: 'Angular',
+      homepage: '/javascript-data-grid/angular-installation/',
+    },
+  ],
+  [
+    'vue',
+    { name: 'Vue 2', homepage: '/javascript-data-grid/vue-installation/' },
+  ],
+  [
+    'vue3',
+    { name: 'Vue 3', homepage: '/javascript-data-grid/vue3-installation/' },
+  ],
+*/
 </script>
-
-<style lang="stylus">
-.nav-frameworks
-  margin-left 1.4rem
-  margin-right 1.5rem
-  display inline-block
-  position relative
-  top -1px
-  text-transform capitalize
-
-  img
-    height 16px
-    position relative
-    top 3px
-
-  .nav-item
-    margin-left 0.25rem
-
-  .dropdown-title {
-    text-transform capitalize
-  }
-
-  .icon.outbound
-    display none
-
-  .dropdown-wrapper
-    height 1.8rem
-
-  .dropdown-wrapper .nav-dropdown
-    min-width 150px
-    height auto !important
-    box-sizing border-box
-    max-height calc(100vh - 2.7rem)
-    overflow-y auto
-    position absolute
-    top 100%
-    background-color #fff
-    padding 0.6rem 0
-    border 1px solid #ddd
-    border-bottom-color #ccc
-    text-align left
-    border-radius 6px
-    white-space nowrap
-    margin 0
-    z-index 100
-.dropdown-wrapper .dropdown-title .arrow, .dropdown-wrapper .mobile-dropdown-title .arrow
-  margin-left 0.1rem
-</style>

@@ -1,11 +1,16 @@
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: $font
+  font-family: $font3a
   font-size $font-size
   line-height: $line-height
   background: $sideColor
+
   color: $textColor
   font-smooth: auto
 }
+.Inter { font-family: $font }
+.Satoshi { font-family: 'Satoshi-Variable'}
+h1,h2,h3,h4,h5,h6 { font-family: $font3 }
 
 #app,
 .layout-container,
@@ -33,3 +38,90 @@ a {
   display:none
 }
 
+/*
+.decoration-left {
+  border-radius: 1000px;
+  opacity: 0.1;
+  background: $accentColor
+  filter: blur(252px)
+  width: 1000px
+  height: 1000px
+  display: block
+  position absolute
+  top:400px
+  left: 120px
+}
+.decoration-right {
+  border-radius: 800px;
+  opacity: 0.1;
+  background: $successColor
+  filter: blur(252px)
+  width: 800px
+  height: 800px
+  display: block
+  position absolute
+  top:-40px
+  right: 120px
+}
+*/
+
+.decoration-left { 
+  display: block
+  background:  url('{{$basePath}}/img/hero-left.webp'); 
+  background-size: 100%
+  width: 280px
+  height: 360px
+  position: fixed
+  top:0
+  left:0
+  animation: 12s linear 0s infinite alternate none running animation-left;
+  opacity 0
+}
+.decoration-right { 
+  display: block
+  background:  url('{{$basePath}}/img/hero-right.webp'); 
+  background-size: 100%
+  width: 288px
+  height: 1080px 
+  position fixed
+  top -140px
+  right:0
+  animation: 30s linear 0s infinite alternate none running animation-right;
+  opacity .25
+}
+
+@keyframes animation-left {
+  0% {
+    transform: scale(1.25) rotate(0deg) translateX(0.1rem) translateY(0px);
+  }
+  20% {
+      transform: scale(1.35) rotate(1deg) translateX(1.2rem) translateY(1rem);
+  }
+  50% {
+      transform: scale(2.6) rotate(-1deg) translateX(0.5rem) translateY(1.4rem);
+  }
+  75% {
+      transform: scale(1.5) rotate(1deg) translateX(2rem) translateY(2.5rem);
+  }
+  100% {
+      transform: scale(1.35) rotate(0deg) translateX(2rem) translateY(2.75rem);
+  }
+}
+
+@keyframes animation-right {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  20% {
+      transform: scale(1.35) rotate(2.5deg) translateX(1.75rem) translateY(0.85rem);
+  }
+  50% {
+      transform: scale(1.1) rotate(-1deg) translateX(1rem);
+  }
+  75% {
+      transform: scale(1.35) rotate(1deg) translateX(0px) translateY(0px);
+  }
+  100% {
+      transform: scale(1) rotate(0deg) translateX(0px) translateY(0px);
+  }
+}

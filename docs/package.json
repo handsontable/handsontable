@@ -75,6 +75,7 @@
     "not dead"
   ],
   "dependencies": {
+    "overlayscrollbars": "^2.5.0",
     "patch-package": "^8.0.0"
   }
 }

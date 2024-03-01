@@ -1,11 +1,13 @@
 <template>
   <aside class="sidebar">
+    <!--
     <RouterLink
         :to="frameworkUrlPrefix"
         class="home-link"
     >
       <Logo />
     </RouterLink>
+    -->
 
     <div class="info-box">
       <span><i class="ico i-bell"></i></span>
