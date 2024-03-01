@@ -2,7 +2,7 @@
 
 <a href="https://handsontable.com" rel="nofollow"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-blue.svg" alt="Handsontable - data grid for Angular" width="300"></a>
 
-# Data Grid for Angular <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="22" height="22">
+# Data Grid for Angular <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="32" height="32">
 
 Handsontable's wrapper for Angular combines data grid features with spreadsheet-like UX. <br>
 It provides data binding, data validation, filtering, sorting, and CRUD operations.
@@ -46,15 +46,18 @@ The most popular features of Handsontable for Angular:
 
 <div id="installation"></div>
 
-## Get Started
-### Install with npm
+## Installation
 
-Run the following command in your terminal
-```
-npm install handsontable @handsontable/angular
+#### NPM
+
+Get Handsontable from your package manager of choice
+
+```bash
+npm i handsontable @handsontable/angular
 ```
 
-You can load it directly from [jsDelivr](https://jsdelivr.com/package/npm/@handsontable/angular) as well.
+#### CDN
+
 ```html
 <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@handsontable/angular/bundles/handsontable-angular.umd.min.js"></script>
@@ -113,7 +116,15 @@ export class AppComponent  {
 **Template**
 
 ```html
-<hot-table [data]="data" [colHeaders]="true" [rowHeaders]="true" [width]="600" [height]="300"></hot-table>
+<hot-table 
+  [data]="data" 
+  [colHeaders]="true" 
+  [rowHeaders]="true" 
+  [width]="600" 
+  [height]="300" 
+  [autoWrapRow] 
+  [autoWrapCol]="true">
+</hot-table>
 ```
 
 ### [View live demo](https://handsontable.com/docs/angular-simple-example/)

@@ -46,15 +46,14 @@ The most popular features of Handsontable for Vue 3:
 
 <div id="installation"></div>
 
-## Get Started
-### Install with npm
+## Installation
 
-Run the following command in your terminal
+Get Handsontable from your package manager of choice
 ```
 npm install handsontable @handsontable/vue3
 ```
 
-You can load it directly from [jsDelivr](https:jsdelivr.com/package/npm/@handsontable/vue3) as well.
+CDN
 ```html
 <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@handsontable/vue3/dist/vue-handsontable.min.js"></script>
@@ -76,7 +75,7 @@ Use this data grid as you would any other component in your application. [Option
 **Vue 3 Component**
 ```vue
 <template>
-  <hot-table :data="data" :rowHeaders="true" :colHeaders="true"></hot-table>
+  <hot-table :data="data" :rowHeaders="true" :colHeaders="true" :autoWrapRow="true" :autoWrapCol="true"></hot-table>
 </template>
 
 <script>
