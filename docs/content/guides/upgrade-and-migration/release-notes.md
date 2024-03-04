@@ -55,7 +55,7 @@ For more information on this release, see:
 
 - Fixed an issue where the sizes of rows and columns were calculated incorrectly for hidden indexes. [#10705](https://github.com/handsontable/handsontable/pull/10705)
 - Fixed an issue where pasting arrays larger than the table's height caused data getter methods (such as [`getCellMeta()`](@/api/core.md#getcellmeta)) to throw an error. [#10710](https://github.com/handsontable/handsontable/pull/10710)
-- Fixed an issue of HyperFormula and Handsontable not syncing properly. [#10719](https://github.com/handsontable/handsontable/pull/10719)
+- Fixed an issue where HyperFormula and Handsontable didn't sync properly. [#10719](https://github.com/handsontable/handsontable/pull/10719)
 - Fixed an issue where removing all rows and columns while HyperFormula was enabled caused an error. [#10720](https://github.com/handsontable/handsontable/pull/10720)
 - Fixed an issue where very large text cells lacked the vertical scrollbar during editing. [#10722](https://github.com/handsontable/handsontable/pull/10722)
 - Fixed an issue where non-contiguous selection caused too many [`afterSelectionEnd`](@/api/hooks.md#afterselectionend) and [`afterSelectionEndByProp`](@/api/hooks.md#afterselectionendbyprop) calls. [#10725](https://github.com/handsontable/handsontable/pull/10725)
