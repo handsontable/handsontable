@@ -2591,7 +2591,7 @@ const REGISTERED_HOOKS = [
   /**
    * Fired before the editor is opened and rendered.
    *
-   * @since 14.1.0
+   * @since 14.2.0
    * @event Hooks#beforeBeginEditing
    * @param {number} row Visual row index of the edited cell.
    * @param {number} column Visual column index of the edited cell.
