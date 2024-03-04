@@ -705,115 +705,94 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * `modifyTransformEnd` hook callback. Needed to handle "jumping over" merged merged cells, while selecting.
+   * The hook allows to modify the delta transformation object necessary for correct selection end transformations.
+   * The logic here handles "jumping over" merged merged cells, while selecting.
    *
-   * @param {object} delta The transformation delta.
+   * @param {{ row: number, col: number }} delta The transformation delta.
    */
   #onModifyTransformEnd(delta) {
     const selectedRange = this.hot.getSelectedRangeLast();
     const cloneRange = selectedRange.clone();
     const { to } = selectedRange;
     const { columnIndexMapper, rowIndexMapper } = this.hot;
+    const expandCloneRange = (row, col) => {
+      cloneRange.expand(this.hot._createCellCoords(row, col));
+
+      for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
+        cloneRange.expandByRange(this.mergedCellsCollection.mergedCells[i].getRange());
+      }
+    }
 
     if (delta.col < 0) {
-      if (selectedRange.getHorizontalDirection() === 'W-E') {
-        const nextColumn = this.mergedCellsCollection.getStartMostColumnIndex(selectedRange, to.col) + delta.col;
-        const notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(nextColumn, 1);
+      let nextColumn = this.mergedCellsCollection.getStartMostColumnIndex(selectedRange, to.col) + delta.col;
 
-        if (notHiddenColumnIndex !== null) {
-          delta.col = -Math.max(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, to.col) - 1, 1);
-        }
-      } else { // E-W
-        const nextColumn = this.mergedCellsCollection.getStartMostColumnIndex(selectedRange, to.col) + delta.col;
+      expandCloneRange(to.row, nextColumn);
 
-        cloneRange.expand(this.hot._createCellCoords(to.row, nextColumn));
+      if (selectedRange.getHorizontalDirection() === 'E-W' && cloneRange.getHorizontalDirection() === 'E-W') {
+        nextColumn = cloneRange.getTopStartCorner().col;
+      }
 
-        for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
-          cloneRange.expandByRange(this.mergedCellsCollection.mergedCells[i].getRange());
-        }
+      const notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(nextColumn, 1);
 
-        const notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(cloneRange.getTopStartCorner().col, 1);
-
-        if (notHiddenColumnIndex !== null) {
-          delta.col = -Math.max(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, to.col) - 1, 1);
-        }
+      if (notHiddenColumnIndex !== null) {
+        delta.col = -Math.max(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, to.col) - 1, 1);
       }
 
     } else if (delta.col > 0) {
-      if (selectedRange.getHorizontalDirection() === 'W-E') {
-        const nextColumn = this.mergedCellsCollection.getEndMostColumnIndex(selectedRange, to.col) + delta.col;
+      let nextColumn = this.mergedCellsCollection.getEndMostColumnIndex(selectedRange, to.col) + delta.col;
 
-        cloneRange.expand(this.hot._createCellCoords(to.row, nextColumn));
+      expandCloneRange(to.row, nextColumn);
 
-        for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
-          cloneRange.expandByRange(this.mergedCellsCollection.mergedCells[i].getRange(), false);
-        }
+      if (selectedRange.getHorizontalDirection() === 'W-E' && cloneRange.getHorizontalDirection() === 'W-E') {
+        nextColumn = cloneRange.getBottomEndCorner().col;
+      }
 
-        const notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(cloneRange.getTopEndCorner().col, -1);
+      const notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(nextColumn, -1);
 
-        if (notHiddenColumnIndex !== null) {
-          delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(to.col, notHiddenColumnIndex) - 1, 1);
-        }
-      } else { // E-W
-        const nextColumn = this.mergedCellsCollection.getEndMostColumnIndex(selectedRange, to.col) + delta.col;
-        const notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(nextColumn, 1);
-
-        if (notHiddenColumnIndex !== null) {
-          delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(to.col, notHiddenColumnIndex) - 1, 1);
-        }
+      if (notHiddenColumnIndex !== null) {
+        delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(to.col, notHiddenColumnIndex) - 1, 1);
       }
     }
 
     if (delta.row < 0) {
-      if (selectedRange.getVerticalDirection() === 'N-S') {
-        const nextRow = this.mergedCellsCollection.getStartMostRowIndex(selectedRange, to.row) + delta.row;
-        const notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(nextRow, 1);
+      let nextRow = this.mergedCellsCollection.getTopMostRowIndex(selectedRange, to.row) + delta.row;
 
-        if (notHiddenRowIndex !== null) {
-          delta.row = -Math.max(this.hot.view.countRenderableRowsInRange(notHiddenRowIndex, to.row) - 1, 1);
-        }
-      } else { // S-N
-        const nextRow = this.mergedCellsCollection.getStartMostRowIndex(selectedRange, to.row) + delta.row;
+      expandCloneRange(nextRow, to.col);
 
-        cloneRange.expand(this.hot._createCellCoords(nextRow, to.col));
+      if (selectedRange.getVerticalDirection() === 'S-N' && cloneRange.getVerticalDirection() === 'S-N') {
+        nextRow = cloneRange.getTopStartCorner().row;
+      }
 
-        for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
-          cloneRange.expandByRange(this.mergedCellsCollection.mergedCells[i].getRange());
-        }
+      const notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(nextRow, 1);
 
-        const notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(cloneRange.getTopStartCorner().row, 1);
-
-        if (notHiddenRowIndex !== null) {
-          delta.row = -Math.max(this.hot.view.countRenderableRowsInRange(notHiddenRowIndex, to.row) - 1, 1);
-        }
+      if (notHiddenRowIndex !== null) {
+        delta.row = -Math.max(this.hot.view.countRenderableRowsInRange(notHiddenRowIndex, to.row) - 1, 1);
       }
 
     } else if (delta.row > 0) {
-      if (selectedRange.getVerticalDirection() === 'N-S') {
-        const nextRow = this.mergedCellsCollection.getEndMostRowIndex(selectedRange, to.row) + delta.row;
+      let nextRow = this.mergedCellsCollection.getBottomMostRowIndex(selectedRange, to.row) + delta.row;
 
-        cloneRange.expand(this.hot._createCellCoords(nextRow, to.col));
+      expandCloneRange(nextRow, to.col);
 
-        for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
-          cloneRange.expandByRange(this.mergedCellsCollection.mergedCells[i].getRange(), false);
-        }
+      if (selectedRange.getVerticalDirection() === 'N-S' && cloneRange.getVerticalDirection() === 'N-S') {
+        nextRow = cloneRange.getBottomStartCorner().row;
+      }
 
-        const notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(cloneRange.getBottomStartCorner().row, -1);
+      const notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(nextRow, -1);
 
-        if (notHiddenRowIndex !== null) {
-          delta.row = Math.max(this.hot.view.countRenderableRowsInRange(to.row, notHiddenRowIndex) - 1, 1);
-        }
-      } else { // S-N
-        const nextRow = this.mergedCellsCollection.getEndMostRowIndex(selectedRange, to.row) + delta.row;
-        const notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(nextRow, 1);
-
-        if (notHiddenRowIndex !== null) {
-          delta.row = Math.max(this.hot.view.countRenderableRowsInRange(to.row, notHiddenRowIndex) - 1, 1);
-        }
+      if (notHiddenRowIndex !== null) {
+        delta.row = Math.max(this.hot.view.countRenderableRowsInRange(to.row, notHiddenRowIndex) - 1, 1);
       }
     }
   }
 
+  /**
+   * The hooks allows to modify the delta transformation object necessary for correct selection end transformations.
+   *
+   * @param {{ row: number, col: number }} restDelta The transformation delta for the rest of the selection.
+   * @param {{ row: number, col: number }} delta The general transformation delta.
+   * @param {CellCoords} coords The coordinates of the next position of the end selection.
+   */
   #onModifyTransformEndRestDelta(restDelta, delta, coords) {
     const selectedRange = this.hot.getSelectedRangeLast();
     const { highlight } = selectedRange;
@@ -824,21 +803,31 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
+    const topStartCorner = selectedRange.getTopStartCorner();
+    const topEndCorner = selectedRange.getTopEndCorner();
+    const bottomEndCorner = selectedRange.getBottomEndCorner();
+
     if (delta.col > 0) {
-      restDelta.col = coords.col - selectedRange.getTopEndCorner().col;
+      const renderableColumns = this.hot.view.countRenderableColumnsInRange(topEndCorner.col, coords.col) - 1;
+
+      restDelta.col = Math.max(renderableColumns, 1);
 
     } else if (delta.col < 0) {
-      restDelta.col = coords.col - selectedRange.getTopStartCorner().col;
+      const renderableColumns = this.hot.view.countRenderableColumnsInRange(coords.col, topStartCorner.col) - 1;
+
+      restDelta.col = -Math.max(renderableColumns, 1);
     }
 
     if (delta.row > 0) {
-      restDelta.row = coords.row - selectedRange.getBottomStartCorner().row;
+      const renderableRows = this.hot.view.countRenderableRowsInRange(bottomEndCorner.row, coords.row) - 1;
+
+      restDelta.row = Math.max(renderableRows, 1);
 
     } else if (delta.row < 0) {
-      restDelta.row = coords.row - selectedRange.getTopStartCorner().row;
-    }
+      const renderableRows = this.hot.view.countRenderableRowsInRange(coords.row, topStartCorner.row) - 1;
 
-    // console.log('restDelta', restDelta);
+      restDelta.row = -Math.max(renderableRows, 1);
+    }
   }
 
   /**

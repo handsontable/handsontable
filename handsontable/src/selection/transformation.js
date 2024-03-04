@@ -186,10 +186,8 @@ class Transformation {
     const delta = this.#options.createCellCoords(rowDelta, colDelta);
     const cellRange = this.#range.current();
     const highlightRenderableCoords = this.#options.visualToRenderableCoords(cellRange.highlight);
-    const {
-      row: toRow,
-      col: toColumn,
-    } = this.#findFirstNonHiddenZeroBasedCoords(cellRange.to);
+    const toRow = this.#findFirstNonHiddenZeroBasedRow(cellRange.to.row, cellRange.from.row);
+    const toColumn = this.#findFirstNonHiddenZeroBasedColumn(cellRange.to.col, cellRange.from.col);
     const visualCoords = cellRange.to.clone();
     let rowTransformDir = 0;
     let colTransformDir = 0;
@@ -210,26 +208,29 @@ class Transformation {
         col: coords.col - highlightColumn,
       };
 
-      // this.runLocalHooks('modifyTransformEndRestDelta', restDelta, delta, coords);
-      // console.log('restDelta', restDelta);
+      this.runLocalHooks('modifyTransformEndRestDelta', restDelta, delta, this.#zeroBasedToVisualCoords(coords));
+
+      const topStartCorner = cellRange.getTopStartCorner();
+      const topEndCorner = cellRange.getTopEndCorner();
+      const bottomEndCorner = cellRange.getBottomEndCorner();
 
       if (delta.col < 0) {
         if (toColumn >= highlightColumn && coords.col < highlightColumn) {
-          coords.col = this.#visualToZeroBasedCoords(cellRange.getTopStartCorner()).col + restDelta.col;
+          coords.col = this.#findFirstNonHiddenZeroBasedColumn(topStartCorner.col, topEndCorner.col) + restDelta.col;
         }
       } else if (delta.col > 0) {
         if (toColumn <= highlightColumn && coords.col > highlightColumn) {
-          coords.col = this.#visualToZeroBasedCoords(cellRange.getTopEndCorner()).col + restDelta.col;
+          coords.col = this.#findFirstNonHiddenZeroBasedColumn(topEndCorner.col, topStartCorner.col) + restDelta.col;
         }
       }
 
       if (delta.row < 0) {
         if (toRow >= highlightRow && coords.row < highlightRow) {
-          coords.row = this.#visualToZeroBasedCoords(cellRange.getTopStartCorner()).row + restDelta.row;
+          coords.row = this.#findFirstNonHiddenZeroBasedRow(topStartCorner.row, bottomEndCorner.row) + restDelta.row;
         }
       } else if (delta.row > 0) {
         if (toRow <= highlightRow && coords.row > highlightRow) {
-          coords.row = this.#visualToZeroBasedCoords(cellRange.getBottomStartCorner()).row + restDelta.row;
+          coords.row = this.#findFirstNonHiddenZeroBasedRow(bottomEndCorner.row, topStartCorner.row) + restDelta.row;
         }
       }
 
@@ -312,29 +313,38 @@ class Transformation {
     };
   }
 
-  #findFirstNonHiddenZeroBasedCoords(visualCoords) {
-    const range = this.#range.current();
-    const verticalDir = range.getVerticalDirection() === 'N-S' ? -1 : 1;
-    const horizontalDir = range.getHorizontalDirection() === 'W-E' ? -1 : 1;
-    let { row, col } = this.#options.findFirstNonHiddenCoords(visualCoords, verticalDir, horizontalDir);
+  /**
+   * Finds the first non-hidden zero-based row in the table range.
+   *
+   * @param {number} visualRowFrom The visual row from which the search should start.
+   * @param {number} visualRowTo The visual row to which the search should end.
+   * @returns {number | null}
+   */
+  #findFirstNonHiddenZeroBasedRow(visualRowFrom, visualRowTo) {
+    const row = this.#options.findFirstNonHiddenRenderableRow(visualRowFrom, visualRowTo);
 
-    if (row === null || col === null) {
-      return this.#options.createCellCoords(null, null);
+    if (row === null) {
+      return null;
     }
 
-    if (verticalDir === 1) {
-      row = Math.min(range.getBottomStartCorner().row, row);
-    } else {
-      row = Math.max(range.getTopStartCorner().row, row);
+    return this.#offset.y + row;
+  }
+
+  /**
+   * Finds the first non-hidden zero-based column in the table range.
+   *
+   * @param {number} visualColumnFrom The visual column from which the search should start.
+   * @param {number} visualColumnTo The visual column to which the search should end.
+   * @returns {number | null}
+   */
+  #findFirstNonHiddenZeroBasedColumn(visualColumnFrom, visualColumnTo) {
+    const column = this.#options.findFirstNonHiddenRenderableColumn(visualColumnFrom, visualColumnTo);
+
+    if (column === null) {
+      return null;
     }
 
-    if (horizontalDir === 1) {
-      col = Math.min(range.getTopEndCorner().col, col);
-    } else {
-      col = Math.max(range.getTopStartCorner().col, col);
-    }
-
-    return this.#options.createCellCoords(this.#offset.y + row, this.#offset.x + col);
+    return this.#offset.x + column;
   }
 
   /**
@@ -345,6 +355,10 @@ class Transformation {
    */
   #visualToZeroBasedCoords(visualCoords) {
     const { row, col } = this.#options.visualToRenderableCoords(visualCoords);
+
+    if (row === null || col === null) {
+      throw new Error('Visual coords are out of the table range.');
+    }
 
     return this.#options.createCellCoords(this.#offset.y + row, this.#offset.x + col);
   }

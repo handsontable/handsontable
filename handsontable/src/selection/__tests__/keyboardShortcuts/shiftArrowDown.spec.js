@@ -209,7 +209,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 2,4']);
     });
 
-    it('should extend the row header selection down to the next row header when there is no columns (navigableHeaders on)', () => {
+    it('should not extend the row header selection down to the next row header when there is no columns (navigableHeaders on)', () => {
       handsontable({
         data: [[], [], [], [], []],
         rowHeaders: true,
@@ -226,14 +226,14 @@ describe('Selection extending', () => {
         |===|
         |   |
         | # |
-        | * |
+        |   |
         |   |
         |   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 2,-1']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,-1']);
     });
 
-    it('should extend the row header selection down to the next row header when all columns are hidden (navigableHeaders on)', () => {
+    it('should not extend the row header selection down to the next row header when all columns are hidden (navigableHeaders on)', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -253,11 +253,11 @@ describe('Selection extending', () => {
         |===|
         |   |
         | # |
-        | * |
+        |   |
         |   |
         |   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 2,4']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,4']);
     });
 
     it('should not change the selection when column header is selected', () => {

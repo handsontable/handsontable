@@ -295,11 +295,30 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     );
   };
 
-  const findFirstNonHiddenCoords = (coords, verticalDir, horizontalDir) => {
-    return instance._createCellCoords(
-      instance.rowIndexMapper.getNearestNotHiddenIndex(coords.row, verticalDir),
-      instance.columnIndexMapper.getNearestNotHiddenIndex(coords.col, horizontalDir),
-    );
+  const findFirstNonHiddenRenderableRow = (visualRowFrom, visualRowTo) => {
+    const dir = visualRowTo > visualRowFrom ? 1 : -1;
+    const minIndex = Math.min(visualRowFrom, visualRowTo);
+    const maxIndex = Math.max(visualRowFrom, visualRowTo);
+    const rowIndex = instance.rowIndexMapper.getNearestNotHiddenIndex(visualRowFrom, dir);
+
+    if (rowIndex === null || dir === 1 && rowIndex > maxIndex || dir === -1 && rowIndex < minIndex) {
+      return null;
+    }
+
+    return rowIndex >= 0 ? instance.rowIndexMapper.getRenderableFromVisualIndex(rowIndex) : rowIndex;
+  };
+
+  const findFirstNonHiddenRenderableColumn = (visualColumnFrom, visualColumnTo) => {
+    const dir = visualColumnTo > visualColumnFrom ? 1 : -1;
+    const minIndex = Math.min(visualColumnFrom, visualColumnTo);
+    const maxIndex = Math.max(visualColumnFrom, visualColumnTo);
+    const columnIndex = instance.columnIndexMapper.getNearestNotHiddenIndex(visualColumnFrom, dir);
+
+    if (columnIndex === null || dir === 1 && columnIndex > maxIndex || dir === -1 && columnIndex < minIndex) {
+      return null;
+    }
+
+    return columnIndex >= 0 ? instance.columnIndexMapper.getRenderableFromVisualIndex(columnIndex) : columnIndex;
   };
 
   let selection = new Selection(tableMeta, {
@@ -320,7 +339,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     createCellRange: (highlight, from, to) => instance._createCellRange(highlight, from, to),
     visualToRenderableCoords,
     renderableToVisualCoords,
-    findFirstNonHiddenCoords,
+    findFirstNonHiddenRenderableRow,
+    findFirstNonHiddenRenderableColumn,
     isDisabledCellSelection: (visualRow, visualColumn) => {
       if (visualRow < 0 || visualColumn < 0) {
         return instance.getSettings().disableVisualSelection;
