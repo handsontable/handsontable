@@ -451,7 +451,7 @@ Each translation module contains a different translation package:
 
 | Module | Translation                 |
 | ------ | --------------------------- |
-| `arAR` | Arabic - Saudi Arabia       |
+| `arAR` | Arabic - Global             |
 | `csCZ` | Czech - Czech Republic      |
 | `deCH` | German - Switzerland        |
 | `deDE` | German - Germany            |
