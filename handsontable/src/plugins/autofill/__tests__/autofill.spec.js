@@ -732,7 +732,7 @@ describe('AutoFill', () => {
     document.body.removeChild($table[0]);
   });
 
-  it('should fill cells below until the end of content in the neighbouring column with current cell\'s data', () => {
+  it('should fill empty cells below until the end of content in the neighbouring column with current cell\'s data', () => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -755,6 +755,37 @@ describe('AutoFill', () => {
 
     expect(getDataAtCell(2, 2)).toEqual(3);
     expect(getDataAtCell(3, 2)).toEqual(3);
+  });
+
+  // https://github.com/handsontable/dev-handsontable/issues/1757
+  it('should fill empty cells below until the end of content in the neighbouring column with current cell\'s data' +
+    'and NOT treat cells filled with 0s as empty', () => {
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 0, 4, 5, 6],
+        [1, 2, 0, null, null, null],
+        [1, 2, 0, null, null, null],
+        [1, 2, null, null, null, null]
+      ]
+    });
+
+    selectCell(0, 2);
+    const fillHandle = spec().$container.find('.wtBorder.current.corner')[0];
+
+    mouseDoubleClick(fillHandle);
+
+    expect(getDataAtCell(1, 2)).toEqual(0);
+    expect(getDataAtCell(2, 2)).toEqual(0);
+    expect(getDataAtCell(3, 2)).toEqual(0);
+    expect(getDataAtCell(4, 2)).toEqual(null);
+
+    selectCell(1, 3);
+    mouseDoubleClick(fillHandle);
+
+    expect(getDataAtCell(2, 3)).toEqual(4);
+    expect(getDataAtCell(3, 3)).toEqual(4);
+    expect(getDataAtCell(4, 3)).toEqual(null);
   });
 
   it('should fill cells below until the end of content in the neighbouring column with the currently selected area\'s data', () => {

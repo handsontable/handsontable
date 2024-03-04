@@ -1197,9 +1197,9 @@ export default () => {
      * ]
      *
      * // enable copying for specific cells
-     * cells: [
+     * cell: [
      *   {
-     *     cell: 0,
+     *     col: 0,
      *     row: 0,
      *     // disable copying for cell (0, 0)
      *     copyable: false,
