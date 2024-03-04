@@ -392,7 +392,7 @@ class MergedCellsCollection {
    *
    * @param {CellRange} range The range to search within.
    * @param {'row' | 'col'} axis The axis to search within.
-   * @param {1 | -1} scanDirection  The direction to scan the range. `1` for forward, `-1` for backward.
+   * @param {number} scanDirection  The direction to scan the range. `1` for forward, `-1` for backward.
    * @returns {number[]}
    */
   #getNonIntersectingIndexes(range, axis, scanDirection = 1) {
