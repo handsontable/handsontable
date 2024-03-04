@@ -721,7 +721,7 @@ export class MergeCells extends BasePlugin {
       for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
         cloneRange.expandByRange(this.mergedCellsCollection.mergedCells[i].getRange());
       }
-    }
+    };
 
     if (delta.col < 0) {
       let nextColumn = this.mergedCellsCollection.getStartMostColumnIndex(selectedRange, to.col) + delta.col;
