@@ -29,7 +29,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 Released on March 6, 2024
 
 For more information on this release, see:
-- [Blog post (14.1.0)](https://handsontable.com/blog/handsontable-14-2-0-typescript-ssr-improvements)
+- [Blog post (14.1.0)](https://handsontable.com/blog/handsontable-14-2-0-PLACEHOLDER)
 - [Documentation (14.2)](https://handsontable.com/docs/14.2)
 
 ### Added

@@ -48,6 +48,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - React: Fixed a missing `HotTableClass` export. [#10760](https://github.com/handsontable/handsontable/pull/10760)
 - React: Fixed missing `renderer` and `editor` props. [#10768](https://github.com/handsontable/handsontable/pull/10768)
 
+For more information on Handsontable 14.1.0, see:
+
+- [Blog post (14.2.0)](https://handsontable.com/blog/handsontable-14-2-0-PLACEHOLDER)
+- [Documentation (14.2)](https://handsontable.com/docs/14.2)
+- [Release notes (14.2.0)](https://handsontable.com/docs/release-notes/#_14-2-0)
+
 ## [14.1.0] - 2024-01-16
 
 ### Added

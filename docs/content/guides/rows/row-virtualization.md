@@ -29,7 +29,7 @@ This feature is enabled by default and can be turned off by setting the [`render
 
 ## Configuring row virtualization
 
-You can experiment with the [`viewportRowsRenderingOffset`](@/api/options.md#viewportrowsrenderingoffset) configuration option, which determines the number of rows displayed outside the visible viewport. If the number passed to that option is greater than the total columns in your data set, then the virtualization will be practically turned off.
+You can experiment with the [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset) configuration option, which determines the number of rows displayed outside the visible viewport. If the number passed to that option is greater than the total columns in your data set, then the virtualization will be practically turned off.
 
 To make the grid scrollable, set the constant width and height to the same as the container holding Handsontable and set the `overflow` property to `hidden` in the container's stylesheet. If the table contains enough rows or columns, it will be scrollable.
 
@@ -140,4 +140,4 @@ Using row virtualization has the following side effects:
 
 - Configuration options:
   - [`renderAllRows`](@/api/options.md#renderallrows)
-  - [`viewportRowsRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
+  - [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
