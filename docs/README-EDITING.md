@@ -162,7 +162,7 @@ To link to another page but for other framework (and still for the same document
 For example, to link to a file called `./content/guides/getting-started/react-methods.md` that should be accessible only for React framework, use:
 
 ```markdown
-[React methods](@/react/guides/getting-started/react-methods.md)
+[React methods](@/react/guides/getting-started/react-methods/react-methods.md)
 ```
 
 When there is no framework defined in the link URL, the generated link will be pointed to the currently viewed framework. For example, link `[Core](@/api/core.md)` for Javascript will point to `/docs/javascript-data-grid/api/core` and for chosen React framework to `/docs/react-data-grid/api/core`.
@@ -171,7 +171,7 @@ List of available frameworks: `javascript`, `react`.
 
 Follow these rules:
 * After the `@` character, provide the target's relative file path (from the current version's root directory).<br>
-  For example: `[Clipboard][@/guides/cell-features/clipboard.md]`.
+  For example: `[Clipboard][@/guides/cell-features/clipboard/clipboard.md]`.
 * After the target file's name, add the `.md` [extension](#filenames)<br>
   For example: `[Autofill](@/api/autofill.md)`.
 * To link to a specific section, use anchors.<br>
