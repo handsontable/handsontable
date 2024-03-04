@@ -36,7 +36,7 @@ For more information on this release, see:
 - Added a new `beforeBeginEditing` hook [#10699](https://github.com/handsontable/handsontable/pull/10699)
 - Added the ability to prevent viewport scroll through `beforeViewportScrollVertically` and `beforeViewportScrollHorizontally` hooks. [#10724](https://github.com/handsontable/handsontable/pull/10724)
 - Added Undo functionality for moving columns [#10746](https://github.com/handsontable/handsontable/pull/10746)
-- Added a `modifyFiltersMultiSelectValue` plugin hook and applied it to the Filters' multi-selection component [#10756](https://github.com/handsontable/handsontable/pull/10756)
+- List of filtered values should show the formatted numeric value not the source data. #10756 [#10756](https://github.com/handsontable/handsontable/pull/10756)
 - Added localization for the Croatian language [#10762](https://github.com/handsontable/handsontable/pull/10762)
 
 #### Changed
