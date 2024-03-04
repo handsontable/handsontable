@@ -45,7 +45,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed an issue where using the browser's autocomplete dropdown on an input outside of Handsontable caused errors. Also, fixed an event listener leak. [#10795](https://github.com/handsontable/handsontable/pull/10795)
 - Fixed an issue where using context and dropdown menus on mobile caused unwanted selection handles to show up. [#10816](https://github.com/handsontable/handsontable/pull/10816)
 - Fixed an issue where the `Autofill` plugin treated cells filled with `0` as empty. [#10817](https://github.com/handsontable/handsontable/pull/10817)
-- React: Fixed a missing `HotTableClass` export. [#10736](https://github.com/handsontable/handsontable/issues/10736)
+- React: Fixed a missing `HotTableClass` export. [#10760](https://github.com/handsontable/handsontable/pull/10760)
 - React: Fixed missing `renderer` and `editor` props. [#10768](https://github.com/handsontable/handsontable/pull/10768)
 
 ## [14.1.0] - 2024-01-16
