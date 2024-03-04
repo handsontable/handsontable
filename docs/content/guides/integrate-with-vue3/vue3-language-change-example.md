@@ -48,6 +48,7 @@ import {
   deDE,
   esMX,
   frFR,
+  hrHR,
   itIT,
   jaJP,
   koKR,

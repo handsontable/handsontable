@@ -422,11 +422,14 @@ You can import the following translation modules:
 ```js
 import {
   registerLanguageDictionary, // translations' registering function
+  arAR,
+  csCZ,
   deCH,
   deDE,
   enUS,
   esMX,
   frFR,
+  hrHR,
   itIT,
   jaJP,
   koKR,
@@ -614,11 +617,14 @@ import {
 
 // translation modules
 import {
+  arAR,
+  csCZ,
   deCH,
   deDE,
   enUS,
   esMX,
   frFR,
+  hrHR,
   itIT,
   jaJP,
   koKR,
@@ -790,11 +796,14 @@ import {
 // translation modules
 import {
   registerLanguageDictionary, // translations' registering function
+  arAR,
+  csCZ,
   deCH,
   deDE,
   enUS,
   esMX,
   frFR,
+  hrHR,
   itIT,
   jaJP,
   koKR,
