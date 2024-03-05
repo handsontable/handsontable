@@ -38,7 +38,7 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * @description
  * The plugin allows filtering the table data either by the built-in component or with the API.
  *
- * See [the filtering demo](@/guides/columns/column-filter/column-filter.md) for examples.
+ * See [the filtering demo](@/guides/columns/column-filter.md) for examples.
  *
  * @example
  * ::: only-for javascript

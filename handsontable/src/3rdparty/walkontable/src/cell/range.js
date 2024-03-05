@@ -5,7 +5,7 @@ import CellCoords from './../cell/coords';
  * @description
  *
  * The `CellRange` class holds a set of cell coordinates ([`CellCoords`](@/api/cellCoords.md) instances)
- * that form a [selection range](@/guides/cell-features/selection/selection.md#select-ranges).
+ * that form a [selection range](@/guides/cell-features/selection.md#select-ranges).
  *
  * A single `CellRange` instance represents a single unit of selection
  * that contains either a single cell or multiple adjacent cells.

@@ -16,7 +16,7 @@ import { fastCall } from './helpers/function';
  * ::: only-for react
  * This page lists all the **Handsontable hooks** – callbacks that let you react before or after an action occurs.
  *
- * Read more on the [Events and hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) page.
+ * Read more on the [Events and hooks](@/guides/getting-started/events-and-hooks.md) page.
  * :::
  *
  * @example
@@ -135,7 +135,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterChange
    * @param {Array[]} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`. `row` is a visual row index.
-   * @param {string} [source] String that identifies source of hook call ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   * @param {string} [source] String that identifies source of hook call ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    * @example
    * ::: only-for javascript
    * ```js
@@ -248,7 +248,7 @@ const REGISTERED_HOOKS = [
    * @param {number} index Represents the visual index of first newly created column in the data source array.
    * @param {number} amount Number of newly created columns in the data source array.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    * @returns {*} If `false` then creating columns is cancelled.
    * @example
    * ::: only-for javascript
@@ -291,7 +291,7 @@ const REGISTERED_HOOKS = [
    * @param {number} index Represents the visual index of first newly created column in the data source.
    * @param {number} amount Number of newly created columns in the data source.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    */
   'afterCreateCol',
 
@@ -302,7 +302,7 @@ const REGISTERED_HOOKS = [
    * @param {number} index Represents the visual index of first newly created row in the data source array.
    * @param {number} amount Number of newly created rows in the data source array.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeCreateRow',
@@ -314,7 +314,7 @@ const REGISTERED_HOOKS = [
    * @param {number} index Represents the visual index of first newly created row in the data source array.
    * @param {number} amount Number of newly created rows in the data source array.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    */
   'afterCreateRow',
 
@@ -407,11 +407,11 @@ const REGISTERED_HOOKS = [
    * or the [`updateSettings()`](@/api/core.md#updatesettings) method.
    *
    * Read more:
-   * - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
-   * - [Saving data](@/guides/getting-started/saving-data/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data.md)
    *
    * @event Hooks#afterLoadData
-   * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), that contains Handsontable's data
+   * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
    * @param {boolean} initialLoad A flag that indicates whether the data was loaded at Handsontable's initialization (`true`) or later (`false`)
    * @param {string} source The source of the call
    */
@@ -422,12 +422,12 @@ const REGISTERED_HOOKS = [
    * modifies Handsontable's [`data`](@/api/options.md#data).
    *
    * Read more:
-   * - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
-   * - [Saving data](@/guides/getting-started/saving-data/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data.md)
    *
    * @event Hooks#afterUpdateData
    * @since 11.1.0
-   * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), that contains Handsontable's data
+   * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
    * @param {boolean} initialLoad A flag that indicates whether the data was loaded at Handsontable's initialization (`true`) or later (`false`)
    * @param {string} source The source of the call
    */
@@ -530,7 +530,7 @@ const REGISTERED_HOOKS = [
    * @param {number} amount An amount of removed columns.
    * @param {number[]} physicalColumns An array of physical columns removed from the data source.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    */
   'afterRemoveCol',
 
@@ -542,7 +542,7 @@ const REGISTERED_HOOKS = [
    * @param {number} amount An amount of removed rows.
    * @param {number[]} physicalRows An array of physical rows removed from the data source.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    */
   'afterRemoveRow',
 
@@ -863,7 +863,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterSetDataAtCell
    * @param {Array} changes An array of changes in format `[[row, column, oldValue, value], ...]`.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    */
   'afterSetDataAtCell',
 
@@ -874,7 +874,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterSetDataAtRowProp
    * @param {Array} changes An array of changes in format `[[row, prop, oldValue, value], ...]`.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    */
   'afterSetDataAtRowProp',
 
@@ -909,7 +909,7 @@ const REGISTERED_HOOKS = [
    * @param {number} row Visual row index.
    * @param {string|number} prop Property name / visual column index.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    * @returns {undefined | boolean} If `false` the cell will be marked as invalid, `true` otherwise.
    */
   'afterValidate',
@@ -991,7 +991,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeChange
    * @param {Array[]} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`. `row` is a visual row index.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    * @returns {undefined | boolean} If `false` all changes were cancelled, `true` otherwise.
    * @example
    * ::: only-for javascript
@@ -1062,7 +1062,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeChangeRender
    * @param {Array[]} changes Array in form of `[row, prop, oldValue, newValue]`.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    */
   'beforeChangeRender',
 
@@ -1118,12 +1118,12 @@ const REGISTERED_HOOKS = [
    * or the [`updateSettings()`](@/api/core.md#updatesettings) method.
    *
    * Read more:
-   * - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
-   * - [Saving data](@/guides/getting-started/saving-data/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data.md)
    *
    * @event Hooks#beforeLoadData
    * @since 8.0.0
-   * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), that contains Handsontable's data
+   * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
    * @param {boolean} initialLoad A flag that indicates whether the data was loaded at Handsontable's initialization (`true`) or later (`false`)
    * @param {string} source The source of the call
    * @returns {Array} The returned array will be used as Handsontable's new dataset.
@@ -1135,12 +1135,12 @@ const REGISTERED_HOOKS = [
    * modifies Handsontable's [`data`](@/api/options.md#data).
    *
    * Read more:
-   * - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
-   * - [Saving data](@/guides/getting-started/saving-data/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data.md)
    *
    * @event Hooks#beforeUpdateData
    * @since 11.1.0
-   * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), that contains Handsontable's data
+   * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
    * @param {boolean} initialLoad A flag that indicates whether the data was loaded at Handsontable's initialization (`true`) or later (`false`)
    * @param {string} source The source of the call
    * @returns {Array} The returned array will be used as Handsontable's new dataset.
@@ -1220,7 +1220,7 @@ const REGISTERED_HOOKS = [
    * @param {number} amount Amount of columns to be removed.
    * @param {number[]} physicalColumns An array of physical columns removed from the data source.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeRemoveCol',
@@ -1233,7 +1233,7 @@ const REGISTERED_HOOKS = [
    * @param {number} amount Amount of rows to be removed.
    * @param {number[]} physicalRows An array of physical rows removed from the data source.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeRemoveRow',
@@ -1389,7 +1389,7 @@ const REGISTERED_HOOKS = [
    * @param {number} row Visual row index.
    * @param {string|number} prop Property name / column index.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    */
   'beforeValidate',
 
@@ -1864,11 +1864,11 @@ const REGISTERED_HOOKS = [
    * @param {number} finalIndex Visual column index, being a start index for the moved columns.
    *                            Points to where the elements will be placed after the moving action.
    *                            To check visualization of final index please take a look at
-   *                            [documentation](@/guides/columns/column-moving/column-moving.md).
+   *                            [documentation](@/guides/columns/column-moving.md).
    * @param {number|undefined} dropIndex Visual column index, being a drop index for the moved columns.
    *                                     Points to where we are going to drop the moved elements. To check
    *                                     visualization of drop index please take a look at
-   *                                     [documentation](@/guides/columns/column-moving/column-moving.md).
+   *                                     [documentation](@/guides/columns/column-moving.md).
    *                                     It's `undefined` when `dragColumns` function wasn't called.
    * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
    * @returns {undefined | boolean} If `false` the column will not be moved, `true` otherwise.
@@ -1884,11 +1884,11 @@ const REGISTERED_HOOKS = [
    * @param {number} finalIndex Visual column index, being a start index for the moved columns.
    *                            Points to where the elements will be placed after the moving action.
    *                            To check visualization of final index please take a look at
-   *                            [documentation](@/guides/columns/column-moving/column-moving.md).
+   *                            [documentation](@/guides/columns/column-moving.md).
    * @param {number|undefined} dropIndex Visual column index, being a drop index for the moved columns.
    *                                     Points to where we are going to drop the moved elements.
    *                                     To check visualization of drop index please take a look at
-   *                                     [documentation](@/guides/columns/column-moving/column-moving.md).
+   *                                     [documentation](@/guides/columns/column-moving.md).
    *                                     It's `undefined` when `dragColumns` function wasn't called.
    * @param {boolean} movePossible Indicates if it was possible to move columns to the desired position.
    * @param {boolean} orderChanged Indicates if order of columns was changed by move.
@@ -1925,11 +1925,11 @@ const REGISTERED_HOOKS = [
    * @param {number} finalIndex Visual row index, being a start index for the moved rows.
    *                            Points to where the elements will be placed after the moving action.
    *                            To check visualization of final index please take a look at
-   *                            [documentation](@/guides/rows/row-moving/row-moving.md).
+   *                            [documentation](@/guides/rows/row-moving.md).
    * @param {number|undefined} dropIndex Visual row index, being a drop index for the moved rows.
    *                                     Points to where we are going to drop the moved elements.
    *                                     To check visualization of drop index please take a look at
-   *                                     [documentation](@/guides/rows/row-moving/row-moving.md).
+   *                                     [documentation](@/guides/rows/row-moving.md).
    *                                     It's `undefined` when `dragRows` function wasn't called.
    * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
    * @returns {*|boolean} If false is returned the action is canceled.
@@ -1945,11 +1945,11 @@ const REGISTERED_HOOKS = [
    * @param {number} finalIndex Visual row index, being a start index for the moved rows.
    *                            Points to where the elements will be placed after the moving action.
    *                            To check visualization of final index please take a look at
-   *                            [documentation](@/guides/rows/row-moving/row-moving.md).
+   *                            [documentation](@/guides/rows/row-moving.md).
    * @param {number|undefined} dropIndex Visual row index, being a drop index for the moved rows.
    *                                     Points to where we are going to drop the moved elements.
    *                                     To check visualization of drop index please take a look at
-   *                                     [documentation](@/guides/rows/row-moving/row-moving.md).
+   *                                     [documentation](@/guides/rows/row-moving.md).
    *                                     It's `undefined` when `dragRows` function wasn't called.
    * @param {boolean} movePossible Indicates if it was possible to move rows to the desired position.
    * @param {boolean} orderChanged Indicates if order of rows was changed by move.
@@ -2030,7 +2030,7 @@ const REGISTERED_HOOKS = [
 
   /**
    * Fired by the [`Filters`](@/api/filters.md) plugin,
-   * before a [column filter](@/guides/columns/column-filter/column-filter.md) gets applied.
+   * before a [column filter](@/guides/columns/column-filter.md) gets applied.
    *
    * [`beforeFilter`](#beforefilter) takes one argument (`conditionsStack`), which is an array of objects.
    * Each object represents one of your [column filters](@/api/filters.md#addcondition),
@@ -2075,7 +2075,7 @@ const REGISTERED_HOOKS = [
    *```
    *
    * Read more:
-   * - [Guides: Column filter](@/guides/columns/column-filter/column-filter.md)
+   * - [Guides: Column filter](@/guides/columns/column-filter.md)
    * - [Hooks: `afterFilter`](#afterfilter)
    * - [Options: `filters`](@/api/options.md#filters)
    * - [Plugins: `Filters`](@/api/filters.md)
@@ -2089,7 +2089,7 @@ const REGISTERED_HOOKS = [
 
   /**
    * Fired by the [`Filters`](@/api/filters.md) plugin,
-   * after a [column filter](@/guides/columns/column-filter/column-filter.md) gets applied.
+   * after a [column filter](@/guides/columns/column-filter.md) gets applied.
    *
    * [`afterFilter`](#afterfilter) takes one argument (`conditionsStack`), which is an array of objects.
    * Each object represents one of your [column filters](@/api/filters.md#addcondition),
@@ -2123,7 +2123,7 @@ const REGISTERED_HOOKS = [
    * ```
    *
    * Read more:
-   * - [Guides: Column filter](@/guides/columns/column-filter/column-filter.md)
+   * - [Guides: Column filter](@/guides/columns/column-filter.md)
    * - [Hooks: `beforeFilter`](#beforefilter)
    * - [Options: `filters`](@/api/options.md#filters)
    * - [Plugins: `Filters`](@/api/filters.md)
@@ -2144,7 +2144,7 @@ const REGISTERED_HOOKS = [
    * This hook gets also fired on Handsontable's initialization, returning the addresses and values of all cells.
    *
    * Read more:
-   * - [Guides: Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
+   * - [Guides: Formula calculation](@/guides/formulas/formula-calculation.md)
    * - [HyperFormula documentation: `valuesUpdated`](https://hyperformula.handsontable.com/api/interfaces/listeners.html#valuesupdated)
    *
    * @since 9.0.0
@@ -2242,7 +2242,7 @@ const REGISTERED_HOOKS = [
    * @since 8.4.0
    * @param {Array} doneActions Stack of actions which may be undone.
    * @param {string} [source] String that identifies source of action
-   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    * @returns {*|boolean} If false is returned the action of changing undo stack is canceled.
    */
   'beforeUndoStackChange',
@@ -3110,7 +3110,7 @@ class Hooks {
   /**
    * Registers a hook name (adds it to the list of the known hook names). Used by plugins.
    * It is not necessary to call register, but if you use it, your plugin hook will be used returned by
-   * the `getRegistered` method. (which itself is used in the [demo](@/guides/getting-started/events-and-hooks/events-and-hooks.md)).
+   * the `getRegistered` method. (which itself is used in the [demo](@/guides/getting-started/events-and-hooks.md)).
    *
    * @param {string} key The hook name.
    *

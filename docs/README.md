@@ -84,7 +84,7 @@ docs                            # All documentation files
 │   │   ├── jsdoc-convert       # JSDoc-to-Markdown converter
 │   │   ├── utils.js            # Tools utilities
 │   ├── config.js               # VuePress configuration
-│   ├── docs-links.js           # Lets us link within the currently-selected docs version and framework with `@` (e.g. [link](@/guides/path/file/file.md).)
+│   ├── docs-links.js           # Lets us link within the currently-selected docs version and framework with `@` (e.g. [link](@/guides/path/file.md).)
 │   ├── enhanceApp.js           # VuePress app-level enhancements
 │   ├── helpers.js              # Common helpers that set up sidebars and the documentation version and framework picker
 │   └── highlight.js            # Code highlight configuration

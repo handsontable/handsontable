@@ -38,7 +38,7 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  *
  * @description
  * This plugin creates the Handsontable Dropdown Menu. It allows to create a new row or column at any place in the grid
- * among [other features](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-specific-options).
+ * among [other features](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options).
  * Possible values:
  * * `true` (to enable default options),
  * * `false` (to disable completely).
@@ -47,7 +47,7 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * * `["row_above", "row_below", "col_left", "col_right",
  * "remove_row", "remove_col", "---------", "undo", "redo"]`.
  *
- * See [the dropdown menu demo](@/guides/columns/column-menu/column-menu.md) for examples.
+ * See [the dropdown menu demo](@/guides/columns/column-menu.md) for examples.
  *
  * @example
  * ::: only-for javascript

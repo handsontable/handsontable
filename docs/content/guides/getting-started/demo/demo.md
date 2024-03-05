@@ -49,13 +49,13 @@ Play around with a demo of Handsontable, in your favorite framework.
 
 Explore the demo and discover Handsontable's most popular features:
 
-- [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
-- [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
-- [Column groups](@/guides/columns/column-groups/column-groups.md)
-- [Column menu](@/guides/columns/column-menu/column-menu.md)
-- [Column filter](@/guides/columns/column-filter/column-filter.md)
-- [Column hiding](@/guides/columns/column-hiding/column-hiding.md)
-- [Rows sorting](@/guides/rows/rows-sorting/rows-sorting.md)
+- [Context menu](@/guides/accessories-and-menus/context-menu.md)
+- [Dropdown cell type](@/guides/cell-types/dropdown-cell-type.md)
+- [Column groups](@/guides/columns/column-groups.md)
+- [Column menu](@/guides/columns/column-menu.md)
+- [Column filter](@/guides/columns/column-filter.md)
+- [Column hiding](@/guides/columns/column-hiding.md)
+- [Rows sorting](@/guides/rows/rows-sorting.md)
 - And more!
 
 ## Edit the demo's source code
