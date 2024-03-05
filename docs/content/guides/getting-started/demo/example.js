@@ -5,8 +5,8 @@ import "handsontable/dist/handsontable.full.min.css";
 export const data = [
   [
     false,
-    "wtf",
-    "owch Kingdom",
+    "Tagcat",
+    "United Kingdom",
     "Classic Vest",
     "11/10/2020",
     "01-2331942",
@@ -1307,7 +1307,7 @@ new Handsontable(example, {
   height: 450,
   colWidths: [140, 192, 100, 90, 90, 100, 126],
   colHeaders: [
-    "wow",
+    "Company Name",
     "Name",
     "Sell date",
     "In stock",
