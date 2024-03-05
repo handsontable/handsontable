@@ -22,18 +22,18 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-copyBtn.addEventListener('mousedown', function() {
+copyBtn.addEventListener('mousedown', () => {
   hot.selectCell(1, 1);
 });
 
-copyBtn.addEventListener('click', function() {
+copyBtn.addEventListener('click', () => {
   document.execCommand('copy');
 });
 
-cutBtn.addEventListener('mousedown', function() {
+cutBtn.addEventListener('mousedown', () => {
   hot.selectCell(1, 1);
 });
 
-cutBtn.addEventListener('click', function() {
+cutBtn.addEventListener('click', () => {
   document.execCommand('cut');
 });

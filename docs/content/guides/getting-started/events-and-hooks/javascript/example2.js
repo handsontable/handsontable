@@ -2,7 +2,7 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 let lastChange = null;
-const container = document.querySelector('#example2')
+const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   data: [
     ['Tesla', 2017, 'black', 'black'],
@@ -25,7 +25,9 @@ const hot = new Handsontable(container, {
 hot.updateSettings({
   beforeKeyDown(e) {
     const selection = hot.getSelected()[0];
-    console.log(selection)
+
+    console.log(selection);
+
     // BACKSPACE or DELETE
     if (e.keyCode === 8 || e.keyCode === 46) {
       e.stopImmediatePropagation();

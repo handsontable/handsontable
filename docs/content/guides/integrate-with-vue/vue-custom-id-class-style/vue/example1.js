@@ -20,12 +20,12 @@ const ExampleComponent = {
       id: 'my-custom-id',
       className: 'my-custom-classname',
       style: 'height: 142px; overflow: hidden; border: 1px solid red;'
-    }
+    };
   },
   components: {
     HotTable
   }
-}
+};
 
 export default ExampleComponent;
 

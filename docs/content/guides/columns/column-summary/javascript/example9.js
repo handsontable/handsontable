@@ -7,7 +7,7 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 
   const array2d = [...new Array(rows)]
     .map(_ => [...new Array(columns)]
-    .map(_ => counter++));
+      .map(_ => counter++));
 
   if (additionalRows) {
     array2d.push([]);
@@ -41,7 +41,7 @@ const hot = new Handsontable(container, {
         let evenCount = 0;
 
         // a helper function
-        const checkRange = rowRange => {
+        const checkRange = (rowRange) => {
           let i = rowRange[1] || rowRange[0];
           let counter = 0;
 
@@ -54,7 +54,7 @@ const hot = new Handsontable(container, {
           } while (i >= rowRange[0]);
 
           return counter;
-        }
+        };
 
         // go through all declared ranges
         for (const r in endpoint.ranges) {

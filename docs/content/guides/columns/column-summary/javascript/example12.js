@@ -8,7 +8,7 @@ const hot = new Handsontable(container, {
     [0.5, 0.5],
     [0.5, 0.5],
     [1, 1],
-    [],[]
+    [], []
   ],
   colHeaders: true,
   rowHeaders: true,

@@ -22,7 +22,7 @@ const CustomRenderer = {
       prop: null,
       value: null,
       cellProperties: null
-    }
+    };
   }
 };
 
@@ -49,7 +49,7 @@ const App = new Vue({
         autoWrapCol: true,
         licenseKey: 'non-commercial-and-evaluation',
       }
-    }
+    };
   },
   components: {
     HotTable,

@@ -4,6 +4,9 @@ import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.css';
 
+/* start:skip-in-preview */
+import { createApp } from 'vue';
+
 // register Handsontable's modules
 registerAllModules();
 
@@ -52,7 +55,7 @@ const ExampleComponent = defineComponent({
         licenseKey: 'non-commercial-and-evaluation'
       },
       hotRef: null
-    }
+    };
   },
   mounted() {
     this.hotRef = this.$refs.wrapper.hotInstance;
@@ -62,7 +65,7 @@ const ExampleComponent = defineComponent({
   methods: {
     toggleReadOnly(event) {
       this.hotSettings.readOnly = event.target.checked;
-      store.commit('updateSettings', {prop: 'readOnly', value: this.hotSettings.readOnly});
+      store.commit('updateSettings', { prop: 'readOnly', value: this.hotSettings.readOnly });
     },
     updateVuexPreview() {
       // This method serves only as a renderer for the Vuex's state dump.
@@ -70,35 +73,35 @@ const ExampleComponent = defineComponent({
       let newInnerHtml = '<tbody>';
 
       for (const [key, value] of Object.entries(store.state)) {
-        newInnerHtml += `<tr><td class="table-container">`;
+        newInnerHtml += '<tr><td class="table-container">';
 
         if (key === 'hotData' && Array.isArray(value)) {
-          newInnerHtml += `<strong>hotData:</strong> <br><table><tbody>`;
+          newInnerHtml += '<strong>hotData:</strong> <br><table><tbody>';
 
-          for (let row of value) {
-            newInnerHtml += `<tr>`;
+          for (const row of value) {
+            newInnerHtml += '<tr>';
 
-            for (let cell of row) {
+            for (const cell of row) {
               newInnerHtml += `<td>${cell}</td>`;
             }
 
-            newInnerHtml += `</tr>`;
+            newInnerHtml += '</tr>';
           }
-          newInnerHtml += `</tbody></table>`;
+          newInnerHtml += '</tbody></table>';
 
         } else if (key === 'hotSettings') {
-          newInnerHtml += `<strong>hotSettings:</strong> <ul>`;
+          newInnerHtml += '<strong>hotSettings:</strong> <ul>';
 
-          for (let settingsKey of Object.keys(value)) {
+          for (const settingsKey of Object.keys(value)) {
             newInnerHtml += `<li>${settingsKey}: ${store.state.hotSettings[settingsKey]}</li>`;
           }
 
-          newInnerHtml += `</ul>`;
+          newInnerHtml += '</ul>';
         }
 
-        newInnerHtml += `</td></tr>`;
+        newInnerHtml += '</td></tr>';
       }
-      newInnerHtml += `</tbody>`;
+      newInnerHtml += '</tbody>';
 
       previewTable.innerHTML = newInnerHtml;
     }
@@ -109,9 +112,6 @@ const ExampleComponent = defineComponent({
 });
 
 export default ExampleComponent;
-
-/* start:skip-in-preview */
-import { createApp } from 'vue';
 
 const app = createApp(ExampleComponent);
 

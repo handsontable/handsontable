@@ -6,7 +6,7 @@ import 'handsontable/dist/handsontable.full.css';
 registerAllModules();
 
 const ExampleComponent = {
-  data: function() {
+  data() {
     return {
       hotSettings: {
         data: [
@@ -21,10 +21,10 @@ const ExampleComponent = {
         autoWrapCol: true,
         licenseKey: 'non-commercial-and-evaluation'
       }
-    }
+    };
   },
   methods: {
-    swapHotData: function() {
+    swapHotData() {
       // The Handsontable instance is stored under the `hotInstance` property of the wrapper component.
       this.$refs.hotTableComponent.hotInstance.loadData([['new', 'data']]);
     }
@@ -32,7 +32,7 @@ const ExampleComponent = {
   components: {
     HotTable
   }
-}
+};
 
 export default ExampleComponent;
 

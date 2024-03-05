@@ -22,7 +22,7 @@ const hot = new Handsontable(container, {
     return {
       type: index > 0 ? 'numeric' : 'text',
       readOnly: index === 2 || index === 8
-    }
+    };
   },
   autoWrapRow: true,
   autoWrapCol: true,

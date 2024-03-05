@@ -25,6 +25,9 @@ import {
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.css';
 
+/* start:skip-in-preview */
+import { createApp } from 'vue';
+
 registerLanguageDictionary(arAR);
 registerLanguageDictionary(csCZ);
 registerLanguageDictionary(deCH);
@@ -67,7 +70,7 @@ const ExampleComponent = defineComponent({
         licenseKey: 'non-commercial-and-evaluation'
       },
       language: 'en-US'
-    }
+    };
   },
   mounted() {
     this.getAllLanguageOptions();
@@ -76,10 +79,11 @@ const ExampleComponent = defineComponent({
     getAllLanguageOptions() {
       const allDictionaries = getLanguagesDictionaries();
       const langSelect = document.querySelector('#languages');
+
       langSelect.innerHTML = '';
 
-      for (let language of allDictionaries) {
-        langSelect.innerHTML += `<option value="${language.languageCode}">${language.languageCode}</option>`
+      for (const language of allDictionaries) {
+        langSelect.innerHTML += `<option value="${language.languageCode}">${language.languageCode}</option>`;
       }
     },
     updateHotLanguage(event) {
@@ -92,9 +96,6 @@ const ExampleComponent = defineComponent({
 });
 
 export default ExampleComponent;
-
-/* start:skip-in-preview */
-import { createApp } from 'vue';
 
 const app = createApp(ExampleComponent);
 

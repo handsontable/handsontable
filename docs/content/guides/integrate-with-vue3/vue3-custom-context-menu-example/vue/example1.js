@@ -4,6 +4,9 @@ import { ContextMenu } from 'handsontable/plugins/contextMenu';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.css';
 
+/* start:skip-in-preview */
+import { createApp } from 'vue';
+
 // register Handsontable's modules
 registerAllModules();
 
@@ -21,12 +24,12 @@ const ExampleComponent = defineComponent({
         colHeaders: true,
         contextMenu: {
           items: {
-            'row_above': {
+            row_above: {
               name: 'Insert row above this one (custom name)'
             },
-            'row_below': {},
-            'separator': ContextMenu.SEPARATOR,
-            'clear_custom': {
+            row_below: {},
+            separator: ContextMenu.SEPARATOR,
+            clear_custom: {
               name: 'Clear all cells (custom)',
               callback() {
                 this.clear();
@@ -39,7 +42,7 @@ const ExampleComponent = defineComponent({
         autoWrapCol: true,
         licenseKey: 'non-commercial-and-evaluation'
       }
-    }
+    };
   },
   components: {
     HotTable,
@@ -47,9 +50,6 @@ const ExampleComponent = defineComponent({
 });
 
 export default ExampleComponent;
-
-/* start:skip-in-preview */
-import { createApp } from 'vue';
 
 const app = createApp(ExampleComponent);
 

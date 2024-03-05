@@ -22,7 +22,7 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   rowHeaders: true,
   // individually add row hiding context menu items
-  contextMenu: [`hidden_rows_show`, `hidden_rows_hide`],
+  contextMenu: ['hidden_rows_show', 'hidden_rows_hide'],
   hiddenRows: {
     rows: [3, 5, 9],
     indicators: true

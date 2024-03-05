@@ -50,7 +50,7 @@ function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
 
   img.src = value;
 
-  img.addEventListener('mousedown', event => {
+  img.addEventListener('mousedown', (event) => {
     event.preventDefault();
   });
 

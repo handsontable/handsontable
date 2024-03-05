@@ -97,7 +97,7 @@ const handsontableInstance = new Handsontable(container, {
 });
 
 // add a filter input listener
-filterField.addEventListener('keyup', function (event) {
+filterField.addEventListener('keyup', (event) => {
   const filters = handsontableInstance.getPlugin('filters');
   const columnSelector = document.getElementById('columns');
   const columnValue = columnSelector.value;

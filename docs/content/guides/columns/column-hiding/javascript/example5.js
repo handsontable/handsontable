@@ -15,7 +15,7 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   rowHeaders: true,
   // individually add column hiding context menu items
-  contextMenu: [`hidden_columns_show`, `hidden_columns_hide`],
+  contextMenu: ['hidden_columns_show', 'hidden_columns_hide'],
   hiddenColumns: {
     columns: [3, 5, 9],
     indicators: true,

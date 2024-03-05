@@ -12,7 +12,7 @@ const data = [
 ];
 
 const hot = new Handsontable(container, {
-  data: data,
+  data,
   rowHeaders: true,
   colHeaders: true,
   fillHandle: {

@@ -95,12 +95,12 @@ const handsontableInstance = new Handsontable(container, {
   height: 'auto',
   // `beforeFilter()` is a Handsontable hook
   // it's fired after Handsontable gathers information about the filters, but before the filters are applied
-  beforeFilter: function (conditionsStack) {
+  beforeFilter(conditionsStack) {
     // gather information about the filters
-    console.log('The amount of filters: ' + conditionsStack.length);
-    console.log('The last changed column index: ' + conditionsStack[0].column);
+    console.log(`The amount of filters: ${conditionsStack.length}`);
+    console.log(`The last changed column index: ${conditionsStack[0].column}`);
     console.log(
-      'The amount of filters added to this column: ' + conditionsStack[0].conditions.length
+      `The amount of filters added to this column: ${conditionsStack[0].conditions.length}`
     );
     // the list of filter conditions
     console.log(conditionsStack[0].conditions);

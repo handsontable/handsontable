@@ -26,12 +26,12 @@ const hot = new Handsontable(container, {
 });
 
 function model(opts) {
-  let _pub = {
+  const _pub = {
     id: undefined,
     name: undefined,
     address: undefined
   };
-  let _priv = {};
+  const _priv = {};
 
   for (const i in opts) {
     if (opts.hasOwnProperty(i)) {
@@ -39,7 +39,7 @@ function model(opts) {
     }
   }
 
-  _pub.attr = function (attr, val) {
+  _pub.attr = function(attr, val) {
     if (typeof val === 'undefined') {
       window.console && console.log('GET the', attr, 'value of', _pub);
 
@@ -56,7 +56,7 @@ function model(opts) {
 }
 
 function property(attr) {
-  return function (row, value) {
+  return function(row, value) {
     return row.attr(attr, value);
-  }
+  };
 }

@@ -66,7 +66,7 @@ const ExampleComponent = {
         licenseKey: 'non-commercial-and-evaluation'
       },
       language: 'en-US'
-    }
+    };
   },
   mounted() {
     this.getAllLanguageOptions();
@@ -75,10 +75,11 @@ const ExampleComponent = {
     getAllLanguageOptions() {
       const allDictionaries = getLanguagesDictionaries();
       const langSelect = document.querySelector('#languages');
+
       langSelect.innerHTML = '';
 
-      for (let language of allDictionaries) {
-        langSelect.innerHTML += `<option value="${language.languageCode}">${language.languageCode}</option>`
+      for (const language of allDictionaries) {
+        langSelect.innerHTML += `<option value="${language.languageCode}">${language.languageCode}</option>`;
       }
     },
     updateHotLanguage(event) {
@@ -88,7 +89,7 @@ const ExampleComponent = {
   components: {
     HotTable
   }
-}
+};
 
 export default ExampleComponent;
 

@@ -52,7 +52,7 @@ const hot = new Handsontable(container, {
       return {
         readOnly: false,
         className: '',
-      }
+      };
     }
   },
   autoWrapRow: true,

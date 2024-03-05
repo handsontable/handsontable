@@ -27,7 +27,7 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-selectOption.addEventListener('change', event => {
+selectOption.addEventListener('change', (event) => {
   const value = event.target.value;
   const first = value.split(' ')[0].toLowerCase();
 

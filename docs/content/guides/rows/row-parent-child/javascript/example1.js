@@ -9,7 +9,7 @@ const sourceDataObject = [
     label: null,
     __children: [
       {
-        title: "Don't Wanna Fight",
+        title: 'Don\'t Wanna Fight',
         artist: 'Alabama Shakes',
         label: 'ATO Records',
       },
@@ -24,7 +24,7 @@ const sourceDataObject = [
         label: 'RCA Records',
       },
       {
-        title: "Ex's & Oh's",
+        title: 'Ex\'s & Oh\'s',
         artist: 'Elle King',
         label: 'RCA Records',
       },
@@ -69,12 +69,12 @@ const sourceDataObject = [
     category: 'Best Rock Song',
     __children: [
       {
-        title: "Don't Wanna Fight",
+        title: 'Don\'t Wanna Fight',
         artist: 'Alabama Shakes',
         label: 'ATO Records',
       },
       {
-        title: "Ex's & Oh's",
+        title: 'Ex\'s & Oh\'s',
         artist: 'Elle King',
         label: 'RCA Records',
       },

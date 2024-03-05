@@ -19,8 +19,6 @@ class CustomEditor extends TextEditor {
   }
 }
 
-import 'handsontable/dist/handsontable.full.css';
-
 // register Handsontable's modules
 registerAllModules();
 
@@ -40,12 +38,12 @@ const ExampleComponent = {
         autoWrapCol: true,
         licenseKey: 'non-commercial-and-evaluation'
       }
-    }
+    };
   },
   components: {
     HotTable
   }
-}
+};
 
 export default ExampleComponent;
 

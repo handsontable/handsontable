@@ -13,7 +13,7 @@ const data = [
 // define your custom query method
 function onlyExactMatch(queryStr, value) {
   return queryStr.toString() === value.toString();
-};
+}
 
 const hot = new Handsontable(container, {
   data,
@@ -29,7 +29,7 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-searchField.addEventListener('keyup', function(event) {
+searchField.addEventListener('keyup', (event) => {
   const search = hot.getPlugin('search');
   // use the `Search`'s `query()` method
   const queryResult = search.query(event.target.value);

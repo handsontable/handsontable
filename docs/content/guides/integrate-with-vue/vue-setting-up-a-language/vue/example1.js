@@ -13,7 +13,7 @@ numbro.registerLanguage(jaJP);
 numbro.registerLanguage(trTR);
 
 const ExampleComponent = {
-data() {
+  data() {
     return {
       formatJP: {
         pattern: '0,0.00 $',
@@ -52,7 +52,7 @@ data() {
     HotTable,
     HotColumn,
   },
-}
+};
 
 export default ExampleComponent;
 

@@ -43,7 +43,7 @@ const hot = new Handsontable(container, {
       }
       // capitalise first letter in column 1 and 2
       else if ((changes[i][1] === 'name.first' || changes[i][1] === 'name.last')) {
-        if(changes[i][3] !== null){
+        if (changes[i][3] !== null) {
           changes[i][3] = changes[i][3].charAt(0).toUpperCase() + changes[i][3].slice(1);
         }
       }

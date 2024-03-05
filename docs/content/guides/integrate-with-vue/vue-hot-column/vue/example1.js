@@ -6,7 +6,7 @@ import 'handsontable/dist/handsontable.full.css';
 registerAllModules();
 
 const ExampleComponent = {
-  data: function() {
+  data() {
     return {
       hotSettings: {
         data: [
@@ -29,13 +29,13 @@ const ExampleComponent = {
       secondColumnSettings: {
         title: 'Second column header',
       },
-    }
+    };
   },
   components: {
     HotTable,
     HotColumn
   }
-}
+};
 
 export default ExampleComponent;
 

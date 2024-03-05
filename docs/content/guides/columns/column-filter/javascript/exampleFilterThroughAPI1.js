@@ -101,7 +101,7 @@ const handsontableInstance = new Handsontable(container, {
 // get the `Filters` plugin, so you can use its API
 const filters = handsontableInstance.getPlugin('Filters');
 
-document.querySelector('.filterBelow200').addEventListener('click', function () {
+document.querySelector('.filterBelow200').addEventListener('click', () => {
   // clear any existing filters
   filters.clearConditions();
   // filter data by the 'Price' column (column at index 2)
@@ -110,14 +110,14 @@ document.querySelector('.filterBelow200').addEventListener('click', function () 
   filters.filter();
 });
 
-document.querySelector('.filterAbove200').addEventListener('click', function () {
+document.querySelector('.filterAbove200').addEventListener('click', () => {
   filters.clearConditions();
   // display only items that are more than ('gt') $200
   filters.addCondition(2, 'gt', [200]);
   filters.filter();
 });
 
-document.querySelector('.clearAllFilters').addEventListener('click', function () {
+document.querySelector('.clearAllFilters').addEventListener('click', () => {
   filters.clearConditions();
   filters.filter();
 });

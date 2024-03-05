@@ -169,7 +169,7 @@ const handsontableInstance = new Handsontable(container, {
   fixedRowsBottom: 1,
   colHeaders: true,
   columnSorting: true,
-  // `afterColumnSort()` is a Handsontable hook: it's fired after each sorting
+  // `afterColumnSort()` is a Handsontable hook: it's fired after each sorting
   afterColumnSort() {
     const lastRowIndex = handsontableInstance.countRows() - 1;
 

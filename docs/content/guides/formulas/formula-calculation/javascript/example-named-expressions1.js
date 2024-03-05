@@ -11,7 +11,7 @@ const data = [
 
 const container = document.querySelector('#example-named-expressions1');
 const hotNamedExpressions = new Handsontable(container, {
-  data: data,
+  data,
   colHeaders: true,
   rowHeaders: true,
   height: 'auto',

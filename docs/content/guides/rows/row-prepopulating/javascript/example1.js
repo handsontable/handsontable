@@ -11,9 +11,9 @@ const data = [
 ];
 
 function isEmptyRow(instance, row) {
-  var rowData = instance.countRows();
+  const rowData = instance.countRows();
 
-  for (var i = 0, ilen = rowData.length; i < ilen; i++) {
+  for (let i = 0, ilen = rowData.length; i < ilen; i++) {
     if (rowData[i] !== null) {
       return false;
     }
@@ -61,17 +61,17 @@ const hot = new Handsontable(container, {
       if (changes[i][2] === null && changes[i][3] !== null) {
         if (isEmptyRow(instance, changes[i][0])) {
           // add this row/col combination to the cache so it will not be overwritten by the template
-          rowColumnSeen[changes[i][0] + '/' + changes[i][1]] = true;
+          rowColumnSeen[`${changes[i][0]}/${changes[i][1]}`] = true;
           rowsToFill[changes[i][0]] = true;
         }
       }
     }
 
-    for (var r in rowsToFill) {
+    for (const r in rowsToFill) {
       if (rowsToFill.hasOwnProperty(r)) {
         for (let c = 0; c < columns; c++) {
           // if it is not provided by user in this change set, take the value from the template
-          if (!rowColumnSeen[r + '/' + c]) {
+          if (!rowColumnSeen[`${r}/${c}`]) {
             changes.push([r, c, null, templateValues[c]]);
           }
         }

@@ -33,7 +33,7 @@ const CustomEditor = {
         zIndex: 999,
         border: '1px solid #000'
       }
-    }
+    };
   },
   methods: {
     stopMousedownPropagation(e) {
@@ -55,8 +55,8 @@ const CustomEditor = {
       // As the `prepare` method is triggered after selecting
       // any cell, we're updating the styles for the editor element,
       // so it shows up in the correct position.
-      this.style.left = tdPosition.left + window.pageXOffset + 'px';
-      this.style.top = tdPosition.top + window.pageYOffset + 'px';
+      this.style.left = `${tdPosition.left + window.pageXOffset}px`;
+      this.style.top = `${tdPosition.top + window.pageYOffset}px`;
     },
     setLowerCase() {
       this.setValue(this.value.toLowerCase());
@@ -95,7 +95,7 @@ const App = new Vue({
         autoWrapRow: true,
         autoWrapCol: true,
       }
-    }
+    };
   },
   components: {
     HotTable,

@@ -7,11 +7,11 @@ registerLanguageDictionary(arAR);
 // generate random RTL data (e.g., Arabic)
 function generateArabicData() {
   const randomName = () =>
-  ["عمر", "علي", "عبد الله", "معتصم"][Math.floor(Math.random() * 3)];
+    ['عمر', 'علي', 'عبد الله', 'معتصم'][Math.floor(Math.random() * 3)];
   const randomCountry = () =>
-    ["تركيا", "مصر", "لبنان", "العراق"][Math.floor(Math.random() * 3)];
+    ['تركيا', 'مصر', 'لبنان', 'العراق'][Math.floor(Math.random() * 3)];
   const randomDate = () =>
-    new Date(Math.floor(Math.random() * Date.now())).toLocaleDateString()
+    new Date(Math.floor(Math.random() * Date.now())).toLocaleDateString();
   const randomBool = () => Math.random() > 0.5;
   const randomNumber = (a = 0, b = 1000) => a + Math.floor(Math.random() * b);
   const randomPhrase = () =>

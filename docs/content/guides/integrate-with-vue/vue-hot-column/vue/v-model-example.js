@@ -3,7 +3,7 @@ import { HotTable, HotColumn } from '@handsontable/vue';
 import Handsontable from 'handsontable/base';
 
 const CustomRenderer = {
-  template: `<div v-bind:style="{ backgroundColor: bgColor }">{{value}}</div>`,
+  template: '<div v-bind:style="{ backgroundColor: bgColor }">{{value}}</div>',
   data() {
     return {
       hotInstance: null,
@@ -13,7 +13,7 @@ const CustomRenderer = {
       prop: null,
       value: null,
       cellProperties: null
-    }
+    };
   },
   computed: {
     bgColor() {
@@ -46,7 +46,7 @@ const App = new Vue({
         autoWrapCol: true,
       },
       highlightedRows: ''
-    }
+    };
   },
   components: {
     HotTable,

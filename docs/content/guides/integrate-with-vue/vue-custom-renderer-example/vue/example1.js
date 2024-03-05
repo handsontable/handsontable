@@ -22,7 +22,7 @@ const ExampleComponent = {
 
               img.src = value;
 
-              img.addEventListener('mousedown', event => {
+              img.addEventListener('mousedown', (event) => {
                 event.preventDefault();
               });
 
@@ -40,12 +40,12 @@ const ExampleComponent = {
         autoWrapCol: true,
         licenseKey: 'non-commercial-and-evaluation'
       }
-    }
+    };
   },
   components: {
     HotTable
   }
-}
+};
 
 export default ExampleComponent;
 

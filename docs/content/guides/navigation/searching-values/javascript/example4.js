@@ -41,7 +41,7 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-searchField.addEventListener('keyup', function(event) {
+searchField.addEventListener('keyup', (event) => {
   searchResultCount = 0;
 
   const search = hot.getPlugin('search');

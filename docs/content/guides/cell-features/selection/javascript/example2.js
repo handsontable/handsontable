@@ -29,7 +29,7 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-getButton.addEventListener('click', event => {
+getButton.addEventListener('click', (event) => {
   const selected = hot.getSelected() || [];
   const data = [];
 

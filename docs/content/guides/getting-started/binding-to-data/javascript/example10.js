@@ -11,7 +11,7 @@ const data = [
   ['2021', 10, 11, 12, 13, 15, 16]
 ];
 const settings = {
-  data: data,
+  data,
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,

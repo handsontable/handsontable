@@ -109,7 +109,7 @@ const data = [
 
 const container = document.querySelector('#example-data-grid');
 const hot = new Handsontable(container, {
-  data: data,
+  data,
   formulas: {
     engine: HyperFormula,
   },

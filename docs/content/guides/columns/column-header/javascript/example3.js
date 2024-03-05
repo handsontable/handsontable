@@ -9,7 +9,7 @@ const hot = new Handsontable(container, {
     ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3', 'K3'],
   ],
   colHeaders(index) {
-    return 'Col ' + (index + 1);
+    return `Col ${index + 1}`;
   },
   rowHeaders: true,
   height: 'auto',

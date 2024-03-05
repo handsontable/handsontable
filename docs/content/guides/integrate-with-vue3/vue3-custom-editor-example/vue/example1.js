@@ -4,6 +4,9 @@ import { TextEditor } from 'handsontable/editors/textEditor';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.css';
 
+/* start:skip-in-preview */
+import { createApp } from 'vue';
+
 // register Handsontable's modules
 registerAllModules();
 
@@ -36,7 +39,7 @@ const ExampleComponent = defineComponent({
         autoWrapCol: true,
         licenseKey: 'non-commercial-and-evaluation'
       }
-    }
+    };
   },
   components: {
     HotTable,
@@ -44,9 +47,6 @@ const ExampleComponent = defineComponent({
 });
 
 export default ExampleComponent;
-
-/* start:skip-in-preview */
-import { createApp } from 'vue';
 
 const app = createApp(ExampleComponent);
 

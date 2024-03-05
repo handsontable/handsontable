@@ -7,7 +7,7 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 
   const array2d = [...new Array(rows)]
     .map(_ => [...new Array(columns)]
-    .map(_ => counter++));
+      .map(_ => counter++));
 
   // add an empty row at the bottom, to display column summaries
   if (additionalRows) {

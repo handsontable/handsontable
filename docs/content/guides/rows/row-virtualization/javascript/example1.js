@@ -6,7 +6,7 @@ const data = new Array(1000) // number of rows
   .fill()
   .map((_, row) => new Array(1000) // number of columns
     .fill()
-    .map((_, column) => `${row}, ${column}`)
+    .map((_v, column) => `${row}, ${column}`)
   );
 
 const container = document.querySelector('#example1');

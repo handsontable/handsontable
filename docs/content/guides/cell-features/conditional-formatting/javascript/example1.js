@@ -40,17 +40,17 @@ function negativeValueRenderer(instance, td, row, col, prop, value, cellProperti
 Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRenderer);
 
 const hot = new Handsontable(container, {
-  data: data,
+  data,
   licenseKey: 'non-commercial-and-evaluation',
   height: 'auto',
   afterSelection(row, col, row2, col2) {
     const meta = this.getCellMeta(row2, col2);
 
     if (meta.readOnly) {
-      this.updateSettings({fillHandle: false});
+      this.updateSettings({ fillHandle: false });
 
     } else {
-      this.updateSettings({fillHandle: true});
+      this.updateSettings({ fillHandle: true });
     }
   },
   cells(row, col) {

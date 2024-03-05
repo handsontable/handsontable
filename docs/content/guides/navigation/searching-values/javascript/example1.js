@@ -22,7 +22,7 @@ const hot = new Handsontable(container, {
 });
 
 // add a search input listener
-searchField.addEventListener('keyup', function(event) {
+searchField.addEventListener('keyup', (event) => {
   // get the `Search` plugin's instance
   const search = hot.getPlugin('search');
   // use the `Search` plugin's `query()` method

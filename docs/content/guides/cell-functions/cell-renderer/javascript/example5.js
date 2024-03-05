@@ -27,7 +27,7 @@ const hot = new Handsontable(container, {
         return '<b>Bold</b> and <em>Beautiful</em>';
 
       case 1:
-        return `Some <input type="checkbox" class="checker" ${isChecked ? `checked="checked"` : ''}> checkbox`;
+        return `Some <input type="checkbox" class="checker" ${isChecked ? 'checked="checked"' : ''}> checkbox`;
     }
   },
   autoWrapRow: true,
@@ -35,13 +35,13 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-exampleContainer.addEventListener('mousedown', event => {
+exampleContainer.addEventListener('mousedown', (event) => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
     event.stopPropagation();
   }
 });
 
-exampleContainer.addEventListener('mouseup', event => {
+exampleContainer.addEventListener('mouseup', (event) => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
     isChecked = !event.target.checked;
     hot.render();

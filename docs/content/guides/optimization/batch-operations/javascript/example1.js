@@ -56,29 +56,31 @@ const alterTable = () => {
   hot.setCellMeta(0, 5, 'className', 'red-bg');
   hot.setCellMeta(10, 5, 'className', 'red-bg');
   hot.render(); // Render is needed here to populate the new "className"s
-}
+};
 
 let loggedText = '';
 let counter = 0;
 
-const logOutput = msg => {
+const logOutput = (msg) => {
   counter++;
   loggedText = `[${counter}] ${msg}\n${loggedText}`;
   output.innerText = loggedText;
-}
+};
 
 buttonWithout.addEventListener('click', () => {
   const t1 = performance.now();
+
   alterTable();
   const t2 = performance.now();
 
-  logOutput('Time without batch ' + (t2 - t1).toFixed(2) + 'ms');
+  logOutput(`Time without batch ${(t2 - t1).toFixed(2)}ms`);
 });
 
 buttonWith.addEventListener('click', () => {
   const t1 = performance.now();
+
   hot.batch(alterTable);
   const t2 = performance.now();
 
-  logOutput('Time with batch ' + (t2 - t1).toFixed(2) + 'ms');
+  logOutput(`Time with batch ${(t2 - t1).toFixed(2)}ms`);
 });

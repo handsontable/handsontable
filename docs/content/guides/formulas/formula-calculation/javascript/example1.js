@@ -26,6 +26,7 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 });
 
 const container1 = document.querySelector('#example-basic-multi-sheet-1');
+
 new Handsontable(container1, {
   data: data1,
   colHeaders: true,
@@ -41,6 +42,7 @@ new Handsontable(container1, {
 });
 
 const container2 = document.querySelector('#example-basic-multi-sheet-2');
+
 new Handsontable(container2, {
   data: data2,
   colHeaders: true,

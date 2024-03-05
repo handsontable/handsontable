@@ -34,7 +34,7 @@ const hot = new Handsontable(container, {
       type: 'autocomplete',
       source: colors,
       strict: true,
-      allowInvalid: true //true is default
+      allowInvalid: true // true is default
     }
   ],
   autoWrapRow: true,

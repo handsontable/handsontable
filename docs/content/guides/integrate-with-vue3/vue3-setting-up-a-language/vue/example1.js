@@ -6,6 +6,9 @@ import trTR from 'numbro/languages/tr-TR';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
+/* start:skip-in-preview */
+import { createApp } from 'vue';
+
 // register Handsontable's modules
 registerAllModules();
 
@@ -56,9 +59,6 @@ const ExampleComponent = defineComponent({
 });
 
 export default ExampleComponent;
-
-/* start:skip-in-preview */
-import { createApp } from 'vue';
 
 const app = createApp(ExampleComponent);
 

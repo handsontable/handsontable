@@ -8,16 +8,16 @@ const hot = new Handsontable(container, {
     {
       value: null,
       __children: [
-        {value: 5},
-        {value: 6},
-        {value: 7},
+        { value: 5 },
+        { value: 6 },
+        { value: 7 },
       ]
     },
     {
       __children: [
-        {value: 15},
-        {value: 16},
-        {value: 17},
+        { value: 15 },
+        { value: 16 },
+        { value: 17 },
       ]
     }
   ],

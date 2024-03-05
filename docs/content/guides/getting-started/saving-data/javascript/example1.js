@@ -14,9 +14,9 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
-  afterChange: function (change, source) {
+  afterChange(change, source) {
     if (source === 'loadData') {
-      return; //don't save this change
+      return; // don't save this change
     }
 
     if (!autosave.checked) {
@@ -31,7 +31,7 @@ const hot = new Handsontable(container, {
       },
       body: JSON.stringify({ data: change })
     })
-      .then(response => {
+      .then((response) => {
         exampleConsole.innerText = `Autosaved (${change.length} cell${change.length > 1 ? 's' : ''})`;
         console.log('The POST request is only used here for the demo purposes');
       });
@@ -42,8 +42,8 @@ const hot = new Handsontable(container, {
 
 load.addEventListener('click', () => {
   fetch('{{$basePath}}/scripts/json/load.json')
-    .then(response => {
-      response.json().then(data => {
+    .then((response) => {
+      response.json().then((data) => {
         hot.loadData(data.data);
         // or, use `updateData()` to replace `data` without resetting states
         exampleConsole.innerText = 'Data loaded';
@@ -60,7 +60,7 @@ save.addEventListener('click', () => {
     },
     body: JSON.stringify({ data: hot.getData() })
   })
-    .then(response => {
+    .then((response) => {
       exampleConsole.innerText = 'Data saved';
       console.log('The POST request is only used here for the demo purposes');
     });
@@ -70,6 +70,6 @@ autosave.addEventListener('click', () => {
   if (autosave.checked) {
     exampleConsole.innerText = 'Changes will be autosaved';
   } else {
-    exampleConsole.innerText ='Changes will not be autosaved';
+    exampleConsole.innerText = 'Changes will not be autosaved';
   }
 });

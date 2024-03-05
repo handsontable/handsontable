@@ -3,9 +3,9 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example4');
 const data = [
-  { id: 1, name: {first: 'Ted', last: 'Right'}, address: '' },
-  { id: 2, address: '' },// Handsontable will create missing properties on demand
-  { id: 3, name: {first: 'Joan', last: 'Well'}, address: '' }
+  { id: 1, name: { first: 'Ted', last: 'Right' }, address: '' },
+  { id: 2, address: '' }, // Handsontable will create missing properties on demand
+  { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' }
 ];
 
 const hot = new Handsontable(container, {
@@ -13,7 +13,7 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   height: 'auto',
   width: 'auto',
-  columns: function(column) {
+  columns(column) {
     let columnMeta = {};
 
     if (column === 0) {

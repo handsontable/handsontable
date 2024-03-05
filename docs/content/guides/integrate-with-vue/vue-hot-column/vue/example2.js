@@ -19,7 +19,7 @@ new Vue({
         autoWrapCol: true,
         licenseKey: 'non-commercial-and-evaluation'
       }
-    }
+    };
   },
   components: {
     HotTable,

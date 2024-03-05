@@ -1,21 +1,24 @@
-const fs = require("fs");
+const fs = require('fs');
 
-const fileExists = (filePath) => fs.existsSync(filePath);
+const fileExists = filePath => fs.existsSync(filePath);
 
-const readFileContent = (filePath) =>
-  fileExists(filePath)
+const readFileContent = filePath =>
+  (fileExists(filePath)
     ? fs.readFileSync(filePath).toString()
-    : `Not Found: ${filePath}`;
+    : `Not Found: ${filePath}`);
 
 const parseOptions = (optionsString) => {
   const parsedOptions = {};
+
   optionsString
     .trim()
-    .split(" ")
+    .split(' ')
     .forEach((pair) => {
-      const [option, value] = pair.split("=");
+      const [option, value] = pair.split('=');
+
       parsedOptions[option] = value;
     });
+
   return parsedOptions;
 };
 
@@ -28,17 +31,17 @@ module.exports = function includeCodeSnippet(markdown, options) {
     const [optionsString, fullpathWithAtSym] = state.src
       .slice(start, end)
       .trim()
-      .split("](");
+      .split('](');
 
     const fullpath = fullpathWithAtSym.replace(/^@/, rootDirectory).trim();
-    const pathParts = fullpath.split("/");
-    const fileParts = pathParts[pathParts.length - 1].split(".");
+    const pathParts = fullpath.split('/');
+    const fileParts = pathParts[pathParts.length - 1].split('.');
 
     return {
       file: {
         resolve: fullpath,
-        path: pathParts.slice(0, pathParts.length - 1).join("/"),
-        name: fileParts.slice(0, fileParts.length - 1).join("."),
+        path: pathParts.slice(0, pathParts.length - 1).join('/'),
+        name: fileParts.slice(0, fileParts.length - 1).join('.'),
         ext: fileParts[fileParts.length - 1],
       },
       options: parseOptions(optionsString),
@@ -47,15 +50,24 @@ module.exports = function includeCodeSnippet(markdown, options) {
     };
   };
 
-  const mapOptions = ({ options }) => ({
-    hasHighlight: options.highlight || false,
+  const mapOptions = ({ mOptions }) => ({
+    hasHighlight: mOptions.highlight || false,
     get meta() {
-      return this.hasHighlight ? options.highlight : "";
+      return this.hasHighlight ? mOptions.highlight : '';
     },
   });
 
+  /**
+   * Parses a custom code block in the markdown content.
+   *
+   * @param {object} state - The current state object of the markdown-it parser.
+   * @param {number} startLine - The line number where the code block starts.
+   * @param {number} endLine - The line number where the code block ends.
+   * @param {boolean} silent - Indicates whether the parser should run in silent mode.
+   * @returns {boolean} - Returns true if the code block was successfully parsed, false otherwise.
+   */
   function customParser(state, startLine, endLine, silent) {
-    const fenceMarker = "@[code]";
+    const fenceMarker = '@[code]';
     const position = state.bMarks[startLine] + state.tShift[startLine];
     const maximum = state.eMarks[startLine];
 
@@ -75,16 +87,18 @@ module.exports = function includeCodeSnippet(markdown, options) {
     const dataObject = createDataObject(state, position, maximum);
     const optionsMapping = mapOptions(dataObject);
 
-    const token = state.push("fence", "code", 0);
+    const token = state.push('fence', 'code', 0);
+
     token.info =
       (dataObject.options.lang || dataObject.file.ext) + optionsMapping.meta;
     token.content = dataObject.content;
-    token.markup = "```";
+    token.markup = '```';
     token.map = [startLine, startLine + 1];
 
     state.line = startLine + 1;
+
     return true;
   }
 
-  markdown.block.ruler.before("fence", "snippet", customParser);
+  markdown.block.ruler.before('fence', 'snippet', customParser);
 };

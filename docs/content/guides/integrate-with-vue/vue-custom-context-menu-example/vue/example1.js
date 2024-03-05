@@ -20,12 +20,12 @@ const ExampleComponent = {
         colHeaders: true,
         contextMenu: {
           items: {
-            'row_above': {
+            row_above: {
               name: 'Insert row above this one (custom name)'
             },
-            'row_below': {},
-            'separator': ContextMenu.SEPARATOR,
-            'clear_custom': {
+            row_below: {},
+            separator: ContextMenu.SEPARATOR,
+            clear_custom: {
               name: 'Clear all cells (custom)',
               callback() {
                 this.clear();
@@ -38,12 +38,12 @@ const ExampleComponent = {
         autoWrapCol: true,
         licenseKey: 'non-commercial-and-evaluation'
       }
-    }
+    };
   },
   components: {
     HotTable
   }
-}
+};
 
 export default ExampleComponent;
 
