@@ -50,21 +50,22 @@ module.exports = function includeCodeSnippet(markdown, options) {
     };
   };
 
-  const mapOptions = ({ mOptions }) => ({
-    hasHighlight: mOptions.highlight || false,
+  // eslint-disable-next-line no-shadow
+  const mapOptions = ({ options }) => ({
+    hasHighlight: options.highlight || false,
     get meta() {
-      return this.hasHighlight ? mOptions.highlight : '';
+      return this.hasHighlight ? options.highlight : '';
     },
   });
 
   /**
-   * Parses a custom code block in the markdown content.
+   * Custom parser function for handling code snippets in markdown.
    *
    * @param {object} state - The current state object of the markdown-it parser.
-   * @param {number} startLine - The line number where the code block starts.
-   * @param {number} endLine - The line number where the code block ends.
-   * @param {boolean} silent - Indicates whether the parser should run in silent mode.
-   * @returns {boolean} - Returns true if the code block was successfully parsed, false otherwise.
+   * @param {number} startLine - The line number where the code snippet starts.
+   * @param {number} endLine - The line number where the code snippet ends.
+   * @param {boolean} silent - Flag indicating whether the parser should run in silent mode.
+   * @returns {boolean} - Returns true if the code snippet was successfully parsed, false otherwise.
    */
   function customParser(state, startLine, endLine, silent) {
     const fenceMarker = '@[code]';
