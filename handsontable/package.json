@@ -111,6 +111,7 @@
     "cpy-cli": "^3.1.1",
     "cross-env": "^7.0.3",
     "css-loader": "^6.8.1",
+    "dtslint": "^4.2.0",
     "env-cmd": "^9.0.3",
     "eslint": "^7.25.0",
     "eslint-config-airbnb-base": "^14.2.1",
