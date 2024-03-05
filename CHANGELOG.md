@@ -15,8 +15,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Added a new Handsontable hook, `beforeBeginEditing`, to conditionally control when to allow cell editing. [#10699](https://github.com/handsontable/handsontable/pull/10699)
 - Added the ability to prevent viewport scrolling by using two existing Handsontable hooks: `beforeViewportScrollVertically` and `beforeViewportScrollHorizontally`. [#10724](https://github.com/handsontable/handsontable/pull/10724)
-- Added undo-and-redo support for moving columns. [#10746](https://github.com/handsontable/handsontable/pull/10746)
-- Added a new `Filters` plugin hook: `modifyFiltersMultiSelectValue`. Now, filtered values lists display formatted numbers instead of raw data. [#10756](https://github.com/handsontable/handsontable/pull/10756)
+- Added undo-and-redo support for column moving. [#10746](https://github.com/handsontable/handsontable/pull/10746)
+- Added a new `Filters` plugin hook: `modifyFiltersMultiSelectValue`. Now, filtered values lists show formatted numbers instead of raw data. [#10756](https://github.com/handsontable/handsontable/pull/10756)
 
 ### Changed
 

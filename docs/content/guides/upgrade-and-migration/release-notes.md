@@ -36,8 +36,8 @@ For more information on this release, see:
 
 - Added a new Handsontable hook, [`beforeBeginEditing`](@/api/hooks.md#beforebeginediting), to conditionally control when to allow cell editing. [#10699](https://github.com/handsontable/handsontable/pull/10699)
 - Added the ability to prevent viewport scrolling by using two existing Handsontable hooks: [`beforeViewportScrollVertically`](@/api/hooks.md#beforeviewportscrollvertically) and [`beforeViewportScrollHorizontally`](@/api/hooks.md#beforeviewportscrollhorizontally). [#10724](https://github.com/handsontable/handsontable/pull/10724)
-- Added undo-and-redo support for moving columns. [#10746](https://github.com/handsontable/handsontable/pull/10746)
-- Added a new [`Filters`](@/api/filters.md) plugin hook: [`modifyFiltersMultiSelectValue`](@/api/hooks.md#modifyfiltersmultiselectvalue). Now, filtered values lists display formatted numbers instead of raw data. [#10756](https://github.com/handsontable/handsontable/pull/10756)
+- Added undo-and-redo support for column moving. [#10746](https://github.com/handsontable/handsontable/pull/10746)
+- Added a new [`Filters`](@/api/filters.md) plugin hook: [`modifyFiltersMultiSelectValue`](@/api/hooks.md#modifyfiltersmultiselectvalue). Now, filtered values lists show formatted numbers instead of raw data. [#10756](https://github.com/handsontable/handsontable/pull/10756)
 
 ### Changed
 
