@@ -16,7 +16,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Added a new Handsontable hook, `beforeBeginEditing`, to conditionally control when to allow cell editing. [#10699](https://github.com/handsontable/handsontable/pull/10699)
 - Added the ability to prevent viewport scrolling by using two existing Handsontable hooks: `beforeViewportScrollVertically` and `beforeViewportScrollHorizontally`. [#10724](https://github.com/handsontable/handsontable/pull/10724)
 - Added undo-and-redo support for column moving. [#10746](https://github.com/handsontable/handsontable/pull/10746)
-- Added a new `Filters` plugin hook: `modifyFiltersMultiSelectValue`. Now, filtered values lists will show the formatted numeric value not the raw data. [#10756](https://github.com/handsontable/handsontable/pull/10756)
+- Added a new `Filters` plugin hook: `modifyFiltersMultiSelectValue`. Now, filtered values lists will show the formatted numeric value, not the raw data. [#10756](https://github.com/handsontable/handsontable/pull/10756)
 
 ### Changed
 
@@ -48,9 +48,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - React: Fixed a missing `HotTableClass` export. [#10760](https://github.com/handsontable/handsontable/pull/10760)
 - React: Fixed missing `renderer` and `editor` props. [#10768](https://github.com/handsontable/handsontable/pull/10768)
 
-For more information on Handsontable 14.1.0, see:
+For more information on Handsontable 14.2.0, see:
 
-- [Blog post (14.2.0)](https://handsontable.com/blog/handsontable-14-2-0-PLACEHOLDER)
+- [Blog post (14.2.0)](https://handsontable.com/blog/handsontable-14-2-0-improved-react-rendering-new-hooks)
 - [Documentation (14.2)](https://handsontable.com/docs/14.2)
 - [Release notes (14.2.0)](https://handsontable.com/docs/release-notes/#_14-2-0)
 
