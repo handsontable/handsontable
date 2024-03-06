@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Undo will work for moving columns",
-  "type": "added",
-  "issueOrPR": 10746,
-  "breaking": false,
-  "framework": "none"
-}

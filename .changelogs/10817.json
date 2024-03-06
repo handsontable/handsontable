@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem where the Autofill plugin's double-click feature treated cells filled with `0`s as empty.",
-  "type": "fixed",
-  "issueOrPR": 10817,
-  "breaking": false,
-  "framework": "none"
-}
