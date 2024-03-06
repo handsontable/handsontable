@@ -29,7 +29,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 Released on March 6, 2024
 
 For more information on this release, see:
-- [Blog post (14.2.0)](https://handsontable.com/blog/handsontable-14-2-0-improved-react-rendering-new-hooks)
+- [Blog post (14.2.0)](https://handsontable.com/blog/handsontable-14-2-0-improved-react-re-rendering-new-handsontable-hooks)
 - [Documentation (14.2)](https://handsontable.com/docs/14.2)
 
 ### Added
@@ -126,9 +126,9 @@ For more information on this release, see:
 
 #### Added
 
-- Added multiple keyboard shortcuts. For more information, see the [release blogpost](https://handsontable.com/blog/handsontable-14-0-0-prioritizing-accessibility) and and the updated [Keyboard Shortcuts](https://handsontable.com/docs/javascript-data-grid/keyboard-shortcuts/) documentation page. 
+- Added multiple keyboard shortcuts. For more information, see the [release blogpost](https://handsontable.com/blog/handsontable-14-0-0-prioritizing-accessibility) and and the updated [Keyboard Shortcuts](https://handsontable.com/docs/javascript-data-grid/keyboard-shortcuts/) documentation page.
     [#10237](https://github.com/handsontable/handsontable/pull/10237) [#10389](https://github.com/handsontable/handsontable/pull/10389) [#10404](https://github.com/handsontable/handsontable/pull/10404)  [#10405](https://github.com/handsontable/handsontable/pull/10405) [#10410](https://github.com/handsontable/handsontable/pull/10410)  [#10413](https://github.com/handsontable/handsontable/pull/10413)  [#10417](https://github.com/handsontable/handsontable/pull/10417)  [#10419](https://github.com/handsontable/handsontable/pull/10419)  [#10420](https://github.com/handsontable/handsontable/pull/10420)  [#10421](https://github.com/handsontable/handsontable/pull/10421) [#10548](https://github.com/handsontable/handsontable/pull/10548)
-- Added ARIA tags to various elements of the table to improve screen reader compatibility. 
+- Added ARIA tags to various elements of the table to improve screen reader compatibility.
     [#10463](https://github.com/handsontable/handsontable/pull/10463)  [#10524](https://github.com/handsontable/handsontable/pull/10524)  [#10526](https://github.com/handsontable/handsontable/pull/10526)  [#10539](https://github.com/handsontable/handsontable/pull/10539) [#10548](https://github.com/handsontable/handsontable/pull/10548) [#10541](https://github.com/handsontable/handsontable/pull/10541)
 - Added the ability to navigate the headers with the keyboard by introducing a new `navigableHeaders` option along with other changes. [#10265](https://github.com/handsontable/handsontable/pull/10265)  [#10301](https://github.com/handsontable/handsontable/pull/10301)
 - Added the ability to traverse the grid within a webpage using the `TAB` key and introduced a new `tabNavigation` option. [#10430](https://github.com/handsontable/handsontable/pull/10430) [#10585](https://github.com/handsontable/handsontable/pull/10585)
