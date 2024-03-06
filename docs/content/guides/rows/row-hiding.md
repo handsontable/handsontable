@@ -237,12 +237,6 @@ To easily see which rows are currently hidden, display UI indicators.
 
 To enable the UI indicators, in the `hiddenRows` object, set the `indicators` property to `true`:
 
-::: tip
-
-If you use both the [`NestedHeaders`](@/api/nestedHeaders.md) plugin and the [`HiddenRows`](@/api/hiddenRows.md) plugin, you also need to set the `colHeaders` property to `true`. Otherwise, `indicators` won't work.
-
-:::
-
 ::: only-for javascript
 
 ::: example #example3

@@ -434,7 +434,7 @@ const REGISTERED_HOOKS = [
   'afterUpdateData',
 
   /**
-   * Fired after a scroll event, which is identified as a momentum scroll.
+   * Fired after a scroll event, which is identified as a momentum scroll (e.g. On an iPad).
    *
    * @event Hooks#afterMomentumScroll
    */
@@ -588,7 +588,8 @@ const REGISTERED_HOOKS = [
    * @since 14.0.0
    * @event Hooks#beforeViewportScrollVertically
    * @param {number} visualRow Visual row index.
-   * @returns {number} Returns modified row index (or the same as passed in the method argument) to which the viewport will be scrolled.
+   * @returns {number | boolean} Returns modified row index (or the same as passed in the method argument) to which
+   * the viewport will be scrolled. If the returned value is `false`, the scrolling will be canceled.
    */
   'beforeViewportScrollVertically',
 
@@ -599,7 +600,8 @@ const REGISTERED_HOOKS = [
    * @since 14.0.0
    * @event Hooks#beforeViewportScrollHorizontally
    * @param {number} visualColumn Visual column index.
-   * @returns {number} Returns modified column index (or the same as passed in the method argument) to which the viewport will be scrolled.
+   * @returns {number | boolean} Returns modified column index (or the same as passed in the method argument) to which
+   * the viewport will be scrolled. If the returned value is `false`, the scrolling will be canceled.
    */
   'beforeViewportScrollHorizontally',
 
@@ -1431,6 +1433,17 @@ const REGISTERED_HOOKS = [
    * @param {number} column Visual column index.
    */
   'modifyColWidth',
+
+  /**
+   * Fired when rendering the list of values in the multiple-selection component of the Filters dropdown.
+   * The hook allows modifying the displayed values in that component.
+   *
+   * @since 14.2.0
+   * @event Hooks#modifyFiltersMultiSelectValue
+   * @param {object} item The item in the list of values.
+   * @param {object} meta The cell properties object.
+   */
+  'modifyFiltersMultiSelectValue',
 
   /**
    * Fired when focusing a cell or a header element. Allows replacing the element to be focused by returning a
@@ -2574,6 +2587,25 @@ const REGISTERED_HOOKS = [
    * @param {number} finalElementPosition The final row index of the detached element.
    */
   'afterDetachChild',
+
+  /**
+   * Fired before the editor is opened and rendered.
+   *
+   * @since 14.2.0
+   * @event Hooks#beforeBeginEditing
+   * @param {number} row Visual row index of the edited cell.
+   * @param {number} column Visual column index of the edited cell.
+   * @param {*} initialValue The initial editor value.
+   * @param {MouseEvent | KeyboardEvent} event The event which was responsible for opening the editor.
+   * @param {boolean} fullEditMode `true` if the editor is opened in full edit mode, `false` otherwise.
+   * Editor opened in full edit mode does not close after pressing Arrow keys.
+   * @returns {boolean | undefined} If the callback returns `false,` the editor won't be opened after
+   * the mouse double click or after pressing the Enter key. Returning `undefined` (or other value
+   * than boolean) will result in default behavior, which disallows opening an editor for non-contiguous
+   * selection (while pressing Ctrl/Cmd) and for multiple selected cells (while pressing SHIFT).
+   * Returning `true` removes those restrictions.
+   */
+  'beforeBeginEditing',
 
   /**
    * Fired after the editor is opened and rendered.

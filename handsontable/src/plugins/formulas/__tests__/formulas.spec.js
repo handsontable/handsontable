@@ -510,6 +510,38 @@ describe('Formulas general', () => {
     expect(hot.getDataAtCell(0, 1)).toBe('#CYCLE!');
   });
 
+  it('should get dates in proper format and do not throw an error while using `getDataAtCell` inside `cells` method', () => {
+    const data = [];
+
+    // Creating bigger dataset. Some of cells won't be rendered.
+    for (let i = 0; i < 50; i += 1) {
+      data.push(['28/02/1900', '=A1']);
+    }
+
+    handsontable({
+      data,
+      formulas: {
+        engine: HyperFormula
+      },
+      cells(row, col) {
+        const cellProperties = {};
+
+        expect(this.instance.getDataAtCell(row, col)).toBe('28/02/1900');
+
+        return cellProperties;
+      },
+      columns: [{
+        type: 'date',
+        dateFormat: 'DD/MM/YYYY'
+      }, {
+        type: 'date',
+        dateFormat: 'DD/MM/YYYY'
+      }],
+      width: 500,
+      height: 300
+    });
+  });
+
   // Discussion on why `null` instead of `#REF!` at
   // https://github.com/handsontable/handsontable/issues/7668
   describe('Out of range cells', () => {
@@ -683,6 +715,36 @@ describe('Formulas general', () => {
       expect(hot.getDataAtRow(1)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
       expect(hot.getDataAtRow(2)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
       expect(hot.getDataAtRow(3)).toEqual([2012, 6033, 8049, '#REF!', 12, '=SUM(E5)']);
+    });
+
+    it('should not throw an error after removing all rows', () => {
+      expect(() => {
+        handsontable({
+          data: getDataSimpleExampleFormulas(),
+          formulas: {
+            engine: HyperFormula
+          },
+          width: 500,
+          height: 300
+        });
+
+        alter('remove_row', 0, 5);
+      }).not.toThrow();
+    });
+
+    it('should not throw an error after removing all columns', () => {
+      expect(() => {
+        handsontable({
+          data: getDataSimpleExampleFormulas(),
+          formulas: {
+            engine: HyperFormula
+          },
+          width: 500,
+          height: 300
+        });
+
+        alter('remove_col', 0, 6);
+      }).not.toThrow();
     });
 
     it('should recalculate table and replace coordinates in formula expressions into #REF! value (removing 2 rows)',
@@ -2917,6 +2979,63 @@ describe('Formulas general', () => {
       ['2018', 20, 11, 14, 13],
       ['2019', 30, 15, 12, 13],
     ]);
+  });
+
+  describe('renaming sheet for HF instance', () => {
+    it('should update HOT\'s plugin internal property', () => {
+      let sheetNameInsideHook = '';
+      const hfInstance = HyperFormula.buildEmpty({});
+      const hot = handsontable({
+        data: [
+          ['01/03/1900'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: hfInstance,
+          sheetName: 'Sheet1'
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      hot.addHook('afterSheetRenamed', () => {
+        sheetNameInsideHook = hot.getPlugin('formulas').sheetName;
+      });
+
+      hfInstance.renameSheet(0, 'Lorem Ipsum');
+
+      expect(hot.getPlugin('formulas').sheetName).toBe('Lorem Ipsum');
+      expect(sheetNameInsideHook).toBe('Lorem Ipsum');
+    });
+
+    it('should not throw an error while performing actions on HOT with renamed sheet', () => {
+      const hfInstance = HyperFormula.buildEmpty({});
+
+      handsontable({
+        data: [
+          ['01/03/1900'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: hfInstance,
+          sheetName: 'Sheet1'
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      hfInstance.renameSheet(0, 'Lorem Ipsum');
+
+      expect(() => {
+        setDataAtCell(0, 1, 'new value');
+      }).not.toThrow();
+
+      expect(getDataAtCell(0, 1)).toBe('new value');
+    });
   });
 
   describe('handling dates', () => {

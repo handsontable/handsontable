@@ -1197,9 +1197,9 @@ export default () => {
      * ]
      *
      * // enable copying for specific cells
-     * cells: [
+     * cell: [
      *   {
-     *     cell: 0,
+     *     coll: 0,
      *     row: 0,
      *     // disable copying for cell (0, 0)
      *     copyable: false,
@@ -2268,7 +2268,7 @@ export default () => {
      *
      * formulas: {
      *   // set `engine` to a HyperFormula instance
-     *   engine: hyperFormulaInstance,
+     *   engine: hyperformulaInstance,
      *   sheetId: 1,
      *   sheetName: 'Sheet 1'
      * }
@@ -2277,7 +2277,7 @@ export default () => {
      * formulas: {
      *   // set `engine` to a HyperFormula configuration object
      *   engine: {
-     *     hyperformula: HyperFormula // or `engine: hyperFormulaInstance`
+     *     hyperformula: HyperFormula // or `engine: hyperformulaInstance`
      *     leapYear1900: false,       // this option comes from HyperFormula
      *     // add more HyperFormula configuration options
      *   },
@@ -2309,7 +2309,7 @@ export default () => {
      *
      * You can set the `fragmentSelection` option to one of the following:
      *
-     * | Setting           | Decription                                        |
+     * | Setting           | Description                                        |
      * | ----------------- | ------------------------------------------------- |
      * | `false` (default) | Disable text selection                            |
      * | `true`            | Enable text selection in multiple cells at a time |
@@ -2622,12 +2622,13 @@ export default () => {
      * | Setting             | Description                 |
      * | ------------------- | --------------------------- |
      * | `'en-US'` (default) | English - United States     |
-     * | `'ar-AR'`           | Arabic - Global.<br><br>To properly render this language, set the [layout direction](@/guides/internationalization/layout-direction.md) to RTL. |
+     * | `'ar-AR'`           | Arabic - Global<br><br>To properly render this language, set the [layout direction](@/guides/internationalization/layout-direction.md) to RTL. |
      * | `'cs-CZ'`           | Czech - Czech Republic      |
      * | `'de-CH'`           | German - Switzerland        |
      * | `'de-DE'`           | German - Germany            |
      * | `'es-MX'`           | Spanish - Mexico            |
      * | `'fr-FR'`           | French - France             |
+     * | `'hr-HR'`           | Croatian - Croatia          |
      * | `'it-IT'`           | Italian - Italy             |
      * | `'ja-JP'`           | Japanese - Japan            |
      * | `'ko-KR'`           | Korean - Korea              |
@@ -3298,7 +3299,7 @@ export default () => {
      * | `true`            | Enable the [`NestedRows`](@/api/nestedRows.md) plugin  |
      *
      * Read more:
-     * - [Plugins: `NestedRows`](@/api/nestedRows.md)
+     * - [Plugins: `NestedRows`](@/guides/rows/row-parent-child.md)
      *
      * @example
      * ```js
@@ -3592,11 +3593,11 @@ export default () => {
 
     /**
      * @description
-     * The `readOnly` option determines whether a cell, column or comment is editable or not.
+     * The `readOnly` option determines whether a [cell](@/guides/cell-features/disabled-cells.md#read-only-specific-cells),
+     * [comment](@/guides/cell-features/comments.md#make-a-comment-read-only), [column](@/guides/cell-features/disabled-cells.md#read-only-columns)
+     * or the [entire grid](@/guides/cell-features/disabled-cells.md#read-only-grid) is editable or not. You can configure it as follows:
      *
-     * You can set the `readOnly` option to one of the following:
-     *
-     * | Setting           | Decription                                                                                                                |
+     * | Setting           | Description                                                                                                                |
      * | ----------------- | ------------------------------------------------------------------------------------------------------------------------- |
      * | `false` (default) | Set as editable                                                                                                           |
      * | `true`            | - Set as read-only<br>- Add the [`readOnlyCellClassName`](#readOnlyCellClassName) CSS class name (by default: `htDimmed`) |
@@ -3604,6 +3605,7 @@ export default () => {
      * `readOnly` cells can't be changed by the [`populateFromArray()`](@/api/core.md#populatefromarray) method.
      *
      * Read more:
+     * - [Disabled cells](@/guides/cell-features/disabled-cells.md)
      * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration)
      *
      * @memberof Options#
@@ -3613,8 +3615,31 @@ export default () => {
      *
      * @example
      * ```js
-     * // set as read-only
-     * readOnly: true,
+     * // make the entire grid read-only
+     * const configurationOptions = {
+     *   columnSorting: true,
+     * };
+     *
+     * // make the third column read-only
+     * const configurationOptions = {
+     *   columns: [
+     *     {},
+     *     {},
+     *     {
+     *       readOnly: true,
+     *     },
+     *   ],
+     * };
+     *
+     * // make a specific cell read-only
+     * const configurationOptions = {
+     *   cell: [
+     *     {
+     *       row: 0,
+     *       col: 0,
+     *       readOnly: true,
+     *     },
+     * };
      * ```
      */
     readOnly: false,

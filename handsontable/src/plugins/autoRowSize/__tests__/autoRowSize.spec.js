@@ -563,6 +563,49 @@ describe('AutoRowSize', () => {
     expect(calculateColumnsWidth).not.toHaveBeenCalled();
   });
 
+  it('should ignore calculate row heights for samples from hidden columns', () => {
+    const data = createSpreadsheetData(3, 5);
+
+    data[0][2] = 'Very long text that causes the column to be wide';
+
+    handsontable({
+      data,
+      colHeaders: true,
+      autoRowSize: true,
+    });
+
+    const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(2, true);
+    render();
+
+    expect(getRowHeight(0)).toBe(23);
+    expect(getRowHeight(1)).toBe(23);
+    expect(getRowHeight(2)).toBe(23);
+  });
+
+  it('should correctly apply the column widths to the measured row when the first column is hidden (#dev-569)', () => {
+    const data = createSpreadsheetData(1, 6);
+
+    data[0][2] = 'Some text';
+    data[0][4] = 'Some longer text';
+    data[0][5] = 'Very long text that causes the column to be wide';
+
+    handsontable({
+      data,
+      colHeaders: true,
+      autoRowSize: true,
+      autoColumnSize: true, // this is required to replicate the issue
+    });
+
+    const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(0, true);
+    render();
+
+    expect(getRowHeight(0)).toBe(23);
+  });
+
   it('should not throw error while traversing header\'s DOM elements', () => {
     const onErrorSpy = spyOn(window, 'onerror');
 

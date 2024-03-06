@@ -150,6 +150,13 @@ export class AutoColumnSize extends BasePlugin {
    * @fires Hooks#modifyAutoColumnSizeSeed
    */
   samplesGenerator = new SamplesGenerator((row, column) => {
+    const physicalRow = this.hot.toPhysicalRow(row);
+    const physicalColumn = this.hot.toPhysicalColumn(column);
+
+    if (this.hot.rowIndexMapper.isHidden(physicalRow) || this.hot.columnIndexMapper.isHidden(physicalColumn)) {
+      return false;
+    }
+
     const cellMeta = this.hot.getCellMeta(row, column);
     let cellValue = '';
 
@@ -336,7 +343,7 @@ export class AutoColumnSize extends BasePlugin {
 
   /**
    * Calculates all columns width. The calculated column will be cached in the {@link AutoColumnSize#widths} property.
-   * To retrieve width for specified column use {@link AutoColumnSize##getColumnWidth} method.
+   * To retrieve width for specified column use {@link AutoColumnSize#getColumnWidth} method.
    *
    * @param {object|number} rowRange Row index or an object with `from` and `to` properties which define row range.
    */

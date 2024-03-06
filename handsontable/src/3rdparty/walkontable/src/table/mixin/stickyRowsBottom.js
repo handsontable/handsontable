@@ -45,6 +45,17 @@ const stickyRowsBottom = {
   },
 
   /**
+   * Get the source index of the first row partially visible in the viewport. If no rows are partially visible, returns an error code: -1.
+   * Assumes that all rendered rows are fully visible.
+   *
+   * @returns {number}
+   * @this Table
+   */
+  getFirstPartiallyVisibleRow() {
+    return this.getFirstRenderedRow();
+  },
+
+  /**
    * Get the source index of the last rendered row. If no rows are rendered, returns an error code: -1.
    *
    * @returns {number}
@@ -62,6 +73,17 @@ const stickyRowsBottom = {
    * @this Table
    */
   getLastVisibleRow() {
+    return this.getLastRenderedRow();
+  },
+
+  /**
+   * Get the source index of the last row partially visible in the viewport. If no rows are partially visible, returns an error code: -1.
+   * Assumes that all rendered rows are fully visible.
+   *
+   * @returns {number}
+   * @this Table
+   */
+  getLastPartiallyVisibleRow() {
     return this.getLastRenderedRow();
   },
 

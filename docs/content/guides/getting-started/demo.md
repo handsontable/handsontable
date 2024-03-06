@@ -1360,7 +1360,7 @@ export function alignHeaders(column, TH) {
       Handsontable.dom.addClass(TH.firstChild, alignmentClass);
     }
   }
-} 
+}
 
 const example = document.getElementById("example");
 
@@ -1375,7 +1375,7 @@ new Handsontable(example, {
     "Name",
     "Sell date",
     "In stock",
-    "Qty", 
+    "Qty",
     "Order ID",
     "Country"
   ],
@@ -1396,7 +1396,7 @@ new Handsontable(example, {
     {
       data: 7,
       type: "numeric"
-    }, 
+    },
     { data: 5, type: "text" },
     { data: 2, type: "text" }
   ],
@@ -2704,7 +2704,7 @@ export const addClassesToRows = (
     Handsontable.dom.removeClass(parentElement, ODD_ROW_CLASS);
   }
 };
- 
+
 export function alignHeaders(column, TH) {
   if (column < 0) {
     return;
@@ -2735,7 +2735,7 @@ const App = () => {
         "Name",
         "Sell date",
         "In stock",
-        "Qty", 
+        "Qty",
         "Order ID",
         "Country"
       ]}
@@ -2777,11 +2777,11 @@ console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate}) 
 
 ## Find the code on GitHub
 
-- [JavaScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/14.0.0/docs/js/demo/)
-- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/14.0.0/docs/ts/demo/)
-- [Angular demo app](https://github.com/handsontable/handsontable/tree/develop/examples/14.0.0/docs/angular/demo/)
-- [React demo app](https://github.com/handsontable/handsontable/tree/develop/examples/14.0.0/docs/react/demo/)
-- [Vue demo app](https://github.com/handsontable/handsontable/tree/develop/examples/14.0.0/docs/vue/demo/)
+- [JavaScript demo app](https://github.com/handsontable/handsontable/tree/prod-docs/14.2/examples/next/docs/js/demo/)
+- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/prod-docs/14.2/examples/next/docs/ts/demo/)
+- [Angular demo app](https://github.com/handsontable/handsontable/tree/prod-docs/14.2/examples/next/docs/angular/demo/)
+- [React demo app](https://github.com/handsontable/handsontable/tree/prod-docs/14.2/examples/next/docs/react/demo/)
+- [Vue demo app](https://github.com/handsontable/handsontable/tree/prod-docs/14.2/examples/next/docs/vue/demo/)
 
 ## Try out the demo's features
 

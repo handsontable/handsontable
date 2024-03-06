@@ -24,6 +24,8 @@ import {
   warn
 } from './helpers';
 import PropTypes from 'prop-types';
+import { getRenderer } from 'handsontable/renderers/registry';
+import { getEditor } from 'handsontable/editors/registry';
 
 /**
  * A Handsontable-ReactJS wrapper.
@@ -95,9 +97,18 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
   renderersPortalManager: RenderersPortalManager = null;
 
   /**
-   * Array containing the portals cashed to be rendered in bulk after Handsontable's render cycle.
+   * Map that stores React portals.
+   * @type {Map<string, React.ReactPortal>}
    */
-  portalCacheArray: React.ReactPortal[] = [];
+  portalCache: Map<string, React.ReactPortal> = new Map();
+
+  /**
+   * Portal Container Cache
+   *
+   * @private
+   * @type {Map}
+   */
+  private portalContainerCache: Map<string, HTMLElement> = new Map();
 
   /**
    * The rendered cells cache.
@@ -167,6 +178,15 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
   };
 
   /**
+   * Get Portal Container Cache
+   *
+   * @returns {Map}
+   */
+  getPortalContainerCache(): Map<string, HTMLElement> {
+    return this.portalContainerCache;
+  }
+
+  /**
    * Get the rendered table cell cache.
    *
    * @returns {Map}
@@ -220,39 +240,54 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
    * @param {React.ReactElement} rendererElement React renderer component.
    * @returns {Handsontable.renderers.Base} The Handsontable rendering function.
    */
-  getRendererWrapper(rendererElement: React.ReactElement): typeof Handsontable.renderers.BaseRenderer | any {
+  getRendererWrapper(rendererElement: React.ReactElement): typeof Handsontable.renderers.BaseRenderer {
     const hotTableComponent = this;
 
-    return function (instance, TD, row, col, prop, value, cellProperties) {
+    return function __internalRenderer(instance, TD, row, col, prop, value, cellProperties) {
       const renderedCellCache = hotTableComponent.getRenderedCellCache();
+      const portalContainerCache = hotTableComponent.getPortalContainerCache()
+      const key = `${row}-${col}`;
 
-      if (renderedCellCache.has(`${row}-${col}`)) {
-        TD.innerHTML = renderedCellCache.get(`${row}-${col}`).innerHTML;
+       // Handsontable.Core type is missing guid
+      const instanceGuid = (instance as unknown as { guid: string }).guid;
+
+      const portalContainerKey = `${instanceGuid}-${key}`
+      const portalKey = `${key}-${instanceGuid}`
+
+      if (renderedCellCache.has(key)) {
+        TD.innerHTML = renderedCellCache.get(key).innerHTML;
       }
 
       if (TD && !TD.getAttribute('ghost-table')) {
-
-        const {portal, portalContainer} = createPortal(rendererElement, {
-          TD,
-          row,
-          col,
-          prop,
-          value,
-          cellProperties,
-          isRenderer: true
-        }, TD.ownerDocument);
+        const cachedPortal = hotTableComponent.portalCache.get(portalKey);
+        const cachedPortalContainer = portalContainerCache.get(portalContainerKey);
 
         while (TD.firstChild) {
           TD.removeChild(TD.firstChild);
         }
 
-        TD.appendChild(portalContainer);
+        // if portal already exists, do not recreate
+        if (cachedPortal && cachedPortalContainer) {
+          TD.appendChild(cachedPortalContainer);
+        } else {
+          const { portal, portalContainer } = createPortal(rendererElement, {
+            TD,
+            row,
+            col,
+            prop,
+            value,
+            cellProperties,
+            isRenderer: true
+          }, TD.ownerDocument, portalKey, cachedPortalContainer);
 
-        hotTableComponent.portalCacheArray.push(portal);
+          portalContainerCache.set(portalContainerKey, portalContainer)
+          TD.appendChild(portalContainer);
+
+          hotTableComponent.portalCache.set(portalKey, portal);
+        }
       }
 
-      renderedCellCache.set(`${row}-${col}`, TD);
-
+      renderedCellCache.set(key, TD);
       return TD;
     };
   }
@@ -353,17 +388,23 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
 
     if (globalEditorNode) {
       newSettings.editor = this.getEditorClass(globalEditorNode, GLOBAL_EDITOR_SCOPE);
-
     } else {
-      newSettings.editor = this.props.editor || (this.props.settings ? this.props.settings.editor : void 0);
+      if (this.props.editor || this.props.settings?.editor) {
+        newSettings.editor = this.props.editor || this.props.settings.editor;
+      } else {
+        newSettings.editor = getEditor('text');
+      }
     }
 
     if (globalRendererNode) {
       newSettings.renderer = this.getRendererWrapper(globalRendererNode);
       this.componentRendererColumns.set('global', true);
-
     } else {
-      newSettings.renderer = this.props.renderer || (this.props.settings ? this.props.settings.renderer : void 0);
+      if (this.props.renderer || this.props.settings?.renderer) {
+        newSettings.renderer = this.props.renderer || this.props.settings.renderer;
+      } else {
+        newSettings.renderer = getRenderer('text');
+      }
     }
 
     return newSettings;
@@ -402,6 +443,7 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
    * Handsontable's `beforeViewRender` hook callback.
    */
   handsontableBeforeViewRender(): void {
+    this.portalCache.clear();
     this.getRenderedCellCache().clear();
   }
 
@@ -410,9 +452,7 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
    */
   handsontableAfterViewRender(): void {
     this.renderersPortalManager.setState({
-      portals: [...this.portalCacheArray]
-    }, () => {
-      this.portalCacheArray = [];
+      portals: [...this.portalCache.values()]
     });
   }
 

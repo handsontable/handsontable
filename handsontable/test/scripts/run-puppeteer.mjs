@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer';
+import puppeteer, { JSHandle } from 'puppeteer';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createServer } from 'http-server';
@@ -39,6 +39,12 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
   await browser.close();
   server.close();
   process.exit(exitCode);
+};
+
+JSHandle.prototype.getEventListeners = function() {
+  return this.client.send('DOMDebugger.getEventListeners', {
+    objectId: this.remoteObject().objectId
+  });
 };
 
 (async() => {
@@ -113,6 +119,13 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
     reporter.jasmineDone();
 
     await cleanup(errorCount === 0 ? 0 : 1);
+  });
+  await page.exposeFunction('getEventListeners', async(element) => {
+    const handle = await element.executionContext().evaluateHandle((node) => {
+      return node;
+    }, element);
+
+    return handle.getEventListeners();
   });
 
   page.on('pageerror', async(msg) => {

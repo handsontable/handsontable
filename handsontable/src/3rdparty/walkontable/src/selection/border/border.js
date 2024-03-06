@@ -202,7 +202,7 @@ class Border {
       this.cornerDefaultStyle.borderColor
     ].join(' ');
 
-    if (isMobileBrowser()) {
+    if (isMobileBrowser() && this.instance.getSetting('isDataViewInstance')) {
       this.createMultipleSelectorHandles();
     }
     this.disappear();
@@ -601,7 +601,7 @@ class Border {
       this.cornerStyle.display = 'block';
     }
 
-    if (isMobileBrowser()) {
+    if (isMobileBrowser() && this.instance.getSetting('isDataViewInstance')) {
       this.updateMultipleSelectionHandlesPosition(toRow, toColumn, top, inlineStartPos, width, height);
     }
   }
@@ -773,7 +773,7 @@ class Border {
     this.endStyle.display = 'none';
     this.cornerStyle.display = 'none';
 
-    if (isMobileBrowser()) {
+    if (isMobileBrowser() && this.instance.getSetting('isDataViewInstance')) {
       this.selectionHandles.styles.top.display = 'none';
       this.selectionHandles.styles.topHitArea.display = 'none';
       this.selectionHandles.styles.bottom.display = 'none';
