@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.2.0
- * Release date: 06/03/2024 (built at 28/02/2024 15:38:39)
+ * Release date: 06/03/2024 (built at 06/03/2024 09:48:23)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -107,7 +107,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "28/02/2024 15:38:39";
+Handsontable.buildDate = "06/03/2024 09:48:23";
 Handsontable.version = "14.2.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -13309,7 +13309,7 @@ const REGISTERED_HOOKS = [/* eslint-disable jsdoc/require-description-complete-s
 /**
  * Fired before the editor is opened and rendered.
  *
- * @since 14.1.0
+ * @since 14.2.0
  * @event Hooks#beforeBeginEditing
  * @param {number} row Visual row index of the edited cell.
  * @param {number} column Visual column index of the edited cell.
@@ -39330,12 +39330,13 @@ var _default = () => {
      * | Setting             | Description                 |
      * | ------------------- | --------------------------- |
      * | `'en-US'` (default) | English - United States     |
-     * | `'ar-AR'`           | Arabic - Global.<br><br>To properly render this language, set the [layout direction](@/guides/internationalization/layout-direction.md) to RTL. |
+     * | `'ar-AR'`           | Arabic - Global<br><br>To properly render this language, set the [layout direction](@/guides/internationalization/layout-direction.md) to RTL. |
      * | `'cs-CZ'`           | Czech - Czech Republic      |
      * | `'de-CH'`           | German - Switzerland        |
      * | `'de-DE'`           | German - Germany            |
      * | `'es-MX'`           | Spanish - Mexico            |
      * | `'fr-FR'`           | French - France             |
+     * | `'hr-HR'`           | Croatian - Croatia          |
      * | `'it-IT'`           | Italian - Italy             |
      * | `'ja-JP'`           | Japanese - Japan            |
      * | `'ko-KR'`           | Korean - Korea              |
