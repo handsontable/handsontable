@@ -13,6 +13,7 @@ import { applySpanProperties } from './utils';
 import './mergeCells.css';
 import { getStyle } from '../../helpers/dom/element';
 import { isChrome } from '../../helpers/browser';
+import LinkedList from '../../utils/dataStructures/linkedList';
 
 Hooks.getSingleton().register('beforeMergeCells');
 Hooks.getSingleton().register('afterMergeCells');
@@ -97,6 +98,32 @@ export class MergeCells extends BasePlugin {
    * @type {CellCoords}
    */
   #lastSelectedCoords = null;
+  /**
+   * The linked list of the all cells within the current selection in horizontal order. The list is
+   * recreated every time the selection is changed.
+   *
+   * @type {LinkedList}
+   */
+  #cellsHorizontalOrder = new LinkedList();
+  /**
+   * The linked list of the all cells within the current selection in horizontal order. The list is
+   * recreated every time the selection is changed.
+   *
+   * @type {LinkedList}
+   */
+  #cellsVerticalOrder = new LinkedList();
+  /**
+   * The currently highlighted cell within the horizontal linked list.
+   *
+   * @type {NodeStructure | null}
+   */
+  #currentHorizontalLinkedNode = null;
+  /**
+   * The currently highlighted cell within the vertical linked list.
+   *
+   * @type {NodeStructure | null}
+   */
+  #currentVerticalLinkedNode = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -121,13 +148,15 @@ export class MergeCells extends BasePlugin {
     this.selectionCalculations = new SelectionCalculations(this);
 
     this.addHook('afterInit', (...args) => this.#onAfterInit(...args));
-
+    this.addHook('modifyTransformFocus', (...args) => this.#onModifyTransformFocus(...args));
     this.addHook('modifyTransformStart', (...args) => this.#onModifyTransformStart(...args));
     this.addHook('modifyTransformEnd', (...args) => this.#onModifyTransformEnd(...args));
     this.addHook('modifyTransformEndRestDelta', (...args) => this.#onModifyTransformEndRestDelta(...args));
     this.addHook('beforeSelectionHighlightSet', (...args) => this.#onBeforeSelectionHighlightSet(...args));
     this.addHook('beforeSetRangeStart', (...args) => this.#onBeforeSetRangeStart(...args));
     this.addHook('beforeSetRangeStartOnly', (...args) => this.#onBeforeSetRangeStart(...args));
+    this.addHook('afterSelectionFocusSet', (...args) => this.#onAfterSelectionFocusSet(...args));
+    this.addHook('afterSelectionEnd', (...args) => this.#onAfterSelectionEnd(...args));
     this.addHook('modifyGetCellCoords', (...args) => this.#onModifyGetCellCoords(...args));
     this.addHook('afterIsMultipleSelection', (...args) => this.#onAfterIsMultipleSelection(...args));
     this.addHook('afterRenderer', (...args) => this.#onAfterRenderer(...args));
@@ -616,6 +645,118 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
+   * The hook controls the position of the focus position. For merge cells there is need to shift the focus to the
+   * next merged cell not to the next hidden cell (overlapped by merged cell).
+   *
+   * @param {object} delta The transformation delta.
+   */
+  #onModifyTransformFocus(delta) {
+    const selectedRange = this.hot.getSelectedRangeLast();
+    const { highlight } = selectedRange;
+    const { columnIndexMapper, rowIndexMapper } = this.hot;
+
+    if (this.#lastSelectedCoords) {
+      if (rowIndexMapper.getRenderableFromVisualIndex(this.#lastSelectedCoords.row) !== null) {
+        highlight.row = this.#lastSelectedCoords.row;
+      }
+
+      if (columnIndexMapper.getRenderableFromVisualIndex(this.#lastSelectedCoords.col) !== null) {
+        highlight.col = this.#lastSelectedCoords.col;
+      }
+
+      this.#lastSelectedCoords = null;
+    }
+
+    const deltaCorrection = { row: 0, col: 0 };
+
+    if (delta.col < 0) {
+      const { row, colEnd } = this.#currentHorizontalLinkedNode.prev.data;
+      const notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colEnd, -1);
+
+      if (row > highlight.row) {
+        delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1;
+        deltaCorrection.row = this.hot.view.countRenderableRowsInRange(highlight.row, row) - 1;
+
+      } else if (row < highlight.row) {
+        delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1;
+        deltaCorrection.row = -(this.hot.view.countRenderableRowsInRange(row, highlight.row) - 1);
+
+      } else if (notHiddenColumnIndex === null) {
+        delta.col = -this.hot.view.countRenderableColumnsInRange(0, highlight.col);
+
+      } else {
+        delta.col = -Math.max(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, highlight.col) - 1, 1);
+      }
+
+    } else if (delta.col > 0) {
+      const { row, colStart } = this.#currentHorizontalLinkedNode.next.data;
+      const notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colStart, 1);
+
+      if (row > highlight.row) {
+        delta.col = -(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, highlight.col) - 1);
+        deltaCorrection.row = this.hot.view.countRenderableRowsInRange(highlight.row, row) - 1;
+
+      } else if (row < highlight.row) {
+        delta.col = -(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, highlight.col) - 1);
+        deltaCorrection.row = -(this.hot.view.countRenderableRowsInRange(row, highlight.row) - 1);
+
+      } else if (notHiddenColumnIndex === null) {
+        delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, this.hot.countCols());
+
+      } else {
+        delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1, 1);
+      }
+    }
+
+    if (delta.row < 0) {
+      const { col, rowEnd } = this.#currentVerticalLinkedNode.prev.data;
+      const notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowEnd, -1);
+
+      if (col > highlight.col) {
+        delta.row = this.hot.view.countRenderableRowsInRange(highlight.row, notHiddenRowIndex) - 1;
+        deltaCorrection.col = this.hot.view.countRenderableColumnsInRange(highlight.col, col) - 1;
+
+      } else if (col < highlight.col) {
+        delta.row = this.hot.view.countRenderableRowsInRange(highlight.row, notHiddenRowIndex) - 1;
+        deltaCorrection.col = -(this.hot.view.countRenderableColumnsInRange(col, highlight.col) - 1);
+
+      } else if (notHiddenRowIndex === null) {
+        delta.row = -this.hot.view.countRenderableRowsInRange(0, highlight.row);
+
+      } else {
+        delta.row = -Math.max(this.hot.view.countRenderableRowsInRange(notHiddenRowIndex, highlight.row) - 1, 1);
+      }
+
+    } else if (delta.row > 0) {
+      const { col, rowStart } = this.#currentVerticalLinkedNode.next.data;
+      const notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowStart, -1);
+
+      if (col > highlight.col) {
+        delta.row = -(this.hot.view.countRenderableRowsInRange(notHiddenRowIndex, highlight.row) - 1);
+        deltaCorrection.col = this.hot.view.countRenderableColumnsInRange(highlight.col, col) - 1;
+
+      } else if (col < highlight.col) {
+        delta.row = -(this.hot.view.countRenderableRowsInRange(notHiddenRowIndex, highlight.row) - 1);
+        deltaCorrection.col = -(this.hot.view.countRenderableColumnsInRange(col, highlight.col) - 1);
+
+      } else if (notHiddenRowIndex === null) {
+        delta.row = this.hot.view.countRenderableRowsInRange(highlight.row, this.hot.countRows());
+
+      } else {
+        delta.row = Math.max(this.hot.view.countRenderableRowsInRange(highlight.row, notHiddenRowIndex) - 1, 1);
+      }
+    }
+
+    if (deltaCorrection.row !== 0) {
+      delta.row = deltaCorrection.row;
+    }
+
+    if (deltaCorrection.col !== 0) {
+      delta.col = deltaCorrection.col;
+    }
+  }
+
+  /**
    * `modifyTransformStart` hook callback.
    *
    * @param {object} delta The transformation delta.
@@ -845,6 +986,12 @@ export class MergeCells extends BasePlugin {
     for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
       selectedRange.expandByRange(this.mergedCellsCollection.mergedCells[i].getRange(), false);
     }
+    // TODO: This is a workaround for an issue with the selection not being extended properly.
+    // In some cases when the merge cells are defined in random order the selection is not
+    // extended in that way that it covers all overlapped merge cells.
+    for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
+      selectedRange.expandByRange(this.mergedCellsCollection.mergedCells[i].getRange(), false);
+    }
 
     const mergedParent = this.mergedCellsCollection.get(highlight.row, highlight.col);
 
@@ -940,6 +1087,121 @@ export class MergeCells extends BasePlugin {
    */
   #onBeforeSetRangeStart() {
     this.#lastSelectedCoords = null;
+  }
+
+  /**
+   * Searches for the node that is currently focused within the vertical and horizontal linked lists.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   */
+  #onAfterSelectionFocusSet(row, column) {
+    this.#cellsHorizontalOrder.inorder((node) => {
+      const { row: nodeRow, colStart, colEnd } = node.data;
+
+      if (row === nodeRow && column >= colStart && column <= colEnd) {
+        this.#currentHorizontalLinkedNode = node;
+      }
+    });
+
+    this.#cellsVerticalOrder.inorder((node) => {
+      const { col: nodeColumn, rowStart, rowEnd } = node.data;
+
+      if (column === nodeColumn && row >= rowStart && row <= rowEnd) {
+        this.#currentVerticalLinkedNode = node;
+      }
+    });
+  }
+
+  /**
+   * Creates the horizontal and vertical cells order matrix (linked lists) for focused cell.
+   */
+  #onAfterSelectionEnd() {
+    const selectedRange = this.hot.getSelectedRangeLast();
+    const { highlight } = selectedRange;
+    const topStart = selectedRange.getTopStartCorner();
+    const bottomEnd = selectedRange.getBottomEndCorner();
+    const visitedHorizontalCells = new WeakSet();
+
+    this.#cellsHorizontalOrder = new LinkedList();
+
+    for (let r = topStart.row; r <= bottomEnd.row; r++) {
+      for (let c = topStart.col; c <= bottomEnd.col; c++) {
+        const mergeParent = this.mergedCellsCollection.get(r, c);
+
+        if (mergeParent && visitedHorizontalCells.has(mergeParent)) {
+          // eslint-disable-next-line no-continue
+          continue;
+        }
+
+        const node = {
+          row: r,
+          colStart: c,
+          colEnd: c,
+        };
+
+        if (mergeParent) {
+          visitedHorizontalCells.add(mergeParent);
+          node.colStart = mergeParent.col;
+          node.colEnd = mergeParent.col + mergeParent.colspan - 1;
+        }
+
+        const linkedNode = this.#cellsHorizontalOrder.push(node);
+
+        if (r === highlight.row && c === highlight.col) {
+          this.#currentHorizontalLinkedNode = linkedNode;
+        }
+
+        if (mergeParent) {
+          c += mergeParent.colspan - 1;
+        }
+      }
+    }
+
+    // create circular linked list
+    this.#cellsHorizontalOrder.first.prev = this.#cellsHorizontalOrder.last;
+    this.#cellsHorizontalOrder.last.next = this.#cellsHorizontalOrder.first;
+
+    const visitedVerticalCells = new WeakSet();
+
+    this.#cellsVerticalOrder = new LinkedList();
+
+    for (let c = topStart.col; c <= bottomEnd.col; c++) {
+      for (let r = topStart.row; r <= bottomEnd.row; r++) {
+        const mergeParent = this.mergedCellsCollection.get(r, c);
+
+        if (mergeParent && visitedVerticalCells.has(mergeParent)) {
+          // eslint-disable-next-line no-continue
+          continue;
+        }
+
+        const node = {
+          col: c,
+          rowStart: r,
+          rowEnd: r,
+        };
+
+        if (mergeParent) {
+          visitedVerticalCells.add(mergeParent);
+          node.rowStart = mergeParent.row;
+          node.rowEnd = mergeParent.row + mergeParent.rowspan - 1;
+        }
+
+        const linkedNode = this.#cellsVerticalOrder.push(node);
+
+        if (r === highlight.row && c === highlight.col) {
+          this.#currentVerticalLinkedNode = linkedNode;
+        }
+
+        if (mergeParent) {
+          r += mergeParent.rowspan - 1;
+        }
+      }
+    }
+
+    // create circular linked list
+    this.#cellsVerticalOrder.first.prev = this.#cellsVerticalOrder.last;
+    this.#cellsVerticalOrder.last.next = this.#cellsVerticalOrder.first;
   }
 
   /**

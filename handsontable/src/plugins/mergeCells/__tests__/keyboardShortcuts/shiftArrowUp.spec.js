@@ -13,7 +13,7 @@ describe('MergeCells keyboard shortcut', () => {
   });
 
   describe('"Shift + ArrowUp"', () => {
-    it('should expand the cell selection up keeping the internal current focus position', () => {
+    it('should expand the cells selection up keeping the internal current focus position', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -51,7 +51,35 @@ describe('MergeCells keyboard shortcut', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 4,3 from: 4,3 to: 0,1']);
     });
 
-    it('should expand the cell selection up keeping the internal current focus position when some rows are hidden', () => {
+    it('should extend the cells selection down when focus is moved within a range', () => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+        mergeCells: [
+          { row: 2, col: 1, rowspan: 2, colspan: 2 },
+          { row: 4, col: 1, rowspan: 2, colspan: 2 },
+          { row: 7, col: 1, rowspan: 2, colspan: 2 },
+        ],
+      });
+
+      selectCells([[4, 1, 8, 2]]);
+      keyDownUp('enter'); // move cell focus down
+      keyDownUp('enter'); // move cell focus down
+      keyDownUp(['shift', 'arrowup']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 7,1 from: 8,1 to: 2,2']);
+
+      keyDownUp(['shift', 'arrowup']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 7,1 from: 8,1 to: 1,2']);
+
+      keyDownUp(['shift', 'arrowup']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 7,1 from: 8,1 to: 0,2']);
+    });
+
+    it('should expand the cells selection up keeping the internal current focus position when some rows are hidden', () => {
       handsontable({
         data: createSpreadsheetData(6, 5),
         rowHeaders: true,
@@ -77,7 +105,7 @@ describe('MergeCells keyboard shortcut', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 5,2 from: 5,3 to: 0,1']);
     });
 
-    it('should not expand the cell selection when there is only one merged cell', () => {
+    it('should not expand the cells selection when there is only one merged cell', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -93,7 +121,7 @@ describe('MergeCells keyboard shortcut', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 4,4']);
     });
 
-    it('should expand the cell selection through multiple merged cells when hidden index is selected', () => {
+    it('should expand the cells selection through multiple merged cells when hidden index is selected', () => {
       handsontable({
         data: createSpreadsheetData(11, 6),
         rowHeaders: true,
@@ -139,7 +167,7 @@ describe('MergeCells keyboard shortcut', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 7,0 from: 7,0 to: 1,2']);
     });
 
-    it('should expand the cell selection through multiple merged cells that intersect with each other', () => {
+    it('should expand the cells selection through multiple merged cells that intersect with each other', () => {
       handsontable({
         data: createSpreadsheetData(11, 8),
         rowHeaders: true,

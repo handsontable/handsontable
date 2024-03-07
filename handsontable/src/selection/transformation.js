@@ -357,7 +357,7 @@ class Transformation {
     const { row, col } = this.#options.visualToRenderableCoords(visualCoords);
 
     if (row === null || col === null) {
-      throw new Error('Visual coords are out of the table range.');
+      throw new Error('Renderable coords are not visible.');
     }
 
     return this.#options.createCellCoords(this.#offset.y + row, this.#offset.x + col);

@@ -283,4 +283,30 @@ describe('MergeCells Selection', () => {
       |   ║   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
   });
+
+  it('should correctly select the neighboring merged cells', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 8),
+      colHeaders: true,
+      rowHeaders: true,
+      mergeCells: [
+        { row: 1, col: 3, rowspan: 1, colspan: 3 },
+        { row: 2, col: 1, rowspan: 2, colspan: 4 },
+        { row: 2, col: 5, rowspan: 2, colspan: 2 },
+      ]
+    });
+
+    selectCell(1, 2, 2, 2);
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,1 to: 3,6']);
+    expect(`
+      |   ║   : - : - : - : - : - : - :   |
+      |===:===:===:===:===:===:===:===:===|
+      |   ║   :   :   :   :   :   :   :   |
+      | - ║   : 0 : A : 0         : 0 :   |
+      | - ║   : 0             : 0     :   |
+      | - ║   :                       :   |
+      |   ║   :   :   :   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
 });
