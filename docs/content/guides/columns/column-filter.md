@@ -281,7 +281,10 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('exampleFilterBasicDemo'));
+const container = document.getElementById('exampleFilterBasicDemo');
+const root = ReactDOM.createRoot(container);
+
+root.render(<App />);
 /* end:skip-in-preview */
 ```
 
@@ -569,7 +572,10 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('exampleShowFilterItemsOnly'));
+const container = document.getElementById('exampleShowFilterItemsOnly');
+const root = ReactDOM.createRoot(container);
+
+root.render(<App />);
 /* end:skip-in-preview */
 ```
 
@@ -886,7 +892,10 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('exampleEnableFilterInColumns'));
+const container = document.getElementById('exampleEnableFilterInColumns');
+const root = ReactDOM.createRoot(container);
+
+root.render(<App />);
 /* end:skip-in-preview */
 ```
 
@@ -3478,7 +3487,10 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('exampleFilterThroughAPI1'));
+const container = document.getElementById('exampleFilterThroughAPI1');
+const root = ReactDOM.createRoot(container);
+
+root.render(<App />);
 /* end:skip-in-preview */
 ```
 

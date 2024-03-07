@@ -39,7 +39,7 @@ The following example implements the `@handsontable/react` component with a [`re
 
 ```jsx
 import { useRef } from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { createStore } from 'redux';
 import { Provider, useSelector, useDispatch } from 'react-redux';
 import { HotTable } from '@handsontable/react';
@@ -171,11 +171,12 @@ const updatesReducer = (state = initialReduxStoreState, action) => {
 
 const reduxStore = createStore(updatesReducer);
 
-ReactDOM.render(
+const container = document.getElementById("example1");
+const root = ReactDOM.createRoot(container);
+root.render(
   <Provider store={reduxStore}>
     <ExampleComponent />
   </Provider>,
-  document.getElementById('example1')
 );
 ```
 
@@ -460,7 +461,10 @@ export const ExampleComponent = () => {
   );
 };
 
-ReactDOM.render(<ExampleComponent />, document.getElementById('example6'));
+const container = document.getElementById('example6');
+const root = ReactDOM.createRoot(container);
+
+root.render(<ExampleComponent />);
 ```
 
 :::

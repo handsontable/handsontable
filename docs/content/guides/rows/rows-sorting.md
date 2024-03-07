@@ -283,7 +283,10 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('exampleSortingDemo'));
+const container = document.getElementById('exampleSortingDemo');
+const root = ReactDOM.createRoot(container);
+
+root.render(<App />);
 /* end:skip-in-preview */
 ```
 
@@ -569,7 +572,10 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('exampleEnableSortingForColumns'));
+const container = document.getElementById('exampleEnableSortingForColumns');
+const root = ReactDOM.createRoot(container);
+
+root.render(<App />);
 /* end:skip-in-preview */
 ```
 
@@ -955,7 +961,10 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('exampleSortDifferentTypes'));
+const container = document.getElementById('exampleSortDifferentTypes');
+const root = ReactDOM.createRoot(container);
+
+root.render(<App />);
 /* end:skip-in-preview */
 ```
 
@@ -1201,7 +1210,10 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('exampleSortByMultipleColumns'));
+const container = document.getElementById('exampleSortByMultipleColumns');
+const root = ReactDOM.createRoot(container);
+
+root.render(<App />);
 /* end:skip-in-preview */
 ```
 
@@ -1534,7 +1546,10 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('exampleInitialSortOrder'));
+const container = document.getElementById('exampleInitialSortOrder');
+const root = ReactDOM.createRoot(container);
+
+root.render(<App />);
 /* end:skip-in-preview */
 ```
 
@@ -1885,7 +1900,10 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('exampleCustomSortIcons'));
+const container = document.getElementById('exampleCustomSortIcons');
+const root = ReactDOM.createRoot(container);
+
+root.render(<App />);
 /* end:skip-in-preview */
 ```
 
@@ -2163,7 +2181,10 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('exampleCustomSortIcons2'));
+const container = document.getElementById('exampleCustomSortIcons2');
+const root = ReactDOM.createRoot(container);
+
+root.render(<App />);
 /* end:skip-in-preview */
 ```
 
@@ -2532,7 +2553,10 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('exampleCustomSortIcons3'));
+const container = document.getElementById('exampleCustomSortIcons3');
+const root = ReactDOM.createRoot(container);
+
+root.render(<App />);
 /* end:skip-in-preview */
 ```
 
@@ -3167,7 +3191,10 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('exampleExcludeRowsFromSorting'));
+const container = document.getElementById('exampleExcludeRowsFromSorting');
+const root = ReactDOM.createRoot(container);
+
+root.render(<App />);
 /* end:skip-in-preview */
 ```
 
@@ -3612,7 +3639,10 @@ export const App = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('exampleSortByAPI'));
+const container = document.getElementById('exampleSortByAPI');
+const root = ReactDOM.createRoot(container);
+
+root.render(<App />);
 /* end:skip-in-preview */
 ```
 

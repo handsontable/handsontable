@@ -1453,7 +1453,7 @@ console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate})`
 ```
 ```jsx
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from "@handsontable/react";
 
@@ -2765,8 +2765,10 @@ const App = () => {
   );
 };
 
-const rootElement = document.getElementById("example2");
-ReactDOM.render(<App />, rootElement);
+const container = document.getElementById("example2");
+const root = ReactDOM.createRoot(container);
+
+root.render(<App />);
 
 console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate}) Wrapper: v${HotTable.version} React: v${React.version}`);
 ```
