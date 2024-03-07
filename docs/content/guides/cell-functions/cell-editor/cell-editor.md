@@ -1252,6 +1252,7 @@ const hot = new Handsontable(container, {
   - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
   - [`removeCellMeta()`](@/api/core.md#removecellmeta)
 - Hooks:
+  - [`beforeBeginEditing`](@/api/hooks.md#beforebeginediting)
   - [`afterBeginEditing`](@/api/hooks.md#afterbeginediting)
   - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
   - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
