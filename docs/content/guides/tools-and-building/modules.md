@@ -422,11 +422,14 @@ You can import the following translation modules:
 ```js
 import {
   registerLanguageDictionary, // translations' registering function
+  arAR,
+  csCZ,
   deCH,
   deDE,
   enUS,
   esMX,
   frFR,
+  hrHR,
   itIT,
   jaJP,
   koKR,
@@ -436,6 +439,7 @@ import {
   plPL,
   ptBR,
   ruRU,
+  srSP,
   zhCN,
   zhTW,
 } from 'handsontable/i18n';
@@ -447,11 +451,14 @@ Each translation module contains a different translation package:
 
 | Module | Translation                 |
 | ------ | --------------------------- |
+| `arAR` | Arabic - Global             |
+| `csCZ` | Czech - Czech Republic      |
 | `deCH` | German - Switzerland        |
 | `deDE` | German - Germany            |
 | `enUS` | English - United States     |
 | `esMX` | Spanish - Mexico            |
 | `frFR` | French - France             |
+| `hrHR` | Croatian - Croatia          |
 | `itIT` | Italian - Italy             |
 | `jaJP` | Japanese - Japan            |
 | `koKR` | Korean - Korea              |
@@ -461,6 +468,7 @@ Each translation module contains a different translation package:
 | `plPL` | Polish - Poland             |
 | `ptBR` | Portuguese - Brazil         |
 | `ruRU` | Russian - Russia            |
+| `srSP` | Serbian - Serbia            |
 | `zhCN` | Chinese - China             |
 | `zhTW` | Chinese - Taiwan            |
 
@@ -508,7 +516,7 @@ The table below lists all of Handsontable's modules:
 | [Cell editors](@/guides/cell-functions/cell-editor.md)       | `AutocompleteEditor`<br>`BaseEditor`<br>`CheckboxEditor`<br>`DateEditor`<br>`DropdownEditor`<br>`HandsontableEditor`<br>`NumericEditor`<br>`PasswordEditor`<br>`SelectEditor`<br>`TextEditor`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Optional            |
 | [Cell validators](@/guides/cell-functions/cell-validator.md) | `autocompleteValidator`<br>`dateValidator`<br>`dropdownValidator`<br>`numericValidator`<br>`timeValidator`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Optional            |
 | [Plugins](@/api/plugins.md)                                  | [`AutoColumnSize`](@/api/autoColumnSize.md)<br>[`Autofill`](@/api/autofill.md)<br>[`AutoRowSize`](@/api/autoRowSize.md)<br>[`BasePlugin`](@/api/basePlugin.md)<br>[`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)<br>[`CollapsibleColumns`](@/api/collapsibleColumns.md)<br>[`ColumnSorting`](@/api/columnSorting.md)<br>[`ColumnSummary`](@/api/columnSummary.md)<br>[`Comments`](@/api/comments.md)<br>[`ContextMenu`](@/api/contextMenu.md)<br>[`CopyPaste`](@/api/copyPaste.md)<br>[`CustomBorders`](@/api/customBorders.md)<br>[`DragToScroll`](@/api/dragToScroll.md)<br>[`DropdownMenu`](@/api/dropdownMenu.md)<br>[`ExportFile`](@/api/exportFile.md)<br>[`Filters`](@/api/filters.md)<br>[`Formulas`](@/api/formulas.md)<br>[`HiddenColumns`](@/api/hiddenColumns.md)<br>[`HiddenRows`](@/api/hiddenRows.md)<br>[`ManualColumnFreeze`](@/api/manualColumnFreeze.md)<br>[`ManualColumnMove`](@/api/manualColumnMove.md)<br>[`ManualColumnResize`](@/api/manualColumnResize.md)<br>[`ManualRowMove`](@/api/manualRowMove.md)<br>[`ManualRowResize`](@/api/manualRowResize.md)<br>[`MergeCells`](@/api/mergeCells.md)<br>[`MultiColumnSorting`](@/api/multiColumnSorting.md)<br>`MultipleSelectionHandles`<br>[`NestedHeaders`](@/api/nestedHeaders.md)<br>[`NestedRows`](@/api/nestedRows.md)<br>[`PersistentState`](@/api/persistentState.md)<br>[`Search`](@/api/search.md)<br>`TouchScroll`<br>[`TrimRows`](@/api/trimRows.md)<br>[`UndoRedo`](@/api/undoRedo.md) | Optional            |
-| [Translations](@/guides/internationalization/language.md)    | `deCH` `deDE` `enUS` `esMX`<br>`frFR` `itIT` `jaJP` `koKR`<br>`lvLV` `nbNO` `nlNL` `plPL`<br>`ptBR` `ruRU` `zhCN` `zhTW`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Optional            |
+| [Translations](@/guides/internationalization/language.md)    | `arAR` `csCZ` `deCH` `deDE` `enUS` `esMX`<br>`frFR` `hrHR` `itIT` `jaJP` `koKR`<br>`lvLV` `nbNO` `nlNL` `plPL`<br>`ptBR` `ruRU` `srSP` `zhCN` `zhTW`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Optional            |
 
 ## List of all module imports
 
@@ -614,11 +622,14 @@ import {
 
 // translation modules
 import {
+  arAR,
+  csCZ,
   deCH,
   deDE,
   enUS,
   esMX,
   frFR,
+  hrHR,
   itIT,
   jaJP,
   koKR,
@@ -628,6 +639,7 @@ import {
   plPL,
   ptBR,
   ruRU,
+  srSP,
   zhCN,
   zhTW,
 } from 'handsontable/i18n';
@@ -664,6 +676,7 @@ registerLanguageDictionary(deDE);
 registerLanguageDictionary(enUS);
 registerLanguageDictionary(esMX);
 registerLanguageDictionary(frFR);
+registerLanguageDictionary(hrHR);
 registerLanguageDictionary(itIT);
 registerLanguageDictionary(jaJP);
 registerLanguageDictionary(koKR);
@@ -673,6 +686,7 @@ registerLanguageDictionary(nlNL);
 registerLanguageDictionary(plPL);
 registerLanguageDictionary(ptBR);
 registerLanguageDictionary(ruRU);
+registerLanguageDictionary(srSP);
 registerLanguageDictionary(zhCN);
 registerLanguageDictionary(zhTW);
 
@@ -790,11 +804,14 @@ import {
 // translation modules
 import {
   registerLanguageDictionary, // translations' registering function
+  arAR,
+  csCZ,
   deCH,
   deDE,
   enUS,
   esMX,
   frFR,
+  hrHR,
   itIT,
   jaJP,
   koKR,
@@ -804,6 +821,7 @@ import {
   plPL,
   ptBR,
   ruRU,
+  srSP,
   zhCN,
   zhTW,
 } from 'handsontable/i18n';
@@ -890,6 +908,7 @@ registerLanguageDictionary(deDE);
 registerLanguageDictionary(enUS);
 registerLanguageDictionary(esMX);
 registerLanguageDictionary(frFR);
+registerLanguageDictionary(hrHR);
 registerLanguageDictionary(itIT);
 registerLanguageDictionary(jaJP);
 registerLanguageDictionary(koKR);
@@ -899,6 +918,7 @@ registerLanguageDictionary(nlNL);
 registerLanguageDictionary(plPL);
 registerLanguageDictionary(ptBR);
 registerLanguageDictionary(ruRU);
+registerLanguageDictionary(srSP);
 registerLanguageDictionary(zhCN);
 registerLanguageDictionary(zhTW);
 ```
