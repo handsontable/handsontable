@@ -40,14 +40,14 @@ Hooks.getSingleton().register('afterContextMenuExecute');
  * @class ContextMenu
  * @description
  * This plugin creates the Handsontable Context Menu. It allows to create a new row or column at any place in the
- * grid among [other features](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options).
+ * grid among [other features](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-specific-options).
  * Possible values:
  * * `true` (to enable default options),
  * * `false` (to disable completely)
  * * `{ uiContainer: containerDomElement }` (to declare a container for all of the Context Menu's dom elements to be placed in).
- * * An array of [the available strings](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options)
+ * * An array of [the available strings](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-specific-options)
  *
- * See [the context menu demo](@/guides/accessories-and-menus/context-menu.md) for examples.
+ * See [the context menu demo](@/guides/accessories-and-menus/context-menu/context-menu.md) for examples.
  *
  * @example
  * ```js

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added new `beforeBeginEditing` hook",
-  "type": "added",
-  "issueOrPR": 10699,
-  "breaking": false,
-  "framework": "none"
-}
