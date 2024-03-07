@@ -5,6 +5,8 @@ import { useState } from "react";
 import { registerAllModules } from "handsontable/registry";
 import "handsontable/dist/handsontable.full.min.css";
 
+registerAllModules();
+
 const data = [
   {
     companyName: "Hodkiewicz - Hintz",
