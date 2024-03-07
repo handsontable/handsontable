@@ -500,7 +500,7 @@ const hotOptions = {
   licenseKey: "non-commercial-and-evaluation",
 };
 
-function App() {
+export default function Grid() {
   const [toggleableOptions, setToggleableOptions] = useState({
     tabNavigation: true,
     navigableHeaders: true,
@@ -963,5 +963,3 @@ function DemoOptions({
     </>
   );
 }
-
-ReactDOM.render(<App />, document.getElementById("example2"));

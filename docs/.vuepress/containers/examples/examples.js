@@ -5,7 +5,14 @@
  */
 const EXAMPLE_REGEX = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
 
+/**
+ * Regular expression used to match the export default statement in the code.
+ * @type {RegExp}
+ */
+const EXPORT_DEFAULT_REGEX = /export default (?:function ([\w]*)|([\w]*))/g;
+
 const { buildCode } = require('./code-builder');
+const { codesandbox } = require('./codesandbox');
 const { jsfiddle } = require('./jsfiddle');
 
 const tab = (tabName, token, id) => {
@@ -25,7 +32,7 @@ const tab = (tabName, token, id) => {
       info: '',
       meta: null,
       block: true,
-      hidden: false
+      hidden: false,
     },
     token,
     {
@@ -41,8 +48,8 @@ const tab = (tabName, token, id) => {
       info: '',
       meta: null,
       block: true,
-      hidden: false
-    }
+      hidden: false,
+    },
   ];
 };
 
@@ -70,7 +77,7 @@ const getPreviewTab = (id, cssContent, htmlContent, code) => {
     info: '',
     meta: null,
     block: true,
-    hidden: false
+    hidden: false,
   };
 };
 
@@ -81,7 +88,8 @@ module.exports = function(docsVersion, base) {
       const token = tokens[index];
       const m = token.info.trim().match(EXAMPLE_REGEX);
 
-      if (token.nesting === 1 && m) { // open preview
+      if (token.nesting === 1 && m) {
+        // open preview
         let [, , id, klass, preset, args] = m;
 
         id = id ? id.substring(1) : 'example1';
@@ -114,6 +122,10 @@ module.exports = function(docsVersion, base) {
           // Remove the code between "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" expressions
           // eslint-disable-next-line max-len
           .replace(/\/\*(\s+)?start:skip-in-compilation(\s+)?\*\/\n.*?\/\*(\s+)?end:skip-in-compilation(\s+)?\*\/\n/msg, '');
+
+        const match = EXPORT_DEFAULT_REGEX.exec(codeToCompile);
+        const exportId = match?.[1] || match?.[2];
+
         const codeToPreview = jsToken.content
           // Remove the all "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" comments
           .replace(/\/\*(\s+)?(start|end):skip-in-compilation(\s+)?\*\/\n/gm, '')
@@ -126,8 +138,19 @@ module.exports = function(docsVersion, base) {
         const activeTab = `${args.match(/--tab (code|html|css|preview)/)?.[1] ?? 'preview'}-tab-${id}`;
         const noEdit = !!args.match(/--no-edit/)?.[0];
 
-        const code = buildCode(id + (preset.includes('angular') ? '.ts' : '.jsx'), codeToCompile, env.relativePath);
-        const encodedCode = encodeURI(`useHandsontable('${docsVersion}', function(){${code}}, '${preset}')`);
+        const code = buildCode(
+          id + (preset.includes('angular') ? '.ts' : '.jsx'),
+          exportId
+            ? `
+          ${codeToCompile}
+          
+          ReactDOM.render(<${exportId} />, document.getElementById("${id}"));`
+            : codeToCompile,
+          env.relativePath
+        );
+        const encodedCode = encodeURI(
+          `useHandsontable('${docsVersion}', function(){${code}}, '${preset}')`
+        );
 
         [htmlIndex, jsIndex, cssIndex].filter(x => !!x).sort().reverse().forEach((x) => {
           tokens.splice(x, 1);
@@ -144,7 +167,27 @@ module.exports = function(docsVersion, base) {
 
         return `
             <div class="tabs-button-wrapper">
-              ${!noEdit ? jsfiddle(id, htmlContent, codeToCompile, cssContent, docsVersion, preset) : ''}
+            ${
+  !noEdit
+    ? jsfiddle(
+      id,
+      htmlContent,
+      exportId
+        ? `
+          ${codeToCompile}
+          
+          ReactDOM.render(<${exportId} />, document.getElementById("${id}"));`
+        : codeToCompile,
+      cssContent,
+      docsVersion,
+      preset
+    )
+    : ''
+}
+            ${
+  !noEdit && codesandbox(htmlContent, codeToCompile, cssContent, preset, id)
+}
+              
               <tabs
                 :class="$parent.$parent.addClassIfPreviewTabIsSelected('${id}', 'selected-preview')"
                 :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }"
@@ -152,9 +195,10 @@ module.exports = function(docsVersion, base) {
                 @changed="$parent.$parent.codePreviewTabChanged(...arguments, '${id}')"
               >
           `;
-      } else { // close preview
+      } else {
+        // close preview
         return '</tabs></div>';
       }
-    }
+    },
   };
 };
