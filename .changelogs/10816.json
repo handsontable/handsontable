@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem where the mobile selection handles were displayed on the context menus/dropdown menus.",
-  "type": "fixed",
-  "issueOrPR": 10816,
-  "breaking": false,
-  "framework": "none"
-}

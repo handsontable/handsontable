@@ -221,6 +221,7 @@ import {
   deDE,
   esMX,
   frFR,
+  hrHR,
   itIT,
   jaJP,
   koKR,
@@ -246,6 +247,7 @@ registerLanguageDictionary(deCH);
 registerLanguageDictionary(deDE);
 registerLanguageDictionary(esMX);
 registerLanguageDictionary(frFR);
+registerLanguageDictionary(hrHR);
 registerLanguageDictionary(itIT);
 registerLanguageDictionary(jaJP);
 registerLanguageDictionary(koKR);
@@ -340,6 +342,7 @@ By default, Handsontable uses the **English - United States** language-country s
 - `de-DE.js` for **German - Germany** (`de-DE` code).
 - `es-MX.js` for **Spanish - Mexico** (`es-MX` code).
 - `fr-FR.js` for **French - France** (`fr-FR` code).
+- `hr-HR.js` for **Croatian - Croatia** (`hr-HR` code).
 - `it-IT.js` for **Italian - Italy** (`it-IT` code).
 - `ja-JP.js` for **Japanese - Japan** (`ja-JP` code).
 - `ko-KR.js` for **Korean - Korea** (`ko-KR` code).

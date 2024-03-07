@@ -126,7 +126,6 @@ Here's the list of all unsupported features:
 
 - [Rows sorting](@/guides/rows/rows-sorting.md)
 - [Column filter](@/guides/columns/column-filter.md)
-- [Column moving](@/guides/columns/column-moving.md)
 - [Row moving](@/guides/rows/row-moving.md)
 
 ## Related keyboard shortcuts
