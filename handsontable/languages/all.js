@@ -719,8 +719,111 @@ _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = exports["default"] = dictionary;
 
 /***/ }),
-/* 9 */,
-/* 10 */
+/* 9 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(1);
+exports.__esModule = true;
+var _handsontable = _interopRequireDefault(__webpack_require__(2));
+/**
+ * @preserve
+ * Authors: Domagoj Lončarić & Ante Živković
+ * Last updated: Jan 31, 2024
+ *
+ * Description: Definition file for Croatian - Croatia language-country.
+ */
+
+const C = _handsontable.default.languages.dictionaryKeys;
+const dictionary = {
+  languageCode: 'hr-HR',
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Nema dostupnih mogućnosti',
+  [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Umetni redak iznad',
+  [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Umetni redak ispod',
+  [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Umetni stupac lijevo',
+  [C.CONTEXTMENU_ITEMS_INSERT_RIGHT]: 'Umetni stupac desno',
+  [C.CONTEXTMENU_ITEMS_REMOVE_ROW]: ['Ukloni redak', 'Ukloni retke'],
+  [C.CONTEXTMENU_ITEMS_REMOVE_COLUMN]: ['Ukloni stupac', 'Ukloni stupce'],
+  [C.CONTEXTMENU_ITEMS_UNDO]: 'Poništi',
+  [C.CONTEXTMENU_ITEMS_REDO]: 'Ponovi',
+  [C.CONTEXTMENU_ITEMS_READ_ONLY]: 'Samo za čitanje',
+  [C.CONTEXTMENU_ITEMS_CLEAR_COLUMN]: 'Očisti stupac',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT]: 'Poravnanje',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT]: 'Lijevo',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER]: 'Centar',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT]: 'Desno',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY]: 'Obostrano',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP]: 'Gore',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE]: 'Sredina',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM]: 'Dolje',
+  [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'Zamrzni stupac',
+  [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'Odmrzni stupac',
+  [C.CONTEXTMENU_ITEMS_BORDERS]: 'Granice',
+  [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: 'Gore',
+  [C.CONTEXTMENU_ITEMS_BORDERS_RIGHT]: 'Desno',
+  [C.CONTEXTMENU_ITEMS_BORDERS_BOTTOM]: 'Dolje',
+  [C.CONTEXTMENU_ITEMS_BORDERS_LEFT]: 'Lijevo',
+  [C.CONTEXTMENU_ITEMS_REMOVE_BORDERS]: 'Ukloni granicu(e)',
+  [C.CONTEXTMENU_ITEMS_ADD_COMMENT]: 'Dodaj komentar',
+  [C.CONTEXTMENU_ITEMS_EDIT_COMMENT]: 'Uredi komentar',
+  [C.CONTEXTMENU_ITEMS_REMOVE_COMMENT]: 'Izbriši komentar',
+  [C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT]: 'Komentar samo za čitanje',
+  [C.CONTEXTMENU_ITEMS_MERGE_CELLS]: 'Spoji čelije',
+  [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Razdijeli čelije',
+  [C.CONTEXTMENU_ITEMS_COPY]: 'Kopiraj',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Kopiraj sa zaglavljem', 'Kopiraj sa zaglavljima'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: ['Kopiraj sa grupnim zaglavljem', 'Kopiraj sa grupnim zaglavljima'],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Kopiraj samo zaglavlje', 'Kopiraj samo zaglavlja'],
+  [C.CONTEXTMENU_ITEMS_CUT]: 'Izreži',
+  [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Umetni ugniježđeni redak',
+  [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Odvoji ugniježđeni redak',
+  [C.CONTEXTMENU_ITEMS_HIDE_COLUMN]: ['Sakrij stupac', 'Sakrij stupce'],
+  [C.CONTEXTMENU_ITEMS_SHOW_COLUMN]: ['Prikaži stupac', 'Prikaži stupce'],
+  [C.CONTEXTMENU_ITEMS_HIDE_ROW]: ['Sakrij redak', 'Sakrij retke'],
+  [C.CONTEXTMENU_ITEMS_SHOW_ROW]: ['Prikaži redak', 'Prikaži retke'],
+  [C.FILTERS_CONDITIONS_NONE]: 'Ništa',
+  [C.FILTERS_CONDITIONS_EMPTY]: 'Prazno',
+  [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'Nije prazno',
+  [C.FILTERS_CONDITIONS_EQUAL]: 'Jednako',
+  [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'Nije jednako',
+  [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Počinje s',
+  [C.FILTERS_CONDITIONS_ENDS_WITH]: 'Završava s',
+  [C.FILTERS_CONDITIONS_CONTAINS]: 'Sadrži',
+  [C.FILTERS_CONDITIONS_NOT_CONTAIN]: 'Ne sadrži',
+  [C.FILTERS_CONDITIONS_GREATER_THAN]: 'Veće od',
+  [C.FILTERS_CONDITIONS_GREATER_THAN_OR_EQUAL]: 'Veće ili jednako od',
+  [C.FILTERS_CONDITIONS_LESS_THAN]: 'Manje od',
+  [C.FILTERS_CONDITIONS_LESS_THAN_OR_EQUAL]: 'Manje ili jednako od',
+  [C.FILTERS_CONDITIONS_BETWEEN]: 'Između',
+  [C.FILTERS_CONDITIONS_NOT_BETWEEN]: 'Nije između',
+  [C.FILTERS_CONDITIONS_AFTER]: 'Nakon',
+  [C.FILTERS_CONDITIONS_BEFORE]: 'Prije',
+  [C.FILTERS_CONDITIONS_TODAY]: 'Danas',
+  [C.FILTERS_CONDITIONS_TOMORROW]: 'Sutra',
+  [C.FILTERS_CONDITIONS_YESTERDAY]: 'Jučer',
+  [C.FILTERS_VALUES_BLANK_CELLS]: 'Prazna polja',
+  [C.FILTERS_DIVS_FILTER_BY_CONDITION]: 'Filtriraj po uvjetu',
+  [C.FILTERS_DIVS_FILTER_BY_VALUE]: 'Filtriraj po vrijednosti',
+  [C.FILTERS_LABELS_CONJUNCTION]: 'I',
+  [C.FILTERS_LABELS_DISJUNCTION]: 'Ili',
+  [C.FILTERS_BUTTONS_SELECT_ALL]: 'Odaberi sve',
+  [C.FILTERS_BUTTONS_CLEAR]: 'Očisti',
+  [C.FILTERS_BUTTONS_OK]: 'U redu',
+  [C.FILTERS_BUTTONS_CANCEL]: 'Odustani',
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Pretraži',
+  [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Vrijednost',
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druga vrijednost',
+  [C.CHECKBOX_CHECKED]: 'Označeno',
+  [C.CHECKBOX_UNCHECKED]: 'Nije označeno'
+};
+_handsontable.default.languages.registerLanguageDictionary(dictionary);
+var _default = exports["default"] = dictionary;
+
+/***/ }),
+/* 10 */,
+/* 11 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -817,7 +920,7 @@ _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = exports["default"] = dictionary;
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -917,7 +1020,7 @@ _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = exports["default"] = dictionary;
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1014,7 +1117,7 @@ _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = exports["default"] = dictionary;
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1115,7 +1218,7 @@ _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = exports["default"] = dictionary;
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1212,7 +1315,7 @@ _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = exports["default"] = dictionary;
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1312,7 +1415,7 @@ _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = exports["default"] = dictionary;
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1415,7 +1518,7 @@ _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = exports["default"] = dictionary;
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1512,7 +1615,7 @@ _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = exports["default"] = dictionary;
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1609,7 +1712,7 @@ _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = exports["default"] = dictionary;
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1707,7 +1810,7 @@ _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = exports["default"] = dictionary;
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1807,7 +1910,7 @@ _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = exports["default"] = dictionary;
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1954,29 +2057,31 @@ var _esMX = _interopRequireDefault(__webpack_require__(7));
 exports.esMX = _esMX.default;
 var _frFR = _interopRequireDefault(__webpack_require__(8));
 exports.frFR = _frFR.default;
-var _itIT = _interopRequireDefault(__webpack_require__(10));
+var _hrHR = _interopRequireDefault(__webpack_require__(9));
+exports.hrHR = _hrHR.default;
+var _itIT = _interopRequireDefault(__webpack_require__(11));
 exports.itIT = _itIT.default;
-var _jaJP = _interopRequireDefault(__webpack_require__(11));
+var _jaJP = _interopRequireDefault(__webpack_require__(12));
 exports.jaJP = _jaJP.default;
-var _koKR = _interopRequireDefault(__webpack_require__(12));
+var _koKR = _interopRequireDefault(__webpack_require__(13));
 exports.koKR = _koKR.default;
-var _lvLV = _interopRequireDefault(__webpack_require__(13));
+var _lvLV = _interopRequireDefault(__webpack_require__(14));
 exports.lvLV = _lvLV.default;
-var _nbNO = _interopRequireDefault(__webpack_require__(14));
+var _nbNO = _interopRequireDefault(__webpack_require__(15));
 exports.nbNO = _nbNO.default;
-var _nlNL = _interopRequireDefault(__webpack_require__(15));
+var _nlNL = _interopRequireDefault(__webpack_require__(16));
 exports.nlNL = _nlNL.default;
-var _plPL = _interopRequireDefault(__webpack_require__(16));
+var _plPL = _interopRequireDefault(__webpack_require__(17));
 exports.plPL = _plPL.default;
-var _ptBR = _interopRequireDefault(__webpack_require__(17));
+var _ptBR = _interopRequireDefault(__webpack_require__(18));
 exports.ptBR = _ptBR.default;
-var _ruRU = _interopRequireDefault(__webpack_require__(18));
+var _ruRU = _interopRequireDefault(__webpack_require__(19));
 exports.ruRU = _ruRU.default;
-var _srSP = _interopRequireDefault(__webpack_require__(19));
+var _srSP = _interopRequireDefault(__webpack_require__(20));
 exports.srSP = _srSP.default;
-var _zhCN = _interopRequireDefault(__webpack_require__(20));
+var _zhCN = _interopRequireDefault(__webpack_require__(21));
 exports.zhCN = _zhCN.default;
-var _zhTW = _interopRequireDefault(__webpack_require__(21));
+var _zhTW = _interopRequireDefault(__webpack_require__(22));
 exports.zhTW = _zhTW.default;
 })();
 

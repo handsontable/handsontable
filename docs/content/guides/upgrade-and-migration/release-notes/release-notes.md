@@ -24,6 +24,51 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
+## 14.2.0
+
+Released on March 6, 2024
+
+For more information on this release, see:
+- [Blog post (14.2.0)](https://handsontable.com/blog/handsontable-14-2-0-improved-react-rendering-new-hooks)
+- [Documentation (14.2)](https://handsontable.com/docs/14.2)
+
+### Added
+
+- Added a new Handsontable hook, [`beforeBeginEditing`](@/api/hooks.md#beforebeginediting), to conditionally control when to allow cell editing. [#10699](https://github.com/handsontable/handsontable/pull/10699)
+- Added the ability to prevent viewport scrolling by using two existing Handsontable hooks: [`beforeViewportScrollVertically`](@/api/hooks.md#beforeviewportscrollvertically) and [`beforeViewportScrollHorizontally`](@/api/hooks.md#beforeviewportscrollhorizontally). [#10724](https://github.com/handsontable/handsontable/pull/10724)
+- Added undo-and-redo support for column moving. [#10746](https://github.com/handsontable/handsontable/pull/10746)
+- Added a new [`Filters`](@/api/filters.md) plugin hook: [`modifyFiltersMultiSelectValue`](@/api/hooks.md#modifyfiltersmultiselectvalue). Now, filtered values lists will show the formatted numeric value, not the raw data. [#10756](https://github.com/handsontable/handsontable/pull/10756)
+
+### Changed
+
+- Improved the viewport scroll behavior after clicking on a cell. [#10709](https://github.com/handsontable/handsontable/pull/10709)
+- Improved the response of checkboxes to double-clicks. [#10748](https://github.com/handsontable/handsontable/pull/10748)
+- Improved the way [`checkbox`](@/guides/cell-types/checkbox-cell-type.md) cells react to pressing <kbd>**Space**</kbd> or <kbd>**Enter**</kbd>. [#10802](https://github.com/handsontable/handsontable/pull/10802)
+- Improved the type inference of the [`propToCol()`](@/api/core.md#proptocol) method. [#10750](https://github.com/handsontable/handsontable/pull/10750)
+- React: Improved React portal caching. [#10758](https://github.com/handsontable/handsontable/pull/10758)
+
+### Removed
+
+- Removed versioned Handsontable examples and their GitHub publishing workflow. [#10766](https://github.com/handsontable/handsontable/pull/10766)
+
+### Fixed
+
+- Fixed an issue where the sizes of rows and columns were calculated incorrectly for hidden indexes. [#10705](https://github.com/handsontable/handsontable/pull/10705)
+- Fixed an issue where pasting arrays larger than the table's height caused data getter methods (such as [`getCellMeta()`](@/api/core.md#getcellmeta)) to throw an error. [#10710](https://github.com/handsontable/handsontable/pull/10710)
+- Fixed an issue where HyperFormula and Handsontable didn't sync properly. [#10719](https://github.com/handsontable/handsontable/pull/10719)
+- Fixed an issue where removing all rows and columns while HyperFormula was enabled caused an error. [#10720](https://github.com/handsontable/handsontable/pull/10720)
+- Fixed an issue where very large text cells lacked the vertical scrollbar during editing. [#10722](https://github.com/handsontable/handsontable/pull/10722)
+- Fixed an issue where non-contiguous selection caused too many [`afterSelectionEnd`](@/api/hooks.md#afterselectionend) and [`afterSelectionEndByProp`](@/api/hooks.md#afterselectionendbyprop) calls. [#10725](https://github.com/handsontable/handsontable/pull/10725)
+- Fixed an issue where tables pasted from the clipboard contained redundant line breaks. [#10745](https://github.com/handsontable/handsontable/pull/10745)
+- Fixed an issue where clicking outside the table didn't remove the focus from the table (when Handsontable was placed in an iframe). [#10752](https://github.com/handsontable/handsontable/pull/10752)
+- Fixed an issue where hovering over the header handles of [`handsontable`](@/guides/cell-types/handsontable-cell-type.md) cells caused an error. [#10761](https://github.com/handsontable/handsontable/pull/10761)
+- Fixed an issue where [`dropdown`](@/guides/cell-types/dropdown-cell-type.md) cells with long lists of options caused an error. [#10763](https://github.com/handsontable/handsontable/pull/10763)
+- Fixed an issue where using the browser's autocomplete dropdown on an input outside of Handsontable caused errors. Also, fixed an event listener leak. [#10795](https://github.com/handsontable/handsontable/pull/10795)
+- Fixed an issue where using context and dropdown menus on mobile caused unwanted selection handles to show up. [#10816](https://github.com/handsontable/handsontable/pull/10816)
+- Fixed an issue where the [`Autofill`](@/api/autofill.md) plugin treated cells filled with `0` as empty. [#10817](https://github.com/handsontable/handsontable/pull/10817)
+- React: Fixed a missing `HotTableClass` export. [#10760](https://github.com/handsontable/handsontable/pull/10760)
+- React: Fixed missing `renderer` and `editor` props. [#10768](https://github.com/handsontable/handsontable/pull/10768)
+
 ## 14.1.0
 
 Released on January 16, 2024
@@ -36,7 +81,7 @@ For more information on this release, see:
 
 - Added a new configuration option, [`renderAllColumns`](@/api/options.md#renderallcolumns), which lets you disable column virtualization for improved accessibility. [#10599](https://github.com/handsontable/handsontable/pull/10599)
 - Added a dedicated renderer (`DropdownRenderer`) and validator (`DropdownValidator`) for the dropdown cell type. [#10688](https://github.com/handsontable/handsontable/pull/10688)
-- Added support for the <kbd>Tab</kbd> key in the select editor (`selectEditor`). [#10673](https://github.com/handsontable/handsontable/pull/10673)
+- Added support for the <kbd>**Tab**</kbd> key in the select editor (`selectEditor`). [#10673](https://github.com/handsontable/handsontable/pull/10673)
 
 ### Changed
 

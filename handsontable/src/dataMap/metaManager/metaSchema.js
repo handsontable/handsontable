@@ -2622,12 +2622,13 @@ export default () => {
      * | Setting             | Description                 |
      * | ------------------- | --------------------------- |
      * | `'en-US'` (default) | English - United States     |
-     * | `'ar-AR'`           | Arabic - Global.<br><br>To properly render this language, set the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) to RTL. |
+     * | `'ar-AR'`           | Arabic - Global<br><br>To properly render this language, set the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) to RTL. |
      * | `'cs-CZ'`           | Czech - Czech Republic      |
      * | `'de-CH'`           | German - Switzerland        |
      * | `'de-DE'`           | German - Germany            |
      * | `'es-MX'`           | Spanish - Mexico            |
      * | `'fr-FR'`           | French - France             |
+     * | `'hr-HR'`           | Croatian - Croatia          |
      * | `'it-IT'`           | Italian - Italy             |
      * | `'ja-JP'`           | Japanese - Japan            |
      * | `'ko-KR'`           | Korean - Korea              |

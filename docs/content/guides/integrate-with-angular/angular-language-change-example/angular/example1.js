@@ -9,6 +9,7 @@ import {
   deDE,
   esMX,
   frFR,
+  hrHR,
   itIT,
   jaJP,
   koKR,
@@ -30,6 +31,7 @@ registerLanguageDictionary(deCH);
 registerLanguageDictionary(deDE);
 registerLanguageDictionary(esMX);
 registerLanguageDictionary(frFR);
+registerLanguageDictionary(hrHR);
 registerLanguageDictionary(itIT);
 registerLanguageDictionary(jaJP);
 registerLanguageDictionary(koKR);
