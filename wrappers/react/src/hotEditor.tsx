@@ -118,6 +118,12 @@ export function useHotEditor(overriddenHooks?: HotEditorHooks, deps?: React.Depe
     },
     finishEditing() {
       hotCustomEditorInstanceRef.current?.finishEditing();
+    },
+    get row() {
+      return hotCustomEditorInstanceRef.current?.row;
+    },
+    get col() {
+      return hotCustomEditorInstanceRef.current?.col;
     }
   }), [hotCustomEditorInstanceRef]);
 }

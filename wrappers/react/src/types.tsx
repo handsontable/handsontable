@@ -37,6 +37,8 @@ export interface UseHotEditorImpl {
   setValue: React.Dispatch<any>
   isOpen: boolean
   finishEditing: React.DispatchWithoutAction
+  row?: number
+  col?: number
 }
 
 /**

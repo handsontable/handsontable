@@ -59,38 +59,19 @@ const EditorComponent = (props) => {
     padding: '15px',
     zIndex: 999
   };
-  
-  // Let's use ref instead of state to apply the changes immediately, 
-  // without waiting for the next component rerender.
-  const valueRef = React.useRef('');
 
-  // A hook that takes a factory function that provides the set of methods
-  // from BaseEditor that your custom editor needs to override. It also provides the editor instance
-  // reference in case other functions need to access its methods, like `finishEditing`.
-  const hotCustomEditorInstanceRef = useHotEditor((runSuper) => ({
-    setValue(value) {
-      valueRef.current = value;
-    },
-
-    getValue() {
-      return valueRef.current;
-    },
-
-    open() {
+  // A hook that takes a set of methods that your custom editor needs to override.
+  // It also provides partial editor API in case other functions need to access it, like `finishEditing`.
+  const { value, setValue, finishEditing } = useHotEditor({
+    onOpen() {
       mainElementRef.current.style.display = 'block';
     },
 
-    close() {
+    onClose() {
       mainElementRef.current.style.display = 'none';
     },
 
-    prepare(row, col, prop, td, originalValue, cellProperties) {
-      // We'll need to call the `prepare` method from
-      // the editor instance base class, as it provides
-      // the component with the information needed to use the editor
-      // (hotInstance, row, col, prop, TD, originalValue, cellProperties)
-      runSuper().prepare(row, col, prop, td, originalValue, cellProperties);
-
+    onPrepare(row, col, prop, td, originalValue, cellProperties) {
       const tdPosition = td.getBoundingClientRect();
 
       // As the `prepare` method is triggered after selecting
@@ -99,21 +80,21 @@ const EditorComponent = (props) => {
       mainElementRef.current.style.left = tdPosition.left + window.pageXOffset + 'px';
       mainElementRef.current.style.top = tdPosition.top + window.pageYOffset + 'px';
     }
-  }), [valueRef]);
+  });
 
   const setLowerCase = React.useCallback(() => {
-    valueRef.current = valueRef.current.toString().toLowerCase();
+    setValue(value.toString().toLowerCase());
     
-    // Close the editor by accessing the underlying editor instance.
-    hotCustomEditorInstanceRef.current.finishEditing();
-  }, [valueRef, hotCustomEditorInstanceRef]);
+    // Close the editor by the editor API method.
+    finishEditing();
+  }, [setValue, value, finishEditing]);
 
   const setUpperCase = React.useCallback(() => {
-    valueRef.current = valueRef.current.toString().toUpperCase();
+    setValue(value.toString().toUpperCase());
     
-    // Close the editor by accessing the underlying editor instance.
-    hotCustomEditorInstanceRef.current.finishEditing();
-  }, [valueRef, hotCustomEditorInstanceRef]);
+    // Close the editor by the editor API method.
+    finishEditing();
+  }, [setValue, value, finishEditing]);
 
   const stopMousedownPropagation = React.useCallback((e) => {
     e.stopPropagation();
@@ -127,10 +108,10 @@ const EditorComponent = (props) => {
         id="editorElement"
       >
         <button onClick={setLowerCase}>
-          {valueRef.current.toLowerCase()}
+          {value.toLowerCase()}
         </button>
         <button onClick={setUpperCase}>
-          {valueRef.current.toUpperCase()}
+          {value.toUpperCase()}
         </button>
       </div>
   );

@@ -237,66 +237,54 @@ const UnconnectedColorPickerEditor = (props) => {
     border: '1px solid #cecece'
   };
 
-  const valueRef = React.useRef('');
-
   const stopMousedownPropagation = React.useCallback((e) => {
     e.stopPropagation();
   }, []);
 
-  const hotCustomEditorInstanceRef = useHotEditor((runSuper) => ({
-    setValue(value) {
-      valueRef.current = value;
-    },
-
-    getValue() {
-      return valueRef.current;
-    },
-
-    open() {
+  const { value, getValue, finishEditing, row, col } = useHotEditor({
+    onOpen() {
       editorRef.current.style.display = 'block';
     },
 
-    close() {
+    onClose() {
       editorRef.current.style.display = 'none';
     },
 
-    prepare(row, col, prop, td, originalValue, cellProperties) {
-      runSuper().prepare(row, col, prop, td, originalValue, cellProperties);
-
+    onPrepare(row, col, prop, td, originalValue, cellProperties) {
       const tdPosition = td.getBoundingClientRect();
 
       editorRef.current.style.left = tdPosition.left + window.pageXOffset + 'px';
       editorRef.current.style.top = tdPosition.top + window.pageYOffset + 'px';
     }
-  }), [valueRef]);
+  });
 
   const onPickedColor = React.useCallback((color) => {
-    valueRef.current = color;
-  }, [valueRef]);
+    setValue(color);
+  }, [setValue]);
 
   const applyColor = React.useCallback(() => {
     const dispatch = props.dispatch;
 
-    if (hotCustomEditorInstanceRef.current.col === 1) {
+    if (col === 1) {
       dispatch({
         type: 'updateActiveStarColor',
-        row: hotCustomEditorInstanceRef.current.row,
-        hexColor: hotCustomEditorInstanceRef.current.getValue()
+        row: row,
+        hexColor: getValue()
       });
-    } else if (hotCustomEditorInstanceRef.current.col === 2) {
+    } else if (col === 2) {
       dispatch({
         type: 'updateInactiveStarColor',
-        row: hotCustomEditorInstanceRef.current.row,
-        hexColor: hotCustomEditorInstanceRef.current.getValue()
+        row: row,
+        hexColor: getValue()
       });
     }
-    hotCustomEditorInstanceRef.current.finishEditing();
-  }, [props.dispatch, hotCustomEditorInstanceRef]);
+    finishEditing();
+  }, [props.dispatch, row, col, getValue, finishEditing]);
   
   return (
     <div style={editorContainerStyle} ref={editorRef} onMouseDown={stopMousedownPropagation}>
       <HexColorPicker
-        color={valueRef.current}
+        color={value}
         onChange={onPickedColor}
       />
       <button
