@@ -22,7 +22,22 @@ export interface HotRendererProps {
 /**
  * Interface for component-based editor overridden hooks object.
  */
-export type HotEditorHooks = Partial<Handsontable.editors.BaseEditor> & { hotCustomEditorInstance?: Handsontable.editors.BaseEditor };
+export interface HotEditorHooks {
+  onOpen?: () => void
+  onClose?: () => void
+  onPrepare?: (row: number, column: number, prop: string | number, TD: HTMLTableCellElement, originalValue: any, cellProperties: Handsontable.CellProperties) => void
+  onFocus?: () => void
+}
+
+/**
+ * Interface for custom component-based editor API exposed by useHotEditor
+ */
+export interface UseHotEditorImpl {
+  value: any
+  setValue: React.Dispatch<any>
+  isOpen: boolean
+  finishEditing: React.DispatchWithoutAction
+}
 
 /**
  * Helper type to expose GridSettings/ColumnSettings props with native renderers/editors separately

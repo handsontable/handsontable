@@ -225,35 +225,24 @@ export const EditorComponent: React.FC<EditorComponentProps> = ({ tap, ...props 
     display: 'none'
   };
 
-  const valueRef = React.useRef('');
-
-  const hotCustomEditorInstanceRef = useHotEditor((runSuper) => ({
-    getValue() {
-      return valueRef.current;
-    },
-
-    setValue(value) {
-      valueRef.current = value;
-    },
-
-    prepare(row, col, prop, TD, originalValue, cellProperties): any {
-      runSuper().prepare(row, col, prop, TD, originalValue, cellProperties)
+  const { setValue, finishEditing } = useHotEditor({
+    onPrepare() {
       mainElementRef.current!.style.backgroundColor = props.background!;
     },
 
-    open() {
+    onOpen() {
       mainElementRef.current!.style.display = 'block';
     },
 
-    close() {
+    onClose() {
       mainElementRef.current!.style.display = 'none';
     }
-  }), [valueRef]);
+  });
 
   const setNewValue = React.useCallback(() => {
-    valueRef.current = 'new-value';
-    hotCustomEditorInstanceRef.current!.finishEditing();
-  }, [valueRef, mainElementRef]);
+    setValue('new-value');
+    finishEditing();
+  }, [setValue, finishEditing]);
 
   tap?.(props);
 
