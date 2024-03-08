@@ -2,17 +2,17 @@ import React from 'react';
 import Handsontable from 'handsontable/base';
 import { HotEditorHooks, UseHotEditorImpl } from './types';
 
-type HookPropName = (keyof Handsontable.editors.BaseEditor & keyof HotEditorHooks) | 'constructor'
+type HookPropName = (keyof Handsontable.editors.BaseEditor & keyof HotEditorHooks) | 'constructor';
 
-const AbstractMethods: (keyof Handsontable.editors.BaseEditor)[] = ['close', 'focus', 'open']
-const ExcludedMethods: (keyof Handsontable.editors.BaseEditor)[] = ['getValue', 'setValue']
+const AbstractMethods: (keyof Handsontable.editors.BaseEditor)[] = ['close', 'focus', 'open'];
+const ExcludedMethods: (keyof Handsontable.editors.BaseEditor)[] = ['getValue', 'setValue'];
 
 const MethodsMap: Partial<Record<keyof Handsontable.editors.BaseEditor, keyof HotEditorHooks>> = {
   open: 'onOpen',
   close: 'onClose',
   prepare: 'onPrepare',
   focus: 'onFocus',
-}
+};
 
 /**
  * Create a class to be passed to the Handsontable's settings.
@@ -51,11 +51,11 @@ export function makeEditorClass(hooksRef: React.MutableRefObject<HotEditorHooks 
     }
 
     getValue() {
-      return this.value
+      return this.value;
     }
 
-    setValue(value: any) {
-      this.value = value
+    setValue(newValue: any) {
+      this.value = newValue;
     }
 
     open() {
