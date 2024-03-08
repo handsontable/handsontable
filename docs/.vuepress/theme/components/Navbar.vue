@@ -15,6 +15,7 @@
             <FrameworksDropdown/>
             <!--<VersionsDropdown></VersionsDropdown>-->
           </div>
+          <SearchBox/>
         </div>
 
         <AlgoliaSearch
