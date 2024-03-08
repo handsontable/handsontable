@@ -241,7 +241,7 @@ const UnconnectedColorPickerEditor = (props) => {
     e.stopPropagation();
   }, []);
 
-  const { value, getValue, finishEditing, row, col } = useHotEditor({
+  const { value, setValue, finishEditing, row, col } = useHotEditor({
     onOpen() {
       editorRef.current.style.display = 'block';
     },
@@ -269,17 +269,17 @@ const UnconnectedColorPickerEditor = (props) => {
       dispatch({
         type: 'updateActiveStarColor',
         row: row,
-        hexColor: getValue()
+        hexColor: value
       });
     } else if (col === 2) {
       dispatch({
         type: 'updateInactiveStarColor',
         row: row,
-        hexColor: getValue()
+        hexColor: value
       });
     }
     finishEditing();
-  }, [props.dispatch, row, col, getValue, finishEditing]);
+  }, [props.dispatch, row, col, value, finishEditing]);
   
   return (
     <div style={editorContainerStyle} ref={editorRef} onMouseDown={stopMousedownPropagation}>
