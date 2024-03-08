@@ -62,7 +62,7 @@ const EditorComponent = (props) => {
 
   // A hook that takes a set of methods that your custom editor needs to override.
   // It also provides partial editor API in case other functions need to access it, like `finishEditing`.
-  const editor = useHotEditor({
+  const { value, setValue, finishEditing } = useHotEditor({
     onOpen() {
       mainElementRef.current.style.display = 'block';
     },
@@ -83,18 +83,18 @@ const EditorComponent = (props) => {
   });
 
   const setLowerCase = React.useCallback(() => {
-    editor.setValue(editor.value.toString().toLowerCase());
+    setValue(value.toString().toLowerCase());
     
     // Close the editor by the editor API method.
-    editor.finishEditing();
-  }, [editor]);
+    finishEditing();
+  }, [setValue, value, finishEditing]);
 
   const setUpperCase = React.useCallback(() => {
-    editor.setValue(editor.value.toString().toUpperCase());
+    setValue(value.toString().toUpperCase());
     
     // Close the editor by the editor API method.
-    editor.finishEditing();
-  }, [editor]);
+    finishEditing();
+  }, [setValue, value, finishEditing]);
 
   const stopMousedownPropagation = React.useCallback((e) => {
     e.stopPropagation();
@@ -108,10 +108,10 @@ const EditorComponent = (props) => {
         id="editorElement"
       >
         <button onClick={setLowerCase}>
-          {editor.value.toLowerCase()}
+          {value.toLowerCase()}
         </button>
         <button onClick={setUpperCase}>
-          {editor.value.toUpperCase()}
+          {value.toUpperCase()}
         </button>
       </div>
   );
