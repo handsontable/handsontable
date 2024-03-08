@@ -1,0 +1,6 @@
+<div id="example1" class="controls select-language">
+  <label for="languages">Select language of the context menu:</label>
+  <select v-on:change="updateHotLanguage" id="languages"></select><br/>
+  <br/>
+  <hot-table :language="language" :settings="hotSettings"></hot-table>
+</div>
