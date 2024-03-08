@@ -241,7 +241,7 @@ const UnconnectedColorPickerEditor = (props) => {
     e.stopPropagation();
   }, []);
 
-  const editor = useHotEditor({
+  const { value, setValue, row, col, finishEditing } = useHotEditor({
     onOpen() {
       editorRef.current.style.display = 'block';
     },
@@ -260,7 +260,6 @@ const UnconnectedColorPickerEditor = (props) => {
   
   const applyColor = React.useCallback(() => {
     const dispatch = props.dispatch;
-    const { value, finishEditing, row, col } = editor;
 
     if (col === 1) {
       dispatch({
@@ -276,13 +275,13 @@ const UnconnectedColorPickerEditor = (props) => {
       });
     }
     finishEditing();
-  }, [props.dispatch, editor]);
+  }, [props.dispatch, value, row, col, finishEditing]);
   
   return (
     <div style={editorContainerStyle} ref={editorRef} onMouseDown={stopMousedownPropagation}>
       <HexColorPicker
-        color={editor.value}
-        onChange={editor.setValue}
+        color={value}
+        onChange={setValue}
       />
       <button
         style={{ width: '100%', height: '33px', marginTop: '10px' }}

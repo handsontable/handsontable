@@ -108,7 +108,15 @@ export const EditorContextProvider: React.FC<EditorContextProviderProps> = ({ ho
  */
 export function useHotEditor(overriddenHooks?: HotEditorHooks, deps?: React.DependencyList): UseHotEditorImpl {
   const { hooksRef, hotCustomEditorInstanceRef } = React.useContext(EditorContext)!;
-  React.useImperativeHandle(hooksRef, () => overriddenHooks || {}, deps);
+  const [rerenderTrigger, setRerenderTriggerT] = React.useState(0);
+
+  React.useImperativeHandle(hooksRef, () => ({
+    ...overriddenHooks,
+    onOpen() {
+      overriddenHooks?.onOpen?.();
+      setRerenderTriggerT((t) => t + 1);
+    },
+  }), deps);
 
   return React.useMemo(() => ({
     get value() {
@@ -129,5 +137,5 @@ export function useHotEditor(overriddenHooks?: HotEditorHooks, deps?: React.Depe
     get col() {
       return hotCustomEditorInstanceRef.current?.col;
     }
-  }), [hotCustomEditorInstanceRef]);
+  }), [rerenderTrigger, hotCustomEditorInstanceRef]);
 }
