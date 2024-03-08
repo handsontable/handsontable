@@ -241,7 +241,7 @@ const UnconnectedColorPickerEditor = (props) => {
     e.stopPropagation();
   }, []);
 
-  const { value, setValue, finishEditing, row, col } = useHotEditor({
+  const editor = useHotEditor({
     onOpen() {
       editorRef.current.style.display = 'block';
     },
@@ -257,13 +257,10 @@ const UnconnectedColorPickerEditor = (props) => {
       editorRef.current.style.top = tdPosition.top + window.pageYOffset + 'px';
     }
   });
-
-  const onPickedColor = React.useCallback((color) => {
-    setValue(color);
-  }, [setValue]);
-
+  
   const applyColor = React.useCallback(() => {
     const dispatch = props.dispatch;
+    const { value, finishEditing, row, col } = editor;
 
     if (col === 1) {
       dispatch({
@@ -279,13 +276,13 @@ const UnconnectedColorPickerEditor = (props) => {
       });
     }
     finishEditing();
-  }, [props.dispatch, row, col, value, finishEditing]);
+  }, [props.dispatch, editor]);
   
   return (
     <div style={editorContainerStyle} ref={editorRef} onMouseDown={stopMousedownPropagation}>
       <HexColorPicker
-        color={value}
-        onChange={onPickedColor}
+        color={editor.value}
+        onChange={editor.setValue}
       />
       <button
         style={{ width: '100%', height: '33px', marginTop: '10px' }}
@@ -422,7 +419,7 @@ export const ExampleComponent = () => {
                    editor={ColorPickerEditor} />
         <HotColumn width={150} 
                    renderer={ColorPickerRenderer} 
-                   edidtor={ColorPickerEditor} />
+                   editor={ColorPickerEditor} />
       </HotTable>
     </Provider>
   );
