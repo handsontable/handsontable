@@ -108,13 +108,13 @@ export const EditorContextProvider: React.FC<EditorContextProviderProps> = ({ ho
  */
 export function useHotEditor(overriddenHooks?: HotEditorHooks, deps?: React.DependencyList): UseHotEditorImpl {
   const { hooksRef, hotCustomEditorInstanceRef } = React.useContext(EditorContext)!;
-  const [rerenderTrigger, setRerenderTriggerT] = React.useState(0);
+  const [rerenderTrigger, setRerenderTrigger] = React.useState(0);
 
   React.useImperativeHandle(hooksRef, () => ({
     ...overriddenHooks,
     onOpen() {
       overriddenHooks?.onOpen?.();
-      setRerenderTriggerT((t) => t + 1);
+      setRerenderTrigger((t) => t + 1);
     },
   }), deps);
 

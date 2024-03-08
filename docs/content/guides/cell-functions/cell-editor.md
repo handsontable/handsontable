@@ -101,19 +101,19 @@ const EditorComponent = (props) => {
   }, []);
 
   return (
-      <div
-        style={containerStyle}
-        ref={mainElementRef}
-        onMouseDown={stopMousedownPropagation}
-        id="editorElement"
-      >
-        <button onClick={setLowerCase}>
-          {value.toLowerCase()}
-        </button>
-        <button onClick={setUpperCase}>
-          {value.toUpperCase()}
-        </button>
-      </div>
+    <div
+      style={containerStyle}
+      ref={mainElementRef}
+      onMouseDown={stopMousedownPropagation}
+      id="editorElement"
+    >
+      <button onClick={setLowerCase}>
+        {value?.toLowerCase()}
+      </button>
+      <button onClick={setUpperCase}>
+        {value?.toUpperCase()}
+      </button>
+    </div>
   );
 };
 
