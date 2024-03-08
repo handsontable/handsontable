@@ -2,7 +2,7 @@ import React from 'react';
 import Handsontable from 'handsontable/base';
 import { HotEditorHooks, UseHotEditorImpl } from './types';
 
-type HookPropName = (keyof Handsontable.editors.BaseEditor & keyof HotEditorHooks) | 'constructor';
+type HookPropName = (keyof Handsontable.editors.BaseEditor) | 'constructor';
 
 const AbstractMethods: (keyof Handsontable.editors.BaseEditor)[] = ['close', 'focus', 'open'];
 const ExcludedMethods: (keyof Handsontable.editors.BaseEditor)[] = ['getValue', 'setValue'];
@@ -40,8 +40,8 @@ export function makeEditorClass(hooksRef: React.MutableRefObject<HotEditorHooks 
             baseMethod.call(this, ...args); // call super
           }
 
-          if (MethodsMap[propName] && hooksRef.current?.[MethodsMap[propName]]) {
-            hooksRef.current[MethodsMap[propName]].call(this, ...args);
+          if (MethodsMap[propName] && hooksRef.current?.[MethodsMap[propName]!]) {
+            (hooksRef.current[MethodsMap[propName]!] as any).call(this, ...args);
           }
         }.bind(this);
       });
