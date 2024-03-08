@@ -36,13 +36,17 @@ export function makeEditorClass(hooksRef: React.MutableRefObject<HotEditorHooks 
 
         const baseMethod = Handsontable.editors.BaseEditor.prototype[propName];
         (CustomEditor.prototype as any)[propName] = function (this: CustomEditor, ...args: any[]) {
+          let result;
+
           if (!AbstractMethods.includes(propName)) {
-            baseMethod.call(this, ...args); // call super
+            result = baseMethod.call(this, ...args); // call super
           }
 
           if (MethodsMap[propName] && hooksRef.current?.[MethodsMap[propName]!]) {
-            (hooksRef.current[MethodsMap[propName]!] as any).call(this, ...args);
+            result = (hooksRef.current[MethodsMap[propName]!] as any).call(this, ...args);
           }
+
+          return result;
         }.bind(this);
       });
     }
