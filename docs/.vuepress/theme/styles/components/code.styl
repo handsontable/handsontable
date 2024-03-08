@@ -1,0 +1,27 @@
+.theme-default-content code { 
+    background: $editorColor 
+    font-size: $font-size-xs
+    line-height: $line-height-xs
+    font-weight: 400
+    vertical-align: middle
+    padding: 4px 8px
+    border-radius: $radius-s
+}
+
+.theme-default-content a code {
+    color: $linkColor
+    transition: $t all ease-in-out
+
+    @media (hover: hover) {
+        &:hover { 
+            text-decoration:none
+            color: $textColor
+        }
+    }
+}
+
+div[class*="language-"]::before { 
+    font-size: $font-size-xxs
+    line-height: $line-height-xxs
+    color: $text2Color
+}

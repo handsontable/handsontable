@@ -7,13 +7,54 @@
     padding: 0;
     margin: 0;
 }
+
+.page {
+    .footer,
+    .theme-code-group,
+    .page-nav { opacity: .1 } 
+}
+
 .header-framework {display: none !important}
 .page { 
-    opacity .1
-    margin: 0 360px
-    padding: 160px 0 0 0
+    opacity 1
+    margin: 128px 360px
+    padding: 0 0 0 0
+
+    .breadcrumbs {
+        display: flex
+        margin:0 auto
+        padding: 16px 0 0 !important
+        
+        a, span {
+            font-size: $font-size-xs
+            line-height: $line-height-xs
+        }
+        a {
+            color: $textColor
+            margin:0 !important
+            i { 
+                display: inline-block
+                position relative
+                top: 2px
+            }
+            &:after { 
+                content: "/"
+                display: inline-block
+                padding: 0 12px 0 12px
+            }
+        }
+        span { 
+            color: $text2Color
+        }
+    }
 
     .theme-default-content {
+        font-size: $font-size-s
+        line-height: $line-height-s
+        font-weight: 400
+        color: $text2Color
+        letter-spacing: $letterSpacingText
+        
         &:not(.custom) { 
             max-width: 720px
             padding: 0
@@ -29,31 +70,58 @@
             color: $text2Color
         }
 
+        h1, h2, h3, h4, h5, h6 {
+            color: $textColor
+            font-weight 400
+
+            &:first-child {
+                margin-top 0
+                margin-bottom 16px
+
+                + p, + pre, + .custom-block {
+                    margin-top 0
+                }
+            }
+            &:focus .header-anchor,
+            &:hover .header-anchor {
+                opacity: 1        
+            }
+        }
+
         h1 { 
             font-size: $font-size-xl
             line-height: $line-height-xl
-            font-weight: 600
+            font-weight: 400
             margin:0 !important
-            padding: 16px 0 8px
+            padding: 32px 0 16px
             position: relative
         }
 
         h2 { 
-            padding-top: 56px
+            padding-top: 48px
             padding-bottom: 0
-            font-size: $font-size-l
-            line-height: $line-height-l
-            font-weight: 600
+            font-size: $font-size
+            line-height: $line-height
             margin: 0
+            position relative
         }
 
         h3 { 
-            padding-top: 40px
-            padding-bottom: 8px
-            font-size: $font-size
-            line-height: $line-height
-            font-weight: 600
+            padding-top: 48px
+            padding-bottom: 0
+            font-size: $font-size-m
+            line-height: $line-height-m
             margin: 0
+            position: relative
+        }
+
+        h4 { 
+            padding-top: 32px
+            padding-bottom: 0
+            font-size: $font-size-s
+            line-height: $line-height-s
+            margin: 0
+            position: relative
         }
 
         p { 
@@ -62,23 +130,38 @@
             font-weight: 400
             padding: 16px 0 0 
             color: $text2Color
+            letter-spacing: $letterSpacingText
 
             &:empty { 
                 display:none 
             }
         }
 
+        h1 + p + p + p,
+        h1 + p,
+        .table-of-contents + p + p + p {
+            font-size: $font-size
+            line-height: $line-height
+            font-weight: 300
+            padding-top: 0
+            color: $textColor
+        }
+        
         > ul, > ol { 
-            padding: 8px
+            padding: 16px 8px 8px
 
             li {
                 font-size: $font-size-s
                 line-height: $line-height-s
                 font-weight: 400
-                list-style square outside
-                margin-left:24px
+                list-style square inside
+                margin-left: 24px
                 color: $text2Color
-                padding: 4px
+                padding-bottom: 4px
+
+                ul, ol {
+                    padding: 8px 8px 8px
+                }
             }
         }
 
@@ -87,8 +170,18 @@
         }
 
         a { 
+            color: $linkColor
             text-decoration: none 
             font-weight: 400
+            transition: $t all ease-in-out
+
+            @media (hover: hover) {
+                &:hover { 
+                    text-decoration:none
+                    color: $textColor
+                }
+            }
+            svg { padding: 4px}
         }
 
         pre { 
@@ -97,17 +190,19 @@
             padding: 16px 24px
             margin: 16px 0 0 0
             border-radius: $radius-l
-            
+            font-size: $font-size-s
+            line-height: $line-height-s
         }
 
         div[class*="language-"] {
             background: $editorColor 
             border-radius: $radius-l
+            margin-bottom: 24px
         }
         
         .theme-code-group__nav { 
             background: $editorHeadColor 
-            margin:0
+            margin:16px 0
             padding: 16px
             border-radius: $radius
             margin-bottom: -16px
@@ -119,64 +214,26 @@
                 padding:8px 8px 16px
             }
         }
-        code { 
-            background: $sideColor 
-            font-size: $font-size-xs
-            line-height: $line-height-xs
-            font-weight: 400
-            vertical-align: middle
-            //color:$accentColor
-        }
-
-        .table-of-contents { 
-            position fixed
-            width: 360px
-            top:80px
-            right: 0
-            bottom: 0
-            margin-top: 24px
-            margin-bottom: 24px
-
-            .toc-container-header { 
-                font-size: $font-size-xs
-                line-height: $line-height-xs
-                font-weight: 600
-                padding-bottom: 16px
-            }
-            ul { 
-                border-left: 1px solid $borderColor
-                li { 
-                    margin:0;
-                    list-style:none 
-                    padding-left: 16px
-                    ul { margin: 8px 0}
-                    a { 
-                        font-size: $font-size-xs
-                        line-height: $line-height-xs
-                        display: inline-block; 
-                        color: $text2Color
-                        text-decoration: none
-                        font-weight: 400
-                        padding: 4px 8px 
-                        border-radius: $radius
-
-                        @media (hover: hover) {
-                            &:hover {  
-                                background: $borderColor
-                            }
-                        }
-                    }
-                }
-            }
-        }
 
         .custom-block {
-            background: $borderColor
-            border-radius: $radius
+            background: $sideColor
+            border-radius: $radius-xl
             margin:0
-            padding: 16px 24px
+            padding: 24px 16px 24px 32px
             border:0
             margin-top: 16px
+            position: relative
+
+            &:before { 
+                content: ''
+                display: block
+                position absolute
+                top: 24px
+                bottom: 24px
+                left: 16px
+                width: 1px
+                background: $gradient
+            }
 
             &.tip { }
             
@@ -199,12 +256,17 @@
                     font-weight: 400
                 }
             }
+
+            code { 
+                background: $bgColor 
+            }
         }
     }
 
     a.header-anchor { 
         &:before {
             content: '#'
+            font-weight: 300
         }
     }
 
@@ -361,45 +423,7 @@
         line-height: $line-height-s
     }
 
-    .tabs-component {
-        border: none
-        margin:0
-
-        .tabs-component-panels {
-            padding: 0
-            margin-top: -16px
-            background: $editorColor
-            position: relative
-            min-height: 32px
-        }  
-
-        ul.tabs-component-tabs  {
-            background: $editorHeadColor
-            padding: 16px
-            border-bottom: none
-            box-sizing: border-box;
-
-            li.tabs-component-tab  {
-                a.tabs-component-tab-a {
-                    padding: 8px
-                    text-decoration: none
-                    color: $bgColor
-                    font-size: $font-size-s
-                    line-height: $line-height-s
-                    opacity .9
-                    font-weight: 400
-                    padding-bottom: 16px
-                }
-
-                &.is-active { 
-                    border-bottom: 1px solid var(--color-success)
-                    font-weight: 400
-                }
-            }
-        }
-    }
-
-    .footer {
+    .footer { display: none
         max-width: 720px
         margin: 24px auto
 
@@ -450,27 +474,9 @@
     }
 
     @media (max-width: $xLarge) {
-        .theme-default-content {
-            &:not(.custom) { 
-                max-width: auto;
-                padding: 0 24px;
-            }
-        }
     }
 
     @media (max-width: $medium) {
-        margin: 48px 24px 
-
-        .theme-default-content {
-            &:not(.custom) { 
-                max-width: auto;
-                padding: 0;
-            }
-        }
-
-        .page-nav .inner > span { 
-            width: 100%
-        }
     }
 }
 

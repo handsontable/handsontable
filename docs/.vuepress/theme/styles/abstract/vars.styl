@@ -1,29 +1,29 @@
 // font
 $font = 'Inter'
-$font2 = 'Roboto'
-$font3 = 'SuisseIntl-Medium'
-$font3a = 'SuisseIntl-Regular'
 
 // Font Size 
-$font-size-xl  = 36px
+$font-size-xl  = 40px
 $font-size-l   = 28px
 $font-size     = 24px
-$font-size-s   = 18px
+$font-size-m   = 20px
+$font-size-s   = 16px
 $font-size-xs  = 14px
-$font-size-xxs  = 10px
+$font-size-xxs = 10px
 
 // Line Height 
-$line-height-xl  = 44px
+$line-height-xl  = 56px
 $line-height-l   = 40px
 $line-height     = 36px
-$line-height-s   = 28px
+$line-height-m   = 30px
+$line-height-s   = 26px
 $line-height-xs  = 20px
-$line-height-xxs  = 16px
+$line-height-xxs = 16px
 
 // Transision time
 $t = .2s
 
 // Border-radius
+$radius-xxl = 24px
 $radius-xl = 16px
 $radius-l = 12px
 $radius = 8px
@@ -34,19 +34,22 @@ $radius-s = 4px
     --color-white:      #ffffff
     --color-gray-100:   #f7f7f9
     --color-gray-200:   #efeff3
-    --color-gray-300:   #d1d1d5
+    --color-gray-300:   #d1d1d2
     --color-gray-400:   #b5b5b5
-    --color-gray-500:   #868686
-    --color-gray-600:   #5d5d5d
-    --color-gray-700:   #202124
+    --color-gray-500:   #898A8B
+    --color-gray-600:   #343436
+    --color-gray-700:   #222326
     --color-gray-800:   #191A1D
     --color-gray-900:   #121316
     --color-black:      #000000
     --color-blue:       #1A42E8
-    --color-accentblue: #2856EA//#27C2FF
+    --color-accentblue: #2856EA
     --color-success:    #37BC6C
+    --color-lightblue:  #5A88FF
+    --color-yellow:     #f8c555
+    --color-orange:     #FF5A12
 }
-
+   
 
 $accentColor        = var(--color-blue)
 $successColor       = var(--color-success)
@@ -59,6 +62,22 @@ $bgCode             = $borderColor
 $editorColor        = var(--color-gray-900)
 $editorHeadColor    = var(--color-gray-800)
 $onsurfaceColor     = var(--color-gray-300)
+$linkColor          = var(--color-accentblue)
+
+
+$editorCommentColor = #fff
+$editorTagColor = #fff
+$editorFunctionNameColor = #fff
+$editorFunctionColor = #fff
+$editorSymbolColor = #fff
+$editorSelectorColor = #fff
+$editorStringColor = #fff
+$editorOperatorColor = #fff
+$editorInsertedColor = #fff
+$editorPunctuationColor = var(--color-gray-300)
+
+$darkDrop           = rgba(28,29,33,.9)
+$letterSpacingText  = -0.072px
 
 $gradient = linear-gradient(86deg, #1A42E8 3.5%, #27C2FF 197.36%);
 
@@ -67,30 +86,11 @@ $medium = 768px
 $large = 992px
 $xLarge = 1200px
 $extraLarge = 1480px
+$xxxLarge = 1720px
 
 
-// layout
-//$navbarHeight = 3.6rem
-//$sidebarWidth = 17rem
-//$contentWidth = 740px
-//$homePageWidth = 1500px
+html.theme-dark {
+    color-scheme dark
 
-// Bootstrap-inspired layout breakpoints 
-//$extraSmall = 0
-//$small = 576px
-//$medium = 768px
-//$large = 992px
-//$extraLarge = 1200px
 
-// Light scrollbars
-//$scrollbarBackgroundColor = #f9f9f9
-//$scrollbarThumbColor = #c1c1c1
-//$scrollbarThumbColorHover = #7c7c7c
-
-// Dark scrollbars (for code fields)
-//$scrollbarDarkBackgroundColor = #282c34
-//$scrollbarDarkThumbColor = #626c74
-//$scrollbarDarkThumbColorHover = #6a757e
-
-// Tabs component
-//$tabsComponentBackgroundColor = #282c34;
+}

@@ -8,9 +8,6 @@
       <NavLink :item="apiLink"/>
     </div>
     <div class="nav-item">
-      <NavLink :item="changelogLink"/>
-    </div>
-    <div class="nav-item">
       <NavLink :item="pricingLink"/>
     </div>
   </nav>

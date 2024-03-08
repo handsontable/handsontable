@@ -5,7 +5,19 @@
     background: none
     border: none 
     height: auto
-    backdrop-filter: blur(14px)
+    padding: 16px
+    z-index: 101
+
+    &:after { 
+        content:'';
+        position: absolute
+        top 0
+        height: 16px
+        left: 0
+        right: 25%
+        background: $colorBg
+        display: block
+    }
     
 
     .tag  { 
@@ -20,12 +32,19 @@
     }
 
     .navbar-wrapper {
+        box-sizing: border-box;
         display: flex
-        border-bottom: 1px solid $borderColor
+        //border-bottom: 1px solid $borderColor
         //background: $bgColor
-        height: 80px
-        //backdrop-filter: blur(8px);
-        //background: rgba(255,255,255,.75)
+        height: 72px
+        backdrop-filter: blur(14px);
+        background: rgba(25,26,29,.9);
+        border-radius: $radius-xxl
+        padding: 8px 16px
+
+        > * {
+            box-sizing: border-box;
+        }
 
         .top-bar {
             display: flex
@@ -39,11 +58,14 @@
         }
 
         .home-link {
-            width: 360px
+            padding-top: 2px
+            width: auto
+            margin-right: 24px
+            border-radius: $radius-xl
         }
 
         .Logo { 
-            margin: 32px 32px 24px
+            margin: 16px
             height: 24px 
             width: 145px
             display: block
@@ -53,7 +75,6 @@
 
         .menu {
             display: flex
-            padding: 12px
 
             .nav-links {
                 display: flex
@@ -61,14 +82,15 @@
                 .nav-item {
                     a, button { 
                         font-size:$font-size-xs
-                        line-height: $font-size-xs
+                        line-height: $line-height-xs
                         color: $text2Color
-                        padding: 22px 16px
+                        padding: 18px 16px
                         display: block
                         display: flex
                         white-space: nowrap
                         gap:8px
                         font-weight: 400
+                        border-radius: $radius-xl
 
                         &.router-link-active { 
                             position relative
@@ -105,7 +127,7 @@
 
                     .nav-dropdown {
                         a { 
-                            padding: 4px 8px
+                            padding: 6px 8px
                             font-size:$font-size-xs
                             line-height: $line-height-xs
                         }    
@@ -121,6 +143,8 @@
         .framework-and-version { 
             display: flex
             //display: none
+            
+
             > nav > i {
                 margin-right -16px
                 z-index 1
@@ -134,10 +158,13 @@
                 margin: 0
 
                 .dropdown-wrapper > button { 
+                    border-radius: $radius-xl
                     display: flex
                     gap: 8px
                     padding-left: 48px
+                    padding:20px 16px 20px 48px
                     margin-left:-32px
+                    margin-top: 8px
 
                     + .nav-dropdown { 
                         left: -16px
@@ -152,7 +179,7 @@
 
             > button { 
                 display: flex
-                padding: 24px 16px
+                padding: 16px
                 display: flex
                 gap: 8px
                 background: none
@@ -207,7 +234,7 @@
                 left: 0
                 background: $sideColor
                 padding: 12px 8px
-                border-radius: $radius-l
+                border-radius: $radius-xl
                 //right: 0
                 min-width: 120px
 
@@ -215,7 +242,7 @@
                     color: $text2Color
                     font-size: $font-size-xs
                     line-height: $line-height-xs
-                    padding: 4px 8px 
+                    padding: 6px 8px 
                     border:0
                     position: relative
                     transition all $t ease
@@ -280,7 +307,7 @@
 
                 @media (hover: hover) {
                     &:hover { 
-                        background: $borderColor
+                        background: $onsurfaceColor
                     }
                 }
             }
@@ -292,22 +319,24 @@
 
         //Search
         .search-box { 
-            position: relative;
+            position: absolute;
+            z-index 2
             display: flex
-            padding: 16px
-            width: 260px
-            //transform: translateX(-50%)
+            padding: 4px
+            width: auto
+            transform: translateX(-50%)
+            left: 50%
 
             > i { 
                 position: absolute
-                top: 32px
-                left: 32px
+                top: 20px
+                left: 20px
             }
 
             input { 
-                width: 360px;
+                width: 320px;
                 box-sizing: border-box;
-                border-radius: $radius-l
+                border-radius: $radius-xl
                 background: $borderColor
                 border: none
                 padding: 14px 16px 14px 48px
@@ -319,7 +348,7 @@
 
                 &:focus { 
                     box-shadow: 0 0 0 1px $accentColor
-                    width: 480px
+                    //width: 480px
 
                     + .kbd-hint { 
                         opacity 0 
@@ -332,16 +361,16 @@
                 position:absolute
                 display: 
                 flex; gap:6px
-                right: 28px
-                top:28px
+                right: 12px
+                top:12px
 
                 kbd { 
                     display: block
-                    line-height: 24px
-                    width: 24px
-                    border-radius: $radius
+                    line-height: 32px
+                    width: 32px
+                    border-radius: $radius-l
                     text-align: center
-                    background: $bgColor
+                    background: $sideColor
                     color: $text2Color
                     font-size: $font-size-xxs
                 }
@@ -373,7 +402,7 @@
                         color: $text2Color
                         font-size: $font-size-s
                         line-height: $line-height-s
-                        padding: 4px 8px 
+                        padding: 6px 8px 
                         margin: 0 -8px
                         border:0
                         position: relative
@@ -417,7 +446,7 @@
     @media (max-width: $extraLarge) {
         .navbar-wrapper .menu .nav-links .nav-item a,
         .navbar-wrapper .menu .nav-links .nav-item button {
-            padding: 22px 12px
+            //padding: 22px 12px
         }
     }
 

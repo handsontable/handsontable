@@ -1,15 +1,18 @@
 .sidebar { 
-    position fixed
-    left: 0
+    position fixed !important
+    left: 16px
     width: 320px
-    top:81px
+    top:72px + 32px 
+    bottom: 16px
     border:0
     z-index: 100
-    padding-top: 24px
-    background: transparent;
-    //background: $bgColor
-    border-right: 1px solid $borderColor;
-    padding-bottom: 32px
+    //border-radius: $radius-xxl
+    margin: 24px 0
+    background: transparent
+
+    .os-scrollbar .os-scrollbar-handle { 
+        background: $borderColor
+    }
 
     .home-link { 
         display: block;
@@ -29,13 +32,13 @@
         position relative
         padding: 12px
         margin:0 28px 16px
-        background: $borderColor
+        background: $gradient
         border-radius: $radius-xl
         display: flex
         gap: 8px
 
         span { 
-            background-color: $bgColor
+            background-color: $accentColor
             border-radius: $radius
             padding: 12px
             
@@ -52,6 +55,7 @@
                 display: block
                 font-size: $font-size-xs
                 line-height: $line-height-xs
+                font-weight: 600
             }
             > a { 
                 cursor: pointer
@@ -91,7 +95,7 @@
         }
     }
 
-    > .sidebar-links {
+    > .sidebar-links, > div > .sidebar-links {
         > li { 
             display: block;
 
@@ -208,7 +212,7 @@
                             content: ''
                             display: block
                             position absolute
-                            inset: 0 24px 0 32px
+                            inset: 0 24px 0 24px
                             background: $borderColor
                             z-index -1
                             border-radius: $radius

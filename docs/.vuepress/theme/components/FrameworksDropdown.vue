@@ -1,7 +1,7 @@
 <template>
   
   <nav class="nav-frameworks nav-links">
-    <i class="ico" :class="icon" :alt="alt"></i>
+    <i class="ico" :class="icon" ></i>
     <nav class="nav-item">
       <DropdownLink @item-click="onFrameworkClick" :item="item"></DropdownLink>
     </nav>
@@ -117,21 +117,6 @@ export default {
 };
 
 /*
-,
-  [
-    'angular',
-    {
-      name: 'Angular',
-      homepage: '/javascript-data-grid/angular-installation/',
-    },
-  ],
-  [
-    'vue',
-    { name: 'Vue 2', homepage: '/javascript-data-grid/vue-installation/' },
-  ],
-  [
-    'vue3',
-    { name: 'Vue 3', homepage: '/javascript-data-grid/vue3-installation/' },
-  ],
+
 */
 </script>

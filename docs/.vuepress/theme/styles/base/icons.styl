@@ -27,10 +27,12 @@ i.Logo {
 .i-dm-light     { background:  url('{{$basePath}}/img/svg/moon.svg'); }
 .i-dm-dark      { background:  url('{{$basePath}}/img/svg/sun.svg'); }
 .i-search       { background:  url('{{$basePath}}/img/svg/search.svg'); }
-.i-menu         { background:  url('{{$basePath}}/img/svg/menu.svg'); }
+.i-menu, .i-toc { background:  url('{{$basePath}}/img/svg/menu.svg'); }
+.i-home         { background:  url('{{$basePath}}/img/svg/home.svg'); }
+.i-external     { background:  url('{{$basePath}}/img/svg/external-link.svg'); }
 
 
-.sidebar > .sidebar-links > li {
+.sidebar > div > .sidebar-links > li {
     &:nth-child(1)  > section p i:first-child { background:  url('{{$basePath}}/img/svg/rocket.svg'); }             // Getting started
     &:nth-child(2)  > section p i:first-child { background:  url('{{$basePath}}/img/svg/brand-angular.svg'); }      // Integrate with Angular
     &:nth-child(3)  > section p i:first-child { background:  url('{{$basePath}}/img/svg/brand-vue.svg'); }          // Integrate with Vue 2

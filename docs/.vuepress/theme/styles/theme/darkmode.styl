@@ -1,17 +1,32 @@
 html.theme-dark {
+    color-scheme dark
+
     $accentColor        = var(--color-accentblue)
-    $textColor          = #D1D1D2
-    $text2Color         = #898A8B
-    $borderColor        = var(--color-gray-800)
+    $textColor          = var(--color-gray-300)
+    $text2Color         = var(--color-gray-500)
+    $borderColor        = var(--color-gray-700)
     $bgColor            = var(--color-gray-900)
-    $sideColor          = var(--color-gray-900)
+    $sideColor          = var(--color-gray-800)
     $bgCode             = $borderColor 
     $onsurfaceColor     = var(--color-gray-700)
+    $linkColor          = var(--color-lightblue)
+    $editorColor        = var(--color-gray-800)
+
+    $editorCommentColor         = var(--color-gray-500)
+    $editorTagColor             = var(--color-lightblue)
+    $editorFunctionNameColor    = var(--color-lightblue)
+    $editorFunctionColor        = var(--color-yellow)
+    $editorSymbolColor          = var(--color-success)
+    $editorSelectorColor        = var(--color-success)
+    $editorStringColor          = var(--color-success)
+    $editorOperatorColor        = var(--color-success)
+    $editorInsertedColor        = var(--color-success)
+    $editorPunctuationColor     = var(--color-gray-300)
 
     i.Logo { background:  url('{{$basePath}}/img/logo-white.svg');}
     i.ico { filter: brightness(0) invert(1)}
 
-    color-scheme dark
+    
 
     body {
         background: $bgColor url('{{$basePath}}/img/noise.png') repeat
@@ -36,14 +51,17 @@ html.theme-dark {
     /* Sidebar 
     ------------------------------- */
     .sidebar { 
-        //background: $bgColor
-        border-right: 1px solid $borderColor;
+        //background: $darkDrop
+
+        .os-scrollbar .os-scrollbar-handle { 
+            background: $borderColor
+        }
 
         .info-box { 
-            background: $borderColor
+            background: $gradient
 
             span { 
-                background-color: $bgColor
+                background-color: $accentColor
                 
                 i { 
                     //filter: hue-rotate(190deg) invert(1); /* 190 degrees shifts the hue towards #27C2FF */
@@ -51,7 +69,7 @@ html.theme-dark {
             }
             div {
                 a { 
-                    color:$text2Color
+                    color:$textColor
 
                     &:before {
                         box-shadow: 0 0 0 1px $accentColor
@@ -176,7 +194,7 @@ html.theme-dark {
                 a, button, label {
                     @media (hover: hover) {
                         &:hover { 
-                            background: $borderColor
+                            background: $onsurfaceColor
                         }
                     }
                 }
@@ -223,7 +241,12 @@ html.theme-dark {
     /* Navbar 
     ------------------------------- */
     .navbar {
-        background: rgba(18,19,22,.15)
+        //background: rgba(18,19,22,.15)
+
+        &:after {
+            background: $bgColor
+        }
+
         .tag  { 
             background-color: $accentColor
             color: $bgColor
@@ -231,8 +254,8 @@ html.theme-dark {
     }
 
     .navbar-wrapper { 
-        //background: $bgColor
-        border-bottom: 1px solid $borderColor
+        background:$darkDrop;
+        //border-bottom: 1px solid $borderColor
 
         .dropdown-wrapper { 
             .nav-dropdown { 
@@ -297,12 +320,13 @@ html.theme-dark {
                 
                 &:focus {
                     box-shadow: 0 0 0 1px $accentColor
+                    background: $bgColor
                 }
             }
 
             .kbd-hint { 
                 kbd { 
-                    background: $bgColor
+                    background: $sideColor
                     color: $text2Color
                 }
             }
@@ -329,12 +353,31 @@ html.theme-dark {
     }
 
     //Page
-    .page { 
+    .page {
+        .breadcrumbs {
+            a {
+                color: $textColor
+            }
+            span { 
+                color: $text2Color
+            }
+        }
+        
         #example1_events {
             border: 1px solid $borderColor
         }
         
         .theme-default-content {  
+            color: $text2Color
+            
+            h1, h2, h3, h4, h5, h6 {
+                color: $textColor
+            }
+            h1 + p + p + p,
+            h1 + p,
+            .table-of-contents + p + p + p {
+                color: $textColor
+            }
             p {
                 color: $text2Color
             }
@@ -346,43 +389,81 @@ html.theme-dark {
             }
 
             pre { 
-                background: $borderColor 
+                background: $editorColor 
             }
             .language-bash:before { 
                 display: none
             }
             div[class*="language-"] { 
-                background: $borderColor 
+                background: $editorColor 
+            }
+            a {
+                color: $linkColor
+
+                @media (hover: hover) {
+                    &:hover { 
+                        text-decoration:none
+                        color: $textColor
+                    }
+                }
             }
             code {
-                background: $borderColor 
-                color:$accentColor
+                background: $editorColor 
+                color:$textColor
+            }
+            a code {
+                color: $linkColor
+                
+                @media (hover: hover) {
+                    &:hover { 
+                        color: $textColor
+                    }
+                }
             }
             .table-of-contents { 
-                ul { 
-                    border-left: 1px solid $borderColor
+                ul {
                     li { 
+
                         a { 
                             color: $text2Color
 
+                            &:after { 
+                                border-left: 1px solid $borderColor
+                            }
+
                             @media (hover: hover) {
-                                &:hover {  
-                                    background: $borderColor
+                                &:hover { 
+                                    color: $textColor
+
+                                    &:after {
+                                        background: $accentColor
+                                    }
                                 }
                             }
                         }
+                        &.active a { 
+                            color: $textColor
+
+                            &:after { 
+                                border-color: $accentColor
+                            }
+                        }  
                     }
                 }
             }
             
             .custom-block {
-                background: $borderColor
+                background: $sideColor
                 //border: 1px solid $borderColor
 
                 p { 
                     a { 
                         //color: $textColor 
                     }
+                }
+
+                code { 
+                    background: $bgColor 
                 }
             }
         }
@@ -472,5 +553,108 @@ html.theme-dark {
     }
     .handsontable-drawing p:first-child { 
         display: none
+    }
+
+    .token.comment,
+    .token.block-comment,
+    .token.prolog,
+    .token.doctype,
+    .token.cdata {
+        color: $editorCommentColor
+    }
+
+    .token.punctuation {
+        color: $editorPunctuationColor
+    }
+
+    .token.tag,
+    .token.attr-name,
+    .token.namespace,
+    .token.deleted {
+        color: $editorTagColor
+    }
+
+    .token.function-name {
+        color: $editorFunctionNameColor;
+    }
+
+    .token.boolean,
+    .token.number,
+    .token.function {
+        color: $editorFunctionColor
+    }
+
+    .token.property,
+    .token.class-name,
+    .token.constant,
+    .token.symbol {
+        color: $editorSymbolColor
+    }
+
+    .token.selector,
+    .token.important,
+    .token.atrule,
+    .token.keyword,
+    .token.builtin {
+        color: $editorSelectorColor
+    }
+
+    .token.string,
+    .token.char,
+    .token.attr-value,
+    .token.regex,
+    .token.variable {
+            color: $editorStringColor
+    }
+
+    .token.operator,
+    .token.entity,
+    .token.url {
+        color: $editorOperatorColor
+    }
+
+    .token.inserted {
+        color: $editorInsertedColor
+    }
+
+    .tabs-component {
+        .tabs-component-panels {
+            background: $borderColor
+        }  
+
+        ul.tabs-component-tabs  {
+            background: $editorHeadColor
+           
+            li.tabs-component-tab  {
+                a.tabs-component-tab-a {
+                    color: $text2Color
+                }
+
+                &.is-active { 
+                    border-bottom: 1px solid $accentColor
+                    a {
+                        color: $textColor
+                    }
+                }
+            }
+        }
+    }
+
+    .form-jsfiddle-external {
+        .js-fiddle-link { 
+            button { 
+                background: $sideColor !important
+                
+                @media (hover: hover) {
+                    &:hover {
+                        background: $bgColor !important
+                    }
+                }
+            }
+        }
+    }
+
+    div[class*="language-"]::before { 
+        color: $text2Color
     }
 }

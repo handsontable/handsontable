@@ -2,6 +2,7 @@
   <div class="layout-container">
     <span class="decoration-left"></span>
     <span class="decoration-right"></span>
+
     <ParentLayout>
       <template #page-top>
         <div v-show="show" class="page-top">

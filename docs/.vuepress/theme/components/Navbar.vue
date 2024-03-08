@@ -10,11 +10,11 @@
       
       <div class="top-bar">
         <div class="top-bar_left">
-          <SearchBox/>
           <div class="framework-and-version">
             <FrameworksDropdown/>
             <!--<VersionsDropdown></VersionsDropdown>-->
           </div>
+          <SearchBox/>
         </div>
 
         <div class="menu">

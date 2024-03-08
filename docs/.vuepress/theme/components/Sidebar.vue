@@ -1,13 +1,8 @@
 <template>
+  
+
+
   <aside class="sidebar">
-    <!--
-    <RouterLink
-        :to="frameworkUrlPrefix"
-        class="home-link"
-    >
-      <Logo />
-    </RouterLink>
-    -->
 
     <div class="info-box">
       <span><i class="ico i-bell"></i></span>
@@ -31,6 +26,7 @@
   </aside>
 </template>
 
+
 <script>
 import SidebarLinks from '@theme/components/SidebarLinks.vue';
 import Logo from '@theme/components/Logo.vue';
@@ -40,6 +36,14 @@ import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
 import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
 import FrameworksDropdown from '@theme/components/FrameworksDropdown.vue';
 import ExternalNavLinks from '@theme/components/ExternalNavLinks.vue';
+import 'overlayscrollbars/styles/overlayscrollbars.css';
+import { 
+  OverlayScrollbars,
+  ScrollbarsHidingPlugin, 
+  SizeObserverPlugin, 
+  ClickScrollPlugin
+} from 'overlayscrollbars';
+
 
 export default {
   name: 'Sidebar',
@@ -81,6 +85,15 @@ export default {
     chips2.classList.add('tag-new');
     //chips1.textContent = 'Updated';
     chips2.textContent = 'New';
+
+    const osInstance = OverlayScrollbars(document.querySelector('.sidebar'), {
+      overflow: {
+        x: 'hidden',
+      },
+      scrollbars: {
+        autoHide: 'leave'
+      }
+    });
   },
 
   props: ['items']

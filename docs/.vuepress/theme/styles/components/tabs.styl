@@ -1,0 +1,69 @@
+.tabs-component {
+    border: none
+    margin:0
+    border-radius: $radius-xl
+
+    .tabs-component-panels {
+        padding: 0
+        margin-top: -16px
+        background: $borderColor
+        position: relative
+        min-height: 32px
+        border-radius: 0 0 $radius-xl $radius-xl !important
+    }
+
+    ul.tabs-component-tabs  {
+        background: $editorHeadColor
+        padding: 8px 16px 16px
+        border-bottom: none
+        box-sizing: border-box;
+        border-radius: $radius-xl $radius-xl 0 0 !important
+
+        li.tabs-component-tab  {
+            a.tabs-component-tab-a {
+                padding: 8px 16px
+                margin:0
+                text-decoration: none
+                color: $text2Color
+                font-size: $font-size-s
+                line-height: $line-height-s
+                opacity .9
+                font-weight: 400
+            }
+
+            &.is-active { 
+                border-bottom: 1px solid $accentColor
+                font-weight: 400
+                a{
+                    color: $textColor
+                }
+            }
+        }
+    }
+}
+
+.form-jsfiddle-external {
+    margin-top: 24px
+    position relative
+
+    .js-fiddle-link { 
+        position absolute
+        left: auto
+        top:10px
+        right:10px
+
+        button { 
+            background: $sideColor
+            transition: all $t ease-in-out
+            cursor pointer
+            border: 0 
+            border-radius: $radius
+
+            @media (hover: hover) {
+                &:hover {
+                    background: $bgColor
+                }
+            }
+        }
+    }
+}

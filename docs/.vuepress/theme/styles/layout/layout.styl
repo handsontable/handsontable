@@ -1,6 +1,5 @@
 body {
   font-family: $font
-  font-family: $font3a
   font-size $font-size
   line-height: $line-height
   background: $sideColor
@@ -10,7 +9,7 @@ body {
 }
 .Inter { font-family: $font }
 .Satoshi { font-family: 'Satoshi-Variable'}
-h1,h2,h3,h4,h5,h6 { font-family: $font3 }
+h1,h2,h3,h4,h5,h6 { font-family: $font }
 
 #app,
 .layout-container,
@@ -38,44 +37,38 @@ a {
   display:none
 }
 
-/*
-.decoration-left {
-  border-radius: 1000px;
-  opacity: 0.1;
-  background: $accentColor
-  filter: blur(252px)
-  width: 1000px
-  height: 1000px
-  display: block
-  position absolute
-  top:400px
-  left: 120px
+@media (min-width: $xxxLarge) {
+  #app { 
+    width:$xxxLarge
+    margin: 0 auto
+
+    .navbar { 
+      width:$xxxLarge
+      margin: 0 auto
+    }
+    .sidebar { 
+      left: 50%
+      transform: translateX(16 + $xxxLarge/-2)  
+    }
+    .table-of-contents { 
+      right:50%
+      transform: translateX(16 + $xxxLarge/2)  
+    }
+  }
 }
-.decoration-right {
-  border-radius: 800px;
-  opacity: 0.1;
-  background: $successColor
-  filter: blur(252px)
-  width: 800px
-  height: 800px
-  display: block
-  position absolute
-  top:-40px
-  right: 120px
-}
-*/
 
 .decoration-left { 
   display: block
-  background:  url('{{$basePath}}/img/hero-left.webp'); 
+  background:  url('{{$basePath}}/img/hero-right.webp'); 
   background-size: 100%
-  width: 280px
-  height: 360px
-  position: fixed
-  top:0
+  width: 288px
+  height: 1080px 
+  position fixed
+  top:600px
   left:0
+  transform:rotate(90deg)
   animation: 12s linear 0s infinite alternate none running animation-left;
-  opacity 0
+  opacity .15
 }
 .decoration-right { 
   display: block
@@ -92,19 +85,19 @@ a {
 
 @keyframes animation-left {
   0% {
-    transform: scale(1.25) rotate(0deg) translateX(0.1rem) translateY(0px);
+    transform: scale(1.25) rotate(180deg) translateX(0.1rem) translateY(0px);
   }
   20% {
-      transform: scale(1.35) rotate(1deg) translateX(1.2rem) translateY(1rem);
+      transform: scale(1.35) rotate(181deg) translateX(1.2rem) translateY(1rem);
   }
   50% {
-      transform: scale(2.6) rotate(-1deg) translateX(0.5rem) translateY(1.4rem);
+      transform: scale(2.6) rotate(179deg) translateX(0.5rem) translateY(1.4rem);
   }
   75% {
-      transform: scale(1.5) rotate(1deg) translateX(2rem) translateY(2.5rem);
+      transform: scale(1.5) rotate(181deg) translateX(2rem) translateY(2.5rem);
   }
   100% {
-      transform: scale(1.35) rotate(0deg) translateX(2rem) translateY(2.75rem);
+      transform: scale(1.35) rotate(180deg) translateX(2rem) translateY(2.75rem);
   }
 }
 
@@ -125,3 +118,4 @@ a {
       transform: scale(1) rotate(0deg) translateX(0px) translateY(0px);
   }
 }
+

@@ -112,7 +112,7 @@ module.exports = {
     toc: {
       includeLevel: [2, 3],
       containerHeaderHtml:
-        '<div class="toc-container-header">In this article</div>',
+        '<div class="toc-container-header"><i class="ico i-toc"></i>On this page</div>',
     },
     anchor: {
       permalinkSymbol: '',
