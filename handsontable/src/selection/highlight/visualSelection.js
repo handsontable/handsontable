@@ -149,14 +149,33 @@ class VisualSelection extends Selection {
    * @returns {VisualSelection}
    */
   syncWith(broaderCellRange) {
-    const coordsFrom = broaderCellRange.from.clone().normalize();
+    const highlight = this.visualCellRange.highlight.clone().normalize();
     const rowDirection = broaderCellRange.getVerticalDirection() === 'N-S' ? 1 : -1;
     const columnDirection = broaderCellRange.getHorizontalDirection() === 'W-E' ? 1 : -1;
     const renderableHighlight = this.settings.visualToRenderableCoords(this.visualCellRange.highlight);
     let cellCoordsVisual = null;
 
     if (renderableHighlight === null || renderableHighlight.col === null || renderableHighlight.row === null) {
-      cellCoordsVisual = this.getNearestNotHiddenCoords(coordsFrom, rowDirection, columnDirection);
+      const topStartCorder = broaderCellRange.getTopStartCorner();
+      const bottomEndCorner = broaderCellRange.getBottomEndCorner();
+      const columnEndIndex = columnDirection === 1 ? bottomEndCorner.col : topStartCorder.col;
+      const rowEndIndex = rowDirection === 1 ? bottomEndCorner.row : topStartCorder.row;
+
+      let nextVisibleRow = this.settings.rowIndexMapper.getNearestNotHiddenIndex(highlight.row, rowDirection);
+
+      if (nextVisibleRow === null || nextVisibleRow > rowEndIndex) {
+        nextVisibleRow = this.settings.rowIndexMapper.getNearestNotHiddenIndex(highlight.row, -rowDirection);
+      }
+
+      let nextVisibleColumn = this.settings.columnIndexMapper.getNearestNotHiddenIndex(highlight.col, columnDirection);
+
+      if (nextVisibleColumn === null || nextVisibleColumn > columnEndIndex) {
+        nextVisibleColumn = this.settings.columnIndexMapper.getNearestNotHiddenIndex(highlight.col, -columnDirection);
+      }
+
+      if (nextVisibleRow !== null && nextVisibleColumn !== null) {
+        cellCoordsVisual = this.settings.createCellCoords(nextVisibleRow, nextVisibleColumn);
+      }
     }
 
     if (cellCoordsVisual !== null && broaderCellRange.overlaps(cellCoordsVisual)) {

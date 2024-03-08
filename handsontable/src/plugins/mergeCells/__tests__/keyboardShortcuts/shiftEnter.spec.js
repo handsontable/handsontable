@@ -112,5 +112,84 @@ describe('MergeCells keyboard shortcut', () => {
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 5,1 from: 1,1 to: 5,5']);
     });
+
+    it('should correctly navigate backward vertically through two adjacent vertically merged cells', () => {
+      handsontable({
+        data: createSpreadsheetData(6, 3),
+        colHeaders: true,
+        rowHeaders: true,
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 3, colspan: 3 },
+          { row: 3, col: 0, rowspan: 3, colspan: 3 },
+        ]
+      });
+
+      selectCell(5, 2, 0, 0);
+      keyDownUp(['shift', 'enter']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 5,2 to: 0,0']);
+
+      keyDownUp(['shift', 'enter']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 5,2 to: 0,0']);
+    });
+
+    it('should correctly navigate backward vertically through two adjacent horizontally merged cells', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 6),
+        colHeaders: true,
+        rowHeaders: true,
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 3, colspan: 3 },
+          { row: 0, col: 3, rowspan: 3, colspan: 3 },
+        ]
+      });
+
+      selectCell(0, 5, 2, 0);
+      keyDownUp(['shift', 'enter']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,5 to: 2,0']);
+
+      keyDownUp(['shift', 'enter']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: 0,5 to: 2,0']);
+    });
+
+    it('should correctly navigate forward vertically through the merged cells within the range (complex example)', () => {
+      handsontable({
+        data: createSpreadsheetData(12, 12),
+        colHeaders: true,
+        rowHeaders: true,
+        mergeCells: [
+          { row: 1, col: 3, rowspan: 1, colspan: 3 },
+          { row: 2, col: 1, rowspan: 2, colspan: 4 },
+          { row: 4, col: 1, rowspan: 2, colspan: 4 },
+          { row: 2, col: 5, rowspan: 4, colspan: 2 },
+          { row: 2, col: 8, rowspan: 2, colspan: 1 },
+          { row: 5, col: 8, rowspan: 1, colspan: 2 },
+          { row: 6, col: 5, rowspan: 2, colspan: 2 },
+          { row: 6, col: 7, rowspan: 2, colspan: 1 },
+          { row: 7, col: 1, rowspan: 3, colspan: 3 },
+        ]
+      });
+
+      selectCell(9, 6, 1, 1);
+
+      const focusOrder = [
+        '8,6', '1,6',
+        '9,5', '8,5', '6,5', '2,5',
+        '9,4', '8,4', '7,4', '6,4',
+        '6,3', '1,3',
+        '6,2', '1,2',
+        '7,1', '6,1', '4,1', '2,1', '1,1',
+        '9,6',
+      ];
+
+      focusOrder.forEach((focusPosition) => {
+        keyDownUp(['shift', 'enter']);
+        expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusPosition} from: 9,6 to: 1,1`]);
+      });
+      expect(focusOrder.length).toBe(20);
+    });
   });
 });

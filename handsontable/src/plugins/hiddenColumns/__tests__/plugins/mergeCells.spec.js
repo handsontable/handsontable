@@ -1527,12 +1527,12 @@ describe('HiddenColumns', () => {
       |   ║ - : - : - :   |
       |===:===:===:===:===|
       |   ║   :   :   :   |
-      | - ║ 0 : A     :   |
+      | - ║ A : 0     :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,3 from: 1,3 to: 1,0']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,3 to: 1,0']);
       expect($(dragStart).hasClass('area')).toBeTrue();
       expect($(dragStart).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(dragStart).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();

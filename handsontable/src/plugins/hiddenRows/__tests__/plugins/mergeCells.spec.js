@@ -1592,12 +1592,12 @@ describe('HiddenRows', () => {
       expect(`
       |   ║   : - :   :   :   |
       |===:===:===:===:===:===|
-      | - ║   : 0 :   :   :   |
       | - ║   : A :   :   :   |
+      | - ║   : 0 :   :   :   |
       | - ║   :   :   :   :   |
       |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,1 from: 3,1 to: 0,1']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 3,1 to: 0,1']);
       expect($(dragStart).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(dragStart).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       expect($(dragStart).hasClass('fullySelectedMergedCell-0')).toBeTrue();

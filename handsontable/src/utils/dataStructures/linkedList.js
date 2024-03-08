@@ -101,9 +101,9 @@ class LinkedList {
     let temp = this.first;
 
     while (temp) {
-      callback(temp);
+      const interrupt = callback(temp);
 
-      if (temp === this.last) {
+      if (temp === this.last || interrupt === true) {
         break;
       }
 
