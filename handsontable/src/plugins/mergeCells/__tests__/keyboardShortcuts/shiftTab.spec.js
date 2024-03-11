@@ -189,5 +189,95 @@ describe('MergeCells keyboard shortcut', () => {
       });
       expect(focusOrder.length).toBe(20);
     });
+
+    it('should navigate backward horizontally through the fully visible merged cells only (header selection)', () => {
+      handsontable({
+        data: createSpreadsheetData(11, 11),
+        colHeaders: true,
+        rowHeaders: true,
+        mergeCells: [
+          { row: 1, col: 3, rowspan: 1, colspan: 3 },
+          { row: 2, col: 1, rowspan: 2, colspan: 4 },
+          { row: 4, col: 1, rowspan: 2, colspan: 4 },
+          { row: 2, col: 5, rowspan: 4, colspan: 2 },
+          { row: 2, col: 8, rowspan: 2, colspan: 1 },
+          { row: 5, col: 8, rowspan: 1, colspan: 2 },
+          { row: 6, col: 5, rowspan: 2, colspan: 2 },
+          { row: 6, col: 7, rowspan: 2, colspan: 1 },
+          { row: 7, col: 1, rowspan: 3, colspan: 3 },
+        ]
+      });
+
+      selectColumns(2, 4);
+      listen();
+
+      const focusOrder = [
+        '10,4', '10,3', '10,2',
+        '9,4',
+        '8,4',
+        '7,4',
+        '6,4', '6,3', '6,2',
+        '1,2',
+        '0,4', '0,3', '0,2',
+        '10,4',
+      ];
+
+      focusOrder.forEach((focusPosition) => {
+        keyDownUp(['shift', 'tab']);
+        expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusPosition} from: -1,2 to: 10,4`]);
+      });
+      expect(focusOrder.length).toBe(14);
+    });
+
+    it('should navigate backward horizontally through the fully visible merged cells only (header selection, hidden indexes)', () => {
+      handsontable({
+        data: createSpreadsheetData(11, 11),
+        colHeaders: true,
+        rowHeaders: true,
+        mergeCells: [
+          { row: 1, col: 3, rowspan: 1, colspan: 3 },
+          { row: 2, col: 1, rowspan: 2, colspan: 4 },
+          { row: 4, col: 1, rowspan: 2, colspan: 4 },
+          { row: 2, col: 5, rowspan: 4, colspan: 2 },
+          { row: 2, col: 8, rowspan: 2, colspan: 1 },
+          { row: 5, col: 8, rowspan: 1, colspan: 2 },
+          { row: 6, col: 5, rowspan: 2, colspan: 2 },
+          { row: 6, col: 7, rowspan: 2, colspan: 1 },
+          { row: 7, col: 1, rowspan: 3, colspan: 3 },
+        ]
+      });
+
+      const columnHiddenMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const rowHiddenMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      columnHiddenMap.setValueAtIndex(1, true);
+      columnHiddenMap.setValueAtIndex(3, true);
+      rowHiddenMap.setValueAtIndex(3, true);
+
+      render();
+
+      selectColumns(0, 2);
+      listen();
+
+      const focusOrder = [
+        '10,2', '10,0',
+        '9,0',
+        '8,0',
+        '7,0',
+        '6,2', '6,0',
+        '5,0',
+        '4,0',
+        '2,0',
+        '1,2', '1,0',
+        '0,2', '0,0',
+        '10,2',
+      ];
+
+      focusOrder.forEach((focusPosition) => {
+        keyDownUp(['shift', 'tab']);
+        expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusPosition} from: -1,0 to: 10,2`]);
+      });
+      expect(focusOrder.length).toBe(15);
+    });
   });
 });

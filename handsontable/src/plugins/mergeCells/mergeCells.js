@@ -640,15 +640,15 @@ export class MergeCells extends BasePlugin {
     if (delta.col < 0) {
       const { rowStart, colEnd } = this.#focusOrder.getPrevHorizontalNode();
       const notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colEnd, -1);
-      const notHiddenRowStart = rowIndexMapper.getNearestNotHiddenIndex(rowStart, 1);
+      const notHiddenRowStart = rowIndexMapper.getNearestNotHiddenIndex(rowStart, -1);
 
       if (notHiddenRowStart > highlight.row) {
         delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1;
-        deltaCorrection.row = this.hot.view.countRenderableRowsInRange(highlight.row, rowStart) - 1;
+        deltaCorrection.row = this.hot.view.countRenderableRowsInRange(highlight.row, notHiddenRowStart) - 1;
 
       } else if (notHiddenRowStart < highlight.row) {
         delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1;
-        deltaCorrection.row = -(this.hot.view.countRenderableRowsInRange(rowStart, highlight.row) - 1);
+        deltaCorrection.row = -(this.hot.view.countRenderableRowsInRange(notHiddenRowStart, highlight.row) - 1);
 
       } else if (notHiddenColumnIndex === null) {
         delta.col = -this.hot.view.countRenderableColumnsInRange(0, highlight.col);
@@ -667,11 +667,11 @@ export class MergeCells extends BasePlugin {
 
       if (notHiddenRowStart > highlight.row) {
         delta.col = -(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, highlight.col) - 1);
-        deltaCorrection.row = this.hot.view.countRenderableRowsInRange(highlight.row, rowStart) - 1;
+        deltaCorrection.row = this.hot.view.countRenderableRowsInRange(highlight.row, notHiddenRowStart) - 1;
 
       } else if (notHiddenRowStart < highlight.row) {
         delta.col = -(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, highlight.col) - 1);
-        deltaCorrection.row = -(this.hot.view.countRenderableRowsInRange(rowStart, highlight.row) - 1);
+        deltaCorrection.row = -(this.hot.view.countRenderableRowsInRange(notHiddenRowStart, highlight.row) - 1);
 
       } else if (notHiddenColumnIndex === null) {
         delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, this.hot.countCols());
@@ -687,15 +687,15 @@ export class MergeCells extends BasePlugin {
     if (delta.row < 0) {
       const { colStart, rowEnd } = this.#focusOrder.getPrevVerticalNode();
       const notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowEnd, -1);
-      const notHiddenColumnStart = columnIndexMapper.getNearestNotHiddenIndex(colStart, 1);
+      const notHiddenColumnStart = columnIndexMapper.getNearestNotHiddenIndex(colStart, -1);
 
       if (notHiddenColumnStart > highlight.col) {
         delta.row = this.hot.view.countRenderableRowsInRange(highlight.row, notHiddenRowIndex) - 1;
-        deltaCorrection.col = this.hot.view.countRenderableColumnsInRange(highlight.col, colStart) - 1;
+        deltaCorrection.col = this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnStart) - 1;
 
       } else if (notHiddenColumnStart < highlight.col) {
         delta.row = this.hot.view.countRenderableRowsInRange(highlight.row, notHiddenRowIndex) - 1;
-        deltaCorrection.col = -(this.hot.view.countRenderableColumnsInRange(colStart, highlight.col) - 1);
+        deltaCorrection.col = -(this.hot.view.countRenderableColumnsInRange(notHiddenColumnStart, highlight.col) - 1);
 
       } else if (notHiddenRowIndex === null) {
         delta.row = -this.hot.view.countRenderableRowsInRange(0, highlight.row);
@@ -714,11 +714,11 @@ export class MergeCells extends BasePlugin {
 
       if (notHiddenColumnStart > highlight.col) {
         delta.row = -(this.hot.view.countRenderableRowsInRange(notHiddenRowIndex, highlight.row) - 1);
-        deltaCorrection.col = this.hot.view.countRenderableColumnsInRange(highlight.col, colStart) - 1;
+        deltaCorrection.col = this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnStart) - 1;
 
       } else if (notHiddenColumnStart < highlight.col) {
         delta.row = -(this.hot.view.countRenderableRowsInRange(notHiddenRowIndex, highlight.row) - 1);
-        deltaCorrection.col = -(this.hot.view.countRenderableColumnsInRange(colStart, highlight.col) - 1);
+        deltaCorrection.col = -(this.hot.view.countRenderableColumnsInRange(notHiddenColumnStart, highlight.col) - 1);
 
       } else if (notHiddenRowIndex === null) {
         delta.row = this.hot.view.countRenderableRowsInRange(highlight.row, this.hot.countRows());

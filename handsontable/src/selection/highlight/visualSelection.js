@@ -158,18 +158,23 @@ class VisualSelection extends Selection {
     if (renderableHighlight === null || renderableHighlight.col === null || renderableHighlight.row === null) {
       const topStartCorder = broaderCellRange.getTopStartCorner();
       const bottomEndCorner = broaderCellRange.getBottomEndCorner();
-      const columnEndIndex = columnDirection === 1 ? bottomEndCorner.col : topStartCorder.col;
-      const rowEndIndex = rowDirection === 1 ? bottomEndCorner.row : topStartCorder.row;
-
       let nextVisibleRow = this.settings.rowIndexMapper.getNearestNotHiddenIndex(highlight.row, rowDirection);
 
-      if (nextVisibleRow === null || nextVisibleRow > rowEndIndex) {
+      if (
+        nextVisibleRow === null ||
+        rowDirection === 1 && nextVisibleRow > bottomEndCorner.row ||
+        rowDirection === -1 && nextVisibleRow < topStartCorder.row
+      ) {
         nextVisibleRow = this.settings.rowIndexMapper.getNearestNotHiddenIndex(highlight.row, -rowDirection);
       }
 
       let nextVisibleColumn = this.settings.columnIndexMapper.getNearestNotHiddenIndex(highlight.col, columnDirection);
 
-      if (nextVisibleColumn === null || nextVisibleColumn > columnEndIndex) {
+      if (
+        nextVisibleColumn === null ||
+        columnDirection === 1 && nextVisibleColumn > bottomEndCorner.col ||
+        columnDirection === -1 && nextVisibleColumn < topStartCorder.col
+      ) {
         nextVisibleColumn = this.settings.columnIndexMapper.getNearestNotHiddenIndex(highlight.col, -columnDirection);
       }
 

@@ -119,6 +119,10 @@ export class FocusOrder {
 
         if (mergeParent) {
           c += mergeParent.colspan - 1;
+
+          if (mergeParent.col < topStart.col) {
+            c += mergeParent.col - topStart.col;
+          }
         }
       }
     }
@@ -142,6 +146,10 @@ export class FocusOrder {
 
         if (mergeParent) {
           r += mergeParent.rowspan - 1;
+
+          if (mergeParent.row < topStart.row) {
+            r += mergeParent.row - topStart.row;
+          }
         }
       }
     }
