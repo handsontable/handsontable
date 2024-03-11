@@ -46,10 +46,8 @@ export const ExampleComponent = () => {
         rowHeaders={true}
         licenseKey={"non-commercial-and-evaluation"}
       >
-        <HotColumn>
-          {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
-          <CustomRenderer hot-renderer />
-        </HotColumn>
+        {/* add the `renderer` prop to set the component as a Handsontable renderer */}
+        <HotColumn renderer={CustomRenderer} />
       </HotTable>
     </HighlightContext.Provider>
   );
