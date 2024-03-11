@@ -183,9 +183,9 @@ ReactDOM.render(
 
 ## Advanced example
 
-This example shows:
-- A [custom editor](@/guides/cell-functions/cell-editor.md#component-based-editors) component (built with an external dependency, `HexColorPicker`). This component acts both as an editor and as a renderer.
-- A [custom renderer](@/guides/cell-functions/cell-renderer.md#declare-a-custom-renderer-as-a-component) component, built with an external dependency (`StarRatingComponent`).
+This example shows two Redux-connected components:
+- A [custom editor](@/guides/cell-functions/cell-editor.md#component-based-editors) component (built with an external dependency, `HexColorPicker`).
+- A [custom renderer](@/guides/cell-functions/cell-renderer.md#declare-a-custom-renderer-as-a-component) component for stars, built with an external dependency (`StarRatingComponent`).
 
 The editor component changes the behavior of the renderer component, by passing information through Redux (and the `connect()` method of `react-redux`).
 
@@ -237,67 +237,51 @@ const UnconnectedColorPickerEditor = (props) => {
     border: '1px solid #cecece'
   };
 
-  const valueRef = React.useRef('');
-
   const stopMousedownPropagation = React.useCallback((e) => {
     e.stopPropagation();
   }, []);
 
-  const hotCustomEditorInstanceRef = useHotEditor((runSuper) => ({
-    setValue(value) {
-      valueRef.current = value;
-    },
-
-    getValue() {
-      return valueRef.current;
-    },
-
-    open() {
+  const { value, setValue, row, col, finishEditing } = useHotEditor({
+    onOpen() {
       editorRef.current.style.display = 'block';
     },
 
-    close() {
+    onClose() {
       editorRef.current.style.display = 'none';
     },
 
-    prepare(row, col, prop, td, originalValue, cellProperties) {
-      runSuper().prepare(row, col, prop, td, originalValue, cellProperties);
-
+    onPrepare(row, col, prop, td, originalValue, cellProperties) {
       const tdPosition = td.getBoundingClientRect();
 
       editorRef.current.style.left = tdPosition.left + window.pageXOffset + 'px';
       editorRef.current.style.top = tdPosition.top + window.pageYOffset + 'px';
     }
-  }), [valueRef]);
-
-  const onPickedColor = React.useCallback((color) => {
-    valueRef.current = color;
-  }, [valueRef]);
-
+  });
+  
   const applyColor = React.useCallback(() => {
     const dispatch = props.dispatch;
 
-    if (hotCustomEditorInstanceRef.current.col === 1) {
+    if (col === 1) {
       dispatch({
         type: 'updateActiveStarColor',
-        row: hotCustomEditorInstanceRef.current.row,
-        hexColor: hotCustomEditorInstanceRef.current.getValue()
+        row: row,
+        hexColor: value
       });
-    } else if (hotCustomEditorInstanceRef.current.col === 2) {
+    } else if (col === 2) {
       dispatch({
         type: 'updateInactiveStarColor',
-        row: hotCustomEditorInstanceRef.current.row,
-        hexColor: hotCustomEditorInstanceRef.current.getValue()
+        row: row,
+        hexColor: value
       });
     }
-    hotCustomEditorInstanceRef.current.finishEditing();
-  }, [props.dispatch, hotCustomEditorInstanceRef]);
+    finishEditing();
+  }, [props.dispatch, value, row, col, finishEditing]);
   
   return (
     <div style={editorContainerStyle} ref={editorRef} onMouseDown={stopMousedownPropagation}>
       <HexColorPicker
-        color={valueRef.current}
-        onChange={onPickedColor}
+        color={value}
+        onChange={setValue}
       />
       <button
         style={{ width: '100%', height: '33px', marginTop: '10px' }}
@@ -434,7 +418,7 @@ export const ExampleComponent = () => {
                    editor={ColorPickerEditor} />
         <HotColumn width={150} 
                    renderer={ColorPickerRenderer} 
-                   edidtor={ColorPickerEditor} />
+                   editor={ColorPickerEditor} />
       </HotTable>
     </Provider>
   );

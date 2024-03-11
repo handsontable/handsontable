@@ -205,27 +205,6 @@ export function isCSR(): boolean {
 }
 
 /**
- * Creates a copy of the class instance that is still bound to this but allows calling its super (prototype) methods.
- *
- * @param {T} that An instance to look for prototype methods.
- * @returns {T} Copy of the instance with super methods access.
- */
-export function superBound<T>(that: T): T {
-  const proto = Object.getPrototypeOf(Object.getPrototypeOf(that));
-  const superBoundObj = {} as T;
-
-  (Object.getOwnPropertyNames(proto) as (keyof T)[]).forEach((key: keyof T) => {
-    if (typeof proto[key] === 'function') {
-      superBoundObj[key] = proto[key].bind(that);
-    } else {
-      superBoundObj[key] = proto[key];
-    }
-  })
-
-  return superBoundObj;
-}
-
-/**
  * A variant of React.useEffect hook that does not trigger on initial mount, only updates
  *
  * @param effect Effect function
