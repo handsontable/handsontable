@@ -97,14 +97,24 @@ export class MergeCells extends BasePlugin {
    *
    * @type {CellCoords}
    */
-  #lastSelectedCoords = null;
+  #lastSelectedFocus = null;
+  /**
+   * The last used transformation delta.
+   *
+   * @type {{ row: number, col: number }}
+   */
+  #lastDelta = { row: 0, col: 0 };
   /**
    * The module responsible for providing the correct focus order (vertical and horizontal) within a selection that
    * contains merged cells.
    *
    * @type {FocusOrder}
    */
-  #focusOrder = new FocusOrder((row, column) => this.mergedCellsCollection.get(row, column));
+  #focusOrder = new FocusOrder({
+    mergedCellsGetter: (row, column) => this.mergedCellsCollection.get(row, column),
+    rowIndexMapper: this.hot.rowIndexMapper,
+    columnIndexMapper: this.hot.columnIndexMapper,
+  });
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -136,6 +146,7 @@ export class MergeCells extends BasePlugin {
     this.addHook('beforeSelectionHighlightSet', (...args) => this.#onBeforeSelectionHighlightSet(...args));
     this.addHook('beforeSetRangeStart', (...args) => this.#onBeforeSetRangeStart(...args));
     this.addHook('beforeSetRangeStartOnly', (...args) => this.#onBeforeSetRangeStart(...args));
+    this.addHook('beforeSelectionFocusSet', (...args) => this.#onBeforeSelectionFocusSet(...args));
     this.addHook('afterSelectionFocusSet', (...args) => this.#onAfterSelectionFocusSet(...args));
     this.addHook('afterSelectionEnd', (...args) => this.#onAfterSelectionEnd(...args));
     this.addHook('modifyGetCellCoords', (...args) => this.#onModifyGetCellCoords(...args));
@@ -626,118 +637,13 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * The hook controls the position of the focus position. For merge cells there is need to shift the focus to the
-   * next merged cell not to the next hidden cell (overlapped by merged cell).
+   * `modifyTransformFocus` hook callback.
    *
    * @param {object} delta The transformation delta.
    */
   #onModifyTransformFocus(delta) {
-    const selectedRange = this.hot.getSelectedRangeLast();
-    const { highlight } = selectedRange;
-    const { columnIndexMapper, rowIndexMapper } = this.hot;
-    const deltaCorrection = { row: 0, col: 0 };
-
-    if (delta.col < 0) {
-      const { rowStart, colEnd } = this.#focusOrder.getPrevHorizontalNode();
-      const notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colEnd, -1);
-      const notHiddenRowStart = rowIndexMapper.getNearestNotHiddenIndex(rowStart, -1);
-
-      if (notHiddenRowStart > highlight.row) {
-        delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1;
-        deltaCorrection.row = this.hot.view.countRenderableRowsInRange(highlight.row, notHiddenRowStart) - 1;
-
-      } else if (notHiddenRowStart < highlight.row) {
-        delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1;
-        deltaCorrection.row = -(this.hot.view.countRenderableRowsInRange(notHiddenRowStart, highlight.row) - 1);
-
-      } else if (notHiddenColumnIndex === null) {
-        delta.col = -this.hot.view.countRenderableColumnsInRange(0, highlight.col);
-
-      } else if (notHiddenColumnIndex <= highlight.col) {
-        delta.col = -Math.max(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, highlight.col) - 1, 1);
-
-      } else {
-        delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1;
-      }
-
-    } else if (delta.col > 0) {
-      const { rowStart, colStart } = this.#focusOrder.getNextHorizontalNode();
-      const notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colStart, 1);
-      const notHiddenRowStart = rowIndexMapper.getNearestNotHiddenIndex(rowStart, 1);
-
-      if (notHiddenRowStart > highlight.row) {
-        delta.col = -(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, highlight.col) - 1);
-        deltaCorrection.row = this.hot.view.countRenderableRowsInRange(highlight.row, notHiddenRowStart) - 1;
-
-      } else if (notHiddenRowStart < highlight.row) {
-        delta.col = -(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, highlight.col) - 1);
-        deltaCorrection.row = -(this.hot.view.countRenderableRowsInRange(notHiddenRowStart, highlight.row) - 1);
-
-      } else if (notHiddenColumnIndex === null) {
-        delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, this.hot.countCols());
-
-      } else if (highlight.col <= notHiddenColumnIndex) {
-        delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1, 1);
-
-      } else {
-        delta.col = -(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, highlight.col) - 1);
-      }
-    }
-
-    if (delta.row < 0) {
-      const { colStart, rowEnd } = this.#focusOrder.getPrevVerticalNode();
-      const notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowEnd, -1);
-      const notHiddenColumnStart = columnIndexMapper.getNearestNotHiddenIndex(colStart, -1);
-
-      if (notHiddenColumnStart > highlight.col) {
-        delta.row = this.hot.view.countRenderableRowsInRange(highlight.row, notHiddenRowIndex) - 1;
-        deltaCorrection.col = this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnStart) - 1;
-
-      } else if (notHiddenColumnStart < highlight.col) {
-        delta.row = this.hot.view.countRenderableRowsInRange(highlight.row, notHiddenRowIndex) - 1;
-        deltaCorrection.col = -(this.hot.view.countRenderableColumnsInRange(notHiddenColumnStart, highlight.col) - 1);
-
-      } else if (notHiddenRowIndex === null) {
-        delta.row = -this.hot.view.countRenderableRowsInRange(0, highlight.row);
-
-      } else if (notHiddenRowIndex <= highlight.row) {
-        delta.row = -Math.max(this.hot.view.countRenderableRowsInRange(notHiddenRowIndex, highlight.row) - 1, 1);
-
-      } else {
-        delta.row = this.hot.view.countRenderableRowsInRange(highlight.row, notHiddenRowIndex) - 1;
-      }
-
-    } else if (delta.row > 0) {
-      const { colStart, rowStart } = this.#focusOrder.getNextVerticalNode();
-      const notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowStart, 1);
-      const notHiddenColumnStart = columnIndexMapper.getNearestNotHiddenIndex(colStart, 1);
-
-      if (notHiddenColumnStart > highlight.col) {
-        delta.row = -(this.hot.view.countRenderableRowsInRange(notHiddenRowIndex, highlight.row) - 1);
-        deltaCorrection.col = this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnStart) - 1;
-
-      } else if (notHiddenColumnStart < highlight.col) {
-        delta.row = -(this.hot.view.countRenderableRowsInRange(notHiddenRowIndex, highlight.row) - 1);
-        deltaCorrection.col = -(this.hot.view.countRenderableColumnsInRange(notHiddenColumnStart, highlight.col) - 1);
-
-      } else if (notHiddenRowIndex === null) {
-        delta.row = this.hot.view.countRenderableRowsInRange(highlight.row, this.hot.countRows());
-
-      } else if (highlight.row <= notHiddenRowIndex) {
-        delta.row = Math.max(this.hot.view.countRenderableRowsInRange(highlight.row, notHiddenRowIndex) - 1, 1);
-
-      } else {
-        delta.row = -(this.hot.view.countRenderableRowsInRange(notHiddenRowIndex, highlight.row) - 1);
-      }
-    }
-
-    if (deltaCorrection.row !== 0) {
-      delta.row = deltaCorrection.row;
-    }
-
-    if (deltaCorrection.col !== 0) {
-      delta.col = deltaCorrection.col;
-    }
+    this.#lastDelta.row = delta.row;
+    this.#lastDelta.col = delta.col;
   }
 
   /**
@@ -750,16 +656,16 @@ export class MergeCells extends BasePlugin {
     const { highlight } = selectedRange;
     const { columnIndexMapper, rowIndexMapper } = this.hot;
 
-    if (this.#lastSelectedCoords) {
-      if (rowIndexMapper.getRenderableFromVisualIndex(this.#lastSelectedCoords.row) !== null) {
-        highlight.row = this.#lastSelectedCoords.row;
+    if (this.#lastSelectedFocus) {
+      if (rowIndexMapper.getRenderableFromVisualIndex(this.#lastSelectedFocus.row) !== null) {
+        highlight.row = this.#lastSelectedFocus.row;
       }
 
-      if (columnIndexMapper.getRenderableFromVisualIndex(this.#lastSelectedCoords.col) !== null) {
-        highlight.col = this.#lastSelectedCoords.col;
+      if (columnIndexMapper.getRenderableFromVisualIndex(this.#lastSelectedFocus.col) !== null) {
+        highlight.col = this.#lastSelectedFocus.col;
       }
 
-      this.#lastSelectedCoords = null;
+      this.#lastSelectedFocus = null;
     }
 
     const mergedParent = this.mergedCellsCollection.get(highlight.row, highlight.col);
@@ -960,12 +866,14 @@ export class MergeCells extends BasePlugin {
    * It expands the range to cover the entire area of the selected merged cells.
    */
   #onBeforeSelectionHighlightSet() {
-    if (this.hot.selection.isSelectedByColumnHeader() || this.hot.selection.isSelectedByRowHeader()) {
-      return;
-    }
-
     const selectedRange = this.hot.getSelectedRangeLast();
     const { highlight } = selectedRange;
+
+    if (this.hot.selection.isSelectedByColumnHeader() || this.hot.selection.isSelectedByRowHeader()) {
+      this.#lastSelectedFocus = highlight.clone();
+
+      return;
+    }
 
     for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
       selectedRange.expandByRange(this.mergedCellsCollection.mergedCells[i].getRange(), false);
@@ -979,7 +887,7 @@ export class MergeCells extends BasePlugin {
 
     const mergedParent = this.mergedCellsCollection.get(highlight.row, highlight.col);
 
-    this.#lastSelectedCoords = highlight.clone();
+    this.#lastSelectedFocus = highlight.clone();
 
     if (mergedParent) {
       highlight.assign(mergedParent);
@@ -1070,17 +978,95 @@ export class MergeCells extends BasePlugin {
    * Clears the last selected coordinates before setting a new selection range.
    */
   #onBeforeSetRangeStart() {
-    this.#lastSelectedCoords = null;
+    this.#lastSelectedFocus = null;
   }
 
   /**
-   * Searches for the node that is currently focused within the vertical and horizontal linked lists.
+   * Detects if the last selected cell was a header cell if so update the order list active node for further
+   * computations.
+   */
+  #onBeforeSelectionFocusSet() {
+    if (this.#lastSelectedFocus.isCell()) {
+      return;
+    }
+
+    const selectedRange = this.hot.getSelectedRangeLast();
+    const verticalDir = selectedRange.getVerticalDirection();
+    const horizontalDir = selectedRange.getHorizontalDirection();
+    const focusCoords = this.#lastSelectedFocus.clone().normalize();
+
+    this.#focusOrder.setActiveNode(focusCoords.row, focusCoords.col);
+
+    if (this.#lastDelta.row > 0 || this.#lastDelta.col > 0) {
+      this.#focusOrder.setPrevNodeAsActive();
+
+    } else if (
+      horizontalDir === 'E-W' && this.#lastDelta.col < 0 ||
+      verticalDir === 'S-N' && this.#lastDelta.row < 0
+    ) {
+      this.#focusOrder.setNextNodeAsActive();
+    }
+  }
+
+  /**
+   * Changes the focus selection to the next or previous cell or merged cell position.
    *
-   * @param {number} row Visual row index.
-   * @param {number} column Visual column index.
+   * @param {number} row The visual row index.
+   * @param {number} column The visual column index.
    */
   #onAfterSelectionFocusSet(row, column) {
+    const selectedRange = this.hot.getSelectedRangeLast();
+    const { columnIndexMapper, rowIndexMapper } = this.hot;
+    let notHiddenRowIndex = null;
+    let notHiddenColumnIndex = null;
+
+    if (this.#lastDelta.col < 0) {
+      const { rowEnd, colEnd } = this.#focusOrder.getPrevHorizontalNode();
+
+      notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colEnd, -1);
+      notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowEnd, -1);
+
+    } else if (this.#lastDelta.col > 0) {
+      const { rowStart, colStart } = this.#focusOrder.getNextHorizontalNode();
+
+      notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colStart, 1);
+      notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowStart, 1);
+
+    } else if (this.#lastDelta.row < 0) {
+      const { rowEnd, colEnd } = this.#focusOrder.getPrevVerticalNode();
+
+      notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colEnd, -1);
+      notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowEnd, -1);
+
+    } else if (this.#lastDelta.row > 0) {
+      const { rowStart, colStart } = this.#focusOrder.getNextVerticalNode();
+
+      notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colStart, 1);
+      notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowStart, 1);
+    }
+
+    if (notHiddenRowIndex !== null || notHiddenColumnIndex !== null) {
+      const coords = this.hot._createCellCoords(notHiddenRowIndex, notHiddenColumnIndex);
+      const mergeParent = this.mergedCellsCollection.get(coords.row, coords.col);
+      const focusHighlight = this.hot.selection.highlight.getFocus();
+
+      row = coords.row;
+      column = coords.col;
+
+      if (mergeParent) {
+        selectedRange.highlight.assign(mergeParent);
+      } else {
+        selectedRange.highlight.assign(coords);
+      }
+
+      focusHighlight.clear();
+      focusHighlight
+        .add(coords)
+        .commit();
+    }
+
     this.#focusOrder.setActiveNode(row, column);
+    this.#lastDelta = { row: 0, col: 0 };
   }
 
   /**

@@ -415,6 +415,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this._refreshBorders(null);
   });
 
+  this.selection.addLocalHook('beforeSetFocus', (cellCoords) => {
+    this.runHooks('beforeSelectionFocusSet', cellCoords.row, cellCoords.col);
+  });
+
   this.selection.addLocalHook('afterSetFocus', (cellCoords) => {
     const preventScrolling = createObjectPropListener(false);
 

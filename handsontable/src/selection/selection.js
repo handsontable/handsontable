@@ -537,6 +537,11 @@ class Selection {
     }
 
     const cellRange = this.selectedRange.current();
+
+    if (!this.inProgress) {
+      this.runLocalHooks('beforeSetFocus', coords);
+    }
+
     const focusHighlight = this.highlight.getFocus();
 
     focusHighlight.clear();

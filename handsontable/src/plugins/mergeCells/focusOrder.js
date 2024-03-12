@@ -37,9 +37,23 @@ export class FocusOrder {
    * @type {function(): {row: number, col: number, rowspan: number, colspan: number} | null}}
    */
   #mergedCellsGetter = null;
+  /**
+   * The row index mapper.
+   *
+   * @type {IndexMapper}
+   */
+  #rowIndexMapper = null;
+  /**
+   * The column index mapper.
+   *
+   * @type {IndexMapper}
+   */
+  #columnIndexMapper = null;
 
-  constructor(mergedCellsGetter) {
+  constructor({ mergedCellsGetter, rowIndexMapper, columnIndexMapper }) {
     this.#mergedCellsGetter = mergedCellsGetter;
+    this.#rowIndexMapper = rowIndexMapper;
+    this.#columnIndexMapper = columnIndexMapper;
   }
 
   /**
@@ -49,6 +63,15 @@ export class FocusOrder {
    */
   getCurrentVerticalNode() {
     return this.#currentVerticalLinkedNode.data;
+  }
+
+  /**
+   * Gets the first node data from the vertical focus order list.
+   *
+   * @returns {NodeStructure}
+   */
+  getFirstVerticalNode() {
+    return this.#cellsVerticalOrder.first.data;
   }
 
   /**
@@ -79,6 +102,15 @@ export class FocusOrder {
   }
 
   /**
+   * Gets the first node data from the horizontal focus order list.
+   *
+   * @returns {NodeStructure}
+   */
+  getFirstHorizontalNode() {
+    return this.#cellsHorizontalOrder.first.data;
+  }
+
+  /**
    * Gets the next selected node data from the horizontal focus order list.
    *
    * @returns {NodeStructure}
@@ -97,6 +129,22 @@ export class FocusOrder {
   }
 
   /**
+   * Sets the previous node from the vertical focus order list as active.
+   */
+  setPrevNodeAsActive() {
+    this.#currentVerticalLinkedNode = this.#currentVerticalLinkedNode.prev;
+    this.#currentHorizontalLinkedNode = this.#currentHorizontalLinkedNode.prev;
+  }
+
+  /**
+   * Sets the previous node from the horizontal focus order list as active.
+   */
+  setNextNodeAsActive() {
+    this.#currentVerticalLinkedNode = this.#currentVerticalLinkedNode.next;
+    this.#currentHorizontalLinkedNode = this.#currentHorizontalLinkedNode.next;
+  }
+
+  /**
    * Rebuilds the focus order list based on the provided selection.
    *
    * @param {CellRange} selectedRange The selected range to build the focus order for.
@@ -109,54 +157,60 @@ export class FocusOrder {
     this.#cellsHorizontalOrder = new LinkedList();
 
     for (let r = topStart.row; r <= bottomEnd.row; r++) {
+      if (this.#rowIndexMapper.isHidden(r)) {
+        // eslint-disable-next-line no-continue
+        continue;
+      }
+
       for (let c = topStart.col; c <= bottomEnd.col; c++) {
-        const mergeParent = this.#mergedCellsGetter(r, c);
+        if (this.#columnIndexMapper.isHidden(c)) {
+          // eslint-disable-next-line no-continue
+          continue;
+        }
+
         const node = this.#pushOrderNode(selectedRange, this.#cellsHorizontalOrder, visitedHorizontalCells, r, c);
 
         if (node) {
           this.#currentHorizontalLinkedNode = node;
         }
-
-        if (mergeParent) {
-          c += mergeParent.colspan - 1;
-
-          if (mergeParent.col < topStart.col) {
-            c += mergeParent.col - topStart.col;
-          }
-        }
       }
     }
 
     // create circular linked list
-    this.#cellsHorizontalOrder.first.prev = this.#cellsHorizontalOrder.last;
-    this.#cellsHorizontalOrder.last.next = this.#cellsHorizontalOrder.first;
+    if (this.#cellsHorizontalOrder.first) {
+      this.#cellsHorizontalOrder.first.prev = this.#cellsHorizontalOrder.last;
+      this.#cellsHorizontalOrder.last.next = this.#cellsHorizontalOrder.first;
+    }
 
     const visitedVerticalCells = new WeakSet();
 
     this.#cellsVerticalOrder = new LinkedList();
 
     for (let c = topStart.col; c <= bottomEnd.col; c++) {
+      if (this.#columnIndexMapper.isHidden(c)) {
+        // eslint-disable-next-line no-continue
+        continue;
+      }
+
       for (let r = topStart.row; r <= bottomEnd.row; r++) {
-        const mergeParent = this.#mergedCellsGetter(r, c);
+        if (this.#rowIndexMapper.isHidden(r)) {
+          // eslint-disable-next-line no-continue
+          continue;
+        }
+
         const node = this.#pushOrderNode(selectedRange, this.#cellsVerticalOrder, visitedVerticalCells, r, c);
 
         if (node) {
           this.#currentVerticalLinkedNode = node;
         }
-
-        if (mergeParent) {
-          r += mergeParent.rowspan - 1;
-
-          if (mergeParent.row < topStart.row) {
-            r += mergeParent.row - topStart.row;
-          }
-        }
       }
     }
 
     // create circular linked list
-    this.#cellsVerticalOrder.first.prev = this.#cellsVerticalOrder.last;
-    this.#cellsVerticalOrder.last.next = this.#cellsVerticalOrder.first;
+    if (this.#cellsVerticalOrder.first) {
+      this.#cellsVerticalOrder.first.prev = this.#cellsVerticalOrder.last;
+      this.#cellsVerticalOrder.last.next = this.#cellsVerticalOrder.first;
+    }
   }
 
   /**
@@ -223,6 +277,7 @@ export class FocusOrder {
    *
    * @param {number} row The visual row index.
    * @param {number} column The visual column index.
+   * @returns {FocusOrder}
    */
   setActiveNode(row, column) {
     this.#cellsHorizontalOrder.inorder((node) => {
@@ -244,5 +299,7 @@ export class FocusOrder {
         return false;
       }
     });
+
+    return this;
   }
 }
