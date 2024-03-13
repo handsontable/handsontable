@@ -92,7 +92,7 @@ export class MergeCells extends BasePlugin {
    */
   selectionCalculations = null;
   /**
-   * The holder for the last selected coordinates. This allows keeping the correct coordinates in cases after the
+   * The holder for the last selected focus coordinates. This allows keeping the correct coordinates in cases after the
    * focus is moved out of the merged cell.
    *
    * @type {CellCoords}
