@@ -41,7 +41,7 @@ html.theme-dark {
     }
 
     a { 
-        color: $accentColor 
+        color: $linkColor 
     }
 
     #nprogress .bar { 
@@ -216,7 +216,8 @@ html.theme-dark {
                 .suggestions { 
                     background: $sideColor
 
-                    li { color: $text2Color
+                    li { 
+                        color: $textColor
                         
                         &:not(.suggestion) {
                             border-bottom: 1px solid $borderColor
@@ -333,7 +334,9 @@ html.theme-dark {
             .suggestions {
                 background: $sideColor
 
-                li { color: $text2Color
+                li {
+                    color: $textColor
+
                     &:not(.suggestion) {
                         border-bottom: 1px solid $borderColor
                     }
@@ -343,6 +346,7 @@ html.theme-dark {
                         @media (hover: hover) {
                             &:hover { 
                                 background: $borderColor
+                                color: $textColor
                             }
                         }
 
@@ -452,6 +456,19 @@ html.theme-dark {
                 }
             }
             
+            .theme-code-group__nav { 
+                background: $editorHeadColor
+
+                button {
+                    color: $text2Color
+
+                    &.theme-code-group__nav-tab-active {
+                        color: $textColor
+                        border-color: $accentColor
+                    }
+                }
+            }
+            
             .custom-block {
                 background: $sideColor
                 //border: 1px solid $borderColor
@@ -472,7 +489,7 @@ html.theme-dark {
             .inner { 
                 > span { 
                     border: 1px solid $borderColor
-                    color: $accentColor
+                    color: $linkColor
 
                     &:before {
                         color: $text2Color
@@ -526,23 +543,56 @@ html.theme-dark {
         }
         
         .footer {
+            background: $sideColor
+
             .footer-links { 
-                border-top: 1px solid $borderColor
                 color: $text2Color
 
                 div { 
                     a { 
                         color: $text2Color
+
+                        @media (hover: hover) {
+                            &:hover {  
+                                color: $textColor
+                            }
+                        }
+                    }
+                }
+
+                .socail-links {                    
+                    a {
+                        @media (hover: hover) {
+                            &:hover {  
+                                background: $bgColor
+                            }
+                        }
                     }
                 }
             }
 
             .footer-support { 
-                border-top: 1px solid $borderColor
                 color: $text2Color
 
                 .edit-link a { 
                     i { filter: hue-rotate(190deg) invert(1) }
+
+                    @media (hover: hover) {
+                        &:hover {  
+                            color: $textColor
+                        }
+                    }
+                }
+            }
+
+            .rate-post { 
+                button { 
+                    background: $borderColor !important
+                    @media (hover: hover) {
+                        &:hover {  
+                            background: $bgColor !important
+                        }
+                    }
                 }
             }
         }
@@ -631,7 +681,7 @@ html.theme-dark {
                 }
 
                 &.is-active { 
-                    border-bottom: 1px solid $accentColor
+                    border-bottom: 1px solid $linkColor
                     a {
                         color: $textColor
                     }
@@ -656,5 +706,6 @@ html.theme-dark {
 
     div[class*="language-"]::before { 
         color: $text2Color
+        background: $bgColor 
     }
 }

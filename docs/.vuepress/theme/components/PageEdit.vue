@@ -20,16 +20,24 @@
         >{{ editLinkText }} <i class="ico i-github"></i></a>
       </div>
     </div>
-    
+
+    <div class="rate-post">
+      <p>Was this page helpful?</p>
+      <div class="btn-group">
+        <button>Yes</button>
+        <button>No</button>
+      </div>
+    </div>
+
     <div class="footer-links">
-      <p>2012 - 2023 © Handsoncode </p>
+      <div class="socail-links">
+        <a href="https://github.com/handsontable/handsontable" target="_blank"><i class="ico i-github"></i></a>
+        <a href="https://www.linkedin.com/company/handsontable/" target="_blank"><i class="ico i-linkedin"></i></a>
+      </div>
       <div>
-        <a href="#">About us</a>
-        <a href="#">Our customers</a>
-        <a href="#">Privacy policy </a>
-        <a href="#">Terms</a>
-        <a href="#">Blog</a>
-        <a href="#">Contact us</a>
+        <p>2012 - 2024 © Handsoncode </p>
+        <a href="https://handsontable.com/pricing" target="_blank">Pricing</a>
+        <a href="https://handsontable.com/contact?category=technical_support" target="_blank">Contact support</a>
       </div>
     </div>
   </footer>

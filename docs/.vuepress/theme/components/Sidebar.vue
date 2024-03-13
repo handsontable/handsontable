@@ -69,22 +69,19 @@ export default {
       const infobox = document.querySelector('.sidebar .info-box');
         infobox.style.display = 'none'; // Hide the info-box
     }
+
+    
   },
 
   mounted() {
     // TEMP Tags 
-    //const selector1 = document.querySelector('.sidebar > ul > li:first-child li:first-child a');
-    const selector2 = document.querySelector('.sidebar > ul > li:first-child li:nth-child(2) a ');
-    //const chips1 = document.createElement('span');
-    const chips2 = document.createElement('span');
+    const selector1 = document.querySelector('.sidebar > ul > li:first-child li:nth-child(2) a ');
+    const chips1 = document.createElement('span');
     
-    //selector1.appendChild(chips1);
-    selector2.appendChild(chips2);
+    selector1.appendChild(chips1);
 
-    //chips1.classList.add('tag-update');
-    chips2.classList.add('tag-new');
-    //chips1.textContent = 'Updated';
-    chips2.textContent = 'New';
+    chips1.classList.add('tag-new');
+    chips1.textContent = 'New';
 
     const osInstance = OverlayScrollbars(document.querySelector('.sidebar'), {
       overflow: {
@@ -93,7 +90,7 @@ export default {
       scrollbars: {
         autoHide: 'leave'
       }
-    });
+    })
   },
 
   props: ['items']

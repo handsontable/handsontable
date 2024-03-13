@@ -377,31 +377,45 @@
             }
 
             .suggestions { 
+                &:before {
+                    content: ''
+                    display: block
+                    inset:  -2000px
+                    position fixed
+                    background: rgba(0,0,0,.6)
+                    z-index -1
+                    backdrop-filter: blur(14)
+                    transition: all .2s ease-in-out
+                }
+
                 position absolute
-                top 52px
-                right:12px;
+                top 64px
+                right:-160px;
+                left: -160px
                 min-width:320px
                 background: $sideColor
-                padding: 8px 8px
-                border-radius: $radius
+                padding: 8px 0
+                border-radius: $radius-xxl
                 list-style: none
 
-                li { color: $text2Color
-                    font-size: $font-size-xxs
-                    line-height: $line-height-xxs
-                    padding: 2px 8px 
+                li { 
+                    color: $textColor
+                    font-size: $font-size-xs
+                    line-height: $line-height-xs
+                    padding: 4px 8px 
+                    margin:0 8px
+                    align-items: baseline
                     
-
                     &:not(.suggestion) {
-                        padding: 16px 8px 12px
+                        padding: 16px 16px 12px
                         border-bottom: 1px solid $borderColor
-                        margin-bottom: 8px
+                        margin: 8px 0
                     }
 
                     a { 
                         color: $text2Color
-                        font-size: $font-size-s
-                        line-height: $line-height-s
+                        font-size: $font-size-xs
+                        line-height: $line-height-xs
                         padding: 6px 8px 
                         margin: 0 -8px
                         border:0
@@ -418,6 +432,8 @@
                             opacity .8
                             transform:rotate(-90deg)
                             display: inline-block
+                            position: relative
+                            top: 2px
                         }
 
                         span { 
@@ -434,6 +450,7 @@
                         @media (hover: hover) {
                             &:hover { 
                                 background: $borderColor
+                                color: $textColor
                             }
                         }
 

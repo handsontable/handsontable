@@ -8,19 +8,14 @@
     margin: 0;
 }
 
-.page {
-    .footer,
-    .theme-code-group,
-    .page-nav { opacity: .1 } 
-}
-
 .header-framework {display: none !important}
 .page { 
     opacity 1
-    margin: 128px 360px
+    margin: 128px 360px 24px
     padding: 0 0 0 0
 
     .breadcrumbs {
+        max-width: 720px
         display: flex
         margin:0 auto
         padding: 16px 0 0 !important
@@ -124,6 +119,10 @@
             position: relative
         }
 
+        a.header-anchor {
+            margin-left: -40px
+        }
+
         p { 
             font-size: $font-size-s
             line-height: $line-height-s
@@ -157,7 +156,7 @@
                 list-style square inside
                 margin-left: 24px
                 color: $text2Color
-                padding-bottom: 4px
+                padding-bottom: 8px
 
                 ul, ol {
                     padding: 8px 8px 8px
@@ -188,7 +187,7 @@
             margin-top: 16px
             background: $editorColor 
             padding: 16px 24px
-            margin: 16px 0 0 0
+            margin: 16px -16px 0
             border-radius: $radius-l
             font-size: $font-size-s
             line-height: $line-height-s
@@ -200,26 +199,46 @@
             margin-bottom: 24px
         }
         
+        .theme-code-group { 
+            margin: 0 -16px 
+
+            .theme-code-block {
+                margin-top: -32px
+            }
+
+            pre { 
+                margin: 16px 0
+                border-radius: 0 0 16px 16px
+                padding-bottom: 24px
+            }
+        }
+
         .theme-code-group__nav { 
             background: $editorHeadColor 
-            margin:16px 0
-            padding: 16px
-            border-radius: $radius
+            margin: 16px 0
+            padding: 8px 16px 16px
+            border-radius: $radius-l
             margin-bottom: -16px
 
             button {
                 font-size: $font-size-s
                 line-height: $line-height-s
                 font-weight: 400
-                padding:8px 8px 16px
+                padding:8px 8px 8px
+                color: $text2Color
+
+                &.theme-code-group__nav-tab-active {
+                    color: $textColor
+                    border-color: $linkColor
+                }
             }
         }
 
         .custom-block {
             background: $sideColor
             border-radius: $radius-xl
-            margin:0
-            padding: 24px 16px 24px 32px
+            margin:0 -16px
+            padding: 24px 16px 24px 48px
             border:0
             margin-top: 16px
             position: relative
@@ -228,9 +247,9 @@
                 content: ''
                 display: block
                 position absolute
-                top: 24px
-                bottom: 24px
-                left: 16px
+                top: 28px
+                bottom: 28px
+                left: 24px
                 width: 1px
                 background: $gradient
             }
@@ -282,14 +301,15 @@
 
             > span { 
                 border: 1px solid $borderColor
-                border-radius: $radius
+                border-radius: $radius-xl
                 width: 50%
                 padding: 24px
                 position: relative
                 z-index: 1
-                color: $accentColor
-                font-size: $font-size
-                line-height: $line-height
+                color: $linkColor
+                font-size: $font-size-x
+                line-height: $line-height-x
+                font-weight: 400
 
                 &:before {
                     display: block
@@ -319,12 +339,14 @@
                 }
 
                 a { 
+                    font-weight: 300
+
                     &:after { 
                         position absolute
                         inset: 0 
                         content: ''
                         display: block
-                        border-radius: 6px
+                        border-radius: $radius-xl
                         z-index -1
                         transition all $t ease
 
@@ -361,10 +383,15 @@
         }
     }
 
-    table { 
+    table.htCore {
+        display: table
+    }
+    
+    table:not(.htCore) { 
         font-size: $font-size-s
         line-height: $line-height-s
         font-weight: 400
+
         td,th { 
             padding: 16px
         }
@@ -421,56 +448,6 @@
         padding-top: 16px 
         font-size: $font-size-s
         line-height: $line-height-s
-    }
-
-    .footer { display: none
-        max-width: 720px
-        margin: 24px auto
-
-        .footer-links { 
-            border-top: 1px solid $borderColor
-            display: flex
-            justify-content: space-between
-            font-size: $font-size-xxs
-            line-height: $line-height-xxs
-            padding-top: 16px
-            color: $text2Color
-
-            p { 
-                opacity .6
-            }
-
-            div { 
-                display: flex
-                gap:8px
-                a { 
-                    color: $text2Color
-
-                    @media (hover: hover) {
-                        &:hover {  
-                            text-decoration: underline
-                        }
-                    }
-                }
-            }
-        }
-
-        .footer-support { 
-            border-top: 1px solid $borderColor
-            display: flex
-            font-size: $font-size-xxs
-            line-height: $line-height-xxs
-            justify-content: space-between
-            padding: 16px 0
-            color: $text2Color
-
-            .edit-link a { 
-                display: flex
-                gap: 8px
-
-                i { filter:none }
-            }
-        }
     }
 
     @media (max-width: $xLarge) {
