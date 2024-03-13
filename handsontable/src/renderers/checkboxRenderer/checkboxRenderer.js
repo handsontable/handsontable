@@ -188,7 +188,7 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      runOnlyIf: () => hotInstance.getSettings().enterBeginsEditing,
+      runOnlyIf: () => hotInstance.getSettings().enterBeginsEditing && hotInstance.getSelectedRangeLast()?.isSingle(),
     }, {
       keys: [['delete'], ['backspace']],
       callback: () => {
