@@ -103,7 +103,7 @@ export class MergeCells extends BasePlugin {
    *
    * @type {{ row: number, col: number }}
    */
-  #lastDelta = { row: 0, col: 0 };
+  #lastFocusDelta = { row: 0, col: 0 };
   /**
    * The module responsible for providing the correct focus order (vertical and horizontal) within a selection that
    * contains merged cells.
@@ -142,7 +142,6 @@ export class MergeCells extends BasePlugin {
     this.addHook('modifyTransformFocus', (...args) => this.#onModifyTransformFocus(...args));
     this.addHook('modifyTransformStart', (...args) => this.#onModifyTransformStart(...args));
     this.addHook('modifyTransformEnd', (...args) => this.#onModifyTransformEnd(...args));
-    this.addHook('modifyTransformEndRestDelta', (...args) => this.#onModifyTransformEndRestDelta(...args));
     this.addHook('beforeSelectionHighlightSet', (...args) => this.#onBeforeSelectionHighlightSet(...args));
     this.addHook('beforeSetRangeStart', (...args) => this.#onBeforeSetRangeStart(...args));
     this.addHook('beforeSetRangeStartOnly', (...args) => this.#onBeforeSetRangeStart(...args));
@@ -642,8 +641,8 @@ export class MergeCells extends BasePlugin {
    * @param {object} delta The transformation delta.
    */
   #onModifyTransformFocus(delta) {
-    this.#lastDelta.row = delta.row;
-    this.#lastDelta.col = delta.col;
+    this.#lastFocusDelta.row = delta.row;
+    this.#lastFocusDelta.col = delta.col;
   }
 
   /**
@@ -818,50 +817,6 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * The hooks allows to modify the delta transformation object necessary for correct selection end transformations.
-   *
-   * @param {{ row: number, col: number }} restDelta The transformation delta for the rest of the selection.
-   * @param {{ row: number, col: number }} delta The general transformation delta.
-   * @param {CellCoords} coords The coordinates of the next position of the end selection.
-   */
-  #onModifyTransformEndRestDelta(restDelta, delta, coords) {
-    const selectedRange = this.hot.getSelectedRangeLast();
-    const { highlight } = selectedRange;
-
-    const mergeParent = this.mergedCellsCollection.get(highlight.row, highlight.col);
-
-    if (!mergeParent) {
-      return;
-    }
-
-    const topStartCorner = selectedRange.getTopStartCorner();
-    const topEndCorner = selectedRange.getTopEndCorner();
-    const bottomEndCorner = selectedRange.getBottomEndCorner();
-
-    if (delta.col > 0) {
-      const renderableColumns = this.hot.view.countRenderableColumnsInRange(topEndCorner.col, coords.col) - 1;
-
-      restDelta.col = Math.max(renderableColumns, 1);
-
-    } else if (delta.col < 0) {
-      const renderableColumns = this.hot.view.countRenderableColumnsInRange(coords.col, topStartCorner.col) - 1;
-
-      restDelta.col = -Math.max(renderableColumns, 1);
-    }
-
-    if (delta.row > 0) {
-      const renderableRows = this.hot.view.countRenderableRowsInRange(bottomEndCorner.row, coords.row) - 1;
-
-      restDelta.row = Math.max(renderableRows, 1);
-
-    } else if (delta.row < 0) {
-      const renderableRows = this.hot.view.countRenderableRowsInRange(coords.row, topStartCorner.row) - 1;
-
-      restDelta.row = -Math.max(renderableRows, 1);
-    }
-  }
-
-  /**
    * The hook corrects the range (before drawing it) after the selection was made on the merged cells.
    * It expands the range to cover the entire area of the selected merged cells.
    */
@@ -997,12 +952,12 @@ export class MergeCells extends BasePlugin {
 
     this.#focusOrder.setActiveNode(focusCoords.row, focusCoords.col);
 
-    if (this.#lastDelta.row > 0 || this.#lastDelta.col > 0) {
+    if (this.#lastFocusDelta.row > 0 || this.#lastFocusDelta.col > 0) {
       this.#focusOrder.setPrevNodeAsActive();
 
     } else if (
-      horizontalDir === 'E-W' && this.#lastDelta.col < 0 ||
-      verticalDir === 'S-N' && this.#lastDelta.row < 0
+      horizontalDir === 'E-W' && this.#lastFocusDelta.col < 0 ||
+      verticalDir === 'S-N' && this.#lastFocusDelta.row < 0
     ) {
       this.#focusOrder.setNextNodeAsActive();
     }
@@ -1020,25 +975,25 @@ export class MergeCells extends BasePlugin {
     let notHiddenRowIndex = null;
     let notHiddenColumnIndex = null;
 
-    if (this.#lastDelta.col < 0) {
+    if (this.#lastFocusDelta.col < 0) {
       const { rowEnd, colEnd } = this.#focusOrder.getPrevHorizontalNode();
 
       notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colEnd, -1);
       notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowEnd, -1);
 
-    } else if (this.#lastDelta.col > 0) {
+    } else if (this.#lastFocusDelta.col > 0) {
       const { rowStart, colStart } = this.#focusOrder.getNextHorizontalNode();
 
       notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colStart, 1);
       notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowStart, 1);
 
-    } else if (this.#lastDelta.row < 0) {
+    } else if (this.#lastFocusDelta.row < 0) {
       const { rowEnd, colEnd } = this.#focusOrder.getPrevVerticalNode();
 
       notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colEnd, -1);
       notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowEnd, -1);
 
-    } else if (this.#lastDelta.row > 0) {
+    } else if (this.#lastFocusDelta.row > 0) {
       const { rowStart, colStart } = this.#focusOrder.getNextVerticalNode();
 
       notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colStart, 1);
@@ -1054,7 +1009,10 @@ export class MergeCells extends BasePlugin {
       column = coords.col;
 
       if (mergeParent) {
-        selectedRange.highlight.assign(mergeParent);
+        selectedRange.highlight.assign({
+          row: this.hot.rowIndexMapper.getNearestNotHiddenIndex(mergeParent.row, 1),
+          col: this.hot.columnIndexMapper.getNearestNotHiddenIndex(mergeParent.col, 1),
+        });
       } else {
         selectedRange.highlight.assign(coords);
       }
@@ -1066,7 +1024,7 @@ export class MergeCells extends BasePlugin {
     }
 
     this.#focusOrder.setActiveNode(row, column);
-    this.#lastDelta = { row: 0, col: 0 };
+    this.#lastFocusDelta = { row: 0, col: 0 };
   }
 
   /**

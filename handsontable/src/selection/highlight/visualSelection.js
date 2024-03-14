@@ -149,38 +149,14 @@ class VisualSelection extends Selection {
    * @returns {VisualSelection}
    */
   syncWith(broaderCellRange) {
-    const highlight = this.visualCellRange.highlight.clone().normalize();
+    const coordsFrom = broaderCellRange.from.clone().normalize();
     const rowDirection = broaderCellRange.getVerticalDirection() === 'N-S' ? 1 : -1;
     const columnDirection = broaderCellRange.getHorizontalDirection() === 'W-E' ? 1 : -1;
     const renderableHighlight = this.settings.visualToRenderableCoords(this.visualCellRange.highlight);
     let cellCoordsVisual = null;
 
     if (renderableHighlight === null || renderableHighlight.col === null || renderableHighlight.row === null) {
-      const topStartCorder = broaderCellRange.getTopStartCorner();
-      const bottomEndCorner = broaderCellRange.getBottomEndCorner();
-      let nextVisibleRow = this.settings.rowIndexMapper.getNearestNotHiddenIndex(highlight.row, rowDirection);
-
-      if (
-        nextVisibleRow === null ||
-        rowDirection === 1 && nextVisibleRow > bottomEndCorner.row ||
-        rowDirection === -1 && nextVisibleRow < topStartCorder.row
-      ) {
-        nextVisibleRow = this.settings.rowIndexMapper.getNearestNotHiddenIndex(highlight.row, -rowDirection);
-      }
-
-      let nextVisibleColumn = this.settings.columnIndexMapper.getNearestNotHiddenIndex(highlight.col, columnDirection);
-
-      if (
-        nextVisibleColumn === null ||
-        columnDirection === 1 && nextVisibleColumn > bottomEndCorner.col ||
-        columnDirection === -1 && nextVisibleColumn < topStartCorder.col
-      ) {
-        nextVisibleColumn = this.settings.columnIndexMapper.getNearestNotHiddenIndex(highlight.col, -columnDirection);
-      }
-
-      if (nextVisibleRow !== null && nextVisibleColumn !== null) {
-        cellCoordsVisual = this.settings.createCellCoords(nextVisibleRow, nextVisibleColumn);
-      }
+      cellCoordsVisual = this.getNearestNotHiddenCoords(coordsFrom, rowDirection, columnDirection);
     }
 
     if (cellCoordsVisual !== null && broaderCellRange.overlaps(cellCoordsVisual)) {

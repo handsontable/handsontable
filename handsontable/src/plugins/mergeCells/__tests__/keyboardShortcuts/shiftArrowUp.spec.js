@@ -160,11 +160,11 @@ describe('MergeCells keyboard shortcut', () => {
       selectCell(5, 1);
       keyDownUp(['shift', 'arrowup']);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 4,0 from: 7,0 to: 2,2']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 7,0 from: 7,0 to: 2,2']);
 
       keyDownUp(['shift', 'arrowup']);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 7,0 to: 1,2']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 7,0 from: 7,0 to: 1,2']);
     });
 
     it('should expand the cells selection through multiple merged cells that intersect with each other', () => {

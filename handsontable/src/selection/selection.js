@@ -174,8 +174,6 @@ class Selection {
       (...args) => this.runLocalHooks('afterModifyTransformStart', ...args));
     this.#transformation.addLocalHook('beforeTransformEnd',
       (...args) => this.runLocalHooks('beforeModifyTransformEnd', ...args));
-    this.#transformation.addLocalHook('modifyTransformEndRestDelta',
-      (...args) => this.runLocalHooks('modifyTransformEndRestDelta', ...args));
     this.#transformation.addLocalHook('afterTransformEnd',
       (...args) => this.runLocalHooks('afterModifyTransformEnd', ...args));
     this.#transformation.addLocalHook('insertRowRequire',
@@ -359,12 +357,20 @@ class Selection {
 
       cellRange.setTo(coordsClone);
 
-      if (isMultiple && horizontalDir !== cellRange.getHorizontalDirection()) {
+      if (
+        isMultiple &&
+        (horizontalDir !== cellRange.getHorizontalDirection() ||
+        cellRange.getWidth() === 1 && !cellRange.includes(cellRange.highlight))
+      ) {
         cellRange.from.assign({
           col: cellRange.highlight.col
         });
       }
-      if (isMultiple && verticalDir !== cellRange.getVerticalDirection()) {
+      if (
+        isMultiple &&
+        (verticalDir !== cellRange.getVerticalDirection() ||
+        cellRange.getHeight() === 1 && !cellRange.includes(cellRange.highlight))
+      ) {
         cellRange.from.assign({
           row: cellRange.highlight.row
         });

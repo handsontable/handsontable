@@ -473,7 +473,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     .addLocalHook('afterModifyTransformFocus', (...args) => this.runHooks('afterModifyTransformFocus', ...args))
     .addLocalHook('beforeModifyTransformEnd', (...args) => this.runHooks('modifyTransformEnd', ...args))
     .addLocalHook('afterModifyTransformEnd', (...args) => this.runHooks('afterModifyTransformEnd', ...args))
-    .addLocalHook('modifyTransformEndRestDelta', (...args) => this.runHooks('modifyTransformEndRestDelta', ...args))
     .addLocalHook('beforeRowWrap', (...args) => this.runHooks('beforeRowWrap', ...args))
     .addLocalHook('beforeColumnWrap', (...args) => this.runHooks('beforeColumnWrap', ...args))
     .addLocalHook('insertRowRequire', totalRows => this.alter('insert_row_above', totalRows, 1, 'auto'))

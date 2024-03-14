@@ -192,6 +192,190 @@ describe('MergeCells keyboard shortcut', () => {
       expect(focusOrder.length).toBe(20);
     });
 
+    it('should correctly navigate backward horizontally through the merged cells within the range ' +
+       '(complex example, top-start to bottom-end selection, hidden indexes)', () => {
+      handsontable({
+        data: createSpreadsheetData(12, 12),
+        colHeaders: true,
+        rowHeaders: true,
+        mergeCells: [
+          { row: 1, col: 3, rowspan: 1, colspan: 3 },
+          { row: 2, col: 1, rowspan: 2, colspan: 4 },
+          { row: 4, col: 1, rowspan: 2, colspan: 4 },
+          { row: 2, col: 5, rowspan: 4, colspan: 2 },
+          { row: 2, col: 8, rowspan: 2, colspan: 1 },
+          { row: 5, col: 8, rowspan: 1, colspan: 2 },
+          { row: 6, col: 5, rowspan: 2, colspan: 2 },
+          { row: 6, col: 7, rowspan: 2, colspan: 1 },
+          { row: 7, col: 1, rowspan: 3, colspan: 3 },
+        ]
+      });
+
+      const columnHiddenMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const rowHiddenMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      columnHiddenMap.setValueAtIndex(1, true);
+      columnHiddenMap.setValueAtIndex(7, true);
+      rowHiddenMap.setValueAtIndex(4, true);
+      rowHiddenMap.setValueAtIndex(9, true);
+
+      render();
+      selectCell(1, 1, 9, 7);
+
+      const focusOrder = [
+        '8,6', '1,6',
+        '8,5', '6,5', '2,5',
+        '8,4', '7,4', '6,4',
+        '6,3', '1,3',
+        '7,2', '6,2', '5,2', '2,2', '1,2',
+        '8,6',
+      ];
+
+      focusOrder.forEach((focusPosition) => {
+        keyDownUp(['shift', 'enter']);
+        expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusPosition} from: 1,1 to: 9,7`]);
+      });
+      expect(focusOrder.length).toBe(16);
+    });
+
+    it('should correctly navigate backward horizontally through the merged cells within the range ' +
+       '(complex example, top-end to bottom-start selection, hidden indexes)', () => {
+      handsontable({
+        data: createSpreadsheetData(12, 12),
+        colHeaders: true,
+        rowHeaders: true,
+        mergeCells: [
+          { row: 1, col: 3, rowspan: 1, colspan: 3 },
+          { row: 2, col: 1, rowspan: 2, colspan: 4 },
+          { row: 4, col: 1, rowspan: 2, colspan: 4 },
+          { row: 2, col: 5, rowspan: 4, colspan: 2 },
+          { row: 2, col: 8, rowspan: 2, colspan: 1 },
+          { row: 5, col: 8, rowspan: 1, colspan: 2 },
+          { row: 6, col: 5, rowspan: 2, colspan: 2 },
+          { row: 6, col: 7, rowspan: 2, colspan: 1 },
+          { row: 7, col: 1, rowspan: 3, colspan: 3 },
+        ]
+      });
+
+      const columnHiddenMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const rowHiddenMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      columnHiddenMap.setValueAtIndex(1, true);
+      columnHiddenMap.setValueAtIndex(7, true);
+      rowHiddenMap.setValueAtIndex(4, true);
+      rowHiddenMap.setValueAtIndex(9, true);
+
+      render();
+      selectCell(1, 7, 9, 1);
+
+      const focusOrder = [
+        '8,5', '6,5', '2,5',
+        '8,4', '7,4', '6,4',
+        '6,3', '1,3',
+        '7,2', '6,2', '5,2', '2,2', '1,2',
+        '8,6', '1,6',
+        '8,5',
+      ];
+
+      focusOrder.forEach((focusPosition) => {
+        keyDownUp(['shift', 'enter']);
+        expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusPosition} from: 1,7 to: 9,1`]);
+      });
+      expect(focusOrder.length).toBe(16);
+    });
+
+    it('should correctly navigate backward horizontally through the merged cells within the range ' +
+       '(complex example, bottom-end to top-start selection, hidden indexes)', () => {
+      handsontable({
+        data: createSpreadsheetData(12, 12),
+        colHeaders: true,
+        rowHeaders: true,
+        mergeCells: [
+          { row: 1, col: 3, rowspan: 1, colspan: 3 },
+          { row: 2, col: 1, rowspan: 2, colspan: 4 },
+          { row: 4, col: 1, rowspan: 2, colspan: 4 },
+          { row: 2, col: 5, rowspan: 4, colspan: 2 },
+          { row: 2, col: 8, rowspan: 2, colspan: 1 },
+          { row: 5, col: 8, rowspan: 1, colspan: 2 },
+          { row: 6, col: 5, rowspan: 2, colspan: 2 },
+          { row: 6, col: 7, rowspan: 2, colspan: 1 },
+          { row: 7, col: 1, rowspan: 3, colspan: 3 },
+        ]
+      });
+
+      const columnHiddenMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const rowHiddenMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      columnHiddenMap.setValueAtIndex(1, true);
+      columnHiddenMap.setValueAtIndex(7, true);
+      rowHiddenMap.setValueAtIndex(4, true);
+      rowHiddenMap.setValueAtIndex(9, true);
+
+      render();
+      selectCell(9, 7, 1, 1);
+
+      const focusOrder = [
+        '1,6',
+        '8,5', '6,5', '2,5',
+        '8,4', '7,4', '6,4',
+        '6,3', '1,3',
+        '7,2', '6,2', '5,2', '2,2', '1,2',
+        '8,6', '1,6',
+      ];
+
+      focusOrder.forEach((focusPosition) => {
+        keyDownUp(['shift', 'enter']);
+        expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusPosition} from: 9,7 to: 1,1`]);
+      });
+      expect(focusOrder.length).toBe(16);
+    });
+
+    it('should correctly navigate backward horizontally through the merged cells within the range ' +
+       '(complex example, bottom-start to top-end selection, hidden indexes)', () => {
+      handsontable({
+        data: createSpreadsheetData(12, 12),
+        colHeaders: true,
+        rowHeaders: true,
+        mergeCells: [
+          { row: 1, col: 3, rowspan: 1, colspan: 3 },
+          { row: 2, col: 1, rowspan: 2, colspan: 4 },
+          { row: 4, col: 1, rowspan: 2, colspan: 4 },
+          { row: 2, col: 5, rowspan: 4, colspan: 2 },
+          { row: 2, col: 8, rowspan: 2, colspan: 1 },
+          { row: 5, col: 8, rowspan: 1, colspan: 2 },
+          { row: 6, col: 5, rowspan: 2, colspan: 2 },
+          { row: 6, col: 7, rowspan: 2, colspan: 1 },
+          { row: 7, col: 1, rowspan: 3, colspan: 3 },
+        ]
+      });
+
+      const columnHiddenMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const rowHiddenMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      columnHiddenMap.setValueAtIndex(1, true);
+      columnHiddenMap.setValueAtIndex(7, true);
+      rowHiddenMap.setValueAtIndex(4, true);
+      rowHiddenMap.setValueAtIndex(9, true);
+
+      render();
+      selectCell(9, 1, 1, 7);
+
+      const focusOrder = [
+        '6,2', '5,2', '2,2', '1,2',
+        '8,6', '1,6',
+        '8,5', '6,5', '2,5',
+        '8,4', '7,4', '6,4',
+        '6,3', '1,3',
+        '7,2', '6,2',
+      ];
+
+      focusOrder.forEach((focusPosition) => {
+        keyDownUp(['shift', 'enter']);
+        expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusPosition} from: 9,1 to: 1,7`]);
+      });
+      expect(focusOrder.length).toBe(16);
+    });
+
     it('should navigate backward vertically through the fully visible merged cells only (left-to-right column header selection)', () => {
       handsontable({
         data: createSpreadsheetData(11, 11),

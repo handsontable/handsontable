@@ -203,21 +203,19 @@ class Transformation {
         col: highlightColumn,
       } = this.#visualToZeroBasedCoords(cellRange.highlight);
       const coords = this.#options.createCellCoords(toRow + delta.row, toColumn + delta.col);
+      const topStartCorner = cellRange.getTopStartCorner();
+      const topEndCorner = cellRange.getTopEndCorner();
+      const bottomEndCorner = cellRange.getBottomEndCorner();
       const restDelta = {
         row: coords.row - highlightRow,
         col: coords.col - highlightColumn,
       };
 
-      this.runLocalHooks('modifyTransformEndRestDelta', restDelta, delta, this.#zeroBasedToVisualCoords(coords));
-
-      const topStartCorner = cellRange.getTopStartCorner();
-      const topEndCorner = cellRange.getTopEndCorner();
-      const bottomEndCorner = cellRange.getBottomEndCorner();
-
       if (delta.col < 0) {
         if (toColumn >= highlightColumn && coords.col < highlightColumn) {
           coords.col = this.#findFirstNonHiddenZeroBasedColumn(topStartCorner.col, topEndCorner.col) + restDelta.col;
         }
+
       } else if (delta.col > 0) {
         if (toColumn <= highlightColumn && coords.col > highlightColumn) {
           coords.col = this.#findFirstNonHiddenZeroBasedColumn(topEndCorner.col, topStartCorner.col) + restDelta.col;
@@ -228,6 +226,7 @@ class Transformation {
         if (toRow >= highlightRow && coords.row < highlightRow) {
           coords.row = this.#findFirstNonHiddenZeroBasedRow(topStartCorner.row, bottomEndCorner.row) + restDelta.row;
         }
+
       } else if (delta.row > 0) {
         if (toRow <= highlightRow && coords.row > highlightRow) {
           coords.row = this.#findFirstNonHiddenZeroBasedRow(bottomEndCorner.row, topStartCorner.row) + restDelta.row;
