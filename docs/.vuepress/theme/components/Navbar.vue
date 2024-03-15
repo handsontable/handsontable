@@ -43,8 +43,8 @@ import SearchBox from '@theme/components/SearchBox';
 import Logo from '@theme/components/Logo.vue';
 import SidebarButton from '@theme/components/SidebarButton.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
-import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
-import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
+//import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
+//import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
 import FrameworksDropdown from '@theme/components/FrameworksDropdown.vue';
 import ExternalNavLinks from '@theme/components/ExternalNavLinks.vue';
 import SidebarLinks from '@theme/components/SidebarLinks.vue';
@@ -57,8 +57,8 @@ export default {
     SidebarButton,
     NavLinks,
     SearchBox,
-    VersionsDropdown,
-    ThemeSwitcher,
+    //VersionsDropdown,
+    //ThemeSwitcher,
     ExternalNavLinks,
     SidebarLinks
   },

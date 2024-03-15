@@ -1,11 +1,19 @@
 .theme-default-content code { 
-    background: $editorColor 
+    background: $bgCode 
     font-size: $font-size-xs
     line-height: $line-height-xs
     font-weight: 400
     vertical-align: middle
     padding: 4px 8px
     border-radius: $radius-s
+}
+
+.theme-default-content {
+    a > code,
+    li > code,
+    p > code {
+        background: $onsurfaceColor 
+    }
 }
 
 .theme-default-content a code {
@@ -33,5 +41,56 @@ div[class*="language-"]::before {
 .tabs-component {
     div[class*="language-"]::before {
         right: 8px
+    }
+}
+
+pre { 
+    margin-top: 16px
+    background: $editorColor 
+    padding: 16px 24px
+    margin: 16px -16px 0
+    border-radius: $radius-l
+    font-size: $font-size-s
+    line-height: $line-height-s
+}
+
+div[class*="language-"] {
+    background: $editorColor 
+    border-radius: $radius-l
+    margin-bottom: 24px
+}
+
+.theme-code-group { 
+    margin: 0 -16px 
+
+    .theme-code-block {
+        margin-top: -32px
+    }
+
+    pre { 
+        margin: 16px 0
+        border-radius: 0 0 16px 16px
+        padding-bottom: 24px
+    }
+}
+
+.theme-code-group__nav { 
+    background: $editorHeadColor 
+    margin: 16px 0
+    padding: 8px 16px 16px
+    border-radius: $radius-l
+    margin-bottom: -16px
+
+    button {
+        font-size: $font-size-s
+        line-height: $line-height-s
+        font-weight: 400
+        padding:8px 8px 8px
+        color: $text2Color
+
+        &.theme-code-group__nav-tab-active {
+            color: $textColor
+            border-color: $linkColor
+        }
     }
 }

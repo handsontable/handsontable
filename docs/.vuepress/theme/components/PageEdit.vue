@@ -34,11 +34,13 @@
         <a href="https://github.com/handsontable/handsontable" target="_blank"><i class="ico i-github"></i></a>
         <a href="https://www.linkedin.com/company/handsontable/" target="_blank"><i class="ico i-linkedin"></i></a>
       </div>
+      
       <div>
         <p>2012 - 2024 © Handsoncode </p>
-        <a href="https://handsontable.com/pricing" target="_blank">Pricing</a>
-        <a href="https://handsontable.com/contact?category=technical_support" target="_blank">Contact support</a>
+        <!--<a href="https://handsontable.com/pricing" target="_blank">Pricing</a>
+        <a href="https://handsontable.com/contact?category=technical_support" target="_blank">Contact support</a>-->
       </div>
+      <ThemeSwitcher />
     </div>
   </footer>
 </template>
@@ -46,9 +48,13 @@
 <script>
 import isNil from 'lodash/isNil';
 import { endingSlashRE, outboundRE } from '@vuepress/theme-default/util';
+import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
 
 export default {
   name: 'PageEdit',
+  components: {
+    ThemeSwitcher
+  },
 
   computed: {
     lastUpdated() {
@@ -139,38 +145,3 @@ export default {
   }
 };
 </script>
-
-<style lang="stylus">
-/*
-.page-edit
-  max-width $contentWidth
-  margin 0 auto
-  padding 2rem 2.5rem
-  @media (max-width: $large)
-    padding 2rem
-  @media (max-width: $small)
-    padding 1.5rem  padding-top 1rem
-
-  padding-bottom 1rem
-  overflow auto
-
-  .edit-link
-    display inline-block
-    a
-      margin-right 0.25rem
-      font-size 0.9rem
-      font-weight 400
-  .last-updated
-    float right
-    font-size 0.9em
-
-@media (max-width: $medium)
-  .page-edit
-    .edit-link
-      margin-bottom 0.5rem
-    .last-updated
-      font-size 0.8em
-      float none
-      text-align left
-*/
-</style>

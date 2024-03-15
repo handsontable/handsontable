@@ -2,7 +2,7 @@ body {
   font-family: $font
   font-size $font-size
   line-height: $line-height
-  background: $sideColor
+  background: $bgColor
 
   color: $textColor
   font-smooth: auto
@@ -57,6 +57,14 @@ a {
   }
 }
 
+@media (min-width: $xLarge) {
+  #app {
+   .footer {
+      max-width: 720px
+    }
+  }
+}
+
 .decoration-left { 
   display: block
   background:  url('{{$basePath}}/img/hero-right.webp'); 
@@ -69,6 +77,7 @@ a {
   transform:rotate(90deg)
   animation: 12s linear 0s infinite alternate none running animation-left;
   opacity .15
+  pointer-events: none
 }
 .decoration-right { 
   display: block
@@ -80,7 +89,8 @@ a {
   top -140px
   right:0
   animation: 30s linear 0s infinite alternate none running animation-right;
-  opacity .25
+  opacity .15
+  pointer-events: none
 }
 
 @keyframes animation-left {

@@ -2,8 +2,8 @@
   <label id="switch" class="dark-mode" :class="{ ready: isReady }">
     <div class="inner" v-show="isReady">
       <input type="checkbox" v-on:change="toggleTheme" :checked="isDarkTheme">
-      <i class="ico i-dm-dark"  v-show="isDarkTheme"></i>
-      <i class="ico i-dm-light"  v-show="!isDarkTheme"></i>
+      <span v-show="isDarkTheme"><i class="ico i-dm-dark"></i>Dark</span>
+      <span v-show="!isDarkTheme"><i class="ico i-dm-light"></i>Dark</span>
     </div>
   </label>
 </template>

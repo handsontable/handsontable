@@ -11,8 +11,10 @@
 .header-framework {display: none !important}
 .page { 
     opacity 1
-    margin: 128px 360px 24px
+    margin: 128px 400px 24px
     padding: 0 0 0 0
+    position: relative
+    z-index: 1
 
     .breadcrumbs {
         max-width: 720px
@@ -38,6 +40,7 @@
                 padding: 0 12px 0 12px
             }
         }
+
         span { 
             color: $text2Color
         }
@@ -130,6 +133,7 @@
             padding: 16px 0 0 
             color: $text2Color
             letter-spacing: $letterSpacingText
+            display: inline-block
 
             &:empty { 
                 display:none 
@@ -137,6 +141,7 @@
         }
 
         h1 + p + p + p,
+        h1 + p + p,
         h1 + p,
         .table-of-contents + p + p + p {
             font-size: $font-size
@@ -148,12 +153,13 @@
         
         > ul, > ol { 
             padding: 16px 8px 8px
+            word-wrap: break-word
 
             li {
                 font-size: $font-size-s
                 line-height: $line-height-s
                 font-weight: 400
-                list-style square inside
+                list-style square 
                 margin-left: 24px
                 color: $text2Color
                 padding-bottom: 8px
@@ -183,54 +189,19 @@
             svg { padding: 4px}
         }
 
-        pre { 
-            margin-top: 16px
-            background: $editorColor 
-            padding: 16px 24px
-            margin: 16px -16px 0
-            border-radius: $radius-l
-            font-size: $font-size-s
-            line-height: $line-height-s
-        }
-
-        div[class*="language-"] {
-            background: $editorColor 
-            border-radius: $radius-l
-            margin-bottom: 24px
-        }
-        
-        .theme-code-group { 
-            margin: 0 -16px 
-
-            .theme-code-block {
-                margin-top: -32px
-            }
-
-            pre { 
-                margin: 16px 0
-                border-radius: 0 0 16px 16px
-                padding-bottom: 24px
-            }
-        }
-
-        .theme-code-group__nav { 
-            background: $editorHeadColor 
-            margin: 16px 0
-            padding: 8px 16px 16px
-            border-radius: $radius-l
-            margin-bottom: -16px
-
-            button {
-                font-size: $font-size-s
-                line-height: $line-height-s
-                font-weight: 400
-                padding:8px 8px 8px
-                color: $text2Color
-
-                &.theme-code-group__nav-tab-active {
-                    color: $textColor
-                    border-color: $linkColor
-                }
+        .source-code-link {
+            padding: 8px 16px
+            color: $text2Color
+            background: $sideColor
+            border-radius: $radius
+            top: -28px
+            position: relative
+            float: right
+            font-size: $font-size-xs
+            
+            i { 
+                display: inline-block
+                vertical-align: text-top;
             }
         }
 
@@ -302,13 +273,13 @@
             > span { 
                 border: 1px solid $borderColor
                 border-radius: $radius-xl
-                width: 50%
+                width: 100%
                 padding: 24px
                 position: relative
                 z-index: 1
                 color: $linkColor
-                font-size: $font-size-x
-                line-height: $line-height-x
+                font-size: $font-size-s
+                line-height: $line-height-s
                 font-weight: 400
 
                 &:before {
@@ -391,6 +362,7 @@
         font-size: $font-size-s
         line-height: $line-height-s
         font-weight: 400
+        margin: 24px 0
 
         td,th { 
             padding: 16px
@@ -435,7 +407,7 @@
             }
         }
     }
-
+    /*
     #example1_events {
         border: 1px solid $borderColor
         border-radius: $radius
@@ -443,7 +415,8 @@
         font-size: $font-size-s
         line-height: $line-height-s
         margin: 24px 0
-    }
+    }*/
+
     #hooksList {
         padding-top: 16px 
         font-size: $font-size-s
@@ -451,9 +424,41 @@
     }
 
     @media (max-width: $xLarge) {
+        margin: 128px 32px 24px 320px
+        
+        .table-of-contents { 
+            display:none
+        }
     }
 
     @media (max-width: $medium) {
+        margin: 128px 32px 24px
+
+        .theme-default-content {
+
+            h1 { 
+                padding: 32px 0 8px
+            }
+
+            pre {
+                padding: 16px 32px
+                margin: 16px -32px 0
+                border-radius: 0
+            }
+
+            .theme-code-group {
+                margin: 0 -32px
+
+                .theme-code-group__nav {
+                    padding: 8px 32px 16px
+                    border-radius: 0
+                }
+
+                pre { 
+                    border-radius: 0 
+                }
+            }
+        }
     }
 }
 

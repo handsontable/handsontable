@@ -34,11 +34,9 @@
     .navbar-wrapper {
         box-sizing: border-box;
         display: flex
-        //border-bottom: 1px solid $borderColor
-        //background: $bgColor
         height: 72px
         backdrop-filter: blur(14px);
-        background: rgba(25,26,29,.9);
+        background: $dropColor
         border-radius: $radius-xxl
         padding: 8px 16px
 
@@ -91,6 +89,7 @@
                         gap:8px
                         font-weight: 400
                         border-radius: $radius-xl
+                        transition: all $t ease-in-out
 
                         &.router-link-active { 
                             position relative
@@ -467,11 +466,6 @@
         }
     }
 
-    @media (max-width: 1380px) {
-        .navbar-wrapper .menu .nav-links{ 
-            display: none
-        }
-    }
     @media (max-width: $large) {
         .navbar-wrapper {
             .search-box { 
@@ -483,11 +477,19 @@
     @media (max-width: $medium) {
         margin: 0
         z-index: 200
+        padding: 0
+
+        &:after{
+            display: none
+        }
 
         .navbar-wrapper {
+            padding: 0 8px
+            border-radius: 0
             
             .framework-and-version,
-            .search-box { 
+            .search-box,
+            .menu .nav-links { 
                 display: none
             }
 
@@ -512,18 +514,14 @@
                 background-repeat: no-repeat
                 background-size: 100%
             }
-        }
-    }
-}
 
-.dark-mode { 
-    cursor pointer
+            .home-link { 
+                padding-top: 4px
+            }
 
-    .inner { 
-        display:block
-        padding: 12px
-        input { 
-            display none 
+            .top-bar { 
+                align-items: center
+            }
         }
     }
 }

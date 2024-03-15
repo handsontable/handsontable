@@ -1,7 +1,7 @@
 .page .footer { 
-    max-width: 720px
+    //max-width: 720px
     margin: 24px auto
-    padding: 32px 24px 24px
+    padding: 32px 24px 16px
     background: $sideColor
     border-radius: $radius-xxl
     box-sizing: border-box;
@@ -10,6 +10,7 @@
         display: flex
         justify-content: space-between
         color: $text2Color
+        align-items: center
 
         p,a { 
             font-size: $font-size-xs
@@ -18,10 +19,11 @@
 
         p { 
             opacity .6
+            text-align: center
         }
         
         .socail-links {
-            margin: 0 0 -8px -8px
+            margin: 0 0 0 -8px
             
             a {
                 padding: 8px
@@ -31,7 +33,7 @@
 
                 @media (hover: hover) {
                     &:hover {  
-                        background: $bgColor
+                        background: $borderColor
                     }
                 }
             }
@@ -59,13 +61,13 @@
         font-size: $font-size-xs
         line-height: $line-height-xs
         justify-content: space-between
-        padding: 0 0 16px 0
         color: $text2Color
 
         .edit-link a { 
             display: flex
             gap: 8px
             transition: all $t ease-in-out
+            font-weight: 300
 
             i { filter:none }
 
@@ -78,7 +80,7 @@
     }
 
     .rate-post {
-        padding: 24px 0 
+        padding: 48px 0 
         text-align: center
 
         p {
@@ -87,9 +89,9 @@
         }
 
         .btn-group { 
-            margin: 0 auto 24px
             display: flex;
-            gap: 8px;
+            gap: 8px
+            margin: 8px auto 0 
             width: fit-content;
         }
 
@@ -110,4 +112,46 @@
             }
         }
     }
+
+    .dark-mode { 
+        cursor pointer
+
+        .inner { 
+            display:flex
+            padding: 8px 16px 8px 8px
+            font-size: $font-size-xs
+            line-height: $line-height-xs
+            background: $bgColor 
+            color: $textColor
+            border-radius: $radius-xl
+            transition: all $t ease-in-out
+            
+            span {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+            }
+
+            i { 
+                display: inline-block
+            }
+            input { 
+                display none 
+            }
+
+            @media (hover: hover) {
+                &:hover {  
+                    background: $borderColor
+                }
+            }
+        }
+    }
+
+    @media (max-width: $medium) {
+        background: $borderColor
+        margin: 80px -32px -24px
+        padding: 32px 32px 32px
+        border-radius: 0
+    }
+    
 }

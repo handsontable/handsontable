@@ -1,0 +1,127 @@
+/* removing the fader */
+.CybotCookiebotFader {
+	display: none!important
+}
+
+body #CybotCookiebotDialog { 
+	width: calc(100vw - 48px) 
+	margin: -24px 24px 24px 0
+	min-width: auto
+	max-width: none
+	background: $borderColor
+	border-radius: $radius-xxl
+	color: $text2Color
+
+	h2 { 
+		color: $textColor
+	}
+
+  	svg path {
+    	fill: $textColor
+  	}
+  	#CybotCookiebotDialogBodyEdgeMoreDetails a {
+      	color: $linkColor
+
+		&:after {
+			border-color: $linkColor
+		}
+  	}
+
+	#CybotCookiebotDialogFooter #CybotCookiebotDialogBodyButtonAccept, 
+	#CybotCookiebotDialogFooter #CybotCookiebotDialogBodyLevelButtonAccept, 
+	#CybotCookiebotDialogFooter #CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll {
+		border-color: $linkColor
+		background: $linkColor
+		border-radius: $radius
+		color: $textColor
+	}
+
+	#CybotCookiebotDialogFooter .CybotCookiebotDialogBodyButton {
+		border-color: $linkColor
+		border-width: 1px
+		color: $linkColor
+		border-radius: $radius
+	}
+
+	.CybotCookiebotScrollContainer .CybotCookiebotScrollbarContainer {
+		background: $bgColor
+		border-radius: $radius
+		width: 8px
+	}
+
+	#CybotCookiebotDialogHeader,
+	.CybotCookiebotScrollContainer { 
+		border-color: $bgColor
+	}
+
+	#CybotCookiebotDialogPoweredByText a {
+		color: $text2Color
+	}
+
+	.CookieCard {
+		border-color: $bgColor
+	}
+
+	.CybotCookiebotDialogBodyLevelButtonIABContainerToggleHide, 
+	.CybotCookiebotDialogBodyLevelButtonIABContainerToggleShow, 
+	a:after, 
+	a:before, 
+	button:after, 
+	button:before {
+		border-color: $text2Color
+	}
+
+	.CookieCard .CybotCookiebotDialogDetailBodyContentCookieContainerButton:hover, 
+	.CookieCard .CybotCookiebotDialogDetailBodyContentIABv2Tab:hover, 
+	#CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieProvider:not(.CybotCookiebotDialogDetailBodyContentCookieInfoCount):hover {
+		color: $linkColor
+	}
+
+	#CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieGroup {
+		border-color: $bgColor
+	}
+
+	#CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieProvider:not(.CybotCookiebotDialogDetailBodyContentCookieInfoCount) {
+		color: $textColor
+	}
+
+	#CybotCookiebotDialogTabContent .CybotCookiebotDialogDetailBulkConsentCount {
+		background: $bgColor
+	}
+
+	#CybotCookiebotDialogBodyContentText a, 
+	#CybotCookiebotDialogBodyLevelButtonIABHeaderViewPartnersLink, 
+	#CybotCookiebotDialogDetailBulkConsentList dt a, 
+	#CybotCookiebotDialogDetailFooter a, 
+	.CybotCookiebotDialogBodyLevelButtonIABDescription a, 
+	.CybotCookiebotDialogDetailBodyContentCookieLink, 
+	#CybotCookiebotDialogDetailBodyContentTextAbout a {
+		color: $linkColor
+	}
+
+	.CybotExternalLinkArrow {
+		width: 12px
+	}
+
+	#CybotCookiebotDialogNav .CybotCookiebotDialogNavItemLink {
+		color: $text2Color
+		border-color: $bgColor
+	}
+
+	#CybotCookiebotDialogNav .CybotCookiebotDialogNavItemLink.CybotCookiebotDialogActive {
+		color: $linkColor
+		border-color: $linkColor
+	}
+
+	#CybotCookiebotDialogNav {
+		border-color: $bgColor
+	}
+
+	#CybotCookiebotDialogDetailBulkConsent {
+		border-color: $bgColor
+	}
+
+	#CybotCookiebotDialogDetailBulkConsentLink {
+		color: $text2Color
+	}
+}

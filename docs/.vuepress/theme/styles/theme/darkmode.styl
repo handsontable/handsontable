@@ -10,7 +10,7 @@ html.theme-dark {
     $bgCode             = $borderColor 
     $onsurfaceColor     = var(--color-gray-700)
     $linkColor          = var(--color-lightblue)
-    $editorColor        = var(--color-gray-800)
+    $editorColor        = var(--color-gray-700)
 
     $editorCommentColor         = var(--color-gray-500)
     $editorTagColor             = var(--color-lightblue)
@@ -22,6 +22,8 @@ html.theme-dark {
     $editorOperatorColor        = var(--color-success)
     $editorInsertedColor        = var(--color-success)
     $editorPunctuationColor     = var(--color-gray-300)
+
+    $dropColor          = $dropColorDark
 
     i.Logo { background:  url('{{$basePath}}/img/logo-white.svg');}
     i.ico { filter: brightness(0) invert(1)}
@@ -46,6 +48,13 @@ html.theme-dark {
 
     #nprogress .bar { 
         background: $accentColor 
+    }
+
+    .decoration-left {
+    
+    }
+    .decoration-right {
+        opacity .25
     }
 
     /* Sidebar 
@@ -242,8 +251,6 @@ html.theme-dark {
     /* Navbar 
     ------------------------------- */
     .navbar {
-        //background: rgba(18,19,22,.15)
-
         &:after {
             background: $bgColor
         }
@@ -252,109 +259,110 @@ html.theme-dark {
             background-color: $accentColor
             color: $bgColor
         }  
-    }
 
-    .navbar-wrapper { 
-        background:$darkDrop;
-        //border-bottom: 1px solid $borderColor
+        .navbar-wrapper { 
+            background: $dropColor
 
-        .dropdown-wrapper { 
-            .nav-dropdown { 
-                background: $borderColor
-                border:0
+            .dropdown-wrapper { 
+                .nav-dropdown { 
+                    background: $borderColor
+                    border:0
 
-                a { 
-                    color: $text2Color
-
-                    &:before { 
-                        background: $onsurfaceColor
-                    }
-
-                    @media (hover: hover) {
-                        &:hover { 
-                            color: $textColor
-                        }
-                    }
-                }
-            }
-        }
-
-        .menu {
-            .nav-links {
-                .nav-item {
-                    a, button { 
-                        color: $text2Color
-
-                        &.router-link-active { 
-                            color: $textColor
-
-                            &:before {
-                                background: $accentColor    
-                            }
-                        }
-
-                        @media (hover: hover) {
-                            &:hover { 
-                                color: $textColor
-                            }
-                        }
-                    }
-                }
-            }
-        }   
-
-        .icons-nav {
-            a, button, label {
-                @media (hover: hover) {
-                    &:hover { 
-                        background: $borderColor
-                    }
-                }
-            }
-        }   
-
-        .search-box { 
-            input { 
-                background: $borderColor
-                color: $text2Color
-                font-family: $font
-                
-                &:focus {
-                    box-shadow: 0 0 0 1px $accentColor
-                    background: $bgColor
-                }
-            }
-
-            .kbd-hint { 
-                kbd { 
-                    background: $sideColor
-                    color: $text2Color
-                }
-            }
-            .suggestions {
-                background: $sideColor
-
-                li {
-                    color: $textColor
-
-                    &:not(.suggestion) {
-                        border-bottom: 1px solid $borderColor
-                    }
                     a { 
                         color: $text2Color
 
+                        &:before { 
+                            background: $onsurfaceColor
+                        }
+
                         @media (hover: hover) {
                             &:hover { 
-                                background: $borderColor
                                 color: $textColor
                             }
                         }
+                    }
+                }
+            }
 
+            .menu {
+                .nav-links {
+                    .nav-item {
+                        a, button { 
+                            color: $text2Color
+
+                            &.router-link-active { 
+                                color: $textColor
+
+                                &:before {
+                                    background: $accentColor    
+                                }
+                            }
+
+                            @media (hover: hover) {
+                                &:hover { 
+                                    color: $textColor
+                                }
+                            }
+                        }
+                    }
+                }
+            }   
+
+            .icons-nav {
+                a, button, label {
+                    @media (hover: hover) {
+                        &:hover { 
+                            background: $borderColor
+                        }
+                    }
+                }
+            }   
+
+            .search-box { 
+                input { 
+                    background: $borderColor
+                    color: $text2Color
+                    font-family: $font
+                    
+                    &:focus {
+                        box-shadow: 0 0 0 1px $accentColor
+                        background: $bgColor
+                    }
+                }
+
+                .kbd-hint { 
+                    kbd { 
+                        background: $sideColor
+                        color: $text2Color
+                    }
+                }
+                .suggestions {
+                    background: $sideColor
+
+                    li {
+                        color: $textColor
+
+                        &:not(.suggestion) {
+                            border-bottom: 1px solid $borderColor
+                        }
+                        a { 
+                            color: $text2Color
+
+                            @media (hover: hover) {
+                                &:hover { 
+                                    background: $borderColor
+                                    color: $textColor
+                                }
+                            }
+
+                        }
                     }
                 }
             }
         }
     }
+
+    
 
     //Page
     .page {
@@ -378,6 +386,7 @@ html.theme-dark {
                 color: $textColor
             }
             h1 + p + p + p,
+            h1 + p + p,
             h1 + p,
             .table-of-contents + p + p + p {
                 color: $textColor
@@ -411,6 +420,12 @@ html.theme-dark {
                     }
                 }
             }
+            
+            .source-code-link {
+                color: $text2Color
+                background: $sideColor
+            }
+            
             code {
                 background: $editorColor 
                 color:$textColor
@@ -424,6 +439,13 @@ html.theme-dark {
                     }
                 }
             }
+            
+            a > code,
+            li > code,
+            p > code {
+                background: $onsurfaceColor 
+            }
+            
             .table-of-contents { 
                 ul {
                     li { 
@@ -564,7 +586,7 @@ html.theme-dark {
                     a {
                         @media (hover: hover) {
                             &:hover {  
-                                background: $bgColor
+                                background: $borderColor
                             }
                         }
                     }
@@ -591,6 +613,19 @@ html.theme-dark {
                     @media (hover: hover) {
                         &:hover {  
                             background: $bgColor !important
+                        }
+                    }
+                }
+            }
+
+            .dark-mode { 
+                .inner { 
+                    background: $bgColor 
+                    color: $textColor
+
+                    @media (hover: hover) {
+                        &:hover {  
+                            background: $borderColor
                         }
                     }
                 }
@@ -708,4 +743,128 @@ html.theme-dark {
         color: $text2Color
         background: $bgColor 
     }
+
+    @media (max-width: $medium) {
+        .sidebar { 
+            background: $bgColor
+        }
+        .page .footer {
+            background: $borderColor
+        }
+    }
+
+    #CybotCookiebotDialog { 
+        background: $borderColor
+        color: $text2Color
+
+        h2 { 
+            color: $textColor
+        }
+
+        svg path {
+            fill: $textColor
+        }
+
+        #CybotCookiebotDialogBodyEdgeMoreDetails a {
+            color: $linkColor
+
+            &:after {
+                border-color: $linkColor
+            }
+        }
+
+        #CybotCookiebotDialogFooter #CybotCookiebotDialogBodyButtonAccept, 
+        #CybotCookiebotDialogFooter #CybotCookiebotDialogBodyLevelButtonAccept, 
+        #CybotCookiebotDialogFooter #CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll {
+            border-color: $linkColor
+            background: $linkColor
+            color: $textColor
+        }
+
+        #CybotCookiebotDialogFooter .CybotCookiebotDialogBodyButton {
+            border-color: $linkColor
+            color: $linkColor
+        }
+
+        .CybotCookiebotScrollContainer .CybotCookiebotScrollbarContainer {
+            background: $bgColor
+        }
+
+        #CybotCookiebotDialogHeader,
+        .CybotCookiebotScrollContainer { 
+            border-color: $bgColor
+        }
+
+        #CybotCookiebotDialogPoweredByText a {
+            color: $text2Color
+        }
+
+        .CookieCard {
+            border-color: $bgColor
+        }
+
+        .CybotCookiebotDialogBodyLevelButtonIABContainerToggleHide, 
+        .CybotCookiebotDialogBodyLevelButtonIABContainerToggleShow, 
+        a:after, 
+        a:before, 
+        button:after, 
+        button:before {
+            border-color: $text2Color
+        }
+
+        .CookieCard .CybotCookiebotDialogDetailBodyContentCookieContainerButton:hover, 
+        .CookieCard .CybotCookiebotDialogDetailBodyContentIABv2Tab:hover, 
+        #CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieProvider:not(.CybotCookiebotDialogDetailBodyContentCookieInfoCount):hover {
+            color: $linkColor
+        }
+
+        #CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieGroup {
+            border-color: $bgColor
+        }
+
+        #CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieProvider:not(.CybotCookiebotDialogDetailBodyContentCookieInfoCount) {
+            color: $textColor
+        }
+
+        #CybotCookiebotDialogTabContent .CybotCookiebotDialogDetailBulkConsentCount {
+            background: $bgColor
+        }
+
+        #CybotCookiebotDialogBodyContentText a, 
+        #CybotCookiebotDialogBodyLevelButtonIABHeaderViewPartnersLink, 
+        #CybotCookiebotDialogDetailBulkConsentList dt a, 
+        #CybotCookiebotDialogDetailFooter a, 
+        .CybotCookiebotDialogBodyLevelButtonIABDescription a, 
+        .CybotCookiebotDialogDetailBodyContentCookieLink, 
+        #CybotCookiebotDialogDetailBodyContentTextAbout a {
+            color: $linkColor
+        }
+
+        .CybotExternalLinkArrow {
+            filter: invert(1);
+        }
+
+        #CybotCookiebotDialogNav .CybotCookiebotDialogNavItemLink {
+            color: $text2Color
+            border-color: $bgColor
+        }
+        
+        #CybotCookiebotDialogNav .CybotCookiebotDialogNavItemLink.CybotCookiebotDialogActive {
+            color: $linkColor
+            border-color: $linkColor
+        }
+
+        #CybotCookiebotDialogNav {
+            border-color: $bgColor
+        }
+
+        #CybotCookiebotDialogDetailBulkConsent {
+            border-color: $bgColor
+        }
+
+        #CybotCookiebotDialogDetailBulkConsentLink {
+            color: $text2Color
+        }
+    }
 }
+

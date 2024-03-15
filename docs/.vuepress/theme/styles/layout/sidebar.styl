@@ -43,7 +43,7 @@
             padding: 12px
             
             i { 
-                filter:none 
+                filter:brightness(0) invert(1) 
             }
         }
 
@@ -55,14 +55,15 @@
                 display: block
                 font-size: $font-size-xs
                 line-height: $line-height-xs
-                font-weight: 600
+                font-weight: 400
+                color: var(--color-gray-100)
             }
             > a { 
                 cursor: pointer
                 display: block
                 font-size: $font-size-xxs
                 line-height: $line-height-xxs
-                color:$text2Color
+                color: var(--color-gray-300)
 
                 &:before { 
                     content: ''
@@ -84,8 +85,9 @@
         }
         > .close {
             cursor:pointer
-            opacity .5
+            opacity .8
             transition all $t ease
+            filter brightness(0) invert(1)
 
             @media (hover: hover) {
                 &:hover { 
@@ -603,8 +605,8 @@
     @media (max-width: $medium) {
         padding-top: 0
         width 100%
-        top: 0;
-        transform: translateX(-100%);
+        top: 0
+        transform: translateX(-100%)
         
         .home-link {
             visibility: hidden
@@ -612,7 +614,24 @@
     }
 }
 @media (max-width: $medium) {
+    .sidebar{
+        z-index: 100
+        background: $bgColor
+        margin: 0
+        left: 0
+        bottom: 0
+        top:0
+        padding-top: 88px
+        padding-bottom: 32px
+    }
+
     .theme-container.sidebar-open .sidebar { 
         transform: translateX(0);
+    }
+}
+
+@media (max-width: $xLarge) {
+    .sidebar {
+        width: 280px
     }
 }
