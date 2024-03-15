@@ -75,6 +75,7 @@
     "not dead"
   ],
   "dependencies": {
+    "codesandbox": "^2.2.3",
     "patch-package": "^8.0.0"
   }
 }

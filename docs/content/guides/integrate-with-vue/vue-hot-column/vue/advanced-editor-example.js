@@ -147,11 +147,9 @@ class StarsRenderer extends Vue {
   }
 }
 
-// App.vue + main.js
 Vue.use(Vuex);
 
-const App = new Vue({
-  el: '#advanced-editor-example',
+const ExampleComponent = {
   data() {
     return {
       hotSettings: {
@@ -205,4 +203,6 @@ const App = new Vue({
     ColorPicker,
     StarsRenderer,
   }
-});
+};
+
+export default ExampleComponent;

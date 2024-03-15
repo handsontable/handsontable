@@ -112,7 +112,7 @@ cellProperties.type; // numeric
 ::: only-for react
 
 ```jsx
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   const hotRef = useRef(null);
 
   useEffect(() => {

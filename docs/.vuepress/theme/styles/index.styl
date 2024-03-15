@@ -29,12 +29,6 @@
 /* Code fields */
 @import 'code'
 
-/* JSFiddle form and button */
-@import 'jsfiddle'
-
-/* Codesandbox form and button */
-@import 'codesandbox'
-
 /* Handsontable styles */
 @import 'handsontable'
 
@@ -483,11 +477,47 @@ kbd {
   }
 }
 
+.tabs-button-wrapper {
+  .tabs-button-list {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5em;
+
+    button {
+      padding: 7px 12px !important;
+      margin-right: 0;
+      min-width: 40px;
+      &:hover{
+        background: #454554;
+      }
+    }
+  }
+}
+
 @media (max-width: 1092px) {
   .tabs-button-wrapper {
     display: flex;
     flex-direction: column;
     margin: 1em 0;
     gap: 1em;
+
+    .tabs-button-list {
+      order: 1;
+    }
+  }
+}
+
+@media (min-width: 1093px) {
+  .tabs-button-wrapper {
+    position: relative;
+    
+    .tabs-button-list {
+      height: 0;
+      position: relative;
+      position: absolute;
+      right: 8px;
+      top: 8px;
+      z-index: 1;
+    }
   }
 }

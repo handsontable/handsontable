@@ -5,7 +5,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   function model(opts) {
     let _pub = {
       id: undefined,
@@ -70,6 +70,4 @@ export const ExampleComponent = () => {
   );
 };
 
-/* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example7'));
-/* end:skip-in-preview */
+export default ExampleComponent;

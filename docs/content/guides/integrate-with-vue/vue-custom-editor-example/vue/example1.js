@@ -19,9 +19,6 @@ class CustomEditor extends TextEditor {
   }
 }
 
-// register Handsontable's modules
-registerAllModules();
-
 const ExampleComponent = {
   data() {
     return {
@@ -46,10 +43,3 @@ const ExampleComponent = {
 };
 
 export default ExampleComponent;
-
-/* start:skip-in-preview */
-new Vue({
-  ...ExampleComponent,
-  el: '#example1',
-});
-/* end:skip-in-preview */

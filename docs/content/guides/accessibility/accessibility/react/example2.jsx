@@ -1,12 +1,11 @@
-/* start:skip-in-preview */
-import { HotTable, HotColumn } from "@handsontable/react";
 import { useState } from "react";
-
+import { HotTable, HotColumn } from "@handsontable/react";
 import { registerAllModules } from "handsontable/registry";
 import "handsontable/dist/handsontable.full.min.css";
 
 registerAllModules();
 
+/* start:skip-in-preview */
 const data = [
   {
     companyName: "Hodkiewicz - Hintz",
@@ -502,65 +501,6 @@ const hotOptions = {
   licenseKey: "non-commercial-and-evaluation",
 };
 
-export default function Grid() {
-  const [toggleableOptions, setToggleableOptions] = useState({
-    tabNavigation: true,
-    navigableHeaders: true,
-    renderAllRows: false,
-    renderAllColumns: false,
-    enterBeginsEditing: true,
-    autoWrapRow: true,
-    autoWrapCol: true,
-    enterMoves: { col: 0, row: 1 },
-  });
-
-  return (
-    <>
-      {/* DemoOptions component for changing Handsontable options */}
-      <DemoOptions
-        changeToggleOptions={setToggleableOptions}
-        {...toggleableOptions}
-      />
-
-      <input
-        className="placeholder-input"
-        type="text"
-        placeholder="Focusable text input"
-      />
-
-      {/* Handsontable component with dynamic options */}
-      <HotTable
-        // Handsontable needs to reload when changing virtualization
-        // by changing the key, we force the component to reload
-        key={String(toggleableOptions.renderAllRows)}
-        {...hotOptions}
-        // Pass in the options which can change for demo
-        {...toggleableOptions}
-      >
-        {/* Define HotColumns for the data */}
-        <HotColumn data="companyName" type="text" />
-        <HotColumn data="productName" type="text" />
-        <HotColumn
-          data="sellDate"
-          dateFormat="DD/MM/YYYY"
-          correctFormat
-          type="date"
-          allowInvalid={false}
-        />
-        <HotColumn data="inStock" type="checkbox" className="htCenter" />
-        <HotColumn data="qty" type="numeric" />
-        <HotColumn data="orderId" type="text" />
-        <HotColumn data="country" type="dropdown" source={countries} />
-      </HotTable>
-      <input
-        className="placeholder-input"
-        type="text"
-        placeholder="Focusable text input"
-      />
-    </>
-  );
-}
-
 // Demo Options allows you to change the Handsontable options
 // This allows us to change the Handsontable settings from the UI, showcasing
 // the flexibility of Handsontable in configuring according to your needs.
@@ -965,3 +905,64 @@ function DemoOptions({
     </>
   );
 }
+
+const ExampleComponent = () => {
+  const [toggleableOptions, setToggleableOptions] = useState({
+    tabNavigation: true,
+    navigableHeaders: true,
+    renderAllRows: false,
+    renderAllColumns: false,
+    enterBeginsEditing: true,
+    autoWrapRow: true,
+    autoWrapCol: true,
+    enterMoves: { col: 0, row: 1 },
+  });
+
+  return (
+    <>
+      {/* DemoOptions component for changing Handsontable options */}
+      <DemoOptions
+        changeToggleOptions={setToggleableOptions}
+        {...toggleableOptions}
+      />
+
+      <input
+        className="placeholder-input"
+        type="text"
+        placeholder="Focusable text input"
+      />
+
+      {/* Handsontable component with dynamic options */}
+      <HotTable
+        // Handsontable needs to reload when changing virtualization
+        // by changing the key, we force the component to reload
+        key={String(toggleableOptions.renderAllRows)}
+        {...hotOptions}
+        // Pass in the options which can change for demo
+        {...toggleableOptions}
+      >
+        {/* Define HotColumns for the data */}
+        <HotColumn data="companyName" type="text" />
+        <HotColumn data="productName" type="text" />
+        <HotColumn
+          data="sellDate"
+          dateFormat="DD/MM/YYYY"
+          correctFormat
+          type="date"
+          allowInvalid={false}
+        />
+        <HotColumn data="inStock" type="checkbox" className="htCenter" />
+        <HotColumn data="qty" type="numeric" />
+        <HotColumn data="orderId" type="text" />
+        <HotColumn data="country" type="dropdown" source={countries} />
+      </HotTable>
+      <input
+        className="placeholder-input"
+        type="text"
+        placeholder="Focusable text input"
+      />
+    </>
+  );
+}
+
+export default ExampleComponent;

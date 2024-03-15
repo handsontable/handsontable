@@ -14,7 +14,7 @@ const data = new Array(100) // number of rows
     .map((_, column) => `${row}, ${column}`)
   );
 
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   const [isContainerExpanded, setIsContainerExpanded] = useState(false);
   const hotRef = useRef(null);
 
@@ -59,6 +59,4 @@ export const ExampleComponent = () => {
   );
 };
 
-/* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
-/* end:skip-in-preview */
+export default ExampleComponent;

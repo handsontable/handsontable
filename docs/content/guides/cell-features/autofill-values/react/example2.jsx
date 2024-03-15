@@ -5,7 +5,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   const data = [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
     ['2017', 10, 11, 12, 13],
@@ -32,6 +32,4 @@ export const ExampleComponent = () => {
   );
 };
 
-/* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
-/* end:skip-in-preview */
+export default ExampleComponent;

@@ -223,7 +223,7 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 ::: only-for react
 
 ```jsx
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   const hyperformulaInstance = HyperFormula.buildEmpty({
     // to use an external HyperFormula instance,
     // initialize it with the `'internal-use-in-handsontable'` license key
@@ -269,7 +269,7 @@ export const ExampleComponent = () => {
 ::: only-for react
 
 ```jsx
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   return (
     <>
       <HotTable
@@ -352,7 +352,7 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 ::: only-for react
 
 ```jsx
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   const hyperformulaInstance = HyperFormula.buildEmpty({
     // to use an external HyperFormula instance,
     // initialize it with the `'internal-use-in-handsontable'` license key
@@ -419,7 +419,7 @@ new Handsontable(element, {
 ::: only-for react
 
 ```jsx
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   const afterFormulasValuesUpdate = (changes) => {
     changes.forEach((change) => {
       console.log('change', change.address, change.newValue);

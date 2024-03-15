@@ -7,7 +7,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const App = () => {
+const ExampleComponent = () => {
   const hotTableComponentRef = useRef(null);
 
   useEffect(() => {
@@ -143,4 +143,4 @@ export const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('exampleQuickFilter'));
+export default ExampleComponent;

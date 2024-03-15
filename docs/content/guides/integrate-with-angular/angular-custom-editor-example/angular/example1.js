@@ -13,6 +13,7 @@ import { CustomEditor } from './CustomEditor';
     </div>
   `,
 })
+
 export class AppComponent {
   hotSettings: Handsontable.GridSettings = {
     startRows: 5,
@@ -28,6 +29,7 @@ export class AppComponent {
     licenseKey: 'non-commercial-and-evaluation'
   };
 }
+/* end-file */
 
 /* file: app.module.ts */
 import { NgModule } from '@angular/core';
@@ -47,6 +49,7 @@ registerAllModules();
   bootstrap: [ AppComponent ]
 })
 export class AppModule { }
+/* end-file */
 
 /* file: CustomEditor.ts */
 import { TextEditor } from 'handsontable/editors/textEditor';
@@ -63,11 +66,4 @@ export class CustomEditor extends TextEditor {
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   }
 }
-
-/* start:skip-in-preview */
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-
-platformBrowserDynamic()
-  .bootstrapModule(AppModule)
-  .catch(err => { console.error(err) });
-/* end:skip-in-preview */
+/* end-file */

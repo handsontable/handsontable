@@ -1,34 +1,18 @@
-const addStyleImport = (code, css) => {
-  if (!css) return code;
+const { getParameters } = require('codesandbox/lib/api/define');
+const { getBody } = require('../../code-structure-builder/getBody');
 
-  return code.replace(
-    'import \'handsontable/dist/handsontable.full.min.css\';',
-    match => `${match}\nimport './style.css'`
-  );
-};
-
-const codesandbox = (html, code, css, preset, id) => {
-  const codeWithStyleImport = addStyleImport(code, css);
+const codesandbox = (id, html, js, css, docsVersion, preset) => {
+  const body = getBody(id, html, js, css, docsVersion, preset);
+  const parameters = getParameters(body);
 
   return `
-  <form class="form-codesandbox-external" @submit.prevent="$parent.$parent.submitCodesandbox">
-    <textarea class="hidden" name="html" readOnly v-pre>
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Handontable example</title>
-  </head>
-<body>
-${html}
-</body>
-</html>
-    </textarea>
-    <textarea class="hidden" name="id" readOnly v-pre>${id}</textarea>
-    <textarea class="hidden" name="preset" readOnly v-pre>${preset}</textarea>
-    <textarea class="hidden" name="js" readOnly v-pre>${codeWithStyleImport}</textarea>
-    <textarea class="hidden" name="css" readOnly v-pre>${css}</textarea>
+  <form 
+    class="form-codesandbox-external" 
+    action="https://codesandbox.io/api/v1/sandboxes/define"
+    method="post"
+    target="_blank"
+  >
+    <input type="hidden" name="parameters" value="${parameters}" />
 
     <div class="js-codesandbox-link">
       <button type="submit" aria-label="Edit codesandbox">
@@ -45,6 +29,4 @@ ${html}
   `;
 };
 
-module.exports = {
-  codesandbox,
-};
+module.exports = { codesandbox };

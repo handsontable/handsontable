@@ -5,15 +5,11 @@
  */
 const EXAMPLE_REGEX = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
 
-/**
- * Regular expression used to match the export default statement in the code.
- * @type {RegExp}
- */
-const EXPORT_DEFAULT_REGEX = /export default (?:function ([\w]*)|([\w]*))/g;
-
 const { buildCode } = require('./code-builder');
+const { addCodeForPreset } = require('./add-code-for-preset');
 const { codesandbox } = require('./codesandbox');
 const { jsfiddle } = require('./jsfiddle');
+const { stackblitz } = require('./stackblitz');
 
 const tab = (tabName, token, id) => {
   if (!token) return [];
@@ -123,9 +119,6 @@ module.exports = function(docsVersion, base) {
           // eslint-disable-next-line max-len
           .replace(/\/\*(\s+)?start:skip-in-compilation(\s+)?\*\/\n.*?\/\*(\s+)?end:skip-in-compilation(\s+)?\*\/\n/msg, '');
 
-        const match = EXPORT_DEFAULT_REGEX.exec(codeToCompile);
-        const exportId = match?.[1] || match?.[2];
-
         const codeToPreview = jsToken.content
           // Remove the all "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" comments
           .replace(/\/\*(\s+)?(start|end):skip-in-compilation(\s+)?\*\/\n/gm, '')
@@ -133,19 +126,22 @@ module.exports = function(docsVersion, base) {
           .replace(/\/\*(\s+)?start:skip-in-preview(\s+)?\*\/\n.*?\/\*(\s+)?end:skip-in-preview(\s+)?\*\/\n/msg, '')
           .trim();
 
+        const codeToCompileSandbox = jsToken.content
+          // Remove the all "/* start:skip-in-preview */" and "/* end:skip-in-preview */" comments
+          .replace(/\/\*(\s+)?(start|end):skip-in-preview(\s+)?\*\/\n/gm, '')
+          // Remove the all "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" comments
+          .replace(/\/\*(\s+)?(start|end):skip-in-compilation(\s+)?\*\/\n/gm, '');
+
         jsToken.content = codeToPreview;
 
         const activeTab = `${args.match(/--tab (code|html|css|preview)/)?.[1] ?? 'preview'}-tab-${id}`;
         const noEdit = !!args.match(/--no-edit/)?.[0];
 
+        const codeForPreset = addCodeForPreset(codeToCompile, preset, id);
+
         const code = buildCode(
           id + (preset.includes('angular') ? '.ts' : '.jsx'),
-          exportId
-            ? `
-          ${codeToCompile}
-          
-          ReactDOM.render(<${exportId} />, document.getElementById("${id}"));`
-            : codeToCompile,
+          codeForPreset,
           env.relativePath
         );
         const encodedCode = encodeURI(
@@ -166,34 +162,18 @@ module.exports = function(docsVersion, base) {
         tokens.splice(index + 1, 0, ...newTokens);
 
         return `
-            <div class="tabs-button-wrapper">
-            ${
-  !noEdit
-    ? jsfiddle(
-      id,
-      htmlContent,
-      exportId
-        ? `
-          ${codeToCompile}
-          
-          ReactDOM.render(<${exportId} />, document.getElementById("${id}"));`
-        : codeToCompile,
-      cssContent,
-      docsVersion,
-      preset
-    )
-    : ''
-}
-            ${
-  !noEdit && codesandbox(htmlContent, codeToCompile, cssContent, preset, id)
-}
-              
-              <tabs
-                :class="$parent.$parent.addClassIfPreviewTabIsSelected('${id}', 'selected-preview')"
-                :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }"
-                cache-lifetime="0"
-                @changed="$parent.$parent.codePreviewTabChanged(...arguments, '${id}')"
-              >
+          <div class="tabs-button-wrapper">
+            <div class="tabs-button-list">
+              ${Boolean(!noEdit) && jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset)}
+              ${Boolean(!noEdit) && codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
+              ${Boolean(!noEdit) && stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
+            </div>
+            <tabs
+              :class="$parent.$parent.addClassIfPreviewTabIsSelected('${id}', 'selected-preview')"
+              :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }"
+              cache-lifetime="0"
+              @changed="$parent.$parent.codePreviewTabChanged(...arguments, '${id}')"
+            >
           `;
       } else {
         // close preview
