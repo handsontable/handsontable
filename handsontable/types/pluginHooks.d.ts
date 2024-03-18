@@ -13,15 +13,12 @@ import {
   DropdownMenu,
 } from './plugins/dropdownMenu';
 import {
-  ColumnSorting,
   Config as ColumnSortingConfig,
 } from './plugins/columnSorting';
 import {
-  Filters,
   ColumnConditions as FiltersColumnConditions,
 } from './plugins/filters';
 import {
-  UndoRedo,
   Action as UndoRedoAction,
 } from './plugins/undoRedo';
 import {

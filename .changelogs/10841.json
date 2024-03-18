@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Stopped using `dtslint` in favor of `@typescript-eslint/eslint-plugin`.",
+  "type": "changed",
+  "issueOrPR": 10841,
+  "breaking": false,
+  "framework": "none"
+}
