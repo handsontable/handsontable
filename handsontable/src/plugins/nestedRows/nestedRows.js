@@ -182,7 +182,8 @@ export class NestedRows extends BasePlugin {
         runOnlyIf: () => {
           const highlight = this.hot.getSelectedRangeLast()?.highlight;
 
-          return highlight && this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
+          return highlight && this.hot.getSelectedRangeLast()?.isSingle() &&
+            this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
         },
         group: SHORTCUTS_GROUP,
         relativeToGroup: SHORTCUTS_GROUP_EDITOR,

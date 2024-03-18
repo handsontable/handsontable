@@ -140,7 +140,8 @@ export class MultiColumnSorting extends ColumnSorting {
         runOnlyIf: () => {
           const highlight = this.hot.getSelectedRangeLast()?.highlight;
 
-          return highlight && this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
+          return highlight && this.hot.getSelectedRangeLast()?.isSingle() &&
+            this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
         },
         relativeToGroup: SHORTCUTS_GROUP_EDITOR,
         position: 'before',

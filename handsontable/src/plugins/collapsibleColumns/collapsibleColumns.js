@@ -269,7 +269,8 @@ export class CollapsibleColumns extends BasePlugin {
           // prevent default Enter behavior (move to the next row within a selection range)
           return false;
         },
-        runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isHeader(),
+        runOnlyIf: () => this.hot.getSelectedRangeLast()?.isSingle() &&
+          this.hot.getSelectedRangeLast()?.highlight.isHeader(),
         group: SHORTCUTS_GROUP,
         relativeToGroup: SHORTCUTS_GROUP_EDITOR,
         position: 'before',
