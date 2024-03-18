@@ -36,7 +36,7 @@ export default class CellRange {
   isOverlappingHorizontally(cellRange: CellRange): boolean;
   isOverlappingVertically(cellRange: CellRange): boolean;
   expand(cellCoords: CellCoords): boolean;
-  expandByRange(expandingRange: CellRange, changeDirection: boolean = true): boolean;
+  expandByRange(expandingRange: CellRange, changeDirection: boolean): boolean;
   getDirection(): DirectionType;
   setDirection(direction: DirectionType): void;
   getVerticalDirection(): 'N-S' | 'S-N';

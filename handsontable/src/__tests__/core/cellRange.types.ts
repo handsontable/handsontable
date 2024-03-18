@@ -47,7 +47,7 @@ const isNorthWestOf: boolean = cellRange.isNorthWestOf(cellCoords);
 const isOverlappingHorizontally: boolean = cellRange.isOverlappingHorizontally(cellRangeRTL);
 const isOverlappingVertically: boolean = cellRange.isOverlappingVertically(cellRangeRTL);
 const expand: boolean = cellRange.expand(cellCoords);
-const expandByRange1: boolean = cellRange.expandByRange(cellRangeRTL);
+const expandByRange1: boolean = cellRange.expandByRange(cellRangeRTL, true);
 const expandByRange2: boolean = cellRange.expandByRange(cellRangeRTL, false);
 const getDirection: 'NW-SE' | 'NE-SW' | 'SE-NW' | 'SW-NE' = cellRange.getDirection();
 
