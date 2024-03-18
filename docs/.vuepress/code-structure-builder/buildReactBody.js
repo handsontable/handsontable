@@ -4,6 +4,7 @@ const buildReactBody = ({ js, css, version, preset, sandbox }) => {
     "redux": "^4.0.0",
     "react-redux": "^7.2.4",`
     : '';
+
   if (sandbox === 'stackblitz') {
     return {
       files: {

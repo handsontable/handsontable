@@ -16,7 +16,8 @@ const stackblitz = (id, html, js, css, docsVersion, preset) => {
     target="_blank"
   >
     ${projects.join('\n')}
-    <input type="hidden" name="project[description]" value="test">
+    <input type="hidden" name="project[title]" value="handsontable">
+    <input type="hidden" name="project[description]" value="demo">
     <input type="hidden" name="project[template]" value="node">
     <div class="js-stackblitz-link">
       <button type="submit" aria-label="Edit stackblitz">
