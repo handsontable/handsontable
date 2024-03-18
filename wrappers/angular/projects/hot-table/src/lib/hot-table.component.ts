@@ -205,6 +205,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() afterLoadData: Handsontable.GridSettings['afterLoadData'];
   @Input() afterMergeCells: Handsontable.GridSettings['afterMergeCells'];
   @Input() afterModifyTransformEnd: Handsontable.GridSettings['afterModifyTransformEnd'];
+  @Input() afterModifyTransformFocus: Handsontable.GridSettings['afterModifyTransformFocus'];
   @Input() afterModifyTransformStart: Handsontable.GridSettings['afterModifyTransformStart'];
   @Input() afterMomentumScroll: Handsontable.GridSettings['afterMomentumScroll'];
   @Input() afterNamedExpressionAdded: Handsontable.GridSettings['afterNamedExpressionAdded'];
@@ -315,6 +316,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() beforeRowResize: Handsontable.GridSettings['beforeRowResize'];
   @Input() beforeRowWrap: Handsontable.GridSettings['beforeRowWrap'];
   @Input() beforeSelectColumns: Handsontable.GridSettings['beforeSelectColumns'];
+  @Input() beforeSelectionFocusSet: Handsontable.GridSettings['beforeSelectionFocusSet'];
   @Input() beforeSelectionHighlightSet: Handsontable.GridSettings['beforeSelectionHighlightSet'];
   @Input() beforeSelectRows: Handsontable.GridSettings['beforeSelectRows'];
   @Input() beforeSetCellMeta: Handsontable.GridSettings['beforeSetCellMeta'];
@@ -357,6 +359,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() modifyRowHeight: Handsontable.GridSettings['modifyRowHeight'];
   @Input() modifySourceData: Handsontable.GridSettings['modifySourceData'];
   @Input() modifyTransformEnd: Handsontable.GridSettings['modifyTransformEnd'];
+  @Input() modifyTransformFocus: Handsontable.GridSettings['modifyTransformFocus'];
   @Input() modifyTransformStart: Handsontable.GridSettings['modifyTransformStart'];
   @Input() persistentStateLoad: Handsontable.GridSettings['persistentStateLoad'];
   @Input() persistentStateReset: Handsontable.GridSettings['persistentStateReset'];

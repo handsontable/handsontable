@@ -1381,6 +1381,15 @@ const REGISTERED_HOOKS = [
   'beforeSetCellMeta',
 
   /**
+   * Fired before setting focus selection.
+   *
+   * @since 14.3.0
+   * @event Hooks#beforeSelectionFocusSet
+   * @param {CellCoords} coords CellCoords instance.
+   */
+  'beforeSelectionFocusSet',
+
+  /**
    * Fired before setting range is started but not finished yet.
    *
    * @event Hooks#beforeSetRangeStartOnly
@@ -2359,6 +2368,15 @@ const REGISTERED_HOOKS = [
   'modifyRowHeaderWidth',
 
   /**
+   * Fired when the focus of the selection is being modified (e.g. Moving the focus with the enter/tab keys).
+   *
+   * @since 14.3.0
+   * @event Hooks#modifyTransformFocus
+   * @param {CellCoords} delta Cell coords object declaring the delta of the new selection relative to the previous one.
+   */
+  'modifyTransformFocus',
+
+  /**
    * Fired when the start of the selection is being modified (e.g. Moving the selection with the arrow keys).
    *
    * @event Hooks#modifyTransformStart
@@ -2373,6 +2391,17 @@ const REGISTERED_HOOKS = [
    * @param {CellCoords} delta Cell coords object declaring the delta of the new selection relative to the previous one.
    */
   'modifyTransformEnd',
+
+  /**
+   * Fired after the focus of the selection is being modified (e.g. Moving the focus with the enter/tab keys).
+   *
+   * @since 14.3.0
+   * @event Hooks#afterModifyTransformFocus
+   * @param {CellCoords} coords Coords of the freshly focused cell.
+   * @param {number} rowTransformDir `-1` if trying to focus a cell with a negative row index. `0` otherwise.
+   * @param {number} colTransformDir `-1` if trying to focus a cell with a negative column index. `0` otherwise.
+   */
+  'afterModifyTransformFocus',
 
   /**
    * Fired after the start of the selection is being modified (e.g. Moving the selection with the arrow keys).

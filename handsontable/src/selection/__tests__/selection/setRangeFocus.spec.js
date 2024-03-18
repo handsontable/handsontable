@@ -73,6 +73,22 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 4,2 from: 1,1 to: 3,3']);
     });
 
+    it('should trigger the "beforeSetFocus" local hook', () => {
+      const beforeSetFocus = jasmine.createSpy('beforeSetFocus');
+      const hot = handsontable({
+        data: createSpreadsheetData(6, 4),
+        colHeaders: false,
+        rowHeaders: false,
+      });
+
+      hot.selection.addLocalHook('beforeSetFocus', beforeSetFocus);
+
+      selectCells([[1, 1, 3, 3]]);
+      hot.selection.setRangeFocus(cellCoords(2, 2));
+
+      expect(beforeSetFocus).toHaveBeenCalledOnceWith(cellCoords(2, 2));
+    });
+
     it('should trigger the "afterSetFocus" local hook', () => {
       const afterSetFocus = jasmine.createSpy('afterSetFocus');
       const hot = handsontable({
@@ -87,6 +103,22 @@ describe('Selection', () => {
       hot.selection.setRangeFocus(cellCoords(2, 2));
 
       expect(afterSetFocus).toHaveBeenCalledOnceWith(cellCoords(2, 2));
+    });
+
+    it('should trigger the "beforeHighlightSet" local hook', () => {
+      const beforeHighlightSet = jasmine.createSpy('beforeHighlightSet');
+      const hot = handsontable({
+        data: createSpreadsheetData(6, 4),
+        colHeaders: false,
+        rowHeaders: false,
+      });
+
+      selectCells([[1, 1, 3, 3]]);
+
+      hot.selection.addLocalHook('beforeHighlightSet', beforeHighlightSet);
+      hot.selection.setRangeFocus(cellCoords(2, 2));
+
+      expect(beforeHighlightSet).toHaveBeenCalledTimes(1);
     });
   });
 });
