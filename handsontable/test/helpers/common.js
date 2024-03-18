@@ -146,7 +146,7 @@ beforeEach(function() {
   specContext.spec = this;
 });
 afterEach(() => {
-  // specContext.spec = null;
+  specContext.spec = null;
 });
 
 beforeAll(() => {
