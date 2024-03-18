@@ -1,6 +1,6 @@
 const { formatVersion } = require('../handsontable-manager/dependencies');
 const { buildAngularBody } = require('./buildAngularBody');
-const { buildJavascriptBody } = require('./buildJavaScriptBody');
+const { buildJavascriptBody } = require('./buildJavascriptBody');
 const { buildReactBody } = require('./buildReactBody');
 const { buildVue3Body } = require('./buildVue3Body');
 const { buildVueBody } = require('./buildVueBody');
