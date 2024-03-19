@@ -87,7 +87,7 @@ describe('Focus handling', () => {
         true
       ));
 
-      hot.selection.transformFocus(1, 1)
+      hot.selection.transformFocus(1, 1);
 
       expect(document.activeElement).toEqual(getCell(
         getSelectedRangeLast().highlight.row,
