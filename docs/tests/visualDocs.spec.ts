@@ -21,7 +21,8 @@ test.beforeEach(async({ page }) => {
 guides.forEach((guide) => {
   guide.children.filter(child => !child.path.includes('release-notes')).forEach((child) => {
     test(`take screenshot for JS on ${child.path.split('/').pop()}`, async({ page }) => {
-      await page.goto(`http://localhost:8081/docs/javascript-data-grid/${child.path.split('/').pop()}`);
+      await page.goto(`/javascript-data-grid/${child.path.split('/').pop()}`);
+      await expect(page.getByText('Page not found (404)')).toHaveCount(0)
       await page.waitForLoadState('networkidle');
       const screenshotName = `js-${child.path.split('/').pop()}.png`;
 
@@ -34,7 +35,8 @@ const filteredGuides = require('../content/sidebars').guides.filter(item => !ite
 filteredGuides.forEach((guide) => {
   guide.children.filter(child => !child.path.includes('release-notes')).forEach((child) => {
     test(`take screenshot for React on ${child.path.split('/').pop()}`, async({ page }) => {
-      await page.goto(`http://localhost:8081/docs/react-data-grid/${child.path.split('/').pop()}`);
+      await page.goto(`/react-data-grid/${child.path.split('/').pop()}`);
+      await expect(page.getByText('Page not found (404)')).toHaveCount(0)
       await page.waitForLoadState('networkidle');
       const screenshotName = `react-${child.path.split('/').pop()}.png`;
 
