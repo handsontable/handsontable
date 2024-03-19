@@ -3,6 +3,8 @@ import LinkedList from '../../utils/dataStructures/linkedList';
 /**
  * Class responsible for providing the correct focus order (vertical and horizontal) within a selection that
  * contains merged cells.
+ *
+ * @private
  */
 export class FocusOrder {
   /**
