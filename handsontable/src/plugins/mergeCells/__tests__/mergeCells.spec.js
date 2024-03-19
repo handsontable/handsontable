@@ -67,6 +67,32 @@ describe('MergeCells', () => {
       ]);
     });
 
+    it('should provide information about the source of the change in the `afterChange` hook', () => {
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data: [
+          [1, 2, 3, 4],
+          [5, 6, 7, 8],
+          [9, 10, 11, 12],
+          [13, 14, 15, 16],
+        ],
+        mergeCells: [{
+          row: 0,
+          col: 0,
+          rowspan: 2,
+          colspan: 2
+        }],
+        afterChange,
+      });
+
+      expect(afterChange.calls.mostRecent().args[1]).toEqual('MergeCells');
+
+      getPlugin('mergeCells').merge(2, 2, 3, 3);
+
+      expect(afterChange.calls.mostRecent().args[1]).toEqual('MergeCells');
+    });
+
     it('should merge cells on startup respecting indexes sequence changes', () => {
       handsontable({
         data: [
