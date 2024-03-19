@@ -5,6 +5,14 @@ const buildReactBody = ({ js, css, version, preset, sandbox }) => {
     "react-redux": "^7.2.4",`
     : '';
 
+  const addAdvancedDependencies = preset.includes('advanced')
+    ? `
+    "redux": "latest",
+    "react-redux": "latest",
+    "react-colorful": "latest",
+    "react-star-rating-component": "latest",`
+    : '';
+
   if (sandbox === 'stackblitz') {
     return {
       files: {
@@ -20,7 +28,7 @@ const buildReactBody = ({ js, css, version, preset, sandbox }) => {
   },
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",${addReduxDependencies}
+    "react-dom": "^18.2.0",${addReduxDependencies}${addAdvancedDependencies}
     "hyperformula": "latest",
     "handsontable": "${version}",
     "@handsontable/react": "${version}"
@@ -94,7 +102,7 @@ root.render(
   },
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",${addReduxDependencies}
+    "react-dom": "^18.2.0",${addReduxDependencies}${addAdvancedDependencies}
     "hyperformula": "latest",
     "handsontable": "${version}",
     "@handsontable/react": "${version}"

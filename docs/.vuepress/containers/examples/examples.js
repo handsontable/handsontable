@@ -117,13 +117,17 @@ module.exports = function(docsVersion, base) {
           .replace(/\/\*(\s+)?(start|end):skip-in-preview(\s+)?\*\/\n/gm, '')
           // Remove the code between "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" expressions
           // eslint-disable-next-line max-len
-          .replace(/\/\*(\s+)?start:skip-in-compilation(\s+)?\*\/\n.*?\/\*(\s+)?end:skip-in-compilation(\s+)?\*\/\n/msg, '');
+          .replace(/\/\*(\s+)?start:skip-in-compilation(\s+)?\*\/\n.*?\/\*(\s+)?end:skip-in-compilation(\s+)?\*\/\n/msg, '')
+          // Remove /* end-file */
+          .replace(/\/\* end-file \*\//gm, '');
 
         const codeToPreview = jsToken.content
           // Remove the all "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" comments
           .replace(/\/\*(\s+)?(start|end):skip-in-compilation(\s+)?\*\/\n/gm, '')
           // Remove the code between "/* start:skip-in-preview */" and "/* end:skip-in-preview */" expressions
           .replace(/\/\*(\s+)?start:skip-in-preview(\s+)?\*\/\n.*?\/\*(\s+)?end:skip-in-preview(\s+)?\*\/\n/msg, '')
+          // Remove /* end-file */
+          .replace(/\/\* end-file \*\//gm, '')
           .trim();
 
         const codeToCompileSandbox = jsToken.content
@@ -164,9 +168,9 @@ module.exports = function(docsVersion, base) {
         return `
           <div class="tabs-button-wrapper">
             <div class="tabs-button-list">
-              ${Boolean(!noEdit) && jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset)}
-              ${Boolean(!noEdit) && codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
               ${Boolean(!noEdit) && stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
+              ${Boolean(!noEdit) && codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
+              ${Boolean(!noEdit) && jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset)}
             </div>
             <tabs
               :class="$parent.$parent.addClassIfPreviewTabIsSelected('${id}', 'selected-preview')"

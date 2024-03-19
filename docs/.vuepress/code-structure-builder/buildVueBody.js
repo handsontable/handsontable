@@ -3,6 +3,12 @@ const buildVueBody = ({ id, html, js, css, version, preset }) => {
     ? `
     "vuex": "^3.6.2",`
     : '';
+  const addAdvancedDependencies = preset.includes('advanced')
+    ? `
+    "vuex": "^3.6.2",
+    "vue-color": "latest",
+    "vue-star-rating": "latest",`
+    : '';
 
   return {
     files: {
@@ -17,7 +23,7 @@ const buildVueBody = ({ id, html, js, css, version, preset }) => {
     "build": "vue-cli-service build"
   },
   "dependencies": {
-    "vue": "2.7.14",${addVuexDependencies}
+    "vue": "2.7.14",${addVuexDependencies}${addAdvancedDependencies}
     "hyperformula": "latest",
     "handsontable": "${version}",
     "@handsontable/vue": "${version}"

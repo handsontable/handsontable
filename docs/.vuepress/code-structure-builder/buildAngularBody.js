@@ -24,33 +24,35 @@ const buildAngularBody = ({ html, js, version }) => {
   "description": "",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --port 8080"
+    "start": "ng serve --disable-host-check",
+    "build": "ng build"
   },
   "dependencies": {
-    "@angular/animations": "latest",
-    "@angular/common": "latest",
-    "@angular/compiler": "latest",
-    "@angular/core": "latest",
-    "@angular/forms": "latest",
-    "@angular/platform-browser": "latest",
-    "@angular/platform-browser-dynamic": "latest",
-    "@angular/router": "latest",
-    "rxjs": "6.6.7",
-    "tslib": "2.1.0",
-    "zone.js": "0.14.0",
-    "@handsontable/angular": "${version}",
-    "handsontable": "${version}"
+    "@angular/animations": "^17.3.0",
+    "@angular/common": "^17.3.0",
+    "@angular/compiler": "^17.3.0",
+    "@angular/core": "^17.3.0",
+    "@angular/forms": "^17.3.0",
+    "@angular/platform-browser": "^17.3.0",
+    "@angular/platform-browser-dynamic": "^17.3.0",
+    "@angular/router": "^17.3.0",
+    "numbro": "^2.4.0",
+    "rxjs": "^7.8.0",
+    "tslib": "^2.6.2",
+    "zone.js": "^0.14.4",
+    "hyperformula": "latest",
+    "handsontable": "${version}",
+    "@handsontable/angular": "${version}"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "latest",
+    "@angular-devkit/build-angular": "^17.3.0",
     "@angular/localize": "latest",
     "@angular/service-worker": "latest",
-    "@angular/cli": "latest",
-    "@angular/compiler-cli": "latest",
+    "@angular/cli": "^17.3.0",
+    "@angular/compiler-cli": "^17.3.0",
     "@types/node": "12.20.7",
-    "puppeteer": "14.3.0",
     "ts-node": "8.3.0",
-    "typescript": "5.2.2"
+    "typescript": "5.4.2"
   }
 }`,
       },
@@ -60,7 +62,7 @@ const buildAngularBody = ({ html, js, version }) => {
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "angular": {
+    "sandbox": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:application": {
@@ -79,7 +81,6 @@ const buildAngularBody = ({ html, js, version }) => {
             "main": "src/main.ts",
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
-            "aot": true,
             "styles": [
               "node_modules/handsontable/dist/handsontable.full.css"
             ],
@@ -93,19 +94,6 @@ const buildAngularBody = ({ html, js, version }) => {
           },
           "configurations": {
             "production": {
-              "fileReplacements": [
-                {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.prod.ts"
-                }
-              ],
-              "optimization": true,
-              "outputHashing": "all",
-              "sourceMap": false,
-              "namedChunks": false,
-              "extractLicenses": true,
-              "vendorChunk": false,
-              "buildOptimizer": true,
               "budgets": [
                 {
                   "type": "initial",
@@ -117,39 +105,52 @@ const buildAngularBody = ({ html, js, version }) => {
                   "maximumWarning": "2kb",
                   "maximumError": "4kb"
                 }
-              ]
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
             }
-          }
+          },
+          "defaultConfiguration": "production"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "angular:build"
+            "browserTarget": "sandbox:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "angular:build:production"
+              "browserTarget": "sandbox:build:production"
+            },
+            "development": {
+              "browserTarget": "sandbox:build:development"
             }
-          }
+          },
+          "defaultConfiguration": "development"
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "angular:build"
+            "browserTarget": "sandbox:build"
           }
         }
       }
     }
   },
-  "defaultProject": "angular",
+  "defaultProject": "sandbox",
   "cli": {
     "analytics": false
   }
 }`,
       },
       'tsconfig.app.json': {
-        content: `
-/* To learn more about this file see: https://angular.io/guide/typescript-configuration. */
+        content: `/* To learn more about this file see: https://angular.io/config/tsconfig. */
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
@@ -215,28 +216,14 @@ const buildAngularBody = ({ html, js, version }) => {
   </body>
 </html>`,
       },
-      'src/environments/environment.prod.ts': {
-        content: `export const environment = {
-  production: true
-};`,
-      },
-      'src/environments/environment.ts': {
-        content: `export const environment = {
-  production: false
-};`,
-      },
       'src/main.ts': {
-        content: `import { enableProdMode} from '@angular/core';
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+        content: `import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import { AppModule } from './app/app.module';
-import { environment } from './environments/environment';
 
-if (environment.production) {
-  enableProdMode();
-}
-
-platformBrowserDynamic().bootstrapModule(AppModule)
-  .catch(err => console.error(err));`,
+platformBrowserDynamic()
+  .bootstrapModule(AppModule)
+  .catch((err) => console.error(err));
+`,
       },
       ...codePartsObject
     },
