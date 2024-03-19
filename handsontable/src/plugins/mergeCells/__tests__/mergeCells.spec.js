@@ -67,7 +67,8 @@ describe('MergeCells', () => {
       ]);
     });
 
-    it('should provide information about the source of the change in the `afterChange` hook', () => {
+    it('should provide information about the source of the change in the `beforeChange` and `afterChange` hooks', () => {
+      const beforeChange = jasmine.createSpy('beforeChange');
       const afterChange = jasmine.createSpy('afterChange');
 
       handsontable({
@@ -83,13 +84,16 @@ describe('MergeCells', () => {
           rowspan: 2,
           colspan: 2
         }],
+        beforeChange,
         afterChange,
       });
 
+      expect(beforeChange.calls.mostRecent().args[1]).toEqual('MergeCells');
       expect(afterChange.calls.mostRecent().args[1]).toEqual('MergeCells');
 
       getPlugin('mergeCells').merge(2, 2, 3, 3);
 
+      expect(beforeChange.calls.mostRecent().args[1]).toEqual('MergeCells');
       expect(afterChange.calls.mostRecent().args[1]).toEqual('MergeCells');
     });
 
