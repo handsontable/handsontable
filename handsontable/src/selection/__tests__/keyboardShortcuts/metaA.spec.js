@@ -33,5 +33,27 @@ describe('Selection extending', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: -1,-1 to: 4,4']);
     });
+
+    it('should do nothing when pressing the shortcut with a header being selected', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      selectCell(0, 0);
+      keyDownUp(['ArrowLeft']);
+      keyDownUp(['control/meta', 'a']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,-1 from: 0,-1 to: 0,-1']);
+
+      selectCell(0, 0);
+      keyDownUp(['ArrowUp']);
+      keyDownUp(['control/meta', 'a']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,0 from: -1,0 to: -1,0']);
+    });
   });
 });
