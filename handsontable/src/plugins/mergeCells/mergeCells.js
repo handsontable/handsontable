@@ -337,7 +337,8 @@ export class MergeCells extends BasePlugin {
         return;
       }
 
-      this.hot.setDataAtCell(populatedNulls);
+      // TODO: Change the `source` argument to a more meaningful value, e.g. `${this.pluginName}.clearCells`.
+      this.hot.setDataAtCell(populatedNulls, undefined, undefined, this.pluginName);
     }
   }
 
@@ -455,6 +456,7 @@ export class MergeCells extends BasePlugin {
         populationInfo = [mergeParent.row, mergeParent.col, clearedData];
 
       } else {
+        // TODO: Change the `source` argument to a more meaningful value, e.g. `${this.pluginName}.clearCells`.
         this.hot.populateFromArray(
           mergeParent.row, mergeParent.col, clearedData, undefined, undefined, this.pluginName);
       }
