@@ -1,0 +1,9 @@
+/* hide the column menu button by default */
+.customFilterButtonExample2 .changeType {
+  visibility: hidden;
+}
+
+/* show the column menu button on hover */
+.customFilterButtonExample2 th .relative:hover .changeType {
+  visibility: visible;
+}
