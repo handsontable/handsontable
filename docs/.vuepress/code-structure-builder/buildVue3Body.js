@@ -18,7 +18,7 @@ const buildVue3Body = ({ id, html, js, css, version, preset }) => {
   },
   "dependencies": {
     "vue": "3.2.45",${addVuex}
-    "hyperformula": "latest",
+    "hyperformula": "^2.4.0",
     "handsontable": "${version}",
     "@handsontable/vue3": "${version}"
   },

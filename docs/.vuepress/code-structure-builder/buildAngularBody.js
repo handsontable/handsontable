@@ -40,7 +40,7 @@ const buildAngularBody = ({ html, js, version }) => {
     "rxjs": "^7.8.0",
     "tslib": "^2.6.2",
     "zone.js": "^0.14.4",
-    "hyperformula": "latest",
+    "hyperformula": "^2.4.0",
     "handsontable": "${version}",
     "@handsontable/angular": "${version}"
   },

@@ -29,7 +29,7 @@ const buildReactBody = ({ js, css, version, preset, sandbox }) => {
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",${addReduxDependencies}${addAdvancedDependencies}
-    "hyperformula": "latest",
+    "hyperformula": "^2.4.0",
     "handsontable": "${version}",
     "@handsontable/react": "${version}"
   },

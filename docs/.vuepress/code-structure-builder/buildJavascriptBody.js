@@ -11,8 +11,8 @@ const buildJavascriptBody = ({ id, html, js, css, version }) => {
     "build": "parcel build ./src/index.html"
   },
   "dependencies": {
-    "handsontable": "${version}",
-    "hyperformula": "latest"
+    "hyperformula": "^2.4.0",
+    "handsontable": "${version}"
   },
   "devDependencies": {
     "@babel/core": "7.2.0",

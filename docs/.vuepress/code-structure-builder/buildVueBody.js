@@ -24,7 +24,7 @@ const buildVueBody = ({ id, html, js, css, version, preset }) => {
   },
   "dependencies": {
     "vue": "2.7.14",${addVuexDependencies}${addAdvancedDependencies}
-    "hyperformula": "latest",
+    "hyperformula": "^2.4.0",
     "handsontable": "${version}",
     "@handsontable/vue": "${version}"
   },
