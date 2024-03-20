@@ -9,7 +9,9 @@ on:
       update-snapshots:
         description: "Update snapshots?"
         type: boolean
-
+defaults:
+  run:
+    working-directory: ./docs/
 jobs:
   run-tests:
     runs-on: ubuntu-latest
@@ -25,16 +27,19 @@ jobs:
           node-version: "20"
           check-latest: true
 
-      - name: Install deps && build packages
+      - name: Install documentation dependencies
         run: |
-          cd docs  
           npm install
           npx playwright install --with-deps
+
+      - name: Install the monorepo dependencies and build the packages
+        run: |
+          cd ..
+          npm ci
           npm run all build -- --e examples visual-tests
 
       - name: Generate API refs
         run: |
-          cd docs  
           npm run docs:api
 
       - name: Set up cache
@@ -47,11 +52,11 @@ jobs:
 
       - name: Initialize snapshots
         if: ${{steps.cache.outputs.cache-hit != 'true' || inputs.update-snapshots == 'true'}}
-        run: cd docs && npx playwright test --update-snapshots
+        run: npx playwright test --update-snapshots
 
       - name: Test
         continue-on-error: true
-        run: cd docs && npx playwright test
+        run: npx playwright test
 
       - name: Upload test report
         if: always()
