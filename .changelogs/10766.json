@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "removed versioned examples and gh workflow for publishing",
-  "type": "removed",
-  "issueOrPR": 10766,
-  "breaking": false,
-  "framework": "none"
-}

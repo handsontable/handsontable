@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed propToCol return type inference",
-  "type": "fixed",
-  "issueOrPR": 10631,
-  "breaking": false,
-  "framework": "none"
-}

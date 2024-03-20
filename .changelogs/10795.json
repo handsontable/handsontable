@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed input problems when using the browser's autocomplete + fixed an event listener leak.",
-  "type": "fixed",
-  "issueOrPR": 10795,
-  "breaking": false,
-  "framework": "none"
-}
