@@ -1,6 +1,6 @@
 const jsPaths = [
   { path: 'guides/getting-started/introduction/introduction' },
-  // { path: 'guides/getting-started/demo/demo' },
+  { path: 'guides/getting-started/demo/demo' },
   // { path: 'guides/getting-started/installation/installation' },
   // { path: 'guides/getting-started/binding-to-data/binding-to-data' },
   // { path: 'guides/getting-started/saving-data/saving-data' },
