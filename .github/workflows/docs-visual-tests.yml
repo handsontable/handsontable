@@ -25,11 +25,12 @@ jobs:
           node-version: "20"
           check-latest: true
 
-      - name: Install deps
+      - name: Install deps && build packages
         run: |
           cd docs  
           npm install
           npx playwright install --with-deps
+          npm run all build -- --e examples visual-tests
 
       - name: Generate API refs
         run: |
