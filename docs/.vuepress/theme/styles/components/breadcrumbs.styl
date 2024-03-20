@@ -1,0 +1,31 @@
+.page {
+    .breadcrumbs {
+        max-width: 720px
+        display: flex
+        margin:0 auto
+        padding: 16px 0 0 !important
+        
+        a, span {
+            font-size: $font-size-xs
+            line-height: $line-height-xs
+        }
+        a {
+            color: $textColor
+            margin:0 !important
+            i { 
+                display: inline-block
+                position relative
+                top: 2px
+            }
+            &:after { 
+                content: "/"
+                display: inline-block
+                padding: 0 12px 0 12px
+            }
+        }
+
+        span { 
+            color: $text2Color
+        }
+    }
+}

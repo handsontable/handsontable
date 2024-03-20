@@ -16,36 +16,6 @@
     position: relative
     z-index: 1
 
-    .breadcrumbs {
-        max-width: 720px
-        display: flex
-        margin:0 auto
-        padding: 16px 0 0 !important
-        
-        a, span {
-            font-size: $font-size-xs
-            line-height: $line-height-xs
-        }
-        a {
-            color: $textColor
-            margin:0 !important
-            i { 
-                display: inline-block
-                position relative
-                top: 2px
-            }
-            &:after { 
-                content: "/"
-                display: inline-block
-                padding: 0 12px 0 12px
-            }
-        }
-
-        span { 
-            color: $text2Color
-        }
-    }
-
     .theme-default-content {
         font-size: $font-size-s
         line-height: $line-height-s
@@ -55,8 +25,7 @@
         
         &:not(.custom) { 
             max-width: 720px
-            padding: 0
-        
+            padding: 0 0 80px
         }
 
         .header-framework { 
@@ -133,7 +102,7 @@
             padding: 16px 0 0 
             color: $text2Color
             letter-spacing: $letterSpacingText
-            display: inline-block
+            display: block
 
             &:empty { 
                 display:none 
@@ -143,6 +112,8 @@
         h1 + p + p + p,
         h1 + p + p,
         h1 + p,
+        .table-of-contents + p,
+        .table-of-contents + p + p,
         .table-of-contents + p + p + p {
             font-size: $font-size
             line-height: $line-height
@@ -151,6 +122,11 @@
             color: $textColor
         }
         
+        li {
+            font-size: $font-size-s
+            line-height: $line-height-s
+        }
+
         > ul, > ol { 
             padding: 16px 8px 8px
             word-wrap: break-word
@@ -170,6 +146,16 @@
             }
         }
 
+        pre { 
+            background: $editorColor 
+        }
+        .language-bash:before { 
+            display: none
+        }
+        div[class*="language-"] { 
+            background: $editorColor 
+        }
+        
         img { 
             border-radius: $radius
         }
@@ -202,6 +188,10 @@
             i { 
                 display: inline-block
                 vertical-align: text-top;
+            }
+
+            + p { 
+                margin-top: -28px 
             }
         }
 
@@ -362,7 +352,7 @@
         font-size: $font-size-s
         line-height: $line-height-s
         font-weight: 400
-        margin: 24px 0
+        margin: 32px 0
 
         td,th { 
             padding: 16px

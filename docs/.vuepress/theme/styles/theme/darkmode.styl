@@ -11,6 +11,7 @@ html.theme-dark {
     $onsurfaceColor     = var(--color-gray-700)
     $linkColor          = var(--color-lightblue)
     $editorColor        = var(--color-gray-700)
+    $editorHeadColor    = var(--color-gray-800)
 
     $editorCommentColor         = var(--color-gray-500)
     $editorTagColor             = var(--color-lightblue)
@@ -388,6 +389,8 @@ html.theme-dark {
             h1 + p + p + p,
             h1 + p + p,
             h1 + p,
+            .table-of-contents + p,
+            .table-of-contents + p + p,
             .table-of-contents + p + p + p {
                 color: $textColor
             }
@@ -410,6 +413,7 @@ html.theme-dark {
             div[class*="language-"] { 
                 background: $editorColor 
             }
+
             a {
                 color: $linkColor
 
@@ -742,6 +746,74 @@ html.theme-dark {
     div[class*="language-"]::before { 
         color: $text2Color
         background: $bgColor 
+    }
+
+    .page .boxes-list {
+        li {
+            border: 1px solid $borderColor
+            background: $gradient0
+            
+            &:after {
+                background-color: $sideColor
+            }
+
+            &:before { 
+                background: $gradient
+            }
+
+            a {
+                color: $textColor
+            }
+
+            @media (hover: hover) {
+                &:hover { 
+                    border: 1px solid $bgColor
+
+                    &:after { 
+                        background: $accentColor
+                    }
+                    
+                }
+            }
+        }
+
+        &.gray {
+            li {
+                &:before { 
+                    opacity: 1
+                    background: $sideColor
+                }
+                &:after { 
+                    background: $borderColor 
+                }
+
+                @media (hover: hover) {
+                    &:hover { 
+                        background: $bgColor
+                        box-shadow: 0 0 0 1px $accentColor
+                    }
+                }
+            }
+        }
+    }
+
+    .icons-only {
+            li {
+                background: $sideColor;
+
+            @media (hover: hover) {
+                &:hover { 
+                    background: $bgColor
+                    box-shadow: 0 0 0 1px $accentColor
+                }
+            }
+        }
+    }
+
+    .simple-list { 
+        li a { 
+            color: $text2Color
+        }
     }
 
     @media (max-width: $medium) {

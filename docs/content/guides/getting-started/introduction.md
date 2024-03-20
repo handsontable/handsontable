@@ -43,15 +43,23 @@ Thousands of business apps depend on Handsontable for entering, editing, validat
 ## Get started with Handsontable
 
 ::: only-for javascript
-
 To jump straight into the sample code, open the demo app at CodeSandbox:
+<div class="icons-only">
 
-- [JavaScript demo](https://codesandbox.io/s/handsontable-javascript-data-grid-hello-world-app-14-0-0-smp4xx)
-- [React demo](https://codesandbox.io/s/handsontable-react-data-grid-hello-world-app-14-0-0-xr7mj2)
-- [Angular demo](https://codesandbox.io/s/handsontable-angular-data-grid-hello-world-app-14-0-0-c54xw9)
-- [Vue 2 demo](https://codesandbox.io/s/handsontable-vue-data-grid-hello-world-app-14-0-0-zm9nz6)
-- [TypeScript demo](https://codesandbox.io/s/handsontable-typescript-data-grid-hello-world-app-14-0-0-3f4lss)
+- <i class="ico i-javascript"></i> 
+[JavaScript demo](https://codesandbox.io/s/handsontable-javascript-data-grid-hello-world-app-14-0-0-smp4xx)
+- <i class="ico i-react"></i> 
+[React demo](https://codesandbox.io/s/handsontable-react-data-grid-hello-world-app-14-0-0-xr7mj2)
+- <i class="ico i-angular"></i> 
+[Angular demo](https://codesandbox.io/s/handsontable-angular-data-grid-hello-world-app-14-0-0-c54xw9)
+- <i class="ico i-vue"></i> 
+[Vue 2 demo](https://codesandbox.io/s/handsontable-vue-data-grid-hello-world-app-14-0-0-zm9nz6)
+- <i class="ico i-ts"></i> 
+[TypeScript demo](https://codesandbox.io/s/handsontable-typescript-data-grid-hello-world-app-14-0-0-3f4lss)
+
+</div>
 :::
+
 
 ::: only-for react
 To jump straight into the sample code, [open the demo app at CodeSandbox](https://codesandbox.io/s/handsontable-react-data-grid-hello-world-app-14-0-0-xr7mj2).
@@ -60,22 +68,59 @@ To jump straight into the sample code, [open the demo app at CodeSandbox](https:
 Then, move on to [connecting](@/guides/getting-started/binding-to-data.md) your data and [configuring](@/guides/getting-started/configuration-options.md) Handsontable's built-in features. For more advanced implementations, use Handsontable's [API](@/api/introduction.md).
 
 ### Quickstart
+<div class="boxes-list">
 
-- [Install Handsontable](@/guides/getting-started/installation.md)
-- [Load data](@/guides/getting-started/binding-to-data.md)
-- [Save data](@/guides/getting-started/saving-data.md)
-- [Configure options](@/guides/getting-started/configuration-options.md)
-- [Define the size](@/guides/getting-started/grid-size.md)
+- <i class="ico i-javascript"></i> 
+[Install Handsontable](@/guides/getting-started/installation.md) A Step-by-Step Guide
+- <i class="ico i-javascript"></i> 
+[Load data](@/guides/getting-started/binding-to-data.md) A Step-by-Step Guide
+- <i class="ico i-javascript"></i> 
+[Save data](@/guides/getting-started/saving-data.md) A Step-by-Step Guide
+- <i class="ico i-javascript"></i> 
+[Configure options](@/guides/getting-started/configuration-options.md) A Step-by-Step Guide
+- <i class="ico i-javascript"></i> 
+[Define the size](@/guides/getting-started/grid-size.md) A Step-by-Step Guide
+
+</div>
 
 ### Use popular features
+<div class="boxes-list gray">
 
-- [Cell types](@/guides/cell-types/cell-type.md)
-- [Formula calculations](@/guides/formulas/formula-calculation.md)
-- [Column filter](@/guides/columns/column-filter.md)
-- [Column groups](@/guides/columns/column-groups.md)
-- [Column summary](@/guides/columns/column-summary.md)
-- [Row parent-child](@/guides/rows/row-parent-child.md)
-- [Context menu](@/guides/accessories-and-menus/context-menu.md)
+- <i class="ico i-javascript"></i> 
+[Cell types](@/guides/cell-types/cell-type.md) A Step-by-Step Guide
+- <i class="ico i-javascript"></i> 
+[Formula calculations](@/guides/formulas/formula-calculation.md) A Step-by-Step Guide
+- <i class="ico i-javascript"></i> 
+[Column filter](@/guides/columns/column-filter.md) A Step-by-Step Guide
+- <i class="ico i-javascript"></i> 
+[Column groups](@/guides/columns/column-groups.md) A Step-by-Step Guide
+- <i class="ico i-javascript"></i> 
+[Column summary](@/guides/columns/column-summary.md) A Step-by-Step Guide
+- <i class="ico i-javascript"></i> 
+[Row parent-child](@/guides/rows/row-parent-child.md) A Step-by-Step Guide
+- <i class="ico i-javascript"></i> 
+[Context menu](@/guides/accessories-and-menus/context-menu.md) A Step-by-Step Guide
+
+</div>
+
+### Use popular features
+<div class="simple-list">
+
+- <i class="ico i-javascript"></i> 
+[Cell types](@/guides/cell-types/cell-type.md)
+- <i class="ico i-javascript"></i> 
+[Formula calculations](@/guides/formulas/formula-calculation.md)
+- <i class="ico i-javascript"></i> 
+[Column filter](@/guides/columns/column-filter.md)
+- <i class="ico i-javascript"></i> 
+[Column groups](@/guides/columns/column-groups.md)
+- <i class="ico i-javascript"></i> 
+[Column summary](@/guides/columns/column-summary.md)
+- <i class="ico i-javascript"></i> 
+[Row parent-child](@/guides/rows/row-parent-child.md)
+- <i class="ico i-javascript"></i> [Context menu](@/guides/accessories-and-menus/context-menu.md)
+
+</div>
 
 ### Customize the grid
 
@@ -122,6 +167,7 @@ Handsontable's built-in features and customizability keep it present across diff
 
 Implementing Handsontable requires a certain level of front-end development skills. In case you need help, and can't find a solution in the documentation, reach out to us. If you have a commercial Handsontable license, and your support plan is active, contact our [Technical Support Team](https://handsontable.com/contact?category=technical_support).
 
+<!--
 ## Feedback
 
 Contribute to the development of Handsontable:
@@ -136,3 +182,4 @@ Contribute to the development of Handsontable:
 - [Release notes](@/guides/upgrade-and-migration/release-notes.md)
 - [Blog](https://handsontable.com/blog)
 - [Twitter](https://twitter.com/handsontable)
+-->
