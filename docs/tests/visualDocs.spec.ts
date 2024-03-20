@@ -1,6 +1,14 @@
 import { test, expect } from '@playwright/test';
+import { jsPaths, reactPaths } from './paths';
 
-const guides = require('../content/sidebars').guides;
+const pathsNeedingMoreTolerance = [
+  'events-and-hooks',
+  'formula-calculation',
+  'migration-from-7.4-to-8.0',
+  'layout-direction',
+  'selection',
+  'events-and-hooks',
+];
 
 test.beforeEach(async({ page }) => {
 
@@ -18,29 +26,31 @@ test.beforeEach(async({ page }) => {
   ]);
 });
 
-guides.forEach((guide) => {
-  guide.children.filter(child => !child.path.includes('release-notes')).forEach((child) => {
-    test(`take screenshot for JS on ${child.path.split('/').pop()}`, async({ page }) => {
-      await page.goto(`/javascript-data-grid/${child.path.split('/').pop()}`);
-      await expect(page.getByText('Page not found (404)')).toHaveCount(0)
-      await page.waitForLoadState('networkidle');
-      const screenshotName = `js-${child.path.split('/').pop()}.png`;
+jsPaths.forEach((jspath) => {
+  test(`take screenshot for JS on ${jspath.path.split('/').pop()}`, async({ page }) => {
+    const path = `/javascript-data-grid/${jspath.path.split('/').pop()}`.replace('introduction', '');
+    const maxDiffPixelRatioValue = pathsNeedingMoreTolerance.includes('path') ? 0.01 : 0.001;
 
-      await expect(page).toHaveScreenshot(screenshotName, { maxDiffPixelRatio: 0.01, fullPage: true });
-    });
+    await page.goto(path);
+    await expect(page.getByText('Page not found (404)')).toHaveCount(0);
+    await page.waitForLoadState('networkidle');
+    const screenshotName = `js-${jspath.path.split('/').pop()}.png`;
+
+    await expect(page).toHaveScreenshot(screenshotName, { maxDiffPixelRatio: maxDiffPixelRatioValue, fullPage: true });
   });
 });
-const filteredGuides = require('../content/sidebars').guides.filter(item => !item.onlyFor);
 
-filteredGuides.forEach((guide) => {
-  guide.children.filter(child => !child.path.includes('release-notes')).forEach((child) => {
-    test(`take screenshot for React on ${child.path.split('/').pop()}`, async({ page }) => {
-      await page.goto(`/react-data-grid/${child.path.split('/').pop()}`);
-      await expect(page.getByText('Page not found (404)')).toHaveCount(0)
-      await page.waitForLoadState('networkidle');
-      const screenshotName = `react-${child.path.split('/').pop()}.png`;
+// console.log(reactGuides);
+reactPaths.forEach((reactPath) => {
+  test(`take screenshot for React on ${reactPath.path.split('/').pop()}`, async({ page }) => {
+    const path = `/react-data-grid/${reactPath.path.split('/').pop()}`.replace('introduction', '');
+    const maxDiffPixelRatioValue = pathsNeedingMoreTolerance.includes('path') ? 0.01 : 0.001;
 
-      await expect(page).toHaveScreenshot(screenshotName, { maxDiffPixelRatio: 0.01, fullPage: true });
-    });
+    await page.goto(path);
+    await expect(page.getByText('Page not found (404)')).toHaveCount(0);
+    await page.waitForLoadState('networkidle');
+    const screenshotName = `react-${reactPath.path.split('/').pop()}.png`;
+
+    await expect(page).toHaveScreenshot(screenshotName, { maxDiffPixelRatio: maxDiffPixelRatioValue, fullPage: true });
   });
 });

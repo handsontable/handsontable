@@ -1,0 +1,56 @@
+name: Docs Visual Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      update-snapshots:
+        description: "Update snapshots?"
+        type: boolean
+defaults:
+  run:
+    working-directory: ./docs/
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          cache: npm
+          node-version: "20"
+          check-latest: true
+
+      - name: Install deps
+        run: |
+          npm install
+          npx playwright install
+
+      - name: Set up cache
+        id: cache
+        uses: actions/cache@v4
+        with:
+          key: cache/${{github.repository}}/${{github.ref}}
+          restore-keys: cache/${{github.repository}}/refs/heads/develop
+          path: .test/**
+
+      - name: Initialize snapshots
+        if: ${{steps.cache.outputs.cache-hit != 'true' || inputs.update-snapshots == 'true'}}
+        run: npx playwright test --update-snapshots
+
+      - name: Test
+        continue-on-error: true
+        run: npx playwright test
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: .test/spec/results/
+          retention-days: 30
+          overwrite: true
