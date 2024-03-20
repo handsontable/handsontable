@@ -15,8 +15,8 @@ const isCI = !!process.env.CI;
 export default defineConfig({
   expect: { timeout: 30000 },
   testDir: './tests',
-  outputDir: './tests/output',
-  snapshotPathTemplate: './tests/output/screenshots/{testFilePath}/{arg}{ext}',
+  outputDir: './tests/test-artifacts/output',
+  snapshotPathTemplate: './tests/test-artifacts/screenshots/{testFilePath}/{arg}{ext}',
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -28,7 +28,7 @@ export default defineConfig({
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ['html', {
-      outputFolder: './tests/output/results',
+      outputFolder: './tests/test-artifacts/results',
       open: 'never',
     }],
     isCI ? ['github'] : ['line'],
@@ -85,5 +85,6 @@ export default defineConfig({
     command: 'npm run docs:start',
     url: 'http://localhost:8080/docs',
     reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
   },
 });

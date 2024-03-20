@@ -48,7 +48,7 @@ jobs:
         with:
           key: cache/${{github.repository}}/${{github.ref}}
           restore-keys: cache/${{github.repository}}/refs/heads/develop
-          path: ./docs/tests/**
+          path: ./docs/tests/test-artifacts/**
 
       - name: Initialize snapshots
         if: ${{steps.cache.outputs.cache-hit != 'true' || inputs.update-snapshots == 'true'}}
@@ -63,6 +63,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: ./docs/tests/output/results
+          path: ./docs/tests/test-artifacts/results
           retention-days: 30
           overwrite: true
