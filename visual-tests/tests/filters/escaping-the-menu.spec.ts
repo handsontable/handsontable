@@ -1,16 +1,12 @@
 import { test } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
+import { selectCell } from '../../src/page-helpers';
 
 /**
  * Checks whether pressing the ESCAPE key within any focused component closes the menu.
  */
 test(__filename, async({ page }) => {
-  const table = page.locator(helpers.selectors.mainTable);
-
-  await table.waitFor();
-
-  const tbody = table.locator(helpers.selectors.mainTableBody);
-  const cell = tbody.locator(helpers.findCell({ row: 0, column: 2, cellType: 'td' }));
+  const cell = await selectCell(0, 2);
 
   await cell.click();
   await page.keyboard.press('Alt+Shift+ArrowDown'); // trigger the dropdown menu to show up

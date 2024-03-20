@@ -1,13 +1,9 @@
 import { test } from '../src/test-runner';
 import { helpers } from '../src/helpers';
+import { selectCell } from '../src/page-helpers';
 
 test(__filename, async({ page }) => {
-  const table = page.locator(helpers.selectors.mainTable);
-
-  await table.waitFor();
-
-  const tbody = table.locator(helpers.selectors.mainTableBody);
-  const cell = tbody.locator(helpers.findCell({ row: 0, column: 0, cellType: 'td' }));
+  const cell = await selectCell(0, 0);
 
   // move the focus to the corner
   await cell.click();

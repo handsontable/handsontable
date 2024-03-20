@@ -1,0 +1,24 @@
+<div id="example1">
+  <hot-table :data="hotData" :settings="settings">
+    <hot-column
+      title="Product name"
+      data="productName"
+      width="120"
+      read-only="true"
+    ></hot-column>
+    <hot-column
+      title="Price in Japan"
+      type="numeric"
+      :numeric-format="formatJP"
+      data="JP_price"
+      width="120"
+    ></hot-column>
+    <hot-column
+      title="Price in Turkey"
+      data="TR_price"
+      type="numeric"
+      :numeric-format="formatTR"
+      width="120"
+    ></hot-column>
+  </hot-table>
+</div>

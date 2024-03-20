@@ -73,8 +73,8 @@ const deprecationWarns = new Set();
  *
  * ::: only-for react
  * To use these methods, associate a Handsontable instance with your instance
- * of the [`HotTable` component](@/guides/getting-started/installation.md#_4-use-the-hottable-component),
- * by using React's `ref` feature (read more on the [Instance methods](@/guides/getting-started/react-methods.md) page).
+ * of the [`HotTable` component](@/guides/getting-started/installation/installation.md#_4-use-the-hottable-component),
+ * by using React's `ref` feature (read more on the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page).
  * :::
  *
  * ## How to call a method
@@ -2205,20 +2205,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * The `updateData()` method replaces Handsontable's [`data`](@/api/options.md#data) with a new dataset.
    *
    * The `updateData()` method:
-   * - Keeps cells' states (e.g. cells' [formatting](@/guides/cell-features/formatting-cells.md) and cells' [`readOnly`](@/api/options.md#readonly) states)
+   * - Keeps cells' states (e.g. cells' [formatting](@/guides/cell-features/formatting-cells/formatting-cells.md) and cells' [`readOnly`](@/api/options.md#readonly) states)
    * - Keeps rows' states (e.g. row order)
    * - Keeps columns' states (e.g. column order)
    *
    * To replace Handsontable's [`data`](@/api/options.md#data) and reset states, use the [`loadData()`](#loaddata) method.
    *
    * Read more:
-   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
-   * - [Saving data](@/guides/getting-started/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data/saving-data.md)
    *
    * @memberof Core#
    * @function updateData
    * @since 11.1.0
-   * @param {Array} data An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
+   * @param {Array} data An [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), that contains Handsontable's data
    * @param {string} [source] The source of the `updateData()` call
    * @fires Hooks#beforeUpdateData
    * @fires Hooks#afterUpdateData
@@ -2252,19 +2252,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * The `loadData()` method replaces Handsontable's [`data`](@/api/options.md#data) with a new dataset.
    *
    * Additionally, the `loadData()` method:
-   * - Resets cells' states (e.g. cells' [formatting](@/guides/cell-features/formatting-cells.md) and cells' [`readOnly`](@/api/options.md#readonly) states)
+   * - Resets cells' states (e.g. cells' [formatting](@/guides/cell-features/formatting-cells/formatting-cells.md) and cells' [`readOnly`](@/api/options.md#readonly) states)
    * - Resets rows' states (e.g. row order)
    * - Resets columns' states (e.g. column order)
    *
    * To replace Handsontable's [`data`](@/api/options.md#data) without resetting states, use the [`updateData()`](#updatedata) method.
    *
    * Read more:
-   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
-   * - [Saving data](@/guides/getting-started/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data/saving-data.md)
    *
    * @memberof Core#
    * @function loadData
-   * @param {Array} data An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
+   * @param {Array} data An [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), that contains Handsontable's data
    * @param {string} [source] The source of the `loadData()` call
    * @fires Hooks#beforeLoadData
    * @fires Hooks#afterLoadData
@@ -2668,7 +2668,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * ::: tip
    * The `alter()` method works only when your [`data`](@/api/options.md#data)
-   * is an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
+   * is an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays).
    * :::
    *
    * ```js
@@ -2981,7 +2981,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * sorted or trimmed only physical indexes are correct.
    *
    * __Note__: This method may return incorrect values for cells that contain
-   * [formulas](@/guides/formulas/formula-calculation.md). This is because `getSourceData()`
+   * [formulas](@/guides/formulas/formula-calculation/formula-calculation.md). This is because `getSourceData()`
    * operates on source data ([physical indexes](@/api/indexMapper.md)),
    * whereas formulas operate on visual data (visual indexes).
    *
@@ -3359,8 +3359,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Checks if your [data format](@/guides/getting-started/binding-to-data.md#compatible-data-types)
-   * and [configuration options](@/guides/getting-started/configuration-options.md)
+   * Checks if your [data format](@/guides/getting-started/binding-to-data/binding-to-data.md#compatible-data-types)
+   * and [configuration options](@/guides/getting-started/configuration-options/configuration-options.md)
    * allow for changing the number of columns.
    *
    * Returns `false` when your data is an array of objects,
@@ -3458,10 +3458,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * Validates every cell in the data set,
-   * using a [validator function](@/guides/cell-functions/cell-validator.md) configured for each cell.
+   * using a [validator function](@/guides/cell-functions/cell-validator/cell-validator.md) configured for each cell.
    *
-   * Doesn't validate cells that are currently [trimmed](@/guides/rows/row-trimming.md),
-   * [hidden](@/guides/rows/row-hiding.md), or [filtered](@/guides/columns/column-filter.md),
+   * Doesn't validate cells that are currently [trimmed](@/guides/rows/row-trimming/row-trimming.md),
+   * [hidden](@/guides/rows/row-hiding/row-hiding.md), or [filtered](@/guides/columns/column-filter/column-filter.md),
    * as such cells are not included in the data set until you bring them back again.
    *
    * After the validation, the `callback` function is fired, with the `valid` argument set to:
@@ -3661,18 +3661,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Gets the values of column headers (if column headers are [enabled](@/api/options.md#colheaders)).
    *
    * To get an array with the values of all
-   * [bottom-most](@/guides/cell-features/clipboard.md#copy-with-headers) column headers,
+   * [bottom-most](@/guides/cell-features/clipboard/clipboard.md#copy-with-headers) column headers,
    * call `getColHeader()` with no arguments.
    *
    * To get the value of the bottom-most header of a specific column, use the `column` parameter.
    *
-   * To get the value of a [specific-level](@/guides/columns/column-groups.md) header
+   * To get the value of a [specific-level](@/guides/columns/column-groups/column-groups.md) header
    * of a specific column, use the `column` and `headerLevel` parameters.
    *
    * Read more:
-   * - [Guides: Column groups](@/guides/columns/column-groups.md)
+   * - [Guides: Column groups](@/guides/columns/column-groups/column-groups.md)
    * - [Options: `colHeaders`](@/api/options.md#colheaders)
-   * - [Guides: Copy with headers](@/guides/cell-features/clipboard.md#copy-with-headers)
+   * - [Guides: Copy with headers](@/guides/cell-features/clipboard/clipboard.md#copy-with-headers)
    *
    * ```js
    * // get the contents of all bottom-most column headers
