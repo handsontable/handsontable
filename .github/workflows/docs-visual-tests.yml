@@ -9,9 +9,6 @@ on:
       update-snapshots:
         description: "Update snapshots?"
         type: boolean
-defaults:
-  run:
-    working-directory: ./docs/
 
 jobs:
   run-tests:
@@ -30,8 +27,14 @@ jobs:
 
       - name: Install deps
         run: |
+          cd docs  
           npm install
           npx playwright install
+
+      - name: Generate API refs
+        run: |
+          cd docs  
+          npm run docs:api
 
       - name: Set up cache
         id: cache
@@ -39,7 +42,7 @@ jobs:
         with:
           key: cache/${{github.repository}}/${{github.ref}}
           restore-keys: cache/${{github.repository}}/refs/heads/develop
-          path: .test/**
+          path: ./docs/tests/**
 
       - name: Initialize snapshots
         if: ${{steps.cache.outputs.cache-hit != 'true' || inputs.update-snapshots == 'true'}}
@@ -54,6 +57,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: .test/spec/results/
+          path: ./docs/tests/output/results
           retention-days: 30
           overwrite: true
