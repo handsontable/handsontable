@@ -1,6 +1,9 @@
 name: Docs Visual Tests
 
 on:
+  push:
+      branches:
+        - "*"
   workflow_dispatch:
     inputs:
       update-snapshots:
