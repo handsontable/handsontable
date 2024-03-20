@@ -51,10 +51,9 @@ jobs:
         id: cache
         uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # https://github.com/actions/cache/releases/tag/v4.0.2
         with:
-          key: cache/${{github.repository}}/${{github.ref}}
-          restore-keys: cache/${{github.repository}}/refs/heads/develop
+          key: plawyright-cache/${{github.repository}}/${{github.ref}}
+          restore-keys: plawyright-cache/${{github.repository}}/refs/heads/develop
           path: ./docs/tests/test-artifacts/**
-
       - name: Initialize snapshots
         if: ${{steps.cache.outputs.cache-hit != 'true' || inputs.update-snapshots == 'true'}}
         run: npx playwright test --update-snapshots
