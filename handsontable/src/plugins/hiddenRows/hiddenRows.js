@@ -27,7 +27,7 @@ export const PLUGIN_PRIORITY = 320;
  * @class HiddenRows
  *
  * @description
- * The `HiddenRows` plugin lets you [hide specified rows](@/guides/rows/row-hiding.md).
+ * The `HiddenRows` plugin lets you [hide specified rows](@/guides/rows/row-hiding/row-hiding.md).
  *
  * "Hiding a row" means that the hidden row doesn't get rendered as a DOM element.
  *
@@ -39,9 +39,9 @@ export const PLUGIN_PRIORITY = 320;
  *
  * | Option | Required | Type | Default | Description |
  * |---|---|---|---|---|
- * | `rows` | No | Array | - | [Hides specified rows by default](@/guides/rows/row-hiding.md#step-1-specify-rows-hidden-by-default) |
- * | `indicators` | No | Boolean | `false` | [Shows UI indicators](@/guides/rows/row-hiding.md#step-2-show-ui-indicators) |
- * | `copyPasteEnabled` | No | Boolean | `true` | [Sets up copy/paste behavior](@/guides/rows/row-hiding.md#step-4-set-up-copy-and-paste-behavior) |
+ * | `rows` | No | Array | - | [Hides specified rows by default](@/guides/rows/row-hiding/row-hiding.md#step-1-specify-rows-hidden-by-default) |
+ * | `indicators` | No | Boolean | `false` | [Shows UI indicators](@/guides/rows/row-hiding/row-hiding.md#step-2-show-ui-indicators) |
+ * | `copyPasteEnabled` | No | Boolean | `true` | [Sets up copy/paste behavior](@/guides/rows/row-hiding/row-hiding.md#step-4-set-up-copy-and-paste-behavior) |
  *
  * @example
  *

@@ -37,6 +37,12 @@ export function shortcutsGridContext(hot) {
   context.addShortcuts([{
     keys: [['Control/Meta', 'A']],
     callback: () => commandsPool.selectAllCells(),
+    runOnlyIf: () => !hot.getSelectedRangeLast().highlight.isHeader(),
+  }, {
+    keys: [['Control/Meta', 'A']],
+    callback: () => {},
+    runOnlyIf: () => hot.getSelectedRangeLast().highlight.isHeader(),
+    preventDefault: true,
   }, {
     keys: [['Control/Meta', 'Shift', 'Space']],
     callback: () => commandsPool.selectAllCellsAndHeaders(),

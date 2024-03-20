@@ -1,24 +1,18 @@
 import { test } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
+import { selectCell, selectEditor, openEditor } from '../../../src/page-helpers';
 
 /**
  * Checks whether it's possible to manually edit the cell value.
  */
 test(__filename, async({ page }) => {
-  const table = page.locator(helpers.selectors.mainTable);
 
-  await table.waitFor();
+  const cell = await selectCell(1, 2);
 
-  const tbody = table.locator(helpers.selectors.mainTableBody);
+  await openEditor(cell);
 
-  const cell = tbody.locator(helpers.findCell({ row: 1, column: 2, cellType: 'td' }));
+  const cellEditor = await selectEditor();
 
-  await cell.click();
-  await cell.press('Enter');
-
-  const cellEditor = table.locator(helpers.findCellEditor());
-
-  await cellEditor.waitFor();
   await cellEditor.press('Backspace'); // Should remove one character from the end of the value
 
   await page.screenshot({ path: helpers.screenshotPath() });

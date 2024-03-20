@@ -5,6 +5,7 @@ module.exports = {
     parser: 'babel-eslint',
     sourceType: 'module'
   },
+  ignorePatterns: ['**/guides/**/*.js'],
   rules: {
     'no-restricted-globals': 'off',
     'import/no-unresolved': 'off'
