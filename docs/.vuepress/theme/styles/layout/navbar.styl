@@ -17,6 +17,7 @@
         right: 25%
         background: $bgColor
         display: block
+        z-index: -1
     }
     
 
@@ -392,7 +393,7 @@
                 right:-160px;
                 left: -160px
                 min-width:320px
-                background: $sideColor
+                background: $onsurfaceColor
                 padding: 8px 0
                 border-radius: $radius-xxl
                 list-style: none
@@ -409,6 +410,13 @@
                         padding: 16px 16px 12px
                         border-bottom: 1px solid $borderColor
                         margin: 8px 0
+                    }
+                    
+                    &.focused {
+                        a {
+                            background: $borderColor
+                            color: $textColor
+                        }
                     }
 
                     a { 

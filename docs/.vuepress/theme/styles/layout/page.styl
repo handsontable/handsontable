@@ -146,15 +146,7 @@
             }
         }
 
-        pre { 
-            background: $editorColor 
-        }
-        .language-bash:before { 
-            display: none
-        }
-        div[class*="language-"] { 
-            background: $editorColor 
-        }
+        
         
         img { 
             border-radius: $radius
@@ -174,73 +166,6 @@
             }
             svg { padding: 4px}
         }
-
-        .source-code-link {
-            padding: 8px 16px
-            color: $text2Color
-            background: $sideColor
-            border-radius: $radius
-            top: -28px
-            position: relative
-            float: right
-            font-size: $font-size-xs
-            
-            i { 
-                display: inline-block
-                vertical-align: text-top;
-            }
-
-            + p { 
-                margin-top: -28px 
-            }
-        }
-
-        .custom-block {
-            background: $sideColor
-            border-radius: $radius-xl
-            margin:0 -16px
-            padding: 24px 16px 24px 48px
-            border:0
-            margin-top: 16px
-            position: relative
-
-            &:before { 
-                content: ''
-                display: block
-                position absolute
-                top: 28px
-                bottom: 28px
-                left: 24px
-                width: 1px
-                background: $gradient
-            }
-
-            &.tip { }
-            
-            .tip-icon { 
-                height: 24px
-                width: 24px
-                display: inline-block
-                vertical-align: middle
-                margin-right: 8px
-            }
-            .custom-block-title {  
-                display: none                
-            }
-
-            p { 
-                padding: 0
-                vertical-align: middle
-                
-                a { 
-                    font-weight: 400
-                }
-            }
-
-            code { 
-                background: $bgColor 
-            }
-        }
     }
 
     a.header-anchor { 
@@ -250,85 +175,7 @@
         }
     }
 
-    .page-nav { 
-        padding: 24px 0 0
-        max-width: 720px
-        
-        .inner { 
-            border: 0
-            display: flex
-            gap: 16px
-            padding: 0
-
-            > span { 
-                border: 1px solid $borderColor
-                border-radius: $radius-xl
-                width: 100%
-                padding: 24px
-                position: relative
-                z-index: 1
-                color: $linkColor
-                font-size: $font-size-s
-                line-height: $line-height-s
-                font-weight: 400
-
-                &:before {
-                    display: block
-                    content: 'Preview'
-                    font-size: $font-size-xxs
-                    line-height: $line-height-xxs
-                    color: $text2Color
-                    pointer-events: none
-                }
-                
-                @media (hover: hover) {
-                    &:hover { 
-                        a:after {
-                            background: $borderColor
-                        }
-                    }
-                }
-
-                &.next { 
-                    text-align: right 
-                    margin-right: 0
-                    margin-left: auto
-
-                    &:before {
-                        content: 'Next'
-                    }
-                }
-
-                a { 
-                    font-weight: 300
-
-                    &:after { 
-                        position absolute
-                        inset: 0 
-                        content: ''
-                        display: block
-                        border-radius: $radius-xl
-                        z-index -1
-                        transition all $t ease
-
-                    }
-                    &:before { 
-                        position absolute
-                        inset: 0 
-                        content: ''
-                        display: block
-                        z-index 1
-                    }
-
-                    @media (hover: hover) {
-                        &:hover:after {  
-                            background: $borderColor
-                        }
-                    }
-                }
-            }
-        }
-    }
+    
     
     kbd {
         border: 1px solid $borderColor
@@ -397,15 +244,6 @@
             }
         }
     }
-    /*
-    #example1_events {
-        border: 1px solid $borderColor
-        border-radius: $radius
-        padding: 16px
-        font-size: $font-size-s
-        line-height: $line-height-s
-        margin: 24px 0
-    }*/
 
     #hooksList {
         padding-top: 16px 
