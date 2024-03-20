@@ -32,15 +32,15 @@ jobs:
           npm install
           npx playwright install --with-deps
 
-      - name: Install the monorepo dependencies and build the packages
-        run: |
-          cd ..
-          npm ci
-          npm run all build -- --e examples visual-tests
+      # - name: Install the monorepo dependencies and build the packages
+      #   run: |
+      #     cd ..
+      #     npm ci
+      #     npm run all build -- --e examples visual-tests
 
-      - name: Generate API refs
-        run: |
-          npm run docs:api
+      # - name: Generate API refs
+      #   run: |
+      #     npm run docs:api
 
       - name: Set up cache
         id: cache
