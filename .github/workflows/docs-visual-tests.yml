@@ -29,7 +29,7 @@ jobs:
         run: |
           cd docs  
           npm install
-          npx playwright install
+          npx playwright install --with-deps
 
       - name: Generate API refs
         run: |
@@ -46,11 +46,11 @@ jobs:
 
       - name: Initialize snapshots
         if: ${{steps.cache.outputs.cache-hit != 'true' || inputs.update-snapshots == 'true'}}
-        run: npx playwright test --update-snapshots
+        run: cd docs && npx playwright test --update-snapshots
 
       - name: Test
         continue-on-error: true
-        run: npx playwright test
+        run: cd docs && npx playwright test
 
       - name: Upload test report
         if: always()
