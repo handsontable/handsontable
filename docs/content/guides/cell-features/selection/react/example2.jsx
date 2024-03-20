@@ -17,12 +17,16 @@ export const ExampleComponent = () => {
 
     getButtonClickCallback = event => {
       const selected = hot.getSelected() || [];
-      const data = [];
+      let data = [];
 
-      for (let i = 0; i < selected.length; i += 1) {
-        const item = selected[i];
-
-        data.push(hot.getData(...item));
+      if (selected.length === 1) {
+        data = hot.getData(...selected[0]);
+      } else {
+        for (let i = 0; i < selected.length; i += 1) {
+          const item = selected[i];
+    
+          data.push(hot.getData(...item));
+        }
       }
 
       setOutput(JSON.stringify(data));
