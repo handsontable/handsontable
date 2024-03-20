@@ -748,7 +748,7 @@ const REGISTERED_HOOKS = [
   /**
    * Fired after the focus position within a selected range is changed.
    *
-   * @since 14.2.0
+   * @since 14.3.0
    * @event Hooks#afterSelectionFocusSet
    * @param {number} row The focus visual row index position.
    * @param {number} column The focus visual column index position.
