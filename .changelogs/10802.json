@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Changed the way checkbox-typed cells react to pressing `SPACE` and `ENTER` keys.",
-  "type": "changed",
-  "issueOrPR": 10802,
-  "breaking": false,
-  "framework": "none"
-}

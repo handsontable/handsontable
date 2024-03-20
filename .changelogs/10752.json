@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Focus on the Handsontable instance within the iframe won't persist for clicking outside the iframe",
-  "type": "fixed",
-  "issueOrPR": 10752,
-  "breaking": false,
-  "framework": "none"
-}

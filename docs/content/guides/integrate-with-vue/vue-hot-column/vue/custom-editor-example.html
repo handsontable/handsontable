@@ -1,0 +1,17 @@
+<div id="custom-editor-example">
+  <hot-table :settings="hotSettings">
+    <hot-column :width="250">
+      <custom-editor hot-editor></custom-editor>
+    </hot-column>
+  </hot-table>
+</div>
+
+<script type="text/x-template" id="editor-template">
+  // We're binding the `style` attribute to the style object in our component's data
+  // as well as the `mousedown` event to a function, which stops the event propagation
+  // in order to prevent closing the editor on click.
+  <div v-if="isVisible" id="editorElement" :style="style" v-on:mousedown="stopMousedownPropagation" >
+    <button v-on:click="setLowerCase">{{ value.toLowerCase() }}</button>
+    <button v-on:click="setUpperCase">{{ value.toUpperCase() }}</button>
+  </div>
+</script>
