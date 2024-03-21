@@ -18,7 +18,7 @@ Create a custom cell editor, and use it in your Angular data grid by declaring i
 
 The following is an implementation of the `@handsontable/angular` component with a custom editor added. It utilizes the `placeholder` attribute in the editor's `input` element.
 
-::: example :angular --html 1 --js 2 --no-edit
+::: example :angular --html 1 --js 2
 
 @[code](@/content/guides/integrate-with-angular/angular-custom-editor-example/angular/example1.html)
 
