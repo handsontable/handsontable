@@ -1,23 +1,22 @@
 import React, { useEffect, useRef } from 'react';
-import {
-  HotTable
-} from '../src/hotTable';
+import { HotTable } from '../src/hotTable';
 import {
   createSpreadsheetData,
   mockElementDimensions,
   mountComponent
 } from './_helpers';
+import { HotTableRef } from '../src/types'
 
 describe('Using useRef hooks within HotTable', () => {
   it('should be possible the get Handsontable instance', async () => {
     const refData = createSpreadsheetData(3, 3);
-    let data;
+    let data!: string[][];
 
     function ExampleComponent() {
-      const hotRef = useRef(null);
+      const hotRef = useRef<HotTableRef>(null);
 
       useEffect(() => {
-        const hot = hotRef.current.hotInstance;
+        const hot = hotRef.current!.hotInstance!;
 
         data = hot.getData();
       });

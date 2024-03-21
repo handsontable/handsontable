@@ -1,12 +1,11 @@
 import React from 'react';
-import {
-  HotTable
-} from '../src/hotTable';
+import { HotTable } from '../src/hotTable';
 import {
   createSpreadsheetData,
   mockElementDimensions,
   mountComponentWithRef
 } from './_helpers';
+import { HotTableRef } from '../src/types'
 
 /**
  * Worth noting, that although it's possible to use React's Pure Components on renderer components, it doesn't do much, as currently they're recreated on every
@@ -24,7 +23,7 @@ describe('React PureComponents', () => {
       }
     }
 
-    const hotInstance = mountComponentWithRef((
+    const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 3)}
@@ -36,15 +35,14 @@ describe('React PureComponents', () => {
                 autoColumnSize={false}
                 init={function () {
                   mockElementDimensions(this.rootElement, 300, 300);
-                }}>
-        <RendererComponent2 hot-renderer/>
-      </HotTable>
-    )).hotInstance;
+                }}
+                renderer={RendererComponent2}/>
+    )).hotInstance!;
 
-    expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>value: A1</div>');
+    expect(hotInstance.getCell(0, 0)!.innerHTML).toEqual('<div>value: A1</div>');
   });
 
   /*
-    Editors cannot be declared as PureComponents, as they're derived from the BaseEditorComponent class.
+    Editors cannot be declared as PureComponents, as they need to be functional components.
    */
 });
