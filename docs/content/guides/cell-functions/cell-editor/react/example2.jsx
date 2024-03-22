@@ -19,7 +19,7 @@ class CustomEditor extends TextEditor {
   }
 }
 
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   return (
     <HotTable
       id="hot"
@@ -38,6 +38,4 @@ export const ExampleComponent = () => {
   );
 }
 
-/* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
-/* end:skip-in-preview */
+export default ExampleComponent;

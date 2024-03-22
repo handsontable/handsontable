@@ -1,5 +1,9 @@
-import Vue from 'vue';
 import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/vue';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.css';
+
+// register Handsontable's modules
+registerAllModules();
 
 const CustomEditor = {
   name: 'CustomEditor',
@@ -81,8 +85,8 @@ const CustomEditor = {
   }
 };
 
-const App = new Vue({
-  el: '#custom-editor-example',
+
+const ExampleComponent = {
   data() {
     return {
       hotSettings: {
@@ -102,4 +106,6 @@ const App = new Vue({
     HotColumn,
     CustomEditor
   }
-});
+};
+
+export default ExampleComponent;

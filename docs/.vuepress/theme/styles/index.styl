@@ -29,9 +29,6 @@
 /* Code fields */
 @import 'code'
 
-/* JSFiddle form and button */
-@import 'jsfiddle'
-
 /* Handsontable styles */
 @import 'handsontable'
 
@@ -299,16 +296,6 @@ table {
   right: 5px;
 }
 
-div.js-fiddle-link {
-
-  button {
-    padding: 6px 14px!important;
-  }
-  button:hover{
-    background: #454554;
-  }
-}
-
 .page-nav .inner {
   border-color: #e9eef2;
 }
@@ -490,11 +477,48 @@ kbd {
   }
 }
 
-@media (max-width: 1092px) {
+.tabs-button-wrapper {
+  .tabs-button-list {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.1em;
+
+    button {
+      padding: 7px !important;
+      margin-right: 0;
+      min-width: 20px;
+      background: transparent;
+      &:hover{
+        background: #454554;
+      }
+    }
+  }
+}
+
+@media (max-width: 1192px) {
   .tabs-button-wrapper {
     display: flex;
     flex-direction: column;
     margin: 1em 0;
     gap: 1em;
+
+    .tabs-button-list {
+      order: 1;
+    }
+  }
+}
+
+@media (min-width: 1193px) {
+  .tabs-button-wrapper {
+    position: relative;
+    
+    .tabs-button-list {
+      height: 0;
+      position: relative;
+      position: absolute;
+      right: 8px;
+      top: 8px;
+      z-index: 1;
+    }
   }
 }

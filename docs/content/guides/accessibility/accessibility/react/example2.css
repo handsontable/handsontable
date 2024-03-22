@@ -63,7 +63,7 @@ html.theme-dark .option-label {
   color: #e5ebf1 !important;
 }
 
-#example2 {
+.example-container {
   gap: 1rem;
   display: flex;
   flex-direction: column;
