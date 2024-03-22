@@ -11,6 +11,7 @@ import { ContextMenu } from 'handsontable/plugins/contextMenu';
     </div>
   `,
 })
+
 export class AppComponent {
   hotSettings: Handsontable.GridSettings = {
     data: [
@@ -42,6 +43,7 @@ export class AppComponent {
     licenseKey: 'non-commercial-and-evaluation'
   };
 }
+/* end-file */
 
 /* file: app.module.ts */
 import { NgModule } from '@angular/core';
@@ -61,11 +63,4 @@ registerAllModules();
   bootstrap: [ AppComponent ]
 })
 export class AppModule { }
-
-/* start:skip-in-preview */
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-
-platformBrowserDynamic()
-  .bootstrapModule(AppModule)
-  .catch(err => { console.error(err) });
-/* end:skip-in-preview */
+/* end-file */

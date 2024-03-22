@@ -1,3 +1,5 @@
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 /* start:skip-in-preview */
 const data = [
   {

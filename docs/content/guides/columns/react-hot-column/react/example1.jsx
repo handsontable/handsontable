@@ -22,7 +22,7 @@ const secondColumnSettings = {
   readOnly: true
 };
 
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   return (
     <HotTable data={hotData} 
       autoWrapRow={true}
@@ -34,6 +34,4 @@ export const ExampleComponent = () => {
   );
 };
 
-/* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
-/* end:skip-in-preview */
+export default ExampleComponent;

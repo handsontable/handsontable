@@ -23,7 +23,7 @@ const formatTR = {
   culture: 'tr-TR',
 };
 
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -59,6 +59,4 @@ export const ExampleComponent = () => {
   );
 };
 
-/* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
-/* end:skip-in-preview */
+export default ExampleComponent;

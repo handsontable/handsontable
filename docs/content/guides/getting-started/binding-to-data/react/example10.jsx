@@ -6,7 +6,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   const hotRef = useRef(null);
 
   useEffect(() => {
@@ -36,6 +36,4 @@ export const ExampleComponent = () => {
   );
 };
 
-/* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example10'));
-/* end:skip-in-preview */
+export default ExampleComponent;

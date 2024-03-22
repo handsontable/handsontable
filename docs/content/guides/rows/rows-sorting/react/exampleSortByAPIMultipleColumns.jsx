@@ -6,7 +6,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const App = () => {
+const ExampleComponent = () => {
   const hotTableComponentRef = useRef(null);
   const sort = () => {
     // get the `MultiColumnSorting` plugin
@@ -127,6 +127,4 @@ export const App = () => {
   );
 };
 
-/* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('exampleSortByAPIMultipleColumns'));
-/* end:skip-in-preview */
+export default ExampleComponent;

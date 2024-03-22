@@ -60,6 +60,7 @@ export class AppComponent {
     { productName: 'Product C', JP_price: 3.1, TR_price: 678.1 }
   ];
 }
+/* end-file */
 
 /* file: app.module.ts */
 import { NgModule } from '@angular/core';
@@ -78,12 +79,6 @@ registerAllModules();
   declarations: [ AppComponent ],
   bootstrap: [ AppComponent ]
 })
+
 export class AppModule { }
-
-/* start:skip-in-preview */
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-
-platformBrowserDynamic()
-  .bootstrapModule(AppModule)
-  .catch(err => { console.error(err) });
-/* end:skip-in-preview */
+/* end-file */
