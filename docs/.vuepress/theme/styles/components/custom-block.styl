@@ -1,0 +1,48 @@
+.page .theme-default-content {
+    .custom-block {
+        background: $sideColor
+        border-radius: $radius-xl
+        margin:0 -16px
+        padding: 24px 16px 24px 48px
+        border:0
+        margin-top: 16px
+        position: relative
+
+        &:before { 
+            content: ''
+            display: block
+            position absolute
+            top: 28px
+            bottom: 28px
+            left: 24px
+            width: 1px
+            background: $gradient
+        }
+
+        &.tip { }
+        
+        .tip-icon { 
+            height: 24px
+            width: 24px
+            display: inline-block
+            vertical-align: middle
+            margin-right: 8px
+        }
+        .custom-block-title {  
+            display: none                
+        }
+
+        p { 
+            padding: 0
+            vertical-align: middle
+            
+            a { 
+                font-weight: 400
+            }
+        }
+
+        code { 
+            background: $bgColor 
+        }
+    }
+}
