@@ -222,37 +222,38 @@ export class SelectEditor extends BaseEditor {
       group: SHORTCUTS_GROUP,
     };
 
-    // Actions from fast edit works.
-    if (this.isInFullEditMode() === false) {
-      return;
-    }
-
+    // The `TAB`-related shortcuts should work both in full and fast edit modes.
     editorContext.addShortcuts([{
       keys: [
         ['Tab'],
         ['Shift', 'Tab'],
       ],
       forwardToContext: gridContext,
-      callback: () => {},
-    }, {
-      keys: [['ArrowUp']],
-      callback: () => {
-        const previousOptionIndex = this.select.selectedIndex - 1;
-
-        if (previousOptionIndex >= 0) {
-          this.select[previousOptionIndex].selected = true;
-        }
-      },
-    }, {
-      keys: [['ArrowDown']],
-      callback: () => {
-        const nextOptionIndex = this.select.selectedIndex + 1;
-
-        if (nextOptionIndex <= this.select.length - 1) {
-          this.select[nextOptionIndex].selected = true;
-        }
-      }
+      callback: () => { },
     }], contextConfig);
+
+    if (this.isInFullEditMode() === true) {
+      // The arrow-related shortcuts should work only in full edit mode.
+      editorContext.addShortcuts([{
+        keys: [['ArrowUp']],
+        callback: () => {
+          const previousOptionIndex = this.select.selectedIndex - 1;
+
+          if (previousOptionIndex >= 0) {
+            this.select[previousOptionIndex].selected = true;
+          }
+        },
+      }, {
+        keys: [['ArrowDown']],
+        callback: () => {
+          const nextOptionIndex = this.select.selectedIndex + 1;
+
+          if (nextOptionIndex <= this.select.length - 1) {
+            this.select[nextOptionIndex].selected = true;
+          }
+        }
+      }], contextConfig);
+    }
   }
 
   /**
