@@ -9,3 +9,5 @@ npm-debug.log
 
 .parcel-cache/
 node_modules/
+docs/tests/test-artifacts/
+docs/tests/.env
