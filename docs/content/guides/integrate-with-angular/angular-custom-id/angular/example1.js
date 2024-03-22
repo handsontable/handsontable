@@ -1,4 +1,4 @@
-// file: app.component.ts
+/* file: app.component.ts */
 import { Component } from '@angular/core';
 import Handsontable from 'handsontable/base';
 
@@ -26,8 +26,9 @@ export class AppComponent {
   };
   id = 'my-custom-id';
 }
+/* end-file */
 
-/* file: app.component.ts */
+/* file: app.module.ts */
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
@@ -44,12 +45,6 @@ registerAllModules();
   declarations: [ AppComponent ],
   bootstrap: [ AppComponent ]
 })
+
 export class AppModule { }
-
-/* start:skip-in-preview */
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-
-platformBrowserDynamic()
-  .bootstrapModule(AppModule)
-  .catch(err => { console.error(err) });
-/* end:skip-in-preview */
+/* end-file */

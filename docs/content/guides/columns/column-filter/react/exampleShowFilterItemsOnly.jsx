@@ -5,7 +5,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const App = () => {
+const ExampleComponent = () => {
   // remove the column menu button from the 'Brand', 'Price', and 'Date' columns
   const removeColumnMenuButton = (col, TH) => {
     if (col == 0 || col == 2 || col == 4) {
@@ -118,6 +118,4 @@ export const App = () => {
   );
 };
 
-/* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('exampleShowFilterItemsOnly'));
-/* end:skip-in-preview */
+export default ExampleComponent;

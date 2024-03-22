@@ -157,5 +157,6 @@ module.exports = {
   isBrowser,
   getDependencies,
   buildDependencyGetter,
-  presetMap
+  presetMap,
+  formatVersion
 };

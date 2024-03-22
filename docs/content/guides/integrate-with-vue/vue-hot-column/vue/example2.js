@@ -1,8 +1,11 @@
-import Vue from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.css';
 
-new Vue({
-  el: '#example2',
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = {
   data() {
     return {
       hotData: [
@@ -25,4 +28,6 @@ new Vue({
     HotTable,
     HotColumn
   }
-});
+};
+
+export default ExampleComponent;

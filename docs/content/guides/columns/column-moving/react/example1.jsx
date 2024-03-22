@@ -13,7 +13,7 @@ const data = new Array(200) // number of rows
     .map((_, column) => `${row}, ${column}`)
   );
 
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   return (
     <HotTable
       data={data}
@@ -30,6 +30,4 @@ export const ExampleComponent = () => {
   );
 };
 
-/* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
-/* end:skip-in-preview */
+export default ExampleComponent;
