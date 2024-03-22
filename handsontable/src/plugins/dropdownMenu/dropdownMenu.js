@@ -37,15 +37,14 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * @class DropdownMenu
  *
  * @description
- * This plugin creates the Handsontable Dropdown Menu. It allows to create a new row or column at any place in the grid
+ * This plugin creates the Handsontable Dropdown Menu. It allows to create a new column at any place in the grid
  * among [other features](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-specific-options).
  * Possible values:
  * * `true` (to enable default options),
  * * `false` (to disable completely).
  *
  * or array of any available strings:
- * * `["row_above", "row_below", "col_left", "col_right",
- * "remove_row", "remove_col", "---------", "undo", "redo"]`.
+ * * `["col_left", "col_right", "remove_col", "---------", "undo", "redo"]`.
  *
  * See [the dropdown menu demo](@/guides/columns/column-menu/column-menu.md) for examples.
  *
@@ -361,12 +360,9 @@ export class DropdownMenu extends BasePlugin {
    * When no cells are selected, `executeCommand()` doesn't do anything.
    *
    * You can execute all predefined commands:
-   *  * `'row_above'` - Insert row above
-   *  * `'row_below'` - Insert row below
    *  * `'col_left'` - Insert column left
    *  * `'col_right'` - Insert column right
    *  * `'clear_column'` - Clear selected column
-   *  * `'remove_row'` - Remove row
    *  * `'remove_col'` - Remove column
    *  * `'undo'` - Undo last action
    *  * `'redo'` - Redo last action
