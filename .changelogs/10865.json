@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Maintain focus after column collapsing.",
+  "type": "fixed",
+  "issueOrPR": 10865,
+  "breaking": false,
+  "framework": "none"
+}
