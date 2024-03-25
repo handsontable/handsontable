@@ -5,7 +5,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   return (
     <HotTable 
       autoWrapRow={true}
@@ -14,6 +14,4 @@ export const ExampleComponent = () => {
   );
 };
 
-/* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example9'));
-/* end:skip-in-preview */
+export default ExampleComponent;

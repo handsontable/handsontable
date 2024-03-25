@@ -77,6 +77,7 @@
     "not dead"
   ],
   "dependencies": {
+    "codesandbox": "^2.2.3",
     "dotenv": "^16.4.5",
     "patch-package": "^8.0.0"
   }

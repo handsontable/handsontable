@@ -6,7 +6,7 @@ import 'handsontable/dist/handsontable.full.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   const hotRef = useRef(null);
   const [output, setOutput] = useState('Click "Load" to load data from server');
   const [isAutosave, setIsAutosave] = useState(false);
@@ -103,6 +103,4 @@ export const ExampleComponent = () => {
   );
 };
 
-/* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
-/* end:skip-in-preview */
+export default ExampleComponent;

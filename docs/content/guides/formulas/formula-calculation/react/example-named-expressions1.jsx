@@ -7,7 +7,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   const hotNamedExpressionsRef = useRef(null);
   const [namedExpressionValue, setNamedExpressionValue] = useState('=10 * Sheet1!$A$2');
 
@@ -69,6 +69,4 @@ export const ExampleComponent = () => {
   );
 };
 
-/* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example-named-expressions1'));
-/* end:skip-in-preview */
+export default ExampleComponent;

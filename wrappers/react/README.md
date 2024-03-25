@@ -87,7 +87,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 registerAllModules();
 
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
 
   return (
       <HotTable

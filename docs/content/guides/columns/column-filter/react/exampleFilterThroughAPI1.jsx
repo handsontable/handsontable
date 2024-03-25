@@ -6,7 +6,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const App = () => {
+const ExampleComponent = () => {
   const hotTableComponentRef = useRef(null);
   const filterBelow200 = () => {
     // get the `Filters` plugin, so you can use its API
@@ -150,6 +150,4 @@ export const App = () => {
   );
 };
 
-/* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('exampleFilterThroughAPI1'));
-/* end:skip-in-preview */
+export default ExampleComponent;
