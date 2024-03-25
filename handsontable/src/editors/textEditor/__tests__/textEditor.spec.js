@@ -106,7 +106,7 @@ describe('TextEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp('enter');
+    keyDownUp('F2');
 
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
@@ -358,7 +358,48 @@ describe('TextEditor', () => {
     expect(isEditorVisible()).toEqual(true);
   });
 
-  it('should move down after editing', () => {
+  it('should open editor, close it and move down after editing when the selection is single', () => {
+    handsontable({
+      editor: 'text'
+    });
+    selectCell(2, 2);
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(isEditorVisible()).toEqual(false);
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 3,2 from: 3,2 to: 3,2']);
+  });
+
+  it('should not open editor and move down after hit ENTER key when the multiple cells are selected', () => {
+    handsontable({
+      editor: 'text'
+    });
+    selectCell(2, 2, 3, 2);
+
+    keyDownUp('enter');
+
+    expect(isEditorVisible()).toEqual(false);
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 3,2 from: 2,2 to: 3,2']);
+  });
+
+  it('should open editor and move down after hit F2 key when the multiple cells are selected', () => {
+    handsontable({
+      editor: 'text'
+    });
+    selectCell(2, 2, 3, 2);
+
+    keyDownUp('F2');
+
+    expect(isEditorVisible()).toEqual(true);
+
+    keyDownUp('enter');
+
+    expect(isEditorVisible()).toEqual(false);
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 3,2 from: 2,2 to: 3,2']);
+  });
+
+  it('should move down after editing when the selection is single', () => {
     handsontable({
       editor: 'text'
     });
@@ -1345,7 +1386,7 @@ describe('TextEditor', () => {
 
     expect(getCell(0, 3)).toBeNull();
 
-    keyDownUp('enter');
+    keyDownUp('F2');
 
     expect(getCell(0, 3)).not.toBeNull();
     expect(isEditorVisible()).toBeTruthy();

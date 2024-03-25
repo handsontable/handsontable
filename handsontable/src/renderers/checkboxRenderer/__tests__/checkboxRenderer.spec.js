@@ -268,7 +268,7 @@ describe('CheckboxRenderer', () => {
   });
 
   it('should reverse checkboxes state after hitting space, when multiple cells are selected and all of the cells share ' +
-    'the same value', () => {
+     'the same value', () => {
     handsontable({
       data: [[true], [true], [true]],
       columns: [
@@ -371,7 +371,7 @@ describe('CheckboxRenderer', () => {
   });
 
   it('should reverse checkboxes state after hitting space, when multiple non-contiguous cells are ' +
-  'selected and all of the cells in the entire selection share the same value', () => {
+     'selected and all of the cells in the entire selection share the same value', () => {
     handsontable({
       data: [[true, true], [true, true]],
       columns: [
@@ -433,8 +433,8 @@ describe('CheckboxRenderer', () => {
     expect(afterChangeCallback2.calls.count()).toEqual(2);
   });
 
-  it('should check all the checkboxes in the enteire selection after hitting space, when multiple non-contiguous cells ' +
-  'are selected and they vary in value', () => {
+  it('should check all the checkboxes in the entire selection after hitting space, when multiple non-contiguous cells ' +
+     'are selected and they vary in value', () => {
     handsontable({
       data: [[true, true], [true, false]],
       columns: [
@@ -470,7 +470,7 @@ describe('CheckboxRenderer', () => {
   });
 
   it('should reverse checkboxes state after hitting enter, when multiple non-contiguous cells are selected and they ' +
-  'share the same value', () => {
+     'share the same value', () => {
     handsontable({
       data: [[true], [true], [true]],
       columns: [
@@ -502,8 +502,39 @@ describe('CheckboxRenderer', () => {
     expect(afterChangeCallback.calls.count()).toEqual(2);
   });
 
+  it('should not change the checkboxes state after hitting enter, when multiple cells are selected', () => {
+    handsontable({
+      data: [[true], [true], [true]],
+      columns: [
+        { type: 'checkbox' }
+      ]
+    });
+
+    const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
+    addHook('afterChange', afterChangeCallback);
+
+    let checkboxes = spec().$container.find(':checkbox');
+
+    expect(checkboxes.eq(0).prop('checked')).toBe(true);
+    expect(checkboxes.eq(1).prop('checked')).toBe(true);
+    expect(checkboxes.eq(2).prop('checked')).toBe(true);
+    expect(getData()).toEqual([[true], [true], [true]]);
+
+    selectCell(0, 0, 2, 0);
+    keyDownUp('enter');
+
+    checkboxes = spec().$container.find(':checkbox');
+
+    expect(checkboxes.eq(0).prop('checked')).toBe(true);
+    expect(checkboxes.eq(1).prop('checked')).toBe(true);
+    expect(checkboxes.eq(2).prop('checked')).toBe(true);
+    expect(getData()).toEqual([[true], [true], [true]]);
+    expect(afterChangeCallback.calls.count()).toEqual(0);
+  });
+
   it('should reverse checkboxes state after hitting space, when multiple cells are selected and selStart > selEnd' +
-  '+ all the selected checkboxes have the same value', () => {
+     '+ all the selected checkboxes have the same value', () => {
     handsontable({
       data: [[true], [true], [true]],
       columns: [
@@ -541,7 +572,7 @@ describe('CheckboxRenderer', () => {
   });
 
   it('should check all of the checkboxes in the selection after hitting space, when multiple cells are selected ' +
-  'and selStart > selEnd + the selected checkboxes differ in values', () => {
+     'and selStart > selEnd + the selected checkboxes differ in values', () => {
     handsontable({
       data: [[true], [false], [true]],
       columns: [

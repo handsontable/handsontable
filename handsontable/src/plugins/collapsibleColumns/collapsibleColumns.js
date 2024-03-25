@@ -11,6 +11,7 @@ import {
   setAttribute
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
+import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
 import {
   A11Y_EXPANDED,
   A11Y_HIDDEN
@@ -264,9 +265,15 @@ export class CollapsibleColumns extends BasePlugin {
           } else {
             this.collapseSection({ row, col: columnIndex });
           }
+
+          // prevent default Enter behavior (move to the next row within a selection range)
+          return false;
         },
-        runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isHeader(),
+        runOnlyIf: () => this.hot.getSelectedRangeLast()?.isSingle() &&
+          this.hot.getSelectedRangeLast()?.highlight.isHeader(),
         group: SHORTCUTS_GROUP,
+        relativeToGroup: SHORTCUTS_GROUP_EDITOR,
+        position: 'before',
       });
   }
 
