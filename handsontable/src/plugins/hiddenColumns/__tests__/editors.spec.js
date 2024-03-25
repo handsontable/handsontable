@@ -51,7 +51,7 @@ describe('HiddenColumns', () => {
 
       simulateClick(firstHeader, 'LMB');
 
-      keyDownUp('enter');
+      keyDownUp('F2');
       keyDownUp(['control/meta', 'enter']);
 
       expect(getData()).toEqual([
@@ -78,7 +78,7 @@ describe('HiddenColumns', () => {
 
       simulateClick(corner, 'LMB');
 
-      keyDownUp('enter');
+      keyDownUp('F2');
       keyDownUp(['control/meta', 'enter']);
 
       expect(getData()).toEqual([

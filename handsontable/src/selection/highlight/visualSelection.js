@@ -176,11 +176,13 @@ class VisualSelection extends Selection {
         this.cellRange = this.settings.createCellRange(cellCoordsRenderable);
       }
 
+      // TODO
       // We set new highlight as it might change (for example, when showing/hiding some cells from the broader selection range)
       // TODO: It is also handled by the `MergeCells` plugin while adjusting already modified coordinates. Should it?
       broaderCellRange.setHighlight(currentHighlight);
     }
 
+    // TODO
     // Sync the highlight coords from the visual selection layer with logical coords.
     if (this.settings.selectionType === 'focus' && renderableHighlight !== null && cellCoordsVisual === null) {
       broaderCellRange.setHighlight(this.visualCellRange.highlight);

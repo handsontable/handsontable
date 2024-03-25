@@ -57,11 +57,17 @@ class Selection {
    */
   highlight;
   /**
-   * The module for modifying coordinates.
+   * The module for modifying coordinates of the start and end selection.
    *
    * @type {Transformation}
    */
-  transformation;
+  #transformation;
+  /**
+   * The module for modifying coordinates of the focus selection.
+   *
+   * @type {Transformation}
+   */
+  #focusTransformation;
   /**
    * The collection of the selection layer levels where the whole row was selected using the row header or
    * the corner header.
@@ -76,6 +82,12 @@ class Selection {
    * @type {Set<number>}
    */
   selectedByColumnHeader = new Set();
+  /**
+   * The flag which determines if the focus selection was changed.
+   *
+   * @type {boolean}
+   */
+  #isFocusSelectionChanged = false;
   /**
    * When sets disable highlighting the headers even when the logical coordinates points on them.
    *
@@ -115,40 +127,68 @@ class Selection {
       createCellCoords: (row, column) => this.tableProps.createCellCoords(row, column),
       createCellRange: (highlight, from, to) => this.tableProps.createCellRange(highlight, from, to),
     });
-    this.transformation = new Transformation(this.selectedRange, {
+    this.#transformation = new Transformation(this.selectedRange, {
       rowIndexMapper: this.tableProps.rowIndexMapper,
       columnIndexMapper: this.tableProps.columnIndexMapper,
       countRenderableRows: () => this.tableProps.countRenderableRows(),
       countRenderableColumns: () => this.tableProps.countRenderableColumns(),
-      countRowHeaders: () => this.tableProps.countRowHeaders(),
-      countColHeaders: () => this.tableProps.countColHeaders(),
       visualToRenderableCoords: coords => this.tableProps.visualToRenderableCoords(coords),
       renderableToVisualCoords: coords => this.tableProps.renderableToVisualCoords(coords),
+      findFirstNonHiddenRenderableRow: (...args) => this.tableProps.findFirstNonHiddenRenderableRow(...args),
+      findFirstNonHiddenRenderableColumn: (...args) => this.tableProps.findFirstNonHiddenRenderableColumn(...args),
       createCellCoords: (row, column) => this.tableProps.createCellCoords(row, column),
-      navigableHeaders: () => settings.navigableHeaders,
       fixedRowsBottom: () => settings.fixedRowsBottom,
       minSpareRows: () => settings.minSpareRows,
       minSpareCols: () => settings.minSpareCols,
       autoWrapRow: () => settings.autoWrapRow,
       autoWrapCol: () => settings.autoWrapCol,
     });
+    this.#focusTransformation = new Transformation(this.selectedRange, {
+      rowIndexMapper: this.tableProps.rowIndexMapper,
+      columnIndexMapper: this.tableProps.columnIndexMapper,
+      countRenderableRows: () => {
+        const range = this.selectedRange.current();
 
-    this.transformation.addLocalHook('beforeTransformStart',
+        return this.tableProps.countRenderableRowsInRange(0, range.getOuterBottomEndCorner().row);
+      },
+      countRenderableColumns: () => {
+        const range = this.selectedRange.current();
+
+        return this.tableProps.countRenderableColumnsInRange(0, range.getOuterBottomEndCorner().col);
+      },
+      visualToRenderableCoords: coords => this.tableProps.visualToRenderableCoords(coords),
+      renderableToVisualCoords: coords => this.tableProps.renderableToVisualCoords(coords),
+      findFirstNonHiddenRenderableRow: (...args) => this.tableProps.findFirstNonHiddenRenderableRow(...args),
+      findFirstNonHiddenRenderableColumn: (...args) => this.tableProps.findFirstNonHiddenRenderableColumn(...args),
+      createCellCoords: (row, column) => this.tableProps.createCellCoords(row, column),
+      fixedRowsBottom: () => 0,
+      minSpareRows: () => 0,
+      minSpareCols: () => 0,
+      autoWrapRow: () => true,
+      autoWrapCol: () => true,
+    });
+
+    this.#transformation.addLocalHook('beforeTransformStart',
       (...args) => this.runLocalHooks('beforeModifyTransformStart', ...args));
-    this.transformation.addLocalHook('afterTransformStart',
+    this.#transformation.addLocalHook('afterTransformStart',
       (...args) => this.runLocalHooks('afterModifyTransformStart', ...args));
-    this.transformation.addLocalHook('beforeTransformEnd',
+    this.#transformation.addLocalHook('beforeTransformEnd',
       (...args) => this.runLocalHooks('beforeModifyTransformEnd', ...args));
-    this.transformation.addLocalHook('afterTransformEnd',
+    this.#transformation.addLocalHook('afterTransformEnd',
       (...args) => this.runLocalHooks('afterModifyTransformEnd', ...args));
-    this.transformation.addLocalHook('insertRowRequire',
+    this.#transformation.addLocalHook('insertRowRequire',
       (...args) => this.runLocalHooks('insertRowRequire', ...args));
-    this.transformation.addLocalHook('insertColRequire',
+    this.#transformation.addLocalHook('insertColRequire',
       (...args) => this.runLocalHooks('insertColRequire', ...args));
-    this.transformation.addLocalHook('beforeRowWrap',
+    this.#transformation.addLocalHook('beforeRowWrap',
       (...args) => this.runLocalHooks('beforeRowWrap', ...args));
-    this.transformation.addLocalHook('beforeColumnWrap',
+    this.#transformation.addLocalHook('beforeColumnWrap',
       (...args) => this.runLocalHooks('beforeColumnWrap', ...args));
+
+    this.#focusTransformation.addLocalHook('beforeTransformStart',
+      (...args) => this.runLocalHooks('beforeModifyTransformFocus', ...args));
+    this.#focusTransformation.addLocalHook('afterTransformStart',
+      (...args) => this.runLocalHooks('afterModifyTransformFocus', ...args));
   }
 
   /**
@@ -239,6 +279,7 @@ class Selection {
     // should be handled by next methods.
     const coordsClone = coords.clone();
 
+    this.#isFocusSelectionChanged = false;
     this.runLocalHooks(`beforeSetRangeStart${fragment ? 'Only' : ''}`, coordsClone);
 
     if (!isMultipleMode || (isMultipleMode && !isMultipleSelection && isUndefined(multipleSelection))) {
@@ -308,8 +349,32 @@ class Selection {
     if (this.settings.selectionMode === 'single') {
       cellRange.setFrom(cellRange.highlight);
       cellRange.setTo(cellRange.highlight);
+
     } else {
+      const horizontalDir = cellRange.getHorizontalDirection();
+      const verticalDir = cellRange.getVerticalDirection();
+      const isMultiple = this.isMultiple();
+
       cellRange.setTo(coordsClone);
+
+      if (
+        isMultiple &&
+        (horizontalDir !== cellRange.getHorizontalDirection() ||
+        cellRange.getWidth() === 1 && !cellRange.includes(cellRange.highlight))
+      ) {
+        cellRange.from.assign({
+          col: cellRange.highlight.col
+        });
+      }
+      if (
+        isMultiple &&
+        (verticalDir !== cellRange.getVerticalDirection() ||
+        cellRange.getHeight() === 1 && !cellRange.includes(cellRange.highlight))
+      ) {
+        cellRange.from.assign({
+          row: cellRange.highlight.row
+        });
+      }
     }
 
     // Prevent creating "area" selection that overlaps headers.
@@ -320,17 +385,7 @@ class Selection {
     }
 
     this.runLocalHooks('beforeHighlightSet');
-
-    const focusHighlight = this.highlight.getFocus();
-
-    focusHighlight.clear();
-
-    if (this.highlight.isEnabledFor(FOCUS_TYPE, cellRange.highlight)) {
-      focusHighlight
-        .add(this.selectedRange.current().highlight)
-        .commit()
-        .syncWith(cellRange);
-    }
+    this.setRangeFocus(this.selectedRange.current().highlight);
 
     const layerLevel = this.getLayerLevel();
 
@@ -478,17 +533,41 @@ class Selection {
   }
 
   /**
-   * Returns information if we have a multiselection. This method check multiselection only on the latest layer of
-   * the selection.
+   * Sets the selection focus position at the specified coordinates.
    *
-   * @returns {boolean}
+   * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
    */
-  isMultiple() {
-    const isMultipleListener = createObjectPropListener(!this.selectedRange.current().isSingle());
+  setRangeFocus(coords) {
+    if (this.selectedRange.isEmpty()) {
+      return;
+    }
 
-    this.runLocalHooks('afterIsMultipleSelection', isMultipleListener);
+    const cellRange = this.selectedRange.current();
 
-    return isMultipleListener.value;
+    if (!this.inProgress) {
+      this.runLocalHooks('beforeSetFocus', coords);
+    }
+
+    const focusHighlight = this.highlight.getFocus();
+
+    focusHighlight.clear();
+    cellRange.setHighlight(coords);
+
+    if (!this.inProgress) {
+      this.runLocalHooks('beforeHighlightSet');
+    }
+
+    if (this.highlight.isEnabledFor(FOCUS_TYPE, cellRange.highlight)) {
+      focusHighlight
+        .add(cellRange.highlight)
+        .commit()
+        .syncWith(cellRange);
+    }
+
+    if (!this.inProgress) {
+      this.#isFocusSelectionChanged = true;
+      this.runLocalHooks('afterSetFocus', cellRange.highlight);
+    }
   }
 
   /**
@@ -500,7 +579,14 @@ class Selection {
    * Otherwise, row/column will be created according to `minSpareRows/minSpareCols` settings of Handsontable.
    */
   transformStart(rowDelta, colDelta, createMissingRecords = false) {
-    this.setRangeStart(this.transformation.transformStart(rowDelta, colDelta, createMissingRecords));
+    if (this.settings.navigableHeaders) {
+      this.#transformation.setOffsetSize({
+        x: this.tableProps.countRowHeaders(),
+        y: this.tableProps.countColHeaders(),
+      });
+    }
+
+    this.setRangeStart(this.#transformation.transformStart(rowDelta, colDelta, createMissingRecords));
   }
 
   /**
@@ -510,7 +596,45 @@ class Selection {
    * @param {number} colDelta Columns number to move, value can be passed as negative number.
    */
   transformEnd(rowDelta, colDelta) {
-    this.setRangeEnd(this.transformation.transformEnd(rowDelta, colDelta));
+    if (this.settings.navigableHeaders) {
+      this.#transformation.setOffsetSize({
+        x: this.tableProps.countRowHeaders(),
+        y: this.tableProps.countColHeaders(),
+      });
+    }
+
+    this.setRangeEnd(this.#transformation.transformEnd(rowDelta, colDelta));
+  }
+
+  /**
+   * Transforms the focus cell selection relative to the current focus position.
+   *
+   * @param {number} rowDelta Rows number to move, value can be passed as negative number.
+   * @param {number} colDelta Columns number to move, value can be passed as negative number.
+   */
+  transformFocus(rowDelta, colDelta) {
+    const range = this.selectedRange.current();
+    const { row, col } = range.getOuterTopStartCorner();
+    const columnsInRange = this.tableProps.countRenderableColumnsInRange(0, col - 1);
+    const rowsInRange = this.tableProps.countRenderableRowsInRange(0, row - 1);
+
+    if (range.highlight.isHeader()) {
+      // for header focus selection calculate the new coords based on the selection including headers
+      this.#focusTransformation.setOffsetSize({
+        x: col < 0 ? Math.abs(col) : -columnsInRange,
+        y: row < 0 ? Math.abs(row) : -rowsInRange,
+      });
+    } else {
+      // for focus selection in cells calculate the new coords only based on the selected cells
+      this.#focusTransformation.setOffsetSize({
+        x: col < 0 ? 0 : -columnsInRange,
+        y: row < 0 ? 0 : -rowsInRange,
+      });
+    }
+
+    const focusCoords = this.#focusTransformation.transformStart(rowDelta, colDelta);
+
+    this.setRangeFocus(focusCoords.normalize());
   }
 
   /**
@@ -529,6 +653,33 @@ class Selection {
    */
   isSelected() {
     return !this.selectedRange.isEmpty();
+  }
+
+  /**
+   * Returns information if we have a multi-selection. This method check multi-selection only on the latest layer of
+   * the selection.
+   *
+   * @returns {boolean}
+   */
+  isMultiple() {
+    if (!this.isSelected()) {
+      return false;
+    }
+
+    const isMultipleListener = createObjectPropListener(!this.selectedRange.current().isSingle());
+
+    this.runLocalHooks('afterIsMultipleSelection', isMultipleListener);
+
+    return isMultipleListener.value;
+  }
+
+  /**
+   * Checks if the last selection involves changing the focus cell position only.
+   *
+   * @returns {boolean}
+   */
+  isFocusSelectionChanged() {
+    return this.isSelected() && this.#isFocusSelectionChanged;
   }
 
   /**
@@ -832,9 +983,10 @@ class Selection {
    *
    * @param {number|string} startColumn Visual column index or column property from which the selection starts.
    * @param {number|string} [endColumn] Visual column index or column property from to the selection finishes.
-   * @param {number} [focusPosition=0] The argument allows changing the cell/header focus position.
-   *                                   The value can take visual row index from -N to N, where negative values
-   *                                   point to the headers and positive values point to the cell range.
+   * @param {number | { row: number, col: number }} [focusPosition=0] The argument allows changing the cell/header focus
+   * position. The value can take visual row index from -N to N, where negative values point to the headers and positive
+   * values point to the cell range. An object with `row` and `col` properties also can be passed to change the focus
+   * position horizontally.
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
   selectColumns(startColumn, endColumn = startColumn, focusPosition = 0) {
@@ -856,12 +1008,22 @@ class Selection {
       });
 
     if (isValid) {
-      const fromRow = countColHeaders === 0 ? 0 : clamp(focusPosition, columnHeaderLastIndex, -1);
+      let highlightRow = 0;
+      let highlightColumn = 0;
+
+      if (Number.isInteger(focusPosition?.row) && Number.isInteger(focusPosition?.col)) {
+        highlightRow = clamp(focusPosition.row, columnHeaderLastIndex, countRows - 1);
+        highlightColumn = clamp(focusPosition.col, Math.min(start, end), Math.max(start, end));
+      } else {
+        highlightRow = clamp(focusPosition, columnHeaderLastIndex, countRows - 1);
+        highlightColumn = start;
+      }
+
+      const highlight = this.tableProps.createCellCoords(highlightRow, highlightColumn);
+      const fromRow = countColHeaders === 0 ? 0 : clamp(highlight.row, columnHeaderLastIndex, -1);
       const toRow = countRows - 1;
       const from = this.tableProps.createCellCoords(fromRow, start);
       const to = this.tableProps.createCellCoords(toRow, end);
-      const highlight = this.tableProps
-        .createCellCoords(clamp(focusPosition, columnHeaderLastIndex, countRows - 1), start);
 
       this.runLocalHooks('beforeSelectColumns', from, to, highlight);
 
@@ -884,9 +1046,10 @@ class Selection {
    *
    * @param {number} startRow Visual row index from which the selection starts.
    * @param {number} [endRow] Visual row index from to the selection finishes.
-   * @param {number} [focusPosition=0] The argument allows changing the cell/header focus position.
-   *                                   The value can take visual column index from -N to N, where negative values
-   *                                   point to the headers and positive values point to the cell range.
+   * @param {number | { row: number, col: number }} [focusPosition=0] The argument allows changing the cell/header focus
+   * position. The value can take visual row index from -N to N, where negative values point to the headers and positive
+   * values point to the cell range. An object with `row` and `col` properties also can be passed to change the focus
+   * position horizontally.
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
   selectRows(startRow, endRow = startRow, focusPosition = 0) {
@@ -906,12 +1069,22 @@ class Selection {
       });
 
     if (isValid) {
-      const fromColumn = countRowHeaders === 0 ? 0 : clamp(focusPosition, rowHeaderLastIndex, -1);
+      let highlightRow = 0;
+      let highlightColumn = 0;
+
+      if (Number.isInteger(focusPosition?.row) && Number.isInteger(focusPosition?.col)) {
+        highlightRow = clamp(focusPosition.row, Math.min(startRow, endRow), Math.max(startRow, endRow));
+        highlightColumn = clamp(focusPosition.col, rowHeaderLastIndex, countCols - 1);
+      } else {
+        highlightRow = startRow;
+        highlightColumn = clamp(focusPosition, rowHeaderLastIndex, countCols - 1);
+      }
+
+      const highlight = this.tableProps.createCellCoords(highlightRow, highlightColumn);
+      const fromColumn = countRowHeaders === 0 ? 0 : clamp(highlight.col, rowHeaderLastIndex, -1);
       const toColumn = countCols - 1;
       const from = this.tableProps.createCellCoords(startRow, fromColumn);
       const to = this.tableProps.createCellCoords(endRow, toColumn);
-      const highlight = this.tableProps
-        .createCellCoords(startRow, clamp(focusPosition, rowHeaderLastIndex, countCols - 1));
 
       this.runLocalHooks('beforeSelectRows', from, to, highlight);
 

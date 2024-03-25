@@ -418,9 +418,9 @@ describe('Selection', () => {
 
     selectCell(0, 0);
 
-    hot.addHook('modifyTransformEnd', (coords) => {
-      coords.col += 2;
-      coords.row += 1;
+    hot.addHook('modifyTransformEnd', (delta) => {
+      delta.col += 2;
+      delta.row += 1;
     });
     keyDownUp(['shift', 'arrowdown']);
 

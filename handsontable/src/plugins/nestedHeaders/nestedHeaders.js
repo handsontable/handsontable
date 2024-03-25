@@ -147,6 +147,7 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('beforeSelectionHighlightSet', (...args) => this.#onBeforeSelectionHighlightSet(...args));
     this.addHook('modifyTransformStart', (...args) => this.#onModifyTransformStart(...args));
     this.addHook('afterSelection', () => this.#updateFocusHighlightPosition());
+    this.addHook('afterSelectionFocusSet', () => this.#updateFocusHighlightPosition());
     this.addHook('beforeViewportScrollHorizontally', (...args) => this.#onBeforeViewportScrollHorizontally(...args));
     this.addHook('afterGetColumnHeaderRenderers', array => this.#onAfterGetColumnHeaderRenderers(array));
     this.addHook('modifyColWidth', (...args) => this.#onModifyColWidth(...args));
