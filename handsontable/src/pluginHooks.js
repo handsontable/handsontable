@@ -129,7 +129,7 @@ const REGISTERED_HOOKS = [
 
   /**
    * Fired after one or more cells has been changed. The changes are triggered in any situation when the
-   * value is entered using an editor or changed using API (e.q setDataAtCell).
+   * value is entered using an editor or changed using API (e.q [`setDataAtCell`](@/api/core.md#setdataatcell) method).
    *
    * __Note:__ For performance reasons, the `changes` array is null for `"loadData"` source.
    *
@@ -174,7 +174,7 @@ const REGISTERED_HOOKS = [
 
   /**
    * Fired each time user opens {@link ContextMenu} plugin before setting up the Context Menu's items but after filtering these options by
-   * user (`contextMenu` option). This hook can by helpful to determine if user use specified menu item or to set up
+   * user ([`contextMenu`](@/api/options.md#contextmenu) option). This hook can by helpful to determine if user use specified menu item or to set up
    * one of the menu item to by always visible.
    *
    * @event Hooks#beforeContextMenuSetItems
@@ -194,7 +194,7 @@ const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link DropdownMenu} plugin before setting up the Dropdown Menu's items but after filtering these options
-   * by user (`dropdownMenu` option). This hook can by helpful to determine if user use specified menu item or to set
+   * by user ([`dropdownMenu`](@/api/options.md#dropdownmenu) option). This hook can by helpful to determine if user use specified menu item or to set
    * up one of the menu item to by always visible.
    *
    * @event Hooks#beforeDropdownMenuSetItems
@@ -333,7 +333,7 @@ const REGISTERED_HOOKS = [
   'afterDestroy',
 
   /**
-   * Hook fired after keydown event is handled.
+   * Hook fired after `keydown` event is handled.
    *
    * @event Hooks#afterDocumentKeyDown
    * @param {Event} event A native `keydown` event object.
@@ -434,7 +434,7 @@ const REGISTERED_HOOKS = [
   'afterUpdateData',
 
   /**
-   * Fired after a scroll event, which is identified as a momentum scroll (e.g. On an iPad).
+   * Fired after a scroll event, which is identified as a momentum scroll (e.g. on an iPad).
    *
    * @event Hooks#afterMomentumScroll
    */
@@ -637,7 +637,7 @@ const REGISTERED_HOOKS = [
   'afterScroll',
 
   /**
-   * Fired after one or more cells are selected (e.g. During mouse move).
+   * Fired after one or more cells are selected (e.g. during mouse move).
    *
    * @event Hooks#afterSelection
    * @param {number} row Selection start visual row index.
@@ -720,7 +720,7 @@ const REGISTERED_HOOKS = [
   'afterSelectionByProp',
 
   /**
-   * Fired after one or more cells are selected (e.g. On mouse up).
+   * Fired after one or more cells are selected (e.g. on mouse up).
    *
    * @event Hooks#afterSelectionEnd
    * @param {number} row Selection start visual row index.
@@ -732,7 +732,7 @@ const REGISTERED_HOOKS = [
   'afterSelectionEnd',
 
   /**
-   * Fired after one or more cells are selected (e.g. On mouse up).
+   * Fired after one or more cells are selected (e.g. on mouse up).
    *
    * The `prop` and `prop2` arguments represent the source object property name instead of the column number.
    *
@@ -822,7 +822,7 @@ const REGISTERED_HOOKS = [
   'beforeSelectColumns',
 
   /**
-   * Fired after one or more columns are selected (e.g. During mouse header click or {@link Core#selectColumns} API call).
+   * Fired after one or more columns are selected (e.g. during mouse header click or {@link Core#selectColumns} API call).
    *
    * @since 14.0.0
    * @event Hooks#afterSelectColumns
@@ -833,7 +833,7 @@ const REGISTERED_HOOKS = [
   'afterSelectColumns',
 
   /**
-   * Fired before one or more rows are selected (e.g. During mouse header click or {@link Core#selectRows} API call).
+   * Fired before one or more rows are selected (e.g. during mouse header click or {@link Core#selectRows} API call).
    *
    * @since 14.0.0
    * @event Hooks#beforeSelectRows
@@ -868,7 +868,7 @@ const REGISTERED_HOOKS = [
   'beforeSelectRows',
 
   /**
-   * Fired after one or more rows are selected (e.g. During mouse header click or {@link Core#selectRows} API call).
+   * Fired after one or more rows are selected (e.g. during mouse header click or {@link Core#selectRows} API call).
    *
    * @since 14.0.0
    * @event Hooks#afterSelectRows
@@ -912,7 +912,7 @@ const REGISTERED_HOOKS = [
 
   /**
    * Fired after cell data was changed.
-   * Called only when `setDataAtRowProp` was executed.
+   * Called only when [`setDataAtRowProp`](@/api/core.md#setdataatrowprop) was executed.
    *
    * @event Hooks#afterSetDataAtRowProp
    * @param {Array} changes An array of changes in format `[[row, prop, oldValue, value], ...]`.
@@ -932,7 +932,7 @@ const REGISTERED_HOOKS = [
   'afterSetSourceDataAtCell',
 
   /**
-   * Fired after calling the `updateSettings` method.
+   * Fired after calling the [`updateSettings`](@/api/core.md#updatesettings) method.
    *
    * @event Hooks#afterUpdateSettings
    * @param {object} newSettings New settings object.
@@ -986,7 +986,7 @@ const REGISTERED_HOOKS = [
    * @param {string} direction Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`.
    *
    * @returns {boolean|Array[]} If false, the operation is cancelled. If array of arrays, the returned data
-   *                              will be passed into `populateFromArray` instead of the default autofill
+   *                              will be passed into [`populateFromArray`](@/api/core.md#populatefromarray) instead of the default autofill
    *                              algorithm's result.
    */
   'beforeAutofill',
@@ -1010,17 +1010,10 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeCellAlignment
    * @param {object} stateBefore An object with class names defining the cell alignment.
-   * @param {CellRange[]} range An array of CellRange coordinates where the alignment will be applied.
+   * @param {CellRange[]} range An array of `CellRange` coordinates where the alignment will be applied.
    * @param {string} type Type of the alignment - either `horizontal` or `vertical`.
    * @param {string} alignmentClass String defining the alignment class added to the cell.
-   * Possible values:
-   * * `htLeft`
-   * * `htCenter`
-   * * `htRight`
-   * * `htJustify`
-   * * `htTop`
-   * * `htMiddle`
-   * * `htBottom`.
+   * Possible values: `htLeft` , `htCenter`, `htRight`, `htJustify`, `htTop`, `htMiddle`, `htBottom`.
    */
   'beforeCellAlignment',
 
@@ -1191,7 +1184,7 @@ const REGISTERED_HOOKS = [
   'beforeUpdateData',
 
   /**
-   * Hook fired before keydown event is handled. It can be used to stop default key bindings.
+   * Hook fired before `keydown` event is handled. It can be used to stop default key bindings.
    *
    * __Note__: To prevent default behavior you need to call `false` in your `beforeKeyDown` handler.
    *
@@ -1393,7 +1386,7 @@ const REGISTERED_HOOKS = [
    * Fired before setting range is started but not finished yet.
    *
    * @event Hooks#beforeSetRangeStartOnly
-   * @param {CellCoords} coords CellCoords instance.
+   * @param {CellCoords} coords `CellCoords` instance.
    */
   'beforeSetRangeStartOnly',
 
@@ -1401,7 +1394,7 @@ const REGISTERED_HOOKS = [
    * Fired before setting range is started.
    *
    * @event Hooks#beforeSetRangeStart
-   * @param {CellCoords} coords CellCoords instance.
+   * @param {CellCoords} coords `CellCoords` instance.
    */
   'beforeSetRangeStart',
 
@@ -1409,7 +1402,7 @@ const REGISTERED_HOOKS = [
    * Fired before setting range is ended.
    *
    * @event Hooks#beforeSetRangeEnd
-   * @param {CellCoords} coords CellCoords instance.
+   * @param {CellCoords} coords `CellCoords` instance.
    */
   'beforeSetRangeEnd',
 
@@ -1558,7 +1551,7 @@ const REGISTERED_HOOKS = [
   'modifyRowData',
 
   /**
-   * Used to modify the cell coordinates when using the `getCell` method, opening editor, getting value from the editor
+   * Used to modify the cell coordinates when using the [`getCell`](@/api/core.md#getcell) method, opening editor, getting value from the editor
    * and saving values from the closed editor.
    *
    * @event Hooks#modifyGetCellCoords
@@ -2268,9 +2261,9 @@ const REGISTERED_HOOKS = [
    * @event Hooks#modifyColumnHeaderValue
    * @param {string} value A column header value.
    * @param {number} visualColumnIndex A visual column index.
-   * @param {number} [headerLevel=0] Header level index. Accepts positive (0 to n)
-   *                                 and negative (-1 to -n) values. For positive values, 0 points to the
-   *                                 topmost header. For negative values, -1 points to the bottom-most
+   * @param {number} [headerLevel=0] Header level index. Accepts positive (`0` to `n`)
+   *                                 and negative (`-1` to `-n`) values. For positive values, `0` points to the
+   *                                 topmost header. For negative values, `-1` points to the bottom-most
    *                                 header (the header closest to the cells).
    * @returns {string} The column header value to be updated.
    */
@@ -2595,7 +2588,7 @@ const REGISTERED_HOOKS = [
    * option is enabled.
    *
    * @event Hooks#beforeDropdownMenuShow
-   * @param {DropdownMenu} dropdownMenu The DropdownMenu instance.
+   * @param {DropdownMenu} dropdownMenu The `DropdownMenu` instance.
    */
   'beforeDropdownMenuShow',
 
@@ -2604,7 +2597,7 @@ const REGISTERED_HOOKS = [
    * option is enabled.
    *
    * @event Hooks#afterDropdownMenuShow
-   * @param {DropdownMenu} dropdownMenu The DropdownMenu instance.
+   * @param {DropdownMenu} dropdownMenu The `DropdownMenu` instance.
    */
   'afterDropdownMenuShow',
 
@@ -2613,12 +2606,12 @@ const REGISTERED_HOOKS = [
    * option is enabled.
    *
    * @event Hooks#afterDropdownMenuHide
-   * @param {DropdownMenu} instance The DropdownMenu instance.
+   * @param {DropdownMenu} instance The `DropdownMenu` instance.
    */
   'afterDropdownMenuHide',
 
   /**
-   * Fired by {@link NestedRows} plugin before adding a children to the NestedRows structure. This hook is fired when
+   * Fired by {@link NestedRows} plugin before adding a children to the `NestedRows` structure. This hook is fired when
    * {@link Options#nestedRows} option is enabled.
    *
    * @event Hooks#beforeAddChild
@@ -2629,7 +2622,7 @@ const REGISTERED_HOOKS = [
   'beforeAddChild',
 
   /**
-   * Fired by {@link NestedRows} plugin after adding a children to the NestedRows structure. This hook is fired when
+   * Fired by {@link NestedRows} plugin after adding a children to the `NestedRows` structure. This hook is fired when
    * {@link Options#nestedRows} option is enabled.
    *
    * @event Hooks#afterAddChild

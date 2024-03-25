@@ -7,7 +7,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const App = () => {
+const ExampleComponent = () => {
   const hotTableComponentRef = useRef(null);
   const exclude = () => {
     let hotInstance = hotTableComponentRef.current.hotInstance;
@@ -194,6 +194,4 @@ export const App = () => {
   );
 };
 
-/* start:skip-in-preview */
-ReactDOM.render(<App />, document.getElementById('exampleExcludeRowsFromFiltering'));
-/* end:skip-in-preview */
+export default ExampleComponent;

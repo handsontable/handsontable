@@ -1,8 +1,8 @@
-
 import React from "react";
 import ReactDOM from "react-dom";
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from "@handsontable/react";
+import "handsontable/dist/handsontable.full.min.css";
 
 // constants.ts
 export const data = [
@@ -1268,8 +1268,6 @@ export function alignHeaders(column, TH) {
     }
   }
 }
-
-import "handsontable/dist/handsontable.full.min.css";
 
 const App = () => {
   return (

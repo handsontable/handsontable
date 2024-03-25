@@ -5,7 +5,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   const colors = ['yellow', 'red', 'orange and another color', 'green',
     'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'
   ];
@@ -45,6 +45,4 @@ export const ExampleComponent = () => {
   );
 };
 
-/* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
-/* end:skip-in-preview */
+export default ExampleComponent;
