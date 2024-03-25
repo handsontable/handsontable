@@ -1,4 +1,3 @@
-import '@angular/compiler';
 import globalJsdom from 'global-jsdom';
 import chalk from 'chalk';
 import glob from 'glob';
