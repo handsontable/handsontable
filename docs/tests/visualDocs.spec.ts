@@ -48,7 +48,7 @@ testCases.forEach(({ paths, prefix, urlPath }) => {
     paths.forEach((pathObj) => {
       test(`take screenshot for ${prefix} on ${pathObj.path.split('/').pop()}`, async({ page, baseURL }) => {
         const path = `/${urlPath}/${pathObj.path.split('/').pop()}`.replace('introduction', '');
-        
+
         /**
          * The maximum difference in pixel ratio value.
          * If the 'path' is included in the 'pathsNeedingMoreTolerance' array, the value is set to 0.01.
