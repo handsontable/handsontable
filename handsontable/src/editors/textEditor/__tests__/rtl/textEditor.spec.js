@@ -70,7 +70,7 @@ describe('TextEditor (RTL mode)', () => {
 
       const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-      keyDown('enter');
+      keyDown('F2');
 
       expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
     });

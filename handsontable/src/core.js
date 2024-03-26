@@ -295,6 +295,32 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     );
   };
 
+  const findFirstNonHiddenRenderableRow = (visualRowFrom, visualRowTo) => {
+    const dir = visualRowTo > visualRowFrom ? 1 : -1;
+    const minIndex = Math.min(visualRowFrom, visualRowTo);
+    const maxIndex = Math.max(visualRowFrom, visualRowTo);
+    const rowIndex = instance.rowIndexMapper.getNearestNotHiddenIndex(visualRowFrom, dir);
+
+    if (rowIndex === null || dir === 1 && rowIndex > maxIndex || dir === -1 && rowIndex < minIndex) {
+      return null;
+    }
+
+    return rowIndex >= 0 ? instance.rowIndexMapper.getRenderableFromVisualIndex(rowIndex) : rowIndex;
+  };
+
+  const findFirstNonHiddenRenderableColumn = (visualColumnFrom, visualColumnTo) => {
+    const dir = visualColumnTo > visualColumnFrom ? 1 : -1;
+    const minIndex = Math.min(visualColumnFrom, visualColumnTo);
+    const maxIndex = Math.max(visualColumnFrom, visualColumnTo);
+    const columnIndex = instance.columnIndexMapper.getNearestNotHiddenIndex(visualColumnFrom, dir);
+
+    if (columnIndex === null || dir === 1 && columnIndex > maxIndex || dir === -1 && columnIndex < minIndex) {
+      return null;
+    }
+
+    return columnIndex >= 0 ? instance.columnIndexMapper.getRenderableFromVisualIndex(columnIndex) : columnIndex;
+  };
+
   let selection = new Selection(tableMeta, {
     rowIndexMapper: instance.rowIndexMapper,
     columnIndexMapper: instance.columnIndexMapper,
@@ -306,11 +332,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     countRenderableRows: () => this.view.countRenderableRows(),
     countRowHeaders: () => this.countRowHeaders(),
     countColHeaders: () => this.countColHeaders(),
+    countRenderableRowsInRange: (...args) => this.view.countRenderableRowsInRange(...args),
+    countRenderableColumnsInRange: (...args) => this.view.countRenderableColumnsInRange(...args),
     getShortcutManager: () => instance.getShortcutManager(),
     createCellCoords: (row, column) => instance._createCellCoords(row, column),
     createCellRange: (highlight, from, to) => instance._createCellRange(highlight, from, to),
     visualToRenderableCoords,
     renderableToVisualCoords,
+    findFirstNonHiddenRenderableRow,
+    findFirstNonHiddenRenderableColumn,
     isDisabledCellSelection: (visualRow, visualColumn) => {
       if (visualRow < 0 || visualColumn < 0) {
         return instance.getSettings().disableVisualSelection;
@@ -385,6 +415,22 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this._refreshBorders(null);
   });
 
+  this.selection.addLocalHook('beforeSetFocus', (cellCoords) => {
+    this.runHooks('beforeSelectionFocusSet', cellCoords.row, cellCoords.col);
+  });
+
+  this.selection.addLocalHook('afterSetFocus', (cellCoords) => {
+    const preventScrolling = createObjectPropListener(false);
+
+    this.runHooks('afterSelectionFocusSet', cellCoords.row, cellCoords.col, preventScrolling);
+
+    if (!preventScrolling.isTouched() || preventScrolling.isTouched() && !preventScrolling.value) {
+      viewportScroller.scrollTo(cellCoords);
+    }
+
+    this._refreshBorders(null);
+  });
+
   this.selection.addLocalHook('afterSelectionFinished', (cellRanges) => {
     const selectionLayerLevel = cellRanges.length - 1;
     const { from, to } = cellRanges[selectionLayerLevel];
@@ -423,6 +469,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     .addLocalHook('afterSelectRows', (...args) => this.runHooks('afterSelectRows', ...args))
     .addLocalHook('beforeModifyTransformStart', (...args) => this.runHooks('modifyTransformStart', ...args))
     .addLocalHook('afterModifyTransformStart', (...args) => this.runHooks('afterModifyTransformStart', ...args))
+    .addLocalHook('beforeModifyTransformFocus', (...args) => this.runHooks('modifyTransformFocus', ...args))
+    .addLocalHook('afterModifyTransformFocus', (...args) => this.runHooks('afterModifyTransformFocus', ...args))
     .addLocalHook('beforeModifyTransformEnd', (...args) => this.runHooks('modifyTransformEnd', ...args))
     .addLocalHook('afterModifyTransformEnd', (...args) => this.runHooks('afterModifyTransformEnd', ...args))
     .addLocalHook('beforeRowWrap', (...args) => this.runHooks('beforeRowWrap', ...args))
@@ -4222,6 +4270,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.selectColumns(1, 2, -1);
    * // Select range of columns using visual indexes and mark the second cell as highlighted.
    * hot.selectColumns(2, 1, 1);
+   * // Select range of columns using visual indexes and move the focus position somewhere in the middle of the range.
+   * hot.selectColumns(2, 5, { row: 2, col: 3 });
    * // Select range of columns using column properties.
    * hot.selectColumns('id', 'last_name');
    * ```
@@ -4231,10 +4281,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function selectColumns
    * @param {number} startColumn The visual column index from which the selection starts.
    * @param {number} [endColumn=startColumn] The visual column index to which the selection finishes. If `endColumn`
-   *                                         is not defined the column defined by `startColumn` will be selected.
-   * @param {number} [focusPosition=0] The argument allows changing the cell/header focus position.
-   *                                   The value can take visual row index from -N to N, where negative values
-   *                                   point to the headers and positive values point to the cell range.
+   * is not defined the column defined by `startColumn` will be selected.
+   * @param {number | { row: number, col: number } | CellCoords} [focusPosition=0] The argument allows changing the cell/header focus
+   * position. The value can take visual row index from -N to N, where negative values point to the headers and positive
+   * values point to the cell range. An object with `row` and `col` properties also can be passed to change the focus
+   * position horizontally.
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectColumns = function(startColumn, endColumn = startColumn, focusPosition) {
@@ -4254,6 +4305,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.selectRows(1, 2, -1);
    * // Select range of rows using visual indexes and mark the second cell as highlighted.
    * hot.selectRows(2, 1, 1);
+   * // Select range of rows using visual indexes and move the focus position somewhere in the middle of the range.
+   * hot.selectRows(2, 5, { row: 2, col: 3 });
    * ```
    *
    * @memberof Core#
@@ -4261,10 +4314,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function selectRows
    * @param {number} startRow The visual row index from which the selection starts.
    * @param {number} [endRow=startRow] The visual row index to which the selection finishes. If `endRow`
-   *                                   is not defined the row defined by `startRow` will be selected.
-   * @param {number} [focusPosition=0] The argument allows changing the cell/header focus position.
-   *                                   The value can take visual column index from -N to N, where negative values
-   *                                   point to the headers and positive values point to the cell range.
+   * is not defined the row defined by `startRow` will be selected.
+   * @param {number | { row: number, col: number } | CellCoords} [focusPosition=0] The argument allows changing the cell/header focus
+   * position. The value can take visual row index from -N to N, where negative values point to the headers and positive
+   * values point to the cell range. An object with `row` and `col` properties also can be passed to change the focus
+   * position vertically.
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectRows = function(startRow, endRow = startRow, focusPosition) {

@@ -351,36 +351,39 @@ describe('MergeCells', () => {
 
     });
 
-    // TODO: After some changes please take a look at #7010.
+    // TODO: After some changes please take a look at #7010 (test for unspecified behavior)
     it('should select cells in the correct direction when changing selections around a merged range', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+      handsontable({
+        data: createSpreadsheetObjectData(10, 10),
         mergeCells: [
           { row: 4, col: 4, rowspan: 2, colspan: 2 }
         ]
       });
 
-      hot.selectCell(5, 5, 5, 2);
-      expect(hot.getSelectedRangeLast().getDirection()).toEqual('SE-NW');
+      selectCell(5, 5, 5, 2);
+
+      expect(getSelectedRangeLast().getDirection()).toEqual('NE-SW');
       // Rectangular area from the marginal cell to the cell on the opposite.
-      expect(hot.getSelected()).toEqual([[5, 5, 4, 2]]);
+      expect(getSelected()).toEqual([[4, 5, 5, 2]]);
 
-      // What about, for example: hot.selectCell(5, 4, 5, 2);
+      // What about, for example: selectCell(5, 4, 5, 2);
       // Is it specified properly?
+      selectCell(4, 4, 2, 5);
 
-      hot.selectCell(4, 4, 2, 5);
-      expect(hot.getSelectedRangeLast().getDirection()).toEqual('SW-NE');
+      expect(getSelectedRangeLast().getDirection()).toEqual('SW-NE');
       // It flips the selection direction vertically.
-      expect(hot.getSelected()).toEqual([[5, 4, 2, 5]]);
+      expect(getSelected()).toEqual([[5, 4, 2, 5]]);
 
-      hot.selectCell(4, 4, 5, 7);
-      expect(hot.getSelectedRangeLast().getDirection()).toEqual('NW-SE');
-      expect(hot.getSelected()).toEqual([[4, 4, 5, 7]]);
+      selectCell(4, 4, 5, 7);
 
-      hot.selectCell(4, 5, 7, 5);
-      expect(hot.getSelectedRangeLast().getDirection()).toEqual('NE-SW');
+      expect(getSelectedRangeLast().getDirection()).toEqual('NW-SE');
+      expect(getSelected()).toEqual([[4, 4, 5, 7]]);
+
+      selectCell(4, 5, 7, 5);
+
+      expect(getSelectedRangeLast().getDirection()).toEqual('NW-SE');
       // It flips the selection direction horizontally.
-      expect(hot.getSelected()).toEqual([[4, 5, 7, 4]]);
+      expect(getSelected()).toEqual([[4, 4, 7, 5]]);
     });
 
     it('should not add an area class to the selected cell if a single merged cell is selected', () => {
@@ -461,7 +464,6 @@ describe('MergeCells', () => {
       });
 
       hot.setDataAtCell(8, 8, 'top-left-corner!');
-
       hot.selectCell(7, 9);
 
       keyDownUp('enter');
@@ -493,7 +495,6 @@ describe('MergeCells', () => {
       });
 
       hot.setDataAtCell(8, 8, 'top-left-corner!');
-
       hot.selectCell(9, 7);
 
       keyDownUp('enter');
@@ -1326,164 +1327,6 @@ describe('MergeCells', () => {
       });
 
       expect(result).toBe(true);
-    });
-  });
-
-  xdescribe('modifyTransform', () => {
-    it('should not transform arrow right when entering a merged cell', () => {
-      const mergeCellsSettings = [
-        { row: 1, col: 1, rowspan: 3, colspan: 3 }
-      ];
-      const coords = new CellCoords(1, 0);
-      const currentSelection = new CellRange(coords, coords, coords);
-      const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      const inDelta = new CellCoords(0, 1);
-
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(0, 1));
-    });
-
-    it('should transform arrow right when leaving a merged cell', () => {
-      const mergeCellsSettings = [
-        { row: 1, col: 1, rowspan: 3, colspan: 3 }
-      ];
-      const coords = new CellCoords(1, 1);
-      const currentSelection = new CellRange(coords, coords, coords);
-      const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      const inDelta = new CellCoords(0, 1);
-
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(0, 3));
-    });
-
-    it('should transform arrow right when leaving a merged cell (return to desired row)', () => {
-      const mergeCellsSettings = [
-        { row: 1, col: 1, rowspan: 3, colspan: 3 }
-      ];
-      const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-
-      let coords = new CellCoords(2, 0);
-      let currentSelection = new CellRange(coords, coords, coords);
-      let inDelta = new CellCoords(0, 1);
-
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(-1, 1));
-
-      coords = new CellCoords(1, 1);
-      currentSelection = new CellRange(coords, coords, coords);
-      inDelta = new CellCoords(0, 1);
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(1, 3));
-    });
-
-    it('should transform arrow left when entering a merged cell', () => {
-      const mergeCellsSettings = [
-        { row: 1, col: 1, rowspan: 3, colspan: 3 }
-      ];
-      const coords = new CellCoords(1, 4);
-      const currentSelection = new CellRange(coords, coords, coords);
-      const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      const inDelta = new CellCoords(0, -1);
-
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(0, -3));
-    });
-
-    it('should not transform arrow left when leaving a merged cell', () => {
-      const mergeCellsSettings = [
-        { row: 1, col: 1, rowspan: 3, colspan: 3 }
-      ];
-      const coords = new CellCoords(1, 1);
-      const currentSelection = new CellRange(coords, coords, coords);
-      const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      const inDelta = new CellCoords(0, -1);
-
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(0, -1));
-    });
-
-    it('should transform arrow left when leaving a merged cell (return to desired row)', () => {
-      const mergeCellsSettings = [
-        { row: 1, col: 1, rowspan: 3, colspan: 3 }
-      ];
-      const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-
-      let coords = new CellCoords(2, 4);
-      let currentSelection = new CellRange(coords, coords, coords);
-      let inDelta = new CellCoords(0, -1);
-
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(-1, -3));
-
-      coords = new CellCoords(1, 1);
-      currentSelection = new CellRange(coords, coords, coords);
-      inDelta = new CellCoords(0, -1);
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(1, -1));
-    });
-
-    it('should not transform arrow down when entering a merged cell', () => {
-      const mergeCellsSettings = [
-        { row: 1, col: 1, rowspan: 3, colspan: 3 }
-      ];
-      const coords = new CellCoords(0, 1);
-      const currentSelection = new CellRange(coords, coords, coords);
-      const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      const inDelta = new CellCoords(0, -1);
-
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(0, -1));
-    });
-
-    it('should transform arrow down when leaving a merged cell', () => {
-      const mergeCellsSettings = [
-        { row: 1, col: 1, rowspan: 3, colspan: 3 }
-      ];
-      const coords = new CellCoords(1, 1);
-      const currentSelection = new CellRange(coords, coords, coords);
-      const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      const inDelta = new CellCoords(1, 0);
-
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(3, 0));
-    });
-
-    it('should transform arrow up when entering a merged cell', () => {
-      const mergeCellsSettings = [
-        { row: 1, col: 1, rowspan: 3, colspan: 3 }
-      ];
-      const coords = new CellCoords(4, 1);
-      const currentSelection = new CellRange(coords, coords, coords);
-      const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      const inDelta = new CellCoords(-1, 0);
-
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(-3, 0));
-    });
-
-    it('should not transform arrow up when leaving a merged cell', () => {
-      const mergeCellsSettings = [
-        { row: 1, col: 1, rowspan: 3, colspan: 3 }
-      ];
-      const coords = new CellCoords(1, 1);
-      const currentSelection = new CellRange(coords, coords, coords);
-      const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      const inDelta = new CellCoords(-1, 0);
-
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(-1, 0));
     });
   });
 

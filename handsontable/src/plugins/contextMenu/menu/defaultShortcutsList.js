@@ -5,10 +5,28 @@
  * @returns {KeyboardShortcut[]}
  */
 export function createDefaultShortcutsList(menu) {
+  const { hot, hotMenu } = menu;
+
   return [{
-    keys: [['Tab'], ['Shift', 'Tab'], ['Control/Meta', 'A']],
-    forwardToContext: menu.hot.getShortcutManager().getContext('grid'),
-    callback: () => menu.close(true),
+    keys: [['Control/Meta', 'A']],
+    forwardToContext: hot.getShortcutManager().getContext('grid'),
+    callback: () => menu.close(true)
+  }, {
+    keys: [['Tab'], ['Shift', 'Tab']],
+    callback: (event, keys) => {
+      const settings = hot.getSettings();
+      const tabMoves = typeof settings.tabMoves === 'function'
+        ? settings.tabMoves(event)
+        : settings.tabMoves;
+
+      if (keys.includes('shift')) {
+        hot.selection.transformStart(-tabMoves.row, -tabMoves.col);
+      } else {
+        hot.selection.transformStart(tabMoves.row, tabMoves.col);
+      }
+
+      menu.close(true);
+    },
   }, {
     keys: [['Escape']],
     callback: () => menu.close(),
@@ -21,7 +39,7 @@ export function createDefaultShortcutsList(menu) {
   }, {
     keys: [['ArrowRight']],
     callback: () => {
-      const selection = menu.hotMenu.getSelectedLast();
+      const selection = hotMenu.getSelectedLast();
 
       if (selection) {
         const subMenu = menu.openSubMenu(selection[0]);
@@ -34,7 +52,7 @@ export function createDefaultShortcutsList(menu) {
   }, {
     keys: [['ArrowLeft']],
     callback: () => {
-      const selection = menu.hotMenu.getSelectedLast();
+      const selection = hotMenu.getSelectedLast();
 
       if (selection && menu.isSubMenu()) {
         menu.close();
@@ -53,13 +71,13 @@ export function createDefaultShortcutsList(menu) {
   }, {
     keys: [['Enter'], ['Space']],
     callback: (event) => {
-      const selection = menu.hotMenu.getSelectedLast();
+      const selection = hotMenu.getSelectedLast();
 
       if (!selection) {
         return;
       }
 
-      if (menu.hotMenu.getSourceDataAtRow(selection[0]).submenu) {
+      if (hotMenu.getSourceDataAtRow(selection[0]).submenu) {
         menu.openSubMenu(selection[0]).getNavigator().toFirstItem();
       } else {
         menu.executeCommand(event);
@@ -69,10 +87,10 @@ export function createDefaultShortcutsList(menu) {
   }, {
     keys: [['PageUp']],
     callback: () => {
-      const selection = menu.hotMenu.getSelectedLast();
+      const selection = hotMenu.getSelectedLast();
 
       if (selection) {
-        menu.hotMenu.selection.transformStart(-menu.hotMenu.countVisibleRows(), 0);
+        hotMenu.selection.transformStart(-hotMenu.countVisibleRows(), 0);
       } else {
         menu.getNavigator().toFirstItem();
       }
@@ -80,10 +98,10 @@ export function createDefaultShortcutsList(menu) {
   }, {
     keys: [['PageDown']],
     callback: () => {
-      const selection = menu.hotMenu.getSelectedLast();
+      const selection = hotMenu.getSelectedLast();
 
       if (selection) {
-        menu.hotMenu.selection.transformStart(menu.hotMenu.countVisibleRows(), 0);
+        hotMenu.selection.transformStart(hotMenu.countVisibleRows(), 0);
       } else {
         menu.getNavigator().toLastItem();
       }

@@ -455,7 +455,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: -1,3 to: 5,2']);
     });
 
-    it('should be possible to move the focus selection around cells range (navigableHeaders off, with headers)', () => {
+    it('should be possible to move the focus (by passing a number) selection around cells range (navigableHeaders off, with headers)', () => {
       handsontable({
         data: createSpreadsheetObjectData(3, 4),
         colHeaders: true,
@@ -471,18 +471,6 @@ describe('Selection', () => {
         },
       });
 
-      expect(hot().selection.selectColumns(2, 3, -10)).toBe(true);
-      expect(`
-        |   :   :   ║   :   : * : * |
-        |   :   :   ║   :   : * : * |
-        |   :   :   ║   :   : * : * |
-        |===:===:===:===:===:===:===|
-        |   :   : - ║   :   : A : 0 |
-        |   :   : - ║   :   : 0 : 0 |
-        |   :   : - ║   :   : 0 : 0 |
-        `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -3,2 to: 2,3']);
-
       expect(hot().selection.selectColumns(2, 3, 1)).toBe(true);
       expect(`
         |   :   :   ║   :   : * : * |
@@ -495,7 +483,7 @@ describe('Selection', () => {
         `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: -1,2 to: 2,3']);
 
-      expect(hot().selection.selectColumns(2, 3, 10)).toBe(true);
+      expect(hot().selection.selectColumns(2, 3, 2)).toBe(true);
       expect(`
         |   :   :   ║   :   : * : * |
         |   :   :   ║   :   : * : * |
@@ -508,7 +496,60 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: -1,2 to: 2,3']);
     });
 
-    it('should not be possible to move the focus selection around headers range (navigableHeaders off, with headers)', () => {
+    it('should be possible to move the focus (by passing an object) selection around cells range (navigableHeaders off, with headers)', () => {
+      handsontable({
+        data: createSpreadsheetObjectData(3, 4),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: false,
+        afterGetColumnHeaderRenderers(headerRenderers) {
+          headerRenderers.push(columnHeader.bind(this));
+          headerRenderers.push(columnHeader.bind(this));
+        },
+        afterGetRowHeaderRenderers(headerRenderers) {
+          headerRenderers.push(rowHeader.bind(this));
+          headerRenderers.push(rowHeader.bind(this));
+        },
+      });
+
+      expect(hot().selection.selectColumns(2, 3, { row: 1, col: 2 })).toBe(true);
+      expect(`
+        |   :   :   ║   :   : * : * |
+        |   :   :   ║   :   : * : * |
+        |   :   :   ║   :   : * : * |
+        |===:===:===:===:===:===:===|
+        |   :   : - ║   :   : 0 : 0 |
+        |   :   : - ║   :   : A : 0 |
+        |   :   : - ║   :   : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: -1,2 to: 2,3']);
+
+      expect(hot().selection.selectColumns(2, 3, { row: 2, col: 3 })).toBe(true);
+      expect(`
+        |   :   :   ║   :   : * : * |
+        |   :   :   ║   :   : * : * |
+        |   :   :   ║   :   : * : * |
+        |===:===:===:===:===:===:===|
+        |   :   : - ║   :   : 0 : 0 |
+        |   :   : - ║   :   : 0 : 0 |
+        |   :   : - ║   :   : 0 : A |
+        `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,3 from: -1,2 to: 2,3']);
+
+      expect(hot().selection.selectColumns(2, 3, { row: 1, col: 1 })).toBe(true);
+      expect(`
+        |   :   :   ║   :   : * : * |
+        |   :   :   ║   :   : * : * |
+        |   :   :   ║   :   : * : * |
+        |===:===:===:===:===:===:===|
+        |   :   : - ║   :   : 0 : 0 |
+        |   :   : - ║   :   : A : 0 |
+        |   :   : - ║   :   : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: -1,2 to: 2,3']);
+    });
+
+    it('should not be possible to move the focus (by passing a number) selection around headers range (navigableHeaders off, with headers)', () => {
       handsontable({
         data: createSpreadsheetObjectData(3, 4),
         colHeaders: true,
@@ -549,7 +590,60 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -3,2 to: 2,3']);
     });
 
-    it('should be possible to move the focus selection around headers and cells range (navigableHeaders on, with headers)', () => {
+    it('should not be possible to move the focus (by passing an object) selection around headers range (navigableHeaders off, with headers)', () => {
+      handsontable({
+        data: createSpreadsheetObjectData(3, 4),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: false,
+        afterGetColumnHeaderRenderers(headerRenderers) {
+          headerRenderers.push(columnHeader.bind(this));
+          headerRenderers.push(columnHeader.bind(this));
+        },
+        afterGetRowHeaderRenderers(headerRenderers) {
+          headerRenderers.push(rowHeader.bind(this));
+          headerRenderers.push(rowHeader.bind(this));
+        },
+      });
+
+      expect(hot().selection.selectColumns(2, 3, { row: 0, col: -1 })).toBe(true);
+      expect(`
+        |   :   :   ║   :   : * : * |
+        |   :   :   ║   :   : * : * |
+        |   :   :   ║   :   : * : * |
+        |===:===:===:===:===:===:===|
+        |   :   : - ║   :   : A : 0 |
+        |   :   : - ║   :   : 0 : 0 |
+        |   :   : - ║   :   : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 2,3']);
+
+      expect(hot().selection.selectColumns(2, 3, { row: 0, col: 1 })).toBe(true);
+      expect(`
+        |   :   :   ║   :   : * : * |
+        |   :   :   ║   :   : * : * |
+        |   :   :   ║   :   : * : * |
+        |===:===:===:===:===:===:===|
+        |   :   : - ║   :   : A : 0 |
+        |   :   : - ║   :   : 0 : 0 |
+        |   :   : - ║   :   : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 2,3']);
+
+      expect(hot().selection.selectColumns(2, 3, { row: 0, col: 4 })).toBe(true);
+      expect(`
+        |   :   :   ║   :   : * : * |
+        |   :   :   ║   :   : * : * |
+        |   :   :   ║   :   : * : * |
+        |===:===:===:===:===:===:===|
+        |   :   : - ║   :   : 0 : A |
+        |   :   : - ║   :   : 0 : 0 |
+        |   :   : - ║   :   : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: -1,2 to: 2,3']);
+    });
+
+    it('should be possible to move the focus (by passing a number) selection around headers and cells range (navigableHeaders on, with headers)', () => {
       handsontable({
         data: createSpreadsheetObjectData(3, 4),
         colHeaders: true,
@@ -614,7 +708,72 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: -1,2 to: 2,3']);
     });
 
-    it('should be possible to move the focus selection around cells range (navigableHeaders on, without headers)', () => {
+    it('should be possible to move the focus (by passing an object) selection around headers and cells range (navigableHeaders on, with headers)', () => {
+      handsontable({
+        data: createSpreadsheetObjectData(3, 4),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        afterGetColumnHeaderRenderers(headerRenderers) {
+          headerRenderers.push(columnHeader.bind(this));
+          headerRenderers.push(columnHeader.bind(this));
+        },
+        afterGetRowHeaderRenderers(headerRenderers) {
+          headerRenderers.push(rowHeader.bind(this));
+          headerRenderers.push(rowHeader.bind(this));
+        },
+      });
+
+      expect(hot().selection.selectColumns(2, 3, { row: -1, col: 2 })).toBe(true);
+      expect(`
+        |   :   :   ║   :   : * : * |
+        |   :   :   ║   :   : * : * |
+        |   :   :   ║   :   : # : * |
+        |===:===:===:===:===:===:===|
+        |   :   : - ║   :   : 0 : 0 |
+        |   :   : - ║   :   : 0 : 0 |
+        |   :   : - ║   :   : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: 2,3']);
+
+      expect(hot().selection.selectColumns(2, 3, { row: -3, col: 3 })).toBe(true);
+      expect(`
+        |   :   :   ║   :   : * : # |
+        |   :   :   ║   :   : * : * |
+        |   :   :   ║   :   : * : * |
+        |===:===:===:===:===:===:===|
+        |   :   : - ║   :   : 0 : 0 |
+        |   :   : - ║   :   : 0 : 0 |
+        |   :   : - ║   :   : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -3,3 from: -3,2 to: 2,3']);
+
+      expect(hot().selection.selectColumns(2, 3, { row: 0, col: -1 })).toBe(true);
+      expect(`
+        |   :   :   ║   :   : * : * |
+        |   :   :   ║   :   : * : * |
+        |   :   :   ║   :   : * : * |
+        |===:===:===:===:===:===:===|
+        |   :   : - ║   :   : A : 0 |
+        |   :   : - ║   :   : 0 : 0 |
+        |   :   : - ║   :   : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 2,3']);
+
+      expect(hot().selection.selectColumns(2, 3, { row: 2, col: 3 })).toBe(true);
+      expect(`
+        |   :   :   ║   :   : * : * |
+        |   :   :   ║   :   : * : * |
+        |   :   :   ║   :   : * : * |
+        |===:===:===:===:===:===:===|
+        |   :   : - ║   :   : 0 : 0 |
+        |   :   : - ║   :   : 0 : 0 |
+        |   :   : - ║   :   : 0 : A |
+        `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,3 from: -1,2 to: 2,3']);
+    });
+
+    it('should be possible to move the focus (by passing a number) selection around cells range (navigableHeaders on, without headers)', () => {
       handsontable({
         data: createSpreadsheetObjectData(6, 4),
         colHeaders: false,
@@ -633,30 +792,50 @@ describe('Selection', () => {
         `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 0,2 to: 5,3']);
 
-      expect(hot().selection.selectColumns(2, 3, 5)).toBe(true);
+      expect(hot().selection.selectColumns(2, 3, 4)).toBe(true);
       expect(`
         |   :   : 0 : 0 |
         |   :   : 0 : 0 |
         |   :   : 0 : 0 |
         |   :   : 0 : 0 |
-        |   :   : 0 : 0 |
         |   :   : A : 0 |
+        |   :   : 0 : 0 |
         `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 5,2 from: 0,2 to: 5,3']);
-
-      expect(hot().selection.selectColumns(2, 3, 10)).toBe(true);
-      expect(`
-        |   :   : 0 : 0 |
-        |   :   : 0 : 0 |
-        |   :   : 0 : 0 |
-        |   :   : 0 : 0 |
-        |   :   : 0 : 0 |
-        |   :   : A : 0 |
-        `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 5,2 from: 0,2 to: 5,3']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 4,2 from: 0,2 to: 5,3']);
     });
 
-    it('should not be possible to move the focus selection around headers range (navigableHeaders on, without headers)', () => {
+    it('should be possible to move the focus (by passing an object) selection around cells range (navigableHeaders on, without headers)', () => {
+      handsontable({
+        data: createSpreadsheetObjectData(6, 4),
+        colHeaders: false,
+        rowHeaders: false,
+        navigableHeaders: true,
+      });
+
+      expect(hot().selection.selectColumns(2, 3, { row: 1, col: 3 })).toBe(true);
+      expect(`
+        |   :   : 0 : 0 |
+        |   :   : 0 : A |
+        |   :   : 0 : 0 |
+        |   :   : 0 : 0 |
+        |   :   : 0 : 0 |
+        |   :   : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,3 from: 0,2 to: 5,3']);
+
+      expect(hot().selection.selectColumns(2, 3, { row: 4, col: 3 })).toBe(true);
+      expect(`
+        |   :   : 0 : 0 |
+        |   :   : 0 : 0 |
+        |   :   : 0 : 0 |
+        |   :   : 0 : 0 |
+        |   :   : 0 : A |
+        |   :   : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 4,3 from: 0,2 to: 5,3']);
+    });
+
+    it('should not be possible to move the focus (by passing a number) selection around headers range (navigableHeaders on, without headers)', () => {
       handsontable({
         data: createSpreadsheetObjectData(6, 4),
         colHeaders: false,
@@ -676,6 +855,37 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 5,3']);
 
       expect(hot().selection.selectColumns(2, 3, -3)).toBe(true);
+      expect(`
+        |   :   : A : 0 |
+        |   :   : 0 : 0 |
+        |   :   : 0 : 0 |
+        |   :   : 0 : 0 |
+        |   :   : 0 : 0 |
+        |   :   : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 5,3']);
+    });
+
+    it('should not be possible to move the focus (by passing an object) selection around headers range (navigableHeaders on, without headers)', () => {
+      handsontable({
+        data: createSpreadsheetObjectData(6, 4),
+        colHeaders: false,
+        rowHeaders: false,
+        navigableHeaders: true,
+      });
+
+      expect(hot().selection.selectColumns(2, 3, { row: -1, col: 2 })).toBe(true);
+      expect(`
+        |   :   : A : 0 |
+        |   :   : 0 : 0 |
+        |   :   : 0 : 0 |
+        |   :   : 0 : 0 |
+        |   :   : 0 : 0 |
+        |   :   : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 5,3']);
+
+      expect(hot().selection.selectColumns(2, 3, { row: -3, col: 2 })).toBe(true);
       expect(`
         |   :   : A : 0 |
         |   :   : 0 : 0 |

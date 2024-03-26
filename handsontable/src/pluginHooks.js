@@ -690,7 +690,9 @@ const REGISTERED_HOOKS = [
    * @param {string} prop Selection start data source object property name.
    * @param {number} row2 Selection end visual row index.
    * @param {string} prop2 Selection end data source object property name.
-   * @param {object} preventScrolling Object with `value` property where its value change will be observed.
+   * @param {object} preventScrolling A reference to the observable object with the `value` property.
+   *                                  Property `preventScrolling.value` expects a boolean value that
+   *                                  Handsontable uses to control scroll behavior after selection.
    * @param {number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    * @example
    * ```js
@@ -744,7 +746,48 @@ const REGISTERED_HOOKS = [
   'afterSelectionEndByProp',
 
   /**
-   * Fired before one or more columns are selected (e.g. during mouse header click or {@link Core#selectColumns} API call).
+   * Fired after the focus position within a selected range is changed.
+   *
+   * @since 14.3.0
+   * @event Hooks#afterSelectionFocusSet
+   * @param {number} row The focus visual row index position.
+   * @param {number} column The focus visual column index position.
+   * @param {object} preventScrolling A reference to the observable object with the `value` property.
+   *                                  Property `preventScrolling.value` expects a boolean value that
+   *                                  Handsontable uses to control scroll behavior after selection.
+   * @example
+   * ```js
+   * ::: only-for javascript
+   * new Handsontable(element, {
+   *   afterSelectionFocusSet: (row, column, preventScrolling) => {
+   *     // If set to `false` (default): when focused cell selection is outside the viewport,
+   *     // Handsontable scrolls the viewport to that cell.
+   *     // If set to `true`: when focused cell selection is outside the viewport,
+   *     // Handsontable doesn't scroll the viewport.
+   *     preventScrolling.value = true;
+   *   }
+   * })
+   * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   afterSelectionFocusSet={(row, column, preventScrolling) => {
+   *     // If set to `false` (default): when focused cell selection is outside the viewport,
+   *     // Handsontable scrolls the viewport to that cell.
+   *     // If set to `true`: when focused cell selection is outside the viewport,
+   *     // Handsontable doesn't scroll the viewport.
+   *     preventScrolling.value = true;
+   *   }}
+   * />
+   * ```
+   * :::
+   */
+  'afterSelectionFocusSet',
+
+  /**
+   * Fired before one or more columns are selected (e.g. During mouse header click or {@link Core#selectColumns} API call).
    *
    * @since 14.0.0
    * @event Hooks#beforeSelectColumns
@@ -1329,6 +1372,15 @@ const REGISTERED_HOOKS = [
    * @returns {boolean|undefined} If false is returned the action is canceled.
    */
   'beforeSetCellMeta',
+
+  /**
+   * Fired before setting focus selection.
+   *
+   * @since 14.3.0
+   * @event Hooks#beforeSelectionFocusSet
+   * @param {CellCoords} coords CellCoords instance.
+   */
+  'beforeSelectionFocusSet',
 
   /**
    * Fired before setting range is started but not finished yet.
@@ -2309,6 +2361,15 @@ const REGISTERED_HOOKS = [
   'modifyRowHeaderWidth',
 
   /**
+   * Fired when the focus of the selection is being modified (e.g. Moving the focus with the enter/tab keys).
+   *
+   * @since 14.3.0
+   * @event Hooks#modifyTransformFocus
+   * @param {CellCoords} delta Cell coords object declaring the delta of the new selection relative to the previous one.
+   */
+  'modifyTransformFocus',
+
+  /**
    * Fired when the start of the selection is being modified (e.g. Moving the selection with the arrow keys).
    *
    * @event Hooks#modifyTransformStart
@@ -2323,6 +2384,17 @@ const REGISTERED_HOOKS = [
    * @param {CellCoords} delta Cell coords object declaring the delta of the new selection relative to the previous one.
    */
   'modifyTransformEnd',
+
+  /**
+   * Fired after the focus of the selection is being modified (e.g. Moving the focus with the enter/tab keys).
+   *
+   * @since 14.3.0
+   * @event Hooks#afterModifyTransformFocus
+   * @param {CellCoords} coords Coords of the freshly focused cell.
+   * @param {number} rowTransformDir `-1` if trying to focus a cell with a negative row index. `0` otherwise.
+   * @param {number} colTransformDir `-1` if trying to focus a cell with a negative column index. `0` otherwise.
+   */
+  'afterModifyTransformFocus',
 
   /**
    * Fired after the start of the selection is being modified (e.g. Moving the selection with the arrow keys).

@@ -165,14 +165,30 @@ describe('MultiColumnSorting keyboard shortcut', () => {
         multiColumnSorting: true
       });
 
-      selectColumns(1, 4, -1);
+      selectCell(-1, 4);
       listen();
       keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
-        column: 1,
+        column: 4,
         sortOrder: 'asc',
       }]);
+    });
+
+    it('should not be possible to sort a column when a range of the columns are selected', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        multiColumnSorting: true
+      });
+
+      selectColumns(1, 4, -1);
+      listen();
+      keyDownUp(['shift', 'enter']);
+
+      expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([]);
     });
 
     it('should be possible to sort columns only by triggering the action from the lowest column header', () => {

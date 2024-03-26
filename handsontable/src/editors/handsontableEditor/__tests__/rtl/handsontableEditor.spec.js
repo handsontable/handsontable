@@ -97,7 +97,7 @@ describe('HandsontableEditor (RTL mode)', () => {
 
       const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-      keyDown('enter');
+      keyDown('F2');
 
       expect(editor.offset()).toEqual(offsetForRtl(getCell(0, 0), editor.outerWidth(), true));
     });
