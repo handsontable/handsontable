@@ -70,17 +70,17 @@ describe('EditorManager open editor', () => {
     expect(getActiveEditor()).toBeDefined();
   });
 
-  it('should be possible to open an editor using Enter key when more than 2 cells are selected (while holding Shift)', () => {
+  it('should not be possible to open an editor using Enter key when more than 2 cells are selected (while holding Shift)', () => {
     handsontable({
       data: createSpreadsheetData(5, 5),
     });
     selectCell(2, 2, 2, 3);
     keyDownUp(['shift', 'enter']);
 
-    expect(isEditorVisible()).toBe(true);
+    expect(isEditorVisible()).toBe(false);
     expect(getActiveEditor()).toBeDefined();
     expect(getActiveEditor().row).toBe(2);
-    expect(getActiveEditor().col).toBe(2);
+    expect(getActiveEditor().col).toBe(3);
   });
 
   it('should not be possible to open an editor using Enter key when Ctrl/Cmd key is pressed', () => {

@@ -3,9 +3,6 @@ import { HotTable, HotColumn } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.css';
 
-/* start:skip-in-preview */
-import { createApp } from 'vue';
-
 // register Handsontable's modules
 registerAllModules();
 
@@ -35,8 +32,3 @@ const ExampleComponent = defineComponent({
 });
 
 export default ExampleComponent;
-
-const app = createApp(ExampleComponent);
-
-app.mount('#example2');
-/* end:skip-in-preview */

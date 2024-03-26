@@ -1,6 +1,9 @@
-import Vue from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue';
-import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.css';
+
+// register Handsontable's modules
+registerAllModules();
 
 const CustomRenderer = {
   template: '<div v-bind:style="{ backgroundColor: bgColor }">{{value}}</div>',
@@ -22,8 +25,7 @@ const CustomRenderer = {
   }
 };
 
-const App = new Vue({
-  el: '#v-model-example',
+const ExampleComponent = {
   data() {
     return {
       hotSettings: {
@@ -53,4 +55,6 @@ const App = new Vue({
     HotColumn,
     CustomRenderer
   }
-});
+};
+
+export default ExampleComponent;

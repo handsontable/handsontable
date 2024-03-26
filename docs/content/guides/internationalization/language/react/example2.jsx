@@ -49,7 +49,7 @@ registerLanguageDictionary(srSP);
 registerLanguageDictionary(zhCN);
 registerLanguageDictionary(zhTW);
 
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   const [language, setLanguage] = useState('en-US');
   const [languageList, setLanguageList] = useState([]);
 
@@ -95,6 +95,4 @@ export const ExampleComponent = () => {
   );
 }
 
-/* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
-/* end:skip-in-preview */
+export default ExampleComponent;

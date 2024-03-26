@@ -20,6 +20,7 @@ import { Component } from '@angular/core';
     </div>
   `,
 })
+
 export class AppComponent {
   dataset: any[] = [
     {id: 1, name: 'Ted Right', address: 'Wall Street'},
@@ -32,6 +33,7 @@ export class AppComponent {
     {id: 8, name: 'Jack Right', address: 'Michigan Avenue'},
   ];
 }
+/* end-file */
 
 /* file: app.module.ts */
 import { NgModule } from '@angular/core';
@@ -50,12 +52,6 @@ registerAllModules();
   declarations: [ AppComponent ],
   bootstrap: [ AppComponent ]
 })
+
 export class AppModule { }
-
-/* start:skip-in-preview */
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-
-platformBrowserDynamic()
-  .bootstrapModule(AppModule)
-  .catch(err => { console.error(err) });
-/* end:skip-in-preview */
+/* end-file */

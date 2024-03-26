@@ -436,8 +436,24 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterLoadData: (sourceData, firstTime, source) => {},
   afterMergeCells: (cellRange, mergeParent, auto) => {},
   modifySourceData: (row, col, valueHolder, ioMode) => {},
-  afterModifyTransformEnd: (coords, rowTransformDir, colTransformDir) => {},
-  afterModifyTransformStart: (coords, rowTransformDir, colTransformDir) => {},
+  afterModifyTransformEnd: (coords, rowTransformDir, colTransformDir) => {
+    const row: number = coords.row;
+    const col: number = coords.col;
+    const rowTransform: number = rowTransformDir;
+    const colTransform: number = colTransformDir;
+  },
+  afterModifyTransformFocus: (coords, rowTransformDir, colTransformDir) => {
+    const row: number = coords.row;
+    const col: number = coords.col;
+    const rowTransform: number = rowTransformDir;
+    const colTransform: number = colTransformDir;
+  },
+  afterModifyTransformStart: (coords, rowTransformDir, colTransformDir) => {
+    const row: number = coords.row;
+    const col: number = coords.col;
+    const rowTransform: number = rowTransformDir;
+    const colTransform: number = colTransformDir;
+  },
   afterMomentumScroll: () => {},
   afterNamedExpressionAdded: (namedExpressionName, changes) => {},
   afterNamedExpressionRemoved: (namedExpressionName, changes) => {},
@@ -470,6 +486,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterSelectionByProp: (r, p, r2, p2, preventScrolling, selectionLayerLevel) => preventScrolling.value = true,
   afterSelectionEnd: (r, c, r2, c2, selectionLayerLevel) => {},
   afterSelectionEndByProp: (r, p, r2, p2, selectionLayerLevel) => {},
+  afterSelectionFocusSet: (row, column, preventScrolling) => {
+    row.toFixed();
+    column.toFixed();
+    preventScrolling.value = true;
+  },
   afterSelectRows: (from, to, highlight) => {},
   afterSetCellMeta: (row, col, key, value) => {},
   afterSetDataAtCell: (changes, source) => {},
@@ -579,6 +600,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
     newCoords.clone();
   },
   beforeSelectColumns: (from, to, highlight) => {},
+  beforeSelectionFocusSet: (coords) => {
+    const row: number = coords.row;
+    const col: number = coords.col;
+  },
   beforeSelectionHighlightSet: () => {},
   beforeSelectRows: (from, to, highlight) => {},
   beforeSetCellMeta: (row, col, key, value) => {},
@@ -623,8 +648,18 @@ const allSettings: Required<Handsontable.GridSettings> = {
   modifyRowHeader: (row) => {},
   modifyRowHeaderWidth: (rowHeaderWidth) => {},
   modifyRowHeight: (height, row) => {},
-  modifyTransformEnd: (delta) => {},
-  modifyTransformStart: (delta) => {},
+  modifyTransformEnd: (delta) => {
+    const rowDelta: number = delta.row;
+    const colDelta: number = delta.row;
+  },
+  modifyTransformFocus: (delta) => {
+    const rowDelta: number = delta.row;
+    const colDelta: number = delta.row;
+  },
+  modifyTransformStart: (delta) => {
+    const rowDelta: number = delta.row;
+    const colDelta: number = delta.row;
+  },
   persistentStateLoad: () => {},
   persistentStateReset: () => {},
   persistentStateSave: () => {},

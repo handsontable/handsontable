@@ -1,5 +1,4 @@
 import { useRef } from 'react';
-import ReactDOM from 'react-dom';
 import { createStore } from 'redux';
 import { Provider, useSelector, useDispatch } from 'react-redux';
 import { HotTable } from '@handsontable/react';
@@ -9,7 +8,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const ExampleComponent = () => {
+const ExampleComponentContent = () => {
   const hotSettings = useSelector(state => state);
   const dispatch = useDispatch();
   const hotTableComponentRef = useRef(null);
@@ -131,9 +130,10 @@ const updatesReducer = (state = initialReduxStoreState, action) => {
 
 const reduxStore = createStore(updatesReducer);
 
-ReactDOM.render(
+const ExampleComponent = () => (
   <Provider store={reduxStore}>
-    <ExampleComponent />
-  </Provider>,
-  document.getElementById('example1')
-);
+    <ExampleComponentContent />
+  </Provider>
+)
+
+export default ExampleComponent;

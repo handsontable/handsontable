@@ -12,6 +12,14 @@ describe('MergeCells', () => {
       _createCellRange: (highlight, from, to) => new CellRange(highlight, from, to),
     };
 
+    function createCellRange(fromRow, fromColumn, toRow, toColumn) {
+      return new CellRange(
+        new CellCoords(fromRow, fromColumn),
+        new CellCoords(fromRow, fromColumn),
+        new CellCoords(toRow, toColumn)
+      );
+    }
+
     describe('`add` method', () => {
       it('should add a merged cell object to the array of merged cells', () => {
         const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
@@ -451,6 +459,122 @@ describe('MergeCells', () => {
         expect(mergedCellsCollection.isOverlapping({ row: 21, col: 22, rowspan: 5, colspan: 5 })).toEqual(true);
         expect(mergedCellsCollection.isOverlapping({ row: 24, col: 25, rowspan: 5, colspan: 5 })).toEqual(false);
 
+      });
+    });
+
+    describe('`getStartMostColumnIndex` method', () => {
+      it('should return start-most column index of where the merge cells are not intersected', () => {
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+
+        mergedCellsCollection.add({
+          row: 1,
+          col: 2,
+          rowspan: 2,
+          colspan: 2
+        });
+        mergedCellsCollection.add({
+          row: 3,
+          col: 3,
+          rowspan: 2,
+          colspan: 2
+        });
+
+        const range = createCellRange(0, 1, 5, 5);
+
+        expect(mergedCellsCollection.getStartMostColumnIndex(range, 0)).toBe(0);
+        expect(mergedCellsCollection.getStartMostColumnIndex(range, 1)).toBe(1);
+        expect(mergedCellsCollection.getStartMostColumnIndex(range, 2)).toBe(2);
+        expect(mergedCellsCollection.getStartMostColumnIndex(range, 3)).toBe(2);
+        expect(mergedCellsCollection.getStartMostColumnIndex(range, 4)).toBe(2);
+        expect(mergedCellsCollection.getStartMostColumnIndex(range, 5)).toBe(5);
+        expect(mergedCellsCollection.getStartMostColumnIndex(range, 6)).toBe(5);
+      });
+    });
+
+    describe('`getEndMostColumnIndex` method', () => {
+      it('should return end-most column index of where the merge cells are not intersected', () => {
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+
+        mergedCellsCollection.add({
+          row: 1,
+          col: 2,
+          rowspan: 2,
+          colspan: 2
+        });
+        mergedCellsCollection.add({
+          row: 3,
+          col: 3,
+          rowspan: 2,
+          colspan: 2
+        });
+
+        const range = createCellRange(0, 1, 5, 5);
+
+        expect(mergedCellsCollection.getEndMostColumnIndex(range, 0)).toBe(1);
+        expect(mergedCellsCollection.getEndMostColumnIndex(range, 1)).toBe(1);
+        expect(mergedCellsCollection.getEndMostColumnIndex(range, 2)).toBe(4);
+        expect(mergedCellsCollection.getEndMostColumnIndex(range, 3)).toBe(4);
+        expect(mergedCellsCollection.getEndMostColumnIndex(range, 4)).toBe(4);
+        expect(mergedCellsCollection.getEndMostColumnIndex(range, 5)).toBe(5);
+        expect(mergedCellsCollection.getEndMostColumnIndex(range, 6)).toBe(6);
+      });
+    });
+
+    describe('`getTopMostRowIndex` method', () => {
+      it('should return top-most row index of where the merge cells are not intersected', () => {
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+
+        mergedCellsCollection.add({
+          row: 2,
+          col: 1,
+          rowspan: 2,
+          colspan: 2
+        });
+        mergedCellsCollection.add({
+          row: 3,
+          col: 3,
+          rowspan: 2,
+          colspan: 2
+        });
+
+        const range = createCellRange(1, 0, 5, 5);
+
+        expect(mergedCellsCollection.getTopMostRowIndex(range, 0)).toBe(0);
+        expect(mergedCellsCollection.getTopMostRowIndex(range, 1)).toBe(1);
+        expect(mergedCellsCollection.getTopMostRowIndex(range, 2)).toBe(2);
+        expect(mergedCellsCollection.getTopMostRowIndex(range, 3)).toBe(2);
+        expect(mergedCellsCollection.getTopMostRowIndex(range, 4)).toBe(2);
+        expect(mergedCellsCollection.getTopMostRowIndex(range, 5)).toBe(5);
+        expect(mergedCellsCollection.getTopMostRowIndex(range, 6)).toBe(5);
+      });
+    });
+
+    describe('`getBottomMostRowIndex` method', () => {
+      it('should return bottom-most row index of where the merge cells are not intersected', () => {
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+
+        mergedCellsCollection.add({
+          row: 2,
+          col: 1,
+          rowspan: 2,
+          colspan: 2
+        });
+        mergedCellsCollection.add({
+          row: 3,
+          col: 3,
+          rowspan: 2,
+          colspan: 2
+        });
+
+        const range = createCellRange(1, 0, 5, 5);
+
+        expect(mergedCellsCollection.getBottomMostRowIndex(range, 0)).toBe(1);
+        expect(mergedCellsCollection.getBottomMostRowIndex(range, 1)).toBe(1);
+        expect(mergedCellsCollection.getBottomMostRowIndex(range, 2)).toBe(4);
+        expect(mergedCellsCollection.getBottomMostRowIndex(range, 3)).toBe(4);
+        expect(mergedCellsCollection.getBottomMostRowIndex(range, 4)).toBe(4);
+        expect(mergedCellsCollection.getBottomMostRowIndex(range, 5)).toBe(5);
+        expect(mergedCellsCollection.getBottomMostRowIndex(range, 6)).toBe(6);
       });
     });
   });
