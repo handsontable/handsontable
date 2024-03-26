@@ -165,15 +165,12 @@ export class NestedRows extends BasePlugin {
         keys: [['Enter']],
         callback: () => {
           const { highlight } = this.hot.getSelectedRangeLast();
+          const row = this.collapsingUI.translateTrimmedRow(highlight.row);
 
-          if (highlight.col === -1 && highlight.row >= 0) {
-            const row = this.collapsingUI.translateTrimmedRow(highlight.row);
-
-            if (this.collapsingUI.areChildrenCollapsed(row)) {
-              this.collapsingUI.expandChildren(row);
-            } else {
-              this.collapsingUI.collapseChildren(row);
-            }
+          if (this.collapsingUI.areChildrenCollapsed(row)) {
+            this.collapsingUI.expandChildren(row);
+          } else {
+            this.collapsingUI.collapseChildren(row);
           }
 
           // prevent default Enter behavior (move to the next row within a selection range)
@@ -183,7 +180,7 @@ export class NestedRows extends BasePlugin {
           const highlight = this.hot.getSelectedRangeLast()?.highlight;
 
           return highlight && this.hot.getSelectedRangeLast()?.isSingle() &&
-            this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
+            this.hot.selection.isCellVisible(highlight) && highlight.col === -1 && highlight.row >= 0;
         },
         group: SHORTCUTS_GROUP,
         relativeToGroup: SHORTCUTS_GROUP_EDITOR,
