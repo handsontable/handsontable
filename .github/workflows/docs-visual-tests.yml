@@ -9,7 +9,7 @@ on:
       test_env:
         type: choice
         description: Test enviroment
-        default: 'https://dev.handsontable.com/docs'
+        default: 'http://localhost:8080/docs'
         options:
           - https://dev.handsontable.com/docs
           - https://handsontable.com/docs
