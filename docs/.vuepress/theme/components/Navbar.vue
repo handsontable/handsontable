@@ -15,7 +15,10 @@
       <FrameworksDropdown></FrameworksDropdown>
 
       <div class="nav-links-right">
-        <SearchBox />
+        <AlgoliaSearch
+          v-if="isAlgoliaSearch"
+          :options="algolia"
+        />
         <VersionsDropdown class="can-hide"></VersionsDropdown>
         <ExternalNavLinks class="can-hide" />
         <ThemeSwitcher />
@@ -25,7 +28,7 @@
 </template>
 
 <script>
-import SearchBox from '@theme/components/SearchBox';
+import AlgoliaSearch from '@theme/components/AlgoliaSearch.vue';
 import SidebarButton from '@theme/components/SidebarButton.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
 import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
@@ -40,7 +43,7 @@ export default {
     FrameworksDropdown,
     SidebarButton,
     NavLinks,
-    SearchBox,
+    AlgoliaSearch,
     VersionsDropdown,
     ThemeSwitcher,
     Logo,
@@ -52,6 +55,12 @@ export default {
     };
   },
   computed: {
+    algolia() {
+      return this.$themeLocaleConfig.algolia || this.$site.themeConfig.algolia || {};
+    },
+    isAlgoliaSearch() {
+      return this.algolia && this.algolia.apiKey && this.algolia.indexName;
+    },
     frameworkUrlPrefix() {
       return `/${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
     }
