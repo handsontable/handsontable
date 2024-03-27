@@ -11,3 +11,4 @@ npm-debug.log
 node_modules/
 docs/tests/test-artifacts/
 docs/tests/.env
+docs/.env
