@@ -25,6 +25,8 @@
     "docs:check-links": "node .vuepress/tools/check-links.js",
     "docs:review": "./.vuepress/tools/review-commit.sh",
     "docs:test:example-checker": "node .vuepress/tools/example-checker",
+    "docs:visual-test": "npx playwright test",
+    "docs:visual-test:update-screenshot": "npx playwright test -u",
     "postinstall": "patch-package"
   },
   "license": "CC BY 4.0",
