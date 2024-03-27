@@ -1,7 +1,7 @@
 <template>
   <form
     id="search-form"
-    class="search-box algolia-search-wrapper"
+    class="search-box"
     role="search"
   >
     <input
