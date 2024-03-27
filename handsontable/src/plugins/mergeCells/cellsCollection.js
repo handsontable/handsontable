@@ -304,6 +304,136 @@ class MergedCellsCollection {
   }
 
   /**
+   * Gets the start-most visual column index that do not intersect with other merged cells within the provided range.
+   *
+   * @param {CellRange} range The range to search within.
+   * @param {number} visualColumnIndex The visual column index to start the search from.
+   * @returns {number}
+   */
+  getStartMostColumnIndex(range, visualColumnIndex) {
+    const indexes = this.#getNonIntersectingIndexes(range, 'col', -1);
+    let startMostIndex = visualColumnIndex;
+
+    for (let i = 0; i < indexes.length; i++) {
+      if (indexes[i] <= visualColumnIndex) {
+        startMostIndex = indexes[i];
+        break;
+      }
+    }
+
+    return startMostIndex;
+  }
+
+  /**
+   * Gets the end-most visual column index that do not intersect with other merged cells within the provided range.
+   *
+   * @param {CellRange} range The range to search within.
+   * @param {number} visualColumnIndex The visual column index to start the search from.
+   * @returns {number}
+   */
+  getEndMostColumnIndex(range, visualColumnIndex) {
+    const indexes = this.#getNonIntersectingIndexes(range, 'col', 1);
+    let endMostIndex = visualColumnIndex;
+
+    for (let i = 0; i < indexes.length; i++) {
+      if (indexes[i] >= visualColumnIndex) {
+        endMostIndex = indexes[i];
+        break;
+      }
+    }
+
+    return endMostIndex;
+  }
+
+  /**
+   * Gets the top-most visual row index that do not intersect with other merged cells within the provided range.
+   *
+   * @param {CellRange} range The range to search within.
+   * @param {number} visualRowIndex The visual row index to start the search from.
+   * @returns {number}
+   */
+  getTopMostRowIndex(range, visualRowIndex) {
+    const indexes = this.#getNonIntersectingIndexes(range, 'row', -1);
+    let topMostIndex = visualRowIndex;
+
+    for (let i = 0; i < indexes.length; i++) {
+      if (indexes[i] <= visualRowIndex) {
+        topMostIndex = indexes[i];
+        break;
+      }
+    }
+
+    return topMostIndex;
+  }
+
+  /**
+   * Gets the bottom-most visual row index that do not intersect with other merged cells within the provided range.
+   *
+   * @param {CellRange} range The range to search within.
+   * @param {number} visualRowIndex The visual row index to start the search from.
+   * @returns {number}
+   */
+  getBottomMostRowIndex(range, visualRowIndex) {
+    const indexes = this.#getNonIntersectingIndexes(range, 'row', 1);
+    let bottomMostIndex = visualRowIndex;
+
+    for (let i = 0; i < indexes.length; i++) {
+      if (indexes[i] >= visualRowIndex) {
+        bottomMostIndex = indexes[i];
+        break;
+      }
+    }
+
+    return bottomMostIndex;
+  }
+
+  /**
+   * Gets the list of the indexes that do not intersect with other merged cells within the provided range.
+   *
+   * @param {CellRange} range The range to search within.
+   * @param {'row' | 'col'} axis The axis to search within.
+   * @param {number} scanDirection  The direction to scan the range. `1` for forward, `-1` for backward.
+   * @returns {number[]}
+   */
+  #getNonIntersectingIndexes(range, axis, scanDirection = 1) {
+    const indexes = new Map();
+    const from = scanDirection === 1 ? range.getTopStartCorner() : range.getBottomEndCorner();
+    const to = scanDirection === 1 ? range.getBottomEndCorner() : range.getTopStartCorner();
+
+    for (
+      let row = from.row;
+      scanDirection === 1 ? row <= to.row : row >= to.row;
+      row += scanDirection
+    ) {
+      for (
+        let column = from.col;
+        scanDirection === 1 ? column <= to.col : column >= to.col;
+        column += scanDirection
+      ) {
+        const index = axis === 'row' ? row : column;
+        const mergedCell = this.get(row, column);
+        let lastIndex = index;
+
+        if (mergedCell) {
+          lastIndex = scanDirection === 1 ? mergedCell[axis] + mergedCell[`${axis}span`] - 1 : mergedCell[axis];
+        }
+
+        if (!indexes.has(index)) {
+          indexes.set(index, new Set());
+        }
+
+        indexes.get(index).add(lastIndex);
+      }
+    }
+
+    return Array.from(
+      new Set(Array.from(indexes.entries())
+        .filter(([, set]) => set.size === 1)
+        .flatMap(([, set]) => Array.from(set)))
+    );
+  }
+
+  /**
    * Shift the merged cell in the direction and by an offset defined in the arguments.
    *
    * @param {string} direction `right`, `left`, `up` or `down`.

@@ -3,20 +3,10 @@ import dotenv from 'dotenv';
 
 dotenv.config({ path: './tests/.env', override: true });
 
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// require('dotenv').config();
-
-/**
- * See https://playwright.dev/docs/test-configuration.
- */
-
 const isCI = !!process.env.CI;
 
 export default defineConfig({
-  expect: { timeout: 30000 },
+  expect: { timeout: !process.env.BASE_URL || process.env.BASE_URL.includes('localhost') ? 30000 : 60000 },
   testDir: './tests',
   outputDir: './tests/test-artifacts/output',
   snapshotPathTemplate: './tests/test-artifacts/screenshots/{testFilePath}/{arg}{ext}',
@@ -39,7 +29,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.BASE_URL ? process.env.BASE_URL : 'https://dev.handsontable.com/docs',
+    baseURL: process.env.BASE_URL ?? 'http://localhost:8080/docs',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -84,10 +74,10 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run docs:start',
-  //   url: 'http://localhost:8080/docs',
-  //   reuseExistingServer: !process.env.CI,
-  //   timeout: 120 * 1000,
-  // },
+  webServer: !process.env.BASE_URL || process.env.BASE_URL.includes('localhost') ? {
+    command: 'npm run docs:start',
+    url: process.env.BASE_URL ?? 'http://localhost:8080/docs',
+    reuseExistingServer: !process.env.CI,
+    timeout: 300 * 1000,
+  } : undefined,
 });

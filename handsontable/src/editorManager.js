@@ -320,20 +320,23 @@ class EditorManager {
   }
 
   /**
-   * Controls selection's behaviour after clicking `Enter`.
+   * Controls selection's behavior after clicking `Enter`.
    *
    * @private
-   * @param {boolean} isShiftPressed If `true`, then the selection will move up after hit enter.
+   * @param {KeyboardEvent} event The keyboard event object.
    */
-  moveSelectionAfterEnter(isShiftPressed) {
-    const enterMoves = typeof this.tableMeta.enterMoves === 'function' ?
-      this.tableMeta.enterMoves(event) : this.tableMeta.enterMoves;
+  moveSelectionAfterEnter(event) {
+    const enterMoves = { ...typeof this.tableMeta.enterMoves === 'function' ?
+      this.tableMeta.enterMoves(event) : this.tableMeta.enterMoves };
 
-    if (isShiftPressed) {
-      // move selection up
-      this.selection.transformStart(-enterMoves.row, -enterMoves.col);
+    if (event.shiftKey) {
+      enterMoves.row = -enterMoves.row;
+      enterMoves.col = -enterMoves.col;
+    }
+
+    if (this.hot.selection.isMultiple()) {
+      this.selection.transformFocus(enterMoves.row, enterMoves.col);
     } else {
-      // move selection down (add a new row if needed)
       this.selection.transformStart(enterMoves.row, enterMoves.col, true);
     }
   }

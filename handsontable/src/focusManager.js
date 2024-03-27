@@ -63,6 +63,7 @@ export class FocusManager {
 
     this.#hot.addHook('afterUpdateSettings', (...args) => this.#onUpdateSettings(...args));
     this.#hot.addHook('afterSelection', (...args) => this.#focusCell(...args));
+    this.#hot.addHook('afterSelectionFocusSet', (...args) => this.#focusCell(...args));
     this.#hot.addHook('afterSelectionEnd', (...args) => this.#focusEditorElement(...args));
   }
 
