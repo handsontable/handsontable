@@ -24,8 +24,14 @@ const {
 const {
   getPermalinkHrefMethod,
 } = require('./plugins/markdown-it-conditional-container/onlyForContainerHelpers');
-
 require('dotenv').config();
+
+const DOCSEARCH_API_KEY = process.env.DOCSEARCH_API_KEY;
+const DOCSEARCH_APP_ID = process.env.DOCSEARCH_APP_ID;
+
+if(!DOCSEARCH_API_KEY || !DOCSEARCH_APP_ID) {
+  throw new Error('DOCSEARCH_API_KEY or DOCSEARCH_APP_ID is missing in docs/.env');
+}
 
 const uniqueSlugs = new Set();
 const buildMode = process.env.BUILD_MODE;
@@ -372,8 +378,8 @@ module.exports = {
     searchPlaceholder: 'Search...',
     algolia: {
       indexName: 'handsontable',
-      apiKey: process.env.DOCSEARCH_API_KEY,
-      appId: process.env.DOCSEARCH_APP_ID
+      apiKey: DOCSEARCH_API_KEY,
+      appId: DOCSEARCH_APP_ID
     }
   },
 };
