@@ -38,30 +38,34 @@ test.beforeEach(async({ page, baseURL }) => {
   ]);
 });
 
-jsPaths.forEach((jspath) => {
-  test(`take screenshot for JS on ${jspath.path.split('/').pop()}`, async({ page, baseURL }) => {
-    const path = `/javascript-data-grid/${jspath.path.split('/').pop()}`.replace('introduction', '');
-    const maxDiffPixelRatioValue = pathsNeedingMoreTolerance.includes('path') ? 0.01 : 0.001;
+const testCases = [
+  { paths: jsPaths, prefix: 'js', urlPath: 'javascript-data-grid' },
+  { paths: reactPaths, prefix: 'react', urlPath: 'react-data-grid' },
+];
 
-    await page.goto(baseURL + path);
-    await expect(page.getByText('Page not found (404)')).toHaveCount(0);
-    await page.waitForLoadState('networkidle');
-    const screenshotName = `js-${jspath.path.split('/').pop()}.png`;
+testCases.forEach(({ paths, prefix, urlPath }) => {
+  test.describe(`${prefix} tests`, () => {
+    paths.forEach((pathObj) => {
+      test(`take screenshot for ${prefix} on ${pathObj.path.split('/').pop()}`, async({ page, baseURL }) => {
+        const path = `/${urlPath}/${pathObj.path.split('/').pop()}`.replace('introduction', '');
 
-    await expect(page).toHaveScreenshot(screenshotName, { maxDiffPixelRatio: maxDiffPixelRatioValue, fullPage: true });
-  });
-});
+        /**
+         * The maximum difference in pixel ratio value.
+         * If the 'path' is included in the 'pathsNeedingMoreTolerance' array, the value is set to 0.01.
+         * This is because there are some randomly generated date in the grid which can cause the diff to be higher.
+         * Otherwise, the value is set to 0.001 to carter for any small diffs due to anti-aliasing.
+         */
+        const maxDiffPixelRatioValue = pathsNeedingMoreTolerance.includes('path') ? 0.01 : 0.001;
 
-reactPaths.forEach((reactPath) => {
-  test(`take screenshot for React on ${reactPath.path.split('/').pop()}`, async({ page, baseURL }) => {
-    const path = `/react-data-grid/${reactPath.path.split('/').pop()}`.replace('introduction', '');
-    const maxDiffPixelRatioValue = pathsNeedingMoreTolerance.includes('path') ? 0.01 : 0.001;
+        await page.goto(baseURL + path);
+        await expect(page.getByText('Page not found (404)')).toHaveCount(0);
+        await expect(page.getByText('Password protected site')).toHaveCount(0);
+        await page.waitForLoadState('domcontentloaded');
+        const screenshotName = `${prefix}-${pathObj.path.split('/').pop()}.png`;
 
-    await page.goto(baseURL + path);
-    await expect(page.getByText('Page not found (404)')).toHaveCount(0);
-    await page.waitForLoadState('networkidle');
-    const screenshotName = `react-${reactPath.path.split('/').pop()}.png`;
-
-    await expect(page).toHaveScreenshot(screenshotName, { maxDiffPixelRatio: maxDiffPixelRatioValue, fullPage: true });
+        // eslint-disable-next-line max-len
+        await expect(page).toHaveScreenshot(screenshotName, { maxDiffPixelRatio: maxDiffPixelRatioValue, fullPage: true });
+      });
+    });
   });
 });
