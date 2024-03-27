@@ -17,13 +17,13 @@ html.theme-dark {
     $editorColor        = var(--color-gray-700)
     $editorHeadColor    = var(--color-gray-800)
 
-    $editorCommentColor         = var(--color-gray-500)
+    $editorCommentColor         = #d4d0ab
     $editorTagColor             = var(--color-lightblue)
     $editorFunctionNameColor    = var(--color-lightblue)
-    $editorFunctionColor        = var(--color-yellow)
-    $editorSymbolColor          = var(--color-success)
-    $editorSelectorColor        = var(--color-success)
-    $editorStringColor          = var(--color-success)
+    $editorFunctionColor        = var(--color-lightblue)
+    $editorSymbolColor          = $text2Color
+    $editorSelectorColor        = #dcc6e0
+    $editorStringColor          = #fe86a8
     $editorOperatorColor        = var(--color-success)
     $editorInsertedColor        = var(--color-success)
     $editorPunctuationColor     = var(--color-gray-300)
@@ -42,14 +42,15 @@ html.theme-dark {
     i.Logo { background:  url('{{$basePath}}/img/logo-white.svg');}
     i.ico { filter: brightness(0) invert(1)}
 
-    /*
-    * { 
-        outline: $accentColor solid 0 ;
+    :not(.handsontable) {
+        * { 
+            outline: $accentColor solid 0 ;
+        }
+        *:focus-visible {
+            outline: $accentColor solid 1px 
+        }
     }
-    :focus-visible {
-        outline: $accentColor solid 1px ;
-    }
-    */
+
     a { 
         color: $linkColor 
     }
@@ -75,7 +76,7 @@ html.theme-dark {
         }
 
         .info-box { 
-            background: $gradient
+            background: $borderColor
 
             span { 
                 background-color: $accentColor
@@ -182,7 +183,6 @@ html.theme-dark {
             }
 
             .dropdown-wrapper { 
-                
                 .nav-dropdown { 
                     background: $sideColor
 
@@ -266,9 +266,7 @@ html.theme-dark {
     /* Navbar 
     ------------------------------- */
     .navbar {
-        &:after {
-            background: $bgColor
-        }
+        background: $dropColor
 
         .tag  { 
             background-color: $accentColor
@@ -276,8 +274,12 @@ html.theme-dark {
         }  
 
         .navbar-wrapper { 
-            background: $dropColor
-
+            .home-link {
+                .version {
+                    color: $textColor
+                }
+            }
+            
             .dropdown-wrapper { 
                 .nav-dropdown { 
                     background: $borderColor
@@ -331,6 +333,11 @@ html.theme-dark {
                         }
                     }
                 }
+
+                .github-stars {
+                    border: 1px solid $borderColor
+                    color: $text2Color
+                }
             }   
 
             .search-box { 
@@ -340,7 +347,7 @@ html.theme-dark {
                     font-family: $font
                     
                     &:focus {
-                        box-shadow: 0 0 0 1px $accentColor
+                        //box-shadow: 0 0 0 1px $accentColor
                         background: $bgColor
                     }
                 }
@@ -591,7 +598,7 @@ html.theme-dark {
         }
         
         .footer {
-            background: $sideColor
+            border-top: 1px solid $borderColor   
 
             .footer-links { 
                 color: $text2Color

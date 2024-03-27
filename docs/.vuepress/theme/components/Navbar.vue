@@ -6,6 +6,7 @@
           class="home-link"
       >
         <Logo />
+        <span class="version">v14.2.0</span>
       </RouterLink>
       
       <div class="top-bar">
@@ -24,7 +25,7 @@
           <nav class="icons-nav">
             <!--<ThemeSwitcher />-->
             <a href="https://github.com/handsontable/handsontable"><i class="ico i-bell"></i></a>
-            <a href="https://github.com/handsontable/handsontable"><i class="ico i-github"></i></a>
+            <a href="https://github.com/handsontable/handsontable" class="github-stars"><i class="ico i-github"></i> 18921</a>
 
             <button @click="$emit('toggle-sidebar')" class="menuButton">
               <i class="ico i-menu"></i>

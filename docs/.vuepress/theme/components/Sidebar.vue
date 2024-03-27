@@ -15,10 +15,12 @@
 
     <slot name="top" />
 
+    <div class="sidebar-nav">
     <SidebarLinks
       :depth="0"
       :items="items"
     />
+    </div>
     <slot name="bottom" />
 
     
@@ -78,12 +80,13 @@ export default {
     const selector1 = document.querySelector('.sidebar > ul > li:first-child li:nth-child(2) a ');
     const chips1 = document.createElement('span');
     
-    selector1.appendChild(chips1);
+    //selector1.appendChild(chips1);
 
     chips1.classList.add('tag-new');
     chips1.textContent = 'New';
 
-    const osInstance = OverlayScrollbars(document.querySelector('.sidebar'), {
+    
+    const osInstance = OverlayScrollbars(document.querySelector('.sidebar-nav'), {
       overflow: {
         x: 'hidden',
       },
@@ -91,6 +94,7 @@ export default {
         autoHide: 'leave'
       }
     })
+    
   },
 
   props: ['items']

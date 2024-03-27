@@ -293,15 +293,15 @@ module.exports = {
     ],
   ],
   themeConfig: {
-    nextLinks: true,
-    prevLinks: true,
+    nextLinks: false,
+    prevLinks: false,
     repo: 'handsontable/handsontable',
     docsRepo: 'handsontable/handsontable',
     docsDir: 'docs/content',
     docsBranch: 'develop',
     editLinks: true,
-    editLinkText: 'Suggest edits',
-    lastUpdated: true,
+    editLinkText: 'Improve this page',
+    lastUpdated: false,
     smoothScroll: false,
     nav: [
       // Guide & API Reference has been defined in theme/components/NavLinks.vue

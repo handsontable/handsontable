@@ -8,7 +8,6 @@
 
     <Content class="theme-default-content" />
     <slot name="top" />
-    <PageNav v-bind="{ sidebarItems }" />
     <PageEdit />
 
     <slot name="bottom" />
@@ -18,10 +17,13 @@
 <script>
 /* global instanceRegister */
 import PageEdit from '@theme/components/PageEdit.vue';
-import PageNav from '@theme/components/PageNav.vue';
+//import PageNav from '@theme/components/PageNav.vue';
 
 export default {
-  components: { PageEdit, PageNav },
+  components: { 
+    PageEdit 
+    //,PageNav 
+  },
   props: ['sidebarItems'],
   watch: {
     $route(to, from) {

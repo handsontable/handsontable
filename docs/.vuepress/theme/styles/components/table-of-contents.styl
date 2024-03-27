@@ -3,11 +3,14 @@
  .page .table-of-contents { 
     position fixed
     width: 320px
-    top:104px
+    top: 104px
     right: 16px
     bottom: 0
-    margin-top: 24px
+    margin-top: 0
     margin-bottom: 24px
+    box-sizing: border-box
+    display: flex
+    flex-direction:column
 
     .toc-container-header { 
         font-size: $font-size-xs
@@ -20,6 +23,9 @@
     }
 
     ul {
+        height: -webkit-fill-available;
+        overflow: auto;
+
         li { 
             list-style:none 
             > ul { 
@@ -30,10 +36,10 @@
                 color: $text2Color
                 font-size: $font-size-xs
                 line-height: $line-height-xs
-                padding: 8px 32px 8px 32px
+                padding: 6px 32px 6px 32px
                 border:0
                 position: relative
-                transition all $t ease
+                transition all $ts ease
                 display: flex;
                 align-items: center;
                 text-decoration: none
@@ -72,5 +78,10 @@
                 }
             }  
         }
+    }
+
+    @media (max-width: $extraLarge) {
+        right: 0
+        padding-left: 32px
     }
 }

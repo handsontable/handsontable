@@ -4,10 +4,10 @@ html {
   line-height: $line-height
   background: $bgColor
   color: $textColor
-  font-smooth: auto
 }
 body { 
   background: $bgColor
+  -webkit-font-smoothing: antialiased
 }
 
 .Inter { font-family: $font }
@@ -20,19 +20,24 @@ h1,h2,h3,h4,h5,h6 { font-family: $font }
   min-height:100vh
   min-height:100dvh
 }
+
 /*
 a { 
   color: $accentColor 
 }
-
-* { 
-  outline: $accentColor solid 0 
-  outline-offset: -2px;
-}
-:focus-visible {
-  outline: $accentColor solid 1px 
-}
 */
+
+:not(.handsontable) {
+  * { 
+    outline: $accentColor solid 0 
+    outline-offset: -2px;
+  }
+
+  :focus-visible {
+    outline: $accentColor solid 1px 
+  }
+}
+
 
 #nprogress .bar { 
   background: $accentColor 
@@ -46,7 +51,7 @@ a {
     width:$xxxLarge
     margin: 0 auto
 
-    .navbar { 
+    .navbar .navbar-wrapper { 
       width:$xxxLarge
       margin: 0 auto
     }
@@ -79,7 +84,7 @@ a {
   top:600px
   left:0
   transform:rotate(90deg)
-  animation: 12s linear 0s infinite alternate none running animation-left;
+  //animation: 12s linear 0s infinite alternate none running animation-left;
   opacity .2
   pointer-events: none
 }
@@ -92,11 +97,12 @@ a {
   position fixed
   top -140px
   right:0
-  animation: 30s linear 0s infinite alternate none running animation-right;
-  opacity .3
+  //animation: 30s linear 0s infinite alternate none running animation-right;
+  opacity .25
   pointer-events: none
+  filter: hue-rotate(40deg);
 }
-
+/*
 @keyframes animation-left {
   0% {
     transform: scale(1.25) rotate(180deg) translateX(0.1rem) translateY(0px);
@@ -132,4 +138,4 @@ a {
       transform: scale(1) rotate(0deg) translateX(0px) translateY(0px);
   }
 }
-
+*/

@@ -1,6 +1,5 @@
 <template>
   <div class="layout-container">
-    <span class="decoration-left"></span>
     <span class="decoration-right"></span>
 
     <ParentLayout>

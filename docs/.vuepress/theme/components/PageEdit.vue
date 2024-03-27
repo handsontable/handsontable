@@ -17,17 +17,11 @@
           :href="editLink"
           target="_blank"
           rel="noopener noreferrer"
-        >{{ editLinkText }} <i class="ico i-github"></i></a>
+        ><i class="ico i-github"></i> {{ editLinkText }}</a>
       </div>
     </div>
 
-    <div class="rate-post">
-      <p>Was this page helpful?</p>
-      <div class="btn-group">
-        <button>Yes</button>
-        <button>No</button>
-      </div>
-    </div>
+    <div class="hot-feedback"></div>
 
     <div class="footer-links">
       <div class="socail-links">
@@ -35,12 +29,19 @@
         <a href="https://www.linkedin.com/company/handsontable/" target="_blank"><i class="ico i-linkedin"></i></a>
       </div>
       
-      <div>
-        <p>2012 - 2024 © Handsoncode </p>
-        <!--<a href="https://handsontable.com/pricing" target="_blank">Pricing</a>
-        <a href="https://handsontable.com/contact?category=technical_support" target="_blank">Contact support</a>-->
+      <div class="hot-links">
+        <a href="https://handsontable.com/privacy" target="_blank">Privacy policy</a>
+        <a href="https://handsontable.com/terms-of-use" target="_blank">Terms of use</a>
+        <a href="https://handsontable.com/team" target="_blank">Team</a>
+        <a href="https://handsontable.com/blog/" target="_blank">Blog</a>
+        <a href="https://status.handsontable.com/" target="_blank">Status</a>
+        <a href="https://handsontable.com/contact?category=technical_support" target="_blank">Contact us</a>
       </div>
-      <ThemeSwitcher />
+
+      <div class="copyright">
+        <p>Copyright ©{{ new Date().getFullYear() }} Handsoncode</p>
+        <ThemeSwitcher />
+      </div>
     </div>
   </footer>
 </template>
@@ -101,7 +102,7 @@ export default {
       return (
         this.$themeLocaleConfig.editLinkText
         || this.$site.themeConfig.editLinkText
-        || 'Edit this page'
+        || 'Improve this page'
       );
     }
   },

@@ -2,18 +2,28 @@
     position fixed !important
     left: 16px
     width: 320px
-    top:72px + 32px 
-    bottom: 16px
+    top: 72px 
+    bottom: 0
     border:0
     z-index: 100
     //border-radius: $radius-xxl
-    margin: 24px 0
+    padding: 24px 0
     background: transparent
+    overflow: hidden
+    flex-direction: column
+    display: flex
 
-    .os-scrollbar .os-scrollbar-handle { 
-        background: $borderColor
+    .os-scrollbar {
+        //top: 24px !important
+
+        .os-scrollbar-handle { 
+            background: $borderColor
+        }
     }
-
+    
+    .sidebar-nav{
+    }
+    
     .home-link { 
         display: block;
         padding: 24px
@@ -32,14 +42,14 @@
         position relative
         padding: 12px
         margin:0 28px 16px
-        background: $gradient
-        border-radius: $radius-xl
+        background: $borderColor
+        border-radius: $radius
         display: flex
-        gap: 8px
+        gap: 12px
 
         span { 
             background-color: $accentColor
-            border-radius: $radius
+            border-radius: $radius-s
             padding: 12px
             
             i { 
@@ -76,10 +86,10 @@
 
                 &:before { 
                     content: ''
-                    display: bottom 
+                    display: block 
                     position absolute
                     inset: 0 
-                    border-radius: $radius-xl
+                    border-radius: $radius
                     box-shadow: 0 0 0 1px $accentColor
                     opacity 0
                     transition all $t ease
@@ -106,7 +116,7 @@
         }
     }
 
-    > .sidebar-links, > div > .sidebar-links {
+    .sidebar-nav > div > .sidebar-links, > div > .sidebar-links {
         > li { 
             display: block;
 
@@ -155,7 +165,7 @@
                     display: flex
                     gap: 8px
                     align-items: center
-                    padding: 16px 32px
+                    padding: 14px 32px
                     font-size: $font-size-xs
                     line-height: $line-height-xs
                     font-weight: 400
@@ -213,10 +223,10 @@
                         color: $text2Color
                         font-size: $font-size-xs
                         line-height: $line-height-xs
-                        padding: 8px 32px 8px 56px
+                        padding: 6px 32px 6px 56px
                         border:0
                         position: relative
-                        transition all $t ease
+                        transition all $ts ease
                         display: flex;
                         align-items: center;
                         //justify-content: space-between;
@@ -622,6 +632,12 @@
         .home-link {
             visibility: hidden
         }
+    }
+}
+
+@media (max-width: $extraLarge) {
+    .sidebar {
+        left:0
     }
 }
 

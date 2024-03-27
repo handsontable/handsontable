@@ -5,21 +5,9 @@
     background: none
     border: none 
     height: auto
-    padding: 16px
-    z-index: 101
-
-    &:after { 
-        content:'';
-        position: absolute
-        top 0
-        height: 16px
-        left: 0
-        right: 25%
-        background: $bgColor
-        display: block
-        z-index: -1
-    }
-    
+    z-index: 10100
+    backdrop-filter: blur(14px);
+    background: $dropColor
 
     .tag  { 
         font-size: $font-size-xxs
@@ -36,10 +24,7 @@
         box-sizing: border-box;
         display: flex
         height: 72px
-        backdrop-filter: blur(14px);
-        background: $dropColor
-        border-radius: $radius-xxl
-        padding: 8px 16px
+        padding: 8px 32px
 
         > * {
             box-sizing: border-box;
@@ -61,6 +46,18 @@
             width: auto
             margin-right: 24px
             border-radius: $radius-xl
+            position relative
+
+            .version {
+                display: block 
+                position: absolute
+                font-size: $font-size-xxs
+                line-height: $line-height-xxs
+                color: $textColor
+                left: 16px
+                bottom: 0
+            }
+
         }
 
         .Logo { 
@@ -164,7 +161,10 @@
                     padding-left: 48px
                     padding:20px 16px 20px 48px
                     margin-left:-32px
-                    margin-top: 8px
+                    margin-top: 4px
+                    font-size: $font-size-xs
+                    line-height: $line-height-xs
+                    align-items: center;
 
                     + .nav-dropdown { 
                         left: -16px
@@ -187,6 +187,8 @@
                 cursor pointer
                 transition all $t ease
                 text-transform: capitalize
+                font-size: $font-size-xs
+                line-height: $line-height-xs
 
                 .title {
                     display: flex; gap: 8px
@@ -289,6 +291,7 @@
         .icons-nav {
             display: flex
             padding: 8px
+            gap: 8px
             
             a {
                 display: block
@@ -315,6 +318,18 @@
             .menuButton { 
                 display: none
             }
+
+            .github-stars {
+                padding: 12px 16px
+                display: flex
+                border: 1px solid $borderColor
+                gap: 8px
+                color: $text2Color
+                font-size: $font-size-xs
+                line-height: $line-height-xxs
+
+                i { }
+            }
         }   
 
         //Search
@@ -336,7 +351,7 @@
             input { 
                 width: 320px;
                 box-sizing: border-box;
-                border-radius: $radius-xl
+                border-radius: $radius
                 background: $borderColor
                 border: none
                 padding: 14px 16px 14px 48px
@@ -344,10 +359,10 @@
                 line-height: $line-height-xs
                 color: $text2Color
                 font-family: $font
-                transition all $t ease
+                transition all $ts ease
 
                 &:focus { 
-                    box-shadow: 0 0 0 1px $accentColor
+                    //box-shadow: 0 0 0 1px $accentColor
                     //width: 480px
 
                     + .kbd-hint { 
@@ -357,7 +372,7 @@
             }
 
             .kbd-hint { 
-                transition all $t ease
+                transition all $ts ease
                 position:absolute
                 display: 
                 flex; gap:6px
@@ -368,7 +383,7 @@
                     display: block
                     line-height: 32px
                     width: 32px
-                    border-radius: $radius-l
+                    border-radius: $radius-s
                     text-align: center
                     background: $onsurfaceColor
                     color: $text2Color
@@ -377,6 +392,16 @@
             }
 
             .suggestions { 
+                position absolute
+                top 64px
+                right:-160px;
+                left: -160px
+                min-width:320px
+                background: $onsurfaceColor
+                padding: 8px 0
+                border-radius: $radius-xl
+                list-style: none
+
                 &:before {
                     content: ''
                     display: block
@@ -387,16 +412,6 @@
                     backdrop-filter: blur(14)
                     transition: all .2s ease-in-out
                 }
-
-                position absolute
-                top 64px
-                right:-160px;
-                left: -160px
-                min-width:320px
-                background: $onsurfaceColor
-                padding: 8px 0
-                border-radius: $radius-xxl
-                list-style: none
 
                 li { 
                     color: $textColor
@@ -471,6 +486,9 @@
         .navbar-wrapper .menu .nav-links .nav-item a,
         .navbar-wrapper .menu .nav-links .nav-item button {
             //padding: 22px 12px
+        }
+        .navbar-wrapper {
+            padding: 8px 24px
         }
     }
 
