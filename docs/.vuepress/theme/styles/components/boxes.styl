@@ -196,4 +196,35 @@
             }
         }
     }
+
+    .icons-wrapper {
+        display: flex
+        flex-wrap: wrap
+        gap: 24px
+        margin: 24px 0
+
+        > div  { 
+            width: calc((100% / 4) - 18px)
+            background: $sideColor
+            border-radius: $radius-l
+            padding: 24px
+            box-sizing: border-box
+
+            svg { 
+                display: block
+                height: 24px
+                width: auto
+                margin: 0 auto
+                fill: $textColor
+            }
+
+            span { 
+                font-size: $font-size-xxs
+                line-height: $line-height-xxs
+                display: block
+                text-align: center
+                padding-top: 12px
+            }
+        }
+    }
 }

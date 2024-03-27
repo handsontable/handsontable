@@ -1,3 +1,7 @@
+html.theme-dark .handsontable {
+    color-scheme: light;
+}
+
 html.theme-dark {
     color-scheme dark
 
@@ -26,23 +30,26 @@ html.theme-dark {
 
     $dropColor          = $dropColorDark
 
+    background: $bgColor url('{{$basePath}}/img/noise.png') repeat
+    color: $textColor
+
+    body { 
+        background: $bgColor url('{{$basePath}}/img/noise.png') repeat
+    }
+
+
+
     i.Logo { background:  url('{{$basePath}}/img/logo-white.svg');}
     i.ico { filter: brightness(0) invert(1)}
 
-    
-
-    body {
-        background: $bgColor url('{{$basePath}}/img/noise.png') repeat
-        color: $textColor
-    }
-
+    /*
     * { 
         outline: $accentColor solid 0 ;
     }
     :focus-visible {
         outline: $accentColor solid 1px ;
     }
-
+    */
     a { 
         color: $linkColor 
     }
@@ -821,6 +828,16 @@ html.theme-dark {
                     background: $bgColor
                     box-shadow: 0 0 0 1px $accentColor
                 }
+            }
+        }
+    }
+
+    .icons-wrapper {
+        > div  { 
+            background: $sideColor
+
+            svg { 
+                fill: $textColor
             }
         }
     }
