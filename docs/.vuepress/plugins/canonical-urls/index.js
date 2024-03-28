@@ -4,6 +4,7 @@ const {
 } = require('../../helpers');
 
 const buildMode = process.env.BUILD_MODE;
+const BASE_DOCS_URL = `https://${buildMode === 'staging' ? '_docs_dev.' : ''}handsontable.com/docs`;
 const pluginName = 'hot/canonical-urls';
 
 module.exports = (options, context) => {
@@ -18,7 +19,7 @@ module.exports = (options, context) => {
         pathVersion = `${getThisDocsVersion()}/`;
       }
 
-      const response = await fetch(`${getDocsHostname(false)}/docs/${pathVersion}data/common.json`);
+      const response = await fetch(`${BASE_DOCS_URL}/${pathVersion}data/common.json`);
       const docsData = await response.json();
       const canonicalURLs = new Map(docsData.urls);
 
