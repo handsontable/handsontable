@@ -1,15 +1,13 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
 import "pikaday/css/pikaday.css";
-import "./styles.css";
+import "../styles.css";
 import { HotTable, HotColumn } from "@handsontable/react";
-import { data } from "./constants";
+import { data } from "../constants";
 
-import { addClassesToRows, alignHeaders } from "./hooksCallbacks";
+import { addClassesToRows, alignHeaders } from "../hooksCallbacks";
 
 import "handsontable/dist/handsontable.min.css";
 
-const App = () => {
+const Scenario1 = () => {
   return (
     <HotTable
       data={data}
@@ -25,10 +23,11 @@ const App = () => {
         "Qty",
       ]}
       dropdownMenu={true}
+      contextMenu={true}
       hiddenColumns={{
         indicators: true,
+        columns: [2,3,4],
       }}
-      contextMenu={true}
       multiColumnSorting={true}
       filters={true}
       rowHeaders={true}
@@ -50,11 +49,4 @@ const App = () => {
   );
 };
 
-const container = document.getElementById("container");
-const root = createRoot(container!);
-
-root.render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+export default Scenario1;
