@@ -5,6 +5,9 @@ metaTitle: Modules - Vue 2 Data Grid | Handsontable
 description: Reduce the size of your Vue 2 app by importing only the modules that you need and use.
 permalink: /vue-modules
 canonicalUrl: /vue-modules
+react:
+  id: ijlm2nkx
+  metaTitle: Modules - Vue 2 Data Grid | Handsontable
 searchCategory: Guides
 ---
 

@@ -5,6 +5,9 @@ metaTitle: Setting up a translation - Vue 3 Data Grid | Handsontable
 description: Configure your Vue 3 data grid with different number formats, depending on the specified language and culture.
 permalink: /vue3-setting-up-a-translation
 canonicalUrl: /vue3-setting-up-a-translation
+react:
+  id: 5sootj6b
+  metaTitle: Setting up a translation - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
 ---
 

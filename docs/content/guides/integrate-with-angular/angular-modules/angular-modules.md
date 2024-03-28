@@ -5,6 +5,9 @@ metaTitle: Modules - Angular Data Grid | Handsontable
 description: Reduce the size of your Angular app by importing only the modules that you need and use.
 permalink: /angular-modules
 canonicalUrl: /angular-modules
+react:
+  id: pulol8bw
+  metaTitle: Modules - Angular Data Grid | Handsontable
 searchCategory: Guides
 ---
 
