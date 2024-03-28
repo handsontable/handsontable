@@ -10,6 +10,7 @@
         </div>
       </template>
     </ParentLayout>
+    <SchemaStructuredData :key="$page.path"></SchemaStructuredData>
   </div>
 </template>
 
@@ -18,6 +19,7 @@ import ParentLayout from '@parent-theme/layouts/Layout.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
 import NavLink from '@theme/components/NavLink.vue';
 import Sidebar from '@theme/components/Sidebar.vue';
+import SchemaStructuredData from '@theme/components/SchemaStructuredData.vue';
 
 export default {
   name: 'Layout',
@@ -25,7 +27,8 @@ export default {
     ParentLayout,
     NavLinks,
     NavLink,
-    Sidebar
+    Sidebar,
+    SchemaStructuredData
   },
   computed: {
     show() {

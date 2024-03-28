@@ -80,6 +80,7 @@
   ],
   "dependencies": {
     "codesandbox": "^2.2.3",
+    "dayjs": "^1.11.10",
     "dotenv": "^16.4.5",
     "patch-package": "^8.0.0"
   }
