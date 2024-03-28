@@ -16,7 +16,7 @@ logger.info(`Using "${BASE_DOCS_URL}/data/common.json" URL for fetching and buil
  * Generates a Map with canonical URLs using the following structure [/path url/, /latest docs version that has the url/].
  *
  * @param {object} currentCanonicals The canonical URLs parsed by this docs version.
- * @returns {Map<string, string>}
+ * @returns {Promise<Map<string, string>>}
  */
 async function generateCommonCanonicalURLs(currentCanonicals) {
   const commonURLs = new Map();
