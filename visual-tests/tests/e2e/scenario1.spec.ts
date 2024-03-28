@@ -1,21 +1,44 @@
-import { test, expect } from '@playwright/test';
-// import PageHolder from '../../src/page-holder';
-// import { openHeaderDropdownMenu, selectFromDropdownMenu } from '../../src/page-helpers';
+import { expect } from '@playwright/test';
+import { helpers } from '../../src/helpers';
+import { openHeaderDropdownMenu, selectCell, } from '../../src/page-helpers';
+import { test } from '../../src/test-runner';
 
-test('interact with Handsontable', async({ page }) => {
-  const sortOrder = 'ascending'; // replace with the desired sort order
+test('hide and show columns', async({ page }) => {
 
-  // Navigate to the page with the Handsontable grid
-  await page.goto('http://localhost:8080');
-  expect(await page.getByRole('columnheader').count()).toBe(4);
+  expect(await page.getByRole('columnheader').count()).toBe(9);
 
-//   await page.waitForSelector('hot-table');
-  await page.getByRole('columnheader', { name: 'Country' }).click();
-  await page.getByRole('columnheader', { name: 'In stock' }).click({
+  await page.getByRole('columnheader', { name: 'Name', exact: true }).click({
     button: 'right',
     modifiers: ['Shift'],
   });
-  await page.getByText('Show columns').click();
-  expect(await page.getByRole('columnheader').count()).toBe(7);
+  await page.getByText('Hide column').click();
+  expect(await page.getByRole('columnheader').count()).toBe(8);
 
+  await page.getByRole('columnheader', { name: 'Company name' }).click();
+  await page.getByRole('columnheader', { name: 'Sell date' }).click({
+    button: 'right',
+    modifiers: ['Shift'],
+  });
+  await page.getByText('Show column').click();
+  expect(await page.getByRole('columnheader').count()).toBe(9);
+  await page.screenshot({ path: helpers.screenshotPath() });
+
+});
+
+test('filter', async({ page }) => {
+
+  expect(await page.getByRole('rowheader').count()).toBe(22);
+  openHeaderDropdownMenu(9);
+  await page.getByText('Clear', { exact: true }).click();
+  await page.getByPlaceholder('Search').type('India', { delay: 100 });
+  await page.screenshot({ path: helpers.screenshotPath() });
+
+  await page.getByLabel('Filter by value:').getByText('India').click();
+  await page.getByRole('button', { name: 'OK' }).click();
+  expect(await page.getByRole('rowheader').count()).toBe(6);
+  await page.getByRole('columnheader', { name: 'Qty' }).locator('span').click();
+  await page.getByRole('columnheader', { name: 'Qty' }).locator('span').click();
+  const cell = await selectCell(0, 4);
+
+  expect(await cell.innerText()).toBe('162');
 });
