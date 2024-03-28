@@ -103,6 +103,36 @@ describe('ColumnSorting keyboard shortcut', () => {
       }]);
     });
 
+    it('should be possible to sort a column when a column header is selected and NestedRows plugin is enabled (#dev-1817)', () => {
+      handsontable({
+        data: [
+          {
+            category: 'Best Rock Performance',
+            artist: null,
+            __children: [
+              {
+                artist: 'Alabama Shakes',
+              },
+            ],
+          }
+        ],
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        columnSorting: true,
+        nestedRows: true,
+      });
+
+      selectCell(-1, 1);
+      listen();
+      keyDownUp('enter');
+
+      expect(getPlugin('columnSorting').getSortConfig()).toEqual([{
+        column: 1,
+        sortOrder: 'asc',
+      }]);
+    });
+
     it('should not be possible to sort a column when a range of the columns are selected', () => {
       handsontable({
         data: createSpreadsheetData(3, 8),

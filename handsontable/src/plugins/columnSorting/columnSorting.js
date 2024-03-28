@@ -223,9 +223,7 @@ export class ColumnSorting extends BasePlugin {
         callback: () => {
           const { highlight } = this.hot.getSelectedRangeLast();
 
-          if (highlight.row === -1 && highlight.col >= 0) {
-            this.sort(this.getColumnNextConfig(highlight.col));
-          }
+          this.sort(this.getColumnNextConfig(highlight.col));
 
           // prevent default Enter behavior (move to the next row within a selection range)
           return false;
@@ -234,7 +232,7 @@ export class ColumnSorting extends BasePlugin {
           const highlight = this.hot.getSelectedRangeLast()?.highlight;
 
           return highlight && this.hot.getSelectedRangeLast()?.isSingle() &&
-            this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
+            this.hot.selection.isCellVisible(highlight) && highlight.row === -1 && highlight.col >= 0;
         },
         relativeToGroup: SHORTCUTS_GROUP_EDITOR,
         position: 'before',
