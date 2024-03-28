@@ -21,6 +21,7 @@ import NavLinks from '@theme/components/NavLinks.vue';
 import NavLink from '@theme/components/NavLink.vue';
 import Sidebar from '@theme/components/Sidebar.vue';
 
+
 export default {
   name: 'Layout',
   components: {

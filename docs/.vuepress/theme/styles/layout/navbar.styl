@@ -293,9 +293,10 @@
             padding: 8px
             gap: 8px
             
-            a {
+            > a, > span {
                 display: block
                 padding: 12px
+                position relative
             }
 
             button { 
@@ -305,7 +306,7 @@
                 padding: 12px
             }
 
-            a, button, label {
+            > a, > span, button, label {
                 border-radius: $radius*4
 
                 @media (hover: hover) {
@@ -327,8 +328,21 @@
                 color: $text2Color
                 font-size: $font-size-xs
                 line-height: $line-height-xxs
+            }
 
-                i { }
+            #HW_badge_cont { 
+                position absolute
+                inset:0
+                width: auto
+                height: auto;
+
+                .HW_badge {
+                    bottom: 8px
+                    left: 8px
+                    width: 12px
+                    height: 12px
+                    top: auto
+                }
             }
         }   
 
@@ -543,6 +557,10 @@
 
             .home-link { 
                 padding-top: 4px
+                 .version {
+                    left: 24px;
+                    bottom: 8px;
+                }
             }
 
             .top-bar { 

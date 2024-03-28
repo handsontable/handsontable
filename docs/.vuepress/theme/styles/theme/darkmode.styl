@@ -208,7 +208,7 @@ html.theme-dark {
 
             //Icons
             .icons-nav {
-                a, button, label {
+                > a, > span, button, label {
                     @media (hover: hover) {
                         &:hover { 
                             background: $onsurfaceColor
@@ -326,7 +326,7 @@ html.theme-dark {
             }   
 
             .icons-nav {
-                a, button, label {
+                > a, > span, button, label {
                     @media (hover: hover) {
                         &:hover { 
                             background: $borderColor
@@ -415,14 +415,7 @@ html.theme-dark {
             h1, h2, h3, h4, h5, h6 {
                 color: $textColor
             }
-            h1 + p + p + p,
-            h1 + p + p,
-            h1 + p,
-            .table-of-contents + p,
-            .table-of-contents + p + p,
-            .table-of-contents + p + p + p {
-                color: $textColor
-            }
+            
             p {
                 color: $text2Color
             }
@@ -599,6 +592,11 @@ html.theme-dark {
         
         .footer {
             border-top: 1px solid $borderColor   
+            color: $text2Color
+
+            .copyright {
+                border-top: 1px solid $borderColor
+            }
 
             .footer-links { 
                 color: $text2Color
@@ -653,12 +651,12 @@ html.theme-dark {
 
             .dark-mode { 
                 .inner { 
-                    background: $bgColor 
+                    background: $borderColor 
                     color: $textColor
 
                     @media (hover: hover) {
                         &:hover {  
-                            background: $borderColor
+                            background: $sideColor
                         }
                     }
                 }
@@ -735,7 +733,7 @@ html.theme-dark {
         color: $editorInsertedColor
     }
 
-    .tabs-component {
+    .theme-default-content  .tabs-component {
         .tabs-component-panels {
             background: $borderColor
         }  
@@ -976,6 +974,14 @@ html.theme-dark {
         #CybotCookiebotDialogDetailBulkConsentLink {
             color: $text2Color
         }
+    }
+
+    .HW_frame { 
+        filter: invert(.86) hue-rotate(195deg)
+    }
+    .HW_frame_cont { 
+        border-radius: $radius
+        background: none
     }
 }
 

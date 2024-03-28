@@ -88,6 +88,14 @@ module.exports = {
         'data-cbid': 'ef171f1d-a288-433f-b680-3cdbdebd5646',
       },
     ],
+    // Headwayapp
+    [
+      'script',
+      {  
+        id: 'Headwayapp',
+        src: 'https://cdn.headwayapp.co/widget.js'
+      },
+    ],
     ['script', {}, `const DOCS_VERSION = '${getThisDocsVersion()}';`],
     [
       'script',

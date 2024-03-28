@@ -24,7 +24,7 @@
         
           <nav class="icons-nav">
             <!--<ThemeSwitcher />-->
-            <a href="https://github.com/handsontable/handsontable"><i class="ico i-bell"></i></a>
+            <span class="news"><i class="ico i-bell"></i></span>
             <a href="https://github.com/handsontable/handsontable" class="github-stars"><i class="ico i-github"></i> 18921</a>
 
             <button @click="$emit('toggle-sidebar')" class="menuButton">
@@ -72,6 +72,14 @@ export default {
     frameworkUrlPrefix() {
       return `/${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
     }
+  },
+  mounted() {
+    // Initialize Headway widget
+    var config = {
+      selector: ".news",
+      account: "xaD6ry"
+    };
+    Headway.init(config);
   }
 };
 </script>

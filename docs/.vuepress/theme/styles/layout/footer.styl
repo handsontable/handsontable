@@ -3,16 +3,34 @@
     padding: 32px 0 16px
     border-top: 1px solid $borderColor    
     box-sizing: border-box;
+    color: $text2Color
+
+    .copyright {
+        border-top: 1px solid $borderColor
+        width: 100%;
+        display: flex;
+        align-items: center;
+        font-size: $font-size-xs
+        line-height: $line-height-xs
+        padding-top: 16px
+        margin-top: 16px
+    }
+
+    .hot-feedback {
+        margin: 0 auto
+    }
 
     .footer-links { 
         display: flex
-        justify-content: space-between
         color: $text2Color
-        align-items: center
+        align-items: center;
+        gap: 16px;
+        padding-top: 40px
 
         p,a { 
             font-size: $font-size-xs
             line-height: $line-height-xs
+            font-weight: 400
         }
 
         p { 
@@ -60,12 +78,14 @@
         line-height: $line-height-xs
         justify-content: space-between
         color: $text2Color
+        padding-bottom: 40px
 
         .edit-link a { 
             display: flex
             gap: 8px
             transition: all $t ease-in-out
             font-weight: 300
+            align-items: center;
 
             i { filter:none }
 
@@ -113,13 +133,14 @@
 
     .dark-mode { 
         cursor pointer
+        margin-left: auto
 
         .inner { 
             display:flex
             padding: 8px 16px 8px 8px
             font-size: $font-size-xs
             line-height: $line-height-xs
-            background: $bgColor 
+            background: $borderColor 
             color: $textColor
             border-radius: $radius-xl
             transition: all $t ease-in-out
@@ -139,7 +160,7 @@
 
             @media (hover: hover) {
                 &:hover {  
-                    background: $borderColor
+                    background: $siderColor
                 }
             }
         }

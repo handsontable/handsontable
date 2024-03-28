@@ -37,11 +37,11 @@
         <a href="https://status.handsontable.com/" target="_blank">Status</a>
         <a href="https://handsontable.com/contact?category=technical_support" target="_blank">Contact us</a>
       </div>
+    </div>
 
-      <div class="copyright">
-        <p>Copyright ©{{ new Date().getFullYear() }} Handsoncode</p>
-        <ThemeSwitcher />
-      </div>
+    <div class="copyright">
+      <p>Copyright ©{{ new Date().getFullYear() }} Handsoncode</p>
+      <ThemeSwitcher />
     </div>
   </footer>
 </template>

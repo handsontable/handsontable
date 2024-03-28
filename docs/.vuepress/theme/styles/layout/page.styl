@@ -60,12 +60,12 @@
             line-height: $line-height-xl
             font-weight: 400
             margin:0 !important
-            padding: 48px 0 16px
+            padding: 48px 0 0
             position: relative
         }
 
         h2 { 
-            padding-top: 48px
+            padding-top: 32px
             padding-bottom: 0
             font-size: $font-size
             line-height: $line-height
@@ -74,7 +74,7 @@
         }
 
         h3 { 
-            padding-top: 48px
+            padding-top: 32px
             padding-bottom: 0
             font-size: $font-size-m
             line-height: $line-height-m
@@ -83,7 +83,7 @@
         }
 
         h4 { 
-            padding-top: 32px
+            padding-top: 24px
             padding-bottom: 0
             font-size: $font-size-s
             line-height: $line-height-s
@@ -95,31 +95,22 @@
             margin-left: -40px
         }
 
+        > div { 
+            padding: 16px 0 0 
+        }
+
         p { 
             font-size: $font-size-s
             line-height: $line-height-s
             font-weight: 400
-            padding: 16px 0 0 
+            padding: 8px 0 0 
             color: $text2Color
             letter-spacing: $letterSpacingText
             display: block
 
-            &:empty { 
-                display:none 
-            }
-        }
-
-        h1 + p + p + p,
-        h1 + p + p,
-        h1 + p,
-        .table-of-contents + p,
-        .table-of-contents + p + p,
-        .table-of-contents + p + p + p {
-            font-size: $font-size
-            line-height: $line-height
-            font-weight: 300
-            padding-top: 0
-            color: $textColor
+            //&:empty { 
+            //    display:none 
+            //}
         }
         
         li {
@@ -196,10 +187,11 @@
     }
     
     table:not(.htCore) { 
-        font-size: $font-size-s
-        line-height: $line-height-s
+        font-size: $font-size-xs
+        line-height: $line-height-xs
         font-weight: 400
         margin: 32px 0
+        width: 100%
 
         td,th { 
             padding: 16px
@@ -247,14 +239,14 @@
 
     #hooksList {
         padding-top: 16px 
-        font-size: $font-size-s
-        line-height: $line-height-s
+        font-size: $font-size-xs
+        line-height: $line-height-xs
     }
 
     @media (max-width: $xLarge) {
         margin: 128px 32px 24px 320px
         
-        .table-of-contents { 
+        .theme-default-content .table-of-contents { 
             display:none
         }
     }
