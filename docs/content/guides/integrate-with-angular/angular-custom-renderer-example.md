@@ -104,7 +104,11 @@ platformBrowserDynamic()
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Cell renderer](@/guides/cell-functions/cell-renderer.md)
+
+</div>
 
 ### Related API reference
 

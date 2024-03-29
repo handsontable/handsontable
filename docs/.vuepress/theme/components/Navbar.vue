@@ -6,7 +6,6 @@
           class="home-link"
       >
         <Logo />
-        <span class="version">v14.2.0</span>
       </RouterLink>
       
       <div class="top-bar">

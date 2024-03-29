@@ -212,4 +212,8 @@ npm install @handsontable/spreadsheet-icons
 
 ## Related blog articles
 
+<div class="boxes-list">
+
 - [Introducing the new Handsontable spreadsheet icons](https://handsontable.com/blog/handsontable-spreadsheet-icons)
+
+</div>

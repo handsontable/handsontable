@@ -1017,13 +1017,21 @@ details, [contact our Sales Team](https://handsontable.com/get-a-quote).
 
 ### HyperFormula documentation
 
+<div class="boxes-list gray">
+
 - [HyperFormula guides](https://handsontable.github.io/hyperformula/)
 - [HyperFormula API reference](https://handsontable.github.io/hyperformula/api/)
 
+</div>
+
 ### Related blog articles
+
+<div class="boxes-list">
 
 - [Handsontable 9.0.0: New formula plugin](https://handsontable.com/blog/handsontable-9.0.0-new-formula-plugin)
 - [8 examples of useful Excel functions in HyperFormula](https://handsontable.com/blog/8-examples-of-useful-excel-functions-in-hyperformula)
+
+</div>
 
 ### Related API reference
 

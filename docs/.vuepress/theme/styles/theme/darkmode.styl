@@ -39,7 +39,6 @@ html.theme-dark {
     }
 
 
-
     i.Logo { background:  url('{{$basePath}}/img/logo-white.svg');}
     i.ico { filter: brightness(0) invert(1)}
 
@@ -64,7 +63,7 @@ html.theme-dark {
     
     }
     .decoration-right {
-        opacity .25
+        opacity .4
     }
 
     /* Sidebar 
@@ -87,12 +86,19 @@ html.theme-dark {
                 }
             }
             div {
+                p {
+                    color: $textColor
+                }
                 a { 
-                    color:$textColor
+                    color:$text2Color
 
                     &:before {
                         box-shadow: 0 0 0 1px $accentColor
                     }
+                }
+
+                .close {
+                    filter brightness(0) invert(1)
                 }
             }
         }
@@ -272,6 +278,8 @@ html.theme-dark {
     ------------------------------- */
     .navbar {
         background: $dropColor
+        border-bottom: 0 none
+
 
         .tag  { 
             background-color: $accentColor
@@ -404,6 +412,15 @@ html.theme-dark {
         .breadcrumbs {
             a {
                 color: $textColor
+                
+                &:after {
+                    color: $textColor !important
+                }
+                @media (hover: hover) {
+                    &:hover {
+                        color: $linkColor
+                    }
+                }
             }
             span { 
                 color: $text2Color
@@ -412,6 +429,12 @@ html.theme-dark {
         
         #example1_events {
             border: 1px solid $borderColor
+
+            div {
+                &:nth-child(odd) {
+                    background-color: $borderColor
+                }
+            }
         }
         
         .theme-default-content {  
@@ -455,6 +478,13 @@ html.theme-dark {
             .source-code-link {
                 color: $text2Color
                 background: $sideColor
+                border-color: $borderColor
+
+                @media (hover: hover) {
+                    &:hover { 
+                        border-color: $linkColor
+                    }
+                }
             }
             
             code {
@@ -573,7 +603,7 @@ html.theme-dark {
             background: $bgColor
         }
         
-        table { 
+        table:not(.htCore) { 
             thead { 
                 tr { 
                     th { 
@@ -756,6 +786,10 @@ html.theme-dark {
             background: $borderColor
         }  
 
+        .option-label {
+            color: $text2Color !important
+        }
+        
         ul.tabs-component-tabs  {
             background: $editorHeadColor
            

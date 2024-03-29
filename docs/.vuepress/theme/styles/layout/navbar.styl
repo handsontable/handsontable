@@ -7,7 +7,8 @@
     height: auto
     z-index: 10100
     backdrop-filter: blur(14px);
-    background: $dropColor
+    background: white
+    border-bottom: 1px solid $borderColor
 
     .tag  { 
         font-size: $font-size-xxs
@@ -370,11 +371,11 @@
                 width: 320px;
                 box-sizing: border-box;
                 border-radius: $radius
-                background: $borderColor
+                background: $sideColor
                 border: none
                 padding: 14px 16px 14px 48px
                 font-size: $font-size-xs
-                line-height: $line-height-xs
+                line-height: 20px
                 color: $text2Color
                 font-family: $font
                 transition all $ts ease
@@ -425,7 +426,7 @@
                     display: block
                     inset:  -2000px
                     position fixed
-                    background: rgba(0,0,0,.6)
+                    background: rgba(0,0,0,.2)
                     z-index -1
                     backdrop-filter: blur(14)
                     transition: all .2s ease-in-out
@@ -561,7 +562,9 @@
 
             .home-link { 
                 padding-top: 4px
-                 .version {
+                margin-right: 0
+                
+                .version {
                     left: 24px;
                     bottom: 8px;
                 }
@@ -569,6 +572,10 @@
 
             .top-bar { 
                 align-items: center
+            }
+
+            .news { 
+                display: none
             }
         }
     }

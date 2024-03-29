@@ -92,7 +92,11 @@ app.mount('#example1');
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Cell editor](@/guides/cell-functions/cell-editor.md)
+
+</div>
 
 ### Related API reference
 

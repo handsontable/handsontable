@@ -406,11 +406,19 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Performance](@/guides/optimization/performance.md)
+
+</div>
 
 ### Related blog articles
 
+<div class="boxes-list">
+
 - [Handsontable 8.3.0 has been released](https://handsontable.com/blog/handsontable-8.3.0-has-been-released)
+
+</div>
 
 ### Related API reference
 

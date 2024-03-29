@@ -42,7 +42,7 @@
         position relative
         padding: 12px
         margin:0 28px 16px
-        background: $borderColor
+        background: $sideColor
         border-radius: $radius
         display: flex
         gap: 12px
@@ -75,14 +75,14 @@
                 font-size: $font-size-xs
                 line-height: $line-height-xs
                 font-weight: 400
-                color: var(--color-gray-100)
+                color: $textColor
             }
             > a { 
                 cursor: pointer
                 display: block
                 font-size: $font-size-xxs
                 line-height: $line-height-xxs
-                color: var(--color-gray-300)
+                color: $textColor
 
                 &:before { 
                     content: ''
@@ -106,7 +106,7 @@
             cursor:pointer
             opacity .8
             transition all $t ease
-            filter brightness(0) invert(1)
+            filter brightness(0) invert(0)
 
             @media (hover: hover) {
                 &:hover { 
@@ -124,7 +124,7 @@
                 display: flex
                 gap: 8px
                 align-items: center
-                padding: 16px 32px
+                padding: 12px 32px
                 font-size: $font-size-xs
                 line-height: $line-height-xs
                 font-weight: 400
@@ -215,7 +215,7 @@
                     }
                 }
                 p { 
-                    font-weight: 600
+                    //font-weight: 600
                 }
             
                 > .sidebar-links {
@@ -236,7 +236,7 @@
                             display: block
                             position absolute
                             inset: 0 24px 0 24px
-                            background: $borderColor
+                            background: $sideColor
                             z-index -1
                             border-radius: $radius
                             opacity: 0
@@ -655,9 +655,13 @@
         left: 0
         bottom: 0
         top:0
-        padding-top: 88px
-        padding-bottom: 32px
+        padding-top: 72px
+        padding-bottom: 0
         width: 100%
+
+        div > .sidebar-links {
+            padding-bottom: 32px
+        }
     }
 
     .theme-container.sidebar-open .sidebar { 

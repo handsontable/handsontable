@@ -29,21 +29,18 @@ The API enables you to control the data grid programmatically. With this API, yo
 
 **This reference comprises four sections:**
 
-### [Core](@/api/core.md)
+<div class="boxes-list gray">
 
+- [Core](@/api/core.md)
 The `Handsontable` class controls the essential aspects of the data grid.
-
-### [Hooks](@/api/hooks.md)
-
+- [Hooks](@/api/hooks.md) 
 Handsontable hooks are events that fire whenever a specific action occurs within the instance of Handsontable.
-
-### [Options](@/api/options.md)
-
+- [Options](@/api/options.md) 
 These are the settings available to be registered for the `Core` features, in addition to those provided by plugins.
-
-### [Plugins](@/api/plugins.md)
-
+- [Plugins](@/api/plugins.md) 
 The plugins extend the capabilities of Handsontable.
+
+</div>
 
 ## Getting help
 

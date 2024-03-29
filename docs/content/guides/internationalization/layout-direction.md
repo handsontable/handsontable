@@ -548,9 +548,13 @@ You can apply the horizontal text alignment settings to:
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Language](@/guides/internationalization/language.md)
 - [Locale](@/guides/internationalization/locale.md)
 - [IME support](@/guides/internationalization/ime-support.md)
+
+</div>
 
 ### Related API reference
 

@@ -2,6 +2,7 @@
   <main class="page" v-bind:class="{ 'api': isApi }">
     <div class="breadcrumbs ">
       <a href="#"><i class="ico i-home"></i></a>
+      <a href="#">14.2.0</a>
       <a href="#">Getting started</a>
       <span>Introduction</span>
     </div>
@@ -59,7 +60,7 @@ export default {
       return this.activatedExamples.includes(exampleId);
     }
   },
-  mounted() {
+  updated() {
     // ToC
     const listItems = document.querySelectorAll('.table-of-contents > ul > li');
     const sections = document.querySelectorAll('.theme-default-content h2');

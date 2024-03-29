@@ -4,6 +4,7 @@
         display: flex
         margin:0 auto
         padding: 16px 0 0 !important
+        flex-wrap: wrap
         
         a, span {
             font-size: $font-size-xs
@@ -12,6 +13,9 @@
         a {
             color: $textColor
             margin:0 !important
+            transition: all $ts ease-in-out 
+            white-space: pre
+
             i { 
                 display: inline-block
                 position relative
@@ -21,6 +25,13 @@
                 content: "/"
                 display: inline-block
                 padding: 0 12px 0 12px
+                color: $textColor !important
+            }
+
+            @media (hover: hover) {
+                &:hover {
+                    color: $linkColor
+                }
             }
         }
 

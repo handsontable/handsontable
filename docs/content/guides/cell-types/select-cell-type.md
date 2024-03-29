@@ -106,9 +106,13 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type.md)
 - [Cell type](@/guides/cell-types/cell-type.md)
 - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type.md)
+
+</div>
 
 ### Related API reference
 

@@ -70,10 +70,11 @@ Learn more on our [GitHub](https://github.com/handsontable/handsontable/blob/dev
 
 ## Related guides
 
-- [Building](@/guides/tools-and-building/custom-builds.md)
+<div class="boxes-list gray">
 
 ::: only-for javascript
-
+- [Building](@/guides/tools-and-building/custom-builds.md)
+:::
 - [Packages](@/guides/tools-and-building/packages.md)
 
-:::
+</div>

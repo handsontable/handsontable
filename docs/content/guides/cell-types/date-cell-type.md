@@ -228,7 +228,11 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Cell type](@/guides/cell-types/cell-type.md)
+
+</div>
 
 ### Related API reference
 

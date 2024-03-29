@@ -19,7 +19,7 @@
           :href="editLink"
           target="_blank"
           rel="noopener noreferrer"
-        ><i class="ico i-github"></i> {{ editLinkText }}</a>
+        >{{ editLinkText }} <i class="ico i-external"></i> </a>
       </div>
     </div>
 

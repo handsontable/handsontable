@@ -77,7 +77,7 @@ export default {
 
   mounted() {
     // TEMP Tags 
-    const selector1 = document.querySelector('.sidebar > ul > li:first-child li:nth-child(2) a ');
+    const selector1 = document.querySelector('.sidebar .sidebar-nav > div > ul > li:first-child li:nth-child(2) a ');
     const chips1 = document.createElement('span');
     
     //selector1.appendChild(chips1);

@@ -467,16 +467,6 @@ Check out the interactive demo below to see how different Handsontable settings 
   color: #0000ee;
 }
 
-.placeholder-input {
-  max-width: 20rem;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  color: black;
-  border: 1px solid #e4e4e7;
-  border-radius: 6px;
-}
-
 .option-label {
   align-items: flex-start;
 }
@@ -1195,16 +1185,6 @@ setupCheckbox(
 
 .external-link:hover {
   color: #0000ee;
-}
-
-.placeholder-input {
-  max-width: 20rem;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  color: black;
-  border: 1px solid #e4e4e7;
-  border-radius: 6px;
 }
 
 .option-label {
@@ -2269,8 +2249,12 @@ For the list of [options](@/guides/getting-started/configuration-options.md), me
 
 Try the following links if you didn't find what you need:
 
+<div class="boxes-list gray">
+
 - [View related topics](https://github.com/handsontable/handsontable/labels/Accessibility) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
 - [Ask a question](https://stackoverflow.com/questions/tagged/handsontable) on Stack Overflow
 - [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
+
+</div>

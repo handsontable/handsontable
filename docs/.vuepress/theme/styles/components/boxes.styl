@@ -1,4 +1,9 @@
 .page {
+    .theme-default-content h3 + .boxes-list {
+        margin:0 
+        padding: 0
+    }
+
     .boxes-list {
         ul {
             margin-top: 24px
@@ -25,6 +30,11 @@
                 p {
                     font-size: $font-size-xs
                     line-height: $line-height-xs
+                }
+
+                code {
+                    display: contents;
+                    font-family: Inter;
                 }
 
                 p > a {
@@ -127,6 +137,12 @@
                         }
                     }
                 }
+            }
+        }
+
+        @media (max-width: $medium) {
+            ul li {
+                width: 100%
             }
         }
     }

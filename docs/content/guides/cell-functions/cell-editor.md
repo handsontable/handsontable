@@ -1396,10 +1396,15 @@ const hot = new Handsontable(container, {
 ## Related articles
 
 ### Related guides
+
+<div class="boxes-list gray">
+
 - [Custom editor in React](@/react/guides/cell-functions/cell-editor.md)
 - [Custom editor in Angular](@/guides/integrate-with-angular/angular-custom-editor-example.md)
 - [Custom editor in Vue 2](@/guides/integrate-with-vue/vue-custom-editor-example.md)
 - [Custom editor in Vue 3](@/guides/integrate-with-vue3/vue3-custom-editor-example.md)
+
+</div>
 
 ### Related API reference
 

@@ -140,7 +140,11 @@ A tree grid enables you to represent the nested data structures within the data 
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Row parent-child](@/guides/rows/row-parent-child.md)
+
+</div>
 
 ### Related API reference
 

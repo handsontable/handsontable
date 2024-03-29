@@ -28,6 +28,7 @@
             padding: 8px 16px
             color: $text2Color
             background: $sideColor
+            border: 1px solid $borderColor
             border-radius: $radius
             top: -28px
             position: relative
@@ -40,7 +41,13 @@
             }
 
             + p { 
-                margin-top: -28px 
+                //margin-top: -28px 
+            }
+
+            @media (hover: hover) {
+                &:hover { 
+                    border-color: $linkColor
+                }
             }
         }
 
@@ -112,8 +119,8 @@
         margin-bottom: -16px
 
         button {
-            font-size: $font-size-s
-            line-height: $line-height-s
+            font-size: $font-size-xs
+            line-height: $line-height-xs
             font-weight: 400
             padding:8px 8px 8px
             color: $text2Color
@@ -122,6 +129,12 @@
                 color: $textColor
                 border-color: $linkColor
             }
+        }
+    }
+
+    @media (max-width: 419px) {
+        div[class*="language-"] {
+            margin:0
         }
     }
 }
@@ -137,7 +150,7 @@ div[class*="language-"] pre[class*="language-"] {
 }
 
 output.console {
-    margin: 16px 0 0
+    margin: 16px 0 
     padding: 12px 16px
     border-radius: $radius
     max-height: 250px;
@@ -147,4 +160,59 @@ output.console {
     background: $sideColor
     white-space: pre-line;
     display: block
+
+    &:last-child {
+        margin-bottom: 0
+    }
+}
+
+#example1_events {
+    height: 200px;
+    padding: 8px;
+    margin: 16px 0 16px;
+    overflow-y: scroll;
+    font-size: $font-size-xs
+    line-height: $line-height-xs
+    box-sizing: border-box;
+    border-radius: $radius
+    border:1px solid $borderColor
+
+    div {
+        padding: 8px 8px
+        border-radius: $radius
+
+        &:nth-child(odd) {
+            background-color: $borderColor
+        }
+    }
+}
+
+#example1 {
+  margin-top: 0;
+}
+#example3 .controls {
+  margin: 0 0 16px;
+  padding: 0;
+}
+#example3 .controls label {
+  display: inline-block;
+  padding: 4px 0;
+}
+#example3 .controls label input {
+  margin-right: 8px;
+}
+#hooksList {
+    padding: 0;
+    height: 320px;
+    overflow: auto;
+}
+#hooksList li {
+    list-style: none;
+    width: 33%;
+    display: inline-block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    font-size: $font-size-xs
+    line-height: $line-height-xs
 }

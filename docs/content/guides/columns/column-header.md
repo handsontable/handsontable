@@ -234,7 +234,11 @@ More complex data structures can be displayed with multiple headers, each repres
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Column groups](@/guides/columns/column-groups.md)
+
+</div>
 
 ### Related API reference
 

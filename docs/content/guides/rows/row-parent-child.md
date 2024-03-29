@@ -419,7 +419,11 @@ When you use the parent-child row structure, the following Handsontable features
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Row header](@/guides/rows/row-header.md)
+
+</div>
 
 ### Related API reference
 

@@ -118,9 +118,13 @@ const hot = new Handsontable(container, {
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Language](@/guides/internationalization/language.md)
 - [Layout direction](@/guides/internationalization/layout-direction.md)
 - [IME support](@/guides/internationalization/ime-support.md)
+
+</div>
 
 ### Related API reference
 

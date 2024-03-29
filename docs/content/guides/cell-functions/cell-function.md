@@ -141,10 +141,14 @@ Those functions will always return an appropriate value, regardless of whether c
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Cell editor](@/guides/cell-functions/cell-editor.md)
 - [Cell renderer](@/guides/cell-functions/cell-renderer.md)
 - [Cell validator](@/guides/cell-functions/cell-validator.md)
 - [Cell type](@/guides/cell-types/cell-type.md)
+
+</div>
 
 ### Related API reference
 

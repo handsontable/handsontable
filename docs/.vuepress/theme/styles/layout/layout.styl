@@ -14,6 +14,12 @@ body {
 .Satoshi { font-family: 'Satoshi-Variable'}
 h1,h2,h3,h4,h5,h6 { font-family: $font }
 
+
+a { 
+  color: $linkColor 
+  font-weight: 400
+}
+
 #app,
 .layout-container,
 .theme-container { 
@@ -98,9 +104,15 @@ a {
   top -140px
   right:0
   //animation: 30s linear 0s infinite alternate none running animation-right;
-  opacity .25
+  opacity .1
   pointer-events: none
   filter: hue-rotate(40deg);
+}
+
+@media (max-width: $medium) {
+  .decoration-right { 
+    display: none
+  }
 }
 /*
 @keyframes animation-left {

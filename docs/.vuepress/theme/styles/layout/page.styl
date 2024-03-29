@@ -26,6 +26,10 @@
         &:not(.custom) { 
             max-width: 720px
             padding: 0 0 80px
+
+            @media (max-width: $medium) {
+                padding-bottom: 24px
+            }
         }
 
         .header-framework { 
@@ -136,13 +140,11 @@
                 }
             }
         }
-
-        
         
         img { 
             border-radius: $radius
         }
-
+        
         a { 
             color: $linkColor
             text-decoration: none 
@@ -157,6 +159,15 @@
             }
             svg { padding: 4px}
         }
+
+        iframe, video { 
+            margin-top: 16px
+            border-radius: $radius
+        }
+    }
+    
+    .checkbox-group > div > label {
+        gap: 8px
     }
 
     a.header-anchor { 
@@ -195,6 +206,10 @@
         margin: 32px 0
         width: 100%
 
+        img {
+            max-height: 80px
+        }
+        
         td,th { 
             padding: 16px
         }
@@ -260,8 +275,17 @@
     }
 
     @media (max-width: $medium) {
-        margin: 128px 32px 0
+        margin: 80px 32px 0
 
+
+        table:not(.htCore) { 
+            display: block
+            overflow-x: auto
+
+            td { 
+                white-space: nowrap;
+            }
+        }
         .theme-default-content {
 
             h1 { 
@@ -270,7 +294,7 @@
 
             pre {
                 padding: 16px 32px
-                margin: 16px -32px 0
+                margin: 22px -32px 0
                 border-radius: 0
             }
 
@@ -284,6 +308,7 @@
 
                 pre { 
                     border-radius: 0 
+                    margin: 22px 0 0
                 }
             }
         }

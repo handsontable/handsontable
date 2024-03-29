@@ -91,5 +91,9 @@ new Vue({
 
 ## Related guides
 
+<div class="boxes-list gray">
+
 - [Modules](@/guides/tools-and-building/modules.md)
 - [Bundle size](@/guides/optimization/bundle-size.md)
+
+</div>

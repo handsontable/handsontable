@@ -394,7 +394,11 @@ you edit a numeric cell:
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Cell type](@/guides/cell-types/cell-type.md)
+
+</div>
 
 ### Related API reference
 

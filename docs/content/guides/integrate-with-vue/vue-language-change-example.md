@@ -135,9 +135,13 @@ new Vue({
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Language](@/guides/internationalization/language.md)
 - [Layout direction](@/guides/internationalization/layout-direction.md)
 - [Locale](@/guides/internationalization/locale.md)
+
+</div>
 
 ### Related API reference
 
