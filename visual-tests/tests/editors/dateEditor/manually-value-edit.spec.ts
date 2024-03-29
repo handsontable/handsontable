@@ -5,7 +5,7 @@ import { selectCell, selectEditor, openEditor } from '../../../src/page-helpers'
 /**
  * Checks whether it's possible to manually edit the cell value.
  */
-test(__filename, async({ page }) => {
+test(__filename, async({ tablePage }) => {
 
   const cell = await selectCell(1, 2);
 
@@ -15,5 +15,5 @@ test(__filename, async({ page }) => {
 
   await cellEditor.press('Backspace'); // Should remove one character from the end of the value
 
-  await page.screenshot({ path: helpers.screenshotPath() });
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

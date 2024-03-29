@@ -2,6 +2,13 @@ import type { Locator } from '@playwright/test';
 import PageHolder from './page-holder';
 import { helpers } from './helpers';
 
+// eslint-disable-next-line no-shadow
+export enum SortDirection {
+  Ascending = 'ascending',
+  Descending = 'descending',
+  None = 'none',
+}
+
 /**
  * Select cell by row and column index.
  *
@@ -11,8 +18,7 @@ import { helpers } from './helpers';
  * @returns {Locator} The locator of the selected cell.
  */
 export async function selectCell(row:number, column:number, cellType:string = 'td') : Promise<Locator> {
-  const pageHolder = PageHolder.getInstance();
-  const page = pageHolder.getPage();
+  const page = PageHolder.getInstance().getPage();
   const table = page.locator(helpers.selectors.mainTable);
   const tbody = table.locator(helpers.selectors.mainTableBody);
 
@@ -28,8 +34,7 @@ export async function selectCell(row:number, column:number, cellType:string = 't
  * @returns {Locator} The locator of the selected cell.
  */
 export async function selectClonedCell(row:number, column:number, cellType:string = 'th') {
-  const pageHolder = PageHolder.getInstance();
-  const page = pageHolder.getPage();
+  const page = PageHolder.getInstance().getPage();
   const table = page.locator(helpers.selectors.mainTable);
   const tbody = table.locator(helpers.selectors.cloneTopTable);
 
@@ -49,8 +54,7 @@ export async function openEditor(cell:Locator) {
  * @returns {Locator} The locator of the cell editor.
  */
 export async function selectEditor() {
-  const pageHolder = PageHolder.getInstance();
-  const page = pageHolder.getPage();
+  const page = PageHolder.getInstance().getPage();
   const table = page.locator(helpers.selectors.mainTable);
   const cellEditor = table.locator(helpers.findCellEditor());
 
@@ -64,8 +68,7 @@ export async function selectEditor() {
  *
  */
 export async function tryToEscapeFromTheComponentsFocus() {
-  const pageHolder = PageHolder.getInstance();
-  const page = pageHolder.getPage();
+  const page = PageHolder.getInstance().getPage();
 
   // try to select another menu item using arrow keys (it should not be possible)
   await page.keyboard.press('ArrowDown');
@@ -81,8 +84,7 @@ export async function tryToEscapeFromTheComponentsFocus() {
  * @param {Locator} cellTo End cell.
  */
 export async function createSelection(cellFrom:Locator, cellTo:Locator) {
-  const pageHolder = PageHolder.getInstance();
-  const page = pageHolder.getPage();
+  const page = PageHolder.getInstance().getPage();
   const cellFromBox = await cellFrom.boundingBox();
   const cellToBox = await cellTo.boundingBox();
 
@@ -120,8 +122,7 @@ export async function clickWithPosition(cell:Locator) {
  * @param {number} size Cell locator.
  */
 export async function makeSelectionFromCell(cell:Locator, size:number) {
-  const pageHolder = PageHolder.getInstance();
-  const page = pageHolder.getPage();
+  const page = PageHolder.getInstance().getPage();
   const cellCoordinates = await cell.boundingBox();
 
   await page.mouse.move(
@@ -140,8 +141,7 @@ export async function makeSelectionFromCell(cell:Locator, size:number) {
  * @param {number} columnIndex Cell locator.
  */
 export async function openHeaderDropdownMenu(columnIndex:number) {
-  const pageHolder = PageHolder.getInstance();
-  const page = pageHolder.getPage();
+  const page = PageHolder.getInstance().getPage();
   const table = page.locator(helpers.selectors.mainTable);
   const changeTypeButton = table.locator(helpers.findDropdownMenuExpander({ col: columnIndex }));
 
@@ -152,10 +152,70 @@ export async function openHeaderDropdownMenu(columnIndex:number) {
  * @param {string} option Cell locator.
  */
 export async function selectFromDropdownMenu(option:string) {
-  const pageHolder = PageHolder.getInstance();
-  const page = pageHolder.getPage();
+  const page = PageHolder.getInstance().getPage();
   const dropdownMenu = page.locator(helpers.selectors.dropdownMenu);
 
   await dropdownMenu.locator(option).click();
 
+}
+
+/**
+ * @param {string} option Cell locator.
+ */
+export async function selectCo(option:string) {
+  const page = PageHolder.getInstance().getPage();
+  const dropdownMenu = page.locator(helpers.selectors.dropdownMenu);
+
+  await dropdownMenu.locator(option).click();
+
+}
+
+/**
+ * @param {string} columnName Column name.
+ */
+export async function selectColumnHeaderByNameAndOpenMenu(columnName:string) {
+  const page = PageHolder.getInstance().getPage();
+
+  await page.getByRole('columnheader', { name: columnName, exact: true }).click({
+    button: 'right',
+    modifiers: ['Shift'],
+  });
+}
+
+/**
+ * @returns {number} Column count.
+ */
+export async function columnsCount() {
+  const page = PageHolder.getInstance().getPage();
+  const count = await page.getByRole('columnheader').count();
+
+  return count;
+}
+
+/**
+ * @returns {number} Rows count.
+ */
+export async function rowsCount() {
+  const page = PageHolder.getInstance().getPage();
+  const count = await page.getByRole('rowheader').count();
+
+  return count;
+}
+
+/**
+ * @param {string} name Column name.
+ * @param {SortDirection} direction Sort direction.
+ */
+export async function setColumnSorting(name:string, direction:SortDirection) {
+  const page = PageHolder.getInstance().getPage();
+  const columnHeader = await page.getByRole('columnheader', { name });
+
+  let sortAttribute = await columnHeader.getAttribute('aria-sort');
+
+  while (sortAttribute !== direction) {
+    // eslint-disable-next-line no-await-in-loop
+    await columnHeader.locator('span').click();
+    // eslint-disable-next-line no-await-in-loop
+    sortAttribute = await columnHeader.getAttribute('aria-sort');
+  }
 }

@@ -1,44 +1,50 @@
-import { expect } from '@playwright/test';
 import { helpers } from '../../src/helpers';
-import { openHeaderDropdownMenu, selectCell, } from '../../src/page-helpers';
-import { test } from '../../src/test-runner';
+import { test, expect } from '../../src/test-runner';
 
-test('hide and show columns', async({ page }) => {
+import {
+  columnsCount,
+  rowsCount,
+  openHeaderDropdownMenu,
+  selectCell,
+  selectColumnHeaderByNameAndOpenMenu,
+  setColumnSorting,
+  SortDirection
+} from '../../src/page-helpers';
 
-  expect(await page.getByRole('columnheader').count()).toBe(9);
+test.describe('User wants to find a specific range of information in a table', () => {
 
-  await page.getByRole('columnheader', { name: 'Name', exact: true }).click({
-    button: 'right',
-    modifiers: ['Shift'],
+  test('hide and show columns', async({ tablePage }) => {
+    expect(await columnsCount()).toBe(9);
+
+    await selectColumnHeaderByNameAndOpenMenu('Name');
+    await tablePage.getByText('Hide column').click();
+    expect(await columnsCount()).toBe(8);
+
+    await selectColumnHeaderByNameAndOpenMenu('In stock');
+    await tablePage.getByText('Hide column').click();
+    expect(await columnsCount()).toBe(6);
+
+    await tablePage.getByRole('columnheader', { name: 'Company name' }).click();
+    await selectColumnHeaderByNameAndOpenMenu('Progress');
+
+    await tablePage.getByText('Show columns').click();
+    expect(await columnsCount()).toBe(9);
+    await tablePage.screenshot({ path: helpers.screenshotPath() });
   });
-  await page.getByText('Hide column').click();
-  expect(await page.getByRole('columnheader').count()).toBe(8);
 
-  await page.getByRole('columnheader', { name: 'Company name' }).click();
-  await page.getByRole('columnheader', { name: 'Sell date' }).click({
-    button: 'right',
-    modifiers: ['Shift'],
+  test('filter', async({ tablePage }) => {
+    expect(await rowsCount()).toBe(22);
+    await openHeaderDropdownMenu(9);
+    await tablePage.getByText('Clear', { exact: true }).click();
+    await tablePage.getByPlaceholder('Search').type('India', { delay: 100 });
+    await tablePage.screenshot({ path: helpers.screenshotPath() });
+
+    await tablePage.getByLabel('Filter by value:').getByText('India').click();
+    await tablePage.getByRole('button', { name: 'OK' }).click();
+    expect(await rowsCount()).toBe(6);
+    await setColumnSorting('Qty', SortDirection.Descending);
+    const cell = await selectCell(0, 4);
+
+    expect(await cell.innerText()).toBe('162');
   });
-  await page.getByText('Show column').click();
-  expect(await page.getByRole('columnheader').count()).toBe(9);
-  await page.screenshot({ path: helpers.screenshotPath() });
-
-});
-
-test('filter', async({ page }) => {
-
-  expect(await page.getByRole('rowheader').count()).toBe(22);
-  openHeaderDropdownMenu(9);
-  await page.getByText('Clear', { exact: true }).click();
-  await page.getByPlaceholder('Search').type('India', { delay: 100 });
-  await page.screenshot({ path: helpers.screenshotPath() });
-
-  await page.getByLabel('Filter by value:').getByText('India').click();
-  await page.getByRole('button', { name: 'OK' }).click();
-  expect(await page.getByRole('rowheader').count()).toBe(6);
-  await page.getByRole('columnheader', { name: 'Qty' }).locator('span').click();
-  await page.getByRole('columnheader', { name: 'Qty' }).locator('span').click();
-  const cell = await selectCell(0, 4);
-
-  expect(await cell.innerText()).toBe('162');
 });
