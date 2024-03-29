@@ -16,6 +16,7 @@ html.theme-dark {
     $linkColor          = var(--color-lightblue)
     $editorColor        = var(--color-gray-700)
     $editorHeadColor    = var(--color-gray-800)
+    $lightBorderColor   = var(--color-gray-600)
 
     $editorCommentColor         = #d4d0ab
     $editorTagColor             = var(--color-lightblue)
@@ -666,6 +667,19 @@ html.theme-dark {
                 }
             }
         }
+
+        button:not(.theme-code-group__nav-tab, .handsontable *) {
+            background: $sideColor 
+            border: 1px solid $lightBorderColor
+            color: $textColor
+
+            @media (hover: hover) {
+                &:hover { 
+                    background: $borderColor 
+                    border: 1px solid $accentColor
+                }
+            }
+        }
     }
 
     .handsontable-drawing p:last-child { 
@@ -990,6 +1004,11 @@ html.theme-dark {
     .HW_frame_cont { 
         border-radius: $radius
         background: none
+    }
+
+    output.console {
+        border: 1px solid $borderColor
+        background: $sideColor
     }
 }
 

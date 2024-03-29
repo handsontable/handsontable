@@ -284,8 +284,12 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
 
 ## Related articles
 
+<div class="boxes-list gray">
+
 - [Column widths](@/guides/columns/column-width.md)
 - [Row heights](@/guides/rows/row-height.md)
+
+</div>
 
 **Related API reference**
 

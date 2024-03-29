@@ -290,7 +290,11 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Modules](@/guides/tools-and-building/modules.md)
+
+</div>
 
 ### Related API reference
 

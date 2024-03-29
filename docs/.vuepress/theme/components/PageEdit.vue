@@ -23,7 +23,8 @@
       </div>
     </div>
 
-    <div class="hot-feedback"></div>
+    <div class="hot-feedback">
+    </div>
 
     <div class="footer-links">
       <div class="socail-links">

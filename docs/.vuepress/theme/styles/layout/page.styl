@@ -230,11 +230,17 @@
     
     button:not(.theme-code-group__nav-tab, .handsontable *) {
         padding: 8px 16px
-        background: $editorColor !important
+        border:none
+        cursor: pointer
+        border-radius: $radius
+        background: $sideColor 
+        border: 1px solid $lightBorderColor
+        color: $textColor
 
         @media (hover: hover) {
             &:hover { 
-                background: $editorHeadColor !important
+                background: $borderColor 
+                border: 1px solid $accentColor
             }
         }
     }
