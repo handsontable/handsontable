@@ -19,7 +19,21 @@
         border-radius: $radius
     }
 
-    .controls {
+    .option-label {
+        color: $text2Color !important
+
+        input[type=checkbox] {
+            margin: 6px
+        }
+    }
+
+    .placeholder-input {
+        padding: 8px;
+        border:none
+        border-radius: $radius
+    }
+
+    .controls:not(button) {
         font-size: $font-size-xs
         line-height: $line-height-xs
         margin-top: 8px;
@@ -29,6 +43,22 @@
         label input {
             margin: 4px
         }
+
+        
+
+        #mainInput, select, input[type=text], input[type=search], .placeholder-input {
+            padding: 8px;
+            //margin-top: 12px;
+            border:none
+            border-radius: $radius
+        }
+
+        &.select-language {
+            label { 
+                display: block
+            }
+        }
+        
     }
 
     .tabs-component-panels {
@@ -286,7 +316,7 @@
             border-radius: 0 !important
 
             .tabs-component-panel {
-                padding: 16px 32px
+                padding: 16px 16px
             }
         }
     }
