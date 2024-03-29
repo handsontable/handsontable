@@ -26,6 +26,8 @@ export default {
         return;
       }
 
+      const organization = this.$site.themeConfig.organization;
+
       return {
         title: this.$page.title
           ? this.$page.title.toString().replace(/["|'|\\]/g, '')
@@ -35,7 +37,7 @@ export default {
             .toString()
             .replace(/["|'|\\]/g, '')
           : null,
-        image: 'https://handsontable.com/docs/img/handsontable-banner-og.png',
+        image: organization.image,
         published:
           dayjs(this.$page.frontmatter.date).toISOString() ||
           dayjs(this.$page.lastUpdated).toISOString(),
@@ -58,6 +60,7 @@ export default {
 
     // Inject Schema.org structured data
     meta_structuredData() {
+      const organization = this.$site.themeConfig.organization;
       const structuredData = {
         '@context': 'https://schema.org/',
         '@type': 'WebPage',
@@ -81,22 +84,16 @@ export default {
         author: {
           '@context': 'https://schema.org/',
           '@type': 'Organization',
-          name: 'Handsontable Team',
-          url: 'https://handsontable.com/',
-          sameAs: [
-            'https://twitter.com/handsontable',
-            'https://www.linkedin.com/company/handsontable/',
-          ],
+          name: organization.author,
+          url: organization.url,
+          sameAs: organization.socialMedia,
         },
         publisher: {
           '@type': 'Organization',
-          name: 'Handsontable',
-          url: 'https://handsontable.com/',
-          alternateName: 'Handsontable',
-          sameAs: [
-            'https://twitter.com/handsontable',
-            'https://www.linkedin.com/company/handsontable/',
-          ],
+          name: organization.name,
+          url: organization.url,
+          alternateName: organization.name,
+          sameAs: organization.socialMedia,
         },
         // datePublished: dayjs(this.meta_data.published).toISOString() || null, TODO: enable in the future
         dateModified: dayjs(this.meta_data.modified).toISOString() || null,
@@ -104,8 +101,8 @@ export default {
         copyrightHolder: {
           '@context': 'https://schema.org/',
           '@type': 'Organization',
-          name: 'Handsontable',
-          url: 'https://handsontable.com/',
+          name: organization.name,
+          url: organization.url,
           logo: {
             '@type': 'ImageObject',
             url: this.meta_data.image,

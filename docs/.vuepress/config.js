@@ -387,5 +387,15 @@ module.exports = {
       ],
       fuzzySearchDomains: ['Core', 'Hooks', 'Configuration options'],
     },
+    organization: {
+      name: 'Handsontable',
+      author: 'Handsontable Team',
+      url: 'https://handsontable.com',
+      socialMedia: [
+        'https://twitter.com/handsontable',
+        'https://www.linkedin.com/company/handsontable',
+      ],
+      image: 'https://handsontable.com/docs/img/handsontable-banner-og.png'
+    },
   },
 };
