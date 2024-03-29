@@ -1,13 +1,12 @@
 <template>
-  <form
-    id="search-form"
-    class="search-box"
-    role="search"
-  >
+  <form id="search-form" class="search-box" role="search">
     <input
       ref="input"
       id="algolia-search-input"
       class="search-query"
+      aria-label="Search"
+      autocomplete="off"
+      spellcheck="false"
       :placeholder="placeholder"
       @focus="focused = true"
       @blur="focused = false"
@@ -46,6 +45,9 @@ export default {
     options(newValue) {
       this.update(newValue, this.$lang);
     },
+    $route() {
+      this.$refs.input.value = '';
+    },
   },
   mounted() {
     this.initialize(this.options, this.$lang);
@@ -60,7 +62,7 @@ export default {
       Promise.all([
         import(
           // eslint-disable-next-line
-          /* webpackChunkName: "docsearch" */ 'docsearch.js/dist/cdn/docsearch.min.js'
+          /* webpackChunkName: "docsearch" */ "docsearch.js/dist/cdn/docsearch.min.js"
         ),
         import(
           /* webpackChunkName: "docsearch" */ 'docsearch.js/dist/cdn/docsearch.min.css'
@@ -84,8 +86,15 @@ export default {
             const { pathname, hash } = new URL(suggestion.url);
             const routepath = pathname.replace(this.$site.base, '/');
             const _hash = decodeURIComponent(hash);
+            const newPath = `${routepath}${_hash}`;
+            const currentPath = window.location.href.replace(
+              `${this.$page.hostname}${this.$site.base}`,
+              '/'
+            );
 
-            this.$router.push(`${routepath}${_hash}`);
+            if (newPath !== currentPath) {
+              this.$router.push(newPath);
+            }
           },
         });
       });
@@ -257,6 +266,10 @@ export default {
         margin-bottom: 0;
       }
     }
+  }
+
+  .aa-suggestion-title-separator {
+    padding: 0 4px;
   }
 }
 
