@@ -215,6 +215,10 @@ html.theme-dark {
                         }
                     }
                 }
+
+                #HW_badge_cont .HW_badge.HW_softHidden { 
+                    background: $linkColor
+                }
             }   
 
             //Search
@@ -780,7 +784,7 @@ html.theme-dark {
             border: 1px solid $borderColor
             background: $gradient0
             
-            &:after {
+            i+a:before {
                 background-color: $sideColor
             }
 
@@ -789,6 +793,10 @@ html.theme-dark {
             }
 
             a {
+                color: $textColor
+            }
+
+            strong { 
                 color: $textColor
             }
 
@@ -810,7 +818,7 @@ html.theme-dark {
                     opacity: 1
                     background: $sideColor
                 }
-                &:after { 
+                i+a:before { 
                     background: $borderColor 
                 }
 

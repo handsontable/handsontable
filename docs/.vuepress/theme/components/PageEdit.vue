@@ -1,6 +1,7 @@
 <template>
   <footer class="footer">
     <div class="footer-support">
+      <!--
       <div
         v-if="lastUpdated"
         class="last-updated"
@@ -8,6 +9,7 @@
         <span class="prefix">{{ lastUpdatedText }}:</span>
         <span class="time">{{ lastUpdated }}</span>
       </div>
+      -->
 
       <div
         v-if="editLink"

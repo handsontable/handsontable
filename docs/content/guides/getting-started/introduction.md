@@ -118,7 +118,8 @@ Then, move on to [connecting](@/guides/getting-started/binding-to-data.md) your 
 [Column summary](@/guides/columns/column-summary.md)
 - <i class="ico i-javascript"></i> 
 [Row parent-child](@/guides/rows/row-parent-child.md)
-- <i class="ico i-javascript"></i> [Context menu](@/guides/accessories-and-menus/context-menu.md)
+- <i class="ico i-javascript"></i> 
+[Context menu](@/guides/accessories-and-menus/context-menu.md)
 
 </div>
 

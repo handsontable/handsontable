@@ -20,7 +20,23 @@
                 border: 1px solid $onsurfaceColor
                 box-sizing: border-box
                 font-size: $font-size-xs
-                letter-spacing: $letter-spacing-xs
+                line-height: $line-height-xs
+
+                p {
+                    font-size: $font-size-xs
+                    line-height: $line-height-xs
+                }
+
+                p > a {
+                    margin-top: 8px
+                    display: inline-block
+                    font-size: $font-size-xs
+                    line-height: $line-height-xs
+                }
+
+                strong { 
+                    color: $textColor
+                }
 
                 &:before {
                     content:''
@@ -33,18 +49,6 @@
                     z-index -1
                 }
 
-                &:after {
-                    content:''
-                    transition: all $t ease-in-out
-                    height: 40px
-                    width: 40px
-                    position: absolute
-                    top: 24px
-                    left: 24px
-                    border-radius: $radius
-                    background-color: $sideColor
-                }
-                
                 i {
                     height: 40px
                     width: 40px
@@ -56,6 +60,18 @@
                     background-repeat: no-repeat
                     margin-bottom: 16px
                     z-index: 1
+
+                    + a:before {
+                        content:''
+                        transition: all $t ease-in-out
+                        height: 40px
+                        width: 40px
+                        position: absolute
+                        top: 24px
+                        left: 24px
+                        border-radius: $radius
+                        background-color: $sideColor
+                    }
                 }
 
                 a { 
@@ -96,9 +112,10 @@
                     opacity: 1
                     background: $sideColor
                 }
-                &:after { 
+                i:after { 
                     background: $onsurfaceColor 
                 }
+                
 
                 @media (hover: hover) {
                     &:hover { 
