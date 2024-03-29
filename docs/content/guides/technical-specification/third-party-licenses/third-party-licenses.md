@@ -60,6 +60,8 @@ The dependencies below apply only if you use the [`Formulas`](@/api/formulas.md)
 
 <div class="boxes-list gray">
 
+<div class="boxes-list gray">
+
 - **bessel**<br>
     Author: SheetJS<br>
     License: Apache v2.0<br>
