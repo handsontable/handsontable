@@ -287,12 +287,11 @@ export class InlineStartOverlay extends Overlay {
 
     // If the table is scrolled all the way left when starting the scroll and going to be scrolled to the far right,
     // we need to compensate for the potential header border width.
-    if (getMaximumScrollLeft(this.mainTableScrollableElement) === newX - rowHeaderBorderCompensation) {
-      if (rowHeaderBorderCompensation > 0) {
-        this.wot.wtOverlays.expandHiderHorizontallyBy(rowHeaderBorderCompensation);
-
-        newX += rowHeaderBorderCompensation;
-      }
+    if (
+      getMaximumScrollLeft(this.mainTableScrollableElement) === newX - rowHeaderBorderCompensation &&
+      rowHeaderBorderCompensation > 0
+    ) {
+      this.wot.wtOverlays.expandHiderHorizontallyBy(rowHeaderBorderCompensation);
     }
 
     return this.setScrollPosition(newX);

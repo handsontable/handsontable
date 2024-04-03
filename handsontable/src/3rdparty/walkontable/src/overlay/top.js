@@ -318,12 +318,11 @@ export class TopOverlay extends Overlay {
 
     // If the table is scrolled all the way up when starting the scroll and going to be scrolled to the bottom,
     // we need to compensate for the potential header bottom border height.
-    if (getMaximumScrollTop(this.mainTableScrollableElement) === newY - columnHeaderBorderCompensation) {
-      if (columnHeaderBorderCompensation > 0) {
-        this.wot.wtOverlays.expandHiderVerticallyBy(columnHeaderBorderCompensation);
-
-        newY += columnHeaderBorderCompensation;
-      }
+    if (
+      getMaximumScrollTop(this.mainTableScrollableElement) === newY - columnHeaderBorderCompensation &&
+      columnHeaderBorderCompensation > 0
+    ) {
+      this.wot.wtOverlays.expandHiderVerticallyBy(columnHeaderBorderCompensation);
     }
 
     return this.setScrollPosition(newY);
