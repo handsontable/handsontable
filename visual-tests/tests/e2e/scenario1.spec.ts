@@ -29,10 +29,9 @@ test.describe('User wants to find a specific range of information in a table', (
 
     await tablePage.getByText('Show columns').click();
     expect(await columnsCount()).toBe(9);
-    await tablePage.screenshot({ path: helpers.screenshotPath() });
   });
 
-  test('filter', async({ tablePage }) => {
+  test('opens a dropdown menu, filters the content using column values and sort', async({ tablePage }) => {
     expect(await rowsCount()).toBe(22);
     await openHeaderDropdownMenu(9);
     await tablePage.getByText('Clear', { exact: true }).click();
