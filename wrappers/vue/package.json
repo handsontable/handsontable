@@ -128,9 +128,5 @@
         "babelConfig": true
       }
     }
-  },
-  "dependencies": {
-    "jsdom": "24.0.0",
-    "stylelint": "16.3.1"
   }
 }
