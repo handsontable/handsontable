@@ -29,7 +29,8 @@ describe('Focus selection scroll', () => {
     keyDownUp('enter');
     keyDownUp('enter'); // B4
 
-    expect(topOverlay().getScrollPosition()).toBe(4);
+    // 92 row heights - 104 viewport width + 15 scrollbart offset + + 1 selection offset + 1 header border offset
+    expect(topOverlay().getScrollPosition()).toBe(5);
 
     keyDownUp('enter'); // B5
 
@@ -58,7 +59,8 @@ describe('Focus selection scroll', () => {
 
     keyDownUp(['shift', 'enter']); // B50
 
-    expect(topOverlay().getScrollPosition()).toBe(1062);
+    // 1150 row heights - 104 viewport width + 15 scrollbart offset + 1 header border offset
+    expect(topOverlay().getScrollPosition()).toBe(1063);
   });
 
   it('should scroll the viewport horizontally', () => {
@@ -77,7 +79,8 @@ describe('Focus selection scroll', () => {
     keyDownUp('tab');
     keyDownUp('tab'); // C2
 
-    expect(inlineStartOverlay().getScrollPosition()).toBe(15);
+    // 150 column widths - 150 viewport width + 15 scrollbart offset + 1 header border offset
+    expect(inlineStartOverlay().getScrollPosition()).toBe(16);
 
     keyDownUp('tab'); // D2
 
@@ -102,6 +105,7 @@ describe('Focus selection scroll', () => {
 
     keyDownUp(['shift', 'tab']); // E2
 
-    expect(inlineStartOverlay().getScrollPosition()).toBe(115);
+    // 250 column widths - 150 viewport width + 15 scrollbart offset + 1 header border offset
+    expect(inlineStartOverlay().getScrollPosition()).toBe(116);
   });
 });
