@@ -84,7 +84,26 @@ describe('ColumnSorting keyboard shortcut', () => {
       }]);
     });
 
-    it('should be possible to sort a column when a range of the columns are selected', () => {
+    it('should be possible to sort a column when a column header is selected', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        columnSorting: true
+      });
+
+      selectCell(-1, 4);
+      listen();
+      keyDownUp('enter');
+
+      expect(getPlugin('columnSorting').getSortConfig()).toEqual([{
+        column: 4,
+        sortOrder: 'asc',
+      }]);
+    });
+
+    it('should not be possible to sort a column when a range of the columns are selected', () => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -97,10 +116,7 @@ describe('ColumnSorting keyboard shortcut', () => {
       listen();
       keyDownUp('enter');
 
-      expect(getPlugin('columnSorting').getSortConfig()).toEqual([{
-        column: 1,
-        sortOrder: 'asc',
-      }]);
+      expect(getPlugin('columnSorting').getSortConfig()).toEqual([]);
     });
 
     it('should be possible to sort columns only by triggering the action from the lowest column header', () => {

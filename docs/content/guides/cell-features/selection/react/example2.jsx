@@ -6,7 +6,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   const hotRef = useRef(null);
   const [output, setOutput] = useState('');
 
@@ -17,12 +17,16 @@ export const ExampleComponent = () => {
 
     getButtonClickCallback = event => {
       const selected = hot.getSelected() || [];
-      const data = [];
+      let data = [];
 
-      for (let i = 0; i < selected.length; i += 1) {
-        const item = selected[i];
-
-        data.push(hot.getData(...item));
+      if (selected.length === 1) {
+        data = hot.getData(...selected[0]);
+      } else {
+        for (let i = 0; i < selected.length; i += 1) {
+          const item = selected[i];
+    
+          data.push(hot.getData(...item));
+        }
       }
 
       setOutput(JSON.stringify(data));
@@ -69,6 +73,4 @@ export const ExampleComponent = () => {
   );
 };
 
-/* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
-/* end:skip-in-preview */
+export default ExampleComponent;

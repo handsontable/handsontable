@@ -9,8 +9,10 @@ export const command = {
       const column = columnIndexMapper.getNearestNotHiddenIndex(
         ...(hot.isRtl() ? [hot.countCols() - 1, -1] : [0, 1])
       );
+      const newFrom = from.clone();
 
-      selection.setRangeStart(from.clone());
+      newFrom.col = highlight.col;
+      selection.setRangeStart(newFrom, undefined, false, highlight.clone());
 
       // Restore the column highlight by header flag after setting up a new selection.
       if (isFocusHighlightedByHeader) {

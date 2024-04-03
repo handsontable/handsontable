@@ -5,7 +5,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   const data = [
     { id: 1, name: { first: 'Ted', last: 'Right' }, address: '' },
     { id: 2, address: '' }, // Handsontable will create missing properties on demand
@@ -43,6 +43,4 @@ export const ExampleComponent = () => {
   );
 };
 
-/* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
-/* end:skip-in-preview */
+export default ExampleComponent;

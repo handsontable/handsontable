@@ -23,17 +23,17 @@ Play around with a demo of Handsontable, in your favorite framework.
 
 ::: only-for javascript
 ::: example-without-tabs #example
-@[code](@/content/guides/getting-started/demo/example.html)
-@[code](@/content/guides/getting-started/demo/example.css)
-@[code](@/content/guides/getting-started/demo/example.js)
+@[code](@/content/guides/getting-started/demo/javascript/example.html)
+@[code](@/content/guides/getting-started/demo/javascript/example.css)
+@[code](@/content/guides/getting-started/demo/javascript/example.js)
 :::
 :::
 
 ::: only-for react
 ::: example-without-tabs #example2 :react
-@[code](@/content/guides/getting-started/demo/example2.html)
-@[code](@/content/guides/getting-started/demo/example2.css)
-@[code](@/content/guides/getting-started/demo/example2.jsx)
+@[code](@/content/guides/getting-started/demo/react/example2.html)
+@[code](@/content/guides/getting-started/demo/react/example2.css)
+@[code](@/content/guides/getting-started/demo/react/example2.jsx)
 :::
 :::
 

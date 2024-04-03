@@ -6,7 +6,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   const data1 = [
     ['10.26', null, 'Sum', '=SUM(A:A)'],
     ['20.12', null, 'Average', '=AVERAGE(A:A)'],
@@ -62,6 +62,4 @@ export const ExampleComponent = () => {
   );
 };
 
-/* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
-/* end:skip-in-preview */
+export default ExampleComponent;

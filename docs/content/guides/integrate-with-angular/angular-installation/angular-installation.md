@@ -5,6 +5,9 @@ metaTitle: Installation - Angular Data Grid | Handsontable
 description: Install Handsontable's Angular wrapper via npm, import the stylesheets, and get your application up and running.
 permalink: /angular-installation
 canonicalUrl: /angular-installation
+react:
+  id: sf0e1o0c
+  metaTitle: Installation - Angular Data Grid | Handsontable
 searchCategory: Guides
 ---
 

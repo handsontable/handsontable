@@ -1,10 +1,11 @@
-/* start:skip-in-preview */
-import { HotTable, HotColumn } from "@handsontable/react";
 import { useState } from "react";
-
+import { HotTable, HotColumn } from "@handsontable/react";
 import { registerAllModules } from "handsontable/registry";
 import "handsontable/dist/handsontable.full.min.css";
 
+registerAllModules();
+
+/* start:skip-in-preview */
 const data = [
   {
     companyName: "Hodkiewicz - Hintz",
@@ -480,6 +481,7 @@ const hotOptions = {
   data,
   height: 464,
   colWidths: [140, 165, 100, 100, 100, 110, 178],
+  autoRowSize: true,
   colHeaders: [
     "Company name",
     "Product name",
@@ -500,7 +502,7 @@ const hotOptions = {
   licenseKey: "non-commercial-and-evaluation",
 };
 
-function App() {
+const ExampleComponent = () => {
   const [toggleableOptions, setToggleableOptions] = useState({
     tabNavigation: true,
     navigableHeaders: true,
@@ -513,7 +515,7 @@ function App() {
   });
 
   return (
-    <>
+    <div className="example-container">
       {/* DemoOptions component for changing Handsontable options */}
       <DemoOptions
         changeToggleOptions={setToggleableOptions}
@@ -555,7 +557,7 @@ function App() {
         type="text"
         placeholder="Focusable text input"
       />
-    </>
+    </div>
   );
 }
 
@@ -964,4 +966,4 @@ function DemoOptions({
   );
 }
 
-ReactDOM.render(<App />, document.getElementById("example2"));
+export default ExampleComponent;
