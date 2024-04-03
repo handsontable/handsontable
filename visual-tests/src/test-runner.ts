@@ -22,6 +22,7 @@ const test = baseTest.extend<{ tablePage: Page, customTitle: string }>({
     await table.waitFor();
     await use(page);
   },
+  // eslint-disable-next-line no-empty-pattern
   customTitle: async({}, use, testInfo) => {
     const title = helpers.testTitle(path.basename(testInfo.title));
 
