@@ -1,14 +1,17 @@
 ---
 id: 2kg0f1og
-title: Custom ID, Class, Style and other attributes in Vue 3
+title: Custom ID, Class and other attributes in Vue 3
 metaTitle: Custom ID, class, and style - Vue 3 Data Grid | Handsontable
 description: Pass a custom ID, class, and style to the "HotTable" component, to further customize your Vue 3 data grid.
 permalink: /vue3-custom-id-class-style
 canonicalUrl: /vue3-custom-id-class-style
+react:
+  id: jeuzzosp
+  metaTitle: Custom ID, class, and style - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
 ---
 
-# Custom ID, Class, Style, and other attributes in Vue 3
+# Custom ID, Class, and other attributes in Vue 3
 
 Pass a custom ID, class, and style to the "HotTable" component, to further customize your Vue 3 data grid.
 
