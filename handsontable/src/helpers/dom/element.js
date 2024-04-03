@@ -640,6 +640,26 @@ export function getScrollableElement(element) {
 }
 
 /**
+ * Get the maximum available `scrollTop` value for the provided element.
+ *
+ * @param {HTMLElement} element The element to get the maximum scroll top value from.
+ * @returns {number} The maximum scroll top value.
+ */
+export function getMaximumScrollTop(element) {
+  return element.scrollHeight - element.clientHeight;
+}
+
+/**
+ * Get the maximum available `scrollLeft` value for the provided element.
+ *
+ * @param {HTMLElement} element The element to get the maximum scroll left value from.
+ * @returns {number} The maximum scroll left value.
+ */
+export function getMaximumScrollLeft(element) {
+  return element.scrollWidth - element.clientWidth;
+}
+
+/**
  * Returns a DOM element responsible for trimming the provided element.
  *
  * @param {HTMLElement} base Base element.
