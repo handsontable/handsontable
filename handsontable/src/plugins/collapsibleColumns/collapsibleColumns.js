@@ -480,6 +480,21 @@ export class CollapsibleColumns extends BasePlugin {
     }, true);
 
     const isActionPerformed = this.getCollapsedColumns().length !== currentCollapsedColumns.length;
+    const selectionRange = this.hot.getSelectedRangeLast();
+
+    if (action === 'collapse' && isActionPerformed && selectionRange) {
+      const { row, col } = selectionRange.highlight;
+      const isHidden = this.hot.rowIndexMapper.isHidden(row) || this.hot.columnIndexMapper.isHidden(col);
+
+      if (isHidden && affectedColumnsIndexes.includes(col)) {
+        const nextRow = row >= 0 ? this.hot.rowIndexMapper.getNearestNotHiddenIndex(row, 1, true) : row;
+        const nextColumn = col >= 0 ? this.hot.columnIndexMapper.getNearestNotHiddenIndex(col, 1, true) : col;
+
+        if (nextRow !== null && nextColumn !== null) {
+          this.hot.selectCell(nextRow, nextColumn);
+        }
+      }
+    }
 
     this.hot.runHooks(
       actionTranslator.afterHook,
