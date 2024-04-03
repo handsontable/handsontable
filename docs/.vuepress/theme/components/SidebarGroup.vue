@@ -11,7 +11,7 @@
   >
     <RouterLink
       v-if="item.path"
-      class="sidebar-heading clickable"
+      class="sidebar-heading clickable open"
       :class="{
         open: isOpen,
         active: isActive($route, item.path),

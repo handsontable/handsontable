@@ -308,7 +308,7 @@ module.exports = {
     docsDir: 'docs/content',
     docsBranch: 'develop',
     editLinks: true,
-    editLinkText: 'Improve this page',
+    editLinkText: 'Edit on GitHub',
     lastUpdated: false,
     smoothScroll: false,
     nav: [

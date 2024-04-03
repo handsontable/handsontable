@@ -30,6 +30,7 @@
       <div class="socail-links">
         <a href="https://github.com/handsontable/handsontable" target="_blank"><i class="ico i-github"></i></a>
         <a href="https://www.linkedin.com/company/handsontable/" target="_blank"><i class="ico i-linkedin"></i></a>
+        <a href="https://twitter.com/handsontable" target="_blank"><i class="ico i-twitter"></i></a>
       </div>
       
       <div class="hot-links">
@@ -43,7 +44,7 @@
     </div>
 
     <div class="copyright">
-      <p>Copyright ©{{ new Date().getFullYear() }} Handsoncode</p>
+      <p>Copyright © {{ new Date().getFullYear() }} Handsoncode</p>
       <ThemeSwitcher />
     </div>
   </footer>

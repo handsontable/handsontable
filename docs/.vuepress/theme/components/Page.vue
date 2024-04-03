@@ -1,8 +1,7 @@
 <template>
   <main class="page" v-bind:class="{ 'api': isApi }">
     <div class="breadcrumbs ">
-      <a href="#"><i class="ico i-home"></i></a>
-      <a href="#">14.2.0</a>
+      <a href="#"><i class="ico i-home"></i> 14.2.0</a>
       <a href="#">Getting started</a>
       <span>Introduction</span>
     </div>
@@ -83,7 +82,7 @@ export default {
         const scrollPosition = window.scrollY;
 
         sections.forEach(section => {
-            const sectionTop = section.offsetTop - 104;
+            const sectionTop = section.offsetTop - 0;
             const sectionHeight = section.clientHeight;
 
             if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
@@ -104,7 +103,7 @@ export default {
     window.addEventListener('load', () => {
         setTimeout(() => {
             checkSectionInView();
-        }, 1000); // Adjust the delay time (e.g., 1000 milliseconds)
+        }, 400); // Adjust the delay time (e.g., 1000 milliseconds)
     });
 
   }

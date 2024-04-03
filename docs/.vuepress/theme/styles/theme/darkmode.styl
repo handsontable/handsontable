@@ -18,24 +18,35 @@ html.theme-dark {
     $editorHeadColor    = var(--color-gray-800)
     $lightBorderColor   = var(--color-gray-600)
 
-    $editorCommentColor         = #d4d0ab
-    $editorTagColor             = var(--color-lightblue)
+    $editorCommentColor         = var(--color-gray-550)
+    $editorTagColor             = #85dbd8
     $editorFunctionNameColor    = var(--color-lightblue)
     $editorFunctionColor        = var(--color-lightblue)
-    $editorSymbolColor          = $text2Color
+    $editorSymbolColor          = #fe86a8
     $editorSelectorColor        = #dcc6e0
-    $editorStringColor          = #fe86a8
+    $editorStringColor          = #d4d0ab
     $editorOperatorColor        = var(--color-success)
     $editorInsertedColor        = var(--color-success)
     $editorPunctuationColor     = var(--color-gray-300)
 
+    $editorCommentColor         = #696969;        
+    $editorTagColor             = #00CED1;        
+    $editorFunctionNameColor    = #87CEEB;        
+    $editorFunctionColor        = var(--color-lightblue);        
+    $editorSymbolColor          = #fe86a8;        
+    $editorSelectorColor        = #5a88ff;        
+    $editorStringColor          = rgb(255, 126, 182) ;                
+    $editorOperatorColor        = rgb(120, 169, 255);      
+    $editorInsertedColor        = $textcolor;       
+    $editorPunctuationColor     = rgb(255, 126, 182);       
+
     $dropColor          = $dropColorDark
 
-    background: $bgColor url('{{$basePath}}/img/noise.png') repeat
+    background: $bgColor //url('{{$basePath}}/img/noise.png') repeat
     color: $textColor
 
     body { 
-        background: $bgColor url('{{$basePath}}/img/noise.png') repeat
+        background: $bgColor //url('{{$basePath}}/img/noise.png') repeat
     }
 
 
@@ -76,7 +87,7 @@ html.theme-dark {
         }
 
         .info-box { 
-            background: $borderColor
+            background: $sideColor
 
             span { 
                 background-color: $accentColor
@@ -282,7 +293,7 @@ html.theme-dark {
 
 
         .tag  { 
-            background-color: $accentColor
+            background-color: $linkColor
             color: $bgColor
         }  
 
@@ -324,7 +335,7 @@ html.theme-dark {
                                 color: $textColor
 
                                 &:before {
-                                    background: $accentColor    
+                                    background: $linkColor    
                                 }
                             }
 
@@ -358,6 +369,7 @@ html.theme-dark {
                     background: $borderColor
                     color: $text2Color
                     font-family: $font
+                    border: 1px solid $lightBorderColor
                     
                     &:focus {
                         //box-shadow: 0 0 0 1px $accentColor
@@ -444,6 +456,12 @@ html.theme-dark {
                 color: $textColor
             }
             
+            h1 {
+                + p {
+                    border-bottom: 1px solid $borderColor
+                }
+            }
+            
             p {
                 color: $text2Color
             }
@@ -477,7 +495,7 @@ html.theme-dark {
             
             .source-code-link {
                 color: $text2Color
-                background: $sideColor
+                //background: $sideColor
                 border-color: $borderColor
 
                 @media (hover: hover) {
@@ -504,7 +522,8 @@ html.theme-dark {
             a > code,
             li > code,
             p > code {
-                background: $onsurfaceColor 
+                background: $borderColor 
+                box-shadow: 0 0 0 1px $lightBorderColor
             }
             
             .table-of-contents { 
@@ -563,7 +582,7 @@ html.theme-dark {
                 }
 
                 code { 
-                    background: $bgColor 
+                    //background: $bgColor 
                 }
             }
         }
@@ -608,6 +627,7 @@ html.theme-dark {
                 tr { 
                     th { 
                         border-top:1px solid $borderColor
+                        color:$textColor
                     }
                 }
             }
@@ -827,7 +847,7 @@ html.theme-dark {
         background: $bgColor 
     }
 
-    .page .boxes-list {
+    .page #get-started-with-handsontable ~ .boxes-list {
         li {
             border: 1px solid $borderColor
             background: $gradient0
@@ -903,8 +923,8 @@ html.theme-dark {
         }
     }
 
-    .simple-list { 
-        li a { 
+    .theme-default-content .simple-list { 
+        ul li a { 
             color: $text2Color
         }
     }

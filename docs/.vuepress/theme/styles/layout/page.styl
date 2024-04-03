@@ -57,38 +57,57 @@
             &:hover .header-anchor {
                 opacity: 1        
             }
+
+            &:before { 
+                position absolute
+                top -108px
+                content: ''
+                display: block
+            }
+
+            code { 
+                font-size: inherit
+                line-height: inherit
+            }
         }
 
         h1 { 
             font-size: $font-size-xl
             line-height: $line-height-xl
             font-weight: 400
-            margin:0 !important
+            margin:0!important
             padding: 48px 0 0
             position: relative
+            letter-spacing: -0.72px
+            
+            + p {
+                border-bottom: 1px solid $borderColor
+                padding-bottom: 24px
+                margin-bottom: 8px
+            }
         }
 
         h2 { 
             padding-top: 32px
-            padding-bottom: 0
-            font-size: $font-size
-            line-height: $line-height
+            padding-bottom: 8px
+            font-size: $font-size-l
+            line-height: $line-height-l
             margin: 0
             position relative
         }
 
         h3 { 
             padding-top: 32px
-            padding-bottom: 0
-            font-size: $font-size-m
-            line-height: $line-height-m
+            padding-bottom: 8px
+            font-size: $font-size
+            line-height: $line-height
             margin: 0
             position: relative
         }
 
         h4, h5 { 
             padding-top: 24px
-            padding-bottom: 0
+            padding-bottom: 4px
             font-size: $font-size-s
             line-height: $line-height-s
             margin: 0
@@ -96,7 +115,12 @@
         }
 
         a.header-anchor {
-            margin-left: -40px
+            // margin-left: -40px
+            position absolute
+            inset: 0
+            margin: 0 
+            padding: 0
+            opacity 0 !important
         }
 
         > div { 
@@ -122,7 +146,7 @@
             line-height: $line-height-s
         }
 
-        > ul, > ol { 
+        > ul, > ol, .boxes-list > ul { 
             padding: 16px 8px 8px
             word-wrap: break-word
 
@@ -200,8 +224,8 @@
     }
     
     table:not(.htCore) { 
-        font-size: $font-size-xs
-        line-height: $line-height-xs
+        font-size: $font-size-s
+        line-height: $line-height-s
         font-weight: 400
         margin: 32px 0
         width: 100%
@@ -218,8 +242,9 @@
             tr { 
                 th { 
                     border-top:1px solid $borderColor
-                    font-weight: 400
+                    font-weight: 500
                     text-align: left
+                    color:$textColor
                 }
             }
         }

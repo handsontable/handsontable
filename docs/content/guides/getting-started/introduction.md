@@ -184,3 +184,5 @@ Contribute to the development of Handsontable:
 - [Blog](https://handsontable.com/blog)
 - [Twitter](https://twitter.com/handsontable)
 -->
+
+<span class="decoration-right"></span>

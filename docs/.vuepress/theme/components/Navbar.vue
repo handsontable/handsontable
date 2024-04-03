@@ -14,8 +14,9 @@
             <FrameworksDropdown/>
             <!--<VersionsDropdown></VersionsDropdown>-->
           </div>
-          <SearchBox/>
         </div>
+
+        <SearchBox/>
 
         <div class="menu">
           <NavLinks/>

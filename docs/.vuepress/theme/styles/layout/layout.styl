@@ -80,74 +80,17 @@ a {
   }
 }
 
-.decoration-left { 
-  display: block
-  background:  url('{{$basePath}}/img/hero-right.webp'); 
-  background-size: 100%
-  width: 288px
-  height: 1080px 
-  position fixed
-  top:600px
-  left:0
-  transform:rotate(90deg)
-  //animation: 12s linear 0s infinite alternate none running animation-left;
-  opacity .2
-  pointer-events: none
-}
 .decoration-right { 
   display: block
-  background:  url('{{$basePath}}/img/hero-right.webp'); 
+  background:  url('{{$basePath}}/img/bg-gradient.webp'); 
   background-size: 100%
-  width: 288px
-  height: 1080px 
+  width: 432px
+  height: 1212px 
   position fixed
   top -140px
   right:0
-  //animation: 30s linear 0s infinite alternate none running animation-right;
   opacity .1
   pointer-events: none
   filter: hue-rotate(40deg);
 }
 
-@media (max-width: $medium) {
-  .decoration-right { 
-    display: none
-  }
-}
-/*
-@keyframes animation-left {
-  0% {
-    transform: scale(1.25) rotate(180deg) translateX(0.1rem) translateY(0px);
-  }
-  20% {
-      transform: scale(1.35) rotate(181deg) translateX(1.2rem) translateY(1rem);
-  }
-  50% {
-      transform: scale(2.6) rotate(179deg) translateX(0.5rem) translateY(1.4rem);
-  }
-  75% {
-      transform: scale(1.5) rotate(181deg) translateX(2rem) translateY(2.5rem);
-  }
-  100% {
-      transform: scale(1.35) rotate(180deg) translateX(2rem) translateY(2.75rem);
-  }
-}
-
-@keyframes animation-right {
-  0% {
-    transform: scale(1) rotate(0deg);
-  }
-  20% {
-      transform: scale(1.35) rotate(2.5deg) translateX(1.75rem) translateY(0.85rem);
-  }
-  50% {
-      transform: scale(1.1) rotate(-1deg) translateX(1rem);
-  }
-  75% {
-      transform: scale(1.35) rotate(1deg) translateX(0px) translateY(0px);
-  }
-  100% {
-      transform: scale(1) rotate(0deg) translateX(0px) translateY(0px);
-  }
-}
-*/

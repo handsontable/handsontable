@@ -8,6 +8,7 @@
         padding: 4px 8px
         border-radius: $radius
         color: $textColor 
+        margin: 0 1px 1px 0
     }
 
     .theme-default-content {
@@ -15,6 +16,20 @@
         li > code,
         p > code {
             background: $onsurfaceColor 
+            box-shadow: 0 0 0 1px $borderColor
+        }
+
+        a code {
+            color: $linkColor
+            transition: $t all ease-in-out
+            
+
+            @media (hover: hover) {
+                &:hover { 
+                    text-decoration:none
+                    color: $textColor
+                }
+            }
         }
 
         .language-bash:before { 
@@ -25,9 +40,9 @@
         }
         
         .source-code-link {
-            padding: 8px 16px
+            padding: 2px 8px
             color: $text2Color
-            background: $sideColor
+            //background: $sideColor
             border: 1px solid $borderColor
             border-radius: $radius
             top: -28px
@@ -62,19 +77,9 @@
         }
     }
 
-    .theme-default-content a code {
-        color: $linkColor
-        transition: $t all ease-in-out
-
-        @media (hover: hover) {
-            &:hover { 
-                text-decoration:none
-                color: $textColor
-            }
-        }
-    }
-
     div[class*="language-"]::before { 
+        display: none
+
         font-size: $font-size-xxs
         line-height: $line-height-xxs
         color: $text2Color

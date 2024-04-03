@@ -104,9 +104,9 @@
         }
         > .close {
             cursor:pointer
-            opacity .8
+            opacity .6
             transition all $t ease
-            filter brightness(0) invert(0)
+            //filter brightness(0) invert(0)
 
             @media (hover: hover) {
                 &:hover { 
@@ -165,7 +165,7 @@
                     display: flex
                     gap: 8px
                     align-items: center
-                    padding: 14px 32px
+                    padding: 11px 32px
                     font-size: $font-size-xs
                     line-height: $line-height-xs
                     font-weight: 400
@@ -198,7 +198,7 @@
                             max-height: 100vh 
                             height: auto
                             opacity: 1
-                            padding-bottom: 24px
+                            padding-bottom: 12px
                         }
                     }
                     @media (hover: hover) {
@@ -283,7 +283,7 @@
                             font-size: $font-size-xxs
                             line-height: $line-height-xxs
                             display: block;
-                            border-radius: $radius
+                            border-radius: $radius-s
                             padding: 2px 8px;
                             background-color: $successColor
                             color: $bgColor

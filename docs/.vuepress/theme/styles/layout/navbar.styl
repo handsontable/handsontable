@@ -16,7 +16,7 @@
         display: block;
         border-radius: $radius-s
         padding: 2px 8px;
-        background-color: $accentColor
+        background-color: $linkColor
         color: $bgColor
         margin: -2px 0;
     }
@@ -25,7 +25,7 @@
         box-sizing: border-box;
         display: flex
         height: 72px
-        padding: 8px 32px
+        padding: 8px 40px
 
         > * {
             box-sizing: border-box;
@@ -46,7 +46,7 @@
             padding-top: 2px
             width: auto
             margin-right: 24px
-            border-radius: $radius-xl
+            border-radius: $radius
             position relative
 
             .version {
@@ -63,8 +63,8 @@
 
         .Logo { 
             margin: 16px
-            height: 24px 
-            width: 145px
+            height: 25px 
+            width: 160px
             display: block
             background-repeat: no-repeat
             background-size: 100%
@@ -72,6 +72,7 @@
 
         .menu {
             display: flex
+            padding: 4px 0 
 
             .nav-links {
                 display: flex
@@ -81,13 +82,13 @@
                         font-size:$font-size-xs
                         line-height: $line-height-xs
                         color: $text2Color
-                        padding: 18px 16px
+                        padding: 13px 16px
                         display: block
                         display: flex
                         white-space: nowrap
                         gap:8px
                         font-weight: 400
-                        border-radius: $radius-xl
+                        border-radius: $radius
                         transition: all $t ease-in-out
 
                         &.router-link-active { 
@@ -101,7 +102,7 @@
                                 transform: translateX(-50%)
                                 display: block
                                 content: ''
-                                background: $accentColor
+                                background: $linkColor
                                 height: 1px
 
                             }
@@ -156,12 +157,12 @@
                 margin: 0
 
                 .dropdown-wrapper > button { 
-                    border-radius: $radius-xl
+                    border-radius: $radius
                     display: flex
                     gap: 8px
                     padding-left: 48px
-                    padding:20px 16px 20px 48px
-                    margin-left:-32px
+                    padding: 13px 16px 13px 40px
+                    margin-left:-24px
                     margin-top: 4px
                     font-size: $font-size-xs
                     line-height: $line-height-xs
@@ -176,7 +177,6 @@
 
         .dropdown-wrapper { 
             position: relative
-            height: 64px
 
             > button { 
                 display: flex
@@ -291,7 +291,7 @@
         //Icons
         .icons-nav {
             display: flex
-            padding: 8px
+            padding: 4px 8px
             gap: 8px
             
             > a, > span {
@@ -353,27 +353,29 @@
 
         //Search
         .search-box { 
-            position: absolute;
+            position: relative;
             z-index 2
             display: flex
             padding: 4px
             width: auto
-            transform: translateX(-50%)
-            left: 50%
+            //transform: translateX(-50%)
+            //left: 50%
 
             > i { 
                 position: absolute
-                top: 20px
-                left: 20px
+                top: 18px
+                left: 18px
             }
 
             input { 
-                width: 320px;
-                box-sizing: border-box;
+                margin: 2px 0
+                width: 320px
+                box-sizing: border-box
                 border-radius: $radius
+                border: 1px solid $borderColor
                 background: $sideColor
                 border: none
-                padding: 14px 16px 14px 48px
+                padding: 11px 16px 11px 40px
                 font-size: $font-size-xs
                 line-height: 20px
                 color: $text2Color
@@ -393,15 +395,15 @@
             .kbd-hint { 
                 transition all $ts ease
                 position:absolute
-                display: 
-                flex; gap:6px
-                right: 12px
-                top:12px
+                display: flex
+                gap:6px
+                right: 16px
+                top: 16px
 
                 kbd { 
                     display: block
-                    line-height: 32px
-                    width: 32px
+                    line-height: 24px
+                    width: 24px
                     border-radius: $radius-s
                     text-align: center
                     background: $onsurfaceColor
@@ -553,8 +555,8 @@
 
             .Logo { 
                 margin: 24px
-                height: 24px 
-                width: 145px
+                height: 25px 
+                width: 160px
                 display: block
                 background-repeat: no-repeat
                 background-size: 100%

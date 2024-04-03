@@ -77,14 +77,17 @@ export default {
 
   mounted() {
     // TEMP Tags 
-    const selector1 = document.querySelector('.sidebar .sidebar-nav > div > ul > li:first-child li:nth-child(2) a ');
+    const selector1 = document.querySelector('.sidebar .sidebar-nav .sidebar-links > li:first-child li:nth-child(2) a ');
     const chips1 = document.createElement('span');
     
-    //selector1.appendChild(chips1);
+    if (selector1) {
+      selector1.appendChild(chips1);
 
-    chips1.classList.add('tag-new');
-    chips1.textContent = 'New';
-
+        chips1.classList.add('tag-new');
+        chips1.textContent = 'New';
+    } else {
+        console.error("Element not found with the given selector");
+    }
     
     const osInstance = OverlayScrollbars(document.querySelector('.sidebar-nav'), {
       overflow: {
