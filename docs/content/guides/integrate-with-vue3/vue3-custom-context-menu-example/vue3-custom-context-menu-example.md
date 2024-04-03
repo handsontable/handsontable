@@ -5,6 +5,9 @@ metaTitle: Custom context menu - Vue 3 Data Grid | Handsontable
 description: Customize the context menu of your Vue 3 data grid, by creating a custom function for each menu item.
 permalink: /vue3-custom-context-menu-example
 canonicalUrl: /vue3-custom-context-menu-example
+react:
+  id: rw3lzobe
+  metaTitle: Custom context menu - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
 ---
 

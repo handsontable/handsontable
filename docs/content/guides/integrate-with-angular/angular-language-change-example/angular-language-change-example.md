@@ -5,6 +5,9 @@ metaTitle: Language change - Angular Data Grid | Handsontable
 description: Change the default language of the context menu from English to any of the built-in translations, using the "language" property.
 permalink: /angular-language-change-example
 canonicalUrl: /angular-language-change-example
+react:
+  id: h7773jg7
+  metaTitle: Language change - Angular Data Grid | Handsontable
 searchCategory: Guides
 ---
 
