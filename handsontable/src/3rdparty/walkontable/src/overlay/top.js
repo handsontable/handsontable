@@ -1,5 +1,6 @@
 import {
   addClass,
+  getMaximumScrollTop,
   getScrollbarWidth,
   getScrollTop,
   getWindowScrollLeft,
@@ -275,6 +276,13 @@ export class TopOverlay extends Overlay {
     const { wot, wtSettings } = this;
     const sourceInstance = wot.cloneSource ? wot.cloneSource : wot;
     const mainHolder = sourceInstance.wtTable.holder;
+    const columnHeaders = wtSettings.getSetting('columnHeaders');
+    const fixedRowsTop = wtSettings.getSetting('fixedRowsTop');
+    const columnHeaderBorderCompensation = (
+      fixedRowsTop === 0 &&
+      columnHeaders.length > 0 &&
+      !hasClass(mainHolder.parentNode, 'innerBorderTop')
+    ) ? 1 : 0;
     let newY = this.getTableParentOffset();
     let scrollbarCompensation = 0;
 
@@ -299,11 +307,24 @@ export class TopOverlay extends Overlay {
       newY -= wot.wtViewport.getViewportHeight() - this.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
       // Fix 1 pixel offset when cell is selected
       newY += 1;
+      // Compensate for the bottom header border if scrolled from the absolute top.
+      newY += columnHeaderBorderCompensation;
 
     } else {
       newY += this.sumCellSizes(wtSettings.getSetting('fixedRowsTop'), sourceRow);
     }
+
     newY += scrollbarCompensation;
+
+    // If the table is scrolled all the way up when starting the scroll and going to be scrolled to the bottom,
+    // we need to compensate for the potential header bottom border height.
+    if (getMaximumScrollTop(this.mainTableScrollableElement) === newY - columnHeaderBorderCompensation) {
+      if (columnHeaderBorderCompensation > 0) {
+        this.wot.wtOverlays.expandHiderVerticallyBy(columnHeaderBorderCompensation);
+
+        newY += columnHeaderBorderCompensation;
+      }
+    }
 
     return this.setScrollPosition(newY);
   }
