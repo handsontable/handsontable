@@ -325,9 +325,9 @@ export class DateEditor extends TextEditor {
       let pickerLeftPosition = this.hot.rootWindow.pageXOffset;
 
       if (this.hot.isRtl()) {
-        pickerLeftPosition = offset.right - outerWidth(this.datePicker);
+        pickerLeftPosition += offset.right - outerWidth(this.datePicker);
       } else {
-        pickerLeftPosition = this.hot.rootWindow.pageXOffset + offset.left;
+        pickerLeftPosition += offset.left;
       }
 
       this.datePickerStyle.left = `${pickerLeftPosition}px`;
