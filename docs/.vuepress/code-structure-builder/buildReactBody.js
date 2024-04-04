@@ -123,7 +123,9 @@ ${js}`
   <head>
     <meta charset="utf-8" />
     <title>Handsontable</title>
-    ${js.includes("import { HyperFormula } from 'hyperformula';") ? '<script src="https://cdn.jsdelivr.net/npm/hyperformula/dist/hyperformula.full.min.js"></script>' : ''}
+    ${js.includes('import { HyperFormula } from \'hyperformula\';')
+    ? '<script src="https://cdn.jsdelivr.net/npm/hyperformula/dist/hyperformula.full.min.js"></script>'
+    : ''}
   </head>
 
   <body>
@@ -152,7 +154,7 @@ root.render(
 );`
       },
       'src/ExampleComponent.jsx': {
-        content: js.replace("import { HyperFormula } from 'hyperformula';", "")
+        content: js.replace('import { HyperFormula } from \'hyperformula\';', '')
       }
     }
   };
