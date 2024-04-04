@@ -9,10 +9,13 @@ const stylesToAdd = [
 ];
 
 // Define your custom fixture
-const test = baseTest.extend<{ tablePage: Page, customTitle: string }>({
+const test = baseTest.extend<{ tablePage: Page, customTitle: string, resetScreenshotsCount: null }>({
   tablePage: async({ page }, use, workerInfo) => {
     helpers.init(workerInfo);
     PageHolder.getInstance().setPage(page);
+
+    // Reset screenshotsCount before each test
+    helpers.screenshotsCount = 0;
 
     await page.goto(helpers.testURL);
     await expect(page).toHaveTitle(helpers.expectedPageTitle);
