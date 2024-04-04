@@ -711,6 +711,164 @@ describe('DateEditor', () => {
     expect(cellOffset.left).toBeCloseTo(datePickerOffset.left, 0);
   });
 
+  it('should move a datepicker together with the edited cell when the table is scrolled down', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 20),
+      width: 200,
+      height: 200,
+      type: 'date',
+    });
+
+    selectCell(2, 2);
+    keyDownUp('enter');
+    setScrollTop(30);
+
+    const editorElement = $(getActiveEditor().TD);
+    const pikaElement = $('.pika-single');
+
+    await sleep(50);
+
+    expect(pikaElement.offset()).toEqual({
+      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      left: editorElement.offset().left,
+    });
+    expect(pikaElement.is(':visible')).toBe(true);
+
+    setScrollTop(60); // scroll the viewport so the edited cell is partially visible from above
+
+    await sleep(50);
+
+    expect(pikaElement.offset()).toEqual({
+      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      left: editorElement.offset().left,
+    });
+    expect(pikaElement.is(':visible')).toBe(true);
+
+    setScrollTop(70); // scroll the viewport so the edited cell is not visible
+
+    await sleep(50);
+
+    expect(pikaElement.is(':visible')).toBe(false);
+  });
+
+  it('should move a datepicker together with the edited cell when the table is scrolled up', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 20),
+      width: 200,
+      height: 200,
+      type: 'date',
+    });
+
+    selectCell(25, 2);
+    keyDownUp('enter');
+
+    const editorElement = $(getActiveEditor().TD);
+    const pikaElement = $('.pika-single');
+
+    await sleep(50);
+
+    expect(pikaElement.offset()).toEqual({
+      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      left: editorElement.offset().left,
+    });
+    expect(pikaElement.is(':visible')).toBe(true);
+
+    setScrollTop(400); // scroll the viewport so the edited cell is partially visible from below
+
+    await sleep(50);
+
+    expect(pikaElement.offset()).toEqual({
+      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      left: editorElement.offset().left,
+    });
+    expect(pikaElement.is(':visible')).toBe(true);
+
+    setScrollTop(390); // scroll the viewport so the edited cell is not visible
+
+    await sleep(50);
+
+    expect(pikaElement.is(':visible')).toBe(false);
+  });
+
+  it('should move a datepicker together with the edited cell when the table is scrolled left', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 20),
+      width: 200,
+      height: 200,
+      type: 'date',
+    });
+
+    selectCell(2, 10);
+    keyDownUp('enter');
+
+    const editorElement = $(getActiveEditor().TD);
+    const pikaElement = $('.pika-single');
+
+    await sleep(50);
+
+    expect(pikaElement.offset()).toEqual({
+      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      left: editorElement.offset().left,
+    });
+    expect(pikaElement.is(':visible')).toBe(true);
+
+    setScrollLeft(350); // scroll the viewport so the edited cell is partially visible from right
+
+    await sleep(50);
+
+    expect(pikaElement.offset()).toEqual({
+      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      left: editorElement.offset().left,
+    });
+    expect(pikaElement.is(':visible')).toBe(true);
+
+    setScrollLeft(310); // scroll the viewport so the edited cell is not visible
+
+    await sleep(50);
+
+    expect(pikaElement.is(':visible')).toBe(false);
+  });
+
+  it('should move a datepicker together with the edited cell when the table is scrolled right', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 20),
+      width: 200,
+      height: 200,
+      type: 'date',
+    });
+
+    selectCell(2, 2);
+    keyDownUp('enter');
+    setScrollLeft(30);
+
+    const editorElement = $(getActiveEditor().TD);
+    const pikaElement = $('.pika-single');
+
+    await sleep(50);
+
+    expect(pikaElement.offset()).toEqual({
+      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      left: editorElement.offset().left,
+    });
+    expect(pikaElement.is(':visible')).toBe(true);
+
+    setScrollLeft(130); // scroll the viewport so the edited cell is partially visible from left
+
+    await sleep(50);
+
+    expect(pikaElement.offset()).toEqual({
+      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      left: editorElement.offset().left,
+    });
+    expect(pikaElement.is(':visible')).toBe(true);
+
+    setScrollLeft(150); // scroll the viewport so the edited cell is not visible
+
+    await sleep(50);
+
+    expect(pikaElement.is(':visible')).toBe(false);
+  });
+
   it('should display Pikaday Calendar right-bottom of the selected cell when table have scrolls', () => {
     const container = $('#testContainer');
 
