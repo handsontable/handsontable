@@ -77,8 +77,8 @@ describe('Updating the Handsontable settings', () => {
   });
 
   it('should update the previously initialized Handsontable instance only once with multiple changed properties', async() => {
-    const initialAfterChangeHook = () => {/* initial hook */};
-    const modifiedAfterChangeHook = () => {/* modified hook */};
+    const initialAfterChangeHook = () => { /* initial hook */ };
+    const modifiedAfterChangeHook = () => { /* modified hook */ };
     const App = {
       components: { HotTable },
       template: `
