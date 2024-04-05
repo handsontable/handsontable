@@ -26,7 +26,7 @@ export default {
       }
 
       const organization = this.$site.themeConfig.organization;
-      
+
       return {
         title: this.$page.frontmatter.metaTitle
           ? this.$page.frontmatter.metaTitle
@@ -61,7 +61,6 @@ export default {
 
     // Inject Schema.org structured data
     meta_structuredData() {
-      console.log(this.$page);
       const organization = this.$site.themeConfig.organization;
       const structuredData = {
         '@context': 'https://schema.org/',
