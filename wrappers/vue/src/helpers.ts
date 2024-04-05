@@ -267,7 +267,7 @@ function simpleEqual(objectA, objectB) {
       };
     }());
 
-    return JSON.stringify(value, circularReplacer);
+    return JSON.stringify(val, circularReplacer);
   };
 
   if (typeof objectA === 'function' && typeof objectB === 'function') {
