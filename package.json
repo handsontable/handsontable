@@ -72,7 +72,8 @@
     "yargs": "^16.2.0"
   },
   "overrides": {
-    "@types/babel__traverse": "7.18.2"
+    "@types/babel__traverse": "7.18.2",
+    "loader-utils": "2.0.4"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
   "resolutions": {

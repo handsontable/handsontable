@@ -81,7 +81,7 @@
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript": "^1.0.1",
     "rollup-plugin-typescript2": "^0.21.1",
-    "rollup-plugin-vue": "^6.0.0",
+    "rollup-plugin-vue": "^5.1.9",
     "typescript": "3.8.2",
     "vue": "~2.6.10",
     "vue-class-component": "^7.1.0",
