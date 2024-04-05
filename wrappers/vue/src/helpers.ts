@@ -253,7 +253,7 @@ export function createVueComponent(vNode: VNode, parent: Vue, props: object, dat
  * @returns {boolean} `true` if they're the same, `false` otherwise.
  */
 function simpleEqual(objectA, objectB) {
-  const stringifyToJSON = (value) => {
+  const stringifyToJSON = (val) => {
     const circularReplacer = (function() {
       const seen = new WeakSet();
 
