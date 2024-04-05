@@ -266,5 +266,13 @@ function simpleEqual(objectA, objectB) {
     };
   }());
 
-  return JSON.stringify(objectA, circularReplacer) === JSON.stringify(objectB, circularReplacer);
+  if (typeof objectA === 'function' && typeof objectB === 'function') {
+    return objectA.toString() === objectB.toString();
+
+  } else if (typeof objectA !== typeof objectB) {
+    return false;
+
+  } else {
+    return JSON.stringify(objectA, circularReplacer) === JSON.stringify(objectB, circularReplacer);
+  }
 }
