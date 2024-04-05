@@ -26,6 +26,15 @@ const {
   getPermalinkHrefMethod,
 } = require('./plugins/markdown-it-conditional-container/onlyForContainerHelpers');
 
+require('dotenv').config();
+
+const DOCSEARCH_API_KEY = process.env.DOCSEARCH_API_KEY;
+const DOCSEARCH_APP_ID = process.env.DOCSEARCH_APP_ID;
+
+if (!DOCSEARCH_API_KEY || !DOCSEARCH_APP_ID) {
+  throw new Error('DOCSEARCH_API_KEY or DOCSEARCH_APP_ID is missing in docs/.env');
+}
+
 const uniqueSlugs = new Set();
 const buildMode = process.env.BUILD_MODE;
 const isProduction = buildMode === 'production';
@@ -378,25 +387,11 @@ module.exports = {
     displayAllHeaders: true, // collapse other pages
     activeHeaderLinks: true,
     sidebarDepth: 0,
-    search: true,
-    searchOptions: {
-      placeholder: 'Search...',
-      categoryPriorityList: [
-        {
-          name: 'Guides',
-          domainPriority: [],
-          maxSuggestions: 5,
-        },
-        {
-          name: 'API Reference',
-          // The "domainPriority" list modifies the search results position. When the search phrase matches
-          // the page titles, the search suggestions are placed before the rest results. The pages declared
-          // in the array at the beginning have the highest display priority.
-          domainPriority: ['Configuration options', 'Core', 'Hooks'],
-          maxSuggestions: 10,
-        },
-      ],
-      fuzzySearchDomains: ['Core', 'Hooks', 'Configuration options'],
-    },
+    searchPlaceholder: 'Search...',
+    algolia: {
+      indexName: 'handsontable',
+      apiKey: DOCSEARCH_API_KEY,
+      appId: DOCSEARCH_APP_ID
+    }
   },
 };
