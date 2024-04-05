@@ -26,10 +26,12 @@ export default {
       }
 
       const organization = this.$site.themeConfig.organization;
-
+      
       return {
-        title: this.$page.title
-          ? this.$page.title.toString().replace(/["|'|\\]/g, '')
+        title: this.$page.frontmatter.metaTitle
+          ? this.$page.frontmatter.metaTitle
+            .toString()
+            .replace(/["|'|\\]/g, '')
           : null,
         description: this.$page.frontmatter.description
           ? this.$page.frontmatter.description
@@ -59,6 +61,7 @@ export default {
 
     // Inject Schema.org structured data
     meta_structuredData() {
+      console.log(this.$page);
       const organization = this.$site.themeConfig.organization;
       const structuredData = {
         '@context': 'https://schema.org/',
@@ -68,7 +71,7 @@ export default {
         description: this.meta_data.description || null,
         url: this.meta_canonicalUrl,
         mainEntityOfPage: {
-          '@type': 'WebPage',
+          '@type': 'TechArticle',
           '@id': this.meta_canonicalUrl,
         },
         keywords: this.$page.frontmatter.tags || [],
