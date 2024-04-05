@@ -32,7 +32,7 @@
 <script>
 import SidebarLinks from '@theme/components/SidebarLinks.vue';
 import Logo from '@theme/components/Logo.vue';
-import SearchBox from '@theme/components/SearchBox';
+// import SearchBox from '@theme/components/SearchBox';
 import NavLinks from '@theme/components/NavLinks.vue';
 import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
 import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
@@ -55,7 +55,7 @@ export default {
     SidebarLinks,
     FrameworksDropdown,
     NavLinks,
-    SearchBox,
+    // SearchBox,
     VersionsDropdown,
     ThemeSwitcher,
     ExternalNavLinks
