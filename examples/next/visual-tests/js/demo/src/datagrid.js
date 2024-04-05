@@ -123,6 +123,8 @@ new Handsontable(example, {
   filters: true,
   rowHeaders: true,
   manualRowMove: true,
+  comments: true,
+  manualColumnMove: true,
   afterGetColHeader: alignHeaders,
   afterGetRowHeader: drawCheckboxInRowHeaders,
   afterOnCellMouseDown: changeCheckboxCell,

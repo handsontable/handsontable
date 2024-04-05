@@ -46,6 +46,8 @@ const DataGrid = () => {
       mergeCells={true}
       manualRowMove={true}
       navigableHeaders={true}
+      comments={true}
+      manualColumnMove={true}
       licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data={1} />
