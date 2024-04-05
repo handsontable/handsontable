@@ -40,7 +40,7 @@ export abstract class BaseEditor {
   isOpened(): boolean;
   isWaiting(): boolean;
   abstract open(event?: Event): void;
-  prepare(row: number, col: number, prop: string | number, TD: HTMLTableCellElement, originalValue: any, cellProperties: CellProperties): void;
+  prepare(row: number, column: number, prop: string | number, TD: HTMLTableCellElement, originalValue: any, cellProperties: CellProperties): void;
   saveValue(value?: any, ctrlDown?: boolean): void;
   abstract setValue(newValue?: any): void;
 }

@@ -1,6 +1,6 @@
 import Handsontable from "handsontable";
 import "handsontable/dist/handsontable.min.css";
-import "pikaday/css/pikaday.css";
+import "@handsontable/pikaday/css/pikaday.css";
 
 // Import sample data and helper functions
 import { data, countries } from "./data";
@@ -73,7 +73,7 @@ export const setupCheckbox = (element, callback) =>
   element.addEventListener("click", (clickEvent) => callback(element.checked));
 
 // Set up event listeners for various checkboxes to update Handsontable settings.
-// This allows us to change the Handsontable settings from the UI, showcasing 
+// This allows us to change the Handsontable settings from the UI, showcasing
 // the flexibility of Handsontable in configuring according to your needs.
 
 // Checkbox: Enable/Disable Tab Navigation

@@ -393,7 +393,13 @@ export class ManualColumnResize extends BasePlugin {
    * @returns {boolean}
    */
   checkIfColumnHeader(element) {
-    return !!closest(element, ['THEAD'], this.hot.rootElement);
+    const thead = closest(element, ['THEAD'], this.hot.rootElement);
+    const { topOverlay, topInlineStartCornerOverlay } = this.hot.view._wt.wtOverlays;
+
+    return [
+      topOverlay.clone.wtTable.THEAD,
+      topInlineStartCornerOverlay.clone.wtTable.THEAD,
+    ].includes(thead);
   }
 
   /**
@@ -508,6 +514,10 @@ export class ManualColumnResize extends BasePlugin {
    * @param {MouseEvent} event The mouse event.
    */
   #onMouseDown(event) {
+    if (event.target.parentNode !== this.hot.rootElement) {
+      return;
+    }
+
     if (hasClass(event.target, 'manualColumnResizer')) {
       this.setupHandlePosition(this.#currentTH);
       this.setupGuidePosition();

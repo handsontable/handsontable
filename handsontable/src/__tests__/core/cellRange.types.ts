@@ -31,6 +31,7 @@ const cellRangeRTL = new CellRange(cellCoords, cellCoords, cellCoords, true);
 }
 const isSingleCell: boolean = cellRange.isSingleCell();
 const isSingleHeader: boolean = cellRange.isSingleHeader();
+const isHeader: boolean = cellRange.isHeader();
 const containsHeaders: boolean = cellRange.containsHeaders();
 const getOuterHeight: number = cellRange.getOuterHeight();
 const getOuterWidth: number = cellRange.getOuterWidth();
@@ -41,12 +42,13 @@ const includes: boolean = cellRange.includes(cellCoords);
 const includesRange: boolean = cellRange.includesRange(cellRangeRTL);
 const isEqual: boolean = cellRange.isEqual(cellRangeRTL);
 const overlaps: boolean = cellRange.overlaps(cellRangeRTL);
-const isSouthEastOf: boolean = cellRange.isSouthEastOf(cellRangeRTL);
-const isNorthWestOf: boolean = cellRange.isNorthWestOf(cellRangeRTL);
+const isSouthEastOf: boolean = cellRange.isSouthEastOf(cellCoords);
+const isNorthWestOf: boolean = cellRange.isNorthWestOf(cellCoords);
 const isOverlappingHorizontally: boolean = cellRange.isOverlappingHorizontally(cellRangeRTL);
 const isOverlappingVertically: boolean = cellRange.isOverlappingVertically(cellRangeRTL);
 const expand: boolean = cellRange.expand(cellCoords);
-const expandByRange: boolean = cellRange.expandByRange(cellRangeRTL);
+const expandByRange1: boolean = cellRange.expandByRange(cellRangeRTL, true);
+const expandByRange2: boolean = cellRange.expandByRange(cellRangeRTL, false);
 const getDirection: 'NW-SE' | 'NE-SW' | 'SE-NW' | 'SW-NE' = cellRange.getDirection();
 
 cellRange.setDirection('NE-SW');
@@ -77,13 +79,7 @@ const getOuterBottomLeftCorner: CellCoords = cellRange.getOuterBottomLeftCorner(
   const isCorner: boolean = cellRange.isCorner(cellCoords);
 }
 {
-  const isCorner: boolean = cellRange.isCorner(cellCoords, cellRangeRTL);
-}
-{
   const getOppositeCorner: CellCoords = cellRange.getOppositeCorner(cellCoords);
-}
-{
-  const getOppositeCorner: CellCoords = cellRange.getOppositeCorner(cellCoords, cellRangeRTL);
 }
 const getBordersSharedWith: Array<'top' | 'right' | 'bottom' | 'left'> = cellRange.getBordersSharedWith(cellRangeRTL);
 const getInner: CellCoords[] = cellRange.getInner();

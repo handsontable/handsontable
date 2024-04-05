@@ -149,7 +149,7 @@ export class TextEditor extends BaseEditor {
    * @param {number|string} prop The column property (passed when datasource is an array of objects).
    * @param {HTMLTableCellElement} td The rendered cell element.
    * @param {*} value The rendered value.
-   * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
+   * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
    */
   prepare(row, col, prop, td, value, cellProperties) {
     const previousState = this.state;
@@ -276,7 +276,6 @@ export class TextEditor extends BaseEditor {
     this.textareaParentStyle.opacity = '1';
 
     this.textareaStyle.textIndent = '';
-    this.textareaStyle.overflowY = 'hidden';
 
     const childNodes = this.TEXTAREA_PARENT.childNodes;
     let hasClassHandsontableEditor = false;

@@ -1,0 +1,116 @@
+---
+id: a7a5mkrw
+title: Password cell type
+metaTitle: Password cell type - JavaScript Data Grid | Handsontable
+description: Use the password cell type to mask confidential values by rendering entered characters as symbols.
+permalink: /password-cell-type
+canonicalUrl: /password-cell-type
+react:
+  id: gydne13d
+  metaTitle: Password cell type - React Data Grid | Handsontable
+searchCategory: Guides
+---
+
+# Password cell type
+
+Use the password cell type to mask confidential values by rendering entered characters as symbols.
+
+[[toc]]
+
+## Overview
+
+The password cell type behaves like a text cell, the only difference being that it masks its value using asterisks in the cell renderer. An `<input type="password">` field is used for the cell editor. Data is stored in the data source as plain text.
+
+::: only-for javascript
+
+::: example #example1
+
+@[code](@/content/guides/cell-types/password-cell-type/javascript/example1.js)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 :react
+
+@[code](@/content/guides/cell-types/password-cell-type/react/example1.jsx)
+
+:::
+
+:::
+
+## Fixed hash length
+
+By default, every hash has a length equal to the length of its corresponding value. Use option `hashLength` to set a fixed hash length.
+
+::: only-for javascript
+
+::: example #example2
+
+@[code](@/content/guides/cell-types/password-cell-type/javascript/example2.js)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example2 :react
+
+@[code](@/content/guides/cell-types/password-cell-type/react/example2.jsx)
+
+:::
+
+:::
+
+## Custom hash symbol
+
+By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to set a custom hash symbol. You can use any character, entity, or even HTML. Note that you can't change the symbol used by the input field due to browser limitations.
+
+::: only-for javascript
+
+::: example #example3
+
+@[code](@/content/guides/cell-types/password-cell-type/javascript/example3.js)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example3 :react
+
+@[code](@/content/guides/cell-types/password-cell-type/react/example3.jsx)
+
+:::
+
+:::
+
+## Related articles
+
+### Related guides
+
+<div class="boxes-list gray">
+- [Cell type](@/guides/cell-types/cell-type/cell-type.md)
+</div>
+
+### Related API reference
+
+- Configuration options:
+  - [`type`](@/api/options.md#type)
+- Core methods:
+  - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
+  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
+  - [`getDataType()`](@/api/core.md#getdatatype)
+  - [`setCellMeta()`](@/api/core.md#setcellmeta)
+  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
+- Hooks:
+  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
+  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
+  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)

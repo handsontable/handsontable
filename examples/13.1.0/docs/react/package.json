@@ -1,8 +1,0 @@
-{
-  "name": "examples-react-13.1.0",
-  "version": "13.1.0",
-  "private": true,
-  "workspaces": [
-    "@(!(node_modules))/"
-  ]
-}

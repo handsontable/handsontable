@@ -22,6 +22,44 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 2)).toBe(180);
   });
 
+  it('should show only single resize handler and not throw an error while performing a mouse down on HOT in HOT header', () => {
+    handsontable({
+      colHeaders: true,
+      manualColumnResize: true,
+      columns: [
+        {
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: true,
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            manualColumnResize: true,
+          }
+        },
+      ],
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    const $hotInHot = $('.handsontableEditor');
+
+    expect(() => {
+      // A "mouseover" event over a header of the main HOT has shown two resizers in some cases.
+      getTopClone().find('thead tr:eq(0) th:eq(1)').simulate('mouseover');
+
+      const $endOfFirstHeader = $hotInHot.find('.ht_clone_top thead tr:eq(0) th:eq(1)');
+
+      $endOfFirstHeader.simulate('mouseover');
+      $hotInHot.find('.manualColumnResizer').simulate('mouseover');
+
+      expect($hotInHot.find('.manualColumnResizer').size()).toBe(1);
+
+      $hotInHot.find('.manualColumnResizer').simulate('mousedown');
+      $hotInHot.find('.ht_clone_top thead tr:eq(0) th:eq(2)').simulate('mouseover');
+      $hotInHot.find('.ht_clone_top thead tr:eq(0) th:eq(2)').simulate('mousemove');
+    }).not.toThrow();
+  });
+
   it('should be enabled after specifying it in updateSettings config', () => {
     handsontable({
       data: [
@@ -242,6 +280,37 @@ describe('manualColumnResize', () => {
     expect($columnHeaders.eq(1).width()).toBe(33);
     expect($columnHeaders.eq(2).width()).toBe(34);
     expect($columnHeaders.eq(3).width()).toBe(34);
+  });
+
+  it('should show resizer for fixed columns', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 20),
+      colHeaders: true,
+      rowHeaders: true,
+      fixedColumnsStart: 2,
+      manualColumnResize: true
+    });
+
+    getTopClone()
+      .find('thead tr:eq(0) th:eq(3)')
+      .simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualColumnResizer');
+
+    expect($resizer.position()).toEqual({
+      top: 0,
+      left: 194,
+    });
+
+    // after hovering over fixed column, resizer should be moved to the fixed column
+    getTopInlineStartClone()
+      .find('thead tr:eq(0) th:eq(1)')
+      .simulate('mouseover');
+
+    expect($resizer.position()).toEqual({
+      top: 0,
+      left: 94,
+    });
   });
 
   it('should resize (expanding) selected columns', async() => {
@@ -799,6 +868,40 @@ describe('manualColumnResize', () => {
 
     // Reassign the native onerror handler.
     window.onerror = nativeOnError;
+  });
+
+  it('should not throw any errors, when the cell renderers use HTML table to present the value (#dev-1298)', () => {
+    const onErrorSpy = spyOn(window, 'onerror').and.returnValue(true);
+
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      colHeaders: true,
+      manualColumnResize: true,
+      renderer(hot, td, row, column, value) {
+        td.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>${value}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>${value}</th>
+              </tr>
+            </tbody>
+          </table>`;
+      }
+    });
+
+    const rendererTH = $(getCell(0, 0).querySelector('thead th'));
+
+    rendererTH
+      .simulate('mouseover')
+      .simulate('mousedown')
+      .simulate('click');
+
+    expect(onErrorSpy).not.toHaveBeenCalled();
   });
 
   describe('handle position in a table positioned using CSS\'s `transform`', () => {

@@ -51,6 +51,9 @@ module.exports = (options, context) => {
       const docsVersions = await fetchDocsVersions();
       const canonicalURLs = await generateCommonCanonicalURLs(rawCanonicalURLs);
 
+      context.siteConfig.canonicalURLs = Array.from(canonicalURLs);
+      context.siteConfig.latestVersion = docsVersions.latestVersion;
+
       docsDataCommon.urls = Array.from(canonicalURLs);
       docsDataCommon.versions = docsVersions.versions;
       docsDataCommon.latestVersion = docsVersions.latestVersion;

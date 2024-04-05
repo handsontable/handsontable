@@ -1,61 +1,37 @@
 import { test } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
+import {
+  selectCell,
+  createSelection,
+  clickWithPosition,
+  clickWithPositionAndModifiers,
+  selectClonedCell,
+} from '../../src/page-helpers';
 
 /**
  * Checks whether the selection highlights the merged cells correctly.
  */
-test(__filename, async({ page }) => {
-  const table = page.locator(helpers.selectors.mainTable);
+test(__filename, async({ tablePage }) => {
 
-  await table.waitFor();
+  const cellFrom = await selectCell(3, 0);
+  const cellTo = await selectCell(5, 2);
 
-  const tbody = table.locator(helpers.selectors.mainTableBody);
-  const cellFrom = tbody.locator(helpers.findCell({ row: 3, column: 0, cellType: 'td' }));
-  const cellTo = tbody.locator(helpers.findCell({ row: 5, column: 2, cellType: 'td' }));
+  await createSelection(cellFrom, cellTo);
 
-  const cellFromBox = await cellFrom.boundingBox();
-  const cellToBox = await cellTo.boundingBox();
-
-  await page.mouse.move(cellFromBox!.x + 10, cellFromBox!.y + 10);
-  await page.mouse.down();
-  await page.mouse.move(cellToBox!.x + 10, cellToBox!.y + 10);
-  await page.mouse.up();
-
-  await page.keyboard.press('Control+m'); // triggers cell merging
+  await tablePage.keyboard.press('Control+m'); // triggers cell merging
 
   // take a screenshot of the merged cell
-  await page.screenshot({ path: helpers.screenshotPath() });
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
 
-  const cloneTop = table.locator(helpers.selectors.cloneTopTable);
-
-  await cloneTop
-    .locator(helpers.findCell({ row: 0, column: 1, cellType: 'th' }))
-    .click({
-      position: { x: 1, y: 1 },
-      modifiers: [helpers.modifier],
-    });
-  await cloneTop
-    .locator(helpers.findCell({ row: 0, column: 2, cellType: 'th' }))
-    .click({
-      position: { x: 1, y: 1 },
-      modifiers: [helpers.modifier],
-    });
-  await cloneTop
-    .locator(helpers.findCell({ row: 0, column: 3, cellType: 'th' }))
-    .click({
-      position: { x: 1, y: 1 },
-      modifiers: [helpers.modifier],
-    });
+  await clickWithPositionAndModifiers(await selectClonedCell(0, 1));
+  await clickWithPositionAndModifiers(await selectClonedCell(0, 2));
+  await clickWithPositionAndModifiers(await selectClonedCell(0, 3));
 
   // take a screenshot of the selected merged cell (the selection covers the whole merged cell)
-  await page.screenshot({ path: helpers.screenshotPath() });
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
 
-  await cloneTop
-    .locator(helpers.findCell({ row: 0, column: 2, cellType: 'th' }))
-    .click({
-      position: { x: 1, y: 1 },
-    });
+  await clickWithPosition(await selectClonedCell(0, 2));
 
   // the merged cell should be unselected (the selection does not cover the whole merged cell)
-  await page.screenshot({ path: helpers.screenshotPath() });
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

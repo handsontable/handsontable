@@ -31,7 +31,7 @@ export default {
       if (to.path !== from.path) {
         this.activatedExamples = [];
       }
-    }
+    },
   },
   data() {
     return {
@@ -49,7 +49,9 @@ export default {
         this.activatedExamples.push(exampleId);
       } else {
         instanceRegister.destroyExample(exampleId);
-        this.activatedExamples = this.activatedExamples.filter(activatedExample => activatedExample !== exampleId);
+        this.activatedExamples = this.activatedExamples.filter(
+          activatedExample => activatedExample !== exampleId
+        );
       }
     },
     addClassIfPreviewTabIsSelected(exampleId, className) {
@@ -57,7 +59,7 @@ export default {
     },
     isScriptLoaderActivated(exampleId) {
       return this.activatedExamples.includes(exampleId);
-    }
+    },
   },
   updated() {
     // ToC

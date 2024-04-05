@@ -37,17 +37,16 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * @class DropdownMenu
  *
  * @description
- * This plugin creates the Handsontable Dropdown Menu. It allows to create a new row or column at any place in the grid
- * among [other features](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options).
+ * This plugin creates the Handsontable Dropdown Menu. It allows to create a new column at any place in the grid
+ * among [other features](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-specific-options).
  * Possible values:
  * * `true` (to enable default options),
  * * `false` (to disable completely).
  *
  * or array of any available strings:
- * * `["row_above", "row_below", "col_left", "col_right",
- * "remove_row", "remove_col", "---------", "undo", "redo"]`.
+ * * `["col_left", "col_right", "remove_col", "---------", "undo", "redo"]`.
  *
- * See [the dropdown menu demo](@/guides/columns/column-menu.md) for examples.
+ * See [the dropdown menu demo](@/guides/columns/column-menu/column-menu.md) for examples.
  *
  * @example
  * ::: only-for javascript
@@ -138,6 +137,12 @@ export class DropdownMenu extends BasePlugin {
    * @type {Menu}
    */
   menu = null;
+  /**
+   * Flag which determines if the button that opens the menu was clicked.
+   *
+   * @type {boolean}
+   */
+  #isButtonClicked = false;
 
   constructor(hotInstance) {
     super(hotInstance);
@@ -166,7 +171,11 @@ export class DropdownMenu extends BasePlugin {
     if (this.enabled) {
       return;
     }
+
     this.itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS);
+
+    this.addHook('beforeOnCellMouseDown', (...args) => this.#onBeforeOnCellMouseDown(...args));
+    this.addHook('beforeViewportScrollHorizontally', (...args) => this.#onBeforeViewportScrollHorizontally(...args));
 
     const settings = this.hot.getSettings()[PLUGIN_KEY];
     const predefinedItems = {
@@ -351,12 +360,9 @@ export class DropdownMenu extends BasePlugin {
    * When no cells are selected, `executeCommand()` doesn't do anything.
    *
    * You can execute all predefined commands:
-   *  * `'row_above'` - Insert row above
-   *  * `'row_below'` - Insert row below
    *  * `'col_left'` - Insert column left
    *  * `'col_right'` - Insert column right
    *  * `'clear_column'` - Clear selected column
-   *  * `'remove_row'` - Remove row
    *  * `'remove_col'` - Remove column
    *  * `'undo'` - Undo last action
    *  * `'redo'` - Redo last action
@@ -419,6 +425,8 @@ export class DropdownMenu extends BasePlugin {
     if (hasClass(event.target, BUTTON_CLASS_NAME)) {
       const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
       const rect = event.target.getBoundingClientRect();
+
+      this.#isButtonClicked = false;
 
       this.open({
         left: rect.left + offset.left,
@@ -531,6 +539,29 @@ export class DropdownMenu extends BasePlugin {
   #onMenuAfterClose() {
     this.hot.listen();
     this.hot.runHooks('afterDropdownMenuHide', this);
+  }
+
+  /**
+   * Hook allows blocking horizontal scroll when the menu is opened by clicking on
+   * the column header button. This prevents from scrolling the viewport (jump effect) when
+   * the button is clicked.
+   *
+   * @param {number} visualColumn Visual column index.
+   * @returns {number | null}
+   */
+  #onBeforeViewportScrollHorizontally(visualColumn) {
+    return this.#isButtonClicked ? null : visualColumn;
+  }
+
+  /**
+   * Hook sets the internal flag to `true` when the button is clicked.
+   *
+   * @param {MouseEvent} event The mouse event object.
+   */
+  #onBeforeOnCellMouseDown(event) {
+    if (hasClass(event.target, BUTTON_CLASS_NAME)) {
+      this.#isButtonClicked = true;
+    }
   }
 
   /**

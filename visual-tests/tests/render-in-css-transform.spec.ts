@@ -1,14 +1,10 @@
 import { test } from '../src/test-runner';
 import { helpers } from '../src/helpers';
 
-test(__filename, async({ page }) => {
-  const table = page.locator(helpers.selectors.mainTable);
+test(__filename, async({ tablePage }) => {
+  await tablePage.evaluate('document.body.style = "transform: scale(0.75);"');
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
 
-  await table.waitFor();
-
-  await page.evaluate('document.body.style = "transform: scale(0.75);"');
-  await page.screenshot({ path: helpers.screenshotPath() });
-
-  await page.evaluate('document.body.style = "transform: scale(0.5);"');
-  await page.screenshot({ path: helpers.screenshotPath() });
+  await tablePage.evaluate('document.body.style = "transform: scale(0.5);"');
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

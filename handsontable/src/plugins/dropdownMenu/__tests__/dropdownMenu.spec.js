@@ -942,4 +942,27 @@ describe('DropdownMenu', () => {
     expect(cellMeta.className.includes('htBottom')).toBeTruthy();
     expect(cellMeta.className.includes('htRight')).toBeTruthy();
   });
+
+  it('should not scroll the viewport after clicking the button in the header of the partially visible column', async() => {
+    handsontable({
+      data: createSpreadsheetData(10, 20),
+      width: 300,
+      height: 300,
+      colWidths: 100,
+      colHeaders: true,
+      rowHeaders: true,
+      dropdownMenu: true
+    });
+
+    scrollViewportTo({ row: 0, col: 8 }); // make the column `G` partially visible
+
+    await sleep(10);
+
+    // 900 column width - 250 viewport width + 1 header border compensation
+    expect(inlineStartOverlay().getScrollPosition()).toBe(651);
+
+    dropdownMenu(6); // click on the column `G` header button
+
+    expect(inlineStartOverlay().getScrollPosition()).toBe(651);
+  });
 });

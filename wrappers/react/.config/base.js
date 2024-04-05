@@ -45,5 +45,7 @@ export const baseConfig = {
     'react',
     'react-dom',
     'handsontable/base',
+    'handsontable/renderers/registry',
+    'handsontable/editors/registry',
   ],
 };

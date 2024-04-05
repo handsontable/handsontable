@@ -11,6 +11,7 @@ import {
   isOutsideInput,
   isVisible,
   setAttribute,
+  getParentWindow,
 } from './helpers/dom/element';
 import EventManager from './eventManager';
 import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
@@ -283,14 +284,13 @@ class TableView {
    * @private
    */
   registerEvents() {
-    const { rootElement, rootDocument, selection } = this.hot;
+    const { rootElement, rootDocument, selection, rootWindow } = this.hot;
     const documentElement = rootDocument.documentElement;
 
     this.eventManager.addEventListener(rootElement, 'mousedown', (event) => {
       this.#selectionMouseDown = true;
 
       if (!this.isTextSelectionAllowed(event.target)) {
-        const { rootWindow } = this.hot;
 
         clearTextSelection(rootWindow);
         event.preventDefault();
@@ -305,7 +305,7 @@ class TableView {
       if (this.#selectionMouseDown && !this.isTextSelectionAllowed(event.target)) {
         // Clear selection only when fragmentSelection is enabled, otherwise clearing selection breaks the IME editor.
         if (this.settings.fragmentSelection) {
-          clearTextSelection(this.hot.rootWindow);
+          clearTextSelection(rootWindow);
         }
         event.preventDefault();
       }
@@ -327,7 +327,7 @@ class TableView {
 
       const isOutsideInputElement = isOutsideInput(rootDocument.activeElement);
 
-      if (!isOutsideInputElement) {
+      if (isInput(rootDocument.activeElement) && !isOutsideInputElement) {
         return;
       }
 
@@ -402,6 +402,16 @@ class TableView {
         this.hot.destroyEditor(false, false);
       }
     });
+
+    let parentWindow = getParentWindow(rootWindow);
+
+    while (parentWindow !== null) {
+      this.eventManager.addEventListener(parentWindow.document.documentElement, 'click', () => {
+        this.hot.unlisten();
+      });
+
+      parentWindow = getParentWindow(parentWindow);
+    }
 
     this.eventManager.addEventListener(this.#table, 'selectstart', (event) => {
       if (this.settings.fragmentSelection || isInput(event.target)) {
@@ -681,6 +691,7 @@ class TableView {
       },
       minSpareRows: () => this.settings.minSpareRows,
       renderAllRows: this.settings.renderAllRows,
+      renderAllColumns: this.settings.renderAllColumns,
       rowHeaders: () => {
         const headerRenderers = [];
 
@@ -1449,6 +1460,46 @@ class TableView {
   }
 
   /**
+   * Returns the first partially visible row in the table viewport.
+   *
+   * @returns {number}
+   */
+  getFirstPartiallyVisibleRow() {
+    return this.hot.rowIndexMapper
+      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getFirstPartiallyVisibleRow());
+  }
+
+  /**
+   * Returns the last partially visible row in the table viewport.
+   *
+   * @returns {number}
+   */
+  getLastPartiallyVisibleRow() {
+    return this.hot.rowIndexMapper
+      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getLastPartiallyVisibleRow());
+  }
+
+  /**
+   * Returns the first partially visible column in the table viewport.
+   *
+   * @returns {number}
+   */
+  getFirstPartiallyVisibleColumn() {
+    return this.hot.columnIndexMapper
+      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getFirstPartiallyVisibleColumn());
+  }
+
+  /**
+   * Returns the last partially visible column in the table viewport.
+   *
+   * @returns {number}
+   */
+  getLastPartiallyVisibleColumn() {
+    return this.hot.columnIndexMapper
+      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getLastPartiallyVisibleColumn());
+  }
+
+  /**
    * Returns the total count of the rendered column headers.
    *
    * @returns {number}
@@ -1464,6 +1515,46 @@ class TableView {
    */
   getRowHeadersCount() {
     return this.#rowHeadersCount;
+  }
+
+  /**
+   * Returns the table's viewport width. When the table has defined the size of the container,
+   * and the columns do not fill the entire viewport, the viewport width is equal to the sum of
+   * the columns' widths.
+   *
+   * @returns {number}
+   */
+  getViewportWidth() {
+    return this.hot.view._wt.wtViewport.getViewportWidth();
+  }
+
+  /**
+   * Returns the table's total width including the scrollbar width.
+   *
+   * @returns {number}
+   */
+  getWorkspaceWidth() {
+    return this.hot.view._wt.wtViewport.getWorkspaceWidth();
+  }
+
+  /**
+   * Returns the table's viewport height. When the table has defined the size of the container,
+   * and the rows do not fill the entire viewport, the viewport height is equal to the sum of
+   * the rows' heights.
+   *
+   * @returns {number}
+   */
+  getViewportHeight() {
+    return this.hot.view._wt.wtViewport.getViewportHeight();
+  }
+
+  /**
+   * Returns the table's total height including the scrollbar height.
+   *
+   * @returns {number}
+   */
+  getWorkspaceHeight() {
+    return this.hot.view._wt.wtViewport.getWorkspaceHeight();
   }
 
   /**

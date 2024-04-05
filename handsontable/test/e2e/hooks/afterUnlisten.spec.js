@@ -69,5 +69,23 @@ describe('Hook', () => {
       expect(afterUnlisten1).toHaveBeenCalledTimes(0);
       expect(afterUnlisten2).toHaveBeenCalledTimes(1);
     });
+
+    it('should be fired once after the element that is not belong to the root element is clicked', () => {
+      const afterUnlisten = jasmine.createSpy('afterUnlisten');
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        afterUnlisten,
+      }, true);
+      listen();
+      simulateClick(document.body);
+
+      expect(afterUnlisten).toHaveBeenCalled();
+
+      listen();
+      simulateClick(document.querySelector('.hot-display-license-info'));
+
+      expect(afterUnlisten).toHaveBeenCalled();
+    });
   });
 });

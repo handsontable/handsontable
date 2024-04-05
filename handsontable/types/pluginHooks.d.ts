@@ -1,3 +1,4 @@
+import { ExportedChange } from 'hyperformula';
 import CellCoords from './3rdparty/walkontable/src/cell/coords';
 import CellRange from './3rdparty/walkontable/src/cell/range';
 import { ViewportColumnsCalculator } from './3rdparty/walkontable/src/calculator/viewportColumns';
@@ -12,15 +13,12 @@ import {
   DropdownMenu,
 } from './plugins/dropdownMenu';
 import {
-  ColumnSorting,
   Config as ColumnSortingConfig,
 } from './plugins/columnSorting';
 import {
-  Filters,
   ColumnConditions as FiltersColumnConditions,
 } from './plugins/filters';
 import {
-  UndoRedo,
   Action as UndoRedoAction,
 } from './plugins/undoRedo';
 import {
@@ -86,10 +84,10 @@ export interface Events {
   afterDropdownMenuHide?: (instance: DropdownMenu) => void;
   afterDropdownMenuShow?: (instance: DropdownMenu) => void;
   afterFilter?: (conditionsStack: FiltersColumnConditions[]) => void;
-  afterFormulasValuesUpdate?: (changes: object[]) => void;
+  afterFormulasValuesUpdate?: (changes: ExportedChange[]) => void;
   afterGetCellMeta?: (row: number, column: number, cellProperties: CellProperties) => void;
   afterGetColHeader?: (column: number, TH: HTMLTableHeaderCellElement, headerLevel: number) => void;
-  afterGetColumnHeaderRenderers?: (renderers: Array<(col: number, TH: HTMLTableHeaderCellElement) => void>) => void;
+  afterGetColumnHeaderRenderers?: (renderers: Array<(column: number, TH: HTMLTableHeaderCellElement) => void>) => void;
   afterGetRowHeader?: (row: number, TH: HTMLTableHeaderCellElement) => void;
   afterGetRowHeaderRenderers?: (renderers: Array<(row: number, TH: HTMLTableHeaderCellElement) => void>) => void;
   afterHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
@@ -100,10 +98,11 @@ export interface Events {
   afterLoadData?: (sourceData: CellValue[], initialLoad: boolean, source: string | undefined) => void;
   afterMergeCells?: (cellRange: CellRange, mergeParent: MergeCellsSettings, auto: boolean) => void;
   afterModifyTransformEnd?: (coords: CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
+  afterModifyTransformFocus?: (coords: CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
   afterModifyTransformStart?: (coords: CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
   afterMomentumScroll?: () => void;
-  afterNamedExpressionAdded?: (namedExpressionName: string, changes: object[]) => void;
-  afterNamedExpressionRemoved?: (namedExpressionName: string, changes: object[]) => void;
+  afterNamedExpressionAdded?: (namedExpressionName: string, changes: ExportedChange[]) => void;
+  afterNamedExpressionRemoved?: (namedExpressionName: string, changes: ExportedChange[]) => void;
   afterOnCellContextMenu?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellCornerDblClick?: (event: MouseEvent) => void;
   afterOnCellCornerMouseDown?: (event: MouseEvent) => void;
@@ -115,7 +114,7 @@ export interface Events {
   afterPluginsInitialized?: () => void;
   afterRedo?: (action: UndoRedoAction) => void;
   afterRedoStackChange?: (undoneActionsBefore: UndoRedoAction[], undoneActionsAfter: UndoRedoAction[]) => void;
-  afterRefreshDimensions?: (previousDimensions: object, currentDimensions: object, stateChanged: boolean) => void;
+  afterRefreshDimensions?: (previousDimensions: { width: number, height: number }, currentDimensions: { width: number, height: number }, stateChanged: boolean) => void;
   afterRemoveCellMeta?: (row: number, column: number, key: string, value: any) => void;
   afterRemoveCol?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
   afterRemoveRow?: (index: number, amount: number, physicalRows: number[], source?: ChangeSource) => void;
@@ -132,13 +131,14 @@ export interface Events {
   afterSelectionByProp?: (row: number, prop: string, row2: number, prop2: string, preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
   afterSelectionEnd?: (row: number, column: number, row2: number, column2: number, selectionLayerLevel: number) => void;
   afterSelectionEndByProp?: (row: number, prop: string, row2: number, prop2: string, selectionLayerLevel: number) => void;
+  afterSelectionFocusSet?: (row: number, column: number, preventScrolling: { value: boolean }) => void;
   afterSelectRows?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
   afterSetCellMeta?: (row: number, column: number, key: string, value: any) => void;
   afterSetDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
   afterSetDataAtRowProp?: (changes: CellChange[], source?: ChangeSource) => void;
   afterSetSourceDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
   afterSheetAdded?: (addedSheetDisplayName: string) => void;
-  afterSheetRemoved?: (removedSheetDisplayName: string, changes: object[]) => void;
+  afterSheetRemoved?: (removedSheetDisplayName: string, changes: ExportedChange[]) => void;
   afterSheetRenamed?: (oldDisplayName: string, newDisplayName: string) => void;
   afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
   afterUndo?: (action: UndoRedoAction) => void;
@@ -156,6 +156,7 @@ export interface Events {
   afterViewRender?: (isForced: boolean) => void;
   beforeAddChild?: (parent: RowObject, element?: RowObject, index?: number) => void;
   beforeAutofill?: (selectionData: CellValue[][], sourceRange: CellRange, targetRange: CellRange, direction: 'up' | 'down' | 'left' | 'right') => CellValue[][] | boolean | void;
+  beforeBeginEditing?: (row: number, column: number, initialValue: any, event: MouseEvent | KeyboardEvent, fullEditMode: boolean) => boolean | void;
   beforeCellAlignment?: (stateBefore: { [row: number]: string[] }, range: CellRange[], type: 'horizontal' | 'vertical',
     alignmentClass: 'htLeft' | 'htCenter' | 'htRight' | 'htJustify' | 'htTop' | 'htMiddle' | 'htBottom') => void;
   beforeChange?: (changes: Array<CellChange | null>, source: ChangeSource) => void | boolean;
@@ -179,7 +180,7 @@ export interface Events {
   beforeDropdownMenuSetItems?: (menuItems: ContextMenuMenuItemConfig[]) => void;
   beforeDropdownMenuShow?: (instance: DropdownMenu) => void;
   beforeFilter?: (conditionsStack: FiltersColumnConditions[]) => void | boolean;
-  beforeGetCellMeta?: (row: number, col: number, cellProperties: CellProperties) => void;
+  beforeGetCellMeta?: (row: number, column: number, cellProperties: CellProperties) => void;
   beforeHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
   beforeHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
   beforeHighlightingColumnHeader?: (column: number, headerLevel: number, highlightMeta: HookHighlightColumnHeaderMeta) => number | void;
@@ -198,7 +199,7 @@ export interface Events {
   beforePaste?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
   beforeRedo?: (action: UndoRedoAction) => void;
   beforeRedoStackChange?: (undoneActions: UndoRedoAction[]) => void;
-  beforeRefreshDimensions?: (previousDimensions: object, currentDimensions: object, actionPossible: boolean) => boolean | void;
+  beforeRefreshDimensions?: (previousDimensions: { width: number, height: number }, currentDimensions: { width: number, height: number }, actionPossible: boolean) => boolean | void;
   beforeRemoveCellClassNames?: () => string[] | void;
   beforeRemoveCellMeta?: (row: number, column: number, key: string, value: any) => void;
   beforeRemoveCol?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
@@ -209,9 +210,10 @@ export interface Events {
   beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
   beforeRowWrap?: (isActionInterrupted: { value: boolean }, newCoords: CellCoords, isRowFlipped: boolean) => void;
   beforeSelectColumns?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
+  beforeSelectionFocusSet?: (coords: CellCoords) => void;
   beforeSelectionHighlightSet?: () => void;
   beforeSelectRows?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
-  beforeSetCellMeta?: (row: number, col: number, key: string, value: any) => boolean | void;
+  beforeSetCellMeta?: (row: number, column: number, key: string, value: any) => boolean | void;
   beforeSetRangeEnd?: (coords: CellCoords) => void;
   beforeSetRangeStart?: (coords: CellCoords) => void;
   beforeSetRangeStartOnly?: (coords: CellCoords) => void;
@@ -227,8 +229,8 @@ export interface Events {
   beforeUpdateData?: (sourceData: CellValue[], initialLoad: boolean, source: string | undefined) => void;
   beforeValidate?: (value: CellValue, row: number, prop: string | number, source?: ChangeSource) => void;
   beforeValueRender?: (value: CellValue, cellProperties: CellProperties) => void;
-  beforeViewportScrollVertically?: (visualRow: number) => number;
-  beforeViewportScrollHorizontally?: (visualColumn: number) => number;
+  beforeViewportScrollVertically?: (visualRow: number) => number | boolean;
+  beforeViewportScrollHorizontally?: (visualColumn: number) => number | boolean;
   beforeViewportScroll?: () => void;
   beforeViewRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
   construct?: () => void;
@@ -240,6 +242,7 @@ export interface Events {
   modifyColumnHeaderValue?: (headerValue: string, visualColumnIndex: number, headerLevel: number) => void | string;
   modifyColWidth?: (width: number, column: number) => void;
   modifyCopyableRange?: (copyableRanges: RangeType[]) => void;
+  modifyFiltersMultiSelectValue?: (value: string, meta: CellProperties) => void | CellValue;
   modifyFocusedElement?: (row: number, column: number, focusedElement: HTMLElement) => void | HTMLElement;
   modifyData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
   modifyFocusOnTabNavigation?: (tabActivationDir: 'from_above' | 'from_below', visualCoords: CellCoords) => void;
@@ -250,6 +253,7 @@ export interface Events {
   modifyRowHeight?: (height: number, row: number) => void;
   modifySourceData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
   modifyTransformEnd?: (delta: CellCoords) => void;
+  modifyTransformFocus?: (delta: CellCoords) => void;
   modifyTransformStart?: (delta: CellCoords) => void;
   persistentStateLoad?: (key: string, valuePlaceholder: { value: any }) => void;
   persistentStateReset?: (key: string) => void;

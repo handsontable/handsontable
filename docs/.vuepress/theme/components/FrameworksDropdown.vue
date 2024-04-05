@@ -37,7 +37,7 @@ function setCookie(name, value) {
 
 const frameworkIdToFullName = new Map([
   ['javascript', { name: 'JavaScript' }],
-  ['react', { name: 'React' }]
+  ['react', { name: 'React' }],
 ]);
 
 export default {
@@ -45,36 +45,30 @@ export default {
   components: {
     DropdownLink,
   },
-  watch: {
-    $route(to) {
-      this.detectLegacyFramework(to.fullPath);
-    },
-  },
-  data() {
-    return {
-      legacyFramework: null,
-    };
-  },
   methods: {
     onFrameworkClick(item) {
       setCookie('docs_fw', item.id === 'react' ? 'react' : 'javascript');
-    },
-    detectLegacyFramework(path) {
-      const frameworkMatch = path.match(
-        /javascript-data-grid\/(vue3|vue|angular)?/
-      );
-
-      this.legacyFramework = frameworkMatch ? frameworkMatch[1] : null;
     },
     getAlt(framework) {
       return frameworkIdToFullName.get(framework).alt;
     },
     getLink(framework) {
-      const { homepage = `/${framework}${this.$page.frameworkSuffix}/` } =
-        frameworkIdToFullName.get(framework);
+      const currentPageSlug = !this.$page.frontmatter.react && framework === 'react'
+        ? ''
+        : this.$page.frontmatter.permalink.split('/')[2];
+
+      const {
+        homepage = `/${framework}${
+          this.$page.frameworkSuffix ? `${this.$page.frameworkSuffix}/` : ''
+        }`,
+      } = frameworkIdToFullName.get(framework);
 
       if (this.$page.currentVersion === this.$page.latestVersion) {
-        return `/docs${homepage}`;
+        if (currentPageSlug) {
+          return `/docs${homepage}${currentPageSlug}/`;
+        } else {
+          return `/docs${homepage}`;
+        }
       }
 
       return `/docs/${this.$page.currentVersion}${homepage}`;
@@ -97,22 +91,23 @@ export default {
     },
   },
   computed: {
-    icon() {
-      const frameworkWithoutNumber = (this.legacyFramework ?? this.$page.currentFramework).replace(/\d+$/, '');
+    alt() {
+      return `${this.$page.frameworkName} data grid`;
+    },
+    imageUrl() {
+      const frameworkWithoutNumber = this.$page.currentFramework.replace(
+        /\d+$/,
+        ''
+      );
 
       return 'i-' + frameworkWithoutNumber ;
     },
     item() {
       return {
-        text: this.getFrameworkName(
-          this.legacyFramework ?? this.$page.currentFramework
-        ),
+        text: this.getFrameworkName(this.$page.currentFramework),
         items: this.getFrameworkItems(),
       };
     },
-  },
-  created() {
-    this.detectLegacyFramework(this.$route.fullPath);
   },
 };
 

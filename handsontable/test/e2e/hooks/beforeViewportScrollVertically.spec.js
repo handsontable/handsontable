@@ -98,7 +98,7 @@ describe('Hook', () => {
       scrollViewportTo({ row: 10 });
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-      expect(topOverlay().getScrollPosition()).toBe(685);
+      expect(topOverlay().getScrollPosition()).toBe(686);
     });
 
     it('should be possible to change row to which the viewport is scrolled (case with hidden rows)', () => {
@@ -125,7 +125,69 @@ describe('Hook', () => {
 
       expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(20);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-      expect(topOverlay().getScrollPosition()).toBe(156);
+      expect(topOverlay().getScrollPosition()).toBe(157);
+    });
+
+    it('should be possible to block viewport scrolling after returning `false`', () => {
+      const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically')
+        .and.returnValue(false);
+
+      handsontable({
+        data: createSpreadsheetData(100, 50),
+        width: 300,
+        height: 300,
+        rowHeaders: true,
+        colHeaders: true,
+        beforeViewportScrollVertically,
+      });
+
+      scrollViewportTo({ row: 90 });
+
+      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(topOverlay().getScrollPosition()).toBe(0);
+    });
+
+    it('should not scroll the viewport when the returned value is not an integer', () => {
+      const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically');
+
+      handsontable({
+        data: createSpreadsheetData(100, 50),
+        width: 300,
+        height: 300,
+        rowHeaders: true,
+        colHeaders: true,
+        beforeViewportScrollVertically,
+      });
+
+      beforeViewportScrollVertically.and.returnValue('foo');
+
+      expect(scrollViewportTo({ row: 90 })).toBe(false);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(topOverlay().getScrollPosition()).toBe(0);
+
+      beforeViewportScrollVertically.and.returnValue(1.5);
+
+      expect(scrollViewportTo({ row: 90 })).toBe(false);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(topOverlay().getScrollPosition()).toBe(0);
+
+      beforeViewportScrollVertically.and.returnValue(null);
+
+      expect(scrollViewportTo({ row: 90 })).toBe(false);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(topOverlay().getScrollPosition()).toBe(0);
+
+      beforeViewportScrollVertically.and.returnValue(-1);
+
+      expect(scrollViewportTo({ row: 90 })).toBe(false);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(topOverlay().getScrollPosition()).toBe(0);
+
+      beforeViewportScrollVertically.and.returnValue(100); // out of range
+
+      expect(scrollViewportTo({ row: 90 })).toBe(false);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(topOverlay().getScrollPosition()).toBe(0);
     });
   });
 });

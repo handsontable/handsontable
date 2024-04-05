@@ -1,4 +1,5 @@
 import { objectEach } from './object';
+import { isCSR } from './feature';
 
 const tester = (testerFunc) => {
   const result = {
@@ -47,8 +48,10 @@ export function setPlatformMeta({ platform = navigator.platform } = {}) {
   objectEach(platforms, ({ test }) => void test(platform));
 }
 
-setBrowserMeta();
-setPlatformMeta();
+if (isCSR()) {
+  setBrowserMeta();
+  setPlatformMeta();
+}
 
 /**
  * @returns {boolean}

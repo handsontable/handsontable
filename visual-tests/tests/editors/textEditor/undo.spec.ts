@@ -1,29 +1,23 @@
 import { test } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
+import { selectCell, selectEditor, openEditor } from '../../../src/page-helpers';
 
 /**
  * Checks whether Control+Z undoes the last action.
  */
-test(__filename, async({ page }) => {
-  const table = page.locator(helpers.selectors.mainTable);
+test(__filename, async({ tablePage }) => {
 
-  await table.waitFor();
+  const cell = await selectCell(1, 1);
 
-  const tbody = table.locator(helpers.selectors.mainTableBody);
+  await openEditor(cell);
 
-  const cell = tbody.locator(helpers.findCell({ row: 1, column: 1, cellType: 'td' }));
+  const cellEditor = await selectEditor();
 
-  await cell.click();
-  await cell.press('Enter');
-
-  const cellEditor = table.locator(helpers.findCellEditor());
-
-  await cellEditor.waitFor();
   await cellEditor.type('test');
 
-  await page.screenshot({ path: helpers.screenshotPath() });
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   await cell.press('Control+Z');
 
-  await page.screenshot({ path: helpers.screenshotPath() });
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

@@ -50,7 +50,7 @@ describe('DropdownEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp('enter');
+    keyDownUp('F2');
 
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
@@ -316,6 +316,43 @@ describe('DropdownEditor', () => {
       keyDownUp('enter');
 
       expect(spy.test.calls.count()).toBe(0);
+
+      window.onerror = prevError;
+    });
+
+    // https://github.com/handsontable/dev-handsontable/issues/1724
+    it('should not throw any errors after opening the editor, when the saved value is represented by a option-cell ' +
+    'outside of the editor\'s initially loaded viewport', async() => {
+      const spy = jasmine.createSpyObj('error', ['test']);
+      const prevError = window.onerror;
+
+      window.onerror = function() {
+        spy.test();
+      };
+
+      handsontable({
+        data: [['49']],
+        columns: [
+          {
+            editor: 'dropdown',
+            source: (() => {
+              const arr = [];
+
+              for (let i = 0; i < 50; i++) {
+                arr.push(`${i}`);
+              }
+
+              return arr;
+            })(),
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+      await sleep(100);
+
+      expect(spy.test).not.toHaveBeenCalled();
 
       window.onerror = prevError;
     });

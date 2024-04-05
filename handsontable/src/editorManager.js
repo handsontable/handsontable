@@ -141,9 +141,9 @@ class EditorManager {
       return;
     }
 
-    const { highlight } = this.hot.getSelectedRangeLast();
+    const highlight = this.hot.getSelectedRangeLast()?.highlight;
 
-    if (highlight.isHeader()) {
+    if (!highlight || highlight.isHeader()) {
       return;
     }
 
@@ -201,6 +201,29 @@ class EditorManager {
    */
   openEditor(newInitialValue, event, enableFullEditMode = false) {
     if (!this.isCellEditable()) {
+      this.clearActiveEditor();
+
+      return;
+    }
+
+    const selection = this.hot.getSelectedRangeLast();
+    let allowOpening = this.hot.runHooks(
+      'beforeBeginEditing',
+      selection.highlight.row,
+      selection.highlight.col,
+      newInitialValue,
+      event,
+      enableFullEditMode,
+    );
+
+    // If the above hook does not return boolean apply default behavior which disallows opening
+    // an editor after double mouse click for non-contiguous selection (while pressing Ctrl/Cmd) and
+    // for multiple selected cells (while pressing SHIFT).
+    if (event instanceof MouseEvent && typeof allowOpening !== 'boolean') {
+      allowOpening = this.hot.selection.getLayerLevel() === 0 && selection.isSingle();
+    }
+
+    if (allowOpening === false) {
       this.clearActiveEditor();
 
       return;
@@ -297,20 +320,23 @@ class EditorManager {
   }
 
   /**
-   * Controls selection's behaviour after clicking `Enter`.
+   * Controls selection's behavior after clicking `Enter`.
    *
    * @private
-   * @param {boolean} isShiftPressed If `true`, then the selection will move up after hit enter.
+   * @param {KeyboardEvent} event The keyboard event object.
    */
-  moveSelectionAfterEnter(isShiftPressed) {
-    const enterMoves = typeof this.tableMeta.enterMoves === 'function' ?
-      this.tableMeta.enterMoves(event) : this.tableMeta.enterMoves;
+  moveSelectionAfterEnter(event) {
+    const enterMoves = { ...typeof this.tableMeta.enterMoves === 'function' ?
+      this.tableMeta.enterMoves(event) : this.tableMeta.enterMoves };
 
-    if (isShiftPressed) {
-      // move selection up
-      this.selection.transformStart(-enterMoves.row, -enterMoves.col);
+    if (event.shiftKey) {
+      enterMoves.row = -enterMoves.row;
+      enterMoves.col = -enterMoves.col;
+    }
+
+    if (this.hot.selection.isMultiple()) {
+      this.selection.transformFocus(enterMoves.row, enterMoves.col);
     } else {
-      // move selection down (add a new row if needed)
       this.selection.transformStart(enterMoves.row, enterMoves.col, true);
     }
   }
@@ -374,11 +400,9 @@ class EditorManager {
    *
    * @param {MouseEvent} event The mouse event object.
    * @param {object} coords The cell coordinates.
-   * @param {HTMLTableCellElement|HTMLTableHeaderCellElement} elem The element which triggers the action.
    */
-  #onCellDblClick(event, coords, elem) {
-    // may be TD or TH
-    if (elem.nodeName === 'TD') {
+  #onCellDblClick(event, coords) {
+    if (coords.isCell()) {
       this.openEditor(null, event, true);
     }
   }

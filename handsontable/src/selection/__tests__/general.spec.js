@@ -418,9 +418,9 @@ describe('Selection', () => {
 
     selectCell(0, 0);
 
-    hot.addHook('modifyTransformEnd', (coords) => {
-      coords.col += 2;
-      coords.row += 1;
+    hot.addHook('modifyTransformEnd', (delta) => {
+      delta.col += 2;
+      delta.row += 1;
     });
     keyDownUp(['shift', 'arrowdown']);
 
@@ -1519,6 +1519,136 @@ describe('Selection', () => {
         | - ║   :   :   : 0 : 0 : 0 :   :   :   :   :   :   :   |
         | - ║   :   :   : 0 : 0 : 0 :   :   :   :   :   :   :   |
         | - ║   :   :   : 0 : 0 : 0 :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should transform removed last column header selection to the last visible column', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 3,
+        startCols: 5,
+      });
+
+      selectColumns(4, 4);
+      alter('remove_col', 4);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: -1,3 to: 2,3']);
+      expect(`
+        |   ║   :   :   : * |
+        |===:===:===:===:===|
+        | - ║   :   :   : A |
+        | - ║   :   :   : 0 |
+        | - ║   :   :   : 0 |
+      `).toBeMatchToSelectionPattern();
+
+      loadData([[1, 2, 3], [1, 2, 3], [1, 2, 3]]);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 2,2']);
+      expect(`
+        |   ║   :   : * |
+        |===:===:===:===|
+        | - ║   :   : A |
+        | - ║   :   : 0 |
+        | - ║   :   : 0 |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should transform removed last column selection to the last visible column', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 3,
+        startCols: 5,
+      });
+
+      selectCells([[1, 4, 0, 4]]);
+      alter('remove_col', 4);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,3 from: 1,3 to: 0,3']);
+      expect(`
+        |   ║   :   :   : - |
+        |===:===:===:===:===|
+        | - ║   :   :   : 0 |
+        | - ║   :   :   : A |
+        |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+      loadData([[1, 2, 3], [1, 2, 3], [1, 2, 3]]);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 0,2']);
+      expect(`
+        |   ║   :   : - |
+        |===:===:===:===|
+        | - ║   :   : 0 |
+        | - ║   :   : A |
+        |   ║   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should transform removed last row header selection to the last visible row', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 3,
+      });
+
+      selectRows(4, 4);
+      alter('remove_row', 4);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 3,-1 to: 3,2']);
+      expect(`
+        |   ║ - : - : - |
+        |===:===:===:===|
+        |   ║   :   :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        | * ║ A : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+
+      loadData([[1, 2, 3], [1, 2, 3], [1, 2, 3]]);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-1 to: 2,2']);
+      expect(`
+        |   ║ - : - : - |
+        |===:===:===:===|
+        |   ║   :   :   |
+        |   ║   :   :   |
+        | * ║ A : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should transform removed last row selection to the last visible row', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 3,
+      });
+
+      selectCells([[4, 1, 4, 0]]);
+      alter('remove_row', 4);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,1 from: 3,1 to: 3,0']);
+      expect(`
+        |   ║ - : - :   |
+        |===:===:===:===|
+        |   ║   :   :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        | - ║ 0 : A :   |
+      `).toBeMatchToSelectionPattern();
+
+      loadData([[1, 2, 3], [1, 2, 3], [1, 2, 3]]);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,1 from: 2,1 to: 2,0']);
+      expect(`
+        |   ║ - : - :   |
+        |===:===:===:===|
+        |   ║   :   :   |
+        |   ║   :   :   |
+        | - ║ 0 : A :   |
       `).toBeMatchToSelectionPattern();
     });
   });

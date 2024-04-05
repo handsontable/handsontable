@@ -25,6 +25,7 @@ export default {
               subTexts: this.$page.versionsWithPatches.get(v),
               link: this.getLink(v),
               target: '_self',
+              rel: this.$page.latestVersion === v ? undefined : 'nofollow',
               isHtmlLink: true,
             })) : []),
           ]

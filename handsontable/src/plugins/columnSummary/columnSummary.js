@@ -7,31 +7,33 @@ import { isNullishOrNaN } from './utils';
 export const PLUGIN_KEY = 'columnSummary';
 export const PLUGIN_PRIORITY = 220;
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin ColumnSummary
  * @class ColumnSummary
  *
  * @description
- * The `ColumnSummary` plugin lets you [easily summarize your columns](@/guides/columns/column-summary.md).
+ * The `ColumnSummary` plugin lets you [easily summarize your columns](@/guides/columns/column-summary/column-summary.md).
  *
- * You can use the [built-in summary functions](@/guides/columns/column-summary.md#built-in-summary-functions),
- * or implement a [custom summary function](@/guides/columns/column-summary.md#implement-a-custom-summary-function).
+ * You can use the [built-in summary functions](@/guides/columns/column-summary/column-summary.md#built-in-summary-functions),
+ * or implement a [custom summary function](@/guides/columns/column-summary/column-summary.md#implement-a-custom-summary-function).
  *
  * For each column summary, you can set the following configuration options:
  *
  * | Option | Required | Type | Default | Description |
  * |---|---|---|---|---|
- * | `sourceColumn` | No | Number | Same as `destinationColumn` | [Selects a column to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
- * | `ranges` | No | Array | - | [Selects ranges of rows to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
- * | `type` | Yes | String | - | [Sets a summary function](@/guides/columns/column-summary.md#step-3-calculate-your-summary) |
- * | `destinationRow` | Yes | Number | - | [Sets the destination cell's row coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
- * | `destinationColumn` | Yes | Number | - | [Sets the destination cell's column coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
- * | `forceNumeric` | No | Boolean | `false` | [Forces the summary to treat non-numerics as numerics](@/guides/columns/column-summary.md#force-numeric-values) |
- * | `reversedRowCoords` | No | Boolean | `false` | [Reverses row coordinates](@/guides/columns/column-summary.md#step-5-make-room-for-the-destination-cell) |
- * | `suppressDataTypeErrors` | No | Boolean | `true` | [Suppresses data type errors](@/guides/columns/column-summary.md#throw-data-type-errors) |
+ * | `sourceColumn` | No | Number | Same as `destinationColumn` | [Selects a column to summarize](@/guides/columns/column-summary/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
+ * | `ranges` | No | Array | - | [Selects ranges of rows to summarize](@/guides/columns/column-summary/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
+ * | `type` | Yes | String | - | [Sets a summary function](@/guides/columns/column-summary/column-summary.md#step-3-calculate-your-summary) |
+ * | `destinationRow` | Yes | Number | - | [Sets the destination cell's row coordinate](@/guides/columns/column-summary/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
+ * | `destinationColumn` | Yes | Number | - | [Sets the destination cell's column coordinate](@/guides/columns/column-summary/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
+ * | `forceNumeric` | No | Boolean | `false` | [Forces the summary to treat non-numerics as numerics](@/guides/columns/column-summary/column-summary.md#force-numeric-values) |
+ * | `reversedRowCoords` | No | Boolean | `false` | [Reverses row coordinates](@/guides/columns/column-summary/column-summary.md#step-5-make-room-for-the-destination-cell) |
+ * | `suppressDataTypeErrors` | No | Boolean | `true` | [Suppresses data type errors](@/guides/columns/column-summary/column-summary.md#throw-data-type-errors) |
  * | `readOnly` | No | Boolean | `true` | Makes summary cell read-only |
- * | `roundFloat` | No | Number | - | [Rounds summary result](@/guides/columns/column-summary.md#round-a-column-summary-result) |
- * | `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary.md#implement-a-custom-summary-function) |
+ * | `roundFloat` | No | Number/<br>Boolean | - | [Rounds summary result](@/guides/columns/column-summary/column-summary.md#round-a-column-summary-result) |
+ * | `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary/column-summary.md#implement-a-custom-summary-function) |
  *
  * @example
  * ::: only-for javascript
@@ -159,6 +161,23 @@ export class ColumnSummary extends BasePlugin {
     this.endpoints = null;
     this.settings = null;
     this.currentEndpoint = null;
+
+    super.disablePlugin();
+  }
+
+  /**
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`columnSummary`](@/api/options.md#columnsummary)
+   */
+  updatePlugin() {
+    this.disablePlugin();
+    this.enablePlugin();
+
+    this.endpoints.initEndpoints();
+
+    super.updatePlugin();
   }
 
   /**
@@ -426,8 +445,7 @@ export class ColumnSummary extends BasePlugin {
    * `afterInit` hook callback.
    */
   #onAfterInit() {
-    this.endpoints.endpoints = this.endpoints.parseSettings();
-    this.endpoints.refreshAllEndpoints(true);
+    this.endpoints.initEndpoints();
   }
 
   /**
@@ -447,7 +465,7 @@ export class ColumnSummary extends BasePlugin {
    *
    * @param {Array} rows Array of visual row indexes to be moved.
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md).
+   * To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving/row-moving.md).
    */
   #onAfterRowMove(rows, finalIndex) {
     this.endpoints.resetSetupBeforeStructureAlteration('move_row', rows[0], rows.length, rows, this.pluginName);

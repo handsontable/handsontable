@@ -25,8 +25,8 @@
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
- * Version: 14.0.0
- * Release date: 30/11/2023 (built at 30/11/2023 10:10:47)
+ * Version: 14.2.0
+ * Release date: 06/03/2024 (built at 06/03/2024 09:48:23)
  */
 /**
  * Fix for bootstrap styles
@@ -357,9 +357,9 @@ innerBorderBottom - Property controlled by bottom overlay
   overflow: auto;
 }
 
-.handsontable .ht_master thead,
-.handsontable .ht_master tr th,
-.handsontable .ht_clone_inline_start thead {
+.handsontable .ht_master table.htCore > thead,
+.handsontable .ht_master table.htCore > tbody > tr > th,
+.handsontable .ht_clone_inline_start table.htCore > thead {
   visibility: hidden;
 }
 

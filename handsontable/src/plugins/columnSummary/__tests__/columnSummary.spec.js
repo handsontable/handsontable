@@ -832,6 +832,7 @@ describe('ColumnSummarySpec', () => {
       expect(this.$container.find('.htDimmed').size()).toEqual(3);
     });
   });
+
   describe('maxRows options set', () => {
     it('should apply summary operation only on rows which are < maxRows', () => {
       const rows = 9;
@@ -866,6 +867,109 @@ describe('ColumnSummarySpec', () => {
       expect(getDataAtCell(0, 2)).toEqual(5);
       expect(getDataAtCell(0, 3)).toEqual(5);
       expect(getDataAtCell(0, 4)).toEqual(3);
+    });
+  });
+
+  describe('`roundFloat` option', () => {
+    it('should not round the resultif `roundFloat` is set to `false`', () => {
+      handsontable({
+        data: createNumericData(15, 15),
+        height: 200,
+        width: 200,
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            reversedRowCoords: true,
+            destinationRow: 0,
+            ranges: [
+              [0, 3], [5, 6], [8], [10, 13]
+            ],
+            roundFloat: false,
+            type: 'average'
+          }
+        ]
+      });
+
+      expect(getDataAtCell(14, 0)).toEqual(7.454545454545454);
+    });
+
+    it('should round the result to the provided number of decimal places', () => {
+      handsontable({
+        data: createNumericData(15, 15),
+        height: 200,
+        width: 200,
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            reversedRowCoords: true,
+            destinationRow: 0,
+            ranges: [
+              [0, 3], [5, 6], [8], [10, 13]
+            ],
+            roundFloat: 2,
+            type: 'average'
+          }
+        ]
+      });
+
+      expect(getDataAtCell(14, 0)).toEqual('7.45');
+
+      updateSettings({
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            reversedRowCoords: true,
+            destinationRow: 0,
+            ranges: [
+              [0, 3], [5, 6], [8], [10, 13]
+            ],
+            roundFloat: 0,
+            type: 'average'
+          }
+        ]
+      });
+
+      expect(getDataAtCell(14, 0)).toEqual('7');
+    });
+
+    it('should round the `roundFloat` value to range <0, 100> if its value is an integer outside of that range', () => {
+      handsontable({
+        data: createNumericData(15, 15),
+        height: 200,
+        width: 200,
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            reversedRowCoords: true,
+            destinationRow: 0,
+            ranges: [
+              [0, 3], [5, 6], [8], [10, 13]
+            ],
+            roundFloat: -50,
+            type: 'average'
+          }
+        ]
+      });
+
+      expect(getDataAtCell(14, 0)).toEqual('7');
+
+      updateSettings({
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            reversedRowCoords: true,
+            destinationRow: 0,
+            ranges: [
+              [0, 3], [5, 6], [8], [10, 13]
+            ],
+            roundFloat: 150,
+            type: 'average'
+          }
+        ]
+      });
+
+      expect(getDataAtCell(14, 0)).toEqual('7.45454545454545414173708195448853075504302978515625' +
+      '00000000000000000000000000000000000000000000000000');
     });
   });
 

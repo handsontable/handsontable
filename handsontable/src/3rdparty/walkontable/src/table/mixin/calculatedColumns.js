@@ -44,6 +44,22 @@ const calculatedColumns = {
   },
 
   /**
+   * Get the source index of the first column partially visible in the viewport. If no columns are partially visible, returns an error code: -1.
+   *
+   * @returns {number}
+   * @this Table
+   */
+  getFirstPartiallyVisibleColumn() {
+    const startColumn = this.dataAccessObject.startColumnPartiallyVisible;
+
+    if (startColumn === null) {
+      return -1;
+    }
+
+    return startColumn;
+  },
+
+  /**
    * Get the source index of the last rendered column. If no columns are rendered, returns an error code: -1.
    *
    * @returns {number}
@@ -67,6 +83,22 @@ const calculatedColumns = {
    */
   getLastVisibleColumn() {
     const endColumn = this.dataAccessObject.endColumnVisible;
+
+    if (endColumn === null) {
+      return -1;
+    }
+
+    return endColumn;
+  },
+
+  /**
+   * Get the source index of the last column partially visible in the viewport. If no columns are partially visible, returns an error code: -1.
+   *
+   * @returns {number}
+   * @this Table
+   */
+  getLastPartiallyVisibleColumn() {
+    const endColumn = this.dataAccessObject.endColumnPartiallyVisible;
 
     if (endColumn === null) {
       return -1;

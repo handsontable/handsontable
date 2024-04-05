@@ -38,7 +38,7 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * @description
  * The plugin allows filtering the table data either by the built-in component or with the API.
  *
- * See [the filtering demo](@/guides/columns/column-filter.md) for examples.
+ * See [the filtering demo](@/guides/columns/column-filter/column-filter.md) for examples.
  *
  * @example
  * ::: only-for javascript
@@ -591,8 +591,8 @@ export class Filters extends BasePlugin {
     const data = [];
 
     arrayEach(this.hot.getSourceDataAtCol(visualColumn), (value, rowIndex) => {
-      const { row, col, visualCol, visualRow, type, instance, dateFormat, locale } = this.hot
-        .getCellMeta(rowIndex, visualColumn);
+      const { row, col, visualCol, visualRow, type, instance, dateFormat, locale } =
+        this.hot.getCellMeta(rowIndex, visualColumn);
       const dataValue = this.hot.getDataAtCell(this.hot.toVisualRow(rowIndex), visualColumn) ?? value;
 
       data.push({

@@ -1,5 +1,7 @@
+import Handsontable, {
+  CellCoords,
+} from 'handsontable/base';
 import { BasePlugin } from 'handsontable/plugins';
-import Handsontable from 'handsontable';
 
 const mockTD = document.createElement('td');
 const elem = document.createElement('div');
@@ -142,6 +144,7 @@ hot.selectAll();
 hot.selectAll(true);
 hot.selectAll(true, false);
 hot.selectAll(false, true, { focusPosition: { row: 1, col: 2 } });
+hot.selectAll(false, true, { focusPosition: new CellCoords(1, 2) });
 hot.selectAll(false, true, { focusPosition: { row: 1, col: 2 }, disableHeadersHighlight: true });
 hot.selectAll(false, true, { disableHeadersHighlight: false });
 hot.selectCell(123, 123, 123, 123, true, true);
@@ -149,9 +152,13 @@ hot.selectCellByProp(123, 'foo', 123, 'foo', true);
 hot.selectCells([[123, 'prop1', 123, 'prop2']], true, true);
 hot.selectCells([[123, 123, 123, 123]], true, true);
 hot.selectColumns(1, 4, -1);
+hot.selectColumns(1, 4, { row: -1, col: 1 });
+hot.selectColumns(1, 4, new CellCoords(-1, 1));
 hot.selectColumns(1, 4);
 hot.selectColumns(1);
 hot.selectRows(1, 4, -1);
+hot.selectRows(1, 4, { row: 1, col: -1 });
+hot.selectRows(1, 4, new CellCoords(1, -1));
 hot.selectRows(1, 4);
 hot.selectRows(1);
 hot.setCellMeta(123, 123, 'foo', 'foo');

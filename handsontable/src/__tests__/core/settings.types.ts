@@ -126,7 +126,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
       reversedRowCoords: true,
       suppressDataTypeErrors: false,
       readOnly: true,
-      roundFloat: false,
+      roundFloat: oneOf(false, true, 5),
       type: 'custom',
       customFunction: (endpoint) => 100
     }
@@ -299,6 +299,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   preventWheel: true,
   readOnly: true,
   readOnlyCellClassName: 'foo',
+  renderAllColumns: true,
   renderAllRows: true,
   renderer: oneOf(
     'autocomplete', 'checkbox', 'html', 'numeric', 'password', 'text', 'time', 'custom.renderer',
@@ -435,8 +436,24 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterLoadData: (sourceData, firstTime, source) => {},
   afterMergeCells: (cellRange, mergeParent, auto) => {},
   modifySourceData: (row, col, valueHolder, ioMode) => {},
-  afterModifyTransformEnd: (coords, rowTransformDir, colTransformDir) => {},
-  afterModifyTransformStart: (coords, rowTransformDir, colTransformDir) => {},
+  afterModifyTransformEnd: (coords, rowTransformDir, colTransformDir) => {
+    const row: number = coords.row;
+    const col: number = coords.col;
+    const rowTransform: number = rowTransformDir;
+    const colTransform: number = colTransformDir;
+  },
+  afterModifyTransformFocus: (coords, rowTransformDir, colTransformDir) => {
+    const row: number = coords.row;
+    const col: number = coords.col;
+    const rowTransform: number = rowTransformDir;
+    const colTransform: number = colTransformDir;
+  },
+  afterModifyTransformStart: (coords, rowTransformDir, colTransformDir) => {
+    const row: number = coords.row;
+    const col: number = coords.col;
+    const rowTransform: number = rowTransformDir;
+    const colTransform: number = colTransformDir;
+  },
   afterMomentumScroll: () => {},
   afterNamedExpressionAdded: (namedExpressionName, changes) => {},
   afterNamedExpressionRemoved: (namedExpressionName, changes) => {},
@@ -469,6 +486,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterSelectionByProp: (r, p, r2, p2, preventScrolling, selectionLayerLevel) => preventScrolling.value = true,
   afterSelectionEnd: (r, c, r2, c2, selectionLayerLevel) => {},
   afterSelectionEndByProp: (r, p, r2, p2, selectionLayerLevel) => {},
+  afterSelectionFocusSet: (row, column, preventScrolling) => {
+    row.toFixed();
+    column.toFixed();
+    preventScrolling.value = true;
+  },
   afterSelectRows: (from, to, highlight) => {},
   afterSetCellMeta: (row, col, key, value) => {},
   afterSetDataAtCell: (changes, source) => {},
@@ -493,6 +515,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterViewRender: (isForced) => {},
   beforeAddChild: (parent, element, index) => {},
   beforeAutofill: (start, end, data) => {},
+  beforeBeginEditing: (row: number, column: number, initialValue, event, fullEditMode: boolean) => {
+    event.preventDefault();
+
+    return true;
+  },
   beforeCellAlignment: (stateBefore, range, type, alignmentClass) => {},
   beforeChange: (changes, source) => { if (changes?.[0] !== null) { changes[0][3] = 10; } return false; },
   beforeChangeRender: (changes, source) => {},
@@ -573,6 +600,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
     newCoords.clone();
   },
   beforeSelectColumns: (from, to, highlight) => {},
+  beforeSelectionFocusSet: (coords) => {
+    const row: number = coords.row;
+    const col: number = coords.col;
+  },
   beforeSelectionHighlightSet: () => {},
   beforeSelectRows: (from, to, highlight) => {},
   beforeSetCellMeta: (row, col, key, value) => {},
@@ -591,8 +622,12 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeUpdateData: (sourceData, firstTime, source) => {},
   beforeValidate: (value, row, prop, source) => {},
   beforeValueRender: (value) => {},
-  beforeViewportScrollVertically: (visualRow) => visualRow + 1,
-  beforeViewportScrollHorizontally: (visualColumn) => visualColumn + 1,
+  beforeViewportScrollVertically: (visualRow) => {
+    return visualRow === 0 ? visualRow + 1 : false;
+  },
+  beforeViewportScrollHorizontally: (visualColumn) => {
+    return visualColumn === 0 ? visualColumn + 1 : false;
+  },
   beforeViewportScroll: () => {},
   beforeViewRender: (isForced, skipRender) => {},
   construct: () => {},
@@ -604,6 +639,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   modifyColumnHeaderValue: (headerValue, visualColumnIndex, headerLevel) => {},
   modifyColWidth: (width) => {},
   modifyCopyableRange: (copyableRanges) => {},
+  modifyFiltersMultiSelectValue: (value, meta) => '123',
   modifyFocusedElement: (row, column, focusedElement) => document.createElement('TD'),
   modifyData: () => {},
   modifyFocusOnTabNavigation: (tabActivationDir, visualCoords) => {},
@@ -612,8 +648,18 @@ const allSettings: Required<Handsontable.GridSettings> = {
   modifyRowHeader: (row) => {},
   modifyRowHeaderWidth: (rowHeaderWidth) => {},
   modifyRowHeight: (height, row) => {},
-  modifyTransformEnd: (delta) => {},
-  modifyTransformStart: (delta) => {},
+  modifyTransformEnd: (delta) => {
+    const rowDelta: number = delta.row;
+    const colDelta: number = delta.row;
+  },
+  modifyTransformFocus: (delta) => {
+    const rowDelta: number = delta.row;
+    const colDelta: number = delta.row;
+  },
+  modifyTransformStart: (delta) => {
+    const rowDelta: number = delta.row;
+    const colDelta: number = delta.row;
+  },
   persistentStateLoad: () => {},
   persistentStateReset: () => {},
   persistentStateSave: () => {},

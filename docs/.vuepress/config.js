@@ -8,9 +8,11 @@ const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const nginxVariablesPlugin = require('./plugins/generate-nginx-variables');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
 const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
+const canonicalUrlsPlugin = require('./plugins/canonical-urls');
 const dumpRedirectPageIdsPlugin = require('./plugins/dump-redirect-page-ids');
 const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
 const conditionalContainer = require('./plugins/markdown-it-conditional-container');
+const includeCodeSnippet = require('./plugins/markdown-it-include-code-snippet');
 const {
   createSymlinks,
   getDocsBase,
@@ -78,6 +80,38 @@ module.exports = {
     [
       'meta',
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+    ],
+    // Sentry monitoring
+    [
+      'script',
+      {},
+      `
+      window.sentryOnLoad = function () {
+        Sentry.init({
+          tracesSampleRate: 0,
+          profilesSampleRate: 0,
+          replaysSessionSampleRate: 0,
+          replaysOnErrorSampleRate: 0.2,
+          integrations: [
+            // If you use a bundle with performance monitoring enabled, add the BrowserTracing integration
+            new Sentry.BrowserTracing(),
+            // If you use a bundle with session replay enabled, add the SessionReplay integration
+            new Sentry.Replay({
+              maskAllText: false,
+              blockAllMedia: false,
+            }),
+          ],
+        });
+      };
+    `,
+    ],
+    [
+      'script',
+      {
+        id: 'Sentry.io',
+        src: 'https://js.sentry-cdn.com/611b4dbe630c4a434fe1367b98ba3644.min.js',
+        crossorigin: 'anonymous',
+      },
     ],
     // Cookiebot - cookie consent popup
     [
@@ -147,7 +181,9 @@ module.exports = {
       rel: 'nofollow noopener noreferrer',
     },
     extendMarkdown(md) {
-      md.use(conditionalContainer).use(firstHeaderInjection);
+      md.use(includeCodeSnippet)
+        .use(conditionalContainer)
+        .use(firstHeaderInjection);
     },
   },
   configureWebpack: {
@@ -277,6 +313,9 @@ module.exports = {
       {
         outputDir: path.resolve(__dirname, './public/data/'),
       },
+    ],
+    [
+      canonicalUrlsPlugin, // the plugin must be placed after the `dumpDocsDataPlugin`
     ],
     [
       dumpRedirectPageIdsPlugin,

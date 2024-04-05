@@ -8,12 +8,9 @@ import path from 'path';
 import execa from 'execa';
 import fse from 'fs-extra';
 import chalk from 'chalk';
-import mainPackageJSON from '../package.json' assert { type: 'json' };
 import { isReferenceBranch, getFrameworkList, sleep, killProcess } from './utils/utils.mjs';
 import { WRAPPERS, REFERENCE_FRAMEWORK, EXAMPLES_SERVER_PORT } from '../src/config.mjs';
 
-const playwrightVersion = mainPackageJSON.devDependencies.playwright;
-const pathToMount = path.resolve(process.cwd(), '..');
 const dirs = {
   examples: '../examples/next/visual-tests',
   codeToRun: 'demo',
@@ -44,30 +41,12 @@ for (let i = 0; i < frameworksToTest.length; i++) {
   console.log(chalk.green(`Testing "${frameworkName}" examples...`));
 
   try {
-    if (process.env.CI) {
-      await execa.command('npx playwright test', {
-        env: {
-          HOT_FRAMEWORK: frameworkName
-        },
-        stdout: 'inherit'
-      });
-    } else {
-      // we need access to the `examples` and `virtual-tests` directories,
-      // so we mount the entire Handsontable directory as a virtual `vtests` directory,
-      // and then open the `visual-tests` directory inside of `vtests`
-      const dockerCommand = `docker run \
-        --rm \
-        -it \
-        --name vtests-container \
-        --env HOT_FRAMEWORK=${frameworkName} \
-        -v ${pathToMount}:/vtests/ \
-        -w /vtests/visual-tests \
-        mcr.microsoft.com/playwright:v${playwrightVersion}-focal npx playwright test \
-        --reporter=dot \
-        --timeout=7000`;
-
-      await execa.command(dockerCommand, { stdio: 'inherit' });
-    }
+    await execa.command('npx playwright test', {
+      env: {
+        HOT_FRAMEWORK: frameworkName
+      },
+      stdout: 'inherit'
+    });
   } catch (ex) {
     await killProcess(localhostProcess.pid);
     throw new Error(ex.message);

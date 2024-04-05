@@ -1058,6 +1058,68 @@ describe('Filters UI', () => {
       expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('(Blank cells)');
     });
 
+    it('should utilize the `modifyFiltersMultiSelectValue` hook to display the cell value', () => {
+      const columnsSetting = getColumnsForFilters();
+
+      handsontable({
+        data: getDataForFilters(),
+        columns: columnsSetting,
+        filters: true,
+        dropdownMenu: true,
+        width: 500,
+        height: 300,
+        modifyFiltersMultiSelectValue: (value) => {
+          return `Custom ${value}`;
+        },
+      });
+
+      dropdownMenu(1);
+
+      const unifiedColDataSample = [
+        'Alice Blake', 'Alyssa Francis', 'Becky Ross', 'Bridges Sawyer', 'Burt Cash', 'Carissa Villarreal'
+      ];
+
+      for (let i = 0; i < unifiedColDataSample.length; i++) {
+        expect(
+          byValueMultipleSelect().element.querySelectorAll('.htCore td')[i].textContent
+        ).toBe(`Custom ${unifiedColDataSample[i]}`);
+      }
+      expect(unifiedColDataSample.length).toBe(6);
+    });
+
+    it('should display the formatted renderer output in the multi-selection component if the column being filtered ' +
+      'is numeric-typed', () => {
+      handsontable({
+        data: [
+          [1, 6],
+          [2, 7],
+          [3, 8],
+          [4, 9],
+          [5, 10],
+        ],
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+        columns: [
+          {},
+          {
+            type: 'numeric',
+            numericFormat: {
+              pattern: '$0,0.00',
+            }
+          }
+        ]
+      });
+
+      dropdownMenu(1);
+
+      for (let i = 0; i < countRows(); i++) {
+        expect(
+          byValueMultipleSelect().element.querySelectorAll('.htCore td')[i].textContent
+        ).toBe(`$${getDataAtCell(i, 1)}.00`);
+      }
+    });
+
     it('shouldn\'t break "by value" items in the next filter stacks', (done) => {
       const data = getDataForFilters();
 
@@ -4449,5 +4511,24 @@ describe('Filters UI', () => {
     dropdownMenu(0);
 
     expect(byValueMultipleSelect().getItemsBox().getSettings().layoutDirection).toBe('ltr');
+  });
+
+  it('should not throw an error after filtering the dataset when the UI is limited (#dev-1629)', () => {
+    const onErrorSpy = spyOn(window, 'onerror').and.returnValue(true);
+
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      dropdownMenu: ['filter_by_condition', 'filter_by_value', 'filter_action_bar'],
+      filters: true,
+      width: 500,
+      height: 300
+    });
+
+    dropdownMenu(0);
+    $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'))
+      .simulate('click');
+
+    expect(onErrorSpy).not.toHaveBeenCalled();
   });
 });

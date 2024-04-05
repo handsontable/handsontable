@@ -40,8 +40,8 @@ describe('Core.scrollViewportTo', () => {
       render();
 
       expect(result).toBe(true);
-      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2315);
-      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3215);
+      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2316);
+      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3216);
     });
 
     it('should scroll the viewport in such a way that the coordinates are glued to the bottom-start edge when ' +
@@ -71,7 +71,7 @@ describe('Core.scrollViewportTo', () => {
 
       expect(result).toBe(true);
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2502);
-      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3215);
+      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3216);
     });
 
     it('should scroll the viewport in such a way that the coordinates are glued to the top-start edge when ' +
@@ -130,7 +130,7 @@ describe('Core.scrollViewportTo', () => {
       render();
 
       expect(result).toBe(true);
-      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2315);
+      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2316);
       expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3450);
     });
   });
@@ -153,7 +153,7 @@ describe('Core.scrollViewportTo', () => {
 
     expect(result).toBe(true);
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(0);
-    expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3215);
+    expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3216);
   });
 
   it('should scroll the viewport in such a way that the coordinates are glued to the top edge (manual snapping)', () => {
@@ -194,7 +194,7 @@ describe('Core.scrollViewportTo', () => {
     render();
 
     expect(result).toBe(true);
-    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2315);
+    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2316);
     expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
   });
 
@@ -887,6 +887,53 @@ describe('Core.scrollViewportTo', () => {
 
     expect(scrollResult2).toBe(false);
     expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(-1);
+  });
+
+  it('should scroll the viewport to the desired cell from the top-left position, ' +
+  '(the snapping set to "end") with the bottom/right border being visible', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(30, 30),
+      colWidths: 50,
+      rowHeights: 30,
+      rowHeaders: true,
+      colHeaders: true,
+      width: 200,
+      height: 200,
+    });
+
+    hot.scrollViewportTo({
+      row: 15,
+      col: 15,
+      horizontalSnap: 'end',
+      verticalSnap: 'bottom',
+    });
+    await sleep(100);
+
+    expect(document.elementsFromPoint(
+      hot.rootElement.offsetWidth - Handsontable.dom.getScrollbarWidth() - 50,
+      hot.rootElement.offsetHeight - Handsontable.dom.getScrollbarWidth() - 30
+    )[0]).toEqual(hot.getCell(15, 15));
+
+    hot.scrollViewportTo({
+      row: 0,
+      col: 0,
+      horizontalSnap: 'start',
+      verticalSnap: 'top',
+    });
+    await sleep(100);
+
+    hot.scrollViewportTo({
+      row: 29,
+      col: 29,
+      horizontalSnap: 'end',
+      verticalSnap: 'bottom',
+    });
+    await sleep(100);
+
+    expect(document.elementsFromPoint(
+      hot.rootElement.offsetWidth - Handsontable.dom.getScrollbarWidth() - 50,
+      hot.rootElement.offsetHeight - Handsontable.dom.getScrollbarWidth() - 30
+    )[0]).toEqual(hot.getCell(29, 29));
   });
 
   describe('using backward-compatible arguments', () => {

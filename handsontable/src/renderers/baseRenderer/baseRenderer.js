@@ -18,7 +18,7 @@ export const RENDERER_TYPE = 'base';
  * @param {number} col The visual column index.
  * @param {number|string} prop The column property (passed when datasource is an array of objects).
  * @param {*} value The rendered value.
- * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
+ * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
  */
 export function baseRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
   const ariaEnabled = cellProperties.ariaTags;

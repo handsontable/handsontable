@@ -48,12 +48,12 @@ const META_HEAD = [
  * Control the `CopyPaste` plugin programmatically through its [API methods](#methods).
  *
  * The user can access the copy-paste features through:
- * - The [context menu](@/guides/cell-features/clipboard.md#context-menu).
- * - The [keyboard shortcuts](@/guides/cell-features/clipboard.md#related-keyboard-shortcuts).
+ * - The [context menu](@/guides/cell-features/clipboard/clipboard.md#context-menu).
+ * - The [keyboard shortcuts](@/guides/cell-features/clipboard/clipboard.md#related-keyboard-shortcuts).
  * - The browser's menu bar.
  *
  * Read more:
- * - [Guides: Clipboard](@/guides/cell-features/clipboard.md)
+ * - [Guides: Clipboard](@/guides/cell-features/clipboard/clipboard.md)
  * - [Configuration options: `copyPaste`](@/api/options.md#copypaste)
  *
  * @example
@@ -107,9 +107,9 @@ export class CopyPaste extends BasePlugin {
   rowsLimit = Infinity;
   /**
    * When pasting:
-   * - `'overwrite'`: overwrite the currently-selected cells
-   * - `'shift_down'`: move currently-selected cells down
-   * - `'shift_right'`: move currently-selected cells to the right
+   * - `'overwrite'` - overwrite the currently-selected cells
+   * - `'shift_down'` - move currently-selected cells down
+   * - `'shift_right'` - move currently-selected cells to the right
    *
    * @type {string}
    * @default 'overwrite'
@@ -181,6 +181,12 @@ export class CopyPaste extends BasePlugin {
     countColumnHeaders: () => this.hot.view.getColumnHeadersCount(),
   });
   /**
+   * Flag that indicates if the viewport scroll should be prevented after pasting the data.
+   *
+   * @type {boolean}
+   */
+  #preventViewportScrollOnPaste = false;
+  /**
    * Ranges of the cells coordinates, which should be used to copy/cut/paste actions.
    *
    * @private
@@ -220,6 +226,7 @@ export class CopyPaste extends BasePlugin {
     }
 
     this.addHook('afterContextMenuDefaultOptions', options => this.#onAfterContextMenuDefaultOptions(options));
+    this.addHook('afterSelection', (...args) => this.#onAfterSelection(...args));
     this.addHook('afterSelectionEnd', () => this.#onAfterSelectionEnd());
 
     this.eventManager.addEventListener(this.hot.rootDocument, 'copy', (...args) => this.onCopy(...args));
@@ -561,6 +568,7 @@ export class CopyPaste extends BasePlugin {
       newRows.push(newRow);
     }
 
+    this.#preventViewportScrollOnPaste = true;
     this.hot.populateFromArray(startRow, startColumn, newRows, undefined, undefined, 'CopyPaste.paste', this.pasteMode);
 
     return [startRow, startColumn, lastVisualRow, lastVisualColumn];
@@ -766,6 +774,23 @@ export class CopyPaste extends BasePlugin {
     }
 
     options.items.push(cutItem(this));
+  }
+
+  /**
+   * Disables the viewport scroll after pasting the data.
+   *
+   * @param {number} fromRow Selection start row visual index.
+   * @param {number} fromColumn Selection start column visual index.
+   * @param {number} toRow Selection end row visual index.
+   * @param {number} toColumn Selection end column visual index.
+   * @param {object} preventScrolling Object with `value` property. If `true`, the viewport scroll will be prevented.
+   */
+  #onAfterSelection(fromRow, fromColumn, toRow, toColumn, preventScrolling) {
+    if (this.#preventViewportScrollOnPaste) {
+      preventScrolling.value = true;
+    }
+
+    this.#preventViewportScrollOnPaste = false;
   }
 
   /**

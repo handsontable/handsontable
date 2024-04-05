@@ -33,13 +33,13 @@ describe('WalkontableTable', () => {
         stretchH: 'all'
       });
 
+      spec().$wrapper.width(500);
       wt.draw();
-      wt.wtViewport.columnsRenderCalculator.refreshStretching(502);
 
-      expect(wt.wtTable.getStretchedColumnWidth(0, 50)).toBe(125);
-      expect(wt.wtTable.getStretchedColumnWidth(1, 50)).toBe(125);
-      expect(wt.wtTable.getStretchedColumnWidth(2, 50)).toBe(125);
-      expect(wt.wtTable.getStretchedColumnWidth(3, 50)).toBe(127);
+      expect(wt.wtTable.getStretchedColumnWidth(0, 50)).toBe(109);
+      expect(wt.wtTable.getStretchedColumnWidth(1, 50)).toBe(109);
+      expect(wt.wtTable.getStretchedColumnWidth(2, 50)).toBe(109);
+      expect(wt.wtTable.getStretchedColumnWidth(3, 50)).toBe(108);
     });
 
     it('should return valid column width when stretchH is set as \'last\'', () => {
@@ -53,13 +53,13 @@ describe('WalkontableTable', () => {
         stretchH: 'last'
       });
 
+      spec().$wrapper.width(500);
       wt.draw();
-      wt.wtViewport.columnsRenderCalculator.refreshStretching(502);
 
       expect(wt.wtTable.getStretchedColumnWidth(0, 50)).toBe(50);
       expect(wt.wtTable.getStretchedColumnWidth(1, 50)).toBe(50);
       expect(wt.wtTable.getStretchedColumnWidth(2, 50)).toBe(50);
-      expect(wt.wtTable.getStretchedColumnWidth(3, 50)).toBe(352);
+      expect(wt.wtTable.getStretchedColumnWidth(3, 50)).toBe(285);
     });
   });
 });

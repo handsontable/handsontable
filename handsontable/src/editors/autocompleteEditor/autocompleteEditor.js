@@ -117,7 +117,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @param {number|string} prop The column property (passed when datasource is an array of objects).
    * @param {HTMLTableCellElement} td The rendered cell element.
    * @param {*} value The rendered value.
-   * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
+   * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
    */
   prepare(row, col, prop, td, value, cellProperties) {
     super.prepare(row, col, prop, td, value, cellProperties);
@@ -187,7 +187,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
         TD.innerHTML = cellValue;
       },
-      afterSelection: (startRow, startCol) => {
+      afterSelectionEnd: (startRow, startCol) => {
         if (rootInstanceAriaTagsEnabled) {
           const TD = this.htEditor.getCell(startRow, startCol, true);
 
