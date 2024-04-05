@@ -54,6 +54,7 @@ The select editor should be considered an example of how to write editors rather
 - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
 - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
+
 </div>
 
 ### Related API reference

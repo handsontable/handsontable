@@ -13,20 +13,9 @@ searchCategory: Guides
 
 # Handsontable Docs
 
-[[toc]]
-
-::: only-for javascript
-
-::: tip
-
-<i class="ico i-react"></i> 
-Are you using React? [Explore the React version](@/react/guides/getting-started/introduction/introduction.md) of this documentation.
-
-:::
-
-:::
-
 Handsontable (pronounced "hands-on-table") is a JavaScript data grid component that brings the well-known look and feel of spreadsheets to your application.
+
+[[toc]]
 
 Thousands of business apps depend on Handsontable for entering, editing, validating, and cleansing data that comes from remote sources such as databases and APIs, or from HTML documents, Excel files, Google Sheets, and manual input.
 

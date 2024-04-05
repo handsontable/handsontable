@@ -40,6 +40,7 @@
         
         .socail-links {
             margin: 0 0 0 -8px
+            gap:0
             
             a {
                 padding: 8px
@@ -58,18 +59,31 @@
         div { 
             display: flex
             gap:8px
+
             a { 
                 color: $text2Color
                 text-decoration: none
                 transition: all $t ease-in-out
                 padding: 0 4px
 
+                &.status:before {
+                    content:''
+                    margin: 2px 6px
+                    display: block
+                    border-radius: $radius
+                    width: 6px
+                    height: 6px
+                    background: $successColor
+                    display: inline-block
+                }
+                
                 @media (hover: hover) {
                     &:hover {  
                         color: $textColor
                     }
                 }
             }
+            
         }
     }
 

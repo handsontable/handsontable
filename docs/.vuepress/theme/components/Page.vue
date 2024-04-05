@@ -1,7 +1,7 @@
 <template>
   <main class="page" v-bind:class="{ 'api': isApi }">
     <div class="breadcrumbs ">
-      <a href="#"><i class="ico i-home"></i> 14.2.0</a>
+      <a href="#"><i class="ico" :class="icon" ></i> 14.2.0</a>
       <a href="#">Getting started</a>
       <span>Introduction</span>
     </div>
@@ -17,7 +17,6 @@
 <script>
 /* global instanceRegister */
 import PageEdit from '@theme/components/PageEdit.vue';
-//import PageNav from '@theme/components/PageNav.vue';
 
 export default {
   components: { 
@@ -42,6 +41,11 @@ export default {
     isApi() {
       return this.$route.fullPath.match(/([^/]*\/)?api\//);
     },
+    icon() {
+      const frameworkWithoutNumber = (this.legacyFramework ?? this.$page.currentFramework).replace(/\d+$/, '');
+
+      return 'i-' + frameworkWithoutNumber ;
+    }
   },
   methods: {
     codePreviewTabChanged(selectedTab, exampleId) {
@@ -106,6 +110,54 @@ export default {
         setTimeout(() => {
             checkSectionInView();
         }, 400); // Adjust the delay time (e.g., 1000 milliseconds)
+    });
+
+
+    // Create report button element
+    const reportlink = document.createElement('a');
+    reportlink.classList.add('report');
+    reportlink.setAttribute('href', 'https://github.com/handsontable/handsontable/issues/new/choose');
+    reportlink.setAttribute('aria-label', 'Report Incorrect Code');
+    reportlink.setAttribute('target', '_blank');
+    const icon3 = document.createElement('i');
+    icon3.classList.add('ico', 'i-report');
+    reportlink.appendChild(icon3);
+
+    // Create copy button element
+    const button = document.createElement('button');
+    button.classList.add('copycode');
+    button.setAttribute('aria-label', 'Click to clipboard');
+    const icon = document.createElement('i');
+    icon.classList.add('ico', 'i-copy');
+    const icon2 = document.createElement('i');
+    icon2.classList.add('ico', 'i-checks');
+    button.appendChild(icon);
+    button.appendChild(icon2);
+
+    // Function to handle button click
+    function handleClick() {
+        const preTag = this.parentElement;
+        const codeTag = preTag.querySelector('code');
+
+        navigator.clipboard.writeText(codeTag.innerText)
+        this.classList.add('check');
+        setTimeout(() => {
+          this.classList.remove('check');
+        }, 2000);
+    }
+
+    // Iterate through each pre tag
+    const preTags = document.querySelectorAll('pre');
+    preTags.forEach(preTag => {
+        const codeTag = preTag.querySelector('code');
+        if (codeTag) {
+            const clonedButton = button.cloneNode(true);
+            const clonedReportLink = reportlink.cloneNode(true);
+
+            clonedButton.addEventListener('click', handleClick);
+            preTag.parentElement.insertBefore(clonedButton, codeTag.nextSibling);
+            preTag.parentElement.insertBefore(clonedReportLink, codeTag.nextSibling);
+        }
     });
 
   }

@@ -1,16 +1,6 @@
 <template>
   <footer class="footer">
     <div class="footer-support">
-      <!--
-      <div
-        v-if="lastUpdated"
-        class="last-updated"
-      >
-        <span class="prefix">{{ lastUpdatedText }}:</span>
-        <span class="time">{{ lastUpdated }}</span>
-      </div>
-      -->
-
       <div
         v-if="editLink"
         class="edit-link"
@@ -38,13 +28,13 @@
         <a href="https://handsontable.com/terms-of-use" target="_blank">Terms of use</a>
         <a href="https://handsontable.com/team" target="_blank">Team</a>
         <a href="https://handsontable.com/blog/" target="_blank">Blog</a>
-        <a href="https://status.handsontable.com/" target="_blank">Status</a>
+        <a href="https://status.handsontable.com/" target="_blank" class="status">Status</a>
         <a href="https://handsontable.com/contact?category=technical_support" target="_blank">Contact us</a>
       </div>
     </div>
 
     <div class="copyright">
-      <p>Copyright © {{ new Date().getFullYear() }} Handsoncode</p>
+      <p>© {{ new Date().getFullYear() }} Handsoncode</p>
       <ThemeSwitcher />
     </div>
   </footer>

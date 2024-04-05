@@ -1,10 +1,10 @@
 <template>
   <label id="switch" class="dark-mode" :class="{ ready: isReady }">
-    <div class="inner" v-show="isReady">
+    <span class="inner" v-show="isReady">
       <input type="checkbox" v-on:change="toggleTheme" :checked="isDarkTheme">
       <span v-show="isDarkTheme"><i class="ico i-dm-dark"></i>Dark</span>
       <span v-show="!isDarkTheme"><i class="ico i-dm-light"></i>Dark</span>
-    </div>
+    </span>
   </label>
 </template>
 

@@ -1,9 +1,5 @@
 <template>
-  
-
-
   <aside class="sidebar">
-
     <div class="info-box">
       <span><i class="ico i-bell"></i></span>
       <div>
@@ -22,12 +18,8 @@
     />
     </div>
     <slot name="bottom" />
-
-    
-
   </aside>
 </template>
-
 
 <script>
 import SidebarLinks from '@theme/components/SidebarLinks.vue';
@@ -45,7 +37,6 @@ import {
   SizeObserverPlugin, 
   ClickScrollPlugin
 } from 'overlayscrollbars';
-
 
 export default {
   name: 'Sidebar',
@@ -71,8 +62,6 @@ export default {
       const infobox = document.querySelector('.sidebar .info-box');
         infobox.style.display = 'none'; // Hide the info-box
     }
-
-    
   },
 
   mounted() {
@@ -97,7 +86,6 @@ export default {
         autoHide: 'leave'
       }
     })
-    
   },
 
   props: ['items']

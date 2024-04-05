@@ -11,9 +11,7 @@ body {
 }
 
 .Inter { font-family: $font }
-.Satoshi { font-family: 'Satoshi-Variable'}
-h1,h2,h3,h4,h5,h6 { font-family: $font }
-
+h1,h2,h3,h4,h5,h6 { font-family: $font-aeonik }
 
 a { 
   color: $linkColor 
@@ -87,11 +85,12 @@ a {
   width: 680px
   height: 1212px 
   position fixed
-  top 0
-  right:0
+  bottom -6px
+  right:-6px
   opacity .1
   pointer-events: none
   filter: hue-rotate(40deg);
   z-index -1
+  filter: blur(6px)
 }
 

@@ -15,21 +15,6 @@
       />
     </button>
 
-    <!--
-    <button
-      class="mobile-dropdown-title"
-      type="button"
-      :aria-label="dropdownAriaLabel"
-      @click="setOpen(!open)"
-    >
-      <span class="title">{{ item.text }}</span>
-      <i
-        class="ico i-arrow"
-        :class="open ? 'down' : 'right'"
-      />
-    </button>
-    -->
-
     <DropdownTransition>
       <ul
         v-show="open"

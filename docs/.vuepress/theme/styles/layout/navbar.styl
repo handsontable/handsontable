@@ -86,7 +86,7 @@
                         display: block
                         display: flex
                         white-space: nowrap
-                        gap:8px
+                        gap:6px
                         font-weight: 400
                         border-radius: $radius
                         transition: all $t ease-in-out
@@ -95,9 +95,9 @@
                             position relative
                             
                             &:before { 
-                                width: 16px
+                                width: 20px
                                 position: absolute
-                                bottom: 12px
+                                bottom: 10px
                                 left: 50%
                                 transform: translateX(-50%)
                                 display: block
@@ -148,6 +148,7 @@
                 margin-right -16px
                 z-index 1
                 position relative
+                top: 1px
             } 
             
             .nav-frameworks { 
@@ -197,6 +198,10 @@
 
                 i { 
                     transition all $t ease
+
+                    &.i-arrow { 
+                        opacity .64
+                    }
                 }
             }
 
@@ -204,6 +209,10 @@
                 > button { 
                     i { 
                         transform:rotate(-180deg)
+
+                        &.i-arrow { 
+                            opacity .8
+                        }
                     }
 
                     & + .nav-dropdown {
@@ -217,6 +226,10 @@
                     > button { 
                         i { 
                             transform:rotate(-180deg)
+                            
+                            &.i-arrow { 
+                                opacity 1
+                            }
                         }
 
                         & + .nav-dropdown {
@@ -298,6 +311,7 @@
                 display: block
                 padding: 12px
                 position relative
+                transition: all $ts ease-in-out
             }
 
             button { 
@@ -313,6 +327,10 @@
                 @media (hover: hover) {
                     &:hover { 
                         background: $onsurfaceColor
+
+                        i { 
+                            opacity .8
+                        }
                     }
                 }
             }
@@ -329,8 +347,26 @@
                 color: $text2Color
                 font-size: $font-size-xs
                 line-height: $line-height-xxs
+                transition: all $ts ease-in-out
+
+                i {
+                    opacity .64
+                    transition: all $ts ease-in-out
+                }
+
+                @media (hover: hover) {
+                    &:hover { 
+                        color: $textColor
+
+                        i { opacity: .8}
+                    }
+                }
             }
 
+            .news i { 
+                opacity: .64
+            }
+            
             #HW_badge_cont { 
                 position absolute
                 inset:0
@@ -343,6 +379,8 @@
                     width: 12px
                     height: 12px
                     top: auto
+                    line-height: 12px
+                    font-size: 8px
                 }
 
                 .HW_badge.HW_softHidden { 
@@ -363,7 +401,7 @@
 
             > i { 
                 position: absolute
-                top: 18px
+                top: 20px
                 left: 18px
             }
 

@@ -41,9 +41,25 @@
             color: $text2Color
         }
 
+        h2 .no {
+            font-size:  $font-size-xs
+            line-height: 24px
+            display: inline-block
+            height: 24px
+            width: 24px
+            text-align: center
+            border-radius: $radius
+            margin-right: 8px
+            border: 1px solid $borderColor
+            position: relative
+            top: -2px
+            margin-left: -40px
+        }
+
         h1, h2, h3, h4, h5, h6 {
             color: $textColor
             font-weight 400
+            letter-spacing: 0//-0.16px
 
             &:first-child {
                 margin-top 0
@@ -76,14 +92,14 @@
             line-height: $line-height-xl
             font-weight: 400
             margin:0!important
-            padding: 48px 0 0
+            padding: 8px 0 16px
             position: relative
-            letter-spacing: -0.72px
             
             + p {
-                border-bottom: 1px solid $borderColor
+                border-bottom: 1px solid $lightBorderColor
                 padding-bottom: 24px
                 margin-bottom: 8px
+                display: block
             }
         }
 
@@ -136,9 +152,9 @@
             letter-spacing: $letterSpacingText
             display: block
 
-            //&:empty { 
-            //    display:none 
-            //}
+            &:empty { 
+                display:none 
+            }
         }
         
         li {
@@ -146,7 +162,7 @@
             line-height: $line-height-s
         }
 
-        > ul, > ol, .boxes-list > ul { 
+        > ul, > ol, .boxes-list > ul, .instalationPage > ul { 
             padding: 16px 8px 8px
             word-wrap: break-word
 

@@ -94,11 +94,8 @@ export default {
     alt() {
       return `${this.$page.frameworkName} data grid`;
     },
-    imageUrl() {
-      const frameworkWithoutNumber = this.$page.currentFramework.replace(
-        /\d+$/,
-        ''
-      );
+    icon() {
+      const frameworkWithoutNumber = (this.legacyFramework ?? this.$page.currentFramework).replace(/\d+$/, '');
 
       return 'i-' + frameworkWithoutNumber ;
     },

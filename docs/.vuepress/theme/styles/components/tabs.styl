@@ -29,8 +29,6 @@
             margin: 4px
         }
 
-        
-
         #mainInput, select, input[type=text], input[type=search], .placeholder-input {
             padding: 8px;
             //margin-top: 12px;
@@ -44,6 +42,9 @@
             }
         }
         
+        &:last-child { 
+            margin-bottom:0
+        }
     }
 
     .tabs-component-panels {
@@ -137,5 +138,30 @@
                 }
             }
         }
+    }
+}
+
+.example-container {
+    .checkbox-container {
+        margin: 16px 0
+
+        .checkbox-group > div { 
+            display: flex
+            font-size: $font-size-xs
+            line-height: 32px
+
+
+            label { display: flex
+                align-items: center
+            }
+
+            > a { 
+                margin-left: auto
+                margin-right: 0
+            }
+        }
+    }
+    #example1 {
+        margin: 16px 0
     }
 }

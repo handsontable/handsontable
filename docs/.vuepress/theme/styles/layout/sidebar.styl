@@ -40,12 +40,12 @@
 
     .info-box { 
         position relative
-        padding: 12px
+        padding: 8px
         margin:0 28px 16px
         background: $sideColor
         border-radius: $radius
         display: flex
-        gap: 12px
+        gap: 8px
 
         span { 
             background-color: $accentColor
@@ -63,6 +63,10 @@
             &:hover {
                 span i {
                     animation: dingdong .6s ease-in-out 1
+                }
+
+                div a:before {
+                    opacity:1
                 }
             }
         }
@@ -93,12 +97,6 @@
                     box-shadow: 0 0 0 1px $accentColor
                     opacity 0
                     transition all $t ease
-                }
-
-                @media (hover: hover) {
-                    &:hover:before { 
-                        opacity:1
-                    }
                 }
             }
         }
@@ -280,18 +278,18 @@
                             }
                         }  
                         .tag-update, .tag-new  { 
-                            font-size: $font-size-xxs
+                            font-size: 12px
                             line-height: $line-height-xxs
                             display: block;
                             border-radius: $radius-s
-                            padding: 2px 8px;
-                            background-color: $successColor
+                            padding: 2px 6px;
+                            background-color: $accentColor
                             color: $bgColor
                             margin:-1px 0;
                             width:auto
                         }
                         .tag-new { 
-                            background-color: $accentColor
+                            background-color: $successColor
                         }
                     }
                 }

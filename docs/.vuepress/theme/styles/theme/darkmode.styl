@@ -6,7 +6,7 @@ html.theme-dark {
     color-scheme dark
 
     $accentColor        = var(--color-accentblue)
-    $textColor          = var(--color-gray-300)
+    $textColor          = var(--color-gray-200)
     $text2Color         = var(--color-gray-500)
     $borderColor        = var(--color-gray-700)
     $bgColor            = var(--color-gray-900)
@@ -18,17 +18,6 @@ html.theme-dark {
     $editorHeadColor    = var(--color-gray-800)
     $lightBorderColor   = var(--color-gray-600)
 
-    $editorCommentColor         = var(--color-gray-550)
-    $editorTagColor             = #85dbd8
-    $editorFunctionNameColor    = var(--color-lightblue)
-    $editorFunctionColor        = var(--color-lightblue)
-    $editorSymbolColor          = #fe86a8
-    $editorSelectorColor        = #dcc6e0
-    $editorStringColor          = #d4d0ab
-    $editorOperatorColor        = var(--color-success)
-    $editorInsertedColor        = var(--color-success)
-    $editorPunctuationColor     = var(--color-gray-300)
-
     $editorCommentColor         = #999;        
     $editorTagColor             = #e2777a;        
     $editorFunctionNameColor    = #6196cc;        
@@ -36,9 +25,23 @@ html.theme-dark {
     $editorSymbolColor          = #f8c555;        
     $editorSelectorColor        = #cc99cd;        
     $editorStringColor          = #7ec699 ;                
-    $editorOperatorColor        = #67cdcc;      
+    $editorOperatorColor        = #67cdccri;      
     $editorInsertedColor        = green;       
     $editorPunctuationColor     = #ccc;       
+
+    $editorText                 = rgb(156, 220, 254)
+    $editorCommentColor         = rgb(106, 153, 85)
+    $editorTagColor             = #85dbd8
+    $editorFunctionNameColor    = rgb(220, 220, 170)
+    $editorFunctionColor        = rgb(181, 206, 168)
+    $editorSymbolColor          = rgb(78, 201, 176)
+    $editorSelectorColor        = rgb(86, 156, 214)
+    $editorStringColor          = rgb(206, 145, 120)
+    $editorOperatorColor        = rgb(212, 212, 212)
+    $editorInsertedColor        = rgb(100, 102, 149)
+    $editorPunctuationColor     = rgb(212, 212, 212)
+
+    //rgb(100, 102, 149)
 
     $dropColor          = $dropColorDark
 
@@ -74,7 +77,7 @@ html.theme-dark {
     
     }
     .decoration-right {
-        opacity .4
+        opacity .6
     }
 
     /* Sidebar 
@@ -172,11 +175,11 @@ html.theme-dark {
 
                         .tag-update, .tag-new  { 
                             background-color: $successColor
-                            color: $bgColor
+                            color: $textColor
                         }
                         .tag-new {
-                            background: $gradient
-                            color: $textColor
+                            background: $successColor
+                            color: $bgColor
                         }
                     }
                 }
@@ -361,6 +364,12 @@ html.theme-dark {
                 .github-stars {
                     border: 1px solid $borderColor
                     color: $text2Color
+
+                    @media (hover: hover) {
+                        &:hover { 
+                            color: $textColor
+                        }
+                    }
                 }
             }   
 
@@ -423,10 +432,10 @@ html.theme-dark {
     .page {
         .breadcrumbs {
             a {
-                color: $textColor
+                color: $text2Color
                 
                 &:after {
-                    color: $textColor !important
+                    color: $text2Color !important
                 }
                 @media (hover: hover) {
                     &:hover {
@@ -458,10 +467,14 @@ html.theme-dark {
             
             h1 {
                 + p {
-                    border-bottom: 1px solid $borderColor
+                    border-bottom: 1px solid $lightBorderColor
                 }
             }
             
+            h2 .no {
+                border: 1px solid $lightBorderColor
+            }
+
             p {
                 color: $text2Color
             }
@@ -617,8 +630,8 @@ html.theme-dark {
         }
 
         kbd {
-            border: 1px solid $borderColor
-            border-bottom: 2px solid $borderColor
+            border: 1px solid $lightBorderColor
+            border-bottom: 3px solid $lightBorderColor
             background: $bgColor
         }
         
@@ -718,7 +731,7 @@ html.theme-dark {
             }
         }
 
-        button:not(.theme-code-group__nav-tab, .handsontable *) {
+        button:not(.theme-code-group__nav-tab, .handsontable *), .report {
             background: $sideColor 
             border: 1px solid $lightBorderColor
             color: $textColor
@@ -737,6 +750,10 @@ html.theme-dark {
     }
     .handsontable-drawing p:first-child { 
         display: none
+    }
+
+    .token, .page .theme-default-content pre[class*="language-"] code {
+        color: $editorText
     }
 
     .token.comment,
@@ -926,6 +943,20 @@ html.theme-dark {
     .theme-default-content .simple-list { 
         ul li a { 
             color: $text2Color
+        }
+    }
+
+
+    .theme-default-content pre code, 
+    .theme-default-content pre[class*="language-"] code {
+        color: $textColor
+    }
+
+    .copycode, .report { 
+        &:after {
+            color: $textColor
+            background: black //$sideColor
+            border: 0 solid $lightBorderColor
         }
     }
 
