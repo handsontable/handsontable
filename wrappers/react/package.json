@@ -91,7 +91,7 @@
     "handsontable": ">=14.0.0"
   },
   "scripts": {
-    "build": "npm run clean && npm run build:es && npm run build:umd && npm run build:min",
+    "build": "npm run clean && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:min",
     "build:commonjs": "cross-env NODE_ENV=cjs rollup -c --bundleConfigAsCjs",
     "build:umd": "cross-env NODE_ENV=umd rollup -c --bundleConfigAsCjs",
     "build:es": "cross-env NODE_ENV=es rollup -c --bundleConfigAsCjs",
