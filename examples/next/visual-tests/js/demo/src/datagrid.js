@@ -125,6 +125,7 @@ new Handsontable(example, {
   manualRowMove: true,
   comments: true,
   manualColumnMove: true,
+  customBorders: true,
   afterGetColHeader: alignHeaders,
   afterGetRowHeader: drawCheckboxInRowHeaders,
   afterOnCellMouseDown: changeCheckboxCell,

@@ -37,6 +37,7 @@ export default {
         navigableHeaders: true,
         manualColumnMove: true,
         comments: true,
+        customBorders: true,
         afterOnCellMouseDown: changeCheckboxCell,
         afterGetColHeader: alignHeaders,
         afterGetRowHeader: drawCheckboxInRowHeaders,

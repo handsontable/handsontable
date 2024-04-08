@@ -48,6 +48,7 @@ const DataGrid = () => {
       navigableHeaders={true}
       comments={true}
       manualColumnMove={true}
+      customBorders={true}
       licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data={1} />
