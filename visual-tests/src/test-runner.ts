@@ -9,7 +9,7 @@ const stylesToAdd = [
 ];
 
 // Define your custom fixture
-const test = baseTest.extend<{ tablePage: Page, customTitle: string, resetScreenshotsCount: null }>({
+const test = baseTest.extend<{ tablePage: Page, customTitle: string }>({
   tablePage: async({ page }, use, workerInfo) => {
     helpers.init(workerInfo);
     PageHolder.getInstance().setPage(page);
