@@ -1217,7 +1217,7 @@ export const scenarioData = [
     rating: randNumber({ min: 1, max: 5, fraction: 1 }),
     category: ['Data Management', 'Data Analysis', 'Data Visualization', 'Data Storage'][Math.floor(Math.random() * 4)],
     industry: ['Utilities', 'Healthcare', 'Finance', 'Retail'][Math.floor(Math.random() * 4)],
-    Business_scale: ['Small', 'Medium', 'Large'][Math.floor(Math.random() * 3)],
+    business_scale: ['Small', 'Medium', 'Large'][Math.floor(Math.random() * 3)],
     user_type: ['Business', 'Individual'][Math.floor(Math.random() * 2)],
     no_of_users: ['Single', 'Multiple'][Math.floor(Math.random() * 2)],
     deployment: ['Cloud', 'On-premises'][Math.floor(Math.random() * 2)],
