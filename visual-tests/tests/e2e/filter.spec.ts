@@ -5,7 +5,7 @@ import {
   openHeaderDropdownMenu,
   filterByValue,
   takeScreenshot,
-  filterConditions,
+  FilterConditions,
   filterByCondition,
 } from '../../src/page-helpers';
 
@@ -18,7 +18,7 @@ test(__filename, async({ tablePage }) => {
   expect(await rowsCount()).toBe(6);
 
   await openHeaderDropdownMenu(3);
-  await filterByCondition(filterConditions.IsBetween, '01/01/2020', '30/06/2020');
+  await filterByCondition(FilterConditions.IsBetween, '01/01/2020', '30/06/2020');
 
   expect(await rowsCount()).toBe(3);
 

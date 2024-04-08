@@ -3,7 +3,6 @@ import { HotTable } from '@handsontable/react';
 import { scenarioData } from './constants';
 
 const ScenarioTwoGrid = () => {
-  const style = { margin: '20px 0' };
 
   return (
     <HotTable
@@ -31,7 +30,7 @@ const ScenarioTwoGrid = () => {
         { data: 'rating', type: 'numeric' },
         { data: 'category', type: 'text' },
         { data: 'industry', type: 'text' },
-        { data: 'Business_scale', type: 'text' },
+        { data: 'business_scale', type: 'text' },
         { data: 'user_type', type: 'text' },
         { data: 'no_of_users', type: 'text' },
         { data: 'deployment', type: 'text' },

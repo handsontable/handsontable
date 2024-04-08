@@ -18,7 +18,7 @@ export enum CellBorder {
 }
 
 // eslint-disable-next-line no-shadow
-export enum filterConditions {
+export enum FilterConditions {
   None = 'None',
   IsEmpty = 'Is empty',
   IsNotEmpty = 'Is not empty',
@@ -286,11 +286,11 @@ export async function filterByValue(value:string) {
 }
 
 /**
- * @param {filterConditions} condition Filter condition.
+ * @param {FilterConditions} condition Filter condition.
  * @param {string} value Filter value.
  * @param {string} secondValue Second filter value.
  */
-export async function filterByCondition(condition:filterConditions, value?:string, secondValue?:string) {
+export async function filterByCondition(condition:FilterConditions, value?:string, secondValue?:string) {
   const page = PageHolder.getInstance().getPage();
 
   await page.getByRole('listbox').locator('.htUISelectCaption').click();
