@@ -1,3 +1,4 @@
+import path from 'path';
 import { EXAMPLES_SERVER_PORT } from './config.mjs';
 
 export const helpers = {
@@ -66,6 +67,6 @@ export const helpers = {
     this.screenshotsCount += 1;
 
     // eslint-disable-next-line max-len
-    return `${this.screenshotsDirectory}/${this.hotWrapper}/${this.browser}/${this.screenshotDirName}/${this.screenshotsCount}.${this.screenshotsExtension}`;
+    return `${this.screenshotsDirectory}/${this.hotWrapper}/${this.browser}/${this.screenshotDirName}/${path.basename(this.screenshotDirName)}-${this.screenshotsCount}.${this.screenshotsExtension}`;
   },
 };
