@@ -54,19 +54,8 @@ export default async({ router, siteData, isServer }) => {
 
     const response = await fetch(`${window.location.origin}/docs/${pathVersion}data/common.json`);
     const docsData = await response.json();
-    const canonicalURLs = new Map(docsData.urls);
 
     siteData.pages.forEach((page) => {
-      const frontmatter = page.frontmatter;
-      const canonicalUrl = frontmatter.canonicalUrl;
-      const canonicalUrlNorm = canonicalUrl.replace(/^\/docs\//, '').replace(/\/$/, '');
-
-      if (canonicalURLs.has(canonicalUrlNorm) && canonicalURLs.get(canonicalUrlNorm) !== '') {
-        const docsVersion = canonicalURLs.get(canonicalUrlNorm);
-
-        frontmatter.canonicalUrl = canonicalUrl.replace(/^\/docs\//, `/docs/${docsVersion}/`);
-      }
-
       page.versions = docsData.versions;
       page.latestVersion = docsData.latestVersion;
     });

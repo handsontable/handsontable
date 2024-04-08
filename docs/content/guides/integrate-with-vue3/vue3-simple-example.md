@@ -3,7 +3,7 @@ id: exlnnr23
 title: 'Basic example in Vue 3'
 metaTitle: 'Basic example in Vue 3 - Guide - Handsontable Documentation'
 permalink: /vue3-simple-example
-canonicalUrl: /vue3-simple-example
+canonicalUrl: /vue3-basic-example
 ---
 
 # Basic example in Vue 3
