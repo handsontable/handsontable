@@ -57,7 +57,7 @@ module.exports = (options, context) => {
       if ($page.frontmatter.canonicalUrl) {
         let canonicalShortUrl = removeEndingSlashes($page.frontmatter.canonicalUrl);
 
-        if (!canonicalShortUrl.match(/(javascript|react)\-data\-grid\//)) {
+        if (!canonicalShortUrl.match(/(javascript|react)-data-grid\//)) {
           canonicalShortUrl = `javascript-data-grid/${canonicalShortUrl}`;
         }
 
