@@ -28,7 +28,10 @@
           <nav class="icons-nav">
             <!--<ThemeSwitcher />-->
             <span class="news"><i class="ico i-bell"></i></span>
-            <a href="https://github.com/handsontable/handsontable" class="github-stars"><i class="ico i-github"></i> 18921</a>
+            <a href="https://github.com/handsontable/handsontable" class="github-stars">
+              <i class="ico i-github"></i>
+              <span v-if="stars > 0">{{ stars }}</span>
+            </a>
 
             <button @click="$emit('toggle-sidebar')" class="menuButton">
               <i class="ico i-menu"></i>
@@ -69,7 +72,8 @@ export default {
   },
   data() {
     return {
-      linksWrapMaxWidth: null
+      linksWrapMaxWidth: null,
+      stars: 0
     };
   },
   computed: {
@@ -83,6 +87,19 @@ export default {
       return `/${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
     }
   },
+  methods: {
+    async getStarts() {
+      try {
+        const response = await fetch(
+          "https://api.github.com/repos/handsontable/handsontable"
+        );
+        const data = await response.json();
+        this.stars = data?.stargazers_count ?? 0;
+      } catch (error) {
+        console.log(error);
+      }
+    },
+  },
   mounted() {
     // Initialize Headway widget
     var config = {
@@ -90,6 +107,7 @@ export default {
       account: "xaD6ry"
     };
     Headway.init(config);
+    this.getStarts();
   }
 };
 </script>
