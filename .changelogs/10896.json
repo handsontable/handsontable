@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem where the Vue/Vue3 wrappers' `simpleEqual` helper return incorrect result when comparing identical objects.",
-  "type": "fixed",
-  "issueOrPR": 10896,
-  "breaking": false,
-  "framework": "vue"
-}
