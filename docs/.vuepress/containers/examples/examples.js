@@ -163,6 +163,9 @@ module.exports = function(docsVersion, base) {
         ];
 
         tokens.splice(index + 1, 0, ...newTokens);
+        const isAngular = /angular(-.*)?/.test(preset);
+
+        const displayJsFiddle = Boolean(!noEdit && !isAngular);
 
         return `
           <div class="example-container">
@@ -176,7 +179,7 @@ module.exports = function(docsVersion, base) {
               <div class="example-controls">
                 ${Boolean(!noEdit) && stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
                 ${Boolean(!noEdit) && codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
-                ${Boolean(!noEdit) && jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset)}
+                ${displayJsFiddle ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset) : ''}
                 <button aria-label="Open in new tab"><i class="ico i-zoom"></i></button>
                 <button aria-label="Reset demo"><i class="ico i-refresh"></i></button>
               </div>
