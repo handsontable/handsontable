@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed Dropdown plugin logic that in some cases could block click events coming from custom editors.",
-  "type": "fixed",
-  "issueOrPR": 10888,
-  "breaking": false,
-  "framework": "none"
-}

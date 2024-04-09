@@ -9,6 +9,26 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [14.3.0] - 2024-04-16
+
+### Added
+- Added new feature which is navigation and edit cells within a range [#10732](https://github.com/handsontable/handsontable/pull/10732)
+
+### Changed
+- Stopped using `dtslint` in favor of `@typescript-eslint/eslint-plugin`. [#10841](https://github.com/handsontable/handsontable/pull/10841)
+- Made the cursor turn to `grabbing` for all the elements in the table while moving the columns or rows. [#10852](https://github.com/handsontable/handsontable/pull/10852)
+
+### Fixed
+- Fixed a problem, where `TAB` would not move the selection when the select-typed cell was being edited in the "fast edit" mode. [#10849](https://github.com/handsontable/handsontable/pull/10849)
+- Blocked the `Cmd/Ctrl + A` action for situations where the focus is placed on the headers. [#10853](https://github.com/handsontable/handsontable/pull/10853)
+- Unified the `source` arguments of the `beforeChange`/`afterChange` hooks when being triggered by the Merge Cells plugin. [#10857](https://github.com/handsontable/handsontable/pull/10857)
+- Maintain focus after column collapsing. [#10865](https://github.com/handsontable/handsontable/pull/10865)
+- Fixed a problem where the bottom/right cell borders were not visible in the viewport after scrolling from the absolute top/left positions of the table using the API. [#10887](https://github.com/handsontable/handsontable/pull/10887)
+- Fixed Dropdown plugin logic that in some cases could block click events coming from custom editors. [#10888](https://github.com/handsontable/handsontable/pull/10888)
+- Fixed datepicker position of the date cell type. [#10892](https://github.com/handsontable/handsontable/pull/10892)
+- Vue: Fixed a problem where updating the hook callback in the Vue and Vue3 wrappers did not update the underlying instance's settings. [#10686](https://github.com/handsontable/handsontable/issues/10686)
+- Vue: Fixed a problem where the Vue/Vue3 wrappers' `simpleEqual` helper return incorrect result when comparing identical objects. [#10896](https://github.com/handsontable/handsontable/pull/10896)
+
 ## [14.2.0] - 2024-03-06
 
 ### Added
