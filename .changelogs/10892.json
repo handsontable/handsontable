@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed datepicker position of the date cell type.",
+  "type": "fixed",
+  "issueOrPR": 10892,
+  "breaking": false,
+  "framework": "none"
+}
