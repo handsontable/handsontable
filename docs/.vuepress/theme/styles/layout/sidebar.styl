@@ -46,6 +46,7 @@
         border-radius: $radius
         display: flex
         gap: 12px
+        align-items: start
 
         span { 
             background-color: $accentColor
@@ -104,7 +105,14 @@
             cursor:pointer
             opacity .6
             transition all $t ease
-            //filter brightness(0) invert(0)
+            
+            i { 
+                max-width: 14px
+                max-height: 14px
+                min-width: 14px
+                min-height: 14px
+                background-size: 14px
+            }
 
             @media (hover: hover) {
                 &:hover { 
@@ -543,8 +551,7 @@
             .kbd-hint { 
                 transition all $t ease
                 position:absolute
-                display: 
-                flex; gap:4px
+                display: flex; gap:4px
                 right: 22px
                 top:22px
 
