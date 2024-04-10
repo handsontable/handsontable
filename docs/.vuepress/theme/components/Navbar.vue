@@ -28,8 +28,9 @@
           <nav class="icons-nav">
             <!--<ThemeSwitcher />-->
             <span class="news"><i class="ico i-bell"></i></span>
-            <a href="https://github.com/handsontable/handsontable" class="github-stars"><i class="ico i-github"></i> 18921</a>
+            <a href="https://github.com/handsontable/handsontable" class="github-stars"><i class="ico i-github"></i><span>19k</span></a>
 
+            <button class="menuButton"><i class="ico i-search"></i></button>
             <button @click="$emit('toggle-sidebar')" class="menuButton">
               <i class="ico i-menu"></i>
               <i class="ico i-close"></i>

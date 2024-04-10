@@ -1,5 +1,6 @@
 <template>
   <form id="search-form" class="search-box" role="search">
+    <i class="ico i-search"></i>
     <input
       ref="input"
       id="algolia-search-input"
@@ -128,12 +129,6 @@ export default {
   margin-right: 1.5rem;
   min-width: 100px;
   height: 22px;
-
-  .algolia-autocomplete {
-    position: absolute !important;
-    top: 0;
-    right: 0;
-  }
 
   input {
     cursor: text;

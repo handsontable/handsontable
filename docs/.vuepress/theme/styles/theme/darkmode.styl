@@ -7,6 +7,7 @@ html.theme-dark {
 
     $accentColor        = var(--color-accentblue)
     $textColor          = var(--color-gray-200)
+    $hoverWhiteColor    = var(--color-gray-300)
     $text2Color         = var(--color-gray-500)
     $borderColor        = var(--color-gray-700)
     $bgColor            = var(--color-gray-900)
@@ -14,9 +15,12 @@ html.theme-dark {
     $bgCode             = $borderColor 
     $onsurfaceColor     = var(--color-gray-700)
     $linkColor          = var(--color-lightblue)
+    $linkHoverColor     = var(--color-lighterblue)
     $editorColor        = var(--color-gray-700)
     $editorHeadColor    = var(--color-gray-800)
     $lightBorderColor   = var(--color-gray-600)
+    $depricatedColor    = var(--color-yellow) 
+    $depricatedBgColor  = var(--color-yellow-20)
 
     $editorCommentColor         = #999;        
     $editorTagColor             = #e2777a;        
@@ -67,6 +71,12 @@ html.theme-dark {
 
     a { 
         color: $linkColor 
+
+        @media (hover: hover) {
+            &:hover { 
+                color: $linkHoverColor
+            }
+        }
     }
 
     #nprogress .bar { 
@@ -77,7 +87,7 @@ html.theme-dark {
     
     }
     .decoration-right {
-        opacity .6
+        opacity 1
     }
 
     /* Sidebar 
@@ -129,7 +139,7 @@ html.theme-dark {
                 }
                 @media (hover: hover) {
                     &:hover { 
-                        color: $textColor
+                        color: $hoverWhiteColor
                     }
                 }
             }
@@ -143,7 +153,7 @@ html.theme-dark {
 
                     @media (hover: hover) {
                         &:hover { 
-                            color: $textColor
+                            color: $hoverWhiteColor
                         }
                     }
                 }
@@ -156,12 +166,12 @@ html.theme-dark {
                         }
 
                         &:before{ 
-                            background: $borderColor 
+                            background: $sideColor 
                         }
 
                         @media (hover: hover) {
                             &:hover { 
-                                color: $textColor
+                                color: $hoverWhiteColor
                             }
                         }
                         
@@ -173,13 +183,17 @@ html.theme-dark {
                             }
                         }
 
-                        .tag-update, .tag-new  { 
+                        .tag-update  { 
                             background-color: $successColor
-                            color: $textColor
+                            color: $bgColor
                         }
                         .tag-new {
-                            background: $successColor
-                            color: $bgColor
+                            background: $accentColor
+                            color: $textColor
+                        }
+                        .tag-deprecated {
+                            background: $depricatedBgColor
+                            color: $depricatedColor
                         }
                     }
                 }
@@ -216,7 +230,7 @@ html.theme-dark {
 
                         @media (hover: hover) {
                             &:hover { 
-                                color: $textColor
+                                color: $hoverWhiteColor
                             }
                         }
                         
@@ -321,7 +335,7 @@ html.theme-dark {
 
                         @media (hover: hover) {
                             &:hover { 
-                                color: $textColor
+                                color: $hoverWhiteColor
                             }
                         }
                     }
@@ -344,7 +358,7 @@ html.theme-dark {
 
                             @media (hover: hover) {
                                 &:hover { 
-                                    color: $textColor
+                                    color: $hoverWhiteColor
                                 }
                             }
                         }
@@ -367,7 +381,7 @@ html.theme-dark {
 
                     @media (hover: hover) {
                         &:hover { 
-                            color: $textColor
+                            color: $hoverWhiteColor
                         }
                     }
                 }
@@ -415,7 +429,7 @@ html.theme-dark {
                             @media (hover: hover) {
                                 &:hover { 
                                     background: $borderColor
-                                    color: $textColor
+                                    color: $hoverWhiteColor
                                 }
                             }
 
@@ -435,16 +449,16 @@ html.theme-dark {
                 color: $text2Color
                 
                 &:after {
-                    color: $text2Color !important
+                    color: $text2Color
                 }
                 @media (hover: hover) {
                     &:hover {
-                        color: $linkColor
+                        color: $hoverWhiteColor
                     }
                 }
             }
             span { 
-                color: $text2Color
+                //color: $text2Color
             }
         }
         
@@ -472,7 +486,8 @@ html.theme-dark {
             }
             
             h2 .no {
-                border: 1px solid $lightBorderColor
+                border: 1px solid $accentColor
+                background: $borderColor
             }
 
             p {
@@ -501,7 +516,7 @@ html.theme-dark {
                 @media (hover: hover) {
                     &:hover { 
                         text-decoration:none
-                        color: $textColor
+                        color: $linkHoverColor
                     }
                 }
             }
@@ -527,7 +542,7 @@ html.theme-dark {
                 
                 @media (hover: hover) {
                     &:hover { 
-                        color: $textColor
+                        color: $linkHoverColor
                     }
                 }
             }
@@ -552,7 +567,7 @@ html.theme-dark {
 
                             @media (hover: hover) {
                                 &:hover { 
-                                    color: $textColor
+                                    color: $hoverWhiteColor
 
                                     &:after {
                                         background: $accentColor
@@ -585,8 +600,8 @@ html.theme-dark {
             }
             
             .custom-block {
-                background: $sideColor
-                //border: 1px solid $borderColor
+                background: $borderColor
+                border: 1px solid $lightBorderColor
 
                 p { 
                     a { 
@@ -675,7 +690,7 @@ html.theme-dark {
 
                         @media (hover: hover) {
                             &:hover {  
-                                color: $textColor
+                                color: $hoverWhiteColor
                             }
                         }
                     }
@@ -700,7 +715,7 @@ html.theme-dark {
 
                     @media (hover: hover) {
                         &:hover {  
-                            color: $textColor
+                            color: $linkHoverColor
                         }
                     }
                 }
@@ -960,7 +975,7 @@ html.theme-dark {
         }
     }
 
-    @media (max-width: $medium) {
+    @media (max-width: $large) {
         .sidebar { 
             background: $bgColor
         }

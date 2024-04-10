@@ -1,9 +1,9 @@
 <template>
   <main class="page" v-bind:class="{ 'api': isApi }">
     <div class="breadcrumbs ">
-      <a href="#"><i class="ico" :class="icon" ></i> 14.2.0</a>
-      <a href="#">Getting started</a>
-      <span>Introduction</span>
+      <!-- <i class="ico" :class="icon" > -->
+      <a href="#"><i i class="ico i-home"></i><span>14.2.0</span></a>
+      <a href="#"><span>Getting started</span><span>Introduction</span></a>
     </div>
 
     <Content class="theme-default-content" />
@@ -117,7 +117,7 @@ export default {
     const reportlink = document.createElement('a');
     reportlink.classList.add('report');
     reportlink.setAttribute('href', 'https://github.com/handsontable/handsontable/issues/new/choose');
-    reportlink.setAttribute('aria-label', 'Report Incorrect Code');
+    reportlink.setAttribute('aria-label', 'Report an issue');
     reportlink.setAttribute('target', '_blank');
     const icon3 = document.createElement('i');
     icon3.classList.add('ico', 'i-report');
@@ -126,7 +126,7 @@ export default {
     // Create copy button element
     const button = document.createElement('button');
     button.classList.add('copycode');
-    button.setAttribute('aria-label', 'Click to clipboard');
+    button.setAttribute('aria-label', 'Copy to clipboard');
     const icon = document.createElement('i');
     icon.classList.add('ico', 'i-copy');
     const icon2 = document.createElement('i');

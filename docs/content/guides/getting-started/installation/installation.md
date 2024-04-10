@@ -167,7 +167,7 @@ const hot = new Handsontable(container, {
 
 ::: only-for react
 
-## <span class="no">1.</span>  Install Handsontable
+## <span class="no">1.</span> Install Handsontable
 
 To install Handsontable locally using a package manager, run one of these commands:
 
@@ -188,7 +188,7 @@ To install Handsontable locally using a package manager, run one of these comman
   </code-block>
 </code-group>
 
-## <span class="no">2.</span>  Import Handsontable's CSS
+## <span class="no">2.</span> Import Handsontable's CSS
 
 Import Handsontable's CSS into your application.
 
@@ -196,7 +196,7 @@ Import Handsontable's CSS into your application.
 import 'handsontable/dist/handsontable.full.min.css';
 ```
 
-## <span class="no">3.</span>  Register Handsontable's modules
+## <span class="no">3.</span> Register Handsontable's modules
 
 Import and register all of Handsontable's modules with a single function call:
 
@@ -209,7 +209,7 @@ registerAllModules();
 
 Or, to reduce the size of your JavaScript bundle, [import only the modules that you need](@/guides/tools-and-building/modules/modules.md).
 
-## <span class="no">4.</span>  Use the `HotTable` component
+## <span class="no">4.</span> Use the `HotTable` component
 
 The main Handsontable component is called `HotTable`.
 

@@ -37,20 +37,27 @@
                 color: $text2Color
                 font-size: $font-size-xs
                 line-height: $line-height-xs
-                padding: 6px 32px 6px 32px
+                padding: 6px 16px 6px 16px
+                margin: 0 16px
                 border:0
                 position: relative
                 transition all $ts ease
                 display: flex;
                 align-items: center;
                 text-decoration: none
+                display: inline-block
+                border-radius: $radius
+
+                span { 
+                    display: inline-block
+                }
 
                 &:after { 
                     content: ''
                     display: block
                     position absolute
                     top 0    
-                    left:8px
+                    left:-8px
                     bottom: 0
                     border-left: 1px solid $borderColor
                     transition all $t ease

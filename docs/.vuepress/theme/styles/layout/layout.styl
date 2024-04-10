@@ -65,7 +65,7 @@ a {
     }
     .table-of-contents { 
       right:50%
-      transform: translateX(16 + $xxxLarge/2)  
+      transform: translateX(0 + $xxxLarge/2)  
     }
   }
 }
@@ -77,7 +77,7 @@ a {
     }
   }
 }
-
+/*
 .decoration-right { 
   display: block
   background:  url('{{$basePath}}/img/bg-gradient.webp'); 
@@ -89,8 +89,27 @@ a {
   right:-6px
   opacity .1
   pointer-events: none
-  filter: hue-rotate(40deg);
+  filter: hue-rotate(40deg) blur(6px);
+  z-index -1 
+}*/
+
+
+.decoration-right { 
+  display: block
+  background:  url('{{$basePath}}/img/deco3.svg');
+  background-size: 100%
+  width: 80vh
+  height: 80vh
+  bottom: 0
+  right: 0
+  position: fixed
+  pointer-events: none
   z-index -1
-  filter: blur(6px)
+  opacity: .5
+} 
+
+
+.theme-container {
+  overflow-x: hidden
 }
 

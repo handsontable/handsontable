@@ -42,18 +42,18 @@
         }
 
         h2 .no {
-            font-size:  $font-size-xs
-            line-height: 24px
+            font-size:  $font-size-s
+            line-height: 32px
             display: inline-block
-            height: 24px
-            width: 24px
+            height: 32px
+            width: 32px
             text-align: center
             border-radius: $radius
             margin-right: 8px
             border: 1px solid $borderColor
             position: relative
             top: -2px
-            margin-left: -40px
+            margin-left: -48px
         }
 
         h1, h2, h3, h4, h5, h6 {
@@ -92,13 +92,13 @@
             line-height: $line-height-xl
             font-weight: 400
             margin:0!important
-            padding: 8px 0 16px
+            padding: 48px 0 0
             position: relative
             
             + p {
                 border-bottom: 1px solid $lightBorderColor
                 padding-bottom: 24px
-                margin-bottom: 8px
+                margin-bottom: 24px
                 display: block
             }
         }
@@ -189,7 +189,7 @@
             color: $linkColor
             text-decoration: none 
             font-weight: 400
-            transition: $t all ease-in-out
+            transition: $ts all ease-in-out
 
             @media (hover: hover) {
                 &:hover { 
@@ -315,7 +315,7 @@
         }
     }
 
-    @media (max-width: $medium) {
+    @media (max-width: $large) {
         margin: 80px 32px 0
 
 
@@ -334,9 +334,9 @@
             }
 
             pre {
-                padding: 16px 32px
-                margin: 22px -32px 0
-                border-radius: 0
+                padding: 16px 16px
+                margin: 22px -16px 0
+                border-radius: $radius
             }
 
             .theme-code-group {
