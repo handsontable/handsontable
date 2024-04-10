@@ -888,6 +888,176 @@ describe('DateEditor', () => {
     expect(pikaElement.is(':visible')).toBe(false);
   });
 
+  it('should show datepicker in the right position when cell is opened in the top overlay', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 20),
+      fixedRowsTop: 3,
+      width: 200,
+      height: 200,
+      type: 'date',
+    });
+
+    selectCell(1, 1);
+    keyDownUp('enter');
+    setScrollTop(100);
+
+    const editorElement = $(getActiveEditor().TD);
+    const pikaElement = $('.pika-single');
+
+    await sleep(50);
+
+    expect(pikaElement.offset()).toEqual({
+      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      left: editorElement.offset().left,
+    });
+    expect(pikaElement.is(':visible')).toBe(true);
+
+    setScrollTop(130);
+
+    await sleep(50);
+
+    expect(pikaElement.offset()).toEqual({
+      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      left: editorElement.offset().left,
+    });
+    expect(pikaElement.is(':visible')).toBe(true);
+  });
+
+  it('should show datepicker in the right position when cell is opened in the left overlay', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 20),
+      fixedColumnsStart: 3,
+      width: 200,
+      height: 200,
+      type: 'date',
+    });
+
+    selectCell(1, 1);
+    keyDownUp('enter');
+    setScrollLeft(100);
+
+    const editorElement = $(getActiveEditor().TD);
+    const pikaElement = $('.pika-single');
+
+    await sleep(50);
+
+    expect(pikaElement.offset()).toEqual({
+      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      left: editorElement.offset().left,
+    });
+    expect(pikaElement.is(':visible')).toBe(true);
+
+    setScrollLeft(130);
+
+    await sleep(50);
+
+    expect(pikaElement.offset()).toEqual({
+      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      left: editorElement.offset().left,
+    });
+    expect(pikaElement.is(':visible')).toBe(true);
+  });
+
+  it('should show datepicker in the right position when cell is opened in the bottom overlay', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 20),
+      fixedRowsBottom: 3,
+      width: 200,
+      height: 200,
+      type: 'date',
+    });
+
+    selectCell(48, 1);
+    keyDownUp('enter');
+
+    const editorElement = $(getActiveEditor().TD);
+    const pikaElement = $('.pika-single');
+
+    expect(pikaElement.offset()).toEqual({
+      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      left: editorElement.offset().left,
+    });
+    expect(pikaElement.is(':visible')).toBe(true);
+
+    setScrollTop(130);
+
+    await sleep(50);
+
+    expect(pikaElement.offset()).toEqual({
+      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      left: editorElement.offset().left,
+    });
+    expect(pikaElement.is(':visible')).toBe(true);
+  });
+
+  it('should show datepicker in the right position when cell is opened in the top-start corner', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 20),
+      fixedRowsTop: 3,
+      fixedColumnsStart: 3,
+      width: 200,
+      height: 200,
+      type: 'date',
+    });
+
+    selectCell(1, 1);
+    keyDownUp('enter');
+
+    const editorElement = $(getActiveEditor().TD);
+    const pikaElement = $('.pika-single');
+
+    expect(pikaElement.offset()).toEqual({
+      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      left: editorElement.offset().left,
+    });
+    expect(pikaElement.is(':visible')).toBe(true);
+
+    setScrollTop(100);
+    setScrollLeft(100);
+
+    await sleep(50);
+
+    expect(pikaElement.offset()).toEqual({
+      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      left: editorElement.offset().left,
+    });
+    expect(pikaElement.is(':visible')).toBe(true);
+  });
+
+  it('should show datepicker in the right position when cell is opened in the bottom-start corner', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 20),
+      fixedRowsBottom: 3,
+      fixedColumnsStart: 3,
+      width: 200,
+      height: 200,
+      type: 'date',
+    });
+
+    selectCell(48, 1);
+    keyDownUp('enter');
+
+    const editorElement = $(getActiveEditor().TD);
+    const pikaElement = $('.pika-single');
+
+    expect(pikaElement.offset()).toEqual({
+      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      left: editorElement.offset().left,
+    });
+    expect(pikaElement.is(':visible')).toBe(true);
+
+    setScrollTop(100);
+    setScrollLeft(100);
+
+    await sleep(50);
+
+    expect(pikaElement.offset()).toEqual({
+      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      left: editorElement.offset().left,
+    });
+    expect(pikaElement.is(':visible')).toBe(true);
+  });
+
   it('should display Pikaday Calendar right-bottom of the selected cell when table have scrolls', () => {
     const container = $('#testContainer');
 
