@@ -8,6 +8,11 @@ export const cjsConfig = {
     format: env,
     indent: false,
     file: `./commonjs/${filename}`,
+    interop: 'compat',
+    generatedCode: {
+			reservedNamesAsProps: false
+		},
+    systemNullSetters: false,
     exports: 'named'
   },
   plugins: baseConfig.plugins,
