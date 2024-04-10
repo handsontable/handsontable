@@ -11,6 +11,7 @@ react:
   id: weudz1vh
   metaTitle: Modules - React Data Grid | Handsontable
 searchCategory: Guides
+category: Tools and building
 ---
 
 # Modules

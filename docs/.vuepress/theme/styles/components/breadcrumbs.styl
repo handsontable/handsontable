@@ -22,12 +22,6 @@
                 top: 2px
                 opacity .64
             }
-            &:after { 
-                content: "/"
-                display: inline-block
-                padding: 0 8px 0 8px
-                color: $text2Color !important
-            }
 
             @media (hover: hover) {
                 &:hover {
@@ -38,6 +32,14 @@
 
         span { 
             color: $text2Color
+        }
+        a, span {
+            &:not(:last-child):after { 
+                content: "/"
+                display: inline-block
+                padding: 0 8px 0 8px
+                color: $text2Color !important
+            }
         }
     }
 }

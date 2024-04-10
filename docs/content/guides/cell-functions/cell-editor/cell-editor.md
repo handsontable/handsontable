@@ -9,6 +9,7 @@ react:
   id: 6i8ttta0
   metaTitle: Cell editor - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell functions
 ---
 
 # Cell editor

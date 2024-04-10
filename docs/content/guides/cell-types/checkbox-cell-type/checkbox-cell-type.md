@@ -9,6 +9,7 @@ react:
   id: tfr1gisf
   metaTitle: Checkbox cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Checkbox cell type

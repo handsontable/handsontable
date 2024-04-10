@@ -9,6 +9,7 @@ react:
   id: ulndkavi
   metaTitle: Merge cells - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell features
 ---
 
 # Merge cells

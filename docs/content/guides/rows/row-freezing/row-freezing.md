@@ -13,6 +13,7 @@ react:
   id: y5wx1mrk
   metaTitle: Row freezing - React Data Grid | Handsontable
 searchCategory: Guides
+category: Rows
 ---
 
 # Row freezing

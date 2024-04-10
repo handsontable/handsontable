@@ -8,6 +8,7 @@ canonicalUrl: /hot-column
 tags:
   - hotcolumn
 searchCategory: Guides
+category: Columns
 ---
 
 # Column component

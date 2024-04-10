@@ -9,6 +9,7 @@ react:
   id: rw3lzobe
   metaTitle: Custom context menu - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 3
 ---
 
 # Custom context menu example in Vue 3

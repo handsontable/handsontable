@@ -12,6 +12,7 @@ react:
   id: sfxo3g54
   metaTitle: Export to CSV - React Data Grid | Handsontable
 searchCategory: Guides
+category: Accessories and menus
 ---
 
 # Export to CSV

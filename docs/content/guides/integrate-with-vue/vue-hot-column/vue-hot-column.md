@@ -9,6 +9,7 @@ react:
   id: 0lip32oe
   metaTitle: HotColumn component - Vue 2 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 2
 ---
 
 # Using the `HotColumn` component in Vue 2

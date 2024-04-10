@@ -6,6 +6,7 @@ description: Instantly add Handsontable to your web app, using pre-built UMD pac
 permalink: /packages
 canonicalUrl: /packages
 searchCategory: Guides
+category: Tools and building
 ---
 
 # Packages

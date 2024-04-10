@@ -9,6 +9,7 @@ react:
   id: 6218j2a1
   metaTitle: Custom context menu - Vue 2 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 2
 ---
 
 # Custom context menu in Vue 2

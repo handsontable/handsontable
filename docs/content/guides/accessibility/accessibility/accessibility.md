@@ -21,6 +21,7 @@ react:
   id: x82phf34
   metaTitle: Accessibility - React Data Grid | Handsontable
 searchCategory: Guides
+category: Accessibility
 ---
 
 # Accessibility

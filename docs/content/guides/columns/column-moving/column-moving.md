@@ -9,6 +9,7 @@ react:
   id: zhlikwwh
   metaTitle: Column moving - React Data Grid | Handsontable
 searchCategory: Guides
+category: Columns
 ---
 
 # Column moving

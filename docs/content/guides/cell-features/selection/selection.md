@@ -12,6 +12,7 @@ react:
   id: k88lznt8
   metaTitle: Selection - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell features
 ---
 
 # Selection

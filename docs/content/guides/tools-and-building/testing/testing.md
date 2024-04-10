@@ -16,6 +16,7 @@ react:
   id: y3wp74jh
   metaTitle: Testing - React Data Grid | Handsontable
 searchCategory: Guides
+category: Tools and building
 ---
 
 # Testing

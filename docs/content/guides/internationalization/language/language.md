@@ -15,6 +15,7 @@ react:
   id: qz0qgi9f
   metaTitle: Language - React Data Grid | Handsontable
 searchCategory: Guides
+category: Internationalization
 ---
 
 # Language

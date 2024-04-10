@@ -9,6 +9,7 @@ react:
   id: gydne13d
   metaTitle: Password cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Password cell type

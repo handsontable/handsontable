@@ -19,6 +19,7 @@ react:
   id: d966se98
   metaTitle: Events and hooks - React Data Grid | Handsontable
 searchCategory: Guides
+category: Getting started
 ---
 
 # Events and hooks

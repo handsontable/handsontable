@@ -9,6 +9,7 @@ react:
   id: sd36i6vo
   metaTitle: Basic example - Vue 2 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 2
 ---
 
 # Basic example in Vue 2

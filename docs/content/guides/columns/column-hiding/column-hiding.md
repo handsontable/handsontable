@@ -11,6 +11,7 @@ react:
   id: u1aw329h
   metaTitle: Column hiding - React Data Grid | Handsontable
 searchCategory: Guides
+category: Columns
 ---
 
 # Column hiding

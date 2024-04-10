@@ -434,9 +434,6 @@ html.theme-dark {
             a {
                 color: $text2Color
                 
-                &:after {
-                    color: $text2Color !important
-                }
                 @media (hover: hover) {
                     &:hover {
                         color: $linkColor
@@ -445,6 +442,11 @@ html.theme-dark {
             }
             span { 
                 color: $text2Color
+            }
+            a, span {
+                &:after {
+                    color: $text2Color !important
+                }
             }
         }
         
