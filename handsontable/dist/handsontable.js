@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.3.0
- * Release date: 16/04/2024 (built at 09/04/2024 11:07:29)
+ * Release date: 16/04/2024 (built at 10/04/2024 09:16:01)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -107,7 +107,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "09/04/2024 11:07:29";
+Handsontable.buildDate = "10/04/2024 09:16:01";
 Handsontable.version = "14.3.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -48417,6 +48417,7 @@ class DateEditor extends _textEditor.TextEditor {
    * @param {boolean} force Indicates if the refreshing editor dimensions should be triggered.
    */
   refreshDimensions(force) {
+    var _wtOverlays$getParent;
     super.refreshDimensions(force);
     if (this.state !== _baseEditor.EDITOR_STATE.EDITING) {
       return;
@@ -48426,8 +48427,21 @@ class DateEditor extends _textEditor.TextEditor {
       this.hideDatepicker();
       return;
     }
-    const view = this.hot.view;
-    if (this.col >= view.getFirstPartiallyVisibleColumn() && this.col <= view.getLastPartiallyVisibleColumn() && this.row >= view.getFirstPartiallyVisibleRow() && this.row <= view.getLastPartiallyVisibleRow()) {
+    const {
+      rowIndexMapper,
+      columnIndexMapper
+    } = this.hot;
+    const {
+      wtOverlays
+    } = this.hot.view._wt;
+    const {
+      wtTable
+    } = (_wtOverlays$getParent = wtOverlays.getParentOverlay(this.TD)) !== null && _wtOverlays$getParent !== void 0 ? _wtOverlays$getParent : this.hot.view._wt;
+    const firstVisibleRow = rowIndexMapper.getVisualFromRenderableIndex(wtTable.getFirstPartiallyVisibleRow());
+    const lastVisibleRow = rowIndexMapper.getVisualFromRenderableIndex(wtTable.getLastPartiallyVisibleRow());
+    const firstVisibleColumn = columnIndexMapper.getVisualFromRenderableIndex(wtTable.getFirstPartiallyVisibleColumn());
+    const lastVisibleColumn = columnIndexMapper.getVisualFromRenderableIndex(wtTable.getLastPartiallyVisibleColumn());
+    if (this.row >= firstVisibleRow && this.row <= lastVisibleRow && this.col >= firstVisibleColumn && this.col <= lastVisibleColumn) {
       const offset = this.TD.getBoundingClientRect();
       this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top + (0, _element.outerHeight)(this.TD)}px`;
       let pickerLeftPosition = this.hot.rootWindow.pageXOffset;
