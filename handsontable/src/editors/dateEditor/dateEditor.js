@@ -312,11 +312,18 @@ export class DateEditor extends TextEditor {
       return;
     }
 
-    const view = this.hot.view;
+    const { rowIndexMapper, columnIndexMapper } = this.hot;
+    const { wtOverlays } = this.hot.view._wt;
+    const { wtTable } = wtOverlays.getParentOverlay(this.TD) ?? this.hot.view._wt;
+
+    const firstVisibleRow = rowIndexMapper.getVisualFromRenderableIndex(wtTable.getFirstPartiallyVisibleRow());
+    const lastVisibleRow = rowIndexMapper.getVisualFromRenderableIndex(wtTable.getLastPartiallyVisibleRow());
+    const firstVisibleColumn = columnIndexMapper.getVisualFromRenderableIndex(wtTable.getFirstPartiallyVisibleColumn());
+    const lastVisibleColumn = columnIndexMapper.getVisualFromRenderableIndex(wtTable.getLastPartiallyVisibleColumn());
 
     if (
-      this.col >= view.getFirstPartiallyVisibleColumn() && this.col <= view.getLastPartiallyVisibleColumn() &&
-      this.row >= view.getFirstPartiallyVisibleRow() && this.row <= view.getLastPartiallyVisibleRow()
+      this.row >= firstVisibleRow && this.row <= lastVisibleRow &&
+      this.col >= firstVisibleColumn && this.col <= lastVisibleColumn
     ) {
       const offset = this.TD.getBoundingClientRect();
 
