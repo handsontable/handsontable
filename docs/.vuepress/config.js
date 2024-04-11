@@ -142,6 +142,7 @@ module.exports = {
 
         if (preferredScheme === 'dark') {
           d.documentElement.classList.add('theme-dark');
+          d.documentElement.setAttribute('data-theme', 'dark');
         }
 
         w.SELECTED_COLOR_SCHEME = preferredScheme;

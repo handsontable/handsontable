@@ -79,6 +79,7 @@
     "not dead"
   ],
   "dependencies": {
+    "@docsearch/js": "^3.6.0",
     "codesandbox": "^2.2.3",
     "dotenv": "^16.4.5",
     "patch-package": "^8.0.0"

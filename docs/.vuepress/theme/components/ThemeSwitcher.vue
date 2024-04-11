@@ -31,8 +31,10 @@ export default {
 
       if (this.isDarkTheme) {
         document.documentElement.classList.add(CLASS_THEME_DARK);
+        document.documentElement.setAttribute('data-theme', 'dark');
       } else {
         document.documentElement.classList.remove(CLASS_THEME_DARK);
+        document.documentElement.setAttribute('data-theme', 'light');
       }
     },
   },
