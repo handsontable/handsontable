@@ -14,7 +14,7 @@ interface Shortcut {
 export interface Context {
   addShortcut(shortcut: Shortcut): void;
   addShortcuts(shortcuts: Shortcut[]): void;
-  getShortcuts(): Shortcut[];
+  getShortcuts(keys: string[]): Shortcut[];
   hasShortcut(keys: string[]): boolean;
   removeShortcutsByKeys(keys: string[]): void;
   removeShortcutsByGroup(group: string): void;
