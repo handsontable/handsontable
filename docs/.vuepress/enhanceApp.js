@@ -71,16 +71,8 @@ export default async({ router, siteData, isServer }) => {
 
   const response = await fetch(`${window.location.origin}/docs/${pathVersion}data/common.json`);
   const docsData = await response.json();
-  const canonicalURLs = new Map(docsData.urls);
 
   siteData.pages.forEach((page) => {
-    const frontmatter = page.frontmatter;
-    const canonicalShortUrl = frontmatter.canonicalShortUrl;
-    const docsVersion = canonicalURLs.get(canonicalShortUrl);
-    const docsVersionPath = docsVersion === '' ? '' : `/${docsVersion}`;
-
-    frontmatter.canonicalUrl = `${page.hostname}/docs${docsVersionPath}/${canonicalShortUrl}/`;
-
     page.versions = docsData.versions;
     page.latestVersion = docsData.latestVersion;
     page.versionsWithPatches = new Map(docsData.versionsWithPatches);
