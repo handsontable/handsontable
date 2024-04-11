@@ -3,7 +3,7 @@ id: 7ezlo7y5
 title: 'Setting up a translation in Vue 3'
 metaTitle: 'Setting up a translation in Vue 3 - Guide - Handsontable Documentation'
 permalink: /vue3-setting-up-a-language
-canonicalUrl: /vue3-setting-up-a-language
+canonicalUrl: /vue3-setting-up-a-translation
 ---
 
 # Setting up a translation in Vue 3

@@ -3,7 +3,7 @@ id: ccqbm8hn
 title: 'Basic examples in React'
 metaTitle: 'Basic examples in React - Guide - Handsontable Documentation'
 permalink: /react-simple-example
-canonicalUrl: /react-simple-example
+canonicalUrl: /react-data-grid/binding-to-data
 ---
 
 # Basic examples in React
