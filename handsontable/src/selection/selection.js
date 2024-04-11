@@ -295,7 +295,6 @@ class Selection {
       this.selectedByRowHeader.clear();
       this.selectedByColumnHeader.clear();
     }
-
     if (!fragment) {
       this.setRangeEnd(coords);
     }
