@@ -113,6 +113,7 @@ SHA: ${getDocsRepoSHA()}
         // The "canonicalShortUrl" property is used by "dump-docs-data" plugin. The property holds the
         // canonical URL without slashes at the beginning and ending of the URL path and without Docs base.
         $page.frontmatter.canonicalShortUrl = canonicalShortUrl;
+        $page.frontmatter.canonicalUrl = `${getDocsHostname()}/docs${dedupeSlashes(`/${canonicalShortUrl}/`)}`;
       }
 
       if ($page.frontmatter.permalink) {
