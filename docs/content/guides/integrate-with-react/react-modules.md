@@ -3,7 +3,7 @@ id: weudz1vh
 title: 'Modules in React'
 metaTitle: 'Modules in React - Guide - Handsontable Documentation'
 permalink: /react-modules
-canonicalUrl: /react-modules
+canonicalUrl: /react-data-grid/modules
 ---
 
 # Modules in React
