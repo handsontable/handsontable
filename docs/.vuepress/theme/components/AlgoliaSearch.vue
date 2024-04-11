@@ -43,7 +43,7 @@ export default {
 }
 
 .DocSearch-Container {
-  z-index: 9999;
+  z-index: 99991
 }
 
 .DocSearch-Button-Container {
