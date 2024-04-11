@@ -24,6 +24,7 @@ export default {
               text: `${this.addLatest(v)}`,
               link: this.getLink(v),
               target: '_self',
+              rel: this.$page.latestVersion === v ? undefined : 'nofollow',
               isHtmlLink: true
             })) : []),
             ...this.getLegacyVersions()
@@ -70,6 +71,7 @@ export default {
         text: version.replace(/\.\d+$/, ''),
         link: `/docs/${version}/`,
         target: '_blank',
+        rel: 'nofollow',
         isHtmlLink: true,
       }));
     }
