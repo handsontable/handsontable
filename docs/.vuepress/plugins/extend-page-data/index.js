@@ -8,6 +8,16 @@ const buildMode = process.env.BUILD_MODE;
 const pluginName = 'hot/extend-page-data';
 
 /**
+ * Remove the slash from the beginning and ending of the string.
+ *
+ * @param {string} string String to process.
+ * @returns {string}
+ */
+function removeEndingSlashes(string) {
+  return string.replace(/^\//, '').replace(/\/$/, '');
+}
+
+/**
  * Dedupes the slashes in the string.
  *
  * @param {string} string String to process.
@@ -43,7 +53,16 @@ module.exports = (options, context) => {
       $page.buildMode = buildMode;
       $page.baseUrl = getDocsBaseUrl();
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
-      $page.frontmatter.canonicalUrl = dedupeSlashes(`/docs${$page.frontmatter.canonicalUrl}/`);
+
+      if ($page.frontmatter.canonicalUrl) {
+        let canonicalShortUrl = removeEndingSlashes($page.frontmatter.canonicalUrl);
+
+        if (!canonicalShortUrl.match(/(javascript|react)-data-grid\//)) {
+          canonicalShortUrl = `javascript-data-grid/${canonicalShortUrl}`;
+        }
+
+        $page.frontmatter.canonicalUrl = `${getDocsBaseUrl()}/docs${dedupeSlashes(`/${canonicalShortUrl}/`)}`;
+      }
     },
   };
 };

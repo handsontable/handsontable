@@ -3,7 +3,7 @@ id: 2ej30mcg
 title: 'Custom renderer in React'
 metaTitle: 'Custom renderer in React - Guide - Handsontable Documentation'
 permalink: /react-custom-renderer-example
-canonicalUrl: /react-custom-renderer-example
+canonicalUrl: /react-data-grid/cell-renderer
 ---
 
 # Custom renderer in React
