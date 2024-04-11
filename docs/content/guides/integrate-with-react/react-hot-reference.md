@@ -2,7 +2,7 @@
 title: 'Referencing the Handsontable instance in React'
 metaTitle: 'Referencing the Handsontable instance in React - Guide - Handsontable Documentation'
 permalink: /react-hot-reference
-canonicalUrl: /react-hot-reference
+canonicalUrl: /react-data-grid/instance-methods
 ---
 
 # Referencing the Handsontable instance in React

@@ -2,7 +2,7 @@
 title: 'Redux example'
 metaTitle: 'Redux example - Guide - Handsontable Documentation'
 permalink: /react-redux-example
-canonicalUrl: /react-redux-example
+canonicalUrl: /react-data-grid/redux
 ---
 
 # Redux example

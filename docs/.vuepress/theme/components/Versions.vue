@@ -54,7 +54,8 @@ export default {
         '4.0.0',
       ].map(version => ({
         text: version.replace(/\.\d+$/, ''),
-        link: `${this.$page.baseUrl}/docs/${version}/`
+        link: `${this.$page.baseUrl}/docs/${version}/`,
+        rel: 'nofollow',
       }));
     }
   },
@@ -67,6 +68,7 @@ export default {
             text: `${this.addLatest(v)}`,
             link: this.getLink(v),
             target: '_self',
+            rel: this.$page.latestVersion === v ? undefined : 'nofollow',
             isHtmlLink: true
           })),
           ...this.getLegacyVersions()

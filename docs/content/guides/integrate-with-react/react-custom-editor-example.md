@@ -2,7 +2,7 @@
 title: 'Custom editor in React'
 metaTitle: 'Custom editor in React - Guide - Handsontable Documentation'
 permalink: /react-custom-editor-example
-canonicalUrl: /react-custom-editor-example
+canonicalUrl: /react-data-grid/cell-editor
 ---
 
 # Custom editor in React

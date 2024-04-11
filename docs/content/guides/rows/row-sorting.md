@@ -2,7 +2,7 @@
 title: Row sorting
 metaTitle: Row sorting - Guide - Handsontable Documentation
 permalink: /row-sorting
-canonicalUrl: /row-sorting
+canonicalUrl: /rows-sorting
 ---
 
 # Row sorting

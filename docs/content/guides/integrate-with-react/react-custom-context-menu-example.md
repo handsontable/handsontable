@@ -2,7 +2,7 @@
 title: 'Custom context menu in React'
 metaTitle: 'Custom context menu in React - Guide - Handsontable Documentation'
 permalink: /react-custom-context-menu-example
-canonicalUrl: /react-custom-context-menu-example
+canonicalUrl: /react-data-grid/context-menu
 ---
 
 # Custom context menu in React
