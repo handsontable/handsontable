@@ -3,7 +3,7 @@ id: qz0qgi9f
 title: 'Language change in React'
 metaTitle: 'Language change in React - Guide - Handsontable Documentation'
 permalink: /react-language-change-example
-canonicalUrl: /react-language-change-example
+canonicalUrl: /react-data-grid/language
 ---
 
 # Language change in React

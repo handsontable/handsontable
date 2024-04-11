@@ -3,7 +3,7 @@ id: jirjthah
 title: Column sorting
 metaTitle: Column sorting - Guide - Handsontable Documentation
 permalink: /column-sorting
-canonicalUrl: /column-sorting
+canonicalUrl: /rows-sorting
 ---
 
 # Column sorting

@@ -3,7 +3,7 @@ id: zqk2jjw3
 title: 'Installation in React'
 metaTitle: 'Installation in React - Guide - Handsontable Documentation'
 permalink: /react-installation
-canonicalUrl: /react-installation
+canonicalUrl: /react-data-grid/installation
 ---
 
 # Installation in React

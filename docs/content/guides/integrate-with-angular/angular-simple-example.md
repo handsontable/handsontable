@@ -3,7 +3,7 @@ id: qpna498b
 title: 'Basic example in Angular'
 metaTitle: 'Basic example in Angular - Guide - Handsontable Documentation'
 permalink: /angular-simple-example
-canonicalUrl: /angular-simple-example
+canonicalUrl: /angular-basic-example
 ---
 
 # Basic example in Angular
