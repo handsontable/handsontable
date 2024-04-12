@@ -3,7 +3,7 @@ id: tybai59u
 title: Examples
 metaTitle: Examples - Handsontable Documentation
 permalink: /examples/
-canonicalUrl: /11.0/examples/
+canonicalUrl: /11.1/examples/
 tags:
     - faq
     - demo
