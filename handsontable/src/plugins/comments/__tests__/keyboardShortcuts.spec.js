@@ -45,6 +45,7 @@ describe('Comments keyboard shortcut', () => {
         data: createSpreadsheetData(500, 50),
         width: 300,
         height: 300,
+        colWidths: 50,
         rowHeaders: true,
         colHeaders: true,
         comments: true,
@@ -71,8 +72,10 @@ describe('Comments keyboard shortcut', () => {
       expect(editor.value).toBe('');
       expect(document.activeElement).toBe(editor);
       expect(plugin.range).toEqualCellRange('highlight: 400,40 from: 400,40 to: 400,40');
+
+      // 2050 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(1816);
-      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(8965);
+      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(8966);
     });
 
     it('should open and edit a comment, make it active, and ready for typing', async() => {

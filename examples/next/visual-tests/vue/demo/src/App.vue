@@ -1,16 +1,12 @@
 <template>
   <div id="root">
-    <DataGrid/>
+    <router-view></router-view>
   </div>
 </template>
 
 <script>
-import DataGrid from "./components/DataGrid";
 
 export default {
   name: "App",
-  components: {
-    DataGrid
-  }
 };
 </script>
