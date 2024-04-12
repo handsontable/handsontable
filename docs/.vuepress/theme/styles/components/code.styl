@@ -151,15 +151,16 @@
     white-space: pre
 }
 
-.copycode, .report { 
+.copycode, .report, .github { 
     position: absolute 
-    top: 8px
-    right: -8px
+    top: -52px
+    right: 0
     transition: all $t ease-in-out !important
-    opacity 0
+    opacity 1
     padding: 8px !important
     z-index: 1
     color: $textColor
+    background: transparent !important
 
     i {
         opacity: .64
@@ -172,6 +173,16 @@
         }
     }
 
+    &.check {
+        i {
+            opacity 1
+
+            + i {
+                opacity: .64
+            }
+        }
+    }
+
     &:after {
         content: attr(aria-label)
         position absolute
@@ -181,23 +192,14 @@
         transform: translateX(-50%)
         padding:4px 8px
         border-radius: $radius
-        background: $sideColor
-        border: 1px solid $lightBorderColor
+        background: black
+        border: 1px solid black
+        color: white
         opacity: 0
         transition: all $t ease-in-out
         font-size: $font-size-xs
         line-height: $line-height-xs
         pointer-events: none
-    }
-
-    &.check {
-        i {
-            opacity 0
-
-            + i {
-                opacity: .64
-            }
-        }
     }
 
     @media (hover: hover) {
@@ -207,13 +209,13 @@
     }
 }
 .report {
-    right: 32px
+    right: 40px
     padding: 8px 16px
     padding: 8px 16px
     border:none
     cursor: pointer
     border-radius: $radius
-    background: $sideColor 
+    background: transparent
     border: 1px solid $lightBorderColor
     color: $textColor
 
@@ -224,6 +226,9 @@
         }
     }
 }
+.github { 
+    right: 80px
+}
 
 div[class*="language-"] pre, 
 div[class*="language-"] pre[class*="language-"] {
@@ -231,16 +236,6 @@ div[class*="language-"] pre[class*="language-"] {
     position: relative
     
     
-}
-
-div[class*="language-"] {
-    @media (hover: hover) {
-        &:hover {
-            .copycode, .report { 
-                opacity 1
-            }
-        }
-    }
 }
 
 output.console {

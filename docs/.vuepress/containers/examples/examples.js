@@ -166,22 +166,29 @@ module.exports = function(docsVersion, base) {
         tokens.splice(index + 1, 0, ...newTokens);
 
         return `
+          <div class="example-container">!!!!!! TODO - HOT preview here</div>
           <div class="tabs-button-wrapper">
             <div class="tabs-button-list">
-              ${Boolean(!noEdit) && stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
-              ${Boolean(!noEdit) && codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
-              ${Boolean(!noEdit) && jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset)}
+              <button class="show-code"><i class="ico i-code"></i>Source code</button>
+              <div class="example-controls">
+                ${Boolean(!noEdit) && stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
+                ${Boolean(!noEdit) && codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
+                ${Boolean(!noEdit) && jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset)}
+                <button aria-label="Open in new tab"><i class="ico i-zoom"></i></button>
+                <button aria-label="Reset demo"><i class="ico i-refresh"></i></button>
+              </div>
             </div>
-            <tabs
-              :class="$parent.$parent.addClassIfPreviewTabIsSelected('${id}', 'selected-preview')"
-              :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }"
-              cache-lifetime="0"
-              @changed="$parent.$parent.codePreviewTabChanged(...arguments, '${id}')"
-            >
+            <div class="example-container-code">
+              <tabs
+                :class="$parent.$parent.addClassIfPreviewTabIsSelected('${id}', 'selected-preview')"
+                :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }"
+                cache-lifetime="0"
+                @changed="$parent.$parent.codePreviewTabChanged(...arguments, '${id}')"
+              >
           `;
       } else {
         // close preview
-        return '</tabs></div>';
+        return '</tabs></div></div>';
       }
     },
   };

@@ -16,7 +16,7 @@ html.theme-dark {
     $onsurfaceColor     = var(--color-gray-700)
     $linkColor          = var(--color-lightblue)
     $linkHoverColor     = var(--color-lighterblue)
-    $editorColor        = var(--color-gray-700)
+    $editorColor        = var(--color-gray-800)
     $editorHeadColor    = var(--color-gray-800)
     $lightBorderColor   = var(--color-gray-600)
     $depricatedColor    = var(--color-yellow) 
@@ -862,18 +862,21 @@ html.theme-dark {
             li.tabs-component-tab  {
                 a.tabs-component-tab-a {
                     color: $text2Color
+                    background: $onsurfaceColor
+                    border: 1px solid $onsurfaceColor
                 }
 
                 &.is-active { 
-                    border-bottom: 1px solid $linkColor
                     a {
                         color: $textColor
+                        background: $onsurfaceColor
+                        border: 1px solid $lightBorderColor
                     }
                 }
             }
         }
     }
-
+    /*
     .form-jsfiddle-external {
         .js-fiddle-link { 
             button { 
@@ -887,6 +890,7 @@ html.theme-dark {
             }
         }
     }
+    */
 
     div[class*="language-"]::before { 
         color: $text2Color
@@ -981,7 +985,9 @@ html.theme-dark {
         color: $textColor
     }
 
-    .copycode, .report { 
+    .copycode, .report, .github { 
+        background: transparent !important
+
         &:after {
             color: $textColor
             background: black //$sideColor
@@ -1170,6 +1176,44 @@ html.theme-dark {
         --docsearch-searchbox-focus-background: transparent;
         --docsearch-text-color: $textColor;
         --docsearch-muted-color: $textColor;
+    }
+
+    //Editor 
+    .tabs-button-wrapper {
+
+        .tabs-button-list {
+
+            &.active {
+                .show-code {
+                    border: 1px solid $accentColor !important
+                }
+            }
+            
+            .show-code {
+                border: 1px solid $sideColor !important
+            }
+
+            .example-controls { 
+
+                button {
+
+                    i, svg { 
+                    }
+
+                    svg {
+                        path {
+                            fill: white
+                        }
+                    }
+
+                    &:after {
+                        color: $textColor
+                        background: black //$sideColor
+                        border: 0 solid $lightBorderColor
+                    }
+                }
+            }
+        }
     }
 }
 
