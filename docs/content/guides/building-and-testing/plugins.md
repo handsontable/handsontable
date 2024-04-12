@@ -3,7 +3,7 @@ id: 39o3uw0q
 title: Plugins
 metaTitle: Plugins - Guide - Handsontable Documentation
 permalink: /plugins
-canonicalUrl: /plugins
+canonicalUrl: /custom-plugins
 tags:
   - custom plugin
   - skeleton
