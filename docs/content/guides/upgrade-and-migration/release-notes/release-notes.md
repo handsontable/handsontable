@@ -29,8 +29,8 @@ See the full history of changes made to Handsontable in each major, minor, and p
 Released on April 16, 2024
 
 For more information on this release, see:
-- [Blog post (14.3.0)](https://handsontable.com/blog/handsontable-14-2-0-improved-react-rendering-new-hooks)
-- [Documentation (14.3)](https://handsontable.com/docs/14.2)
+- [Blog post (14.3.0)](https://handsontable.com/blog/handsontable-14.3.0-enhanced-navigation-and-bug-fixes)
+- [Documentation (14.3)](https://handsontable.com/docs/14.3)
 
 ### Added
 - Added new feature, Navigation within selection and edit cells within a range [#10732](https://github.com/handsontable/handsontable/pull/10732)

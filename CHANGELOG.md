@@ -29,7 +29,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 For more information on Handsontable 14.3.0, see:
 
-- [Blog post (14.3.0)](https://handsontable.com/blog/handsontable-14-3-0-improved-react-re-rendering-new-handsontable-hooks)
+- [Blog post (14.3.0)](https://handsontable.com/blog/handsontable-14.3.0-enhanced-navigation-and-bug-fixes)
 - [Documentation (14.3)](https://handsontable.com/docs/14.3)
 - [Release notes (14.3.0)](https://handsontable.com/docs/release-notes/#_14-3-0)
 
