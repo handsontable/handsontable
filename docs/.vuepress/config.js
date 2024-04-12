@@ -363,25 +363,24 @@ module.exports = {
     nav: [
       // Guide & API Reference has been defined in theme/components/NavLinks.vue
       //{ text: 'GitHub', link: 'https://github.com/handsontable/handsontable' },
-      { text: 'Support',
+      { text: 'Community',
         items: [
+          {
+            text: 'Developers Forum',
+            link: 'https://forum.handsontable.com',
+          },
+          {
+            text: 'GitHub Discussions',
+            link: 'https://github.com/handsontable/handsontable/issues/new/choose',
+          },
+          {
+            text: 'StackOverflow',
+            link: 'https://stackoverflow.com/tags/handsontable',
+          },
           {
             text: 'Contact support',
             link: 'https://handsontable.com/contact?category=technical_support',
           },
-          {
-            text: 'Report an issue',
-            link: 'https://github.com/handsontable/handsontable/issues/new/choose',
-          },
-          {
-            text: 'Handsontable forum',
-            link: 'https://forum.handsontable.com',
-          },
-          {
-            text: 'Ask on Stack Overflow',
-            link: 'https://stackoverflow.com/questions/tagged/handsontable',
-          },
-          { text: 'Blog', link: 'https://handsontable.com/blog' },
         ],
       },
     ],

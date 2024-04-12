@@ -8,7 +8,7 @@
       <NavLink :item="apiLink"/>
     </div>
     <div class="nav-item">
-      <NavLink :item="pricingLink"/>
+      <NavLink :item="roadmapLink"/>
     </div>
   </nav>
 </template>
@@ -38,12 +38,12 @@ export default {
         text: 'API'
       };
     },
-    pricingLink() {
+    roadmapLink() {
       return {
-        link: `https://handsontable.com/pricing/`,
-        text: 'Pricing'
+        link: `${this.frameworkUrlPrefix}/roadmap/`,
+        text: 'Roadmap'
       };
-    }
+    },
   }
 };
 
@@ -55,4 +55,11 @@ export default {
       };
     }
 */
+/*
+    pricingLink() {
+      return {
+        link: `https://handsontable.com/pricing/`,
+        text: 'Pricing'
+      };
+    }*/
 </script>

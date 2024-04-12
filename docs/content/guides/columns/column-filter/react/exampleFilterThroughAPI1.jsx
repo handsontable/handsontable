@@ -138,12 +138,8 @@ const ExampleComponent = () => {
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
-        <button onClick={filterBelow200}>Show items &lt; $200</button>
-        <br />
-        <br />
-        <button onClick={filterAbove200}>Show items &gt; $200</button>
-        <br />
-        <br />
+        <button onClick={filterBelow200}>Show items &lt; $200</button> 
+        <button onClick={filterAbove200}>Show items &gt; $200</button> 
         <button onClick={clearAllFilters}>Clear filters</button>
       </div>
     </>

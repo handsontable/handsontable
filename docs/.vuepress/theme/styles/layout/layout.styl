@@ -12,7 +12,8 @@ body {
 
 .Inter { font-family: $font }
 h1,h2,h3,h4,h5,h6 { font-family: $font-aeonik }
-
+.whitespace-nowrap { white-space nowrap}
+  
 a { 
   color: $linkColor 
   font-weight: 400
@@ -105,7 +106,7 @@ a {
   z-index -1
   opacity: .5
   zoom: 1.8;
-  filter: blur(20px) hue-rotate(45deg);
+  filter: blur(20px) hue-rotate(45deg) saturate(2.5);
   right: -250px;
   bottom: -240px;
 } 

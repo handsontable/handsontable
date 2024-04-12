@@ -28,7 +28,7 @@ html.theme-dark {
     $editorFunctionColor        = #f08d49;        
     $editorSymbolColor          = #f8c555;        
     $editorSelectorColor        = #cc99cd;        
-    $editorStringColor          = #7ec699 ;                
+    $editorStringColor          = #7ec699;                
     $editorOperatorColor        = #67cdccri;      
     $editorInsertedColor        = green;       
     $editorPunctuationColor     = #ccc;       
@@ -100,7 +100,7 @@ html.theme-dark {
         }
 
         .info-box { 
-            background: $sideColor
+            background: $gradient2
 
             span { 
                 background-color: $accentColor
@@ -257,6 +257,7 @@ html.theme-dark {
             }   
 
             //Search
+            /*
             .search-box { 
                 input { 
                     color: $text2Color
@@ -298,7 +299,7 @@ html.theme-dark {
                         }
                     }
                 }
-            }
+            }*/
         }
     }
 
@@ -387,6 +388,7 @@ html.theme-dark {
                 }
             }   
 
+            /*
             .search-box { 
                 input { 
                     background: $borderColor
@@ -437,10 +439,9 @@ html.theme-dark {
                     }
                 }
             }
+            */
         }
     }
-
-    
 
     //Page
     .page {
@@ -486,7 +487,7 @@ html.theme-dark {
             }
             
             h2 .no {
-                border: 1px solid $accentColor
+                border: 1px solid $text2Color
                 background: $borderColor
             }
 
@@ -603,6 +604,16 @@ html.theme-dark {
                 background: $borderColor
                 border: 1px solid $lightBorderColor
 
+                &.tip {
+                    border-color: $accentColor
+                }
+                &.success {
+                    border-color: $successColor
+                }
+                &.warning {
+                    border-color: $errorColor
+                }
+
                 p { 
                     a { 
                         //color: $textColor 
@@ -651,10 +662,13 @@ html.theme-dark {
         }
         
         table:not(.htCore) { 
+            box-shadow: 0 0 0 1px $borderColor 
+
             thead { 
                 tr { 
                     th { 
-                        border-top:1px solid $borderColor
+                        background: $onsurfaceColor
+                        //border-top:1px solid $borderColor
                         color:$textColor
                     }
                 }
@@ -662,12 +676,12 @@ html.theme-dark {
 
             tbody {
                 tr {
-                    background: $sideColor
+                    background: $bgColor
                     td {
-                        
+                        border-top: 1px solid $borderColor
                     }
                     &:nth-child(2n) { 
-                        background: $bgColor
+                        background: $sideColor
                     }
                 }
             }
@@ -1110,29 +1124,53 @@ html.theme-dark {
         border: 1px solid $borderColor
         background: $sideColor
     }
+
+    // Algolia
+
+   
+
+    #algolia-search {
+
+        .DocSearch-Button {
+            border: 1px solid $lightBorderColor
+            background: $borderColor
+            transition: all $ts ease-in-out
+
+            .DocSearch-Search-Icon { 
+                path { 
+                    color: $textColor
+                }
+            }
+
+            .DocSearch-Button-Placeholder {
+                color: $text2Color
+            }
+
+            &:hover {
+                .DocSearch-Button-Placeholder {
+                }
+            }
+
+            &:focus-visible {
+            }
+            
+        }
+    }
+
+    .DocSearch-Button-Keys {
+        kbd { 
+            background: $onsurfaceColor
+            color: $text2Color
+        }
+    }
+
+    &[data-theme=dark] {
+        --docsearch-container-background: $dropColorSearchDark
+        --docsearch-searchbox-background: transparent;
+        --docsearch-searchbox-focus-background: transparent;
+        --docsearch-text-color: $textColor;
+        --docsearch-muted-color: $textColor;
+    }
 }
 
-// .algolia-autocomplete {
-//   .ds-dropdown-menu {
-//     &:before,
-//     [class^=ds-dataset-] {
-//       background-color $backgroundColor;
-//       border-color: $sectionBorderColor;
-//     }
-//   }
 
-//   .algolia-docsearch-suggestion {
-//     color $fontColor !important;
-//     background-color $backgroundColor;
-
-//     .algolia-docsearch-suggestion--subcategory-column {
-//       color $fontColor !important;
-//     }
-//   }
-
-//   .algolia-docsearch-suggestion--category-header,
-//   .algolia-docsearch-suggestion--highlight,
-//   .algolia-docsearch-suggestion--title {
-//     color $fontColor !important;
-//   }
-// }
