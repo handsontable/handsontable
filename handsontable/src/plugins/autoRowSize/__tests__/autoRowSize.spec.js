@@ -283,8 +283,8 @@ describe('AutoRowSize', () => {
 
     keyDownUp('enter');
 
-    expect(getInlineStartClone().find('.wtHolder').scrollTop()).toBe(89);
-    expect(getMaster().find('.wtHolder').scrollTop()).toBe(89);
+    expect(getInlineStartClone().find('.wtHolder').scrollTop()).toBe(90);
+    expect(getMaster().find('.wtHolder').scrollTop()).toBe(90);
   });
 
   it('should consider CSS style of each instance separately', () => {

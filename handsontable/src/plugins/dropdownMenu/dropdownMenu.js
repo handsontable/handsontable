@@ -420,12 +420,11 @@ export class DropdownMenu extends BasePlugin {
    * @param {Event} event The mouse event object.
    */
   #onTableClick(event) {
-    event.stopPropagation();
-
     if (hasClass(event.target, BUTTON_CLASS_NAME)) {
       const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
       const rect = event.target.getBoundingClientRect();
 
+      event.stopPropagation();
       this.#isButtonClicked = false;
 
       this.open({

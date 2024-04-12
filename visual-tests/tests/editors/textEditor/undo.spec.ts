@@ -5,7 +5,7 @@ import { selectCell, selectEditor, openEditor } from '../../../src/page-helpers'
 /**
  * Checks whether Control+Z undoes the last action.
  */
-test(__filename, async({ page }) => {
+test(__filename, async({ tablePage }) => {
 
   const cell = await selectCell(1, 1);
 
@@ -15,9 +15,9 @@ test(__filename, async({ page }) => {
 
   await cellEditor.type('test');
 
-  await page.screenshot({ path: helpers.screenshotPath() });
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   await cell.press('Control+Z');
 
-  await page.screenshot({ path: helpers.screenshotPath() });
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

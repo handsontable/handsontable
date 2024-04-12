@@ -5,6 +5,9 @@ metaTitle: Referencing Handsontable - Angular Data Grid | Handsontable
 description: Referencing a Handsontable instance from an Angular component to programmatically perform actions such as reloading the data in your data grid.
 permalink: /angular-hot-reference
 canonicalUrl: /angular-hot-reference
+react:
+  id: z4rz7wyk
+  metaTitle: Referencing Handsontable - Angular Data Grid | Handsontable
 searchCategory: Guides
 ---
 

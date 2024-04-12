@@ -34,7 +34,7 @@ function logCheck(valid) {
 async function sleep(timeout) {
   return Promise.resolve({
     then(resolve) {
-      setTimeout(resolve, timeout || 300);
+      setTimeout(resolve, timeout || 100);
     }
   });
 }
