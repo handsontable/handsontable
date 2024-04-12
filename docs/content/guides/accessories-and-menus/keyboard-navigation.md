@@ -3,7 +3,7 @@ id: 5w6juytv
 title: Keyboard navigation
 metaTitle: Keyboard navigation - Guide - Handsontable Documentation
 permalink: /keyboard-navigation
-canonicalUrl: /keyboard-navigation
+canonicalUrl: /keyboard-shortcuts
 tags:
   - key bindings
   - keymap

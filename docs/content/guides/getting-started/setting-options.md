@@ -3,7 +3,7 @@ id: p7oq0ph7
 title: Configuration options
 metaTitle: Configuration options - Guide - Handsontable documentation
 permalink: /setting-options
-canonicalUrl: /setting-options
+canonicalUrl: /configuration-options
 tags:
   - properties
   - config

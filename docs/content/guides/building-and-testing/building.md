@@ -3,7 +3,7 @@ id: 7a5vawwl
 title: Building process
 metaTitle: Building process - Guide - Handsontable Documentation
 permalink: /building
-canonicalUrl: /building
+canonicalUrl: /custom-builds
 tags:
   - custom build
   - bundling
