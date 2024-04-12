@@ -67,8 +67,8 @@ export default {
   },
   updated() {
     // ToC
-    const listItems = document.querySelectorAll('.table-of-contents > ul > li');
-    const sections = document.querySelectorAll('.theme-default-content h2');
+    const listItems = document.querySelectorAll('.table-of-contents ul li');
+    const sections = document.querySelectorAll('.theme-default-content h2, .theme-default-content h3');
 
     // Function to add active class to list item
     function setActiveNavItem(id) {
