@@ -2,7 +2,7 @@
 title: 'Setting up a translation in React'
 metaTitle: 'Setting up a translation in React - Guide - Handsontable Documentation'
 permalink: /react-setting-up-a-locale
-canonicalUrl: /react-setting-up-a-locale
+canonicalUrl: /react-data-grid/locale
 ---
 
 # Setting up a translation in React

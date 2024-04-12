@@ -57,11 +57,13 @@ module.exports = (options, context) => {
       if ($page.frontmatter.canonicalUrl) {
         let canonicalShortUrl = removeEndingSlashes($page.frontmatter.canonicalUrl);
 
-        if (!canonicalShortUrl.match(/(javascript|react)-data-grid\//)) {
-          canonicalShortUrl = `javascript-data-grid/${canonicalShortUrl}`;
-        }
+        if (!canonicalShortUrl.startsWith(`${$page.currentVersion}/`)) {
+          if (!canonicalShortUrl.match(/(javascript|react)-data-grid\//)) {
+            canonicalShortUrl = `javascript-data-grid/${canonicalShortUrl}`;
+          }
 
-        $page.frontmatter.canonicalUrl = `${getDocsBaseUrl()}/docs${dedupeSlashes(`/${canonicalShortUrl}/`)}`;
+          $page.frontmatter.canonicalUrl = `${getDocsBaseUrl()}/docs${dedupeSlashes(`/${canonicalShortUrl}/`)}`;
+        }
       }
     },
   };

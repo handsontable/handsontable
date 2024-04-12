@@ -2,7 +2,7 @@
 title: Setting options
 metaTitle: Setting options - Guide - Handsontable Documentation
 permalink: /setting-options
-canonicalUrl: /setting-options
+canonicalUrl: /configuration-options
 tags:
   - properties
   - config

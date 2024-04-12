@@ -2,7 +2,7 @@
 title: Examples
 metaTitle: Examples - Handsontable Documentation
 permalink: /examples/
-canonicalUrl: /examples/
+canonicalUrl: /9.0/examples/
 tags:
     - faq
     - demo

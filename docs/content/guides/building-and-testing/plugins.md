@@ -2,7 +2,7 @@
 title: Plugins
 metaTitle: Plugins - Guide - Handsontable Documentation
 permalink: /plugins
-canonicalUrl: /plugins
+canonicalUrl: /custom-plugins
 tags:
   - custom plugin
   - skeleton

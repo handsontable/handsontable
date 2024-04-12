@@ -2,7 +2,7 @@
 title: File structure
 metaTitle: File structure - Guide - Handsontable Documentation
 permalink: /file-structure
-canonicalUrl: /file-structure
+canonicalUrl: /folder-structure
 tags:
   - directory
   - repository
