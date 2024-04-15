@@ -53,14 +53,14 @@
     "release": "npm run test && npm run publish"
   },
   "peerDependencies": {
-    "@angular/animations": ">=12.0.0",
-    "@angular/common": ">=12.0.0",
-    "@angular/compiler": ">=12.0.0",
-    "@angular/core": ">=12.0.0",
-    "@angular/forms": ">=12.0.0",
-    "@angular/platform-browser": ">=12.0.0",
-    "@angular/platform-browser-dynamic": ">=12.0.0",
-    "@angular/router": ">=12.0.0",
+    "@angular/animations": ">=17.0.0",
+    "@angular/common": ">=17.0.0",
+    "@angular/compiler": ">=17.0.0",
+    "@angular/core": ">=17.0.0",
+    "@angular/forms": ">=17.0.0",
+    "@angular/platform-browser": ">=17.0.0",
+    "@angular/platform-browser-dynamic": ">=17.0.0",
+    "@angular/router": ">=17.0.0",
     "handsontable": "^14.0.0"
   },
   "dependencies": {
