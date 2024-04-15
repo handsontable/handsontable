@@ -1,4 +1,4 @@
-const buildAngularBody = ({ html, js, version }) => {
+const buildAngularBody = ({ html, js, version, hyperformulaVersion }) => {
   const codeParts = js.matchAll(/\/\* file:(.*?)\*\/(.*?)\/\* end-file \*\//gs);
   const codePartsObject = [...codeParts]?.reduce((acc, curr) => {
     const name = curr?.[1].trim();
@@ -40,7 +40,7 @@ const buildAngularBody = ({ html, js, version }) => {
     "rxjs": "^7.8.0",
     "tslib": "^2.6.2",
     "zone.js": "^0.14.4",
-    "hyperformula": "^2.4.0",
+    "hyperformula": "${hyperformulaVersion}",
     "handsontable": "${version}",
     "@handsontable/angular": "${version}"
   },
