@@ -1,5 +1,5 @@
-const buildVue3Body = ({ id, html, js, css, version, preset }) => {
-  const addVuex = preset.includes('vuex')
+const buildVue3Body = ({ id, html, js, css, version, hyperformulaVersion, preset }) => {
+  const addVuexDependencies = preset.includes('vuex')
     ? `
     "vuex": "^4.0.2",`
     : '';
@@ -17,8 +17,8 @@ const buildVue3Body = ({ id, html, js, css, version, preset }) => {
     "build": "vue-cli-service build"
   },
   "dependencies": {
-    "vue": "3.2.45",${addVuex}
-    "hyperformula": "^2.4.0",
+    "vue": "3.2.45",${addVuexDependencies}
+    "hyperformula": "${hyperformulaVersion}",
     "handsontable": "${version}",
     "@handsontable/vue3": "${version}"
   },
