@@ -163,9 +163,10 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
   /**
    * Returns `true` if the `hotInstance` exists, but was destroyed.
    *
+   * @private
    * @returns {boolean}
    */
-  #isHotInstanceDestroyed(): boolean {
+  _isHotInstanceDestroyed(): boolean {
     return this.__hotInstance && this.__hotInstance.isDestroyed;
   }
 
@@ -391,7 +392,7 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
    * @returns {Handsontable.GridSettings} New global set of settings for Handsontable.
    */
   createNewGlobalSettings(init: boolean = false, prevProps: HotTableProps = {}): Handsontable.GridSettings {
-    const initOnlySettingKeys = !this.#isHotInstanceDestroyed() ? // Needed for React's double-rendering.
+    const initOnlySettingKeys = !this._isHotInstanceDestroyed() ? // Needed for React's double-rendering.
       ((this.hotInstance?.getSettings() as any)?._initOnlySettings || []) :
       [];
     const newSettings = SettingsMapper.getSettings(this.props, {
