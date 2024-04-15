@@ -1,3 +1,8 @@
+import {
+  randBoolean,
+  randNumber,
+} from '@ngneat/falso';
+
 const data = [
   [
     false,
@@ -1207,3 +1212,19 @@ export const ODD_ROW_CLASS = "odd";
 export function getData() {
   return data;
 }
+
+export const scenarioData = [
+  ...Array.from({ length: 50 }, () => ({
+    product_id: 100000 + randNumber({ max: 99 }),
+    mobile_apps: randBoolean() ? 'Y' : 'N',
+    pricing: ['Freemium', 'Premium', 'Subscription'][Math.floor(Math.random() * 3)],
+    rating: randNumber({ min: 1, max: 5, fraction: 1 }),
+    category: ['Data Management', 'Data Analysis', 'Data Visualization', 'Data Storage'][Math.floor(Math.random() * 4)],
+    industry: ['Utilities', 'Healthcare', 'Finance', 'Retail'][Math.floor(Math.random() * 4)],
+    business_scale: ['Small', 'Medium', 'Large'][Math.floor(Math.random() * 3)],
+    user_type: ['Business', 'Individual'][Math.floor(Math.random() * 2)],
+    no_of_users: ['Single', 'Multiple'][Math.floor(Math.random() * 2)],
+    deployment: ['Cloud', 'On-premises'][Math.floor(Math.random() * 2)],
+    OS: ['Linux', 'Windows', 'MacOS'][Math.floor(Math.random() * 3)],
+  })),
+];

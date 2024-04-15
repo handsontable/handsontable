@@ -1,10 +1,12 @@
 import Vue from 'vue';
 import Router from 'vue-router';
 import DataGrid from './components/DataGrid.vue';
+import ScenarioGrid from './components/ScenarioGrid.vue';
 
 Vue.use(Router);
 
 const routes = [
+  { path: '/test', component: ScenarioGrid },
   { path: '/', component: DataGrid },
 ];
 
