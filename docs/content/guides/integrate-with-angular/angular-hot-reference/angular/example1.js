@@ -13,6 +13,7 @@ import { HotTableRegisterer } from '@handsontable/angular';
     <button (click)="swapHotData()" class="controls">Load new data</button>
   `,
 })
+
 export class AppComponent {
   private hotRegisterer = new HotTableRegisterer();
   id = 'hotInstance';
@@ -34,6 +35,7 @@ export class AppComponent {
     this.hotRegisterer.getInstance(this.id).loadData([['new', 'data']]);
   }
 }
+/* end-file */
 
 /* file: app.module.ts */
 import { NgModule } from '@angular/core';
@@ -52,12 +54,6 @@ registerAllModules();
   declarations: [ AppComponent ],
   bootstrap: [ AppComponent ]
 })
+
 export class AppModule { }
-
-/* start:skip-in-preview */
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-
-platformBrowserDynamic()
-  .bootstrapModule(AppModule)
-  .catch(err => { console.error(err) });
-/* end:skip-in-preview */
+/* end-file */

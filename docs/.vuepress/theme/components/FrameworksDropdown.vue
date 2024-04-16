@@ -37,21 +37,6 @@ function setCookie(name, value) {
 const frameworkIdToFullName = new Map([
   ['javascript', { name: 'JavaScript' }],
   ['react', { name: 'React' }],
-  [
-    'angular',
-    {
-      name: 'Angular',
-      homepage: '/javascript-data-grid/angular-installation/',
-    },
-  ],
-  [
-    'vue',
-    { name: 'Vue 2', homepage: '/javascript-data-grid/vue-installation/' },
-  ],
-  [
-    'vue3',
-    { name: 'Vue 3', homepage: '/javascript-data-grid/vue3-installation/' },
-  ],
 ]);
 
 export default {
@@ -59,36 +44,31 @@ export default {
   components: {
     DropdownLink,
   },
-  watch: {
-    $route(to) {
-      this.detectLegacyFramework(to.fullPath);
-    },
-  },
-  data() {
-    return {
-      legacyFramework: null,
-    };
-  },
   methods: {
     onFrameworkClick(item) {
       setCookie('docs_fw', item.id === 'react' ? 'react' : 'javascript');
-    },
-    detectLegacyFramework(path) {
-      const frameworkMatch = path.match(
-        /javascript-data-grid\/(vue3|vue|angular)?/
-      );
-
-      this.legacyFramework = frameworkMatch ? frameworkMatch[1] : null;
     },
     getAlt(framework) {
       return frameworkIdToFullName.get(framework).alt;
     },
     getLink(framework) {
-      const { homepage = `/${framework}${this.$page.frameworkSuffix}/` } =
-        frameworkIdToFullName.get(framework);
+      const currentPageSlug =
+        (framework === 'react' && !this.$page.frontmatter.react)
+        || (framework === 'javascript' && this.$page.frontmatter?.onlyFor?.includes('react'))
+          ? ''
+          : this.$page.frontmatter.permalink.split('/')[2];
+      const {
+        homepage = `/${framework}${
+          this.$page.frameworkSuffix ? `${this.$page.frameworkSuffix}/` : ''
+        }`,
+      } = frameworkIdToFullName.get(framework);
 
       if (this.$page.currentVersion === this.$page.latestVersion) {
-        return `/docs${homepage}`;
+        if (currentPageSlug) {
+          return `/docs${homepage}${currentPageSlug}/`;
+        } else {
+          return `/docs${homepage}`;
+        }
       }
 
       return `/docs/${this.$page.currentVersion}${homepage}`;
@@ -115,9 +95,10 @@ export default {
       return `${this.$page.frameworkName} data grid`;
     },
     imageUrl() {
-      const frameworkWithoutNumber = (
-        this.legacyFramework ?? this.$page.currentFramework
-      ).replace(/\d+$/, '');
+      const frameworkWithoutNumber = this.$page.currentFramework.replace(
+        /\d+$/,
+        ''
+      );
 
       return this.$withBase(
         `/img/pages/introduction/${frameworkWithoutNumber}.svg`
@@ -125,15 +106,10 @@ export default {
     },
     item() {
       return {
-        text: this.getFrameworkName(
-          this.legacyFramework ?? this.$page.currentFramework
-        ),
+        text: this.getFrameworkName(this.$page.currentFramework),
         items: this.getFrameworkItems(),
       };
     },
-  },
-  created() {
-    this.detectLegacyFramework(this.$route.fullPath);
   },
 };
 </script>

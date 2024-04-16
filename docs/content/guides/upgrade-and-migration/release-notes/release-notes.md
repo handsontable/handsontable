@@ -24,6 +24,33 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
+## 14.3.0
+
+Released on April 16, 2024
+
+For more information on this release, see:
+- [Blog post (14.3.0)](https://handsontable.com/blog/handsontable-14.3.0-enhanced-navigation-and-bug-fixes)
+- [Documentation (14.3)](https://handsontable.com/docs/14.3)
+
+### Added
+- Added new feature, Navigation within selection and edit cells within a range [#10732](https://github.com/handsontable/handsontable/pull/10732)
+
+### Changed
+- Updated dependencies based on npm audit, most notably we upgraded to angular 17.0 [#10889](https://github.com/handsontable/handsontable/pull/10889)
+
+### Fixed
+
+- Ensured the cursor changes to 'grabbing' for all table elements during column or row movement[#10852](https://github.com/handsontable/handsontable/pull/10852)
+- Resolved an issue where the `TAB` key failed to move selection when editing select-type cells in 'fast edit' mode. [#10849](https://github.com/handsontable/handsontable/pull/10849)
+- Prevent the `Cmd/Ctrl + A` action when the focus is on headers. [#10853](https://github.com/handsontable/handsontable/pull/10853)
+- Unified `source` arguments in `beforeChange` and `afterChange` hooks triggered by the Merge Cells plugin. [#10857](https://github.com/handsontable/handsontable/pull/10857)
+- Ensured focus retention after column collapsing. [#10865](https://github.com/handsontable/handsontable/pull/10865)
+- Fixed visibility issue with bottom/right cell borders after scrolling from the absolute top/left positions using the api. [#10887](https://github.com/handsontable/handsontable/pull/10887)
+- Fixed Dropdown plugin logic to prevent blocking click events from custom editors. [#10888](https://github.com/handsontable/handsontable/pull/10888)
+- Fixed datepicker position for the date cell type. [#10892](https://github.com/handsontable/handsontable/pull/10892)
+- Vue: Fixed an issue in the Vue and Vue3 wrappers where updating the hook callback didn't reflect changes in the underlying instance's settings. [#10686](https://github.com/handsontable/handsontable/issues/10686)
+- Vue: Fixed the behavior of the Vue/Vue3 wrappers' `simpleEqual` helper, which previously returned incorrect results when comparing identical objects. [#10896](https://github.com/handsontable/handsontable/pull/10896)
+
 ## 14.2.0
 
 Released on March 6, 2024
@@ -43,7 +70,7 @@ For more information on this release, see:
 
 - Improved the viewport scroll behavior after clicking on a cell. [#10709](https://github.com/handsontable/handsontable/pull/10709)
 - Improved the response of checkboxes to double-clicks. [#10748](https://github.com/handsontable/handsontable/pull/10748)
-- Improved the way [`checkbox`](@/guides/cell-types/checkbox-cell-type.md) cells react to pressing <kbd>**Space**</kbd> or <kbd>**Enter**</kbd>. [#10802](https://github.com/handsontable/handsontable/pull/10802)
+- Improved the way [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) cells react to pressing <kbd>**Space**</kbd> or <kbd>**Enter**</kbd>. [#10802](https://github.com/handsontable/handsontable/pull/10802)
 - Improved the type inference of the [`propToCol()`](@/api/core.md#proptocol) method. [#10750](https://github.com/handsontable/handsontable/pull/10750)
 - React: Improved React portal caching. [#10758](https://github.com/handsontable/handsontable/pull/10758)
 
@@ -61,8 +88,8 @@ For more information on this release, see:
 - Fixed an issue where non-contiguous selection caused too many [`afterSelectionEnd`](@/api/hooks.md#afterselectionend) and [`afterSelectionEndByProp`](@/api/hooks.md#afterselectionendbyprop) calls. [#10725](https://github.com/handsontable/handsontable/pull/10725)
 - Fixed an issue where tables pasted from the clipboard contained redundant line breaks. [#10745](https://github.com/handsontable/handsontable/pull/10745)
 - Fixed an issue where clicking outside the table didn't remove the focus from the table (when Handsontable was placed in an iframe). [#10752](https://github.com/handsontable/handsontable/pull/10752)
-- Fixed an issue where hovering over the header handles of [`handsontable`](@/guides/cell-types/handsontable-cell-type.md) cells caused an error. [#10761](https://github.com/handsontable/handsontable/pull/10761)
-- Fixed an issue where [`dropdown`](@/guides/cell-types/dropdown-cell-type.md) cells with long lists of options caused an error. [#10763](https://github.com/handsontable/handsontable/pull/10763)
+- Fixed an issue where hovering over the header handles of [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) cells caused an error. [#10761](https://github.com/handsontable/handsontable/pull/10761)
+- Fixed an issue where [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cells with long lists of options caused an error. [#10763](https://github.com/handsontable/handsontable/pull/10763)
 - Fixed an issue where using the browser's autocomplete dropdown on an input outside of Handsontable caused errors. Also, fixed an event listener leak. [#10795](https://github.com/handsontable/handsontable/pull/10795)
 - Fixed an issue where using context and dropdown menus on mobile caused unwanted selection handles to show up. [#10816](https://github.com/handsontable/handsontable/pull/10816)
 - Fixed an issue where the [`Autofill`](@/api/autofill.md) plugin treated cells filled with `0` as empty. [#10817](https://github.com/handsontable/handsontable/pull/10817)

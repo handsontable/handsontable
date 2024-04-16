@@ -14,7 +14,12 @@
     "paths": {
       "handsontable": [ "../../types" ],
       "handsontable/*": [ "../../types/*" ]
-    }
+    },
+    "typeRoots": [
+      "../../node_modules/@types",
+      "../../../node_modules/@types"
+    ],
+    "types": ["node"]
   },
   "include": [
     "./common.d.ts",

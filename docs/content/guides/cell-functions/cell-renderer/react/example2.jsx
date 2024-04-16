@@ -18,7 +18,7 @@ function CustomRenderer(props) {
   return <div>{props.value}</div>;
 }
 
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   const [darkMode, setDarkMode] = useState(false);
 
   const toggleDarkMode = (event) => {
@@ -53,6 +53,4 @@ export const ExampleComponent = () => {
   );
 };
 
-/* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
-/* end:skip-in-preview */
+export default ExampleComponent;

@@ -196,7 +196,7 @@ const data = [
   [5, '#eb144c', '#abb8c3']
 ];
 
-export const ExampleComponent = () => {
+const ExampleComponent = () => {
   useEffect(() => {
     reduxStore.dispatch({
       type: 'initRatingColors',
@@ -230,4 +230,4 @@ export const ExampleComponent = () => {
   );
 };
 
-ReactDOM.render(<ExampleComponent />, document.getElementById('example6'));
+export default ExampleComponent;

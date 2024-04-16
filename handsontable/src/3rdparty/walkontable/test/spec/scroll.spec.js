@@ -180,9 +180,9 @@ describe('WalkontableScroll', () => {
       const firstRow = getTableMaster().find('tbody tr:first');
       const lastRow = getTableMaster().find('tbody tr:last');
 
-      expect(firstRow.find('td:first').text()).toBe('H1');
+      expect(firstRow.find('td:first').text()).toBe('I1');
       expect(firstRow.find('td:last').text()).toBe('K1');
-      expect(lastRow.find('td:first').text()).toBe('H8');
+      expect(lastRow.find('td:first').text()).toBe('I8');
       expect(lastRow.find('td:last').text()).toBe('K8');
     });
 

@@ -98,7 +98,7 @@ describe('Hook', () => {
       scrollViewportTo({ row: 10 });
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-      expect(topOverlay().getScrollPosition()).toBe(685);
+      expect(topOverlay().getScrollPosition()).toBe(686);
     });
 
     it('should be possible to change row to which the viewport is scrolled (case with hidden rows)', () => {
@@ -125,7 +125,7 @@ describe('Hook', () => {
 
       expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(20);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-      expect(topOverlay().getScrollPosition()).toBe(156);
+      expect(topOverlay().getScrollPosition()).toBe(157);
     });
 
     it('should be possible to block viewport scrolling after returning `false`', () => {

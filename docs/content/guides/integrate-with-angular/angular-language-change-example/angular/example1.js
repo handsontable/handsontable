@@ -57,6 +57,7 @@ registerLanguageDictionary(zhTW);
     </div>
   `,
 })
+
 export class AppComponent {
   hotSettings: Handsontable.GridSettings = {
     data: [
@@ -77,6 +78,7 @@ export class AppComponent {
   language = 'en-US';
   languages = getLanguagesDictionaries();
 }
+/* end-file */
 
 /* file: app.module.ts */
 import { NgModule } from '@angular/core';
@@ -96,12 +98,6 @@ registerAllModules();
   declarations: [ AppComponent ],
   bootstrap: [ AppComponent ]
 })
+
 export class AppModule { }
-
-/* start:skip-in-preview */
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-
-platformBrowserDynamic()
-  .bootstrapModule(AppModule)
-  .catch(err => { console.error(err) });
-/* end:skip-in-preview */
+/* end-file */

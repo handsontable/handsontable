@@ -33,6 +33,13 @@ export const plugins = {
 
 export const baseConfig = {
   input: 'src/index.tsx',
+  output: {
+    interop: 'compat',
+    generatedCode: {
+			reservedNamesAsProps: false
+		},
+    systemNullSetters: false,
+  },
   plugins: [
     plugins.json,
     plugins.replace,
