@@ -1,10 +1,10 @@
+import { HyperFormula } from 'hyperformula';
 import Handsontable from "handsontable/base";
 import "handsontable/dist/handsontable.css";
 import "@handsontable/pikaday/css/pikaday.css";
-import { scenarioData } from './constants';
+import { scenarioDataTop, scenarioDataBottom } from './constants';
 
-import { generateExampleData, isArabicDemoEnabled } from "./utils";
-import { progressBarRenderer, starRenderer } from "./customRenderers";
+import { isArabicDemoEnabled } from "./utils";
 import "./styles.css";
 import { registerLanguageDictionary, arAR } from "handsontable/i18n";
 
@@ -53,68 +53,127 @@ registerCellType(NumericCellType);
 
 registerLanguageDictionary(arAR);
 
-import {
-  alignHeaders,
-  addClassesToRows,
-  changeCheckboxCell,
-  drawCheckboxInRowHeaders
-} from "./hooksCallbacks";
 
-const example = document.getElementById("example");
 export function initializeScenarioGrid() {
+  const root = document.getElementById("root");
+  const input1 = document.createElement("input");
+  input1.style.margin = "20px";
+  input1.placeholder = "Input 1";
+  const example1 = document.createElement("div");
+  const input2 = document.createElement("input");
+  input2.style.margin = "20px";
+  input2.placeholder = "Input 2";
+  const example2 = document.createElement("div");
 
-new Handsontable(example, {
-  data: scenarioData,
-  layoutDirection: isArabicDemoEnabled() ? "rtl" : "ltr",
-  language: isArabicDemoEnabled() ? arAR.languageCode : "en-US",
-  height: 250,
-  colHeaders: [
-    'Product ID',
-    'Mobile Apps',
-    'Pricing',
-    'Rating',
-    'Category',
-    'Industry',
-    'Business Scale',
-    'User Type',
-    'No of Users',
-    'Deployment',
-    'OS',
-  ],
-  columns: [
-    { data: 'product_id', type: 'numeric' },
-    { data: 'mobile_apps', type: 'text' },
-    { data: 'pricing', type: 'text' },
-    { data: 'rating', type: 'numeric' },
-    { data: 'category', type: 'text' },
-    { data: 'industry', type: 'text' },
-    { data: 'business_scale', type: 'text' },
-    { data: 'user_type', type: 'text' },
-    { data: 'no_of_users', type: 'text' },
-    { data: 'deployment', type: 'text' },
-    { data: 'OS', type: 'text' },
-  ],
-  mergeCells: true,
-  dropdownMenu: true,
-  hiddenColumns: {
-    indicators: true
-  },
-  navigableHeaders: true,
-  contextMenu: true,
-  multiColumnSorting: true,
-  filters: true,
-  rowHeaders: true,
-  manualRowMove: true,
-  comments: true,
-  manualColumnMove: true,
-  customBorders: true,
-  afterGetColHeader: alignHeaders,
-  afterGetRowHeader: drawCheckboxInRowHeaders,
-  afterOnCellMouseDown: changeCheckboxCell,
-  beforeRenderer: addClassesToRows,
-  autoWrapCol: true,
-  autoWrapRow: true,
-  licenseKey: "non-commercial-and-evaluation"
-});
+  root.appendChild(input1);
+  root.appendChild(example1);
+  root.appendChild(input2);
+  root.appendChild(example2);
+
+  new Handsontable(example1, {
+    data: scenarioDataTop,
+    layoutDirection: isArabicDemoEnabled() ? "rtl" : "ltr",
+    language: isArabicDemoEnabled() ? arAR.languageCode : "en-US",
+    height: 250,
+    colHeaders: [
+      'Product ID',
+      'Mobile Apps',
+      'Pricing',
+      'Rating',
+      'Category',
+      'Industry',
+      'Business Scale',
+      'User Type',
+      'No of Users',
+      'Deployment',
+      'OS',
+    ],
+    columns: [
+      { data: 'product_id', type: 'numeric' },
+      { data: 'mobile_apps', type: 'text' },
+      { data: 'pricing', type: 'text' },
+      { data: 'rating', type: 'numeric' },
+      { data: 'dataType', type: 'text' },
+      { data: 'industry', type: 'text' },
+      { data: 'business_scale', type: 'text' },
+      { data: 'user_type', type: 'text' },
+      { data: 'no_of_users', type: 'text' },
+      { data: 'deployment', type: 'text' },
+      { data: 'OS', type: 'text' },
+    ],
+    mergeCells: true,
+    dropdownMenu: true,
+    hiddenColumns: {
+      indicators: true
+    },
+    navigableHeaders: true,
+    contextMenu: true,
+    multiColumnSorting: true,
+    filters: true,
+    rowHeaders: true,
+    manualRowMove: true,
+    comments: true,
+    manualColumnMove: true,
+    customBorders: true,
+    autoWrapCol: true,
+    autoWrapRow: true,
+    formulas:{
+      engine: HyperFormula,
+    },
+    fixedRowsBottom: 2,
+    licenseKey: "non-commercial-and-evaluation"
+  });
+
+  new Handsontable(example2, {
+    data: scenarioDataBottom,
+    layoutDirection: isArabicDemoEnabled() ? "rtl" : "ltr",
+    language: isArabicDemoEnabled() ? arAR.languageCode : "en-US",
+    height: 250,
+    colHeaders: [
+      'Category',
+      'Product ID',
+      'Industry',
+      'Business Scale',
+      'User Type',
+      'No of Users',
+      'Deployment',
+      'OS',
+      'Mobile Apps',
+      'Pricing',
+      'Rating',
+    ],
+    columns: [
+      { data: 'category', type: 'text' },
+      { data: 'product_id', type: 'numeric' },
+      { data: 'industry', type: 'text' },
+      { data: 'business_scale', type: 'text' },
+      { data: 'user_type', type: 'text' },
+      { data: 'no_of_users', type: 'text' },
+      { data: 'deployment', type: 'text' },
+      { data: 'OS', type: 'text' },
+      { data: 'mobile_apps', type: 'text' },
+      { data: 'pricing', type: 'text' },
+      { data: 'rating', type: 'numeric' },
+    ],
+    mergeCells: true,
+    dropdownMenu: true,
+    hiddenColumns: {
+      indicators: true
+    },
+    navigableHeaders: true,
+    contextMenu: true,
+    multiColumnSorting: true,
+    filters: true,
+    rowHeaders: true,
+    manualRowMove: true,
+    comments: true,
+    manualColumnMove: true,
+    customBorders: true,
+    autoWrapCol: true,
+    autoWrapRow: true,
+    nestedRows: true,
+
+    licenseKey: "non-commercial-and-evaluation"
+  });
 
 console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate})`);}

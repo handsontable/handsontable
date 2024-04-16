@@ -9,7 +9,7 @@ router
     '/': function () {
       initializeDataGrid();
     },
-    '/scenario': function () {
+    '/scenario-grid': function () {
       initializeScenarioGrid();
     }
   })

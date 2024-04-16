@@ -1,27 +1,36 @@
 <template>
-  <hot-table ref="hotTableComponent" :data="data" :settings="hotSettings"></hot-table>
+  <div>
+    <input type="text" class="input-spacing" placeholder="Input 1"/>
+    <hot-table
+      ref="hotTableComponent1"
+      :data="dataTop"
+      :settings="hotSettings1"
+    ></hot-table>
+    <input type="text" class="input-spacing" placeholder="Input 2"/>
+    <hot-table
+      ref="hotTableComponent2"
+      :data="dataBottom"
+      :settings="hotSettings2"
+    ></hot-table>
+  </div>
 </template>
 
 <script lang="ts">
 import { HotTable } from '@handsontable/vue';
-import "@handsontable/pikaday/css/pikaday.css";
+import '@handsontable/pikaday/css/pikaday.css';
 import 'handsontable/dist/handsontable.css';
+import { HyperFormula } from 'hyperformula';
 
-import { scenarioData } from "../utils/constants";
-
-import {
-  alignHeaders,
-  drawCheckboxInRowHeaders,
-  addClassesToRows,
-  changeCheckboxCell
-} from "../utils/hooks-callbacks";
+import { scenarioDataTop, scenarioDataBottom } from '../utils/constants';
 
 export default {
   name: 'ScenarioGrid',
-  data: function() {
+  data: function () {
     return {
-      hotSettings: {
-        height: 450,
+      dataTop: scenarioDataTop,
+      dataBottom: scenarioDataBottom,
+      hotSettings1: {
+        height: 350,
         dropdownMenu: true,
         manualRowMove: true,
         hiddenColumns: {
@@ -36,45 +45,89 @@ export default {
         manualColumnMove: true,
         comments: true,
         customBorders: true,
-        afterOnCellMouseDown: changeCheckboxCell,
-        afterGetColHeader: alignHeaders,
-        afterGetRowHeader: drawCheckboxInRowHeaders,
-        beforeRenderer: addClassesToRows,
+        fixedRowsBottom: 2,
+        formulas: {
+          engine: HyperFormula,
+        },
         colHeaders: [
-        'Product ID',
-        'Mobile Apps',
-        'Pricing',
-        'Rating',
-        'Category',
-        'Industry',
-        'Business Scale',
-        'User Type',
-        'No of Users',
-        'Deployment',
-        'OS',
+          'Product ID',
+          'Mobile Apps',
+          'Pricing',
+          'Rating',
+          'Category',
+          'Industry',
+          'Business Scale',
+          'User Type',
+          'No of Users',
+          'Deployment',
+          'OS',
         ],
         columns: [
-        { data: 'product_id', type: 'numeric' },
-        { data: 'mobile_apps', type: 'text' },
-        { data: 'pricing', type: 'text' },
-        { data: 'rating', type: 'numeric' },
-        { data: 'category', type: 'text' },
-        { data: 'industry', type: 'text' },
-        { data: 'business_scale', type: 'text' },
-        { data: 'user_type', type: 'text' },
-        { data: 'no_of_users', type: 'text' },
-        { data: 'deployment', type: 'text' },
-        { data: 'OS', type: 'text' },
+          { data: 'product_id', type: 'numeric' },
+          { data: 'mobile_apps', type: 'text' },
+          { data: 'pricing', type: 'text' },
+          { data: 'rating', type: 'numeric' },
+          { data: 'category', type: 'text' },
+          { data: 'industry', type: 'text' },
+          { data: 'business_scale', type: 'text' },
+          { data: 'user_type', type: 'text' },
+          { data: 'no_of_users', type: 'text' },
+          { data: 'deployment', type: 'text' },
+          { data: 'OS', type: 'text' },
         ],
-        licenseKey: "non-commercial-and-evaluation",
+        licenseKey: 'non-commercial-and-evaluation',
       },
-      data: scenarioData
-    }
+      hotSettings2: {
+        height: 250,
+        dropdownMenu: true,
+        manualRowMove: true,
+        hiddenColumns: {
+          indicators: true,
+        },
+        contextMenu: true,
+        mergeCells: true,
+        multiColumnSorting: true,
+        filters: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        manualColumnMove: true,
+        comments: true,
+        customBorders: true,
+        nestedRows: true,
+        colHeaders: [
+          'Category',
+          'Product ID',
+          'Industry',
+          'Business Scale',
+          'User Type',
+          'No of Users',
+          'Deployment',
+          'OS',
+          'Mobile Apps',
+          'Pricing',
+          'Rating',
+        ],
+        columns: [
+          { data: 'category', type: 'text' },
+          { data: 'product_id', type: 'numeric' },
+          { data: 'industry', type: 'text' },
+          { data: 'business_scale', type: 'text' },
+          { data: 'user_type', type: 'text' },
+          { data: 'no_of_users', type: 'text' },
+          { data: 'deployment', type: 'text' },
+          { data: 'OS', type: 'text' },
+          { data: 'mobile_apps', type: 'text' },
+          { data: 'pricing', type: 'text' },
+          { data: 'rating', type: 'numeric' },
+        ],
+        licenseKey: 'non-commercial-and-evaluation',
+      },
+    };
   },
   components: {
-    HotTable
-  }
-}
+    HotTable,
+  },
+};
 </script>
 
 <style lang="scss">
@@ -104,11 +157,14 @@ table.htCore {
 /*
   A stylesheet customizing Handsontable style
 */
+.input-spacing {
+  margin: 10px;
+}
 
 .handsontable {
   font-size: 13px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-  'Ubuntu', 'Helvetica Neue', Arial, sans-serif;
+    'Ubuntu', 'Helvetica Neue', Arial, sans-serif;
   font-weight: 400;
 
   .collapsibleIndicator {
