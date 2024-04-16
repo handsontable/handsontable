@@ -389,7 +389,7 @@ describe('AutoColumnSize', () => {
     // Simulates a sequence of methods used in contextMenu commands for plugins like Hidden*, Freeze*
     // or internal plugins' methods like Filters, Manual*Move, Manual*Resize.
     hot.render();
-    hot.view.adjustElementsSize(true);
+    hot.view.adjustElementsSize();
 
     hot.updateSettings({
       colHeaders: getHeaders().reverse(),
