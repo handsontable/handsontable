@@ -3,11 +3,11 @@ import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
 import { DataGridComponent } from '../data-grid/data-grid.component';
 import { RouterModule, Routes } from '@angular/router';
-import { ScenarioGridComponent } from '../scenario-grid/scenario-grid.component';
+import { ScenarioGridComponent } from '../scenario-two-grid/scenario-grid.component';
 import { AppComponent } from './app.component'; // Import AppComponent
 
 const routes: Routes = [
-  { path: 'test', component: ScenarioGridComponent },
+  { path: 'scenario-grid', component: ScenarioGridComponent },
   { path: '', component: DataGridComponent },
 ];
 

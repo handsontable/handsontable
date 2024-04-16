@@ -1,7 +1,8 @@
 import { Component, ViewEncapsulation } from "@angular/core";
-import { getScenarioData } from "./utils/constants";
+import { getScenarioDataTop, getScenarioDataBottom } from "./utils/constants";
 import { starsRenderer } from "./renderers/stars";
 import { progressBarRenderer } from "./renderers/progressBar";
+import { HyperFormula } from 'hyperformula';
 
 import {
   alignHeaders,
@@ -17,14 +18,18 @@ import {
   styleUrls: ["./scenario-grid.scss"]
 })
 export class ScenarioGridComponent {
-  dataset = getScenarioData();
+  datasetTop = getScenarioDataTop();
+  datasetBottom = getScenarioDataBottom();
   alignHeaders = alignHeaders;
   drawCheckboxInRowHeaders = drawCheckboxInRowHeaders;
   addClassesToRows = addClassesToRows;
   changeCheckboxCell = changeCheckboxCell;
   progressBarRenderer = progressBarRenderer;
   starsRenderer = starsRenderer;
-  colHeaders = [
+  formulas={
+    engine: HyperFormula,
+  }
+  colHeadersTop = [
     'Product ID',
     'Mobile Apps',
     'Pricing',
@@ -36,6 +41,20 @@ export class ScenarioGridComponent {
     'No of Users',
     'Deployment',
     'OS'
+  ];
+
+  colHeadersBottom = [
+    'Category',
+    'Product ID',
+    'Industry',
+    'Business Scale',
+    'User Type',
+    'No of Users',
+    'Deployment',
+    'OS',
+    'Mobile Apps',
+    'Pricing',
+    'Rating',
   ];
   hiddenColumns = {
     indicators: true
