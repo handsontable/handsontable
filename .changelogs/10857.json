@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Unified the `source` arguments of the `beforeChange`/`afterChange` hooks when being triggered by the Merge Cells plugin.",
-  "type": "fixed",
-  "issueOrPR": 10857,
-  "breaking": false,
-  "framework": "none"
-}
