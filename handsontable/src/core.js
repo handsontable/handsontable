@@ -73,8 +73,8 @@ const deprecationWarns = new Set();
  *
  * ::: only-for react
  * To use these methods, associate a Handsontable instance with your instance
- * of the [`HotTable` component](@/guides/getting-started/installation.md#_4-use-the-hottable-component),
- * by using React's `ref` feature (read more on the [Instance methods](@/guides/getting-started/react-methods.md) page).
+ * of the [`HotTable` component](@/guides/getting-started/installation/installation.md#_4-use-the-hottable-component),
+ * by using React's `ref` feature (read more on the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page).
  * :::
  *
  * ## How to call a method
@@ -295,6 +295,32 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     );
   };
 
+  const findFirstNonHiddenRenderableRow = (visualRowFrom, visualRowTo) => {
+    const dir = visualRowTo > visualRowFrom ? 1 : -1;
+    const minIndex = Math.min(visualRowFrom, visualRowTo);
+    const maxIndex = Math.max(visualRowFrom, visualRowTo);
+    const rowIndex = instance.rowIndexMapper.getNearestNotHiddenIndex(visualRowFrom, dir);
+
+    if (rowIndex === null || dir === 1 && rowIndex > maxIndex || dir === -1 && rowIndex < minIndex) {
+      return null;
+    }
+
+    return rowIndex >= 0 ? instance.rowIndexMapper.getRenderableFromVisualIndex(rowIndex) : rowIndex;
+  };
+
+  const findFirstNonHiddenRenderableColumn = (visualColumnFrom, visualColumnTo) => {
+    const dir = visualColumnTo > visualColumnFrom ? 1 : -1;
+    const minIndex = Math.min(visualColumnFrom, visualColumnTo);
+    const maxIndex = Math.max(visualColumnFrom, visualColumnTo);
+    const columnIndex = instance.columnIndexMapper.getNearestNotHiddenIndex(visualColumnFrom, dir);
+
+    if (columnIndex === null || dir === 1 && columnIndex > maxIndex || dir === -1 && columnIndex < minIndex) {
+      return null;
+    }
+
+    return columnIndex >= 0 ? instance.columnIndexMapper.getRenderableFromVisualIndex(columnIndex) : columnIndex;
+  };
+
   let selection = new Selection(tableMeta, {
     rowIndexMapper: instance.rowIndexMapper,
     columnIndexMapper: instance.columnIndexMapper,
@@ -306,11 +332,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     countRenderableRows: () => this.view.countRenderableRows(),
     countRowHeaders: () => this.countRowHeaders(),
     countColHeaders: () => this.countColHeaders(),
+    countRenderableRowsInRange: (...args) => this.view.countRenderableRowsInRange(...args),
+    countRenderableColumnsInRange: (...args) => this.view.countRenderableColumnsInRange(...args),
     getShortcutManager: () => instance.getShortcutManager(),
     createCellCoords: (row, column) => instance._createCellCoords(row, column),
     createCellRange: (highlight, from, to) => instance._createCellRange(highlight, from, to),
     visualToRenderableCoords,
     renderableToVisualCoords,
+    findFirstNonHiddenRenderableRow,
+    findFirstNonHiddenRenderableColumn,
     isDisabledCellSelection: (visualRow, visualColumn) => {
       if (visualRow < 0 || visualColumn < 0) {
         return instance.getSettings().disableVisualSelection;
@@ -385,6 +415,22 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this._refreshBorders(null);
   });
 
+  this.selection.addLocalHook('beforeSetFocus', (cellCoords) => {
+    this.runHooks('beforeSelectionFocusSet', cellCoords.row, cellCoords.col);
+  });
+
+  this.selection.addLocalHook('afterSetFocus', (cellCoords) => {
+    const preventScrolling = createObjectPropListener(false);
+
+    this.runHooks('afterSelectionFocusSet', cellCoords.row, cellCoords.col, preventScrolling);
+
+    if (!preventScrolling.isTouched() || preventScrolling.isTouched() && !preventScrolling.value) {
+      viewportScroller.scrollTo(cellCoords);
+    }
+
+    this._refreshBorders(null);
+  });
+
   this.selection.addLocalHook('afterSelectionFinished', (cellRanges) => {
     const selectionLayerLevel = cellRanges.length - 1;
     const { from, to } = cellRanges[selectionLayerLevel];
@@ -423,6 +469,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     .addLocalHook('afterSelectRows', (...args) => this.runHooks('afterSelectRows', ...args))
     .addLocalHook('beforeModifyTransformStart', (...args) => this.runHooks('modifyTransformStart', ...args))
     .addLocalHook('afterModifyTransformStart', (...args) => this.runHooks('afterModifyTransformStart', ...args))
+    .addLocalHook('beforeModifyTransformFocus', (...args) => this.runHooks('modifyTransformFocus', ...args))
+    .addLocalHook('afterModifyTransformFocus', (...args) => this.runHooks('afterModifyTransformFocus', ...args))
     .addLocalHook('beforeModifyTransformEnd', (...args) => this.runHooks('modifyTransformEnd', ...args))
     .addLocalHook('afterModifyTransformEnd', (...args) => this.runHooks('afterModifyTransformEnd', ...args))
     .addLocalHook('beforeRowWrap', (...args) => this.runHooks('beforeRowWrap', ...args))
@@ -2205,20 +2253,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * The `updateData()` method replaces Handsontable's [`data`](@/api/options.md#data) with a new dataset.
    *
    * The `updateData()` method:
-   * - Keeps cells' states (e.g. cells' [formatting](@/guides/cell-features/formatting-cells.md) and cells' [`readOnly`](@/api/options.md#readonly) states)
+   * - Keeps cells' states (e.g. cells' [formatting](@/guides/cell-features/formatting-cells/formatting-cells.md) and cells' [`readOnly`](@/api/options.md#readonly) states)
    * - Keeps rows' states (e.g. row order)
    * - Keeps columns' states (e.g. column order)
    *
    * To replace Handsontable's [`data`](@/api/options.md#data) and reset states, use the [`loadData()`](#loaddata) method.
    *
    * Read more:
-   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
-   * - [Saving data](@/guides/getting-started/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data/saving-data.md)
    *
    * @memberof Core#
    * @function updateData
    * @since 11.1.0
-   * @param {Array} data An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
+   * @param {Array} data An [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), that contains Handsontable's data
    * @param {string} [source] The source of the `updateData()` call
    * @fires Hooks#beforeUpdateData
    * @fires Hooks#afterUpdateData
@@ -2252,19 +2300,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * The `loadData()` method replaces Handsontable's [`data`](@/api/options.md#data) with a new dataset.
    *
    * Additionally, the `loadData()` method:
-   * - Resets cells' states (e.g. cells' [formatting](@/guides/cell-features/formatting-cells.md) and cells' [`readOnly`](@/api/options.md#readonly) states)
+   * - Resets cells' states (e.g. cells' [formatting](@/guides/cell-features/formatting-cells/formatting-cells.md) and cells' [`readOnly`](@/api/options.md#readonly) states)
    * - Resets rows' states (e.g. row order)
    * - Resets columns' states (e.g. column order)
    *
    * To replace Handsontable's [`data`](@/api/options.md#data) without resetting states, use the [`updateData()`](#updatedata) method.
    *
    * Read more:
-   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
-   * - [Saving data](@/guides/getting-started/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data/saving-data.md)
    *
    * @memberof Core#
    * @function loadData
-   * @param {Array} data An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
+   * @param {Array} data An [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), that contains Handsontable's data
    * @param {string} [source] The source of the `loadData()` call
    * @fires Hooks#beforeLoadData
    * @fires Hooks#afterLoadData
@@ -2668,7 +2716,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * ::: tip
    * The `alter()` method works only when your [`data`](@/api/options.md#data)
-   * is an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
+   * is an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays).
    * :::
    *
    * ```js
@@ -2981,7 +3029,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * sorted or trimmed only physical indexes are correct.
    *
    * __Note__: This method may return incorrect values for cells that contain
-   * [formulas](@/guides/formulas/formula-calculation.md). This is because `getSourceData()`
+   * [formulas](@/guides/formulas/formula-calculation/formula-calculation.md). This is because `getSourceData()`
    * operates on source data ([physical indexes](@/api/indexMapper.md)),
    * whereas formulas operate on visual data (visual indexes).
    *
@@ -3359,8 +3407,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Checks if your [data format](@/guides/getting-started/binding-to-data.md#compatible-data-types)
-   * and [configuration options](@/guides/getting-started/configuration-options.md)
+   * Checks if your [data format](@/guides/getting-started/binding-to-data/binding-to-data.md#compatible-data-types)
+   * and [configuration options](@/guides/getting-started/configuration-options/configuration-options.md)
    * allow for changing the number of columns.
    *
    * Returns `false` when your data is an array of objects,
@@ -3458,10 +3506,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * Validates every cell in the data set,
-   * using a [validator function](@/guides/cell-functions/cell-validator.md) configured for each cell.
+   * using a [validator function](@/guides/cell-functions/cell-validator/cell-validator.md) configured for each cell.
    *
-   * Doesn't validate cells that are currently [trimmed](@/guides/rows/row-trimming.md),
-   * [hidden](@/guides/rows/row-hiding.md), or [filtered](@/guides/columns/column-filter.md),
+   * Doesn't validate cells that are currently [trimmed](@/guides/rows/row-trimming/row-trimming.md),
+   * [hidden](@/guides/rows/row-hiding/row-hiding.md), or [filtered](@/guides/columns/column-filter/column-filter.md),
    * as such cells are not included in the data set until you bring them back again.
    *
    * After the validation, the `callback` function is fired, with the `valid` argument set to:
@@ -3661,18 +3709,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Gets the values of column headers (if column headers are [enabled](@/api/options.md#colheaders)).
    *
    * To get an array with the values of all
-   * [bottom-most](@/guides/cell-features/clipboard.md#copy-with-headers) column headers,
+   * [bottom-most](@/guides/cell-features/clipboard/clipboard.md#copy-with-headers) column headers,
    * call `getColHeader()` with no arguments.
    *
    * To get the value of the bottom-most header of a specific column, use the `column` parameter.
    *
-   * To get the value of a [specific-level](@/guides/columns/column-groups.md) header
+   * To get the value of a [specific-level](@/guides/columns/column-groups/column-groups.md) header
    * of a specific column, use the `column` and `headerLevel` parameters.
    *
    * Read more:
-   * - [Guides: Column groups](@/guides/columns/column-groups.md)
+   * - [Guides: Column groups](@/guides/columns/column-groups/column-groups.md)
    * - [Options: `colHeaders`](@/api/options.md#colheaders)
-   * - [Guides: Copy with headers](@/guides/cell-features/clipboard.md#copy-with-headers)
+   * - [Guides: Copy with headers](@/guides/cell-features/clipboard/clipboard.md#copy-with-headers)
    *
    * ```js
    * // get the contents of all bottom-most column headers
@@ -4222,6 +4270,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.selectColumns(1, 2, -1);
    * // Select range of columns using visual indexes and mark the second cell as highlighted.
    * hot.selectColumns(2, 1, 1);
+   * // Select range of columns using visual indexes and move the focus position somewhere in the middle of the range.
+   * hot.selectColumns(2, 5, { row: 2, col: 3 });
    * // Select range of columns using column properties.
    * hot.selectColumns('id', 'last_name');
    * ```
@@ -4231,10 +4281,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function selectColumns
    * @param {number} startColumn The visual column index from which the selection starts.
    * @param {number} [endColumn=startColumn] The visual column index to which the selection finishes. If `endColumn`
-   *                                         is not defined the column defined by `startColumn` will be selected.
-   * @param {number} [focusPosition=0] The argument allows changing the cell/header focus position.
-   *                                   The value can take visual row index from -N to N, where negative values
-   *                                   point to the headers and positive values point to the cell range.
+   * is not defined the column defined by `startColumn` will be selected.
+   * @param {number | { row: number, col: number } | CellCoords} [focusPosition=0] The argument allows changing the cell/header focus
+   * position. The value can take visual row index from -N to N, where negative values point to the headers and positive
+   * values point to the cell range. An object with `row` and `col` properties also can be passed to change the focus
+   * position horizontally.
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectColumns = function(startColumn, endColumn = startColumn, focusPosition) {
@@ -4254,6 +4305,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.selectRows(1, 2, -1);
    * // Select range of rows using visual indexes and mark the second cell as highlighted.
    * hot.selectRows(2, 1, 1);
+   * // Select range of rows using visual indexes and move the focus position somewhere in the middle of the range.
+   * hot.selectRows(2, 5, { row: 2, col: 3 });
    * ```
    *
    * @memberof Core#
@@ -4261,10 +4314,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function selectRows
    * @param {number} startRow The visual row index from which the selection starts.
    * @param {number} [endRow=startRow] The visual row index to which the selection finishes. If `endRow`
-   *                                   is not defined the row defined by `startRow` will be selected.
-   * @param {number} [focusPosition=0] The argument allows changing the cell/header focus position.
-   *                                   The value can take visual column index from -N to N, where negative values
-   *                                   point to the headers and positive values point to the cell range.
+   * is not defined the row defined by `startRow` will be selected.
+   * @param {number | { row: number, col: number } | CellCoords} [focusPosition=0] The argument allows changing the cell/header focus
+   * position. The value can take visual row index from -N to N, where negative values point to the headers and positive
+   * values point to the cell range. An object with `row` and `col` properties also can be passed to change the focus
+   * position vertically.
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectRows = function(startRow, endRow = startRow, focusPosition) {

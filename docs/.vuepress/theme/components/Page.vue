@@ -1,5 +1,5 @@
 <template>
-  <main class="page" v-bind:class="{ 'api': isApi }">
+  <main class="page" v-bind:class="{ api: isApi }">
     <slot name="top" />
 
     <Content class="theme-default-content" />
@@ -25,7 +25,7 @@ export default {
       if (to.path !== from.path) {
         this.activatedExamples = [];
       }
-    }
+    },
   },
   data() {
     return {
@@ -43,7 +43,9 @@ export default {
         this.activatedExamples.push(exampleId);
       } else {
         instanceRegister.destroyExample(exampleId);
-        this.activatedExamples = this.activatedExamples.filter(activatedExample => activatedExample !== exampleId);
+        this.activatedExamples = this.activatedExamples.filter(
+          activatedExample => activatedExample !== exampleId
+        );
       }
     },
     addClassIfPreviewTabIsSelected(exampleId, className) {
@@ -51,7 +53,7 @@ export default {
     },
     isScriptLoaderActivated(exampleId) {
       return this.activatedExamples.includes(exampleId);
-    }
+    },
   },
 };
 </script>

@@ -19,7 +19,7 @@ export function isContextObject(objectToCheck) {
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
- * The `ShortcutContext` API lets you store and manage [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts.md) in a given [context](@/guides/navigation/keyboard-shortcuts.md#keyboard-shortcut-contexts).
+ * The `ShortcutContext` API lets you store and manage [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md) in a given [context](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#keyboard-shortcut-contexts).
  *
  * Each `ShortcutContext` object stores and manages its own set of keyboard shortcuts.
  *
@@ -90,7 +90,8 @@ export const createContext = (name) => {
     };
 
     if (isDefined(relativeToGroup)) {
-      [newShortcut.relativeToGroup, newShortcut.position] = [relativeToGroup, position];
+      newShortcut.relativeToGroup = relativeToGroup;
+      newShortcut.position = position;
     }
 
     if (isContextObject(forwardToContext)) {

@@ -11,6 +11,7 @@ const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
 const dumpRedirectPageIdsPlugin = require('./plugins/dump-redirect-page-ids');
 const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
 const conditionalContainer = require('./plugins/markdown-it-conditional-container');
+const includeCodeSnippet = require('./plugins/markdown-it-include-code-snippet');
 const {
   createSymlinks,
   getDocsBase,
@@ -89,7 +90,7 @@ module.exports = {
           tracesSampleRate: 0,
           profilesSampleRate: 0,
           replaysSessionSampleRate: 0,
-          replaysOnErrorSampleRate: 1.0,
+          replaysOnErrorSampleRate: 0.2,
           integrations: [
             // If you use a bundle with performance monitoring enabled, add the BrowserTracing integration
             new Sentry.BrowserTracing(),
@@ -171,7 +172,9 @@ module.exports = {
       rel: 'nofollow noopener noreferrer',
     },
     extendMarkdown(md) {
-      md.use(conditionalContainer).use(firstHeaderInjection);
+      md.use(includeCodeSnippet)
+        .use(conditionalContainer)
+        .use(firstHeaderInjection);
     },
   },
   configureWebpack: {

@@ -632,14 +632,33 @@ class Overlays {
   adjustElementsSize(force = false) {
     const { wtViewport } = this.wot;
     const { wtTable } = this;
+    const { rootWindow } = this.domBindings;
+    const isWindowScrolled = this.scrollableElement === rootWindow;
     const totalColumns = this.wtSettings.getSetting('totalColumns');
     const totalRows = this.wtSettings.getSetting('totalRows');
     const headerRowSize = wtViewport.getRowHeaderWidth();
     const headerColumnSize = wtViewport.getColumnHeaderHeight();
-    const hiderStyle = wtTable.hider.style;
+    const proposedHiderHeight = headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1;
+    const proposedHiderWidth = headerRowSize + this.inlineStartOverlay.sumCellSizes(0, totalColumns);
+    const hiderElement = wtTable.hider;
+    const hiderStyle = hiderElement.style;
+    const isScrolledBeyondHiderHeight = () => {
+      return isWindowScrolled ?
+        false :
+        (this.scrollableElement.scrollTop > Math.max(0, proposedHiderHeight - wtTable.holder.clientHeight));
+    };
+    const isScrolledBeyondHiderWidth = () => {
+      return isWindowScrolled ?
+        false :
+        (this.scrollableElement.scrollLeft > Math.max(0, proposedHiderWidth - wtTable.holder.clientWidth));
+    };
+    const columnHeaderBorderCompensation = isScrolledBeyondHiderHeight() ? 1 : 0;
+    const rowHeaderBorderCompensation = isScrolledBeyondHiderWidth() ? 1 : 0;
 
-    hiderStyle.width = `${headerRowSize + this.inlineStartOverlay.sumCellSizes(0, totalColumns)}px`;
-    hiderStyle.height = `${headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1}px`;
+    // If the elements are being adjusted after scrolling the table from the very beginning to the very end,
+    // we need to adjust the hider dimensions by the header border size. (https://github.com/handsontable/dev-handsontable/issues/1772)
+    hiderStyle.width = `${proposedHiderWidth + rowHeaderBorderCompensation}px`;
+    hiderStyle.height = `${proposedHiderHeight + columnHeaderBorderCompensation}px`;
 
     if (this.scrollbarSize > 0) { // todo refactoring, looking as a part of logic which should be moved outside the class
       const {
@@ -664,6 +683,28 @@ class Overlays {
     this.topOverlay.adjustElementsSize(force);
     this.inlineStartOverlay.adjustElementsSize(force);
     this.bottomOverlay.adjustElementsSize(force);
+  }
+
+  /**
+   * Expand the hider vertically element by the provided delta value.
+   *
+   * @param {number} heightDelta The delta value to expand the hider element by.
+   */
+  expandHiderVerticallyBy(heightDelta) {
+    const { wtTable } = this;
+
+    wtTable.hider.style.height = `${parseInt(wtTable.hider.style.height, 10) + heightDelta}px`;
+  }
+
+  /**
+   * Expand the hider horizontally element by the provided delta value.
+   *
+   * @param {number} widthDelta The delta value to expand the hider element by.
+   */
+  expandHiderHorizontallyBy(widthDelta) {
+    const { wtTable } = this;
+
+    wtTable.hider.style.width = `${parseInt(wtTable.hider.style.width, 10) + widthDelta}px`;
   }
 
   /**

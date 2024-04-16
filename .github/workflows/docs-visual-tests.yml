@@ -1,0 +1,77 @@
+name: Docs Visual Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      update-snapshots:
+        description: "Update snapshots"
+        type: boolean
+      test_env:
+        type: choice
+        description: Test enviroment
+        default: 'http://localhost:8080/docs'
+        options:
+          - https://dev.handsontable.com/docs
+          - https://handsontable.com/docs
+          - http://localhost:8080/docs
+  
+defaults:
+  run:
+    working-directory: ./docs/
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env: # Or as an environment variable
+      PASS_COOKIE: ${{ secrets.PassCookie }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+
+      - name: Set up Node
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        with:
+          cache: npm
+          node-version: "20"
+          check-latest: true
+
+      - name: Install documentation dependencies
+        run: |
+          npm install
+          npx playwright install --with-deps
+
+      - name: Install the monorepo dependencies and build the packages
+        if: ${{inputs.test_env == 'http://localhost:8080/docs'}} 
+        run: |
+          cd ..
+          npm ci
+          npm run all build -- --e examples visual-tests
+
+      - name: Generate API refs
+        if: ${{inputs.test_env == 'http://localhost:8080/docs'}} 
+        run: |
+          npm run docs:api
+
+      - name: Set up cache
+        id: cache
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # https://github.com/actions/cache/releases/tag/v4.0.2
+        with:
+          key: plawyright-cache/${{github.repository}}/${{github.ref}}
+          restore-keys: plawyright-cache/${{github.repository}}/refs/heads/develop
+          path: '**/test-artifacts/**'
+      
+      - name: Initialize snapshots
+        if: ${{steps.cache.outputs.cache-hit != 'true' || inputs.update-snapshots == 'true'}}
+        run: BASE_URL=${{ inputs.test_env }} npx playwright test --update-snapshots
+
+      - name: Test
+        run: BASE_URL=${{ inputs.test_env }} npx playwright test
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # https://github.com/actions/upload-artifact/releases/tag/v4.3.1
+        with:
+          name: playwright-report
+          path: ./docs/tests/test-artifacts/results
+          retention-days: 30
+          overwrite: true

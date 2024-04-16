@@ -90,6 +90,7 @@ describe('Hook', () => {
         data: createSpreadsheetData(100, 50),
         width: 300,
         height: 300,
+        colWidths: 50,
         rowHeaders: true,
         colHeaders: true,
         beforeViewportScrollHorizontally,
@@ -97,7 +98,8 @@ describe('Hook', () => {
 
       scrollViewportTo({ col: 10 });
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(1815);
+      // 2050 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
+      expect(inlineStartOverlay().getScrollPosition()).toBe(1816);
       expect(topOverlay().getScrollPosition()).toBe(0);
     });
 
@@ -108,6 +110,7 @@ describe('Hook', () => {
         data: createSpreadsheetData(100, 50),
         width: 300,
         height: 300,
+        colWidths: 50,
         rowHeaders: true,
         colHeaders: true,
         beforeViewportScrollHorizontally,
@@ -124,7 +127,9 @@ describe('Hook', () => {
       scrollViewportTo({ col: 20 });
 
       expect(beforeViewportScrollHorizontally).toHaveBeenCalledOnceWith(20);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(665);
+
+      // 900 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
+      expect(inlineStartOverlay().getScrollPosition()).toBe(666);
       expect(topOverlay().getScrollPosition()).toBe(0);
     });
 

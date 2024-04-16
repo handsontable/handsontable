@@ -6,7 +6,10 @@
 const EXAMPLE_REGEX = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
 
 const { buildCode } = require('./code-builder');
+const { addCodeForPreset } = require('./add-code-for-preset');
+const { codesandbox } = require('./codesandbox');
 const { jsfiddle } = require('./jsfiddle');
+const { stackblitz } = require('./stackblitz');
 
 const tab = (tabName, token, id) => {
   if (!token) return [];
@@ -25,7 +28,7 @@ const tab = (tabName, token, id) => {
       info: '',
       meta: null,
       block: true,
-      hidden: false
+      hidden: false,
     },
     token,
     {
@@ -41,8 +44,8 @@ const tab = (tabName, token, id) => {
       info: '',
       meta: null,
       block: true,
-      hidden: false
-    }
+      hidden: false,
+    },
   ];
 };
 
@@ -70,7 +73,7 @@ const getPreviewTab = (id, cssContent, htmlContent, code) => {
     info: '',
     meta: null,
     block: true,
-    hidden: false
+    hidden: false,
   };
 };
 
@@ -81,7 +84,8 @@ module.exports = function(docsVersion, base) {
       const token = tokens[index];
       const m = token.info.trim().match(EXAMPLE_REGEX);
 
-      if (token.nesting === 1 && m) { // open preview
+      if (token.nesting === 1 && m) {
+        // open preview
         let [, , id, klass, preset, args] = m;
 
         id = id ? id.substring(1) : 'example1';
@@ -113,21 +117,40 @@ module.exports = function(docsVersion, base) {
           .replace(/\/\*(\s+)?(start|end):skip-in-preview(\s+)?\*\/\n/gm, '')
           // Remove the code between "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" expressions
           // eslint-disable-next-line max-len
-          .replace(/\/\*(\s+)?start:skip-in-compilation(\s+)?\*\/\n.*?\/\*(\s+)?end:skip-in-compilation(\s+)?\*\/\n/msg, '');
+          .replace(/\/\*(\s+)?start:skip-in-compilation(\s+)?\*\/\n.*?\/\*(\s+)?end:skip-in-compilation(\s+)?\*\/\n/msg, '')
+          // Remove /* end-file */
+          .replace(/\/\* end-file \*\//gm, '');
+
         const codeToPreview = jsToken.content
           // Remove the all "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" comments
           .replace(/\/\*(\s+)?(start|end):skip-in-compilation(\s+)?\*\/\n/gm, '')
           // Remove the code between "/* start:skip-in-preview */" and "/* end:skip-in-preview */" expressions
           .replace(/\/\*(\s+)?start:skip-in-preview(\s+)?\*\/\n.*?\/\*(\s+)?end:skip-in-preview(\s+)?\*\/\n/msg, '')
+          // Remove /* end-file */
+          .replace(/\/\* end-file \*\//gm, '')
           .trim();
+
+        const codeToCompileSandbox = jsToken.content
+          // Remove the all "/* start:skip-in-preview */" and "/* end:skip-in-preview */" comments
+          .replace(/\/\*(\s+)?(start|end):skip-in-preview(\s+)?\*\/\n/gm, '')
+          // Remove the all "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" comments
+          .replace(/\/\*(\s+)?(start|end):skip-in-compilation(\s+)?\*\/\n/gm, '');
 
         jsToken.content = codeToPreview;
 
         const activeTab = `${args.match(/--tab (code|html|css|preview)/)?.[1] ?? 'preview'}-tab-${id}`;
         const noEdit = !!args.match(/--no-edit/)?.[0];
 
-        const code = buildCode(id + (preset.includes('angular') ? '.ts' : '.jsx'), codeToCompile, env.relativePath);
-        const encodedCode = encodeURI(`useHandsontable('${docsVersion}', function(){${code}}, '${preset}')`);
+        const codeForPreset = addCodeForPreset(codeToCompile, preset, id);
+
+        const code = buildCode(
+          id + (preset.includes('angular') ? '.ts' : '.jsx'),
+          codeForPreset,
+          env.relativePath
+        );
+        const encodedCode = encodeURI(
+          `useHandsontable('${docsVersion}', function(){${code}}, '${preset}')`
+        );
 
         [htmlIndex, jsIndex, cssIndex].filter(x => !!x).sort().reverse().forEach((x) => {
           tokens.splice(x, 1);
@@ -141,20 +164,28 @@ module.exports = function(docsVersion, base) {
         ];
 
         tokens.splice(index + 1, 0, ...newTokens);
+        const isAngular = /angular(-.*)?/.test(preset);
+
+        const displayJsFiddle = Boolean(!noEdit && !isAngular);
 
         return `
-            <div class="tabs-button-wrapper">
-              ${!noEdit ? jsfiddle(id, htmlContent, codeToCompile, cssContent, docsVersion, preset) : ''}
-              <tabs
-                :class="$parent.$parent.addClassIfPreviewTabIsSelected('${id}', 'selected-preview')"
-                :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }"
-                cache-lifetime="0"
-                @changed="$parent.$parent.codePreviewTabChanged(...arguments, '${id}')"
-              >
+          <div class="tabs-button-wrapper">
+            <div class="tabs-button-list">
+              ${Boolean(!noEdit) && stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
+              ${Boolean(!noEdit) && codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
+              ${displayJsFiddle ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset) : ''}
+            </div>
+            <tabs
+              :class="$parent.$parent.addClassIfPreviewTabIsSelected('${id}', 'selected-preview')"
+              :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }"
+              cache-lifetime="0"
+              @changed="$parent.$parent.codePreviewTabChanged(...arguments, '${id}')"
+            >
           `;
-      } else { // close preview
+      } else {
+        // close preview
         return '</tabs></div>';
       }
-    }
+    },
   };
 };

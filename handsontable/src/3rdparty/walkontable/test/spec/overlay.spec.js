@@ -728,8 +728,8 @@ describe('WalkontableOverlay', () => {
     const baseRect = getTableRect(wt.wtTable);
 
     expect(baseRect).toEqual(jasmine.objectContaining({
-      top: documentClientHeight - totalRowsHeight,
-      bottom: documentClientHeight + 1, // +1 innerBorderTop
+      top: documentClientHeight - totalRowsHeight - 1, // 1px header border compensation
+      bottom: documentClientHeight,
       left: documentClientWidth - totalColumnsWidth,
     }));
     expect(getTableRect(wt.wtOverlays.topOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
@@ -743,8 +743,8 @@ describe('WalkontableOverlay', () => {
       left: 0,
     }));
     expect(getTableRect(wt.wtOverlays.inlineStartOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
-      top: documentClientHeight - totalRowsHeight,
-      bottom: documentClientHeight + 1, // +1 innerBorderTop
+      top: documentClientHeight - totalRowsHeight - 1, // 1px header border compensation
+      bottom: documentClientHeight,
       left: 0,
     }));
   });

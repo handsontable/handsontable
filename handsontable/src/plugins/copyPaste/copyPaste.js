@@ -48,12 +48,12 @@ const META_HEAD = [
  * Control the `CopyPaste` plugin programmatically through its [API methods](#methods).
  *
  * The user can access the copy-paste features through:
- * - The [context menu](@/guides/cell-features/clipboard.md#context-menu).
- * - The [keyboard shortcuts](@/guides/cell-features/clipboard.md#related-keyboard-shortcuts).
+ * - The [context menu](@/guides/cell-features/clipboard/clipboard.md#context-menu).
+ * - The [keyboard shortcuts](@/guides/cell-features/clipboard/clipboard.md#related-keyboard-shortcuts).
  * - The browser's menu bar.
  *
  * Read more:
- * - [Guides: Clipboard](@/guides/cell-features/clipboard.md)
+ * - [Guides: Clipboard](@/guides/cell-features/clipboard/clipboard.md)
  * - [Configuration options: `copyPaste`](@/api/options.md#copypaste)
  *
  * @example
@@ -107,9 +107,9 @@ export class CopyPaste extends BasePlugin {
   rowsLimit = Infinity;
   /**
    * When pasting:
-   * - `'overwrite'`: overwrite the currently-selected cells
-   * - `'shift_down'`: move currently-selected cells down
-   * - `'shift_right'`: move currently-selected cells to the right
+   * - `'overwrite'` - overwrite the currently-selected cells
+   * - `'shift_down'` - move currently-selected cells down
+   * - `'shift_right'` - move currently-selected cells to the right
    *
    * @type {string}
    * @default 'overwrite'
