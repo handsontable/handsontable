@@ -78,4 +78,6 @@ Learn more on our [GitHub](https://github.com/handsontable/handsontable/blob/dev
 
 - [Packages](@/guides/tools-and-building/packages/packages.md)
 
+:::
+
 </div>

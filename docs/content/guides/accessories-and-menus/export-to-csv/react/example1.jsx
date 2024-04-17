@@ -33,6 +33,11 @@ const ExampleComponent = () => {
 
   return (
     <>
+      <div class="example-controls-container">
+        <div className="controls">
+          <button id="export-file" onClick={(...args) => buttonClickCallback(...args)}>Download CSV</button>
+        </div>
+      </div>
       <HotTable
         ref={hotRef}
         data={[
@@ -53,9 +58,6 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
-      <div className="controls">
-        <button id="export-file" onClick={(...args) => buttonClickCallback(...args)}>Download CSV</button>
-      </div>
     </>
   );
 };

@@ -168,6 +168,7 @@ export default {
       });
 
       // Iterate through each pre tag
+      /*
       const preTagsTabs = document.querySelectorAll('.tabs-component pre');
       preTagsTabs.forEach(preTag => {
           const codeTag = preTag.querySelector('code');
@@ -175,7 +176,7 @@ export default {
               const clonedGithubLink = githublink.cloneNode(true);
               preTag.parentElement.insertBefore(clonedGithubLink, codeTag.nextSibling);
           }
-      });
+      });*/
 
 
       // Select all elements with the class ".show-code"

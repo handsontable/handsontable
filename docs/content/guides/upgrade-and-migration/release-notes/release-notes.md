@@ -32,13 +32,13 @@ For more information on this release, see:
 - [Blog post (14.3.0)](https://handsontable.com/blog/handsontable-14.3.0-enhanced-navigation-and-bug-fixes)
 - [Documentation (14.3)](https://handsontable.com/docs/14.3)
 
-### Added
+#### Added
 - Added new feature, Navigation within selection and edit cells within a range [#10732](https://github.com/handsontable/handsontable/pull/10732)
 
-### Changed
+#### Changed
 - Updated dependencies based on npm audit, most notably we upgraded to angular 17.0 [#10889](https://github.com/handsontable/handsontable/pull/10889)
 
-### Fixed
+#### Fixed
 
 - Ensured the cursor changes to 'grabbing' for all table elements during column or row movement[#10852](https://github.com/handsontable/handsontable/pull/10852)
 - Resolved an issue where the `TAB` key failed to move selection when editing select-type cells in 'fast edit' mode. [#10849](https://github.com/handsontable/handsontable/pull/10849)
