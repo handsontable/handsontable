@@ -45,15 +45,17 @@
         background: $sideColor
         border-radius: $radius
         display: flex
-        gap: 8px
+        gap: 12px
+        align-items: start
 
         span { 
             background-color: $accentColor
             border-radius: $radius-s
-            padding: 12px
+            padding: 11px
             
             i { 
                 filter:brightness(0) invert(1) 
+                opacity .7
                 
                 //animation-play-state: paused
             }
@@ -71,7 +73,7 @@
             }
         }
         div {
-            padding-top: 4px
+            padding-top: 2px
             width: -webkit-fill-available;
 
             p { 
@@ -104,7 +106,18 @@
             cursor:pointer
             opacity .6
             transition all $t ease
-            //filter brightness(0) invert(0)
+            padding: 9px
+            border: 0
+            background: 0
+            margin: -8px -8px 0 0
+            
+            i { 
+                max-width: 14px
+                max-height: 14px
+                min-width: 14px
+                min-height: 14px
+                background-size: 14px
+            }
 
             @media (hover: hover) {
                 &:hover { 
@@ -138,6 +151,7 @@
                 i {
                     opacity .7
                     transition all $t ease
+                    background-size: 18px 
                 }
                 
                 .i-arrow { 
@@ -163,14 +177,15 @@
                     display: flex
                     gap: 8px
                     align-items: center
-                    padding: 11px 32px
+                    padding: 13px 16px
+                    margin: 0 24px 0 16px
                     font-size: $font-size-xs
                     line-height: $line-height-xs
                     font-weight: 400
                     color: $textColor
                     transition all $t ease
                     cursor: pointer
-                    
+                    border-radius: $radius
 
                     span {
                         width: 100%
@@ -221,11 +236,13 @@
                         color: $text2Color
                         font-size: $font-size-xs
                         line-height: $line-height-xs
-                        padding: 6px 32px 6px 56px
+                        padding: 7px 8px 7px 32px
                         border:0
+                        margin: 0 24px 0 24px;
                         position: relative
                         transition all $ts ease
                         display: flex;
+                        width: auto
                         align-items: center;
                         //justify-content: space-between;
 
@@ -233,7 +250,7 @@
                             content: ''
                             display: block
                             position absolute
-                            inset: 0 24px 0 24px
+                            inset: 0 0
                             background: $sideColor
                             z-index -1
                             border-radius: $radius
@@ -246,7 +263,7 @@
                             display: block
                             position absolute
                             top 0    
-                            left:40px
+                            left:16px
                             bottom: 0
                             border-left: 1px solid $borderColor
                             transition all $t ease
@@ -277,19 +294,22 @@
                                 border-color: $accentColor
                             }
                         }  
-                        .tag-update, .tag-new  { 
+                        .tag-update, .tag-new, .tag-deprecated  { 
                             font-size: 12px
                             line-height: $line-height-xxs
                             display: block;
                             border-radius: $radius-s
-                            padding: 2px 6px;
-                            background-color: $accentColor
+                            padding: 1px 6px;
+                            background-color: $successColor
                             color: $bgColor
                             margin:-1px 0;
                             width:auto
                         }
                         .tag-new { 
-                            background-color: $successColor
+                            background-color: $accentColor
+                        }
+                        .tag-deprecated { 
+                            background-color: $depricatedColor
                         }
                     }
                 }
@@ -501,127 +521,11 @@
                     }
                 }
             }
-        }   
-
-        //Search
-        .search-box { 
-            position: relative
-            display: flex
-            padding: 16px
-
-            > i { 
-                position: absolute
-                top: 24px
-                left: 24px
-            }
-
-            input { 
-                width:160px
-                border-radius: 4px
-                background: none
-                border: none
-                padding: 4px 8px 4px 32px
-                font-size: $font-size-xs
-                line-height: $line-height-xs
-                color: $text2Color
-                font-family: $font
-
-                &:focus { 
-                    + .kbd-hint { 
-                        opacity 0 
-                    }
-                }
-            }
-
-            .kbd-hint { 
-                transition all $t ease
-                position:absolute
-                display: 
-                flex; gap:4px
-                right: 22px
-                top:22px
-
-                kbd { 
-                    display: block
-                    line-height: 20px
-                    width: 20px
-                    border-radius: 4px
-                    text-align: center
-                    background: $borderColor
-                    color: $text2Color
-                    font-size: $font-size-xs
-                }
-            }
-
-            .suggestions { 
-                position absolute
-                top 52px
-                right:12px;
-                min-width:320px
-                background: $sideColor
-                padding: 8px 8px
-                border-radius: $radius
-                list-style: none
-
-                li { color: $text2Color
-                    font-size: $font-size-s
-                    line-height: $line-height-s
-                    padding: 2px 8px 
-                    
-
-                    &:not(.suggestion) {
-                        padding: 16px 8px 12px
-                        border-bottom: 1px solid $borderColor
-                        margin-bottom: 8px
-                    }
-
-                    a { 
-                        color: $text2Color
-                        font-size: $font-size-xs
-                        line-height: $line-height-xs
-                        padding: 4px 8px 
-                        margin: 0 -8px
-                        border:0
-                        position: relative
-                        transition all $t ease
-                        display: block;
-                        z-index 1
-                        font-weight: 400
-                        border-radius: $radius
-                        display: flex;
-
-                        i {
-                            //padding: 2px
-                            opacity .8
-                            transform:rotate(-90deg)
-                            display: inline-block
-                        }
-
-                        span { 
-                            display: inline-block
-                            white-space: pre
-                        }
-
-                        .header { 
-                            font-size: $font-size-xs
-                            line-height: $line-height-xs
-                            display: inline-flex;
-                        }
-
-                        @media (hover: hover) {
-                            &:hover { 
-                                background: $borderColor
-                            }
-                        }
-
-                    }
-                }
-            }
-        }
+        }      
     }
 
     
-    @media (max-width: $medium) {
+    @media (max-width: $large) {
         padding-top: 0
         width 100%
         top: 0
@@ -645,7 +549,7 @@
     }
 }
 
-@media (max-width: $medium) {
+@media (max-width: $large) {
     .sidebar{
         .sidebar-links:first-child {
             margin-top: 16px
@@ -660,6 +564,7 @@
         padding-top: 72px
         padding-bottom: 0
         width: 100%
+        max-width: 100vw
 
         .info-box { 
             margin-top: 16px

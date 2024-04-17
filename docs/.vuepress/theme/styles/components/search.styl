@@ -1,0 +1,171 @@
+//Search
+.navbar {
+    .search-box { 
+        position: relative;
+        z-index 2
+        display: flex
+        padding: 4px
+        width: auto
+        height: auto
+        //transform: translateX(-50%)
+        //left: 50%
+
+        .algolia-autocomplet { 
+            position relative !important
+            margin: 0 !important
+        }
+
+        > i { 
+            position: absolute
+            top: 18px
+            left: 18px
+            z-index 1
+        }
+
+        input { 
+            margin: 2px 0
+            width: 320px
+            box-sizing: border-box
+            border-radius: $radius
+            border: 1px solid $borderColor
+            background: $sideColor
+            border: none
+            padding: 11px 16px 11px 40px
+            font-size: $font-size-xs
+            line-height: 20px
+            color: $text2Color
+            font-family: $font
+            transition all $ts ease
+            height: auto
+
+            &:focus { 
+                //box-shadow: 0 0 0 1px $accentColor
+                //width: 480px
+
+                + .kbd-hint { 
+                    opacity 0 
+                }
+            }
+        }
+
+        .kbd-hint { 
+            transition all $ts ease
+            position:absolute
+            display: flex
+            gap: 4px
+            right: 16px
+            top: 16px
+
+            kbd { 
+                display: block
+                line-height: 24px
+                width: 24px
+                border-radius: $radius-s
+                text-align: center
+                background: $onsurfaceColor
+                color: $text2Color
+                font-size: $font-size-xxs
+                opacity .5
+                margin: 0
+            }
+        }
+
+        .suggestions { 
+            position absolute
+            top 64px
+            right:-160px;
+            left: -160px
+            min-width:320px
+            background: $onsurfaceColor
+            padding: 8px 0
+            border-radius: $radius-xl
+            list-style: none
+
+            &:before {
+                content: ''
+                display: block
+                inset:  -2000px
+                position fixed
+                background: rgba(0,0,0,.2)
+                z-index -1
+                backdrop-filter: blur(14)
+                transition: all .2s ease-in-out
+            }
+
+            li { 
+                color: $textColor
+                font-size: $font-size-xs
+                line-height: $line-height-xs
+                padding: 4px 8px 
+                margin:0 8px
+                align-items: baseline
+                
+                &:not(.suggestion) {
+                    padding: 16px 16px 12px
+                    border-bottom: 1px solid $borderColor
+                    margin: 8px 0
+                }
+                
+                &.focused {
+                    a {
+                        background: $borderColor
+                        color: $textColor
+                    }
+                }
+
+                a { 
+                    color: $text2Color
+                    font-size: $font-size-xs
+                    line-height: $line-height-xs
+                    padding: 6px 8px 
+                    margin: 0 -8px
+                    border:0
+                    position: relative
+                    transition all $t ease
+                    display: block;
+                    z-index 1
+                    font-weight: 400
+                    border-radius: $radius
+                    display: flex;
+
+                    i {
+                        //padding: 2px
+                        opacity .8
+                        transform:rotate(-90deg)
+                        display: inline-block
+                        position: relative
+                        top: 2px
+                    }
+
+                    span { 
+                        display: inline-block
+                        white-space: pre
+                    }
+
+                    .header { 
+                        font-size: $font-size-xs
+                        line-height: $line-height-xs
+                        display: inline-flex;
+                    }
+
+                    @media (hover: hover) {
+                        &:hover { 
+                            background: $borderColor
+                            color: $textColor
+                        }
+                    }
+
+                }
+            }
+        }
+        
+        @media (max-width: $xLarge) {
+            input { 
+                width: 240px
+            }
+        }
+        @media (max-width: $large) {
+            display: none
+        }
+    }    
+}

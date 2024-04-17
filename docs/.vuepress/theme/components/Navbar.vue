@@ -30,9 +30,9 @@
             <span class="news"><i class="ico i-bell"></i></span>
             <a href="https://github.com/handsontable/handsontable" class="github-stars">
               <i class="ico i-github"></i>
-              <span v-if="stars > 0">{{ stars }}</span>
+              <span v-if="stars">{{ stars }}</span>
             </a>
-
+            <button class="menuButton"><i class="ico i-search"></i></button>
             <button @click="$emit('toggle-sidebar')" class="menuButton">
               <i class="ico i-menu"></i>
               <i class="ico i-close"></i>
@@ -88,13 +88,18 @@ export default {
     }
   },
   methods: {
+    kFormatter(num) {
+      return Math.abs(num) > 999
+        ? Math.sign(num) * (Math.abs(num) / 1000).toFixed(1) + "k"
+        : Math.sign(num) * Math.abs(num);
+    },
     async getStarts() {
       try {
         const response = await fetch(
           "https://api.github.com/repos/handsontable/handsontable"
         );
         const data = await response.json();
-        this.stars = data?.stargazers_count ?? 0;
+        this.stars = this.kFormatter(data?.stargazers_count ?? 0);
       } catch (error) {
         console.log(error);
       }

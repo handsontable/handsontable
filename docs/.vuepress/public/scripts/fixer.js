@@ -95,6 +95,10 @@
       } else if (key === 'react-colorful') {
         return window.exports;
 
+      } 
+      else if (key === '@handsontable/angular') {
+        ns = 'Handsontable.angular';
+
       } else if (key === '@handsontable/react') {
         ns = 'Handsontable.react';
 

@@ -1,0 +1,111 @@
+.navbar {
+    #algolia-search {
+        margin: 0
+
+        .DocSearch-Button {
+            width: 320px
+            margin: 6px
+            box-sizing: border-box
+            height: auto;
+            border-radius: $radius
+            padding: 9px
+            border: 1px solid $lightBorderColor
+            background: $borderColor
+            transition: all $ts ease-in-out
+
+            .DocSearch-Search-Icon { 
+                //display: none
+                width: 16px
+                height: 16px
+                padding: 3px
+                opacity: .7
+
+                path { 
+                    color: $textColor
+                }
+            }
+
+            .DocSearch-Button-Placeholder {
+                font-size: $font-size-xs
+                line-height: $line-height-xs
+                color: text2Color
+                margin: 1px 0
+                transition: all $t ease-in-out
+            }
+
+            &:hover {
+                box-shadow: none;
+
+                .DocSearch-Button-Placeholder {
+                    opacity 0
+                }
+
+                .DocSearch-Button-Keys {
+                    opacity 0
+                }
+            }
+
+            &:focus-visible {
+                box-shadow: none;
+                //outline: -webkit-focus-ring-color auto 1px;
+            }
+            
+        }
+    }
+
+    @media (max-width: $large) {
+        #algolia-search { 
+            display: none
+        }
+    }
+}
+
+html .DocSearch-Container {
+    z-index: 99991
+}
+
+.DocSearch-Button-Container {
+    display: flex !important;
+    gap: 4px
+}
+
+.DocSearch-Button-Keys {
+    display: flex !important;
+    gap: 4px
+    transition: all $t ease-in-out
+
+    kbd { 
+        display: block
+        line-height: 24px
+        width: 24px
+        height: 24px
+        border-radius: $radius-s
+        text-align: center
+        font-size: 12px
+        opacity .5
+        margin: 0
+        box-shadow: none
+        box-sizing: border-box
+        background: $onsurfaceColor
+        color: $text2Color
+        transition: all $ts ease-in-out
+    }
+}
+
+html .DocSearch-Modal {
+    margin: 72px auto auto
+}
+
+html .DocSearch-Input { 
+    &:focus-visible {
+        outline: none !important
+    }
+}
+
+
+:root {
+    --docsearch-searchbox-background: transparent;
+    --docsearch-searchbox-focus-background: transparent;
+    --docsearch-text-color: $textColor;
+    --docsearch-muted-color: $textColor;
+}

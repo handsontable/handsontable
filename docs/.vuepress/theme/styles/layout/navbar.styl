@@ -9,6 +9,7 @@
     backdrop-filter: blur(14px);
     background: white
     border-bottom: 1px solid $borderColor
+    max-width: 100vw
 
     .tag  { 
         font-size: $font-size-xxs
@@ -78,6 +79,40 @@
                 display: flex
 
                 .nav-item {
+                    .open { 
+                        > button { 
+                            color: $textColor
+                        }
+                    }
+                    
+                    &:not(.roadmap) {
+                        a, button {
+                            &.router-link-active { 
+                                position relative
+                                
+                                &:before { 
+                                    width: 20px
+                                    position: absolute
+                                    bottom: 10px
+                                    left: 50%
+                                    transform: translateX(-50%)
+                                    display: block
+                                    content: ''
+                                    background: $linkColor
+                                    height: 1px
+
+                                }
+                                color: $textColor
+                            }
+
+                            @media (hover: hover) {
+                                &:hover { 
+                                    color: $textColor
+                                }
+                            }
+                        }
+                    }
+
                     a, button { 
                         font-size:$font-size-xs
                         line-height: $line-height-xs
@@ -89,31 +124,7 @@
                         gap:6px
                         font-weight: 400
                         border-radius: $radius
-                        transition: all $t ease-in-out
-
-                        &.router-link-active { 
-                            position relative
-                            
-                            &:before { 
-                                width: 20px
-                                position: absolute
-                                bottom: 10px
-                                left: 50%
-                                transform: translateX(-50%)
-                                display: block
-                                content: ''
-                                background: $linkColor
-                                height: 1px
-
-                            }
-                            color: $textColor
-                        }
-
-                        @media (hover: hover) {
-                            &:hover { 
-                                color: $textColor
-                            }
-                        }
+                        transition: all $t ease-in-out 
                     }
 
                     button { 
@@ -157,20 +168,35 @@
                 gap: 8px
                 margin: 0
 
-                .dropdown-wrapper > button { 
-                    border-radius: $radius
-                    display: flex
-                    gap: 8px
-                    padding-left: 48px
-                    padding: 13px 16px 13px 40px
-                    margin-left:-24px
-                    margin-top: 4px
-                    font-size: $font-size-xs
-                    line-height: $line-height-xs
-                    align-items: center;
+                .dropdown-wrapper {
+                    &.open { 
+                        > button { 
+                            color: $textColor
+                        }
+                    }
+                    
+                    > button { 
+                        border-radius: $radius
+                        display: flex
+                        gap: 8px
+                        padding-left: 48px
+                        padding: 13px 16px 13px 40px
+                        margin-left:-24px
+                        margin-top: 4px
+                        font-size: $font-size-xs
+                        line-height: $line-height-xs
+                        align-items: center;
+                        color: $text2Color
 
-                    + .nav-dropdown { 
-                        left: -16px
+                        @media (hover: hover) {
+                            &:hover { 
+                                color: $textColor
+                            }
+                        }
+
+                        + .nav-dropdown { 
+                            left: -16px
+                        }
                     }
                 }
             }
@@ -207,6 +233,8 @@
 
             &.open { 
                 > button { 
+                    color: $textColor
+
                     i { 
                         transform:rotate(-180deg)
 
@@ -221,7 +249,8 @@
                     }
                 }
             }
-            @media (hover: hover) {
+
+           /* @media (hover: hover) {
                 &:hover { 
                     > button { 
                         i { 
@@ -239,6 +268,7 @@
                     }
                 }
             }
+            */
 
             .nav-dropdown { 
                 transition all $t ease
@@ -251,8 +281,8 @@
                 background: $sideColor
                 padding: 12px 8px
                 border-radius: $radius-xl
-                //right: 0
                 min-width: 120px
+                height: auto !important
 
                 a { 
                     color: $text2Color
@@ -266,6 +296,8 @@
                     align-items: center;
                     justify-content: space-between;
                     z-index 1
+                    border-radius: $radius
+
 
                     &:before { 
                         content: ''
@@ -309,7 +341,7 @@
             
             > a, > span {
                 display: block
-                padding: 12px
+                padding: 11px
                 position relative
                 transition: all $ts ease-in-out
             }
@@ -318,7 +350,7 @@
                 cursor pointer
                 background: none
                 border: none
-                padding: 12px
+                padding: 11px
             }
 
             > a, > span, button, label {
@@ -340,7 +372,7 @@
             }
 
             .github-stars {
-                padding: 12px 16px
+                padding: 11px 16px
                 display: flex
                 border: 1px solid $borderColor
                 gap: 8px
@@ -388,157 +420,6 @@
                 }
             }
         }   
-
-        //Search
-        .search-box { 
-            position: relative;
-            z-index 2
-            display: flex
-            padding: 4px
-            width: auto
-            //transform: translateX(-50%)
-            //left: 50%
-
-            > i { 
-                position: absolute
-                top: 20px
-                left: 18px
-            }
-
-            input { 
-                margin: 2px 0
-                width: 320px
-                box-sizing: border-box
-                border-radius: $radius
-                border: 1px solid $borderColor
-                background: $sideColor
-                border: none
-                padding: 11px 16px 11px 40px
-                font-size: $font-size-xs
-                line-height: 20px
-                color: $text2Color
-                font-family: $font
-                transition all $ts ease
-
-                &:focus { 
-                    //box-shadow: 0 0 0 1px $accentColor
-                    //width: 480px
-
-                    + .kbd-hint { 
-                        opacity 0 
-                    }
-                }
-            }
-
-            .kbd-hint { 
-                transition all $ts ease
-                position:absolute
-                display: flex
-                gap:6px
-                right: 16px
-                top: 16px
-
-                kbd { 
-                    display: block
-                    line-height: 24px
-                    width: 24px
-                    border-radius: $radius-s
-                    text-align: center
-                    background: $onsurfaceColor
-                    color: $text2Color
-                    font-size: $font-size-xxs
-                }
-            }
-
-            .suggestions { 
-                position absolute
-                top 64px
-                right:-160px;
-                left: -160px
-                min-width:320px
-                background: $onsurfaceColor
-                padding: 8px 0
-                border-radius: $radius-xl
-                list-style: none
-
-                &:before {
-                    content: ''
-                    display: block
-                    inset:  -2000px
-                    position fixed
-                    background: rgba(0,0,0,.2)
-                    z-index -1
-                    backdrop-filter: blur(14)
-                    transition: all .2s ease-in-out
-                }
-
-                li { 
-                    color: $textColor
-                    font-size: $font-size-xs
-                    line-height: $line-height-xs
-                    padding: 4px 8px 
-                    margin:0 8px
-                    align-items: baseline
-                    
-                    &:not(.suggestion) {
-                        padding: 16px 16px 12px
-                        border-bottom: 1px solid $borderColor
-                        margin: 8px 0
-                    }
-                    
-                    &.focused {
-                        a {
-                            background: $borderColor
-                            color: $textColor
-                        }
-                    }
-
-                    a { 
-                        color: $text2Color
-                        font-size: $font-size-xs
-                        line-height: $line-height-xs
-                        padding: 6px 8px 
-                        margin: 0 -8px
-                        border:0
-                        position: relative
-                        transition all $t ease
-                        display: block;
-                        z-index 1
-                        font-weight: 400
-                        border-radius: $radius
-                        display: flex;
-
-                        i {
-                            //padding: 2px
-                            opacity .8
-                            transform:rotate(-90deg)
-                            display: inline-block
-                            position: relative
-                            top: 2px
-                        }
-
-                        span { 
-                            display: inline-block
-                            white-space: pre
-                        }
-
-                        .header { 
-                            font-size: $font-size-xs
-                            line-height: $line-height-xs
-                            display: inline-flex;
-                        }
-
-                        @media (hover: hover) {
-                            &:hover { 
-                                background: $borderColor
-                                color: $textColor
-                            }
-                        }
-
-                    }
-                }
-            }
-        }
     }
     
     @media (max-width: $extraLarge) {
@@ -551,15 +432,30 @@
         }
     }
 
-    @media (max-width: $large) {
+    @media (max-width: $xLarge) {
         .navbar-wrapper {
-            .search-box { 
+            .icons-nav .news {
+                display:none
+            }
+
+            .framework-and-version { 
                 display: none
             }
         }
     }
 
-    @media (max-width: $medium) {
+    @media (max-width: $large) {
+        .navbar-wrapper {
+            width: unset
+            justify-content: space-between
+
+            .top-bar { 
+                width: auto
+            }  
+        }
+    }
+
+    @media (max-width: $large) {
         margin: 0
         z-index: 200
         padding: 0
@@ -573,13 +469,16 @@
             border-radius: 0
             
             .framework-and-version,
-            .search-box,
             .menu .nav-links { 
                 display: none
             }
 
             .icons-nav {
                 button:not(.menuButton), a {
+                    display: none
+                }
+
+                .github-stars {
                     display: none
                 }
             }
@@ -622,7 +521,7 @@
 }
 
 .sidebar-open .navbar {
-     @media (max-width: $medium) {
+    @media (max-width: $Large) {
         .navbar-wrapper {
             background: none !important
 
@@ -630,10 +529,6 @@
                 i:nth-child(2) { display: block}
                 i:nth-child(1) { display: none}
             }
-
-            .home-link { 
-                margin-right: 0
-            }
         }
-     }
+    }
 }

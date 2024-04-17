@@ -7,6 +7,7 @@ html.theme-dark {
 
     $accentColor        = var(--color-accentblue)
     $textColor          = var(--color-gray-200)
+    $hoverWhiteColor    = var(--color-gray-300)
     $text2Color         = var(--color-gray-500)
     $borderColor        = var(--color-gray-700)
     $bgColor            = var(--color-gray-900)
@@ -14,9 +15,12 @@ html.theme-dark {
     $bgCode             = $borderColor 
     $onsurfaceColor     = var(--color-gray-700)
     $linkColor          = var(--color-lightblue)
-    $editorColor        = var(--color-gray-700)
+    $linkHoverColor     = var(--color-lighterblue)
+    $editorColor        = var(--color-gray-800)
     $editorHeadColor    = var(--color-gray-800)
     $lightBorderColor   = var(--color-gray-600)
+    $depricatedColor    = var(--color-yellow) 
+    $depricatedBgColor  = var(--color-yellow-20)
 
     $editorCommentColor         = #999;        
     $editorTagColor             = #e2777a;        
@@ -24,7 +28,7 @@ html.theme-dark {
     $editorFunctionColor        = #f08d49;        
     $editorSymbolColor          = #f8c555;        
     $editorSelectorColor        = #cc99cd;        
-    $editorStringColor          = #7ec699 ;                
+    $editorStringColor          = #7ec699;                
     $editorOperatorColor        = #67cdccri;      
     $editorInsertedColor        = green;       
     $editorPunctuationColor     = #ccc;       
@@ -67,6 +71,12 @@ html.theme-dark {
 
     a { 
         color: $linkColor 
+
+        @media (hover: hover) {
+            &:hover { 
+                color: $linkHoverColor
+            }
+        }
     }
 
     #nprogress .bar { 
@@ -77,7 +87,7 @@ html.theme-dark {
     
     }
     .decoration-right {
-        opacity .6
+        opacity 1
     }
 
     /* Sidebar 
@@ -90,7 +100,7 @@ html.theme-dark {
         }
 
         .info-box { 
-            background: $sideColor
+            background: $gradient2
 
             span { 
                 background-color: $accentColor
@@ -129,7 +139,7 @@ html.theme-dark {
                 }
                 @media (hover: hover) {
                     &:hover { 
-                        color: $textColor
+                        color: $hoverWhiteColor
                     }
                 }
             }
@@ -143,7 +153,7 @@ html.theme-dark {
 
                     @media (hover: hover) {
                         &:hover { 
-                            color: $textColor
+                            color: $hoverWhiteColor
                         }
                     }
                 }
@@ -156,12 +166,12 @@ html.theme-dark {
                         }
 
                         &:before{ 
-                            background: $borderColor 
+                            background: $sideColor 
                         }
 
                         @media (hover: hover) {
                             &:hover { 
-                                color: $textColor
+                                color: $hoverWhiteColor
                             }
                         }
                         
@@ -173,13 +183,17 @@ html.theme-dark {
                             }
                         }
 
-                        .tag-update, .tag-new  { 
+                        .tag-update  { 
                             background-color: $successColor
-                            color: $textColor
+                            color: $bgColor
                         }
                         .tag-new {
-                            background: $successColor
-                            color: $bgColor
+                            background: $accentColor
+                            color: $textColor
+                        }
+                        .tag-deprecated {
+                            background: $depricatedBgColor
+                            color: $depricatedColor
                         }
                     }
                 }
@@ -216,7 +230,7 @@ html.theme-dark {
 
                         @media (hover: hover) {
                             &:hover { 
-                                color: $textColor
+                                color: $hoverWhiteColor
                             }
                         }
                         
@@ -243,6 +257,7 @@ html.theme-dark {
             }   
 
             //Search
+            /*
             .search-box { 
                 input { 
                     color: $text2Color
@@ -284,7 +299,7 @@ html.theme-dark {
                         }
                     }
                 }
-            }
+            }*/
         }
     }
 
@@ -301,13 +316,8 @@ html.theme-dark {
         }  
 
         .navbar-wrapper { 
-            .home-link {
-                .version {
-                    color: $textColor
-                }
-            }
-            
             .dropdown-wrapper { 
+
                 .nav-dropdown { 
                     background: $borderColor
                     border:0
@@ -321,7 +331,28 @@ html.theme-dark {
 
                         @media (hover: hover) {
                             &:hover { 
-                                color: $textColor
+                                color: $hoverWhiteColor
+                            }
+                        }
+                    }
+                }
+            }
+
+            .framework-and-version { 
+                .nav-frameworks { 
+                    .dropdown-wrapper {
+                        > button { 
+                            color: $text2Color
+
+                            @media (hover: hover) {
+                                &:hover { 
+                                    color: $hoverWhiteColor
+                                }
+                            }
+                        }
+                        &.open { 
+                            > button { 
+                                color: $hoverWhiteColor
                             }
                         }
                     }
@@ -331,20 +362,31 @@ html.theme-dark {
             .menu {
                 .nav-links {
                     .nav-item {
+
+                        &:not(.roadmap) {
+                            a, button { 
+                                &.router-link-active { 
+                                    color: $textColor
+
+                                    &:before {
+                                        background: $linkColor    
+                                    }
+                                }
+                            }
+                        }
+
+                        .open { 
+                            > button { 
+                                color: $hoverWhiteColor
+                            }
+                        }
+                        
                         a, button { 
                             color: $text2Color
 
-                            &.router-link-active { 
-                                color: $textColor
-
-                                &:before {
-                                    background: $linkColor    
-                                }
-                            }
-
                             @media (hover: hover) {
                                 &:hover { 
-                                    color: $textColor
+                                    color: $hoverWhiteColor
                                 }
                             }
                         }
@@ -367,66 +409,13 @@ html.theme-dark {
 
                     @media (hover: hover) {
                         &:hover { 
-                            color: $textColor
+                            color: $hoverWhiteColor
                         }
                     }
                 }
             }   
-
-            .search-box { 
-                input { 
-                    background: $borderColor
-                    color: $text2Color
-                    font-family: $font
-                    border: 1px solid $lightBorderColor
-                    
-                    &:focus {
-                        //box-shadow: 0 0 0 1px $accentColor
-                        background: $bgColor
-                    }
-                }
-
-                .kbd-hint { 
-                    kbd { 
-                        background: $sideColor
-                        color: $text2Color
-                    }
-                }
-                .suggestions {
-                    background: $sideColor
-
-                    li {
-                        color: $textColor
-
-                        &:not(.suggestion) {
-                            border-bottom: 1px solid $borderColor
-                        }
-
-                        &.focused {
-                            a {
-                                background: $borderColor
-                                color: $textColor 
-                            }
-                        }
-                        
-                        a { 
-                            color: $text2Color
-
-                            @media (hover: hover) {
-                                &:hover { 
-                                    background: $borderColor
-                                    color: $textColor
-                                }
-                            }
-
-                        }
-                    }
-                }
-            }
         }
     }
-
-    
 
     //Page
     .page {
@@ -435,16 +424,16 @@ html.theme-dark {
                 color: $text2Color
                 
                 &:after {
-                    color: $text2Color !important
+                    color: $text2Color
                 }
                 @media (hover: hover) {
                     &:hover {
-                        color: $linkColor
+                        color: $hoverWhiteColor
                     }
                 }
             }
             span { 
-                color: $text2Color
+                //color: $text2Color
             }
         }
         
@@ -472,7 +461,8 @@ html.theme-dark {
             }
             
             h2 .no {
-                border: 1px solid $lightBorderColor
+                border: 1px solid $text2Color
+                background: $borderColor
             }
 
             p {
@@ -501,7 +491,7 @@ html.theme-dark {
                 @media (hover: hover) {
                     &:hover { 
                         text-decoration:none
-                        color: $textColor
+                        color: $linkHoverColor
                     }
                 }
             }
@@ -527,7 +517,7 @@ html.theme-dark {
                 
                 @media (hover: hover) {
                     &:hover { 
-                        color: $textColor
+                        color: $linkHoverColor
                     }
                 }
             }
@@ -552,7 +542,7 @@ html.theme-dark {
 
                             @media (hover: hover) {
                                 &:hover { 
-                                    color: $textColor
+                                    color: $hoverWhiteColor
 
                                     &:after {
                                         background: $accentColor
@@ -585,8 +575,18 @@ html.theme-dark {
             }
             
             .custom-block {
-                background: $sideColor
-                //border: 1px solid $borderColor
+                background: $borderColor
+                border: 1px solid $lightBorderColor
+
+                &.tip {
+                    border-color: $accentColor
+                }
+                &.success {
+                    border-color: $successColor
+                }
+                &.warning {
+                    border-color: $errorColor
+                }
 
                 p { 
                     a { 
@@ -636,10 +636,13 @@ html.theme-dark {
         }
         
         table:not(.htCore) { 
+            box-shadow: 0 0 0 1px $borderColor 
+
             thead { 
                 tr { 
                     th { 
-                        border-top:1px solid $borderColor
+                        background: $onsurfaceColor
+                        border-bottom:1px solid $lightBorderColor
                         color:$textColor
                     }
                 }
@@ -647,12 +650,12 @@ html.theme-dark {
 
             tbody {
                 tr {
-                    background: $sideColor
+                    background: $bgColor
                     td {
-                        
+                        border-top: 1px solid $borderColor
                     }
                     &:nth-child(2n) { 
-                        background: $bgColor
+                        background: $sideColor
                     }
                 }
             }
@@ -675,7 +678,7 @@ html.theme-dark {
 
                         @media (hover: hover) {
                             &:hover {  
-                                color: $textColor
+                                color: $hoverWhiteColor
                             }
                         }
                     }
@@ -700,7 +703,7 @@ html.theme-dark {
 
                     @media (hover: hover) {
                         &:hover {  
-                            color: $textColor
+                            color: $linkHoverColor
                         }
                     }
                 }
@@ -819,6 +822,8 @@ html.theme-dark {
     }
 
     .theme-default-content  .tabs-component {
+        border: 1px solid $lightBorderColor
+
         .tabs-component-panels {
             background: $borderColor
         }  
@@ -833,18 +838,21 @@ html.theme-dark {
             li.tabs-component-tab  {
                 a.tabs-component-tab-a {
                     color: $text2Color
+                    background: $onsurfaceColor
+                    border: 1px solid $onsurfaceColor
                 }
 
                 &.is-active { 
-                    border-bottom: 1px solid $linkColor
                     a {
                         color: $textColor
+                        background: $onsurfaceColor
+                        border: 1px solid $lightBorderColor
                     }
                 }
             }
         }
     }
-
+    /*
     .form-jsfiddle-external {
         .js-fiddle-link { 
             button { 
@@ -858,6 +866,7 @@ html.theme-dark {
             }
         }
     }
+    */
 
     div[class*="language-"]::before { 
         color: $text2Color
@@ -952,15 +961,19 @@ html.theme-dark {
         color: $textColor
     }
 
-    .copycode, .report { 
-        &:after {
-            color: $textColor
-            background: black //$sideColor
-            border: 0 solid $lightBorderColor
+    [class*="language-"] {
+        .copycode, .report, .github { 
+            //background: transparent !important
+
+            &:after {
+                color: $textColor
+                background: black //$sideColor
+                border: 0 solid $lightBorderColor
+            }
         }
     }
 
-    @media (max-width: $medium) {
+    @media (max-width: $large) {
         .sidebar { 
             background: $bgColor
         }
@@ -995,11 +1008,20 @@ html.theme-dark {
             border-color: $linkColor
             background: $linkColor
             color: $textColor
+
+            &:hover {
+                background: $linkHoverColor
+            }
         }
 
         #CybotCookiebotDialogFooter .CybotCookiebotDialogBodyButton {
-            border-color: $linkColor
+            border-color: $bgColor
+            background: $bgColor
             color: $linkColor
+
+            &:hover {
+                border-color: $accentColor
+            }
         }
 
         .CybotCookiebotScrollContainer .CybotCookiebotScrollbarContainer {
@@ -1081,6 +1103,14 @@ html.theme-dark {
         #CybotCookiebotDialogDetailBulkConsentLink {
             color: $text2Color
         }
+
+        #CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieInfoFooter,
+        #CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieInfo,
+        #CybotCookiebotDialogDetailBulkConsentListWrapper,
+        #CybotCookiebotDialogDetailBulkConsentListWrapper>span,
+        #CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieInfo.CybotCookiebotDialogShow:first-of-type:before {
+            border-color: $borderColor
+        }
     }
 
     .HW_frame { 
@@ -1095,29 +1125,91 @@ html.theme-dark {
         border: 1px solid $borderColor
         background: $sideColor
     }
+
+    // Algolia
+
+   
+
+    #algolia-search {
+
+        .DocSearch-Button {
+            border: 1px solid $lightBorderColor
+            background: $borderColor
+            transition: all $ts ease-in-out
+
+            .DocSearch-Search-Icon { 
+                path { 
+                    color: $textColor
+                }
+            }
+
+            .DocSearch-Button-Placeholder {
+                color: $text2Color
+            }
+
+            &:hover {
+                .DocSearch-Button-Placeholder {
+                }
+            }
+
+            &:focus-visible {
+            }
+            
+        }
+    }
+
+    .DocSearch-Button-Keys {
+        kbd { 
+            background: $onsurfaceColor
+            color: $text2Color
+        }
+    }
+
+    &[data-theme=dark] {
+        --docsearch-container-background: $dropColorSearchDark
+        --docsearch-searchbox-background: transparent;
+        --docsearch-searchbox-focus-background: transparent;
+        --docsearch-text-color: $textColor;
+        --docsearch-muted-color: $textColor;
+    }
+
+    //Editor 
+    .tabs-button-wrapper {
+
+        .tabs-button-list {
+
+            &.active {
+                .show-code {
+                    border: 1px solid $accentColor !important
+                }
+            }
+            
+            .show-code {
+                border: 1px solid $sideColor !important
+            }
+
+            .example-controls { 
+
+                button {
+
+                    i, svg { 
+                    }
+
+                    svg {
+                        path {
+                            fill: white
+                        }
+                    }
+
+                    &:after {
+                        color: $textColor
+                        background: black //$sideColor
+                        border: 0 solid $lightBorderColor
+                    }
+                }
+            }
+        }
+    }
 }
 
-// .algolia-autocomplete {
-//   .ds-dropdown-menu {
-//     &:before,
-//     [class^=ds-dataset-] {
-//       background-color $backgroundColor;
-//       border-color: $sectionBorderColor;
-//     }
-//   }
 
-//   .algolia-docsearch-suggestion {
-//     color $fontColor !important;
-//     background-color $backgroundColor;
-
-//     .algolia-docsearch-suggestion--subcategory-column {
-//       color $fontColor !important;
-//     }
-//   }
-
-//   .algolia-docsearch-suggestion--category-header,
-//   .algolia-docsearch-suggestion--highlight,
-//   .algolia-docsearch-suggestion--title {
-//     color $fontColor !important;
-//   }
-// }

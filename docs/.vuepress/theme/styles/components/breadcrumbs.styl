@@ -3,12 +3,16 @@
         max-width: 720px
         display: flex
         margin:0 auto
-        padding: 28px 0 0 !important
+        padding: 28px 0 0 0 !important
         flex-wrap: wrap
+        position: relative
+        box-sizing: border-box
         
         a, span {
             font-size: $font-size-xs
             line-height: $line-height-xs
+            display: inline-block
+            vertical-align: baseline
         }
         a {
             color: $text2Color
@@ -18,15 +22,16 @@
 
             i { 
                 display: inline-block
-                position relative
-                top: 2px
+                position absolute
+                top: 30px
+                left: 0
                 opacity .64
             }
-            &:after { 
+            span:after { 
                 content: "/"
                 display: inline-block
                 padding: 0 8px 0 8px
-                color: $text2Color !important
+                color: $text2Color 
             }
 
             @media (hover: hover) {
@@ -36,8 +41,16 @@
             }
         }
 
+        a:first-child {
+            padding-left: 26px
+        }
+
+        a:last-child span:last-child:after {
+            content: ''
+        }
+
         span { 
-            color: $text2Color
+            //color: $text2Color
         }
     }
 }

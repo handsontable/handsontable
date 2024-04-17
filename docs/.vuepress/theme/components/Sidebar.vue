@@ -3,10 +3,10 @@
     <div class="info-box">
       <span><i class="ico i-bell"></i></span>
       <div>
-        <p>v13.1.0 is out</p>
-        <a>Read more</a>
+        <p>What's new in 14.3.0</p>
+        <a href="#">Read more</a>
       </div>
-      <a class="close" @click="closeInfoBox"><i class="ico i-close"></i></a>
+      <button class="close" @click="closeInfoBox"><i class="ico i-close"></i></button>
     </div>
 
     <slot name="top" />
@@ -71,9 +71,10 @@ export default {
     
     if (selector1) {
       selector1.appendChild(chips1);
-
-        chips1.classList.add('tag-new');
-        chips1.textContent = 'New';
+        //chips1.classList.add('tag-new');
+        chips1.classList.add('tag-update');
+        //chips1.classList.add('tag-deprecated');
+        chips1.textContent = 'Updated';
     } else {
         console.error("Element not found with the given selector");
     }
