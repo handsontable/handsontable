@@ -128,11 +128,13 @@ export default {
           dayjs(metaData().modified).format('YYYY'),
       };
 
-      document.querySelector('#ld-json').innerHTML = JSON.stringify(
-        structuredData,
-        null,
-        4
-      );
+      if(document?.querySelector('#ld-json')){
+        document.querySelector('#ld-json').innerHTML = JSON.stringify(
+          structuredData,
+          null,
+          4
+        );
+      }
     },
   },
   created() {
