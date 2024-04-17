@@ -8,7 +8,6 @@ const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const nginxVariablesPlugin = require('./plugins/generate-nginx-variables');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
 const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
-const canonicalUrlsPlugin = require('./plugins/canonical-urls');
 const dumpRedirectPageIdsPlugin = require('./plugins/dump-redirect-page-ids');
 const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
 const conditionalContainer = require('./plugins/markdown-it-conditional-container');
@@ -117,7 +116,7 @@ module.exports = {
             new Sentry.Replay({
               maskAllText: false,
               blockAllMedia: false,
-            }),
+            }),   
           ],
         });
       };
@@ -332,9 +331,6 @@ module.exports = {
       {
         outputDir: path.resolve(__dirname, './public/data/'),
       },
-    ],
-    [
-      canonicalUrlsPlugin, // the plugin must be placed after the `dumpDocsDataPlugin`
     ],
     [
       dumpRedirectPageIdsPlugin,

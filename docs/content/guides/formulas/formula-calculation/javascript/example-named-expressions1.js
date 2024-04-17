@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable';
-import HyperFormula from 'hyperformula';
+import { HyperFormula } from 'hyperformula';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const data = [
