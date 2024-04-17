@@ -157,7 +157,6 @@ module.exports = function(docsVersion, base) {
         });
 
         const newTokens = [
-          getPreviewTab(id, cssContent, htmlContentRoot, encodedCode),
           ...tab('Code', jsToken, id),
           ...tab('HTML', htmlToken, id),
           ...tab('CSS', cssToken, id),
@@ -166,7 +165,11 @@ module.exports = function(docsVersion, base) {
         tokens.splice(index + 1, 0, ...newTokens);
 
         return `
-          <div class="example-container">!!!!!! TODO - HOT preview here</div>
+          <div class="example-container">
+            <style v-pre>${cssContent}</style>
+            <div v-pre>${htmlContentRoot}</div>
+            <ScriptLoader code="${encodedCode}"></ScriptLoader>
+          </div>
           <div class="tabs-button-wrapper">
             <div class="tabs-button-list">
               <button class="show-code"><i class="ico i-code"></i>Source code</button>
