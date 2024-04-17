@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem, where `TAB` would not move the selection when the select-typed cell was being edited in the \"fast edit\" mode.",
-  "type": "fixed",
-  "issueOrPR": 10849,
-  "breaking": false,
-  "framework": "none"
-}
