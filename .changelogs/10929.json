@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Remove Pikaday dependency keeping the forked version instead",
+  "type": "changed",
+  "issueOrPR": 10929,
+  "breaking": true,
+  "framework": "none"
+}
