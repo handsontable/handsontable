@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Remove Pikaday dependency keeping the forked version instead",
+  "title": "Updated production dependencies (remove `pikaday` - using `@handsontable/pikaday` instead, bump `numbro`, `dompurify` and `moment`)",
   "type": "changed",
   "issueOrPR": 10929,
   "breaking": true,
