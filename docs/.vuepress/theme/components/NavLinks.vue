@@ -7,7 +7,7 @@
     <div class="nav-item">
       <NavLink :item="apiLink"/>
     </div>
-    <div class="nav-item">
+    <div class="nav-item roadmap">
       <NavLink :item="roadmapLink"/>
     </div>
   </nav>

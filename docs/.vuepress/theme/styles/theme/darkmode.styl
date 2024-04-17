@@ -362,6 +362,19 @@ html.theme-dark {
             .menu {
                 .nav-links {
                     .nav-item {
+
+                        &:not(.roadmap) {
+                            a, button { 
+                                &.router-link-active { 
+                                    color: $textColor
+
+                                    &:before {
+                                        background: $linkColor    
+                                    }
+                                }
+                            }
+                        }
+
                         .open { 
                             > button { 
                                 color: $hoverWhiteColor
@@ -370,14 +383,6 @@ html.theme-dark {
                         
                         a, button { 
                             color: $text2Color
-
-                            &.router-link-active { 
-                                color: $textColor
-
-                                &:before {
-                                    background: $linkColor    
-                                }
-                            }
 
                             @media (hover: hover) {
                                 &:hover { 

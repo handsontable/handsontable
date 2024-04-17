@@ -85,6 +85,34 @@
                         }
                     }
                     
+                    &:not(.roadmap) {
+                        a, button {
+                            &.router-link-active { 
+                                position relative
+                                
+                                &:before { 
+                                    width: 20px
+                                    position: absolute
+                                    bottom: 10px
+                                    left: 50%
+                                    transform: translateX(-50%)
+                                    display: block
+                                    content: ''
+                                    background: $linkColor
+                                    height: 1px
+
+                                }
+                                color: $textColor
+                            }
+
+                            @media (hover: hover) {
+                                &:hover { 
+                                    color: $textColor
+                                }
+                            }
+                        }
+                    }
+
                     a, button { 
                         font-size:$font-size-xs
                         line-height: $line-height-xs
@@ -96,31 +124,7 @@
                         gap:6px
                         font-weight: 400
                         border-radius: $radius
-                        transition: all $t ease-in-out
-
-                        &.router-link-active { 
-                            position relative
-                            
-                            &:before { 
-                                width: 20px
-                                position: absolute
-                                bottom: 10px
-                                left: 50%
-                                transform: translateX(-50%)
-                                display: block
-                                content: ''
-                                background: $linkColor
-                                height: 1px
-
-                            }
-                            color: $textColor
-                        }
-
-                        @media (hover: hover) {
-                            &:hover { 
-                                color: $textColor
-                            }
-                        }
+                        transition: all $t ease-in-out 
                     }
 
                     button { 
