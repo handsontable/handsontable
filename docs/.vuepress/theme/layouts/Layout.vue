@@ -128,7 +128,7 @@ export default {
           dayjs(metaData().modified).format('YYYY'),
       };
 
-      if (document?.querySelector('#ld-json')) {
+      if (document && document.querySelector('#ld-json')) {
         document.querySelector('#ld-json').innerHTML = JSON.stringify(
           structuredData,
           null,
@@ -141,6 +141,8 @@ export default {
     if (this.$ssrContext) {
       this.$ssrContext.docsGenStamp = this.$page.docsGenStamp ?? '';
     }
+  },
+  mounted() {
     this.metaStructuredData();
   },
   watch: {
