@@ -355,3 +355,19 @@ export async function setCellBorders(cell: Locator, border: CellBorder) {
   await getPageInstance().getByText('Borders').hover();
   await getPageInstance().getByText(border).click();
 }
+
+/**
+ * @param {string} columnName Column name.
+ * @param {Locator} table The locator of the table.
+ */
+export async function collapseNestedColumn(columnName:string, table = getDefaultTableInstance()) {
+  await table.getByRole('columnheader', { name: columnName, exact: true }).locator('div').nth(1).click();
+}
+
+/**
+   * @param {string} rowNumber The row number.
+   * @param {Locator} table The locator of the table.
+   */
+export async function collapseNestedRow(rowNumber:number, table = getDefaultTableInstance()) {
+  await table.getByRole('rowheader', { name: rowNumber.toString() }).locator('div').nth(1).click();
+}
