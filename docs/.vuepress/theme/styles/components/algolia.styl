@@ -52,6 +52,12 @@
             
         }
     }
+
+    @media (max-width: $large) {
+        #algolia-search { 
+            display: none
+        }
+    }
 }
 
 html .DocSearch-Container {
@@ -95,38 +101,6 @@ html .DocSearch-Input {
         outline: none !important
     }
 }
-
-/*
-html.theme-dark {
-    .DocSearch-Button {
-        border-color: #43464d;
-    }
-
-    @media (max-width: $extraLarge) {
-        .DocSearch-Button {
-            border: none;
-        }
-
-        .DocSearch-Button-Keys {
-            display: none !important;
-        }
-
-        .DocSearch-Button-Placeholder {
-            display: none !important;
-        }
-        }
-
-        @media (max-width: $medium) {
-        #algolia-search {
-            margin-right: 0;
-        }
-    }
-    --docsearch-searchbox-background: transparent;
-    --docsearch-searchbox-focus-background: transparent;
-    --docsearch-text-color: #e5ebf1;
-    --docsearch-muted-color: #e5ebf1;
-}
-*/
 
 
 :root {
