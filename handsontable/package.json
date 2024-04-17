@@ -80,7 +80,7 @@
     "core-js": "^3.31.1",
     "dompurify": "^2.1.1",
     "moment": "2.29.4",
-    "numbro": "2.1.2"
+    "numbro": "2.5.0"
   },
   "optionalDependencies": {
     "hyperformula": "^2.6.2"
