@@ -1,12 +1,12 @@
 import { HyperFormula } from 'hyperformula';
-import Handsontable from "handsontable/base";
-import "handsontable/dist/handsontable.css";
-import "@handsontable/pikaday/css/pikaday.css";
+import Handsontable from 'handsontable/base';
+import 'handsontable/dist/handsontable.css';
+import '@handsontable/pikaday/css/pikaday.css';
 import { scenarioDataTop, scenarioDataBottom } from './constants';
 
-import { isArabicDemoEnabled } from "./utils";
-import "./styles.css";
-import { registerLanguageDictionary, arAR } from "handsontable/i18n";
+import { isArabicDemoEnabled } from './utils';
+import './styles.css';
+import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
 
 // choose cell types you want to use and import them
 import {
@@ -15,7 +15,7 @@ import {
   DateCellType,
   DropdownCellType,
   NumericCellType,
-} from "handsontable/cellTypes";
+} from 'handsontable/cellTypes';
 
 import {
   registerPlugin,
@@ -53,41 +53,63 @@ registerCellType(NumericCellType);
 
 registerLanguageDictionary(arAR);
 
-
 export function initializeScenarioGrid() {
-  const root = document.getElementById("root");
-  const input1 = document.createElement("input");
-  input1.style.margin = "20px";
-  input1.placeholder = "Input 1";
-  const example1 = document.createElement("div");
-  const input2 = document.createElement("input");
-  input2.style.margin = "20px";
-  input2.placeholder = "Input 2";
-  const example2 = document.createElement("div");
+  const root = document.getElementById('root');
 
-  root.appendChild(input1);
-  root.appendChild(example1);
-  root.appendChild(input2);
-  root.appendChild(example2);
+  const topTable = document.createElement('div');
+  topTable.id = 'tableTop';
+
+  const input1 = document.createElement('input');
+  input1.style.margin = '10px';
+  input1.placeholder = 'Input 1';
+  topTable.appendChild(input1);
+
+  const example1 = document.createElement('div');
+  topTable.appendChild(example1);
+
+  root.appendChild(topTable);
+
+  const bottomTable = document.createElement('div');
+  bottomTable.id = 'tableBottom';
+
+  const input2 = document.createElement('input');
+  input2.style.margin = '10px';
+  input2.placeholder = 'Input 2';
+  bottomTable.appendChild(input2);
+
+  const example2 = document.createElement('div');
+  bottomTable.appendChild(example2);
+
+  root.appendChild(bottomTable);
 
   new Handsontable(example1, {
     data: scenarioDataTop,
-    layoutDirection: isArabicDemoEnabled() ? "rtl" : "ltr",
-    language: isArabicDemoEnabled() ? arAR.languageCode : "en-US",
-    height: 250,
-    colHeaders: [
-      'Product ID',
-      'Mobile Apps',
-      'Pricing',
-      'Rating',
-      'Category',
-      'Industry',
-      'Business Scale',
-      'User Type',
-      'No of Users',
-      'Deployment',
-      'OS',
+    layoutDirection: isArabicDemoEnabled() ? 'rtl' : 'ltr',
+    language: isArabicDemoEnabled() ? arAR.languageCode : 'en-US',
+    height: 350,
+    colHeaders:true,
+    nestedHeaders:[
+      [
+        { label: 'Product', colspan: 4 },
+        { label: 'Category', colspan: 3 },
+        { label: 'User', colspan: 2 },
+        { label: 'System', colspan: 2 },
+      ],
+      [
+        'Product ID',
+        'Mobile Apps',
+        'Pricing',
+        'Rating',
+        'Data Type',
+        'Industry',
+        'Business Scale',
+        'User Type',
+        'No of Users',
+        'Deployment',
+        'OS',
+      ],
     ],
+    collapsibleColumns: true,
     columns: [
       { data: 'product_id', type: 'numeric' },
       { data: 'mobile_apps', type: 'text' },
@@ -104,7 +126,7 @@ export function initializeScenarioGrid() {
     mergeCells: true,
     dropdownMenu: true,
     hiddenColumns: {
-      indicators: true
+      indicators: true,
     },
     navigableHeaders: true,
     contextMenu: true,
@@ -117,17 +139,17 @@ export function initializeScenarioGrid() {
     customBorders: true,
     autoWrapCol: true,
     autoWrapRow: true,
-    formulas:{
+    formulas: {
       engine: HyperFormula,
     },
     fixedRowsBottom: 2,
-    licenseKey: "non-commercial-and-evaluation"
+    licenseKey: 'non-commercial-and-evaluation',
   });
 
   new Handsontable(example2, {
     data: scenarioDataBottom,
-    layoutDirection: isArabicDemoEnabled() ? "rtl" : "ltr",
-    language: isArabicDemoEnabled() ? arAR.languageCode : "en-US",
+    layoutDirection: isArabicDemoEnabled() ? 'rtl' : 'ltr',
+    language: isArabicDemoEnabled() ? arAR.languageCode : 'en-US',
     height: 250,
     colHeaders: [
       'Category',
@@ -158,7 +180,7 @@ export function initializeScenarioGrid() {
     mergeCells: true,
     dropdownMenu: true,
     hiddenColumns: {
-      indicators: true
+      indicators: true,
     },
     navigableHeaders: true,
     contextMenu: true,
@@ -173,7 +195,10 @@ export function initializeScenarioGrid() {
     autoWrapRow: true,
     nestedRows: true,
 
-    licenseKey: "non-commercial-and-evaluation"
+    licenseKey: 'non-commercial-and-evaluation',
   });
 
-console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate})`);}
+  console.log(
+    `Handsontable: v${Handsontable.version} (${Handsontable.buildDate})`
+  );
+}

@@ -1,17 +1,14 @@
 <template>
   <div>
-    <input type="text" class="input-spacing" placeholder="Input 1"/>
-    <hot-table
-      ref="hotTableComponent1"
-      :data="dataTop"
-      :settings="hotSettings1"
-    ></hot-table>
-    <input type="text" class="input-spacing" placeholder="Input 2"/>
-    <hot-table
-      ref="hotTableComponent2"
-      :data="dataBottom"
-      :settings="hotSettings2"
-    ></hot-table>
+    <div id='tableTop'>
+
+      <input type="text" class="input-spacing" placeholder="Input 1" />
+      <hot-table ref="hotTableComponent1" :data="dataTop" :settings="hotSettings1"></hot-table>
+    </div>
+    <div id='tableBottom'>
+      <input type="text" class="input-spacing" placeholder="Input 2" />
+      <hot-table ref="hotTableComponent2" :data="dataBottom" :settings="hotSettings2"></hot-table>
+    </div>
   </div>
 </template>
 
@@ -49,19 +46,28 @@ export default {
         formulas: {
           engine: HyperFormula,
         },
-        colHeaders: [
-          'Product ID',
-          'Mobile Apps',
-          'Pricing',
-          'Rating',
-          'Category',
-          'Industry',
-          'Business Scale',
-          'User Type',
-          'No of Users',
-          'Deployment',
-          'OS',
-        ],
+        colHeaders:true,
+          nestedHeaders:[
+            [
+              { label: 'Product', colspan: 4 },
+              { label: 'Category', colspan: 3 },
+              { label: 'User', colspan: 2 },
+              { label: 'System', colspan: 2 },
+            ],
+            [
+              'Product ID',
+              'Mobile Apps',
+              'Pricing',
+              'Rating',
+              'Data Type',
+              'Industry',
+              'Business Scale',
+              'User Type',
+              'No of Users',
+              'Deployment',
+              'OS',
+            ],
+          ],
         columns: [
           { data: 'product_id', type: 'numeric' },
           { data: 'mobile_apps', type: 'text' },
@@ -75,6 +81,7 @@ export default {
           { data: 'deployment', type: 'text' },
           { data: 'OS', type: 'text' },
         ],
+        collapsibleColumns: true,
         licenseKey: 'non-commercial-and-evaluation',
       },
       hotSettings2: {
@@ -170,5 +177,11 @@ table.htCore {
   .collapsibleIndicator {
     text-align: center;
   }
+}
+
+.handsontable .ht_nestingParent,
+.handsontable .ht_nestingParent ~ td {
+  background: #B5B5B5;
+  color: #222;
 }
 </style>

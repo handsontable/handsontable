@@ -35,3 +35,8 @@ table.htCore {
     text-align: center;
   }
 }
+.handsontable .ht_nestingParent,
+.handsontable .ht_nestingParent ~ td {
+  background: #B5B5B5;
+  color: #222;
+}

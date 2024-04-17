@@ -29,20 +29,27 @@ export class ScenarioGridComponent {
   formulas={
     engine: HyperFormula,
   }
-  colHeadersTop = [
-    'Product ID',
-    'Mobile Apps',
-    'Pricing',
-    'Rating',
-    'Category',
-    'Industry',
-    'Business Scale',
-    'User Type',
-    'No of Users',
-    'Deployment',
-    'OS'
+  nestedHeaders=[
+    [
+      { label: 'Product', colspan: 4 },
+      { label: 'Category', colspan: 3 },
+      { label: 'User', colspan: 2 },
+      { label: 'System', colspan: 2 },
+    ],
+    [
+      'Product ID',
+      'Mobile Apps',
+      'Pricing',
+      'Rating',
+      'Data Type',
+      'Industry',
+      'Business Scale',
+      'User Type',
+      'No of Users',
+      'Deployment',
+      'OS',
+    ],
   ];
-
   colHeadersBottom = [
     'Category',
     'Product ID',

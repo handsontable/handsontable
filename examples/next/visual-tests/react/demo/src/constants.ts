@@ -1244,10 +1244,10 @@ const scenarioArray: Scenario[]= [
 
 const nestedScenarioArray = [];
 
-for (let i = 0; i < scenarioArray.length; i += 10) {
+for (let i = 0; i < scenarioArray.length; i += 9) {
   nestedScenarioArray.push({
     category: randProductCategory(),
-    __children: scenarioArray.slice(i, i + 10),
+    __children: scenarioArray.slice(i, i + 9),
   });
 }
 
