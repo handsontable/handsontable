@@ -316,13 +316,8 @@ html.theme-dark {
         }  
 
         .navbar-wrapper { 
-            .home-link {
-                .version {
-                    color: $textColor
-                }
-            }
-            
             .dropdown-wrapper { 
+
                 .nav-dropdown { 
                     background: $borderColor
                     border:0
@@ -343,9 +338,36 @@ html.theme-dark {
                 }
             }
 
+            .framework-and-version { 
+                .nav-frameworks { 
+                    .dropdown-wrapper {
+                        > button { 
+                            color: $text2Color
+
+                            @media (hover: hover) {
+                                &:hover { 
+                                    color: $hoverWhiteColor
+                                }
+                            }
+                        }
+                        &.open { 
+                            > button { 
+                                color: $hoverWhiteColor
+                            }
+                        }
+                    }
+                }
+            }
+
             .menu {
                 .nav-links {
                     .nav-item {
+                        .open { 
+                            > button { 
+                                color: $hoverWhiteColor
+                            }
+                        }
+                        
                         a, button { 
                             color: $text2Color
 
@@ -387,59 +409,6 @@ html.theme-dark {
                     }
                 }
             }   
-
-            /*
-            .search-box { 
-                input { 
-                    background: $borderColor
-                    color: $text2Color
-                    font-family: $font
-                    border: 1px solid $lightBorderColor
-                    
-                    &:focus {
-                        //box-shadow: 0 0 0 1px $accentColor
-                        background: $bgColor
-                    }
-                }
-
-                .kbd-hint { 
-                    kbd { 
-                        background: $sideColor
-                        color: $text2Color
-                    }
-                }
-                .suggestions {
-                    background: $sideColor
-
-                    li {
-                        color: $textColor
-
-                        &:not(.suggestion) {
-                            border-bottom: 1px solid $borderColor
-                        }
-
-                        &.focused {
-                            a {
-                                background: $borderColor
-                                color: $textColor 
-                            }
-                        }
-                        
-                        a { 
-                            color: $text2Color
-
-                            @media (hover: hover) {
-                                &:hover { 
-                                    background: $borderColor
-                                    color: $hoverWhiteColor
-                                }
-                            }
-
-                        }
-                    }
-                }
-            }
-            */
         }
     }
 
@@ -668,7 +637,7 @@ html.theme-dark {
                 tr { 
                     th { 
                         background: $onsurfaceColor
-                        //border-top:1px solid $borderColor
+                        border-bottom:1px solid $lightBorderColor
                         color:$textColor
                     }
                 }
@@ -987,13 +956,15 @@ html.theme-dark {
         color: $textColor
     }
 
-    .copycode, .report, .github { 
-        background: transparent !important
+    [class*="language-"] {
+        .copycode, .report, .github { 
+            //background: transparent !important
 
-        &:after {
-            color: $textColor
-            background: black //$sideColor
-            border: 0 solid $lightBorderColor
+            &:after {
+                color: $textColor
+                background: black //$sideColor
+                border: 0 solid $lightBorderColor
+            }
         }
     }
 
@@ -1032,11 +1003,20 @@ html.theme-dark {
             border-color: $linkColor
             background: $linkColor
             color: $textColor
+
+            &:hover {
+                background: $linkHoverColor
+            }
         }
 
         #CybotCookiebotDialogFooter .CybotCookiebotDialogBodyButton {
-            border-color: $linkColor
+            border-color: $bgColor
+            background: $bgColor
             color: $linkColor
+
+            &:hover {
+                border-color: $accentColor
+            }
         }
 
         .CybotCookiebotScrollContainer .CybotCookiebotScrollbarContainer {
@@ -1117,6 +1097,14 @@ html.theme-dark {
 
         #CybotCookiebotDialogDetailBulkConsentLink {
             color: $text2Color
+        }
+
+        #CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieInfoFooter,
+        #CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieInfo,
+        #CybotCookiebotDialogDetailBulkConsentListWrapper,
+        #CybotCookiebotDialogDetailBulkConsentListWrapper>span,
+        #CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieInfo.CybotCookiebotDialogShow:first-of-type:before {
+            border-color: $borderColor
         }
     }
 

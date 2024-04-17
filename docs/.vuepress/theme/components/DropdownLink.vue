@@ -118,13 +118,25 @@ export default {
      *
      * @param {Event} event The click event.
      */
+
     handleDropdown(event) {
       const isTriggerByTab = event.detail === 0;
 
-      if (isTriggerByTab) {
+      if (isTriggerByTab || !isTriggerByTab) {
         this.setOpen(!this.open);
       }
+    },
+
+    handleClickOutside(event) {
+      // Check if the clicked element is outside of the dropdown
+      if (this.$el && !this.$el.contains(event.target)) {
+        this.open = false;
+      }
     }
+  },
+  mounted() {
+    // Add global click event listener to detect clicks outside of the dropdown
+    document.addEventListener('click', this.handleClickOutside);
   }
 };
 </script>

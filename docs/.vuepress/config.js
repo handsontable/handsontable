@@ -74,7 +74,16 @@ module.exports = {
       'link',
       {
         rel: 'icon',
-        href: 'https://handsontable.com/static/images/template/ModCommon/favicon-32x32.png',
+        media: "(prefers-color-scheme: light)",
+        href: `${getDocsBaseFullUrl()}/favicon.png`,
+      },
+    ],
+    [
+      'link',
+      {
+        rel: 'icon',
+        media: "(prefers-color-scheme: dark)",
+        href: `${getDocsBaseFullUrl()}/favicon-dark.png`,
       },
     ],
     [

@@ -159,15 +159,24 @@ export default {
           const codeTag = preTag.querySelector('code');
           if (codeTag) {
               const clonedcopyButton = copybutton.cloneNode(true);
-              const clonedGithubLink = githublink.cloneNode(true);
               const clonedReportLink = reportlink.cloneNode(true);
 
               clonedcopyButton.addEventListener('click', handleClick);
               preTag.parentElement.insertBefore(clonedcopyButton, codeTag.nextSibling);
-              preTag.parentElement.insertBefore(clonedGithubLink, codeTag.nextSibling);
               preTag.parentElement.insertBefore(clonedReportLink, codeTag.nextSibling);
           }
       });
+
+      // Iterate through each pre tag
+      const preTagsTabs = document.querySelectorAll('.tabs-component pre');
+      preTagsTabs.forEach(preTag => {
+          const codeTag = preTag.querySelector('code');
+          if (codeTag) {
+              const clonedGithubLink = githublink.cloneNode(true);
+              preTag.parentElement.insertBefore(clonedGithubLink, codeTag.nextSibling);
+          }
+      });
+
 
       // Select all elements with the class ".show-code"
       const showCodeElements = document.querySelectorAll('.show-code');
