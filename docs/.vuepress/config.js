@@ -139,6 +139,13 @@ module.exports = {
       }(window, document));
     `,
     ],
+    [
+      'script',
+      {
+        id: 'ld-json',
+        type: 'application/ld+json',
+      },
+    ],
     ...environmentHead,
   ],
   markdown: {
@@ -395,7 +402,7 @@ module.exports = {
         'https://twitter.com/handsontable',
         'https://www.linkedin.com/company/handsontable',
       ],
-      image: 'https://handsontable.com/docs/img/handsontable-banner-og.png'
+      image: `${getDocsBaseFullUrl()}/img/handsonable-docs-cover.png`
     },
   },
 };
