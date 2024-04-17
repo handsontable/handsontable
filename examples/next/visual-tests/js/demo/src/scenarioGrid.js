@@ -194,7 +194,7 @@ export function initializeScenarioGrid() {
     autoWrapCol: true,
     autoWrapRow: true,
     nestedRows: true,
-
+    bindRowsWithHeaders: true,
     licenseKey: 'non-commercial-and-evaluation',
   });
 

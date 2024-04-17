@@ -101,6 +101,7 @@ export default {
         comments: true,
         customBorders: true,
         nestedRows: true,
+        bindRowsWithHeaders: true,
         colHeaders: [
           'Category',
           'Product ID',
