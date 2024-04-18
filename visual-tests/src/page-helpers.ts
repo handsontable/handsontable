@@ -281,7 +281,6 @@ export async function filterByValue(value:string) {
   await page.getByPlaceholder('Search').pressSequentially(value, { delay: 100 });
   await page.screenshot({ path: helpers.screenshotPath() });
 
-  await page.getByLabel('Filter by value:').getByText(value).click();
   await page.getByRole('button', { name: 'OK' }).click();
 }
 
