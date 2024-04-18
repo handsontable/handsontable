@@ -39,10 +39,12 @@ const ExampleComponent = () => {
 
   return (
     <>
-      <div className="controls">
-        <input id="search_field4" type="search" placeholder="Search" onKeyUp={handleKeyUp}/>
+      <div class="example-controls-container">
+        <div className="controls">
+          <input id="search_field4" type="search" placeholder="Search" onKeyUp={handleKeyUp}/>
+        </div>
+        <output className="console" id="output">{resultCount} results</output>
       </div>
-      <output className="console" id="output">{resultCount} results</output>
       <HotTable
         ref={hot4Ref}
         data={data}

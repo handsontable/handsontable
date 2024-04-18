@@ -4,9 +4,9 @@
       <span><i class="ico i-bell"></i></span>
       <div>
         <p>What's new in 14.3.0</p>
-        <a>Read more</a>
+        <a href="#">Read more</a>
       </div>
-      <a class="close" @click="closeInfoBox"><i class="ico i-close"></i></a>
+      <button class="close" @click="closeInfoBox"><i class="ico i-close"></i></button>
     </div>
 
     <slot name="top" />
@@ -74,7 +74,7 @@ export default {
         //chips1.classList.add('tag-new');
         chips1.classList.add('tag-update');
         //chips1.classList.add('tag-deprecated');
-        chips1.textContent = 'Update';
+        chips1.textContent = 'Updated';
     } else {
         console.error("Element not found with the given selector");
     }
