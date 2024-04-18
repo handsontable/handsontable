@@ -199,6 +199,7 @@ class Event {
 
     if (hasClass(realTarget, 'corner')) {
       this.#wtSettings.getSetting('onCellCornerMouseDown', event, realTarget);
+
     } else if (cell.TD && this.#wtSettings.has('onCellMouseDown')) {
       this.callListener('onCellMouseDown', event, cell.coords, cell.TD);
     }

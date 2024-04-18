@@ -16,7 +16,7 @@ export default function unfreezeColumnItem(manualColumnFreezePlugin) {
       manualColumnFreezePlugin.unfreezeColumn(selectedColumn);
 
       this.render();
-      this.view.adjustElementsSize(true);
+      this.view.adjustElementsSize();
     },
     hidden() {
       const selection = this.getSelectedRange();

@@ -387,19 +387,19 @@ describe('dateValidator', () => {
   describe('Date formats', () => {
     describe('with `correctFormat` disabled', () => {
       using('data set', [
-        { value: '01/02/2023', dateFormat: 'DD/MM/YYYY' },
-        { value: '01/02/23', dateFormat: 'DD/MM/YY' },
-        { value: '1/2/23', dateFormat: 'D/M/YY' },
-        { value: '01/02/23', dateFormat: 'D/M/YY' }, // ?
-        { value: '01-02-2023', dateFormat: 'DD-MM-YYYY' },
-        { value: '1-2-23', dateFormat: 'D-M-YY' },
-        { value: '1-12-23', dateFormat: 'D-M-YY' },
-        { value: '1.2.23', dateFormat: 'D.M.YY' },
-        { value: '2023 February 2nd', dateFormat: 'YYYY MMMM Do' },
-        { value: 'Feb 2nd \'23', dateFormat: 'MMM Do \'YY' },
-        { value: 'The 2nd of February \'23', dateFormat: '[The] Do [of] MMMM \'YY' },
-        { value: 'Day: 2, Month: 2, Year: 2023', dateFormat: '[Day:] D, [Month:] M, [Year:] YYYY' },
-      ], ({ value, dateFormat }) => {
+        { value: '01/02/2023', dateFormat: 'DD/MM/YYYY', isValid: true },
+        { value: '01/02/23', dateFormat: 'DD/MM/YY', isValid: true },
+        { value: '1/2/23', dateFormat: 'D/M/YY', isValid: true },
+        { value: '01/02/23', dateFormat: 'D/M/YY', isValid: false },
+        { value: '01-02-2023', dateFormat: 'DD-MM-YYYY', isValid: true },
+        { value: '1-2-23', dateFormat: 'D-M-YY', isValid: true },
+        { value: '1-12-23', dateFormat: 'D-M-YY', isValid: true },
+        { value: '1.2.23', dateFormat: 'D.M.YY', isValid: true },
+        { value: '2023 February 2nd', dateFormat: 'YYYY MMMM Do', isValid: true },
+        { value: 'Feb 2nd \'23', dateFormat: 'MMM Do \'YY', isValid: true },
+        { value: 'The 2nd of February \'23', dateFormat: '[The] Do [of] MMMM \'YY', isValid: true },
+        { value: 'Day: 2, Month: 2, Year: 2023', dateFormat: '[Day:] D, [Month:] M, [Year:] YYYY', isValid: true },
+      ], ({ value, dateFormat, isValid }) => {
         it('should validate positively', async() => {
           const onAfterValidateSpy = jasmine.createSpy('onAfterValidate');
 
@@ -415,7 +415,7 @@ describe('dateValidator', () => {
 
           await sleep(50);
 
-          expect(onAfterValidateSpy).toHaveBeenCalledWith(true, value, 0, 0);
+          expect(onAfterValidateSpy).toHaveBeenCalledWith(isValid, value, 0, 0);
         });
       });
 

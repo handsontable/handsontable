@@ -282,7 +282,7 @@ export class Comments extends BasePlugin {
         this.hide();
         manager.setActiveContextName('grid');
       },
-      runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isCell() && this.#editor.isVisible(),
+      runOnlyIf: () => this.#editor.isVisible() && this.#editor.isFocused(),
       group: SHORTCUTS_GROUP,
     });
 
@@ -292,7 +292,7 @@ export class Comments extends BasePlugin {
         this.hide();
         manager.setActiveContextName('grid');
       },
-      runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isCell() && this.#editor.isVisible(),
+      runOnlyIf: () => this.#editor.isVisible() && this.#editor.isFocused(),
       group: SHORTCUTS_GROUP,
     });
   }

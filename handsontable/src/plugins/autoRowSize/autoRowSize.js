@@ -325,7 +325,7 @@ export class AutoRowSize extends BasePlugin {
         this.inProgress = false;
 
         // @TODO Should call once per render cycle, currently fired separately in different plugins
-        this.hot.view.adjustElementsSize(true);
+        this.hot.view.adjustElementsSize();
 
         // tmp
         if (this.hot.view._wt.wtOverlays.inlineStartOverlay.needFullRender) {
@@ -347,7 +347,7 @@ export class AutoRowSize extends BasePlugin {
       loop();
     } else {
       this.inProgress = false;
-      this.hot.view.adjustElementsSize(false);
+      this.hot.view.adjustElementsSize();
     }
   }
 

@@ -407,18 +407,7 @@ describe('NestedHeaders', () => {
       expect(warnSpy).toHaveBeenCalledWith(expectedWarn);
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
-          <tr>
-            <th class="">A</th>
-            <th class="">B</th>
-            <th class="">C</th>
-            <th class="">D</th>
-            <th class="">E</th>
-            <th class="">F</th>
-            <th class="">G</th>
-            <th class="">H</th>
-            <th class="">I</th>
-            <th class="">J</th>
-          </tr>
+          <tr></tr>
         </thead>
         <tbody>
           <tr>
@@ -443,18 +432,7 @@ describe('NestedHeaders', () => {
       expect(warnSpy).toHaveBeenCalledWith(expectedWarn);
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
-          <tr>
-            <th class="">A</th>
-            <th class="">B</th>
-            <th class="">C</th>
-            <th class="">D</th>
-            <th class="">E</th>
-            <th class="">F</th>
-            <th class="">G</th>
-            <th class="">H</th>
-            <th class="">I</th>
-            <th class="">J</th>
-          </tr>
+          <tr></tr>
         </thead>
         <tbody>
           <tr>
@@ -479,18 +457,7 @@ describe('NestedHeaders', () => {
       expect(warnSpy).toHaveBeenCalledWith(expectedWarn);
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
-          <tr>
-            <th class="">A</th>
-            <th class="">B</th>
-            <th class="">C</th>
-            <th class="">D</th>
-            <th class="">E</th>
-            <th class="">F</th>
-            <th class="">G</th>
-            <th class="">H</th>
-            <th class="">I</th>
-            <th class="">J</th>
-          </tr>
+          <tr></tr>
         </thead>
         <tbody>
           <tr>
