@@ -365,9 +365,9 @@ export async function collapseNestedColumn(columnName:string, table = getDefault
 }
 
 /**
-   * @param {string} rowNumber The row number.
-   * @param {Locator} table The locator of the table.
-   */
+ * @param {string} rowNumber The row number.
+ * @param {Locator} table The locator of the table.
+ */
 export async function collapseNestedRow(rowNumber:number, table = getDefaultTableInstance()) {
   await table.getByRole('rowheader', { name: rowNumber.toString() }).locator('div').nth(1).click();
 }
