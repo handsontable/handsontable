@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem where the bottom/right cell borders were not visible in the viewport after scrolling from the absolute top/left positions of the table using the API.",
-  "type": "fixed",
-  "issueOrPR": 10887,
-  "breaking": false,
-  "framework": "none"
-}

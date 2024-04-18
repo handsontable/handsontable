@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Made the cursor turn to `grabbing` for all the elements in the table while moving the columns or rows.",
-  "type": "changed",
-  "issueOrPR": 10852,
-  "breaking": false,
-  "framework": "none"
-}
