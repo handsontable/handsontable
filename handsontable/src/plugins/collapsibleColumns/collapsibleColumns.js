@@ -505,7 +505,7 @@ export class CollapsibleColumns extends BasePlugin {
     );
 
     this.hot.render();
-    this.hot.view.adjustElementsSize(true);
+    this.hot.view.adjustElementsSize();
   }
 
   /**
