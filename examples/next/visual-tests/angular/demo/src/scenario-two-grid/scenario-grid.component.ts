@@ -52,15 +52,6 @@ export class ScenarioGridComponent {
     'Pricing',
     'Rating',
   ];
-  columnSummary = [
-    {
-      sourceColumn: 10,
-      type: 'average',
-      destinationRow: 0,
-      destinationColumn: 10,
-      forceNumeric: true,
-    },
-  ];
   hiddenColumns = {
     indicators: true,
   };
