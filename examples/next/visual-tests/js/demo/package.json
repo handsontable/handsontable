@@ -21,7 +21,7 @@
   "dependencies": {
     "@handsontable/pikaday": "^1.0.0",
     "handsontable": "latest",
-    "hyperformula": "^2.7.0"
+    "hyperformula": "2.6.2"
   },
   "devDependencies": {
     "@ngneat/falso": "^7.2.0",
