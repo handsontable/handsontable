@@ -1,14 +1,6 @@
 <template>
   <aside class="sidebar">
-    <div class="info-box">
-      <span><i class="ico i-bell"></i></span>
-      <div>
-        <p>What's new in 14.3.0</p>
-        <a href="#">Read more</a>
-      </div>
-      <button class="close" @click="closeInfoBox"><i class="ico i-close"></i></button>
-    </div>
-
+    <InfoBox />
     <slot name="top" />
 
     <div class="sidebar-nav">
@@ -30,11 +22,12 @@ import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
 import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
 import FrameworksDropdown from '@theme/components/FrameworksDropdown.vue';
 import ExternalNavLinks from '@theme/components/ExternalNavLinks.vue';
+import InfoBox from '@theme/components/InfoBox.vue';
 import 'overlayscrollbars/styles/overlayscrollbars.css';
-import { 
+import {
   OverlayScrollbars,
-  ScrollbarsHidingPlugin, 
-  SizeObserverPlugin, 
+  ScrollbarsHidingPlugin,
+  SizeObserverPlugin,
   ClickScrollPlugin
 } from 'overlayscrollbars';
 
@@ -49,26 +42,19 @@ export default {
     // SearchBox,
     VersionsDropdown,
     ThemeSwitcher,
-    ExternalNavLinks
+    ExternalNavLinks,
+    InfoBox
   },
   computed: {
     frameworkUrlPrefix() {
       return `/${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
     }
   },
-  methods: {
-    //Close InfoBox
-    closeInfoBox() {
-      const infobox = document.querySelector('.sidebar .info-box');
-        infobox.style.display = 'none'; // Hide the info-box
-    }
-  },
-
   mounted() {
-    // TEMP Tags 
+    // TEMP Tags
     const selector1 = document.querySelector('.sidebar .sidebar-nav .sidebar-links > li:first-child li:nth-child(2) a ');
     const chips1 = document.createElement('span');
-    
+
     if (selector1) {
       selector1.appendChild(chips1);
         //chips1.classList.add('tag-new');
@@ -76,9 +62,9 @@ export default {
         //chips1.classList.add('tag-deprecated');
         chips1.textContent = 'Updated';
     } else {
-        console.error("Element not found with the given selector");
+      console.error('Element not found with the given selector');
     }
-    
+
     const osInstance = OverlayScrollbars(document.querySelector('.sidebar-nav'), {
       overflow: {
         x: 'hidden',
@@ -86,7 +72,7 @@ export default {
       scrollbars: {
         autoHide: 'leave'
       }
-    })
+    });
   },
 
   props: ['items']
