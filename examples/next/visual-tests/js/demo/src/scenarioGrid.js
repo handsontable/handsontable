@@ -164,6 +164,16 @@ export function initializeScenarioGrid() {
       'Pricing',
       'Rating',
     ],
+    columnSummary: [
+      {
+        sourceColumn: 10,
+        type: 'average',
+        destinationRow: 0,
+        destinationColumn: 10,
+        // force this column summary to treat non-numeric values as numeric values
+        forceNumeric: true
+      },
+    ],
     columns: [
       { data: 'category', type: 'text' },
       { data: 'product_id', type: 'numeric' },

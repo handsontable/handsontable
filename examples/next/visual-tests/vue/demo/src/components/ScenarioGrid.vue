@@ -46,28 +46,38 @@ export default {
         formulas: {
           engine: HyperFormula,
         },
-        colHeaders:true,
-          nestedHeaders:[
-            [
-              { label: 'Product', colspan: 4 },
-              { label: 'Category', colspan: 3 },
-              { label: 'User', colspan: 2 },
-              { label: 'System', colspan: 2 },
-            ],
-            [
-              'Product ID',
-              'Mobile Apps',
-              'Pricing',
-              'Rating',
-              'Data Type',
-              'Industry',
-              'Business Scale',
-              'User Type',
-              'No of Users',
-              'Deployment',
-              'OS',
-            ],
+        colHeaders: true,
+        nestedHeaders: [
+          [
+            { label: 'Product', colspan: 4 },
+            { label: 'Category', colspan: 3 },
+            { label: 'User', colspan: 2 },
+            { label: 'System', colspan: 2 },
           ],
+          [
+            'Product ID',
+            'Mobile Apps',
+            'Pricing',
+            'Rating',
+            'Data Type',
+            'Industry',
+            'Business Scale',
+            'User Type',
+            'No of Users',
+            'Deployment',
+            'OS',
+          ],
+        ],
+        columnSummary: [
+          {
+            sourceColumn: 10,
+            type: 'average',
+            destinationRow: 0,
+            destinationColumn: 10,
+            // force this column summary to treat non-numeric values as numeric values
+            forceNumeric: true
+          },
+        ],
         columns: [
           { data: 'product_id', type: 'numeric' },
           { data: 'mobile_apps', type: 'text' },
@@ -181,7 +191,7 @@ table.htCore {
 }
 
 .handsontable .ht_nestingParent,
-.handsontable .ht_nestingParent ~ td {
+.handsontable .ht_nestingParent~td {
   background: #B5B5B5;
   color: #222;
 }
