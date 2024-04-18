@@ -53,9 +53,9 @@ export default {
     },
   },
   mounted() {
-    const docsVerion = localStorage.getItem('docsVerion');
+    const docsVersion = localStorage.getItem('docsVersion');
 
-    if (!docsVerion || docsVerion !== this.getVersion) {
+    if (! docsVersion || docsVersion !== this.getVersion) {
       this.show = true;
     }
   },
