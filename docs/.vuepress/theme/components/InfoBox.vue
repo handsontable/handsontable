@@ -25,7 +25,7 @@ export default {
     // Close InfoBox
     closeInfoBox() {
       this.show = false;
-      localStorage.setItem('docsVerion', this.getVersion);
+      localStorage.setItem('docsVersion', this.getVersion);
     },
   },
   computed: {
