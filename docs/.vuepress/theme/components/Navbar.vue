@@ -112,7 +112,7 @@ export default {
       account: "xaD6ry"
     };
     Headway.init(config);
-    this.getStarts();
+    this.getStars();
   }
 };
 </script>
