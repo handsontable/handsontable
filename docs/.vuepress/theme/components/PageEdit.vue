@@ -24,12 +24,13 @@
       </div>
       
       <div class="hot-links">
-        <a href="https://handsontable.com/privacy" target="_blank">Privacy policy</a>
-        <a href="https://handsontable.com/terms-of-use" target="_blank">Terms of use</a>
-        <a href="https://handsontable.com/team" target="_blank">Team</a>
-        <a href="https://handsontable.com/blog/" target="_blank">Blog</a>
+        <a href="https://handsontable.com/privacy">Privacy policy</a>
+        <a href="https://handsontable.com/terms-of-use">Terms of use</a>
+        <a href="https://handsontable.com/team">Team</a>
+        <a href="https://handsontable.com/contact?category=technical_support">Contact</a>
+
+        <a href="https://handsontable.com/blog/">Blog</a>
         <a href="https://status.handsontable.com/" target="_blank" class="status">Status</a>
-        <a href="https://handsontable.com/contact?category=technical_support" target="_blank">Contact us</a>
       </div>
     </div>
 

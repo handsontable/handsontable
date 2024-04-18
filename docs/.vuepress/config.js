@@ -8,7 +8,6 @@ const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const nginxVariablesPlugin = require('./plugins/generate-nginx-variables');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
 const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
-const canonicalUrlsPlugin = require('./plugins/canonical-urls');
 const dumpRedirectPageIdsPlugin = require('./plugins/dump-redirect-page-ids');
 const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
 const conditionalContainer = require('./plugins/markdown-it-conditional-container');
@@ -74,7 +73,16 @@ module.exports = {
       'link',
       {
         rel: 'icon',
-        href: 'https://handsontable.com/static/images/template/ModCommon/favicon-32x32.png',
+        media: "(prefers-color-scheme: light)",
+        href: `${getDocsBaseFullUrl()}/favicon.png`,
+      },
+    ],
+    [
+      'link',
+      {
+        rel: 'icon',
+        media: "(prefers-color-scheme: dark)",
+        href: `${getDocsBaseFullUrl()}/favicon-dark.png`,
       },
     ],
     [
@@ -108,7 +116,7 @@ module.exports = {
             new Sentry.Replay({
               maskAllText: false,
               blockAllMedia: false,
-            }),
+            }),   
           ],
         });
       };
@@ -151,6 +159,7 @@ module.exports = {
 
         if (preferredScheme === 'dark') {
           d.documentElement.classList.add('theme-dark');
+          d.documentElement.setAttribute('data-theme', 'dark');
         }
 
         w.SELECTED_COLOR_SCHEME = preferredScheme;
@@ -324,9 +333,6 @@ module.exports = {
       },
     ],
     [
-      canonicalUrlsPlugin, // the plugin must be placed after the `dumpDocsDataPlugin`
-    ],
-    [
       dumpRedirectPageIdsPlugin,
       {
         outputFile: path.resolve(__dirname, '../docker/redirect-page-ids.json'),
@@ -362,25 +368,24 @@ module.exports = {
     nav: [
       // Guide & API Reference has been defined in theme/components/NavLinks.vue
       //{ text: 'GitHub', link: 'https://github.com/handsontable/handsontable' },
-      { text: 'Support',
+      { text: 'Community',
         items: [
+          {
+            text: 'Developers Forum',
+            link: 'https://forum.handsontable.com',
+          },
+          {
+            text: 'GitHub Discussions',
+            link: 'https://github.com/handsontable/handsontable/issues/new/choose',
+          },
+          {
+            text: 'StackOverflow',
+            link: 'https://stackoverflow.com/tags/handsontable',
+          },
           {
             text: 'Contact support',
             link: 'https://handsontable.com/contact?category=technical_support',
           },
-          {
-            text: 'Report an issue',
-            link: 'https://github.com/handsontable/handsontable/issues/new/choose',
-          },
-          {
-            text: 'Handsontable forum',
-            link: 'https://forum.handsontable.com',
-          },
-          {
-            text: 'Ask on Stack Overflow',
-            link: 'https://stackoverflow.com/questions/tagged/handsontable',
-          },
-          { text: 'Blog', link: 'https://handsontable.com/blog' },
         ],
       },
     ],

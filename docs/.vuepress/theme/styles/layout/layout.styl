@@ -12,7 +12,8 @@ body {
 
 .Inter { font-family: $font }
 h1,h2,h3,h4,h5,h6 { font-family: $font-aeonik }
-
+.whitespace-nowrap { white-space nowrap}
+  
 a { 
   color: $linkColor 
   font-weight: 400
@@ -65,7 +66,7 @@ a {
     }
     .table-of-contents { 
       right:50%
-      transform: translateX(16 + $xxxLarge/2)  
+      transform: translateX(0 + $xxxLarge/2)  
     }
   }
 }
@@ -80,17 +81,22 @@ a {
 
 .decoration-right { 
   display: block
-  background:  url('{{$basePath}}/img/bg-gradient.webp'); 
+  background:  url('{{$basePath}}/img/deco3.svg');
   background-size: 100%
-  width: 680px
-  height: 1212px 
-  position fixed
-  bottom -6px
-  right:-6px
-  opacity .1
+  width: 80vh
+  height: 80vh
+  position: fixed
   pointer-events: none
-  filter: hue-rotate(40deg);
   z-index -1
-  filter: blur(6px)
+  opacity: .5
+  zoom: 1.8;
+  filter: blur(20px) hue-rotate(45deg) saturate(2.5);
+  right: -250px;
+  bottom: -240px;
+} 
+
+
+.theme-container {
+  overflow-x: hidden
 }
 

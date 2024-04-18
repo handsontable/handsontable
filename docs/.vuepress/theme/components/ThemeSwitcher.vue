@@ -2,7 +2,7 @@
   <label id="switch" class="dark-mode" :class="{ ready: isReady }">
     <span class="inner" v-show="isReady">
       <input type="checkbox" v-on:change="toggleTheme" :checked="isDarkTheme">
-      <span v-show="isDarkTheme"><i class="ico i-dm-dark"></i>Dark</span>
+      <span v-show="isDarkTheme"><i class="ico i-dm-dark"></i>Light</span>
       <span v-show="!isDarkTheme"><i class="ico i-dm-light"></i>Dark</span>
     </span>
   </label>
@@ -26,8 +26,10 @@ export default {
 
       if (this.isDarkTheme) {
         document.documentElement.classList.add(CLASS_THEME_DARK);
+        document.documentElement.setAttribute('data-theme', 'dark');
       } else {
         document.documentElement.classList.remove(CLASS_THEME_DARK);
+        document.documentElement.setAttribute('data-theme', 'light');
       }
     },
   },
