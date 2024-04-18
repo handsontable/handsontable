@@ -5,7 +5,6 @@ import {
   setAttribute,
 } from '../../../../helpers/dom/element';
 import { defineGetter } from '../../../../helpers/object';
-import { arrayEach } from '../../../../helpers/array';
 import { warn } from '../../../../helpers/console';
 import {
   CLONE_TYPES,
@@ -67,29 +66,36 @@ export class Overlay {
     this.holder = holder;
     this.wtRootElement = wtRootElement;
     this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);
-    this.updateStateOfRendering();
-
+    this.needFullRender = this.shouldBeRendered();
     this.clone = this.makeClone();
   }
 
   /**
-   * Update internal state of object with an information about the need of full rendering of the overlay.
+   * Checks if the overlay rendering state has changed.
    *
-   * @returns {boolean} Returns `true` if the state has changed since the last check.
+   * @returns {boolean}
    */
-  updateStateOfRendering() {
-    // todo refactoring: conceive introducing final state machine, normal -> changed (once) -> needs-full-render -> ...? -> normal
-    const previousState = this.needFullRender;
+  hasRenderingStateChanged() {
+    return this.needFullRender !== this.shouldBeRendered();
+  }
 
-    this.needFullRender = this.shouldBeRendered();
+  /**
+   * Updates internal state with an information about the need of full rendering of the overlay in the next draw cycles.
+   *
+   * If the state is changed to render the overlay, the `needFullRender` property is set to `true` which means that
+   * the overlay will be fully rendered in the current draw cycle. If the state is changed to not render the overlay,
+   * the `needFullRender` property is set to `false` which means that the overlay will be fully rendered in the
+   * current draw cycle but it will not be rendered in the next draw cycles.
+   *
+   * @param {'before' | 'after'} drawPhase The phase of the rendering process.
+   */
+  updateStateOfRendering(drawPhase) {
+    if (drawPhase === 'before' && this.shouldBeRendered()) {
+      this.needFullRender = true;
 
-    const changed = previousState !== this.needFullRender;
-
-    if (changed && !this.needFullRender) {
-      this.reset();
+    } else if (drawPhase === 'after' && !this.shouldBeRendered()) {
+      this.needFullRender = false;
     }
-
-    return changed;
   }
 
   /**
@@ -345,29 +351,22 @@ export class Overlay {
    *                                   rendering anyway.
    */
   refresh(fastDraw = false) {
-    // When hot settings are changed we allow to refresh overlay once before blocking
-    const nextCycleRenderFlag = this.shouldBeRendered();
-
-    if (this.clone && (this.needFullRender || nextCycleRenderFlag)) {
+    if (this.needFullRender) {
       this.clone.draw(fastDraw);
     }
-    this.needFullRender = nextCycleRenderFlag;
   }
 
   /**
    * Reset overlay styles to initial values.
    */
   reset() {
-    if (!this.clone) {
-      return;
-    }
     const holder = this.clone.wtTable.holder; // todo refactoring: DEMETER
     const hider = this.clone.wtTable.hider; // todo refactoring: DEMETER
     const holderStyle = holder.style;
     const hiderStyle = hider.style;
     const rootStyle = holder.parentNode.style;
 
-    arrayEach([holderStyle, hiderStyle, rootStyle], (style) => {
+    [holderStyle, hiderStyle, rootStyle].forEach((style) => {
       style.width = '';
       style.height = '';
     });
