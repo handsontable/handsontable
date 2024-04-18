@@ -32,7 +32,7 @@
               <i class="ico i-github"></i>
               <span v-if="stars">{{ stars }}</span>
             </a>
-            <button class="menuButton"><i class="ico i-search"></i></button>
+            <button class="menuButton" id="mobileSearch"><i class="ico i-search"></i></button>
             <button @click="$emit('toggle-sidebar')" class="menuButton">
               <i class="ico i-menu"></i>
               <i class="ico i-close"></i>
@@ -104,6 +104,12 @@ export default {
         console.log(error);
       }
     },
+    handleSearchClick(event) {
+      const btnAlgolia = document.querySelector('.DocSearch');
+      if (btnAlgolia) {
+        btnAlgolia.click();
+      }
+    },
   },
   mounted() {
     // Initialize Headway widget
@@ -113,6 +119,12 @@ export default {
     };
     Headway.init(config);
     this.getStars();
+
+    // Add click event to #search
+    const searchElement = document.getElementById('mobileSearch');
+    if (searchElement) {
+      searchElement.addEventListener('click', this.handleSearchClick);
+    }
   }
 };
 </script>

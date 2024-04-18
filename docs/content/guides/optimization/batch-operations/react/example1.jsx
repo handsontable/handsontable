@@ -67,6 +67,13 @@ const ExampleComponent = () => {
 
   return (
     <>
+      <div class="example-controls-container">
+        <div className="controls">
+          <button id="buttonWithout" className="button button--primary" onClick={(...args) => buttonWithoutClickCallback(...args)}>Run without batch method</button>
+          <button id="buttonWith" className="button button--primary" onClick={(...args) => buttonWithClickCallback(...args)}>Run with batch method</button>
+        </div>
+        <output className="console" id="output">{output || 'Here you will see the log'}</output>
+      </div>
       <HotTable
         ref={hotRef}
         data={[
@@ -88,11 +95,6 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
-      <div className="controls">
-        <button id="buttonWithout" className="button button--primary" onClick={(...args) => buttonWithoutClickCallback(...args)}>Run without batch method</button>
-        <button id="buttonWith" className="button button--primary" onClick={(...args) => buttonWithClickCallback(...args)}>Run with batch method</button>
-      </div>
-      <output className="console" id="output">{output || 'Here you will see the log'}</output>
     </>
   );
 };
