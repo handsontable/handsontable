@@ -57,10 +57,10 @@ export default {
 
     if (selector1) {
       selector1.appendChild(chips1);
-      // chips1.classList.add('tag-new');
-      chips1.classList.add('tag-update');
-      // chips1.classList.add('tag-deprecated');
-      chips1.textContent = 'Update';
+        //chips1.classList.add('tag-new');
+        chips1.classList.add('tag-update');
+        //chips1.classList.add('tag-deprecated');
+        chips1.textContent = 'Updated';
     } else {
       console.error('Element not found with the given selector');
     }

@@ -11,7 +11,7 @@
 .header-framework {display: none !important}
 .page { 
     opacity 1
-    margin: 96px 400px 0
+    margin: 96px 380px 0
     padding: 0 0 24px 0
     position: relative
     z-index: 1
@@ -153,7 +153,11 @@
             display: block
 
             &:empty { 
-                display:none 
+                //display:none 
+            }
+
+            > img {
+                margin: 16px 0
             }
         }
         
@@ -241,10 +245,13 @@
     
     table:not(.htCore) { 
         font-size: $font-size-s
-        line-height: $line-height-s
+        line-height: 28px // $line-height-s
         font-weight: 400
-        margin: 32px 0
-        width: 100%
+        margin: 32px -16px
+        width: calc(100% + 32px)
+        box-shadow: 0 0 0 1px $borderColor 
+        border-radius: $radius
+        overflow: hidden
 
         img {
             max-height: 80px
@@ -254,10 +261,12 @@
             padding: 16px
         }
 
+        
         thead { 
             tr { 
                 th { 
-                    border-top:1px solid $borderColor
+                    border-bottom:1px solid $lightBorderColor
+                    background: $onsurfaceColor
                     font-weight: 500
                     text-align: left
                     color:$textColor
@@ -267,22 +276,24 @@
 
         tbody {
             tr {
-                background: $sideColor
+                background: $bgColor
                 td {
-                    
+                    border-top: 1px solid $borderColor
                 }
                 &:nth-child(2n) { 
-                    background: $bgColor
+                    background: $sideColor
                 }
             }
         }
     }
 
+    /*
     .form-jsfiddle-external .js-fiddle-link { 
         button {
             background: $editorColor !important
         }
     }
+    */
     
     button:not(.theme-code-group__nav-tab, .handsontable *) {
         padding: 8px 16px

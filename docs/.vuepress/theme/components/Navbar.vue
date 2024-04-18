@@ -30,7 +30,7 @@
             <span class="news"><i class="ico i-bell"></i></span>
             <a href="https://github.com/handsontable/handsontable" class="github-stars"><i class="ico i-github"></i><span>19k</span></a>
 
-            <button class="menuButton"><i class="ico i-search"></i></button>
+            <button class="menuButton" id="mobileSearch"><i class="ico i-search"></i></button>
             <button @click="$emit('toggle-sidebar')" class="menuButton">
               <i class="ico i-menu"></i>
               <i class="ico i-close"></i>
@@ -91,6 +91,20 @@ export default {
       account: "xaD6ry"
     };
     Headway.init(config);
+
+    // Add click event to #search
+    const searchElement = document.getElementById('mobileSearch');
+    if (searchElement) {
+      searchElement.addEventListener('click', this.handleSearchClick);
+    }
+  },
+  methods: {
+    handleSearchClick(event) {
+      const btnAlgolia = document.querySelector('.DocSearch');
+      if (btnAlgolia) {
+        btnAlgolia.click();
+      }
+    },
   }
 };
 </script>

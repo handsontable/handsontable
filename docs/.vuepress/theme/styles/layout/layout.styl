@@ -12,7 +12,8 @@ body {
 
 .Inter { font-family: $font }
 h1,h2,h3,h4,h5,h6 { font-family: $font-aeonik }
-
+.whitespace-nowrap { white-space nowrap}
+  
 a { 
   color: $linkColor 
   font-weight: 400
@@ -77,22 +78,6 @@ a {
     }
   }
 }
-/*
-.decoration-right { 
-  display: block
-  background:  url('{{$basePath}}/img/bg-gradient.webp'); 
-  background-size: 100%
-  width: 680px
-  height: 1212px 
-  position fixed
-  bottom -6px
-  right:-6px
-  opacity .1
-  pointer-events: none
-  filter: hue-rotate(40deg) blur(6px);
-  z-index -1 
-}*/
-
 
 .decoration-right { 
   display: block
@@ -105,7 +90,7 @@ a {
   z-index -1
   opacity: .5
   zoom: 1.8;
-  filter: blur(20px) hue-rotate(45deg);
+  filter: blur(20px) hue-rotate(45deg) saturate(2.5);
   right: -250px;
   bottom: -240px;
 } 

@@ -29,7 +29,7 @@
         <a href="https://handsontable.com/team">Team</a>
         <a href="https://handsontable.com/contact?category=technical_support">Contact</a>
 
-        <a href="https://handsontable.com/blog/" target="_blank">Blog</a>
+        <a href="https://handsontable.com/blog/">Blog</a>
         <a href="https://status.handsontable.com/" target="_blank" class="status">Status</a>
       </div>
     </div>

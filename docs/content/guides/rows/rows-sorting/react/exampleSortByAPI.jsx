@@ -27,6 +27,12 @@ const ExampleComponent = () => {
 
   return (
     <>
+      <div class="example-controls-container">
+        <div className="controls">
+          <button onClick={sortAsc}>Sort by the "Brand" column, in ascending order</button>
+          <button onClick={unsort}>Go back to the original order</button>
+        </div>
+      </div>
       <HotTable
         ref={hotTableComponentRef}
         data={[
@@ -121,12 +127,6 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
-      <div className="controls">
-        <button onClick={sortAsc}>Sort by the "Brand" column, in ascending order</button>
-        <br />
-        <br />
-        <button onClick={unsort}>Go back to the original order</button>
-      </div>
     </>
   );
 };
