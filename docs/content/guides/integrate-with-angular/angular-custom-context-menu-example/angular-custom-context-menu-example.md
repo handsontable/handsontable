@@ -9,6 +9,7 @@ react:
   id: y1xxl0xk
   metaTitle: Custom context menu - Angular Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Angular
 ---
 
 # Custom context menu in Angular

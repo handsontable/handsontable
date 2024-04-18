@@ -9,6 +9,7 @@ react:
   id: z4rz7wyk
   metaTitle: Referencing Handsontable - Angular Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Angular
 ---
 
 # Referencing a Handsontable instance in Angular

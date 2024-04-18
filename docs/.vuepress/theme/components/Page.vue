@@ -1,10 +1,6 @@
 <template>
   <main class="page" v-bind:class="{ 'api': isApi }">
-    <div class="breadcrumbs ">
-      <!-- <i class="ico" :class="icon" > -->
-      <a href="#"><i i class="ico i-home"></i><span>14.2.0</span></a>
-      <a href="#"><span>Getting started</span><span>Introduction</span></a>
-    </div>
+    <Breadcrumbs />
 
     <Content class="theme-default-content" />
     <slot name="top" />
@@ -17,10 +13,12 @@
 <script>
 /* global instanceRegister */
 import PageEdit from '@theme/components/PageEdit.vue';
+import Breadcrumbs from '@theme/components/Breadcrumbs.vue';
 
 export default {
   components: { 
-    PageEdit 
+    PageEdit,
+    Breadcrumbs 
     //,PageNav 
   },
   props: ['sidebarItems'],
@@ -40,11 +38,6 @@ export default {
   computed: {
     isApi() {
       return this.$route.fullPath.match(/([^/]*\/)?api\//);
-    },
-    icon() {
-      const frameworkWithoutNumber = (this.legacyFramework ?? this.$page.currentFramework).replace(/\d+$/, '');
-
-      return 'i-' + frameworkWithoutNumber ;
     }
   },
   methods: {

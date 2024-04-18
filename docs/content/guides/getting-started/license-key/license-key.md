@@ -9,6 +9,7 @@ react:
   id: vyfski60
   metaTitle: License key - React Data Grid | Handsontable
 searchCategory: Guides
+category: Getting started
 ---
 
 # License key

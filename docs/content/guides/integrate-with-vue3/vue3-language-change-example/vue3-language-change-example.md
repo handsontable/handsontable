@@ -9,6 +9,7 @@ react:
   id: sxkgoryi
   metaTitle: Language change - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 3
 ---
 
 # Language change in Vue 3

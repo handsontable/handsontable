@@ -9,6 +9,7 @@ react:
   id: qywqgovy
   metaTitle: Formatting cells - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell features
 ---
 
 # Formatting cells

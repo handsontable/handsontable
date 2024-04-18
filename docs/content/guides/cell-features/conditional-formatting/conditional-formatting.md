@@ -9,6 +9,7 @@ react:
   id: eyatgywe
   metaTitle: Conditional formatting - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell features
 ---
 
 # Conditional formatting

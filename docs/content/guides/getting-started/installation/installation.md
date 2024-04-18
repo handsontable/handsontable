@@ -11,6 +11,7 @@ react:
   id: zqk2jjw3
   metaTitle: Installation - React Data Grid | Handsontable
 searchCategory: Guides
+category: Getting started
 ---
 
 # Installation

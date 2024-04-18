@@ -20,6 +20,7 @@ react:
   id: d5ay8gj1
   metaTitle: Custom shortcuts - React Data Grid | Handsontable
 searchCategory: Guides
+category: Navigation
 ---
 
 # Custom shortcuts

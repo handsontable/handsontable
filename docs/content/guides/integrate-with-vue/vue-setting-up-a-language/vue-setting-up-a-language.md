@@ -9,6 +9,7 @@ react:
   id: dt7dct4e
   metaTitle: Setting up a translation - Vue 2 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 2
 ---
 
 # Setting up a translation in Vue 2

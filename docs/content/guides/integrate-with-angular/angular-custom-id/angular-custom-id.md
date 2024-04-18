@@ -9,6 +9,7 @@ react:
   id: 20fncs45
   metaTitle: Custom ID - Angular Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Angular
 ---
 
 # Custom ID in Angular

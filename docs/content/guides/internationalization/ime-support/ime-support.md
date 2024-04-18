@@ -15,6 +15,7 @@ react:
   id: 8pqhhu5r
   metaTitle: IME support - React Data Grid | Handsontable
 searchCategory: Guides
+category: Internationalization
 ---
 
 # IME support

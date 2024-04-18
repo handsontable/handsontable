@@ -9,6 +9,7 @@ react:
   id: fsggsowh
   metaTitle: Installation - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 3
 ---
 
 # Installation in Vue 3

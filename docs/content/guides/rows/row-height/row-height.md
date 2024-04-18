@@ -20,6 +20,7 @@ react:
   id: 87ulwfs2
   metaTitle: Row heights - React Data Grid | Handsontable
 searchCategory: Guides
+category: Rows
 ---
 
 # Row heights

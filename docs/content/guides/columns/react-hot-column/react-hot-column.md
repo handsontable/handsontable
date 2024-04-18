@@ -9,6 +9,7 @@ tags:
   - hotcolumn
 searchCategory: Guides
 onlyFor: react
+category: Columns
 ---
 
 # Column component

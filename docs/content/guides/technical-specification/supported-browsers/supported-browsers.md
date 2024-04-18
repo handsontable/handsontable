@@ -11,6 +11,7 @@ react:
   id: 1e7f39og
   metaTitle: Supported browsers - React Data Grid | Handsontable
 searchCategory: Guides
+category: Technical specification
 ---
 
 # Supported browsers

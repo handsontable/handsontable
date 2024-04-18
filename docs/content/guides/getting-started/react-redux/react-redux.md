@@ -16,6 +16,7 @@ react:
     - state management
 searchCategory: Guides
 onlyFor: react
+category: Getting started
 ---
 
 # Integration with Redux

@@ -13,6 +13,7 @@ react:
   id: prlcpqk8
   metaTitle: Row headers - React Data Grid | Handsontable
 searchCategory: Guides
+category: Rows
 ---
 
 # Row headers

@@ -13,6 +13,7 @@ react:
   id: 3xqdvk3u
   metaTitle: Batch operations - React Data Grid | Handsontable
 searchCategory: Guides
+category: Optimization
 ---
 
 # Batch operations

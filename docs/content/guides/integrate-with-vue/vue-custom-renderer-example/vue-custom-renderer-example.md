@@ -9,6 +9,7 @@ react:
   id: rv0aqgfe
   metaTitle: Custom cell renderer - Vue 2 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 2
 ---
 
 # Custom renderer in Vue 2

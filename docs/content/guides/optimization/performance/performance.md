@@ -11,6 +11,7 @@ react:
   id: gbdbrlc8
   metaTitle: Performance - React Data Grid | Handsontable
 searchCategory: Guides
+category: Optimization
 ---
 
 # Performance

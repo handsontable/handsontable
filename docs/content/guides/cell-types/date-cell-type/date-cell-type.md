@@ -9,6 +9,7 @@ react:
   id: u7t2rn0n
   metaTitle: Date cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Date cell type

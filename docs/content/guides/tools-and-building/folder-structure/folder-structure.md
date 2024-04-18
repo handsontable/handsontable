@@ -16,6 +16,7 @@ react:
   id: 29dbr0lt
   metaTitle: Folder structure - React Data Grid | Handsontable
 searchCategory: Guides
+category: Tools and building
 ---
 
 # Folder structure

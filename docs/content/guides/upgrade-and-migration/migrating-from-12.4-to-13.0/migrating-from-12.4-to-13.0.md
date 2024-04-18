@@ -10,6 +10,7 @@ react:
   id: tvum3ibg
   metaTitle: Migrate from 12.4 to 13.0 - React Data Grid | Handsontable
 searchCategory: Guides
+category: Upgrade and migration
 ---
 
 # Migrate from 12.4 to 13.0
