@@ -139,13 +139,6 @@ module.exports = {
       }(window, document));
     `,
     ],
-    [
-      'script',
-      {
-        id: 'ld-json',
-        type: 'application/ld+json',
-      },
-    ],
     ...environmentHead,
   ],
   markdown: {
