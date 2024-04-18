@@ -93,7 +93,7 @@ export default {
         ? Math.sign(num) * (Math.abs(num) / 1000).toFixed(1) + "k"
         : Math.sign(num) * Math.abs(num);
     },
-    async getStarts() {
+    async getStars() {
       try {
         const response = await fetch(
           "https://api.github.com/repos/handsontable/handsontable"
