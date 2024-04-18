@@ -13,7 +13,7 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "ng": "ng",
-    "serve": "http-server dist",
+    "serve": "ng serve --port 8080",
     "start": "ng serve --port 8080",
     "build": "ng build",
     "test": "node spec/support/jasmine.config.js"

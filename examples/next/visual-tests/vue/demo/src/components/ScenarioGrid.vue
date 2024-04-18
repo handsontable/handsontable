@@ -68,16 +68,6 @@ export default {
             'OS',
           ],
         ],
-        columnSummary: [
-          {
-            sourceColumn: 10,
-            type: 'average',
-            destinationRow: 0,
-            destinationColumn: 10,
-            // force this column summary to treat non-numeric values as numeric values
-            forceNumeric: true
-          },
-        ],
         columns: [
           { data: 'product_id', type: 'numeric' },
           { data: 'mobile_apps', type: 'text' },
@@ -124,6 +114,16 @@ export default {
           'Mobile Apps',
           'Pricing',
           'Rating',
+        ],
+        columnSummary: [
+          {
+            sourceColumn: 10,
+            type: 'average',
+            destinationRow: 0,
+            destinationColumn: 10,
+            // force this column summary to treat non-numeric values as numeric values
+            forceNumeric: true
+          },
         ],
         columns: [
           { data: 'category', type: 'text' },

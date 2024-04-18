@@ -1,9 +1,8 @@
 <div>
-  <div id="tableTop">
     <input type="text" placeholder="Input 1" style="margin: 10px" />
     <hot-table
       class="hot"
-      id="hot1"
+      id="tableTop"
       [data]="datasetTop"
       height="350"
       [nestedHeaders]="nestedHeaders"
@@ -39,12 +38,10 @@
       <hot-column data="deployment"></hot-column>
       <hot-column data="OS"></hot-column>
     </hot-table>
-  </div>
-  <div id="tableBottom">
     <input type="text" placeholder="Input 2" style="margin: 10px" />
     <hot-table
       class="hot"
-      id="hot2"
+      id="tableBottom"
       [data]="datasetBottom"
       height="250"
       [colHeaders]="colHeadersBottom"
@@ -78,5 +75,4 @@
       <hot-column data="pricing"></hot-column>
       <hot-column data="1" type="numeric"></hot-column>
     </hot-table>
-  </div>
 </div>
