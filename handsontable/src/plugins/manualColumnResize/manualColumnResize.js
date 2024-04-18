@@ -466,7 +466,7 @@ export class ManualColumnResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize();
     };
     const resize = (column, forceRender) => {
       const hookNewSize = this.hot.runHooks('beforeColumnResize', this.#newSize, column, true);
@@ -565,7 +565,7 @@ export class ManualColumnResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize();
     };
     const resize = (column, forceRender) => {
       this.hot.runHooks('beforeColumnResize', this.#newSize, column, false);

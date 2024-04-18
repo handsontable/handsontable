@@ -442,7 +442,7 @@ export class ManualRowResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize();
     };
     const resize = (row, forceRender) => {
       const hookNewSize = this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, true);
@@ -529,7 +529,7 @@ export class ManualRowResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize();
     };
     const runHooks = (row, forceRender) => {
       this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, false);
