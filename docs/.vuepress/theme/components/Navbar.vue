@@ -28,8 +28,10 @@
           <nav class="icons-nav">
             <!--<ThemeSwitcher />-->
             <span class="news"><i class="ico i-bell"></i></span>
-            <a href="https://github.com/handsontable/handsontable" class="github-stars"><i class="ico i-github"></i><span>19k</span></a>
-
+            <a href="https://github.com/handsontable/handsontable" class="github-stars">
+              <i class="ico i-github"></i>
+              <span v-if="stars">{{ stars }}</span>
+            </a>
             <button class="menuButton" id="mobileSearch"><i class="ico i-search"></i></button>
             <button @click="$emit('toggle-sidebar')" class="menuButton">
               <i class="ico i-menu"></i>
@@ -70,7 +72,8 @@ export default {
   },
   data() {
     return {
-      linksWrapMaxWidth: null
+      linksWrapMaxWidth: null,
+      stars: 0
     };
   },
   computed: {
@@ -84,6 +87,30 @@ export default {
       return `/${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
     }
   },
+  methods: {
+    kFormatter(num) {
+      return Math.abs(num) > 999
+        ? Math.sign(num) * (Math.abs(num) / 1000).toFixed(1) + "k"
+        : Math.sign(num) * Math.abs(num);
+    },
+    async getStars() {
+      try {
+        const response = await fetch(
+          "https://api.github.com/repos/handsontable/handsontable"
+        );
+        const data = await response.json();
+        this.stars = this.kFormatter(data?.stargazers_count ?? 0);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    handleSearchClick(event) {
+      const btnAlgolia = document.querySelector('.DocSearch');
+      if (btnAlgolia) {
+        btnAlgolia.click();
+      }
+    },
+  },
   mounted() {
     // Initialize Headway widget
     var config = {
@@ -91,20 +118,13 @@ export default {
       account: "xaD6ry"
     };
     Headway.init(config);
+    this.getStars();
 
     // Add click event to #search
     const searchElement = document.getElementById('mobileSearch');
     if (searchElement) {
       searchElement.addEventListener('click', this.handleSearchClick);
     }
-  },
-  methods: {
-    handleSearchClick(event) {
-      const btnAlgolia = document.querySelector('.DocSearch');
-      if (btnAlgolia) {
-        btnAlgolia.click();
-      }
-    },
   }
 };
 </script>
