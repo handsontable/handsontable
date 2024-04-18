@@ -161,6 +161,16 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
   }
 
   /**
+   * Returns `true` if the `hotInstance` exists, but was destroyed.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  _isHotInstanceDestroyed(): boolean {
+    return this.__hotInstance && this.__hotInstance.isDestroyed;
+  }
+
+  /**
    * Setter for the property storing the Handsontable instance.
    * @param {Handsontable} hotInstance The Handsontable instance.
    */
@@ -377,10 +387,19 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
   /**
    * Create a new settings object containing the column settings and global editors and renderers.
    *
+   * @param {boolean} [init=false] `true` if called on Handsontable initialization.
+   * @param {HotTableProps} [prevProps] The previous properties object.
    * @returns {Handsontable.GridSettings} New global set of settings for Handsontable.
    */
-  createNewGlobalSettings(): Handsontable.GridSettings {
-    const newSettings = SettingsMapper.getSettings(this.props);
+  createNewGlobalSettings(init: boolean = false, prevProps: HotTableProps = {}): Handsontable.GridSettings {
+    const initOnlySettingKeys = !this._isHotInstanceDestroyed() ? // Needed for React's double-rendering.
+      ((this.hotInstance?.getSettings() as any)?._initOnlySettings || []) :
+      [];
+    const newSettings = SettingsMapper.getSettings(this.props, {
+      prevProps,
+      isInit: init,
+      initOnlySettingKeys
+    });
     const globalRendererNode = this.getGlobalRendererElement();
     const globalEditorNode = this.getGlobalEditorElement();
 
@@ -486,7 +505,7 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
    * Initialize Handsontable after the component has mounted.
    */
   componentDidMount(): void {
-    const newGlobalSettings = this.createNewGlobalSettings();
+    const newGlobalSettings = this.createNewGlobalSettings(true);
 
     this.hotInstance = new Handsontable.Core(this.hotElementRef, newGlobalSettings);
 
@@ -502,10 +521,10 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
   /**
    * Logic performed after the component update.
    */
-  componentDidUpdate(): void {
+  componentDidUpdate(prevProps): void {
     this.clearCache();
 
-    const newGlobalSettings = this.createNewGlobalSettings();
+    const newGlobalSettings = this.createNewGlobalSettings(false, prevProps);
 
     this.updateHot(newGlobalSettings);
     this.displayAutoSizeWarning(newGlobalSettings);
