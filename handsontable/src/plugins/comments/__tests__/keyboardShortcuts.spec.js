@@ -203,7 +203,7 @@ describe('Comments keyboard shortcut', () => {
   });
 
   describe('"Cmd/Ctrl" + "Enter"', () => {
-    it('should close the comment and save the value', async() => {
+    it('should close the comment and save the value (comment opened by keyboard shortcut)', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
         rowHeaders: true,
@@ -217,6 +217,28 @@ describe('Comments keyboard shortcut', () => {
       await sleep(10);
 
       getPlugin('comments').getEditorInputElement().value = 'Test comment';
+
+      keyDownUp(['control/meta', 'enter']);
+
+      await sleep(50);
+
+      expect(getCellMeta(1, 1).comment.value).toBe('Test comment');
+    });
+
+    it('should close the comment and save the value (comment opened through the context menu)', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+        contextMenu: true,
+      });
+
+      selectCell(1, 1);
+      contextMenu();
+      selectContextMenuOption('Add comment');
+      getPlugin('comments').getEditorInputElement().value = 'Test comment';
+      deselectCell();
 
       keyDownUp(['control/meta', 'enter']);
 
