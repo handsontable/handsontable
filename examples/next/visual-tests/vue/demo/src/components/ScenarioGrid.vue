@@ -43,9 +43,6 @@ export default {
         comments: true,
         customBorders: true,
         fixedRowsBottom: 2,
-        formulas: {
-          engine: HyperFormula,
-        },
         colHeaders: true,
         nestedHeaders: [
           [

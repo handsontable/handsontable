@@ -21,7 +21,6 @@
     "@handsontable/vue": "latest",
     "core-js": "3.9.1",
     "handsontable": "latest",
-    "hyperformula": "2.6.2",
     "vue": "2.7.14"
   },
   "devDependencies": {

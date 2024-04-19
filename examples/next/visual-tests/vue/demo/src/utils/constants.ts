@@ -1257,8 +1257,6 @@ for (let i = 0; i < scenarioArray.length; i += 9) {
 
 export const scenarioDataTop = [
   ...scenarioArray,
-    {rating:'AVERAGE RATING'},
-    {rating: '=AVERAGE(D1:D100)'},
 ];
 
 export const scenarioDataBottom = [

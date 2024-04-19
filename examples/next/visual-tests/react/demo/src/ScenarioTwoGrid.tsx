@@ -1,4 +1,3 @@
-import { HyperFormula } from 'hyperformula';
 import { HotTable } from '@handsontable/react';
 import { scenarioDataTop, scenarioDataBottom } from './constants';
 
@@ -48,9 +47,6 @@ const ScenarioTwoGrid = () => {
             { data: 'deployment', type: 'text' },
             { data: 'OS', type: 'text' },
           ]}
-          formulas={{
-            engine: HyperFormula,
-          }}
           fixedRowsBottom={2}
           autoWrapCol={true}
           autoWrapRow={true}

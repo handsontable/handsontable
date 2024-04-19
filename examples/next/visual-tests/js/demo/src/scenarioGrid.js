@@ -1,4 +1,3 @@
-import { HyperFormula } from 'hyperformula';
 import Handsontable from 'handsontable/base';
 import 'handsontable/dist/handsontable.css';
 import '@handsontable/pikaday/css/pikaday.css';
@@ -139,9 +138,6 @@ export function initializeScenarioGrid() {
     customBorders: true,
     autoWrapCol: true,
     autoWrapRow: true,
-    formulas: {
-      engine: HyperFormula,
-    },
     fixedRowsBottom: 2,
     licenseKey: 'non-commercial-and-evaluation',
   });

@@ -2,7 +2,6 @@ import { Component, ViewEncapsulation } from '@angular/core';
 import { getScenarioDataTop, getScenarioDataBottom } from './utils/constants';
 import { starsRenderer } from './renderers/stars';
 import { progressBarRenderer } from './renderers/progressBar';
-import { HyperFormula } from 'hyperformula';
 
 @Component({
   encapsulation: ViewEncapsulation.None,
@@ -15,9 +14,6 @@ export class ScenarioGridComponent {
   datasetBottom = getScenarioDataBottom();
   progressBarRenderer = progressBarRenderer;
   starsRenderer = starsRenderer;
-  formulas = {
-    engine: HyperFormula,
-  };
   nestedHeaders = [
     [
       { label: 'Product', colspan: 4 },
