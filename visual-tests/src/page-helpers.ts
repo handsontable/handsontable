@@ -298,7 +298,10 @@ export async function filterByValue(value: string) {
   await getPageInstance()
     .getByPlaceholder('Search')
     .pressSequentially(value, { delay: 100 });
-
+  await getPageInstance()
+    .getByLabel('Filter by value:')
+    .getByText(value)
+    .click();
   await getPageInstance().getByRole('button', { name: 'OK' }).click();
 }
 
