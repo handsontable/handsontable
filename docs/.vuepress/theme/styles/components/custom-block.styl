@@ -2,7 +2,7 @@
     .custom-block {
         background: $sideColor
         border-radius: $radius
-        margin:0 -16px
+        margin:0 -16px 16px
         padding: 24px 24px
         border:0
         margin-top: 16px
@@ -38,6 +38,27 @@
         }
         &.warning {
             border-color: $errorColor
+        }
+        &.details {
+            background: $editorColor
+            padding: 16px 24px
+
+            summary {
+                transition: all $ts ease-in-out
+
+                @media (hover: hover) {
+                    &:hover { 
+                        color: $textColor
+                    }
+                }
+            }
+            
+            > p {
+                padding: 16px 0
+            }
+            ul { 
+                padding-left: 24px
+            }
         }
         
         .tip-icon { 

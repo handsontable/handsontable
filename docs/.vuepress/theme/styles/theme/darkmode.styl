@@ -494,6 +494,7 @@ html.theme-dark {
 
                 @media (hover: hover) {
                     &:hover { 
+                        color: $textColor
                         border-color: $linkColor
                     }
                 }
@@ -523,7 +524,13 @@ html.theme-dark {
             .table-of-contents { 
                 ul {
                     li { 
-
+                        > ul {
+                            li a {
+                                &:before {
+                                    border-top: 1px solid  $borderColor
+                                }
+                            }
+                        }
                         a { 
                             color: $text2Color
 
@@ -577,6 +584,17 @@ html.theme-dark {
                 }
                 &.warning {
                     border-color: $errorColor
+                }
+                &.details {
+                    background: $editorColor
+
+                    summary {
+                        @media (hover: hover) {
+                            &:hover { 
+                                color: $textColor
+                            }
+                        }
+                    }
                 }
 
                 p { 
@@ -865,7 +883,9 @@ html.theme-dark {
         background: $bgColor 
     }
 
-    .page #get-started-with-handsontable ~ .boxes-list {
+    .page #get-started-with-handsontable ~ .boxes-list,
+    #open-source-software-components ~ .boxes-list
+    #handsontable-api-reference  ~ .boxes-list {
         li {
             border: 1px solid $borderColor
             background: $gradient0
@@ -1162,6 +1182,10 @@ html.theme-dark {
 
     .cls-1, .cls-2 { 
         fill:$linkColor
+    }
+    .DocSearch-Hit[aria-selected=true] a {
+        background: $bgColor
+        box-shadow:0 0 0 1px $accentColor inset
     }
 
     &[data-theme=dark] {

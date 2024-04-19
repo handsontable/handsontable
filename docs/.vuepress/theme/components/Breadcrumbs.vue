@@ -1,6 +1,6 @@
 <template>
   <div class="breadcrumbs">
-    <a :href="getBaseFrameworkUrl" v-if="getVersion"><i class="ico" :class="icon"></i> {{ getVersion }}</a>
+    <a :href="getBaseFrameworkUrl" v-if="getVersion"><i class="ico i-home"></i> {{ getVersion }}</a>
     <a :href="getPageUrl">
       <span v-if="$page.frontmatter.category">{{$page.frontmatter.category}}</span>
       <span>{{$page.frontmatter.title}}</span>

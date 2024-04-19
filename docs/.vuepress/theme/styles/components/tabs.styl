@@ -92,6 +92,17 @@
 }
 
 .example-container {
+    .controls {
+        padding-bottom: 16px
+
+        > button { 
+            margin-right: 8px
+        }
+    }
+    .example-controls-container .controls { 
+        padding-bottom: 0 
+    }
+
     .checkbox-container {
         margin: 16px 0
         display: block
@@ -118,6 +129,7 @@
 }
 
 .tabs-button-wrapper {
+    padding-top: 16px
     display: flex
     flex-direction: column
     gap 16px

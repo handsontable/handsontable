@@ -42,6 +42,9 @@ const ExampleComponent = () => {
 
   return (
     <>
+      <div className="controls">
+        <button id="set-data-action" onClick={(...args) => buttonClickCallback(...args)}>Click to modify the selected cells</button>
+      </div>
       <HotTable
         ref={hotRef}
         data={[
@@ -67,9 +70,6 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
-      <div className="controls">
-        <button id="set-data-action" onClick={(...args) => buttonClickCallback(...args)}>Click to modify the selected cells</button>
-      </div>
     </>
   );
 };

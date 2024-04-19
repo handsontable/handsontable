@@ -33,6 +33,10 @@
             }
         }
 
+        td code {
+            white-space: pre-wrap
+        }
+
         .language-bash:before { 
             display: none
         }
@@ -75,6 +79,27 @@
             border-radius: $radius
             font-size: $font-size-s
             line-height: $line-height-s
+
+            table {
+                margin: 8px 0 24px
+                width: auto
+
+                tr:first-child {
+                    td { 
+                        border-top:0 !important
+                    }
+                }
+                td, th { 
+                    padding: 8px 16px
+                }
+            }
+
+            .table-container {
+                ul { 
+                    margin-top: 8px
+                    margin-left: 24px
+                }
+            }
         }
     }
 
@@ -277,6 +302,10 @@ output.console {
 
     &:last-child {
         margin-bottom: 0
+    }
+
+    &:empty {
+        display: none
     }
 }
 

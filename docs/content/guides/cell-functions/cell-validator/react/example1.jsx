@@ -23,6 +23,9 @@ const ExampleComponent = () => {
 
   return (
     <>
+      <div class="example-controls-container">
+        <output className="console" id="output">{output}</output>
+      </div>
       <HotTable
         data={[
           { id: 1, name: { first: 'Joe', last: 'Fabiano' }, ip: '0.0.0.1', email: 'Joe.Fabiano@ex.com' },
@@ -73,7 +76,6 @@ const ExampleComponent = () => {
           { data: 'email', validator: emailValidator, allowInvalid: false }
         ]}
       />
-      <output className="console" id="output">{output}</output>
     </>
   );
 };

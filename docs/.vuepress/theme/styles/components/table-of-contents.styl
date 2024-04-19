@@ -36,7 +36,18 @@
             > ul { 
                 li {
                     a {
-                        padding-left: 32px
+                        padding: 3px 16px 3px 32px
+
+                        &:before { 
+                            content: ''
+                            display: block
+                            height: 1px
+                            position absolute
+                            left: -8px
+                            width: 24px
+                            top: 14px
+                            border-top: 1px solid  $borderColor
+                        }
                     }
                 }
             }
@@ -66,7 +77,7 @@
                     position absolute
                     top 0    
                     left:-8px
-                    height: 34px
+                    height: 100%
                     border-left: 1px solid $borderColor
                     transition all $t ease
                 }

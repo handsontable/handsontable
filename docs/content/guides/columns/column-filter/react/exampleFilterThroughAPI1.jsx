@@ -41,6 +41,11 @@ const ExampleComponent = () => {
 
   return (
     <>
+      <div className="controls">
+        <button onClick={filterBelow200}>Show items &lt; $200</button> 
+        <button onClick={filterAbove200}>Show items &gt; $200</button> 
+        <button onClick={clearAllFilters}>Clear filters</button>
+      </div>
       <HotTable
         ref={hotTableComponentRef}
         data={[
@@ -137,11 +142,6 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
-      <div className="controls">
-        <button onClick={filterBelow200}>Show items &lt; $200</button> 
-        <button onClick={filterAbove200}>Show items &gt; $200</button> 
-        <button onClick={clearAllFilters}>Clear filters</button>
-      </div>
     </>
   );
 };
