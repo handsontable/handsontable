@@ -16,7 +16,6 @@
 import { HotTable } from '@handsontable/vue';
 import '@handsontable/pikaday/css/pikaday.css';
 import 'handsontable/dist/handsontable.css';
-import { HyperFormula } from 'hyperformula';
 
 import { scenarioDataTop, scenarioDataBottom } from '../utils/constants';
 
