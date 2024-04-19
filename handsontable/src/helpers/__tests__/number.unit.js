@@ -128,6 +128,9 @@ describe('Number helper', () => {
       expect(isNumeric('a1.22')).toBeFalsy();
       expect(isNumeric('1.22a')).toBeFalsy();
       expect(isNumeric('1,22')).toBeFalsy();
+      expect(isNumeric('- 122')).toBeFalsy();
+      expect(isNumeric('+ 122')).toBeFalsy();
+      expect(isNumeric('100 000')).toBeFalsy();
       expect(isNumeric('10.0,00')).toBeFalsy();
       expect(isNumeric('10,0.00')).toBeFalsy();
       expect(isNumeric('e+22')).toBeFalsy();
@@ -153,6 +156,7 @@ describe('Number helper', () => {
       expect(isNumeric('0')).toBeTruthy();
       expect(isNumeric('1')).toBeTruthy();
       expect(isNumeric('-10000')).toBeTruthy();
+      expect(isNumeric('+10000')).toBeTruthy();
       expect(isNumeric('10000')).toBeTruthy();
       expect(isNumeric('-10.000')).toBeTruthy();
       expect(isNumeric('10.000')).toBeTruthy();
@@ -181,9 +185,9 @@ describe('Number helper', () => {
       expect(isNumeric('   0.020   ')).toBeTruthy();
       expect(isNumeric('   0   ')).toBeTruthy();
       expect(isNumeric('   1   ')).toBeTruthy();
-      expect(isNumeric('   -   10000   ')).toBeTruthy();
+      expect(isNumeric('   -10000   ')).toBeTruthy();
       expect(isNumeric('   10000   ')).toBeTruthy();
-      expect(isNumeric('   -   10.000   ')).toBeTruthy();
+      expect(isNumeric('   -10.000   ')).toBeTruthy();
       expect(isNumeric('   10.000   ')).toBeTruthy();
       expect(isNumeric('   1e+26   ')).toBeTruthy();
       expect(isNumeric('   1e+26   ')).toBeTruthy();
@@ -206,6 +210,9 @@ describe('Number helper', () => {
       expect(isNumericLike('a1.22')).toBeFalsy();
       expect(isNumericLike('1.22a')).toBeFalsy();
       expect(isNumericLike('1,22a')).toBeFalsy();
+      expect(isNumericLike('- 122')).toBeFalsy();
+      expect(isNumericLike('+ 122')).toBeFalsy();
+      expect(isNumericLike('100 000')).toBeFalsy();
       expect(isNumericLike('10.0,00')).toBeFalsy();
       expect(isNumericLike('10,0.00')).toBeFalsy();
       expect(isNumericLike('e+22')).toBeFalsy();
@@ -233,6 +240,7 @@ describe('Number helper', () => {
       expect(isNumericLike('0')).toBeTruthy();
       expect(isNumericLike('1')).toBeTruthy();
       expect(isNumericLike('-10000')).toBeTruthy();
+      expect(isNumericLike('+10000')).toBeTruthy();
       expect(isNumericLike('10000')).toBeTruthy();
       expect(isNumericLike('-10.000')).toBeTruthy();
       expect(isNumericLike('10.000')).toBeTruthy();
@@ -267,11 +275,11 @@ describe('Number helper', () => {
       expect(isNumericLike('   0,020   ')).toBeTruthy();
       expect(isNumericLike('   0   ')).toBeTruthy();
       expect(isNumericLike('   1   ')).toBeTruthy();
-      expect(isNumericLike('   -   10000   ')).toBeTruthy();
+      expect(isNumericLike('   -10000   ')).toBeTruthy();
       expect(isNumericLike('   10000   ')).toBeTruthy();
-      expect(isNumericLike('   -   10.000   ')).toBeTruthy();
+      expect(isNumericLike('   -10.000   ')).toBeTruthy();
       expect(isNumericLike('   10.000   ')).toBeTruthy();
-      expect(isNumericLike('   -   10,000   ')).toBeTruthy();
+      expect(isNumericLike('   -10,000   ')).toBeTruthy();
       expect(isNumericLike('   10,000   ')).toBeTruthy();
       expect(isNumericLike('   1e+26   ')).toBeTruthy();
       expect(isNumericLike('   1e+26   ')).toBeTruthy();
