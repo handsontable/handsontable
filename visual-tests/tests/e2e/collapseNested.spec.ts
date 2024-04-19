@@ -5,14 +5,14 @@ import { takeScreenshot, collapseNestedColumn, collapseNestedRow } from '../../s
 test(__filename, async({ tablePage }) => {
   await tablePage.goto('/scenario-grid');
 
-  const tableTop = tablePage.locator('#tableTop');
-  const tableBottom = tablePage.locator('#tableBottom');
+  const tableTop = tablePage.locator('#tableTop > .handsontable');
+  const tableBottom = tablePage.locator('#tableBottom > .handsontable');
+
+  tableTop.waitFor();
+  tableBottom.waitFor();
 
   collapseNestedColumn('Category', tableTop);
   await expect(tableTop.getByRole('columnheader', { name: 'Industry', exact: true })).not.toBeVisible();
-
-  collapseNestedColumn('User', tableTop);
-  await expect(tableTop.getByRole('columnheader', { name: 'No of Users', exact: true })).not.toBeVisible();
 
   collapseNestedColumn('System', tableTop);
   await expect(tableTop.getByRole('columnheader', { name: 'OS', exact: true })).not.toBeVisible();

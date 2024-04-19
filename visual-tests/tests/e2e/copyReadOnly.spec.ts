@@ -9,6 +9,9 @@ test(__filename, async({ tablePage }) => {
   const tableTop = tablePage.locator('#tableTop > .handsontable');
   const tableBottom = tablePage.locator('#tableBottom > .handsontable');
 
+  tableTop.waitFor();
+  tableBottom.waitFor();
+
   await selectColumnHeaderByNameAndOpenMenu('System');
   await tablePage.getByText('Read Only').click();
   await (await selectCell(2, 4, tableBottom)).click();
