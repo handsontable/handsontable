@@ -21,12 +21,14 @@ Play around with a demo of Handsontable, in your favorite framework.
 
 [[toc]]
 
-<div class="example-container"><iframe
-    src="https://handsontable.github.io/handsontable/examples/12.2.0/docs/js/demo/"
-    allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone;
-      midi; payment; usb; vr; xr-spatial-tracking"
-    sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
-  ></iframe></div>
+<div class="example-container">
+  <iframe src="https://codesandbox.io/embed/handsontable-react-data-grid-hello-world-app-forked-txwt39?fontsize=14&hidenavigation=1&theme=dark"
+     style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
+     title="Handsontable React Data Grid - Hello World App (12.2)"
+     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+   ></iframe>
+</div>
 
 ## Find the code on GitHub
 
