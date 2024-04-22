@@ -1,12 +1,12 @@
 import { test, expect } from '../../src/test-runner';
-import { takeScreenshot, collapseNestedColumn, collapseNestedRow } from '../../src/page-helpers';
+import { collapseNestedColumn, collapseNestedRow } from '../../src/page-helpers';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 test(__filename, async({ tablePage }) => {
   await tablePage.goto('/scenario-grid');
 
   const tableTop = tablePage.locator('#tableTop > .handsontable');
-  const tableBottom = tablePage.locator('#tableBottom > .handsontable');
+  const tableBottom = tablePage.locator('#tableBottom >.handsontable');
 
   tableTop.waitFor();
   tableBottom.waitFor();
@@ -25,7 +25,5 @@ test(__filename, async({ tablePage }) => {
 
   collapseNestedRow(21, tableBottom);
   await expect(tableBottom.getByRole('rowheader', { name: '22', exact: true })).not.toBeVisible();
-
-  await takeScreenshot();
 
 });
