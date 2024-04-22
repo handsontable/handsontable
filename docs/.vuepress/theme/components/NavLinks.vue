@@ -61,5 +61,5 @@ export default {
         link: `https://handsontable.com/pricing/`,
         text: 'Pricing'
       };
-    }*/
+    } */
 </script>

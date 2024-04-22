@@ -7,7 +7,7 @@
       >
         <Logo />
       </RouterLink>
-      
+
       <div class="top-bar">
         <div class="top-bar_left">
           <div class="framework-and-version">
@@ -24,7 +24,7 @@
         <div class="menu">
           <NavLinks/>
           <ExternalNavLinks/>
-        
+
           <nav class="icons-nav">
             <!--<ThemeSwitcher />-->
             <span class="news"><i class="ico i-bell"></i></span>
@@ -40,7 +40,7 @@
           </nav>
         </div>
       </div>
-      
+
     </div>
   </header>
 </template>
@@ -50,8 +50,8 @@ import AlgoliaSearch from '@theme/components/AlgoliaSearch.vue';
 import Logo from '@theme/components/Logo.vue';
 import SidebarButton from '@theme/components/SidebarButton.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
-//import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
-//import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
+// import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
+// import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
 import FrameworksDropdown from '@theme/components/FrameworksDropdown.vue';
 import ExternalNavLinks from '@theme/components/ExternalNavLinks.vue';
 import SidebarLinks from '@theme/components/SidebarLinks.vue';
@@ -66,7 +66,6 @@ export default {
     AlgoliaSearch,
     // VersionsDropdown,
     // ThemeSwitcher,
-    Logo,
     ExternalNavLinks,
     SidebarLinks
   },
@@ -90,15 +89,16 @@ export default {
   methods: {
     kFormatter(num) {
       return Math.abs(num) > 999
-        ? Math.sign(num) * (Math.abs(num) / 1000).toFixed(1) + "k"
+        ? `${Math.sign(num) * (Math.abs(num) / 1000).toFixed(1)}k`
         : Math.sign(num) * Math.abs(num);
     },
     async getStars() {
       try {
         const response = await fetch(
-          "https://api.github.com/repos/handsontable/handsontable"
+          'https://api.github.com/repos/handsontable/handsontable'
         );
         const data = await response.json();
+
         this.stars = this.kFormatter(data?.stargazers_count ?? 0);
       } catch (error) {
         console.log(error);
@@ -106,6 +106,7 @@ export default {
     },
     handleSearchClick(event) {
       const btnAlgolia = document.querySelector('.DocSearch');
+
       if (btnAlgolia) {
         btnAlgolia.click();
       }
@@ -113,15 +114,17 @@ export default {
   },
   mounted() {
     // Initialize Headway widget
-    var config = {
-      selector: ".news",
-      account: "xaD6ry"
+    const config = {
+      selector: '.news',
+      account: 'xaD6ry'
     };
+
     Headway.init(config);
     this.getStars();
 
     // Add click event to #search
     const searchElement = document.getElementById('mobileSearch');
+
     if (searchElement) {
       searchElement.addEventListener('click', this.handleSearchClick);
     }

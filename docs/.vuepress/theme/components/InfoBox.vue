@@ -31,7 +31,9 @@ export default {
   computed: {
     getVersion() {
       // return latest version in a format major.minor.patch
-      const versions = [...this.$page.versionsWithPatches];
+      const versions = this.$page.versionsWithPatches?.size
+        ? [...this.$page.versionsWithPatches]
+        : [];
 
       if (versions.length && versions[0].length >= 2 && versions[0][1].length) {
         return versions[0][1][0];
@@ -55,7 +57,7 @@ export default {
   mounted() {
     const docsVersion = localStorage.getItem('docsVersion');
 
-    if (! docsVersion || docsVersion !== this.getVersion) {
+    if (!docsVersion || docsVersion !== this.getVersion) {
       this.show = true;
     }
   },

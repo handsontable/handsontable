@@ -177,8 +177,22 @@ module.exports = function(docsVersion, base) {
             <div class="tabs-button-list">
               <button class="show-code"><i class="ico i-code"></i>Source code</button>
               <div class="example-controls">
-                ${Boolean(!noEdit) && stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
-                ${Boolean(!noEdit) && codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
+                ${Boolean(!noEdit) && stackblitz(
+    id,
+    htmlContent,
+    codeToCompileSandbox,
+    cssContent,
+    docsVersion,
+    preset
+  )}
+                ${Boolean(!noEdit) && codesandbox(
+    id,
+    htmlContent,
+    codeToCompileSandbox,
+    cssContent,
+    docsVersion,
+    preset
+  )}
                 ${displayJsFiddle ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset) : ''}
                 <button aria-label="Open in new tab"><i class="ico i-zoom"></i></button>
                 <button aria-label="Reset demo"><i class="ico i-refresh"></i></button>

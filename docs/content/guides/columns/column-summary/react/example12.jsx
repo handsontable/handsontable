@@ -35,6 +35,7 @@ const ExampleComponent = () => {
           roundFloat: 2
         }
       ]}
+      height="auto"
     />
   );
 };

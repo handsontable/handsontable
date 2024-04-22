@@ -30,4 +30,5 @@ const hot = new Handsontable(container, {
   ],
   autoWrapRow: true,
   autoWrapCol: true,
+  height: 'auto'
 });

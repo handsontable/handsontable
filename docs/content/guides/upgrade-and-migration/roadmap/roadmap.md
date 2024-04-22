@@ -9,6 +9,7 @@ react:
   id: rvrihx7w
   metaTitle: Roadmap - React Data Grid | Handsontable
 searchCategory: Roadmap
+category: Upgrade and migration
 ---
 
 # Roadmap

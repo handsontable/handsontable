@@ -47,6 +47,7 @@ const ExampleComponent = () => {
       ]}
       preventOverflow="horizontal"
       colHeaders={['value<br>underneath', 'type:text', 'type:numeric', 'type:checkbox', 'type:dropdown', 'type:password']}
+      height="auto"
     />
   );
 };

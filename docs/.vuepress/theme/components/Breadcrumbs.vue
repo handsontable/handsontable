@@ -7,18 +7,20 @@
     </a>
   </div>
 </template>
-  
+
 <script>
 export default {
-  name: "Breadcrumbs",
+  name: 'Breadcrumbs',
   computed: {
     getVersion() { // return latest version in a format major.minor.patch
-      const versions = [...this.$page.versionsWithPatches];
+      const versions = this.$page.versionsWithPatches?.size
+        ? [...this.$page.versionsWithPatches]
+        : [];
 
       if (versions.length && versions[0].length >= 2 && versions[0][1].length) {
-        return versions[0][1][0]; 
+        return versions[0][1][0];
       }
-      
+
       if (versions.length && versions[0].length >= 2 && versions[1][1].length) {
         return versions[1][1][0];
       }
@@ -28,20 +30,20 @@ export default {
     icon() {
       const frameworkWithoutNumber = (
         this.legacyFramework ?? this.$page.currentFramework
-      ).replace(/\d+$/, "");
+      ).replace(/\d+$/, '');
 
-      return "i-" + frameworkWithoutNumber;
+      return `i-${frameworkWithoutNumber}`;
     },
     getBaseUrl() {
-        return `${this.$page.hostname}${this.$site.base}`
+      return `${this.$page.hostname}${this.$site.base}`;
     },
     getBaseFrameworkUrl() {
-        return `${this.getBaseUrl}${this.$page.currentFramework}${this.$page.frameworkSuffix}/${this.$page.path.includes('/api') ? 'api/' : ''}`
+      // eslint-disable-next-line max-len
+      return `${this.getBaseUrl}${this.$page.currentFramework}${this.$page.frameworkSuffix}/${this.$page.path.includes('/api') ? 'api/' : ''}`;
     },
     getPageUrl() {
-        return `${this.getBaseUrl}${this.$page.frontmatter.permalink.substring(1)}`
+      return `${this.getBaseUrl}${this.$page.frontmatter.permalink.substring(1)}`;
     }
   }
 };
 </script>
-  

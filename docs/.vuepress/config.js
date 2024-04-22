@@ -73,7 +73,7 @@ module.exports = {
       'link',
       {
         rel: 'icon',
-        media: "(prefers-color-scheme: light)",
+        media: '(prefers-color-scheme: light)',
         href: `${getDocsBaseFullUrl()}/favicon.png`,
       },
     ],
@@ -81,7 +81,7 @@ module.exports = {
       'link',
       {
         rel: 'icon',
-        media: "(prefers-color-scheme: dark)",
+        media: '(prefers-color-scheme: dark)',
         href: `${getDocsBaseFullUrl()}/favicon-dark.png`,
       },
     ],
@@ -142,7 +142,7 @@ module.exports = {
     // Headwayapp
     [
       'script',
-      {  
+      {
         id: 'Headwayapp',
         src: 'https://cdn.headwayapp.co/widget.js'
       },
@@ -153,9 +153,8 @@ module.exports = {
       {},
       `
       (function(w, d) {
-        const osColorScheme = () => w.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
-        const preferredScheme = colorScheme ? colorScheme : osColorScheme();
+        const preferredScheme = colorScheme ? colorScheme : 'dark';
 
         if (preferredScheme === 'dark') {
           d.documentElement.classList.add('theme-dark');
@@ -367,7 +366,7 @@ module.exports = {
     smoothScroll: false,
     nav: [
       // Guide & API Reference has been defined in theme/components/NavLinks.vue
-      //{ text: 'GitHub', link: 'https://github.com/handsontable/handsontable' },
+      // { text: 'GitHub', link: 'https://github.com/handsontable/handsontable' },
       { text: 'Community',
         items: [
           {

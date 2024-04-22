@@ -1,12 +1,12 @@
 <template>
-  
+
   <nav class="nav-frameworks nav-links">
     <i class="ico" :class="icon" ></i>
     <nav class="nav-item">
       <DropdownLink @item-click="onFrameworkClick" :item="item"></DropdownLink>
     </nav>
   </nav>
-  
+
 </template>
 
 <script>
@@ -98,7 +98,7 @@ export default {
     icon() {
       const frameworkWithoutNumber = (this.legacyFramework ?? this.$page.currentFramework).replace(/\d+$/, '');
 
-      return 'i-' + frameworkWithoutNumber ;
+      return `i-${frameworkWithoutNumber}`;
     },
     item() {
       return {
