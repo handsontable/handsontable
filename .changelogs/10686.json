@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed a problem where updating the hook callback in the Vue and Vue3 wrappers did not update the underlying instance's settings.",
-  "type": "fixed",
-  "issueOrPR": 10686,
-  "breaking": false,
-  "framework": "vue"
-}

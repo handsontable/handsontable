@@ -9,6 +9,7 @@ react:
   id: ntsul6e8
   metaTitle: Custom cell renderer - Angular Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Angular
 ---
 
 # Custom renderer in Angular

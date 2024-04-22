@@ -1,4 +1,4 @@
-const buildVueBody = ({ id, html, js, css, version, preset }) => {
+const buildVueBody = ({ id, html, js, css, version, hyperformulaVersion, preset }) => {
   const addVuexDependencies = preset.includes('vuex')
     ? `
     "vuex": "^3.6.2",`
@@ -6,8 +6,8 @@ const buildVueBody = ({ id, html, js, css, version, preset }) => {
   const addAdvancedDependencies = preset.includes('advanced')
     ? `
     "vuex": "^3.6.2",
-    "vue-color": "latest",
-    "vue-star-rating": "latest",`
+    "vue-color": "2.8.1",
+    "vue-star-rating": "1.7.0",`
     : '';
 
   return {
@@ -24,7 +24,7 @@ const buildVueBody = ({ id, html, js, css, version, preset }) => {
   },
   "dependencies": {
     "vue": "2.7.14",${addVuexDependencies}${addAdvancedDependencies}
-    "hyperformula": "^2.4.0",
+    "hyperformula": "${hyperformulaVersion}",
     "handsontable": "${version}",
     "@handsontable/vue": "${version}"
   },

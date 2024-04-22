@@ -9,6 +9,7 @@ react:
   id: neeell9r
   metaTitle: Custom ID, class, and style - Vue 2 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 2
 ---
 
 # Custom ID, class, and other attributes in Vue 2

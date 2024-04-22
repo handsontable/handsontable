@@ -9,6 +9,7 @@ react:
   id: i2sqtwh6
   metaTitle: Cell functions - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell functions
 ---
 
 # Cell functions

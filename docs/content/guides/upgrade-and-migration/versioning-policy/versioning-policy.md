@@ -9,6 +9,7 @@ react:
   id: avrihx7w
   metaTitle: Versioning policy - React Data Grid | Handsontable
 searchCategory: Guides
+category: Upgrade and migration
 ---
 
 # Versioning policy

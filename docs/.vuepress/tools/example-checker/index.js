@@ -40,14 +40,14 @@ const PORT = 8088;
  *
  * @type {number}
  */
-const FILE_SERVE_TIMEOUT = 300;
+const FILE_SERVE_TIMEOUT = 100;
 
 /**
  * Timout for the examples to get initialized after loading the page.
  *
  * @type {number}
  */
-const EXAMPLE_INIT_TIMEOUT = 300;
+const EXAMPLE_INIT_TIMEOUT = 100;
 
 /**
  * Number of tries to perform if the number of the rendered examples differs from the expected count.

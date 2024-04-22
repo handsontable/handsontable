@@ -9,6 +9,7 @@ react:
   id: sf0e1o0c
   metaTitle: Installation - Angular Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Angular
 ---
 
 # Installation in Angular

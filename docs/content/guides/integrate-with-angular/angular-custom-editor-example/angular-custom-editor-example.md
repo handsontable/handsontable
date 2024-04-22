@@ -9,6 +9,7 @@ react:
   id: q5mi9bqw
   metaTitle: Custom cell editor - Angular Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Angular
 ---
 
 # Custom editor example in Angular

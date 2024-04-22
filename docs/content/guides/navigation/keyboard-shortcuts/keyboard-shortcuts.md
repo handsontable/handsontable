@@ -19,6 +19,7 @@ react:
   id: ddjw4zt88
   metaTitle: Keyboard shortcuts - React Data Grid | Handsontable
 searchCategory: Guides
+category: Navigation
 ---
 
 # Keyboard shortcuts

@@ -9,6 +9,7 @@ react:
   id: 34n5nwja
   metaTitle: Time cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Time cell type

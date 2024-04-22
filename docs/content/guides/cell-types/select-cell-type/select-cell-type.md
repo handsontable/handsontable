@@ -9,6 +9,7 @@ react:
   id: xmdreeu3
   metaTitle: Select cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Select cell type

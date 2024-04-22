@@ -9,6 +9,7 @@ react:
   id: kyfo402o
   metaTitle: Language change - Vue 2 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 2
 ---
 
 # Language change in Vue 2

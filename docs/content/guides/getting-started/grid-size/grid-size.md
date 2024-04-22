@@ -14,6 +14,7 @@ react:
   id: cifepxzs
   metaTitle: Grid size - React Data Grid | Handsontable
 searchCategory: Guides
+category: Getting started
 ---
 
 # Grid size

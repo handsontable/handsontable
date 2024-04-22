@@ -9,6 +9,7 @@ react:
   id: vm94urge
   metaTitle: Custom cell editor - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 3
 ---
 
 # Custom editor  in Vue 3

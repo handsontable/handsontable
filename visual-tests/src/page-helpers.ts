@@ -9,6 +9,28 @@ export enum SortDirection {
   None = 'none',
 }
 
+// eslint-disable-next-line no-shadow
+export enum CellBorder {
+  Top = 'Top',
+  Right = 'Right',
+  Bottom = 'Bottom',
+  Left = 'Left',
+}
+
+// eslint-disable-next-line no-shadow
+export enum FilterConditions {
+  None = 'None',
+  IsEmpty = 'Is empty',
+  IsNotEmpty = 'Is not empty',
+  IsEqualTo = 'Is equal to',
+  IsNotEqualTo = 'Is not equal to',
+  Before = 'Before',
+  After = 'After',
+  IsBetween = 'Is between',
+  Tomorrow = 'Tomorrow',
+  Today = 'Today',
+  Yesterday = 'Yesterday',
+}
 /**
  * Select cell by row and column index.
  *
@@ -119,6 +141,15 @@ export async function clickWithPosition(cell:Locator) {
 
 /**
  * @param {Locator} cell Cell locator.
+ */
+export async function clickCell(cell:Locator) {
+
+  await cell
+    .click();
+}
+
+/**
+ * @param {Locator} cell Cell locator.
  * @param {number} size Cell locator.
  */
 export async function makeSelectionFromCell(cell:Locator, size:number) {
@@ -215,7 +246,85 @@ export async function setColumnSorting(name:string, direction:SortDirection) {
   while (sortAttribute !== direction) {
     // eslint-disable-next-line no-await-in-loop
     await columnHeader.locator('span').click();
+
     // eslint-disable-next-line no-await-in-loop
     sortAttribute = await columnHeader.getAttribute('aria-sort');
   }
+}
+
+/**
+ * @param {string} name Column name.
+ * @param {SortDirection} direction Sort direction.
+ */
+export async function setAdditionalColumnSorting(name:string, direction:SortDirection) {
+  const page = PageHolder.getInstance().getPage();
+  const columnHeader = await page.getByRole('columnheader', { name });
+
+  let sortAttribute = await columnHeader.getAttribute('aria-sort');
+
+  while (sortAttribute !== direction) {
+    // eslint-disable-next-line no-await-in-loop
+    await columnHeader.locator('span').click({ modifiers: ['Meta'] });
+
+    // eslint-disable-next-line no-await-in-loop
+    sortAttribute = await columnHeader.getAttribute('aria-sort');
+  }
+}
+
+/**
+ * @param {string} value Filter value.
+ */
+export async function filterByValue(value:string) {
+  const page = PageHolder.getInstance().getPage();
+
+  await page.getByText('Clear', { exact: true }).click();
+  await page.getByPlaceholder('Search').pressSequentially(value, { delay: 100 });
+  await page.screenshot({ path: helpers.screenshotPath() });
+
+  await page.getByLabel('Filter by value:').getByText(value).click();
+  await page.getByRole('button', { name: 'OK' }).click();
+}
+
+/**
+ * @param {FilterConditions} condition Filter condition.
+ * @param {string} value Filter value.
+ * @param {string} secondValue Second filter value.
+ */
+export async function filterByCondition(condition:FilterConditions, value?:string, secondValue?:string) {
+  const page = PageHolder.getInstance().getPage();
+
+  await page.getByRole('listbox').locator('.htUISelectCaption').click();
+  await page.getByText(condition, { exact: true }).click();
+
+  if (value !== undefined) {
+    await page.getByRole('textbox', { name: 'Value', exact: true }).pressSequentially(value);
+  }
+
+  if (secondValue !== undefined) {
+    await page.getByRole('textbox', { name: 'Second value', exact: true }).pressSequentially(secondValue);
+  }
+  await page.getByRole('button', { name: 'OK' }).click();
+}
+
+/**
+ * Take a screenshot.
+ */
+export async function takeScreenshot() {
+  const page = PageHolder.getInstance().getPage();
+
+  await page.screenshot({ path: helpers.screenshotPath() });
+}
+
+/**
+ * Take a screenshot.
+ *
+ * @param {Locator} cell The locator of the cell.
+ * @param {CellBorder} border The border to set.
+ */
+export async function setCellBorders(cell:Locator, border:CellBorder) {
+  const page = PageHolder.getInstance().getPage();
+
+  await cell.click({ button: 'right' });
+  await page.getByText('Borders').hover();
+  await page.getByText(border).click();
 }

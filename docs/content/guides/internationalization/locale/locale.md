@@ -14,6 +14,7 @@ react:
   id: 1ueuuazs
   metaTitle: Locale - React Data Grid | Handsontable
 searchCategory: Guides
+category: Internationalization
 ---
 
 # Locale

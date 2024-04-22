@@ -20,6 +20,7 @@ react:
   id: g4mu790t
   metaTitle: Layout direction - React Data Grid | Handsontable
 searchCategory: Guides
+category: Internationalization
 ---
 
 # Layout direction

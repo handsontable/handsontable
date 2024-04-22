@@ -20,18 +20,7 @@ html.theme-dark {
     $editorHeadColor    = var(--color-gray-800)
     $lightBorderColor   = var(--color-gray-600)
     $depricatedColor    = var(--color-yellow) 
-    $depricatedBgColor  = var(--color-yellow-20)
-
-    $editorCommentColor         = #999;        
-    $editorTagColor             = #e2777a;        
-    $editorFunctionNameColor    = #6196cc;        
-    $editorFunctionColor        = #f08d49;        
-    $editorSymbolColor          = #f8c555;        
-    $editorSelectorColor        = #cc99cd;        
-    $editorStringColor          = #7ec699;                
-    $editorOperatorColor        = #67cdccri;      
-    $editorInsertedColor        = green;       
-    $editorPunctuationColor     = #ccc;       
+    $depricatedBgColor  = var(--color-yellow-20)  
 
     $editorText                 = rgb(156, 220, 254)
     $editorCommentColor         = rgb(106, 153, 85)
@@ -316,13 +305,8 @@ html.theme-dark {
         }  
 
         .navbar-wrapper { 
-            .home-link {
-                .version {
-                    color: $textColor
-                }
-            }
-            
             .dropdown-wrapper { 
+
                 .nav-dropdown { 
                     background: $borderColor
                     border:0
@@ -343,19 +327,51 @@ html.theme-dark {
                 }
             }
 
+            .framework-and-version { 
+                .nav-frameworks { 
+                    .dropdown-wrapper {
+                        > button { 
+                            color: $text2Color
+
+                            @media (hover: hover) {
+                                &:hover { 
+                                    color: $hoverWhiteColor
+                                }
+                            }
+                        }
+                        &.open { 
+                            > button { 
+                                color: $hoverWhiteColor
+                            }
+                        }
+                    }
+                }
+            }
+
             .menu {
                 .nav-links {
                     .nav-item {
-                        a, button { 
-                            color: $text2Color
 
-                            &.router-link-active { 
-                                color: $textColor
+                        &:not(.roadmap) {
+                            a, button { 
+                                &.router-link-active { 
+                                    color: $textColor
 
-                                &:before {
-                                    background: $linkColor    
+                                    &:before {
+                                        background: $linkColor    
+                                    }
                                 }
                             }
+                        }
+
+                        .open { 
+                            > button { 
+                                color: $hoverWhiteColor
+                            }
+                        }
+                        
+                        a, button { 
+                            color: $text2Color
 
                             @media (hover: hover) {
                                 &:hover { 
@@ -387,59 +403,6 @@ html.theme-dark {
                     }
                 }
             }   
-
-            /*
-            .search-box { 
-                input { 
-                    background: $borderColor
-                    color: $text2Color
-                    font-family: $font
-                    border: 1px solid $lightBorderColor
-                    
-                    &:focus {
-                        //box-shadow: 0 0 0 1px $accentColor
-                        background: $bgColor
-                    }
-                }
-
-                .kbd-hint { 
-                    kbd { 
-                        background: $sideColor
-                        color: $text2Color
-                    }
-                }
-                .suggestions {
-                    background: $sideColor
-
-                    li {
-                        color: $textColor
-
-                        &:not(.suggestion) {
-                            border-bottom: 1px solid $borderColor
-                        }
-
-                        &.focused {
-                            a {
-                                background: $borderColor
-                                color: $textColor 
-                            }
-                        }
-                        
-                        a { 
-                            color: $text2Color
-
-                            @media (hover: hover) {
-                                &:hover { 
-                                    background: $borderColor
-                                    color: $hoverWhiteColor
-                                }
-                            }
-
-                        }
-                    }
-                }
-            }
-            */
         }
     }
 
@@ -449,9 +412,6 @@ html.theme-dark {
             a {
                 color: $text2Color
                 
-                &:after {
-                    color: $text2Color
-                }
                 @media (hover: hover) {
                     &:hover {
                         color: $hoverWhiteColor
@@ -460,6 +420,11 @@ html.theme-dark {
             }
             span { 
                 //color: $text2Color
+            }
+            a, span {
+                &:after {
+                    color: $text2Color !important
+                }
             }
         }
         
@@ -529,6 +494,7 @@ html.theme-dark {
 
                 @media (hover: hover) {
                     &:hover { 
+                        color: $textColor
                         border-color: $linkColor
                     }
                 }
@@ -558,7 +524,13 @@ html.theme-dark {
             .table-of-contents { 
                 ul {
                     li { 
-
+                        > ul {
+                            li a {
+                                &:before {
+                                    border-top: 1px solid  $borderColor
+                                }
+                            }
+                        }
                         a { 
                             color: $text2Color
 
@@ -576,7 +548,7 @@ html.theme-dark {
                                 }
                             }
                         }
-                        &.active a { 
+                        &.active > a { 
                             color: $textColor
 
                             &:after { 
@@ -612,6 +584,17 @@ html.theme-dark {
                 }
                 &.warning {
                     border-color: $errorColor
+                }
+                &.details {
+                    background: $editorColor
+
+                    summary {
+                        @media (hover: hover) {
+                            &:hover { 
+                                color: $textColor
+                            }
+                        }
+                    }
                 }
 
                 p { 
@@ -657,8 +640,9 @@ html.theme-dark {
 
         kbd {
             border: 1px solid $lightBorderColor
-            border-bottom: 3px solid $lightBorderColor
-            background: $bgColor
+            border-bottom: 4px solid $lightBorderColor
+            background: $borderColor
+            text-shadow: 0 -1px black
         }
         
         table:not(.htCore) { 
@@ -668,7 +652,7 @@ html.theme-dark {
                 tr { 
                     th { 
                         background: $onsurfaceColor
-                        //border-top:1px solid $borderColor
+                        border-bottom:1px solid $lightBorderColor
                         color:$textColor
                     }
                 }
@@ -899,7 +883,9 @@ html.theme-dark {
         background: $bgColor 
     }
 
-    .page #get-started-with-handsontable ~ .boxes-list {
+    .page #get-started-with-handsontable ~ .boxes-list,
+    #open-source-software-components ~ .boxes-list
+    #handsontable-api-reference  ~ .boxes-list {
         li {
             border: 1px solid $borderColor
             background: $gradient0
@@ -987,13 +973,15 @@ html.theme-dark {
         color: $textColor
     }
 
-    .copycode, .report, .github { 
-        background: transparent !important
+    [class*="language-"] {
+        .copycode, .report, .github { 
+            //background: transparent !important
 
-        &:after {
-            color: $textColor
-            background: black //$sideColor
-            border: 0 solid $lightBorderColor
+            &:after {
+                color: $textColor
+                background: black //$sideColor
+                border: 0 solid $lightBorderColor
+            }
         }
     }
 
@@ -1032,11 +1020,20 @@ html.theme-dark {
             border-color: $linkColor
             background: $linkColor
             color: $textColor
+
+            &:hover {
+                background: $linkHoverColor
+            }
         }
 
         #CybotCookiebotDialogFooter .CybotCookiebotDialogBodyButton {
-            border-color: $linkColor
+            border-color: $bgColor
+            background: $bgColor
             color: $linkColor
+
+            &:hover {
+                border-color: $accentColor
+            }
         }
 
         .CybotCookiebotScrollContainer .CybotCookiebotScrollbarContainer {
@@ -1118,6 +1115,14 @@ html.theme-dark {
         #CybotCookiebotDialogDetailBulkConsentLink {
             color: $text2Color
         }
+
+        #CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieInfoFooter,
+        #CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieInfo,
+        #CybotCookiebotDialogDetailBulkConsentListWrapper,
+        #CybotCookiebotDialogDetailBulkConsentListWrapper>span,
+        #CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieInfo.CybotCookiebotDialogShow:first-of-type:before {
+            border-color: $borderColor
+        }
     }
 
     .HW_frame { 
@@ -1134,15 +1139,18 @@ html.theme-dark {
     }
 
     // Algolia
-
-   
-
     #algolia-search {
 
         .DocSearch-Button {
             border: 1px solid $lightBorderColor
             background: $borderColor
             transition: all $ts ease-in-out
+
+            @media (hover: hover) {
+                &:hover { 
+                    border: 1px solid $linkColor
+                }
+            }
 
             .DocSearch-Search-Icon { 
                 path { 
@@ -1167,17 +1175,55 @@ html.theme-dark {
 
     .DocSearch-Button-Keys {
         kbd { 
-            background: $onsurfaceColor
+            background: $lightBorderColor
             color: $text2Color
         }
     }
 
+    .cls-1, .cls-2 { 
+        fill:$linkColor
+    }
+    .DocSearch-Hit[aria-selected=true] a {
+        background: $bgColor
+        box-shadow:0 0 0 1px $accentColor inset
+    }
+
     &[data-theme=dark] {
-        --docsearch-container-background: $dropColorSearchDark
-        --docsearch-searchbox-background: transparent;
-        --docsearch-searchbox-focus-background: transparent;
-        --docsearch-text-color: $textColor;
-        --docsearch-muted-color: $textColor;
+       .DocSearch {
+            --docsearch-primary-color: $linkColor;
+            --docsearch-text-color: $textColor;
+            --docsearch-spacing: 12px;
+            --docsearch-icon-stroke-width: 1;
+            --docsearch-icon-color: $text2Color;
+            --docsearch-highlight-color: $linkColor;
+            --docsearch-muted-color: $text2Color;
+            --docsearch-container-background: $dropColorSearchDark;
+            --docsearch-logo-color: $linkColor;
+
+            --docsearch-modal-width: 560px;
+            --docsearch-modal-height: 600px;
+            --docsearch-modal-background: $borderColor;
+            --docsearch-modal-shadow: none //inset 1px 1px 0 0 hsla(0, 0%, 100%, 0.5), 0 3px 8px 0 #555a64;
+
+            --docsearch-searchbox-height: 56px;
+            --docsearch-searchbox-background: transparent // $borderColor;
+            --docsearch-searchbox-focus-background: transparent //$bgColor;
+            --docsearch-searchbox-shadow: none //inset 0 0 0 2px var(--docsearch-primary-color);
+
+            --docsearch-hit-height: 56px;
+            --docsearch-hit-color: $text2Color // #444950;
+            --docsearch-hit-active-color: $textColor;
+            --docsearch-hit-background: $bgColor;
+            --docsearch-hit-shadow: none // 0 1px 3px 0 #d4d9e1;
+
+            --docsearch-key-gradient: $borderColor //linear-gradient(-225deg, #d5dbe4, #f8f8f8);
+            --docsearch-key-shadow: none //inset 0 -2px 0 0 #cdcde6, inset 0 0 1px 1px #fff, 0 1px 2px 1px rgba(30, 35, 90, 0.4);
+            --docsearch-key-pressed-shadow: none //inset 0 -2px 0 0 #cdcde6, inset 0 0 1px 1px #fff, 0 1px 1px 0 rgba(30, 35, 90, 0.4);
+            
+            --docsearch-footer-height: 44px;
+            --docsearch-footer-background: $borderColor;
+            --docsearch-footer-shadow: none // 0 -1px 0 0 #e0e3e8, 0 -3px 6px 0 rgba(69, 98, 155, 0.12);
+        }
     }
 
     //Editor 
@@ -1220,6 +1266,14 @@ html.theme-dark {
     
     .page .theme-default-content a.header-link {
         color: $textColor
+    }
+    
+    .controls:not(button), .example-container {
+
+        #mainInput, select, input[type=text], input[type=search], .placeholder-input {
+            background: $borderColor
+            color:$textColor
+        }
     }
 }
 

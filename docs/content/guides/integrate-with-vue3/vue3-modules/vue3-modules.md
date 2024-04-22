@@ -9,6 +9,7 @@ react:
   id: q4l7029o
   metaTitle: Modules - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 3
 ---
 
 # Modules in Vue 3

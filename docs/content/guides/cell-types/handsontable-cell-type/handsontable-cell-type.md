@@ -9,6 +9,7 @@ react:
   id: fcxtj167
   metaTitle: Handsontable cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Handsontable cell type

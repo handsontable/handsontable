@@ -9,6 +9,7 @@ react:
   id: h7773jg7
   metaTitle: Language change - Angular Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Angular
 ---
 
 # Language change in Angular

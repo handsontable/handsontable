@@ -8,7 +8,6 @@ const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const nginxVariablesPlugin = require('./plugins/generate-nginx-variables');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
 const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
-const canonicalUrlsPlugin = require('./plugins/canonical-urls');
 const dumpRedirectPageIdsPlugin = require('./plugins/dump-redirect-page-ids');
 const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
 const headerAnchor = require('./plugins/markdown-it-header-anchor');
@@ -75,7 +74,16 @@ module.exports = {
       'link',
       {
         rel: 'icon',
-        href: 'https://handsontable.com/static/images/template/ModCommon/favicon-32x32.png',
+        media: '(prefers-color-scheme: light)',
+        href: `${getDocsBaseFullUrl()}/favicon.png`,
+      },
+    ],
+    [
+      'link',
+      {
+        rel: 'icon',
+        media: '(prefers-color-scheme: dark)',
+        href: `${getDocsBaseFullUrl()}/favicon-dark.png`,
       },
     ],
     [
@@ -109,7 +117,7 @@ module.exports = {
             new Sentry.Replay({
               maskAllText: false,
               blockAllMedia: false,
-            }),
+            }),   
           ],
         });
       };
@@ -135,7 +143,7 @@ module.exports = {
     // Headwayapp
     [
       'script',
-      {  
+      {
         id: 'Headwayapp',
         src: 'https://cdn.headwayapp.co/widget.js'
       },
@@ -146,9 +154,8 @@ module.exports = {
       {},
       `
       (function(w, d) {
-        const osColorScheme = () => w.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
-        const preferredScheme = colorScheme ? colorScheme : osColorScheme();
+        const preferredScheme = colorScheme ? colorScheme : 'dark';
 
         if (preferredScheme === 'dark') {
           d.documentElement.classList.add('theme-dark');
@@ -310,9 +317,6 @@ module.exports = {
       },
     ],
     [
-      canonicalUrlsPlugin, // the plugin must be placed after the `dumpDocsDataPlugin`
-    ],
-    [
       dumpRedirectPageIdsPlugin,
       {
         outputFile: path.resolve(__dirname, '../docker/redirect-page-ids.json'),
@@ -347,7 +351,7 @@ module.exports = {
     smoothScroll: false,
     nav: [
       // Guide & API Reference has been defined in theme/components/NavLinks.vue
-      //{ text: 'GitHub', link: 'https://github.com/handsontable/handsontable' },
+      // { text: 'GitHub', link: 'https://github.com/handsontable/handsontable' },
       { text: 'Community',
         items: [
           {

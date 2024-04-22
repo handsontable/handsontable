@@ -3,11 +3,7 @@
   "dest": "../../dist/hot-table",
   "deleteDestPath": false,
   "lib": {
-    "entryFile": "src/public-api.ts",
-    "umdModuleIds": {
-      "handsontable": "Handsontable",
-      "handsontable/base": "Handsontable"
-    }
+    "entryFile": "src/public-api.ts"
   },
   "allowedNonPeerDependencies": [
     "handsontable"

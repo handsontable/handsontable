@@ -13,6 +13,7 @@ react:
   id: pcflnieu
   metaTitle: Custom builds - React Data Grid | Handsontable
 searchCategory: Guides
+category: Tools and building
 ---
 
 # Custom builds

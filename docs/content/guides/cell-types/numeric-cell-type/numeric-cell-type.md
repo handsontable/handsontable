@@ -9,6 +9,7 @@ react:
   id: e6zmmawj
   metaTitle: Numeric cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Numeric cell type

@@ -16,6 +16,7 @@ react:
   id: y3wp74jh
   metaTitle: Testing - React Data Grid | Handsontable
 searchCategory: Guides
+category: Tools and building
 ---
 
 # Testing
@@ -77,5 +78,7 @@ Learn more on our [GitHub](https://github.com/handsontable/handsontable/blob/dev
 ::: only-for javascript
 
 - [Packages](@/guides/tools-and-building/packages/packages.md)
+
+:::
 
 </div>

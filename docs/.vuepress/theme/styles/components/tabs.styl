@@ -19,39 +19,6 @@
         border-radius: $radius
     }
 
-    .controls:not(button) {
-        font-size: $font-size-xs
-        line-height: $line-height-xs
-        margin-top: 8px;
-        margin-bottom: 8px;
-        padding: 8px 8px 0 0;
-
-        br { 
-            display: none
-        }
-
-        label input {
-            margin: 4px
-        }
-
-        #mainInput, select, input[type=text], input[type=search], .placeholder-input {
-            padding: 8px;
-            //margin-top: 12px;
-            border:none
-            border-radius: $radius
-        }
-
-        &.select-language {
-            label { 
-                display: block
-            }
-        }
-        
-        &:last-child { 
-            margin-bottom:0
-        }
-    }
-
     .tabs-component-panels {
         padding: 0
         margin-top: 0
@@ -123,39 +90,22 @@
         }
     }
 }
-/*
-.form-jsfiddle-external {
-    margin-top: 24px
-    position relative
-
-    .js-fiddle-link { 
-        position absolute
-        left: auto
-        top: 10px
-        right: -8px
-
-        button { 
-            display: flex
-            gap: 4px
-            background: $sideColor
-            transition: all $t ease-in-out
-            cursor pointer
-            border: 0 
-            border-radius: $radius
-            
-            @media (hover: hover) {
-                &:hover {
-                    background: $bgColor
-                }
-            }
-        }
-    }
-}
-*/
 
 .example-container {
+    .controls {
+        padding-bottom: 16px
+
+        > button { 
+            margin-right: 8px
+        }
+    }
+    .example-controls-container .controls { 
+        padding-bottom: 0 
+    }
+
     .checkbox-container {
         margin: 16px 0
+        display: block
 
         .checkbox-group > div { 
             display: flex
@@ -168,17 +118,18 @@
             }
 
             > a { 
-                margin-left: auto
+                //margin-left: auto
                 margin-right: 0
             }
         }
     }
     #example1 {
-        margin: 16px 0
+        margin: 0
     }
 }
 
 .tabs-button-wrapper {
+    padding-top: 16px
     display: flex
     flex-direction: column
     gap 16px
@@ -273,4 +224,45 @@
     visibility: hidden
     max-height: 0
     transition: all $t ease-in-out
+}
+
+.example-controls-container {
+    padding: 0 0 16px
+}
+
+.controls:not(button), .example-container {
+    font-size: $font-size-xs
+    line-height: $line-height-xs
+    margin-top: 0;
+    margin-bottom: 0;
+    padding: 8px 8px 0 0;
+
+    br { 
+        display: none
+    }
+
+    label input {
+        margin: 4px
+    }
+
+    #mainInput, select, input[type=text], input[type=search], .placeholder-input {
+        padding: 8px;
+        //margin-top: 12px;
+        border:none
+        border-radius: $radius
+        background: $borderColor
+        font-size: $font-size-xs
+        line-height: $line-height-xs
+        color:$textColor
+    }
+
+    &.select-language {
+        label { 
+            display: block
+        }
+    }
+    
+    &:last-child { 
+        margin-bottom:0
+    }
 }

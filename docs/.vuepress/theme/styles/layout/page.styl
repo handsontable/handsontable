@@ -15,6 +15,7 @@
     padding: 0 0 24px 0
     position: relative
     z-index: 1
+    //overflow: hidden
 
     .theme-default-content {
         font-size: $font-size-s
@@ -233,6 +234,7 @@
         font-family: 'Inter'
         font-size: $font-size-xs
         line-height: $line-height-xs
+        white-space: pre
         
         strong { 
             font-weight: 400
@@ -245,7 +247,7 @@
     
     table:not(.htCore) { 
         font-size: $font-size-s
-        line-height: $line-height-s
+        line-height: 28px // $line-height-s
         font-weight: 400
         margin: 32px -16px
         width: calc(100% + 32px)
@@ -265,7 +267,7 @@
         thead { 
             tr { 
                 th { 
-                    //border-top:1px solid $borderColor
+                    border-bottom:1px solid $lightBorderColor
                     background: $onsurfaceColor
                     font-weight: 500
                     text-align: left

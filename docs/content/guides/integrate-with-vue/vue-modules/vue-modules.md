@@ -9,6 +9,7 @@ react:
   id: ijlm2nkx
   metaTitle: Modules - Vue 2 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 2
 ---
 
 # Modules in Vue 2

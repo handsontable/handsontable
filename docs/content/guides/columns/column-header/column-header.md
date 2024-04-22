@@ -9,6 +9,7 @@ react:
   id: 5e0tnexi
   metaTitle: Column headers - React Data Grid | Handsontable
 searchCategory: Guides
+category: Columns
 ---
 
 # Column headers

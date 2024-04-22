@@ -9,6 +9,7 @@ react:
   id: 5i86kjqu
   metaTitle: Dropdown cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Dropdown cell type

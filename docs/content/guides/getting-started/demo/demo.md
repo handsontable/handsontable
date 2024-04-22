@@ -13,6 +13,7 @@ react:
   metaTitle: Demo - React Data Grid | Handsontable
   description: Play around with a demo of Handsontable in React.
 searchCategory: Guides
+category: Getting started
 ---
 
 # Demo

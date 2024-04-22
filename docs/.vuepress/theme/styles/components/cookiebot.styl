@@ -4,10 +4,15 @@
 }
 
 body #CybotCookiebotDialog { 
-	width: calc(100vw - 48px) 
+	* {
+		font-size: $font-size-xs
+		line-height: $line-height-xs
+	}
+
 	margin: 0
 	min-width: auto
-	max-width: none
+	max-width: auto
+	width: auto
 	background: $borderColor
 	color: $text2Color
 
@@ -33,6 +38,7 @@ body #CybotCookiebotDialog {
 		background: $linkColor
 		border-radius: $radius
 		color: $textColor
+		transition: all $t ease-in-out
 	}
 
 	#CybotCookiebotDialogFooter .CybotCookiebotDialogBodyButton {
@@ -40,6 +46,9 @@ body #CybotCookiebotDialog {
 		border-width: 1px
 		color: $linkColor
 		border-radius: $radius
+		padding: 8px 16px
+		height: auto
+		width: auto
 	}
 
 	.CybotCookiebotScrollContainer .CybotCookiebotScrollbarContainer {
@@ -122,5 +131,26 @@ body #CybotCookiebotDialog {
 
 	#CybotCookiebotDialogDetailBulkConsentLink {
 		color: $text2Color
+	}
+	#CybotCookiebotDialogFooter .CybotCookiebotDialogBodyButton:hover {
+		opacity 1
+		border-color: $accentColor
+	}
+
+	#CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieInfoFooter,
+	#CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieInfo,
+	#CybotCookiebotDialogDetailBulkConsentListWrapper,
+	#CybotCookiebotDialogDetailBulkConsentListWrapper>span,
+	#CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieInfo.CybotCookiebotDialogShow:first-of-type:before {
+		border-color: $borderColor
+	}
+
+	@media screen and (min-width: 1280px) {
+		&.CybotEdge {
+			margin-top:-20px
+			width: auto
+			min-width: auto
+			max-height: none
+		}
 	}
 }

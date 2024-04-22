@@ -9,6 +9,7 @@ react:
   id: pulol8bw
   metaTitle: Modules - Angular Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Angular
 ---
 
 # Modules in Angular

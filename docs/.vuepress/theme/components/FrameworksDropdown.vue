@@ -1,12 +1,12 @@
 <template>
-  
+
   <nav class="nav-frameworks nav-links">
     <i class="ico" :class="icon" ></i>
     <nav class="nav-item">
       <DropdownLink @item-click="onFrameworkClick" :item="item"></DropdownLink>
     </nav>
   </nav>
-  
+
 </template>
 
 <script>
@@ -53,10 +53,11 @@ export default {
       return frameworkIdToFullName.get(framework).alt;
     },
     getLink(framework) {
-      const currentPageSlug = !this.$page.frontmatter.react && framework === 'react'
-        ? ''
-        : this.$page.frontmatter.permalink.split('/')[2];
-
+      const currentPageSlug =
+        (framework === 'react' && !this.$page.frontmatter.react)
+        || (framework === 'javascript' && this.$page.frontmatter?.onlyFor?.includes('react'))
+          ? ''
+          : this.$page.frontmatter.permalink.split('/')[2];
       const {
         homepage = `/${framework}${
           this.$page.frameworkSuffix ? `${this.$page.frameworkSuffix}/` : ''
@@ -97,7 +98,7 @@ export default {
     icon() {
       const frameworkWithoutNumber = (this.legacyFramework ?? this.$page.currentFramework).replace(/\d+$/, '');
 
-      return 'i-' + frameworkWithoutNumber ;
+      return `i-${frameworkWithoutNumber}`;
     },
     item() {
       return {

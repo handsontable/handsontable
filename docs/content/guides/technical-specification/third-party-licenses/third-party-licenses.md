@@ -9,6 +9,7 @@ react:
   id: 5rt8dyg9
   metaTitle: Third-party licenses - React Data Grid | Handsontable
 searchCategory: Guides
+category: Technical specification
 ---
 
 # Third-party licenses

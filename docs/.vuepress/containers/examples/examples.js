@@ -157,23 +157,43 @@ module.exports = function(docsVersion, base) {
         });
 
         const newTokens = [
-          getPreviewTab(id, cssContent, htmlContentRoot, encodedCode),
           ...tab('Code', jsToken, id),
           ...tab('HTML', htmlToken, id),
           ...tab('CSS', cssToken, id),
         ];
 
         tokens.splice(index + 1, 0, ...newTokens);
+        const isAngular = /angular(-.*)?/.test(preset);
+
+        const displayJsFiddle = Boolean(!noEdit && !isAngular);
 
         return `
-          <div class="example-container">!!!!!! TODO - HOT preview here</div>
+          <div class="example-container">
+            <style v-pre>${cssContent}</style>
+            <div v-pre>${htmlContentRoot}</div>
+            <ScriptLoader code="${encodedCode}"></ScriptLoader>
+          </div>
           <div class="tabs-button-wrapper">
             <div class="tabs-button-list">
               <button class="show-code"><i class="ico i-code"></i>Source code</button>
               <div class="example-controls">
-                ${Boolean(!noEdit) && stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
-                ${Boolean(!noEdit) && codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
-                ${Boolean(!noEdit) && jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset)}
+                ${Boolean(!noEdit) && stackblitz(
+    id,
+    htmlContent,
+    codeToCompileSandbox,
+    cssContent,
+    docsVersion,
+    preset
+  )}
+                ${Boolean(!noEdit) && codesandbox(
+    id,
+    htmlContent,
+    codeToCompileSandbox,
+    cssContent,
+    docsVersion,
+    preset
+  )}
+                ${displayJsFiddle ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset) : ''}
                 <button aria-label="Open in new tab"><i class="ico i-zoom"></i></button>
                 <button aria-label="Reset demo"><i class="ico i-refresh"></i></button>
               </div>

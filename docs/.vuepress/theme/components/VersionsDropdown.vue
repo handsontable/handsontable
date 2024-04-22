@@ -41,7 +41,7 @@ export default {
           version = this.$page.versionsWithPatches.get(latestMinor)[0]; // Latest version in a format major.minor.patch
         }
 
-        //return `${version} (latest)`;
+        // return `${version} (latest)`;
         return `${version} latest`;
 
       }
@@ -60,10 +60,12 @@ export default {
     }
   },
   mounted() {
-   
+
     const version = document.querySelector('.nav-versions .title');
+
     if (version && version.textContent && version.textContent.includes('latest')) {
       const span = document.createElement('span');
+
       span.textContent = 'latest';
       version.innerHTML = version.textContent.replace('latest', `<span class="tag">${span.textContent}</span>`);
     }

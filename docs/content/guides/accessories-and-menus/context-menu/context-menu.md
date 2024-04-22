@@ -14,6 +14,7 @@ react:
   id: r2x6mh6h
   metaTitle: Context menu - React Data Grid | Handsontable
 searchCategory: Guides
+category: Accessories and menus
 ---
 
 # Context menu

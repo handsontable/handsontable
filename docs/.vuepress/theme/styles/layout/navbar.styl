@@ -79,6 +79,40 @@
                 display: flex
 
                 .nav-item {
+                    .open { 
+                        > button { 
+                            color: $textColor
+                        }
+                    }
+                    
+                    &:not(.roadmap) {
+                        a, button {
+                            &.router-link-active { 
+                                position relative
+                                
+                                &:before { 
+                                    width: 20px
+                                    position: absolute
+                                    bottom: 10px
+                                    left: 50%
+                                    transform: translateX(-50%)
+                                    display: block
+                                    content: ''
+                                    background: $linkColor
+                                    height: 1px
+
+                                }
+                                color: $textColor
+                            }
+
+                            @media (hover: hover) {
+                                &:hover { 
+                                    color: $textColor
+                                }
+                            }
+                        }
+                    }
+
                     a, button { 
                         font-size:$font-size-xs
                         line-height: $line-height-xs
@@ -90,31 +124,7 @@
                         gap:6px
                         font-weight: 400
                         border-radius: $radius
-                        transition: all $t ease-in-out
-
-                        &.router-link-active { 
-                            position relative
-                            
-                            &:before { 
-                                width: 20px
-                                position: absolute
-                                bottom: 10px
-                                left: 50%
-                                transform: translateX(-50%)
-                                display: block
-                                content: ''
-                                background: $linkColor
-                                height: 1px
-
-                            }
-                            color: $textColor
-                        }
-
-                        @media (hover: hover) {
-                            &:hover { 
-                                color: $textColor
-                            }
-                        }
+                        transition: all $t ease-in-out 
                     }
 
                     button { 
@@ -158,20 +168,35 @@
                 gap: 8px
                 margin: 0
 
-                .dropdown-wrapper > button { 
-                    border-radius: $radius
-                    display: flex
-                    gap: 8px
-                    padding-left: 48px
-                    padding: 13px 16px 13px 40px
-                    margin-left:-24px
-                    margin-top: 4px
-                    font-size: $font-size-xs
-                    line-height: $line-height-xs
-                    align-items: center;
+                .dropdown-wrapper {
+                    &.open { 
+                        > button { 
+                            color: $textColor
+                        }
+                    }
+                    
+                    > button { 
+                        border-radius: $radius
+                        display: flex
+                        gap: 8px
+                        padding-left: 48px
+                        padding: 13px 16px 13px 40px
+                        margin-left:-24px
+                        margin-top: 4px
+                        font-size: $font-size-xs
+                        line-height: $line-height-xs
+                        align-items: center;
+                        color: $text2Color
 
-                    + .nav-dropdown { 
-                        left: -16px
+                        @media (hover: hover) {
+                            &:hover { 
+                                color: $textColor
+                            }
+                        }
+
+                        + .nav-dropdown { 
+                            left: -16px
+                        }
                     }
                 }
             }
@@ -208,6 +233,8 @@
 
             &.open { 
                 > button { 
+                    color: $textColor
+
                     i { 
                         transform:rotate(-180deg)
 
@@ -222,7 +249,8 @@
                     }
                 }
             }
-            @media (hover: hover) {
+
+           /* @media (hover: hover) {
                 &:hover { 
                     > button { 
                         i { 
@@ -240,6 +268,7 @@
                     }
                 }
             }
+            */
 
             .nav-dropdown { 
                 transition all $t ease
@@ -252,8 +281,8 @@
                 background: $sideColor
                 padding: 12px 8px
                 border-radius: $radius-xl
-                //right: 0
                 min-width: 120px
+                height: auto !important
 
                 a { 
                     color: $text2Color
@@ -267,6 +296,8 @@
                     align-items: center;
                     justify-content: space-between;
                     z-index 1
+                    border-radius: $radius
+
 
                     &:before { 
                         content: ''
@@ -490,11 +521,11 @@
 }
 
 .sidebar-open .navbar {
-    @media (max-width: $Large) {
+    @media (max-width: $large) {
         .navbar-wrapper {
             background: none !important
 
-            .menuButton {
+            #mobileSearch + .menuButton {
                 i:nth-child(2) { display: block}
                 i:nth-child(1) { display: none}
             }

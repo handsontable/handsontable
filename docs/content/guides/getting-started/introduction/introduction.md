@@ -9,6 +9,7 @@ react:
   id: fexwrrj2
   metaTitle: React Data Grid - Documentation | Handsontable
 searchCategory: Guides
+category: Getting started
 ---
 
 # Introduction

@@ -29,6 +29,7 @@ const ExampleComponent = () => {
       ]}
       autoWrapRow={true}
       autoWrapCol={true}
+      height="auto"
       licenseKey="non-commercial-and-evaluation"
     />
   );

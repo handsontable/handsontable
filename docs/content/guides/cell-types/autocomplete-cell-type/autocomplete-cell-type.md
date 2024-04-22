@@ -9,6 +9,7 @@ react:
   id: vnnvp396
   metaTitle: Autocomplete cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Autocomplete cell type

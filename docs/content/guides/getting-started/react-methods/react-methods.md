@@ -14,6 +14,8 @@ tags:
 react:
   metaTitle: Instance methods - React Data Grid | Handsontable
 searchCategory: Guides
+onlyFor: react
+category: Getting started
 ---
 
 # Instance methods

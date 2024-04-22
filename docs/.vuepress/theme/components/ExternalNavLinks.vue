@@ -10,7 +10,7 @@
         v-if="item.type === 'links'"
         :item="item"
       />
-      
+
       <NavLink
         v-else
         :item="item"

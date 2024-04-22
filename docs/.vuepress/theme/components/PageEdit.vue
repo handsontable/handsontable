@@ -22,14 +22,14 @@
         <a href="https://www.linkedin.com/company/handsontable/" target="_blank"><i class="ico i-linkedin"></i></a>
         <a href="https://twitter.com/handsontable" target="_blank"><i class="ico i-twitter"></i></a>
       </div>
-      
+
       <div class="hot-links">
         <a href="https://handsontable.com/privacy">Privacy policy</a>
         <a href="https://handsontable.com/terms-of-use">Terms of use</a>
         <a href="https://handsontable.com/team">Team</a>
         <a href="https://handsontable.com/contact?category=technical_support">Contact</a>
 
-        <a href="https://handsontable.com/blog/" target="_blank">Blog</a>
+        <a href="https://handsontable.com/blog/">Blog</a>
         <a href="https://status.handsontable.com/" target="_blank" class="status">Status</a>
       </div>
     </div>

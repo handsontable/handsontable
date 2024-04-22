@@ -13,6 +13,7 @@ react:
   id: 48lhnrbd
   metaTitle: Searching values - React Data Grid | Handsontable
 searchCategory: Guides
+category: Navigation
 ---
 
 # Searching values

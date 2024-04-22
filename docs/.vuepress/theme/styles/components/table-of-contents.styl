@@ -34,7 +34,22 @@
         li { 
             list-style:none 
             > ul { 
-                display: none
+                li {
+                    a {
+                        padding: 3px 16px 3px 32px
+
+                        &:before { 
+                            content: ''
+                            display: block
+                            height: 1px
+                            position absolute
+                            left: -8px
+                            width: 24px
+                            top: 14px
+                            border-top: 1px solid  $borderColor
+                        }
+                    }
+                }
             }
 
             a { 
@@ -62,7 +77,7 @@
                     position absolute
                     top 0    
                     left:-8px
-                    bottom: 0
+                    height: 100%
                     border-left: 1px solid $borderColor
                     transition all $t ease
                 }
@@ -77,7 +92,7 @@
                     }
                 }
             }
-            &.active a { 
+            &.active > a { 
                 color: $textColor
                 font-weight: 400
                 

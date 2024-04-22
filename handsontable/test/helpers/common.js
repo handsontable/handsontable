@@ -226,6 +226,32 @@ export function bottomInlineStartCornerOverlay() {
 }
 
 /**
+ * Moves the table's viewport to the specified y scroll position.
+ *
+ * @param {number} y The scroll position.
+ */
+export function setScrollTop(y) {
+  if (hot().view._wt.wtOverlays.scrollableElement === hot().rootWindow) {
+    window.scrollTo(window.scrollX, y);
+  } else {
+    getMaster().find('.wtHolder')[0].scrollTop = y;
+  }
+}
+
+/**
+ * Moves the table's viewport to the specified x scroll position.
+ *
+ * @param {number} x The scroll position.
+ */
+export function setScrollLeft(x) {
+  if (hot().view._wt.wtOverlays.scrollableElement === hot().rootWindow) {
+    window.scrollTo(x, window.scrollY);
+  } else {
+    getMaster().find('.wtHolder')[0].scrollLeft = x;
+  }
+}
+
+/**
  * Creates the Handsontable instance.
  *
  * @param {object} options The Handsontable options.

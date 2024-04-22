@@ -33,6 +33,10 @@
             }
         }
 
+        td code {
+            white-space: pre-wrap
+        }
+
         .language-bash:before { 
             display: none
         }
@@ -75,6 +79,27 @@
             border-radius: $radius
             font-size: $font-size-s
             line-height: $line-height-s
+
+            table {
+                margin: 8px 0 24px
+                width: auto
+
+                tr:first-child {
+                    td { 
+                        border-top:0 !important
+                    }
+                }
+                td, th { 
+                    padding: 8px 16px
+                }
+            }
+
+            .table-container {
+                ul { 
+                    margin-top: 8px
+                    margin-left: 24px
+                }
+            }
         }
     }
 
@@ -151,107 +176,136 @@
     white-space: pre
 }
 
-.copycode, .report, .github { 
-    position: absolute 
-    top: -52px
-    right: 0
-    transition: all $t ease-in-out !important
-    opacity 1
-    padding: 8px !important
-    z-index: 1
-    color: $textColor
-    background: transparent !important
+[class*="language-"] {
+    .copycode, .report, .github { 
+        position: absolute 
+        top: 11px
+        right: -5px
+        transition: all $t ease-in-out !important
+        opacity 0
+        padding: 8px !important
+        z-index: 1
+        color: $textColor
+        //background: transparent !important
 
-    i {
-        opacity: .64
-        transition: all $t ease-in-out
-
-        + i {
-            position absolute
-            opacity 0
-            inset 8px
-        }
-    }
-
-    &.check {
         i {
-            opacity 1
+            opacity: .64
+            transition: all $t ease-in-out
 
             + i {
-                opacity: .64
+                position absolute
+                opacity 0
+                inset 8px
+            }
+        }
+
+        &.check {
+            i {
+                opacity 1
+
+                + i {
+                    opacity: .64
+                }
+            }
+        }
+
+        &:after {
+            content: attr(aria-label)
+            position absolute
+            white-space: pre;
+            bottom: 38px;
+            left: 50%
+            transform: translateX(-50%)
+            padding:4px 8px
+            border-radius: $radius
+            background: black
+            border: 1px solid black
+            color: white
+            opacity: 0
+            transition: all $t ease-in-out
+            font-size: $font-size-xs
+            line-height: $line-height-xs
+            pointer-events: none
+        }
+
+        @media (hover: hover) {
+            &:hover:after  {
+                opacity 1
             }
         }
     }
 
-    &:after {
-        content: attr(aria-label)
-        position absolute
-        white-space: pre;
-        bottom: 38px;
-        left: 50%
-        transform: translateX(-50%)
-        padding:4px 8px
+    .report {
+        right: 35px
+        padding: 8px 16px
+        padding: 8px 16px
+        border:none
+        cursor: pointer
         border-radius: $radius
-        background: black
-        border: 1px solid black
-        color: white
-        opacity: 0
-        transition: all $t ease-in-out
-        font-size: $font-size-xs
-        line-height: $line-height-xs
-        pointer-events: none
+        background: transparent
+        border: 1px solid $lightBorderColor
+        color: $textColor
+
+        @media (hover: hover) {
+            &:hover { 
+                background: $borderColor 
+                border: 1px solid $accentColor
+            }
+        }
+    }
+    .github { 
+        right: 75px
     }
 
     @media (hover: hover) {
-        &:hover:after  {
-            opacity 1
+        &:hover  {
+            .copycode, .report, .github {
+                opacity 1
+            }
         }
     }
 }
-.report {
-    right: 40px
-    padding: 8px 16px
-    padding: 8px 16px
-    border:none
-    cursor: pointer
-    border-radius: $radius
-    background: transparent
-    border: 1px solid $lightBorderColor
-    color: $textColor
 
-    @media (hover: hover) {
-        &:hover { 
-            background: $borderColor 
-            border: 1px solid $accentColor
-        }
+.tabs-component-panel { 
+    .copycode, .report, .github  {
+        opacity 1
+        top: -52px
     }
-}
-.github { 
-    right: 80px
+    .copycode {
+        right: 0
+    }
+    .report {
+        right: 40px
+    }
+    .github {
+        right: 80px
+    }
 }
 
 div[class*="language-"] pre, 
 div[class*="language-"] pre[class*="language-"] {
     background: $editorColor
     position: relative
-    
-    
 }
 
 output.console {
-    margin: 16px 0 
-    padding: 12px 16px
+    margin: 8px 0
+    padding: 8px 16px
     border-radius: $radius
-    max-height: 250px;
+    max-height: 240px;
     font-size: $font-size-xs
     line-height: $line-height-xs
     border: 1px solid $borderColor
     background: $sideColor
     white-space: pre-line;
-    display: block
+    display: inline-block
 
     &:last-child {
         margin-bottom: 0
+    }
+
+    &:empty {
+        display: none
     }
 }
 

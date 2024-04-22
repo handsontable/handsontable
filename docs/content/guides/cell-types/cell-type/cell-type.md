@@ -9,6 +9,7 @@ react:
   id: m60w87tn
   metaTitle: Cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Cell type
