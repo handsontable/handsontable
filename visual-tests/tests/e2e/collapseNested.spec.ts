@@ -1,5 +1,5 @@
 import { test, expect } from '../../src/test-runner';
-import { takeScreenshot, collapseNestedColumn, collapseNestedRow } from '../../src/page-helpers';
+import { collapseNestedColumn, collapseNestedRow } from '../../src/page-helpers';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 test(__filename, async({ tablePage }) => {
