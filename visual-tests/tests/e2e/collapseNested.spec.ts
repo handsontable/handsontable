@@ -6,7 +6,7 @@ test(__filename, async({ tablePage }) => {
   await tablePage.goto('/scenario-grid');
 
   const tableTop = tablePage.locator('#tableTop > .handsontable');
-  const tableBottom = tablePage.locator('#tableBottom > .handsontable');
+  const tableBottom = tablePage.locator('#tableBottom >.handsontable');
 
   tableTop.waitFor();
   tableBottom.waitFor();
@@ -25,7 +25,5 @@ test(__filename, async({ tablePage }) => {
 
   collapseNestedRow(21, tableBottom);
   await expect(tableBottom.getByRole('rowheader', { name: '22', exact: true })).not.toBeVisible();
-
-  await takeScreenshot();
 
 });
