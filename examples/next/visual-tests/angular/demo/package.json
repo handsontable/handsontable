@@ -13,7 +13,7 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "ng": "ng",
-    "serve": "ng serve",
+    "serve": "node server.js",
     "start": "ng serve --port 8080",
     "build": "ng build",
     "test": "node spec/support/jasmine.config.js"
@@ -28,6 +28,8 @@
     "@angular/platform-browser-dynamic": "latest",
     "@angular/router": "latest",
     "@handsontable/angular": "latest",
+    "connect-history-api-fallback": "^2.0.0",
+    "express": "^4.19.2",
     "handsontable": "latest",
     "rxjs": "6.6.7",
     "tslib": "2.1.0",
