@@ -21,7 +21,6 @@ import NavLink from '@theme/components/NavLink.vue';
 import Sidebar from '@theme/components/Sidebar.vue';
 import SchemaStructuredData from '@theme/components/SchemaStructuredData.vue';
 
-
 export default {
   name: 'Layout',
   components: {
