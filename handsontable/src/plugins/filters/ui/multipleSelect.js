@@ -230,12 +230,19 @@ export class MultipleSelectUI extends BaseUI {
         beforeOnCellMouseUp: () => {
           this.#itemsBox.listen();
         },
+        modifyColWidth: (width) => {
+          const minWidth = this.#itemsBox.container.scrollWidth - getScrollbarWidth(rootDocument);
+
+          if (width !== undefined && width < minWidth) {
+            return minWidth;
+          }
+
+          return width;
+        },
         hiddenRows: true,
         maxCols: 1,
         autoWrapCol: true,
         height: 110,
-        // Workaround for #151.
-        colWidths: () => this.#itemsBox.container.scrollWidth - getScrollbarWidth(rootDocument),
         copyPaste: false,
         disableVisualSelection: 'area',
         fillHandle: false,

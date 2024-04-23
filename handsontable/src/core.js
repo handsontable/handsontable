@@ -1408,9 +1408,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     instance.forceFullRender = true; // used when data was changed
     grid.adjustRowsAndCols();
     instance.runHooks('beforeChangeRender', changes, source);
-    editorManager.lockEditor();
     instance._refreshBorders(null);
-    editorManager.unlockEditor();
     instance.view.adjustElementsSize();
     instance.runHooks('afterChange', changes, source || 'edit');
 
