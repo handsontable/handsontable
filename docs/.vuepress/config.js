@@ -22,9 +22,6 @@ const {
   getThisDocsVersion,
   MULTI_FRAMEWORKED_CONTENT_DIR,
 } = require('./helpers');
-const {
-  getPermalinkHrefMethod,
-} = require('./plugins/markdown-it-conditional-container/onlyForContainerHelpers');
 
 require('dotenv').config();
 
@@ -35,7 +32,6 @@ if (!DOCSEARCH_API_KEY || !DOCSEARCH_APP_ID) {
   throw new Error('DOCSEARCH_API_KEY or DOCSEARCH_APP_ID is missing in docs/.env');
 }
 
-const uniqueSlugs = new Set();
 const buildMode = process.env.BUILD_MODE;
 const isProduction = buildMode === 'production';
 const environmentHead = isProduction

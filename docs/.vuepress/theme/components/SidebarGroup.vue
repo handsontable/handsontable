@@ -70,8 +70,7 @@ export default {
   // ref: https://vuejs.org/v2/guide/components-edge-cases.html#Circular-References-Between-Components
   beforeCreate() {
     // eslint-disable-next-line global-require
-    this.$options.components.SidebarLinks =
-      require('@theme/components/SidebarLinks.vue').default;
+    this.$options.components.SidebarLinks = require('@theme/components/SidebarLinks.vue').default;
   },
   data() {
     return {

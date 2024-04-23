@@ -11,31 +11,15 @@
 </template>
 
 <script>
-/* global instanceRegister */
-import PageEdit from "@theme/components/PageEdit.vue";
-import Breadcrumbs from "@theme/components/Breadcrumbs.vue";
+import PageEdit from '@theme/components/PageEdit.vue';
+import Breadcrumbs from '@theme/components/Breadcrumbs.vue';
 
 export default {
   components: {
     PageEdit,
     Breadcrumbs,
   },
-  props: ["sidebarItems"],
-  watch: {
-    $route(to, from) {
-      if (to.hash !== from.hash) {
-        const prevItem = document.querySelector(
-          `.table-of-contents > ul li a[href="${from.hash}"]`
-        );
-        const activeItem = document.querySelector(
-          `.table-of-contents > ul li a[href="${to.hash}"]`
-        );
-
-        if (prevItem) prevItem.parentElement.classList.remove("active");
-        if (activeItem) activeItem.parentElement.classList.add("active");
-      }
-    },
-  },
+  props: ['sidebarItems'],
   computed: {
     isApi() {
       return this.$route.fullPath.match(/([^/]*\/)?api\//);
@@ -45,46 +29,55 @@ export default {
     copyCode(e) {
       const button = e.target;
       const preTag = button.parentElement;
-      const codeTag = preTag.querySelector("code");
+      const codeTag = preTag.querySelector('code');
 
       navigator.clipboard.writeText(codeTag.innerText);
-      button.classList.add("check");
+      button.classList.add('check');
       setTimeout(() => {
-        button.classList.remove("check");
+        button.classList.remove('check');
       }, 2000);
     },
     showCodeButton(e) {
-      e.target.parentElement?.classList.toggle("active");
+      e.target.parentElement?.classList.toggle('active');
     },
-    setActiveElement() {
-      const sections = document.querySelectorAll(
-        ".theme-default-content h2, .theme-default-content h3"
+    setActiveElement(id) {
+      const items = document.querySelectorAll('.table-of-contents > ul li');
+
+      items.forEach((item) => {
+        item.classList.remove('active');
+      });
+      const activeItem = document.querySelector(
+        `.table-of-contents > ul li a[href="${id}"]`
       );
 
-      const checkSectionInView = () => {
-        sections.forEach((section) => {
-          const topDistance = section.getBoundingClientRect().top;
+      if (activeItem) activeItem.parentElement.classList.add('active');
+    },
 
-          // if the distance to the top is between 0-200px
-          if (
-            topDistance > 0 &&
-            topDistance < 200 &&
-            this.$route.hash !== `#${section.id}`
-          ) {
-            this.$router.push({ hash: section.id });
-          }
-        });
-      };
+    checkSectionInView() {
+      const sections = document.querySelectorAll(
+        '.theme-default-content h2, .theme-default-content h3'
+      );
+      const visibleElements = [];
 
-      // Listen for scroll event
-      window.addEventListener("scroll", checkSectionInView);
+      sections.forEach((section) => {
+        const topDistance = section.getBoundingClientRect().top;
+
+        if (topDistance > 0 && topDistance < window.innerHeight) {
+          visibleElements.push(section);
+        }
+      });
+
+      if (visibleElements[0]) {
+        this.setActiveElement(`#${visibleElements[0].id}`);
+      }
     },
   },
   mounted() {
-    this.setActiveElement();
+    this.checkSectionInView();
+    window.addEventListener('scroll', this.checkSectionInView);
   },
-  updated() {
-    this.setActiveElement();
-  },
+  unmounted() {
+    window.removeEventListener('scroll', this.checkSectionInView);
+  }
 };
 </script>

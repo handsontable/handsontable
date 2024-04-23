@@ -58,6 +58,7 @@ export default {
       // chips1.classList.add('tag-deprecated');
       chips1.textContent = 'Updated';
     } else {
+      // eslint-disable-next-line no-console
       console.error('Element not found with the given selector');
     }
 

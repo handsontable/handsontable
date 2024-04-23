@@ -28,7 +28,7 @@ module.exports = function headerAnchor(markdown) {
         aTagOpen.attrSet('href', `#${id}`);
         aTagOpen.attrSet('class', 'header-link');
 
-        //Wrap `h` tag content with `a` tag
+        // Wrap `h` tag content with `a` tag
         token.children.unshift(aTagOpen);
         token.children.push(aTagClose);
       }

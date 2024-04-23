@@ -105,7 +105,7 @@ Then, move on to [connecting](@/guides/getting-started/binding-to-data/binding-t
 - <i class="ico i-javascript"></i> 
 [Column groups](@/guides/columns/column-groups/column-groups.md)
 - <i class="ico i-javascript"></i> 
-[Column summary](@/guides/columns/column-summary.md)
+[Column summary](@/guides/columns/column-summary/column-summary.md)
 - <i class="ico i-javascript"></i> 
 [Row parent-child](@/guides/rows/row-parent-child/row-parent-child.md)
 - <i class="ico i-javascript"></i> 

@@ -46,6 +46,7 @@
 </template>
 
 <script>
+/* global Headway */
 import AlgoliaSearch from '@theme/components/AlgoliaSearch.vue';
 import Logo from '@theme/components/Logo.vue';
 import SidebarButton from '@theme/components/SidebarButton.vue';
@@ -101,7 +102,8 @@ export default {
 
         this.stars = this.kFormatter(data?.stargazers_count ?? 0);
       } catch (error) {
-         console.log(error);
+        // eslint-disable-next-line no-console
+        console.log(error);
       }
     },
     handleSearchClick() {
