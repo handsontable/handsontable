@@ -10,6 +10,7 @@ const extendPageDataPlugin = require('./plugins/extend-page-data');
 const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
 const dumpRedirectPageIdsPlugin = require('./plugins/dump-redirect-page-ids');
 const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
+const headerAnchor = require('./plugins/markdown-it-header-anchor');
 const conditionalContainer = require('./plugins/markdown-it-conditional-container');
 const includeCodeSnippet = require('./plugins/markdown-it-include-code-snippet');
 const {
@@ -174,24 +175,7 @@ module.exports = {
         '<div class="toc-container-header"><i class="ico i-toc"></i>On this page</div>',
     },
     anchor: {
-      permalinkSymbol: '',
-      permalinkHref: getPermalinkHrefMethod(uniqueSlugs),
-      permalinkAttrs: () => ({
-        tabindex: '-1',
-        'aria-hidden': 'true',
-      }),
-      callback(token, slugInfo) {
-        // The map is filled in before by a legacy `permalinkHref` method.
-        if (['h1', 'h2', 'h3'].includes(token.tag)) {
-          const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(token.attrGet('id'));
-          const slugWithoutNumber = duplicatedSlugsMatch?.[1];
-
-          if (slugWithoutNumber && uniqueSlugs.has(slugWithoutNumber)) {
-            token.attrSet('id', slugWithoutNumber);
-            slugInfo.slug = slugWithoutNumber;
-          }
-        }
-      },
+      permalink: false,
     },
     externalLinks: {
       target: '_blank',
@@ -200,7 +184,8 @@ module.exports = {
     extendMarkdown(md) {
       md.use(includeCodeSnippet)
         .use(conditionalContainer)
-        .use(firstHeaderInjection);
+        .use(firstHeaderInjection)
+        .use(headerAnchor);
     },
   },
   configureWebpack: {
