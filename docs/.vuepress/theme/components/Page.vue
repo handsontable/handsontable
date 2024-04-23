@@ -23,10 +23,6 @@ export default {
   props: ["sidebarItems"],
   watch: {
     $route(to, from) {
-      // Do not reset the `activatedExamples` array when the anchor is changed.
-      if (to.path !== from.path) {
-        this.activatedExamples = [];
-      }
       if (to.hash !== from.hash) {
         const prevItem = document.querySelector(
           `.table-of-contents > ul li a[href="${from.hash}"]`
@@ -40,33 +36,12 @@ export default {
       }
     },
   },
-  data() {
-    return {
-      activatedExamples: [],
-    };
-  },
   computed: {
     isApi() {
       return this.$route.fullPath.match(/([^/]*\/)?api\//);
     },
   },
   methods: {
-    codePreviewTabChanged(selectedTab, exampleId) {
-      if (selectedTab.tab.computedId.startsWith("preview-tab")) {
-        this.activatedExamples.push(exampleId);
-      } else {
-        instanceRegister.destroyExample(exampleId);
-        this.activatedExamples = this.activatedExamples.filter(
-          (activatedExample) => activatedExample !== exampleId
-        );
-      }
-    },
-    addClassIfPreviewTabIsSelected(exampleId, className) {
-      return this.activatedExamples.includes(exampleId) ? className : "";
-    },
-    isScriptLoaderActivated(exampleId) {
-      return this.activatedExamples.includes(exampleId);
-    },
     copyCode(e) {
       const button = e.target;
       const preTag = button.parentElement;

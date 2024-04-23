@@ -172,10 +172,8 @@ module.exports = function(docsVersion, base) {
             </div>
             <div class="example-container-code">
               <tabs
-                :class="$parent.$parent.addClassIfPreviewTabIsSelected('${id}', 'selected-preview')"
                 :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }"
                 cache-lifetime="0"
-                @changed="$parent.$parent.codePreviewTabChanged(...arguments, '${id}')"
               >
           `;
       } else {
