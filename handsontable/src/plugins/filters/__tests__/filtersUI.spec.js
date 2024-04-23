@@ -1148,7 +1148,7 @@ describe('Filters UI', () => {
         width: 500,
         height: 300,
         modifyFiltersMultiSelectValue: (value) => {
-          return `Custom ${value}`;
+          return `Pre ${value}`;
         },
       });
 
@@ -1161,7 +1161,7 @@ describe('Filters UI', () => {
       for (let i = 0; i < unifiedColDataSample.length; i++) {
         expect(
           byValueMultipleSelect().element.querySelectorAll('.htCore td')[i].textContent
-        ).toBe(`Custom ${unifiedColDataSample[i]}`);
+        ).toBe(`Pre ${unifiedColDataSample[i]}`);
       }
       expect(unifiedColDataSample.length).toBe(6);
     });
