@@ -54,6 +54,18 @@ describe('Focus Manager', () => {
       expect(getFocusManager().getFocusMode()).toEqual('cell');
     });
 
+    it('should not reset internal `focusMode` config after calling `updateSettings` with an empty object', () => {
+      handsontable({
+        imeFastEdit: true,
+      });
+
+      expect(getFocusManager().getFocusMode()).toEqual('mixed');
+
+      updateSettings({});
+
+      expect(getFocusManager().getFocusMode()).toEqual('mixed');
+    });
+
     it('should be able to get and set the current `focusMode` with appropriate API options', () => {
       handsontable({});
 
