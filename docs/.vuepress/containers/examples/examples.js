@@ -147,7 +147,7 @@ module.exports = function(docsVersion, base) {
           </div>
           <div class="tabs-button-wrapper">
             <div class="tabs-button-list">
-              <button class="show-code"><i class="ico i-code"></i>Source code</button>
+              <button class="show-code" @click="$parent.$parent.showCodeButton($event)"><i class="ico i-code"></i>Source code</button>
               <div class="example-controls">
                 ${Boolean(!noEdit) && stackblitz(
     id,
