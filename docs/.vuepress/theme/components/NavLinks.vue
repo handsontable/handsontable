@@ -47,19 +47,4 @@ export default {
   }
 };
 
-/*
-    changelogLink() {
-      return {
-        link: `${this.frameworkUrlPrefix}/release-notes/`,
-        text: 'Changelog'
-      };
-    }
-*/
-/*
-    pricingLink() {
-      return {
-        link: `https://handsontable.com/pricing/`,
-        text: 'Pricing'
-      };
-    } */
 </script>

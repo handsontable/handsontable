@@ -101,10 +101,10 @@ export default {
 
         this.stars = this.kFormatter(data?.stargazers_count ?? 0);
       } catch (error) {
-        console.log(error);
+         console.log(error);
       }
     },
-    handleSearchClick(event) {
+    handleSearchClick() {
       const btnAlgolia = document.querySelector('.DocSearch');
 
       if (btnAlgolia) {

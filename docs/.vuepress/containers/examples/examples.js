@@ -49,34 +49,6 @@ const tab = (tabName, token, id) => {
   ];
 };
 
-const getPreviewTab = (id, cssContent, htmlContent, code) => {
-  const renderElement = `$parent.$parent.isScriptLoaderActivated('${id}')`;
-
-  return {
-    type: 'html_block',
-    tag: '',
-    attrs: null,
-    map: [],
-    nesting: 0,
-    level: 1,
-    children: null,
-    content: `
-      <tab name="Preview" id="preview-tab-${id}">
-        <style v-pre>${cssContent}</style>
-        <template v-if="${renderElement}">
-          <div v-pre>${htmlContent}</div>
-        </template>
-        <ScriptLoader v-if="${renderElement}" code="${code}"></ScriptLoader>
-      </tab>
-    `,
-    markup: '',
-    info: '',
-    meta: null,
-    block: true,
-    hidden: false,
-  };
-};
-
 module.exports = function(docsVersion, base) {
   return {
     type: 'example',
