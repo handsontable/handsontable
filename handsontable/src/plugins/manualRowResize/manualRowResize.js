@@ -212,6 +212,15 @@ export class ManualRowResize extends BasePlugin {
   }
 
   /**
+   * Returns the last desired row height set manually with the resize handle.
+   *
+   * @returns {number} The last desired row height.
+   */
+  getLastDesiredRowHeight() {
+    return this.#currentHeight;
+  }
+
+  /**
    * Sets the resize handle position.
    *
    * @private
