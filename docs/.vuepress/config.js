@@ -372,6 +372,16 @@ module.exports = {
     displayAllHeaders: true, // collapse other pages
     activeHeaderLinks: true,
     sidebarDepth: 0,
+    organization: {
+      name: 'Handsontable',
+      author: 'Handsontable Team',
+      url: 'https://handsontable.com',
+      socialMedia: [
+        'https://twitter.com/handsontable',
+        'https://www.linkedin.com/company/handsontable',
+      ],
+      image: `${getDocsBaseFullUrl()}/img/handsonable-docs-cover.png`
+    },
     searchPlaceholder: 'Search...',
     algolia: {
       indexName: 'handsontable',
