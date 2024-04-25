@@ -1,6 +1,6 @@
 .page .theme-default-content .tabs-component {
     border: none
-    margin: 0 -16px 0
+    margin: 0
     border-radius: $radius
     padding: 0
     border: 1px solid $lightBorderColor
@@ -40,7 +40,7 @@
 
     ul.tabs-component-tabs  {
         background: $editorHeadColor
-        padding: 16px 
+        padding: 8px 
         border-bottom: none
         box-sizing: border-box;
         border-radius: $radius $radius 0 0 !important
@@ -132,7 +132,15 @@
     padding-top: 8px
     display: flex
     flex-direction: column
-    gap 16px
+    gap 0
+
+    + p:empty {
+        padding: 0
+
+        + p:empty {
+            padding: 0
+        }
+    }
 
     .tabs-button-list {
         display: flex 
@@ -141,8 +149,11 @@
         border-radius: $radius
         padding: 8px
         margin 0
+        transition: all $t ease-in-out
 
         &.active {
+            margin-bottom: 16px
+
             .show-code {
                 border: 1px solid $accentColor !important
             }
@@ -250,7 +261,7 @@
     }
 
     #mainInput, select, input[type=text], input[type=search], .placeholder-input {
-        padding: 8px;
+        padding: 8px 16px;
         //margin-top: 12px;
         font-size: $font-size-xs
         line-height: $line-height-xs

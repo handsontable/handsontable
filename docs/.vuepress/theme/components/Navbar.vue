@@ -28,7 +28,7 @@
           <nav class="icons-nav">
             <!--<ThemeSwitcher />-->
             <span class="news"><i class="ico i-bell"></i></span>
-            <a href="https://github.com/handsontable/handsontable" class="github-stars">
+            <a href="https://github.com/handsontable/handsontable" class="github-stars" target="_blank">
               <i class="ico i-github"></i>
               <span v-if="stars">{{ stars }}</span>
             </a>

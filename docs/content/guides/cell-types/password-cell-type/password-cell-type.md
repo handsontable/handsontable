@@ -94,9 +94,7 @@ By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to
 
 ### Related guides
 
-<div class="boxes-list gray">
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
-</div>
 
 ### Related API reference
 

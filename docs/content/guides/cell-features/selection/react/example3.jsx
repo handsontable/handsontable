@@ -59,7 +59,7 @@ const ExampleComponent = () => {
           ['A9', 'B9', 'C9', 'D9', 'E9', 'F9', 'G9', 'H9', 'I9'],
         ]}
         width="auto"
-        height={272}
+        height="auto"
         colWidths={100}
         rowHeights={23}
         rowHeaders={true}
