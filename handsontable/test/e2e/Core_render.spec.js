@@ -207,4 +207,54 @@ describe('Core_render', () => {
 
     expect(wotRenderSpy).toHaveBeenCalledTimes(0);
   });
+
+  it('should trigger only the "fast" render for oversized columns (#dev-1849)', async() => {
+    const renderer = jasmine.createSpy('renderer');
+
+    handsontable({
+      data: createSpreadsheetData(10, 2),
+      fixedColumnsStart: 1,
+      colWidths: [30, 500],
+      width: 200,
+      height: 200,
+      renderer,
+    });
+
+    renderer.calls.reset();
+    selectCell(0, 0);
+
+    expect(renderer).toHaveBeenCalledTimes(0);
+  });
+
+  it('should trigger only the "fast" render for oversized rows (#dev-1849)', async() => {
+    const renderer = jasmine.createSpy('renderer');
+
+    handsontable({
+      data: createSpreadsheetData(2, 10),
+      fixedRowsTop: 1,
+      rowHeights: [30, 500],
+      width: 200,
+      height: 200,
+      renderer,
+    });
+
+    renderer.calls.reset();
+    selectCell(0, 0);
+
+    expect(renderer).toHaveBeenCalledTimes(0);
+  });
+
+  it('should correctly render oversized cells after scroll (#dev-1849)', async() => {
+    handsontable({
+      data: createSpreadsheetData(20, 20),
+      rowHeights: 300,
+      colWidths: 300,
+      width: 200,
+      height: 200,
+    });
+
+    selectCell(19, 19);
+
+    expect(getMaster().find('tr:last td:last').text()).toBe('T20');
+  });
 });
