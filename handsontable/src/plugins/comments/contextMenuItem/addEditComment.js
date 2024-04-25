@@ -19,8 +19,6 @@ export default function addEditCommentItem(plugin) {
     callback() {
       const range = this.getSelectedRangeLast();
 
-      this.deselectCell();
-
       plugin.setRange(range);
       plugin.show();
       plugin.focusEditor();

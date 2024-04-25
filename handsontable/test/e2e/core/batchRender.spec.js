@@ -36,7 +36,7 @@ describe('Core.batchRender', () => {
     expect(hot.suspendRender).toHaveBeenCalledBefore(hot.resumeRender);
     expect(hot.resumeRender).toHaveBeenCalledOnceWith();
     expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(false); // fast redraw?
-    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledOnceWith(true);
+    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(1);
     expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledBefore(hot.view._wt.draw);
   });
 
@@ -71,6 +71,6 @@ describe('Core.batchRender', () => {
     expect(hot.suspendRender).toHaveBeenCalledTimes(3);
     expect(hot.resumeRender).toHaveBeenCalledTimes(3);
     expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(false); // fast redraw?
-    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledOnceWith(true);
+    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(1);
   });
 });

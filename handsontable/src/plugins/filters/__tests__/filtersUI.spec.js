@@ -1058,6 +1058,85 @@ describe('Filters UI', () => {
       expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('(Blank cells)');
     });
 
+    it('should display all values after applying filters using search input method', async() => {
+      handsontable({
+        data: getDataForFilters().slice(0, 15),
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        width: 500,
+        height: 300
+      });
+
+      dropdownMenu(2);
+
+      await sleep(200);
+
+      byValueMultipleSelect().element.querySelector('input').focus();
+      document.activeElement.value = 'c';
+      keyUp('c');
+      document.activeElement.dispatchEvent(new Event('input', {
+        bubbles: true,
+        cancelable: true,
+      }));
+
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+      dropdownMenu(2);
+
+      await sleep(200);
+
+      const valueBox = $(byValueBoxRootElement());
+
+      expect(valueBox.find('input[type=checkbox]').length).toBe(9);
+      expect(valueBox.find('input:checked').length).toBe(2);
+      expect(valueBox.find('input[type=checkbox]:checked').parent().toArray().map(a => a.innerText))
+        .toEqual(['Canby', 'Cascades']);
+    });
+
+    it('should be possible to restore the value list after changing the input in the search input', async() => {
+      handsontable({
+        data: getDataForFilters().slice(0, 15),
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        width: 500,
+        height: 300
+      });
+
+      dropdownMenu(2);
+
+      await sleep(200);
+
+      const valueBox = $(byValueBoxRootElement());
+
+      byValueMultipleSelect().element.querySelector('input').focus();
+      document.activeElement.value = 'c';
+      keyUp('c');
+      document.activeElement.dispatchEvent(new Event('input', {
+        bubbles: true,
+        cancelable: true,
+      }));
+
+      expect(valueBox.find('input:checked').length).toBe(2);
+
+      document.activeElement.value = '';
+      document.activeElement.dispatchEvent(new Event('input', {
+        bubbles: true,
+        cancelable: true,
+      }));
+
+      expect(valueBox.find('input:checked').length).toBe(9);
+
+      document.activeElement.value = 'usa';
+      document.activeElement.dispatchEvent(new Event('input', {
+        bubbles: true,
+        cancelable: true,
+      }));
+
+      expect(valueBox.find('input:checked').length).toBe(1);
+    });
+
     it('should utilize the `modifyFiltersMultiSelectValue` hook to display the cell value', () => {
       const columnsSetting = getColumnsForFilters();
 
@@ -1069,7 +1148,7 @@ describe('Filters UI', () => {
         width: 500,
         height: 300,
         modifyFiltersMultiSelectValue: (value) => {
-          return `Custom ${value}`;
+          return `Pre ${value}`;
         },
       });
 
@@ -1082,7 +1161,7 @@ describe('Filters UI', () => {
       for (let i = 0; i < unifiedColDataSample.length; i++) {
         expect(
           byValueMultipleSelect().element.querySelectorAll('.htCore td')[i].textContent
-        ).toBe(`Custom ${unifiedColDataSample[i]}`);
+        ).toBe(`Pre ${unifiedColDataSample[i]}`);
       }
       expect(unifiedColDataSample.length).toBe(6);
     });
@@ -2187,7 +2266,7 @@ describe('Filters UI', () => {
       }, 200);
     });
 
-    it('should filter values using "by value" method', (done) => {
+    it('should filter values using "by value" method (by changing checkbox states)', async() => {
       handsontable({
         data: getDataForFilters().slice(0, 15),
         columns: getColumnsForFilters(),
@@ -2199,20 +2278,47 @@ describe('Filters UI', () => {
 
       dropdownMenu(2);
 
-      setTimeout(() => {
-        // disable first 5 records
-        $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
-        $(byValueBoxRootElement()).find('tr:nth-child(2) :checkbox').simulate('click');
-        $(byValueBoxRootElement()).find('tr:nth-child(3) :checkbox').simulate('click');
-        $(byValueBoxRootElement()).find('tr:nth-child(4) :checkbox').simulate('click');
-        $(byValueBoxRootElement()).find('tr:nth-child(5) :checkbox').simulate('click');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      await sleep(200);
 
-        expect(getData().length).toEqual(10);
-        expect(getDataAtCol(2).join())
-          .toBe('Jenkinsville,Gardiner,Saranap,Soham,Needmore,Wakarusa,Yukon,Layhill,Henrietta,Wildwood');
-        done();
-      }, 200);
+      // disable first 5 records
+      $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
+      $(byValueBoxRootElement()).find('tr:nth-child(2) :checkbox').simulate('click');
+      $(byValueBoxRootElement()).find('tr:nth-child(3) :checkbox').simulate('click');
+      $(byValueBoxRootElement()).find('tr:nth-child(4) :checkbox').simulate('click');
+      $(byValueBoxRootElement()).find('tr:nth-child(5) :checkbox').simulate('click');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+      expect(getData().length).toBe(10);
+      expect(getDataAtCol(2).join())
+        .toBe('Jenkinsville,Gardiner,Saranap,Soham,Needmore,Wakarusa,Yukon,Layhill,Henrietta,Wildwood');
+    });
+
+    it('should filter values using "by value" method (by typing in the search input)', async() => {
+      handsontable({
+        data: getDataForFilters().slice(0, 15),
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        width: 500,
+        height: 300
+      });
+
+      dropdownMenu(2);
+
+      await sleep(200);
+
+      byValueMultipleSelect().element.querySelector('input').focus();
+      document.activeElement.value = 'c';
+      keyUp('c');
+      document.activeElement.dispatchEvent(new Event('input', {
+        bubbles: true,
+        cancelable: true,
+      }));
+
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+      expect(getData().length).toBe(2);
+      expect(getDataAtCol(2).join()).toBe('Cascades,Canby');
     });
 
     it('should overwrite condition filter when at specified column filter was already applied', async() => {

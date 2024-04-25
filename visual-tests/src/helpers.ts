@@ -1,4 +1,5 @@
 import path from 'path';
+import os from 'os';
 import { EXAMPLES_SERVER_PORT } from './config.mjs';
 
 export const helpers = {
@@ -39,7 +40,7 @@ export const helpers = {
 
   init(workerInfo) {
     this.hotWrapper = process.env.HOT_FRAMEWORK || this.defaultHOTFramework;
-    this.isMac = workerInfo.project.name === 'webkit';
+    this.isMac = os.platform() === 'darwin';
     this.modifier = this.isMac ? 'Meta' : 'Control';
     this.screenshotDirName = workerInfo.titlePath[0].split('.spec.ts')[0];
     this.browser = workerInfo.project.name;

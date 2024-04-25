@@ -189,8 +189,27 @@ describe('WalkontableTable', () => {
     expect(firstRow.find('td:first').text()).toBe('0');
     expect(firstRow.find('td:last').text()).toBe('0');
 
+    getTableMaster().find('.wtHolder').scrollLeft(1715); // 1px before the 2nd column is loaded
+
+    wt.draw();
+    await sleep(20);
+
+    expect(firstRow.find('td').length).toBe(1);
+    expect(firstRow.find('td:first').text()).toBe('0');
+    expect(firstRow.find('td:last').text()).toBe('0');
+
+    getTableMaster().find('.wtHolder').scrollLeft(1716); // the 2nd column is loaded
+
+    wt.draw();
+    await sleep(20);
+
+    expect(firstRow.find('td').length).toBe(2);
+    expect(firstRow.find('td:first').text()).toBe('0');
+    expect(firstRow.find('td:last').text()).toBe('a');
+
     getTableMaster().find('.wtHolder').scrollLeft(2000);
 
+    wt.draw();
     await sleep(20);
 
     expect(firstRow.find('td').length).toBe(1);
@@ -199,6 +218,7 @@ describe('WalkontableTable', () => {
 
     getTableMaster().find('.wtHolder').scrollLeft(3500);
 
+    wt.draw();
     await sleep(20);
 
     expect(firstRow.find('td').length).toBe(1);
@@ -207,6 +227,7 @@ describe('WalkontableTable', () => {
 
     getTableMaster().find('.wtHolder').scrollLeft(4000);
 
+    wt.draw();
     await sleep(20);
 
     expect(firstRow.find('td').length).toBe(1);
@@ -235,13 +256,31 @@ describe('WalkontableTable', () => {
 
     getTableMaster().find('.wtHolder').scrollTop(2000);
 
+    wt.draw();
     await sleep(20);
 
     expect(getTableMaster().find('tbody tr').length).toBe(1);
     expect(firstRow.find('td:first').text()).toBe('1');
 
+    getTableMaster().find('.wtHolder').scrollTop(3814); // 1px before the 3rd row is loaded
+
+    wt.draw();
+    await sleep(20);
+
+    expect(getTableMaster().find('tbody tr').length).toBe(1);
+    expect(firstRow.find('td:first').text()).toBe('1');
+
+    getTableMaster().find('.wtHolder').scrollTop(3815); // the 3rd row is loaded
+
+    wt.draw();
+    await sleep(20);
+
+    expect(getTableMaster().find('tbody tr').length).toBe(2);
+    expect(firstRow.find('td:first').text()).toBe('1');
+
     getTableMaster().find('.wtHolder').scrollTop(3500);
 
+    wt.draw();
     await sleep(20);
 
     expect(getTableMaster().find('tbody tr').length).toBe(1);
@@ -249,6 +288,7 @@ describe('WalkontableTable', () => {
 
     getTableMaster().find('.wtHolder').scrollTop(4000);
 
+    wt.draw();
     await sleep(20);
 
     expect(getTableMaster().find('tbody tr').length).toBe(1);
