@@ -47,3 +47,9 @@ table.htCore tr.selected td {
 [data-color="orange"] {
   background: #fcb515;
 }
+
+.handsontable .ht_nestingParent,
+.handsontable .ht_nestingParent ~ td {
+  background: #B5B5B5;
+  color: #222;
+}

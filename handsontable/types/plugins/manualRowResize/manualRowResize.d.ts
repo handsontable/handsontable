@@ -26,4 +26,5 @@ export class ManualRowResize extends BasePlugin {
   saveManualRowHeights(): void;
   loadManualRowHeights(): Array<number | null>;
   setManualSize(row: number, height: number): number;
+  getLastDesiredRowHeight(): number;
 }

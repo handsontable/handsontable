@@ -1,0 +1,77 @@
+<div>
+    <input type="text" placeholder="Input 1" style="margin: 10px" />
+    <hot-table
+      class="hot"
+      id="tableTop"
+      [data]="datasetTop"
+      height="350"
+      [nestedHeaders]="nestedHeaders"
+      [colHeaders]="true"
+      [rowHeaders]="true"
+      [collapsibleColumns]="true"
+      [dropdownMenu]="true"
+      [hiddenColumns]="hiddenColumns"
+      [contextMenu]="true"
+      [mergeCells]="true"
+      [multiColumnSorting]="true"
+      [filters]="true"
+      [manualRowMove]="true"
+      [navigableHeaders]="true"
+      [comments]="true"
+      [manualColumnMove]="true"
+      [customBorders]="true"
+      [autoWrapCol]="true"
+      [autoWrapRow]="true"
+      [fixedRowsBottom]="2"
+      licenseKey="non-commercial-and-evaluation"
+    >
+      <hot-column data="product_id" type="numeric"></hot-column>
+      <hot-column data="mobile_apps"></hot-column>
+      <hot-column data="pricing"></hot-column>
+      <hot-column data="rating" type="numeric"></hot-column>
+      <hot-column data="dataType"></hot-column>
+      <hot-column data="industry"></hot-column>
+      <hot-column data="business_scale"></hot-column>
+      <hot-column data="user_type"></hot-column>
+      <hot-column data="no_of_users"></hot-column>
+      <hot-column data="deployment"></hot-column>
+      <hot-column data="OS"></hot-column>
+    </hot-table>
+    <input type="text" placeholder="Input 2" style="margin: 10px" />
+    <hot-table
+      class="hot"
+      id="tableBottom"
+      [data]="datasetBottom"
+      height="250"
+      [colHeaders]="colHeadersBottom"
+      [rowHeaders]="true"
+      [dropdownMenu]="true"
+      [hiddenColumns]="hiddenColumns"
+      [contextMenu]="true"
+      [mergeCells]="true"
+      [multiColumnSorting]="true"
+      [filters]="true"
+      [manualRowMove]="true"
+      [navigableHeaders]="true"
+      [comments]="true"
+      [manualColumnMove]="true"
+      [customBorders]="true"
+      [autoWrapCol]="true"
+      [autoWrapRow]="true"
+      [nestedRows]="true"
+      [bindRowsWithHeaders]="true"
+      licenseKey="non-commercial-and-evaluation"
+    >
+      <hot-column data="category"></hot-column>
+      <hot-column data="product_id" type="numeric"></hot-column>
+      <hot-column data="industry"></hot-column>
+      <hot-column data="business_scale"></hot-column>
+      <hot-column data="user_type"></hot-column>
+      <hot-column data="no_of_users"></hot-column>
+      <hot-column data="deployment"></hot-column>
+      <hot-column data="OS"></hot-column>
+      <hot-column data="mobile_apps"></hot-column>
+      <hot-column data="pricing"></hot-column>
+      <hot-column data="1" type="numeric"></hot-column>
+    </hot-table>
+</div>

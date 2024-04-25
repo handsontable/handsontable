@@ -150,7 +150,7 @@ describe('ColHeader', () => {
     let headers = getHtCore().find('thead th').length;
 
     expect(headers).toBeGreaterThan(0);
-    expect(getTopClone().find('thead th').length).toEqual(headers);
+    expect(getTopClone().find('thead th').length).toBe(headers);
 
     hot.updateSettings({
       colHeaders: false
@@ -158,8 +158,8 @@ describe('ColHeader', () => {
 
     headers = getHtCore().find('thead th').length;
 
-    expect(headers).toEqual(0);
-    expect(getTopClone().width()).toEqual(0);
+    expect(headers).toBe(0);
+    expect(getTopClone().width()).toBe(0);
   });
 
   it('should show/hide columns headers after updateSettings', () => {

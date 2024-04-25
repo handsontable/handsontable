@@ -27,6 +27,13 @@ class Overlays {
   wot = null;
 
   /**
+   * An array of the all overlays.
+   *
+   * @type {Overlay[]}
+   */
+  #overlays = [];
+
+  /**
    * Refer to the TopOverlay instance.
    *
    * @protected
@@ -81,6 +88,13 @@ class Overlays {
    * @type {Settings}
    */
   wtSettings = null;
+
+  /**
+   * Indicates whether the rendering state has changed for one of the overlays.
+   *
+   * @type {boolean}
+   */
+  #hasRenderingStateChanged = false;
 
   /**
    * The instance of the ResizeObserver that observes the size of the Walkontable wrapper element.
@@ -156,13 +170,7 @@ class Overlays {
    * @returns {(TopOverlay|TopInlineStartCornerOverlay|InlineStartOverlay|BottomOverlay|BottomInlineStartCornerOverlay)[]}
    */
   getOverlays(includeMaster = false) {
-    const overlays = [
-      this.topOverlay,
-      this.topInlineStartCornerOverlay,
-      this.inlineStartOverlay,
-      this.bottomOverlay,
-      this.bottomInlineStartCornerOverlay
-    ];
+    const overlays = [...this.#overlays];
 
     if (includeMaster) {
       overlays.push(this.wtTable);
@@ -209,31 +217,41 @@ class Overlays {
       this.topOverlay, this.inlineStartOverlay);
     this.bottomInlineStartCornerOverlay = new BottomInlineStartCornerOverlay(...args,
       this.bottomOverlay, this.inlineStartOverlay);
+
+    this.#overlays = [
+      this.topOverlay,
+      this.bottomOverlay,
+      this.inlineStartOverlay,
+      this.topInlineStartCornerOverlay,
+      this.bottomInlineStartCornerOverlay,
+    ];
   }
 
   /**
-   * Update state of rendering, check if changed.
-   *
-   * @package
-   * @returns {boolean} Returns `true` if changes applied to overlay needs scroll synchronization.
+   * Runs logic for the overlays before the table is drawn.
    */
-  updateStateOfRendering() {
-    let syncScroll = this.topOverlay.updateStateOfRendering();
+  beforeDraw() {
+    this.#hasRenderingStateChanged = this.#overlays.reduce((acc, overlay) => {
+      return overlay.hasRenderingStateChanged() || acc;
+    }, false);
 
-    syncScroll = this.bottomOverlay.updateStateOfRendering() || syncScroll;
-    syncScroll = this.inlineStartOverlay.updateStateOfRendering() || syncScroll;
+    this.#overlays.forEach(overlay => overlay.updateStateOfRendering('before'));
+  }
 
-    // todo refactoring: move conditions into updateStateOfRendering(),
-    if (this.inlineStartOverlay.needFullRender) {
-      if (this.topOverlay.needFullRender) {
-        syncScroll = this.topInlineStartCornerOverlay.updateStateOfRendering() || syncScroll;
+  /**
+   * Runs logic for the overlays after the table is drawn.
+   */
+  afterDraw() {
+    this.syncScrollWithMaster();
+    this.#overlays.forEach((overlay) => {
+      const hasRenderingStateChanged = overlay.hasRenderingStateChanged();
+
+      overlay.updateStateOfRendering('after');
+
+      if (hasRenderingStateChanged && !overlay.needFullRender) {
+        overlay.reset();
       }
-      if (this.bottomOverlay.needFullRender) {
-        syncScroll = this.bottomInlineStartCornerOverlay.updateStateOfRendering() || syncScroll;
-      }
-    }
-
-    return syncScroll;
+    });
   }
 
   /**
@@ -514,6 +532,10 @@ class Overlays {
    * Synchronize overlay scrollbars with the master scrollbar.
    */
   syncScrollWithMaster() {
+    if (!this.#hasRenderingStateChanged) {
+      return;
+    }
+
     const master = this.topOverlay.mainTableScrollableElement;
     const { scrollLeft, scrollTop } = master;
 
@@ -526,6 +548,8 @@ class Overlays {
     if (this.inlineStartOverlay.needFullRender) {
       this.inlineStartOverlay.clone.wtTable.holder.scrollTop = scrollTop; // todo rethink, *overlay.setScroll*()
     }
+
+    this.#hasRenderingStateChanged = false;
   }
 
   /**
@@ -626,10 +650,8 @@ class Overlays {
 
   /**
    * Adjust overlays elements size and master table size.
-   *
-   * @param {boolean} [force=false] When `true`, it adjust the DOM nodes sizes for all overlays.
    */
-  adjustElementsSize(force = false) {
+  adjustElementsSize() {
     const { wtViewport } = this.wot;
     const { wtTable } = this;
     const { rootWindow } = this.domBindings;
@@ -680,9 +702,9 @@ class Overlays {
       }
     }
 
-    this.topOverlay.adjustElementsSize(force);
-    this.inlineStartOverlay.adjustElementsSize(force);
-    this.bottomOverlay.adjustElementsSize(force);
+    this.topOverlay.adjustElementsSize();
+    this.inlineStartOverlay.adjustElementsSize();
+    this.bottomOverlay.adjustElementsSize();
   }
 
   /**
