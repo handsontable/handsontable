@@ -128,8 +128,8 @@
     }
 }
 
-.tabs-button-wrapper {
-    padding-top: 16px
+.page .theme-default-content  .tabs-button-wrapper {
+    padding-top: 8px
     display: flex
     flex-direction: column
     gap 16px
@@ -137,6 +137,10 @@
     .tabs-button-list {
         display: flex 
         gap: 8px
+        background: $editorColor
+        border-radius: $radius
+        padding: 8px
+        margin 0
 
         &.active {
             .show-code {
@@ -248,12 +252,18 @@
     #mainInput, select, input[type=text], input[type=search], .placeholder-input {
         padding: 8px;
         //margin-top: 12px;
-        border:none
-        border-radius: $radius
-        background: $borderColor
         font-size: $font-size-xs
         line-height: $line-height-xs
         color:$textColor
+        border-radius: $radius
+        border:1px solid $borderColor
+        background: $editorColor
+
+        @media (hover: hover) {
+            &:hover {
+                background: $bgColor
+            }
+        }
     }
 
     &.select-language {

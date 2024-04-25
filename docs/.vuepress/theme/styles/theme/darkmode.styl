@@ -23,17 +23,30 @@ html.theme-dark {
     $depricatedBgColor  = var(--color-yellow-20)  
 
     $editorText                 = rgb(156, 220, 254)
-    $editorCommentColor         = rgb(106, 153, 85)
-    $editorTagColor             = #85dbd8
-    $editorFunctionNameColor    = rgb(220, 220, 170)
-    $editorFunctionColor        = rgb(181, 206, 168)
-    $editorSymbolColor          = rgb(78, 201, 176)
-    $editorSelectorColor        = rgb(86, 156, 214)
-    $editorStringColor          = rgb(206, 145, 120)
-    $editorOperatorColor        = rgb(212, 212, 212)
+    $editorCommentColor         = #999
+    $editorTagColor             = #e2777a
+    $editorFunctionNameColor    = #6196cc
+    $editorFunctionColor        = #f08d49
+    $editorSymbolColor          = #f8c555
+    $editorSelectorColor        = #cc99cd
+    $editorStringColor          = #7ec699
+    $editorOperatorColor        = #67cdcc
     $editorInsertedColor        = rgb(100, 102, 149)
-    $editorPunctuationColor     = rgb(212, 212, 212)
+    $editorPunctuationColor     = #999
 
+    /*
+    $editorText = $text2Color
+    $editorCommentColor =  rgb(106, 153, 85);
+    $editorTagColor = #85dbd8;
+    $editorFunctionNameColor = #f08d49;
+    $editorFunctionColor = #f8c555;
+    $editorSymbolColor = rgb(78, 201, 176);
+    $editorSelectorColor = rgb(70, 114, 174);
+    $editorStringColor = rgb(206, 66, 40);
+    $editorOperatorColor = rgb(46, 46, 46);
+    $editorInsertedColor = rgb(41, 105, 176);
+    $editorPunctuationColor = 3999
+    */
     //rgb(100, 102, 149)
 
     $dropColor          = $dropColorDark
@@ -1228,9 +1241,10 @@ html.theme-dark {
     }
 
     //Editor 
-    .tabs-button-wrapper {
+    .page .theme-default-content  .tabs-button-wrapper {
 
         .tabs-button-list {
+            background: $borderColor
 
             &.active {
                 .show-code {
@@ -1272,8 +1286,15 @@ html.theme-dark {
     .controls:not(button), .example-container {
 
         #mainInput, select, input[type=text], input[type=search], .placeholder-input {
-            background: $borderColor
-            color:$textColor
+            border-radius: $radius
+            border:1px solid $borderColor
+            background: $editorColor
+
+            @media (hover: hover) {
+                &:hover {
+                    background: $bgColor
+                }
+            }
         }
     }
 }

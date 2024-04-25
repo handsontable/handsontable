@@ -47,6 +47,26 @@
         display: flex
         gap: 12px
         align-items: start
+        transition all $t ease-in-out
+        transition-delay: $t
+        max-height: 120px
+
+        //&.slide-fade-enter, 
+        &.slide-fade-leave-to {
+            opacity: 0;
+            max-height: 0;
+            margin-bottom: 0;
+            padding-bottom: 0;
+            padding-top: 0;
+
+            > * {
+                opacity 0
+            }
+        }
+
+        > * { 
+            transition all $t ease-in-out
+        }
 
         span { 
             background-color: $accentColor
@@ -103,12 +123,14 @@
             }
         }
         > .close {
+            background: none;
+            outline: none;
+            border: none;
             cursor:pointer
             opacity .6
             transition all $t ease
             padding: 9px
             border: 0
-            background: 0
             margin: -8px -8px 0 0
             
             i { 

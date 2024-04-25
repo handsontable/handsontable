@@ -145,12 +145,24 @@ body #CybotCookiebotDialog {
 		border-color: $borderColor
 	}
 
-	@media screen and (min-width: 1280px) {
+	@media screen and (min-width: 1200px) {
 		&.CybotEdge {
 			margin-top:-20px
-			width: auto
+			width: calc(100vw - 48px)
 			min-width: auto
 			max-height: none
+		}
+	}
+
+	@media screen and (min-width: 1720px) {
+		&.CybotEdge {
+			width: 1720px
+		}
+	}
+
+	@media screen and (max-width: 800px) {
+		&.CybotEdge {
+			width: 90%
 		}
 	}
 }

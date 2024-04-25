@@ -101,6 +101,41 @@
                 }
             }
         }
+
+        .theme-code-group { 
+            margin: 0 -16px 
+
+            .theme-code-block {
+                margin-top: -38px
+            }
+
+            pre { 
+                margin: 16px 0
+                border-radius: 0 0 $radius $radius
+                padding-bottom: 24px
+            }
+        }
+
+        .theme-code-group__nav { 
+            background: $editorHeadColor 
+            margin: 16px 0
+            padding: 8px 16px 16px
+            border-radius: $radius
+            margin-bottom: -16px
+
+            button {
+                font-size: $font-size-xs
+                line-height: $line-height-xs
+                font-weight: 400
+                padding:8px 8px 8px
+                color: $text2Color
+
+                &.theme-code-group__nav-tab-active {
+                    color: $textColor
+                    border-color: $linkColor
+                }
+            }
+        }
     }
 
     div[class*="language-"]::before { 
@@ -126,41 +161,6 @@
         border-radius: $radius
         margin-bottom: 24px
         padding: 0
-    }
-
-    .theme-code-group { 
-        margin: 0 -16px 
-
-        .theme-code-block {
-            margin-top: -38px
-        }
-
-        pre { 
-            margin: 16px 0
-            border-radius: 0 0 $radius $radius
-            padding-bottom: 24px
-        }
-    }
-
-    .theme-code-group__nav { 
-        background: $editorHeadColor 
-        margin: 16px 0
-        padding: 8px 16px 16px
-        border-radius: $radius
-        margin-bottom: -16px
-
-        button {
-            font-size: $font-size-xs
-            line-height: $line-height-xs
-            font-weight: 400
-            padding:8px 8px 8px
-            color: $text2Color
-
-            &.theme-code-group__nav-tab-active {
-                color: $textColor
-                border-color: $linkColor
-            }
-        }
     }
 
     @media (max-width: 419px) {
