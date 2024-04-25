@@ -143,10 +143,10 @@ export class ViewportColumnsCalculator {
       // the table is to the left of the viewport
       (
         mostRightScrollOffset < (-1) * this.#options.inlineStartOffset ||
-        scrollOffset >= startPositions.at(-1) + inlineEndColumnOffset
+        scrollOffset > startPositions.at(-1) + inlineEndColumnOffset
       ) ||
       // the table is to the right of the viewport
-      (((-1) * this.#options.scrollOffset) - this.#options.viewportWidth >= (-1) * inlineStartColumnOffset)
+      (((-1) * this.#options.scrollOffset) - this.#options.viewportWidth > (-1) * inlineStartColumnOffset)
     ) {
       this.isVisibleInTrimmingContainer = false;
 

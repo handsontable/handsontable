@@ -50,7 +50,7 @@ describe('Walkontable viewport rows calculator', () => {
       expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(true);
       expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(true);
 
-      window.scrollBy(0, Math.floor((tableHeight / 2) - 1));
+      window.scrollBy(0, Math.ceil((tableHeight / 2) - 1));
 
       await sleep(100);
 
@@ -98,7 +98,7 @@ describe('Walkontable viewport rows calculator', () => {
       expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(false);
       expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(false);
 
-      window.scrollBy(0, tableOffset - window.innerHeight + getScrollbarWidth());
+      window.scrollBy(0, tableOffset - window.innerHeight + getScrollbarWidth() - 1);
 
       await sleep(100);
 
