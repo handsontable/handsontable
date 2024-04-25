@@ -139,11 +139,15 @@ module.exports = function(docsVersion, base) {
 
         const displayJsFiddle = Boolean(!noEdit && !isAngular);
 
+        const isActive = `$parent.$parent.isScriptLoaderActivated('${id}')`;
+
         return `
-          <div class="example-container">
-            <style v-pre>${cssContent}</style>
-            <div v-pre>${htmlContentRoot}</div>
-            <ScriptLoader code="${encodedCode}"></ScriptLoader>
+          <div class="example-container" >
+            <template v-if="${isActive}">
+              <style v-pre>${cssContent}</style>
+              <div v-pre>${htmlContentRoot}</div>
+              <ScriptLoader code="${encodedCode}"></ScriptLoader>
+            </template>
           </div>
           <div class="tabs-button-wrapper">
             <div class="tabs-button-list">
@@ -168,8 +172,13 @@ module.exports = function(docsVersion, base) {
     preset
   )}
                 ${displayJsFiddle ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset) : ''}
-                <button aria-label="Open in new tab"><i class="ico i-zoom"></i></button>
-                <button aria-label="Reset demo"><i class="ico i-refresh"></i></button>
+                <button 
+                  aria-label="Reset demo" 
+                  @click="$parent.$parent.resetDemo('${id}')" 
+                  :disabled="$parent.$parent.isButtonInactive"
+                >
+                  <i class="ico i-refresh"></i>
+                </button>
               </div>
             </div>
             <div class="example-container-code">

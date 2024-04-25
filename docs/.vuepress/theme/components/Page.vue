@@ -11,6 +11,7 @@
 </template>
 
 <script>
+/* global instanceRegister */
 import PageEdit from '@theme/components/PageEdit.vue';
 import Breadcrumbs from '@theme/components/Breadcrumbs.vue';
 
@@ -20,12 +21,43 @@ export default {
     Breadcrumbs,
   },
   props: ['sidebarItems'],
+  data() {
+    return {
+      inActiveElementId: '',
+      isButtonInactive: false,
+    };
+  },
   computed: {
     isApi() {
       return this.$route.fullPath.match(/([^/]*\/)?api\//);
     },
   },
   methods: {
+    isScriptLoaderActivated(exampleId) {
+      return exampleId !== this.inActiveElementId;
+    },
+    resetDemo(exampleId) {
+      // demo can only be reset once per second
+      const exampleDiv = document.querySelector(
+        `[data-example-id="${exampleId}"]`
+      );
+      const exampleContainer = exampleDiv?.closest('.example-container');
+
+      exampleContainer.setAttribute('style', `height: ${exampleContainer?.offsetHeight - 16}px`);
+
+      this.inActiveElementId = exampleId;
+      this.isButtonInactive = true;
+
+      setTimeout(() => {
+        this.inActiveElementId = '';
+        instanceRegister.destroyExample(exampleId);
+      }, 100);
+
+      setTimeout(() => {
+        exampleContainer.removeAttribute('style');
+        this.isButtonInactive = false;
+      }, 1000);
+    },
     copyCode(e) {
       const button = e.target;
       const preTag = button.parentElement;
@@ -78,6 +110,6 @@ export default {
   },
   unmounted() {
     window.removeEventListener('scroll', this.checkSectionInView);
-  }
+  },
 };
 </script>
