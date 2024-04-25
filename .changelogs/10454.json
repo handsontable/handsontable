@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Improved UX for column filtering",
+  "type": "added",
+  "issueOrPR": 10454,
+  "breaking": false,
+  "framework": "none"
+}

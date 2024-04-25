@@ -14,6 +14,7 @@ react:
   id: 1ueuuazs
   metaTitle: Locale - React Data Grid | Handsontable
 searchCategory: Guides
+category: Internationalization
 ---
 
 # Locale
@@ -118,9 +119,13 @@ const hot = new Handsontable(container, {
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Language](@/guides/internationalization/language/language.md)
 - [Layout direction](@/guides/internationalization/layout-direction/layout-direction.md)
 - [IME support](@/guides/internationalization/ime-support/ime-support.md)
+
+</div>
 
 ### Related API reference
 

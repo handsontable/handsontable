@@ -9,6 +9,7 @@ react:
   id: y1xxl0xk
   metaTitle: Custom context menu - Angular Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Angular
 ---
 
 # Custom context menu in Angular
@@ -32,14 +33,22 @@ The following is an implementation of the `@handsontable/angular` component with
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
 - [Adding comments via the context menu](@/guides/cell-features/comments/comments.md#add-comments-via-the-context-menu)
 - [Clipboard: Context menu](@/guides/cell-features/clipboard/clipboard.md#context-menu)
 - [Icon pack](@/guides/accessories-and-menus/icon-pack/icon-pack.md)
 
+</div>
+
 ### Related blog articles
 
+<div class="boxes-list">
+
 - [Customize Handsontable context menu](https://handsontable.com/blog/customize-handsontable-context-menu)
+
+</div>
 
 ### Related API reference
 

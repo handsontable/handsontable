@@ -9,6 +9,7 @@ react:
   id: 5e0tnexi
   metaTitle: Column headers - React Data Grid | Handsontable
 searchCategory: Guides
+category: Columns
 ---
 
 # Column headers
@@ -101,7 +102,11 @@ More complex data structures can be displayed with multiple headers, each repres
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Column groups](@/guides/columns/column-groups/column-groups.md)
+
+</div>
 
 ### Related API reference
 

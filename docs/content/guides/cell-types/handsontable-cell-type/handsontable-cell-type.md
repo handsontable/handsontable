@@ -9,6 +9,7 @@ react:
   id: fcxtj167
   metaTitle: Handsontable cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Handsontable cell type
@@ -62,8 +63,9 @@ While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused 
 ## Related articles
 
 ### Related guides
-
+<div class="boxes-list gray">
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
+</div>
 
 ### Related API reference
 

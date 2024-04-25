@@ -10,6 +10,7 @@ react:
   id: ivkac4xa
   metaTitle: Migrate from 7.4 to 8.0 - React Data Grid | Handsontable
 searchCategory: Guides
+category: Upgrade and migration
 ---
 
 # Migrate from 7.4 to 8.0

@@ -10,6 +10,7 @@ const extendPageDataPlugin = require('./plugins/extend-page-data');
 const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
 const dumpRedirectPageIdsPlugin = require('./plugins/dump-redirect-page-ids');
 const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
+const headerAnchor = require('./plugins/markdown-it-header-anchor');
 const conditionalContainer = require('./plugins/markdown-it-conditional-container');
 const includeCodeSnippet = require('./plugins/markdown-it-include-code-snippet');
 const {
@@ -21,11 +22,16 @@ const {
   getThisDocsVersion,
   MULTI_FRAMEWORKED_CONTENT_DIR,
 } = require('./helpers');
-const {
-  getPermalinkHrefMethod,
-} = require('./plugins/markdown-it-conditional-container/onlyForContainerHelpers');
 
-const uniqueSlugs = new Set();
+require('dotenv').config();
+
+const DOCSEARCH_API_KEY = process.env.DOCSEARCH_API_KEY;
+const DOCSEARCH_APP_ID = process.env.DOCSEARCH_APP_ID;
+
+if (!DOCSEARCH_API_KEY || !DOCSEARCH_APP_ID) {
+  throw new Error('DOCSEARCH_API_KEY or DOCSEARCH_APP_ID is missing in docs/.env');
+}
+
 const buildMode = process.env.BUILD_MODE;
 const isProduction = buildMode === 'production';
 const environmentHead = isProduction
@@ -64,7 +70,16 @@ module.exports = {
       'link',
       {
         rel: 'icon',
-        href: 'https://handsontable.com/static/images/template/ModCommon/favicon-32x32.png',
+        media: '(prefers-color-scheme: light)',
+        href: `${getDocsBaseFullUrl()}/favicon.png`,
+      },
+    ],
+    [
+      'link',
+      {
+        rel: 'icon',
+        media: '(prefers-color-scheme: dark)',
+        href: `${getDocsBaseFullUrl()}/favicon-dark.png`,
       },
     ],
     [
@@ -121,18 +136,26 @@ module.exports = {
         'data-cbid': 'ef171f1d-a288-433f-b680-3cdbdebd5646',
       },
     ],
+    // Headwayapp
+    [
+      'script',
+      {
+        id: 'Headwayapp',
+        src: 'https://cdn.headwayapp.co/widget.js'
+      },
+    ],
     ['script', {}, `const DOCS_VERSION = '${getThisDocsVersion()}';`],
     [
       'script',
       {},
       `
       (function(w, d) {
-        const osColorScheme = () => w.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
-        const preferredScheme = colorScheme ? colorScheme : osColorScheme();
+        const preferredScheme = colorScheme ? colorScheme : 'dark';
 
         if (preferredScheme === 'dark') {
           d.documentElement.classList.add('theme-dark');
+          d.documentElement.setAttribute('data-theme', 'dark');
         }
 
         w.SELECTED_COLOR_SCHEME = preferredScheme;
@@ -145,27 +168,10 @@ module.exports = {
     toc: {
       includeLevel: [2, 3],
       containerHeaderHtml:
-        '<div class="toc-container-header">In this article</div>',
+        '<div class="toc-container-header"><i class="ico i-toc"></i>On this page</div>',
     },
     anchor: {
-      permalinkSymbol: '',
-      permalinkHref: getPermalinkHrefMethod(uniqueSlugs),
-      permalinkAttrs: () => ({
-        tabindex: '-1',
-        'aria-hidden': 'true',
-      }),
-      callback(token, slugInfo) {
-        // The map is filled in before by a legacy `permalinkHref` method.
-        if (['h1', 'h2', 'h3'].includes(token.tag)) {
-          const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(token.attrGet('id'));
-          const slugWithoutNumber = duplicatedSlugsMatch?.[1];
-
-          if (slugWithoutNumber && uniqueSlugs.has(slugWithoutNumber)) {
-            token.attrSet('id', slugWithoutNumber);
-            slugInfo.slug = slugWithoutNumber;
-          }
-        }
-      },
+      permalink: false,
     },
     externalLinks: {
       target: '_blank',
@@ -174,7 +180,8 @@ module.exports = {
     extendMarkdown(md) {
       md.use(includeCodeSnippet)
         .use(conditionalContainer)
-        .use(firstHeaderInjection);
+        .use(firstHeaderInjection)
+        .use(headerAnchor);
     },
   },
   configureWebpack: {
@@ -328,65 +335,43 @@ module.exports = {
     ],
   ],
   themeConfig: {
-    nextLinks: true,
-    prevLinks: true,
+    nextLinks: false,
+    prevLinks: false,
     repo: 'handsontable/handsontable',
     docsRepo: 'handsontable/handsontable',
     docsDir: 'docs/content',
     docsBranch: 'develop',
     editLinks: true,
-    editLinkText: 'Suggest edits',
-    lastUpdated: true,
+    editLinkText: 'Edit on GitHub',
+    lastUpdated: false,
     smoothScroll: false,
     nav: [
       // Guide & API Reference has been defined in theme/components/NavLinks.vue
-      { text: 'GitHub', link: 'https://github.com/handsontable/handsontable' },
-      {
-        text: 'Support',
+      // { text: 'GitHub', link: 'https://github.com/handsontable/handsontable' },
+      { text: 'Community',
         items: [
+          {
+            text: 'Developers Forum',
+            link: 'https://forum.handsontable.com',
+          },
+          {
+            text: 'GitHub Discussions',
+            link: 'https://github.com/handsontable/handsontable/issues/new/choose',
+          },
+          {
+            text: 'StackOverflow',
+            link: 'https://stackoverflow.com/tags/handsontable',
+          },
           {
             text: 'Contact support',
             link: 'https://handsontable.com/contact?category=technical_support',
           },
-          {
-            text: 'Report an issue',
-            link: 'https://github.com/handsontable/handsontable/issues/new/choose',
-          },
-          {
-            text: 'Handsontable forum',
-            link: 'https://forum.handsontable.com',
-          },
-          {
-            text: 'Ask on Stack Overflow',
-            link: 'https://stackoverflow.com/questions/tagged/handsontable',
-          },
-          { text: 'Blog', link: 'https://handsontable.com/blog' },
         ],
       },
     ],
     displayAllHeaders: true, // collapse other pages
     activeHeaderLinks: true,
     sidebarDepth: 0,
-    search: true,
-    searchOptions: {
-      placeholder: 'Search...',
-      categoryPriorityList: [
-        {
-          name: 'Guides',
-          domainPriority: [],
-          maxSuggestions: 5,
-        },
-        {
-          name: 'API Reference',
-          // The "domainPriority" list modifies the search results position. When the search phrase matches
-          // the page titles, the search suggestions are placed before the rest results. The pages declared
-          // in the array at the beginning have the highest display priority.
-          domainPriority: ['Configuration options', 'Core', 'Hooks'],
-          maxSuggestions: 10,
-        },
-      ],
-      fuzzySearchDomains: ['Core', 'Hooks', 'Configuration options'],
-    },
     organization: {
       name: 'Handsontable',
       author: 'Handsontable Team',
@@ -397,5 +382,11 @@ module.exports = {
       ],
       image: `${getDocsBaseFullUrl()}/img/handsonable-docs-cover.png`
     },
+    searchPlaceholder: 'Search...',
+    algolia: {
+      indexName: 'handsontable',
+      apiKey: DOCSEARCH_API_KEY,
+      appId: DOCSEARCH_APP_ID
+    }
   },
 };

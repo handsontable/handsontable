@@ -37,6 +37,7 @@ const ExampleComponent = () => {
           suppressDataTypeErrors: false
         }]
       }
+      height="auto"
     />
   );
 };

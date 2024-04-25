@@ -43,14 +43,3 @@ export default {
   },
 };
 </script>
-
-<style lang="stylus">
-.layout-container
-  min-height 100%
-
-.custom-block.tip.version-alert
-  position relative
-  top -34px
-  border-width 1px
-  border-style dashed
-</style>

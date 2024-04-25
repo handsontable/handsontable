@@ -1,0 +1,57 @@
+.page {
+    .breadcrumbs {
+        max-width: 720px
+        display: flex
+        margin:0 auto
+        padding: 28px 0 0 0 !important
+        flex-wrap: wrap
+        position: relative
+        box-sizing: border-box
+        
+        a, span {
+            font-size: $font-size-xs
+            line-height: $line-height-xs
+            display: inline-block
+            vertical-align: baseline
+        }
+        a {
+            color: $text2Color
+            margin:0 !important
+            transition: all $ts ease-in-out 
+
+            i { 
+                display: inline-block
+                position absolute
+                top: 30px
+                left: 0
+                opacity .64
+            }
+
+            @media (hover: hover) {
+                &:hover {
+                    color: $linkColor
+                }
+            }
+        }
+
+        a:first-child {
+            padding-left: 26px
+        }
+
+        a:last-child span:last-child:after {
+            content: ''
+        }
+
+        span { 
+            //color: $text2Color
+        }
+        a, span {
+            &:not(:last-child):after { 
+                content: "/"
+                display: inline-block
+                padding: 0 8px 0 8px
+                color: $text2Color !important
+            }
+        }
+    }
+}

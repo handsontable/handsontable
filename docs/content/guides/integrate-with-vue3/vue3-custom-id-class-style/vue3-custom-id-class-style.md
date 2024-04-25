@@ -9,6 +9,7 @@ react:
   id: jeuzzosp
   metaTitle: Custom ID, class, and style - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 3
 ---
 
 # Custom ID, Class, and other attributes in Vue 3

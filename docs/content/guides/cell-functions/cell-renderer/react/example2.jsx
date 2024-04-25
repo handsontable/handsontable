@@ -44,6 +44,7 @@ const ExampleComponent = () => {
           ['A10'],
         ]}
         rowHeaders={true}
+        height="auto"
         licenseKey={"non-commercial-and-evaluation"}
       >
         <HotColumn>

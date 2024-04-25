@@ -1,0 +1,268 @@
+.page .theme-default-content .tabs-component {
+    border: none
+    margin: 0 -16px 0
+    border-radius: $radius
+    padding: 0
+    border: 1px solid $lightBorderColor
+
+    .option-label {
+        color: $text2Color !important
+
+        input[type=checkbox] {
+            margin: 6px
+        }
+    }
+
+    .placeholder-input {
+        padding: 8px;
+        border:none
+        border-radius: $radius
+    }
+
+    .tabs-component-panels {
+        padding: 0
+        margin-top: 0
+        background: $borderColor
+        position: relative
+        min-height: 32px
+        border-radius: 0 0 $radius $radius !important
+
+        pre { 
+            margin: -16px -16px -40px
+            border-radius: 0 
+            border-radius: 0 0 $radius $radius !important
+        }
+
+        .tabs-component-panel {
+            padding: 16px
+        }
+    }
+
+    ul.tabs-component-tabs  {
+        background: $editorHeadColor
+        padding: 16px 
+        border-bottom: none
+        box-sizing: border-box;
+        border-radius: $radius $radius 0 0 !important
+        display: flex
+        gap: 8px
+
+        li.tabs-component-tab  {
+            
+
+            a.tabs-component-tab-a {
+                padding: 6px 12px
+                margin:0
+                text-decoration: none
+                color: $text2Color
+                font-size: $font-size-xs
+                line-height: $line-height-xs
+                font-weight: 400
+                background: $onsurfaceColor
+                border-radius: $radius
+                border: 1px solid $lightBorderColor
+            }
+
+            &.is-active { 
+                font-weight: 400
+                border-bottom:0
+                
+                a {
+                    color: $textColor
+                    background: white
+                    border: 1px solid $lightBorderColor
+                }
+            }
+        }
+    }
+
+    @media (max-width: $medium) {
+        margin: 0 -16px
+
+        ul.tabs-component-tabs  {
+        }
+
+        .tabs-component-panels {
+
+            .tabs-component-panel {
+                padding: 16px 16px
+            }
+        }
+    }
+}
+
+.example-container {
+    .controls {
+        padding-bottom: 16px
+
+        > button { 
+            margin-right: 8px
+        }
+    }
+    .example-controls-container .controls { 
+        padding-bottom: 0 
+    }
+
+    .checkbox-container {
+        margin: 16px 0
+        display: block
+
+        .checkbox-group > div { 
+            display: flex
+            font-size: $font-size-xs
+            line-height: 32px
+
+
+            label { display: flex
+                align-items: center
+            }
+
+            > a { 
+                //margin-left: auto
+                margin-right: 0
+            }
+        }
+    }
+    #example1 {
+        margin: 0
+    }
+}
+
+.tabs-button-wrapper {
+    padding-top: 16px
+    display: flex
+    flex-direction: column
+    gap 16px
+
+    .tabs-button-list {
+        display: flex 
+        gap: 8px
+
+        &.active {
+            .show-code {
+                border: 1px solid $accentColor !important
+            }
+
+            + .example-container-code { 
+                visibility visible
+                opacity 1
+                max-height: 100vh
+            }
+        }
+
+        .show-code {
+            padding: 7px 16px !important
+            border:none !important
+            display: flex
+            gap: 8px
+            transition: all $t ease-in-out
+            align-items: center
+            border: 1px solid $sideColor !important
+        }
+
+        .example-controls { 
+            display: flex
+            height: 36px
+
+            button {
+                border: none !important
+                padding: 10px !important
+                background: none !important
+                width: 36px
+                position: relative
+
+                i, svg { 
+                    opacity: .7
+                    transition: all $ts ease-in-out
+                }
+
+                svg {
+                    path {
+                        fill: black
+                    }
+                }
+
+                @media (hover: hover) {
+                    &:hover {
+                        i, svg { 
+                            opacity 1 
+                        }
+                    }
+                }
+
+                &:after {
+                    content: attr(aria-label)
+                    position absolute
+                    white-space: pre;
+                    bottom: 38px;
+                    left: 50%
+                    transform: translateX(-50%)
+                    padding:4px 8px
+                    border-radius: $radius
+                    background: black
+                    border: 1px solid black
+                    color: white
+                    opacity: 0
+                    transition: all $t ease-in-out
+                    font-size: $font-size-xs
+                    line-height: $line-height-xs
+                    pointer-events: none
+                }
+
+                @media (hover: hover) {
+                    &:hover:after  {
+                        opacity 1
+                    }
+                }
+            }
+        }
+    }
+}
+
+.example-container-code {
+    opacity: 0
+    visibility: hidden
+    max-height: 0
+    transition: all $t ease-in-out
+}
+
+.example-controls-container {
+    padding: 0 0 16px
+}
+
+.controls:not(button), .example-container {
+    font-size: $font-size-xs
+    line-height: $line-height-xs
+    margin-top: 0;
+    margin-bottom: 0;
+    padding: 8px 8px 0 0;
+
+    br { 
+        display: none
+    }
+
+    label input {
+        margin: 4px
+    }
+
+    #mainInput, select, input[type=text], input[type=search], .placeholder-input {
+        padding: 8px;
+        //margin-top: 12px;
+        border:none
+        border-radius: $radius
+        background: $borderColor
+        font-size: $font-size-xs
+        line-height: $line-height-xs
+        color:$textColor
+    }
+
+    &.select-language {
+        label { 
+            display: block
+        }
+    }
+    
+    &:last-child { 
+        margin-bottom:0
+    }
+}

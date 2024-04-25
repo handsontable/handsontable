@@ -9,6 +9,7 @@ react:
   id: 5i86kjqu
   metaTitle: Dropdown cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Dropdown cell type
@@ -61,9 +62,13 @@ Internally, cell `type="dropdown"` is equivalent to cell `type="autocomplete" st
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
 - [Select cell type](@/guides/cell-types/select-cell-type/select-cell-type.md)
+
+</div>
 
 ### Related API reference
 

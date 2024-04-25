@@ -9,6 +9,7 @@ react:
   id: ea206i3o
   metaTitle: Software license - React Data Grid | Handsontable
 searchCategory: Guides
+category: Technical specification
 ---
 
 # Software license
@@ -74,7 +75,11 @@ For many years Handsontable was available as an open-source software, and releas
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [License key](@/guides/getting-started/license-key/license-key.md)
+
+</div>
 
 ### Related API reference
 

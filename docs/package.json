@@ -79,9 +79,12 @@
     "not dead"
   ],
   "dependencies": {
+    "@types/overlayscrollbars": "^1.12.5",
+    "@docsearch/js": "^3.6.0",
     "codesandbox": "^2.2.3",
     "dayjs": "^1.11.10",
     "dotenv": "^16.4.5",
+    "overlayscrollbars": "^2.7.1",
     "patch-package": "^8.0.0"
   }
 }

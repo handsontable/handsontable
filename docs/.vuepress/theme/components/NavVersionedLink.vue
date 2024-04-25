@@ -10,7 +10,6 @@
 </template>
 
 <script>
-import { ensureExt } from '@vuepress/theme-default/util';
 
 export default {
   name: 'NavLink',
@@ -22,6 +21,7 @@ export default {
   },
   watch: { $route() { } }, // force rerender on route changed
   computed: {
+    /*
     link() {
       return ensureExt(this.item.link);
     },
@@ -36,6 +36,7 @@ export default {
         return ensureExt(`/${this.$page.currentVersion}${framework}${link}`);
       }
     },
+    */
     exact() {
       if (this.link === '/' && this.$route.fullPath.match(/([^/]*\/)?(api)\//)) {
         return true;
@@ -48,8 +49,7 @@ export default {
   methods: {
     focusoutAction() {
       this.$emit('focusout');
-    },
-
+    }
   }
 };
 </script>

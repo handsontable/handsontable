@@ -17,6 +17,7 @@ react:
   id: me8uxp3w
   metaTitle: Undo and redo - React Data Grid | Handsontable
 searchCategory: Guides
+category: Accessories and menus
 ---
 
 # Undo and redo

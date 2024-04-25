@@ -36,6 +36,7 @@ const ExampleComponent = () => {
     <HotTable data={hotData}
       autoWrapRow={true}
       autoWrapCol={true}
+      height="auto"
       licenseKey="non-commercial-and-evaluation">
       <HotColumn width={250}>
         {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}

@@ -49,34 +49,6 @@ const tab = (tabName, token, id) => {
   ];
 };
 
-const getPreviewTab = (id, cssContent, htmlContent, code) => {
-  const renderElement = `$parent.$parent.isScriptLoaderActivated('${id}')`;
-
-  return {
-    type: 'html_block',
-    tag: '',
-    attrs: null,
-    map: [],
-    nesting: 0,
-    level: 1,
-    children: null,
-    content: `
-      <tab name="Preview" id="preview-tab-${id}">
-        <style v-pre>${cssContent}</style>
-        <template v-if="${renderElement}">
-          <div v-pre>${htmlContent}</div>
-        </template>
-        <ScriptLoader v-if="${renderElement}" code="${code}"></ScriptLoader>
-      </tab>
-    `,
-    markup: '',
-    info: '',
-    meta: null,
-    block: true,
-    hidden: false,
-  };
-};
-
 module.exports = function(docsVersion, base) {
   return {
     type: 'example',
@@ -157,7 +129,6 @@ module.exports = function(docsVersion, base) {
         });
 
         const newTokens = [
-          getPreviewTab(id, cssContent, htmlContentRoot, encodedCode),
           ...tab('Code', jsToken, id),
           ...tab('HTML', htmlToken, id),
           ...tab('CSS', cssToken, id),
@@ -169,22 +140,47 @@ module.exports = function(docsVersion, base) {
         const displayJsFiddle = Boolean(!noEdit && !isAngular);
 
         return `
+          <div class="example-container">
+            <style v-pre>${cssContent}</style>
+            <div v-pre>${htmlContentRoot}</div>
+            <ScriptLoader code="${encodedCode}"></ScriptLoader>
+          </div>
           <div class="tabs-button-wrapper">
             <div class="tabs-button-list">
-              ${Boolean(!noEdit) && stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
-              ${Boolean(!noEdit) && codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
-              ${displayJsFiddle ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset) : ''}
+              <button class="show-code" @click="$parent.$parent.showCodeButton($event)">
+                <i class="ico i-code"></i>Source code
+              </button>
+              <div class="example-controls">
+                ${Boolean(!noEdit) && stackblitz(
+    id,
+    htmlContent,
+    codeToCompileSandbox,
+    cssContent,
+    docsVersion,
+    preset
+  )}
+                ${Boolean(!noEdit) && codesandbox(
+    id,
+    htmlContent,
+    codeToCompileSandbox,
+    cssContent,
+    docsVersion,
+    preset
+  )}
+                ${displayJsFiddle ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset) : ''}
+                <button aria-label="Open in new tab"><i class="ico i-zoom"></i></button>
+                <button aria-label="Reset demo"><i class="ico i-refresh"></i></button>
+              </div>
             </div>
-            <tabs
-              :class="$parent.$parent.addClassIfPreviewTabIsSelected('${id}', 'selected-preview')"
-              :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }"
-              cache-lifetime="0"
-              @changed="$parent.$parent.codePreviewTabChanged(...arguments, '${id}')"
-            >
+            <div class="example-container-code">
+              <tabs
+                :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }"
+                cache-lifetime="0"
+              >
           `;
       } else {
         // close preview
-        return '</tabs></div>';
+        return '</tabs></div></div>';
       }
     },
   };

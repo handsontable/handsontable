@@ -18,6 +18,7 @@ react:
   id: gr6w8qsy
   metaTitle: Column widths - React Data Grid | Handsontable
 searchCategory: Guides
+category: Columns
 ---
 
 # Column widths

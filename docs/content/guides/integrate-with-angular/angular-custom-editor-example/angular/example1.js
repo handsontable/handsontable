@@ -26,6 +26,7 @@ export class AppComponent {
     colWidths: 200,
     autoWrapRow: true,
     autoWrapCol: true,
+    height: 'auto',
     licenseKey: 'non-commercial-and-evaluation'
   };
 }
@@ -60,7 +61,7 @@ export class CustomEditor extends TextEditor {
 
     this.TEXTAREA = document.createElement('input');
     this.TEXTAREA.setAttribute('placeholder', 'Custom placeholder');
-    this.TEXTAREA.setAttribute('data-hot-input', true);
+    this.TEXTAREA.setAttribute('data-hot-input', 'true');
     this.textareaStyle = this.TEXTAREA.style;
     this.TEXTAREA_PARENT.innerText = '';
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);

@@ -415,18 +415,18 @@ describe('timeValidator', () => {
   describe('Time formats', () => {
     describe('with `correctFormat` disabled', () => {
       using('data set', [
-        { value: '23:15', timeFormat: 'HH:mm' },
-        { value: '11:15 AM', timeFormat: 'hh:mm A' },
-        { value: '11:15 am', timeFormat: 'hh:mm a' },
-        { value: '23:15:22:33', timeFormat: 'HH:mm:mm:ss' },
-        { value: '1:2:3:4', timeFormat: 'H:m:m:s' },
-        { value: '23:15:22:33 +02:00', timeFormat: 'HH:mm:mm:ss Z' },
-        { value: '23:15:22:33 +0200', timeFormat: 'HH:mm:mm:ss ZZ' },
+        { value: '23:15', timeFormat: 'HH:mm', isValid: true },
+        { value: '11:15 AM', timeFormat: 'hh:mm A', isValid: true },
+        { value: '11:15 am', timeFormat: 'hh:mm a', isValid: true },
+        { value: '23:15:22:33', timeFormat: 'HH:mm:mm:ss', isValid: true },
+        { value: '1:2:3:4', timeFormat: 'H:m:m:s', isValid: true },
+        { value: '23:15:22:33 +02:00', timeFormat: 'HH:mm:mm:ss Z', isValid: true },
+        { value: '23:15:22:33 +0200', timeFormat: 'HH:mm:mm:ss ZZ', isValid: true },
 
         // Improper format:
-        { value: '01:02:03:04', timeFormat: 'H:m:m:s' },
-        { value: '23:15:22:33 +02:00', timeFormat: 'HH:mm:mm:ss ZZ' },
-      ], ({ value, timeFormat }) => {
+        { value: '01:02:03:04', timeFormat: 'H:m:m:s', isValid: false },
+        { value: '23:15:22:33 +02:00', timeFormat: 'HH:mm:mm:ss ZZ', isValid: true },
+      ], ({ value, timeFormat, isValid }) => {
         it('should validate positively', async() => {
           const onAfterValidateSpy = jasmine.createSpy('onAfterValidate');
 
@@ -442,7 +442,7 @@ describe('timeValidator', () => {
 
           await sleep(50);
 
-          expect(onAfterValidateSpy).toHaveBeenCalledWith(true, value, 0, 0);
+          expect(onAfterValidateSpy).toHaveBeenCalledWith(isValid, value, 0, 0);
         });
       });
 

@@ -9,6 +9,7 @@ react:
   id: fkcjw0q1
   metaTitle: Row trimming - React Data Grid | Handsontable
 searchCategory: Guides
+category: Rows
 ---
 
 # Row trimming

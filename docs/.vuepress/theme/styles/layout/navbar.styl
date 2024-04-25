@@ -1,0 +1,534 @@
+.navbar {  
+    position: fixed
+    top: 0
+    margin: 0 0 0 0
+    background: none
+    border: none 
+    height: auto
+    z-index: 10100
+    backdrop-filter: blur(14px);
+    background: white
+    border-bottom: 1px solid $borderColor
+    max-width: 100vw
+
+    .tag  { 
+        font-size: $font-size-xxs
+        line-height: $line-height-xxs
+        display: block;
+        border-radius: $radius-s
+        padding: 2px 8px;
+        background-color: $linkColor
+        color: $bgColor
+        margin: -2px 0;
+    }
+
+    .navbar-wrapper {
+        box-sizing: border-box;
+        display: flex
+        height: 72px
+        padding: 8px 40px
+
+        > * {
+            box-sizing: border-box;
+        }
+
+        .top-bar {
+            display: flex
+            justify-content: space-between
+            width:100%
+
+            .top-bar_left { 
+                display: flex
+                gap:16px
+            }
+        }
+
+        .home-link {
+            padding-top: 2px
+            width: auto
+            margin-right: 24px
+            border-radius: $radius
+            position relative
+
+            .version {
+                display: block 
+                position: absolute
+                font-size: $font-size-xxs
+                line-height: $line-height-xxs
+                color: $textColor
+                left: 16px
+                bottom: 0
+            }
+
+        }
+
+        .Logo { 
+            margin: 16px
+            height: 25px 
+            width: 160px
+            display: block
+            background-repeat: no-repeat
+            background-size: 100%
+        }
+
+        .menu {
+            display: flex
+            padding: 4px 0 
+
+            .nav-links {
+                display: flex
+
+                .nav-item {
+                    .open { 
+                        > button { 
+                            color: $textColor
+                        }
+                    }
+                    
+                    &:not(.roadmap) {
+                        a, button {
+                            &.router-link-active { 
+                                position relative
+                                
+                                &:before { 
+                                    width: 20px
+                                    position: absolute
+                                    bottom: 10px
+                                    left: 50%
+                                    transform: translateX(-50%)
+                                    display: block
+                                    content: ''
+                                    background: $linkColor
+                                    height: 1px
+
+                                }
+                                color: $textColor
+                            }
+
+                            @media (hover: hover) {
+                                &:hover { 
+                                    color: $textColor
+                                }
+                            }
+                        }
+                    }
+
+                    a, button { 
+                        font-size:$font-size-xs
+                        line-height: $line-height-xs
+                        color: $text2Color
+                        padding: 13px 16px
+                        display: block
+                        display: flex
+                        white-space: nowrap
+                        gap:6px
+                        font-weight: 400
+                        border-radius: $radius
+                        transition: all $t ease-in-out 
+                    }
+
+                    button { 
+                        background:none
+                        border: none
+                        display: flex
+                        color: $text2Color
+                        align-items: center
+                    }
+
+                    .nav-dropdown {
+                        a { 
+                            padding: 6px 8px
+                            font-size:$font-size-xs
+                            line-height: $line-height-xs
+                        }    
+                    }
+
+                    .external span { 
+                        display:none
+                    }
+                }
+            }
+        }
+
+        .framework-and-version { 
+            display: flex
+            //display: none
+            
+
+            > nav > i {
+                margin-right -16px
+                z-index 1
+                position relative
+                top: 1px
+            } 
+            
+            .nav-frameworks { 
+                display: flex
+                align-items: center
+                gap: 8px
+                margin: 0
+
+                .dropdown-wrapper {
+                    &.open { 
+                        > button { 
+                            color: $textColor
+                        }
+                    }
+                    
+                    > button { 
+                        border-radius: $radius
+                        display: flex
+                        gap: 8px
+                        padding-left: 48px
+                        padding: 13px 16px 13px 40px
+                        margin-left:-24px
+                        margin-top: 4px
+                        font-size: $font-size-xs
+                        line-height: $line-height-xs
+                        align-items: center;
+                        color: $text2Color
+
+                        @media (hover: hover) {
+                            &:hover { 
+                                color: $textColor
+                            }
+                        }
+
+                        + .nav-dropdown { 
+                            left: -16px
+                        }
+                    }
+                }
+            }
+        }
+
+        .dropdown-wrapper { 
+            position: relative
+
+            > button { 
+                display: flex
+                padding: 16px
+                display: flex
+                gap: 8px
+                background: none
+                border:0
+                cursor pointer
+                transition all $t ease
+                text-transform: capitalize
+                font-size: $font-size-xs
+                line-height: $line-height-xs
+
+                .title {
+                    display: flex; gap: 8px
+                }
+
+                i { 
+                    transition all $t ease
+
+                    &.i-arrow { 
+                        opacity .64
+                    }
+                }
+            }
+
+            &.open { 
+                > button { 
+                    color: $textColor
+
+                    i { 
+                        transform:rotate(-180deg)
+
+                        &.i-arrow { 
+                            opacity .8
+                        }
+                    }
+
+                    & + .nav-dropdown {
+                        visibility: visible
+                        opacity 1
+                    }
+                }
+            }
+
+           /* @media (hover: hover) {
+                &:hover { 
+                    > button { 
+                        i { 
+                            transform:rotate(-180deg)
+                            
+                            &.i-arrow { 
+                                opacity 1
+                            }
+                        }
+
+                        & + .nav-dropdown {
+                            visibility: visible
+                            opacity 1
+                        }
+                    }
+                }
+            }
+            */
+
+            .nav-dropdown { 
+                transition all $t ease
+                display:block !important
+                visibility: hidden
+                opacity 0
+                position absolute
+                top: 48px
+                left: 0
+                background: $sideColor
+                padding: 12px 8px
+                border-radius: $radius-xl
+                min-width: 120px
+                height: auto !important
+
+                a { 
+                    color: $text2Color
+                    font-size: $font-size-xs
+                    line-height: $line-height-xs
+                    padding: 6px 8px 
+                    border:0
+                    position: relative
+                    transition all $t ease
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    z-index 1
+                    border-radius: $radius
+
+
+                    &:before { 
+                        content: ''
+                        display: block
+                        position absolute
+                        inset: 0 0
+                        background: $onsurfaceColor
+                        z-index -1
+                        border-radius: $radius
+                        opacity: 0
+                        transition all $t ease
+                    }
+
+                    @media (hover: hover) {
+                        &:hover { 
+                            color: $textColor
+
+                            &:before {
+                                opacity: 1
+                            }
+                        }
+                    }
+                    
+                    &.active { 
+                        color: $textColor
+                        font-weight: 400
+                        
+                        &:before { 
+                            opacity: 1    
+                        }
+                    }  
+                }
+            }
+        } 
+
+        //Icons
+        .icons-nav {
+            display: flex
+            padding: 4px 8px
+            gap: 8px
+            
+            > a, > span {
+                display: block
+                padding: 11px
+                position relative
+                transition: all $ts ease-in-out
+            }
+
+            button { 
+                cursor pointer
+                background: none
+                border: none
+                padding: 11px
+            }
+
+            > a, > span, button, label {
+                border-radius: $radius*4
+
+                @media (hover: hover) {
+                    &:hover { 
+                        background: $onsurfaceColor
+
+                        i { 
+                            opacity .8
+                        }
+                    }
+                }
+            }
+
+            .menuButton { 
+                display: none
+            }
+
+            .github-stars {
+                padding: 11px 16px
+                display: flex
+                border: 1px solid $borderColor
+                gap: 8px
+                color: $text2Color
+                font-size: $font-size-xs
+                line-height: $line-height-xxs
+                transition: all $ts ease-in-out
+
+                i {
+                    opacity .64
+                    transition: all $ts ease-in-out
+                }
+
+                @media (hover: hover) {
+                    &:hover { 
+                        color: $textColor
+
+                        i { opacity: .8}
+                    }
+                }
+            }
+
+            .news i { 
+                opacity: .64
+            }
+            
+            #HW_badge_cont { 
+                position absolute
+                inset:0
+                width: auto
+                height: auto;
+
+                .HW_badge {
+                    bottom: 8px
+                    left: 8px
+                    width: 12px
+                    height: 12px
+                    top: auto
+                    line-height: 12px
+                    font-size: 8px
+                }
+
+                .HW_badge.HW_softHidden { 
+                    background: $linkColor
+                }
+            }
+        }   
+    }
+    
+    @media (max-width: $extraLarge) {
+        .navbar-wrapper .menu .nav-links .nav-item a,
+        .navbar-wrapper .menu .nav-links .nav-item button {
+            //padding: 22px 12px
+        }
+        .navbar-wrapper {
+            padding: 8px 24px
+        }
+    }
+
+    @media (max-width: $xLarge) {
+        .navbar-wrapper {
+            .icons-nav .news {
+                display:none
+            }
+
+            .framework-and-version { 
+                display: none
+            }
+        }
+    }
+
+    @media (max-width: $large) {
+        .navbar-wrapper {
+            width: unset
+            justify-content: space-between
+
+            .top-bar { 
+                width: auto
+            }  
+        }
+    }
+
+    @media (max-width: $large) {
+        margin: 0
+        z-index: 200
+        padding: 0
+
+        &:after{
+            display: none
+        }
+
+        .navbar-wrapper {
+            padding: 0 8px
+            border-radius: 0
+            
+            .framework-and-version,
+            .menu .nav-links { 
+                display: none
+            }
+
+            .icons-nav {
+                button:not(.menuButton), a {
+                    display: none
+                }
+
+                .github-stars {
+                    display: none
+                }
+            }
+
+            .icons-nav .menuButton {
+                display: flex;
+
+                i:nth-child(1) { display: block}
+                i:nth-child(2) { display: none}
+            }
+
+            .Logo { 
+                margin: 24px
+                height: 25px 
+                width: 160px
+                display: block
+                background-repeat: no-repeat
+                background-size: 100%
+            }
+
+            .home-link { 
+                padding-top: 4px
+                margin-right: 0
+                
+                .version {
+                    left: 24px;
+                    bottom: 8px;
+                }
+            }
+
+            .top-bar { 
+                align-items: center
+            }
+
+            .news { 
+                display: none
+            }
+        }
+    }
+}
+
+.sidebar-open .navbar {
+    @media (max-width: $large) {
+        .navbar-wrapper {
+            background: none !important
+
+            #mobileSearch + .menuButton {
+                i:nth-child(2) { display: block}
+                i:nth-child(1) { display: none}
+            }
+        }
+    }
+}

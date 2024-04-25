@@ -13,6 +13,7 @@ react:
   id: 3xqdvk3u
   metaTitle: Batch operations - React Data Grid | Handsontable
 searchCategory: Guides
+category: Optimization
 ---
 
 # Batch operations
@@ -215,11 +216,19 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Performance](@/guides/optimization/performance/performance.md)
+
+</div>
 
 ### Related blog articles
 
+<div class="boxes-list">
+
 - [Handsontable 8.3.0 has been released](https://handsontable.com/blog/handsontable-8.3.0-has-been-released)
+
+</div>
 
 ### Related API reference
 

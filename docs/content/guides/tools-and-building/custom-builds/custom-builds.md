@@ -13,6 +13,7 @@ react:
   id: pcflnieu
   metaTitle: Custom builds - React Data Grid | Handsontable
 searchCategory: Guides
+category: Tools and building
 ---
 
 # Custom builds
@@ -313,6 +314,8 @@ From the `/wrappers/vue3` directory, you can also run individual Vue 3 `build` t
 
 ## Related guides
 
+<div class="boxes-list gray">
+
 ::: only-for javascript
 
 - [Packages](@/guides/tools-and-building/packages/packages.md)
@@ -320,3 +323,5 @@ From the `/wrappers/vue3` directory, you can also run individual Vue 3 `build` t
 :::
 
 - [Testing](@/guides/tools-and-building/testing/testing.md)
+
+</div>
