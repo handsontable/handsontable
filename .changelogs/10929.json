@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Updated production dependencies (remove `pikaday` - using `@handsontable/pikaday` instead, bump `numbro`)",
+  "type": "changed",
+  "issueOrPR": 10929,
+  "breaking": true,
+  "framework": "none"
+}
