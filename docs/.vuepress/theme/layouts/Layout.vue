@@ -1,5 +1,6 @@
 <template>
   <div class="layout-container">
+    <SchemaStructuredData :key="$page.path"></SchemaStructuredData>
     <ParentLayout>
       <template #page-top>
         <div v-show="show" class="page-top">
@@ -18,6 +19,7 @@ import ParentLayout from '@parent-theme/layouts/Layout.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
 import NavLink from '@theme/components/NavLink.vue';
 import Sidebar from '@theme/components/Sidebar.vue';
+import SchemaStructuredData from '@theme/components/SchemaStructuredData.vue';
 
 export default {
   name: 'Layout',
@@ -25,7 +27,8 @@ export default {
     ParentLayout,
     NavLinks,
     NavLink,
-    Sidebar
+    Sidebar,
+    SchemaStructuredData,
   },
   computed: {
     show() {
@@ -37,6 +40,6 @@ export default {
     if (this.$ssrContext) {
       this.$ssrContext.docsGenStamp = this.$page.docsGenStamp ?? '';
     }
-  }
+  },
 };
 </script>
