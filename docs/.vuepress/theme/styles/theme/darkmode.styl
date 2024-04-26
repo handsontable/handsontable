@@ -528,15 +528,30 @@ html.theme-dark {
                 }
             }
             
-            .theme-code-group__nav { 
-                background: $borderColor
+            .theme-code-group { 
+                .theme-code-group__nav {
+                    background: $editorColor
 
-                button {
-                    color: $text2Color
+                    .theme-code-group__ul {
+                        .theme-code-group__li {
+                            button {
+                                color: $text2Color
+                                background: $onsurfaceColor
+                                border: 1px solid $onsurfaceColor
 
-                    &.theme-code-group__nav-tab-active {
-                        color: $textColor
-                        border-color: $accentColor
+                                &.theme-code-group__nav-tab-active {
+                                    color: $textColor
+                                    background: $onsurfaceColor
+                                    border: 1px solid $lightBorderColor
+                                }
+
+                                @media (hover: hover) {
+                                    &:hover { 
+                                        color: $textColor
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -564,16 +579,6 @@ html.theme-dark {
                             }
                         }
                     }
-                }
-
-                p { 
-                    a { 
-                        //color: $textColor 
-                    }
-                }
-
-                code { 
-                    //background: $bgColor 
                 }
             }
         }
@@ -678,7 +683,8 @@ html.theme-dark {
                 color: $text2Color
 
                 .edit-link a { 
-                    i { filter: hue-rotate(190deg) invert(1) }
+                    color: $linkColor
+                    i { filter: brightness(0) invert(.6) }
 
                     @media (hover: hover) {
                         &:hover {  

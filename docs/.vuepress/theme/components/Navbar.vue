@@ -4,6 +4,7 @@
       <RouterLink
           :to="frameworkUrlPrefix"
           class="home-link"
+          aria-label="Docs Homepage Link"
       >
         <Logo />
       </RouterLink>

@@ -48,8 +48,6 @@
         gap: 8px
 
         li.tabs-component-tab  {
-            
-
             a.tabs-component-tab-a {
                 padding: 6px 12px
                 margin:0
@@ -115,6 +113,11 @@
 
             label { display: flex
                 align-items: center
+
+                &:focus-within {
+                    border:none
+                    outline: 1px solid  $accentColor
+                }
             }
 
             > a { 
@@ -130,6 +133,7 @@
 
 .page .theme-default-content  .tabs-button-wrapper {
     padding-top: 8px
+    padding-bottom: 8px
     display: flex
     flex-direction: column
     gap 0
@@ -209,7 +213,7 @@
                     content: attr(aria-label)
                     position absolute
                     white-space: pre;
-                    bottom: 38px;
+                    top: 40px;
                     left: 50%
                     transform: translateX(-50%)
                     padding:4px 8px

@@ -6,8 +6,8 @@
     border: none 
     height: auto
     z-index: 10100
-    backdrop-filter: blur(14px);
-    background: white
+    backdrop-filter: blur(14px)
+    background: $dropColor
     border-bottom: 1px solid $borderColor
     max-width: 100vw
 
@@ -17,7 +17,7 @@
         display: block;
         border-radius: $radius-s
         padding: 2px 8px;
-        background-color: $linkColor
+        background-color: $accentColor
         color: $bgColor
         margin: -2px 0;
     }
@@ -98,7 +98,7 @@
                                     transform: translateX(-50%)
                                     display: block
                                     content: ''
-                                    background: $linkColor
+                                    background: $accentColor
                                     height: 1px
 
                                 }
@@ -250,26 +250,6 @@
                 }
             }
 
-           /* @media (hover: hover) {
-                &:hover { 
-                    > button { 
-                        i { 
-                            transform:rotate(-180deg)
-                            
-                            &.i-arrow { 
-                                opacity 1
-                            }
-                        }
-
-                        & + .nav-dropdown {
-                            visibility: visible
-                            opacity 1
-                        }
-                    }
-                }
-            }
-            */
-
             .nav-dropdown { 
                 transition all $t ease
                 display:block !important
@@ -278,7 +258,7 @@
                 position absolute
                 top: 48px
                 left: 0
-                background: $sideColor
+                background: $borderColor
                 padding: 12px 8px
                 border-radius: $radius-xl
                 min-width: 120px
@@ -304,7 +284,7 @@
                         display: block
                         position absolute
                         inset: 0 0
-                        background: $onsurfaceColor
+                        background: $borderColor
                         z-index -1
                         border-radius: $radius
                         opacity: 0
@@ -374,7 +354,7 @@
             .github-stars {
                 padding: 11px 16px
                 display: flex
-                border: 1px solid $borderColor
+                border: 1px solid $lightBorderColor
                 gap: 8px
                 color: $text2Color
                 font-size: $font-size-xs
@@ -416,7 +396,7 @@
                 }
 
                 .HW_badge.HW_softHidden { 
-                    background: $linkColor
+                    background: $accentColor
                 }
             }
         }   
