@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Maintain focus after column collapsing.",
+  "title": "Fixed a bug for cell editors switched dynamically",
   "type": "fixed",
-  "issueOrPR": 10865,
+  "issueOrPR": 10938,
   "breaking": false,
   "framework": "none"
 }

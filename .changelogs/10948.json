@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed datepicker position of the date cell type.",
+  "title": "Removed double borders for column headers",
   "type": "fixed",
-  "issueOrPR": 10892,
+  "issueOrPR": 10948,
   "breaking": false,
   "framework": "none"
 }

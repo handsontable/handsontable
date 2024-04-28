@@ -1,6 +1,6 @@
 {
   "name": "@handsontable/react",
-  "version": "14.2.0",
+  "version": "14.3.0",
   "description": "Best Data Grid for React with Spreadsheet Look and Feel.",
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "homepage": "https://handsontable.com",
@@ -100,8 +100,8 @@
     "publish-package": "npm publish",
     "test": "jest",
     "test.watch": "jest --watch",
-    "watch:commonjs": "cross-env NODE_ENV=cjs rollup -c --watch",
-    "watch:es": "cross-env NODE_ENV=es rollup -c --watch"
+    "watch:commonjs": "cross-env NODE_ENV=cjs rollup -c --watch --bundleConfigAsCjs",
+    "watch:es": "cross-env NODE_ENV=es rollup -c --watch --bundleConfigAsCjs"
   },
   "jest": {
     "testURL": "http://localhost/",

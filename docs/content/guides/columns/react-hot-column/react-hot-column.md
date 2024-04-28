@@ -8,6 +8,7 @@ canonicalUrl: /hot-column
 tags:
   - hotcolumn
 searchCategory: Guides
+onlyFor: react
 ---
 
 # Column component

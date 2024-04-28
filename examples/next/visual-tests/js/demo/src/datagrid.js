@@ -59,7 +59,10 @@ import {
   drawCheckboxInRowHeaders
 } from "./hooksCallbacks";
 
-const example = document.getElementById("example");
+const root = document.getElementById('root');
+const example = document.createElement('div');
+root.appendChild(example);
+
 export function initializeDataGrid() {
 
 new Handsontable(example, {

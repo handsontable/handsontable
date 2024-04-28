@@ -8,6 +8,19 @@ const stackblitz = (id, html, js, css, docsVersion, preset) => {
       `<textarea class="hidden" name="project[files][${key}]" readOnly v-pre>${value.content}</textarea>`
     )) : [];
 
+  const addReactDependencies = preset.includes('react')
+    // eslint-disable-next-line max-len
+    ? ', "@handsontable/react": "latest", "react": "latest", "react-dom": "latest", "redux": "latest", "react-redux": "latest", "react-colorful": "latest", "react-star-rating-component": "latest"'
+    : '';
+
+  const getTemplate = () => {
+    if (preset.includes('react')) return 'create-react-app';
+
+    if (preset.includes('hot')) return 'javascript';
+
+    return 'node';
+  };
+
   return `
   <form
     class="form-stackblitz-external" 
@@ -16,9 +29,12 @@ const stackblitz = (id, html, js, css, docsVersion, preset) => {
     target="_blank"
   >
     ${projects.join('\n')}
-    <input type="hidden" name="project[title]" value="handsontable">
-    <input type="hidden" name="project[description]" value="demo">
-    <input type="hidden" name="project[template]" value="node">
+    <input type="hidden" name="project[title]" value="handsontable"/>
+    <input type="hidden" name="project[description]" value="demo"/>
+    <input type="hidden" name="project[dependencies]" 
+      value='{"hyperformula":"latest", "handsontable": "latest"${addReactDependencies}}'
+    />
+    <input type="hidden" name="project[template]" value="${getTemplate()}"/>
     
     <div class="js-stackblitz-link">
       <button type="submit" aria-label="Edit stackblitz">

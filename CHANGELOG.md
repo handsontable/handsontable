@@ -9,6 +9,33 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [14.3.0] - 2024-04-16
+
+### Added
+- Added new feature, Navigation within selection and edit cells within a range [#10732](https://github.com/handsontable/handsontable/pull/10732)
+
+### Changed
+- Updated dependencies based on npm audit, most notably we upgraded to angular 17.0 [#10889](https://github.com/handsontable/handsontable/pull/10889)
+
+### Fixed
+
+- Ensured the cursor changes to 'grabbing' for all table elements during column or row movement[#10852](https://github.com/handsontable/handsontable/pull/10852)
+- Resolved an issue where the `TAB` key failed to move selection when editing select-type cells in 'fast edit' mode. [#10849](https://github.com/handsontable/handsontable/pull/10849)
+- Prevent the `Cmd/Ctrl + A` action when the focus is on headers. [#10853](https://github.com/handsontable/handsontable/pull/10853)
+- Unified `source` arguments in `beforeChange` and `afterChange` hooks triggered by the Merge Cells plugin. [#10857](https://github.com/handsontable/handsontable/pull/10857)
+- Ensured focus retention after column collapsing. [#10865](https://github.com/handsontable/handsontable/pull/10865)
+- Fixed visibility issue with bottom/right cell borders after scrolling from the absolute top/left positions using the api. [#10887](https://github.com/handsontable/handsontable/pull/10887)
+- Fixed Dropdown plugin logic to prevent blocking click events from custom editors. [#10888](https://github.com/handsontable/handsontable/pull/10888)
+- Fixed datepicker position for the date cell type. [#10892](https://github.com/handsontable/handsontable/pull/10892)
+- Vue: Fixed an issue in the Vue and Vue3 wrappers where updating the hook callback didn't reflect changes in the underlying instance's settings. [#10686](https://github.com/handsontable/handsontable/issues/10686)
+- Vue: Fixed the behavior of the Vue/Vue3 wrappers' `simpleEqual` helper, which previously returned incorrect results when comparing identical objects. [#10896](https://github.com/handsontable/handsontable/pull/10896)
+
+For more information on Handsontable 14.3.0, see:
+
+- [Blog post (14.3.0)](https://handsontable.com/blog/handsontable-14.3.0-enhanced-navigation-and-bug-fixes)
+- [Documentation (14.3)](https://handsontable.com/docs/14.3)
+- [Release notes (14.3.0)](https://handsontable.com/docs/release-notes/#_14-3-0)
+
 ## [14.2.0] - 2024-03-06
 
 ### Added

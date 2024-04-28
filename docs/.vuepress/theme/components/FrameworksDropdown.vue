@@ -52,10 +52,11 @@ export default {
       return frameworkIdToFullName.get(framework).alt;
     },
     getLink(framework) {
-      const currentPageSlug = !this.$page.frontmatter.react && framework === 'react'
-        ? ''
-        : this.$page.frontmatter.permalink.split('/')[2];
-
+      const currentPageSlug =
+        (framework === 'react' && !this.$page.frontmatter.react)
+        || (framework === 'javascript' && this.$page.frontmatter?.onlyFor?.includes('react'))
+          ? ''
+          : this.$page.frontmatter.permalink.split('/')[2];
       const {
         homepage = `/${framework}${
           this.$page.frameworkSuffix ? `${this.$page.frameworkSuffix}/` : ''

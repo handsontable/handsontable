@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `Ctrl/Cmd` + `Enter` keyboard shortcut for comments",
+  "type": "fixed",
+  "issueOrPR": 10920,
+  "breaking": false,
+  "framework": "none"
+}

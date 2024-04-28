@@ -1175,7 +1175,7 @@ describe('DateEditor', () => {
     { date: '01/02/2023', dateFormat: 'DD/MM/YYYY', day: 1, month: 1, year: 2023 },
     { date: '01/02/23', dateFormat: 'DD/MM/YY', day: 1, month: 1, year: 2023 },
     { date: '1/2/23', dateFormat: 'D/M/YY', day: 1, month: 1, year: 2023 },
-    { date: '01/02/23', dateFormat: 'D/M/YY', day: 1, month: 1, year: 2023 }, // ?
+    { date: '01/02/23', dateFormat: 'D/M/YY', day: 2, month: 0, year: 2023 },
     { date: '01-02-2023', dateFormat: 'DD-MM-YYYY', day: 1, month: 1, year: 2023 },
     { date: '1-2-23', dateFormat: 'D-M-YY', day: 1, month: 1, year: 2023 },
     { date: '1-12-23', dateFormat: 'D-M-YY', day: 1, month: 11, year: 2023 },

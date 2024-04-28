@@ -13,6 +13,7 @@ import {
   sleep,
   simulateKeyboardEvent,
   simulateMouseEvent,
+  mountComponent,
   mountComponentWithRef
 } from './_helpers';
 
@@ -161,6 +162,99 @@ describe('Updating the Handsontable settings', () => {
     expect(hotInstance.getSettings().contextMenu).toBe(true);
     expect(hotInstance.getSettings().readOnly).toBe(true);
     expect(JSON.stringify(hotInstance.getSettings().data)).toEqual('[[2]]');
+  });
+
+  it('should throw an error when trying to update init-only settings after inializing the component', async () => {
+    console.error = jasmine.createSpy('error');
+
+    let updateState = null;
+
+    function ExampleComponent() {
+      const [renderAllRows, setRenderAllRows] = React.useState(false);
+
+      (updateState as any) = setRenderAllRows;
+
+      return (
+        <>
+          <HotTable licenseKey="non-commercial-and-evaluation"
+            id="test-hot"
+            data={[[1]]}
+            renderAllRows={renderAllRows}
+          ></HotTable>
+        </>
+      )
+    }
+
+    mountComponent((
+      <ExampleComponent/>
+    ));
+
+    const updateStateAndRender = () => act(() => (updateState as any)(true));
+
+    await expect(updateStateAndRender).toThrowError(
+      'The `renderAllRows` option can not be updated after the Handsontable is initialized.'
+    );
+
+    expect(console.error).toHaveBeenCalled();
+  });
+
+  it('should NOT throw an error when trying to update settings after inializing the component if the other settings' +
+  'contain init-only entries', async () => {
+    console.error = jasmine.createSpy('error');
+
+    let updateState = null;
+
+    function ExampleComponent() {
+      const [rowHeaders, setRowHeaders] = React.useState(false);
+
+      (updateState as any) = setRowHeaders;
+
+      return (
+        <>
+          <HotTable licenseKey="non-commercial-and-evaluation"
+            id="test-hot"
+            data={[[1]]}
+            rowHeaders={rowHeaders}
+            renderAllRows={true}
+          ></HotTable>
+        </>
+      )
+    }
+
+    mountComponent((
+      <ExampleComponent/>
+    ));
+
+    const updateStateAndRender = () => act(() => (updateState as any)(true));
+
+    await expect(updateStateAndRender).not.toThrowError();
+
+    expect(console.error).not.toHaveBeenCalled();
+  });
+
+  it('should NOT throw an error when definiting init-only settings, without updating them afterwards', async () => {
+    console.error = jasmine.createSpy('error');
+
+    function ExampleComponent() {
+      return (
+        <>
+          <HotTable licenseKey="non-commercial-and-evaluation"
+            id="test-hot"
+            data={[[1]]}
+            renderAllRows={true}
+            renderAllColumns={true}
+            ariaTags={true}
+            layoutDirection={"rtl"}
+          ></HotTable>
+        </>
+      )
+    }
+
+    mountComponent((
+      <ExampleComponent/>
+    ));
+
+    expect(console.error).not.toHaveBeenCalled();
   });
 });
 
@@ -330,7 +424,7 @@ describe('Editor configuration using React components', () => {
 
     {
       const activeEditor = hotInstance.getActiveEditor();
-      
+
       expect(activeEditor.constructor.name).toBe('CustomEditor');
       expect(activeEditor.editorComponent.__proto__.constructor.name).toBe('EditorComponent');
 

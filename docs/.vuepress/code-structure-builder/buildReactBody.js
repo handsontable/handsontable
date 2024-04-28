@@ -1,4 +1,4 @@
-const buildReactBody = ({ js, css, version, preset, sandbox }) => {
+const buildReactBody = ({ js, css, version, hyperformulaVersion, preset, sandbox }) => {
   const addReduxDependencies = preset.includes('redux')
     ? `
     "redux": "^4.0.0",
@@ -6,11 +6,10 @@ const buildReactBody = ({ js, css, version, preset, sandbox }) => {
     : '';
 
   const addAdvancedDependencies = preset.includes('advanced')
-    ? `
-    "redux": "latest",
-    "react-redux": "latest",
-    "react-colorful": "latest",
-    "react-star-rating-component": "latest",`
+    ? `"redux": "^4.0.0",
+    "react-redux": "^7.2.4",
+    "react-colorful": "5.6.1",
+    "react-star-rating-component": "1.4.1",`
     : '';
 
   if (sandbox === 'stackblitz') {
@@ -21,34 +20,28 @@ const buildReactBody = ({ js, css, version, preset, sandbox }) => {
   "name": "handsontable",
   "version": "1.0.0",
   "description": "",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",${addReduxDependencies}${addAdvancedDependencies}
-    "hyperformula": "^2.4.0",
+    "hyperformula": "${hyperformulaVersion}",
     "handsontable": "${version}",
     "@handsontable/react": "${version}"
   },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^4.2.1",
-    "vite": "^5.1.6"
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }`
         },
-        'vite.config.js': {
-          content: `import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-
-// https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react()]
-})`
-        },
-        'index.html': {
+        'public/index.html': {
           content: `<!DOCTYPE html>
 <html>
   <head>
@@ -57,8 +50,8 @@ export default defineConfig({
   </head>
 
   <body>
+    <noscript> You need to enable JavaScript to run this app. </noscript>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
 `
@@ -66,8 +59,8 @@ export default defineConfig({
         'src/styles.css': {
           content: css
         },
-        'src/main.jsx': {
-          content: `import { StrictMode } from "react";
+        'src/index.js': {
+          content: `import React, { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 import ExampleComponent from "./ExampleComponent";
@@ -82,7 +75,8 @@ root.render(
 );`
         },
         'src/ExampleComponent.jsx': {
-          content: js
+          content: `import React from "react";
+${js}`
         }
       }
     };
@@ -103,7 +97,6 @@ root.render(
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",${addReduxDependencies}${addAdvancedDependencies}
-    "hyperformula": "latest",
     "handsontable": "${version}",
     "@handsontable/react": "${version}"
   },
@@ -130,6 +123,9 @@ root.render(
   <head>
     <meta charset="utf-8" />
     <title>Handsontable</title>
+    ${js.includes('import { HyperFormula } from \'hyperformula\';')
+    ? '<script src="https://cdn.jsdelivr.net/npm/hyperformula/dist/hyperformula.full.min.js"></script>'
+    : ''}
   </head>
 
   <body>
@@ -158,7 +154,7 @@ root.render(
 );`
       },
       'src/ExampleComponent.jsx': {
-        content: js
+        content: js.replace('import { HyperFormula } from \'hyperformula\';', '')
       }
     }
   };
