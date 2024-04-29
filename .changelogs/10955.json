@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed columns summary cell meta missing state after calling the `updateSettings` method.",
+  "type": "fixed",
+  "issueOrPR": 10955,
+  "breaking": false,
+  "framework": "none"
+}
