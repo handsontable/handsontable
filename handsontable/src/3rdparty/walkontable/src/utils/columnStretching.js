@@ -83,6 +83,10 @@ export class ColumnStretching {
       return;
     }
 
+    this.stretchAllRatio = 0;
+    this.stretchAllColumnsWidth = [];
+    this.needVerifyLastColumnWidth = true;
+    this.stretchLastWidth = 0;
     this.#totalTargetWidth = totalWidth;
 
     let sumAll = 0;
