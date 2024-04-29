@@ -10,7 +10,7 @@
     "sourceMap": true,
     "baseUrl": ".",
     "declaration": true,
-    "declarationDir": ".",
+    "declarationDir": "./types",
     "strict": true
   },
   "include": [
