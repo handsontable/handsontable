@@ -411,6 +411,10 @@ html.theme-dark {
             
             h1, h2, h3, h4, h5, h6 {
                 color: $textColor
+
+                a { 
+                    text-decoration: none
+                }
             }
             
             h1 {
@@ -435,6 +439,10 @@ html.theme-dark {
                 }
             }
 
+            li > a { 
+                text-decoration: none
+            }
+
             pre { 
                 background: $editorColor 
             }
@@ -447,10 +455,12 @@ html.theme-dark {
 
             a {
                 color: $linkColor
+                text-decoration: underline
+                text-decoration-color: $lightBorderColor
 
                 @media (hover: hover) {
                     &:hover { 
-                        text-decoration:none
+                        text-decoration-color: var(--color-gray-550) // $hoverWhiteColor
                         color: $linkHoverColor
                     }
                 }
@@ -473,6 +483,10 @@ html.theme-dark {
                 background: $editorColor 
                 color:$textColor
             }
+            a:has(code) {
+                text-decoration: none
+            }
+
             a code {
                 color: $linkColor
                 
