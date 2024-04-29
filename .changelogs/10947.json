@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved fast typing values between editors",
+  "type": "fixed",
+  "issueOrPR": 10947,
+  "breaking": false,
+  "framework": "none"
+}

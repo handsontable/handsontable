@@ -40,7 +40,7 @@ export class FocusManager {
    *
    * @type {number}
    */
-  #refocusDelay = 50;
+  #refocusDelay = 1;
   /**
    * Getter function for the element to be used when refocusing the browser after a delay. If `null`, the active
    * editor's `TEXTAREA` element will be used.
