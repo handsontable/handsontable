@@ -48,6 +48,10 @@
         gap: 8px
 
         li.tabs-component-tab  {
+            &:first-child:last-child { 
+            //    visibility: hidden
+            }
+
             a.tabs-component-tab-a {
                 padding: 6px 12px
                 margin:0
@@ -58,7 +62,14 @@
                 font-weight: 400
                 background: $onsurfaceColor
                 border-radius: $radius
-                border: 1px solid $lightBorderColor
+                background: $onsurfaceColor
+                border: 1px solid $onsurfaceColor
+
+                @media (hover: hover) {
+                    &:hover { 
+                        color: $textColor
+                    }
+                }
             }
 
             &.is-active { 
@@ -159,7 +170,8 @@
             margin-bottom: 16px
 
             .show-code {
-                border: 1px solid $accentColor !important
+                background: $borderColor !important
+                //border: 1px solid $accentColor !important
             }
 
             + .example-container-code { 
@@ -170,13 +182,20 @@
         }
 
         .show-code {
-            padding: 7px 16px !important
+            padding: 7px 16px 7px 13px !important
             border:none !important
             display: flex
             gap: 8px
+            background: $bgColor
             transition: all $t ease-in-out
             align-items: center
-            border: 1px solid $sideColor !important
+            border: 1px solid $bgColor !important
+
+            @media (hover: hover) {
+                &:hover {
+                    background: $editorColor
+                }
+            }
         }
 
         .example-controls { 

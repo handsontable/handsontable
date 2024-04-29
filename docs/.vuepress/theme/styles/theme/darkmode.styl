@@ -457,6 +457,7 @@ html.theme-dark {
                 color: $linkColor
                 text-decoration: underline
                 text-decoration-color: $lightBorderColor
+                text-decoration-style: dashed
 
                 @media (hover: hover) {
                     &:hover { 
@@ -555,7 +556,7 @@ html.theme-dark {
 
                                 &.theme-code-group__nav-tab-active {
                                     color: $textColor
-                                    background: $onsurfaceColor
+                                    background: $lightBorderColor
                                     border: 1px solid $lightBorderColor
                                 }
 
@@ -566,6 +567,14 @@ html.theme-dark {
                                 }
                             }
                         }
+                    }
+                }
+
+                &.is-active { 
+                    a {
+                        color: $textColor
+                        background: $lightBorderColor
+                        border: 1px solid $lightBorderColor
                     }
                 }
             }
@@ -839,12 +848,18 @@ html.theme-dark {
                     color: $text2Color
                     background: $onsurfaceColor
                     border: 1px solid $onsurfaceColor
+
+                    @media (hover: hover) {
+                        &:hover { 
+                            color: $textColor
+                        }
+                    }
                 }
 
                 &.is-active { 
                     a {
                         color: $textColor
-                        background: $onsurfaceColor
+                        background: $lightBorderColor
                         border: 1px solid $lightBorderColor
                     }
                 }
@@ -1223,7 +1238,8 @@ html.theme-dark {
 
             &.active {
                 .show-code {
-                    border: 1px solid $accentColor !important
+                    //border: 1px solid $accentColor !important
+                    background: $lightBorderColor !important
                 }
             }
             
