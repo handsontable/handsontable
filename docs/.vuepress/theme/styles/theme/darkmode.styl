@@ -54,6 +54,11 @@ html.theme-dark {
     background: $bgColor //url('{{$basePath}}/img/noise.png') repeat
     color: $textColor
 
+    ::selection {
+        background-color: $accentColor
+        color: $textColor
+    }
+
     body { 
         background: $bgColor //url('{{$basePath}}/img/noise.png') repeat
     }
@@ -496,6 +501,10 @@ html.theme-dark {
                         color: $linkHoverColor
                     }
                 }
+            }
+
+            th code {
+                background: $sideColor
             }
             
             a > code,
