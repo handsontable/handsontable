@@ -36,6 +36,8 @@ const ExampleComponent = () => {
     <HotTable data={hotData}
       autoWrapRow={true}
       autoWrapCol={true}
+      autoRowSize={false}
+      autoColumnSize={false}
       height="auto"
       licenseKey="non-commercial-and-evaluation">
       <HotColumn width={250}>

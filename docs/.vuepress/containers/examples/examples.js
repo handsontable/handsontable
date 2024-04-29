@@ -136,6 +136,7 @@ module.exports = function(docsVersion, base) {
 
         tokens.splice(index + 1, 0, ...newTokens);
         const isAngular = /angular(-.*)?/.test(preset);
+        const isRTL = /layoutDirection(.*)'rtl'/.test(codeToCompile) || /dir="rtl"/.test(htmlContent);
 
         const displayJsFiddle = Boolean(!noEdit && !isAngular);
 
@@ -146,7 +147,7 @@ module.exports = function(docsVersion, base) {
             <ScriptLoader code="${encodedCode}"></ScriptLoader>
           </div>
           <div class="tabs-button-wrapper">
-            <div class="tabs-button-list">
+            <div class="tabs-button-list" ${isRTL ? 'div="rtl"' : ''}>
               <button class="show-code" @click="$parent.$parent.showCodeButton($event)">
                 <i class="ico i-code"></i>Source code
               </button>
@@ -168,8 +169,8 @@ module.exports = function(docsVersion, base) {
     preset
   )}
                 ${displayJsFiddle ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset) : ''}
-                <button aria-label="Open in new tab"><i class="ico i-zoom"></i></button>
-                <button aria-label="Reset demo"><i class="ico i-refresh"></i></button>
+                <button aria-label="Open in new tab"><i class="ico i-zoom no-pointer"></i></button>
+                <button aria-label="Reset demo"><i class="ico i-refresh no-pointer"></i></button>
               </div>
             </div>
             <div class="example-container-code">
