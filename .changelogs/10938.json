@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug for cell editors switched dynamically",
+  "type": "fixed",
+  "issueOrPR": 10938,
+  "breaking": false,
+  "framework": "none"
+}

@@ -261,11 +261,8 @@ export class FocusManager {
    * @param {object} newSettings The new settings passed to the `updateSettings` method.
    */
   #onUpdateSettings(newSettings) {
-    if (newSettings.imeFastEdit && this.getFocusMode() !== FOCUS_MODES.MIXED) {
-      this.setFocusMode(FOCUS_MODES.MIXED);
-
-    } else if (!newSettings.imeFastEdit && this.getFocusMode() !== FOCUS_MODES.CELL) {
-      this.setFocusMode(FOCUS_MODES.CELL);
+    if (typeof newSettings.imeFastEdit === 'boolean') {
+      this.setFocusMode(newSettings.imeFastEdit ? FOCUS_MODES.MIXED : FOCUS_MODES.CELL);
     }
   }
 }

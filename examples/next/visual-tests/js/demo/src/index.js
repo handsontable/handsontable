@@ -1,18 +1,16 @@
 import Navigo from 'navigo';
 import { initializeDataGrid } from './datagrid';
+import { initializeScenarioGrid } from './scenarioGrid';
 
-const root = null;
-const useHash = true; // Defaults to: false
-const hash = '#!'; // Defaults to: '#'
-const router = new Navigo(root, useHash, hash);
+const router = new Navigo('/');
 
 router
   .on({
     '/': function () {
       initializeDataGrid();
     },
-    '/another': function () {
-      // display your another page
+    '/scenario-grid': function () {
+      initializeScenarioGrid();
     }
   })
   .resolve();

@@ -212,6 +212,15 @@ export class ManualRowResize extends BasePlugin {
   }
 
   /**
+   * Returns the last desired row height set manually with the resize handle.
+   *
+   * @returns {number} The last desired row height.
+   */
+  getLastDesiredRowHeight() {
+    return this.#currentHeight;
+  }
+
+  /**
    * Sets the resize handle position.
    *
    * @private
@@ -442,7 +451,7 @@ export class ManualRowResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize();
     };
     const resize = (row, forceRender) => {
       const hookNewSize = this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, true);
@@ -529,7 +538,7 @@ export class ManualRowResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize();
     };
     const runHooks = (row, forceRender) => {
       this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, false);

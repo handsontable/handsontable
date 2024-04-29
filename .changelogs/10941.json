@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Extended the `manualRowResize` plugin with a method that retrieves the row height value from the last attempt at manually changing said row height.",
+  "type": "added",
+  "issueOrPR": 10941,
+  "breaking": false,
+  "framework": "none"
+}
