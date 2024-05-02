@@ -47,12 +47,12 @@ Thousands of business apps depend on Handsontable for entering, editing, validat
 
 To jump straight into the sample code, open the demo app at CodeSandbox:
 
-- [JavaScript demo](https://codesandbox.io/s/handsontable-javascript-data-grid-hello-world-app-14-0-0-smp4xx)
-- [React demo](https://codesandbox.io/s/handsontable-react-data-grid-hello-world-app-14-0-0-xr7mj2)
-- [Angular demo](https://codesandbox.io/s/handsontable-angular-data-grid-hello-world-app-14-0-0-c54xw9)
-- [Vue 2 demo](https://codesandbox.io/s/handsontable-vue-data-grid-hello-world-app-14-0-0-zm9nz6)
-- [Vue 3 demo](https://codesandbox.io/p/sandbox/handsontable-data-grid-v14-1-0-vue-3-demo-ypkddz)
-- [TypeScript demo](https://codesandbox.io/s/handsontable-typescript-data-grid-hello-world-app-14-0-0-3f4lss)
+- [JavaScript demo](https://codesandbox.io/p/sandbox/handsontable-javascript-data-grid-hello-world-app-14-0-0-forked-h3mrzm)
+- [React demo](https://codesandbox.io/p/sandbox/handsontable-react-data-grid-hello-world-app-14-0-0-forked-rrg99x)
+- [Angular demo](https://codesandbox.io/p/sandbox/handsontable-angular-data-grid-hello-world-app-14-0-0-forked-3t9x5f)
+- [Vue 2 demo](https://codesandbox.io/p/sandbox/handsontable-vue-data-grid-hello-world-app-14-0-0-forked-yj9qld)
+- [Vue 3 demo](https://codesandbox.io/p/sandbox/handsontable-data-grid-v14-1-0-vue-3-demo-forked-w5fvjp)
+- [TypeScript demo](https://codesandbox.io/p/sandbox/handsontable-typescript-data-grid-hello-world-app-14-0-0-forked-lgdxll)
 :::
 
 ::: only-for react
