@@ -7,7 +7,7 @@ html.theme-dark {
 
     $accentColor        = var(--color-accentblue)
     $textColor          = var(--color-gray-200)
-    $hoverWhiteColor    = var(--color-gray-300)
+    $hoverWhiteColor    = var(--color-gray-400)
     $text2Color         = var(--color-gray-500)
     $borderColor        = var(--color-gray-700)
     $bgColor            = var(--color-gray-900)
@@ -16,30 +16,48 @@ html.theme-dark {
     $onsurfaceColor     = var(--color-gray-700)
     $linkColor          = var(--color-lightblue)
     $linkHoverColor     = var(--color-lighterblue)
-    $editorColor        = var(--color-gray-800)
+    $editorColor        = var(--color-gray-700)
     $editorHeadColor    = var(--color-gray-800)
     $lightBorderColor   = var(--color-gray-600)
     $depricatedColor    = var(--color-yellow) 
     $depricatedBgColor  = var(--color-yellow-20)  
 
     $editorText                 = rgb(156, 220, 254)
-    $editorCommentColor         = rgb(106, 153, 85)
-    $editorTagColor             = #85dbd8
-    $editorFunctionNameColor    = rgb(220, 220, 170)
-    $editorFunctionColor        = rgb(181, 206, 168)
-    $editorSymbolColor          = rgb(78, 201, 176)
-    $editorSelectorColor        = rgb(86, 156, 214)
-    $editorStringColor          = rgb(206, 145, 120)
-    $editorOperatorColor        = rgb(212, 212, 212)
+    $editorCommentColor         = #999
+    $editorTagColor             = #e2777a
+    $editorFunctionNameColor    = #6196cc
+    $editorFunctionColor        = #f08d49
+    $editorSymbolColor          = #f8c555
+    $editorSelectorColor        = #cc99cd
+    $editorStringColor          = #7ec699
+    $editorOperatorColor        = #67cdcc
     $editorInsertedColor        = rgb(100, 102, 149)
-    $editorPunctuationColor     = rgb(212, 212, 212)
+    $editorPunctuationColor     = #999
 
+    /*
+    $editorText = $text2Color
+    $editorCommentColor =  rgb(106, 153, 85);
+    $editorTagColor = #85dbd8;
+    $editorFunctionNameColor = #f08d49;
+    $editorFunctionColor = #f8c555;
+    $editorSymbolColor = rgb(78, 201, 176);
+    $editorSelectorColor = rgb(70, 114, 174);
+    $editorStringColor = rgb(206, 66, 40);
+    $editorOperatorColor = rgb(46, 46, 46);
+    $editorInsertedColor = rgb(41, 105, 176);
+    $editorPunctuationColor = 3999
+    */
     //rgb(100, 102, 149)
 
     $dropColor          = $dropColorDark
 
     background: $bgColor //url('{{$basePath}}/img/noise.png') repeat
     color: $textColor
+
+    ::selection {
+        background-color: $accentColor
+        color: $textColor
+    }
 
     body { 
         background: $bgColor //url('{{$basePath}}/img/noise.png') repeat
@@ -244,51 +262,6 @@ html.theme-dark {
                     background: $linkColor
                 }
             }   
-
-            //Search
-            /*
-            .search-box { 
-                input { 
-                    color: $text2Color
-                }
-
-                .kbd-hint { 
-                    kbd { 
-                        background: $borderColor
-                        color: $text2Color
-                    }
-                }
-
-                .suggestions { 
-                    background: $sideColor
-
-                    li { 
-                        color: $textColor
-                        
-                        &:not(.suggestion) {
-                            border-bottom: 1px solid $borderColor
-                        }
-
-                        &.focused {
-                            a {
-                                background: $borderColor
-                                color: $textColor 
-                            }
-                        }
-
-                        a { 
-                            color: $text2Color
-
-                            @media (hover: hover) {
-                                &:hover { 
-                                    background: $borderColor
-                                }
-                            }
-
-                        }
-                    }
-                }
-            }*/
         }
     }
 
@@ -443,6 +416,10 @@ html.theme-dark {
             
             h1, h2, h3, h4, h5, h6 {
                 color: $textColor
+
+                a { 
+                    text-decoration: none
+                }
             }
             
             h1 {
@@ -467,6 +444,10 @@ html.theme-dark {
                 }
             }
 
+            li > a { 
+                text-decoration: none
+            }
+
             pre { 
                 background: $editorColor 
             }
@@ -479,10 +460,13 @@ html.theme-dark {
 
             a {
                 color: $linkColor
+                text-decoration: underline
+                text-decoration-color: $lightBorderColor
+                text-decoration-style: dashed
 
                 @media (hover: hover) {
                     &:hover { 
-                        text-decoration:none
+                        text-decoration-color: var(--color-gray-550) // $hoverWhiteColor
                         color: $linkHoverColor
                     }
                 }
@@ -505,6 +489,10 @@ html.theme-dark {
                 background: $editorColor 
                 color:$textColor
             }
+            a:has(code) {
+                text-decoration: none
+            }
+
             a code {
                 color: $linkColor
                 
@@ -513,6 +501,10 @@ html.theme-dark {
                         color: $linkHoverColor
                     }
                 }
+            }
+
+            th code {
+                background: $sideColor
             }
             
             a > code,
@@ -560,15 +552,38 @@ html.theme-dark {
                 }
             }
             
-            .theme-code-group__nav { 
-                background: $editorHeadColor
+            .theme-code-group { 
+                .theme-code-group__nav {
+                    background: $editorColor
 
-                button {
-                    color: $text2Color
+                    .theme-code-group__ul {
+                        .theme-code-group__li {
+                            button {
+                                color: $text2Color
+                                background: $onsurfaceColor
+                                border: 1px solid $onsurfaceColor
 
-                    &.theme-code-group__nav-tab-active {
+                                &.theme-code-group__nav-tab-active {
+                                    color: $textColor
+                                    background: $lightBorderColor
+                                    border: 1px solid $lightBorderColor
+                                }
+
+                                @media (hover: hover) {
+                                    &:hover { 
+                                        color: $textColor
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                &.is-active { 
+                    a {
                         color: $textColor
-                        border-color: $accentColor
+                        background: $lightBorderColor
+                        border: 1px solid $lightBorderColor
                     }
                 }
             }
@@ -596,16 +611,6 @@ html.theme-dark {
                             }
                         }
                     }
-                }
-
-                p { 
-                    a { 
-                        //color: $textColor 
-                    }
-                }
-
-                code { 
-                    //background: $bgColor 
                 }
             }
         }
@@ -710,7 +715,8 @@ html.theme-dark {
                 color: $text2Color
 
                 .edit-link a { 
-                    i { filter: hue-rotate(190deg) invert(1) }
+                    color: $linkColor
+                    i { filter: brightness(0) invert(.6) }
 
                     @media (hover: hover) {
                         &:hover {  
@@ -844,19 +850,25 @@ html.theme-dark {
         }
         
         ul.tabs-component-tabs  {
-            background: $editorHeadColor
+            background: $borderColor
            
             li.tabs-component-tab  {
                 a.tabs-component-tab-a {
                     color: $text2Color
                     background: $onsurfaceColor
                     border: 1px solid $onsurfaceColor
+
+                    @media (hover: hover) {
+                        &:hover { 
+                            color: $textColor
+                        }
+                    }
                 }
 
                 &.is-active { 
                     a {
                         color: $textColor
-                        background: $onsurfaceColor
+                        background: $lightBorderColor
                         border: 1px solid $lightBorderColor
                     }
                 }
@@ -1228,13 +1240,15 @@ html.theme-dark {
     }
 
     //Editor 
-    .tabs-button-wrapper {
+    .page .theme-default-content  .tabs-button-wrapper {
 
         .tabs-button-list {
+            background: $borderColor
 
             &.active {
                 .show-code {
-                    border: 1px solid $accentColor !important
+                    //border: 1px solid $accentColor !important
+                    background: $lightBorderColor !important
                 }
             }
             
@@ -1272,8 +1286,15 @@ html.theme-dark {
     .controls:not(button), .example-container {
 
         #mainInput, select, input[type=text], input[type=search], .placeholder-input {
-            background: $borderColor
-            color:$textColor
+            border-radius: $radius
+            border:1px solid $borderColor
+            background: $editorColor
+
+            @media (hover: hover) {
+                &:hover {
+                    background: $bgColor
+                }
+            }
         }
     }
 }

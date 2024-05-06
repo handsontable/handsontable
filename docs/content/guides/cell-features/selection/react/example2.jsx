@@ -36,7 +36,6 @@ const ExampleComponent = () => {
   return (
     <>
       <div class="example-controls-container">
-        <output className="console" id="output">{output}</output>
         <div className="controls">
           <button
             id="getButton"
@@ -45,6 +44,7 @@ const ExampleComponent = () => {
             Get data
           </button>
         </div>
+        <output className="console" id="output">{output}</output>
       </div>
       <HotTable
         ref={hotRef}

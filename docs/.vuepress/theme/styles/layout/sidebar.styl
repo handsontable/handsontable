@@ -42,11 +42,31 @@
         position relative
         padding: 8px
         margin:0 28px 16px
-        background: $borderColor
+        background: $sideColor
         border-radius: $radius
         display: flex
         gap: 12px
         align-items: start
+        transition all $t ease-in-out
+        transition-delay: $t
+        max-height: 120px
+
+        //&.slide-fade-enter, 
+        &.slide-fade-leave-to {
+            opacity: 0;
+            max-height: 0;
+            margin-bottom: 0;
+            padding-bottom: 0;
+            padding-top: 0;
+
+            > * {
+                opacity 0
+            }
+        }
+
+        > * { 
+            transition all $t ease-in-out
+        }
 
         span { 
             background-color: $accentColor
@@ -103,12 +123,14 @@
             }
         }
         > .close {
+            background: none;
+            outline: none;
+            border: none;
             cursor:pointer
             opacity .6
             transition all $t ease
             padding: 9px
             border: 0
-            background: 0
             margin: -8px -8px 0 0
             
             i { 
@@ -295,12 +317,12 @@
                             }
                         }  
                         .tag-update, .tag-new, .tag-deprecated  { 
-                            font-size: 12px
+                            font-size: 11px
                             line-height: $line-height-xxs
                             display: block;
                             border-radius: $radius-s
-                            padding: 1px 6px;
-                            background-color: $successColor
+                            padding: 1px 5px;
+                            background-color: #238349
                             color: $bgColor
                             margin:-1px 0;
                             width:auto

@@ -36,8 +36,8 @@ $radius-s = 4px
     --color-white:      #ffffff
     --color-gray-100:   #f7f7f9
     --color-gray-200:   #efeff3
-    --color-gray-300:   #d1d1d2
-    --color-gray-400:   #b5b5b5
+    --color-gray-300:   #e0e0e3
+    --color-gray-400:   #d1d1d2
     --color-gray-500:   #ADAEAF //#898A8B //acacb0
     --color-gray-550:   #676778 //#898A8B
     --color-gray-600:   #343436
@@ -47,8 +47,8 @@ $radius-s = 4px
     --color-black:      #000000
     --color-blue:       #1A42E8
     --color-accentblue: #2856EA
-    --color-success:    #37975d // #4FA471 //#37BC6C
-    --color-lightblue:  #5A88FF
+    --color-success:    #41A167 //#37975d // #4FA471 //#37BC6C
+    --color-lightblue:  #719FF8 // #5A88FF
     --color-lighterblue:lighten(#5A88FF, 25%)
     --color-yellow:     #f8c555
     --color-yellow-20:  alpha(#f8c555, 0.2)
@@ -70,36 +70,26 @@ $editorColor        = var(--color-gray-100)
 $editorHeadColor    = var(--color-gray-100)
 $onsurfaceColor     = var(--color-gray-100)
 $linkColor          = var(--color-accentblue)
-$lightBorderColor   = var(--color-gray-200)
+$lightBorderColor   = var(--color-gray-300)
 $depricatedColor    = var(--color-yellow) 
-$$depricatedBgColor = var(--color-yellow-20)
+$depricatedBgColor  = var(--color-yellow-20)
 
-$editorCommentColor         = var(--color-gray-500)
-$editorTagColor             = var(--color-lightblue)
-$editorFunctionNameColor    = var(--color-lightblue)
-$editorFunctionColor        = var(--color-yellow)
-$editorSymbolColor          = var(--color-success)
-$editorSelectorColor        = var(--color-success)
-$editorStringColor          = var(--color-success)
-$editorOperatorColor        = var(--color-success)
-$editorInsertedColor        = var(--color-success)
-$editorPunctuationColor     = var(--color-gray-550)
+$editorText                 = #24292e
+$editorCommentColor         = slategray
+$editorTagColor             = #905
+$editorFunctionNameColor    = #e90
+$editorFunctionColor        = $accentColor
+$editorSymbolColor          = #24292e
+$editorSelectorColor        = #666
+$editorStringColor          = #44772C //#819e07
+$editorOperatorColor        = #9a6e3a
+$editorInsertedColor        = rgb(155, 153, 106)
+$editorPunctuationColor     = #666
 
-$editorTextLight                = rgb(34, 34, 34)
-$editorCommentColorLight        = rgb(106, 153, 85)
-$editorTagColorLight            = #004c4c
-$editorFunctionNameColorLight   = rgb(139, 139, 0)
-$editorFunctionColorLight       = rgb(92, 117, 85)
-$editorSymbolColorLight         = rgb(0, 102, 85)
-$editorSelectorColorLight       = rgb(0, 51, 102)
-$editorStringColorLight         = rgb(179, 57, 0)
-$editorOperatorColorLight       = rgb(34, 34, 34)
-$editorInsertedColorLight       = rgb(63, 65, 112)
-$editorPunctuationColorLight    = rgb(34, 34, 34)
 
 $dropColorDark      = rgba(25,26,29,.9);
 $dropColorSearchDark= rgba(25,26,29,.6);
-$dropColor          = rgba(239,239,243,.9)
+$dropColor          = rgba(245,245,247,.9)
 $dropColorSearchLiht= rgba(239,239,243,.6)
 
 $letterSpacingText  = -0.072px

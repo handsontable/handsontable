@@ -69,6 +69,10 @@ export default {
         button.classList.remove('check');
       }, 2000);
     },
+    reportCode() {
+      // eslint-disable-next-line max-len
+      window.open(`https://github.com/handsontable/handsontable/issues/new?link=${window.location}&template=improve_docs.yaml`, '_blank');
+    },
     showCodeButton(e) {
       e.target.parentElement?.classList.toggle('active');
     },

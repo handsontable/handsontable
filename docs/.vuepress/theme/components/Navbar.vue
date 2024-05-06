@@ -4,6 +4,7 @@
       <RouterLink
           :to="frameworkUrlPrefix"
           class="home-link"
+          aria-label="Docs Homepage Link"
       >
         <Logo />
       </RouterLink>
@@ -28,12 +29,12 @@
           <nav class="icons-nav">
             <!--<ThemeSwitcher />-->
             <span class="news"><i class="ico i-bell"></i></span>
-            <a href="https://github.com/handsontable/handsontable" class="github-stars">
+            <a href="https://github.com/handsontable/handsontable" class="github-stars" target="_blank">
               <i class="ico i-github"></i>
               <span v-if="stars">{{ stars }}</span>
             </a>
-            <button class="menuButton" id="mobileSearch"><i class="ico i-search"></i></button>
-            <button @click="$emit('toggle-sidebar')" class="menuButton">
+            <button class="menuButton" id="mobileSearch" aria-label="Search"><i class="ico i-search"></i></button>
+            <button @click="$emit('toggle-sidebar')" class="menuButton" aria-label="Menu button">
               <i class="ico i-menu"></i>
               <i class="ico i-close"></i>
             </button>

@@ -51,12 +51,14 @@
             text-align: center
             border-radius: $radius
             margin-right: 8px
-            border: 1px solid $borderColor
+            border: 1px solid $text2Color
             position: relative
             top: -2px
             margin-left: -48px
             color: $textColor
             padding: 0
+            font-family: $font
+            font-weight: 600
         }
 
         h1, h2, h3, h4, h5, h6 {
@@ -116,7 +118,7 @@
         }
 
         h3 { 
-            padding-top: 32px
+            padding-top: 24px
             padding-bottom: 8px
             font-size: $font-size
             line-height: $line-height
@@ -125,7 +127,7 @@
         }
 
         h4, h5 { 
-            padding-top: 24px
+            padding-top: 16px
             padding-bottom: 4px
             font-size: $font-size-s
             line-height: $line-height-s
@@ -154,6 +156,10 @@
             color: $text2Color
             letter-spacing: $letterSpacingText
             display: block
+
+            a { 
+                text-decoration-color: none
+            }
 
             &:empty { 
                 //display:none 
@@ -193,7 +199,7 @@
         }
         
         a { 
-            color: $linkColor
+            color: $accentColor
             text-decoration: none 
             font-weight: 400
             transition: $ts all ease-in-out
@@ -217,6 +223,11 @@
         gap: 8px
     }
 
+    .checkbox-group { 
+        gap: 4px
+        padding-bottom: 4px
+    }
+
     a.header-anchor { 
         &:before {
             content: '#'
@@ -228,15 +239,16 @@
     
     kbd {
         border: 1px solid $borderColor
-        border-bottom: 2px solid $borderColor
+        border-bottom: 4px solid $borderColor
         background: $bgColor
         padding: 2px 6px
         border-radius: $radius-s
         font-weight: 400
-        font-family: 'Inter'
+        font-family: $font
         font-size: $font-size-xs
         line-height: $line-height-xs
         white-space: pre
+        text-shadow: 0 -1px white
         
         strong { 
             font-weight: 400
@@ -251,14 +263,15 @@
         font-size: $font-size-s
         line-height: 28px // $line-height-s
         font-weight: 400
-        margin: 32px -16px
-        width: calc(100% + 32px)
+        margin: 32px 0
+        width: 100% //calc(100% + 32px)
         box-shadow: 0 0 0 1px $borderColor 
         border-radius: $radius
         overflow: hidden
 
         img {
             max-height: 80px
+            border-radius: 0
         }
         
         td,th { 

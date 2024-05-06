@@ -44,6 +44,8 @@ const ExampleComponent = () => {
           ['A10'],
         ]}
         rowHeaders={true}
+        autoRowSize={false}
+        autoColumnSize={false}
         height="auto"
         licenseKey={"non-commercial-and-evaluation"}
       >

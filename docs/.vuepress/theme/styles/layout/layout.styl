@@ -15,7 +15,7 @@ h1,h2,h3,h4,h5,h6 { font-family: $font-aeonik }
 .whitespace-nowrap { white-space nowrap}
   
 a { 
-  color: $linkColor 
+  color: $accentColor 
   font-weight: 400
 }
 
@@ -26,11 +26,10 @@ a {
   min-height:100dvh
 }
 
-/*
-a { 
-  color: $accentColor 
+::selection {
+    background-color: $accentColor
+    color: $bgColor
 }
-*/
 
 :not(.handsontable) {
   * { 
@@ -90,7 +89,7 @@ a {
   z-index -1
   opacity: .5
   zoom: 1.8;
-  filter: blur(20px) hue-rotate(45deg) saturate(2.5);
+  filter: blur(30px) hue-rotate(45deg) saturate(4.5);
   right: -250px;
   bottom: -240px;
 } 
@@ -100,3 +99,6 @@ a {
   overflow: hidden
 }
 
+.no-pointer {
+  pointer-events: none
+}

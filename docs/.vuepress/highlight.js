@@ -12,7 +12,7 @@ const wrap = (code, lang) => {
   }
 
   // eslint-disable-next-line max-len
-  return `<pre v-pre class="language-${lang}"><code>${code}</code></pre><button @click="$parent.$parent.copyCode($event)" class="copycode" aria-label="Copy to clipboard"><i class="ico i-copy"></i><i class="ico i-checks"></i></button><a class="report" href="https://github.com/handsontable/handsontable/issues/new/choose" aria-label="Report an issue" target="_blank"><i class="ico i-report"></i></a>`;
+  return `<pre v-pre class="language-${lang}"><code>${code}</code></pre><button @click="$parent.$parent.copyCode($event)" class="copycode" aria-label="Copy to clipboard"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button><button @click="$parent.$parent.reportCode()" class="report" aria-label="Report an issue"><i class="ico i-report no-pointer"></i></button>`;
 };
 
 const getLangCodeFromExtension = (extension) => {

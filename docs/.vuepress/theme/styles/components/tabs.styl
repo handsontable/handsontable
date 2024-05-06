@@ -1,6 +1,6 @@
 .page .theme-default-content .tabs-component {
     border: none
-    margin: 0 -16px 0
+    margin: 0
     border-radius: $radius
     padding: 0
     border: 1px solid $lightBorderColor
@@ -40,7 +40,7 @@
 
     ul.tabs-component-tabs  {
         background: $editorHeadColor
-        padding: 16px 
+        padding: 8px 
         border-bottom: none
         box-sizing: border-box;
         border-radius: $radius $radius 0 0 !important
@@ -48,7 +48,9 @@
         gap: 8px
 
         li.tabs-component-tab  {
-            
+            &:first-child:last-child { 
+            //    visibility: hidden
+            }
 
             a.tabs-component-tab-a {
                 padding: 6px 12px
@@ -60,7 +62,14 @@
                 font-weight: 400
                 background: $onsurfaceColor
                 border-radius: $radius
-                border: 1px solid $lightBorderColor
+                background: $onsurfaceColor
+                border: 1px solid $onsurfaceColor
+
+                @media (hover: hover) {
+                    &:hover { 
+                        color: $textColor
+                    }
+                }
             }
 
             &.is-active { 
@@ -115,6 +124,11 @@
 
             label { display: flex
                 align-items: center
+
+                &:focus-within {
+                    border:none
+                    outline: 1px solid  $accentColor
+                }
             }
 
             > a { 
@@ -128,19 +142,36 @@
     }
 }
 
-.tabs-button-wrapper {
-    padding-top: 16px
+.page .theme-default-content  .tabs-button-wrapper {
+    padding-top: 8px
+    padding-bottom: 8px
     display: flex
     flex-direction: column
-    gap 16px
+    gap 0
+
+    + p:empty {
+        padding: 0
+
+        + p:empty {
+            padding: 0
+        }
+    }
 
     .tabs-button-list {
         display: flex 
         gap: 8px
+        background: $editorColor
+        border-radius: $radius
+        padding: 8px
+        margin 0
+        transition: all $t ease-in-out
 
         &.active {
+            margin-bottom: 16px
+
             .show-code {
-                border: 1px solid $accentColor !important
+                background: $borderColor !important
+                //border: 1px solid $accentColor !important
             }
 
             + .example-container-code { 
@@ -151,13 +182,20 @@
         }
 
         .show-code {
-            padding: 7px 16px !important
+            padding: 7px 16px 7px 13px !important
             border:none !important
             display: flex
             gap: 8px
+            background: $bgColor
             transition: all $t ease-in-out
             align-items: center
-            border: 1px solid $sideColor !important
+            border: 1px solid $bgColor !important
+
+            @media (hover: hover) {
+                &:hover {
+                    background: $editorColor
+                }
+            }
         }
 
         .example-controls { 
@@ -200,7 +238,7 @@
                     content: attr(aria-label)
                     position absolute
                     white-space: pre;
-                    bottom: 38px;
+                    top: 40px;
                     left: 50%
                     transform: translateX(-50%)
                     padding:4px 8px
@@ -252,14 +290,20 @@
     }
 
     #mainInput, select, input[type=text], input[type=search], .placeholder-input {
-        padding: 8px;
+        padding: 8px 16px;
         //margin-top: 12px;
-        border:none
-        border-radius: $radius
-        background: $borderColor
         font-size: $font-size-xs
         line-height: $line-height-xs
         color:$textColor
+        border-radius: $radius
+        border:1px solid $borderColor
+        background: $editorColor
+
+        @media (hover: hover) {
+            &:hover {
+                background: $bgColor
+            }
+        }
     }
 
     &.select-language {

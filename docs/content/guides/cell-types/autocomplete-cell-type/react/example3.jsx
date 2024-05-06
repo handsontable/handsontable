@@ -31,6 +31,7 @@ const ExampleComponent = () => {
         {}, // Chassis color is a default text column
         {} // Bumper color is a default text column
       ]}
+      height="auto"
     />
   );
 };

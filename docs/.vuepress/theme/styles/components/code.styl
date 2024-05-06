@@ -75,7 +75,7 @@
             margin-top: 16px
             background: $editorColor 
             padding: 16px 24px
-            margin: 16px -16px 0
+            margin: 16px 0 0
             border-radius: $radius
             font-size: $font-size-s
             line-height: $line-height-s
@@ -98,6 +98,58 @@
                 ul { 
                     margin-top: 8px
                     margin-left: 24px
+                }
+            }
+        }
+
+        .theme-code-group { 
+            margin-top: 16px
+
+            .theme-code-group__nav {
+                padding: 8px
+                margin: 0
+                background: $editorHeadColor
+
+                .theme-code-group__ul {
+                    gap: 8px
+
+                    .theme-code-group__li {
+                        button {
+                            padding: 6px 12px
+                            margin:0
+                            text-decoration: none
+                            color: $text2Color
+                            font-size: $font-size-xs
+                            line-height: $line-height-xs
+                            font-weight: 400
+                            background: $onsurfaceColor
+                            border-radius: $radius
+                            border: 1px solid $lightBorderColor
+                            transition: all $ts ease-in-out
+
+                            &.theme-code-group__nav-tab-active {
+                                font-weight: 400
+                                border-bottom: 0
+                                color: $textColor
+                                background: white
+                                border: 1px solid $lightBorderColor
+                            }
+
+                            @media (hover: hover) {
+                                &:hover { 
+                                    color: $textColor
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            .theme-code-block  {
+                pre {
+                    margin: 0
+                    border-top-left-radius: 0
+                    border-top-right-radius: 0
                 }
             }
         }
@@ -128,41 +180,6 @@
         padding: 0
     }
 
-    .theme-code-group { 
-        margin: 0 -16px 
-
-        .theme-code-block {
-            margin-top: -38px
-        }
-
-        pre { 
-            margin: 16px 0
-            border-radius: 0 0 $radius $radius
-            padding-bottom: 24px
-        }
-    }
-
-    .theme-code-group__nav { 
-        background: $editorHeadColor 
-        margin: 16px 0
-        padding: 8px 16px 16px
-        border-radius: $radius
-        margin-bottom: -16px
-
-        button {
-            font-size: $font-size-xs
-            line-height: $line-height-xs
-            font-weight: 400
-            padding:8px 8px 8px
-            color: $text2Color
-
-            &.theme-code-group__nav-tab-active {
-                color: $textColor
-                border-color: $linkColor
-            }
-        }
-    }
-
     @media (max-width: 419px) {
         div[class*="language-"] {
             margin:0
@@ -180,12 +197,13 @@
     .copycode, .report, .github { 
         position: absolute 
         top: 11px
-        right: -5px
+        right: 10px
         transition: all $t ease-in-out !important
         opacity 0
         padding: 8px !important
         z-index: 1
         color: $textColor
+        background:  $editorColor
         //background: transparent !important
 
         i {
@@ -213,7 +231,7 @@
             content: attr(aria-label)
             position absolute
             white-space: pre;
-            bottom: 38px;
+            top: 40px;
             left: 50%
             transform: translateX(-50%)
             padding:4px 8px
@@ -236,13 +254,13 @@
     }
 
     .report {
-        right: 35px
+        right: 54px
         padding: 8px 16px
         padding: 8px 16px
         border:none
         cursor: pointer
         border-radius: $radius
-        background: transparent
+        //background: transparent
         border: 1px solid $lightBorderColor
         color: $textColor
 
@@ -269,16 +287,16 @@
 .tabs-component-panel { 
     .copycode, .report, .github  {
         opacity 1
-        top: -52px
+        top: -44px
     }
     .copycode {
-        right: 0
+        right: -8px
     }
     .report {
-        right: 40px
+        right: 36px
     }
     .github {
-        right: 80px
+        right: 72px
     }
 }
 

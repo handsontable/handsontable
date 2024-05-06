@@ -70,8 +70,7 @@ module.exports.create = function create(envArgs) {
           options: {
             globals: {
               numbro: 'numbro',
-            },
-            defaultExport: true
+            }
           }
         }
       ]

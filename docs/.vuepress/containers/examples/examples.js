@@ -136,6 +136,7 @@ module.exports = function(docsVersion, base) {
 
         tokens.splice(index + 1, 0, ...newTokens);
         const isAngular = /angular(-.*)?/.test(preset);
+        const isRTL = /layoutDirection(.*)'rtl'/.test(codeToCompile) || /dir="rtl"/.test(htmlContent);
 
         const displayJsFiddle = Boolean(!noEdit && !isAngular);
 
@@ -150,7 +151,7 @@ module.exports = function(docsVersion, base) {
             </template>
           </div>
           <div class="tabs-button-wrapper">
-            <div class="tabs-button-list">
+            <div class="tabs-button-list" ${isRTL ? 'div="rtl"' : ''}>
               <button class="show-code" @click="$parent.$parent.showCodeButton($event)">
                 <i class="ico i-code"></i>Source code
               </button>
@@ -173,7 +174,7 @@ module.exports = function(docsVersion, base) {
   )}
                 ${displayJsFiddle ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset) : ''}
                 <button 
-                  aria-label="Reset demo" 
+                  aria-label="Reset the demo" 
                   @click="$parent.$parent.resetDemo('${id}')" 
                   :disabled="$parent.$parent.isButtonInactive"
                 >

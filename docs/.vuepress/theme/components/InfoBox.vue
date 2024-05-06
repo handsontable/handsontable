@@ -4,7 +4,7 @@
       <span><i class="ico i-bell"></i></span>
       <div>
         <p>What's new in {{ getVersion }}</p>
-        <a :href="getVersionUrl" aria-label="Read more about new version">Read more</a>
+        <RouterLink :to="getVersionUrl" aria-label="Read more about new version">Read more</RouterLink>
       </div>
       <button type="button" aria-label="Close info box" class="close" @click="closeInfoBox">
         <i class="ico i-close"></i>
@@ -45,13 +45,9 @@ export default {
 
       return '';
     },
-    getBaseUrl() {
-      return `${this.$page.hostname}${this.$site.base}`;
-    },
     getVersionUrl() {
-      return `${this.getBaseUrl}${this.$page.currentFramework}${
-        this.$page.frameworkSuffix
-      }/release-notes/#_${this.getVersion.replaceAll('.', '-')}`;
+      // eslint-disable-next-line max-len
+      return `/${this.$page.currentFramework}${this.$page.frameworkSuffix}/release-notes/#_${this.getVersion.replaceAll('.', '-')}`;
     },
   },
   mounted() {
@@ -63,19 +59,3 @@ export default {
   },
 };
 </script>
-
-<style lang="stylus">
-.close {
-    background: none;
-    outline: none;
-    border: none;
-}
-.slide-fade-leave-active {
-  transition: all 0.3s cubic-bezier(1, 0.5, 0.8, 1);
-}
-
-.slide-fade-enter, .slide-fade-leave-to {
-  transform: translateX(-200%);
-  opacity: 0;
-}
-</style>
