@@ -37,17 +37,17 @@ const testCases = [
     setExceptionsForPermalinks([
       // The column-summary example on the page of each of the frameworks shows an error being thrown - the Handsontable
       // instance is never rendered.
-      ['/react-data-grid/column-summary', { notYetRenderedCount: -1 }],
-      ['/javascript-data-grid/column-summary', { notYetRenderedCount: -1 }],
+      ['/react-data-grid/column-summary', { notYetRenderedCount: 0 }],
+      ['/javascript-data-grid/column-summary', { notYetRenderedCount: 0 }],
       // The events-and-hooks page contains a rendered Handsontable instance which is not a part of any tabbed example.
-      ['/javascript-data-grid/events-and-hooks', { expectedCount: 1 }],
-      ['/react-data-grid/events-and-hooks', { expectedCount: 1 }],
+      ['/javascript-data-grid/events-and-hooks', { expectedCount: 0 }],
+      ['/react-data-grid/events-and-hooks', { expectedCount: 0 }],
       // The demo page contains a rendered Handsontable instance which is not a part of any tabbed example.
-      ['/javascript-data-grid/demo', { expectedCount: 1 }],
-      ['/react-data-grid/demo', { expectedCount: 1 }],
+      ['/javascript-data-grid/demo', { expectedCount: 0 }],
+      ['/react-data-grid/demo', { expectedCount: 0 }],
       // The a11y demo hot reloads handsontable, this makes the test detect an extra instance, we need to do -1 to
       // make it pass
-      ['/javascript-data-grid/accessibility', { expectedCount: -1 }],
+      ['/javascript-data-grid/accessibility', { expectedCount: 0 }],
     ]);
 
     /**

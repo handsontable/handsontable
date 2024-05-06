@@ -356,7 +356,7 @@ module.exports = {
           },
           {
             text: 'GitHub Discussions',
-            link: 'https://github.com/handsontable/handsontable/issues/new/choose',
+            link: 'https://github.com/handsontable/handsontable/discussions',
           },
           {
             text: 'StackOverflow',
