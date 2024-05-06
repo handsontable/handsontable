@@ -18,9 +18,15 @@
 
     <div class="footer-links">
       <div class="socail-links">
-        <a href="https://github.com/handsontable/handsontable" target="_blank" aria-label="Link to Github"><i class="ico i-github"></i></a>
-        <a href="https://www.linkedin.com/company/handsontable/" target="_blank" aria-label="Link to Linkedin"><i class="ico i-linkedin"></i></a>
-        <a href="https://twitter.com/handsontable" target="_blank" aria-label="Link to X"><i class="ico i-twitter"></i></a>
+        <a href="https://github.com/handsontable/handsontable" target="_blank" aria-label="Link to Github">
+          <i class="ico i-github"></i>
+        </a>
+        <a href="https://www.linkedin.com/company/handsontable/" target="_blank" aria-label="Link to Linkedin">
+          <i class="ico i-linkedin"></i>
+        </a>
+        <a href="https://twitter.com/handsontable" target="_blank" aria-label="Link to X">
+          <i class="ico i-twitter"></i>
+        </a>
       </div>
 
       <div class="hot-links">

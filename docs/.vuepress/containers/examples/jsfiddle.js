@@ -33,7 +33,7 @@ ${html}
       ${isAngularPanel ? '<input type="hidden" name="panel_js" value="4" readOnly>' : ''}
 
       <div class="js-fiddle-link">
-      <button type="submit" aria-label="Edit jsfiddle">
+      <button type="submit" aria-label="Edit in JSFiddle">
         <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" 
         width="15" height="15" viewBox="0 0 64 64" class="icon outbound">
           <path 
