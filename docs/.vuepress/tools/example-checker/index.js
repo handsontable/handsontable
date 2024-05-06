@@ -47,7 +47,7 @@ const FILE_SERVE_TIMEOUT = 100;
  *
  * @type {number}
  */
-const EXAMPLE_INIT_TIMEOUT = 100;
+const EXAMPLE_INIT_TIMEOUT = 300;
 
 /**
  * Number of tries to perform if the number of the rendered examples differs from the expected count.
