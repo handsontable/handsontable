@@ -169,7 +169,7 @@ module.exports = function(docsVersion, base) {
   )}
                 ${displayJsFiddle ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset) : ''}
                 <button aria-label="Open in new tab"><i class="ico i-zoom"></i></button>
-                <button aria-label="Reset demo"><i class="ico i-refresh"></i></button>
+                <button aria-label="Reset the demo"><i class="ico i-refresh"></i></button>
               </div>
             </div>
             <div class="example-container-code">
