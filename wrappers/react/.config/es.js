@@ -1,5 +1,4 @@
 import typescript from 'rollup-plugin-typescript2';
-import { baseConfig } from './base';
 import { plugins } from './base';
 
 const env = process.env.NODE_ENV;
@@ -22,7 +21,6 @@ export const esConfig = {
         }
       },
       useTsconfigDeclarationDir: true,
-      objectHashIgnoreUnknownHack: true,
       clean: true,
     }),
     plugins.babel,
