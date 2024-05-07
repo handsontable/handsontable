@@ -1,5 +1,4 @@
-import typescript from 'rollup-plugin-typescript2';
-import { baseConfig, plugins } from './base';
+import { baseConfig } from './base';
 
 const env = process.env.NODE_ENV;
 const filename = 'react-handsontable.js';
