@@ -22,7 +22,7 @@
 const testCases = [
   (permalink) => {
     const INSTANCE_NUMBER_EXCEPTIONS = {};
-    const setExceptionForPermalink = (url, { expectedCount = 1, notYetRenderedCount = 0 }) => {
+    const setExceptionForPermalink = (url, { expectedCount = 0, notYetRenderedCount = 0 }) => {
       INSTANCE_NUMBER_EXCEPTIONS[url] = {
         expectedCount,
         notYetRenderedCount
