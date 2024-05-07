@@ -40,7 +40,7 @@ const PORT = 8088;
  *
  * @type {number}
  */
-const FILE_SERVE_TIMEOUT = 100;
+const FILE_SERVE_TIMEOUT = 300;
 
 /**
  * Timout for the examples to get initialized after loading the page.
