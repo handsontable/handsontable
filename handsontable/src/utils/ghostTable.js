@@ -269,10 +269,6 @@ class GhostTable {
       arrayEach(sample.strings, (string) => {
         const column = string.col;
         const cellProperties = this.hot.getCellMeta(row, column);
-
-        cellProperties.col = column;
-        cellProperties.row = row;
-
         const renderer = this.hot.getCellRenderer(cellProperties);
         const td = rootDocument.createElement('td');
 
@@ -337,10 +333,6 @@ class GhostTable {
       arrayEach(sample.strings, (string) => {
         const row = string.row;
         const cellProperties = this.hot.getCellMeta(row, column);
-
-        cellProperties.col = column;
-        cellProperties.row = row;
-
         const renderer = this.hot.getCellRenderer(cellProperties);
         const td = rootDocument.createElement('td');
         const tr = rootDocument.createElement('tr');
