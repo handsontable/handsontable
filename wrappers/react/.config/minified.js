@@ -1,7 +1,7 @@
 import { baseConfig } from './base';
 import { addLicenseBanner } from './helpers/licenseBanner';
-import replace from 'rollup-plugin-replace';
-import { terser } from 'rollup-plugin-terser';
+import replace from '@rollup/plugin-replace';
+import terser from '@rollup/plugin-terser';
 
 const minFilename = 'react-handsontable.min.js';
 
@@ -23,7 +23,10 @@ const minConfig = {
   },
   plugins: baseConfig.plugins.concat([
     replace({
-      'process.env.NODE_ENV': JSON.stringify('production')
+      preventAssignment: true,
+      values: {
+        'process.env.NODE_ENV': JSON.stringify('production')
+      },
     }),
     terser({
       output: {
