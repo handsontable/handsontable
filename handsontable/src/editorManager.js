@@ -43,13 +43,6 @@ class EditorManager {
    */
   destroyed = false;
   /**
-   * Determines if EditorManager is locked.
-   *
-   * @private
-   * @type {boolean}
-   */
-  lock = false;
-  /**
    * A reference to an instance of the activeEditor.
    *
    * @private
@@ -87,31 +80,13 @@ class EditorManager {
   }
 
   /**
-   * Lock the editor from being prepared and closed. Locking the editor prevents its closing and
-   * reinitialized after selecting the new cell. This feature is necessary for a mobile editor.
-   */
-  lockEditor() {
-    this.lock = true;
-  }
-
-  /**
-   * Unlock the editor from being prepared and closed. This method restores the original behavior of
-   * the editors where for every new selection its instances are closed.
-   */
-  unlockEditor() {
-    this.lock = false;
-  }
-
-  /**
    * Destroy current editor, if exists.
    *
    * @param {boolean} revertOriginal If `false` and the cell using allowInvalid option,
    *                                 then an editor won't be closed until validation is passed.
    */
   destroyEditor(revertOriginal) {
-    if (!this.lock) {
-      this.closeEditor(revertOriginal);
-    }
+    this.closeEditor(revertOriginal);
   }
 
   /**
@@ -127,10 +102,6 @@ class EditorManager {
    * Prepare text input to be displayed at given grid cell.
    */
   prepareEditor() {
-    if (this.lock) {
-      return;
-    }
-
     if (this.activeEditor && this.activeEditor.isWaiting()) {
       this.closeEditor(false, false, (dataSaved) => {
         if (dataSaved) {

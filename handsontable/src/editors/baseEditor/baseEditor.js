@@ -172,7 +172,7 @@ export class BaseEditor {
     this.prop = prop;
     this.originalValue = value;
     this.cellProperties = cellProperties;
-    this.state = EDITOR_STATE.VIRGIN;
+    this.state = this.isOpened() ? this.state : EDITOR_STATE.VIRGIN;
   }
 
   /**

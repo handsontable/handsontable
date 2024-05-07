@@ -163,13 +163,13 @@ export class TextEditor extends BaseEditor {
         allowInvalid,
       } = cellProperties;
 
-      if (allowInvalid) {
+      if (allowInvalid && !this.isOpened()) {
         // Remove an empty space from textarea (added by copyPaste plugin to make copy/paste
         // functionality work with IME)
         this.TEXTAREA.value = '';
       }
 
-      if (previousState !== EDITOR_STATE.FINISHED) {
+      if (previousState !== EDITOR_STATE.FINISHED && !this.isOpened()) {
         this.hideEditableElement();
       }
     }

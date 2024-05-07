@@ -636,6 +636,106 @@ class Selection {
     this.setRangeFocus(focusCoords.normalize());
   }
 
+  shiftRows(visualRowIndex, amount) {
+    if (!this.isSelected()) {
+      return;
+    }
+
+    const range = this.selectedRange.current();
+
+    if (this.isSelectedByCorner()) {
+      this.selectAll(true, true, {
+        disableHeadersHighlight: true,
+      });
+
+    } else if (this.isSelectedByColumnHeader() || range.getOuterTopStartCorner().row >= visualRowIndex) {
+      const { from, to, highlight } = range;
+      const countRows = this.tableProps.countRows();
+      const isSelectedByColumnHeader = this.isSelectedByColumnHeader();
+      const minRow = isSelectedByColumnHeader ? -1 : 0;
+      const coordsStartAmount = isSelectedByColumnHeader ? 0 : amount;
+
+      // Remove from the stack the last added selection as that selection below will be
+      // replaced by new transformed selection.
+      this.getSelectedRange().pop();
+
+      const coordsStart = this.tableProps.createCellCoords(
+        clamp(from.row + coordsStartAmount, minRow, countRows - 1),
+        from.col
+      );
+      const coordsEnd = this.tableProps.createCellCoords(
+        clamp(to.row + amount, minRow, countRows - 1),
+        to.col
+      );
+
+      if (highlight.row >= visualRowIndex) {
+        this.setRangeStartOnly(coordsStart, true, this.tableProps.createCellCoords(
+          clamp(highlight.row + amount, 0, countRows - 1),
+          highlight.col
+        ));
+
+      } else {
+        this.setRangeStartOnly(coordsStart, true);
+      }
+
+      if (isSelectedByColumnHeader) {
+        this.selectedByColumnHeader.add(this.getLayerLevel());
+      }
+
+      this.setRangeEnd(coordsEnd);
+    }
+  }
+
+  shiftColumns(visualColumnIndex, amount) {
+    if (!this.isSelected()) {
+      return;
+    }
+
+    const range = this.selectedRange.current();
+
+    if (this.isSelectedByCorner()) {
+      this.selectAll(true, true, {
+        disableHeadersHighlight: true,
+      });
+
+    } else if (this.isSelectedByRowHeader() || range.getOuterTopStartCorner().col >= visualColumnIndex) {
+      const { from, to, highlight } = range;
+      const countCols = this.tableProps.countCols();
+      const isSelectedByRowHeader = this.isSelectedByRowHeader();
+      const minColumn = isSelectedByRowHeader ? -1 : 0;
+      const coordsStartAmount = isSelectedByRowHeader ? 0 : amount;
+
+      // Remove from the stack the last added selection as that selection below will be
+      // replaced by new transformed selection.
+      this.getSelectedRange().pop();
+
+      const coordsStart = this.tableProps.createCellCoords(
+        from.row,
+        clamp(from.col + coordsStartAmount, minColumn, countCols - 1)
+      );
+      const coordsEnd = this.tableProps.createCellCoords(
+        to.row,
+        clamp(to.col + amount, minColumn, countCols - 1)
+      );
+
+      if (highlight.col >= visualColumnIndex) {
+        this.setRangeStartOnly(coordsStart, true, this.tableProps.createCellCoords(
+          highlight.row,
+          clamp(highlight.col + amount, 0, countCols - 1)
+        ));
+
+      } else {
+        this.setRangeStartOnly(coordsStart, true);
+      }
+
+      if (isSelectedByRowHeader) {
+        this.selectedByRowHeader.add(this.getLayerLevel());
+      }
+
+      this.setRangeEnd(coordsEnd);
+    }
+  }
+
   /**
    * Returns currently used layer level.
    *
