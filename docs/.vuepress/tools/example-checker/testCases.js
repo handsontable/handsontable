@@ -77,56 +77,23 @@ const testCases = [
       return containerFramework;
     }
 
-    /**
-     * Fetch the content of the tab containing the example configuration (differs between frameworks).
-     *
-     * @param {HTMLElement} parentElement Parent node of the example container.
-     * @param {string} containerFramework Framework defined in the container config.
-     * @returns {string}
-     */
-    function fetchTabContent(parentElement, containerFramework) {
-      // Examples have duplicated #code elements, when fixed, this will have to be changed as well.
-      const codeTab = parentElement.querySelector('[id^=code-tab]');
-      const htmlTab = parentElement.querySelector('[id^=html-tab]');
-      const definitionTab = {
-        javascript: codeTab,
-        react: codeTab,
-        angular: codeTab,
-        vue: htmlTab
-      };
-
-      return definitionTab[containerFramework].innerHTML
-        // Strip HTML tags
-        .replace(/(<([^>]+)>)/gi, '')
-        .replaceAll('&lt;', '<')
-        .replaceAll('&gt;', '>');
-    }
-
     // ----------------------------------------
     // Actual logic starts here:
     // ----------------------------------------
 
     const codeTabs = document.querySelectorAll('[id^=code-tab]');
     const htMasterElements = document.querySelectorAll('.handsontable.ht_master');
-    const hotInitPrefixes = {
-      javascript: ' Handsontable\\(',
-      react: '<HotTable',
-      vue: '<hot-table',
-      angular: '<hot-table'
-    };
+
     const emptyExampleContainers = [];
     let elementsNotYetRenderedCount = 0;
-    let hotInstancesCount = document.querySelectorAll('button.show-code').length;
+    let hotInstancesCount = document.querySelectorAll('[data-preset-type]').length;
 
     codeTabs.forEach((codeTab) => {
-      const exampleId = codeTab.id.split('-').at(-1);
       const codeTabParentElement = codeTab.parentElement;
       const containerFramework = fetchContainerFramework(codeTabParentElement);
 
       if (containerFramework === false) {
         elementsNotYetRenderedCount += 1;
-
-        return;
       }
     });
 
