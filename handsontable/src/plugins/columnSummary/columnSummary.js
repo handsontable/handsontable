@@ -135,6 +135,7 @@ export class ColumnSummary extends BasePlugin {
 
     this.addHook('afterInit', (...args) => this.#onAfterInit(...args));
     this.addHook('afterChange', (...args) => this.#onAfterChange(...args));
+    this.addHook('afterUpdateSettings', (...args) => this.#onAfterUpdateSettings(...args));
 
     this.addHook('beforeCreateRow', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_row', index, amount, null, source)); // eslint-disable-line max-len
     this.addHook('beforeCreateCol', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_col', index, amount, null, source)); // eslint-disable-line max-len
@@ -446,6 +447,18 @@ export class ColumnSummary extends BasePlugin {
    */
   #onAfterInit() {
     this.endpoints.initEndpoints();
+  }
+
+  /**
+   * Called after the settings were updated. There is a need to refresh cell metas after the settings update with
+   * the `columns` property as the Core resets the cell metas to their initial state.
+   *
+   * @param {object} settings The settings object.
+   */
+  #onAfterUpdateSettings(settings) {
+    if (settings.columns !== undefined) {
+      this.endpoints.refreshCellMetas();
+    }
   }
 
   /**
