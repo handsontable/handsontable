@@ -9,7 +9,7 @@ import { createDateTimeCompareFunction } from '../utils';
  * @returns {Function} The compare function.
  */
 export function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettings) {
-  return createDateTimeCompareFunction(sortOrder, columnMeta.dateFormat, columnPluginSettings);
+  return createDateTimeCompareFunction(sortOrder, columnMeta.timeFormat, columnPluginSettings);
 }
 
-export const COLUMN_DATA_TYPE = 'date';
+export const COLUMN_DATA_TYPE = 'time';
