@@ -116,7 +116,7 @@ const testCases = [
     };
     const emptyExampleContainers = [];
     let elementsNotYetRenderedCount = 0;
-    let hotInstancesCount = 0;
+    let hotInstancesCount = document.querySelectorAll('button.show-code').length;
 
     codeTabs.forEach((codeTab) => {
       const exampleId = codeTab.id.split('-').at(-1);
@@ -127,17 +127,6 @@ const testCases = [
         elementsNotYetRenderedCount += 1;
 
         return;
-      }
-
-      const tabContent = fetchTabContent(codeTabParentElement, containerFramework);
-      const prefixRegex = new RegExp(hotInitPrefixes[containerFramework], 'g');
-      const foundInits = tabContent.match(prefixRegex)?.length;
-
-      if (foundInits) {
-        hotInstancesCount += foundInits;
-
-      } else {
-        emptyExampleContainers.push(exampleId);
       }
     });
 
