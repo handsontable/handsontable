@@ -1,6 +1,9 @@
 <template>
   <div class="breadcrumbs">
-    <a :href="getBaseFrameworkUrl" v-if="getVersion"><i class="ico i-home"></i> {{ getVersion }}</a>
+    <a :href="getBaseFrameworkUrl">
+      <i class="ico i-home"></i>
+      <span v-if="Boolean(getVersion)">{{ getVersion }}</span>
+    </a>
     <a :href="getPageUrl">
       <span v-if="$page.frontmatter.category">{{$page.frontmatter.category}}</span>
       <span>{{$page.frontmatter.title}}</span>
@@ -12,27 +15,21 @@
 export default {
   name: 'Breadcrumbs',
   computed: {
-    getVersion() { // return latest version in a format major.minor.patch
+    getVersion() {
+      // return latest version in a format major.minor.patch
       const versions = this.$page.versionsWithPatches?.size
         ? [...this.$page.versionsWithPatches]
         : [];
 
       if (versions.length && versions[0].length >= 2 && versions[0][1].length) {
-        return versions[0][1][0];
+        return `${versions[0][1][0]}`;
       }
 
-      if (versions.length && versions[0].length >= 2 && versions[1][1].length) {
-        return versions[1][1][0];
+      if (versions.length && versions[1].length >= 2 && versions[1][1].length) {
+        return `${versions[1][1][0]}`;
       }
 
-      return '';
-    },
-    icon() {
-      const frameworkWithoutNumber = (
-        this.legacyFramework ?? this.$page.currentFramework
-      ).replace(/\d+$/, '');
-
-      return `i-${frameworkWithoutNumber}`;
+      return 'Home';
     },
     getBaseUrl() {
       return `${this.$page.hostname}${this.$site.base}`;

@@ -36,14 +36,14 @@ export default {
         : [];
 
       if (versions.length && versions[0].length >= 2 && versions[0][1].length) {
-        return versions[0][1][0];
+        return `${versions[0][1][0]}`;
       }
 
-      if (versions.length && versions[0].length >= 2 && versions[1][1].length) {
-        return versions[1][1][0];
+      if (versions.length && versions[1].length >= 2 && versions[1][1].length) {
+        return `${versions[1][1][0]}`;
       }
 
-      return '';
+      return 'Next';
     },
     getVersionUrl() {
       // eslint-disable-next-line max-len
