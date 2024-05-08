@@ -172,8 +172,10 @@ module.exports = function(docsVersion, base) {
         return `
           <div class="tabs-button-wrapper">
             <div class="tabs-button-list">
-              ${Boolean(!noEdit) ? stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset) : ''}
-              ${Boolean(!noEdit && !isReact) ? codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset) : ''}
+              ${!noEdit ? stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset) : ''}
+              ${!noEdit && !isReact
+    ? codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)
+    : ''}
               ${displayJsFiddle ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset) : ''}
             </div>
             <tabs
