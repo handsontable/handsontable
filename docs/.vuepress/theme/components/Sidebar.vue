@@ -68,14 +68,13 @@ export default {
     const selector1 = document.querySelector(
       '.sidebar .sidebar-nav .sidebar-links > li:first-child li:nth-child(2) a '
     );
-    const chips1 = document.createElement('span');
 
     if (selector1) {
-      //selector1.appendChild(chips1);
+      // selector1.appendChild(chips1);
       // chips1.classList.add('tag-new');
-      //chips1.classList.add('tag-update');
+      // chips1.classList.add('tag-update');
       // chips1.classList.add('tag-deprecated');
-      //chips1.textContent = 'Updated';
+      // chips1.textContent = 'Updated';
     } else {
       // eslint-disable-next-line no-console
       console.error('Element not found with the given selector');
