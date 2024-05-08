@@ -17,7 +17,7 @@
     "docs:scripts:clean-js-examples": "rm content/guides/internationalization/language/javascript/*.js",
     "docs:scripts:generate-js-examples": "tsc --target esnext --skipLibCheck content/guides/internationalization/language/javascript/example1.ts || eslint --fix --no-ignore -c eslintrc.examples.js content/guides/internationalization/language/javascript/example1.js",
     "docs:start": "npm run docs:scripts:link-assets && cross-env NODE_OPTIONS=--openssl-legacy-provider node ./node_modules/.bin/vuepress dev ./",
-    "docs:start:no-cache": "npm run docs:scripts:link-assets && cross-env NODE_OPTIONS=--openssl-legacy-provider node ./node_modules/.bin/vuepress dev --no-cache ./",
+    "docs:start:no-cache": "npm run docs:scripts:link-assets && cross-env NODE_OPTIONS=--openssl-legacy-provider node ./node_modules/vuepress/cli.js dev --no-cache ./",
     "docs:build": "cross-env NODE_OPTIONS=--openssl-legacy-provider node .vuepress/tools/build.mjs -- --no-cache",
     "docs:docker:build": "npm run docs:docker:build:testing",
     "docs:docker:build:testing": "npm run docs:scripts:link-assets && cross-env BUILD_MODE=testing npm run docs:build && docker build -f docker/Dockerfile -t docs-md ./",
