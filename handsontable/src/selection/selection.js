@@ -385,8 +385,20 @@ class Selection {
 
     this.runLocalHooks('beforeHighlightSet');
     this.setRangeFocus(this.selectedRange.current().highlight);
+    this.applyAndCommit();
 
-    const layerLevel = this.getLayerLevel();
+    const isLastLayer = this.#expectedLayersCount === -1 || this.selectedRange.size() === this.#expectedLayersCount;
+
+    this.runLocalHooks('afterSetRangeEnd', coords, isLastLayer);
+  }
+
+  /**
+   * Applies and commits the selection to all layers (using the Walkontable Selection API) based on the selection (CellRanges)
+   * collected in the `selectedRange` module.
+   */
+  applyAndCommit(cellRange = this.selectedRange.current(), layerLevel = this.getLayerLevel()) {
+    const countRows = this.tableProps.countRows();
+    const countCols = this.tableProps.countCols();
 
     // If the next layer level is lower than previous then clear all area and header highlights. This is the
     // indication that the new selection is performing.
@@ -525,10 +537,6 @@ class Selection {
           .commit();
       }
     }
-
-    const isLastLayer = this.#expectedLayersCount === -1 || this.selectedRange.size() === this.#expectedLayersCount;
-
-    this.runLocalHooks('afterSetRangeEnd', coords, isLastLayer);
   }
 
   /**
@@ -651,6 +659,7 @@ class Selection {
     } else if (this.isSelectedByColumnHeader() || range.getOuterTopStartCorner().row >= visualRowIndex) {
       const { from, to, highlight } = range;
       const countRows = this.tableProps.countRows();
+      const isSelectedByRowHeader = this.isSelectedByRowHeader();
       const isSelectedByColumnHeader = this.isSelectedByColumnHeader();
       const minRow = isSelectedByColumnHeader ? -1 : 0;
       const coordsStartAmount = isSelectedByColumnHeader ? 0 : amount;
@@ -678,6 +687,9 @@ class Selection {
         this.setRangeStartOnly(coordsStart, true);
       }
 
+      if (isSelectedByRowHeader) {
+        this.selectedByRowHeader.add(this.getLayerLevel());
+      }
       if (isSelectedByColumnHeader) {
         this.selectedByColumnHeader.add(this.getLayerLevel());
       }
@@ -702,6 +714,7 @@ class Selection {
       const { from, to, highlight } = range;
       const countCols = this.tableProps.countCols();
       const isSelectedByRowHeader = this.isSelectedByRowHeader();
+      const isSelectedByColumnHeader = this.isSelectedByColumnHeader();
       const minColumn = isSelectedByRowHeader ? -1 : 0;
       const coordsStartAmount = isSelectedByRowHeader ? 0 : amount;
 
@@ -730,6 +743,9 @@ class Selection {
 
       if (isSelectedByRowHeader) {
         this.selectedByRowHeader.add(this.getLayerLevel());
+      }
+      if (isSelectedByColumnHeader) {
+        this.selectedByColumnHeader.add(this.getLayerLevel());
       }
 
       this.setRangeEnd(coordsEnd);
@@ -1202,9 +1218,54 @@ class Selection {
   }
 
   /**
-   * Rewrite the rendered state of the selection as visual selection may have a new representation in the DOM.
+   * Refreshes the whole selection by clearing, reapplying and committing the renderable selection (Walkontable Selection API)
+   * by using the current visual ranges.
    */
   refresh() {
+    if (!this.isSelected()) {
+      return;
+    }
+
+    const countRows = this.tableProps.countRows();
+    const countColumns = this.tableProps.countCols();
+
+    if (countRows === 0 || countColumns === 0) {
+      this.deselect();
+
+      return;
+    }
+
+    Array.from(this.selectedRange).forEach((range) => {
+      const { highlight, from, to } = range;
+
+      highlight.assign({
+        row: clamp(highlight.row, -Infinity, countRows - 1),
+        col: clamp(highlight.col, -Infinity, countColumns - 1),
+      });
+      from.assign({
+        row: clamp(from.row, -Infinity, countRows - 1),
+        col: clamp(from.col, -Infinity, countColumns - 1),
+      });
+      to.assign({
+        row: clamp(to.row, 0, countRows - 1),
+        col: clamp(to.col, 0, countColumns - 1),
+      });
+    });
+
+    this.highlight
+      .getFocus()
+      .commit()
+      .syncWith(this.selectedRange.current());
+
+    Array.from(this.selectedRange).forEach((range, layerLevel) => {
+      this.applyAndCommit(range, layerLevel);
+    })
+  }
+
+  /**
+   * Refreshes the whole selection by recommitting (recalculating visual indexes to renderable ones) the renderable selection.
+   */
+  commit() {
     const customSelections = this.highlight.getCustomSelections();
 
     customSelections.forEach((customSelection) => {

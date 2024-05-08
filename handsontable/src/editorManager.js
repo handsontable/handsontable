@@ -332,35 +332,6 @@ class EditorManager {
 
     if (!this.activeEditor || (this.activeEditor && !this.activeEditor.isWaiting())) {
       if (!isFunctionKey(keyCode) && !isCtrlMetaKey(keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
-        const shortcutManager = this.hot.getShortcutManager();
-        const editorContext = shortcutManager.getContext('editor');
-        const runOnlySelectedConfig = {
-          runOnlyIf: () => isDefined(this.hot.getSelected()),
-          group: SHORTCUTS_GROUP_NAVIGATION
-        };
-
-        editorContext.addShortcuts([{
-          keys: [['ArrowUp']],
-          callback: () => {
-            this.hot.selection.transformStart(-1, 0);
-          },
-        }, {
-          keys: [['ArrowDown']],
-          callback: () => {
-            this.hot.selection.transformStart(1, 0);
-          },
-        }, {
-          keys: [['ArrowLeft']],
-          callback: () => {
-            this.hot.selection.transformStart(0, -1 * this.hot.getDirectionFactor());
-          },
-        }, {
-          keys: [['ArrowRight']],
-          callback: () => {
-            this.hot.selection.transformStart(0, this.hot.getDirectionFactor());
-          },
-        }], runOnlySelectedConfig);
-
         this.openEditor('', event);
       }
     }

@@ -215,37 +215,6 @@ export class BaseEditor {
       [visualRowFrom, visualColumnFrom] = modifiedCellCoords;
     }
 
-    const shortcutManager = this.hot.getShortcutManager();
-    const editorContext = shortcutManager.getContext('editor');
-    const contextConfig = {
-      runOnlyIf: () => isDefined(this.hot.getSelected()),
-      group: SHORTCUTS_GROUP_EDITOR,
-    };
-
-    if (this.isInFullEditMode()) {
-      editorContext.addShortcuts([{
-        keys: [['ArrowUp']],
-        callback: () => {
-          this.hot.selection.transformStart(-1, 0);
-        },
-      }, {
-        keys: [['ArrowDown']],
-        callback: () => {
-          this.hot.selection.transformStart(1, 0);
-        },
-      }, {
-        keys: [['ArrowLeft']],
-        callback: () => {
-          this.hot.selection.transformStart(0, -1 * this.hot.getDirectionFactor());
-        },
-      }, {
-        keys: [['ArrowRight']],
-        callback: () => {
-          this.hot.selection.transformStart(0, this.hot.getDirectionFactor());
-        },
-      }], contextConfig);
-    }
-
     // Saving values using the modified coordinates.
     this.hot.populateFromArray(visualRowFrom, visualColumnFrom, value, visualRowTo, visualColumnTo, 'edit');
   }

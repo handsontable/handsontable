@@ -438,7 +438,6 @@ export class TextEditor extends BaseEditor {
   registerShortcuts() {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
-    const gridContext = shortcutManager.getContext('grid');
     const contextConfig = {
       runOnlyIf: () => isDefined(this.hot.getSelected()),
       group: SHORTCUTS_GROUP,
@@ -449,15 +448,6 @@ export class TextEditor extends BaseEditor {
     };
 
     editorContext.addShortcuts([{
-      keys: [
-        ['Tab'],
-        ['Shift', 'Tab'],
-        ['PageUp'],
-        ['PageDown']
-      ],
-      forwardToContext: gridContext,
-      callback: () => {},
-    }, {
       keys: [['Control', 'Enter']],
       callback: () => {
         insertNewLine();

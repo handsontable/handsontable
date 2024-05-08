@@ -354,7 +354,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   const onIndexMapperCacheUpdate = ({ hiddenIndexesChanged }) => {
     if (hiddenIndexesChanged) {
-      this.selection.refresh();
+      this.selection.commit();
     }
   };
 
@@ -608,6 +608,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 return;
               }
 
+              if (selection.isSelected()) {
+                const { row } = instance.getSelectedRangeLast().highlight;
+
+                if (row >= groupIndex && row <= groupIndex + groupAmount) {
+                  editorManager.closeEditor(true);
+                }
+              }
+
               selection.shiftRows(groupIndex, source === 'ContextMenu.removeRow' ? 0 : -groupAmount);
 
               const totalRows = instance.countRows();
@@ -659,6 +667,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 return;
               }
 
+              if (selection.isSelected()) {
+                const { col } = instance.getSelectedRangeLast().highlight;
+
+                if (col >= groupIndex && col <= groupIndex + groupAmount) {
+                  editorManager.closeEditor(true);
+                }
+              }
+
               selection.shiftColumns(groupIndex, source === 'ContextMenu.removeColumn' ? 0 : -groupAmount);
 
               const fixedColumnsStart = tableMeta.fixedColumnsStart;
@@ -703,10 +719,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       const minSpareRows = tableMeta.minSpareRows;
       const minCols = tableMeta.minCols;
       const minSpareCols = tableMeta.minSpareCols;
-
-      if (instance.countRows() === 0 && instance.countCols() === 0) {
-        selection.deselect();
-      }
 
       if (minRows) {
         // should I add empty rows to data source to meet minRows?
@@ -2166,6 +2178,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         instance.rowIndexMapper.fitToLength(this.countSourceRows());
 
         grid.adjustRowsAndCols();
+        selection.refresh();
       }, {
         hotInstance: instance,
         dataMap: datamap,
@@ -2209,6 +2222,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         metaManager.clearCellsCache();
         instance.initIndexMappers();
         grid.adjustRowsAndCols();
+        selection.refresh();
 
         if (firstRun) {
           firstRun = [null, 'loadData'];
