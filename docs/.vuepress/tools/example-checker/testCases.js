@@ -35,7 +35,9 @@ const testCases = [
     };
 
     setExceptionsForPermalinks([
-      // The column-summary example on the page of each of the frameworks shows an error being thrown - the Handsontable
+      ['/react-data-grid/column-summary', { expectedCount: -1 }],
+      ['/javascript-data-grid/formula-calculation', { expectedCount: 1 }],
+      ['/react-data-grid/formula-calculation', { expectedCount: 1 }],
     ]);
 
     /**
