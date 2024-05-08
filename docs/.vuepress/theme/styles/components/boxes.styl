@@ -3,7 +3,7 @@
         margin:0 
         padding: 0
     }
-    #get-started-with-handsontable ~ .boxes-list,
+    #introduction ~ .boxes-list,
     #open-source-software-components ~ .boxes-list
     #handsontable-api-reference  ~ .boxes-list  {
         ul {
@@ -103,7 +103,7 @@
                 }
 
                 @media (hover: hover) {
-                    &:hover { 
+                    &:has(a):hover { 
                         background: $onsurfaceColor
                         border: 1px solid $bgColor
 
@@ -131,7 +131,7 @@
                 
 
                 @media (hover: hover) {
-                    &:hover { 
+                    &:has(a):hover { 
                         background: $bgColor
                         box-shadow: 0 0 0 1px $accentColor
 
@@ -140,6 +140,28 @@
                         }
                     }
                 }
+            }
+        }
+
+        &.small {
+            li { 
+                padding: 16px
+                flex-direction: row
+                align-items: center
+                gap: 16px
+                i {
+                    margin-bottom: 0
+                    + a:before {
+                        top: 16px
+                        left: 16px
+                    }
+                }
+            }
+        }
+
+        &.col3 {
+            li {
+                width: calc(33% - 9px)
             }
         }
 

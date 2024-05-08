@@ -896,7 +896,7 @@ html.theme-dark {
         background: $bgColor 
     }
 
-    .page #get-started-with-handsontable ~ .boxes-list,
+    .page #introduction ~ .boxes-list,
     #open-source-software-components ~ .boxes-list
     #handsontable-api-reference  ~ .boxes-list {
         li {
@@ -920,8 +920,9 @@ html.theme-dark {
             }
 
             @media (hover: hover) {
-                &:hover { 
+                &:has(a):hover { 
                     border: 1px solid $bgColor
+                    background: transparent
 
                     &:after { 
                         background: $accentColor
@@ -942,7 +943,7 @@ html.theme-dark {
                 }
 
                 @media (hover: hover) {
-                    &:hover { 
+                    &:has(a):hover { 
                         background: $bgColor
                         box-shadow: 0 0 0 1px $accentColor
                     }
@@ -1253,7 +1254,7 @@ html.theme-dark {
             }
             
             .show-code {
-                border: 1px solid $sideColor !important
+                border: 1px solid $lightBorderColor !important
             }
 
             .example-controls { 
