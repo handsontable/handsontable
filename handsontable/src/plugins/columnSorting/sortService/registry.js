@@ -5,6 +5,7 @@ import {
   COLUMN_DATA_TYPE as CHECKBOX_DATA_TYPE
 } from '../sortFunction/checkbox';
 import { compareFunctionFactory as dateSort, COLUMN_DATA_TYPE as DATE_DATA_TYPE } from '../sortFunction/date';
+import { compareFunctionFactory as timeSort, COLUMN_DATA_TYPE as TIME_DATA_TYPE } from '../sortFunction/time';
 import staticRegister from '../../../utils/staticRegister';
 
 const {
@@ -32,10 +33,11 @@ export function getCompareFunctionFactory(type) {
   return getGloballyCompareFunctionFactory(DEFAULT_DATA_TYPE);
 }
 
-registerCompareFunctionFactory(NUMERIC_DATA_TYPE, numericSort);
 registerCompareFunctionFactory(CHECKBOX_DATA_TYPE, checkboxSort);
 registerCompareFunctionFactory(DATE_DATA_TYPE, dateSort);
 registerCompareFunctionFactory(DEFAULT_DATA_TYPE, defaultSort);
+registerCompareFunctionFactory(NUMERIC_DATA_TYPE, numericSort);
+registerCompareFunctionFactory(TIME_DATA_TYPE, timeSort);
 
 export {
   registerRootComparator,
