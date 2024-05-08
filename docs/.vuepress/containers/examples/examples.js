@@ -7,6 +7,7 @@ const EXAMPLE_REGEX = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
 
 const { buildCode } = require('./code-builder');
 const { addCodeForPreset } = require('./add-code-for-preset');
+const { codesandbox } = require('./codesandbox');
 const { jsfiddle } = require('./jsfiddle');
 const { stackblitz } = require('./stackblitz');
 
@@ -164,13 +165,15 @@ module.exports = function(docsVersion, base) {
 
         tokens.splice(index + 1, 0, ...newTokens);
         const isAngular = /angular(-.*)?/.test(preset);
+        const isReact = /react(-.*)?/.test(preset);
 
         const displayJsFiddle = Boolean(!noEdit && !isAngular);
 
         return `
           <div class="tabs-button-wrapper">
             <div class="tabs-button-list">
-              ${Boolean(!noEdit) && stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
+              ${Boolean(!noEdit) ? stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset) : ''}
+              ${Boolean(!noEdit && !isReact) ? codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset) : ''}
               ${displayJsFiddle ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset) : ''}
             </div>
             <tabs
