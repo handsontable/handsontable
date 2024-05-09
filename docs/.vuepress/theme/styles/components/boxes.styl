@@ -169,6 +169,26 @@
             ul li {
                 width: 100%
             }
+            &.small {
+                li {
+                    gap: 12px
+
+                    i + a:before {
+                        top: 12px
+                        left: 12px
+                    }
+                }
+            }
+            &.col3 {
+                li {
+                    width: calc(50% - 8px)
+                    padding: 12px
+
+                    a { 
+                        font-size: 12px
+                    }
+                }
+            }
         }
     }
 
