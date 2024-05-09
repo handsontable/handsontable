@@ -157,8 +157,11 @@ export class DateEditor extends TextEditor {
     }
 
     this.hot._registerTimeout(() => {
-      this.hot._getEditorManager().destroyEditor();
+      const editorManager = this.hot._getEditorManager();
+
+      editorManager.closeEditor();
       this.hot.view.render();
+      editorManager.prepareEditor();
     });
 
     const shortcutManager = this.hot.getShortcutManager();

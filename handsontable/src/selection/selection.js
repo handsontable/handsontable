@@ -680,6 +680,8 @@ class Selection {
         to.col
       );
 
+      this.markSource('shift');
+
       if (highlight.row >= visualRowIndex) {
         this.setRangeStartOnly(coordsStart, true, this.tableProps.createCellCoords(
           clamp(highlight.row + amount, 0, countRows - 1),
@@ -698,6 +700,7 @@ class Selection {
       }
 
       this.setRangeEnd(coordsEnd);
+      this.markEndSource();
     }
   }
 
@@ -734,6 +737,8 @@ class Selection {
         clamp(to.col + amount, minColumn, countCols - 1)
       );
 
+      this.markSource('shift');
+
       if (highlight.col >= visualColumnIndex) {
         this.setRangeStartOnly(coordsStart, true, this.tableProps.createCellCoords(
           highlight.row,
@@ -752,6 +757,7 @@ class Selection {
       }
 
       this.setRangeEnd(coordsEnd);
+      this.markEndSource();
     }
   }
 
@@ -1222,7 +1228,7 @@ class Selection {
 
   /**
    * Refreshes the whole selection by clearing, reapplying and committing the renderable selection (Walkontable Selection API)
-   * by using the current visual ranges.
+   * by using already added visual ranges.
    */
   refresh() {
     if (!this.isSelected()) {
@@ -1266,7 +1272,8 @@ class Selection {
   }
 
   /**
-   * Refreshes the whole selection by recommitting (recalculating visual indexes to renderable ones) the renderable selection.
+   * Refreshes the whole selection by recommitting (recalculating visual indexes to renderable ones) the renderable selection
+   * that was already added.
    */
   commit() {
     const customSelections = this.highlight.getCustomSelections();

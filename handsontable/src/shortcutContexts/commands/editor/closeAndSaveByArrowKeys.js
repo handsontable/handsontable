@@ -1,9 +1,12 @@
+import { EDITOR_STATE } from '../../../editors/baseEditor';
+
 export const command = {
   name: 'editorCloseAndSaveByArrowKeys',
   callback(hot, event, keys) {
     const editorManager = hot._getEditorManager();
+    const activeEditor = editorManager.getActiveEditor();
 
-    if (editorManager.getActiveEditor().isInFullEditMode()) {
+    if (activeEditor.isInFullEditMode() && activeEditor.state === EDITOR_STATE.EDITING) {
       return;
     }
 

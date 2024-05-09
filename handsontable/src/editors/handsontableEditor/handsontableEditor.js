@@ -4,7 +4,7 @@ import {
   stopImmediatePropagation,
 } from '../../helpers/dom/event';
 import { extend } from '../../helpers/object';
-import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
+import { EDITOR_EDIT_GROUP } from '../../shortcutContexts';
 
 const SHORTCUTS_GROUP = 'handsontableEditor';
 
@@ -187,7 +187,7 @@ export class HandsontableEditor extends TextEditor {
 
     const contextConfig = {
       group: SHORTCUTS_GROUP,
-      relativeToGroup: SHORTCUTS_GROUP_NAVIGATION,
+      relativeToGroup: EDITOR_EDIT_GROUP,
       position: 'before',
     };
 

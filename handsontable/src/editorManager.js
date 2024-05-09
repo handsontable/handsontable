@@ -3,8 +3,6 @@ import { isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors/registry';
 import EventManager from './eventManager';
 
-export const SHORTCUTS_GROUP_NAVIGATION = 'editorManager.navigation';
-
 class EditorManager {
   /**
    * Instance of {@link Handsontable}.
@@ -76,16 +74,6 @@ class EditorManager {
     });
 
     this.hot.view._wt.update('onCellDblClick', (event, coords, elem) => this.#onCellDblClick(event, coords, elem));
-  }
-
-  /**
-   * Destroy current editor, if exists.
-   *
-   * @param {boolean} revertOriginal If `false` and the cell using allowInvalid option,
-   *                                 then an editor won't be closed until validation is passed.
-   */
-  destroyEditor(revertOriginal) {
-    this.closeEditor(revertOriginal);
   }
 
   /**

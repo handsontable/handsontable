@@ -1,6 +1,5 @@
 import { stringify } from '../../helpers/mixed';
 import { mixin } from '../../helpers/object';
-import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
 import {
   getScrollbarWidth,
@@ -19,8 +18,6 @@ export const EDITOR_STATE = Object.freeze({
   WAITING: 'STATE_WAITING', // waiting for async validation
   FINISHED: 'STATE_FINISHED'
 });
-
-export const SHORTCUTS_GROUP_EDITOR = 'baseEditor';
 
 /**
  * @class BaseEditor
@@ -284,12 +281,6 @@ export class BaseEditor {
     if (this.isWaiting()) {
       return;
     }
-
-    const shortcutManager = this.hot.getShortcutManager();
-    const editorContext = shortcutManager.getContext('editor');
-
-    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_EDITOR);
-    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_NAVIGATION);
 
     if (this.state === EDITOR_STATE.VIRGIN) {
       this.hot._registerTimeout(() => {

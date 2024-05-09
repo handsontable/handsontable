@@ -412,6 +412,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
     }
 
+    if (selection.getSelectionSource() !== 'shift') {
+      editorManager.closeEditor(null);
+    }
+
     instance.view.render();
     editorManager.prepareEditor();
   });
@@ -429,7 +433,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       viewportScroller.scrollTo(cellCoords);
     }
 
-    editorManager.destroyEditor();
+    editorManager.closeEditor();
     instance.view.render();
     editorManager.prepareEditor();
   });
@@ -453,7 +457,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   });
 
   this.selection.addLocalHook('afterDeselect', () => {
-    editorManager.destroyEditor();
+    editorManager.closeEditor();
     instance.view.render();
 
     removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
@@ -704,6 +708,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           throw new Error(`There is no such action "${action}"`);
       }
 
+      instance.view.render();
+
       if (!keepEmptyRows) {
         grid.adjustRowsAndCols(); // makes sure that we did not add rows that will be removed in next refresh
       }
@@ -777,9 +783,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       }
 
       if (instance.view) {
-        instance.view.render(); // ???
-        instance.view.adjustElementsSize(); // ???
-        editorManager.prepareEditor(); // ???
+        instance.view.adjustElementsSize();
       }
     },
 
@@ -1308,7 +1312,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     instance.forceFullRender = true; // used when data was changed
     grid.adjustRowsAndCols();
     instance.runHooks('beforeChangeRender', changes, source);
-    editorManager.destroyEditor();
+    editorManager.closeEditor();
     instance.view.render();
     instance.view.adjustElementsSize();
     instance.runHooks('afterChange', changes, source || 'edit');
@@ -1624,7 +1628,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {boolean} [prepareEditorIfNeeded=true] If `true` the editor under the selected cell will be prepared to open.
    */
   this.destroyEditor = function(revertOriginal = false, prepareEditorIfNeeded = true) {
-    editorManager.destroyEditor(revertOriginal);
+    editorManager.closeEditor(revertOriginal);
     instance.view.render();
 
     if (prepareEditorIfNeeded && selection.isSelected()) {
