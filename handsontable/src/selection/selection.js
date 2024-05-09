@@ -395,6 +395,9 @@ class Selection {
   /**
    * Applies and commits the selection to all layers (using the Walkontable Selection API) based on the selection (CellRanges)
    * collected in the `selectedRange` module.
+   *
+   * @param {CellRange} [cellRange] The cell range to apply. If not provided, the current selection is used.
+   * @param {number} [layerLevel] The layer level to apply. If not provided, the current layer level is used.
    */
   applyAndCommit(cellRange = this.selectedRange.current(), layerLevel = this.getLayerLevel()) {
     const countRows = this.tableProps.countRows();
@@ -1259,7 +1262,7 @@ class Selection {
 
     Array.from(this.selectedRange).forEach((range, layerLevel) => {
       this.applyAndCommit(range, layerLevel);
-    })
+    });
   }
 
   /**

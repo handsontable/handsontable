@@ -1,4 +1,4 @@
-import { isDefined, stringify } from '../../helpers/mixed';
+import { stringify } from '../../helpers/mixed';
 import { mixin } from '../../helpers/object';
 import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
