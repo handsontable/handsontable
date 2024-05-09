@@ -14,13 +14,9 @@ category: Getting started
 
 # Introduction
 
-Handsontable is an popular JavaScript data grid component that brings the well-known look and feel of spreadsheets to your application. You can use Handsontable for all types of data-rich, accessible applications, empowering users to enter, edit, validate, and cleanse the data from remote sources such as databases and APIs or from HTML documents, Excel files, Google Sheets, and manual input.
+Handsontable is an popular JavaScript data grid component that brings the well-known look and feel of spreadsheets to your application. 
 
-```md
-[![npm](https://img.shields.io/npm/dt/handsontable.svg)](https://npmjs.com/package/handsontable)
-[![npm](https://img.shields.io/npm/dm/handsontable.svg)](https://npmjs.com/package/handsontable)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=handsontable_handsontable&metric=alert_status)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
-```
+You can use Handsontable for all types of data-rich, accessible applications, empowering users to enter, edit, validate, and cleanse the data from remote sources such as databases and APIs or from HTML documents, Excel files, Google Sheets, and manual input.
 
 [[toc]]
 
@@ -37,13 +33,13 @@ Use Handsontable with pure JavaScript or a framework of your choice. The guides 
 - <i class="ico i-angular"></i> 
 [Angular](@/guides/integrate-with-angular/angular-installation/angular-installation.md)
 - <i class="ico i-vue"></i> 
-[Vue 3](@/guides/integrate-with-vue/vue-installation/vue-installation.md)
+[Vue 2](@/guides/integrate-with-vue/vue-installation/vue-installation.md)
 - <i class="ico i-vue"></i> 
-[Vue 2](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)
+[Vue 3](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)
 
 </div>
 
-### Examples with SSR
+## Examples with SSR
 
 <div class="boxes-list gray col3">
 
@@ -67,7 +63,7 @@ Think of Handsontable as an extensible framework that lets you quickly build tab
 
 Discover more about how Handsontable is used in different industries by visiting our [Successful Customers](https://handsontable.com/customers/) page.
 
-### Types of software
+## Types of software
 
 Handsontable's built-in features make it a perfect fit for applications across different types of software.
 
@@ -83,7 +79,11 @@ Handsontable's built-in features make it a perfect fit for applications across d
 
 ## Join our Community 🙌
 
-You are welcome to join our GitHub community. Discuss new releases, propose features, and report bugs on [GitHub Discussions](https://github.com/handsontable/handsontable/discussions), [Developers' forum](https://forum.handsontable.com/), [Twitter](https://twitter.com/handsontable), or [Stack Overflow](https://stackoverflow.com/tags/handsontable).
+You are welcome to join our GitHub community. Discuss new releases, propose features, and report bugs on:
+- [GitHub Discussions](https://github.com/handsontable/handsontable/discussions)
+- [Developers' forum](https://forum.handsontable.com/)
+- [Twitter](https://twitter.com/handsontable)
+- [Stack Overflow](https://stackoverflow.com/tags/handsontable)
 
 ## Technical support
 
