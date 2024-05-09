@@ -1195,8 +1195,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     for (let i = changes.length - 1; i >= 0; i--) {
       const [row, prop, , newValue] = changes[i];
-      const col = datamap.propToCol(prop);
-      const cellProperties = instance.getCellMeta(row, col);
+      const visualCol = datamap.propToCol(prop);
+      let cellProperties;
+
+      if (Number.isInteger(visualCol)) {
+        cellProperties = instance.getCellMeta(row, visualCol);
+
+      } else {
+        // If there's no requested visual column, we can use the table meta as the cell properties when retrieving
+        // the cell validator.
+        cellProperties = { ...Object.getPrototypeOf(tableMeta), ...tableMeta };
+      }
 
       if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericLike(newValue)) {
         changes[i][3] = getParsedNumber(newValue);
@@ -1545,6 +1554,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ]);
     }
 
+    // TODO: I don't think `prop` should be used as `changeSource` here, but removing it would be a breaking change.
+    // We should remove it with the next major release.
     if (!changeSource && typeof row === 'object') {
       changeSource = prop;
     }
@@ -2707,7 +2718,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       renderableRowIndex = this.rowIndexMapper.getRenderableFromVisualIndex(row);
     }
 
-    if (renderableRowIndex === null || renderableColumnIndex === null) {
+    if (
+      renderableRowIndex === null ||
+      renderableColumnIndex === null ||
+      renderableRowIndex === undefined ||
+      renderableColumnIndex === undefined
+    ) {
       return null;
     }
 
