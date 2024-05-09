@@ -91,7 +91,7 @@ Implementing Handsontable requires a certain level of front-end development skil
 
 ## Stay in the loop
 
-- [Roadmap](@/guides/upgrade-and-migration/release-notes/roadmap.md)
+- [Roadmap](@/guides/upgrade-and-migration/roadmap/roadmap.md)
 - [Release notes](@/guides/upgrade-and-migration/release-notes/release-notes.md)
 - [Blog](https://handsontable.com/blog)
 - [Twitter](https://twitter.com/handsontable)

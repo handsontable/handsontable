@@ -285,13 +285,16 @@
         display: none
     }
 
+    .handsontable br { 
+        display: block
+    }
+
     label input {
         margin: 4px
     }
 
-    #mainInput, select, input[type=text], input[type=search], .placeholder-input {
+    #mainInput, select:not('htSelectEditor'), input[type=text], input[type=search], .placeholder-input {
         padding: 8px 16px;
-        //margin-top: 12px;
         font-size: $font-size-xs
         line-height: $line-height-xs
         color:$textColor

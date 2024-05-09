@@ -11,7 +11,7 @@
 .header-framework {display: none !important}
 .page { 
     opacity 1
-    margin: 96px 380px 0
+    margin: 80px 380px 0
     padding: 0 0 24px 0
     position: relative
     z-index: 1
@@ -97,20 +97,26 @@
             line-height: $line-height-xl
             font-weight: 400
             margin:0!important
-            padding: 48px 0 0
+            padding: 40px 0 0
             position: relative
             
+            @media (max-width: $medium) {
+                font-size: $font-size-l
+                line-height: $line-height-l
+            }
+
             + p {
                 border-bottom: 1px solid $lightBorderColor
                 padding-bottom: 24px
-                margin-bottom: 24px
+                margin-bottom: 16px
                 display: block
             }
+            
         }
 
         h2 { 
             padding-top: 32px
-            padding-bottom: 8px
+            padding-bottom: 0px
             font-size: $font-size-l
             line-height: $line-height-l
             margin: 0
@@ -119,7 +125,7 @@
 
         h3 { 
             padding-top: 24px
-            padding-bottom: 8px
+            padding-bottom: 0px
             font-size: $font-size
             line-height: $line-height
             margin: 0
@@ -159,6 +165,10 @@
 
             a { 
                 text-decoration-color: none
+
+                &[rel="noopener"] {
+                    white-space nowrap
+                }
             }
 
             &:empty { 
@@ -167,6 +177,10 @@
 
             > img {
                 margin: 16px 0
+            }
+            
+            @media (max-width: $medium) {
+                line-break: anywhere;
             }
         }
         
@@ -267,7 +281,10 @@
         width: 100% //calc(100% + 32px)
         box-shadow: 0 0 0 1px $borderColor 
         border-radius: $radius
-        overflow: hidden
+        overflow: auto
+        display: table
+        table-layout: fixed;
+        overflow-wrap: break-word;
 
         img {
             max-height: 80px

@@ -69,6 +69,11 @@
                     border-color: $linkColor
                 }
             }
+
+            @media (max-width: $medium) {
+                position static
+                float none
+            }
         }
 
         pre { 
@@ -317,6 +322,10 @@ output.console {
     background: $sideColor
     white-space: pre-line;
     display: inline-block
+
+    br { 
+        display: block
+    }
 
     &:last-child {
         margin-bottom: 0

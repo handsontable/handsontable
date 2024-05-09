@@ -6,6 +6,8 @@
     #introduction ~ .boxes-list,
     #open-source-software-components ~ .boxes-list
     #handsontable-api-reference  ~ .boxes-list  {
+        padding: 0
+
         ul {
             margin-top: 24px
             margin-bottom: 24px
@@ -83,14 +85,13 @@
                         top: 24px
                         left: 24px
                         border-radius: $radius
-                        background-color: $sideColor
+                        background-color: $borderColor
                     }
                 }
 
                 a { 
-                    font-weight: 600
+                    font-weight: 500
                     font-size: $font-size-s
-                    letter-spacing: $letter-spacing-s
                     color: $textColor
 
                     &:after {
@@ -188,6 +189,11 @@
                         font-size: 12px
                     }
                 }
+            }
+        }
+        @media (max-width: 360px) {
+            &.col3 li {
+                width: 100%
             }
         }
     }
