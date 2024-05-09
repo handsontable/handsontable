@@ -1,6 +1,6 @@
 import { compareFunctionFactory as dateSort } from 'handsontable/plugins/columnSorting/sortFunction/date';
 
-it('dateSort comparing function shouldn\'t change order when comparing empty string, null and undefined', () => {
+it('timeSort comparing function shouldn\'t change order when comparing empty string, null and undefined', () => {
   expect(dateSort('asc', {}, {})(null, null)).toBe(0);
   expect(dateSort('desc', {}, {})(null, null)).toBe(0);
 
