@@ -577,6 +577,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               // Remove from the stack the last added selection as that selection below will be
               // replaced by new transformed selection.
               selection.getSelectedRange().pop();
+
+              instance.addHookOnce('afterSelection', (...[,,,, preventScrolling]) => {
+                preventScrolling.value = true;
+              });
+
               // I can't use transforms as they don't work in negative indexes.
               selection.setRangeStartOnly(instance
                 ._createCellCoords(currentFromRow + rowDelta, currentFromColumn), true);
