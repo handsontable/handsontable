@@ -19,6 +19,7 @@ category: Accessories and menus
 
 # Context menu
 
+
 Quickly access contextual actions such as removing rows, inserting columns or copying data, by opening the context menu.
 
 [[toc]]
