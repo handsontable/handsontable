@@ -647,6 +647,12 @@ class Selection {
     this.setRangeFocus(focusCoords.normalize());
   }
 
+  /**
+   * Transforms the last selection layer down or up by the index count.
+   *
+   * @param {number} visualRowIndex Visual row index from which the selection will be shifted.
+   * @param {number} amount The number of rows to shift the selection.
+   */
   shiftRows(visualRowIndex, amount) {
     if (!this.isSelected()) {
       return;
@@ -704,6 +710,12 @@ class Selection {
     }
   }
 
+  /**
+   * Transforms the last selection layer left or right by the index count.
+   *
+   * @param {number} visualColumnIndex Visual column index from which the selection will be shifted.
+   * @param {number} amount The number of columns to shift the selection.
+   */
   shiftColumns(visualColumnIndex, amount) {
     if (!this.isSelected()) {
       return;
@@ -1244,31 +1256,32 @@ class Selection {
       return;
     }
 
-    Array.from(this.selectedRange).forEach((range) => {
-      const { highlight, from, to } = range;
+    const range = this.selectedRange.peekByIndex(this.selectedRange.size() - 1);
+    const { from, to, highlight } = range;
 
-      highlight.assign({
-        row: clamp(highlight.row, -Infinity, countRows - 1),
-        col: clamp(highlight.col, -Infinity, countColumns - 1),
-      });
-      from.assign({
-        row: clamp(from.row, -Infinity, countRows - 1),
-        col: clamp(from.col, -Infinity, countColumns - 1),
-      });
-      to.assign({
-        row: clamp(to.row, 0, countRows - 1),
-        col: clamp(to.col, 0, countColumns - 1),
-      });
+    this.clear();
+
+    highlight.assign({
+      row: clamp(highlight.row, -Infinity, countRows - 1),
+      col: clamp(highlight.col, -Infinity, countColumns - 1),
+    });
+    from.assign({
+      row: clamp(from.row, -Infinity, countRows - 1),
+      col: clamp(from.col, -Infinity, countColumns - 1),
+    });
+    to.assign({
+      row: clamp(to.row, 0, countRows - 1),
+      col: clamp(to.col, 0, countColumns - 1),
     });
 
+    this.selectedRange.ranges.push(range);
     this.highlight
       .getFocus()
+      .add(highlight)
       .commit()
-      .syncWith(this.selectedRange.current());
+      .syncWith(range);
 
-    Array.from(this.selectedRange).forEach((range, layerLevel) => {
-      this.applyAndCommit(range, layerLevel);
-    });
+    this.applyAndCommit(range);
   }
 
   /**

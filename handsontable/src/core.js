@@ -620,9 +620,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 }
               }
 
-              selection.shiftRows(groupIndex, source === 'ContextMenu.removeRow' ? 0 : -groupAmount);
-
               const totalRows = instance.countRows();
+
+              if (totalRows === 0) {
+                selection.deselect();
+
+              } else if (source === 'ContextMenu.removeRow') {
+                selection.refresh();
+
+              } else {
+                selection.shiftRows(groupIndex, -groupAmount);
+              }
+
               const fixedRowsTop = tableMeta.fixedRowsTop;
 
               if (fixedRowsTop >= calcIndex + 1) {
@@ -679,7 +688,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 }
               }
 
-              selection.shiftColumns(groupIndex, source === 'ContextMenu.removeColumn' ? 0 : -groupAmount);
+              const totalColumns = instance.countCols();
+
+              if (totalColumns === 0) {
+                selection.deselect();
+
+              } else if (source === 'ContextMenu.removeColumn') {
+                selection.refresh();
+
+              } else {
+                selection.shiftColumns(groupIndex, -groupAmount);
+              }
 
               const fixedColumnsStart = tableMeta.fixedColumnsStart;
 
@@ -1314,6 +1333,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     instance.runHooks('beforeChangeRender', changes, source);
     editorManager.closeEditor();
     instance.view.render();
+    editorManager.prepareEditor();
     instance.view.adjustElementsSize();
     instance.runHooks('afterChange', changes, source || 'edit');
 
