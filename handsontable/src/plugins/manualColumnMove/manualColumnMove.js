@@ -7,7 +7,7 @@ import { rangeEach } from '../../helpers/number';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
 
-import './manualColumnMove.css';
+//import './manualColumnMove.css';
 
 Hooks.getSingleton().register('beforeColumnMove');
 Hooks.getSingleton().register('afterColumnMove');

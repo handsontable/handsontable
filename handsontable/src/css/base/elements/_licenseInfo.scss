@@ -1,0 +1,13 @@
+.hot-display-license-info {
+    font-family: var(--hot-font-family);
+    font-size: calc(var(--hot-base-font-size) - 3px);
+    font-weight: normal;
+    color: var(--hot-foreground-color);
+    padding: var(--hot-base-padding) 0;
+    text-align: left;
+
+    a {
+        color: var(--hot-link-color);
+        font-size: 10px;
+    }
+}

@@ -14,7 +14,7 @@ import { BasePlugin } from '../base';
 import StateManager from './stateManager';
 import GhostTable from './utils/ghostTable';
 
-import './nestedHeaders.css';
+//import './nestedHeaders.css';
 
 export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;

@@ -9,7 +9,7 @@ import { TrimmingMap } from '../../translations';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
 import RowMoveController from './utils/rowMoveController';
 
-import './nestedRows.scss';
+//import './nestedRows.scss';
 
 export const PLUGIN_KEY = 'nestedRows';
 export const PLUGIN_PRIORITY = 300;

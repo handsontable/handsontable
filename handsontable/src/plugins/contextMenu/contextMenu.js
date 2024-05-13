@@ -23,7 +23,7 @@ import {
   SEPARATOR,
 } from './predefinedItems';
 
-import './contextMenu.scss';
+//import './contextMenu.scss';
 
 export const PLUGIN_KEY = 'contextMenu';
 export const PLUGIN_PRIORITY = 70;

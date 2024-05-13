@@ -1,0 +1,32 @@
+@use "sass:color";
+
+.handsontable {
+    --hot-foreground-color: #373737;
+    --hot-background-color: #ffffff;
+    --hot-border-color: #cccccc;
+    --hot-header-background-color: #f0f0f0;
+    --hot-header-foreground-color: #222222;
+    --hot-header-active-background-color: var(--hot-border-color);
+    --hot-link-accent-color: #104acc;
+    --hot-invalid-background-color: #ffbeba;
+
+    --hot-link-color: var(--hot-link-accent-color);
+
+    --hot-border-horizontal-size: 1px;
+    --hot-border-vertical-size: 1px;
+    --hot-base-padding: 4px;
+
+    --hot-base-font-size: 13px;
+    --hot-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
+
+    --hot-cell-height: 22px;
+    --hot-cell-line-height: 21px;
+    --hot-cell-horizontal-padding: var(--hot-base-padding);
+    --hot-cell-vertical-padding: 0;
+
+    --hot-header-horizontal-padding: var(--hot-cell-horizontal-padding);
+    --hot-header-vertical-padding: 2px;
+    --hot-header-line-height: 1.1;
+
+    --hot-resizer-width: 5px
+}

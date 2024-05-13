@@ -10,7 +10,7 @@ import hideRowItem from './contextMenuItem/hideRow';
 import showRowItem from './contextMenuItem/showRow';
 import { HidingMap } from '../../translations';
 
-import './hiddenRows.css';
+//import './hiddenRows.css';
 
 Hooks.getSingleton().register('beforeHideRows');
 Hooks.getSingleton().register('afterHideRows');

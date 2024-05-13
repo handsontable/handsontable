@@ -10,7 +10,7 @@ import { isObject, clone } from '../../helpers/object';
 import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';
 import { applySpanProperties } from './utils';
-import './mergeCells.css';
+//import './mergeCells.css';
 import { getStyle } from '../../helpers/dom/element';
 import { isChrome } from '../../helpers/browser';
 import { FocusOrder } from './focusOrder';

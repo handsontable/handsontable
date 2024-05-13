@@ -1,0 +1,172 @@
+.handsontable {
+    position: relative;
+
+    .hide {
+        display: none;
+    }
+
+    .relative {
+        position: relative;
+    }
+
+    .wtHider {
+        width: 0;
+    }
+
+    .wtSpreader {
+        position: relative;
+        /*must be 0, otherwise blank space appears in scroll demo after scrolling max to the right */
+        width: 0;
+        height: auto;
+    }
+    
+    table,
+    tbody,
+    thead,
+    td,
+    th,
+    input,
+    textarea,
+    div {
+        @include box-sizing(border-box);
+    }
+    input,
+    textarea {
+        min-height: initial;
+    }
+
+    table.htCore {
+        border-collapse: separate;
+        /* it must be separate, otherwise there are offset miscalculations in WebKit: http://stackoverflow.com/questions/2655987/border-collapse-differences-in-ff-and-webkit */
+        /* this actually only changes appearance of user selection - does not make text unselectable */
+        /* -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -o-user-select: none;
+            -ms-user-select: none;
+            user-select: none; // no browser supports unprefixed version
+        */
+        border-spacing: 0;
+        margin: 0;
+        border-width: 0;
+        table-layout: fixed;
+        width: 0;
+        outline-width: 0;
+        cursor: default;
+        /* reset bootstrap table style. for more info see: https://github.com/handsontable/handsontable/issues/224 */
+        max-width: none;
+        max-height: none;
+    }
+
+    col {
+        width: var(--hot-col-width);
+
+        &.rowHeader {
+            width: var(--hot-col-width);
+        }
+
+        &.hidden {
+            width: 0 !important;
+        }
+    }
+
+    // Cell and Header
+    th,td {
+        border-top-width: 0;
+        border-inline-start-width: 0;
+        border-inline-end: var(--hot-border-vertical-size) solid var(--hot-border-color);
+        border-bottom: var(--hot-border-horizontal-size) solid var(--hot-border-color);
+        height: var(--hot-cell-height);
+        empty-cells: show;
+        line-height: var(--hot-cell-line-height);
+        padding: var(--hot-cell-vertical-padding) var(--hot-cell-horizontal-padding);
+        /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
+        background-color: var(--hot-background-color);
+        vertical-align: top;
+        overflow: hidden;
+        outline: none;
+        outline-width: 0;
+        white-space: pre-wrap;
+    }
+
+    // Header Cell
+    th{ 
+        &:last-child {
+            /*Foundation framework fix*/
+            border-inline-start: none;
+            border-inline-end: var(--hot-border-vertical-size) solid var(--hot-border-color);
+            border-bottom: var(--hot-border-horizontal-size) solid var(--hot-border-color);
+        }
+        &:first-child,
+        &:nth-child(2),
+        &:first-of-type {
+            border-inline-start: var(--hot-border-vertical-size) solid var(--hot-border-color);
+        }
+    }
+
+    /* It removes double right border from first column header when row headers are disabled */
+    .ht_clone_top th:nth-child(2) {
+        border-inline-start-width: 0;
+        border-inline-end: var(--hot-border-vertical-size) solid var(--hot-border-color);
+    }
+
+    &.htRowHeaders thead tr th:nth-child(2) {
+        border-inline-start: var(--hot-border-vertical-size) solid var(--hot-border-color);
+    }
+
+    tr:first-child th,
+    tr:first-child td {
+        border-top: var(--hot-border-horizontal-size) solid var(--hot-border-color);
+    }
+
+    .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable tbody tr th,
+    .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child {
+        border-inline-end-width: 0;
+        border-inline-start: var(--hot-border-vertical-size) solid var(--hot-border-color);
+    }
+
+    /*
+    innerBorderTop - Property controlled by top overlay
+    innerBorderBottom - Property controlled by bottom overlay
+    */
+    .ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr:last-child th,
+    .ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr:last-child th,
+    .ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr.lastChild th,
+    .ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr.lastChild th {
+        border-bottom-width: 0;
+    }
+
+    th {
+        background-color: var(--hot-header-background-color);
+        color: var(--hot-header-foreground-color);
+        text-align: center;
+        font-weight: normal;
+        white-space: nowrap;
+    }
+
+    thead th {
+        padding: 0;
+
+        &.active {
+            background-color: var(--hot-header-active-background-color);
+        }
+
+        .relative {
+            padding: var(--hot-header-vertical-padding) var(--hot-header-horizontal-padding);
+        }
+    }
+
+    span.colHeader {
+        display: inline-block;
+        line-height: var(--hot-header-line-height);
+    }
+
+    tr.hidden {
+        display: none;
+
+        td, 
+        th {
+            display: none;
+        }
+    }
+}

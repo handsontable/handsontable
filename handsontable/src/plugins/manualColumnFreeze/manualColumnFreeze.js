@@ -3,7 +3,7 @@ import Hooks from '../../pluginHooks';
 import freezeColumnItem from './contextMenuItem/freezeColumn';
 import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
 
-import './manualColumnFreeze.css';
+//import './manualColumnFreeze.css';
 
 Hooks.getSingleton().register('beforeColumnFreeze');
 Hooks.getSingleton().register('afterColumnFreeze');
