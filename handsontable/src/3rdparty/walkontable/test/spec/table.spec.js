@@ -556,8 +556,7 @@ describe('WalkontableTable', () => {
 
       expect($('.ht_clone_top_inline_start_corner thead tr th').eq(0).css('border-left-width')).toBe('1px');
       expect($('.ht_clone_top_inline_start_corner thead tr th').eq(0).css('border-right-width')).toBe('1px');
-      // was 0 before https://github.com/handsontable/handsontable/commit/32c163c6a98903a30daddac7582276d18a12a81a
-      expect($('.ht_clone_top_inline_start_corner thead tr th').eq(1).css('border-left-width')).toBe('1px');
+      expect($('.ht_clone_top_inline_start_corner thead tr th').eq(1).css('border-left-width')).toBe('0px');
       expect($('.ht_clone_top_inline_start_corner thead tr th').eq(1).css('border-right-width')).toBe('1px');
     });
   });

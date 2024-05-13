@@ -490,6 +490,26 @@ class Endpoints {
   }
 
   /**
+   * Refreshes the cell meta information for the all endpoints after the `updateSettings` method call which in some
+   * cases (call with `columns` option) can reset the cell metas to the initial state.
+   */
+  refreshCellMetas() {
+    this.endpoints.forEach((endpoint) => {
+      const destinationVisualRow = this.hot.toVisualRow(endpoint.destinationRow);
+
+      if (destinationVisualRow !== null) {
+        const cellMeta = this.hot.getCellMeta(
+          destinationVisualRow,
+          endpoint.destinationColumn
+        );
+
+        cellMeta.readOnly = endpoint.readOnly;
+        cellMeta.className = 'columnSummaryResult';
+      }
+    });
+  }
+
+  /**
    * Calculate and refresh a single endpoint.
    *
    * @param {object} endpoint Contains the endpoint information.

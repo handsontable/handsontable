@@ -1019,4 +1019,33 @@ describe('ColumnSummarySpec', () => {
       [null, null, null],
     ]);
   });
+
+  it('should not reset the cell meta information after `updateSettings` call', () => {
+    handsontable({
+      data: [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+        [null, null, null],
+      ],
+      columnSummary: [{
+        destinationRow: 3,
+        destinationColumn: 1,
+        type: 'sum'
+      }]
+    });
+
+    expect(getCellMeta(3, 1).readOnly).toBe(true);
+    expect(getCellMeta(3, 1).className).toBe('columnSummaryResult');
+
+    updateSettings({});
+
+    expect(getCellMeta(3, 1).readOnly).toBe(true);
+    expect(getCellMeta(3, 1).className).toBe('columnSummaryResult');
+
+    updateSettings({ columns: [{}, {}, {}, {}] });
+
+    expect(getCellMeta(3, 1).readOnly).toBe(true);
+    expect(getCellMeta(3, 1).className).toBe('columnSummaryResult');
+  });
 });
