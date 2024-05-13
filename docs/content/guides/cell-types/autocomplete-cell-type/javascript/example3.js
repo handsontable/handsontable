@@ -27,6 +27,5 @@ const hot = new Handsontable(container, {
     {} // Bumper color is a default text column
   ],
   autoWrapRow: true,
-  autoWrapCol: true,
-  height: 'auto'
+  autoWrapCol: true
 });
