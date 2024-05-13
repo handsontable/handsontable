@@ -167,13 +167,13 @@ module.exports = function(docsVersion, base) {
   )}
   ${!noEdit && !isReact
     ? codesandbox(
-    id,
-    htmlContent,
-    codeToCompileSandbox,
-    cssContent,
-    docsVersion,
-    preset
-  ): ''}
+      id,
+      htmlContent,
+      codeToCompileSandbox,
+      cssContent,
+      docsVersion,
+      preset
+    ) : ''}
                 ${displayJsFiddle ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset) : ''}
                 <button 
                   aria-label="Reset the demo" 
