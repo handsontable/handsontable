@@ -59,6 +59,14 @@
             padding: 0
             font-family: $font
             font-weight: 600
+
+            @media (max-width: $large) {
+                margin-left: 0
+            }
+        }
+
+        .instalationPage h2 {
+            font-size:  $font-size
         }
 
         .instalationPage .example-container {
@@ -389,12 +397,6 @@
             }
 
             .theme-code-group {
-                margin: 0 -32px
-
-                .theme-code-group__nav {
-                    padding: 8px 32px 16px
-                    border-radius: 0
-                }
 
                 pre { 
                     border-radius: 0 
