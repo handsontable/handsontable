@@ -615,7 +615,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               if (selection.isSelected()) {
                 const { row } = instance.getSelectedRangeLast().highlight;
 
-                if (row >= groupIndex && row <= groupIndex + groupAmount) {
+                if (row >= groupIndex && row <= groupIndex + groupAmount - 1) {
                   editorManager.closeEditor(true);
                 }
               }
@@ -683,7 +683,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               if (selection.isSelected()) {
                 const { col } = instance.getSelectedRangeLast().highlight;
 
-                if (col >= groupIndex && col <= groupIndex + groupAmount) {
+                if (col >= groupIndex && col <= groupIndex + groupAmount - 1) {
                   editorManager.closeEditor(true);
                 }
               }
