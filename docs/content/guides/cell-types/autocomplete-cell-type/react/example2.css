@@ -1,3 +1,3 @@
-#example2 > .ht_master {
-    height: 150px;
+#example2 .handsontable > .ht_master {
+    height: 130px;
 }
