@@ -2911,8 +2911,14 @@ class Hooks {
   createEmptyBucket() {
     const bucket = Object.create(null);
 
+    bucket._order = Object.create(null);
+
     // eslint-disable-next-line no-return-assign
-    arrayEach(REGISTERED_HOOKS, hook => (bucket[hook] = []));
+    arrayEach(REGISTERED_HOOKS, (hook) => {
+      bucket[hook] = [];
+
+      this.#extendBucketWithOrder(bucket, hook);
+    });
 
     return bucket;
   }
@@ -2946,6 +2952,10 @@ class Hooks {
    * @param {string} key Hook name.
    * @param {Function|Array} callback Callback function or an array of functions.
    * @param {object} [context=null] The context for the hook callback to be added - a Handsontable instance or leave empty.
+   * @param {number} [orderIndex] Order index of the callback.
+   *                              If > 0, the callback will be added after the others, for example, with an index of 1, the callback will be added before the ones with an index of 2, 3, etc., but after the ones with an index of 0 and lower.
+   *                              If < 0, the callback will be added before the others, for example, with an index of -1, the callback will be added after the ones with an index of -2, -3, etc., but before the ones with an index of 0 and higher.
+   *                              If 0 or no order index is provided, the callback will be added between the "negative" and "positive" indexes.
    * @returns {Hooks} Instance of Hooks.
    *
    * @example
@@ -2963,7 +2973,7 @@ class Hooks {
    * Handsontable.hooks.add('beforeInit', [myCallback, anotherCallback]);
    * ```
    */
-  add(key, callback, context = null) {
+  add(key, callback, context = null, orderIndex) {
     if (Array.isArray(callback)) {
       arrayEach(callback, c => this.add(key, c, context));
 
@@ -2981,6 +2991,7 @@ class Hooks {
       if (typeof bucket[key] === 'undefined') {
         this.register(key);
         bucket[key] = [];
+        this.#extendBucketWithOrder(bucket, key);
       }
       callback.skip = false;
 
@@ -3003,6 +3014,9 @@ class Hooks {
           bucket[key].push(callback);
         }
       }
+
+      this.#setCallbackOrderIndex(bucket, key, callback, orderIndex);
+      this.#orderBucketByOrderIndex(bucket, key);
     }
 
     return this;
@@ -3015,19 +3029,23 @@ class Hooks {
    * @param {string} key Hook/Event name.
    * @param {Function|Array} callback Callback function.
    * @param {object} [context=null] A Handsontable instance.
+   * @param {number} [orderIndex] Order index of the callback.
+   *                              If > 0, the callback will be added after the others, for example, with an index of 1, the callback will be added before the ones with an index of 2, 3, etc., but after the ones with an index of 0 and lower.
+   *                              If < 0, the callback will be added before the others, for example, with an index of -1, the callback will be added after the ones with an index of -2, -3, etc., but before the ones with an index of 0 and higher.
+   *                              If 0 or no order index is provided, the callback will be added between the "negative" and "positive" indexes.
    *
    * @example
    * ```js
    * Handsontable.hooks.once('beforeInit', myCallback, hotInstance);
    * ```
    */
-  once(key, callback, context = null) {
+  once(key, callback, context = null, orderIndex) {
     if (Array.isArray(callback)) {
       arrayEach(callback, c => this.once(key, c, context));
 
     } else {
       callback.runOnce = true;
-      this.add(key, callback, context);
+      this.add(key, callback, context, orderIndex);
     }
   }
 
@@ -3264,6 +3282,57 @@ class Hooks {
    */
   getRegistered() {
     return REGISTERED_HOOKS;
+  }
+
+  /**
+   * Sets the order index of the callback in the bucket object.
+   *
+   * @param {object} bucket The bucket object.
+   * @param {string} key Hook name.
+   * @param {Function} callback Callback function.
+   * @param {number|undefined} orderIndex Order index of the callback.
+   * @returns {object} The bucket object.
+   */
+  #setCallbackOrderIndex(bucket, key, callback, orderIndex) {
+    const normalizedOrderIndex = Number.isInteger(orderIndex) ? orderIndex : 0;
+
+    bucket._order[key].set(normalizedOrderIndex, [...(bucket._order[key].get(normalizedOrderIndex) || []), callback]);
+
+    return bucket;
+  }
+
+  /**
+   * Reorders the callbacks in the bucket object by their order index.
+   *
+   * @param {objcet} bucket The bucket object.
+   * @param {string} key Hook name.
+   * @returns {object} The bucket object.
+   */
+  #orderBucketByOrderIndex(bucket, key) {
+    if (
+      bucket._order[key] === undefined ||
+      bucket._order[key].size === 0 ||
+      (bucket._order[key].size === 1 && bucket._order[key].has(0))
+    ) {
+      return;
+    }
+
+    bucket[key] = [...bucket._order[key]].sort((a, b) => a[0] - b[0]).flatMap(([, callbacks]) => callbacks);
+
+    return bucket;
+  }
+
+  /**
+   * Extends the bucket object with the order property.
+   *
+   * @param {object} bucket The bucket object.
+   * @param {string} hook The hook name.
+   * @returns {object} The bucket object.
+   */
+  #extendBucketWithOrder(bucket, hook) {
+    bucket._order[hook] = new Map();
+
+    return bucket;
   }
 }
 

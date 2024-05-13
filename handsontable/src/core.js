@@ -4716,13 +4716,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @see Hooks#add
    * @param {string} key Hook name (see {@link Hooks}).
    * @param {Function|Array} callback Function or array of functions.
+   * @param {number} [orderIndex] Order index of the callback.
+   *                              If > 0, the callback will be added after the others, for example, with an index of 1, the callback will be added before the ones with an index of 2, 3, etc., but after the ones with an index of 0 and lower.
+   *                              If < 0, the callback will be added before the others, for example, with an index of -1, the callback will be added after the ones with an index of -2, -3, etc., but before the ones with an index of 0 and higher.
+   *                              If 0 or no order index is provided, the callback will be added between the "negative" and "positive" indexes.
    * @example
    * ```js
    * hot.addHook('beforeInit', myCallback);
    * ```
    */
-  this.addHook = function(key, callback) {
-    Hooks.getSingleton().add(key, callback, instance);
+  this.addHook = function(key, callback, orderIndex) {
+    Hooks.getSingleton().add(key, callback, instance, orderIndex);
   };
 
   /**
@@ -4753,13 +4757,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @see Hooks#once
    * @param {string} key Hook name (see {@link Hooks}).
    * @param {Function|Array} callback Function or array of functions.
+   * @param {number} [orderIndex] Order index of the callback.
+   *                              If > 0, the callback will be added after the others, for example, with an index of 1, the callback will be added before the ones with an index of 2, 3, etc., but after the ones with an index of 0 and lower.
+   *                              If < 0, the callback will be added before the others, for example, with an index of -1, the callback will be added after the ones with an index of -2, -3, etc., but before the ones with an index of 0 and higher.
+   *                              If 0 or no order index is provided, the callback will be added between the "negative" and "positive" indexes.
    * @example
    * ```js
    * hot.addHookOnce('beforeInit', myCallback);
    * ```
    */
-  this.addHookOnce = function(key, callback) {
-    Hooks.getSingleton().once(key, callback, instance);
+  this.addHookOnce = function(key, callback, orderIndex) {
+    Hooks.getSingleton().once(key, callback, instance, orderIndex);
   };
 
   /**
