@@ -165,14 +165,17 @@ module.exports = function(docsVersion, base) {
 
         tokens.splice(index + 1, 0, ...newTokens);
         const isAngular = /angular(-.*)?/.test(preset);
+        const isReact = /react(-.*)?/.test(preset);
 
         const displayJsFiddle = Boolean(!noEdit && !isAngular);
 
         return `
           <div class="tabs-button-wrapper">
             <div class="tabs-button-list">
-              ${Boolean(!noEdit) && stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
-              ${Boolean(!noEdit) && codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
+              ${!noEdit ? stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset) : ''}
+              ${!noEdit && !isReact
+    ? codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)
+    : ''}
               ${displayJsFiddle ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset) : ''}
             </div>
             <tabs
