@@ -2917,7 +2917,7 @@ class Hooks {
     arrayEach(REGISTERED_HOOKS, (hook) => {
       bucket[hook] = [];
 
-      this.#extendBucketWithOrder(bucket, hook);
+      this.extendBucketWithOrder(bucket, hook);
     });
 
     return bucket;
@@ -2991,7 +2991,7 @@ class Hooks {
       if (typeof bucket[key] === 'undefined') {
         this.register(key);
         bucket[key] = [];
-        this.#extendBucketWithOrder(bucket, key);
+        this.extendBucketWithOrder(bucket, key);
       }
       callback.skip = false;
 
@@ -3015,8 +3015,8 @@ class Hooks {
         }
       }
 
-      this.#setCallbackOrderIndex(bucket, key, callback, orderIndex);
-      this.#orderBucketByOrderIndex(bucket, key);
+      this.setCallbackOrderIndex(bucket, key, callback, orderIndex);
+      this.orderBucketByOrderIndex(bucket, key);
     }
 
     return this;
@@ -3287,13 +3287,14 @@ class Hooks {
   /**
    * Sets the order index of the callback in the bucket object.
    *
+   * @private
    * @param {object} bucket The bucket object.
    * @param {string} key Hook name.
    * @param {Function} callback Callback function.
    * @param {number|undefined} orderIndex Order index of the callback.
    * @returns {object} The bucket object.
    */
-  #setCallbackOrderIndex(bucket, key, callback, orderIndex) {
+  setCallbackOrderIndex(bucket, key, callback, orderIndex) {
     const normalizedOrderIndex = Number.isInteger(orderIndex) ? orderIndex : 0;
 
     bucket._order[key].set(normalizedOrderIndex, [...(bucket._order[key].get(normalizedOrderIndex) || []), callback]);
@@ -3304,11 +3305,12 @@ class Hooks {
   /**
    * Reorders the callbacks in the bucket object by their order index.
    *
+   * @private
    * @param {objcet} bucket The bucket object.
    * @param {string} key Hook name.
    * @returns {object} The bucket object.
    */
-  #orderBucketByOrderIndex(bucket, key) {
+  orderBucketByOrderIndex(bucket, key) {
     if (
       bucket._order[key] === undefined ||
       bucket._order[key].size === 0 ||
@@ -3325,11 +3327,16 @@ class Hooks {
   /**
    * Extends the bucket object with the order property.
    *
+   * @private
    * @param {object} bucket The bucket object.
    * @param {string} hook The hook name.
    * @returns {object} The bucket object.
    */
-  #extendBucketWithOrder(bucket, hook) {
+  extendBucketWithOrder(bucket, hook) {
+    if (!bucket._order) {
+      bucket._order = Object.create(null);
+    }
+
     bucket._order[hook] = new Map();
 
     return bucket;
