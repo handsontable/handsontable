@@ -12,15 +12,15 @@ const data: (string | number)[][] = [
   ['2019', '', 15, -12, 'readOnly']
 ];
 
-const firstRowRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellProperties) => {
-  Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, col, prop, value, cellProperties]);
+const firstRowRenderer: BaseRenderer = (instance, td, ...rest) => {
+  Handsontable.renderers.TextRenderer(instance, td, ...rest);
   td.style.fontWeight = 'bold';
   td.style.color = 'green';
   td.style.background = '#CEC';
 }
 
 const negativeValueRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellProperties) => {
-  Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, col, prop, value, cellProperties]);
+  Handsontable.renderers.TextRenderer(instance, td, row, col, prop, value, cellProperties);
 
   // if the row contains a negative number
   if (parseInt(value, 10) < 0) {

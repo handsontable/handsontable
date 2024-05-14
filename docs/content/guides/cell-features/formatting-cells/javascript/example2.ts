@@ -1,13 +1,17 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
+import Core from 'handsontable/core';
+import {BaseRenderer} from 'handsontable/renderers';
 
-Handsontable.renderers.registerRenderer('customStylesRenderer', (hotInstance, TD, ...rest) => {
+const customStylesRenderer: BaseRenderer = (hotInstance, TD, ...rest) => {
   Handsontable.renderers.TextRenderer(hotInstance, TD, ...rest);
 
   TD.style.fontWeight = 'bold';
   TD.style.color = 'green';
   TD.style.background = '#d7f1e1';
-});
+};
+
+Handsontable.renderers.registerRenderer('customStylesRenderer', customStylesRenderer);
 
 const container = document.querySelector('#example2');
 const hot: Core = new Handsontable(container, {
