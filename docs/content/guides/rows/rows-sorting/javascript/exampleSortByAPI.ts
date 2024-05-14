@@ -4,7 +4,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 const container = document.querySelector('#exampleSortByAPI');
 const buttonSortAscending = document.querySelector('#sort_asc');
 const buttonUnsort = document.querySelector('#unsort');
-const handsontableInstance = new Handsontable(container, {
+const handsontableInstance: Handsontable = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',

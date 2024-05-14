@@ -15,7 +15,7 @@ function onlyExactMatch(queryStr, value) {
   return queryStr.toString() === value.toString();
 }
 
-const hot = new Handsontable(container, {
+const hot: Handsontable = new Handsontable(container, {
   data,
   colHeaders: true,
   // enable the `Search` plugin

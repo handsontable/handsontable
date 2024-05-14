@@ -3,7 +3,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#exampleSortByAPIMultipleColumns');
 const buttonSort = document.querySelector('#sort');
-const handsontableInstance = new Handsontable(container, {
+const handsontableInstance: Handsontable = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
