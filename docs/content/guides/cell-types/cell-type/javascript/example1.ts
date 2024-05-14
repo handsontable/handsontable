@@ -4,7 +4,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 import { BaseRenderer } from 'handsontable/renderers';
 
 const container = document.querySelector('#example1');
-const colors = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
+const colors: string[] = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
 
 const yellowRenderer: BaseRenderer = (instance, td, ...rest) =>{
   Handsontable.renderers.TextRenderer(instance, td, ...rest);

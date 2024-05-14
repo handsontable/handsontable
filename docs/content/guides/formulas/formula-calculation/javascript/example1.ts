@@ -1,9 +1,8 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import { HyperFormula } from 'hyperformula';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const data1 = [
+const data1: [string, null, string, string][] = [
   ['10.26', null, 'Sum', '=SUM(A:A)'],
   ['20.12', null, 'Average', '=AVERAGE(A:A)'],
   ['30.01', null, 'Median', '=MEDIAN(A:A)'],
@@ -11,7 +10,7 @@ const data1 = [
   ['50.18', null, 'MIN', '=MIN(A1:A5)'],
 ];
 
-const data2 = [
+const data2: [string, string][] = [
   ['Is A1 in Sheet1 > 10?', '=IF(Sheet1!A1>10,"TRUE","FALSE")'],
   ['Is A:A in Sheet > 150?', '=IF(SUM(Sheet1!A:A)>150,"TRUE","FALSE")'],
   ['How many blank cells are in the Sheet1?', '=COUNTBLANK(Sheet1!A1:D5)'],

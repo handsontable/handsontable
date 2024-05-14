@@ -2,7 +2,21 @@ import Handsontable from 'handsontable';
 import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const sourceDataObject = [
+interface Album {
+  title: string;
+  artist: string;
+  label: string;
+}
+
+interface MusicAward {
+  category: string;
+  artist?: string | null;
+  title?: string | null;
+  label?: string | null;
+  __children: Album[];
+}
+
+const sourceDataObject: MusicAward[] = [
   {
     category: 'Best Rock Performance',
     artist: null,
