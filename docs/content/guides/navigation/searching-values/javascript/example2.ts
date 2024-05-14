@@ -10,7 +10,7 @@ const data: (string | number)[][] = [
   ['Volvo', 2020, 'yellow', 'gray']
 ];
 
-const hot = new Handsontable(container, {
+const hot: Handsontable = new Handsontable(container, {
   data,
   colHeaders: true,
   // enable the `Search` plugin

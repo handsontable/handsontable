@@ -4,7 +4,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 const container = document.querySelector('#exampleQuickFilter');
 const filterField = document.querySelector('#filterField');
 
-const handsontableInstance = new Handsontable(container, {
+const handsontableInstance: Handsontable = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',

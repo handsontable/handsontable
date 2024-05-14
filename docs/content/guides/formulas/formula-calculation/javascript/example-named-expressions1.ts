@@ -10,7 +10,7 @@ const data: (string | number)[][] = [
 ];
 
 const container = document.querySelector('#example-named-expressions1');
-const hotNamedExpressions = new Handsontable(container, {
+const hotNamedExpressions: Handsontable = new Handsontable(container, {
   data,
   colHeaders: true,
   rowHeaders: true,
