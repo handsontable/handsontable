@@ -15,7 +15,7 @@ function customRenderer(instance, td) {
   }
 }
 
-const hot = new Handsontable(container, {
+const hot: Handsontable = new Handsontable(container, {
   height: 'auto',
   columns: [
     {},

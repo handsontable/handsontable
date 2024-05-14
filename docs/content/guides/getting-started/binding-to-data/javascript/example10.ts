@@ -18,6 +18,6 @@ const settings = {
   licenseKey: 'non-commercial-and-evaluation'
 };
 
-const hot = new Handsontable(container, settings);
+const hot: Handsontable = new Handsontable(container, settings);
 
 hot.setDataAtCell(0, 1, 'Ford');
