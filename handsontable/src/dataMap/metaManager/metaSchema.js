@@ -1574,6 +1574,45 @@ export default () => {
 
     /**
      * @description
+     * If `true`, Handsontable will interpret the dots in the columns mapping as a nested object path. If your dataset contains
+     * the dots in the object keys and you don't want Handsontable to interpret them as a nested object path, set this option to `false`.
+     *
+     * The option only works when defined in the global table settings.
+     *
+     * @since 14.4.0
+     * @memberof Options#
+     * @type {boolean}
+     * @default true
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // All dots are interpreted as nested object paths
+     * dataDotNotation: true,
+     * data: [
+     *   { id: 1, name: { first: 'Ted', last: 'Right' }, user: { address: '1234 Any Street' } },
+     * ],
+     * columns={[
+     *   { data: 'name.first' },
+     *   { data: 'user.address' },
+     * ]},
+     * ```
+     * ```js
+     * // All dots are interpreted as simple object keys
+     * dataDotNotation: false,
+     * data: [
+     *   { id: 1, 'name.first': 'Ted', 'user.address': '1234 Any Street' },
+     * ],
+     * columns={[
+     *   { data: 'name.first' },
+     *   { data: 'user.address' },
+     * ]},
+     * ```
+     */
+    dataDotNotation: true,
+
+    /**
+     * @description
      * When the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects)
      * (or is empty), the `dataSchema` option defines the structure of new rows.
      *
