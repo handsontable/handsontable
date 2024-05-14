@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import Core from 'handsontable/core';
 import {DetailedSettings} from 'handsontable/plugins/contextMenu';
 import 'handsontable/dist/handsontable.full.min.css';
 

@@ -1,5 +1,6 @@
 // to import sorting as an individual module, see the 'Import the sorting module' section of this page
 import Handsontable from 'handsontable';
+import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#exampleSortingDemo');

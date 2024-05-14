@@ -1,8 +1,8 @@
 import Handsontable from 'handsontable';
+import Core from 'handsontable/core';
 import {BaseRenderer} from 'handsontable/renderers';
 import 'handsontable/dist/handsontable.full.min.css';
 import {CellProperties} from 'handsontable/settings'
-import Core from 'handsontable/core'
 
 const container = document.querySelector('#example1');
 const data: (string | number)[][] = [

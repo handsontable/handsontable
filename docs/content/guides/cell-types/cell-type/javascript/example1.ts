@@ -1,7 +1,7 @@
 import Handsontable from 'handsontable';
+import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 import { BaseRenderer } from 'handsontable/renderers';
-import Core from 'handsontable/core'
 
 const container = document.querySelector('#example1');
 const colors = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];

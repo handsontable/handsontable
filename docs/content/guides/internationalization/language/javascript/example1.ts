@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import Core from 'handsontable/core';
 import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
 import 'handsontable/dist/handsontable.full.min.css';
 
