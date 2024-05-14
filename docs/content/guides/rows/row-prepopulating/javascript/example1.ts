@@ -5,7 +5,7 @@ import {CellProperties} from 'handsontable/settings';
 import {BaseRenderer} from 'handsontable/renderers';
 
 const container = document.querySelector('#example1');
-const templateValues = ['one', 'two', 'three'];
+const templateValues: string[] = ['one', 'two', 'three'];
 const data: (string | number)[][] = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
   ['2017', 10, 11, 12, 13],

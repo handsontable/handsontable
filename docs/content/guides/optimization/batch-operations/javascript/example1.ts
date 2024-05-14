@@ -7,7 +7,7 @@ const buttonWithout = document.querySelector('#buttonWithout');
 const buttonWith = document.querySelector('#buttonWith');
 const output = document.querySelector('#output');
 
-const data1 = [
+const data1: (string | number)[] = [
   [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],
   [2, 'Gloria Brown', '100% Stainless sweater', 'M', 2, 'no'],
   [3, 'Ronald Carver', 'Sunny T-shirt', 'S', 1, 'no'],
@@ -20,11 +20,11 @@ const data1 = [
   [10, 'Archie Galvin', 'Regular shades', 'uni', 10, 'no']
 ];
 
-const data2 = [
+const data2: (string | number)[] = [
   [11, 'Gavin Elle', 'Floppy socks', 'XS', 3, 'yes'],
 ];
 
-const data3 = [
+const data3: (string | number)[] = [
   [12, 'Gary Erre', 'Happy dress', 'M', 1, 'no'],
   [13, 'Anna Moon', 'Unicorn shades', 'uni', 200, 'no'],
   [14, 'Elise Eli', 'Regular shades', 'uni', 1, 'no']
