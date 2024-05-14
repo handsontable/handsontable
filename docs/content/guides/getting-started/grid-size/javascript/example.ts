@@ -6,7 +6,7 @@ const example = document.querySelector('#example');
 const exampleParent = document.querySelector('#exampleParent');
 
 // generate an array of arrays with dummy data
-const data = new Array(100) // number of rows
+const data: string[][] = new Array(100) // number of rows
   .fill()
   .map((_, row) => new Array(50) // number of columns
     .fill()

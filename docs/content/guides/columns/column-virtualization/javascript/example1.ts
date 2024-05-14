@@ -2,7 +2,7 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // generate an array of arrays with dummy data
-const data = new Array(1000) // number of rows
+const data: string[][] = new Array(1000) // number of rows
   .fill()
   .map((_, row) =>
     new Array(1000) // number of columns
