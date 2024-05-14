@@ -5,7 +5,7 @@ const colors = ['yellow', 'red', 'orange and another color', 'green',
   'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
 
 const container = document.querySelector('#example1');
-const hot: Handsontable = new Handsontable(container, {
+const hot: Core = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['BMW', 2017, 'black', 'black'],

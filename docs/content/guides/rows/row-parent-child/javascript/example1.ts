@@ -128,7 +128,7 @@ const sourceDataObject = [
 ];
 
 const container = document.querySelector('#example1');
-const hot: Handsontable = new Handsontable(container, {
+const hot: Core = new Handsontable(container, {
   data: sourceDataObject,
   preventOverflow: 'horizontal',
   rowHeaders: true,

@@ -5,7 +5,7 @@ import {ColumnSorting} from 'handsontable/plugins'
 const container = document.querySelector('#exampleSortByAPI');
 const buttonSortAscending = document.querySelector('#sort_asc');
 const buttonUnsort = document.querySelector('#unsort');
-const handsontableInstance: Handsontable = new Handsontable(container, {
+const handsontableInstance: Core = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
