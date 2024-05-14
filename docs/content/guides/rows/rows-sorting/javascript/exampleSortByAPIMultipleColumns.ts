@@ -1,7 +1,7 @@
 import Handsontable from 'handsontable';
+import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 import {MultiColumnSorting} from 'handsontable/plugins'
-import Core from 'handsontable/core'
 
 const container = document.querySelector('#exampleSortByAPIMultipleColumns');
 const buttonSort = document.querySelector('#sort');

@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
 import Core from 'handsontable/core';
+import 'handsontable/dist/handsontable.full.min.css';
 import {BaseRenderer} from 'handsontable/renderers';
 
 const customStylesRenderer: BaseRenderer = (hotInstance, TD, ...rest) => {

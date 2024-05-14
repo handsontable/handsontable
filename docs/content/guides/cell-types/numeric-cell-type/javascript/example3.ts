@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import Core from 'handsontable/core';
 import numbro from 'numbro';
 import jaJP from 'numbro/languages/ja-JP';
 import trTR from 'numbro/languages/tr-TR';

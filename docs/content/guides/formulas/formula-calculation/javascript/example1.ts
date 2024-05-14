@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import Core from 'handsontable/core';
 import { HyperFormula } from 'hyperformula';
 import 'handsontable/dist/handsontable.full.min.css';
 
