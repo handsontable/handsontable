@@ -545,7 +545,7 @@ const hotOptions = {
 };
 
 // Initialize the Handsontable instance with the specified configuration options
-let hotInstance: Handsontable = new Handsontable(app, hotOptions);
+let hotInstance: Core = new Handsontable(app, hotOptions);
 
 // Helper function to set up checkbox event handling
 const setupCheckbox = (element, callback) =>

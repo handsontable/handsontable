@@ -29,7 +29,7 @@ const data3 = [
   [14, 'Elise Eli', 'Regular shades', 'uni', 1, 'no']
 ];
 
-const hot: Handsontable = new Handsontable(container, {
+const hot: Core = new Handsontable(container, {
   data: data1,
   width: 'auto',
   height: 'auto',

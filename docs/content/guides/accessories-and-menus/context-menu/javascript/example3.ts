@@ -72,7 +72,7 @@ const contextMenuSettings: DetailedSettings = {
 }
 
 const container = document.querySelector('#example3');
-const hot: Handsontable = new Handsontable(container, {
+const hot: Core = new Handsontable(container, {
   data: [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],
