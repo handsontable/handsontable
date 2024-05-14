@@ -11,7 +11,7 @@ const data: (string | number)[][] = [
   ['2021', 10, 11, 12, 13, 15, 16]
 ];
 
-const hot = new Handsontable(container, {
+const hot: Handsontable = new Handsontable(container, {
   data,
   colHeaders: true,
   minSpareRows: 1,

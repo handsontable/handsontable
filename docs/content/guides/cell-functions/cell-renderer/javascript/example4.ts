@@ -30,7 +30,7 @@ const data: Book[] = [
 ];
 
 const container = document.querySelector('#example4');
-const hot = new Handsontable(container, {
+const hot: Handsontable = new Handsontable(container, {
   data,
   colWidths: [200, 200, 200, 80],
   colHeaders: ['Title', 'Description', 'Comments', 'Cover'],

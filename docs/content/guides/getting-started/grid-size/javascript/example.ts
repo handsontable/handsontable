@@ -13,7 +13,7 @@ const data: string[][] = new Array(100) // number of rows
     .map((_, column) => `${row}, ${column}`)
   );
 
-const hot = new Handsontable(example, {
+const hot: Handsontable = new Handsontable(example, {
   data,
   rowHeaders: true,
   colHeaders: true,
