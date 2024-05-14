@@ -2,7 +2,14 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example3');
-const data = [
+
+interface Person {
+  id: number;
+  name: string;
+  address: string;
+}
+
+const data: Person[] = [
   { id: 1, name: 'Ted Right', address: '' },
   { id: 2, name: 'Frank Honest', address: '' },
   { id: 3, name: 'Joan Well', address: '' },
