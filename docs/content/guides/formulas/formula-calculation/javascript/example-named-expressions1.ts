@@ -2,7 +2,7 @@ import Handsontable from 'handsontable';
 import { HyperFormula } from 'hyperformula';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const data = [
+const data: (string | number)[][] = [
   ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
   ['154', 'Rome', 400, '=ROUND(ADDITIONAL_COST+C2,0)'],
   ['155', 'Athens', 300, '=ROUND(ADDITIONAL_COST+C3,0)'],
