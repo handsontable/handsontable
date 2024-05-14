@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
+import {Search} from 'handsontable/plugins'
 
 const container = document.querySelector('#example2');
 const searchField = document.querySelector('#search_field2');
@@ -25,7 +26,7 @@ const hot: Handsontable = new Handsontable(container, {
 });
 
 searchField.addEventListener('keyup', (event) => {
-  const search = hot.getPlugin('search');
+  const search: Search = hot.getPlugin('search');
   const queryResult = search.query(event.target.value);
 
   console.log(queryResult);
