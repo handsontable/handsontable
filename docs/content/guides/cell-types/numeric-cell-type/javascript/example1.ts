@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import Core from 'handsontable/core';
 import numbro from 'numbro';
 import deDE from 'numbro/languages/de-DE';
 import 'handsontable/dist/handsontable.full.min.css';

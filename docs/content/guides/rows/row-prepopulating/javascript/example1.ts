@@ -1,7 +1,7 @@
 import Handsontable from 'handsontable';
+import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 import {CellProperties} from 'handsontable/settings';
-import Core from 'handsontable/core';
 import {BaseRenderer} from 'handsontable/renderers';
 
 const container = document.querySelector('#example1');

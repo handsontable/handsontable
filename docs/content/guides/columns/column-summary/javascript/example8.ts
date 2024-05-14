@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 import {NestedRows} from 'handsontable/plugins'
 
