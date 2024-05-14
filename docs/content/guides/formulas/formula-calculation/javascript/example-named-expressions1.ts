@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable';
 import { HyperFormula } from 'hyperformula';
 import 'handsontable/dist/handsontable.full.min.css';
+import {Formulas} from 'handsontable/plugins'
 
 const data: (string | number)[][] = [
   ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
@@ -30,7 +31,7 @@ const hotNamedExpressions: Handsontable = new Handsontable(container, {
 });
 
 const input = document.getElementById('named-expressions-input');
-const formulasPlugin = hotNamedExpressions.getPlugin('formulas');
+const formulasPlugin: Formulas = hotNamedExpressions.getPlugin('formulas');
 const button = document.getElementById('named-expressions-button');
 
 button.addEventListener('click', (event) => {

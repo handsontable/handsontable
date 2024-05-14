@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
+import {Filters} from 'handsontable/plugins'
 
 const container = document.querySelector('#exampleQuickFilter');
 const filterField = document.querySelector('#filterField');
@@ -98,7 +99,7 @@ const handsontableInstance: Handsontable = new Handsontable(container, {
 
 // add a filter input listener
 filterField.addEventListener('keyup', (event) => {
-  const filters = handsontableInstance.getPlugin('filters');
+  const filters: Filters = handsontableInstance.getPlugin('filters');
   const columnSelector = document.getElementById('columns');
   const columnValue = columnSelector.value;
 
