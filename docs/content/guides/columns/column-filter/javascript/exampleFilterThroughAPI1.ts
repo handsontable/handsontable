@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
+import {Filters} from 'handsontable/plugins'
 
 const container = document.querySelector('#exampleFilterThroughAPI1');
 const handsontableInstance: Handsontable = new Handsontable(container, {
@@ -99,7 +100,7 @@ const handsontableInstance: Handsontable = new Handsontable(container, {
 });
 
 // get the `Filters` plugin, so you can use its API
-const filters = handsontableInstance.getPlugin('Filters');
+const filters: Filters = handsontableInstance.getPlugin('filters');
 
 document.querySelector('.filterBelow200').addEventListener('click', () => {
   // clear any existing filters

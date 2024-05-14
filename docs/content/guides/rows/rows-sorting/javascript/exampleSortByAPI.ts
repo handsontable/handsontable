@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
+import {ColumnSorting} from 'handsontable/plugins'
 
 const container = document.querySelector('#exampleSortByAPI');
 const buttonSortAscending = document.querySelector('#sort_asc');
@@ -98,7 +99,7 @@ const handsontableInstance: Handsontable = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-const columnSorting = handsontableInstance.getPlugin('columnSorting');
+const columnSorting: ColumnSorting = handsontableInstance.getPlugin('columnSorting');
 
 buttonSortAscending.addEventListener('click', () => {
   columnSorting.sort({

@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
+import {NestedRows} from 'handsontable/plugins'
 
 const container = document.querySelector('#example8');
 const hot: Handsontable = new Handsontable(container, {
@@ -29,7 +30,7 @@ const hot: Handsontable = new Handsontable(container, {
   colHeaders: ['sum', 'min', 'max', 'count', 'average'],
   columnSummary() {
     const endpoints = [];
-    const nestedRowsPlugin = this.hot.getPlugin('nestedRows');
+    const nestedRowsPlugin: NestedRows = this.hot.getPlugin('nestedRows');
     const getRowIndex = nestedRowsPlugin.dataManager.getRowIndex.bind(nestedRowsPlugin.dataManager);
     const resultColumn = 0;
 
@@ -37,7 +38,7 @@ const hot: Handsontable = new Handsontable(container, {
     let nestedRowsCache = null;
 
     if (nestedRowsPlugin.isEnabled()) {
-      nestedRowsCache = this.hot.getPlugin('nestedRows').dataManager.cache;
+      nestedRowsCache = nestedRowsPlugin.dataManager.cache;
     } else {
       return;
     }

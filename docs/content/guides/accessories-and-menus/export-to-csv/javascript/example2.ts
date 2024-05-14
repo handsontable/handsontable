@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
+import {ExportFile} from 'handsontable/plugins'
 
 const container = document.querySelector('#example2');
 const button = document.querySelector('#export-blob');
@@ -23,7 +24,7 @@ const hot: Handsontable = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-const exportPlugin = hot.getPlugin('exportFile');
+const exportPlugin: ExportFile = hot.getPlugin('exportFile');
 
 button.addEventListener('click', () => {
   const exportedBlob = exportPlugin.exportAsBlob('csv', {
