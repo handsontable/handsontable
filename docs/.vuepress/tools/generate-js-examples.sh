@@ -8,8 +8,13 @@ find content/guides -wholename "*/javascript/*.ts" -print0 | while read -d $'\0'
   if [ -f "$js_filename" ]; then
     echo "Skipping $js_filename"
   else
-    echo "Generating $js_filename"
     tsc --target esnext --skipLibCheck $ts_filename > /dev/null
-    eslint --fix --no-ignore -c eslintrc.examples.js $js_filename
+    
+      if [ -f "$js_filename" ]; then
+        eslint --fix --no-ignore -c eslintrc.examples.js $js_filename > /dev/null
+        echo "Generated $js_filename"
+      else 
+        echo "Failed to generate $js_filename"
+      fi
   fi
 done
