@@ -2,9 +2,15 @@ import Handsontable from 'handsontable';
 import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 
+interface Manufacturer {
+  name: string;
+  country: string;
+  owner: string;
+}
+
 const container = document.querySelector('#example1');
-const colorData = [['yellow'], ['red'], ['orange'], ['green'], ['blue'], ['gray'], ['black'], ['white']];
-const manufacturerData = [
+const colorData: [string][] = [['yellow'], ['red'], ['orange'], ['green'], ['blue'], ['gray'], ['black'], ['white']];
+const manufacturerData: Manufacturer[] = [
   { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
   { name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC' },
   { name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd' },

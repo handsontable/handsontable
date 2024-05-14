@@ -29,7 +29,7 @@ const hot: Core = new Handsontable(container, {
   // set the `columnSummary` configuration option to a function
   columnSummary() {
     const configArray = [];
-    const summaryTypes = ['sum', 'min', 'max', 'count', 'average'];
+    const summaryTypes: string[] = ['sum', 'min', 'max', 'count', 'average'];
 
     for (let i = 0; i < this.hot.countCols(); i++) { // iterate over visible columns
       // for each visible column, add a column summary with a configuration

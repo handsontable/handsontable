@@ -2,7 +2,7 @@ import Handsontable from 'handsontable';
 import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const colors = ['yellow', 'red', 'orange and another color', 'green',
+const colors: string[] = ['yellow', 'red', 'orange and another color', 'green',
   'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
 
 const container = document.querySelector('#example1');
