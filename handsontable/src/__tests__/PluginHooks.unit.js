@@ -69,7 +69,7 @@ describe('PluginHooks', () => {
 
     bucket.test = [];
 
-    hooks.extendBucketWithOrder(bucket, 'test');
+    hooks.initOrderMap(bucket, 'test');
 
     spyOn(hooks, 'getBucket').and.returnValue(bucket);
     spyOn(hooks, 'register');
@@ -100,16 +100,16 @@ describe('PluginHooks', () => {
     };
 
     bucket.test = [];
-    hooks.extendBucketWithOrder(bucket, 'test');
+    hooks.initOrderMap(bucket, 'test');
 
-    expect(bucket._order.test.size).toEqual(0);
+    expect(hooks.getCallbackOrderMap(bucket, 'test').size).toEqual(0);
 
     hooks.add('test', fn1, context);
     hooks.add('test', fn2, context);
     hooks.add('test', fn3, context);
 
-    expect(bucket._order.test.get(0)).toEqual([fn1, fn2, fn3]);
-    expect(bucket._order.test.size).toEqual(1);
+    expect(hooks.getCallbackOrderMap(bucket, 'test').get(0)).toEqual([fn1, fn2, fn3]);
+    expect(hooks.getCallbackOrderMap(bucket, 'test').size).toEqual(1);
 
     expect(bucket.test.length).toBe(3);
     expect(bucket.test[0]).toBe(fn1);
@@ -129,18 +129,18 @@ describe('PluginHooks', () => {
     };
 
     bucket.test = [];
-    hooks.extendBucketWithOrder(bucket, 'test');
+    hooks.initOrderMap(bucket, 'test');
 
-    expect(bucket._order.test.size).toEqual(0);
+    expect(hooks.getCallbackOrderMap(bucket, 'test').size).toEqual(0);
 
     hooks.add('test', fn1, context);
     hooks.add('test', fn2, context, 1);
     hooks.add('test', fn3, context, -1);
 
-    expect(bucket._order.test.get(0)).toEqual([fn1]);
-    expect(bucket._order.test.get(1)).toEqual([fn2]);
-    expect(bucket._order.test.get(-1)).toEqual([fn3]);
-    expect(bucket._order.test.size).toEqual(3);
+    expect(hooks.getCallbackOrderMap(bucket, 'test').get(0)).toEqual([fn1]);
+    expect(hooks.getCallbackOrderMap(bucket, 'test').get(1)).toEqual([fn2]);
+    expect(hooks.getCallbackOrderMap(bucket, 'test').get(-1)).toEqual([fn3]);
+    expect(hooks.getCallbackOrderMap(bucket, 'test').size).toEqual(3);
 
     expect(bucket.test.length).toBe(3);
     expect(bucket.test[0]).toBe(fn3);

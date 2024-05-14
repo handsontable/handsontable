@@ -2873,6 +2873,8 @@ const DEPRECATED_HOOKS = new Map([
   []
 ]);
 
+const callbackOrder = new WeakMap();
+
 class Hooks {
   static getSingleton() {
     return getGlobalSingleton();
@@ -2911,13 +2913,11 @@ class Hooks {
   createEmptyBucket() {
     const bucket = Object.create(null);
 
-    bucket._order = Object.create(null);
-
     // eslint-disable-next-line no-return-assign
     arrayEach(REGISTERED_HOOKS, (hook) => {
       bucket[hook] = [];
 
-      this.extendBucketWithOrder(bucket, hook);
+      this.initOrderMap(bucket, hook);
     });
 
     return bucket;
@@ -2991,7 +2991,7 @@ class Hooks {
       if (typeof bucket[key] === 'undefined') {
         this.register(key);
         bucket[key] = [];
-        this.extendBucketWithOrder(bucket, key);
+        this.initOrderMap(bucket, key);
       }
       callback.skip = false;
 
@@ -3292,14 +3292,12 @@ class Hooks {
    * @param {string} key Hook name.
    * @param {Function} callback Callback function.
    * @param {number|undefined} orderIndex Order index of the callback.
-   * @returns {object} The bucket object.
    */
   setCallbackOrderIndex(bucket, key, callback, orderIndex) {
     const normalizedOrderIndex = Number.isInteger(orderIndex) ? orderIndex : 0;
+    const orderMap = this.getCallbackOrderMap(bucket, key);
 
-    bucket._order[key].set(normalizedOrderIndex, [...(bucket._order[key].get(normalizedOrderIndex) || []), callback]);
-
-    return bucket;
+    orderMap.set(normalizedOrderIndex, [...(orderMap.get(normalizedOrderIndex) || []), callback]);
   }
 
   /**
@@ -3308,20 +3306,19 @@ class Hooks {
    * @private
    * @param {objcet} bucket The bucket object.
    * @param {string} key Hook name.
-   * @returns {object} The bucket object.
    */
   orderBucketByOrderIndex(bucket, key) {
+    const orderMap = this.getCallbackOrderMap(bucket, key);
+
     if (
-      bucket._order[key] === undefined ||
-      bucket._order[key].size === 0 ||
-      (bucket._order[key].size === 1 && bucket._order[key].has(0))
+      orderMap === undefined ||
+      orderMap.size === 0 ||
+      (orderMap.size === 1 && orderMap.has(0))
     ) {
       return;
     }
 
-    bucket[key] = [...bucket._order[key]].sort((a, b) => a[0] - b[0]).flatMap(([, callbacks]) => callbacks);
-
-    return bucket;
+    bucket[key] = [...orderMap].sort((a, b) => a[0] - b[0]).flatMap(([, callbacks]) => callbacks);
   }
 
   /**
@@ -3330,16 +3327,25 @@ class Hooks {
    * @private
    * @param {object} bucket The bucket object.
    * @param {string} hook The hook name.
-   * @returns {object} The bucket object.
    */
-  extendBucketWithOrder(bucket, hook) {
-    if (!bucket._order) {
-      bucket._order = Object.create(null);
+  initOrderMap(bucket, hook) {
+    if (!callbackOrder.has(bucket)) {
+      callbackOrder.set(bucket, []);
     }
 
-    bucket._order[hook] = new Map();
+    callbackOrder.get(bucket)[hook] = new Map();
+  }
 
-    return bucket;
+  /**
+   * Returns the order map for the provided hook.
+   *
+   * @private
+   * @param {object} bucket The bucket object.
+   * @param {string} hook The hook name.
+   * @returns {Map<number, Array<Function>>} Returns the order map for the provided hook.
+   */
+  getCallbackOrderMap(bucket, hook) {
+    return callbackOrder.get(bucket)[hook];
   }
 }
 
