@@ -3,7 +3,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example1');
 const templateValues = ['one', 'two', 'three'];
-const data = [
+const data: (string | number)[][] = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
   ['2017', 10, 11, 12, 13],
   ['2018', 20, 11, 14, 13],
@@ -36,7 +36,7 @@ function defaultValueRenderer(instance, td, row, col, prop, value, cellPropertie
   Handsontable.renderers.TextRenderer.apply(this, args);
 }
 
-const hot = new Handsontable(container, {
+const hot: Handsontable = new Handsontable(container, {
   startRows: 8,
   startCols: 5,
   minSpareRows: 1,

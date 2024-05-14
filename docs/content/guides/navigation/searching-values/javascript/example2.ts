@@ -3,7 +3,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example2');
 const searchField = document.querySelector('#search_field2');
-const data = [
+const data: (string | number)[][] = [
   ['Tesla', 2017, 'black', 'black'],
   ['Nissan', 2018, 'blue', 'blue'],
   ['Chrysler', 2019, 'yellow', 'black'],

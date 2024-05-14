@@ -7,7 +7,7 @@ const output = document.querySelector('#output');
 
 let searchResultCount = 0;
 
-const data = [
+const data: (string | number)[][] = [
   ['Tesla', 2017, 'black', 'black'],
   ['Nissan', 2018, 'blue', 'blue'],
   ['Chrysler', 2019, 'yellow', 'black'],

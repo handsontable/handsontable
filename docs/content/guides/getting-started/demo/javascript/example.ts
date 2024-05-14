@@ -2,7 +2,7 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // constants.js
-export const data = [
+export const data: (string | number | boolean)[][] = [
   [
     false,
     'Tagcat',
