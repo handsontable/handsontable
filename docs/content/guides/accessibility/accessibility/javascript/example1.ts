@@ -1,7 +1,19 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
+
 /* start:skip-in-preview */
-const data = [
+interface Product {
+  companyName: string;
+  productName: string;
+  sellDate: string;
+  inStock: boolean;
+  qty: number;
+  orderId: string;
+  country: string;
+}
+
+/* start:skip-in-preview */
+const data: Product[] = [
   {
     companyName: 'Hodkiewicz - Hintz',
     productName: 'Rustic Soft Ball',
