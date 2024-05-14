@@ -39,7 +39,7 @@ function negativeValueRenderer(instance, td, row, col, prop, value, cellProperti
 // maps function to a lookup string
 Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRenderer);
 
-const hot = new Handsontable(container, {
+const hot: Handsontable = new Handsontable(container, {
   data,
   licenseKey: 'non-commercial-and-evaluation',
   height: 'auto',

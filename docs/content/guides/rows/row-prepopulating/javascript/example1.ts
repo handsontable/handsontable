@@ -36,7 +36,7 @@ function defaultValueRenderer(instance, td, row, col, prop, value, cellPropertie
   Handsontable.renderers.TextRenderer.apply(this, args);
 }
 
-const hot: Handsontable: = new Handsontable(container, {
+const hot: Handsontable = new Handsontable(container, {
   startRows: 8,
   startCols: 5,
   minSpareRows: 1,

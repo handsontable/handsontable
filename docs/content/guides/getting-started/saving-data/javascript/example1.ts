@@ -7,7 +7,7 @@ const autosave = document.querySelector('#autosave');
 const load = document.querySelector('#load');
 const save = document.querySelector('#save');
 
-const hot = new Handsontable(container, {
+const hot: Handsontable = new Handsontable(container, {
   startRows: 8,
   startCols: 6,
   rowHeaders: true,
