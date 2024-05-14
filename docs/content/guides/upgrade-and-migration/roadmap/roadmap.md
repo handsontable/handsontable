@@ -14,16 +14,20 @@ category: Upgrade and migration
 
 # Roadmap
 
-This roadmap highlights the major projects we think are crucial for both developers and end-users. 
+We are on a mission to create the best data editing component for teams, and we're doing it with [your feedback in mind.](https://github.com/handsontable/handsontable/discussions)
 
-Keep in mind, the business landscape changes fast, so we adjust the roadmap `every quarter` to keep things fresh and effective. Some projects might get the green light while others might not make the cut.
+Our roadmap includes the big strategic projects we are tackling, but that's not all. Each release also features bug fixes, documentation updates, and smaller tweaks suggested by our paying customers and community users.
 
-Curious about our progress? Check out the [Release Notes](@/guides/upgrade-and-migration/release-notes/release-notes.md) page.
+Since the front-end world changes quickly, we might shuffle the order of projects from time to time (usually once a quarter). Some new projects might get the green light while others might not make the cut.
+
+The roadmap below was last updated on `May 14th, 2024`.
+
+Curious about our progress? Check out the [Release Notes](@/guides/upgrade-and-migration/release-notes/release-notes.md).
 <br><br>
 
 | Accepted 🎯 | In progress ✨ | Done 🏁 |
 |:---|:---|:---|
-| New options for column headers: `headerClassName` and one more for alignment of the column name. | Redesigned documentation portal. Algolia search. Integration with CodeSandbox and StackBlitz. | Added the navigation within selection for power users [#10732](https://github.com/handsontable/handsontable/pull/10732) |
+| New options for column headers allowing the align the columne name easily, and add custom `CSS` classes. | Revamped documentation portal. | Added the navigation within selection for power users [#10732](https://github.com/handsontable/handsontable/pull/10732) |
 | Column groups configured through arrays of columns (parent-children relation). | Modern dark and light themes built with CSS variables | Improved the `undo-redo` support for column moving [#10746](https://github.com/handsontable/handsontable/pull/10746) |
 | Column groups work with frozen columns | Refactored wrapper for React improving DX | Added the new option: `renderAllColumns` [#10599](https://github.com/handsontable/handsontable/pull/10599) |
 | Data loading indicator |  | Improved TypeScript definitions [#10670](https://github.com/handsontable/handsontable/pull/10670) / [#10671](https://github.com/handsontable/handsontable/pull/10671) |

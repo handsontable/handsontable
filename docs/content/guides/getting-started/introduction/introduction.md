@@ -16,13 +16,13 @@ category: Getting started
 
 Handsontable is an popular JavaScript data grid component that brings the well-known look and feel of spreadsheets to your application. 
 
-You can use Handsontable for all types of data-rich, accessible applications, empowering users to enter, edit, validate, and cleanse the data from remote sources such as databases and APIs or from HTML documents, Excel files, Google Sheets, and manual input.
+You can use Handsontable for all types of data-rich, accessible applications, empowering users to enter, edit, validate, and process data from various sources, including remote sources like databases and APIs, as well as HTML documents, Excel files, Google Sheets, and manual input
 
 [[toc]]
 
 ## Getting started 🚀
 
-Use Handsontable with pure JavaScript or a framework of your choice. The guides will walk you through the basics, from installation to creating your first data grid.
+Use Handsontable with plain JavaScript, Typescript or your favorite framework. This guide will walk you through the basics, from installation to creating your first data grid.
 
 <div class="boxes-list gray small col3">
 
@@ -53,13 +53,15 @@ Use Handsontable with pure JavaScript or a framework of your choice. The guides 
 
 ## What can I use Handsontable for?
 
-Think of Handsontable as an extensible framework that lets you quickly build tabular, data-oriented user interfaces. Handsontable helps developers solve real-life problems.
+Think of Handsontable as an extensible framework that empowers you to quickly build tabular, data-oriented user interfaces tailored to your specific needs. With Handsontable, developers can efficiently tackle real-life problems by leveraging its flexibility and customization options.
 
-- In an internal financial application, an editable, Handsontable-based grid simplifies importing hand-picked data from Excel and Google Sheets.
+Examples include:
+
+- In an internal financial application, an editable Handsontable-based grid simplifies importing hand-picked data from Excel and Google Sheets.
 - In a construction company's software, an interactive data table built with Handsontable helps users modify codes and standards tables.
 - At a hospital, Handsontable helps track and manage supplies.
-- A mobile game company uses Handsontable to streamline certain aspects of the development.
-- In project management software, Handsontable allows managers to collect weekly feedback from the team and customers.
+- A mobile game company uses Handsontable to streamline certain aspects of development.
+- In project management software, Handsontable allows for managers to collect weekly feedback from the team and customers.
 
 Discover more about how Handsontable is used in different industries by visiting our [Successful Customers](https://handsontable.com/customers/) page.
 
