@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
+import { BaseRenderer } from 'handsontable/renderers';
 
 interface Book {
   title: string;
@@ -29,6 +30,28 @@ const data: Book[] = [
   }
 ];
 
+const safeHtmlRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellProperties) => {
+  // WARNING: Be sure you only allow certain HTML tags to avoid XSS threats.
+  // Sanitize the "value" before passing it to the innerHTML property.
+  td.innerHTML = value;
+};
+
+const coverRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellProperties) => {
+  const img = document.createElement('img');
+
+  img.src = value;
+
+  img.addEventListener('mousedown', (event) => {
+    event.preventDefault();
+  });
+
+  td.innerText = '';
+  td.appendChild(img);
+
+  return td;
+};
+
+
 const container = document.querySelector('#example4');
 const hot: Core = new Handsontable(container, {
   data,
@@ -45,24 +68,3 @@ const hot: Core = new Handsontable(container, {
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
-
-function safeHtmlRenderer(instance, td, row, col, prop, value, cellProperties) {
-  // WARNING: Be sure you only allow certain HTML tags to avoid XSS threats.
-  // Sanitize the "value" before passing it to the innerHTML property.
-  td.innerHTML = value;
-}
-
-function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
-  const img = document.createElement('img');
-
-  img.src = value;
-
-  img.addEventListener('mousedown', (event) => {
-    event.preventDefault();
-  });
-
-  td.innerText = '';
-  td.appendChild(img);
-
-  return td;
-}

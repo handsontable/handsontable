@@ -1,16 +1,18 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
+import { BaseRenderer } from 'handsontable/renderers';
+import Core from 'handsontable/core'
 
 const container = document.querySelector('#example1');
 const colors = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
 
-const yellowRenderer = function(instance, td, row, col, prop, value, cellProperties) {
-  Handsontable.renderers.TextRenderer.apply(this, arguments);
+const yellowRenderer: BaseRenderer = (instance, td, ...rest) =>{
+  Handsontable.renderers.TextRenderer(instance, td, ...rest);
   td.style.backgroundColor = 'yellow';
 };
 
-const greenRenderer = function(instance, td, row, col, prop, value, cellProperties) {
-  Handsontable.renderers.TextRenderer.apply(this, arguments);
+const greenRenderer: BaseRenderer = (instance, td, ...rest) => {
+  Handsontable.renderers.TextRenderer(instance, td, ...rest);
 
   td.style.backgroundColor = 'green';
 };
@@ -36,10 +38,12 @@ const hot: Core = new Handsontable(container, {
   cell: [
     { row: 1, col: 0, renderer: greenRenderer }
   ],
-  cells(row, col, prop) {
+  cells(row, col) {
     if (row === 0 && col === 0) {
       this.renderer = greenRenderer;
     }
+    
+    return { renderer: this.renderer };
   },
   autoWrapRow: true,
   autoWrapCol: true,

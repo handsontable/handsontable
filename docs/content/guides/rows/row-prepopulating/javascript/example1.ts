@@ -1,5 +1,8 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
+import {CellProperties} from 'handsontable/settings';
+import Core from 'handsontable/core';
+import {BaseRenderer} from 'handsontable/renderers';
 
 const container = document.querySelector('#example1');
 const templateValues = ['one', 'two', 'three'];
@@ -22,18 +25,16 @@ function isEmptyRow(instance, row) {
   return true;
 }
 
-function defaultValueRenderer(instance, td, row, col, prop, value, cellProperties) {
-  const args = arguments;
-
-  if (args[5] === null && isEmptyRow(instance, row)) {
-    args[5] = templateValues[col];
+const defaultValueRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellProperties) => {
+  if (value === null && isEmptyRow(instance, row)) {
+    value = templateValues[col];
     td.style.color = '#999';
 
   } else {
     td.style.color = '';
   }
 
-  Handsontable.renderers.TextRenderer.apply(this, args);
+  Handsontable.renderers.TextRenderer(instance, td, row, col, prop, value, cellProperties);
 }
 
 const hot: Core = new Handsontable(container, {
@@ -44,7 +45,7 @@ const hot: Core = new Handsontable(container, {
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   cells(row, col, prop) {
-    const cellProperties = {};
+    const cellProperties: Partial<CellProperties> = {};
 
     cellProperties.renderer = defaultValueRenderer;
 

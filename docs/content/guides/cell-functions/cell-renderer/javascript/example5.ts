@@ -1,19 +1,21 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
+import Core from 'handsontable/core';
+import { BaseRenderer } from 'handsontable/renderers';
 
 let isChecked = false;
 const exampleContainer = document.querySelector('#exampleContainer5');
 const container = document.querySelector('#example5');
 
-function customRenderer(instance, td) {
-  Handsontable.renderers.TextRenderer.apply(this, arguments);
+const customRenderer: BaseRenderer = (instance, td, ...rest) => {
+  Handsontable.renderers.TextRenderer(instance, td, ...rest);
 
   if (isChecked) {
     td.style.backgroundColor = 'yellow';
   } else {
     td.style.backgroundColor = 'white';
   }
-}
+};
 
 const hot: Core = new Handsontable(container, {
   height: 'auto',
