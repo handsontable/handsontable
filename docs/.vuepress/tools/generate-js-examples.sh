@@ -2,8 +2,7 @@
 
 # This script generates the JS files for all the TS code examples. It skips the examples that already have a JS file.
 
-find content/guides -name "*.ts" -print0 | while read -d $'\0' ts_filename; do
-  dirname=$(dirname ${ts_filename})
+find content/guides -wholename "*/javascript/*.ts" -print0 | while read -d $'\0' ts_filename; do
   js_filename="${ts_filename%.*}.js"
     
   if [ -f "$js_filename" ]; then
