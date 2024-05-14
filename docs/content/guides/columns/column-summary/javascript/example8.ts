@@ -3,7 +3,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 import {NestedRows} from 'handsontable/plugins'
 
 const container = document.querySelector('#example8');
-const hot: Handsontable = new Handsontable(container, {
+const hot: Core = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     {

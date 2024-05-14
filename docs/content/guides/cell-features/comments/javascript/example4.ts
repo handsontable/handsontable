@@ -2,7 +2,7 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example4');
-const hot: Handsontable = new Handsontable(container, {
+const hot: Core = new Handsontable(container, {
   data: [
     ['', 'Tesla', 'Toyota', 'Honda', 'Ford'],
     ['2018', 10, 11, 12, 13, 15, 16],

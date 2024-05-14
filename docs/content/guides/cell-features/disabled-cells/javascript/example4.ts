@@ -2,7 +2,7 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example4');
-const hot: Handsontable = new Handsontable(container, {
+const hot: Core = new Handsontable(container, {
   data: [
     { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
     { car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue' },

@@ -12,7 +12,7 @@ const manufacturerData = [
   { name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group' }
 ];
 
-const hot: Handsontable = new Handsontable(container, {
+const hot: Core = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['Tesla', 2017, 'black', 'black'],

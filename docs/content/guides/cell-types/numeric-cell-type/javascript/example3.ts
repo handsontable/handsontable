@@ -20,7 +20,7 @@ const formatTR = {
 };
 
 const container = document.querySelector('#example3');
-const hot: Handsontable = new Handsontable(container, {
+const hot: Core = new Handsontable(container, {
   data: [
     {
       productName: 'Product A',

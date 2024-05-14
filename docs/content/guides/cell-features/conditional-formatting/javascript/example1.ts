@@ -1,5 +1,8 @@
 import Handsontable from 'handsontable';
+import {BaseRenderer} from 'handsontable/renderers';
 import 'handsontable/dist/handsontable.full.min.css';
+import {CellProperties} from 'handsontable/settings'
+import Core from 'handsontable/core'
 
 const container = document.querySelector('#example1');
 const data: (string | number)[][] = [
@@ -9,15 +12,15 @@ const data: (string | number)[][] = [
   ['2019', '', 15, -12, 'readOnly']
 ];
 
-function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
-  Handsontable.renderers.TextRenderer.apply(this, arguments);
+const firstRowRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellProperties) => {
+  Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, col, prop, value, cellProperties]);
   td.style.fontWeight = 'bold';
   td.style.color = 'green';
   td.style.background = '#CEC';
 }
 
-function negativeValueRenderer(instance, td, row, col, prop, value, cellProperties) {
-  Handsontable.renderers.TextRenderer.apply(this, arguments);
+const negativeValueRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellProperties) => {
+  Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, col, prop, value, cellProperties]);
 
   // if the row contains a negative number
   if (parseInt(value, 10) < 0) {
@@ -39,7 +42,7 @@ function negativeValueRenderer(instance, td, row, col, prop, value, cellProperti
 // maps function to a lookup string
 Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRenderer);
 
-const hot: Handsontable = new Handsontable(container, {
+const hot: Core = new Handsontable(container, {
   data,
   licenseKey: 'non-commercial-and-evaluation',
   height: 'auto',
@@ -54,7 +57,7 @@ const hot: Handsontable = new Handsontable(container, {
     }
   },
   cells(row, col) {
-    const cellProperties = {};
+    const cellProperties: Partial<CellProperties> = {};
     const data = this.instance.getData();
 
     if (row === 0 || data[row] && data[row][col] === 'readOnly') {

@@ -15,7 +15,7 @@ const greenRenderer = function(instance, td, row, col, prop, value, cellProperti
   td.style.backgroundColor = 'green';
 };
 
-const hot: Handsontable = new Handsontable(container, {
+const hot: Core = new Handsontable(container, {
   data: [
     { id: 1, name: 'Ted', isActive: true, color: 'orange', date: '2015-01-01' },
     { id: 2, name: 'John', isActive: false, color: 'black', date: null },

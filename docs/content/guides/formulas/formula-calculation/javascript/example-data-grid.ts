@@ -108,7 +108,7 @@ const data: (string | number)[][] = [
 ];
 
 const container = document.querySelector('#example-data-grid');
-const hot: Handsontable = new Handsontable(container, {
+const hot: Core = new Handsontable(container, {
   data,
   formulas: {
     engine: HyperFormula,
