@@ -2,7 +2,7 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example1');
-const hot = new Handsontable(container, {
+const hot: Handsontable = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['Mercedes', 'A 160', '01/14/2021', 6999.95],

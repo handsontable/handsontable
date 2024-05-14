@@ -27,7 +27,7 @@ function searchResultCounter(instance, row, col, value, result) {
   }
 }
 
-const hot = new Handsontable(container, {
+const hot: Handsontable = new Handsontable(container, {
   data,
   colHeaders: true,
   // enable the `Search` plugin
