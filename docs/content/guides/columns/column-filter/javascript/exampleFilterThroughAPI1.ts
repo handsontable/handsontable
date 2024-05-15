@@ -3,7 +3,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 import {Filters} from 'handsontable/plugins'
 
 const container = document.querySelector('#exampleFilterThroughAPI1')!;
-const handsontableInstance: Handsontable.Core = new Handsontable(container, {
+const hot: Handsontable.Core = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
@@ -100,7 +100,7 @@ const handsontableInstance: Handsontable.Core = new Handsontable(container, {
 });
 
 // get the `Filters` plugin, so you can use its API
-const filters: Filters = handsontableInstance.getPlugin('filters');
+const filters: Filters = hot.getPlugin('filters');
 
 document.querySelector('.filterBelow200')!.addEventListener('click', () => {
   // clear any existing filters
