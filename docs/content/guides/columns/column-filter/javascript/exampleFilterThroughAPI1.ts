@@ -2,7 +2,7 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 import {Filters} from 'handsontable/plugins'
 
-const container = document.querySelector('#exampleFilterThroughAPI1');
+const container = document.querySelector('#exampleFilterThroughAPI1')!;
 const handsontableInstance: Handsontable.Core = new Handsontable(container, {
   data: [
     {

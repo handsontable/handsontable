@@ -4,7 +4,7 @@ import { BaseRenderer } from 'handsontable/renderers';
 
 let isChecked = false;
 const exampleContainer = document.querySelector('#exampleContainer5');
-const container = document.querySelector('#example5');
+const container = document.querySelector('#example5')!;
 
 const customRenderer: BaseRenderer = (instance, td, ...rest) => {
   Handsontable.renderers.TextRenderer(instance, td, ...rest);
