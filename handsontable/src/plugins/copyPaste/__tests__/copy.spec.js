@@ -251,5 +251,26 @@ describe('CopyPaste', () => {
         '</tbody></table>',
       ].join(''));
     });
+
+    it('should be possible to copy text outside the table when the `outsideClickDeselects` is disabled', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        outsideClickDeselects: false,
+      });
+
+      const testElement = spec().$container.wrap('<div id="testElement">Test</div>');
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectCell(1, 1);
+      copyEvent.target = testElement[0]; // native copy event is triggered on the element outside the table
+      plugin.onCopy(copyEvent); // trigger the plugin's method that is normally triggered by the native "copy" event
+
+      // the result is that the clipboard data is not overwritten by the HoT
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
+
+      testElement.remove();
+    });
   });
 });

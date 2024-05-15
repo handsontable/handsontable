@@ -67,5 +67,27 @@ describe('CopyPaste', () => {
       expect(afterCutSpy).toHaveBeenCalledWith(
         [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }]);
     });
+
+    it('should be possible to cut text outside the table when the `outsideClickDeselects` is disabled', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        outsideClickDeselects: false,
+      });
+
+      const testElement = spec().$container.wrap('<div id="testElement">Test</div>');
+
+      const cutEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectCell(1, 1);
+      cutEvent.target = testElement[0]; // native cut event is triggered on the element outside the table
+      plugin.onCut(cutEvent); // trigger the plugin's method that is normally triggered by the native "cut" event
+
+      // the result is that the clipboard data is not overwritten by the HoT
+      expect(cutEvent.clipboardData.getData('text/plain')).toBe('');
+      expect(getDataAtCell(1, 1)).toBe('B2');
+
+      testElement.remove();
+    });
   });
 });

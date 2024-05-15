@@ -622,6 +622,13 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
+    if (
+      !this.hot.getSettings().outsideClickDeselects &&
+      (event.target !== this.hot.rootDocument.body)
+    ) {
+      return;
+    }
+
     this.setCopyableText();
     this.#isTriggeredByCopy = false;
 
@@ -657,6 +664,13 @@ export class CopyPaste extends BasePlugin {
    */
   onCut(event) {
     if ((!this.hot.isListening() && !this.#isTriggeredByCut) || this.isEditorOpened()) {
+      return;
+    }
+
+    if (
+      !this.hot.getSettings().outsideClickDeselects &&
+      (event.target !== this.hot.rootDocument.body)
+    ) {
       return;
     }
 
@@ -697,9 +711,14 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
-    if (event && event.preventDefault) {
-      event.preventDefault();
+    if (
+      !this.hot.getSettings().outsideClickDeselects &&
+      (event.target !== this.hot.rootDocument.body)
+    ) {
+      return;
     }
+
+    event.preventDefault();
 
     let pastedData;
 

@@ -556,5 +556,26 @@ describe('CopyPaste', () => {
       expect(onErrorSpy).not.toHaveBeenCalled();
       expect(getDataAtCell(0, 0)).toEqual(null);
     });
+
+    it('should be possible to paste text into the outside element of the table when the `outsideClickDeselects` is disabled', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        outsideClickDeselects: false,
+      });
+
+      const testElement = spec().$container.wrap('<div id="testElement">Test</div>');
+
+      const pasteEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectCell(1, 1);
+      pasteEvent.target = testElement[0]; // native paste event is triggered on the element outside the table
+      plugin.onPaste(pasteEvent); // trigger the plugin's method that is normally triggered by the native "paste" event
+
+      // the data in HoT should not be changed as the paste was triggered on the outside element
+      expect(getDataAtCell(1, 1)).toBe('B2');
+
+      testElement.remove();
+    });
   });
 });
