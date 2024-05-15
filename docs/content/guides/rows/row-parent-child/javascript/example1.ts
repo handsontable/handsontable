@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 
 interface Album {
@@ -143,7 +142,7 @@ const sourceDataObject: MusicAward[] = [
 ];
 
 const container = document.querySelector('#example1');
-const hot: Core = new Handsontable(container, {
+const hot: Handsontable.Core = new Handsontable(container, {
   data: sourceDataObject,
   preventOverflow: 'horizontal',
   rowHeaders: true,

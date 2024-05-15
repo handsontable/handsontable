@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import numbro from 'numbro';
 import jaJP from 'numbro/languages/ja-JP';
 import trTR from 'numbro/languages/tr-TR';
@@ -21,7 +20,7 @@ const formatTR = {
 };
 
 const container = document.querySelector('#example3');
-const hot: Core = new Handsontable(container, {
+const hot: Handsontable.Core = new Handsontable(container, {
   data: [
     {
       productName: 'Product A',

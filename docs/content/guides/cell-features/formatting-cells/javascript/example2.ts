@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 import {BaseRenderer} from 'handsontable/renderers';
 
@@ -14,7 +13,7 @@ const customStylesRenderer: BaseRenderer = (hotInstance, TD, ...rest) => {
 Handsontable.renderers.registerRenderer('customStylesRenderer', customStylesRenderer);
 
 const container = document.querySelector('#example2');
-const hot: Core = new Handsontable(container, {
+const hot: Handsontable.Core = new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1'],
     ['A2', 'B2', 'C2', 'D2', 'E2'],

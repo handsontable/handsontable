@@ -1,9 +1,8 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example3');
-const hot: Core = new Handsontable(container, {
+const hot: Handsontable.Core = new Handsontable(container, {
   // top-level grid options that apply to the entire grid
   licenseKey: 'non-commercial-and-evaluation',
   data: [

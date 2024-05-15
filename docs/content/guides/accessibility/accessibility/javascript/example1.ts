@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 
 /* start:skip-in-preview */
@@ -476,7 +475,7 @@ const data: Product[] = [
   },
 ];
 
-const countries = data.reduce((acc, curr) => {
+const countries = data.reduce<string[]>((acc, curr) => {
   if (acc.includes(curr.country)) {
     return acc;
   }
@@ -490,7 +489,7 @@ const countries = data.reduce((acc, curr) => {
 const app = document.getElementById('example1');
 
 // Define configuration options for the Handsontable
-const hotOptions = {
+const hotOptions: Handsontable.GridSettings = {
   data,
   height: 464,
   colWidths: [140, 165, 100, 100, 100, 110, 178],
@@ -546,7 +545,7 @@ const hotOptions = {
 };
 
 // Initialize the Handsontable instance with the specified configuration options
-let hotInstance: Core = new Handsontable(app, hotOptions);
+let hotInstance: Handsontable.Core = new Handsontable(app as Element, hotOptions);
 
 // Helper function to set up checkbox event handling
 const setupCheckbox = (element, callback) =>
@@ -588,7 +587,7 @@ setupCheckbox(
   document.querySelector('#enable-cell-virtualization'),
   (checked) => {
     hotInstance.destroy();
-    hotInstance = new Handsontable(document.getElementById('example1'), {
+    hotInstance = new Handsontable(document.getElementById('example1') as Element, {
       ...hotOptions,
       renderAllRows: !checked,
       renderAllColumns: !checked,

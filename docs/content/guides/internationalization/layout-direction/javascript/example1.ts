@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -35,7 +34,7 @@ function generateArabicData() {
 }
 
 const container = document.querySelector('#example1');
-const hot: Core = new Handsontable(container, {
+const hot: Handsontable.Core = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: generateArabicData(),
   colHeaders: true,
