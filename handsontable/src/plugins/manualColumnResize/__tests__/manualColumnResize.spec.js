@@ -776,7 +776,7 @@ describe('manualColumnResize', () => {
     expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
   });
 
-  it('should resize proper row after resizing element adjacent to a selection', () => {
+  it('should resize the correct column after resizing element adjacent to a selection', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
       rowHeaders: true,
