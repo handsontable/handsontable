@@ -18,7 +18,7 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 };
 
 const container = document.querySelector('#example7');
-const hot: Handsontable.Core = new Handsontable(container, {
+new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   // initialize a Handsontable instance with the generated data
   data: generateData(5, 5, true),

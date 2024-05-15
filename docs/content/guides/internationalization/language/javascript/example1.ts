@@ -13,7 +13,7 @@ const data: [string, string, string, string, string, number][] = [
   ['orci', 'et', 'dignissim', 'hendrerit', '12/1/2016', 8.5]
 ];
 
-const hot: Handsontable.Core = new Handsontable(container, {
+new Handsontable(container, {
   data,
   contextMenu: true,
   height: 'auto',

@@ -34,7 +34,7 @@ function generateArabicData() {
 }
 
 const container = document.querySelector('#example1');
-const hot: Handsontable.Core = new Handsontable(container, {
+new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: generateArabicData(),
   colHeaders: true,
