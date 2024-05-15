@@ -14,15 +14,15 @@ category: Getting started
 
 # Introduction
 
-Handsontable is an popular JavaScript data grid component that brings the well-known look and feel of spreadsheets to your application. 
+Handsontable is a popular JavaScript data grid component that brings the well-known look and feel of spreadsheets to your application.
 
-You can use Handsontable for all types of data-rich, accessible applications, empowering users to enter, edit, validate, and process data from various sources, including remote sources like databases and APIs, as well as HTML documents, Excel files, Google Sheets, and manual input
+You can use Handsontable for all types of data-rich, accessible applications, empowering users to enter, edit, validate, and process data from various sources, including remote sources like databases and APIs, as well as HTML documents, Excel files, Google Sheets, and manual input.
 
 [[toc]]
 
 ## Getting started 🚀
 
-Use Handsontable with plain JavaScript, Typescript or your favorite framework. This guide will walk you through the basics, from installation to creating your first data grid.
+Use Handsontable with plain JavaScript, TypeScript, or your favorite framework. This guide will walk you through the basics, from installation to creating your first data grid.
 
 <div class="boxes-list gray small col3">
 
