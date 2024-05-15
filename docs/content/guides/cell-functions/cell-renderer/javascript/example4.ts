@@ -53,7 +53,7 @@ const coverRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellPr
 
 
 const container = document.querySelector('#example4');
-const hot: Handsontable.Core = new Handsontable(container, {
+new Handsontable(container, {
   data,
   colWidths: [200, 200, 200, 80],
   colHeaders: ['Title', 'Description', 'Comments', 'Cover'],
