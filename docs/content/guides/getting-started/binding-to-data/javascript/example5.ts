@@ -1,7 +1,7 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example5');
+const container = document.querySelector('#example5')!;
 
 interface Person {
   id: number;

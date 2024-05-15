@@ -94,7 +94,7 @@ function log_events(event, data) {
   }
 }
 
-const example1 = document.querySelector('#example1');
+const example1 = document.querySelector('#example1')!;
 const hot: Handsontable.Core = new Handsontable(example1, config);
 
 document.querySelector('#check_select_all').addEventListener('click', function() {

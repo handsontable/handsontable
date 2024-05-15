@@ -1,7 +1,7 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#exampleCustomFilterButton2');
+const container = document.querySelector('#exampleCustomFilterButton2')!;
 new Handsontable(container, {
   data: [
     {

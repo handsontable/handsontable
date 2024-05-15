@@ -10,7 +10,7 @@ const data: string[][] = new Array(1000) // number of rows
       .map((_, column) => `${row}, ${column}`)
   );
 
-const container = document.querySelector('#example1');
+const container = document.querySelector('#example1')!;
 new Handsontable(container, {
   data,
   colWidths: 100,

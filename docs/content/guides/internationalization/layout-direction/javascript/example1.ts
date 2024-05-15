@@ -33,7 +33,7 @@ function generateArabicData() {
   return arr;
 }
 
-const container = document.querySelector('#example1');
+const container = document.querySelector('#example1')!;
 new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: generateArabicData(),
