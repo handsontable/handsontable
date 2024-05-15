@@ -44,7 +44,7 @@ describe('manualColumnResize (RTL)', () => {
 
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
-    expect($columnHeaders.eq(1).width()).toBe(20);
+    expect($columnHeaders.eq(1).width()).toBe(21);
     expect($columnHeaders.eq(2).width()).toBe(21);
     expect($columnHeaders.eq(3).width()).toBe(21);
   });
@@ -77,7 +77,7 @@ describe('manualColumnResize (RTL)', () => {
 
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
-    expect($columnHeaders.eq(1).width()).toBe(199);
+    expect($columnHeaders.eq(1).width()).toBe(200);
     expect($columnHeaders.eq(2).width()).toBe(200);
     expect($columnHeaders.eq(3).width()).toBe(200);
   });

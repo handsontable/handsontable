@@ -137,6 +137,7 @@ module.exports = function(docsVersion, base) {
         tokens.splice(index + 1, 0, ...newTokens);
         const isAngular = /angular(-.*)?/.test(preset);
         const isRTL = /layoutDirection(.*)'rtl'/.test(codeToCompile) || /dir="rtl"/.test(htmlContent);
+        const isReact = /react(-.*)?/.test(preset);
 
         const displayJsFiddle = Boolean(!noEdit && !isAngular);
 
@@ -164,14 +165,15 @@ module.exports = function(docsVersion, base) {
     docsVersion,
     preset
   )}
-                ${Boolean(!noEdit) && codesandbox(
-    id,
-    htmlContent,
-    codeToCompileSandbox,
-    cssContent,
-    docsVersion,
-    preset
-  )}
+  ${!noEdit && !isReact
+    ? codesandbox(
+      id,
+      htmlContent,
+      codeToCompileSandbox,
+      cssContent,
+      docsVersion,
+      preset
+    ) : ''}
                 ${displayJsFiddle ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset) : ''}
                 <button 
                   aria-label="Reset the demo" 

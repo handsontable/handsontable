@@ -385,8 +385,23 @@ class Selection {
 
     this.runLocalHooks('beforeHighlightSet');
     this.setRangeFocus(this.selectedRange.current().highlight);
+    this.applyAndCommit();
 
-    const layerLevel = this.getLayerLevel();
+    const isLastLayer = this.#expectedLayersCount === -1 || this.selectedRange.size() === this.#expectedLayersCount;
+
+    this.runLocalHooks('afterSetRangeEnd', coords, isLastLayer);
+  }
+
+  /**
+   * Applies and commits the selection to all layers (using the Walkontable Selection API) based on the selection (CellRanges)
+   * collected in the `selectedRange` module.
+   *
+   * @param {CellRange} [cellRange] The cell range to apply. If not provided, the current selection is used.
+   * @param {number} [layerLevel] The layer level to apply. If not provided, the current layer level is used.
+   */
+  applyAndCommit(cellRange = this.selectedRange.current(), layerLevel = this.getLayerLevel()) {
+    const countRows = this.tableProps.countRows();
+    const countCols = this.tableProps.countCols();
 
     // If the next layer level is lower than previous then clear all area and header highlights. This is the
     // indication that the new selection is performing.
@@ -525,10 +540,6 @@ class Selection {
           .commit();
       }
     }
-
-    const isLastLayer = this.#expectedLayersCount === -1 || this.selectedRange.size() === this.#expectedLayersCount;
-
-    this.runLocalHooks('afterSetRangeEnd', coords, isLastLayer);
   }
 
   /**
@@ -634,6 +645,132 @@ class Selection {
     const focusCoords = this.#focusTransformation.transformStart(rowDelta, colDelta);
 
     this.setRangeFocus(focusCoords.normalize());
+  }
+
+  /**
+   * Transforms the last selection layer down or up by the index count.
+   *
+   * @param {number} visualRowIndex Visual row index from which the selection will be shifted.
+   * @param {number} amount The number of rows to shift the selection.
+   */
+  shiftRows(visualRowIndex, amount) {
+    if (!this.isSelected()) {
+      return;
+    }
+
+    const range = this.selectedRange.current();
+
+    if (this.isSelectedByCorner()) {
+      this.selectAll(true, true, {
+        disableHeadersHighlight: true,
+      });
+
+    } else if (this.isSelectedByColumnHeader() || range.getOuterTopStartCorner().row >= visualRowIndex) {
+      const { from, to, highlight } = range;
+      const countRows = this.tableProps.countRows();
+      const isSelectedByRowHeader = this.isSelectedByRowHeader();
+      const isSelectedByColumnHeader = this.isSelectedByColumnHeader();
+      const minRow = isSelectedByColumnHeader ? -1 : 0;
+      const coordsStartAmount = isSelectedByColumnHeader ? 0 : amount;
+
+      // Remove from the stack the last added selection as that selection below will be
+      // replaced by new transformed selection.
+      this.getSelectedRange().pop();
+
+      const coordsStart = this.tableProps.createCellCoords(
+        clamp(from.row + coordsStartAmount, minRow, countRows - 1),
+        from.col
+      );
+      const coordsEnd = this.tableProps.createCellCoords(
+        clamp(to.row + amount, minRow, countRows - 1),
+        to.col
+      );
+
+      this.markSource('shift');
+
+      if (highlight.row >= visualRowIndex) {
+        this.setRangeStartOnly(coordsStart, true, this.tableProps.createCellCoords(
+          clamp(highlight.row + amount, 0, countRows - 1),
+          highlight.col
+        ));
+
+      } else {
+        this.setRangeStartOnly(coordsStart, true);
+      }
+
+      if (isSelectedByRowHeader) {
+        this.selectedByRowHeader.add(this.getLayerLevel());
+      }
+      if (isSelectedByColumnHeader) {
+        this.selectedByColumnHeader.add(this.getLayerLevel());
+      }
+
+      this.setRangeEnd(coordsEnd);
+      this.markEndSource();
+    }
+  }
+
+  /**
+   * Transforms the last selection layer left or right by the index count.
+   *
+   * @param {number} visualColumnIndex Visual column index from which the selection will be shifted.
+   * @param {number} amount The number of columns to shift the selection.
+   */
+  shiftColumns(visualColumnIndex, amount) {
+    if (!this.isSelected()) {
+      return;
+    }
+
+    const range = this.selectedRange.current();
+
+    if (this.isSelectedByCorner()) {
+      this.selectAll(true, true, {
+        disableHeadersHighlight: true,
+      });
+
+    } else if (this.isSelectedByRowHeader() || range.getOuterTopStartCorner().col >= visualColumnIndex) {
+      const { from, to, highlight } = range;
+      const countCols = this.tableProps.countCols();
+      const isSelectedByRowHeader = this.isSelectedByRowHeader();
+      const isSelectedByColumnHeader = this.isSelectedByColumnHeader();
+      const minColumn = isSelectedByRowHeader ? -1 : 0;
+      const coordsStartAmount = isSelectedByRowHeader ? 0 : amount;
+
+      // Remove from the stack the last added selection as that selection below will be
+      // replaced by new transformed selection.
+      this.getSelectedRange().pop();
+
+      const coordsStart = this.tableProps.createCellCoords(
+        from.row,
+        clamp(from.col + coordsStartAmount, minColumn, countCols - 1)
+      );
+      const coordsEnd = this.tableProps.createCellCoords(
+        to.row,
+        clamp(to.col + amount, minColumn, countCols - 1)
+      );
+
+      this.markSource('shift');
+
+      if (highlight.col >= visualColumnIndex) {
+        this.setRangeStartOnly(coordsStart, true, this.tableProps.createCellCoords(
+          highlight.row,
+          clamp(highlight.col + amount, 0, countCols - 1)
+        ));
+
+      } else {
+        this.setRangeStartOnly(coordsStart, true);
+      }
+
+      if (isSelectedByRowHeader) {
+        this.selectedByRowHeader.add(this.getLayerLevel());
+      }
+      if (isSelectedByColumnHeader) {
+        this.selectedByColumnHeader.add(this.getLayerLevel());
+      }
+
+      this.setRangeEnd(coordsEnd);
+      this.markEndSource();
+    }
   }
 
   /**
@@ -1102,9 +1239,56 @@ class Selection {
   }
 
   /**
-   * Rewrite the rendered state of the selection as visual selection may have a new representation in the DOM.
+   * Refreshes the whole selection by clearing, reapplying and committing the renderable selection (Walkontable Selection API)
+   * by using already added visual ranges.
    */
   refresh() {
+    if (!this.isSelected()) {
+      return;
+    }
+
+    const countRows = this.tableProps.countRows();
+    const countColumns = this.tableProps.countCols();
+
+    if (countRows === 0 || countColumns === 0) {
+      this.deselect();
+
+      return;
+    }
+
+    const range = this.selectedRange.peekByIndex(this.selectedRange.size() - 1);
+    const { from, to, highlight } = range;
+
+    this.clear();
+
+    highlight.assign({
+      row: clamp(highlight.row, -Infinity, countRows - 1),
+      col: clamp(highlight.col, -Infinity, countColumns - 1),
+    });
+    from.assign({
+      row: clamp(from.row, -Infinity, countRows - 1),
+      col: clamp(from.col, -Infinity, countColumns - 1),
+    });
+    to.assign({
+      row: clamp(to.row, 0, countRows - 1),
+      col: clamp(to.col, 0, countColumns - 1),
+    });
+
+    this.selectedRange.ranges.push(range);
+    this.highlight
+      .getFocus()
+      .add(highlight)
+      .commit()
+      .syncWith(range);
+
+    this.applyAndCommit(range);
+  }
+
+  /**
+   * Refreshes the whole selection by recommitting (recalculating visual indexes to renderable ones) the renderable selection
+   * that was already added.
+   */
+  commit() {
     const customSelections = this.highlight.getCustomSelections();
 
     customSelections.forEach((customSelection) => {

@@ -285,7 +285,9 @@
         flex-wrap: wrap
         gap: 24px
         margin: 24px 0
-
+        @media (max-width: $medium) {
+            gap: 10px
+        }
         > div  { 
             position: relative
             width: calc((100% / 4) - 18px)
@@ -293,7 +295,10 @@
             border-radius: $radius
             padding: 40px 20px 40px 20px
             box-sizing: border-box
-
+            @media (max-width: $medium) {
+                width: calc((100% / 3) - 7px)
+                padding: 20px 5px 40px 5px
+            }
             svg { 
                 display: block
                 height: 32px
@@ -312,6 +317,9 @@
                 bottom: 8px
                 left 12px
                 right: 12px
+                @media (max-width: $medium) {
+                    line-height: 1.05
+                }
             }
         }
     }

@@ -13,8 +13,6 @@ import {
 import { rangeEach } from '../../helpers/number';
 import { createInputElementResizer } from '../../utils/autoResize';
 import { isDefined } from '../../helpers/mixed';
-import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
-import { SHORTCUTS_GROUP_EDITOR } from '../baseEditor/baseEditor';
 import { updateCaretPosition } from './caretPositioner';
 import {
   A11Y_HIDDEN,
@@ -163,13 +161,13 @@ export class TextEditor extends BaseEditor {
         allowInvalid,
       } = cellProperties;
 
-      if (allowInvalid) {
+      if (allowInvalid && !this.isOpened()) {
         // Remove an empty space from textarea (added by copyPaste plugin to make copy/paste
         // functionality work with IME)
         this.TEXTAREA.value = '';
       }
 
-      if (previousState !== EDITOR_STATE.FINISHED) {
+      if (previousState !== EDITOR_STATE.FINISHED && !this.isOpened()) {
         this.hideEditableElement();
       }
     }
@@ -438,7 +436,6 @@ export class TextEditor extends BaseEditor {
   registerShortcuts() {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
-    const gridContext = shortcutManager.getContext('grid');
     const contextConfig = {
       runOnlyIf: () => isDefined(this.hot.getSelected()),
       group: SHORTCUTS_GROUP,
@@ -449,15 +446,6 @@ export class TextEditor extends BaseEditor {
     };
 
     editorContext.addShortcuts([{
-      keys: [
-        ['Tab'],
-        ['Shift', 'Tab'],
-        ['PageUp'],
-        ['PageDown']
-      ],
-      forwardToContext: gridContext,
-      callback: () => {},
-    }, {
       keys: [['Control', 'Enter']],
       callback: () => {
         insertNewLine();
@@ -504,8 +492,6 @@ export class TextEditor extends BaseEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_NAVIGATION);
     editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
-    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_EDITOR);
   }
 }

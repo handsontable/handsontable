@@ -297,4 +297,54 @@ describe('GhostTable', () => {
     expect(gt.isVertical()).toBe(false);
     expect(gt.isHorizontal()).toBe(true);
   });
+
+  it('should not change the coords of the cell meta after row rendering', () => {
+    const hot = handsontable(hotSettings);
+
+    gt = new Handsontable.__GhostTable(hot);
+
+    spyOn(hot, 'getCellMeta').and.returnValue({
+      row: 3,
+      col: 4,
+      visualRow: 5,
+      visualCol: 6,
+      renderer: jasmine.createSpy('renderer'),
+    });
+
+    gt.samples = new Map([[0, { strings: [{ col: 0, value: 'test' }] }]]);
+    gt.createRow(0);
+
+    const cellMeta = getCellMeta(0, 0);
+
+    expect(cellMeta.renderer).toHaveBeenCalledTimes(1);
+    expect(cellMeta.row).toBe(3);
+    expect(cellMeta.col).toBe(4);
+    expect(cellMeta.visualRow).toBe(5);
+    expect(cellMeta.visualCol).toBe(6);
+  });
+
+  it('should not change the coords of the cell meta after column rendering', () => {
+    const hot = handsontable(hotSettings);
+
+    gt = new Handsontable.__GhostTable(hot);
+
+    spyOn(hot, 'getCellMeta').and.returnValue({
+      row: 3,
+      col: 4,
+      visualRow: 5,
+      visualCol: 6,
+      renderer: jasmine.createSpy('renderer'),
+    });
+
+    gt.samples = new Map([[0, { strings: [{ row: 0, value: 'test' }] }]]);
+    gt.createCol(0);
+
+    const cellMeta = getCellMeta(0, 0);
+
+    expect(cellMeta.renderer).toHaveBeenCalledTimes(1);
+    expect(cellMeta.row).toBe(3);
+    expect(cellMeta.col).toBe(4);
+    expect(cellMeta.visualRow).toBe(5);
+    expect(cellMeta.visualCol).toBe(6);
+  });
 });

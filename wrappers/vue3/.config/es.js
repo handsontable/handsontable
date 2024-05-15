@@ -16,6 +16,7 @@ export const esConfig = {
     plugins.replace,
     plugins.VuePlugin,
     plugins.commonjs,
+    plugins.nodeResolve,
     typescript({
       tsconfigOverride: {
         compilerOptions: {
@@ -23,10 +24,8 @@ export const esConfig = {
         }
       },
       useTsconfigDeclarationDir: true,
-      objectHashIgnoreUnknownHack: true,
       clean: true
     }),
     plugins.babel,
-    plugins.nodeResolve,
   ]
 };

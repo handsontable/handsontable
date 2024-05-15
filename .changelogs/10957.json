@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed data populate error when `correctFormat` was used",
+  "type": "fixed",
+  "issueOrPR": 10957,
+  "breaking": false,
+  "framework": "none"
+}
