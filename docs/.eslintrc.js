@@ -5,10 +5,14 @@ module.exports = {
     parser: 'babel-eslint',
     sourceType: 'module'
   },
-  ignorePatterns: ['**/guides/**/*.js'],
+  ignorePatterns: [
+    '**/guides/**/*.js',
+    '**/guides/**/*.ts'
+  ],
   rules: {
     'no-restricted-globals': 'off',
-    'import/no-unresolved': 'off'
+    'import/no-unresolved': 'off',
+    'no-new': 0
   },
   overrides: [
     {
