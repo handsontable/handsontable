@@ -1,8 +1,9 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#exampleSortDifferentTypes');
-const handsontableInstance: Handsontable.Core = new Handsontable(container, {
+const container = document.querySelector('#exampleSortDifferentTypes')!;
+
+new Handsontable(container, {
   data: [
     {
       model: 'Racing Socks',

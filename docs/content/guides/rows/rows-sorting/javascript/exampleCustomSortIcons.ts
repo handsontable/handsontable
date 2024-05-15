@@ -1,8 +1,9 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#exampleCustomSortIcons');
-const handsontableInstance: Handsontable.Core = new Handsontable(container, {
+const container = document.querySelector('#exampleCustomSortIcons')!;
+
+new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',

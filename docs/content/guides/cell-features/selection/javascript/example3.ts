@@ -1,8 +1,8 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const button = document.querySelector('#set-data-action');
-const container = document.querySelector('#example3');
+const container = document.querySelector('#example3')!;
+
 const hot: Handsontable.Core = new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],
@@ -28,9 +28,10 @@ const hot: Handsontable.Core = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-button.addEventListener('click', (event) => {
+const button = document.querySelector('#set-data-action')!;
+
+button.addEventListener('click', () => {
   const selected = hot.getSelected() || [];
-  const target = event.target.id;
 
   hot.suspendRender();
 

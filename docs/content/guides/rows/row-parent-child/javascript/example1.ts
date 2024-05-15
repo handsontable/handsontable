@@ -141,8 +141,9 @@ const sourceDataObject: MusicAward[] = [
   },
 ];
 
-const container = document.querySelector('#example1');
-const hot: Handsontable.Core = new Handsontable(container, {
+const container = document.querySelector('#example1')!;
+
+new Handsontable(container, {
   data: sourceDataObject,
   preventOverflow: 'horizontal',
   rowHeaders: true,

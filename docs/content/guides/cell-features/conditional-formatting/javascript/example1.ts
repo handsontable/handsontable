@@ -1,9 +1,7 @@
 import Handsontable from 'handsontable';
-import {BaseRenderer} from 'handsontable/renderers';
+import { BaseRenderer } from 'handsontable/renderers';
 import 'handsontable/dist/handsontable.full.min.css';
-import {CellProperties} from 'handsontable/settings'
 
-const container = document.querySelector('#example1');
 const data: (string | number)[][] = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
   ['2017', -5, '', 12, 13],
@@ -41,7 +39,9 @@ const negativeValueRenderer: BaseRenderer = (instance, td, row, col, prop, value
 // maps function to a lookup string
 Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRenderer);
 
-const hot: Handsontable.Core = new Handsontable(container, {
+const container = document.querySelector('#example1')!;
+
+new Handsontable(container, {
   data,
   licenseKey: 'non-commercial-and-evaluation',
   height: 'auto',
@@ -56,7 +56,7 @@ const hot: Handsontable.Core = new Handsontable(container, {
     }
   },
   cells(row, col) {
-    const cellProperties: Partial<CellProperties> = {};
+    const cellProperties: Partial<Handsontable.CellProperties> = {};
     const data = this.instance.getData();
 
     if (row === 0 || data[row] && data[row][col] === 'readOnly') {

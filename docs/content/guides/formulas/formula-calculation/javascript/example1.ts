@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable';
-import { HyperFormula } from 'hyperformula';
 import 'handsontable/dist/handsontable.full.min.css';
+import { HyperFormula } from 'hyperformula';
 
 const data1: [string, null, string, string][] = [
   ['10.26', null, 'Sum', '=SUM(A:A)'],
@@ -25,7 +25,7 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
   licenseKey: 'internal-use-in-handsontable',
 });
 
-const container1 = document.querySelector('#example-basic-multi-sheet-1');
+const container1 = document.querySelector('#example-basic-multi-sheet-1')!;
 
 new Handsontable(container1, {
   data: data1,
@@ -41,7 +41,7 @@ new Handsontable(container1, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-const container2 = document.querySelector('#example-basic-multi-sheet-2');
+const container2 = document.querySelector('#example-basic-multi-sheet-2')!;
 
 new Handsontable(container2, {
   data: data2,

@@ -2,8 +2,8 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 import {ExportFile} from 'handsontable/plugins'
 
-const container = document.querySelector('#example3');
-const button = document.querySelector('#export-string');
+const container = document.querySelector('#example3')!;
+
 const hot: Handsontable.Core = new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1'],
@@ -25,6 +25,8 @@ const hot: Handsontable.Core = new Handsontable(container, {
 });
 
 const exportPlugin: ExportFile = hot.getPlugin('exportFile');
+
+const button = document.querySelector('#export-string')!;
 
 button.addEventListener('click', () => {
   const exportedString = exportPlugin.exportAsString('csv', {

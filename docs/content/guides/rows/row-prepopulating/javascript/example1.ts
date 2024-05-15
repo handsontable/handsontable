@@ -1,9 +1,8 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-import {CellProperties} from 'handsontable/settings';
-import {BaseRenderer} from 'handsontable/renderers';
+import { CellProperties } from 'handsontable/settings';
+import { BaseRenderer } from 'handsontable/renderers';
 
-const container = document.querySelector('#example1');
 const templateValues: string[] = ['one', 'two', 'three'];
 const data: (string | number)[][] = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
@@ -12,7 +11,7 @@ const data: (string | number)[][] = [
   ['2019', 30, 15, 12, 13]
 ];
 
-function isEmptyRow(instance, row) {
+function isEmptyRow(instance, _row) {
   const rowData = instance.countRows();
 
   for (let i = 0, ilen = rowData.length; i < ilen; i++) {
@@ -36,6 +35,8 @@ const defaultValueRenderer: BaseRenderer = (instance, td, row, col, prop, value,
   Handsontable.renderers.TextRenderer(instance, td, row, col, prop, value, cellProperties);
 }
 
+const container = document.querySelector('#example1')!;
+
 const hot: Handsontable.Core = new Handsontable(container, {
   startRows: 8,
   startCols: 5,
@@ -55,10 +56,10 @@ const hot: Handsontable.Core = new Handsontable(container, {
     const columns = instance.countCols();
     const rowColumnSeen = {};
     const rowsToFill = {};
-
+    // TODO: fix type
     for (let i = 0; i < changes.length; i++) {
       // if oldVal is empty
-      if (changes[i][2] === null && changes[i][3] !== null) {
+      if (changes && changes[i][2] === null && changes[i][3] !== null) {
         if (isEmptyRow(instance, changes[i][0])) {
           // add this row/col combination to the cache so it will not be overwritten by the template
           rowColumnSeen[`${changes[i][0]}/${changes[i][1]}`] = true;
