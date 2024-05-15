@@ -14,6 +14,7 @@ basePlugin.init();
 basePlugin.enablePlugin();
 basePlugin.disablePlugin();
 basePlugin.addHook('beforeKeyDown', (event: any) => false);
+basePlugin.addHook('beforeKeyDown', (event: any) => false, 1);
 basePlugin.removeHooks('beforeKeyDown');
 basePlugin.clearHooks();
 basePlugin.callOnPluginsReady(() => {});

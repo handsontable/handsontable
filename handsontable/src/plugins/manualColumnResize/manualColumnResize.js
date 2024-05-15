@@ -139,7 +139,7 @@ export class ManualColumnResize extends BasePlugin {
     this.#columnWidthsMap.addLocalHook('init', () => this.#onMapInit());
     this.hot.columnIndexMapper.registerMap(this.pluginName, this.#columnWidthsMap);
 
-    this.addHook('modifyColWidth', (width, col) => this.#onModifyColWidth(width, col));
+    this.addHook('modifyColWidth', (width, col) => this.#onModifyColWidth(width, col), 1);
     this.addHook('beforeStretchingColumnWidth',
       (stretchedWidth, column) => this.#onBeforeStretchingColumnWidth(stretchedWidth, column));
     this.addHook('beforeColumnResize',
