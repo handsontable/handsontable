@@ -261,7 +261,7 @@ export interface Events {
 }
 
 export class Hooks {
-  add<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, context?: Core): Hooks;
+  add<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, context?: Core, orderIndex?: number): Hooks;
   createEmptyBucket(): Bucket;
   deregister(key: string): void;
   destroy(context?: Core): void;
