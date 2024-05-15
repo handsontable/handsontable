@@ -1,7 +1,7 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-import { CellProperties } from 'handsontable/settings';
 import { BaseRenderer } from 'handsontable/renderers';
+
 
 const templateValues: string[] = ['one', 'two', 'three'];
 const data: (string | number)[][] = [
@@ -11,7 +11,7 @@ const data: (string | number)[][] = [
   ['2019', 30, 15, 12, 13]
 ];
 
-function isEmptyRow(instance, _row) {
+function isEmptyRow(instance) {
   const rowData = instance.countRows();
 
   for (let i = 0, ilen = rowData.length; i < ilen; i++) {
@@ -44,8 +44,8 @@ const hot: Handsontable.Core = new Handsontable(container, {
   contextMenu: true,
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
-  cells(row, col, prop) {
-    const cellProperties: Partial<CellProperties> = {};
+  cells() {
+    const cellProperties: Partial<Handsontable.CellProperties> = {};
 
     cellProperties.renderer = defaultValueRenderer;
 
