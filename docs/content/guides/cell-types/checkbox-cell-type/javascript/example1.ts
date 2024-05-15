@@ -1,8 +1,9 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example1');
-const hot: Handsontable.Core = new Handsontable(container, {
+const container = document.querySelector('#example1')!;
+
+new Handsontable(container, {
   data: [
     { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
     { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },

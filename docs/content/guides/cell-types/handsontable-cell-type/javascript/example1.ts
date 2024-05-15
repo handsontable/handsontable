@@ -7,7 +7,6 @@ interface Manufacturer {
   owner: string;
 }
 
-const container = document.querySelector('#example1');
 const colorData: [string][] = [['yellow'], ['red'], ['orange'], ['green'], ['blue'], ['gray'], ['black'], ['white']];
 const manufacturerData: Manufacturer[] = [
   { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
@@ -18,7 +17,9 @@ const manufacturerData: Manufacturer[] = [
   { name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group' }
 ];
 
-const hot: Handsontable.Core = new Handsontable(container, {
+const container = document.querySelector('#example1')!;
+
+new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['Tesla', 2017, 'black', 'black'],

@@ -2,7 +2,6 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 import { BaseRenderer } from 'handsontable/renderers';
 
-const container = document.querySelector('#example1');
 const colors: string[] = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
 
 const yellowRenderer: BaseRenderer = (instance, td, ...rest) =>{
@@ -16,7 +15,9 @@ const greenRenderer: BaseRenderer = (instance, td, ...rest) => {
   td.style.backgroundColor = 'green';
 };
 
-const hot: Handsontable.Core = new Handsontable(container, {
+const container = document.querySelector('#example1')!;
+
+new Handsontable(container, {
   data: [
     { id: 1, name: 'Ted', isActive: true, color: 'orange', date: '2015-01-01' },
     { id: 2, name: 'John', isActive: false, color: 'black', date: null },

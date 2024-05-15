@@ -1,7 +1,6 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example2');
 const data: (string | number)[][] = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
   ['2017', 10, 11, 12, 13],
@@ -11,7 +10,9 @@ const data: (string | number)[][] = [
   ['2021', '', '', '', '']
 ];
 
-const hot: Handsontable.Core = new Handsontable(container, {
+const container = document.querySelector('#example2')!;
+
+new Handsontable(container, {
   data,
   rowHeaders: true,
   colHeaders: true,

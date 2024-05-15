@@ -1,9 +1,7 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-import {Search} from 'handsontable/plugins'
+import { Search } from 'handsontable/plugins'
 
-const container = document.querySelector('#example3');
-const searchField = document.querySelector('#search_field3');
 const data: (string | number)[][] = [
   ['Tesla', 2017, 'black', 'black'],
   ['Nissan', 2018, 'blue', 'blue'],
@@ -15,6 +13,8 @@ const data: (string | number)[][] = [
 function onlyExactMatch(queryStr, value) {
   return queryStr.toString() === value.toString();
 }
+
+const container = document.querySelector('#example3')!;
 
 const hot: Handsontable.Core = new Handsontable(container, {
   data,
@@ -30,10 +30,12 @@ const hot: Handsontable.Core = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
+const searchField = document.querySelector('#search_field3')!;
+
 searchField.addEventListener('keyup', (event) => {
   const search: Search = hot.getPlugin('search');
   // use the `Search`'s `query()` method
-  const queryResult = search.query(event.target.value);
+  const queryResult = search.query((event.target as HTMLInputElement).value);
 
   console.log(queryResult);
 
