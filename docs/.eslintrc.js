@@ -11,8 +11,7 @@ module.exports = {
   ],
   rules: {
     'no-restricted-globals': 'off',
-    'import/no-unresolved': 'off',
-    'no-new': 0
+    'import/no-unresolved': 'off'
   },
   overrides: [
     {
