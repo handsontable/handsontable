@@ -15,7 +15,7 @@ const data: Person[] = [
   { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' }
 ];
 
-const hot: Handsontable.Core = new Handsontable(container, {
+new Handsontable(container, {
   data,
   colHeaders: true,
   height: 'auto',
