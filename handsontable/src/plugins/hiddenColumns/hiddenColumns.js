@@ -184,7 +184,7 @@ export class HiddenColumns extends BasePlugin {
 
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.#onAfterContextMenuDefaultOptions(...args));
     this.addHook('afterGetCellMeta', (row, col, cellProperties) => this.#onAfterGetCellMeta(row, col, cellProperties));
-    this.addHook('modifyColWidth', (width, col) => this.#onModifyColWidth(width, col));
+    this.addHook('modifyColWidth', (width, col) => this.#onModifyColWidth(width, col), 2);
     this.addHook('afterGetColHeader', (...args) => this.#onAfterGetColHeader(...args));
     this.addHook('modifyCopyableRange', ranges => this.#onModifyCopyableRange(ranges));
 
